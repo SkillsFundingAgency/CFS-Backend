@@ -1,4 +1,6 @@
-﻿namespace CalculateFunding.Services.Publishing.Models
+﻿using CalculateFunding.Models.Publishing;
+
+namespace CalculateFunding.Services.Publishing.Models
 {
     public class PublishedProviderFundingStreamStatus : PublishedProviderFundingCount
     {

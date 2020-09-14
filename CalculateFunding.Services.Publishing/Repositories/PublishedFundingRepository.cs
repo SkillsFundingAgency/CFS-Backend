@@ -657,8 +657,8 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                 c.content.current.date DESC",
                 Parameters = new[]
                 {
-                    new CosmosDbQueryParameter("@specificationId", specificationId), 
-                    new CosmosDbQueryParameter("@fundingStreamId", fundingStreamId), 
+                    new CosmosDbQueryParameter("@specificationId", specificationId),
+                    new CosmosDbQueryParameter("@fundingStreamId", fundingStreamId),
                     new CosmosDbQueryParameter("@fundingPeriodId", fundingPeriodId)
                 }
             };
@@ -709,8 +709,8 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                 c.content.date DESC",
                 Parameters = new[]
                 {
-                    new CosmosDbQueryParameter("@specificationId", specificationId), 
-                    new CosmosDbQueryParameter("@fundingStreamId", fundingStreamId), 
+                    new CosmosDbQueryParameter("@specificationId", specificationId),
+                    new CosmosDbQueryParameter("@fundingStreamId", fundingStreamId),
                     new CosmosDbQueryParameter("@fundingPeriodId", fundingPeriodId)
                 }
             };
@@ -941,7 +941,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                         Provider = new Provider { ProviderId = _.providerId, Name = _.providerName },
                         MajorVersion = _.majorVersion,
                         MinorVersion = _.minorVersion,
-                        TotalFunding =_.totalFunding,
+                        TotalFunding = _.totalFunding,
                     }
                 });
         }
@@ -1001,7 +1001,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
         /// <param name="specificationId"></param>
         /// <param name="statuses">the statuses to restrict to</param>
         /// <returns></returns>
-        public async Task<PublishedProviderFundingCount> GetPublishedProviderStatusCount(IEnumerable<string> publishedProviderIds,
+        public async Task<IEnumerable<PublishedProviderFunding>> GetPublishedProvidersFunding(IEnumerable<string> publishedProviderIds,
             string specificationId,
             params PublishedProviderStatus[] statuses)
         {
@@ -1010,36 +1010,55 @@ namespace CalculateFunding.Services.Publishing.Repositories
             Guard.Ensure(publishedProviderIds.Count() <= 100, "You can only filter against 100 published provider ids at a time");
             Guard.IsNotEmpty(statuses, nameof(statuses));
 
-            CosmosDbQuery query = new CosmosDbQuery
-            {
-                QueryText = @"
+            StringBuilder queryTextBuilder = new StringBuilder(@"
                               SELECT 
-                                  COUNT(1) AS count, 
-                                  SUM(c.content.current.totalFunding) AS totalFundingSum
+                                  c.content.current.specificationId,
+                                  c.content.current.publishedProviderId,
+                                  c.content.current.fundingStreamId,
+                                  c.content.current.totalFunding,
+                                  c.content.current.provider.providerType,
+                                  c.content.current.provider.providerSubType, 
+                                  c.content.current.provider.laCode
                               FROM publishedProvider c
                               WHERE c.documentType = 'PublishedProvider'
                               AND c.deleted = false 
-                              AND c.content.current.specificationId = @specificationId
-                              AND c.content.current.publishedProviderId IN (@publishedProviderIds) 
-                              AND c.content.current.status IN (@statuses)
-                              AND c.deleted = false",
-                Parameters = new[]
-                {
-                    new CosmosDbQueryParameter("@specificationId", specificationId), 
-                    new CosmosDbQueryParameter("@publishedProviderIds", publishedProviderIds.ToArray()), 
-                    new CosmosDbQueryParameter("@statuses", statuses?.Select(_ => _.ToString()).ToArray())
-                }
+                              AND c.content.current.specificationId = @specificationId");
+
+            List<CosmosDbQueryParameter> cosmosDbQueryParameters = new List<CosmosDbQueryParameter>{
+                new CosmosDbQueryParameter("@specificationId", specificationId)
             };
 
-            dynamic result = (await _repository
-                    .DynamicQuery(query))
-                .FirstOrDefault();
+            string publishedProviderIdQueryText = string.Join(',', publishedProviderIds.Select((_, index) => $"@publishedProviderId_{index}"));
+            queryTextBuilder.Append($" AND c.content.current.publishedProviderId IN ({publishedProviderIdQueryText})");
+            
+            cosmosDbQueryParameters.AddRange(publishedProviderIds.Select((_, index) => new CosmosDbQueryParameter($"@publishedProviderId_{index}", _)));
 
-            return new PublishedProviderFundingCount
+            string statusesQueryText = string.Join(',', statuses.Select((_, index) => $"@status_{index}"));
+            queryTextBuilder.Append($" AND c.content.current.status IN ({statusesQueryText})");
+
+            cosmosDbQueryParameters.AddRange(statuses.Select((_, index) => new CosmosDbQueryParameter($"@status_{index}", _.ToString())));
+
+            CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
             {
-                Count = ((int?) result?.count).GetValueOrDefault(),
-                TotalFunding = ((decimal?) result?.totalFundingSum).GetValueOrDefault()
+                QueryText = queryTextBuilder.ToString(),
+                Parameters = cosmosDbQueryParameters
             };
+            
+            IEnumerable<dynamic> results = await _repository.DynamicQuery(cosmosDbQuery);
+
+            return results.Select(_ => new PublishedProviderFunding()
+            {
+                SpecificationId = (string)_.specificationId,
+                PublishedProviderId = (string)_.publishedProviderId,
+                FundingStreamId = (string)_.fundingStreamId,
+                TotalFunding = (decimal?)_.totalFunding,
+                ProviderTypeSubType = new ProviderTypeSubType()
+                {
+                    ProviderType = (string)_.providerType,
+                    ProviderSubType = (string)_.providerSubType
+                },
+                LaCode = (string)_.laCode
+            });
         }
 
         public async Task<IEnumerable<string>> GetPublishedProviderErrorSummaries(string specificationId)

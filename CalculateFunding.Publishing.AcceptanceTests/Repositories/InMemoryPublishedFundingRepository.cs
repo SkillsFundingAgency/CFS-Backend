@@ -425,11 +425,6 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             int batchSize) =>
             throw new NotImplementedException();
 
-        public Task<PublishedProviderFundingCount> GetPublishedProviderStatusCount(IEnumerable<string> publishedProviderIds,
-            string specificationId,
-            params PublishedProviderStatus[] statuses) =>
-            throw new NotImplementedException();
-
         public Task<IEnumerable<string>> GetPublishedProviderErrorSummaries(string specificationId)
         {
             IEnumerable<string> errorMessageSummaries = _repo.PublishedProviders
@@ -459,5 +454,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             string fundingStreamId, 
             string providerId) =>
                 throw new NotImplementedException();
+
+        public Task<IEnumerable<PublishedProviderFunding>> GetPublishedProvidersFunding(IEnumerable<string> publishedProviderIds, string specificationId, params PublishedProviderStatus[] statuses)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

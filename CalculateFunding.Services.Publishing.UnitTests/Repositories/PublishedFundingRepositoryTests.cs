@@ -558,7 +558,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
         [TestMethod]
         public void GetPublishedProviderStatusCountGuardsAgainstMissingSpecificationId()
         {
-            Func<Task<PublishedProviderFundingCount>> invocation = () => WhenThePublishedProviderStatusCountIsQueried(AsArray(NewRandomString()),
+            Func<Task<IEnumerable<PublishedProviderFunding>>> invocation = () => WhenThePublishedProviderFundingIsQueried(AsArray(NewRandomString()),
                 null,
                 NewRandomStatus());
 
@@ -574,7 +574,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
         [TestMethod]
         public void GetPublishedProviderStatusCountGuardsAgainstEmptyPublishedProviderIds()
         {
-            Func<Task<PublishedProviderFundingCount>> invocation = () => WhenThePublishedProviderStatusCountIsQueried(AsArray<string>(),
+            Func<Task<IEnumerable<PublishedProviderFunding>>> invocation = () => WhenThePublishedProviderFundingIsQueried(AsArray<string>(),
                 NewRandomString(),
                 NewRandomStatus());
 
@@ -590,7 +590,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
         [TestMethod]
         public void GetPublishedProviderStatusCountGuardsAgainstTooManyPublishedProviderIds()
         {
-            Func<Task<PublishedProviderFundingCount>> invocation = () => WhenThePublishedProviderStatusCountIsQueried(new string[101],
+            Func<Task<IEnumerable<PublishedProviderFunding>>> invocation = () => WhenThePublishedProviderFundingIsQueried(new string[101],
                 NewRandomString(),
                 NewRandomStatus());
 
@@ -606,7 +606,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
         [TestMethod]
         public void GetPublishedProviderStatusCountGuardsAgainstMissingPublishedProviderIds()
         {
-            Func<Task<PublishedProviderFundingCount>> invocation = () => WhenThePublishedProviderStatusCountIsQueried(null,
+            Func<Task<IEnumerable<PublishedProviderFunding>>> invocation = () => WhenThePublishedProviderFundingIsQueried(null,
                 NewRandomString(),
                 NewRandomStatus());
 
@@ -622,7 +622,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
         [TestMethod]
         public void GetPublishedProviderStatusCountGuardsAgainstMissingStatuses()
         {
-            Func<Task<PublishedProviderFundingCount>> invocation = () => WhenThePublishedProviderStatusCountIsQueried(AsArray(NewRandomString()),
+            Func<Task<IEnumerable<PublishedProviderFunding>>> invocation = () => WhenThePublishedProviderFundingIsQueried(AsArray(NewRandomString()),
                 NewRandomString());
 
             invocation
@@ -635,54 +635,62 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
         }
 
         [TestMethod]
-        public async Task GetPublishedProviderStatusCount()
+        public async Task GetPublishedProvidesFunding()
         {
-            string[] publishedProviderIds = AsArray(NewRandomString(),
-                NewRandomString(),
-                NewRandomString(),
-                NewRandomString());
-            PublishedProviderStatus[] statuses = AsArray(NewRandomStatus(),
-                NewRandomStatus());
+            string publishedProviderId0 = NewRandomString();
+            string publishedProviderId1 = NewRandomString();
+            string publishedProviderId2 = NewRandomString();
+
+            string[] publishedProviderIds = AsArray(publishedProviderId0, publishedProviderId1, publishedProviderId2);
+
+            PublishedProviderStatus status0 = NewRandomStatus();
+            PublishedProviderStatus status1 = NewRandomStatus();
+
+            PublishedProviderStatus[] statuses = AsArray(status0, status1);
             string specificationId = NewRandomString();
+            string fundingStreamId = NewRandomString();
+            string providerType = NewRandomString();
+            string providerSubType = NewRandomString();
+            string laCode = NewRandomString();
+            decimal totalFunding = NewRandomNumber();
 
-            int expectedCount = NewRandomNumber();
-            decimal expectedTotalFunding = NewRandomNumber();
+            List<dynamic> results = new List<dynamic>() {
+                CreatePublishedProviderFundingResult(specificationId, publishedProviderId0),
+                CreatePublishedProviderFundingResult(specificationId, publishedProviderId1),
+                CreatePublishedProviderFundingResult(specificationId, publishedProviderId2)
+            };
             
-            dynamic result = new ExpandoObject();
+            GivenTheDynamicResultsForTheQuery(QueryMatch(specificationId, publishedProviderIds, statuses), results);
 
-            result.count = expectedCount;
-            result.totalFundingSum = expectedTotalFunding;
+            IEnumerable<PublishedProviderFunding> fundings = await WhenThePublishedProviderFundingIsQueried(publishedProviderIds, specificationId, statuses);
 
-            GivenTheDynamicResultsForTheQuery(QueryMatch(specificationId, publishedProviderIds, statuses),
-                AsArray(result));
-
-            PublishedProviderFundingCount fundingCount = await WhenThePublishedProviderStatusCountIsQueried(publishedProviderIds, specificationId, statuses);
-
-            fundingCount
+            fundings
+                .Count()
                 .Should()
-                .BeEquivalentTo(new PublishedProviderFundingCount
-                {
-                    Count = expectedCount,
-                    TotalFunding = expectedTotalFunding
-                });
+                .Be(3);
 
             Func<CosmosDbQuery, bool> QueryMatch(string s,
                 string[] strings,
                 PublishedProviderStatus[] publishedProviderStatuses) =>
                 _ => _.QueryText == @"
                               SELECT 
-                                  COUNT(1) AS count, 
-                                  SUM(c.content.current.totalFunding) AS totalFundingSum
+                                  c.content.current.specificationId,
+                                  c.content.current.publishedProviderId,
+                                  c.content.current.fundingStreamId,
+                                  c.content.current.totalFunding,
+                                  c.content.current.provider.providerType,
+                                  c.content.current.provider.providerSubType, 
+                                  c.content.current.provider.laCode
                               FROM publishedProvider c
                               WHERE c.documentType = 'PublishedProvider'
                               AND c.deleted = false 
-                              AND c.content.current.specificationId = @specificationId
-                              AND c.content.current.publishedProviderId IN (@publishedProviderIds) 
-                              AND c.content.current.status IN (@statuses)
-                              AND c.deleted = false" &&
+                              AND c.content.current.specificationId = @specificationId AND c.content.current.publishedProviderId IN (@publishedProviderId_0,@publishedProviderId_1,@publishedProviderId_2) AND c.content.current.status IN (@status_0,@status_1)" &&
                      HasParameter(_, "@specificationId", s) &&
-                     HasArrayParameter(_, "@publishedProviderIds", strings) &&
-                     HasArrayParameter(_, "@statuses", publishedProviderStatuses.Select(sts => sts.ToString()));
+                     HasParameter(_, "@publishedProviderId_0", publishedProviderId0) &&
+                     HasParameter(_, "@publishedProviderId_1", publishedProviderId1) &&
+                     HasParameter(_, "@publishedProviderId_2", publishedProviderId2) &&
+                     HasParameter(_, "@status_0", status0.ToString()) &&
+                     HasParameter(_, "@status_1", status1.ToString());
         }
         
         private void GivenTheDynamicResultsForTheQuery(Func<CosmosDbQuery, bool> queryMatch, IEnumerable<object> expectedResults)
@@ -694,10 +702,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
         
         private TItem[] AsArray<TItem>(params TItem[] items) => items;
 
-        private async Task<PublishedProviderFundingCount> WhenThePublishedProviderStatusCountIsQueried(IEnumerable<string> publishedProviderIds,
+        private async Task<IEnumerable<PublishedProviderFunding>> WhenThePublishedProviderFundingIsQueried(IEnumerable<string> publishedProviderIds,
             string specificationId,
             params PublishedProviderStatus[] statuses)
-            => await _repository.GetPublishedProviderStatusCount(publishedProviderIds, specificationId, statuses);
+            => await _repository.GetPublishedProvidersFunding(publishedProviderIds, specificationId, statuses);
 
         private async Task WhenThePublishedProvidersAreDeleted()
         {
@@ -753,5 +761,25 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
         private string NewRandomString() => new RandomString();
         
         private PublishedProviderStatus NewRandomStatus() => new RandomEnum<PublishedProviderStatus>();
+
+        private dynamic CreatePublishedProviderFundingResult(string specificationId, string publishedProviderId)
+        {
+            string fundingStreamId = NewRandomString();
+            string providerType = NewRandomString();
+            string providerSubType = NewRandomString();
+            string laCode = NewRandomString();
+            decimal totalFunding = NewRandomNumber();
+
+            dynamic result = new ExpandoObject();
+            result.specificationId = specificationId;
+            result.publishedProviderId = publishedProviderId;
+            result.fundingStreamId = fundingStreamId;
+            result.totalFunding = totalFunding;
+            result.providerType = providerType;
+            result.providerSubType = providerSubType;
+            result.laCode = laCode;
+
+            return result;
+        }
     }
 }

@@ -51,7 +51,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
                 specificationId);
 
             IProducerConsumer producerConsumer = _producerConsumerFactory.CreateProducerConsumer(ProducePublishedProviderIds,
-                GetFundingCountForPublishedProviderIds,
+                GetFundingForPublishedProviderIds,
                 20,
                 5,
                 _logger);
@@ -74,22 +74,22 @@ namespace CalculateFunding.Services.Publishing.Specifications
             return Task.FromResult((true, ArraySegment<string>.Empty.AsEnumerable()));
         }
 
-        private async Task GetFundingCountForPublishedProviderIds(CancellationToken cancellationToken,
+        private async Task GetFundingForPublishedProviderIds(CancellationToken cancellationToken,
             dynamic context,
             IEnumerable<string> items)
         {
             PublishedProviderFundingCountProcessorContext countContext = (PublishedProviderFundingCountProcessorContext) context;
 
-            PublishedProviderFundingCount count = await _publishedFundingPolicy.ExecuteAsync(() => _publishedFunding.GetPublishedProviderStatusCount(items,
+            IEnumerable<PublishedProviderFunding> fundings = await _publishedFundingPolicy.ExecuteAsync(() => _publishedFunding.GetPublishedProvidersFunding(items,
                 countContext.SpecificationId,
                 countContext.Statuses));
             
-            countContext.AddCount(count);
+            countContext.AddFundings(fundings);
         }
 
         private class PublishedProviderFundingCountProcessorContext : PagedContext<string>
         {
-            private readonly ConcurrentBag<PublishedProviderFundingCount> _counts = new ConcurrentBag<PublishedProviderFundingCount>();
+            private readonly ConcurrentBag<PublishedProviderFunding> _fundings = new ConcurrentBag<PublishedProviderFunding>();
 
             public PublishedProviderFundingCountProcessorContext(IEnumerable<string> items,
                 PublishedProviderStatus[] statuses,
@@ -104,16 +104,24 @@ namespace CalculateFunding.Services.Publishing.Specifications
 
             public PublishedProviderStatus[] Statuses { get; }
 
-            public void AddCount(PublishedProviderFundingCount count)
+            public void AddFundings(IEnumerable<PublishedProviderFunding> fundings)
             {
-                _counts.Add(count);
+                foreach (PublishedProviderFunding funding in fundings)
+                {
+                    _fundings.Add(funding);
+                }
             }
 
             public PublishedProviderFundingCount GetTotal()
                 => new PublishedProviderFundingCount
                 {
-                    Count = _counts.Sum(_ => _.Count),
-                    TotalFunding = _counts.Sum(_ => _.TotalFunding)
+                    Count = _fundings.Count(),
+                    TotalFunding = _fundings.Sum(_ => _.TotalFunding.GetValueOrDefault(0)),
+                    ProviderTypes = _fundings.Select(_ => _.ProviderTypeSubType).Distinct().ToList(),
+                    FundingStreamsFundings = _fundings.GroupBy(x => x.FundingStreamId)
+                                                    .Select(g => new PublishedProivderFundingStreamFunding() { FundingStreamId = g.Key, TotalFunding = g.Sum(_ => _.TotalFunding.GetValueOrDefault(0))})
+                                                    .ToList(),
+                    LocalAuthorities = _fundings.Select(_ => _.LaCode).Distinct().ToList()
                 };
         }
     }

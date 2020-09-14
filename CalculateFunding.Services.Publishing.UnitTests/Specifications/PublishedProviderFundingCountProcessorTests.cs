@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -45,31 +46,98 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             string[] publishedProviderIds = Join(pageOne, pageTwo, pageThree);
 
             string specificationId = NewRandomString();
-            
-            PublishedProviderStatus[] statuses = AsArray(NewRandomStatus(),
-                NewRandomStatus());
+            string fundingStreamId1 = NewRandomString();
+            string fundingStreamId2 = NewRandomString();
+            string providerType1 = NewRandomString();
+            string providerSubType1 = NewRandomString();
+            string providerSubType2 = NewRandomString();
+            string laCode1 = NewRandomString();
+            string laCode2 = NewRandomString();
 
-            PublishedProviderFundingCount countOne = NewPublishedProviderFundingCount();
-            PublishedProviderFundingCount countTwo = NewPublishedProviderFundingCount();
-            PublishedProviderFundingCount countThree = NewPublishedProviderFundingCount();
+            decimal totalFunding1 = NewRandomNumber();
+            decimal totalFunding2 = NewRandomNumber();
+            decimal totalFunding3 = NewRandomNumber();
 
-            PublishedProviderFundingCount[] fundingCounts = AsArray(countOne, countTwo, countThree);
-            
+            PublishedProviderStatus[] statuses = AsArray(NewRandomStatus(), NewRandomStatus());
+
+            PublishedProviderFunding fundingOne = NewPublishedProviderFunding(_ => _.WithSpecificationId(specificationId)
+                                                                                    .WithPublishedProviderId(pageOne.First())
+                                                                                    .WithFundingStreamId(fundingStreamId1)
+                                                                                    .WithProviderType(providerType1)
+                                                                                    .WithProviderSubType(providerSubType1)
+                                                                                    .WithTotalFunding(totalFunding1)
+                                                                                    .WithLaCode(laCode1));
+            PublishedProviderFunding fundingTwo = NewPublishedProviderFunding(_ => _.WithSpecificationId(specificationId)
+                                                                                    .WithPublishedProviderId(pageTwo.Last())
+                                                                                    .WithFundingStreamId(fundingStreamId2)
+                                                                                    .WithProviderType(providerType1)
+                                                                                    .WithProviderSubType(providerSubType2)
+                                                                                    .WithTotalFunding(totalFunding2)
+                                                                                    .WithLaCode(laCode2));
+            PublishedProviderFunding fundingThree = NewPublishedProviderFunding(_ => _.WithSpecificationId(specificationId)
+                                                                                      .WithPublishedProviderId(pageThree.Skip(1).First())
+                                                                                      .WithFundingStreamId(fundingStreamId1)
+                                                                                      .WithProviderType(providerType1)
+                                                                                      .WithProviderSubType(providerSubType1)
+                                                                                      .WithTotalFunding(totalFunding3)
+                                                                                      .WithLaCode(laCode1));
+
+            PublishedProviderFunding[] fundings = AsArray(fundingOne, fundingTwo, fundingThree);
+
             PublishedProviderFundingCount expectedTotalCount = new PublishedProviderFundingCount
             {
-                Count = fundingCounts.Sum(_ => _.Count),
-                TotalFunding = fundingCounts.Sum(_ => _.TotalFunding)
+                Count = fundings.Count(),
+                TotalFunding = fundings.Sum(_ => _.TotalFunding)
             };
 
-            GivenThePublishedProviderFundingCount(pageOne, specificationId, statuses, countOne);
-            AndThePublishedProviderFundingCount(pageTwo, specificationId, statuses, countTwo);
-            AndThePublishedProviderFundingCount(pageThree, specificationId, statuses, countThree);
+            GivenThePublishedProvidersFunding(pageOne, specificationId, statuses, new[] { fundingOne });
+            AndThePublishedProviderFundingCount(pageTwo, specificationId, statuses, new[] { fundingTwo });
+            AndThePublishedProviderFundingCount(pageThree, specificationId, statuses, new[] { fundingThree });
 
             PublishedProviderFundingCount actualFundingCount = await WhenTheTotalFundingCountIsProcessed(publishedProviderIds, specificationId, statuses);
-            
+
             actualFundingCount
+                .Count
                 .Should()
-                .BeEquivalentTo(expectedTotalCount);
+                .Be(fundings.Length);
+
+            actualFundingCount
+                .ProviderTypesCount
+                .Should()
+                .Be(2);
+
+            actualFundingCount
+                .ProviderTypes
+                .Should()
+                .BeEquivalentTo(new[]
+                {
+                    new ProviderTypeSubType() {ProviderType = providerType1, ProviderSubType = providerSubType1 },
+                    new ProviderTypeSubType() {ProviderType = providerType1, ProviderSubType = providerSubType2 }
+                });
+
+            actualFundingCount
+                .LocalAuthoritiesCount
+                .Should()
+                .Be(2);
+
+            actualFundingCount
+                .LocalAuthorities
+                .Should()
+                .BeEquivalentTo(new[] { laCode1, laCode2 });
+
+            actualFundingCount
+                .FundingStreamsFundings
+                .Should()
+                .BeEquivalentTo(new[]
+                {
+                    new PublishedProivderFundingStreamFunding() { FundingStreamId = fundingStreamId1, TotalFunding = totalFunding1 + totalFunding3},
+                    new PublishedProivderFundingStreamFunding() { FundingStreamId = fundingStreamId2, TotalFunding = totalFunding2}
+                });
+
+            actualFundingCount
+                .TotalFunding
+                .Should()
+                .Be(totalFunding1 + totalFunding2 + totalFunding3);
         }
 
         private async Task<PublishedProviderFundingCount> WhenTheTotalFundingCountIsProcessed(IEnumerable<string> publishedProviderIds,
@@ -80,20 +148,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         private void AndThePublishedProviderFundingCount(IEnumerable<string> publishedProviderIds,
             string specificationId,
             PublishedProviderStatus[] statuses,
-            PublishedProviderFundingCount count)
+            IEnumerable<PublishedProviderFunding> fundings)
         {
-            GivenThePublishedProviderFundingCount(publishedProviderIds, specificationId, statuses, count);
+            GivenThePublishedProvidersFunding(publishedProviderIds, specificationId, statuses, fundings);
         }
 
-        private void GivenThePublishedProviderFundingCount(IEnumerable<string> publishedProviderIds,
+        private void GivenThePublishedProvidersFunding(IEnumerable<string> publishedProviderIds,
             string specificationId,
             PublishedProviderStatus[] statuses,
-            PublishedProviderFundingCount count)
+            IEnumerable<PublishedProviderFunding> fundings)
         {
-            _publishedFunding.Setup(_ => _.GetPublishedProviderStatusCount(It.Is<IEnumerable<string>>(ids => ids.SequenceEqual(publishedProviderIds)),
+            _publishedFunding.Setup(_ => _.GetPublishedProvidersFunding(It.Is<IEnumerable<string>>(ids => ids.SequenceEqual(publishedProviderIds)),
                     It.Is<string>(spec => spec == specificationId),
                     It.Is<PublishedProviderStatus[]>(sts => sts.SequenceEqual(statuses))))
-                .ReturnsAsync(count);
+                .ReturnsAsync(fundings);
         }
 
         private string[] Join(params string[][] pages) => pages.SelectMany(_ => _).ToArray();
@@ -105,14 +173,21 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 yield return NewRandomString();
             }
         }
-        
+
         private string NewRandomString() => new RandomString();
+        private decimal NewRandomNumber() => new RandomNumberBetween(0, int.MaxValue);
 
         private TItem[] AsArray<TItem>(params TItem[] items) => items;
-        
+
         private PublishedProviderStatus NewRandomStatus() => new RandomEnum<PublishedProviderStatus>();
-        
-        private PublishedProviderFundingCount NewPublishedProviderFundingCount() => new PublishedProviderFundingCountBuilder()
-            .Build();
+
+        private PublishedProviderFunding NewPublishedProviderFunding(Action<PublishedProviderFundingBuilder> setUp = null)
+        {
+            PublishedProviderFundingBuilder builder = new PublishedProviderFundingBuilder();
+
+            setUp?.Invoke(builder);
+
+            return builder.Build();
+        }
     }
 }

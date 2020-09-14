@@ -131,7 +131,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             Func<List<PublishedFundingVersion>, Task> batchProcessor,
             int batchSize);
 
-        Task<PublishedProviderFundingCount> GetPublishedProviderStatusCount(IEnumerable<string> publishedProviderIds,
+        Task<IEnumerable<PublishedProviderFunding>> GetPublishedProvidersFunding(IEnumerable<string> publishedProviderIds,
             string specificationId,
             params PublishedProviderStatus[] statuses);
 
