@@ -82,6 +82,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
                 FundingFeedSearchRepository = Policy.NoOpAsync(),
                 JobsApiClient = Policy.NoOpAsync(),
                 PoliciesApiClient = Policy.NoOpAsync(),
+                ProfilingApiClient = Policy.NoOpAsync(),
                 ProvidersApiClient = Policy.NoOpAsync(),
                 PublishedFundingBlobRepository = Policy.NoOpAsync(),
                 PublishedFundingRepository = Policy.NoOpAsync(),

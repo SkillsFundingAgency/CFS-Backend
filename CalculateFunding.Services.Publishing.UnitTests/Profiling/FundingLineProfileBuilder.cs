@@ -13,6 +13,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
         private DateTime? _lastUpdatedDate;
         private Reference _lastUpdatedUser;
         private string _profilePatternKey;
+        private string _profilePatternName;
+        private string _fundingLineCode;
+        private string _fundingLineName;
         private string _providerName;
         private decimal? _remainingAmount;
         private decimal? _totalAllocation;
@@ -61,6 +64,27 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             return this;
         }
 
+        public FundingLineProfileBuilder WithProfilePatternName(string profilePatternName)
+        {
+            _profilePatternName = profilePatternName;
+
+            return this;
+        }
+
+        public FundingLineProfileBuilder WithFundingLineCode(string fundingLineCode)
+        {
+            _fundingLineCode = fundingLineCode;
+
+            return this;
+        }
+
+        public FundingLineProfileBuilder WithFundingLineName(string fundingLineName)
+        {
+            _fundingLineName = fundingLineName;
+
+            return this;
+        }
+
         public FundingLineProfileBuilder WithProviderName(string providerName)
         {
             _providerName = providerName;
@@ -93,14 +117,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
         {
             return new FundingLineProfile
             {
-                AmountAlreadyPaid = _amountAlreadyPaid.GetValueOrDefault(NewRandomNumberBetween(1000, 99999)),
+                FundingLineCode = _fundingLineCode,
+                FundingLineName = _fundingLineName,
+                ProfilePatternName = _profilePatternName,
+                AmountAlreadyPaid = _amountAlreadyPaid.GetValueOrDefault(),
                 CarryOverAmount = _carryOverAmount.GetValueOrDefault(NewRandomNumberBetween(1000, 99999)),
                 LastUpdatedDate = _lastUpdatedDate.GetValueOrDefault(NewRandomDateTime().DateTime),
                 LastUpdatedUser = _lastUpdatedUser,
                 ProfilePatternKey = _profilePatternKey,
                 ProviderName = _providerName,
-                RemainingAmount = _remainingAmount.GetValueOrDefault(NewRandomNumberBetween(1000, 99999)),
-                TotalAllocation = _totalAllocation.GetValueOrDefault(NewRandomNumberBetween(1000, 99999)),
+                RemainingAmount = _remainingAmount.GetValueOrDefault(),
+                TotalAllocation = _totalAllocation.GetValueOrDefault(),
                 ProfileTotals = _profileTotals,
                 ProfileTotalAmount = _profileTotalAmount.GetValueOrDefault(NewRandomNumberBetween(1000, 99999)),
             };

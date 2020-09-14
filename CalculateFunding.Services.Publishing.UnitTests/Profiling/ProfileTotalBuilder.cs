@@ -7,6 +7,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
     public class ProfileTotalBuilder : TestEntityBuilder
     {
         private string _typeValue;
+        private string _periodType;
         private int? _occurrence;
         private int? _year;
         private decimal? _value;
@@ -58,6 +59,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             return this;
         }
 
+        public ProfileTotalBuilder WithPeriodType(string periodType)
+        {
+            _periodType = periodType;
+
+            return this;
+        }
+
         public ProfileTotalBuilder WithYear(int year)
         {
             _year = year;
@@ -83,7 +91,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                 IsPaid = _isPaid,
                 ActualDate = _actualDate,
                 InstallmentNumber = _installmentNumber.GetValueOrDefault(),
-                ProfileRemainingPercentage = _profileRemainingPercentage
+                ProfileRemainingPercentage = _profileRemainingPercentage,
+                PeriodType = _periodType
             };
         }     
     }

@@ -120,6 +120,23 @@ namespace CalculateFunding.Api.Publishing.Controllers
                     (specificationId, providerId, fundingStreamId, fundingLineCode);
 
         /// <summary>
+        /// Returns the current configuration of profiles and their funding line values for a provider for a funding stream for a funding period
+        /// </summary>
+        /// <param name="specificationId">Specifcation Id</param>
+        /// <param name="providerId">Provider Id</param>
+        /// <param name="fundingStreamId">Funding Stream Id</param>
+        /// <returns></returns>
+        [ProducesResponseType(200, Type = typeof(List<FundingLineProfile>))]
+        [ProducesResponseType(404)]
+        [HttpGet("api/publishedproviderfundinglinedetails/{specificationId}/{providerId}/{fundingStreamId}")]
+        public async Task<IActionResult> GetCurrentProfileConfig(
+            [FromRoute] string specificationId,
+            [FromRoute] string providerId,
+            [FromRoute] string fundingStreamId)
+                => await _profileTotalsService.GetCurrentProfileConfig
+                    (specificationId, providerId, fundingStreamId);
+
+        /// <summary>
         /// Get profile history for a provider for all funding lines
         /// </summary>
         /// <param name="fundingStreamId">Funding Stream Id</param>

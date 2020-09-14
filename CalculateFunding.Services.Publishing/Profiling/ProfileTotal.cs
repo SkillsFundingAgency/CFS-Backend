@@ -12,7 +12,9 @@ namespace CalculateFunding.Services.Publishing.Profiling
         public int Occurrence { get; set; }
         
         public decimal Value { get; set; }
-        
+
+        public string PeriodType { get; set; }
+
         public bool IsPaid { get; set; }
 
         public int InstallmentNumber { get; set; }

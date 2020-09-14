@@ -16,6 +16,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         AsyncPolicy PublishedFundingBlobRepository { get; set; }
         AsyncPolicy CalculationsApiClient { get; set; }
         AsyncPolicy PoliciesApiClient { get; set; }
+        AsyncPolicy ProfilingApiClient { get; set; }
         AsyncPolicy SpecificationsApiClient { get; set; }
         AsyncPolicy PublishedIndexSearchResiliencePolicy { get; set; }
         AsyncPolicy FundingStreamPaymentDatesRepository { get; set; }

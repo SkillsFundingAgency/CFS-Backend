@@ -32,5 +32,10 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             string providerId,
             string fundingStreamId,
             string fundingLineCode);
+
+        Task<IActionResult> GetCurrentProfileConfig(
+            string specificationId,
+            string providerId,
+            string fundingStreamId);
     }
 }

@@ -8,7 +8,6 @@ using CalculateFunding.Common.ApiClient.Models;
 using System;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace CalculateFunding.Services.Publishing

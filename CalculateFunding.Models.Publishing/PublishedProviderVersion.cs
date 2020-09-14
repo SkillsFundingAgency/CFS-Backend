@@ -209,6 +209,12 @@ namespace CalculateFunding.Models.Publishing
         public ProfilingAudit GetLatestFundingLineAudit(string fundingLineCode)
             => ProfilingAudits?.Where(_ => _.FundingLineCode == fundingLineCode)?.OrderByDescending(_ => _.Date)?.FirstOrDefault();
 
+        public Reference GetLatestFundingLineUser(string fundingLineCode)
+            => GetLatestFundingLineAudit(fundingLineCode)?.User ?? Author;
+
+        public DateTimeOffset GetLatestFundingLineDate(string fundingLineCode)
+         => GetLatestFundingLineAudit(fundingLineCode)?.Date ?? Date;
+
         public void AddCarryOver(string fundingLineCode,
             ProfilingCarryOverType type,
             decimal amount)

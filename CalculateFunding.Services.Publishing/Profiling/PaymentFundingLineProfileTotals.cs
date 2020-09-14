@@ -49,7 +49,8 @@ namespace CalculateFunding.Services.Publishing.Profiling
                     Occurrence = grouping.Key.Occurrence,
                     Year = grouping.Key.Year,
                     TypeValue = grouping.Key.TypeValue,
-                    Value = grouping.Sum(profilePeriod => profilePeriod.ProfiledValue)
+                    Value = grouping.Sum(profilePeriod => profilePeriod.ProfiledValue),
+                    PeriodType = grouping.FirstOrDefault().Type.ToString()
                 })
                 .ToArray();
         }

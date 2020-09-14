@@ -11,6 +11,7 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
+using Polly;
 using Serilog;
 
 namespace CalculateFunding.Services.Publishing
@@ -19,13 +20,21 @@ namespace CalculateFunding.Services.Publishing
     {
         protected readonly IProfilingApiClient _profilingApiClient;
         private readonly ILogger _logger;
+        private readonly AsyncPolicy _profilingApiClientPolicy;
 
-        public ProfilingService(ILogger logger, IProfilingApiClient profilingApiClient)
+        public ProfilingService(
+            ILogger logger, 
+            IProfilingApiClient profilingApiClient,
+            IPublishingResiliencePolicies publishingResiliencePolicies)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(profilingApiClient, nameof(profilingApiClient));
+            Guard.ArgumentNotNull(publishingResiliencePolicies, nameof(publishingResiliencePolicies));
+            Guard.ArgumentNotNull(publishingResiliencePolicies.ProfilingApiClient, nameof(publishingResiliencePolicies.ProfilingApiClient));
+
             _logger = logger;
             _profilingApiClient = profilingApiClient;
+            _profilingApiClientPolicy = publishingResiliencePolicies.ProfilingApiClient;
         }
 
         /// <summary>
@@ -103,6 +112,21 @@ namespace CalculateFunding.Services.Publishing
             SaveFundingLineTotals(ref fundingLines, profilingResponses);
 
             return profilePatternKeysToReturn;
+        }
+
+        public async Task<IEnumerable<FundingStreamPeriodProfilePattern>> GetProfilePatternsForFundingStreamAndFundingPeriod(
+            string fundingStreamId,
+            string fundingPeriodId)
+        {
+            Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
+            Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
+
+            ApiResponse<IEnumerable<FundingStreamPeriodProfilePattern>> distinctTemplateMetadataFundingLinesContentsResponse =
+                await _profilingApiClientPolicy.ExecuteAsync(() =>
+                _profilingApiClient.GetProfilePatternsForFundingStreamAndFundingPeriod(
+                    fundingStreamId, fundingPeriodId));
+
+            return distinctTemplateMetadataFundingLinesContentsResponse?.Content;
         }
 
         private async Task<ValidatedApiResponse<ProviderProfilingResponseModel>> GetProviderProfilePeriods(ProviderProfilingRequestModel requestModel)

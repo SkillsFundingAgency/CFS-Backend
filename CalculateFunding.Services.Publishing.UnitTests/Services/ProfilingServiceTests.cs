@@ -8,10 +8,12 @@ using CalculateFunding.Common.ApiClient.Profiling;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
+using CalculateFunding.Services.Publishing.Interfaces;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
+using Polly;
 using Serilog;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Services
@@ -378,7 +380,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         {
             return new ProfilingService(
                 logger ?? CreateLogger(),
-                profilingApiClient ?? CreateProfilingRepository());
+                profilingApiClient ?? CreateProfilingRepository(),
+                GenerateTestPolicies());
+        }
+
+        public static IPublishingResiliencePolicies GenerateTestPolicies()
+        {
+            return new ResiliencePolicies()
+            {
+                ProfilingApiClient = Policy.NoOpAsync(),
+            };
         }
 
         static IProfilingApiClient CreateProfilingRepository()
