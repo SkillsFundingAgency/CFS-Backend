@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using CalculateFunding.Functions.Calcs.ServiceBus;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Services.Calcs.Caching;
 using CalculateFunding.Services.Core.Constants;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
@@ -11,6 +12,32 @@ namespace CalculateFunding.Functions.DebugQueue
 {
     public static class Calcs
     {
+        [FunctionName("on-update-code-context-cache-poisoned")]
+        public static async Task RunUpdateCodeContextCacheFailure([QueueTrigger(ServiceBusConstants.QueueNames.UpdateCodeContextCachePoisonedLocal, Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using IServiceScope scope = Functions.Calcs.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+            Message message = Helpers.ConvertToMessage<DatasetRelationshipSummary>(item);
+
+            OnUpdateCodeContextCacheFailure function = scope.ServiceProvider.GetService<OnUpdateCodeContextCacheFailure>();
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
+
+        [FunctionName("on-update-code-context-cache")]
+        public static async Task RunUpdateCodeContextCache([QueueTrigger(ServiceBusConstants.QueueNames.UpdateCodeContextCache, Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using IServiceScope scope = Functions.Calcs.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+            Message message = Helpers.ConvertToMessage<string>(item);
+
+            OnUpdateCodeContextCache function = scope.ServiceProvider.GetService<OnUpdateCodeContextCache>();
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
+        
         [FunctionName("on-calcs-add-data-relationship")]
         public static async Task RunCalcsAddRelationshipToBuildProject([QueueTrigger(ServiceBusConstants.QueueNames.UpdateBuildProjectRelationships, Connection = "AzureConnectionString")] string item, ILogger log)
         {

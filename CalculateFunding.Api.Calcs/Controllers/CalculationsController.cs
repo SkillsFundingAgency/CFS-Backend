@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Aggregations;
@@ -24,6 +25,7 @@ namespace CalculateFunding.Api.Calcs.Controllers
         private readonly ICalculationsSearchService _calcsSearchService;
         private readonly IBuildProjectsService _buildProjectsService;
         private readonly IQueueReIndexSpecificationCalculationRelationships _calculationRelationships;
+        private readonly ICodeContextCache _codeContextCache;
 
         public CalculationsController(
             ICalculationService calcsService,
@@ -31,7 +33,8 @@ namespace CalculateFunding.Api.Calcs.Controllers
             IPreviewService previewService,
             IBuildProjectsService buildProjectsService,
             IQueueReIndexSpecificationCalculationRelationships calculationRelationships,
-            ICalculationFundingLineQueryService calculationFundingLineQueryService)
+            ICalculationFundingLineQueryService calculationFundingLineQueryService,
+            ICodeContextCache codeContextCache)
         {
             Guard.ArgumentNotNull(calcsService, nameof(calcsService));
             Guard.ArgumentNotNull(calcsSearchService, nameof(calcsSearchService));
@@ -39,6 +42,7 @@ namespace CalculateFunding.Api.Calcs.Controllers
             Guard.ArgumentNotNull(buildProjectsService, nameof(buildProjectsService));
             Guard.ArgumentNotNull(calculationRelationships, nameof(calculationRelationships));
             Guard.ArgumentNotNull(calculationFundingLineQueryService, nameof(calculationFundingLineQueryService));
+            Guard.ArgumentNotNull(codeContextCache, nameof(codeContextCache));
 
             _calcsService = calcsService;
             _previewService = previewService;
@@ -46,6 +50,7 @@ namespace CalculateFunding.Api.Calcs.Controllers
             _buildProjectsService = buildProjectsService;
             _calculationRelationships = calculationRelationships;
             _calculationFundingLineQueryService = calculationFundingLineQueryService;
+            _codeContextCache = codeContextCache;
         }
 
         [HttpGet("api/specifications/{specificationId}/calculations/calculationType/{calculationType}")]
@@ -241,5 +246,10 @@ namespace CalculateFunding.Api.Calcs.Controllers
         [Produces(typeof(IEnumerable<CalculationFundingLine>))]
         public async Task<IActionResult> GetRootFundingLinesForCalculation([FromRoute] string calculationId)
             => await _calculationFundingLineQueryService.GetCalculationFundingLines(calculationId);
+
+        [HttpPost("api/calcs/specifications/{specificationId}/code-context/update")]
+        [Produces(typeof(Job))]
+        public async Task<IActionResult> QueueUpdateCodeContext([FromRoute] string specificationId)
+            => await _codeContextCache.QueueCodeContextCacheUpdate(specificationId);
     }
 }

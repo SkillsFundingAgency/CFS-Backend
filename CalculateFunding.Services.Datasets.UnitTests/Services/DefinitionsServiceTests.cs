@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Repositories.Common.Search;
@@ -37,7 +38,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
 
         [TestMethod]
-        async public Task SaveDefinition_GivenNoYamlWasProvidedWithNoFileName_ReturnsBadRequest()
+        public async Task SaveDefinition_GivenNoYamlWasProvidedWithNoFileName_ReturnsBadRequest()
         {
             //Arrange
             ILogger logger = CreateLogger();
@@ -58,7 +59,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task SaveDefinition_GivenNoYamlWasProvidedButFileNameWas_ReturnsBadRequest()
+        public async Task SaveDefinition_GivenNoYamlWasProvidedButFileNameWas_ReturnsBadRequest()
         {
             //Arrange
             ILogger logger = CreateLogger();
@@ -79,7 +80,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task SaveDefinition_GivenNoYamlWasProvidedButIsInvalid_ReturnsBadRequest()
+        public async Task SaveDefinition_GivenNoYamlWasProvidedButIsInvalid_ReturnsBadRequest()
         {
             //Arrange
             string yaml = "invalid yaml";
@@ -102,7 +103,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task SaveDefinition_GivenInvalidFundingStreamIdWasProvidedButIsInvalid_ReturnsBadRequest()
+        public async Task SaveDefinition_GivenInvalidFundingStreamIdWasProvidedButIsInvalid_ReturnsBadRequest()
         {
             //Arrange
             string yaml = CreateRawDefinition();
@@ -133,7 +134,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task SaveDefinition_GivenUpdatedYamlWithRemovedFieldButAlreadyUsedInRelationship_ReturnsBadRequest()
+        public async Task SaveDefinition_GivenUpdatedYamlWithRemovedFieldButAlreadyUsedInRelationship_ReturnsBadRequest()
         {
             //Arrange
             IEnumerable<string> specificationIds = new[] { "spec-1" };
@@ -184,7 +185,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task SaveDefinition_GivenUpdatedYamlWithChangedIdentifierTypeFieldButAlreadyUsedInRelationship_ReturnsBadRequest()
+        public async Task SaveDefinition_GivenUpdatedYamlWithChangedIdentifierTypeFieldButAlreadyUsedInRelationship_ReturnsBadRequest()
         {
             //Arrange
             IEnumerable<string> specificationIds = new[] { "spec-1" };
@@ -235,7 +236,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task SaveDefinition_GivenValidYamlButFailedToSaveToDatabase_ReturnsStatusCode()
+        public async Task SaveDefinition_GivenValidYamlButFailedToSaveToDatabase_ReturnsStatusCode()
         {
             //Arrange
             string yaml = CreateRawDefinition();
@@ -278,7 +279,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task SaveDefinition_GivenValidYamlButSavingToDatabaseThrowsException_ReturnsInternalServerError()
+        public async Task SaveDefinition_GivenValidYamlButSavingToDatabaseThrowsException_ReturnsInternalServerError()
         {
             //Arrange
             string yaml = CreateRawDefinition();
@@ -317,7 +318,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task SaveDefinition_GivenValidYamlButFailsToGenerateExcelFile_ReturnsInvalidServerError()
+        public async Task SaveDefinition_GivenValidYamlButFailsToGenerateExcelFile_ReturnsInvalidServerError()
         {
             //Arrange
             string yaml = CreateRawDefinition();
@@ -382,7 +383,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task SaveDefinition_GivenValidYamlButFailsToUploadToBlobStorage_ReturnsInvalidServerError()
+        public async Task SaveDefinition_GivenValidYamlButFailsToUploadToBlobStorage_ReturnsInvalidServerError()
         {
             //Arrange
             string yaml = CreateRawDefinition();
@@ -454,7 +455,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task SaveDefinition_GivenValidYamlAndSearchDoesNotContainExistingItem_ThenSaveWasSuccesfulAndReturnsOK()
+        public async Task SaveDefinition_GivenValidYamlAndSearchDoesNotContainExistingItem_ThenSaveWasSuccesfulAndReturnsOK()
         {
             //Arrange
             string yaml = CreateRawDefinition();
@@ -545,7 +546,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task SaveDefinition_GivenValidYamlAndSearchDoesContainsExistingItemWithModelUpdates_ThenSaveWasSuccesfulAndSearchUpdatedAndReturnsOK()
+        public async Task SaveDefinition_GivenValidYamlAndSearchDoesContainsExistingItemWithModelUpdates_ThenSaveWasSuccesfulAndSearchUpdatedAndReturnsOK()
         {
             //Arrange
             string yaml = CreateRawDefinition();
@@ -639,6 +640,7 @@ namespace CalculateFunding.Services.Datasets.Services
                     i.Id == "9183" &&
                     i.Name == "14/15"
                    ));
+
 
             logger
                 .Received(1)
@@ -742,7 +744,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task SaveDefinition_GivenValidYamlAndDoesContainsExistingItemWithModelUpdates_ThenAddsMessageToTopicAndReturnsOK()
+        public async Task SaveDefinition_GivenValidYamlAndDoesContainsExistingItemWithModelUpdates_ThenAddsMessageToTopicAndReturnsOK()
         {
             //Arrange
             string yaml = CreateRawDefinition();
@@ -781,7 +783,12 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetBlockBlobReference(Arg.Any<string>())
                 .Returns(blob);
 
-            DatasetDefinitionChanges datasetDefinitionChanges = new DatasetDefinitionChanges();
+            string changesId = NewRandomString();
+            
+            DatasetDefinitionChanges datasetDefinitionChanges = new DatasetDefinitionChanges
+            {
+                Id = changesId
+            };
             
             datasetDefinitionChanges.DefinitionChanges.Add(DefinitionChangeType.DefinitionName);
 
@@ -796,6 +803,19 @@ namespace CalculateFunding.Services.Datasets.Services
             policyRepository
                 .GetFundingStreams()
                 .Returns(NewFundingStreams());
+            
+            string specificationOneId = NewRandomString();
+            string specificationTwoId = NewRandomString();
+            string specificationThreeId = NewRandomString();
+            
+            datasetsRepository
+                .GetDistinctRelationshipSpecificationIdsForDatasetDefinitionId(changesId)
+                .Returns(new[]
+                {
+                    specificationOneId, specificationTwoId, specificationThreeId
+                });
+            
+            ICalculationsApiClient calculations = CreateCalculationsApiClient();
 
             DefinitionsService service = CreateDefinitionsService(
                 logger, 
@@ -804,7 +824,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 blobClient: blobClient, 
                 definitionChangesDetectionService: definitionChangesDetectionService,
                 messengerService: messengerService,
-                policyRepository: policyRepository);
+                policyRepository: policyRepository,
+                calculations: calculations);
 
             //Act
             IActionResult result = await service.SaveDefinition(yaml, yamlFile, null, null);
@@ -821,6 +842,19 @@ namespace CalculateFunding.Services.Datasets.Services
                         Arg.Is(ServiceBusConstants.TopicNames.DataDefinitionChanges), 
                         Arg.Is(datasetDefinitionChanges), 
                         Arg.Any<IDictionary<string, string>>());
+            
+            
+            await calculations
+                .Received(1)
+                .QueueCodeContextUpdate(specificationOneId);
+            
+            await calculations
+                .Received(1)
+                .QueueCodeContextUpdate(specificationTwoId);
+            
+            await calculations
+                .Received(1)
+                .QueueCodeContextUpdate(specificationThreeId);
         }
 
         [TestMethod]
@@ -903,7 +937,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task GetDatasetDefinitions_GivenDefinitionsRequestedButContainsNoResults_ReturnsEmptyArray()
+        public async Task GetDatasetDefinitions_GivenDefinitionsRequestedButContainsNoResults_ReturnsEmptyArray()
         {
             //Arrange
             IEnumerable<DatasetDefinition> definitions = new DatasetDefinition[0];
@@ -934,7 +968,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task GetDatasetDefinitions_GivenDefinitionsRequestedButContainsResults_ReturnsArray()
+        public async Task GetDatasetDefinitions_GivenDefinitionsRequestedButContainsResults_ReturnsArray()
         {
             //Arrange
             IEnumerable<DatasetDefinition> definitions = new[]
@@ -968,7 +1002,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task GetDatasetDefinitionsByFundingStream_GivenDefinitionsRequestedButContainsNoResults_ReturnsNotFound()
+        public async Task GetDatasetDefinitionsByFundingStream_GivenDefinitionsRequestedButContainsNoResults_ReturnsNotFound()
         {
             //Arrange
             IEnumerable<DatasetDefinationByFundingStream> definitions = new DatasetDefinationByFundingStream[0];
@@ -990,7 +1024,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task GetDatasetDefinitionsByFundingStream_GivenDefinitionsRequestedButContainsResults_ReturnsArray()
+        public async Task GetDatasetDefinitionsByFundingStream_GivenDefinitionsRequestedButContainsResults_ReturnsArray()
         {
             //Arrange
             IEnumerable<DatasetDefinationByFundingStream> definitions = new[]
@@ -1177,7 +1211,8 @@ namespace CalculateFunding.Services.Datasets.Services
             IDefinitionChangesDetectionService definitionChangesDetectionService = null,
             IMessengerService messengerService = null,
             IPolicyRepository policyRepository = null,
-            IValidator<DatasetDefinition> datasetDefinitionValidator = null)
+            IValidator<DatasetDefinition> datasetDefinitionValidator = null,
+            ICalculationsApiClient calculations = null)
         {
             return new DefinitionsService(logger ?? CreateLogger(),
                 datasetsRepository ?? CreateDataSetsRepository(),
@@ -1188,8 +1223,11 @@ namespace CalculateFunding.Services.Datasets.Services
                  definitionChangesDetectionService ?? CreateChangesDetectionService(),
                  messengerService ?? CreateMessengerService(),
                  policyRepository ?? CreatePolicyRepository(),
-                 datasetDefinitionValidator ?? CreateDatasetDefinitionValidator());
+                 datasetDefinitionValidator ?? CreateDatasetDefinitionValidator(),
+                 calculations ?? CreateCalculationsApiClient());
         }
+
+        protected static ICalculationsApiClient CreateCalculationsApiClient() => Substitute.For<ICalculationsApiClient>();
 
         static IValidator<DatasetDefinition> CreateDatasetDefinitionValidator(ValidationResult validationResult = null)
         {

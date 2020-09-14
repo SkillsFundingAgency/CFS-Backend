@@ -150,6 +150,12 @@
             public const string MergeSpecificationInformationForProviderPoisonedLocal = "merge-specification-information-poisoned";
 
             public const string ProviderSnapshotDataLoad = "provider-snapshot-data-load";
+
+            public const string UpdateCodeContextCache = "code-context-update";
+            
+            public const string UpdateCodeContextCachePoisoned = "code-context-update/$DeadLetterQueue";
+            
+            public const string UpdateCodeContextCachePoisonedLocal = "code-context-update-poisoned";
         }
 
         public static class TopicNames

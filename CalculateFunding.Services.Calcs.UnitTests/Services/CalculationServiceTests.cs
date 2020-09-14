@@ -53,7 +53,8 @@ namespace CalculateFunding.Services.Calcs.Services
             IValidator<CalculationEditModel> calculationEditModelValidator = null,
             ISpecificationsApiClient specificationsApiClient = null,
             IGraphRepository graphRepository = null,
-            ICalculationsFeatureFlag calculationsFeatureFlag = null)
+            ICalculationsFeatureFlag calculationsFeatureFlag = null,
+            ICodeContextCache codeContextCache = null)
         {
             CalculationNameInUseCheck calculationNameInUseCheck = new CalculationNameInUseCheck(calculationsRepository ?? CreateCalculationsRepository(),
                 specificationsApiClient ?? CreateSpecificationsApiClient(),
@@ -96,7 +97,8 @@ namespace CalculateFunding.Services.Calcs.Services
                     logger ?? CreateLogger(),
                     instructionAllocationJobCreation),
                 graphRepository?? CreateGraphRepository(),
-                CreateJobManagement());
+                CreateJobManagement(),
+                codeContextCache ?? Substitute.For<ICodeContextCache>());
         }
 
         private static ICalculationCodeReferenceUpdate CreateCalculationCodeReferenceUpdate()

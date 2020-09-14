@@ -160,8 +160,6 @@ namespace CalculateFunding.Services.Datasets
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
-            IDictionary<string, object> properties = message.UserProperties;
-
             Dataset dataset = message.GetPayloadAsInstanceOf<Dataset>();
 
             string jobId = message.UserProperties["jobId"].ToString();
@@ -249,15 +247,13 @@ namespace CalculateFunding.Services.Datasets
                 return;
             }
 
-            BuildProject buildProject = null;
-
             Reference user = message.GetUserDetails();
 
             string correlationId = message.GetCorrelationId();
 
             try
             {
-                buildProject = await ProcessDataset(dataset, specification, relationshipId, relationship.DatasetVersion.Version, user, relationship.IsSetAsProviderData, correlationId);
+                BuildProject buildProject = await ProcessDataset(dataset, specification, relationshipId, relationship.DatasetVersion.Version, user, relationship.IsSetAsProviderData, correlationId);
 
                 await _datasetVersionKeyProvider.AddOrUpdateProviderSourceDatasetVersionKey(relationshipId, Guid.NewGuid());
 
@@ -378,7 +374,6 @@ namespace CalculateFunding.Services.Datasets
                 // This type of exception is not retriable so fail
                 _logger.Error(argEx, $"Failed to run ProcessDataset with exception: {argEx.Message} for relationship ID '{relationshipId}'");
                 await _jobManagement.UpdateJobStatus(jobId, 100, false, $"Failed to run Process - {argEx.Message}");
-                return;
             }
             catch (Exception exception)
             {

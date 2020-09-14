@@ -147,6 +147,8 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ICacheProvider cacheProvider = CreateCacheProvider();
 
+            ICodeContextCache codeContextCache = Substitute.For<ICodeContextCache>();
+
             CalculationService calculationService = CreateCalculationService(
                 calculationsRepository: calculationsRepository,
                 calculationVersionRepository: versionRepository,
@@ -154,7 +156,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 jobManagement: jobManagement,
                 logger: logger,
                 cacheProvider: cacheProvider,
-                specificationsApiClient: specificationsApiClient);
+                specificationsApiClient: specificationsApiClient,
+                codeContextCache: codeContextCache);
 
             IEnumerable<CalculationIndex> indexedCalculations = null;
 
@@ -260,6 +263,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 cacheProvider
                     .Received(1)
                     .RemoveAsync<List<CalculationMetadata>>(Arg.Is(cacheKey));
+
+            await codeContextCache
+                .Received(1)
+                .QueueCodeContextCacheUpdate(SpecificationId);
         }
 
         [TestMethod]

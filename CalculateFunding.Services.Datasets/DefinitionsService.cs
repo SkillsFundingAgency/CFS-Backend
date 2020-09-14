@@ -6,6 +6,8 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Calcs;
+using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.ServiceBus.Interfaces;
@@ -15,6 +17,7 @@ using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.Datasets.Interfaces;
@@ -28,6 +31,7 @@ using Serilog;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 using PoliciesApiModels = CalculateFunding.Common.ApiClient.Policies.Models;
+using CalcJob = CalculateFunding.Common.ApiClient.Calcs.Models.Job;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -45,6 +49,8 @@ namespace CalculateFunding.Services.Datasets
         private readonly IMessengerService _messengerService;
         private readonly IPolicyRepository _policyRepository;
         private readonly IValidator<DatasetDefinition> _datasetDefinitionValidator;
+        private readonly AsyncPolicy _calculationsResilience;
+        private readonly ICalculationsApiClient _calculations;
 
         public DefinitionsService(
             ILogger logger,
@@ -56,7 +62,8 @@ namespace CalculateFunding.Services.Datasets
             IDefinitionChangesDetectionService definitionChangesDetectionService,
             IMessengerService messengerService,
             IPolicyRepository policyRepository,
-            IValidator<DatasetDefinition> datasetDefinitionValidator)
+            IValidator<DatasetDefinition> datasetDefinitionValidator,
+            ICalculationsApiClient calculations)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(dataSetsRepository, nameof(dataSetsRepository));
@@ -70,6 +77,8 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(datasetsResiliencePolicies?.BlobClient, nameof(datasetsResiliencePolicies.BlobClient));
             Guard.ArgumentNotNull(policyRepository, nameof(policyRepository));
             Guard.ArgumentNotNull(datasetDefinitionValidator, nameof(datasetDefinitionValidator));
+            Guard.ArgumentNotNull(calculations, nameof(calculations));
+            Guard.ArgumentNotNull(datasetsResiliencePolicies?.CalculationsApiClient, nameof(datasetsResiliencePolicies.CalculationsApiClient));
 
             _logger = logger;
             _datasetsRepository = dataSetsRepository;
@@ -83,6 +92,8 @@ namespace CalculateFunding.Services.Datasets
             _messengerService = messengerService;
             _policyRepository = policyRepository;
             _datasetDefinitionValidator = datasetDefinitionValidator;
+            _calculations = calculations;
+            _calculationsResilience = datasetsResiliencePolicies.CalculationsApiClient;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -100,7 +111,7 @@ namespace CalculateFunding.Services.Datasets
             return health;
         }
 
-        async public Task<IActionResult> SaveDefinition(string yaml, string yamlFilename, Reference user, string correlationId)
+        public async Task<IActionResult> SaveDefinition(string yaml, string yamlFilename, Reference user, string correlationId)
         {
             if (string.IsNullOrEmpty(yaml))
             {
@@ -141,11 +152,13 @@ namespace CalculateFunding.Services.Datasets
 
             DatasetDefinition existingDefinition = await _datasetsRepositoryPolicy.ExecuteAsync(() => _datasetsRepository.GetDatasetDefinition(definition.Id));
 
+            IEnumerable<string> relationships = null;
+            
             if (existingDefinition != null)
             {
                 datasetDefinitionChanges = _definitionChangesDetectionService.DetectChanges(definition, existingDefinition);
 
-                IEnumerable<string> relationships = await _datasetsRepositoryPolicy.ExecuteAsync(() => _datasetsRepository.GetDistinctRelationshipSpecificationIdsForDatasetDefinitionId(datasetDefinitionChanges.Id));
+                relationships = await _datasetsRepositoryPolicy.ExecuteAsync(() => _datasetsRepository.GetDistinctRelationshipSpecificationIdsForDatasetDefinitionId(datasetDefinitionChanges.Id));
 
                 IEnumerable<FieldDefinitionChanges> fieldDefinitionChanges = datasetDefinitionChanges.TableDefinitionChanges.SelectMany(m => m.FieldChanges);
 
@@ -209,6 +222,15 @@ namespace CalculateFunding.Services.Datasets
 
             if (existingDefinition != null && datasetDefinitionChanges.HasChanges)
             {
+                if (!relationships.IsNullOrEmpty())
+                {
+                    Task<ApiResponse<CalcJob>>[] updateCodeContextJobs =
+                        relationships.Select(specificationId => _calculationsResilience.ExecuteAsync(() => 
+                            _calculations.QueueCodeContextUpdate(specificationId))).ToArray();
+
+                    await TaskHelper.WhenAllAndThrow(updateCodeContextJobs);
+                }
+                
                 IDictionary<string, string> properties = MessageExtensions.BuildMessageProperties(correlationId, user);
 
                 await _messengerService.SendToTopic(ServiceBusConstants.TopicNames.DataDefinitionChanges, datasetDefinitionChanges, properties);

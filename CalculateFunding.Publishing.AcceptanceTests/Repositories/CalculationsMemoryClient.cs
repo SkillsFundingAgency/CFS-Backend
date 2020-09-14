@@ -13,6 +13,7 @@ using BuildProject = CalculateFunding.Common.ApiClient.Calcs.Models.BuildProject
 using Calculation = CalculateFunding.Common.ApiClient.Calcs.Models.Calculation;
 using CalculationCreateModel = CalculateFunding.Common.ApiClient.Calcs.Models.CalculationCreateModel;
 using CalculationEditModel = CalculateFunding.Common.ApiClient.Calcs.Models.CalculationEditModel;
+using CalculationFundingLine = CalculateFunding.Common.ApiClient.Calcs.Models.CalculationFundingLine;
 using CalculationMetadata = CalculateFunding.Common.ApiClient.Calcs.Models.CalculationMetadata;
 using CalculationVersion = CalculateFunding.Common.ApiClient.Calcs.Models.CalculationVersion;
 using DatasetRelationshipSummary = CalculateFunding.Common.ApiClient.Calcs.Models.DatasetRelationshipSummary;
@@ -158,6 +159,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task<ApiResponse<IEnumerable<CalculationFundingLine>>> GetRootFundingLinesForCalculation(string calculationId) => throw new NotImplementedException();
+
+        public Task<ApiResponse<Job>> QueueCodeContextUpdate(string specificationId) => throw new NotImplementedException();
 
         public Task<ApiResponse<TemplateMapping>> ProcessTemplateMappings(string specificationId, string templateVersion, string fundingStreamId)
         {

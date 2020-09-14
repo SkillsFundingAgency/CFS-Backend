@@ -18,6 +18,7 @@ using CalculateFunding.Models.Calcs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs;
 using CalculateFunding.Services.Calcs.Analysis;
+using CalculateFunding.Services.Calcs.Caching;
 using CalculateFunding.Services.Calcs.CodeGen;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
@@ -108,6 +109,9 @@ namespace CalculateFunding.Api.Calcs
 
         public void RegisterComponents(IServiceCollection builder)
         {
+            builder.AddScoped<ICodeContextCache, CodeContextCache>()
+                .AddScoped<ICodeContextBuilder, CodeContextBuilder>();
+            
             builder.AddSingleton<ICalculationFundingLineQueryService, CalculationFundingLineQueryService>();
             
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();

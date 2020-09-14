@@ -12,6 +12,7 @@ using NSubstitute;
 using Serilog;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace CalculateFunding.Functions.Calcs.SmokeTests
 {
@@ -40,6 +41,23 @@ namespace CalculateFunding.Functions.Calcs.SmokeTests
             _datasetDefinitionFieldChangesProcessor = CreateDatasetDefinitionFieldChangesProcessor();
             _userProfileProvider = CreateUserProfileProvider();
         }
+        [TestMethod]
+        public async Task OnUpdateCodeContextCache_SmokeTestSucceeds()
+        {
+            OnUpdateCodeContextCache onApplyTemplateCalculations = new OnUpdateCodeContextCache(_logger,
+                Substitute.For<ICodeContextCache>(),
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                _userProfileProvider,
+                IsDevelopment);
+
+            SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.ApplyTemplateCalculations,
+                (Message smokeResponse) => onApplyTemplateCalculations.Run(smokeResponse), useSession: true);
+
+            response
+                .Should()
+                .NotBeNull();
+        }
+        
 
         [TestMethod]
         public async Task OnApplyTemplateCalculations_SmokeTestSucceeds()

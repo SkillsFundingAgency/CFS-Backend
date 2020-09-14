@@ -86,5 +86,7 @@
         public const string LatestJobs = "jobs-latest:";
 
         public const string CalculationFundingLines = "calculation-funding-lines:";
+
+        public const string CodeContext = "code-contexts:";
     }
 }

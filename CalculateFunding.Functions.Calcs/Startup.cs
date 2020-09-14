@@ -19,6 +19,7 @@ using CalculateFunding.Models.Calcs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs;
 using CalculateFunding.Services.Calcs.Analysis;
+using CalculateFunding.Services.Calcs.Caching;
 using CalculateFunding.Services.Calcs.CodeGen;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
@@ -90,6 +91,8 @@ namespace CalculateFunding.Functions.Calcs
                 builder.AddScoped<OnReIndexSpecificationCalculationRelationships>();
                 builder.AddScoped<OnReIndexSpecificationCalculationRelationshipsFailure>();
                 builder.AddScoped<OnDeleteCalculations>();
+                builder.AddScoped<OnUpdateCodeContextCache>();
+                builder.AddScoped<OnUpdateCodeContextCacheFailure>();
             }
 
             builder.AddScoped<IApplyTemplateCalculationsService, ApplyTemplateCalculationsService>();
@@ -234,14 +237,13 @@ namespace CalculateFunding.Functions.Calcs
 
             builder.AddSingleton<ICalcsResiliencePolicies>(resiliencePolicies);
             builder.AddSingleton<IJobHelperResiliencePolicies>(resiliencePolicies);
-            builder.AddSingleton<IJobManagementResiliencePolicies>((ctx) =>
+            builder.AddSingleton<IJobManagementResiliencePolicies>((ctx) => new JobManagementResiliencePolicies()
             {
-                return new JobManagementResiliencePolicies()
-                {
-                    JobsApiClient = resiliencePolicies.JobsApiClient,
-                };
-
+                JobsApiClient = resiliencePolicies.JobsApiClient,
             });
+
+            builder.AddScoped<ICodeContextCache, CodeContextCache>()
+                .AddScoped<ICodeContextBuilder, CodeContextBuilder>();
 
             return builder.BuildServiceProvider();
         }

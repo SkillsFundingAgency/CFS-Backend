@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
@@ -46,6 +47,7 @@ using CalculateFunding.Models.Graph;
 using Microsoft.CodeAnalysis.CSharp;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using Microsoft.Spatial;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -81,6 +83,7 @@ namespace CalculateFunding.Services.Calcs
         private readonly ICreateCalculationService _createCalculationService;
         private readonly IGraphRepository _graphRepository;
         private readonly IJobManagement _jobManagement;
+        private readonly ICodeContextCache _codeContextCache;
 
         public CalculationService(
             ICalculationsRepository calculationsRepository,
@@ -102,7 +105,8 @@ namespace CalculateFunding.Services.Calcs
             IInstructionAllocationJobCreation instructionAllocationJobCreation,
             ICreateCalculationService createCalculationService,
             IGraphRepository graphRepository,
-            IJobManagement jobManagement)
+            IJobManagement jobManagement,
+            ICodeContextCache codeContextCache)
         {
             Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -131,6 +135,7 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsApiClient, nameof(resiliencePolicies.SpecificationsApiClient));
             Guard.ArgumentNotNull(graphRepository, nameof(graphRepository));
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
+            Guard.ArgumentNotNull(codeContextCache, nameof(codeContextCache));
 
             _calculationsRepository = calculationsRepository;
             _logger = logger;
@@ -159,6 +164,7 @@ namespace CalculateFunding.Services.Calcs
             _calculationEditModelValidator = calculationEditModelValidator;
             _graphRepository = graphRepository;
             _jobManagement = jobManagement;
+            _codeContextCache = codeContextCache;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -394,7 +400,9 @@ namespace CalculateFunding.Services.Calcs
 
             if (createCalculationResponse.Succeeded)
             {
-                IEnumerable<Calculation> calculations = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specificationId));
+                await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specificationId));
+
+                await _codeContextCache.QueueCodeContextCacheUpdate(specificationId);
 
                 return new OkObjectResult(createCalculationResponse.Calculation.ToResponseModel());
             }
@@ -665,29 +673,7 @@ namespace CalculateFunding.Services.Calcs
 
         public async Task<IActionResult> GetCalculationCodeContext(string specificationId)
         {
-            if (string.IsNullOrWhiteSpace(specificationId))
-            {
-                _logger.Error("No specificationId was provided to GetCalculationCodeContext");
-
-                return new BadRequestObjectResult("Null or empty specificationId provided");
-            }
-
-            _logger.Information("Generating code context for {specificationId}", specificationId);
-
-            BuildProject buildProject = await _buildProjectsService.GetBuildProjectForSpecificationId(specificationId);
-
-            IEnumerable<Calculation> calculations = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specificationId));
-
-            buildProject.Build = _sourceCodeService.Compile(buildProject, calculations ?? Enumerable.Empty<Calculation>());
-
-            if (buildProject.Build == null)
-            {
-                _logger.Error($"Build was null for Specification {specificationId} with Build Project ID {buildProject.Id}");
-
-                return new StatusCodeResult(500);
-            }
-
-            IEnumerable<TypeInformation> result = await _sourceCodeService.GetTypeInformation(buildProject);
+            IEnumerable<TypeInformation> result = await _codeContextCache.GetCodeContext(specificationId);
 
             return new OkObjectResult(result);
         }
@@ -1072,35 +1058,6 @@ namespace CalculateFunding.Services.Calcs
             await _jobManagement.AddJobLog(jobId, tracking);
         }
 
-        private async Task<IActionResult> GetCalculationsForSpecification(string specificationId)
-        {
-            if (string.IsNullOrWhiteSpace(specificationId))
-            {
-                _logger.Warning("No specificationId was provided to GetCalculationSummariesForSpecification");
-
-                return new BadRequestObjectResult("Null or empty specificationId provided");
-            }
-
-            string cacheKey = $"{CacheKeys.CalculationsForSpecification}{specificationId}";
-
-            IEnumerable<Calculation> calculations = await _cachePolicy.ExecuteAsync(() => _cacheProvider.GetAsync<List<Calculation>>(cacheKey));
-            if (calculations == null)
-            {
-                calculations = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specificationId));
-
-                if (calculations == null)
-                {
-                    _logger.Warning($"Calculations from repository returned null for specification ID of '{specificationId}'");
-
-                    return new InternalServerErrorResult("Calculations from repository returned null");
-                }
-
-                await _cachePolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, calculations, TimeSpan.FromDays(7), true));
-            }
-
-            return new OkObjectResult(calculations);
-        }
-
         private async Task UpdateSearch(Calculation calculation, string specificationName, string fundingStreamName)
         {
             await _searchRepository.Index(new List<CalculationIndex>
@@ -1142,7 +1099,6 @@ namespace CalculateFunding.Services.Calcs
                 foreach (Calculation calculation in calculations)
                 {
                     string sourceCode = calculation.Current.SourceCode;
-                    CalculationNamespace calcNamespace = calculation.Current.Namespace;
 
                     string result = _calculationCodeReferenceUpdate.ReplaceSourceCodeReferences(calculation,
                         oldCalcSourceCodeName,
@@ -1237,11 +1193,7 @@ namespace CalculateFunding.Services.Calcs
 
         private async Task<BuildProject> UpdateBuildProject(SpecModel.SpecificationSummary specificationSummary, IEnumerable<Calculation> calculations, BuildProject buildProject = null)
         {           
-
-            if (buildProject == null)
-            {
-                buildProject = await _buildProjectsService.GetBuildProjectForSpecificationId(specificationSummary.Id);
-            }
+            buildProject ??= await _buildProjectsService.GetBuildProjectForSpecificationId(specificationSummary.Id);
 
             CompilerOptions compilerOptions = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCompilerOptions(specificationSummary.Id));
 
@@ -1337,7 +1289,7 @@ namespace CalculateFunding.Services.Calcs
 
             List<TemplateMappingItem> itemsToRemove = new List<TemplateMappingItem>();
 
-            foreach (var mapping in templateMapping.TemplateMappingItems)
+            foreach (TemplateMappingItem mapping in templateMapping.TemplateMappingItems)
             {
                 if (mapping.EntityType == TemplateMappingEntityType.Calculation)
                 {

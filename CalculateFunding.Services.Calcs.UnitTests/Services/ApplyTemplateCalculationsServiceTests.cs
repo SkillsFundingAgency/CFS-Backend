@@ -44,6 +44,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
         private IGraphRepository _graphRepository;
         private ICalculationService _calculationService;
         private ICacheProvider _cacheProvider;
+        private ICodeContextCache _codeContextCache;
 
         private string _specificationId;
         private string _fundingStreamId;
@@ -76,6 +77,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
             _instructionAllocationJobCreation = Substitute.For<IInstructionAllocationJobCreation>();
             _calculationService = Substitute.For<ICalculationService>();
             _cacheProvider = Substitute.For<ICacheProvider>();
+            _codeContextCache = Substitute.For<ICodeContextCache>();
 
             _jobTrackerFactory.CreateJobTracker(Arg.Any<Message>())
                 .Returns(_jobTracker);
@@ -116,7 +118,8 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
                 _calculationService,
                 _cacheProvider,
                 _specificationApiClient,
-                _graphRepository);
+                _graphRepository,
+                _codeContextCache);
         }
 
         [TestMethod]
@@ -411,6 +414,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
             AndTheJobsStartWasLogged();
             AndTheJobCompletionWasLogged();
             AndACalculationRunWasInitialised();
+            AndACodeContextUpdateJobWasQueued();
         }
 
         [TestMethod]
@@ -702,6 +706,13 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
                                          _.EntityId == _specificationId &&
                                          _.EntityType == "Specification")
                     , _correlationId);
+        }
+
+        private void AndACodeContextUpdateJobWasQueued()
+        {
+            _codeContextCache
+                .Received(1)
+                .QueueCodeContextCacheUpdate(_specificationId);
         }
     }
 }

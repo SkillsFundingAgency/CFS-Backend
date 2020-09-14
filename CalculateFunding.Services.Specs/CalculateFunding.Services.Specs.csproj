@@ -14,7 +14,7 @@
 
     <PackageReference Include="CalculateFunding.Common.ApiClient.Datasets" Version="5.6.0" />
 
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Calcs" Version="3.2.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Calcs" Version="3.4.0" />
 
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="3.0.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="3.9.0" />

@@ -15,6 +15,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Specs.Interfaces;
 using Polly;
 using Serilog;
+using Job = CalculateFunding.Common.ApiClient.Jobs.Models.Job;
 
 namespace CalculateFunding.Services.Specs
 {

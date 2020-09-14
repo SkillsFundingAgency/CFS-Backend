@@ -40,6 +40,7 @@ namespace CalculateFunding.Services.Calcs
         private readonly ICalculationService _calculationService;
         private readonly AsyncPolicy _cachePolicy;
         private readonly ICacheProvider _cacheProvider;
+        private readonly ICodeContextCache _codeContextCache;
         private readonly ISpecificationsApiClient _specificationsApiClient;
         private readonly AsyncPolicy _specificationsApiClientPolicy;
 
@@ -53,7 +54,8 @@ namespace CalculateFunding.Services.Calcs
             ICalculationService calculationService,
             ICacheProvider cacheProvider,
             ISpecificationsApiClient specificationsApiClient,
-            IGraphRepository graphRepository)
+            IGraphRepository graphRepository,
+            ICodeContextCache codeContextCache)
         {
             Guard.ArgumentNotNull(instructionAllocationJobCreation, nameof(instructionAllocationJobCreation));
             Guard.ArgumentNotNull(jobTrackerFactory, nameof(jobTrackerFactory));
@@ -81,6 +83,7 @@ namespace CalculateFunding.Services.Calcs
             _cachePolicy = calculationsResiliencePolicies.CacheProviderPolicy;
             _cacheProvider = cacheProvider;
             _specificationsApiClient = specificationsApiClient;
+            _codeContextCache = codeContextCache;
             _specificationsApiClientPolicy = calculationsResiliencePolicies.SpecificationsApiClient;
         }
 
@@ -186,6 +189,8 @@ namespace CalculateFunding.Services.Calcs
                 await jobTracker.CompleteTrackingJob("Completed Successfully", itemCount);
 
                 await InitiateCalculationRun(specificationId, author, correlationId);
+
+                await QueueUpdateCodeContextJob(specificationId);
             }
             catch (Exception ex)
             {
@@ -193,6 +198,11 @@ namespace CalculateFunding.Services.Calcs
 
                 throw;
             }
+        }
+
+        private async Task QueueUpdateCodeContextJob(string specificationId)
+        {
+            await _codeContextCache.QueueCodeContextCacheUpdate(specificationId);
         }
 
         private async Task EnsureAllExistingCalculationsModified(TemplateMappingItem[] mappingsWithCalculations,
