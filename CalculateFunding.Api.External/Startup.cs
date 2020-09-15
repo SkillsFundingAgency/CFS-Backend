@@ -124,12 +124,13 @@ namespace CalculateFunding.Api.External
 
             app.MapWhen(
                     context => !context.Request.Path.Value.StartsWith("/docs"),
-                    appBuilder => {
-                        appBuilder.UseHealthCheckMiddleware();
+                    appBuilder =>
+                    {
                         appBuilder.UseMiddleware<LoggedInUserMiddleware>();
                         appBuilder.UseRouting();
                         appBuilder.UseAuthentication();
                         appBuilder.UseAuthorization();
+                        appBuilder.UseMiddleware<AuthenticatedHealthCheckMiddleware>();
                         appBuilder.UseMiddleware<ContentTypeCheckMiddleware>();
                         appBuilder.UseEndpoints(endpoints =>
                         {
@@ -286,7 +287,7 @@ namespace CalculateFunding.Api.External
 
             builder.AddSingleton(externalConfig.CreateMapper());
 
-            builder.AddHealthCheckMiddleware();
+            builder.AddTransient<AuthenticatedHealthCheckMiddleware>();
             builder.AddTransient<ContentTypeCheckMiddleware>();
             builder.AddPoliciesInterServiceClient(Configuration);
             builder.AddProvidersInterServiceClient(Configuration);
