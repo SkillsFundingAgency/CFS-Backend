@@ -266,16 +266,6 @@ namespace CalculateFunding.Services.Calcs
                         }
                     }
                 }
-
-                //Forcing to compile for calc runs only
-                compilerOptions.OptionStrictEnabled = false;
-
-                Build nonPreviewCompilerOutput = _sourceCodeService.Compile(buildProject, calculations, compilerOptions);
-
-                if (nonPreviewCompilerOutput.Success)
-                {
-                    await _sourceCodeService.SaveSourceFiles(nonPreviewCompilerOutput.SourceFiles, buildProject.SpecificationId, SourceCodeType.Release);
-                }
             }
             else
             {

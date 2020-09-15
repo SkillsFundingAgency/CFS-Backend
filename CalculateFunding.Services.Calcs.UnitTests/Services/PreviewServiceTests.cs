@@ -480,14 +480,11 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Information(Arg.Is($"Build compiled successfully for calculation id {calculation.Id}"));
 
             sourceCodeService
-                 .Received(2)
+                 .Received(1)
                  .Compile(
                     Arg.Is(buildProject),
                     Arg.Is<IEnumerable<Calculation>>(m => m.Count() == 1),
-                    Arg.Is<CompilerOptions>(
-                         m => m.OptionStrictEnabled == false &&
-                         m.UseLegacyCode == true
-                     ));
+                    Arg.Any<CompilerOptions>());
 
             logger
                 .Received(build.CompilerMessages.Count(x => x.Severity == Severity.Info))
@@ -660,7 +657,7 @@ End Class";
             await
                 sourceCodeService
                     .Received(1)
-                    .SaveSourceFiles(Arg.Is(sourceFiles), Arg.Is(SpecificationId), Arg.Is(SourceCodeType.Release));
+                    .SaveSourceFiles(Arg.Is(sourceFiles), Arg.Is(SpecificationId), Arg.Is(SourceCodeType.Preview));
         }
 
 
@@ -2612,7 +2609,7 @@ End Class";
 
             await sourceCodeService
                     .Received(1)
-                    .SaveSourceFiles(Arg.Is(sourceFiles), Arg.Is(SpecificationId), Arg.Is(SourceCodeType.Release));
+                    .SaveSourceFiles(Arg.Is(sourceFiles), Arg.Is(SpecificationId), Arg.Is(SourceCodeType.Preview));
         }
 
         private static IEnumerable<object[]> CodeContainsItsOwnNameTestCases()
