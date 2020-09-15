@@ -158,7 +158,8 @@ namespace CalculateFunding.Services.Specs
                               type == JobType.CurrentState ||
                               type ==  JobType.CurrentOrganisationGroupValues ||
                               type ==  JobType.HistoryOrganisationGroupValues ||
-                              type ==  JobType.HistoryPublishedProviderEstate) => ReportType.FundingLine,
+                              type ==  JobType.HistoryPublishedProviderEstate ||
+                              type == JobType.PublishedGroups) => ReportType.FundingLine,
                 JobType.CalcResult => ReportType.CalculationResult,
                 _ => throw new ArgumentOutOfRangeException()
             };
