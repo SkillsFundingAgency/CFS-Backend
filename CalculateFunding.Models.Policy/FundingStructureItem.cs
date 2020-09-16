@@ -51,7 +51,7 @@ namespace CalculateFunding.Models.Policy
         public string Value { get; set; }
         
         [JsonProperty("calculationType")]
-        public string CalculationType { get; }
+        public string CalculationType { get; set; }
         
         [JsonProperty("fundingStructureItems")]
         public ICollection<FundingStructureItem> FundingStructureItems { get; set; }

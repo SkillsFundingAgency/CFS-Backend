@@ -292,6 +292,23 @@ namespace CalculateFunding.Services.Policy
             return new OkObjectResult(fundingStructure);
         }
 
+        private static void RecursivelyAddFundingLineToFundingStructure(List<FundingStructureItem> fundingStructures,
+            IEnumerable<FundingLine> fundingLines,
+            List<TemplateMappingItem> templateMappingItems,
+            List<CalculationMetadata> calculationMetadata,
+            ProviderResultResponse providerResult,
+            CalculationProviderResultSearchResults calculationProviderResultSearchResults,
+            int level = 0) =>
+            fundingStructures.AddRange(fundingLines.Select(fundingLine =>
+                RecursivelyAddFundingLines(
+                    fundingLine.FundingLines,
+                    templateMappingItems,
+                    calculationMetadata,
+                    level,
+                    fundingLine,
+                    providerResult,
+                    calculationProviderResultSearchResults)));
+
         private static FundingStructureItem RecursivelyAddFundingLines(IEnumerable<FundingLine> fundingLines,
             List<TemplateMappingItem> templateMappingItems,
             List<CalculationMetadata> calculationMetadata,
@@ -358,44 +375,6 @@ namespace CalculateFunding.Services.Policy
             return fundingStructureItem;
         }
 
-        private static void RecursivelyAddFundingLineToFundingStructure(List<FundingStructureItem> fundingStructures,
-            IEnumerable<FundingLine> fundingLines,
-            List<TemplateMappingItem> templateMappingItems,
-            List<CalculationMetadata> calculationMetadata,
-            ProviderResultResponse providerResult,
-            CalculationProviderResultSearchResults calculationProviderResultSearchResults,
-            int level = 0) =>
-            fundingStructures.AddRange(fundingLines.Select(fundingLine =>
-                RecursivelyAddFundingLines(
-                    fundingLine.FundingLines,
-                    templateMappingItems,
-                    calculationMetadata,
-                    level,
-                    fundingLine,
-                    providerResult,
-                    calculationProviderResultSearchResults)));
-
-
-        private static FundingStructureItem MapToFundingStructureItem(int level,
-            string name,
-            FundingStructureType type,
-            string calculationType = null,
-            string calculationId = null,
-            string calculationPublishStatus = null,
-            List<FundingStructureItem> fundingStructureItems = null,
-            string value = null,
-            DateTimeOffset? lastUpdatedDate = null) =>
-            new FundingStructureItem(
-                level,
-                name,
-                calculationId,
-                calculationPublishStatus,
-                type,
-                calculationType,
-                fundingStructureItems,
-                value,
-                lastUpdatedDate);
-
         private static FundingStructureItem RecursivelyMapCalculationsToFundingStructureItem(TemplateCalculation calculation,
             int level,
             List<TemplateMappingItem> templateMappingItems,
@@ -451,6 +430,26 @@ namespace CalculateFunding.Services.Policy
                 calculationValue,
                 lastUpdatedDate);
         }
+
+        private static FundingStructureItem MapToFundingStructureItem(int level,
+            string name,
+            FundingStructureType type,
+            string calculationType = null,
+            string calculationId = null,
+            string calculationPublishStatus = null,
+            List<FundingStructureItem> fundingStructureItems = null,
+            string value = null,
+            DateTimeOffset? lastUpdatedDate = null) =>
+            new FundingStructureItem(
+                level,
+                name,
+                calculationId,
+                calculationPublishStatus,
+                type,
+                calculationType,
+                fundingStructureItems,
+                value,
+                lastUpdatedDate);
 
         private static string GetCalculationId(
             TemplateCalculation calculation,

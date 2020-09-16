@@ -7,9 +7,12 @@ using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Results;
+using CalculateFunding.Common.ApiClient.Results.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.Models;
+using CalculateFunding.Common.Models.Search;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Policy.FundingPolicy.ViewModels;
@@ -27,6 +30,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Calculation = CalculateFunding.Common.TemplateMetadata.Models.Calculation;
+using CalculationType = CalculateFunding.Common.ApiClient.Results.Models.CalculationType;
+using CalculationValueType = CalculateFunding.Common.ApiClient.Results.Models.CalculationValueType;
 
 namespace CalculateFunding.Services.Policy
 {
@@ -39,7 +44,9 @@ namespace CalculateFunding.Services.Policy
         private const string FundingPeriodId = "AY-2021";
         private const string TemplateVersion = "1.0";
         private const string SpecificationId = "680898bd-9ddc-4d11-9913-2a2aa34f213c";
-        private const string CalculationId = "aValidCalculationId";
+        private const string aValidCalculationId1 = "aValidCalculationId-1";
+        private const string aValidCalculationId2 = "aValidCalculationId-2";
+        private const string ProviderId = "aValidProviderId";
 
         private const PublishStatus CalculationExpectedPublishStatus = PublishStatus.Approved;
 
@@ -281,6 +288,25 @@ namespace CalculateFunding.Services.Policy
         }
 
         [TestMethod]
+        public async Task GetFundingStructureWithCalculationResults_ReturnsFundingLineStructureWithCorrectValueAndTypes()
+        {
+            ValidScenarioSetup(FundingStreamId);
+
+            IActionResult apiResponseResult = await _service.GetFundingStructureWithCalculationResults(FundingStreamId, FundingPeriodId, SpecificationId, ProviderId);
+
+            List<FundingStructureItem> expectedFundingStructureItems = GetValidMappedFundingStructureItems();
+            expectedFundingStructureItems[0].Value = "Excluded";
+            expectedFundingStructureItems[2].FundingStructureItems.ToList()[0].Value = "£2.30";
+            expectedFundingStructureItems[2].FundingStructureItems.ToList()[0].CalculationType = "Currency";
+
+            apiResponseResult.Should().BeOfType<OkObjectResult>();
+            OkObjectResult typedResult = apiResponseResult as OkObjectResult;
+            FundingStructure fundingStructureItems = typedResult?.Value as FundingStructure;
+            fundingStructureItems?.Items.Count().Should().Be(3);
+            fundingStructureItems?.Items.Should().BeEquivalentTo(expectedFundingStructureItems);
+        }
+
+        [TestMethod]
         public async Task GetFundingStructures_ThrowsInternalErrorIfTemplateIdNotSet()
         {
             ValidScenarioSetup(FundingStreamId.ToLowerInvariant());
@@ -307,6 +333,7 @@ namespace CalculateFunding.Services.Policy
                 {
                     new FundingLine
                     {
+                        TemplateLineId = 123,
                         Name = "FundingLine-1"
                     },
                     new FundingLine
@@ -351,7 +378,7 @@ namespace CalculateFunding.Services.Policy
                             new Calculation
                             {
                                 Name = "FundingLine-3-calc-2",
-                                TemplateCalculationId = 1,
+                                TemplateCalculationId = 11,
                                 Calculations = new List<Calculation>
                                 {
                                     new Calculation
@@ -383,7 +410,12 @@ namespace CalculateFunding.Services.Policy
                             new TemplateMappingItem
                             {
                                 TemplateId = 1,
-                                CalculationId = CalculationId
+                                CalculationId = aValidCalculationId1
+                            },
+                            new TemplateMappingItem
+                            {
+                                TemplateId = 11,
+                                CalculationId = aValidCalculationId2
                             },
                             new TemplateMappingItem
                             {
@@ -400,8 +432,38 @@ namespace CalculateFunding.Services.Policy
                         new CalculationMetadata
                         {
                             SpecificationId = SpecificationId,
-                            CalculationId = CalculationId,
+                            CalculationId = aValidCalculationId1,
                             PublishStatus = CalculationExpectedPublishStatus
+                        },
+                        new CalculationMetadata
+                        {
+                            SpecificationId = SpecificationId,
+                            CalculationId = aValidCalculationId2,
+                            PublishStatus = CalculationExpectedPublishStatus
+                        }
+                        
+                    }));
+
+            _resultsApiClient.GetProviderResults(ProviderId, SpecificationId)
+                .Returns(new ApiResponse<ProviderResultResponse>(HttpStatusCode.OK,
+                    new ProviderResultResponse()
+                    {
+                        FundingLineResults = new List<FundingLineResult>
+                        {
+                            new FundingLineResult
+                            {
+                                FundingLine = new Reference { Id = "123", Name = "FundingLine-1"},
+                                Value = null
+                            }
+                        },
+                        CalculationResults = new List<CalculationResultResponse>
+                        {
+                            new CalculationResultResponse
+                            {
+                                Calculation = new Reference(aValidCalculationId1, "FundingLine-3-calc-1"),
+                                CalculationValueType = CalculationValueType.Currency,
+                                Value = 2.3m
+                            }
                         }
                     }));
         }
@@ -446,13 +508,13 @@ namespace CalculateFunding.Services.Policy
                         new FundingStructureItem(
                             2,
                             "FundingLine-3-calc-1",
-                            CalculationId,
+                            aValidCalculationId1,
                             CalculationExpectedPublishStatus.ToString(),
                             FundingStructureType.Calculation),
                         new FundingStructureItem(
                             2,
                             "FundingLine-3-calc-2",
-                            CalculationId,
+                            aValidCalculationId2,
                             CalculationExpectedPublishStatus.ToString(),
                             FundingStructureType.Calculation,
                             null,
