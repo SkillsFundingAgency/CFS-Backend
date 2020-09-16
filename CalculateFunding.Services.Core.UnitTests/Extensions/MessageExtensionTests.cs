@@ -49,39 +49,5 @@ namespace CalculateFunding.Services.Core.Extensions
                 .Should()
                 .BeEquivalentTo(json);
         }
-
-        [TestMethod]
-        public void GetMessageBodyStringFromMessage_GivenCompressedBody_ReturnsJson()
-        {
-            //Arrange
-            SpecificationVersionComparisonModel specificationVersionComparison = new SpecificationVersionComparisonModel()
-            {
-                Id = "spec-1",
-                Current = new Models.Messages.SpecificationVersion
-                {
-                    FundingPeriod = new Reference { Id = "fp1" },
-                    Name = "any-name"
-                },
-                Previous = new Models.Messages.SpecificationVersion
-                {
-                    FundingPeriod = new Reference { Id = "fp1" }
-                }
-            };
-
-            string json = JsonConvert.SerializeObject(specificationVersionComparison);
-
-            byte[] messageBytes = json.Compress();
-
-            Message message = new Message(messageBytes);
-            message.UserProperties.Add("compressed", true);
-
-            //Act
-            string result = MessageExtensions.GetMessageBodyStringFromMessage(message);
-
-            //Assert
-            result
-                .Should()
-                .BeEquivalentTo(json);
-        }
     }
 }

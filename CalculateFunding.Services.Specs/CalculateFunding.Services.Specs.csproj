@@ -23,7 +23,7 @@
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Results" Version="3.7.0" />
     <PackageReference Include="CalculateFunding.Common.Storage" Version="2.0.1" />
 
-    <PackageReference Include="CalculateFunding.Common.JobManagement" Version="4.2.0" />
+    <PackageReference Include="CalculateFunding.Common.JobManagement" Version="4.3.0" />
 
 
 

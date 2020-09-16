@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="CalculateFunding.Common.ApiClient.Jobs" Version="3.0.0" />
-    <PackageReference Include="CalculateFunding.Common.JobManagement" Version="4.2.0" />
+    <PackageReference Include="CalculateFunding.Common.JobManagement" Version="4.3.0" />
     <PackageReference Include="Microsoft.Azure.ServiceBus" Version="4.1.4" />
     <PackageReference Include="Polly" Version="7.1.0" />
   </ItemGroup>

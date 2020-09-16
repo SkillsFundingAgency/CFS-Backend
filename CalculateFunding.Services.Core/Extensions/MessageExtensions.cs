@@ -87,21 +87,7 @@ namespace CalculateFunding.Services.Core.Extensions
 
         public static string GetMessageBodyStringFromMessage(Message message)
         {
-            string json = "";
-
-            if (message.UserProperties.ContainsKey("compressed"))
-            {
-                using MemoryStream inputStream = new MemoryStream(message.Body);
-                using GZipStream gZipStream = new GZipStream(inputStream, CompressionMode.Decompress);
-                using StreamReader streamReader = new StreamReader(gZipStream);
-                json = streamReader.ReadToEnd();
-            }
-            else
-            {
-                json = Encoding.UTF8.GetString(message.Body);
-            }
-
-            return json;
+            return Encoding.UTF8.GetString(message.Body);
         }
 
         public static T GetUserProperty<T>(this Message message, string key) 

@@ -53,7 +53,7 @@ namespace CalculateFunding.Services.Graph
             IEnumerable<Entity<Calculation>> entities = await GetCircularDependencies<Calculation>(CalculationACalculationBRelationship,
                 SpecificationId,
                 specificationId);
-            return entities.Select(_ => new Entity<Calculation, IRelationship> { Node = _.Node, Relationships = _.Relationships });
+            return entities?.Select(_ => new Entity<Calculation, IRelationship> { Node = _.Node, Relationships = _.Relationships });
         }
 
         public async Task UpsertCalculationCalculationRelationship(string calculationIdA, string calculationIdB)
