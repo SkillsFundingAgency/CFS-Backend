@@ -536,8 +536,8 @@ namespace CalculateFunding.Services.Jobs
 
             if (result.IsSuccess())
             {
-                // don't cache the job if it's been superseded
-                if (job.CompletionStatus != CompletionStatus.Superseded)
+                // don't cache the job if it's been superseded or there is no associated specification
+                if (job.CompletionStatus != CompletionStatus.Superseded && !string.IsNullOrWhiteSpace(job.SpecificationId))
                 {
                     await UpdateJobCache(job);
                 }

@@ -230,7 +230,7 @@ namespace CalculateFunding.Services.Jobs.Services
         }
 
         [TestMethod]
-        public async Task ProcessJobCompletion_JobHasParentOnlyOneChild_ThenCacheUpdated()
+        public async Task ProcessJobCompletion_JobHasParentOnlyOneChildButNoSpecificationIdSet_ThenCacheNotUpdated()
         {
             // Arrange
             string parentJobId = "parent123";
@@ -251,7 +251,75 @@ namespace CalculateFunding.Services.Jobs.Services
             jobRepository
                 .GetChildJobsForParent(Arg.Is(parentJobId))
                 .Returns(new List<Job> { job });
-            var moreRecentJob = new Job {Id = "newer-job-id"};
+            var moreRecentJob = new Job { Id = "newer-job-id" };
+            jobRepository
+                .GetLatestJobBySpecificationIdAndDefinitionId(Arg.Any<string>(), Arg.Any<string>())
+                .Returns(moreRecentJob);
+            jobRepository
+                .UpdateJob(Arg.Any<Job>())
+                .Returns(HttpStatusCode.OK);
+
+            string cacheKey = $"{CacheKeys.LatestJobs}{job.SpecificationId}:{job.JobDefinitionId}";
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .SetAsync(cacheKey, Arg.Is<Job>(_ => _.Id == job.Id))
+                .Returns(Task.CompletedTask);
+
+            JobManagementService jobManagementService = CreateJobManagementService(
+                jobRepository,
+                logger: logger,
+                cacheProvider: cacheProvider);
+
+            JobNotification jobNotification = new JobNotification { JobId = jobId, RunningStatus = RunningStatus.Completed };
+
+            string json = JsonConvert.SerializeObject(jobNotification);
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+            message.UserProperties["jobId"] = jobId;
+
+            // Act
+            await jobManagementService.ProcessJobNotification(message);
+
+            // Assert
+            await jobRepository
+                .Received(1)
+                .UpdateJob(Arg.Is<Job>(j =>
+                    j.Id == parentJobId &&
+                    j.RunningStatus == RunningStatus.Completed &&
+                    j.Completed.HasValue &&
+                    j.Outcome == "All child jobs completed"));
+
+            await
+                cacheProvider
+                .DidNotReceive()
+                .SetAsync(cacheKey, Arg.Is<Job>(_ => _.Id == moreRecentJob.Id));
+        }
+
+
+        [TestMethod]
+        public async Task ProcessJobCompletion_JobHasParentOnlyOneChild_ThenCacheUpdated()
+        {
+            // Arrange
+            string specificationId = "specification123";
+            string parentJobId = "parent123";
+            string jobId = "child123";
+
+            Job job = new Job { Id = jobId, SpecificationId = specificationId, ParentJobId = parentJobId, CompletionStatus = CompletionStatus.Succeeded, RunningStatus = RunningStatus.Completed };
+
+            Job parentJob = new Job { Id = parentJobId, SpecificationId = specificationId, RunningStatus = RunningStatus.InProgress };
+
+            ILogger logger = CreateLogger();
+            IJobRepository jobRepository = CreateJobRepository();
+            jobRepository
+                .GetJobById(Arg.Is(jobId))
+                .Returns(job);
+            jobRepository
+                .GetJobById(Arg.Is(parentJobId))
+                .Returns(parentJob);
+            jobRepository
+                .GetChildJobsForParent(Arg.Is(parentJobId))
+                .Returns(new List<Job> { job });
+            var moreRecentJob = new Job {Id = "newer-job-id", SpecificationId = specificationId };
             jobRepository
                 .GetLatestJobBySpecificationIdAndDefinitionId(Arg.Any<string>(), Arg.Any<string>())
                 .Returns(moreRecentJob);
