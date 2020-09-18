@@ -172,24 +172,20 @@ namespace CalculateFunding.Repositories.Common.Search
 
         public async Task<T> SearchById(string id)
         {
-            var client = await GetOrCreateIndex();
+            ISearchIndexClient client = await GetOrCreateIndex();
 
             try
             {
-                SearchParameters searchParameters = new SearchParameters
-                {
-                    SearchFields = new List<string> { "id" },
-                    Top = 1
-                };
+                DocumentSearchResult<T> azureSearchResult = await client.Documents.SearchAsync<T>($"\"{id}\"",
+                    new SearchParameters
+                    {
+                        SearchFields = new List<string>
+                        {
+                            "id"
+                        }
+                    });
 
-                DocumentSearchResult<T> azureSearchResult = await client.Documents.SearchAsync<T>(id, searchParameters ?? DefaultParameters);
-
-                if (azureSearchResult == null || azureSearchResult?.Results == null)
-                {
-                    return null;
-                }
-
-                return azureSearchResult.Results.FirstOrDefault()?.Document;
+                return azureSearchResult?.Results?.SingleOrDefault()?.Document;
             }
             catch (Exception ex)
             {

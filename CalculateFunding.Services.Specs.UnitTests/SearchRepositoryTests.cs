@@ -1,4 +1,7 @@
-﻿using CalculateFunding.Models.Specs;
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
+using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using FluentAssertions;
 using Microsoft.Azure.Search;
@@ -6,9 +9,6 @@ using Microsoft.Azure.Search.Models;
 using Microsoft.Rest.Azure;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Specs.UnitTests
 {
@@ -16,13 +16,13 @@ namespace CalculateFunding.Services.Specs.UnitTests
     public class SearchRepositoryTests
     {
         [TestMethod]
-		public void ParseSearchText_GivenNullSearchText_ReturnsEmptyString()
+        public void ParseSearchText_GivenNullSearchText_ReturnsEmptyString()
         {
             // Arrange
             string searchText = null;
 
             // Act
-            var result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
+            string result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
 
             // Assert
             result.Should().Be(string.Empty);
@@ -35,7 +35,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
             string searchText = string.Empty;
 
             // Act
-            var result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
+            string result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
 
             // Assert
             result.Should().Be(string.Empty);
@@ -48,7 +48,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
             string searchText = "simple";
 
             // Act
-            var result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
+            string result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
 
             // Assert
             result.Should().Be("simple*");
@@ -61,7 +61,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
             string searchText = "two terms";
 
             // Act
-            var result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
+            string result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
 
             // Assert
             result.Should().Be("two* terms*");
@@ -74,7 +74,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
             string searchText = "\"quoted\"";
 
             // Act
-            var result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
+            string result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
 
             // Assert
             result.Should().Be("quoted*");
@@ -87,7 +87,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
             string searchText = "too many   spaces";
 
             // Act
-            var result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
+            string result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
 
             // Assert
             result.Should().Be("too* many* spaces*");
@@ -100,7 +100,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
             string searchText = "simple ";
 
             // Act
-            var result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
+            string result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
 
             // Assert
             result.Should().Be("simple*");
@@ -113,7 +113,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
             string searchText = "+";
 
             // Act
-            var result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
+            string result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
 
             // Assert
             result.Should().Be("\\+*");
@@ -126,7 +126,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
             string searchText = "-";
 
             // Act
-            var result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
+            string result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
 
             // Assert
             result.Should().Be("\\-*");
@@ -139,7 +139,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
             string searchText = "&&";
 
             // Act
-            var result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
+            string result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
 
             // Assert
             result.Should().Be("\\&&*");
@@ -152,7 +152,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
             string searchText = "||";
 
             // Act
-            var result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
+            string result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
 
             // Assert
             result.Should().Be("\\||*");
@@ -165,7 +165,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
             string searchText = "!";
 
             // Act
-            var result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
+            string result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
 
             // Assert
             result.Should().Be("\\!*");
@@ -178,7 +178,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
             string searchText = "(";
 
             // Act
-            var result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
+            string result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
 
             // Assert
             result.Should().Be("\\(*");
@@ -191,7 +191,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
             string searchText = ")";
 
             // Act
-            var result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
+            string result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
 
             // Assert
             result.Should().Be("\\)*");
@@ -204,7 +204,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
             string searchText = "{";
 
             // Act
-            var result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
+            string result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
 
             // Assert
             result.Should().Be("\\{*");
@@ -217,7 +217,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
             string searchText = "}";
 
             // Act
-            var result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
+            string result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
 
             // Assert
             result.Should().Be("\\}*");
@@ -230,7 +230,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
             string searchText = "[";
 
             // Act
-            var result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
+            string result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
 
             // Assert
             result.Should().Be("\\[*");
@@ -243,7 +243,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
             string searchText = "]";
 
             // Act
-            var result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
+            string result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
 
             // Assert
             result.Should().Be("\\]*");
@@ -256,7 +256,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
             string searchText = "^";
 
             // Act
-            var result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
+            string result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
 
             // Assert
             result.Should().Be("\\^*");
@@ -269,7 +269,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
             string searchText = "~";
 
             // Act
-            var result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
+            string result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
 
             // Assert
             result.Should().Be("\\~*");
@@ -282,7 +282,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
             string searchText = "*";
 
             // Act
-            var result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
+            string result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
 
             // Assert
             result.Should().Be("\\**");
@@ -295,7 +295,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
             string searchText = "?";
 
             // Act
-            var result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
+            string result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
 
             // Assert
             result.Should().Be("\\?*");
@@ -308,7 +308,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
             string searchText = ":";
 
             // Act
-            var result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
+            string result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
 
             // Assert
             result.Should().Be("\\:*");
@@ -321,7 +321,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
             string searchText = "\\";
 
             // Act
-            var result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
+            string result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
 
             // Assert
             result.Should().Be("\\\\*");
@@ -334,7 +334,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
             string searchText = "/";
 
             // Act
-            var result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
+            string result = SearchRepository<SpecificationIndex>.ParseSearchText(searchText);
 
             // Assert
             result.Should().Be("\\/*");
@@ -343,14 +343,21 @@ namespace CalculateFunding.Services.Specs.UnitTests
         [TestMethod]
         public async Task SearchById_GivenIdDoesNotReturnSearchResult_ReturnsNull()
         {
-            SearchRepositorySettings searchRepositorySettings = new SearchRepositorySettings() { SearchKey = string.Empty, SearchServiceName = string.Empty };
+            SearchRepositorySettings searchRepositorySettings = new SearchRepositorySettings
+            {
+                SearchKey = string.Empty,
+                SearchServiceName = string.Empty
+            };
 
             ISearchInitializer searchInitializer = Substitute.For<ISearchInitializer>();
 
             ISearchIndexClient searchIndexClient = Substitute.For<ISearchIndexClient>();
 
-            AzureOperationResponse<DocumentSearchResult<SpecificationIndex>> documentSearchResult = 
-                new AzureOperationResponse<DocumentSearchResult<SpecificationIndex>> { Body = new DocumentSearchResult<SpecificationIndex>(null, null, null, null, null) };
+            AzureOperationResponse<DocumentSearchResult<SpecificationIndex>> documentSearchResult =
+                new AzureOperationResponse<DocumentSearchResult<SpecificationIndex>>
+                {
+                    Body = new DocumentSearchResult<SpecificationIndex>(null, null, null, null, null)
+                };
 
             IDocumentsOperations documentsOperations = Substitute.For<IDocumentsOperations>();
             documentsOperations.SearchWithHttpMessagesAsync<SpecificationIndex>(Arg.Any<string>(), Arg.Any<SearchParameters>()).Returns(Task.FromResult(documentSearchResult));
@@ -372,20 +379,41 @@ namespace CalculateFunding.Services.Specs.UnitTests
         {
             string existingId = "existingId";
 
-            SearchRepositorySettings searchRepositorySettings = new SearchRepositorySettings() { SearchKey = string.Empty, SearchServiceName = string.Empty };
+            SearchRepositorySettings searchRepositorySettings = new SearchRepositorySettings
+            {
+                SearchKey = string.Empty,
+                SearchServiceName = string.Empty
+            };
 
             ISearchInitializer searchInitializer = Substitute.For<ISearchInitializer>();
 
             ISearchIndexClient searchIndexClient = Substitute.For<ISearchIndexClient>();
 
-            Microsoft.Azure.Search.Models.SearchResult<SpecificationIndex> specificationIndexSearchResult = new Microsoft.Azure.Search.Models.SearchResult<SpecificationIndex>(new SpecificationIndex { Id = existingId });
+            Microsoft.Azure.Search.Models.SearchResult<SpecificationIndex> specificationIndexSearchResult = new Microsoft.Azure.Search.Models.SearchResult<SpecificationIndex>(new SpecificationIndex
+            {
+                Id = existingId
+            });
 
             AzureOperationResponse<DocumentSearchResult<SpecificationIndex>> documentSearchResult =
-                new AzureOperationResponse<DocumentSearchResult<SpecificationIndex>> { Body = new DocumentSearchResult<SpecificationIndex>(new[] { specificationIndexSearchResult }, null, null, null, null) };
+                new AzureOperationResponse<DocumentSearchResult<SpecificationIndex>>
+                {
+                    Body = new DocumentSearchResult<SpecificationIndex>(new[]
+                        {
+                            specificationIndexSearchResult
+                        },
+                        null,
+                        null,
+                        null,
+                        null)
+                };
 
             IDocumentsOperations documentsOperations = Substitute.For<IDocumentsOperations>();
             documentsOperations
-                .SearchWithHttpMessagesAsync<SpecificationIndex>(Arg.Any<string>(), Arg.Any<SearchParameters>())
+                .SearchWithHttpMessagesAsync<SpecificationIndex>(Arg.Is<string>(_ => _ == $"\"{existingId}\""),
+                    Arg.Is<SearchParameters>(_ => _.SearchFields.SequenceEqual(new[]
+                    {
+                        "id"
+                    })))
                 .Returns(Task.FromResult(documentSearchResult));
 
             ISearchServiceClient searchServiceClient = Substitute.For<ISearchServiceClient>();
@@ -397,6 +425,60 @@ namespace CalculateFunding.Services.Specs.UnitTests
 
             specificationIndex.Should().NotBeNull();
             specificationIndex.Id.Should().Be(existingId);
+        }
+
+        [TestMethod]
+        public void SearchById_GivenIdReturnsSearchResult_TreatsMultipleResultsAsAnException()
+        {
+            string existingId = "existingId";
+
+            SearchRepositorySettings searchRepositorySettings = new SearchRepositorySettings
+            {
+                SearchKey = string.Empty,
+                SearchServiceName = string.Empty
+            };
+
+            ISearchInitializer searchInitializer = Substitute.For<ISearchInitializer>();
+
+            ISearchIndexClient searchIndexClient = Substitute.For<ISearchIndexClient>();
+
+            Microsoft.Azure.Search.Models.SearchResult<SpecificationIndex> specificationIndexSearchResult = new Microsoft.Azure.Search.Models.SearchResult<SpecificationIndex>(new SpecificationIndex
+            {
+                Id = existingId
+            });
+
+            AzureOperationResponse<DocumentSearchResult<SpecificationIndex>> documentSearchResult =
+                new AzureOperationResponse<DocumentSearchResult<SpecificationIndex>>
+                {
+                    Body = new DocumentSearchResult<SpecificationIndex>(new[]
+                        {
+                            specificationIndexSearchResult, new Microsoft.Azure.Search.Models.SearchResult<SpecificationIndex>()
+                        },
+                        null,
+                        null,
+                        null,
+                        null)
+                };
+
+            IDocumentsOperations documentsOperations = Substitute.For<IDocumentsOperations>();
+            documentsOperations
+                .SearchWithHttpMessagesAsync<SpecificationIndex>(Arg.Is<string>(_ => _ == $"\"{existingId}\""),
+                    Arg.Is<SearchParameters>(_ => _.SearchFields.SequenceEqual(new[]
+                    {
+                        "id"
+                    })))
+                .Returns(Task.FromResult(documentSearchResult));
+
+            ISearchServiceClient searchServiceClient = Substitute.For<ISearchServiceClient>();
+            searchIndexClient.Documents.Returns(documentsOperations);
+
+            SearchRepository<SpecificationIndex> searchRepository = new SearchRepository<SpecificationIndex>(searchRepositorySettings, searchInitializer, searchServiceClient, searchIndexClient);
+
+            Func<Task<SpecificationIndex>> invocation = () => searchRepository.SearchById(existingId);
+
+            invocation
+                .Should()
+                .Throw<FailedToQuerySearchException>();
         }
     }
 }
