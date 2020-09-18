@@ -77,15 +77,15 @@ namespace CalculateFunding.Services.Publishing.Reporting
 
         public async Task Run(Message message)
         {
+            string jobId = message.GetUserProperty<string>("jobId");
+
+            if (!await _jobTracker.TryStartTrackingJob(jobId, JobDefinitionName))
+            {
+                return;
+            }
+
             try
             {
-                string jobId = message.GetUserProperty<string>("jobId");
-
-                if (!await _jobTracker.TryStartTrackingJob(jobId, JobDefinitionName))
-                {
-                    throw new ArgumentOutOfRangeException(nameof(jobId));
-                }
-
                 string temporaryFilePath = GetCsvFilePath(_fileSystemCacheSettings.Path, message);
 
                 EnsureFileIsNew(temporaryFilePath);
@@ -110,8 +110,17 @@ namespace CalculateFunding.Services.Publishing.Reporting
                 const string error = "Unable to complete csv generation job.";
 
                 _logger.Error(e, error);
-                
-                throw new NonRetriableException(error);
+
+                if (e.GetType() != typeof(RetriableException))
+                {
+                    await FailJob(error, jobId);
+
+                    throw new NonRetriableException(error);
+                }
+                else
+                {
+                    throw;
+                }
             }
         }
 
@@ -133,6 +142,10 @@ namespace CalculateFunding.Services.Publishing.Reporting
         private async Task CompleteJob(string jobId)
         {
             await _jobTracker.CompleteTrackingJob(jobId);
+        }
+        private async Task FailJob(string outcome, string jobId)
+        {
+            await _jobTracker.FailJob(outcome, jobId);
         }
 
         private void EnsureFileIsNew(string path)

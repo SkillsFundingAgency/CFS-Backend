@@ -61,16 +61,16 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
         
         public async Task Run(Message message)
         {
+            JobParameters parameters = message;
+
+            if (!await _jobTracker.TryStartTrackingJob(parameters.JobId,
+                    JobConstants.DefinitionNames.GeneratePublishedFundingCsvJob))
+            {
+                return;
+            }
+
             try
             {
-                JobParameters parameters = message;
-
-                if (!await _jobTracker.TryStartTrackingJob(parameters.JobId,
-                    JobConstants.DefinitionNames.GeneratePublishedFundingCsvJob))
-                {
-                    throw new ArgumentOutOfRangeException(nameof(parameters.JobId));
-                }
-
                 string specificationId = parameters.SpecificationId;
                 string fundingLineCode = parameters.FundingLineCode;
                 string fundingStreamId = parameters.FundingStreamId;
@@ -126,7 +126,17 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
 
                 _logger.Error(e, error);
 
-                throw new NonRetriableException(error);
+                if (e.GetType() != typeof(RetriableException))
+                {
+                    // need to fail job here otherwise it will remain in-progress
+                    await FailJob(error, parameters);
+
+                    throw new NonRetriableException(error);
+                }
+                else
+                {
+                    throw;
+                }
             }
         }
 
@@ -139,6 +149,11 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
         private async Task CompleteJob(JobParameters parameters)
         {
             await _jobTracker.CompleteTrackingJob(parameters.JobId);
+        }
+
+        private async Task FailJob(string outcome, JobParameters parameters)
+        {
+            await _jobTracker.FailJob(outcome, parameters.JobId);
         }
 
         private void EnsureFileIsNew(string path)

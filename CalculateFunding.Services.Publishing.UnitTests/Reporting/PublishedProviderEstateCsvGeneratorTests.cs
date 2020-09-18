@@ -155,6 +155,128 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
         }
 
         [TestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        public void TransformsPublishedProvidersForSpecificationInBatchesAndFailsJobIfUploadFails(bool throwNonRetriableException)
+        {
+            string specificationId = NewRandomString();
+            string jobId = NewRandomString();
+            string fundingStreamId = NewRandomString();
+            string fundingPeriodId = NewRandomString();
+            string fileName = $"funding-lines-{specificationId}-HistoryPublishedProviderEstate-{fundingPeriodId}.csv";
+            string expectedInterimFilePath = Path.Combine(_rootPath, fileName);
+            string jobDefinitionName = JobConstants.DefinitionNames.GeneratePublishedProviderEstateCsvJob;
+
+            IEnumerable<PublishedProviderVersion> publishProviderVersionsOne = new[]
+            {
+                new PublishedProviderVersion(),
+            };
+            IEnumerable<PublishedProviderVersion> publishedProviderVersionsTwo = new[]
+            {
+                new PublishedProviderVersion(),
+                new PublishedProviderVersion()
+            };
+
+            ExpandoObject[] transformedRowsOne = {
+                new ExpandoObject(),
+                new ExpandoObject(),
+                new ExpandoObject(),
+                new ExpandoObject(),
+            };
+            ExpandoObject[] transformedRowsTwo = {
+                new ExpandoObject(),
+                new ExpandoObject(),
+                new ExpandoObject(),
+                new ExpandoObject(),
+            };
+
+            string expectedCsvOne = NewRandomString();
+            string expectedCsvTwo = NewRandomString();
+
+            MemoryStream incrementalFileStream = new MemoryStream();
+
+            GivenTheCsvRowTransformation(transformedRowsOne, expectedCsvOne, true);
+            AndTheMessageProperties(("specification-id", specificationId),
+                ("jobId", jobId),
+                ("funding-period-id", fundingPeriodId),
+                ("funding-stream-id", fundingStreamId));
+            AndTheCloudBlobForSpecificationId(fileName, PublishedFundingReportContainerName);
+            AndTheFileStream(expectedInterimFilePath, incrementalFileStream);
+            AndTheFileExists(expectedInterimFilePath);
+            AndTheTransformForJobDefinition(jobDefinitionName);
+            AndTheJobExists(jobId);
+            string errorMessage = "Unable to complete csv generation job.";
+            AndTheBlobThrowsError(incrementalFileStream, throwNonRetriableException ? new Exception() : new RetriableException(errorMessage));
+
+            _publishedFunding.Setup(_ => _.RefreshedProviderVersionBatchProcessing(
+                    specificationId,
+                    It.IsAny<Func<List<PublishedProviderVersion>, Task>>(),
+                    It.IsAny<int>()))
+                .Callback<string, Func<List<PublishedProviderVersion>, Task>, int>((spec, batchProcessor, batchSize) =>
+                {
+                    batchProcessor(publishProviderVersionsOne.ToList())
+                        .GetAwaiter()
+                        .GetResult();
+
+                    batchProcessor(publishedProviderVersionsTwo.ToList())
+                        .GetAwaiter()
+                        .GetResult();
+                })
+                .Returns(Task.CompletedTask);
+
+            Func<Task> test = async () => await WhenTheCsvIsGenerated();
+
+
+            if (throwNonRetriableException)
+            {
+                test
+                    .Should()
+                    .ThrowExactly<NonRetriableException>()
+                    .Which
+                    .Message
+                    .Should()
+                    .Be(errorMessage);
+            }
+            else
+            {
+                test
+                    .Should()
+                    .ThrowExactly<RetriableException>()
+                    .Which
+                    .Message
+                    .Should()
+                    .Be(errorMessage);
+            }
+
+            _jobTracker.Verify(_ => _.TryStartTrackingJob(jobId, JobConstants.DefinitionNames.GeneratePublishedProviderEstateCsvJob),
+                Times.Once);
+
+            _fileSystemAccess
+                .Verify(_ => _.Delete(expectedInterimFilePath),
+                    Times.Once);
+
+            _fileSystemAccess
+                .Verify(_ => _.Append(expectedInterimFilePath,
+                        It.IsAny<string>(),
+                        default),
+                    Times.Exactly(2));
+
+            _blobClient
+                .Verify(_ => _.UploadFileAsync(_cloudBlob.Object, incrementalFileStream),
+                    Times.Once);
+
+            if (throwNonRetriableException)
+            {
+                _jobTracker.Verify(_ => _.FailJob(errorMessage, jobId),
+                Times.Once);
+            }
+
+            _blobProperties.ContentDisposition
+                .Should()
+                .StartWith($"attachment; filename={fundingStreamId} {fundingPeriodId} Provider Estate Variations {DateTimeOffset.UtcNow:yyyy-MM-dd}");
+        }
+
+        [TestMethod]
         public async Task TransformsPublishedProvidersForSpecificationInBatchesAndCreatesCsvWithResults()
         {
             string specificationId = NewRandomString();
@@ -347,6 +469,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
         {
             _jobTracker.Setup(_ => _.TryStartTrackingJob(jobId, JobConstants.DefinitionNames.GeneratePublishedProviderEstateCsvJob))
                 .ReturnsAsync(true);
+        }
+
+        private void AndTheBlobThrowsError(Stream incrementalFileStream, Exception exception)
+        {
+            _blobClient.Setup(_ => _.UploadFileAsync(_cloudBlob.Object, incrementalFileStream))
+                .Throws(exception);
         }
 
         private void AndTheTransformForJobDefinition(string jobDefinitionName)
