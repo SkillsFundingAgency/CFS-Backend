@@ -114,10 +114,11 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 }
             }
 
-            yield return CreateMainMethod(calculations, namespaceBuilderResults.SelectMany(_ => _.InnerClasses));
+            yield return CreateMainMethod(calculations, funding, namespaceBuilderResults.SelectMany(_ => _.InnerClasses));
         }
 
-        private StatementSyntax CreateMainMethod(IEnumerable<Calculation> calcs, 
+        private StatementSyntax CreateMainMethod(IEnumerable<Calculation> calcs,
+            IDictionary<string, Funding> funding,
             IEnumerable<NamespaceClassDefinition> namespaceDefinitions)
         {
             StringBuilder builder = new StringBuilder();
@@ -136,6 +137,25 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             {
                 builder.AppendLine($"{namespaceDefinition.Variable} = New {namespaceDefinition.ClassName}()");
                 builder.AppendLine($"{namespaceDefinition.Variable}.Initialise(Me)");
+            }
+
+            foreach (string @namespace in funding.Keys)
+            {
+                foreach (FundingLine fundingline in funding[@namespace].FundingLines)
+                {
+                    builder.AppendLine("Try");
+                    builder.AppendLine();
+
+                    builder.AppendLine($"{GenerateIdentifier(@namespace)}.FundingLines.{fundingline.SourceCodeName}()");
+
+                    builder.AppendLine();
+
+                    builder.AppendLine("Catch ex as Exception");
+                    builder.AppendLine("' Already added to dictionary in normal func, we should stop this from bubbling reference exception for main calc call");
+                    builder.AppendLine("End Try");
+
+                    builder.AppendLine();
+                }
             }
 
             foreach (Calculation calc in calcs)

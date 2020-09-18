@@ -189,7 +189,8 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
                     "<FundingLine(FundingStream:=\"1619\", Id:=\"1\", Name:=\"One\")>",
                     "Public One As Func(Of decimal?) = Nothing",
                     "<FundingLine(FundingStream:=\"PSG\", Id:=\"2\", Name:=\"Two\")>",
-                    "Public Two As Func(Of decimal?) = Nothing");
+                    "Public Two As Func(Of decimal?) = Nothing",
+                    "_1619.FundingLines.One()");
         }
 
         [TestMethod]
