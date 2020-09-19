@@ -113,11 +113,21 @@ namespace CalculateFunding.Services.Publishing
             IEnumerable<ProfileVariationPointer> profileVariationPointers 
                 = await _specificationService.GetProfileVariationPointers(specificationId);
 
+            TemplateMetadataDistinctFundingLinesContents templateMetadataDistinctFundingLinesContents =
+                        await _policiesService.GetDistinctTemplateMetadataFundingLinesContents(
+                            fundingStreamId,
+                            latestPublishedProviderVersion.FundingPeriodId,
+                            latestPublishedProviderVersion.TemplateVersion);
+
             FundingLineProfile fundingLineProfile = new FundingLineProfile
             {
                 FundingLineCode = fundingLineCode,
+                FundingLineName = templateMetadataDistinctFundingLinesContents?.FundingLines?
+                            .FirstOrDefault(_ => _.FundingLineCode == fundingLineCode)?.Name,
                 ProfilePatternKey = latestPublishedProviderVersion.ProfilePatternKeys?
                     .SingleOrDefault(_ => _.FundingLineCode == fundingLineCode)?.Key,
+                ProviderId = latestPublishedProviderVersion.ProviderId,
+                UKPRN = latestPublishedProviderVersion.Provider.UKPRN,
                 ProviderName = latestPublishedProviderVersion.Provider.Name,
                 CarryOverAmount = latestPublishedProviderVersion.GetCarryOverTotalForFundingLine(fundingLineCode) ?? 0
             };

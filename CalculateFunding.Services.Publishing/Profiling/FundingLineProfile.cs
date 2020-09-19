@@ -12,7 +12,9 @@ namespace CalculateFunding.Services.Publishing.Profiling
         public decimal AmountAlreadyPaid { get; set; }
         public decimal? RemainingAmount { get; set; }
         public decimal? CarryOverAmount { get; set; }
+        public string ProviderId { get; set; }
         public string ProviderName { get; set; }
+        public string UKPRN { get; set; }
         public string ProfilePatternKey { get; set; }
         public string ProfilePatternName { get; set; }
         public string ProfilePatternDescription { get; set; }

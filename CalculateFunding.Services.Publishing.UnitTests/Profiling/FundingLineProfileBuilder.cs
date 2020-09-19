@@ -18,6 +18,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
         private string _fundingLineCode;
         private string _fundingLineName;
         private string _providerName;
+        private string _providerId;
+        private string _UKPRN;
         private decimal? _remainingAmount;
         private decimal? _totalAllocation;
         private IEnumerable<ProfileTotal> _profileTotals;
@@ -100,6 +102,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             return this;
         }
 
+        public FundingLineProfileBuilder WithProviderId(string providerId)
+        {
+            _providerId = providerId;
+
+            return this;
+        }
+
+        public FundingLineProfileBuilder WithUKPRN(string UKPRN)
+        {
+            _UKPRN = UKPRN;
+
+            return this;
+        }
+
         public FundingLineProfileBuilder WithRemainingAmount(decimal remainingAmount)
         {
             _remainingAmount = remainingAmount;
@@ -135,6 +151,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                 LastUpdatedUser = _lastUpdatedUser,
                 ProfilePatternKey = _profilePatternKey,
                 ProviderName = _providerName,
+                ProviderId = _providerId,
+                UKPRN = _UKPRN,
                 RemainingAmount = _remainingAmount.GetValueOrDefault(),
                 TotalAllocation = _totalAllocation.GetValueOrDefault(),
                 ProfileTotals = _profileTotals,

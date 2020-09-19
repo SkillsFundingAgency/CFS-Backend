@@ -225,9 +225,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             string specificationId = NewRandomString();
             string providerId = NewRandomString();
             string fundingStreamId = NewRandomString();
-            string fundingLineId = NewRandomString();
+            string fundingLineCode = NewRandomString();
             string fundingPeriodId = NewRandomString();
             string providerName = NewRandomString();
+            string UKPRN = NewRandomString();
+            string templateVersion = NewRandomString();
+            string fundingLineName = NewRandomString();
             string profilePatternKey = NewRandomString();
             DateTime profileAuditDate = NewRandomDateTime();
             string userId = NewRandomString();
@@ -240,26 +243,28 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 fundingStreamId,
                 providerId,
                 NewPublishedProviderVersion(_ => _.WithFundingPeriodId(fundingPeriodId)
-                    .WithProvider(NewProvider(p => p.WithName(providerName)))
+                    .WithProviderId(providerId)
+                    .WithProvider(NewProvider(p => p.WithName(providerName).WithUKPRN(UKPRN)))
+                    .WithTemplateVersion(templateVersion)
                     .WithProfilePatternKeys(
                         NewProfilePatternKeys(ppk => ppk
-                                .WithFundingLineCode(fundingLineId)
+                                .WithFundingLineCode(fundingLineCode)
                                 .WithKey(profilePatternKey))
                             .ToArray())
                     .WithCarryOvers(
                         NewProfilingCarryOvers(pco => pco
-                                .WithFundingLineCode(fundingLineId)
+                                .WithFundingLineCode(fundingLineCode)
                                 .WithAmount(100))
                             .ToArray())
                     .WithProfilingAudits(
                         NewProfilingAudits(pa => pa
-                            .WithFundingLineCode(fundingLineId)
+                            .WithFundingLineCode(fundingLineCode)
                             .WithDate(profileAuditDate)
                             .WithUser(profileAuditUser)).ToArray())
                     .WithFundingLines(
                         NewFundingLines(fl => fl
                             .WithOrganisationGroupingReason(OrganisationGroupingReason.Payment)
-                            .WithFundingLineCode(fundingLineId)
+                            .WithFundingLineCode(fundingLineCode)
                             .WithValue(1500)
                             .WithDistributionPeriods(
                                 NewDistributionPeriod(dp => dp
@@ -284,14 +289,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 specificationId,
                 NewProfileVariationPointers(pvp => pvp
                     .WithFundingStreamId(fundingStreamId)
-                    .WithFundingLineId(fundingLineId)
+                    .WithFundingLineId(fundingLineCode)
                     .WithYear(2020)
                     .WithTypeValue("June")).ToArray());
 
             GivenFundingDate(
                 fundingStreamId,
                 fundingPeriodId,
-                fundingLineId,
+                fundingLineCode,
                 NewFundingDate(_ => _
                     .WithPatterns(
                         new[]
@@ -308,11 +313,27 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                                 .WithPaymentDate(fundingDatePatternJuly))
                         })));
 
+            GivenDistinctTemplateMetadataFundingLinesContents(
+                fundingStreamId,
+                fundingPeriodId,
+                templateVersion,
+                new TemplateMetadataDistinctFundingLinesContents
+                {
+                    FundingLines = new[]
+                    {
+                        new TemplateMetadataFundingLine
+                        {
+                            FundingLineCode = fundingLineCode,
+                            Name = fundingLineName
+                        }
+                    }
+                });
+
             IActionResult result = await WhenGetPublishedProviderProfileTotalsForSpecificationForProviderForFundingLine(
                 specificationId,
                 providerId,
                 fundingStreamId,
-                fundingLineId);
+                fundingLineCode);
 
             result
                 .Should()
@@ -342,6 +363,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .WithTotalAllocation(1500)
                 .WithProfileTotalAmount(1500)
                 .WithProviderName(providerName)
+                .WithProviderId(providerId)
+                .WithUKPRN(UKPRN)
+                .WithFundingLineName(fundingLineName)
                 .WithProfileTotals(new[]
                 {
                     NewProfileTotal(pt => pt
