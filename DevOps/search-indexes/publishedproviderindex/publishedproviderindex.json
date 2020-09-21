@@ -9,7 +9,7 @@
 			"filterable": false,
 			"retrievable": true,
 			"searchable": true,
-			"sortable": false,
+			"sortable": true,
 			"analyzer": null,
 			"searchAnalyzer": null,
 			"indexAnalyzer": null
