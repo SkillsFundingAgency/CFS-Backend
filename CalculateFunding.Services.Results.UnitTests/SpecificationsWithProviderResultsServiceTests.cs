@@ -35,7 +35,7 @@ namespace CalculateFunding.Services.Results.UnitTests
     {
         private const string JobId = "jobId";
         private const string ProviderId = "provider-id";
-        
+
         private Mock<IPoliciesApiClient> _policies;
         private Mock<ICalculationResultsRepository> _calculationResults;
         private Mock<IJobManagement> _jobs;
@@ -63,12 +63,9 @@ namespace CalculateFunding.Services.Results.UnitTests
         }
 
         [TestMethod]
-        public void QueueMergeSpecificationInformationForProviderJobGuardsAgainstMissingSpecificationInformation()
+        public void QueueMergeSpecificationInformationJobGuardsAgainstMissingMergeRequest()
         {
-            Func<Task<IActionResult>> invocation = () => WhenAMergeSpecificationInformationForProviderJobIsQueued(null,
-                NewRandomString(),
-                NewUser(),
-                NewRandomString());
+            Func<Task<IActionResult>> invocation = () => WhenTheMergeSpecificationInformationJobIsQueued(null, NewUser(), NewRandomString());
 
             invocation
                 .Should()
@@ -76,56 +73,33 @@ namespace CalculateFunding.Services.Results.UnitTests
                 .Which
                 .ParamName
                 .Should()
-                .Be("specificationInformation");
+                .Be("mergeRequest");
         }
 
         [TestMethod]
-        public async Task QueueMergeSpecificationInformationForProviderHasNoPropertiesWhenProviderIdNotSupplied()
+        public async Task QueueMergeSpecificationInformationJobCreatesNewJobWithSuppliedMergeRequest()
         {
+            MergeSpecificationInformationRequest mergeRequest = NewMergeSpecificationInformationRequest(_ =>
+                _.WithSpecificationInformation(NewSpecificationInformation(si =>
+                        si.WithName(NewRandomString())))
+                    .WithProviderIds(NewRandomString()));
+            Job expectedJob = NewJob();
             Reference user = NewUser();
             string correlationId = NewRandomString();
-            SpecificationInformation specificationInformation = NewSpecificationInformation();
 
-            Job expectedJob = NewJob();
+            GivenTheJob(expectedJob, mergeRequest, user, correlationId);
 
-            GivenTheJob(expectedJob, specificationInformation, user, correlationId);
+            OkObjectResult okObjectResult = await WhenTheMergeSpecificationInformationJobIsQueued(mergeRequest, user, correlationId) as OkObjectResult;
 
-            OkObjectResult result = await WhenAMergeSpecificationInformationForProviderJobIsQueued(specificationInformation,
-                null,
-                user,
-                correlationId) as OkObjectResult;
-
-            result?.Value
+            okObjectResult?.Value
                 .Should()
                 .BeSameAs(expectedJob);
         }
 
         [TestMethod]
-        public async Task QueueMergeSpecificationInformationForProviderIncludesProviderIdInJobPropertiesWhenSupplied()
+        public void MergeSpecificationInformationGuardsAgainstMissingMergeRequest()
         {
-            Reference user = NewUser();
-            string correlationId = NewRandomString();
-            string providerId = NewRandomString();
-            SpecificationInformation specificationInformation = NewSpecificationInformation();
-
-            Job expectedJob = NewJob();
-
-            GivenTheJob(expectedJob, specificationInformation, user, correlationId, providerId);
-
-            OkObjectResult result = await WhenAMergeSpecificationInformationForProviderJobIsQueued(specificationInformation,
-                providerId,
-                user,
-                correlationId) as OkObjectResult;
-
-            result?.Value
-                .Should()
-                .BeSameAs(expectedJob);
-        }
-
-        [TestMethod]
-        public void MergeSpecificationInformationGuardsAgainstMissingSpecificationInformation()
-        {
-            Func<Task> invocation = () => WhenTheSpecificationInformationIsMerged(null, NewRandomString());
+            Func<Task> invocation = () => WhenTheSpecificationInformationIsMerged(null, new ConcurrentDictionary<string, FundingPeriod>());
 
             invocation
                 .Should()
@@ -133,65 +107,78 @@ namespace CalculateFunding.Services.Results.UnitTests
                 .Which
                 .ParamName
                 .Should()
-                .Be("specificationInformation");
+                .Be("mergeRequest");
         }
 
         [TestMethod]
-        public async Task MergeSpecificationInformationMergesForSpecificProviderIdWhenSupplied()
+        public async Task MergeSpecificationInformationMergesForSpecificProviderIdsWhenSupplied()
         {
-            string providerId = NewRandomString();
+            string providerOneId = NewRandomString();
+            string providerTwoId = NewRandomString();
             string jobId = NewRandomString();
 
             SpecificationInformation specificationInformation = NewSpecificationInformation();
-            ProviderWithResultsForSpecifications providerWithResultsForSpecifications = NewProviderWithResultsForSpecifications();
+            MergeSpecificationInformationRequest mergeRequest = NewMergeSpecificationInformationRequest(_ => _.WithSpecificationInformation(specificationInformation)
+                .WithProviderIds(providerOneId, providerTwoId));
 
-            GivenTheProviderWithResultsForSpecificationsByProviderId(providerWithResultsForSpecifications, providerId);
+            ProviderWithResultsForSpecifications providerWithResultsForSpecificationsOne = NewProviderWithResultsForSpecifications();
+            ProviderWithResultsForSpecifications providerWithResultsForSpecificationsTwo = NewProviderWithResultsForSpecifications();
+
+            GivenTheProviderWithResultsForSpecificationsByProviderId(providerWithResultsForSpecificationsOne, providerOneId);
+            GivenTheProviderWithResultsForSpecificationsByProviderId(providerWithResultsForSpecificationsTwo, providerTwoId);
 
             Message message = NewMessage(_ => _.WithUserProperty(JobId, jobId)
-                .WithUserProperty(ProviderId, providerId)
-                .WithMessageBody(specificationInformation.AsJsonBytes()));
+                .WithMessageBody(mergeRequest.AsJsonBytes()));
 
             await WhenTheSpecificationInformationIsMerged(message);
-            
-            ThenTheJobTrackingWasStarted(jobId);
-            AndTheProviderWithResultsForSpecificationsWereUpserted(providerWithResultsForSpecifications);
 
-            providerWithResultsForSpecifications
+            ThenTheJobTrackingWasStarted(jobId);
+            AndTheProviderWithResultsForSpecificationsWereUpserted(providerWithResultsForSpecificationsOne);
+            AndTheProviderWithResultsForSpecificationsWereUpserted(providerWithResultsForSpecificationsTwo);
+
+            providerWithResultsForSpecificationsOne
                 .Specifications
                 .Should()
                 .BeEquivalentTo(specificationInformation);
-            
+
+            providerWithResultsForSpecificationsTwo
+                .Specifications
+                .Should()
+                .BeEquivalentTo(specificationInformation);
+
             AndTheJobTrackingWasCompleted(jobId);
         }
-        
+
         [TestMethod]
-        public async Task MergeSpecificationInformationMergesCreatesNewMissingProviderWithResultsForSpecificationsForSpecificProviderIdWhenSupplied()
+        public async Task MergeSpecificationInformationMergesCreatesNewMissingProviderWithResultsForSpecificationsForSpecificProviderIdsWhenSupplied()
         {
             string jobId = NewRandomString();
             string providerId = NewRandomString();
 
             SpecificationInformation specificationInformation = NewSpecificationInformation();
+            MergeSpecificationInformationRequest mergeRequest = NewMergeSpecificationInformationRequest(_ => _.WithSpecificationInformation(specificationInformation)
+                .WithProviderIds(providerId));
 
             DateTimeOffset expectedFundingPeriodEndDate = NewRandomDateTime();
-            
+
             GivenTheFundingPeriodEndDate(specificationInformation.FundingPeriodId, expectedFundingPeriodEndDate);
 
             Message message = NewMessage(_ => _.WithUserProperty(JobId, jobId)
                 .WithUserProperty(ProviderId, providerId)
-                .WithMessageBody(specificationInformation.AsJsonBytes()));
+                .WithMessageBody(mergeRequest.AsJsonBytes()));
 
             await WhenTheSpecificationInformationIsMerged(message);
-            
+
             ThenTheJobTrackingWasStarted(jobId);
-            
+
             SpecificationInformation expectedSpecificationInformation = specificationInformation.DeepCopy();
             expectedSpecificationInformation.FundingPeriodEnd = expectedFundingPeriodEndDate;
-            
+
             AndTheProviderWithResultsForSpecificationsWasUpserted(_ => _.Id == providerId &&
-                                                                      HasEquivalentSpecificationInformation(_, expectedSpecificationInformation));
+                                                                       HasEquivalentSpecificationInformation(_, expectedSpecificationInformation));
             AndTheJobTrackingWasCompleted(jobId);
         }
-        
+
         [TestMethod]
         public async Task MergeSpecificationInformationMergesForAllProviderWhenProviderIdNotSupplied()
         {
@@ -199,7 +186,8 @@ namespace CalculateFunding.Services.Results.UnitTests
             string specificationId = NewRandomString();
 
             SpecificationInformation specificationInformation = NewSpecificationInformation(_ => _.WithId(specificationId));
-            
+            MergeSpecificationInformationRequest mergeRequest = NewMergeSpecificationInformationRequest(_ => _.WithSpecificationInformation(specificationInformation));
+
             ProviderWithResultsForSpecifications providerOne = NewProviderWithResultsForSpecifications();
             ProviderWithResultsForSpecifications providerTwo = NewProviderWithResultsForSpecifications();
             ProviderWithResultsForSpecifications providerThree = NewProviderWithResultsForSpecifications();
@@ -209,23 +197,24 @@ namespace CalculateFunding.Services.Results.UnitTests
             ProviderWithResultsForSpecifications providerSeven = NewProviderWithResultsForSpecifications();
 
             DateTimeOffset expectedFundingPeriodEndDate = NewRandomDateTime();
-            
+
             GivenTheFundingPeriodEndDate(specificationInformation.FundingPeriodId, expectedFundingPeriodEndDate);
-             AndTheProviderWithResultsForSpecifications(specificationId,  NewFeedIterator(AsArray(providerOne, providerTwo),
-                AsArray(providerThree, providerFour),
-                AsArray(providerFive, providerSix),
-                AsArray(providerSeven)));
+            AndTheProviderWithResultsForSpecifications(specificationId,
+                NewFeedIterator(AsArray(providerOne, providerTwo),
+                    AsArray(providerThree, providerFour),
+                    AsArray(providerFive, providerSix),
+                    AsArray(providerSeven)));
 
             Message message = NewMessage(_ => _.WithUserProperty(JobId, jobId)
-                .WithMessageBody(specificationInformation.AsJsonBytes()));
+                .WithMessageBody(mergeRequest.AsJsonBytes()));
 
             await WhenTheSpecificationInformationIsMerged(message);
-            
+
             ThenTheJobTrackingWasStarted(jobId);
-            
+
             SpecificationInformation expectedSpecificationInformation = specificationInformation.DeepCopy();
             expectedSpecificationInformation.FundingPeriodEnd = expectedFundingPeriodEndDate;
-            
+
             AndTheProviderWithResultsForSpecificationsWereUpserted(providerOne,
                 providerTwo);
             AndTheProviderWithResultsForSpecificationsWereUpserted(providerThree,
@@ -242,7 +231,7 @@ namespace CalculateFunding.Services.Results.UnitTests
                 providerFive,
                 providerSix,
                 providerSeven);
-            
+
             AndTheJobTrackingWasCompleted(jobId);
         }
 
@@ -277,7 +266,7 @@ namespace CalculateFunding.Services.Results.UnitTests
                                                                                    _.LastEditDate == specificationInformation.LastEditDate) != 1)
                 {
                     return false;
-                }      
+                }
             }
 
             return providerWithResultsForSpecifications.Specifications.Count() == specifications.Length;
@@ -309,25 +298,23 @@ namespace CalculateFunding.Services.Results.UnitTests
         private void VerifyJobUpdateWasSent(string jobId,
             bool completed)
         {
-            _jobs.Verify(_ => _.AddJobLog(jobId, 
-                    It.Is<JobLogUpdateModel>(jb => 
-                jb.CompletedSuccessfully == completed)),
+            _jobs.Verify(_ => _.AddJobLog(jobId,
+                    It.Is<JobLogUpdateModel>(jb =>
+                        jb.CompletedSuccessfully == completed)),
                 Times.Once);
         }
+
+        private async Task<IActionResult> WhenTheMergeSpecificationInformationJobIsQueued(MergeSpecificationInformationRequest mergeRequest,
+            Reference user,
+            string correlationId)
+            => await _service.QueueMergeSpecificationInformationJob(mergeRequest, user, correlationId);
 
         private async Task WhenTheSpecificationInformationIsMerged(Message message)
             => await _service.MergeSpecificationInformation(message);
 
-        private async Task WhenTheSpecificationInformationIsMerged(SpecificationInformation specificationInformation,
-            string providerId,
+        private async Task WhenTheSpecificationInformationIsMerged(MergeSpecificationInformationRequest mergeRequest,
             ConcurrentDictionary<string, FundingPeriod> fundingPeriods = null)
-            => await _service.MergeSpecificationInformation(specificationInformation, providerId, fundingPeriods);
-
-        private async Task<IActionResult> WhenAMergeSpecificationInformationForProviderJobIsQueued(SpecificationInformation specificationInformation,
-            string providerId,
-            Reference user,
-            string correlationId)
-            => await _service.QueueMergeSpecificationInformationForProviderJob(specificationInformation, user, correlationId, providerId);
+            => await _service.MergeSpecificationInformation(mergeRequest, fundingPeriods);
 
         private void GivenTheProviderWithResultsForSpecificationsByProviderId(ProviderWithResultsForSpecifications providerWithResultsForSpecifications,
             string providerId)
@@ -335,15 +322,16 @@ namespace CalculateFunding.Services.Results.UnitTests
             _calculationResults.Setup(_ => _.GetProviderWithResultsForSpecificationsByProviderId(providerId))
                 .ReturnsAsync(providerWithResultsForSpecifications);
         }
-        
-        private void AndTheProviderWithResultsForSpecifications(string specificationId, ICosmosDbFeedIterator<ProviderWithResultsForSpecifications> feed)
+
+        private void AndTheProviderWithResultsForSpecifications(string specificationId,
+            ICosmosDbFeedIterator<ProviderWithResultsForSpecifications> feed)
         {
             _calculationResults.Setup(_ => _.GetProvidersWithResultsForSpecificationBySpecificationId(specificationId))
                 .Returns(feed);
         }
-        
+
         private void GivenTheJob(Job job,
-            SpecificationInformation specificationInformation,
+            MergeSpecificationInformationRequest mergeRequest,
             Reference user,
             string correlationId,
             string providerId = null)
@@ -353,7 +341,7 @@ namespace CalculateFunding.Services.Results.UnitTests
                     jb.CorrelationId == correlationId &&
                     jb.InvokerUserId == user.Id &&
                     jb.InvokerUserDisplayName == user.Name &&
-                    jb.MessageBody == specificationInformation.AsJson(true) &&
+                    jb.MessageBody == mergeRequest.AsJson(true) &&
                     jb.JobDefinitionId == JobConstants.DefinitionNames.MergeSpecificationInformationForProviderJob)))
                 .ReturnsAsync(job);
         }
@@ -361,7 +349,7 @@ namespace CalculateFunding.Services.Results.UnitTests
         private static TItem[] AsArray<TItem>(params TItem[] items) => items;
 
         private static TItem[][] AsPages<TItem>(params TItem[][] pages) => pages;
-        
+
         private bool HasProviderIdInProperties(JobCreateModel jobCreateModel,
             string providerId)
             => jobCreateModel.Properties?.ContainsKey(ProviderId) == true &&
@@ -380,10 +368,10 @@ namespace CalculateFunding.Services.Results.UnitTests
             FundingPeriodBuilder fundingPeriodBuilder = new FundingPeriodBuilder();
 
             setUp?.Invoke(fundingPeriodBuilder);
-            
+
             return fundingPeriodBuilder.Build();
         }
-        
+
         private DateTimeOffset NewRandomDateTime() => new RandomDateTime();
 
         private Message NewMessage(SpecificationInformation specificationInformation,
@@ -397,6 +385,15 @@ namespace CalculateFunding.Services.Results.UnitTests
             }
 
             return message;
+        }
+
+        private MergeSpecificationInformationRequest NewMergeSpecificationInformationRequest(Action<MergeSpecificationInformationRequestBuilder> setUp = null)
+        {
+            MergeSpecificationInformationRequestBuilder mergeSpecificationInformationRequestBuilder = new MergeSpecificationInformationRequestBuilder();
+
+            setUp?.Invoke(mergeSpecificationInformationRequestBuilder);
+
+            return mergeSpecificationInformationRequestBuilder.Build();
         }
 
         private SpecificationInformation NewSpecificationInformation(Action<SpecificationInformationBuilder> setUp = null)
@@ -414,14 +411,14 @@ namespace CalculateFunding.Services.Results.UnitTests
                 .WithProviderInformation(NewProviderInformation());
 
             setUp?.Invoke(providerWithResultsForSpecificationsBuilder);
-            
+
             return providerWithResultsForSpecificationsBuilder.Build();
         }
 
         private ProviderInformation NewProviderInformation(Action<ProviderInformationBuilder> setUp = null)
         {
             ProviderInformationBuilder providerInformationBuilder = new ProviderInformationBuilder();
-            
+
             setUp?.Invoke(providerInformationBuilder);
 
             return providerInformationBuilder.Build();
@@ -432,7 +429,7 @@ namespace CalculateFunding.Services.Results.UnitTests
             MessageBuilder messageBuilder = new MessageBuilder();
 
             setUp?.Invoke(messageBuilder);
-            
+
             return messageBuilder.Build();
         }
 
@@ -441,7 +438,7 @@ namespace CalculateFunding.Services.Results.UnitTests
             Mock<ICosmosDbFeedIterator<ProviderWithResultsForSpecifications>> feed = new Mock<ICosmosDbFeedIterator<ProviderWithResultsForSpecifications>>();
 
             ISetupSequentialResult<bool> hasResults = feed.SetupSequence(_ => _.HasMoreResults);
-            ISetupSequentialResult<Task<IEnumerable<ProviderWithResultsForSpecifications>>> next = 
+            ISetupSequentialResult<Task<IEnumerable<ProviderWithResultsForSpecifications>>> next =
                 feed.SetupSequence(_ => _.ReadNext(It.IsAny<CancellationToken>()));
 
             foreach (ProviderWithResultsForSpecifications[] page in pages)
@@ -449,7 +446,7 @@ namespace CalculateFunding.Services.Results.UnitTests
                 hasResults = hasResults.Returns(true);
                 next = next.ReturnsAsync(page);
             }
-            
+
             return feed.Object;
         }
     }

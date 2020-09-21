@@ -994,21 +994,24 @@ namespace CalculateFunding.Services.Specs
 
             return new OkObjectResult(result);
         }
-        
+
         private async Task QueueMergeSpecificationInformationJob(SpecificationVersion specification)
         {
-            await _resultsApiClientPolicy.ExecuteAsync(() => _results.QueueMergeSpecificationInformationForProviderJobForAllProviders(new SpecificationInformation
+            await _resultsApiClientPolicy.ExecuteAsync(() => _results.QueueMergeSpecificationInformationJob(new MergeSpecificationInformationRequest
             {
-                Id = specification.Id,
-                Name = specification.Name,
-                FundingPeriodId = specification.FundingPeriod?.Id,
-                FundingStreamIds = specification.FundingStreams?.Select(_ => _.Id).ToArray(),
-                LastEditDate = specification.Date
+                SpecificationInformation = new SpecificationInformation
+                {
+                    Id = specification.Id,
+                    Name = specification.Name,
+                    FundingPeriodId = specification.FundingPeriod?.Id,
+                    FundingStreamIds = specification.FundingStreams?.Select(_ => _.Id).ToArray(),
+                    LastEditDate = specification.Date
+                }
             }));
         }
 
         private async Task SendSpecificationComparisonModelMessageToTopic(string specificationId, string topicName,
-            Models.Specs.SpecificationVersion current, Models.Specs.SpecificationVersion previous, Reference user, string correlationId)
+            SpecificationVersion current, SpecificationVersion previous, Reference user, string correlationId)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
             Guard.ArgumentNotNull(current, nameof(current));

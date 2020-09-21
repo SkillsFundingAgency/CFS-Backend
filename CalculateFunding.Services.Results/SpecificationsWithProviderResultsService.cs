@@ -59,12 +59,11 @@ namespace CalculateFunding.Services.Results
             _policies = policies;
         }
 
-        public async Task<IActionResult> QueueMergeSpecificationInformationForProviderJob(SpecificationInformation specificationInformation,
+        public async Task<IActionResult> QueueMergeSpecificationInformationJob(MergeSpecificationInformationRequest mergeRequest,
             Reference user,
-            string correlationId,
-            string providerId = null)
+            string correlationId)
         {
-            Guard.ArgumentNotNull(specificationInformation, nameof(specificationInformation));
+            Guard.ArgumentNotNull(mergeRequest, nameof(mergeRequest));
 
             JobCreateModel job = new JobCreateModel
             {
@@ -76,22 +75,12 @@ namespace CalculateFunding.Services.Results
                 {
                     Message = "Specification or Results change require merging specification information for providers with results",
                     EntityType = "Specification",
-                    EntityId = specificationInformation.Id
+                    EntityId = mergeRequest.SpecificationInformation.Id
                 },
-                MessageBody = specificationInformation.AsJson()
+                MessageBody = mergeRequest.AsJson()
             };
 
-            if (providerId.IsNotNullOrWhitespace())
-            {
-                job.Properties = new Dictionary<string, string>
-                {
-                    {
-                        "provider-id", providerId
-                    }
-                };
-            }
-
-            return new OkObjectResult(await _jobsPolicy.ExecuteAsync(() => _jobs.QueueJob(job)));
+            return new OkObjectResult(await _jobsPolicy.ExecuteAsync(() => _jobs.QueueJob(job)));   
         }
 
         public async Task MergeSpecificationInformation(Message message)
@@ -99,30 +88,30 @@ namespace CalculateFunding.Services.Results
             Guard.ArgumentNotNull(message, nameof(message));
 
             string jobId = GetMessageProperty(message, "jobId");
-            string providerId = GetMessageProperty(message, "provider-id");
 
             await StartTrackingJob(jobId);
 
-            SpecificationInformation specificationInformation = message.GetPayloadAsInstanceOf<SpecificationInformation>();
+            MergeSpecificationInformationRequest mergeRequest = message.GetPayloadAsInstanceOf<MergeSpecificationInformationRequest>();
 
-            await MergeSpecificationInformation(specificationInformation, providerId);
+            await MergeSpecificationInformation(mergeRequest);
 
             await CompleteJob(jobId);
         }
 
-        public async Task MergeSpecificationInformation(SpecificationInformation specificationInformation,
-            string providerId,
+        public async Task MergeSpecificationInformation(MergeSpecificationInformationRequest mergeRequest,
             ConcurrentDictionary<string, FundingPeriod> fundingPeriods = null)
         {
-            Guard.ArgumentNotNull(specificationInformation, nameof(specificationInformation));
+            Guard.ArgumentNotNull(mergeRequest, nameof(mergeRequest));
 
-            if (providerId.IsNotNullOrWhitespace())
+            if (mergeRequest.IsForAllProviders)
             {
-                await MergeSpecificationInformationForProvider(specificationInformation, providerId, fundingPeriods);
+                await MergeSpecificationInformationForAllProviders(mergeRequest.SpecificationInformation);
             }
             else
             {
-                await MergeSpecificationInformationForAllProviders(specificationInformation);
+                await MergeSpecificationInformationForProviderBatch(mergeRequest.SpecificationInformation, 
+                    mergeRequest.ProviderIds, 
+                    fundingPeriods);   
             }
         }
 
@@ -202,27 +191,34 @@ namespace CalculateFunding.Services.Results
             await _resultsPolicy.ExecuteAsync(() => _results.UpsertSpecificationWithProviderResults(items.ToArray()));
         }
 
-        private async Task MergeSpecificationInformationForProvider(SpecificationInformation specificationInformation,
-            string providerId,
+        private async Task MergeSpecificationInformationForProviderBatch(SpecificationInformation specificationInformation,
+            IEnumerable<string> providerIds,
             ConcurrentDictionary<string, FundingPeriod> fundingPeriods)
         {
-            LogInformation($"Merging specification information for specification {specificationInformation.Id} into summary for provider {providerId}");
-
-            ProviderWithResultsForSpecifications providerWithResultsForSpecifications = await GetProviderWithResultsByProviderId(providerId);
-
-            providerWithResultsForSpecifications ??= new ProviderWithResultsForSpecifications
+            LogInformation($"Merging specification information for specification {specificationInformation.Id} into summary for provider batch with length {providerIds.Count()}");
+            
+            foreach (string providerId in providerIds)
             {
-                Provider = new ProviderInformation
+                LogInformation($"Merging specification information for specification {specificationInformation.Id} into summary for provider {providerId}");
+
+                ProviderWithResultsForSpecifications providerWithResultsForSpecifications = await GetProviderWithResultsByProviderId(providerId);
+
+                providerWithResultsForSpecifications ??= new ProviderWithResultsForSpecifications
                 {
-                    Id = providerId
-                }
-            };
+                    Provider = new ProviderInformation
+                    {
+                        Id = providerId
+                    }
+                };
 
-            await EnsureFundingPeriodEndDateQueried(specificationInformation, fundingPeriods);
+                await EnsureFundingPeriodEndDateQueried(specificationInformation, fundingPeriods);
 
-            providerWithResultsForSpecifications.MergeSpecificationInformation(specificationInformation);
+                providerWithResultsForSpecifications.MergeSpecificationInformation(specificationInformation);
 
-            await _results.UpsertSpecificationWithProviderResults(providerWithResultsForSpecifications);
+                await _results.UpsertSpecificationWithProviderResults(providerWithResultsForSpecifications);     
+            }
+            
+            LogInformation($"Completed merging specification information for specification {specificationInformation.Id} into summary for provider batch with length {providerIds.Count()}");
         }
 
         public async Task<IActionResult> GetSpecificationsWithProviderResultsForProviderId(string providerId)

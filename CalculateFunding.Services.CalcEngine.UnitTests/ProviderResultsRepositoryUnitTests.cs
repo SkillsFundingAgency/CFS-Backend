@@ -361,13 +361,13 @@ namespace CalculateFunding.Services.Calculator
                 r.First().FundingLineResult.First() == results.First().FundingLineResults.First().Value.ToString()));
 
             await _resultsApiClient.Received(1)
-                .QueueMergeSpecificationInformationForProviderJobForProvider(Arg.Is<SpecificationInformation>(_ =>
-                        _.Id == specificationSummary.Id &&
-                        _.Name == specificationSummary.Name &&
-                        _.LastEditDate == specificationSummary.LastEditedDate &&
-                        _.FundingStreamIds.SequenceEqual(specificationSummary.FundingStreams.Select(fs => fs.Id).ToArray()) &&
-                        _.FundingPeriodId == specificationSummary.FundingPeriod.Id),
-                    "prov1");
+                .QueueMergeSpecificationInformationJob(Arg.Is<MergeSpecificationInformationRequest>(_ =>
+                    _.SpecificationInformation.Id == specificationSummary.Id &&
+                    _.SpecificationInformation.Name == specificationSummary.Name &&
+                    _.SpecificationInformation.LastEditDate == specificationSummary.LastEditedDate &&
+                    _.SpecificationInformation.FundingStreamIds.SequenceEqual(specificationSummary.FundingStreams.Select(fs => fs.Id).ToArray()) &&
+                    _.SpecificationInformation.FundingPeriodId == specificationSummary.FundingPeriod.Id &&
+                    _.ProviderIds.SequenceEqual(new [] { "prov1" })));
         }
 
         [TestMethod]

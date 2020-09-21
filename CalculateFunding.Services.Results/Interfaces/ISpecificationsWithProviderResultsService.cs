@@ -14,13 +14,11 @@ namespace CalculateFunding.Services.Results.Interfaces
 
         Task MergeSpecificationInformation(Message message);
 
-        Task<IActionResult> QueueMergeSpecificationInformationForProviderJob(SpecificationInformation specificationInformation,
-            Reference user,
-            string correlationId,
-            string providerId = null);
-
-        Task MergeSpecificationInformation(SpecificationInformation specificationInformation,
-            string providerId,
+        Task MergeSpecificationInformation(MergeSpecificationInformationRequest specificationInformation,
             ConcurrentDictionary<string, FundingPeriod> fundingPeriods);
+
+        Task<IActionResult> QueueMergeSpecificationInformationJob(MergeSpecificationInformationRequest mergeRequest,
+            Reference user,
+            string correlationId);
     }
 }

@@ -7,8 +7,10 @@ using CalculateFunding.Models;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Results.Interfaces;
+using CalculateFunding.Services.Results.Models;
 using Microsoft.AspNetCore.Mvc;
 using CalculationType = CalculateFunding.Models.Calcs.CalculationType;
+using MergeSpecificationInformationRequest = CalculateFunding.Services.Results.Models.MergeSpecificationInformationRequest;
 using ProviderResult = CalculateFunding.Models.Calcs.ProviderResult;
 using ProviderResultResponse = CalculateFunding.Models.Calcs.ProviderResultResponse;
 using ProviderWithResultsForSpecifications = CalculateFunding.Services.Results.Models.ProviderWithResultsForSpecifications;
@@ -162,23 +164,13 @@ namespace CalculateFunding.Api.Results.Controllers
         {
             return await _specificationsWithProviderResultsService.GetSpecificationsWithProviderResultsForProviderId(providerId);
         }
-
-        [HttpPut("api/results/providers/{providerId}/specifications")]
-        [Produces(typeof(Job))]
-        public async Task<IActionResult> QueueMergeSpecificationInformationForProviderJob([FromRoute] string providerId,
-            [FromBody] SpecificationInformation specificationInformation)
-        {
-            return await _specificationsWithProviderResultsService.QueueMergeSpecificationInformationForProviderJob(specificationInformation,
-                Request.GetUser(), 
-                Request.GetCorrelationId(),
-                providerId);
-        }
         
         [HttpPut("api/results/providers/specifications")]
         [Produces(typeof(Job))]
-        public async Task<IActionResult> QueueMergeSpecificationInformationForAllProvidersJob([FromBody] SpecificationInformation specificationInformation)
+        public async Task<IActionResult> QueueMergeSpecificationInformationJob(
+            [FromBody] MergeSpecificationInformationRequest mergeRequest)
         {
-            return await _specificationsWithProviderResultsService.QueueMergeSpecificationInformationForProviderJob(specificationInformation,
+            return await _specificationsWithProviderResultsService.QueueMergeSpecificationInformationJob(mergeRequest,
                 Request.GetUser(), 
                 Request.GetCorrelationId());
         }

@@ -18,7 +18,7 @@
 
 
 
-      <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Results" Version="3.7.0" />
+      <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Results" Version="4.0.0" />
     </ItemGroup>
 
 </Project>

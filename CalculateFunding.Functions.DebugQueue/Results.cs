@@ -24,7 +24,7 @@ namespace CalculateFunding.Functions.DebugQueue
             using IServiceScope scope = Functions.Results.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
             
             //the message helper was throwing newtonsoft exceptions so gone with this
-            QueueMessage<SpecificationInformation> queueMessage = item.AsPoco<QueueMessage<SpecificationInformation>>();
+            QueueMessage<MergeSpecificationInformationRequest> queueMessage = item.AsPoco<QueueMessage<MergeSpecificationInformationRequest>>();
             
             Message message = new Message(queueMessage.Data.AsJsonBytes());
             
@@ -47,7 +47,7 @@ namespace CalculateFunding.Functions.DebugQueue
             using IServiceScope scope = Functions.Results.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
             
             //the message helper was throwing newtonsoft exceptions so gone with this
-            QueueMessage<SpecificationInformation> queueMessage = item.AsPoco<QueueMessage<SpecificationInformation>>();
+            QueueMessage<MergeSpecificationInformationRequest> queueMessage = item.AsPoco<QueueMessage<MergeSpecificationInformationRequest>>();
             
             Message message = new Message(queueMessage.Data.AsJsonBytes());
             

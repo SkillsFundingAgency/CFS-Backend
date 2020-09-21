@@ -185,19 +185,6 @@ namespace CalculateFunding.Services.CalcEngine
                         providerCalculationResultsIndex.FundingLineResult = providerResult.FundingLineResults.Select(m => !string.IsNullOrEmpty(m.Value?.ToString()) ? m.Value.ToString() : "null").ToArraySafe();
                     }
 
-                    if (providerResult.Provider != null)
-                    {
-                        await _resultsApiClientPolicy.ExecuteAsync(() => _resultsApiClient.QueueMergeSpecificationInformationForProviderJobForProvider(new SpecificationInformation
-                            {
-                                Id = specification.Id,
-                                Name = specification.Name,
-                                FundingPeriodId = specification.FundingPeriod.Id,
-                                FundingStreamIds = specification.FundingStreams?.Select(_ => _.Id).ToArray(),
-                                LastEditDate = specification.LastEditedDate
-                            },
-                            providerResult.Provider.Id));
-                    }
-
                     if (_featureToggle.IsExceptionMessagesEnabled())
                     {
                         providerCalculationResultsIndex.CalculationException = providerResult.CalculationResults
@@ -234,6 +221,8 @@ namespace CalculateFunding.Services.CalcEngine
                 }
             }
 
+            await QueueMergeSpecificationJobsInBatches(providerResults, specifications);
+
             assembleStopwatch.Stop();
 
             Stopwatch stopwatch = Stopwatch.StartNew();
@@ -252,6 +241,29 @@ namespace CalculateFunding.Services.CalcEngine
 
             stopwatch.Stop();
             return stopwatch.ElapsedMilliseconds;
+        }
+
+        private async Task QueueMergeSpecificationJobsInBatches(IEnumerable<ProviderResult> providerResults,
+            IDictionary<string, SpecModel.SpecificationSummary> specifications)
+        {
+            foreach (IGrouping<string, ProviderResult> specificationGrouping in providerResults.Where(_ => _.Provider != null)
+                .GroupBy(_ => _.SpecificationId))
+            {
+                SpecModel.SpecificationSummary specification = specifications[specificationGrouping.Key];
+
+                await _resultsApiClientPolicy.ExecuteAsync(() => _resultsApiClient.QueueMergeSpecificationInformationJob(new MergeSpecificationInformationRequest
+                {
+                    SpecificationInformation = new SpecificationInformation
+                    {
+                        Id = specification.Id,
+                        Name = specification.Name,
+                        FundingPeriodId = specification.FundingPeriod.Id,
+                        FundingStreamIds = specification.FundingStreams?.Select(_ => _.Id).ToArray(),
+                        LastEditDate = specification.LastEditedDate
+                    },
+                    ProviderIds = specificationGrouping.Select(_ => _.Provider.Id).ToArray()
+                }));
+            }
         }
     }
 }
