@@ -51,6 +51,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
                         NewPublishedFundingVersion(pfv =>
                             pfv.WithOrganisationGroupTypeCode(OrganisationGroupTypeCode.LocalAuthority)
                                 .WithOrganisationGroupName("Enfield")
+                                .WithOrganisationGroupIdentifierValue("Enfield Value")
                                 .WithGroupReason(expectedGroupingReason)
                                 .WithProviderFundings(new [] { "one", "two" })
                                 .WithPublishedProviderStatus(PublishedFundingStatus.Released)
@@ -71,6 +72,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
                 {
                     {"Grouping Reason", expectedGroupingReason.ToString()},
                     {"Grouping Code", "LocalAuthority"},
+                    {"Grouping Identifier Value", "Enfield Value"},
                     {"Grouping Name", "Enfield"},
                     {"Allocation Status", "Released"},
                     {"Allocation Major Version", "1"},
