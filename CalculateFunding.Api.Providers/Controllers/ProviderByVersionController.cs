@@ -114,7 +114,7 @@ namespace CalculateFunding.Api.Providers.Controllers
         /// <param name="providers">List of Providers</param>
         /// <returns></returns>
         [HttpPost("api/providers/versions/{providerVersionId}")]
-        [DisableRequestSizeLimitAttribute()]
+        [DisableRequestSizeLimit()]
         public async Task<IActionResult> UploadProviderVersion([FromRoute]string providerVersionId, [FromBody]ProviderVersionViewModel providers)
         {
             string controllerName = string.Empty;
