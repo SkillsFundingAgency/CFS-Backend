@@ -117,12 +117,21 @@ namespace CalculateFunding.Services.Results.UnitTests
             string providerTwoId = NewRandomString();
             string jobId = NewRandomString();
 
-            SpecificationInformation specificationInformation = NewSpecificationInformation();
+            string newFundingStreamIdOne = NewRandomString();
+            string newFundingStreamIdTwo = NewRandomString();
+
+            SpecificationInformation specificationInformation = NewSpecificationInformation(_ => 
+                _.WithFundingStreamIds(newFundingStreamIdOne, newFundingStreamIdTwo));
             MergeSpecificationInformationRequest mergeRequest = NewMergeSpecificationInformationRequest(_ => _.WithSpecificationInformation(specificationInformation)
                 .WithProviderIds(providerOneId, providerTwoId));
 
-            ProviderWithResultsForSpecifications providerWithResultsForSpecificationsOne = NewProviderWithResultsForSpecifications();
-            ProviderWithResultsForSpecifications providerWithResultsForSpecificationsTwo = NewProviderWithResultsForSpecifications();
+            SpecificationInformation informationWithoutFundingStreams = specificationInformation.DeepCopy();
+            informationWithoutFundingStreams.FundingStreamIds = null;
+
+            ProviderWithResultsForSpecifications providerWithResultsForSpecificationsOne = NewProviderWithResultsForSpecifications(_ => 
+                _.WithSpecifications(informationWithoutFundingStreams));
+            ProviderWithResultsForSpecifications providerWithResultsForSpecificationsTwo = NewProviderWithResultsForSpecifications(_ => 
+                _.WithSpecifications(informationWithoutFundingStreams));
 
             GivenTheProviderWithResultsForSpecificationsByProviderId(providerWithResultsForSpecificationsOne, providerOneId);
             GivenTheProviderWithResultsForSpecificationsByProviderId(providerWithResultsForSpecificationsTwo, providerTwoId);

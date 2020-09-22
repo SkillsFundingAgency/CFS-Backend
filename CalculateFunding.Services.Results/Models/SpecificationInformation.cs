@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Services.Results.Models
@@ -28,6 +29,7 @@ namespace CalculateFunding.Services.Results.Models
         {
             LastEditDate = specificationInformation.LastEditDate;
             FundingPeriodEnd = specificationInformation.FundingPeriodEnd;
+            FundingStreamIds = specificationInformation.FundingStreamIds?.ToArray();
         }
     }
 }

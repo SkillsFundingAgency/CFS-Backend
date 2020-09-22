@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using CalculateFunding.Services.Results.Models;
 using CalculateFunding.Tests.Common.Helpers;
 
@@ -11,6 +12,14 @@ namespace CalculateFunding.Services.Results.UnitTests
         private DateTimeOffset? _lastUpdatedDate;
         private DateTimeOffset? _fundingPeriodEndDate;
         private string _fundingPeriodId;
+        private IEnumerable<string> _fundingStreamIds;
+        
+        public SpecificationInformationBuilder WithFundingStreamIds(params string[] fundingStreamIds)
+        {
+            _fundingStreamIds = fundingStreamIds;
+
+            return this;
+        }
 
         public SpecificationInformationBuilder WithId(string id)
         {
@@ -55,7 +64,8 @@ namespace CalculateFunding.Services.Results.UnitTests
                 Name = _name ?? NewRandomString(),
                 FundingPeriodId = _fundingPeriodId ?? NewRandomString(),
                 LastEditDate = _lastUpdatedDate,
-                FundingPeriodEnd = _fundingPeriodEndDate
+                FundingPeriodEnd = _fundingPeriodEndDate,
+                FundingStreamIds = _fundingStreamIds
             };
         }
     }
