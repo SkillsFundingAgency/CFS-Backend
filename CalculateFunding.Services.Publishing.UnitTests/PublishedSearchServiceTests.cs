@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -251,23 +252,92 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Should()
                 .NotBeNull()
                 .And
-                .BeOfType<List<string>>();
+                .BeOfType<ConcurrentBag<string>>();
 
-            List<string> publishedProviderIds = okObjectResult.Value as List<string>;
+            ConcurrentBag<string> publishedProviderIds = okObjectResult.Value as ConcurrentBag<string>;
 
             publishedProviderIds
                 .Should()
                 .HaveCount(2);
 
             publishedProviderIds
-                .First()
                 .Should()
-                .BeEquivalentTo(providerIdOne);
+                .BeEquivalentTo(new[] { providerIdOne, providerIdTwo });
+        }
+
+        [TestMethod]
+        public async Task GetsSearchPublishedProviderIdsShouldBatchAllPageResults()
+        {
+            string providerId = new RandomString();
+            string searchTerm = new RandomString();
+
+            PublishedProviderIdSearchModel searchModel = new PublishedProviderIdSearchModel
+            {
+                SearchTerm = searchTerm
+            };
+
+            SearchParameters searchParametersOne = new SearchParameters { Skip = 0 };
+            SearchParameters searchParametersTwo = new SearchParameters { Skip = 1000 };
+
+            List<CalculateFunding.Repositories.Common.Search.SearchResult<PublishedProviderIndex>> resultsOne =
+                new List<CalculateFunding.Repositories.Common.Search.SearchResult<PublishedProviderIndex>>();
+
+            resultsOne.AddRange(Enumerable.Range(1, 1000).Select(i => new CalculateFunding.Repositories.Common.Search.SearchResult<PublishedProviderIndex>
+            {
+                Result = new PublishedProviderIndex
+                {
+                    Id = $"{providerId}-One-{i}"
+                }
+            }));
+
+            SearchResults<PublishedProviderIndex> firstPageSearchResults = new SearchResults<PublishedProviderIndex>
+            {
+                TotalCount = 1500,
+                Results = resultsOne
+            };
+
+            List<CalculateFunding.Repositories.Common.Search.SearchResult<PublishedProviderIndex>> resultsTwo =
+                new List<CalculateFunding.Repositories.Common.Search.SearchResult<PublishedProviderIndex>>();
+
+            resultsTwo.AddRange(Enumerable.Range(1, 500).Select(i => new CalculateFunding.Repositories.Common.Search.SearchResult<PublishedProviderIndex>
+            {
+                Result = new PublishedProviderIndex
+                {
+                    Id = $"{providerId}-Two-{i}"
+                }
+            }));
+
+            SearchResults<PublishedProviderIndex> secondPageSearchResults = new SearchResults<PublishedProviderIndex>
+            {
+                TotalCount = 1500,
+                Results = resultsTwo
+            };
+
+            AndTheSearchResults(new SearchModel { SearchTerm = searchTerm }, searchParametersOne, firstPageSearchResults);
+            AndTheSearchResults(new SearchModel { SearchTerm = searchTerm }, searchParametersTwo, secondPageSearchResults);
+
+            IActionResult result = await WhenSearchPublishedProviderIdsIsMade(searchModel);
+
+            result
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Should()
+                .NotBeNull();
+
+            OkObjectResult okObjectResult = result as OkObjectResult;
+
+            okObjectResult
+                .Value
+                .Should()
+                .NotBeNull()
+                .And
+                .BeOfType<ConcurrentBag<string>>();
+
+            ConcurrentBag<string> publishedProviderIds = okObjectResult.Value as ConcurrentBag<string>;
 
             publishedProviderIds
-                .Last()
                 .Should()
-                .BeEquivalentTo(providerIdTwo);
+                .HaveCount(1500);
         }
 
         private SearchModel NewSearchModel(Action<SearchModelBuilder> setUp = null)
@@ -364,6 +434,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private void AndTheSearchResults(SearchModel search, SearchResults<PublishedProviderIndex> results)
         {
             _searchRepository.Search(Arg.Is(search.SearchTerm), Arg.Any<SearchParameters>())
+                .Returns(results);
+        }
+
+        private void AndTheSearchResults(SearchModel search, SearchParameters searchParameters, SearchResults<PublishedProviderIndex> results)
+        {
+            _searchRepository.Search(Arg.Is(search.SearchTerm), Arg.Is<SearchParameters>(_ => _.Skip.GetValueOrDefault(0) == searchParameters.Skip.GetValueOrDefault(0)))
                 .Returns(results);
         }
 

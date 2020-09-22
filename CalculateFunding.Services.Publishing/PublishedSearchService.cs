@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
@@ -100,8 +102,6 @@ namespace CalculateFunding.Services.Publishing
 
             try
             {
-                List<string> searchFields = searchModel.SearchFields?.ToList();
-
                 IDictionary<string, string[]> searchModelDictionary = searchModel.Filters;
                 List<Filter> filters = searchModelDictionary
                     .Select(keyValueFilterPair => new Filter(
@@ -112,16 +112,67 @@ namespace CalculateFunding.Services.Publishing
                     .ToList();
                 FilterHelper filterHelper = new FilterHelper(filters);
 
+                IList<string> searchFields = searchModel.SearchFields?.ToList();
+                int searchResultsBatchSize = 1000;
+                IList<string> selectFields = new[] { "id" };
+                IList<string> orderByFields = new[] { "id" };
+                string filter = filterHelper.BuildAndFilterQuery();
+
                 SearchResults<PublishedProviderIndex> searchResults = await Task.Run(() =>
                 {
                     return SearchRepository.Search(searchModel.SearchTerm, new SearchParameters
                     {
+                        Top = searchResultsBatchSize, 
+                        IncludeTotalResultCount = true,
+                        Select = selectFields,
+                        OrderBy = orderByFields,
                         SearchFields = searchFields,
-                        Filter = filterHelper.BuildAndFilterQuery()
+                        Filter = filter
                     });
                 });
 
-                IEnumerable<string> results = searchResults.Results.Select(_ => _.Result.Id).ToList();
+                ConcurrentBag<string> results = new ConcurrentBag<string>();
+                searchResults.Results.ForEach(_ => results.Add(_.Result.Id));
+
+                if (searchResults.TotalCount > searchResultsBatchSize)
+                {
+                    SemaphoreSlim throttler = new SemaphoreSlim(10, 10);
+                    List<Task> searchTasks = new List<Task>();
+                    int count = searchResultsBatchSize;
+
+                    while(count < searchResults.TotalCount)
+                    {
+                        SearchParameters searchParams = new SearchParameters
+                        {
+                            Skip = count,
+                            Top = searchResultsBatchSize,
+                            IncludeTotalResultCount = true,
+                            Select = selectFields,
+                            OrderBy = orderByFields,
+                            SearchFields = searchFields,
+                            Filter = filter
+                        };
+
+                        await throttler.WaitAsync();
+                        searchTasks.Add(
+                            Task.Run(async () =>
+                            {
+                                try
+                                {
+                                    SearchResults<PublishedProviderIndex> nextSearchResults =  await SearchRepository.Search(searchModel.SearchTerm, searchParams);
+                                    nextSearchResults.Results.ForEach(_ => results.Add(_.Result.Id));
+                                }
+                                finally
+                                {
+                                    throttler.Release();
+                                }
+                            }));
+
+                        count += searchResultsBatchSize;
+                    }
+
+                    await TaskHelper.WhenAllAndThrow(searchTasks.ToArray());
+                }
 
                 return new OkObjectResult(results);
             }
