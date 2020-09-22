@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Calcs;
@@ -365,6 +366,8 @@ namespace CalculateFunding.Services.Specs
                 return new BadRequestObjectResult("Null or empty fundingStreamId provided");
             }
 
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 15);
+
             IEnumerable<Specification> specifications =
                 await _specificationsRepository.GetSpecificationsByFundingPeriodAndFundingStream(
                     fundingPeriodId, fundingStreamId);
@@ -374,13 +377,26 @@ namespace CalculateFunding.Services.Specs
 
             foreach (Specification specification in specifications)
             {
+                await throttler.WaitAsync();
+
                 Task task = Task.Run(async () =>
                 {
-                    bool hasProviderResults = await _resultsRepository.SpecificationHasResults(specification.Id);
-
-                    if (hasProviderResults)
+                    try
                     {
-                        mappedSpecifications.Add(_mapper.Map<SpecificationSummary>(specification));
+                        bool hasProviderResults = await _resultsRepository.SpecificationHasResults(specification.Id);
+
+                        if (hasProviderResults)
+                        {
+                            mappedSpecifications.Add(_mapper.Map<SpecificationSummary>(specification));
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        throw;
+                    }
+                    finally
+                    {
+                        throttler.Release();
                     }
                 });
 
