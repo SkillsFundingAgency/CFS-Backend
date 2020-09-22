@@ -30,7 +30,6 @@ namespace CalculateFunding.Services.Publishing.Reporting
 
                 row["Grouping Reason"] = publishedFundingVersion.GroupingReason.ToString();
                 row["Grouping Code"] = publishedFundingVersion.OrganisationGroupTypeCode;
-                row["Grouping Identifier Value"] = publishedFundingVersion.OrganisationGroupIdentifierValue;
                 row["Grouping Name"] = publishedFundingVersion.OrganisationGroupName;
                 row["Allocation Status"] = publishedFundingVersion.Status.ToString();
                 row["Allocation Major Version"] = publishedFundingVersion.MajorVersion.ToString();
