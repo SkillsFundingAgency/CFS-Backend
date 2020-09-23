@@ -7,6 +7,18 @@ param (
     [Parameter(Mandatory = $true)][string]$httpVerb = "POST"
 )
 
+
+function Write-LogDetailMessage
+{
+    param(
+        [Parameter(Mandatory=$true)]
+        [string] $Message
+    )
+
+    $logId = [System.Guid]::NewGuid()
+    Write-Host "##vso[task.logdetail id=$logId;name=checkApiSecureAzureAd;type=release]$Message" -ForegroundColor Green
+}
+
 if ([string]::IsNullOrWhiteSpace($url)) {
     Write-Host "##vso[task.logissue type=error;] Null or empty url supplied for authentication check";
 }
@@ -78,7 +90,7 @@ catch {
     
     if ($statusCode -eq 401)
     {
-        Write-Host "##vso[task.logdetail id=$correlationId] # No auth header supplied: $url received 401 response" -ForegroundColor Green
+        Write-LogDetailMessage -Message " # No auth header supplied: $url received 401 response"
     }
     else
     {
@@ -100,7 +112,7 @@ catch {
     
     if ($statusCode -eq 401)
     {
-        Write-Host "##vso[task.logdetail id=$correlationId] # Incorrect azure ad bearer token supplied: $url received 401 response" -ForegroundColor Green
+        Write-LogDetailMessage -Message " # Incorrect azure ad bearer token supplied: $url received 401 response"
     }
     else
     {
@@ -114,7 +126,7 @@ $headers["Authorization"] = "Bearer $accessToken";
 try {
     $responseData = Invoke-WebRequest -Uri "$url/healthcheck" -Method GET -Headers $headers -DisableKeepAlive -UseBasicParsing
     
-    Write-Host "##vso[task.logdetail id=$correlationId] # Correct azure ad bearer token supplied: $url access granted with the correct bearer token" -ForegroundColor Green
+    Write-LogDetailMessage -Message " # Correct azure ad bearer token supplied: $url access granted with the correct bearer token"
 }
 catch {
     $statusCode = $_.Exception.Response.StatusCode.value__
