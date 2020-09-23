@@ -130,7 +130,7 @@ namespace CalculateFunding.Api.External
                         appBuilder.UseRouting();
                         appBuilder.UseAuthentication();
                         appBuilder.UseAuthorization();
-                        appBuilder.UseMiddleware<AuthenticatedHealthCheckMiddleware>();
+                        appBuilder.UseAuthenticatedHealthCheckMiddleware();
                         appBuilder.UseMiddleware<ContentTypeCheckMiddleware>();
                         appBuilder.UseEndpoints(endpoints =>
                         {
@@ -287,7 +287,7 @@ namespace CalculateFunding.Api.External
 
             builder.AddSingleton(externalConfig.CreateMapper());
 
-            builder.AddTransient<AuthenticatedHealthCheckMiddleware>();
+            builder.AddAuthenticatedHealthCheckMiddleware();
             builder.AddTransient<ContentTypeCheckMiddleware>();
             builder.AddPoliciesInterServiceClient(Configuration);
             builder.AddProvidersInterServiceClient(Configuration);

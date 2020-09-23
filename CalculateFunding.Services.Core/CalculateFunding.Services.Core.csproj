@@ -17,7 +17,7 @@
     <PackageReference Include="CalculateFunding.Common.Caching" Version="2.0.0" />
     <PackageReference Include="CalculateFunding.Common.CosmosDb" Version="5.1.0" />
     <PackageReference Include="CalculateFunding.Common.Models" Version="2.1.0" />
-    <PackageReference Include="CalculateFunding.Common.WebApi" Version="2.1.0" />
+    <PackageReference Include="CalculateFunding.Common.WebApi" Version="2.2.0" />
     <PackageReference Include="CalculateFunding.Common" Version="2.1.0" />
 
     <PackageReference Include="Collector.Serilog.Enrichers.Correlation" Version="2.0.2" />
