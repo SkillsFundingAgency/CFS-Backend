@@ -78,7 +78,7 @@ catch {
     
     if ($statusCode -eq 401)
     {
-        Write-Host "##vso[task.logdetail] # No auth header supplied: $uri received 401 response" -ForegroundColor Green
+        Write-Host "##vso[task.logdetail] # No auth header supplied: $url received 401 response" -ForegroundColor Green
     }
     else
     {
@@ -100,7 +100,7 @@ catch {
     
     if ($statusCode -eq 401)
     {
-        Write-Host "##vso[task.logdetail] # Incorrect azure ad bearer token supplied: $uri received 401 response" -ForegroundColor Green
+        Write-Host "##vso[task.logdetail] # Incorrect azure ad bearer token supplied: $url received 401 response" -ForegroundColor Green
     }
     else
     {
@@ -114,7 +114,7 @@ $headers["Authorization"] = "Bearer $accessToken";
 try {
     $responseData = Invoke-WebRequest -Uri "$url/healthcheck" -Method GET -Headers $headers -DisableKeepAlive -UseBasicParsing
     
-    Write-Host "##vso[task.logdetail] # Correct azure ad bearer token supplied: $uri access granted with the correct bearer token" -ForegroundColor Green
+    Write-Host "##vso[task.logdetail] # Correct azure ad bearer token supplied: $url access granted with the correct bearer token" -ForegroundColor Green
 }
 catch {
     $statusCode = $_.Exception.Response.StatusCode.value__
