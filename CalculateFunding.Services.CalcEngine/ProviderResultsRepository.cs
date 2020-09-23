@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Results;
 using CalculateFunding.Common.ApiClient.Results.Models;
-using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
@@ -14,33 +13,28 @@ using CalculateFunding.Models.Calcs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.CalcEngine.Caching;
 using CalculateFunding.Services.CalcEngine.Interfaces;
-using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
 using Polly;
 using Serilog;
 using ProviderResult = CalculateFunding.Models.Calcs.ProviderResult;
-using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.CalcEngine
 {
     public class ProviderResultsRepository : IProviderResultsRepository
     {
         private readonly ICosmosRepository _cosmosRepository;
-        private readonly ISpecificationsApiClient _specificationsApiClient;
         private readonly ILogger _logger;
         private readonly ISearchRepository<ProviderCalculationResultsIndex> _providerCalculationResultsSearchRepository;
         private readonly IFeatureToggle _featureToggle;
         private readonly EngineSettings _engineSettings;
         private readonly IProviderResultCalculationsHashProvider _calculationsHashProvider;
-        private readonly AsyncPolicy _specificationsApiClientPolicy;
         private readonly AsyncPolicy _resultsApiClientPolicy;
         private readonly IResultsApiClient _resultsApiClient;
 
         public ProviderResultsRepository(
             ICosmosRepository cosmosRepository,
-            ISpecificationsApiClient specificationsApiClient,
             ILogger logger,
             ISearchRepository<ProviderCalculationResultsIndex> providerCalculationResultsSearchRepository,
             IFeatureToggle featureToggle,
@@ -50,7 +44,6 @@ namespace CalculateFunding.Services.CalcEngine
             IResultsApiClient resultsApiClient)
         {
             Guard.ArgumentNotNull(cosmosRepository, nameof(cosmosRepository));
-            Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(providerCalculationResultsSearchRepository, nameof(providerCalculationResultsSearchRepository));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
@@ -58,22 +51,21 @@ namespace CalculateFunding.Services.CalcEngine
             Guard.ArgumentNotNull(calculationsHashProvider, nameof(calculationsHashProvider));
             Guard.ArgumentNotNull(calculatorResiliencePolicies, nameof(calculatorResiliencePolicies));
             Guard.ArgumentNotNull(resultsApiClient, nameof(resultsApiClient));
-            Guard.ArgumentNotNull(calculatorResiliencePolicies.SpecificationsApiClient, nameof(calculatorResiliencePolicies.SpecificationsApiClient));
             Guard.ArgumentNotNull(calculatorResiliencePolicies.ResultsApiClient, nameof(calculatorResiliencePolicies.ResultsApiClient));
 
             _cosmosRepository = cosmosRepository;
-            _specificationsApiClient = specificationsApiClient;
             _logger = logger;
             _providerCalculationResultsSearchRepository = providerCalculationResultsSearchRepository;
             _featureToggle = featureToggle;
             _engineSettings = engineSettings;
             _calculationsHashProvider = calculationsHashProvider;
             _resultsApiClient = resultsApiClient;
-            _specificationsApiClientPolicy = calculatorResiliencePolicies.SpecificationsApiClient;
             _resultsApiClientPolicy = calculatorResiliencePolicies.ResultsApiClient;
         }
 
-        public async Task<(long saveToCosmosElapsedMs, long saveToSearchElapsedMs, int savedProviders)> SaveProviderResults(IEnumerable<ProviderResult> providerResults,
+        public async Task<(long saveToCosmosElapsedMs, long saveToSearchElapsedMs, int savedProviders)> SaveProviderResults(
+            IEnumerable<ProviderResult> providerResults,
+            SpecificationSummary specificationSummary,
             int partitionIndex,
             int partitionSize,
             int degreeOfParallelism = 5)
@@ -91,32 +83,18 @@ namespace CalculateFunding.Services.CalcEngine
             // ToArray required due to reevaulation of the providerResults further down
             providerResults = providerResults.Where(_ => ResultsHaveChanged(_, partitionIndex, partitionSize)).ToArray();
 
-            _calculationsHashProvider.EndBatch(batchSpecificationId, partitionIndex, partitionSize);
 
             IEnumerable<KeyValuePair<string, ProviderResult>> results = providerResults.Select(m => new KeyValuePair<string, ProviderResult>(m.Provider.Id, m));
 
-            IEnumerable<string> specificationIds = providerResults.Select(s => s.SpecificationId).Distinct();
-
-            Dictionary<string, SpecModel.SpecificationSummary> specifications = new Dictionary<string, SpecModel.SpecificationSummary>();
-
-            foreach (string specificationId in specificationIds)
-            {
-                ApiResponse<SpecModel.SpecificationSummary> specificationApiResponse = 
-                    await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId));
-
-                if(!specificationApiResponse.StatusCode.IsSuccess() || specificationApiResponse.Content == null)
-                {
-                    throw new InvalidOperationException($"Result for Specification Summary lookup was null with ID '{specificationId}'");
-                }
-
-                SpecModel.SpecificationSummary specification = specificationApiResponse.Content;
-                specifications.Add(specificationId, specification);
-            }
-
             Task<long> cosmosSaveTask = BulkSaveProviderResults(results, degreeOfParallelism);
-            Task<long> searchSaveTask = UpdateSearch(providerResults, specifications);
+            Task<long> searchSaveTask = UpdateSearch(providerResults, specificationSummary);
 
             await TaskHelper.WhenAllAndThrow(cosmosSaveTask, searchSaveTask);
+
+            // Only save batch to redis if it has been saved successfully. This enables the message to be requeued for throttled scenarios and will resave to cosmos/search
+            _calculationsHashProvider.EndBatch(batchSpecificationId, partitionIndex, partitionSize);
+
+            await QueueMergeSpecificationJobsInBatches(providerResults, specificationSummary);
 
             return (cosmosSaveTask.Result, searchSaveTask.Result, providerResults.Count());
         }
@@ -145,7 +123,7 @@ namespace CalculateFunding.Services.CalcEngine
             return stopwatch.ElapsedMilliseconds;
         }
 
-        private async Task<long> UpdateSearch(IEnumerable<ProviderResult> providerResults, IDictionary<string, SpecModel.SpecificationSummary> specifications)
+        private async Task<long> UpdateSearch(IEnumerable<ProviderResult> providerResults, SpecificationSummary specification)
         {
             Stopwatch assembleStopwatch = Stopwatch.StartNew();
 
@@ -155,8 +133,6 @@ namespace CalculateFunding.Services.CalcEngine
             {
                 if (!providerResult.CalculationResults.IsNullOrEmpty())
                 {
-                    SpecModel.SpecificationSummary specification = specifications[providerResult.SpecificationId];
-
                     ProviderCalculationResultsIndex providerCalculationResultsIndex = new ProviderCalculationResultsIndex
                     {
                         SpecificationId = providerResult.SpecificationId,
@@ -177,7 +153,7 @@ namespace CalculateFunding.Services.CalcEngine
                         CalculationResult = providerResult.CalculationResults.Select(m => !string.IsNullOrEmpty(m.Value?.ToString()) ? m.Value.ToString() : "null").ToArraySafe(),
                     };
 
-                    if(providerResult.FundingLineResults != null)
+                    if (providerResult.FundingLineResults != null)
                     {
                         providerCalculationResultsIndex.FundingLineName = providerResult.FundingLineResults.Select(m => m.FundingLine.Name).ToArraySafe();
                         providerCalculationResultsIndex.FundingLineFundingStreamId = providerResult.FundingLineResults.Select(m => m.FundingLineFundingStreamId).ToArraySafe();
@@ -221,8 +197,6 @@ namespace CalculateFunding.Services.CalcEngine
                 }
             }
 
-            await QueueMergeSpecificationJobsInBatches(providerResults, specifications);
-
             assembleStopwatch.Stop();
 
             Stopwatch stopwatch = Stopwatch.StartNew();
@@ -244,26 +218,20 @@ namespace CalculateFunding.Services.CalcEngine
         }
 
         private async Task QueueMergeSpecificationJobsInBatches(IEnumerable<ProviderResult> providerResults,
-            IDictionary<string, SpecModel.SpecificationSummary> specifications)
+            SpecificationSummary specification)
         {
-            foreach (IGrouping<string, ProviderResult> specificationGrouping in providerResults.Where(_ => _.Provider != null)
-                .GroupBy(_ => _.SpecificationId))
+            await _resultsApiClientPolicy.ExecuteAsync(() => _resultsApiClient.QueueMergeSpecificationInformationJob(new MergeSpecificationInformationRequest
             {
-                SpecModel.SpecificationSummary specification = specifications[specificationGrouping.Key];
-
-                await _resultsApiClientPolicy.ExecuteAsync(() => _resultsApiClient.QueueMergeSpecificationInformationJob(new MergeSpecificationInformationRequest
+                SpecificationInformation = new SpecificationInformation
                 {
-                    SpecificationInformation = new SpecificationInformation
-                    {
-                        Id = specification.Id,
-                        Name = specification.Name,
-                        FundingPeriodId = specification.FundingPeriod.Id,
-                        FundingStreamIds = specification.FundingStreams?.Select(_ => _.Id).ToArray(),
-                        LastEditDate = specification.LastEditedDate
-                    },
-                    ProviderIds = specificationGrouping.Select(_ => _.Provider.Id).ToArray()
-                }));
-            }
+                    Id = specification.Id,
+                    Name = specification.Name,
+                    FundingPeriodId = specification.FundingPeriod.Id,
+                    FundingStreamIds = specification.FundingStreams?.Select(_ => _.Id).ToArray(),
+                    LastEditDate = specification.LastEditedDate
+                },
+                ProviderIds = providerResults.Select(_ => _.Provider.Id).ToArray()
+            }));
         }
     }
 }

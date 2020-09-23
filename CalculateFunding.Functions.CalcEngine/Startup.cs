@@ -3,7 +3,6 @@ using System.Threading;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.ApiClient.Results;
-using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Config.ApiClient.Calcs;
 using CalculateFunding.Common.Config.ApiClient.Dataset;
 using CalculateFunding.Common.Config.ApiClient.Jobs;
@@ -26,14 +25,12 @@ using CalculateFunding.Services.CalcEngine.Validators;
 using CalculateFunding.Services.Calcs;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs.MappingProfiles;
-using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
-using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.DeadletterProcessor;
 using FluentValidation;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
@@ -72,7 +69,7 @@ namespace CalculateFunding.Functions.CalcEngine
 
             builder.AddSingleton<IConfiguration>(config);
             builder.AddCaching(config);
-            
+
             // These registrations of the functions themselves are just for the DebugQueue. Ideally we don't want these registered in production
             if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
             {
@@ -121,8 +118,6 @@ namespace CalculateFunding.Functions.CalcEngine
 
                 ISearchRepository<ProviderCalculationResultsIndex> providerCalculationResultsSearchRepository = ctx.GetService<ISearchRepository<ProviderCalculationResultsIndex>>();
 
-                ISpecificationsApiClient specificationsApiClient = ctx.GetService<ISpecificationsApiClient>();
-
                 ILogger logger = ctx.GetService<ILogger>();
 
                 IFeatureToggle featureToggle = ctx.GetService<IFeatureToggle>();
@@ -137,7 +132,6 @@ namespace CalculateFunding.Functions.CalcEngine
 
                 return new ProviderResultsRepository(
                     calcsCosmosRepostory,
-                    specificationsApiClient,
                     logger,
                     providerCalculationResultsSearchRepository,
                     featureToggle,

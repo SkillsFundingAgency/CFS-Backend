@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Results;
 using CalculateFunding.Common.ApiClient.Results.Models;
-using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
@@ -23,11 +20,10 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
 using CalculationResult = CalculateFunding.Models.Calcs.CalculationResult;
-using FundingLineResult = CalculateFunding.Models.Calcs.FundingLineResult;
 using CalculationType = CalculateFunding.Models.Calcs.CalculationType;
+using FundingLineResult = CalculateFunding.Models.Calcs.FundingLineResult;
 using ProviderResult = CalculateFunding.Models.Calcs.ProviderResult;
 using ProviderSummary = CalculateFunding.Models.ProviderLegacy.ProviderSummary;
-using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.Calculator
 {
@@ -41,22 +37,20 @@ namespace CalculateFunding.Services.Calculator
         {
             _resultsApiClient = Substitute.For<IResultsApiClient>();
         }
-        
+
         [TestMethod]
         public async Task SaveProviderResults_WhenResults_ThenResultsSavedToCosmos()
         {
             // Arrange
             ICosmosRepository cosmosRepository = CreateCosmosRepository();
-            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
 
-            ProviderResultsRepository repo = CreateProviderResultsRepository(cosmosRepository, specificationsApiClient);
+            ProviderResultsRepository repo = CreateProviderResultsRepository(cosmosRepository);
 
-            specificationsApiClient.GetSpecificationSummaryById(Arg.Any<string>()).Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, 
-                new SpecModel.SpecificationSummary
-                {
-                    Name = "Specification 1",
-                    FundingPeriod = new Reference()
-                }));
+            SpecificationSummary specificationSummary = new SpecificationSummary
+            {
+                Name = "Specification 1",
+                FundingPeriod = new Reference()
+            };
 
             IEnumerable<ProviderResult> results = new List<ProviderResult>
             {
@@ -99,7 +93,7 @@ namespace CalculateFunding.Services.Calculator
             };
 
             // Act
-            await repo.SaveProviderResults(results, 1, 1);
+            await repo.SaveProviderResults(results, specificationSummary, 1, 1);
 
             // Assert
             await cosmosRepository.Received().BulkUpsertAsync(Arg.Is<IEnumerable<KeyValuePair<string, ProviderResult>>>(r => r.Count() == 1),
@@ -107,14 +101,13 @@ namespace CalculateFunding.Services.Calculator
                 Arg.Any<bool>(),
                 Arg.Is<bool>(false));
         }
-        
+
         [TestMethod]
         public async Task SaveProviderResults_WhenExcludedResults_ThenResultsSavedToCosmos()
         {
             // Arrange
             ICosmosRepository cosmosRepository = CreateCosmosRepository();
-            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
-            ProviderResultsRepository repo = CreateProviderResultsRepository(cosmosRepository, specificationsApiClient);
+            ProviderResultsRepository repo = CreateProviderResultsRepository(cosmosRepository);
 
             SpecificationSummary specificationSummary = new SpecificationSummary
             {
@@ -126,8 +119,6 @@ namespace CalculateFunding.Services.Calculator
                 },
                 LastEditedDate = new RandomDateTime()
             };
-            
-            specificationsApiClient.GetSpecificationSummaryById(Arg.Any<string>()).Returns(new ApiResponse<SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             IEnumerable<ProviderResult> results = new List<ProviderResult>
             {
@@ -170,7 +161,7 @@ namespace CalculateFunding.Services.Calculator
             };
 
             // Act
-            await repo.SaveProviderResults(results, 1, 1);
+            await repo.SaveProviderResults(results, specificationSummary, 1, 1);
 
             // Assert
             await cosmosRepository.Received().BulkUpsertAsync(Arg.Is<IEnumerable<KeyValuePair<string, ProviderResult>>>(r => r.Count() == 1),
@@ -178,16 +169,15 @@ namespace CalculateFunding.Services.Calculator
                 Arg.Any<bool>(),
                 Arg.Is<bool>(false));
         }
-        
-         [TestMethod]
+
+        [TestMethod]
         public async Task SaveProviderResults_WhenExcludedResultsButResultsNotChanged_ThenResultsNotSavedToCosmos()
         {
             // Arrange
             ICosmosRepository cosmosRepository = CreateCosmosRepository();
-            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
             IProviderResultCalculationsHashProvider hashProvider = Substitute.For<IProviderResultCalculationsHashProvider>();
 
-            ProviderResultsRepository repo = CreateProviderResultsRepository(cosmosRepository, specificationsApiClient, calculationsHashProvider: hashProvider);
+            ProviderResultsRepository repo = CreateProviderResultsRepository(cosmosRepository, calculationsHashProvider: hashProvider);
 
             SpecificationSummary specificationSummary = new SpecificationSummary
             {
@@ -199,8 +189,6 @@ namespace CalculateFunding.Services.Calculator
                 },
                 LastEditedDate = new RandomDateTime()
             };
-            
-            specificationsApiClient.GetSpecificationSummaryById(Arg.Any<string>()).Returns(new ApiResponse<SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             IEnumerable<ProviderResult> results = new List<ProviderResult>
             {
@@ -234,7 +222,7 @@ namespace CalculateFunding.Services.Calculator
             };
 
             // Act
-            await repo.SaveProviderResults(results, 1, 1);
+            await repo.SaveProviderResults(results, specificationSummary, 1, 1);
 
             // Assert
             await cosmosRepository.Received(0).BulkUpsertAsync(Arg.Is<IEnumerable<KeyValuePair<string, ProviderResult>>>(r => r.Count() == 1),
@@ -251,14 +239,13 @@ namespace CalculateFunding.Services.Calculator
             // Arrange
             ICosmosRepository cosmosRepository = CreateCosmosRepository();
             ISearchRepository<ProviderCalculationResultsIndex> searchRepository = CreateProviderCalculationResultsSearchRepository();
-            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
 
             IFeatureToggle featureToggle = CreateFeatureToggle();
             featureToggle
                 .IsNewProviderCalculationResultsIndexEnabled()
                 .Returns(true);
 
-            ProviderResultsRepository repo = CreateProviderResultsRepository(cosmosRepository, specificationsApiClient: specificationsApiClient, providerCalculationResultsSearchRepository: searchRepository, featureToggle: featureToggle);
+            ProviderResultsRepository repo = CreateProviderResultsRepository(cosmosRepository, providerCalculationResultsSearchRepository: searchRepository, featureToggle: featureToggle);
 
             SpecificationSummary specificationSummary = new SpecificationSummary
             {
@@ -269,24 +256,22 @@ namespace CalculateFunding.Services.Calculator
                     Id = NewRandomString()
                 },
                 LastEditedDate = new RandomDateTime(),
-                FundingStreams = new []
+                FundingStreams = new[]
                 {
                     new Reference
                     {
                         Id = NewRandomString()
-                    }, 
+                    },
                     new Reference
                     {
                         Id = NewRandomString()
-                    }, 
+                    },
                     new Reference
                     {
                         Id = NewRandomString()
                     }
                 }
             };
-            
-            specificationsApiClient.GetSpecificationSummaryById(Arg.Any<string>()).Returns(new ApiResponse<SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             IEnumerable<ProviderResult> results = new List<ProviderResult>
             {
@@ -329,7 +314,7 @@ namespace CalculateFunding.Services.Calculator
             };
 
             // Act
-            await repo.SaveProviderResults(results, 1, 1);
+            await repo.SaveProviderResults(results, specificationSummary, 1, 1);
 
             // Assert
             await searchRepository.Received(1).Index(Arg.Is<IEnumerable<ProviderCalculationResultsIndex>>(r => r.Count() == 1));
@@ -367,7 +352,7 @@ namespace CalculateFunding.Services.Calculator
                     _.SpecificationInformation.LastEditDate == specificationSummary.LastEditedDate &&
                     _.SpecificationInformation.FundingStreamIds.SequenceEqual(specificationSummary.FundingStreams.Select(fs => fs.Id).ToArray()) &&
                     _.SpecificationInformation.FundingPeriodId == specificationSummary.FundingPeriod.Id &&
-                    _.ProviderIds.SequenceEqual(new [] { "prov1" })));
+                    _.ProviderIds.SequenceEqual(new[] { "prov1" })));
         }
 
         [TestMethod]
@@ -376,20 +361,19 @@ namespace CalculateFunding.Services.Calculator
             // Arrange
             ICosmosRepository cosmosRepository = CreateCosmosRepository();
             ISearchRepository<ProviderCalculationResultsIndex> searchRepository = CreateProviderCalculationResultsSearchRepository();
-            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
 
             IFeatureToggle featureToggle = CreateFeatureToggle();
             featureToggle
                 .IsNewProviderCalculationResultsIndexEnabled()
                 .Returns(true);
 
-            ProviderResultsRepository repo = CreateProviderResultsRepository(cosmosRepository, specificationsApiClient: specificationsApiClient, providerCalculationResultsSearchRepository: searchRepository, featureToggle: featureToggle);
+            ProviderResultsRepository repo = CreateProviderResultsRepository(cosmosRepository, providerCalculationResultsSearchRepository: searchRepository, featureToggle: featureToggle);
 
-            specificationsApiClient.GetSpecificationSummaryById(Arg.Any<string>()).Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, new SpecModel.SpecificationSummary
+            SpecificationSummary specificationSummary = new SpecificationSummary
             {
                 Name = "Specification 1",
                 FundingPeriod = new Reference()
-            }));
+            };
 
             IEnumerable<ProviderResult> results = new List<ProviderResult>
             {
@@ -432,7 +416,7 @@ namespace CalculateFunding.Services.Calculator
             };
 
             // Act
-            await repo.SaveProviderResults(results, 1, 1);
+            await repo.SaveProviderResults(results, specificationSummary, 1, 1);
 
             // Assert
             await cosmosRepository.Received().BulkUpsertAsync(Arg.Is<IEnumerable<KeyValuePair<string, ProviderResult>>>(r => r.Count() == 1),
@@ -469,7 +453,6 @@ namespace CalculateFunding.Services.Calculator
 
         private ProviderResultsRepository CreateProviderResultsRepository(
             ICosmosRepository cosmosRepository = null,
-            ISpecificationsApiClient specificationsApiClient = null,
             ILogger logger = null,
             IFeatureToggle featureToggle = null,
             ISearchRepository<ProviderCalculationResultsIndex> providerCalculationResultsSearchRepository = null,
@@ -478,7 +461,6 @@ namespace CalculateFunding.Services.Calculator
             ICalculatorResiliencePolicies calculatorResiliencePolicies = null) =>
             new ProviderResultsRepository(
                 cosmosRepository ?? CreateCosmosRepository(),
-                specificationsApiClient ?? CreateSpecificationsApiClient(),
                 logger ?? CreateLogger(),
                 providerCalculationResultsSearchRepository ?? CreateProviderCalculationResultsSearchRepository(),
                 featureToggle ?? CreateFeatureToggle(),
@@ -498,7 +480,7 @@ namespace CalculateFunding.Services.Calculator
 
             calculationsHashProvider.TryUpdateCalculationResultHash(Arg.Any<ProviderResult>(), Arg.Any<int>(), Arg.Any<int>())
                 .Returns(true);
-            
+
             return calculationsHashProvider;
         }
 
@@ -510,11 +492,6 @@ namespace CalculateFunding.Services.Calculator
         private static ICosmosRepository CreateCosmosRepository()
         {
             return Substitute.For<ICosmosRepository>();
-        }
-
-        private static ISpecificationsApiClient CreateSpecificationsApiClient()
-        {
-            return Substitute.For<ISpecificationsApiClient>();
         }
 
         private static EngineSettings CreateEngineSettings()

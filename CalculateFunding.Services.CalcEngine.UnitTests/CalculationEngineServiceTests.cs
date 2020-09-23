@@ -6,7 +6,6 @@ using System.Reflection;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
-using CalculateFunding.Common.ApiClient.Results;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata.Models;
@@ -54,7 +53,7 @@ namespace CalculateFunding.Services.Calculator
 
             _specificationSummary = new ApiClientSpecificationSummary
             {
-                DataDefinitionRelationshipIds = new []
+                DataDefinitionRelationshipIds = new[]
                 {
                     NewRandomString(),
                     NewRandomString(),
@@ -100,7 +99,7 @@ namespace CalculateFunding.Services.Calculator
         }
 
         private string NewRandomString() => new RandomString();
-        
+
         [Ignore("This test has a provider result as null, but should be checking successful results.")]
         [TestMethod]
         public async Task GenerateAllocations_GivenAValidRequestWhereSaveProviderResultsNotIgnored_ShouldBatchCorrectlyAndSaveProviderResults()
@@ -166,7 +165,7 @@ namespace CalculateFunding.Services.Calculator
             await _calculationEngineServiceTestsHelper
                 .MockProviderResultRepo
                 .Received(0)
-                .SaveProviderResults(Arg.Any<IEnumerable<ProviderResult>>(), partitionIndex, partitionSize, Arg.Any<int>());
+                .SaveProviderResults(Arg.Any<IEnumerable<ProviderResult>>(), _specificationSummary, partitionIndex, partitionSize, Arg.Any<int>());
         }
 
         [TestMethod]
@@ -253,7 +252,9 @@ namespace CalculateFunding.Services.Calculator
             messageUserProperties.Add("specification-id", specificationId);
             messageUserProperties.Add("jobId", jobId);
 
-            TemplateMapping mapping = new TemplateMapping { FundingStreamId = _cachedSummary.FundingStreams.Single().Id,
+            TemplateMapping mapping = new TemplateMapping
+            {
+                FundingStreamId = _cachedSummary.FundingStreams.Single().Id,
                 SpecificationId = _cachedSummary.Id,
                 TemplateMappingItems = new List<TemplateMappingItem>()
             };
@@ -281,7 +282,7 @@ namespace CalculateFunding.Services.Calculator
             _calculationEngineServiceTestsHelper
                 .MockProviderResultRepo
                 .Received(7)
-                .SaveProviderResults(Arg.Any<IEnumerable<ProviderResult>>(), Arg.Is(partitionIndex), Arg.Is(partitionSize), Arg.Any<int>());
+                .SaveProviderResults(Arg.Any<IEnumerable<ProviderResult>>(), Arg.Is(_specificationSummary), Arg.Is(partitionIndex), Arg.Is(partitionSize), Arg.Any<int>());
         }
 
         [TestMethod]
@@ -401,13 +402,13 @@ namespace CalculateFunding.Services.Calculator
             _calculationEngineServiceTestsHelper
                 .MockProviderResultRepo
                 .Received(6)
-                .SaveProviderResults(Arg.Is<IEnumerable<ProviderResult>>(m => m.Count() == 3), Arg.Is(partitionIndex), Arg.Is(partitionSize), Arg.Any<int>());
+                .SaveProviderResults(Arg.Is<IEnumerable<ProviderResult>>(m => m.Count() == 3), Arg.Is(_specificationSummary), Arg.Is(partitionIndex), Arg.Is(partitionSize), Arg.Any<int>());
 
             await
             _calculationEngineServiceTestsHelper
                 .MockProviderResultRepo
                 .Received(1)
-                .SaveProviderResults(Arg.Is<IEnumerable<ProviderResult>>(m => m.Count() == 2), Arg.Is(partitionIndex), Arg.Is(partitionSize), Arg.Any<int>());
+                .SaveProviderResults(Arg.Is<IEnumerable<ProviderResult>>(m => m.Count() == 2), Arg.Is(_specificationSummary), Arg.Is(partitionIndex), Arg.Is(partitionSize), Arg.Any<int>());
         }
 
         [TestMethod]
@@ -508,7 +509,7 @@ namespace CalculateFunding.Services.Calculator
                 _calculationEngineServiceTestsHelper
                     .MockProviderResultRepo
                     .Received(0)
-                    .SaveProviderResults(Arg.Any<IEnumerable<ProviderResult>>(), partitionIndex, partitionSize, Arg.Any<int>());
+                    .SaveProviderResults(Arg.Any<IEnumerable<ProviderResult>>(), Arg.Is(_specificationSummary), partitionIndex, partitionSize, Arg.Any<int>());
         }
 
         [TestMethod]
@@ -916,7 +917,7 @@ namespace CalculateFunding.Services.Calculator
             await service.GenerateAllocations(message);
 
             //Assert
-            
+
             await
                 _calculationEngineServiceTestsHelper
                     .MockJobManagement
