@@ -246,12 +246,10 @@ namespace CalculateFunding.Services.Publishing
 
             IEnumerable<PublishedProviderVersion> historyPublishedProviderVersions = 
                 publishedProviderVersions.Except(new[] { latestPublishedProviderVersion });
-            latestPublishedProviderVersion = historyPublishedProviderVersions.FirstOrDefault();
 
             IEnumerable<FundingStream> fundingStreams = await _policiesService.GetFundingStreams();
 
-            foreach (PublishedProviderVersion publishedProviderVersion in 
-                historyPublishedProviderVersions.Except(new[] { latestPublishedProviderVersion }))
+            foreach (PublishedProviderVersion publishedProviderVersion in historyPublishedProviderVersions)
             {
                 if(publishedProviderVersion.GetFundingLineTotal(fundingLineCode) 
                     != latestPublishedProviderVersion.GetFundingLineTotal(fundingLineCode) ||

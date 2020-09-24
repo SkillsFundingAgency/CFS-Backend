@@ -646,7 +646,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             IEnumerable<PublishedProviderVersion> publishedProviderVersions = new[]
             {
-                NewPublishedProviderVersion(), NewPublishedProviderVersion(_ => _
+                NewPublishedProviderVersion(_ => _
                     .WithFundingLines(NewFundingLine(fl => fl
                         .WithValue(200)
                         .WithOrganisationGroupingReason(OrganisationGroupingReason.Payment)
