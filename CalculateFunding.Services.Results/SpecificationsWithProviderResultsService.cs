@@ -12,6 +12,7 @@ using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Threading;
@@ -141,9 +142,11 @@ namespace CalculateFunding.Services.Results
 
             ICosmosDbFeedIterator<ProviderWithResultsForSpecifications> providersWithResultsForSpecifications = GetProviderWithResultsBySpecificationId(specificationId);
 
+            IEnumerable<ProviderResult> providerResults = await GetProviderResulsBySpecification(specificationId);
+
             await EnsureFundingPeriodEndDateQueried(specificationInformation);
 
-            MergeSpecificationInformationContext context = new MergeSpecificationInformationContext(providersWithResultsForSpecifications, specificationInformation);
+            MergeSpecificationInformationContext context = new MergeSpecificationInformationContext(providersWithResultsForSpecifications, providerResults, specificationInformation);
 
             IProducerConsumer producerConsumer = _producerConsumerFactory.CreateProducerConsumer(ProduceProviderWithResultsForSpecifications,
                 MergeSpecificationInformation,
@@ -152,6 +155,18 @@ namespace CalculateFunding.Services.Results
                 _logger);
 
             await producerConsumer.Run(context);
+
+            if (context.ProviderResults.AnyWithNullCheck())
+            {
+                await _resultsPolicy.ExecuteAsync(() => _results.UpsertSpecificationWithProviderResults(context.ProviderResults?.Select(_ => new ProviderWithResultsForSpecifications
+                {
+                    Provider = new ProviderInformation
+                    {
+                        Id = _.Key
+                    },
+                    Specifications = new[] { specificationInformation }
+                }).ToArray()));
+            }
         }
 
         private async Task<(bool isComplete, IEnumerable<ProviderWithResultsForSpecifications> items)> ProduceProviderWithResultsForSpecifications(CancellationToken token,
@@ -184,11 +199,16 @@ namespace CalculateFunding.Services.Results
                 providerWithResultsForSpecification.MergeSpecificationInformation(specificationInformation);
 
                 LogInformation($"Merged specification information for {specificationInformation.Id} into ProviderWithResultsForSpecifications for provider {providerWithResultsForSpecification.Id}");
+                
+                if (((MergeSpecificationInformationContext)context).ProviderResults.ContainsKey(providerWithResultsForSpecification.Id))
+                {
+                    ((MergeSpecificationInformationContext)context).ProviderResults.Remove(providerWithResultsForSpecification.Id);
+                }
             }
 
             LogInformation($"Upserting page with {items.Count()} merged ProviderWithResultsForSpecifications for specification {specificationInformation.Id}");
 
-            await _resultsPolicy.ExecuteAsync(() => _results.UpsertSpecificationWithProviderResults(items.ToArray()));
+            await _resultsPolicy.ExecuteAsync(() => _results.UpsertSpecificationWithProviderResults(items.Where(_ => _.Specifications.AnyWithNullCheck(spec => spec.IsDirty)).ToArray()));
         }
 
         private async Task MergeSpecificationInformationForProviderBatch(SpecificationInformation specificationInformation,
@@ -215,7 +235,10 @@ namespace CalculateFunding.Services.Results
 
                 providerWithResultsForSpecifications.MergeSpecificationInformation(specificationInformation);
 
-                await _results.UpsertSpecificationWithProviderResults(providerWithResultsForSpecifications);     
+                if (providerWithResultsForSpecifications.Specifications.AnyWithNullCheck(spec => spec.IsDirty))
+                {
+                    await _results.UpsertSpecificationWithProviderResults(providerWithResultsForSpecifications);
+                }
             }
             
             LogInformation($"Completed merging specification information for specification {specificationInformation.Id} into summary for provider batch with length {providerIds.Count()}");
@@ -272,6 +295,9 @@ namespace CalculateFunding.Services.Results
         private ICosmosDbFeedIterator<ProviderWithResultsForSpecifications> GetProviderWithResultsBySpecificationId(string specificationId) =>
             _results.GetProvidersWithResultsForSpecificationBySpecificationId(specificationId);
 
+        private async Task<IEnumerable<ProviderResult>> GetProviderResulsBySpecification(string specificationId) =>
+            await _results.GetProviderResultsBySpecificationId(specificationId);
+
         private void LogInformation(string message) => _logger.Information(FormatLogMessage(message));
 
         private static string FormatLogMessage(string message) => $"SpecificationsWithProviderResultsService: {message}";
@@ -279,13 +305,17 @@ namespace CalculateFunding.Services.Results
         private class MergeSpecificationInformationContext
         {
             public MergeSpecificationInformationContext(ICosmosDbFeedIterator<ProviderWithResultsForSpecifications> feedIterator,
+                IEnumerable<ProviderResult> providerResults,
                 SpecificationInformation specificationInformation)
             {
                 FeedIterator = feedIterator;
+                ProviderResults = providerResults.ToDictionary<ProviderResult, string>(_ => _.Provider.Id);
                 SpecificationInformation = specificationInformation;
             }
 
             public ICosmosDbFeedIterator<ProviderWithResultsForSpecifications> FeedIterator { get; }
+
+            public IDictionary<string, ProviderResult> ProviderResults { get; }
 
             public SpecificationInformation SpecificationInformation { get; }
         }

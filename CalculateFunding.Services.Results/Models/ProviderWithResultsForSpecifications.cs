@@ -24,6 +24,9 @@ namespace CalculateFunding.Services.Results.Models
 
             if (existingSpecificationInformation == null)
             {
+                // set the spec to is dirty so we upsert to cosmos
+                specificationInformation.IsDirty = true;
+
                 Specifications = Specifications.Concat(new[]
                 {
                     specificationInformation

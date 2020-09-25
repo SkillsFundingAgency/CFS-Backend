@@ -25,8 +25,19 @@ namespace CalculateFunding.Services.Results.Models
         [JsonProperty("fundingPeriodEnd")]
         public DateTimeOffset? FundingPeriodEnd { get; set; }
 
+        [JsonIgnore()]
+        public bool IsDirty { get; set; }
+
         public void MergeMutableInformation(SpecificationInformation specificationInformation)
         {
+            if (LastEditDate == specificationInformation.LastEditDate && FundingPeriodEnd == specificationInformation.FundingPeriodEnd && (FundingStreamIds ?? Enumerable.Empty<string>()).SequenceEqual(specificationInformation.FundingStreamIds ?? Enumerable.Empty<string>()))
+            {
+                return;
+            }
+
+            // set flag to IsDirty so we persist to cosmos
+            IsDirty = true;
+
             LastEditDate = specificationInformation.LastEditDate;
             FundingPeriodEnd = specificationInformation.FundingPeriodEnd;
             FundingStreamIds = specificationInformation.FundingStreamIds?.ToArray();

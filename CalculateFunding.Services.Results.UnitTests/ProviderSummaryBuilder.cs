@@ -5,6 +5,7 @@ namespace CalculateFunding.Services.Results.UnitTests
 {
     public class ProviderSummaryBuilder : TestEntityBuilder
     {
+        private string _id;
         private string _ukPrn;
         private string _urn;
         private string _establishmentNumber;
@@ -13,6 +14,13 @@ namespace CalculateFunding.Services.Results.UnitTests
         private string _authority;
         private string _providerType;
         private string _providerSubType;
+
+        public ProviderSummaryBuilder WithId(string id)
+        {
+            _id = id;
+
+            return this;
+        }
 
         public ProviderSummaryBuilder WithUKPRN(string ukPrn)
         {
@@ -83,6 +91,7 @@ namespace CalculateFunding.Services.Results.UnitTests
                 ProviderSubType = _providerSubType ?? NewRandomString(),
                 EstablishmentNumber = _establishmentNumber ?? NewRandomString(),
                 LACode = _laCode ?? NewRandomString(),
+                Id = _id ?? NewRandomString()
                 // LocalAuthorityName = _localAuthorityName ?? NewRandomString()
             };
         }

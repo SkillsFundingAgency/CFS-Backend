@@ -13,6 +13,8 @@ using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.ProviderLegacy;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Threading;
@@ -145,6 +147,8 @@ namespace CalculateFunding.Services.Results.UnitTests
             AndTheProviderWithResultsForSpecificationsWereUpserted(providerWithResultsForSpecificationsOne);
             AndTheProviderWithResultsForSpecificationsWereUpserted(providerWithResultsForSpecificationsTwo);
 
+            specificationInformation.IsDirty = true;
+
             providerWithResultsForSpecificationsOne
                 .Specifications
                 .Should()
@@ -204,6 +208,10 @@ namespace CalculateFunding.Services.Results.UnitTests
             ProviderWithResultsForSpecifications providerFive = NewProviderWithResultsForSpecifications();
             ProviderWithResultsForSpecifications providerSix = NewProviderWithResultsForSpecifications();
             ProviderWithResultsForSpecifications providerSeven = NewProviderWithResultsForSpecifications();
+            ProviderResult providerResultEight = NewProviderResult();
+            ProviderWithResultsForSpecifications providerEight = NewProviderWithResultsForSpecifications(providerInformation: new ProviderInformation { Id = providerResultEight.Provider.Id });
+            ProviderResult providerResultNine = NewProviderResult();
+            ProviderWithResultsForSpecifications providerNine = NewProviderWithResultsForSpecifications(providerInformation: new ProviderInformation { Id = providerResultNine.Provider.Id });
 
             DateTimeOffset expectedFundingPeriodEndDate = NewRandomDateTime();
 
@@ -212,7 +220,9 @@ namespace CalculateFunding.Services.Results.UnitTests
                 NewFeedIterator(AsArray(providerOne, providerTwo),
                     AsArray(providerThree, providerFour),
                     AsArray(providerFive, providerSix),
-                    AsArray(providerSeven)));
+                    AsArray(providerSeven, providerEight)));
+
+            AndTheProviderResultsForSpecification(specificationId, new[] { providerResultEight, providerResultNine });
 
             Message message = NewMessage(_ => _.WithUserProperty(JobId, jobId)
                 .WithMessageBody(mergeRequest.AsJsonBytes()));
@@ -230,7 +240,12 @@ namespace CalculateFunding.Services.Results.UnitTests
                 providerFour);
             AndTheProviderWithResultsForSpecificationsWereUpserted(providerFive,
                 providerSix);
-            AndTheProviderWithResultsForSpecificationsWereUpserted(providerSeven);
+            AndTheProviderWithResultsForSpecificationsWereUpserted(providerSeven,
+                providerEight);
+
+            AndTheProviderWithResultsForSpecificationsWereUpserted(providerNine);
+
+            expectedSpecificationInformation.IsDirty = true;
 
             AndTheProviderWithResultsForSpecificationsHaveTheEquivalentSpecificationInformation(expectedSpecificationInformation,
                 providerOne,
@@ -304,6 +319,13 @@ namespace CalculateFunding.Services.Results.UnitTests
                 Times.Once);
         }
 
+        private void AndTheProviderWithResultsForSpecificationsWereUpserted(ProviderWithResultsForSpecifications providerWithResultsForSpecification)
+        {
+            _calculationResults.Verify(_ => _.UpsertSpecificationWithProviderResults(It.Is<ProviderWithResultsForSpecifications[]>(results =>
+                    results.First().Provider.Id == providerWithResultsForSpecification.Provider.Id)),
+                Times.Once);
+        }
+
         private void VerifyJobUpdateWasSent(string jobId,
             bool completed)
         {
@@ -337,6 +359,13 @@ namespace CalculateFunding.Services.Results.UnitTests
         {
             _calculationResults.Setup(_ => _.GetProvidersWithResultsForSpecificationBySpecificationId(specificationId))
                 .Returns(feed);
+        }
+
+        private void AndTheProviderResultsForSpecification(string specificationId,
+            IEnumerable<ProviderResult> providerResults)
+        {
+            _calculationResults.Setup(_ => _.GetProviderResultsBySpecificationId(specificationId, -1))
+                .ReturnsAsync(providerResults);
         }
 
         private void GivenTheJob(Job job,
@@ -414,14 +443,24 @@ namespace CalculateFunding.Services.Results.UnitTests
             return specificationInformationBuilder.Build();
         }
 
-        private ProviderWithResultsForSpecifications NewProviderWithResultsForSpecifications(Action<ProviderWithResultsForSpecificationsBuilder> setUp = null)
+        private ProviderWithResultsForSpecifications NewProviderWithResultsForSpecifications(Action<ProviderWithResultsForSpecificationsBuilder> setUp = null, ProviderInformation providerInformation = null)
         {
             ProviderWithResultsForSpecificationsBuilder providerWithResultsForSpecificationsBuilder = new ProviderWithResultsForSpecificationsBuilder()
-                .WithProviderInformation(NewProviderInformation());
+                .WithProviderInformation(providerInformation ?? NewProviderInformation());
 
             setUp?.Invoke(providerWithResultsForSpecificationsBuilder);
 
             return providerWithResultsForSpecificationsBuilder.Build();
+        }
+
+        private ProviderResult NewProviderResult(Action<ProviderResultBuilder> setUp = null)
+        {
+            ProviderResultBuilder providerResultBuilder = new ProviderResultBuilder()
+                .WithProviderSummary(NewProviderSummary());
+
+            setUp?.Invoke(providerResultBuilder);
+
+            return providerResultBuilder.Build();
         }
 
         private ProviderInformation NewProviderInformation(Action<ProviderInformationBuilder> setUp = null)
@@ -431,6 +470,15 @@ namespace CalculateFunding.Services.Results.UnitTests
             setUp?.Invoke(providerInformationBuilder);
 
             return providerInformationBuilder.Build();
+        }
+
+        private ProviderSummary NewProviderSummary(Action<ProviderSummaryBuilder> setUp = null)
+        {
+            ProviderSummaryBuilder providerSummaryBuilder = new ProviderSummaryBuilder();
+
+            setUp?.Invoke(providerSummaryBuilder);
+
+            return providerSummaryBuilder.Build();
         }
 
         private Message NewMessage(Action<MessageBuilder> setUp = null)
