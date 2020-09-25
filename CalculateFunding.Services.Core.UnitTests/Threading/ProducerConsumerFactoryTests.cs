@@ -22,23 +22,16 @@ namespace CalculateFunding.Services.Core.Threading
         {
             int expectedChannelBounds = NewRandomNumber();
             int expectedConsumerPoolSize = NewRandomNumber();
-            CancellationToken expectedCancellationToken = new CancellationToken();
 
             IProducerConsumer producerConsumer = _factory.CreateProducerConsumer(Producer,
                 Consumer,
                 expectedChannelBounds,
                 expectedConsumerPoolSize,
-                Logger.None,
-                expectedCancellationToken);
+                Logger.None);
 
             producerConsumer
                 .Should()
                 .BeOfType<ProducerConsumer<string>>();
-
-            producerConsumer
-                .CancellationToken
-                .Should()
-                .Be(expectedCancellationToken);
 
             producerConsumer
                 .ChannelBounds

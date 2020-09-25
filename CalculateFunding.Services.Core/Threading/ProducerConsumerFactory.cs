@@ -12,15 +12,13 @@ namespace CalculateFunding.Services.Core.Threading
             Func<CancellationToken, dynamic, TItem, Task> consumer, 
             int channelBounds, 
             int consumerPoolSize, 
-            ILogger logger, 
-            CancellationToken cancellationToken = default)
+            ILogger logger)
         {
             return new ProducerConsumer<TItem>(producer,
                 consumer,
                 channelBounds,
                 consumerPoolSize,
-                logger,
-                cancellationToken);
+                logger);
         }
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
@@ -68,7 +69,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
 
             ISetupSequentialResult<bool> hasResultsSequence = feedIterator.SetupSequence(_ => _.HasMoreResults);
             ISetupSequentialResult<Task<IEnumerable<TDocument>>> pagesSequence = feedIterator.SetupSequence(_ => 
-                _.ReadNext(default));
+                _.ReadNext(It.IsAny<CancellationToken>()));
 
             foreach (IEnumerable<TDocument> page in pages)
             {

@@ -11,7 +11,6 @@ namespace CalculateFunding.Services.Core.Interfaces.Threading
             Func<CancellationToken, dynamic, TItem, Task> consumer,
             int channelBounds,
             int consumerPoolSize,
-            ILogger logger,
-            CancellationToken cancellationToken = default);
+            ILogger logger);
     }
 }
