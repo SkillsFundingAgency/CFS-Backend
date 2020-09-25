@@ -79,7 +79,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 100,
                 2,
                 @"SELECT
-                    p.content.id,
+                    p.content.fundingId AS id,
                     p.content.statusChangedDate,
                     p.content.fundingStreamId,
                     p.content.fundingPeriod.id AS FundingPeriodId,
@@ -122,7 +122,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 100,
                 2,
                 @"SELECT
-                    p.content.id,
+                    p.content.fundingId AS id,
                     p.content.statusChangedDate,
                     p.content.fundingStreamId,
                     p.content.fundingPeriod.id AS FundingPeriodId,
@@ -165,7 +165,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 60,
                 5,
                 @"SELECT
-                    p.content.id,
+                    p.content.fundingId AS id,
                     p.content.statusChangedDate,
                     p.content.fundingStreamId,
                     p.content.fundingPeriod.id AS FundingPeriodId,
@@ -208,7 +208,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 60,
                 5,
                 @"SELECT
-                    p.content.id,
+                    p.content.fundingId AS id,
                     p.content.statusChangedDate,
                     p.content.fundingStreamId,
                     p.content.fundingPeriod.id AS FundingPeriodId,
@@ -251,7 +251,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 100,
                 4,
                 @"SELECT
-                    p.content.id,
+                    p.content.fundingId AS id,
                     p.content.statusChangedDate,
                     p.content.fundingStreamId,
                     p.content.fundingPeriod.id AS FundingPeriodId,

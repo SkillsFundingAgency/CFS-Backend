@@ -33,7 +33,7 @@ namespace CalculateFunding.Services.Publishing
             {
                 QueryText = $@"
                 SELECT
-                    p.content.id,
+                    p.content.fundingId AS id,
                     p.content.statusChangedDate,
                     p.content.fundingStreamId,
                     p.content.fundingPeriod.id AS FundingPeriodId,
