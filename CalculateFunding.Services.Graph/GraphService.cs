@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Graph.Interfaces;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Graph;
 using CalculateFunding.Services.Graph.Interfaces;
@@ -171,7 +172,44 @@ namespace CalculateFunding.Services.Graph
 
         public async Task<IActionResult> GetCalculationCircularDependencies(string specificationId)
         {
-            return await ExecuteRepositoryAction(() => _calcRepository.GetCalculationCircularDependencies(specificationId), "Unable to retrieve calculation circulardependencies.");
+            IEnumerable<Entity<Specification, IRelationship>> specificationContents = await _specRepository.GetAllEntities(specificationId);
+            IEnumerable<string> specificationCalculationIds = specificationContents
+                .SelectMany(_ => _.Relationships
+                    .Select(TryGetCalculationId)
+                    .Where(rel => rel.isCalculation)
+                    .Select(rel => rel.calculationId))
+                .ToArray();
+            
+            Dictionary<string, Entity<Calculation, IRelationship>> calculationsWithCircularDependencies = new Dictionary<string, Entity<Calculation, IRelationship>>();
+
+            //TODO: this will probably need to be optimised to run concurrently for specs with long calc lists etc.
+            
+            foreach (string calculationId in specificationCalculationIds)
+            {
+                OkObjectResult result =
+                   (OkObjectResult) await ExecuteRepositoryAction(() => _calcRepository.GetCalculationCircularDependencies(calculationId), "Unable to retrieve calculation circulardependencies.");
+
+                IEnumerable<Entity<Calculation,IRelationship>> resultValue = (IEnumerable<Entity<Calculation, IRelationship>>)result.Value;
+
+                if (resultValue.IsNullOrEmpty())
+                {
+                    continue;
+                }
+
+                foreach (Entity<Calculation,IRelationship> calculation in resultValue)
+                {
+                    calculationsWithCircularDependencies[calculation.Node.CalculationId] = calculation;
+                }
+            }
+            
+            return new OkObjectResult(calculationsWithCircularDependencies.Values);
+        }
+
+        private (bool isCalculation, string calculationId) TryGetCalculationId(dynamic relationship)
+        {
+            bool isCalculation = relationship.One.TryGetValue("calculationid", out object calculationId);
+
+            return (isCalculation, (string) calculationId);
         }
 
         public async Task<IActionResult> GetAllEntities<TNode>(string nodeId)

@@ -78,7 +78,7 @@ namespace CalculateFunding.Services.Graph.UnitTests
 
             Entity<Calculation> entity = new Entity<Calculation> { Node = calculation1, Relationships = new[] { new Relationship { One = calculation2, Two = calculation1, Type = CalculationACalculationBRelationship } } };
 
-            GivenCircularDependencies(CalculationACalculationBRelationship, SpecificationId, specificationId, entity);
+            GivenCircularDependencies(CalculationACalculationBRelationship, CalculationId, specificationId, entity);
 
             IEnumerable<Entity<Calculation, IRelationship>> entities = await _calculationRepository.GetCalculationCircularDependencies(specificationId);
 

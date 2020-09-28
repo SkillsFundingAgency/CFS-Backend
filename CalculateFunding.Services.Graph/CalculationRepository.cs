@@ -48,11 +48,11 @@ namespace CalculateFunding.Services.Graph
                 (CalculationId, calculationId));
         }
 
-        public async Task<IEnumerable<Entity<Calculation, IRelationship>>> GetCalculationCircularDependencies(string specificationId)
+        public async Task<IEnumerable<Entity<Calculation, IRelationship>>> GetCalculationCircularDependencies(string calculationId)
         {
             IEnumerable<Entity<Calculation>> entities = await GetCircularDependencies<Calculation>(CalculationACalculationBRelationship,
-                SpecificationId,
-                specificationId);
+                CalculationId,
+                calculationId);
             return entities?.Select(_ => new Entity<Calculation, IRelationship> { Node = _.Node, Relationships = _.Relationships });
         }
 

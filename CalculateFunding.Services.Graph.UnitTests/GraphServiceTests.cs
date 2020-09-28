@@ -5,7 +5,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Graph;
+using CalculateFunding.Common.Graph.Interfaces;
 using CalculateFunding.Tests.Common.Helpers;
 using Serilog;
 using Neo4jDriver = Neo4j.Driver;
@@ -461,6 +467,65 @@ namespace CalculateFunding.Services.Graph.UnitTests
                 .BeOfType<OkResult>();
         }
 
+        [TestMethod]
+        public async Task GetCircularDependencies_FetchesCalculationsInSpecificationWithSuppliedId_QueriesCircularDependenciesPerCalculation()
+        {
+            const string calculationid = nameof(calculationid);
+            
+            string specificationId = NewRandomString();
+            string calculationOneId = NewRandomString();
+            string calculationTwoId = NewRandomString();
+
+            GivenTheSpecificationContents(specificationId,
+                NewSpecificationEntity(_ => _.WithRelationships(
+                    NewRelationship(rel => rel.WithOne((calculationid, calculationOneId),
+                        (NewRandomString(), NewRandomString()))),
+                    NewRelationship(rel => rel.WithOne((NewRandomString(), NewRandomString()))),
+                    NewRelationship(rel => rel.WithOne((NewRandomString(), NewRandomString()), 
+                        (calculationid, calculationTwoId))))));
+            
+            Entity<Calculation, IRelationship> expectedCalculationOne = NewCalculationEntity(calculationOneId);
+            Entity<Calculation, IRelationship> expectedCalculationTwo = NewCalculationEntity(calculationTwoId);
+            
+            AndTheCalculationCircularDependencies(calculationOneId, expectedCalculationOne, expectedCalculationTwo, expectedCalculationTwo);
+            AndTheCalculationCircularDependencies(calculationTwoId, expectedCalculationTwo, expectedCalculationOne);
+            
+            OkObjectResult result = await _graphService.GetCalculationCircularDependencies(specificationId) as OkObjectResult;
+            
+            //gives distinct results by calc id
+            result?.Value
+                .Should()
+                .BeEquivalentTo(new []
+                {
+                    expectedCalculationOne,
+                    expectedCalculationTwo
+                });
+        }
+
+        private static Entity<Calculation, IRelationship> NewCalculationEntity(string calculationId) =>
+            new Entity<Calculation, IRelationship>
+            {
+                Node = new Calculation
+                {
+                    CalculationId = calculationId
+                }
+            };
+
+        private void GivenTheSpecificationContents(string specificationId,
+            params Entity<Specification, IRelationship>[] contents)
+        {
+            _specificationRepository
+                .GetAllEntities(specificationId)
+                .Returns(contents);
+        }
+
+        private void AndTheCalculationCircularDependencies(string calculationId,
+            params Entity<Calculation, IRelationship>[] calculations)
+        {
+            _calculationRepository.GetCalculationCircularDependencies(calculationId)
+                .Returns(calculations);
+        }
+
         private string NewRandomString() => new RandomString();
 
         private Calculation NewCalculation(Action<CalculationBuilder> setUp = null)
@@ -488,6 +553,65 @@ namespace CalculateFunding.Services.Graph.UnitTests
             setUp?.Invoke(datasetFieldBuilder);
 
             return datasetFieldBuilder.Build();
+        }
+
+        private Entity<Specification, IRelationship> NewSpecificationEntity(Action<EntityBuilder<Specification>> setUp = null)
+        {
+            EntityBuilder<Specification> entityBuilder = new EntityBuilder<Specification>();
+
+            setUp?.Invoke(entityBuilder);
+            
+            return entityBuilder.Build();
+        }
+
+        private Relationship NewRelationship(Action<RelationshipBuilder> setUp = null)
+        {
+            RelationshipBuilder relationshipBuilder = new RelationshipBuilder();
+
+            setUp?.Invoke(relationshipBuilder);
+            
+            return relationshipBuilder.Build();
+        }
+    }
+
+    public class EntityBuilder<TEntity> : TestEntityBuilder
+    where TEntity : class
+    {
+        private IEnumerable<IRelationship> _relationships;
+
+        public EntityBuilder<TEntity> WithRelationships(params IRelationship[] relationships)
+        {
+            _relationships = relationships;
+
+            return this;
+        }
+        
+        public Entity<TEntity, IRelationship> Build()
+        {
+            return new Entity<TEntity, IRelationship>
+            {
+                Relationships = _relationships
+            };
+        }
+    }
+
+    public class RelationshipBuilder : TestEntityBuilder
+    {
+        private IDictionary<string, object> _one;
+
+        public RelationshipBuilder WithOne(params (string key, object value)[] values)
+        {
+            _one = values.ToDictionary(_ => _.key, _ => _.value);
+
+            return this;
+        }
+        
+        public Relationship Build()
+        {
+            return new Relationship
+            {
+                One = _one
+            };
         }
     }
 }
