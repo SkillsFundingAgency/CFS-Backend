@@ -347,8 +347,6 @@ namespace CalculateFunding.Functions.Publishing
 
             builder.AddSingleton<IPublishedProviderDataPopulator, PublishedProviderDataPopulator>();
 
-            builder.AddSingleton<ICalculationsService, CalculationsService>();
-
             builder.AddSingleton<IPublishIntegrityCheckService, PublishIntegrityCheckService>();
 
             builder.AddSingleton<IPublishedProviderContentsGeneratorResolver>(ctx =>

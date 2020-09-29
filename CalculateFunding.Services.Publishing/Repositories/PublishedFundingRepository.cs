@@ -160,6 +160,11 @@ namespace CalculateFunding.Services.Publishing.Repositories
             return (await GetPublishedProviderBySpecificationId(specificationId, fundingStreamId, providerId))?.Current;
         }
 
+        public async Task<PublishedProviderVersion> GetPublishedProviderVersionById(string publishedProviderVersionId)
+        {
+            return (await _repository.ReadDocumentByIdAsync<PublishedProviderVersion>(publishedProviderVersionId))?.Content;
+        }
+
         public async Task<IEnumerable<PublishedProviderVersion>> GetPublishedProviderVersions(string fundingStreamId,
             string fundingPeriodId,
             string providerId,

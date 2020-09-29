@@ -4,6 +4,7 @@ using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Services.UnitTests;
+using CalculateFunding.Tests.Common.Helpers;
 using Microsoft.Azure.ServiceBus;
 using System;
 using TemplateFundingLine = CalculateFunding.Common.TemplateMetadata.Models.FundingLine;
@@ -119,5 +120,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             return generatedProviderResultBuilder.Build();
         }
+
+        protected PublishedProviderFundingStructureItem NewPublishedProviderFundingStructureItem(Action<PublishedProviderFundingStructureItemBuilder> setUp = null)
+        {
+            PublishedProviderFundingStructureItemBuilder publishedProviderFundingStructureItemBuilder = new PublishedProviderFundingStructureItemBuilder();
+
+            setUp?.Invoke(publishedProviderFundingStructureItemBuilder);
+
+            return publishedProviderFundingStructureItemBuilder.Build();
+        }
+
+        protected string NewRandomString() => new RandomString();
+        protected bool NewRandomBoolean() => new RandomBoolean();
+        protected int NewRandomNumber() => new RandomNumberBetween(int.MinValue, int.MaxValue);
+        protected uint NewRandomUInt() => (uint)new RandomNumberBetween(0, int.MaxValue);
+        protected DateTime NewRandomDateTime() => new RandomDateTime();
     }
 }

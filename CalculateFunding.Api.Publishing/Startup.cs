@@ -1,5 +1,6 @@
 using System;
 using AutoMapper;
+using CacheCow.Server.Core.Mvc;
 using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.Config.ApiClient.Calcs;
 using CalculateFunding.Common.Config.ApiClient.Jobs;
@@ -27,6 +28,7 @@ using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Core.Threading;
 using CalculateFunding.Services.Publishing;
+using CalculateFunding.Services.Publishing.Caching.Http;
 using CalculateFunding.Services.Publishing.Errors;
 using CalculateFunding.Services.Publishing.Helper;
 using CalculateFunding.Services.Publishing.Interfaces;
@@ -249,6 +251,10 @@ namespace CalculateFunding.Api.Publishing
             builder.AddPolicySettings(Configuration);
             builder.AddHttpContextAccessor();           
             builder.AddHealthCheckMiddleware();
+            
+            builder.AddHttpCachingMvc();
+            builder.AddQueryProviderAndExtractorForViewModelMvc<PublishedProviderFundingStructure, PublishedProviderFundingStructureTimedEtagProvider, PublishedProviderFundingStructureTimedEtagExtractor>(false);
+
             builder.AddPublishingServices(Configuration);
             builder.AddSpecificationsInterServiceClient(Configuration);
             builder.AddProvidersInterServiceClient(Configuration);

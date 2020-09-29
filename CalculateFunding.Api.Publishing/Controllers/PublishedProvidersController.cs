@@ -1,11 +1,13 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using CacheCow.Server.Core.Mvc;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
@@ -186,6 +188,23 @@ The publishedProviderVersionId will be in the context of funding stream ID, fund
                 Request.GetCorrelationId());
 
             return Ok();
+        }
+
+        /// <summary>
+        ///  Get the Published Provider Funding Structure by published provider version id
+        /// </summary>
+        /// <param name="publishedProviderVersionId">publishedProviderVersionId</param>
+        /// <param name="publishedProviderFundingStructureService"></param>
+        /// <returns>PublishedProviderFundingStructure</returns>
+        [HttpGet("api/publishedproviderfundingstructure/{publishedProviderVersionId}")]
+        [ProducesResponseType(200, Type = typeof(PublishedProviderFundingStructure))]
+        [ProducesResponseType(StatusCodes.Status304NotModified)]
+        [HttpCacheFactory(0, ViewModelType = typeof(PublishedProviderFundingStructure))]
+        public async Task<IActionResult> GetPublishedProviderFundingStructure(
+            [FromRoute]string publishedProviderVersionId,
+            [FromServices] IPublishedProviderFundingStructureService publishedProviderFundingStructureService)
+        {
+            return await publishedProviderFundingStructureService.GetPublishedProviderFundingStructure(publishedProviderVersionId);
         }
     }
 }

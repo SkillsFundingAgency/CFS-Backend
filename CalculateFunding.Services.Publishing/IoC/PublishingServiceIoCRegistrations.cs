@@ -36,6 +36,7 @@ namespace CalculateFunding.Services.Publishing.IoC
             serviceCollection.AddSingleton<IPublishedProviderIdsServiceRequestValidator, PublishedProviderIdsValidator>();
             serviceCollection.AddSingleton<IPublishedProviderFundingService, PublishedProviderFundingService>();
             serviceCollection.AddSingleton<ISpecificationService, SpecificationService>();
+            serviceCollection.AddSingleton<ICalculationsService, CalculationsService>();
             serviceCollection.AddSingleton<IProviderService, ProviderService>();
             serviceCollection.AddSingleton<IPublishedProviderIndexerService, PublishedProviderIndexerService>();
             serviceCollection.AddSingleton<IPublishProviderExclusionCheck, PublishedProviderExclusionCheck>();
@@ -57,6 +58,7 @@ namespace CalculateFunding.Services.Publishing.IoC
             serviceCollection.AddSingleton<IDeleteFundingSearchDocumentsService, DeleteFundingSearchDocumentsService>();
             serviceCollection.AddSingleton<IDeselectSpecificationForFundingService, DeselectSpecificationForFundingService>();
             serviceCollection.AddSingleton<IDeletePublishedFundingBlobDocumentsService, DeletePublishedFundingBlobDocumentsService>();
+            serviceCollection.AddSingleton<IPublishedProviderFundingStructureService, PublishedProviderFundingStructureService>();
 
             PolicySettings policySettings = ServiceCollectionExtensions.GetPolicySettings(configuration);
             OrganisationGroupResiliencePolicies organisationResiliencePolicies = CreateResiliencePolicies(policySettings);

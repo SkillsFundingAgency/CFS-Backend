@@ -75,6 +75,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             string specificationId,
             string fundingStreamId,
             string providerId);
+        Task<PublishedProviderVersion> GetPublishedProviderVersionById(string publishedProviderVersionId);
 
         Task PublishedProviderBatchProcessing(string predicate,
             string specificationId,
