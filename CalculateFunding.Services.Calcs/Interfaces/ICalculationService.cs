@@ -30,6 +30,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
             bool setAdditional = false,
             bool skipInstruct = false,
             bool skipValidation = false,
+            bool updateBuildProject = true,
             Calculation existingCalculation = null);
 
         Task<IActionResult> UpdateCalculationStatus(string calculationId, EditStatusModel editStatusModel);

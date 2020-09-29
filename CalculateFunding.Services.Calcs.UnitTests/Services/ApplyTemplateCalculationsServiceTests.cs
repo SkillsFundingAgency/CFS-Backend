@@ -286,7 +286,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
                 .CalculationId
                 .Should().Be(newCalculationId4);
 
-            AndTheTemplateMappingWasUpdated(templateMapping, 5);
+            AndTheTemplateMappingWasUpdated(templateMapping, 1);
             AndTheJobsStartWasLogged();
             AndTheJobCompletionWasLogged();
             AndACalculationRunWasInitialised();
@@ -342,10 +342,10 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
             {
                 NewCalculation(_ => _.WithId(calculationId1)
                                     .WithCurrentVersion(
-                                        NewCalculationVersion(x=>x.WithName(newCalculationName1)))),
+                                        NewCalculationVersion(x=>x.WithCalculationId(calculationId1).WithName(newCalculationName1)))),
                 NewCalculation(_ => _.WithId(calculationId2)
                                     .WithCurrentVersion(
-                                        NewCalculationVersion(x=>x.WithName(newCalculationName2)))),
+                                        NewCalculationVersion(x=>x.WithCalculationId(calculationId2).WithName(newCalculationName2)))),
             };
 
             Calculation missingCalculation = NewCalculation(_ => _.WithId(calculationId3)
@@ -386,13 +386,6 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
                                                 _.SourceCode == null,
                 calculationId2);
 
-            AndTheMissingCalculationIsEditedForRequestMatching(_ => _.Name == calculationName3 &&
-                                                _.ValueType == calculationValueType3 &&
-                                                _.Description == null &&
-                                                _.SourceCode == null,
-                calculationId3,
-                missingCalculation);
-
             AndTheTemplateContentsCalculation(mappingWithMissingCalculation1, templateMetadataContents, templateCalculationOne);
             AndTheTemplateContentsCalculation(mappingWithMissingCalculation2, templateMetadataContents, templateCalculationTwo);
 
@@ -410,7 +403,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
                 .CalculationId
                 .Should().Be(newCalculationId2);
 
-            AndTheTemplateMappingWasUpdated(templateMapping, 3);
+            AndTheTemplateMappingWasUpdated(templateMapping, 1);
             AndTheJobsStartWasLogged();
             AndTheJobCompletionWasLogged();
             AndACalculationRunWasInitialised();
@@ -441,9 +434,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
             TemplateMappingItem mappingWithMissingCalculation2 = NewTemplateMappingItem();
 
             TemplateMapping templateMapping = NewTemplateMapping(_ => _.WithItems(mappingWithMissingCalculation1,
-                NewTemplateMappingItem(mi => mi.WithCalculationId(calculationId1).WithTemplateId(templateCalculationId1)),
-                mappingWithMissingCalculation2,
-                NewTemplateMappingItem(mi => mi.WithCalculationId(calculationId2).WithTemplateId(templateCalculationId2))));
+                mappingWithMissingCalculation2));
 
             TemplateMetadataContents templateMetadataContents = NewTemplateMetadataContents(_ => _.WithFundingLines(NewFundingLine(fl =>
                 fl.WithCalculations(
@@ -459,10 +450,10 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
                 NewCalculation(_ => _.WithId(calculationId1)
                                     .WithCurrentVersion(
                                         NewCalculationVersion(x => 
-                                            x.WithName(calculationName1).WithValueType(calculationValueFormat1.AsMatchingEnum<CalculationValueType>())))),
+                                            x.WithCalculationId(calculationId1).WithName(calculationName1).WithValueType(calculationValueFormat1.AsMatchingEnum<CalculationValueType>())))),
                 NewCalculation(_ => _.WithId(calculationId2)
                                     .WithCurrentVersion(
-                                        NewCalculationVersion(x=>x.WithName(calculationName2).WithValueType(calculationValueFormat2.AsMatchingEnum<CalculationValueType>())))),
+                                        NewCalculationVersion(x=>x.WithCalculationId(calculationId2).WithName(calculationName2).WithValueType(calculationValueFormat2.AsMatchingEnum<CalculationValueType>())))),
             };
 
             GivenAValidMessage();
@@ -500,7 +491,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
                 .CalculationId
                 .Should().Be(newCalculationId2);
 
-            AndTheTemplateMappingWasUpdated(templateMapping, 3);
+            AndTheTemplateMappingWasUpdated(templateMapping, 1);
             AndTheJobsStartWasLogged();
             AndTheJobCompletionWasLogged();
             AndACalculationRunWasInitialised();
@@ -560,24 +551,10 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
                                        _.Name == _userName),
                 Arg.Is(_correlationId),
                 Arg.Is(false),
-                Arg.Is(false),
-                 Arg.Is(true),
-                Arg.Any<Calculation>())
-                .Returns(new OkObjectResult(null));
-        }
-
-        private void AndTheMissingCalculationIsEditedForRequestMatching(Expression<Predicate<CalculationEditModel>> editModelMatching, string calculationId, Calculation existingCalculation)
-        {
-            _calculationService.EditCalculation(Arg.Is(_specificationId),
-                Arg.Is(calculationId),
-                Arg.Is(editModelMatching),
-                Arg.Is<Reference>(_ => _.Id == _userId &&
-                                       _.Name == _userName),
-                Arg.Is(_correlationId),
-                 Arg.Is(true),
-                Arg.Is(false),
                 Arg.Is(true),
-                Arg.Is(existingCalculation))
+                Arg.Is(true),
+                Arg.Any<bool>(),
+                Arg.Any<Calculation>())
                 .Returns(new OkObjectResult(null));
         }
 

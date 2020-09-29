@@ -13,7 +13,7 @@ namespace CalculateFunding.Services.Calcs.Services
         private CalculationType? _type;
         private AggregationType? _aggregationType;
         private string _formulaText;
-        private uint _templateCalculationId;
+        private uint? _templateCalculationId;
         private IEnumerable<Calculation> _calculations = null;
         private IEnumerable<string> _allowedEnumTypeValues;
 
@@ -82,7 +82,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 Type = _type.GetValueOrDefault(CalculationType.Cash),
                 FormulaText = _formulaText,
                 AggregationType = _aggregationType.GetValueOrDefault(AggregationType.Sum),
-                TemplateCalculationId = _templateCalculationId,
+                TemplateCalculationId = _templateCalculationId ?? NewRandomUint(),
                 Calculations = _calculations,
                 AllowedEnumTypeValues = _allowedEnumTypeValues
             };

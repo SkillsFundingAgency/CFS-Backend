@@ -215,7 +215,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             policiesApiClient
                 .GetFundingTemplateContents(specificationSummary.FundingStreams.Single().Id, specificationSummary.FundingPeriod.Id, specificationSummary.TemplateIds[specificationSummary.FundingStreams.Single().Id])
-                .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK, 
+                .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK,
                     new TemplateMetadataContents { RootFundingLines = new Common.TemplateMetadata.Models.FundingLine[0] }));
 
             IMapper mapper = CreateMapper();
@@ -604,7 +604,20 @@ namespace CalculateFunding.Services.Calcs.Services
             policiesApiClient
                 .GetFundingTemplateContents(specificationSummary.FundingStreams.Single().Id, specificationSummary.FundingPeriod.Id, specificationSummary.TemplateIds[specificationSummary.FundingStreams.Single().Id])
                 .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK,
-                    new TemplateMetadataContents { RootFundingLines = new Common.TemplateMetadata.Models.FundingLine[0] }));
+                    NewTemplateMetadataContents(_ =>
+                        _.WithFundingLines(NewFundingLine(fl => fl
+                            .WithCalculations(NewTemplateMappingCalculation(temp => temp
+                                                    .WithTemplateCalculationId(1)),
+                                              NewTemplateMappingCalculation(calc => calc
+                                                    .WithTemplateCalculationId(2)
+                                                    .WithType(Common.TemplateMetadata.Enums.CalculationType.Number)
+                                                    .WithCalculations(NewTemplateMappingCalculation(temp => temp
+                                                                        .WithTemplateCalculationId(3)),
+                                                                      NewTemplateMappingCalculation(temp => temp
+                                                                        .WithTemplateCalculationId(3)))))
+                            .WithFundingLines(NewFundingLine(fl => fl
+                                .WithCalculations(NewTemplateMappingCalculation(temp => temp
+                                                    .WithTemplateCalculationId(4))))))))));
 
             IMapper mapper = CreateMapper();
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(datasetsApiClient: datasetsApiClient, 
@@ -628,6 +641,12 @@ namespace CalculateFunding.Services.Calcs.Services
             buildProject.SpecificationId.Should().Be(SpecificationId);
             buildProject.Id.Should().NotBeEmpty();
             buildProject.DatasetRelationships.Should().BeEmpty();
+            buildProject.FundingLines[mapping.FundingStreamId].FundingLines.Count().Should().Be(2);
+            buildProject.FundingLines[mapping.FundingStreamId].FundingLines.First().Calculations.Count().Should().Be(1);
+            buildProject.FundingLines[mapping.FundingStreamId].FundingLines.First().Calculations.First().Id.Should().Be(4);
+            buildProject.FundingLines[mapping.FundingStreamId].FundingLines.Skip(1).First().Calculations.Count().Should().Be(2);
+            buildProject.FundingLines[mapping.FundingStreamId].FundingLines.Skip(1).First().Calculations.First().Id.Should().Be(1);
+            buildProject.FundingLines[mapping.FundingStreamId].FundingLines.Skip(1).First().Calculations.Last().Id.Should().Be(3);
         }
 
         [TestMethod]
@@ -3746,6 +3765,33 @@ namespace CalculateFunding.Services.Calcs.Services
             });
 
             return mapperConfig.CreateMapper();
+        }
+
+        private static TemplateMetadataContents NewTemplateMetadataContents(Action<TemplateMetadataContentsBuilder> setUp = null)
+        {
+            TemplateMetadataContentsBuilder templateMetadataContentsBuilder = new TemplateMetadataContentsBuilder();
+
+            setUp?.Invoke(templateMetadataContentsBuilder);
+
+            return templateMetadataContentsBuilder.Build();
+        }
+
+        private static Common.TemplateMetadata.Models.FundingLine NewFundingLine(Action<FundingLineBuilder> setUp = null)
+        {
+            FundingLineBuilder fundingLineBuilder = new FundingLineBuilder();
+
+            setUp?.Invoke(fundingLineBuilder);
+
+            return fundingLineBuilder.Build();
+        }
+
+        protected static Common.TemplateMetadata.Models.Calculation NewTemplateMappingCalculation(Action<TemplateMappingCalculationBuilder> setUp = null)
+        {
+            TemplateMappingCalculationBuilder templateMappingCalculationBuilder = new TemplateMappingCalculationBuilder();
+
+            setUp?.Invoke(templateMappingCalculationBuilder);
+
+            return templateMappingCalculationBuilder.Build();
         }
 
         private static IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel> CreateDatasetSpecificationRelationshipViewModels()

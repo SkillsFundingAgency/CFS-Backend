@@ -505,6 +505,7 @@ namespace CalculateFunding.Services.Calcs
             bool setAdditional = false,
             bool skipInstruct = false,
             bool skipValidation = false,
+            bool updateBuildProject = true,
             Calculation existingCalculation = null)
         {
             Guard.ArgumentNotNull(calculationEditModel, nameof(calculationEditModel));
@@ -541,6 +542,11 @@ namespace CalculateFunding.Services.Calcs
                     calculationVersion.WasTemplateCalculation = true;
                     calculationVersion.CalculationType = CalculationType.Additional;
                 }
+                else
+                {
+                    calculationVersion.WasTemplateCalculation = false;
+                    calculationVersion.CalculationType = CalculationType.Template;
+                }
 
                 calculationVersion.SourceCode = calculationEditModel.SourceCode;
                 calculationVersion.Name = calculationEditModel.Name;
@@ -549,7 +555,7 @@ namespace CalculateFunding.Services.Calcs
                 calculationVersion.Description = calculationEditModel.Description;
                
 
-                UpdateCalculationResult result = await UpdateCalculation(calculation, calculationVersion, author);
+                UpdateCalculationResult result = await UpdateCalculation(calculation, calculationVersion, author, updateBuildProject);
 
                 string cacheKey = $"{CacheKeys.CalculationsMetadataForSpecification}{specificationId}";
 
@@ -936,7 +942,7 @@ namespace CalculateFunding.Services.Calcs
                 existingSaveVersionOfTemplateMapping = JsonConvert.SerializeObject(templateMapping);
             }
 
-            ProcessTemplateMappingChanges(templateMapping, templateMetadataContents);
+            await ProcessTemplateMappingChanges(templateMapping, templateMetadataContents);
 
             // Only save if changed
             if (existingSaveVersionOfTemplateMapping != JsonConvert.SerializeObject(templateMapping))
@@ -1262,7 +1268,7 @@ namespace CalculateFunding.Services.Calcs
             return result;
         }
 
-        private bool ProcessTemplateMappingChanges(TemplateMapping templateMapping, TemplateMetadataContents fundingTemplateContents)
+        private async Task<bool> ProcessTemplateMappingChanges(TemplateMapping templateMapping, TemplateMetadataContents fundingTemplateContents)
         {
             bool madeChanges = false;
 
@@ -1296,6 +1302,40 @@ namespace CalculateFunding.Services.Calcs
                     bool stillExists = templateCalculations.Any(c => c.TemplateCalculationId == mapping.TemplateId);
                     if (!stillExists)
                     {
+                        if (mapping.CalculationId != null)
+                        {
+                            Calculation existingCalculation = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationById(mapping.CalculationId));
+
+                            if (existingCalculation != null)
+                            {
+                                CalculationEditModel calculationEditModel = new CalculationEditModel
+                                {
+                                    Description = existingCalculation.Current.Description,
+                                    SourceCode = existingCalculation.Current.SourceCode,
+                                    Name = existingCalculation.Current.Name,
+                                    ValueType = existingCalculation.Current.ValueType,
+                                };
+
+                                IActionResult editCalculationResult = await EditCalculation(existingCalculation.SpecificationId,
+                                    mapping.CalculationId,
+                                    calculationEditModel,
+                                    existingCalculation.Current.Author,
+                                    Guid.NewGuid().ToString(),
+                                    true,
+                                    true,
+                                    true,
+                                    false,
+                                    existingCalculation);
+
+                                if (!(editCalculationResult is OkObjectResult))
+                                {
+                                    string error = "Unable to edit template calculation for template mapping";
+                                    _logger.Error(error);
+                                    throw new Exception(error);
+                                }
+                            }
+                        }
+
                         itemsToRemove.Add(mapping);
                     }
                 }

@@ -700,35 +700,30 @@ namespace CalculateFunding.Services.Calcs
 
             return await _jobManagement.QueueJobs(jobCreateModels);
         }
-
-        private static IEnumerable<TemplateFundingLine> FlattenFundingLines(IEnumerable<TemplateFundingLine> enumerable, Func<TemplateFundingLine, IEnumerable<TemplateFundingLine>> func = null)
+        
+        private static IEnumerable<TemplateCalculation> GetCalculations(IEnumerable<TemplateCalculation> calculations)
         {
-            enumerable ??= new TemplateFundingLine[0];
-
-            func ??= c => c.FundingLines;
-
-            return enumerable
-                .SelectMany(cfl =>
+            return calculations?.SelectMany(_ =>
+            {
+                if (_.Type == TemplateCalculationType.Cash)
                 {
-                    // flatten calculations under current funding line
-                    cfl.Calculations?
-                        // flatten and only include cash calculations
-                        .Flatten(calc => calc.Calculations.Where(_ => calc.Type == TemplateCalculationType.Cash))?
-                        // contenate child fundinglines after flattening
-                        .Concat(cfl.FundingLines?
-                            .Flatten(fl => fl.FundingLines)?
-                            // select all child calculations for each funding line
-                            .SelectMany(fl => fl.Calculations?
-                                // flatten and only include cash calculations
-                                .Flatten(calc => calc.Calculations.Where(_ => calc.Type == TemplateCalculationType.Cash))) ?? Enumerable.Empty<TemplateCalculation>());
-
-                    return FlattenFundingLines(func(cfl), cfl => cfl.FundingLines);
-                }).Concat(enumerable);
+                    return new[] { _ };
+                }
+                else
+                {
+                    _.Calculations ??= new TemplateCalculation[0];
+                    return GetCalculations(_.Calculations);
+                }
+            });
         }
 
         private static IEnumerable<FundingLine> GetFundingLines(TemplateMetadataContents templateMetadataContents, string fundingStreamId)
         {
-            return FlattenFundingLines(templateMetadataContents.RootFundingLines).Select(_ =>
+            IEnumerable<FundingLine> flattenedFundingLines = templateMetadataContents.RootFundingLines.Flatten(_ => 
+            {
+                _.Calculations = GetCalculations(_.Calculations);
+                return _.FundingLines;
+            }).Where(_ => _.Calculations.AnyWithNullCheck()).Select(_ =>
             {
                 return new FundingLine
                 {
@@ -736,15 +731,17 @@ namespace CalculateFunding.Services.Calcs
                     Name = _.Name,
                     Namespace = fundingStreamId,
                     SourceCodeName = VisualBasicTypeGenerator.GenerateIdentifier(_.Name),
-                    Calculations = _.Calculations?.Select(calc => new FundingLineCalculation
+                    Calculations = _.Calculations?.DistinctBy(_ => _.TemplateCalculationId).Select(calc => new FundingLineCalculation
                     {
                         Id = calc.TemplateCalculationId,
                         Name = calc.Name,
                         Namespace = fundingStreamId,
                         SourceCodeName = VisualBasicTypeGenerator.GenerateIdentifier(calc.Name)
-                    })
+                    }).ToList()
                 };
             }).ToList();
+
+            return flattenedFundingLines;
         }
 
         private async Task<BuildProject> GenerateBuildProject(string specificationId, IEnumerable<(Reference, Reference)> fundingStreamAndPeriods, IDictionary<string, string> templateIds)
