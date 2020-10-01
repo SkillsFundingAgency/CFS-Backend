@@ -225,12 +225,6 @@ namespace CalculateFunding.Services.CosmosDbScaling
                     try
                     {
                         await ScaleCollection(settings.CosmosCollectionType, settings.MinRequestUnits, settings.MaxRequestUnits);
-
-                        int decrementValue = settings.CurrentRequestUnits - settings.MinRequestUnits;
-
-                        settings.CurrentRequestUnits = settings.MinRequestUnits;
-
-                        await UpdateCollectionSettings(settings, CosmosDbScalingDirection.Down, decrementValue);
                     }
                     catch (Exception ex)
                     {
@@ -327,10 +321,6 @@ namespace CalculateFunding.Services.CosmosDbScaling
             }
 
             await ScaleCollection(cosmosDbScalingConfig.RepositoryType, settings.CurrentRequestUnits, settings.MaxRequestUnits);
-
-            int incrementalRequestUnitsValue = settings.CurrentRequestUnits - currentRequestUnits;
-
-            await UpdateCollectionSettings(settings, CosmosDbScalingDirection.Up, incrementalRequestUnitsValue);
         }
 
         private async Task UpdateCollectionSettings(CosmosDbScalingCollectionSettings settings, CosmosDbScalingDirection direction, int requestUnits)

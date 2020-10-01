@@ -23,6 +23,7 @@ using Microsoft.Azure.ServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using Serilog;
 
 namespace CalculateFunding.Services.CosmosDbScaling
@@ -234,11 +235,10 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 .GetCollectionSettingsByRepositoryType(Arg.Is(CosmosCollectionType.CalculationProviderResults))
                 .Returns(settings);
 
-            cosmosDbScalingConfigRepository
-                .UpdateCollectionSettings(Arg.Any<CosmosDbScalingCollectionSettings>())
-                .Returns(HttpStatusCode.BadRequest);
-
             ICosmosDbScalingRepository scalingRepository = CreateCosmosDbScalingRepository();
+            scalingRepository
+                .SetThroughput(Arg.Any<int>())
+                .Throws(new Exception());
 
             ICosmosDbScalingRepositoryProvider cosmosDbScalingRepositoryProvider = CreateCosmosDbScalingRepositoryProvider();
             cosmosDbScalingRepositoryProvider
@@ -267,7 +267,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             logger
                 .Received(1)
-                .Error($"Failed to update cosmos scale config repository type: '{settings.CosmosCollectionType}' with new request units of '{settings.CurrentRequestUnits}' with status code: '{HttpStatusCode.BadRequest}'");
+                .Error(Arg.Any<Exception>(), $"Failed to set throughput on repository type '{settings.CosmosCollectionType}' with '{settings.CurrentRequestUnits}' request units");
         }
 
         [TestMethod]
@@ -407,11 +407,6 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 scalingRepository
                 .Received(1)
                 .SetThroughput(Arg.Is(150000));
-
-            await
-                cosmosDbScalingConfigRepository
-                .Received(1)
-                .UpdateCollectionSettings(Arg.Is<CosmosDbScalingCollectionSettings>(m => m.CurrentRequestUnits == 150000));
         }
 
         [TestMethod]
@@ -482,13 +477,6 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 scalingRepository
                 .Received(1)
                 .SetThroughput(Arg.Is(settings.MaxRequestUnits));
-
-            await
-                cosmosDbScalingConfigRepository
-                .Received(1)
-                .UpdateCollectionSettings(Arg.Is<CosmosDbScalingCollectionSettings>(m => m.CurrentRequestUnits == settings.MaxRequestUnits
-                 && m.LastScalingIncrementValue == 20000
-                 && m.LastScalingIncrementDateTime.Value.Date == DateTimeOffset.Now.Date));
         }
 
         [TestMethod]
@@ -558,12 +546,6 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 scalingRepository
                 .Received(1)
                 .SetThroughput(Arg.Is(settings.MaxRequestUnits));
-
-            await
-                cosmosDbScalingConfigRepository
-                .Received(1)
-                .UpdateCollectionSettings(Arg.Is<CosmosDbScalingCollectionSettings>(m => m.CurrentRequestUnits == settings.MaxRequestUnits
-                && m.LastScalingIncrementValue == 0));
         }
 
         [TestMethod]
@@ -710,13 +692,6 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 scalingRepository
                 .Received(1)
                 .SetThroughput(Arg.Is(150000));
-
-            await
-                cosmosDbScalingConfigRepository
-                .Received(1)
-                .UpdateCollectionSettings(Arg.Is<CosmosDbScalingCollectionSettings>(m => m.CurrentRequestUnits == 150000 
-                        && m.LastScalingIncrementValue == 50000
-                        && m.LastScalingIncrementDateTime.Value.Date == DateTimeOffset.Now.Date));
         }
 
         [TestMethod]
@@ -1052,15 +1027,15 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             ICosmosDbScalingConfigRepository cosmosDbScalingConfigRepository = CreateCosmosDbScalingConfigRepository();
             cosmosDbScalingConfigRepository
-                .UpdateCollectionSettings(Arg.Any<CosmosDbScalingCollectionSettings>())
-                .Returns(HttpStatusCode.BadRequest);
-            cosmosDbScalingConfigRepository
                 .GetCollectionSettingsByRepositoryType(Arg.Is(CosmosCollectionType.CalculationProviderResults))
                 .Returns(settings);
 
             ILogger logger = CreateLogger();
 
             ICosmosDbScalingRepository scalingRepository = CreateCosmosDbScalingRepository();
+            scalingRepository
+                .SetThroughput(Arg.Any<int>())
+                .Throws(new Exception());
 
             ICosmosDbScalingRepositoryProvider cosmosDbScalingRepositoryProvider = CreateCosmosDbScalingRepositoryProvider();
             cosmosDbScalingRepositoryProvider
@@ -1204,14 +1179,6 @@ namespace CalculateFunding.Services.CosmosDbScaling
             await cosmosDbScalingService.ScaleDownForJobConfiguration();
 
             //Assert
-            await
-               cosmosDbScalingConfigRepository
-               .Received(1)
-               .UpdateCollectionSettings(Arg.Is<CosmosDbScalingCollectionSettings>(m =>
-                    m.LastScalingDecrementValue == 190000 &&
-                    m.CurrentRequestUnits == 10000
-               ));
-
             await
                 scalingRepository
                 .Received(1)
