@@ -291,7 +291,7 @@ namespace CalculateFunding.Services.Jobs.Services
             jobRepository
                 .GetLatestJobBySpecificationIdAndDefinitionId(Arg.Any<string>(), Arg.Any<string>())
                 .Returns((Job)null);
-            
+
             ILogger logger = CreateLogger();
 
             JobManagementService jobManagementService = CreateJobManagementService(jobDefinitionsService: jobDefinitionsService, jobRepository: jobRepository, logger: logger);
@@ -449,6 +449,7 @@ namespace CalculateFunding.Services.Jobs.Services
                     Trigger = new Trigger(),
                     InvokerUserId = "authorId",
                     InvokerUserDisplayName = "authorname",
+                    SpecificationId = "specificationId",
                     Properties = new Dictionary<string, string>
                     {
                         { "user-id", "authorId" },
@@ -461,6 +462,7 @@ namespace CalculateFunding.Services.Jobs.Services
                     Trigger = new Trigger(),
                     InvokerUserId = "authorId",
                     InvokerUserDisplayName = "authorname",
+                    SpecificationId = "specificationId",
                     Properties = new Dictionary<string, string>
                     {
                         { "user-id", "authorId" },
@@ -483,12 +485,14 @@ namespace CalculateFunding.Services.Jobs.Services
 
             Job job = new Job
             {
-                JobDefinitionId = jobDefinitionId
+                JobDefinitionId = jobDefinitionId,
+                SpecificationId = "specificationId",
             };
 
             Job jobTwo = new Job
             {
-                JobDefinitionId = jobDefinitionIdTwo
+                JobDefinitionId = jobDefinitionIdTwo,
+                SpecificationId = "specificationId",
             };
 
             IJobDefinitionsService jobDefinitionsService = CreateJobDefinitionsService();
@@ -543,6 +547,82 @@ namespace CalculateFunding.Services.Jobs.Services
             await cacheProvider
                 .Received(1)
                 .SetAsync(cacheKeyTwo, Arg.Is<Job>(_ => _.JobDefinitionId == jobDefinitionIdTwo));
+        }
+
+        [TestMethod]
+        public async Task CreateJobs_GivenCreateJobReturnsJobAndJobIsNotAssociatedWithSpecification_ReturnsOKObjectResultAndDoesNotCacheCacheJob()
+        {
+            //Arrange
+            IEnumerable<JobCreateModel> jobs = new[]
+            {
+                new JobCreateModel
+                {
+                    JobDefinitionId = jobDefinitionId,
+                    Trigger = new Trigger(),
+                    InvokerUserId = "authorId",
+                    InvokerUserDisplayName = "authorname",
+                    SpecificationId = null,
+                    Properties = new Dictionary<string, string>
+                    {
+                        { "user-id", "authorId" },
+                        { "user-name", "authorname" }
+                    }
+                }
+            };
+
+            IEnumerable<JobDefinition> jobDefinitions = new[]
+            {
+                new JobDefinition
+                {
+                    Id = jobDefinitionId
+                },
+                new JobDefinition
+                {
+                    Id = jobDefinitionIdTwo
+                }
+            };
+
+            Job job = new Job
+            {
+                JobDefinitionId = jobDefinitionId,
+                SpecificationId = null,
+            };
+
+            IJobDefinitionsService jobDefinitionsService = CreateJobDefinitionsService();
+            jobDefinitionsService
+                .GetAllJobDefinitions()
+                .Returns(jobDefinitions);
+
+            IJobRepository jobRepository = CreateJobRepository();
+
+            jobRepository
+                .CreateJob(Arg.Is<Job>(_ => _.JobDefinitionId == jobDefinitionId))
+                .Returns(job);
+
+            ILogger logger = CreateLogger();
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
+            JobManagementService jobManagementService = CreateJobManagementService(
+                jobDefinitionsService: jobDefinitionsService,
+                jobRepository: jobRepository,
+                logger: logger,
+                cacheProvider: cacheProvider);
+
+            //Act
+            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, null);
+
+            //Assert
+            actionResult
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .NotBeNull();
+
+            await cacheProvider
+                .Received(0)
+                .SetAsync(Arg.Any<string>(), Arg.Is<Job>(_ => _.JobDefinitionId == jobDefinitionId));
         }
 
         [TestMethod]

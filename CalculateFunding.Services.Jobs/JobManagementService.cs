@@ -211,12 +211,24 @@ namespace CalculateFunding.Services.Jobs
 
         private async Task CacheJob(Job job)
         {
+            // don't cache the job if it's been superseded or there is no associated specification
+            if (job.CompletionStatus == CompletionStatus.Superseded || string.IsNullOrWhiteSpace(job.SpecificationId))
+            {
+                return;
+            }
+
             string cacheKey = $"{CacheKeys.LatestJobs}{job.SpecificationId}:{job.JobDefinitionId}";
             await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, job));
         }
 
         private async Task UpdateJobCache(Job job)
         {
+            // don't cache the job if it's been superseded or there is no associated specification
+            if (job.CompletionStatus == CompletionStatus.Superseded || string.IsNullOrWhiteSpace(job.SpecificationId))
+            {
+                return;
+            }
+
             Job latest = await _jobRepository.GetLatestJobBySpecificationIdAndDefinitionId(job.SpecificationId, job.JobDefinitionId);
             if (latest != null)
             {
@@ -536,11 +548,9 @@ namespace CalculateFunding.Services.Jobs
 
             if (result.IsSuccess())
             {
-                // don't cache the job if it's been superseded or there is no associated specification
-                if (job.CompletionStatus != CompletionStatus.Superseded && !string.IsNullOrWhiteSpace(job.SpecificationId))
-                {
-                    await UpdateJobCache(job);
-                }
+
+                await UpdateJobCache(job);
+
             }
 
             return result;
