@@ -739,40 +739,40 @@ namespace CalculateFunding.Services.CalcEngine
 
                 _logger.Information($"Saving results completeed for specification id {messageProperties.SpecificationId}");
             }
-
-            // Should just be the GUID as the content, as the prefix is read by the receiver, rather than the sender
-            string providerResultsCacheKey = Guid.NewGuid().ToString();
-
-            _logger.Information($"Saving results to cache for specification id {messageProperties.SpecificationId} with key {providerResultsCacheKey}");
-
-            Stopwatch saveRedisStopwatch = Stopwatch.StartNew();
-            await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync($"{CacheKeys.ProviderResultBatch}{providerResultsCacheKey}", providerResults.ToList(), TimeSpan.FromHours(12), false));
-            saveRedisStopwatch.Stop();
-
-            _logger.Information($"Saved results to cache for specification id {messageProperties.SpecificationId} with key {providerResultsCacheKey}");
-
-            IDictionary<string, string> properties = message.BuildMessageProperties();
-
-            properties.Add("specificationId", messageProperties.SpecificationId);
-
-            properties.Add("providerResultsCacheKey", providerResultsCacheKey);
-
-            _logger.Information($"Sending message for test exceution for specification id {messageProperties.SpecificationId}");
-
             Stopwatch saveQueueStopwatch = null;
+            Stopwatch saveRedisStopwatch = null;
 
             if (_engineSettings.IsTestEngineEnabled)
             {
+                // Should just be the GUID as the content, as the prefix is read by the receiver, rather than the sender
+                string providerResultsCacheKey = Guid.NewGuid().ToString();
+
+                _logger.Information($"Saving results to cache for specification id {messageProperties.SpecificationId} with key {providerResultsCacheKey}");
+
+                saveRedisStopwatch = Stopwatch.StartNew();
+                await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync($"{CacheKeys.ProviderResultBatch}{providerResultsCacheKey}", providerResults.ToList(), TimeSpan.FromHours(12), false));
+                saveRedisStopwatch.Stop();
+
+                _logger.Information($"Saved results to cache for specification id {messageProperties.SpecificationId} with key {providerResultsCacheKey}");
+
+                IDictionary<string, string> properties = message.BuildMessageProperties();
+
+                properties.Add("specificationId", messageProperties.SpecificationId);
+
+                properties.Add("providerResultsCacheKey", providerResultsCacheKey);
+
+                _logger.Information($"Sending message for test exceution for specification id {messageProperties.SpecificationId}");
+
                 saveQueueStopwatch = Stopwatch.StartNew();
                 await _messengerServicePolicy.ExecuteAsync(() => _messengerService.SendToQueue<string>(ServiceBusConstants.QueueNames.TestEngineExecuteTests, null, properties));
                 saveQueueStopwatch.Stop();
-            }
 
-            _logger.Information($"Message sent for test exceution for specification id {messageProperties.SpecificationId}");
+                _logger.Information($"Message sent for test exceution for specification id {messageProperties.SpecificationId}");
+            }
 
             return (saveProviderResultsTimings.saveToCosmosElapsedMs,
                 saveProviderResultsTimings.saveToSearchElapsedMs,
-                saveRedisStopwatch.ElapsedMilliseconds,
+                saveRedisStopwatch != null ? saveRedisStopwatch.ElapsedMilliseconds : 0,
                 saveQueueStopwatch?.ElapsedMilliseconds,
                 saveProviderResultsTimings.savedProviders);
         }
