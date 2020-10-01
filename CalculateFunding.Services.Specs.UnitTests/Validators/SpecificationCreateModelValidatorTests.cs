@@ -134,7 +134,10 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
             policiesApiClient
             .GetFundingPeriodById(Arg.Is("1819"))
             .Returns(new ApiResponse<PolicyModels.FundingPeriod>(HttpStatusCode.OK, new PolicyModels.FundingPeriod()));
-
+            
+            policiesApiClient
+            .GetFundingConfiguration(Arg.Is(fundingStreamId), Arg.Is(fundingPeriodId))
+            .Returns(new ApiResponse<PolicyModels.FundingConfig.FundingConfiguration>(HttpStatusCode.OK, new PolicyModels.FundingConfig.FundingConfiguration()));
 
             SpecificationCreateModelValidator validator = CreateValidator(policiesApiClient: policiesApiClient);
 
@@ -162,6 +165,40 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
             model.FundingStreamIds = Enumerable.Empty<string>();
 
             SpecificationCreateModelValidator validator = CreateValidator();
+
+            //Act
+            ValidationResult result = validator.Validate(model);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .BeFalse();
+
+            result
+                .Errors
+                .Count
+                .Should()
+                .Be(1);
+        }
+
+        [TestMethod]
+        public void Validate_GivenEmptyProviderSnapshotId_ValidIsFalse()
+        {
+            //Arrange
+            SpecificationCreateModel model = CreateModel();
+
+            IPoliciesApiClient policiesApiClient = Substitute.For<IPoliciesApiClient>();
+
+            policiesApiClient
+            .GetFundingPeriodById(Arg.Any<string>())
+            .Returns(new ApiResponse<PolicyModels.FundingPeriod>(HttpStatusCode.OK, new PolicyModels.FundingPeriod()));
+
+            policiesApiClient
+            .GetFundingConfiguration(Arg.Any<string>(), Arg.Any<string>())
+            .Returns(new ApiResponse<PolicyModels.FundingConfig.FundingConfiguration>(HttpStatusCode.OK, new PolicyModels.FundingConfig.FundingConfiguration { ProviderSource = ProviderSource.FDZ }));
+
+            SpecificationCreateModelValidator validator = CreateValidator(policiesApiClient: policiesApiClient);
 
             //Act
             ValidationResult result = validator.Validate(model);
@@ -327,6 +364,9 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
             .GetFundingPeriodById(Arg.Any<string>())
             .Returns(new ApiResponse<PolicyModels.FundingPeriod>(HttpStatusCode.OK, new PolicyModels.FundingPeriod { EndDate = DateTimeOffset.Parse("2019-08-31T23:59:59"), Id = "1819", Name = "AY1819", StartDate = DateTimeOffset.Parse("2018-09-01T00:00:00") }));
 
+            policiesApiClient
+            .GetFundingConfiguration(Arg.Any<string>(), Arg.Any<string>())
+            .Returns(new ApiResponse<PolicyModels.FundingConfig.FundingConfiguration>(HttpStatusCode.OK, new PolicyModels.FundingConfig.FundingConfiguration()));
 
             return policiesApiClient;
         }

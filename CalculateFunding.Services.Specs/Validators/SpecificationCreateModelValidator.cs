@@ -7,6 +7,7 @@ using CalculateFunding.Services.Specs.Interfaces;
 using FluentValidation;
 using System.Net;
 using CalculateFunding.Common.Utility;
+using System.Linq;
 
 namespace CalculateFunding.Services.Specs.Validators
 {
@@ -17,7 +18,6 @@ namespace CalculateFunding.Services.Specs.Validators
         private readonly IPoliciesApiClient _policiesApiClient;
         private readonly Polly.AsyncPolicy _policiesApiClientPolicy;
        
-
         public SpecificationCreateModelValidator(ISpecificationsRepository specificationsRepository, 
             IProvidersApiClient providersApiClient,
             IPoliciesApiClient policiesApiClient,
@@ -51,13 +51,42 @@ namespace CalculateFunding.Services.Specs.Validators
                 });
 
             RuleFor(model => model.ProviderVersionId)
-                .NotEmpty()
-                .WithMessage("Null or empty provider version id")
-                .Custom((name, context) => {
+                .Custom(async (name, context) => {
                     SpecificationCreateModel specModel = context.ParentContext.InstanceToValidate as SpecificationCreateModel;
-                    if (_providersApiClient.DoesProviderVersionExist(specModel.ProviderVersionId).Result == System.Net.HttpStatusCode.NotFound)
+                    ApiResponse<PolicyModels.FundingConfig.FundingConfiguration> fundingConfigResponse =
+                        await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingConfiguration(specModel.FundingStreamIds.FirstOrDefault(), specModel.FundingPeriodId));
+
+                    if (fundingConfigResponse?.StatusCode != HttpStatusCode.OK || fundingConfigResponse?.Content == null)
                     {
-                        context.AddFailure($"Provider version id selected does not exist");
+                        context.AddFailure("Funding config not found");
+                        return;
+                    }
+
+                    switch (fundingConfigResponse.Content.ProviderSource)
+                    {
+                        case ProviderSource.CFS:
+                            {
+                                if (string.IsNullOrWhiteSpace(specModel.ProviderVersionId))
+                                {
+                                    context.AddFailure($"Null or empty provider version id");
+                                }
+
+                                if (_providersApiClient.DoesProviderVersionExist(specModel.ProviderVersionId).Result == System.Net.HttpStatusCode.NotFound)
+                                {
+                                    context.AddFailure($"Provider version id selected does not exist");
+                                }
+
+                                break;
+                            }
+                        case ProviderSource.FDZ:
+                            {
+                                if (!specModel.ProviderSnapshotId.HasValue)
+                                {
+                                    context.AddFailure($"Null or empty provider snapshot id");
+                                }
+
+                                break;
+                            }
                     }
                 });
 
