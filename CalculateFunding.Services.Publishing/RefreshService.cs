@@ -407,7 +407,7 @@ namespace CalculateFunding.Services.Publishing
                     continue;
                 }
 
-                if (!newProviders.Contains(publishedProvider))
+                if (!newProviders.ContainsKey(publishedProvider.Key))
                 {
                     existingPublishedProvidersToUpdate.Add(publishedProvider.Key, publishedProvider.Value);
                 }

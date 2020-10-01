@@ -522,6 +522,45 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         }
 
         [TestMethod]
+        public async Task RefreshResults_WhenMissingPublishedProvidersFound_ShouldUpdateNewProvidersOnlyOnce()
+        {
+            string profilePatternKey = NewRandomString();
+            GivenJobCanBeProcessed();
+            AndSpecification();
+            AndCalculationResultsBySpecificationId();
+            AndTemplateMetadataContents();
+            AndScopedProviders();
+            
+            var newProvider = _publishedProviders.First();
+            var existingProviders = _publishedProviders.Skip(1).ToList();
+
+            AndPublishedProviders(existingProviders);
+            AndNewMissingPublishedProviders(new[] { newProvider });
+            AndScopedProviderCalculationResultsWithModifiedCalculationResults();
+            AndTemplateMapping();
+
+            await WhenMessageReceivedWithJobIdAndCorrelationId();
+
+            await _publishedProviderStatusUpdateService
+                .Received(1)
+                .UpdatePublishedProviderStatus(
+                Arg.Is<IEnumerable<PublishedProvider>>(x => x.Count() == 2),
+                Arg.Any<Reference>(),
+                Arg.Is<PublishedProviderStatus>(x => x == PublishedProviderStatus.Updated),
+                Arg.Any<string>(),
+                Arg.Any<string>());
+
+            await _publishedProviderStatusUpdateService
+                .Received(1)
+                .UpdatePublishedProviderStatus(
+                Arg.Is<IEnumerable<PublishedProvider>>(x => x.Count() == 1),
+                Arg.Any<Reference>(),
+                Arg.Is<PublishedProviderStatus>(x => x == PublishedProviderStatus.Draft),
+                Arg.Any<string>(),
+                Arg.Any<string>());
+        }
+
+        [TestMethod]
         public async Task RefreshResults_GivenPublishedProviderExcluded_FundingLineOverrideCalled()
         {
             GivenJobCanBeProcessed();
@@ -579,6 +618,23 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 NewProviderCalculationResult(pcr =>
                     pcr.WithProviderId(_.ProviderId)
                     .WithResults(_calculationResults)));
+
+            _calculationResultsService.GetCalculationResultsBySpecificationId(_specificationSummary.Id,
+                Arg.Is<IEnumerable<string>>(_ => _scopedProviders.All(sp => _.Any(arg => arg == sp.ProviderId))))
+                .Returns(_providerCalculationResults.ToDictionary(_ => _.ProviderId));
+        }
+
+        private void AndScopedProviderCalculationResultsWithModifiedCalculationResults()
+        {
+            var crs = _calculationResults.DeepCopy();
+            foreach (var cr in crs)
+            {
+                cr.Value = (decimal.Parse(cr.Value?.ToString() ?? "0")) + 1m;
+            }
+            _providerCalculationResults = _scopedProviders.Select(_ =>
+                NewProviderCalculationResult(pcr =>
+                    pcr.WithProviderId(_.ProviderId)
+                    .WithResults(crs)));
 
             _calculationResultsService.GetCalculationResultsBySpecificationId(_specificationSummary.Id,
                 Arg.Is<IEnumerable<string>>(_ => _scopedProviders.All(sp => _.Any(arg => arg == sp.ProviderId))))
@@ -709,11 +765,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Returns(_missingProvider);
         }
 
-        private void AndPublishedProviders()
+        private void AndPublishedProviders(IEnumerable<PublishedProvider> publishedProviders = null)
         {
             _publishedFundingDataService
                 .GetCurrentPublishedProviders(FundingStreamId, _specificationSummary.FundingPeriod.Id)
-                .Returns(_publishedProviders);
+                .Returns(publishedProviders ?? _publishedProviders);
+        }
+
+        private void AndNewMissingPublishedProviders(IEnumerable<PublishedProvider> publishedProviders = null)
+        {
+            _providerService.GenerateMissingPublishedProviders(Arg.Any<IEnumerable<Provider>>(), Arg.Any<SpecificationSummary>(), Arg.Any<Reference>(), Arg.Any<IDictionary<string, PublishedProvider>>())
+                .Returns((publishedProviders ?? new List<PublishedProvider>()).ToDictionary(x => x.Current.ProviderId));
         }
 
         private void AndJobsRunning()
