@@ -308,17 +308,10 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             int currentRequestUnits = settings.CurrentRequestUnits;
 
-            if (settings.IsAtBaseLine)
-            {
-                settings.CurrentRequestUnits = cosmosDbScalingJobConfig.JobRequestUnits;
-            }
-            else
-            {
-                settings.CurrentRequestUnits =
+            settings.CurrentRequestUnits =
                     settings.AvailableRequestUnits >= cosmosDbScalingJobConfig.JobRequestUnits ?
                         (settings.CurrentRequestUnits + cosmosDbScalingJobConfig.JobRequestUnits) :
                         settings.MaxRequestUnits;
-            }
 
             await ScaleCollection(cosmosDbScalingConfig.RepositoryType, settings.CurrentRequestUnits, settings.MaxRequestUnits);
         }

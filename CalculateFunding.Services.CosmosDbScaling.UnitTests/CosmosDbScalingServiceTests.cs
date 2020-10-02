@@ -192,7 +192,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             logger
                .Received(1)
-               .Error(Arg.Any<Exception>(), Arg.Is($"Failed to set throughput on repository type '{scalingConfig.RepositoryType}' with '{scalingConfig.JobRequestUnitConfigs.First().JobRequestUnits}' request units"));
+               .Error(Arg.Any<Exception>(), Arg.Is($"Failed to set throughput on repository type '{scalingConfig.RepositoryType}' with '{settings.CurrentRequestUnits}' request units"));
         }
 
         [TestMethod]
