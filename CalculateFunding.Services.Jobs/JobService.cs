@@ -200,12 +200,10 @@ namespace CalculateFunding.Services.Jobs
                     else
                     {
                         job = await _jobRepository.GetLatestJobBySpecificationIdAndDefinitionId(specificationId, jobDefinitionId);
-                        if (job != null)
-                        {
-                            await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, job));
+                        
+                        await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, job));
 
-                            jobsByDefinition[jobDefinitionId] = job;
-                        }
+                        jobsByDefinition[jobDefinitionId] = job;
                     }
                 }));
             }
@@ -217,7 +215,7 @@ namespace CalculateFunding.Services.Jobs
             JobSummary[] results = new JobSummary[jobDefinitionIds.Length];
             for (int i = 0; i < jobDefinitionIds.Length; i++)
             {
-                results[i] = jobSummaries.FirstOrDefault(x => string.Equals(x.JobDefinitionId, jobDefinitionIds[i], StringComparison.InvariantCultureIgnoreCase));
+                results[i] = jobSummaries.FirstOrDefault(x => string.Equals(x?.JobDefinitionId, jobDefinitionIds[i], StringComparison.InvariantCultureIgnoreCase));
             }
 
             return new OkObjectResult(results);
