@@ -42,7 +42,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 },
                 JobDefinitions.MergeSpecificationInformationForProviderJob => new[]
                 {
-                    CosmosCollectionType.CalculationProviderResults
+                    CosmosCollectionType.CalculationProviderResults, CosmosCollectionType.Jobs
                 },
                 JobDefinitions.DeleteCalculationsJob => new[]
                 {
