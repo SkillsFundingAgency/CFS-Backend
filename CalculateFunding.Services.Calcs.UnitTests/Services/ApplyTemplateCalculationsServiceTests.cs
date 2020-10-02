@@ -554,6 +554,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
                 Arg.Is(true),
                 Arg.Is(true),
                 Arg.Any<bool>(),
+                Arg.Is(true),
                 Arg.Any<Calculation>())
                 .Returns(new OkObjectResult(null));
         }

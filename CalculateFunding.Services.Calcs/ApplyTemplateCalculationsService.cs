@@ -238,6 +238,7 @@ namespace CalculateFunding.Services.Calcs
                     true,
                     true,
                     (calculationCount == mappingsWithCalculations.Length - 1),
+                    true,
                     existingCalculation);
 
                 if (!(editCalculationResult is OkObjectResult))

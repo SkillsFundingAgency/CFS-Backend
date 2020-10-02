@@ -506,6 +506,7 @@ namespace CalculateFunding.Services.Calcs
             bool skipInstruct = false,
             bool skipValidation = false,
             bool updateBuildProject = true,
+            bool setTemplate = false,
             Calculation existingCalculation = null)
         {
             Guard.ArgumentNotNull(calculationEditModel, nameof(calculationEditModel));
@@ -542,7 +543,7 @@ namespace CalculateFunding.Services.Calcs
                     calculationVersion.WasTemplateCalculation = true;
                     calculationVersion.CalculationType = CalculationType.Additional;
                 }
-                else
+                else if (setTemplate)
                 {
                     calculationVersion.WasTemplateCalculation = false;
                     calculationVersion.CalculationType = CalculationType.Template;
@@ -1324,6 +1325,7 @@ namespace CalculateFunding.Services.Calcs
                                     true,
                                     true,
                                     true,
+                                    false,
                                     false,
                                     existingCalculation);
 
