@@ -5,16 +5,12 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Graph;
 using System.Linq;
+using CalculateFunding.Services.Graph.Constants;
 
 namespace CalculateFunding.Services.Graph
 {
     public class SpecificationRepository : GraphRepositoryBase, ISpecificationRepository
     {
-        private const string SpecificationId = "specificationid";
-        
-        public const string SpecificationDatasetRelationship = "ReferencesDataset";
-        public const string DatasetSpecificationRelationship = "IsReferencedBySpecification";
-
         public SpecificationRepository(IGraphRepository graphRepository)
         : base(graphRepository)
         {
@@ -22,42 +18,42 @@ namespace CalculateFunding.Services.Graph
 
         public async Task DeleteSpecification(string specificationId)
         {
-            await DeleteNode<Specification>(SpecificationId, specificationId);
+            await DeleteNode<Specification>(AttributeConstants.SpecificationId, specificationId);
         }
 
         public async Task UpsertSpecifications(IEnumerable<Specification> specifications)
         {
-            await UpsertNodes(specifications, SpecificationId);
+            await UpsertNodes(specifications, AttributeConstants.SpecificationId);
         }
         
         public async Task CreateSpecificationDatasetRelationship(string specificationId, string datasetId)
         {
-            await UpsertRelationship<Specification, Dataset>(SpecificationDatasetRelationship,
-                (SpecificationId, specificationId),
-                (Dataset.IdField, datasetId));
+            await UpsertRelationship<Specification, Dataset>(AttributeConstants.SpecificationDatasetRelationship,
+                (AttributeConstants.SpecificationId, specificationId),
+                (AttributeConstants.DatasetId, datasetId));
             
-            await UpsertRelationship<Dataset, Specification>(DatasetSpecificationRelationship,
-                (Dataset.IdField, datasetId),
-                (SpecificationId, specificationId));
+            await UpsertRelationship<Dataset, Specification>(AttributeConstants.DatasetSpecificationRelationship,
+                (AttributeConstants.DatasetId, datasetId),
+                (AttributeConstants.SpecificationId, specificationId));
         }
         
         public async Task DeleteSpecificationDatasetRelationship(string specificationId, string datasetId)
         {
-            await DeleteRelationship<Specification, Dataset>(SpecificationDatasetRelationship,
-                (SpecificationId, specificationId),
-                (Dataset.IdField, datasetId));
+            await DeleteRelationship<Specification, Dataset>(AttributeConstants.SpecificationDatasetRelationship,
+                (AttributeConstants.SpecificationId, specificationId),
+                (AttributeConstants.DatasetId, datasetId));
             
-            await DeleteRelationship<Dataset, Specification>(DatasetSpecificationRelationship,
-                (Dataset.IdField, datasetId),
-                (SpecificationId, specificationId));
+            await DeleteRelationship<Dataset, Specification>(AttributeConstants.DatasetSpecificationRelationship,
+                (AttributeConstants.DatasetId, datasetId),
+                (AttributeConstants.SpecificationId, specificationId));
         }
 
         public async Task<IEnumerable<Entity<Specification, IRelationship>>> GetAllEntities(string specificationId)
         {
-            IEnumerable<Entity<Specification>> entities = await GetAllEntities<Specification>(SpecificationId,
+            IEnumerable<Entity<Specification>> entities = await GetAllEntities<Specification>(AttributeConstants.SpecificationId,
                 specificationId,
-                new[] { CalculationRepository.CalculationACalculationBRelationship,
-                    CalculationRepository.CalculationSpecificationRelationship
+                new[] { AttributeConstants.CalculationACalculationBRelationship,
+                    AttributeConstants.CalculationSpecificationRelationshipId
                 });
             return entities.Select(_ => new Entity<Specification, IRelationship> { Node = _.Node, Relationships = _.Relationships });
         }

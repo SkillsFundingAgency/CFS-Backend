@@ -1,6 +1,7 @@
 ﻿using CalculateFunding.Common.Graph;
 using CalculateFunding.Common.Graph.Interfaces;
 using CalculateFunding.Models.Graph;
+using CalculateFunding.Services.Graph.Constants;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
@@ -12,16 +13,6 @@ namespace CalculateFunding.Services.Graph.UnitTests
     [TestClass]
     public class CalculationRepositoryTests : GraphRepositoryTestBase
     {
-        private const string CalculationId = CalculationRepository.CalculationId;
-        private const string SpecificationId = CalculationRepository.SpecificationId;
-        private const string CalculationSpecificationRelationship = CalculationRepository.CalculationSpecificationRelationship;
-        private const string SpecificationCalculationRelationship = CalculationRepository.SpecificationCalculationRelationship;
-        private const string CalculationACalculationBRelationship = CalculationRepository.CalculationACalculationBRelationship;
-        private const string CalculationBCalculationARelationship = CalculationRepository.CalculationBCalculationARelationship;
-        private const string CalculationDataFieldRelationship = CalculationRepository.CalculationDataFieldRelationship;
-        private const string DataFieldCalculationRelationship = CalculationRepository.DataFieldCalculationRelationship;
-        private const string DataFieldId = DataField.IdField;
-        
         private CalculationRepository _calculationRepository;
 
         [TestInitialize]
@@ -37,7 +28,7 @@ namespace CalculateFunding.Services.Graph.UnitTests
 
             await _calculationRepository.UpsertCalculations(calculations);
 
-            await ThenTheNodesWereCreated(calculations, CalculationId);
+            await ThenTheNodesWereCreated(calculations, AttributeConstants.CalculationId);
         }
 
         [TestMethod]
@@ -47,7 +38,7 @@ namespace CalculateFunding.Services.Graph.UnitTests
 
             await _calculationRepository.DeleteCalculation(calculationId);
 
-            await ThenTheNodeWasDeleted<Calculation>( CalculationId, calculationId);
+            await ThenTheNodeWasDeleted<Calculation>(AttributeConstants.CalculationId, calculationId);
         }
 
         [TestMethod]
@@ -59,13 +50,13 @@ namespace CalculateFunding.Services.Graph.UnitTests
             await _calculationRepository.UpsertCalculationSpecificationRelationship(calculationId,
                 specificationId);
 
-            await ThenTheRelationshipWasCreated<Calculation, Specification>(CalculationSpecificationRelationship,
-                    (CalculationId, calculationId),
-                    (SpecificationId, specificationId));
+            await ThenTheRelationshipWasCreated<Calculation, Specification>(AttributeConstants.CalculationSpecificationRelationshipId,
+                    (AttributeConstants.CalculationId, calculationId),
+                    (AttributeConstants.SpecificationId, specificationId));
 
-            await AndTheRelationshipWasCreated<Specification, Calculation>(SpecificationCalculationRelationship,
-                    (SpecificationId, specificationId),
-                    (CalculationId, calculationId));
+            await AndTheRelationshipWasCreated<Specification, Calculation>(AttributeConstants.SpecificationCalculationRelationshipId,
+                    (AttributeConstants.SpecificationId, specificationId),
+                    (AttributeConstants.CalculationId, calculationId));
         }
 
         [TestMethod]
@@ -76,9 +67,9 @@ namespace CalculateFunding.Services.Graph.UnitTests
             Calculation calculation1 = NewCalculation();
             Calculation calculation2 = NewCalculation();
 
-            Entity<Calculation> entity = new Entity<Calculation> { Node = calculation1, Relationships = new[] { new Relationship { One = calculation2, Two = calculation1, Type = CalculationACalculationBRelationship } } };
+            Entity<Calculation> entity = new Entity<Calculation> { Node = calculation1, Relationships = new[] { new Relationship { One = calculation2, Two = calculation1, Type = AttributeConstants.CalculationACalculationBRelationship } } };
 
-            GivenCircularDependencies(CalculationACalculationBRelationship, CalculationId, specificationId, entity);
+            GivenCircularDependencies(AttributeConstants.CalculationACalculationBRelationship, AttributeConstants.CalculationId, specificationId, entity);
 
             IEnumerable<Entity<Calculation, IRelationship>> entities = await _calculationRepository.GetCalculationCircularDependencies(specificationId);
 
@@ -108,13 +99,13 @@ namespace CalculateFunding.Services.Graph.UnitTests
             await _calculationRepository.UpsertCalculationCalculationRelationship(calculationAId,
                 calculationBId);
 
-            await ThenTheRelationshipWasCreated<Calculation, Calculation>(CalculationACalculationBRelationship,
-                (CalculationId, calculationAId),
-                (CalculationId, calculationBId));
+            await ThenTheRelationshipWasCreated<Calculation, Calculation>(AttributeConstants.CalculationACalculationBRelationship,
+                (AttributeConstants.CalculationId, calculationAId),
+                (AttributeConstants.CalculationId, calculationBId));
 
-            await AndTheRelationshipWasCreated<Calculation, Calculation>(CalculationBCalculationARelationship,
-                (CalculationId, calculationBId),
-                (CalculationId, calculationAId));
+            await AndTheRelationshipWasCreated<Calculation, Calculation>(AttributeConstants.CalculationBCalculationARelationship,
+                (AttributeConstants.CalculationId, calculationBId),
+                (AttributeConstants.CalculationId, calculationAId));
         }
 
         [TestMethod]
@@ -126,13 +117,13 @@ namespace CalculateFunding.Services.Graph.UnitTests
             await _calculationRepository.DeleteCalculationSpecificationRelationship(calculationId,
                 specificationId);
 
-            await ThenTheRelationshipWasDeleted<Calculation, Specification>(CalculationSpecificationRelationship,
-                    (CalculationId, calculationId),
-                   (SpecificationId, specificationId));
+            await ThenTheRelationshipWasDeleted<Calculation, Specification>(AttributeConstants.CalculationSpecificationRelationshipId,
+                    (AttributeConstants.CalculationId, calculationId),
+                    (AttributeConstants.SpecificationId, specificationId));
 
-            await AndTheRelationshipWasDeleted<Specification, Calculation>(SpecificationCalculationRelationship,
-                    (SpecificationId, specificationId),
-                    (CalculationId, calculationId));
+            await AndTheRelationshipWasDeleted<Specification, Calculation>(AttributeConstants.SpecificationCalculationRelationshipId,
+                    (AttributeConstants.SpecificationId, specificationId),
+                    (AttributeConstants.CalculationId, calculationId));
         }
 
         [TestMethod]
@@ -144,13 +135,13 @@ namespace CalculateFunding.Services.Graph.UnitTests
             await _calculationRepository.DeleteCalculationCalculationRelationship(calculationAId,
                 calculationBId);
 
-            await ThenTheRelationshipWasDeleted<Calculation, Calculation>(CalculationACalculationBRelationship,
-                (CalculationId, calculationAId),
-                (CalculationId, calculationBId));
+            await ThenTheRelationshipWasDeleted<Calculation, Calculation>(AttributeConstants.CalculationACalculationBRelationship,
+                (AttributeConstants.CalculationId, calculationAId),
+                (AttributeConstants.CalculationId, calculationBId));
 
-            await AndTheRelationshipWasDeleted<Calculation, Calculation>(CalculationBCalculationARelationship,
-                (CalculationId, calculationBId),
-                (CalculationId, calculationAId));
+            await AndTheRelationshipWasDeleted<Calculation, Calculation>(AttributeConstants.CalculationBCalculationARelationship,
+                (AttributeConstants.CalculationId, calculationBId),
+                (AttributeConstants.CalculationId, calculationAId));
         }
 
         [TestMethod]
@@ -162,13 +153,13 @@ namespace CalculateFunding.Services.Graph.UnitTests
             await _calculationRepository.DeleteCalculationDataFieldRelationship(calculationAId,
                 dataFieldId);
 
-            await ThenTheRelationshipWasDeleted<Calculation, DataField>(CalculationDataFieldRelationship,
-                (CalculationId, calculationAId),
-                (DataFieldId, dataFieldId));
+            await ThenTheRelationshipWasDeleted<Calculation, DataField>(AttributeConstants.CalculationDataFieldRelationshipId,
+                (AttributeConstants.CalculationId, calculationAId),
+                (AttributeConstants.DataFieldId, dataFieldId));
 
-            await AndTheRelationshipWasDeleted<DataField, Calculation>(DataFieldCalculationRelationship,
-                (DataFieldId, dataFieldId),
-                (CalculationId, calculationAId));
+            await AndTheRelationshipWasDeleted<DataField, Calculation>(AttributeConstants.DataFieldCalculationRelationship,
+                (AttributeConstants.DataFieldId, dataFieldId),
+                (AttributeConstants.CalculationId, calculationAId));
         }
         
         [TestMethod]
@@ -180,13 +171,13 @@ namespace CalculateFunding.Services.Graph.UnitTests
             await _calculationRepository.UpsertCalculationDataFieldRelationship(calculationAId,
                 dataFieldId);
 
-            await ThenTheRelationshipWasCreated<Calculation, DataField>(CalculationDataFieldRelationship,
-                (CalculationId, calculationAId),
-                (DataFieldId, dataFieldId));
+            await ThenTheRelationshipWasCreated<Calculation, DataField>(AttributeConstants.CalculationDataFieldRelationshipId,
+                (AttributeConstants.CalculationId, calculationAId),
+                (AttributeConstants.DataFieldId, dataFieldId));
 
-            await AndTheRelationshipWasCreated<DataField, Calculation>(DataFieldCalculationRelationship,
-                (DataFieldId, dataFieldId),
-                (CalculationId, calculationAId));
+            await AndTheRelationshipWasCreated<DataField, Calculation>(AttributeConstants.DataFieldCalculationRelationship,
+                (AttributeConstants.DataFieldId, dataFieldId),
+                (AttributeConstants.CalculationId, calculationAId));
         }
     }
 }

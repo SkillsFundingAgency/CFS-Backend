@@ -24,6 +24,7 @@ namespace CalculateFunding.Services.Graph.UnitTests
         private ICalculationRepository _calculationRepository;
         private ISpecificationRepository _specificationRepository;
         private IDatasetRepository _datasetRepository;
+        private IFundingLineRepository _fundingLineRepository;
         private GraphService _graphService;
         private ILogger _logger;
 
@@ -34,11 +35,13 @@ namespace CalculateFunding.Services.Graph.UnitTests
             _calculationRepository = Substitute.For<ICalculationRepository>();
             _specificationRepository = Substitute.For<ISpecificationRepository>();
             _datasetRepository = Substitute.For<IDatasetRepository>();
-            
+            _fundingLineRepository = Substitute.For<IFundingLineRepository>();
+
             _graphService = new GraphService(_logger, 
                 _calculationRepository, 
                 _specificationRepository,
-                _datasetRepository);
+                _datasetRepository,
+                _fundingLineRepository);
         }
 
         [TestMethod]

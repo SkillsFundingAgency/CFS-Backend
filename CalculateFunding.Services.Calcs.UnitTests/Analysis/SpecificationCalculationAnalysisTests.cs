@@ -113,7 +113,9 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
             Specification graphSpecification = NewGraphSpecification();
             Calculation[] calculations = new[] { calculation, };
             GraphCalculation[] graphCalculations = new GraphCalculation[0];
+            FundingLine[] fundingLines = new FundingLine[0];
             CalculationRelationship[] calculationRelationships = new CalculationRelationship[0];
+            FundingLineCalculationRelationship[] fundingLineCalculationRelationships = new FundingLineCalculationRelationship[0];
 
             List<Models.Calcs.DatasetRelationshipSummary> datasetRelationshipSummaries = new List<Models.Calcs.DatasetRelationshipSummary>();
             DatasetReference[] datasetReferences = new[] { new DatasetReference { 
@@ -138,6 +140,8 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
                 .BeEquivalentTo(new SpecificationCalculationRelationships
                 {
                     Specification = graphSpecification,
+                    FundingLineRelationships = fundingLineCalculationRelationships,
+                    FundingLines = fundingLines,
                     Calculations = graphCalculations,
                     CalculationRelationships = calculationRelationships,
                     CalculationDataFieldRelationships = datasetReferences.SelectMany(_ => _.Calculations.Select(calculation => new CalculationDataFieldRelationship { Calculation = calculation, DataField = _.DataField })),

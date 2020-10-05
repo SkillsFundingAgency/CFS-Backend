@@ -20,21 +20,25 @@ namespace CalculateFunding.Services.Graph
         private readonly ICalculationRepository _calcRepository;
         private readonly ISpecificationRepository _specRepository;
         private readonly IDatasetRepository _datasetRepository;
-        
+        private readonly IFundingLineRepository _fundingLineRepository;
+
         public GraphService(ILogger logger, 
             ICalculationRepository calcRepository, 
             ISpecificationRepository specRepository, 
-            IDatasetRepository datasetRepository)
+            IDatasetRepository datasetRepository,
+            IFundingLineRepository fundingLineRepository)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(calcRepository, nameof(calcRepository));
             Guard.ArgumentNotNull(specRepository, nameof(specRepository));
             Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
+            Guard.ArgumentNotNull(fundingLineRepository, nameof(fundingLineRepository));
 
             _logger = logger;
             _calcRepository = calcRepository;
             _specRepository = specRepository;
             _datasetRepository = datasetRepository;
+            _fundingLineRepository = fundingLineRepository;
         }
 
         public async Task<IActionResult> UpsertDataset(Dataset dataset)
@@ -83,6 +87,41 @@ namespace CalculateFunding.Services.Graph
         {
             return await ExecuteRepositoryAction(() => _datasetRepository.DeleteDataField(fieldId),
                 $"Unable to delete data field {fieldId}");
+        }
+
+        public async Task<IActionResult> UpsertFundingLines(FundingLine[] fundingLines)
+        {
+            return await ExecuteRepositoryAction(() => _fundingLineRepository.UpsertFundingLines(fundingLines),
+                $"Unable to create funding lines {fundingLines.AsJson()}");
+        }
+
+        public async Task<IActionResult> DeleteFundingLine(string fieldId)
+        {
+            return await ExecuteRepositoryAction(() => _fundingLineRepository.DeleteFundingLine(fieldId),
+                $"Unable to delete funding line {fieldId}");
+        }
+
+        public async Task<IActionResult> UpsertFundingLineCalculationRelationship(string fundingLineId, string calculationId)
+        {
+            return await ExecuteRepositoryAction(() => _fundingLineRepository.UpsertFundingLineCalculationRelationship(fundingLineId, calculationId),
+                $"Unable to create funding line -> calculation relationship {fundingLineId} -> {calculationId}");
+        }
+        public async Task<IActionResult> UpsertCalculationFundingLineRelationship(string calculationId, string fundingLineId)
+        {
+            return await ExecuteRepositoryAction(() => _fundingLineRepository.UpsertCalculationFundingLineRelationship(calculationId, fundingLineId),
+                $"Unable to create calculation -> funding line relationship {calculationId} -> {fundingLineId}");
+        }
+
+        public async Task<IActionResult> DeleteFundingLineCalculationRelationship(string fundingLineId, string calculationId)
+        {
+            return await ExecuteRepositoryAction(() => _fundingLineRepository.DeleteFundingLineCalculationRelationship(fundingLineId, calculationId),
+                $"Unable to delete funding line -> calculation relationship {fundingLineId} -> {calculationId}");
+        }
+
+        public async Task<IActionResult> DeleteCalculationFundingLineRelationship(string calculationId, string fundingLineId)
+        {
+            return await ExecuteRepositoryAction(() => _fundingLineRepository.DeleteCalculationFundingLineRelationship(calculationId, fundingLineId),
+                $"Unable to delete calculation -> funding line relationship {calculationId} -> {fundingLineId}");
         }
 
         public async Task<IActionResult> UpsertDataDefinitionDatasetRelationship(string definitionId, string datasetId)
@@ -226,6 +265,10 @@ namespace CalculateFunding.Services.Graph
             else if (typeof(TNode).IsAssignableFrom(typeof(DataField)))
             {
                 return await ExecuteRepositoryAction(() => _datasetRepository.GetAllEntities(nodeId), $"Unable to retrieve all entities for {typeof(TNode).Name.ToLowerInvariant()}.");
+            }
+            else if (typeof(TNode).IsAssignableFrom(typeof(FundingLine)))
+            {
+                return await ExecuteRepositoryAction(() => _fundingLineRepository.GetAllEntities(nodeId), $"Unable to retrieve all entities for {typeof(TNode).Name.ToLowerInvariant()}.");
             }
             else
             {

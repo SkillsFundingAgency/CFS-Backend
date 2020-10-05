@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
@@ -11,7 +11,7 @@
     <PackageReference Include="AutoMapper" Version="9.0.0" />
 
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Datasets" Version="5.4.0" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Graph" Version="2.3.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Graph" Version="2.4.0" />
 
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="3.9.0" />
 

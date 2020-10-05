@@ -14,13 +14,16 @@ using ApiCalculation = CalculateFunding.Common.ApiClient.Graph.Models.Calculatio
 using ApiDataField = CalculateFunding.Common.ApiClient.Graph.Models.DataField;
 using ApiDataset = CalculateFunding.Common.ApiClient.Graph.Models.Dataset;
 using ApiDatasetDefinition = CalculateFunding.Common.ApiClient.Graph.Models.DatasetDefinition;
+using ApiFundingLine = CalculateFunding.Common.ApiClient.Graph.Models.FundingLine;
 using ApiEntitySpecification = CalculateFunding.Common.ApiClient.Graph.Models.Entity<CalculateFunding.Common.ApiClient.Graph.Models.Specification>;
 using ApiEntityCalculation = CalculateFunding.Common.ApiClient.Graph.Models.Entity<CalculateFunding.Common.ApiClient.Graph.Models.Calculation>;
+using ApiEntityFundingLine = CalculateFunding.Common.ApiClient.Graph.Models.Entity<CalculateFunding.Common.ApiClient.Graph.Models.FundingLine>;
 using ApiRelationship = CalculateFunding.Common.ApiClient.Graph.Models.Relationship;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Models.Graph;
 using CalculateFunding.Common.Extensions;
 using Nito.AsyncEx;
+using System.Collections;
 
 namespace CalculateFunding.Services.Calcs.Analysis
 {
@@ -59,14 +62,31 @@ namespace CalculateFunding.Services.Calcs.Analysis
                 return null;
             }
 
+            IEnumerable<ApiEntityCalculation> allCalculations = new ApiEntityCalculation[0];
+
+            foreach (Calculation calculation in specificationCalculationRelationships.Calculations)
+            {
+                ApiResponse<IEnumerable<ApiEntityCalculation>> apiCalcResponse = await _resilience.ExecuteAsync(() =>
+                    _graphApiClient.GetAllEntitiesRelatedToCalculation(calculation.CalculationId));
+
+                IEnumerable<ApiEntityCalculation> calcs = apiCalcResponse?.Content;
+
+                if (Common.Extensions.IEnumerableExtensions.AnyWithNullCheck(calcs))
+                {
+                    allCalculations = allCalculations.Concat(calcs);
+                }
+            }
+
             IEnumerable<Calculation> removedSpecificationCalculations = RemoveCalculationSpecificationRelationships(specificationCalculationRelationships.Calculations, entities);
-            IEnumerable<CalculationRelationship> removedCalculationRelationships = RemoveCalculationCalculationRelationships(specificationCalculationRelationships.CalculationRelationships, entities);
+            IEnumerable<CalculationRelationship> removedCalculationRelationships = RemoveCalculationCalculationRelationships(specificationCalculationRelationships.CalculationRelationships, allCalculations);
             IEnumerable<CalculationDataFieldRelationship> removedDatasetReferences = await RemoveDataFieldCalculationRelationships(specificationCalculationRelationships.CalculationDataFieldRelationships, specificationCalculationRelationships.Calculations);
+            IEnumerable<FundingLine> removedFundingLines = await RemoveFundingLines(specificationCalculationRelationships.FundingLineRelationships, specificationCalculationRelationships.FundingLines);
 
             return new SpecificationCalculationRelationships
             {
                 Specification = specificationCalculationRelationships.Specification,
                 Calculations = removedSpecificationCalculations,
+                FundingLines = removedFundingLines,
                 CalculationRelationships = removedCalculationRelationships,
                 CalculationDataFieldRelationships = removedDatasetReferences
             };
@@ -77,7 +97,7 @@ namespace CalculateFunding.Services.Calcs.Analysis
             // retrieve all calculation to specification relationships from current graph
             IEnumerable<ApiRelationship> specificationCalculations = entities?.Where(_ => _.Relationships != null).SelectMany(_ =>
                 _.Relationships.Where(rel =>
-                    rel.Type == "BelongsToSpecification"));
+                    rel.Type.Equals(SpecificationCalculationRelationships.FromIdField, StringComparison.InvariantCultureIgnoreCase)));
 
             // if there are no calculation relationships to remove then exit early
             if (Common.Extensions.IEnumerableExtensions.IsNullOrEmpty(specificationCalculations))
@@ -97,6 +117,44 @@ namespace CalculateFunding.Services.Calcs.Analysis
             return removedSpecificationCalculations;
         }
 
+        private async Task<IEnumerable<FundingLine>> RemoveFundingLines(IEnumerable<FundingLineCalculationRelationship> fundingLineCalculationRelationships, IEnumerable<FundingLine> allFundingLines)
+        {
+            IEnumerable<FundingLine> fundingLines = new FundingLine[0];
+
+            // there are no cash funding lines
+            if (Common.Extensions.IEnumerableExtensions.IsNullOrEmpty(allFundingLines))
+            {
+                return null;
+            }
+
+            foreach (FundingLine fundLine in allFundingLines)
+            {
+                ApiResponse<IEnumerable<ApiEntityFundingLine>> apiResponse = await _resilience.ExecuteAsync(() =>
+                    _graphApiClient.GetAllEntitiesRelatedToFundingLine(fundLine.FundingLineId));
+
+                IEnumerable<ApiEntityFundingLine> entities = apiResponse?.Content;
+
+                if (Common.Extensions.IEnumerableExtensions.AnyWithNullCheck(entities))
+                {
+                    fundingLines = fundingLines.Concat(entities.Select(_ => _mapper.Map<FundingLine >(_.Node)));
+                }
+            }
+
+            // no funding lines exist in the current graph
+            if (Common.Extensions.IEnumerableExtensions.IsNullOrEmpty(fundingLines))
+            {
+                return null;
+            }
+
+            // there are no funding lines in the new set of funding lines so need to delete all current funding lines
+            if (Common.Extensions.IEnumerableExtensions.IsNullOrEmpty(fundingLineCalculationRelationships))
+            {
+                return fundingLines;
+            }
+
+            return fundingLines.Where(_ => !fundingLineCalculationRelationships.Any(rel => rel.FundingLine.FundingLineId == _.FundingLineId));
+        }
+
         private async Task<IEnumerable<CalculationDataFieldRelationship>> RemoveDataFieldCalculationRelationships(IEnumerable<CalculationDataFieldRelationship> datasetReferences, IEnumerable<Calculation> calculations)
         {
             IEnumerable<CalculationDataFieldRelationship> calculationDatasetReferencesList = new CalculationDataFieldRelationship[0];
@@ -113,7 +171,7 @@ namespace CalculateFunding.Services.Calcs.Analysis
                 if (Common.Extensions.IEnumerableExtensions.AnyWithNullCheck(entityRelationships))
                 {
                     calculationDatasetReferencesList = calculationDatasetReferencesList.Concat(entityRelationships
-                    .Where(rel => rel.Type == "ReferencesDataField")?
+                    .Where(rel => rel.Type.Equals(CalculationDataFieldRelationship.FromIdField, StringComparison.InvariantCultureIgnoreCase))?
                     .Select(datasetRelationship => new CalculationDataFieldRelationship
                     {
                         Calculation = ((object)datasetRelationship.One).AsJson().AsPoco<Calculation>(),
@@ -147,12 +205,12 @@ namespace CalculateFunding.Services.Calcs.Analysis
             return removedDatasetFields;
         }
 
-        private IEnumerable<CalculationRelationship> RemoveCalculationCalculationRelationships(IEnumerable<CalculationRelationship> calculationRelationships, IEnumerable<ApiEntitySpecification> entities)
+        private IEnumerable<CalculationRelationship> RemoveCalculationCalculationRelationships(IEnumerable<CalculationRelationship> calculationRelationships, IEnumerable<ApiEntityCalculation> calculations)
         {
             // retrieve all calculation to calculation relationships from current graph
-            IEnumerable<ApiRelationship> calculationCalculationRelations = entities?.Where(_ => _.Relationships != null).SelectMany(_ =>
+            IEnumerable<ApiRelationship> calculationCalculationRelations = calculations?.Where(_ => _.Relationships != null).SelectMany(_ =>
                 _.Relationships.Where(rel =>
-                    rel.Type == "CallsCalculation"));
+                    rel.Type.Equals(CalculationRelationship.ToIdField, StringComparison.InvariantCultureIgnoreCase)));
 
             // if there are no calculation relationships to remove then exit early
             if (Common.Extensions.IEnumerableExtensions.IsNullOrEmpty(calculationCalculationRelations))
@@ -210,6 +268,11 @@ namespace CalculateFunding.Services.Calcs.Analysis
                     specificationCalculationUnusedRelationships.Calculations);
             }
 
+            if (specificationCalculationUnusedRelationships.FundingLines != null)
+            {
+                await DeleteFundingLines(specificationCalculationUnusedRelationships.FundingLines);
+            }
+
             if (specificationCalculationUnusedRelationships.CalculationRelationships != null)
             {
                 await DeleteCalculationRelationships(specificationCalculationUnusedRelationships.CalculationRelationships);
@@ -233,6 +296,11 @@ namespace CalculateFunding.Services.Calcs.Analysis
             tasks.Add(InsertDatasetDataFieldRelationships(specificationCalculationRelationships.DatasetDataFieldRelationships, specificationCalculationRelationships.Specification.SpecificationId));
             tasks.Add(InsertDatasetDatasetDefinitionRelationships(specificationCalculationRelationships.DatasetDatasetDefinitionRelationships));
 
+            if (Common.Extensions.IEnumerableExtensions.AnyWithNullCheck(specificationCalculationRelationships.FundingLineRelationships))
+            {
+                tasks.Add(InsertFundingLines(specificationCalculationRelationships.FundingLineRelationships));
+            }
+
             await Core.Helpers.TaskHelper.WhenAllAndThrow(tasks.ToArraySafe());
         }
 
@@ -247,6 +315,16 @@ namespace CalculateFunding.Services.Calcs.Analysis
                 HttpStatusCode response = await _resilience.ExecuteAsync(() => _graphApiClient.DeleteCalculationSpecificationRelationship(calculation.CalculationId, specificationId));
 
                 EnsureApiCallSucceeded(response, $"Unable to delete previous graph relationship for specification id {specificationId} and calculation id {calculation.CalculationId}");
+            }
+        }
+
+        private async Task DeleteFundingLines(IEnumerable<FundingLine> fundingLines)
+        {
+            foreach (FundingLine fundingLine in fundingLines)
+            {
+                HttpStatusCode response = await _resilience.ExecuteAsync(() => _graphApiClient.DeleteFundingLine(fundingLine.FundingLineId));
+
+                EnsureApiCallSucceeded(response, $"Unable to delete previous funding line id {fundingLine.FundingLineId}");
             }
         }
 
@@ -376,6 +454,32 @@ namespace CalculateFunding.Services.Calcs.Analysis
                 }
 
                 EnsureApiCallSucceeded(response, "Unable to create dataset data field relationships");
+            }
+        }
+
+        private async Task InsertFundingLines(IEnumerable<FundingLineCalculationRelationship> fundingLineCalculationRelationships)
+        {
+            HttpStatusCode response;
+
+            ApiFundingLine[] apiFundingLines = fundingLineCalculationRelationships.Select(_ => _mapper.Map<ApiFundingLine>(_.FundingLine)).Distinct().ToArray();
+
+            response = await _resilience.ExecuteAsync(() =>
+                _graphApiClient.UpsertFundingLines(apiFundingLines));
+
+            EnsureApiCallSucceeded(response, "Unable to create funding lines");
+            
+            foreach (FundingLineCalculationRelationship fundingLineCalculationRelationship in fundingLineCalculationRelationships)
+            {
+                response = await _resilience.ExecuteAsync(() =>
+                    _graphApiClient.UpsertCalculationFundingLineRelationship(fundingLineCalculationRelationship.CalculationOneId, fundingLineCalculationRelationship.FundingLine.FundingLineId));
+
+
+                EnsureApiCallSucceeded(response, "Unable to create relationship between calculation and funding line");
+
+                response = await _resilience.ExecuteAsync(() =>
+                    _graphApiClient.UpsertFundingLineCalculationRelationship(fundingLineCalculationRelationship.FundingLine.FundingLineId, fundingLineCalculationRelationship.CalculationTwoId));
+
+                EnsureApiCallSucceeded(response, "Unable to create relationship between funding line and calculation");
             }
         }
 

@@ -4,6 +4,7 @@ using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets.Schema;
 using Microsoft.AspNetCore.Routing.Constraints;
 using GraphCalculation = CalculateFunding.Models.Graph.Calculation;
+using GraphFundingLine = CalculateFunding.Models.Graph.FundingLine;
 
 namespace CalculateFunding.Services.Calcs.MappingProfiles
 {
@@ -53,6 +54,7 @@ namespace CalculateFunding.Services.Calcs.MappingProfiles
         private void CreateGraphMappingProfiles()
         {
             CreateMap<Common.ApiClient.Calcs.Models.Calculation, GraphCalculation>();
+            CreateMap<Common.ApiClient.Graph.Models.FundingLine, GraphFundingLine>();
             CreateMap<Calculation, GraphCalculation>()
                 .ForMember(dst => dst.CalculationId,
                     map => map.MapFrom(src => src.Current.CalculationId))
@@ -65,10 +67,16 @@ namespace CalculateFunding.Services.Calcs.MappingProfiles
 
             CreateMap<Common.ApiClient.Specifications.Models.SpecificationSummary, Models.Graph.Specification>()
                 .ForMember(dst => dst.SpecificationId, 
-                    map 
-                        => map.MapFrom(src => src.Id));
-            
+                    map => map.MapFrom(src => src.Id));
+
+            CreateMap<FundingLine, GraphFundingLine>()
+                .ForMember(dst => dst.FundingLineId,
+                    map => map.MapFrom(src => $"{src.Namespace}_{src.Id}"))
+                .ForMember(dst => dst.FundingLineName,
+                    map => map.MapFrom(src => src.Name));
+
             CreateMap<GraphCalculation, Common.ApiClient.Graph.Models.Calculation>();
+            CreateMap<GraphFundingLine, Common.ApiClient.Graph.Models.FundingLine>();
             CreateMap<Models.Graph.CalculationType, Common.ApiClient.Graph.Models.CalculationType>();
             CreateMap<Models.Graph.Specification, Common.ApiClient.Graph.Models.Specification>();
             CreateMap<Models.Graph.DataField, Common.ApiClient.Graph.Models.DataField>();

@@ -11,9 +11,11 @@ using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Graph;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Compiler.Interfaces;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Polly;
 using Calculation = CalculateFunding.Models.Calcs.Calculation;
 using GraphCalculation = CalculateFunding.Models.Graph.Calculation;
+using GraphFundingLine = CalculateFunding.Models.Graph.FundingLine;
 
 namespace CalculateFunding.Services.Calcs.Analysis
 {
@@ -83,13 +85,19 @@ namespace CalculateFunding.Services.Calcs.Analysis
 
             BuildProject buildProject = await _buildProjectsService.GetBuildProjectForSpecificationId(specificationId);
 
+            IEnumerable<FundingLineCalculationRelationship> fundingLineRelationships = _calculationAnalysis.DetermineRelationshipsBetweenFundingLinesAndCalculations(calculations, buildProject.FundingLines);
+
+            calculationRelationships = calculationRelationships.Concat(fundingLineRelationships.Select(_ => new CalculationRelationship { CalculationOneId = _.CalculationOneId, CalculationTwoId = _.CalculationTwoId }));
+
             IEnumerable<DatasetReference> datasetReferences = _datasetReferenceService.GetDatasetRelationShips(calculations, buildProject.DatasetRelationships);
 
             return new SpecificationCalculationRelationships
             {
                 Specification = _mapper.Map<Specification>(specificationSummary),
                 Calculations = _mapper.Map<IEnumerable<GraphCalculation>>(calculations),
+                FundingLines = _mapper.Map<IEnumerable<GraphFundingLine>>(buildProject.FundingLines?.Values.SelectMany(_ => _.FundingLines)),
                 CalculationRelationships = calculationRelationships,
+                FundingLineRelationships = fundingLineRelationships,
                 CalculationDataFieldRelationships = datasetReferences.SelectMany(_ => _.Calculations.Select(calc => new CalculationDataFieldRelationship { Calculation = calc, DataField = _.DataField })).Distinct(),
                 DatasetDataFieldRelationships = datasetReferences.Select(_ => new DatasetDataFieldRelationship { Dataset = _.Dataset, DataField = _.DataField }),
                 DatasetDatasetDefinitionRelationships = datasetReferences.Select(_ => new DatasetDatasetDefinitionRelationship { Dataset = _.Dataset, DatasetDefinition = _.DatasetDefinition })

@@ -82,7 +82,25 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
             
             return builder.Build();
         }
-        
+
+        protected FundingLine NewGraphFundingLine(Action<GraphFundingLineBuilder> setUp = null)
+        {
+            GraphFundingLineBuilder builder = new GraphFundingLineBuilder();
+
+            setUp?.Invoke(builder);
+
+            return builder.Build();
+        }
+
+        protected FundingLineCalculationRelationship NewFundingLineRelationship(Action<FundingLineCalculationRelationshipsBuilder> setUp = null)
+        {
+            FundingLineCalculationRelationshipsBuilder builder = new FundingLineCalculationRelationshipsBuilder();
+
+            setUp?.Invoke(builder);
+
+            return builder.Build();
+        }
+
         protected void GivenTheMapping<TSource, TDestination>(TSource source, TDestination destination)
         {
             Mapper.Setup(_ => _.Map<TDestination>(source))

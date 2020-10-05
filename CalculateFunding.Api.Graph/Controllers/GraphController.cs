@@ -190,6 +190,18 @@ namespace CalculateFunding.Api.Graph.Controllers
             return await _graphService.GetAllEntities<Calculation>(calculationId);
         }
 
+        [HttpGet("api/graph/dataset/getallentities/{datafieldid}")]
+        public async Task<IActionResult> GetAllEntitiesForDataset([FromRoute] string datafieldId)
+        {
+            return await _graphService.GetAllEntities<DataField>(datafieldId);
+        }
+
+        [HttpGet("api/graph/fundingline/getallentities/{fundingLineId}")]
+        public async Task<IActionResult> GetAllEntitiesForFundingLine([FromRoute] string fundingLineId)
+        {
+            return await _graphService.GetAllEntities<FundingLine>(fundingLineId);
+        }
+
         [HttpPut("api/graph/calculation/{calculationIdA}/relationships/calculation/{calculationIdB}")]
         [ProducesResponseType(200)]
         public async Task<IActionResult> UpsertCalculationCalculationRelationship([FromRoute]string calculationIdA, [FromRoute]string calculationIdB)
@@ -223,6 +235,48 @@ namespace CalculateFunding.Api.Graph.Controllers
         public async Task<IActionResult> UpsertCalculationDataFieldsRelationships([FromRoute]string calculationId, [FromBody]string[] dataFieldIds)
         {
             return await _graphService.UpsertCalculationDataFieldsRelationships(calculationId, dataFieldIds);
+        }
+
+        [HttpPost("api/graph/fundinglines")]
+        [ProducesResponseType(200)]
+        public async Task<IActionResult> UpsertFundingLines([FromBody]FundingLine[] fundingLines)
+        {
+            return await _graphService.UpsertFundingLines(fundingLines);
+        }
+
+        [HttpDelete("api/graph/fundingline/{fieldId}")]
+        [ProducesResponseType(200)]
+        public async Task<IActionResult> DeleteFundingLine([FromRoute]string fieldId)
+        {
+            return await _graphService.DeleteFundingLine(fieldId);
+        }
+
+        [HttpPut("api/graph/fundingline/{fundingLineId}/relationships/calculation/{calculationId}")]
+        [ProducesResponseType(200)]
+        public async Task<IActionResult> UpsertFundingLineCalculationRelationship([FromRoute]string fundingLineId, [FromRoute]string calculationId)
+        {
+            return await _graphService.UpsertFundingLineCalculationRelationship(fundingLineId, calculationId);
+        }
+
+        [HttpPut("api/graph/calculation/{calculationId}/relationships/fundingline/{fundingLineId}")]
+        [ProducesResponseType(200)]
+        public async Task<IActionResult> UpsertCalculationFundingLineRelationship([FromRoute]string calculationId, [FromRoute]string fundingLineId)
+        {
+            return await _graphService.UpsertCalculationFundingLineRelationship(calculationId, fundingLineId);
+        }
+
+        [HttpDelete("api/graph/fundingline/{fundingLineId}/relationships/calculation/{calculationId}")]
+        [ProducesResponseType(200)]
+        public async Task<IActionResult> DeleteFundingLineCalculationRelationship([FromRoute]string fundingLineId, [FromRoute]string calculationId)
+        {
+            return await _graphService.DeleteFundingLineCalculationRelationship(fundingLineId, calculationId);
+        }
+
+        [HttpDelete("api/graph/calculation/{calculationId}/relationships/fundingline/{fundingline}")]
+        [ProducesResponseType(200)]
+        public async Task<IActionResult> DeleteCalculationFundingLineRelationship([FromRoute]string calculationId, [FromRoute]string fundingLineId)
+        {
+            return await _graphService.DeleteCalculationFundingLineRelationship(calculationId, fundingLineId);
         }
     }
 }

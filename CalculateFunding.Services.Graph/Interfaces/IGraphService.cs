@@ -34,6 +34,19 @@ namespace CalculateFunding.Services.Graph.Interfaces
         Task<IActionResult> UpsertSpecificationDatasetRelationship(string specificationId, string datasetId);
         Task<IActionResult> DeleteSpecificationDatasetRelationship(string specificationId, string datasetId);
         Task<IActionResult> DeleteCalculationDataFieldRelationship(string calculationId, string fieldId);
+
+        Task<IActionResult> UpsertFundingLines(FundingLine[] fundingLines);
+
+        Task<IActionResult> DeleteFundingLine(string fieldId);
+
+        Task<IActionResult> UpsertFundingLineCalculationRelationship(string fundingLineId, string calculationId);
+
+        Task<IActionResult> UpsertCalculationFundingLineRelationship(string calculationId, string fundingLineId);
+
+        Task<IActionResult> DeleteFundingLineCalculationRelationship(string fundingLineId, string calculationId);
+
+        Task<IActionResult> DeleteCalculationFundingLineRelationship(string calculationId, string fundingLineId);
+
         Task<IActionResult> GetCalculationCircularDependencies(string specificationId);
         Task<IActionResult> GetAllEntities<TNode>(string nodeId)
             where TNode:class;

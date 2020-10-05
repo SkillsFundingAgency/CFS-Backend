@@ -6,6 +6,8 @@ namespace CalculateFunding.Models.Graph
     [Serializable]
     public class Calculation
     {
+        public const string IdField = "calculationid";
+
         [JsonProperty("calculationid")]
         public string CalculationId { get; set; }
 

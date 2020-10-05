@@ -1,16 +1,21 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Graph
 {
-    public class CalculationRelationship
+    public class FundingLineCalculationRelationship
     {
-        public const string ToIdField = "CallsCalculation";
-        public const string FromIdField = "CalledByCalculation";
+        public const string ToIdField = "FundingLineCallsCalculation";
+        public const string FromIdField = "CalledByFundingLine";
 
         [JsonProperty("calculationoneid")]
         public string CalculationOneId { get; set; }
+
+        [JsonProperty("fundingline")]
+        public FundingLine FundingLine { get; set; }
         
         [JsonProperty("calculationtwoid")]
         public string CalculationTwoId { get; set; }
@@ -23,7 +28,7 @@ namespace CalculateFunding.Models.Graph
         [SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
         public override int GetHashCode()
         {
-            return HashCode.Combine(CalculationOneId, CalculationTwoId);
+            return HashCode.Combine(CalculationOneId, CalculationTwoId, FundingLine.FundingLineId);
         }
     }
 }

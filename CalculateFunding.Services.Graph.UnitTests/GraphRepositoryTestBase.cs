@@ -39,6 +39,14 @@ namespace CalculateFunding.Services.Graph.UnitTests
 
             return specificationBuilder.Build();
         }
+        protected FundingLine NewFundingLine(Action<FundingLineBuilder> setUp = null)
+        {
+            FundingLineBuilder fundingLineBuilder = new FundingLineBuilder();
+
+            setUp?.Invoke(fundingLineBuilder);
+
+            return fundingLineBuilder.Build();
+        }
 
         protected async Task ThenTheNodeWasDeleted<TNode>(string field, string value)
         {
@@ -75,9 +83,9 @@ namespace CalculateFunding.Services.Graph.UnitTests
                 .Returns(new[] { entity });
         }
 
-        protected void GivenAllEntitities (string[] relationships, string fieldName, string fieldValue, Entity<Specification> entity)
+        protected void GivenAllEntitities<T> (string[] relationships, string fieldName, string fieldValue, Entity<T> entity) where T:class
         {
-            GraphRepository.GetAllEntities<Specification>(Arg.Is<IField>(_ => _.Name == fieldName && _.Value == fieldValue), Arg.Is<string[]>(_ => _.EqualTo(relationships)))
+            GraphRepository.GetAllEntities<T>(Arg.Is<IField>(_ => _.Name == fieldName && _.Value == fieldValue), Arg.Is<string[]>(_ => _.EqualTo(relationships)))
                 .Returns(new[] { entity });
         }
 

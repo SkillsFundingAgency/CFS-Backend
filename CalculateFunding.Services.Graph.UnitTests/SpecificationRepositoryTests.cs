@@ -1,6 +1,7 @@
 ﻿using CalculateFunding.Common.Graph;
 using CalculateFunding.Common.Graph.Interfaces;
 using CalculateFunding.Models.Graph;
+using CalculateFunding.Services.Graph.Constants;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
@@ -12,13 +13,6 @@ namespace CalculateFunding.Services.Graph.UnitTests
     [TestClass]
     public class SpecificationRepositoryTests : GraphRepositoryTestBase
     {
-        private const string SpecificationId = "specificationid";
-        private const string DatasetId = Dataset.IdField;
-        private const string SpecificationDatasetRelationship = SpecificationRepository.SpecificationDatasetRelationship;
-        private const string DatasetSpecificationRelationship =  SpecificationRepository.DatasetSpecificationRelationship;
-        private const string CalculationSpecificationRelationship = CalculationRepository.CalculationSpecificationRelationship;
-        private const string CalculationACalculationBRelationship = CalculationRepository.CalculationACalculationBRelationship;
-
         private SpecificationRepository _specificationRepository;
 
         [TestInitialize]
@@ -34,7 +28,7 @@ namespace CalculateFunding.Services.Graph.UnitTests
 
             await _specificationRepository.UpsertSpecifications(specifications);
 
-            await ThenTheNodesWereCreated(specifications, SpecificationId);
+            await ThenTheNodesWereCreated(specifications, AttributeConstants.SpecificationId);
         }
 
 
@@ -46,9 +40,9 @@ namespace CalculateFunding.Services.Graph.UnitTests
             Specification specification1 = NewSpecification();
             Calculation calculation2 = NewCalculation();
 
-            Entity<Specification> entity = new Entity<Specification> { Node = specification1, Relationships = new[] { new Relationship { One = calculation2, Two = specification1, Type = CalculationSpecificationRelationship } } };
+            Entity<Specification> entity = new Entity<Specification> { Node = specification1, Relationships = new[] { new Relationship { One = calculation2, Two = specification1, Type = AttributeConstants.CalculationSpecificationRelationshipId } } };
 
-            GivenAllEntitities(new[] { CalculationACalculationBRelationship, CalculationSpecificationRelationship }, SpecificationId, specificationId, entity);
+            GivenAllEntitities(new[] { AttributeConstants.CalculationACalculationBRelationship, AttributeConstants.CalculationSpecificationRelationshipId }, AttributeConstants.SpecificationId, specificationId, entity);
 
             IEnumerable<Entity<Specification, IRelationship>> entities = await _specificationRepository.GetAllEntities(specificationId);
 
@@ -76,7 +70,7 @@ namespace CalculateFunding.Services.Graph.UnitTests
             
             await _specificationRepository.DeleteSpecification(specificationId);
 
-            await ThenTheNodeWasDeleted<Specification>(SpecificationId, specificationId);
+            await ThenTheNodeWasDeleted<Specification>(AttributeConstants.SpecificationId, specificationId);
         }
         
         [TestMethod]
@@ -88,13 +82,13 @@ namespace CalculateFunding.Services.Graph.UnitTests
             await _specificationRepository.DeleteSpecificationDatasetRelationship(specificationId,
                 datasetId);
 
-            await ThenTheRelationshipWasDeleted<Specification, Dataset>(SpecificationDatasetRelationship,
-                (SpecificationId, specificationId),
-                (DatasetId, datasetId));
+            await ThenTheRelationshipWasDeleted<Specification, Dataset>(AttributeConstants.SpecificationDatasetRelationship,
+                (AttributeConstants.SpecificationId, specificationId),
+                (AttributeConstants.DatasetId, datasetId));
 
-            await AndTheRelationshipWasDeleted<Dataset, Specification>(DatasetSpecificationRelationship,
-                (DatasetId, datasetId),
-                (SpecificationId, specificationId));
+            await AndTheRelationshipWasDeleted<Dataset, Specification>(AttributeConstants.DatasetSpecificationRelationship,
+                (AttributeConstants.DatasetId, datasetId),
+                (AttributeConstants.SpecificationId, specificationId));
         }
         
         [TestMethod]
@@ -106,13 +100,13 @@ namespace CalculateFunding.Services.Graph.UnitTests
             await _specificationRepository.CreateSpecificationDatasetRelationship(specificationId,
                 datasetId);
 
-            await ThenTheRelationshipWasCreated<Specification, Dataset>(SpecificationDatasetRelationship,
-                (SpecificationId, specificationId),
-                (DatasetId, datasetId));
+            await ThenTheRelationshipWasCreated<Specification, Dataset>(AttributeConstants.SpecificationDatasetRelationship,
+                (AttributeConstants.SpecificationId, specificationId),
+                (AttributeConstants.DatasetId, datasetId));
 
-            await AndTheRelationshipWasCreated<Dataset, Specification>(DatasetSpecificationRelationship,
-                (DatasetId, datasetId),
-                (SpecificationId, specificationId));
+            await AndTheRelationshipWasCreated<Dataset, Specification>(AttributeConstants.DatasetSpecificationRelationship,
+                (AttributeConstants.DatasetId, datasetId),
+                (AttributeConstants.SpecificationId, specificationId));
         }
     }
 }

@@ -8,6 +8,8 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
     {
         private IEnumerable<CalculationRelationship> _relationships;
         private IEnumerable<Calculation> _calculations;
+        private IEnumerable<FundingLineCalculationRelationship> _fundingLineCalculationRelationships;
+        private IEnumerable<FundingLine> _fundingLines;
         private Specification _specification;
         private IEnumerable<CalculationDataFieldRelationship> _calculationDatafieldRelationships;
         private IEnumerable<DatasetDataFieldRelationship> _datasetDataFieldRelationships;
@@ -23,6 +25,20 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
         public SpecificationCalculationRelationshipBuilder WithCalculationRelationships(params CalculationRelationship[] relationships)
         {
             _relationships = relationships;
+
+            return this;
+        }
+
+        public SpecificationCalculationRelationshipBuilder WithFundingLines(params FundingLine[] fundingLines)
+        {
+            _fundingLines = fundingLines;
+
+            return this;
+        }
+
+        public SpecificationCalculationRelationshipBuilder WithFundingLineCalculationRelationships(params FundingLineCalculationRelationship[] fundingLineCalculationRelationships)
+        {
+            _fundingLineCalculationRelationships = fundingLineCalculationRelationships;
 
             return this;
         }
@@ -61,6 +77,8 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
             {
                 Specification = _specification,
                 Calculations = _calculations ?? new Calculation[0],
+                FundingLines = _fundingLines ?? new FundingLine[0],
+                FundingLineRelationships = _fundingLineCalculationRelationships ?? new FundingLineCalculationRelationship[0],
                 CalculationRelationships = _relationships ?? new CalculationRelationship[0],
                 CalculationDataFieldRelationships = _calculationDatafieldRelationships ?? new CalculationDataFieldRelationship[0],
                 DatasetDataFieldRelationships = _datasetDataFieldRelationships ?? new DatasetDataFieldRelationship[0],

@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Graph;
+using CalculateFunding.Services.Graph.Constants;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CalculateFunding.Services.Graph.UnitTests
@@ -8,15 +9,6 @@ namespace CalculateFunding.Services.Graph.UnitTests
     [TestClass]
     public class DatasetRepositoryTests : GraphRepositoryTestBase
     {
-        private const string DatasetId = Dataset.IdField;
-        private const string DatasetDefinitionId = DatasetDefinition.IdField;
-        private const string DataFieldId = DataField.IdField;
-
-        private const string DatasetDatasetDefinitionRelationship = DatasetRepository.DatasetDatasetDefinitionRelationship;
-        private const string DatasetDefinitionDatasetRelationship = DatasetRepository.DatasetDefinitionDatasetRelationship;
-        private const string DataFieldDatasetRelationship = DatasetRepository.DataFieldDatasetRelationship;
-        private const string DatasetDataFieldRelationship = DatasetRepository.DatasetDataFieldRelationship;
-        
         private DatasetRepository _datasetRepository;
 
         [TestInitialize]
@@ -32,7 +24,7 @@ namespace CalculateFunding.Services.Graph.UnitTests
 
             await _datasetRepository.UpsertDataset(dataset);
 
-            await ThenTheNodeWasCreated(dataset, DatasetId);
+            await ThenTheNodeWasCreated(dataset, AttributeConstants.DatasetId);
         }
         
         [TestMethod]
@@ -42,7 +34,7 @@ namespace CalculateFunding.Services.Graph.UnitTests
 
             await _datasetRepository.DeleteDataset(datasetId);
 
-            await ThenTheNodeWasDeleted<Dataset>(DatasetId, datasetId);
+            await ThenTheNodeWasDeleted<Dataset>(AttributeConstants.DatasetId, datasetId);
         }
         
         [TestMethod]
@@ -52,7 +44,7 @@ namespace CalculateFunding.Services.Graph.UnitTests
 
             await _datasetRepository.UpsertDatasetDefinition(definition);
 
-            await ThenTheNodeWasCreated(definition, DatasetDefinitionId);
+            await ThenTheNodeWasCreated(definition, AttributeConstants.DatasetDefinitionId);
         }
         
         [TestMethod]
@@ -62,7 +54,7 @@ namespace CalculateFunding.Services.Graph.UnitTests
 
             await _datasetRepository.DeleteDatasetDefinition(definitionId);
 
-            await ThenTheNodeWasDeleted<DatasetDefinition>(DatasetDefinitionId, definitionId);
+            await ThenTheNodeWasDeleted<DatasetDefinition>(AttributeConstants.DatasetDefinitionId, definitionId);
         }
         
         [TestMethod]
@@ -72,7 +64,7 @@ namespace CalculateFunding.Services.Graph.UnitTests
 
             await _datasetRepository.UpsertDataField(field);
 
-            await ThenTheNodeWasCreated(field, DataFieldId);
+            await ThenTheNodeWasCreated(field, AttributeConstants.DataFieldId);
         }
         
         [TestMethod]
@@ -82,7 +74,7 @@ namespace CalculateFunding.Services.Graph.UnitTests
 
             await _datasetRepository.DeleteDataField(fieldId);
 
-            await ThenTheNodeWasDeleted<DataField>(DataFieldId, fieldId);
+            await ThenTheNodeWasDeleted<DataField>(AttributeConstants.DataFieldId, fieldId);
         }
         
         [TestMethod]
@@ -94,13 +86,13 @@ namespace CalculateFunding.Services.Graph.UnitTests
             await _datasetRepository.UpsertDataDefinitionDatasetRelationship(definitionId,
                 datasetId);
 
-            await ThenTheRelationshipWasCreated<DatasetDefinition, Dataset>(DatasetDefinitionDatasetRelationship,
-                (DatasetDefinitionId, definitionId),
-                (DatasetId, datasetId));
+            await ThenTheRelationshipWasCreated<DatasetDefinition, Dataset>(AttributeConstants.DatasetDefinitionDatasetRelationshipId,
+                (AttributeConstants.DatasetDefinitionId, definitionId),
+                (AttributeConstants.DatasetId, datasetId));
 
-            await AndTheRelationshipWasCreated<Dataset, DatasetDefinition>(DatasetDatasetDefinitionRelationship,
-                (DatasetId, datasetId),
-                (DatasetDefinitionId, definitionId));
+            await AndTheRelationshipWasCreated<Dataset, DatasetDefinition>(AttributeConstants.DatasetDatasetDefinitionRelationshipId,
+                (AttributeConstants.DatasetId, datasetId),
+                (AttributeConstants.DatasetDefinitionId, definitionId));
         }
         
         [TestMethod]
@@ -112,13 +104,13 @@ namespace CalculateFunding.Services.Graph.UnitTests
             await _datasetRepository.DeleteDataDefinitionDatasetRelationship(definitionId,
                 datasetId);
 
-            await ThenTheRelationshipWasDeleted<DatasetDefinition, Dataset>(DatasetDefinitionDatasetRelationship,
-                (DatasetDefinitionId, definitionId),
-                (DatasetId, datasetId));
+            await ThenTheRelationshipWasDeleted<DatasetDefinition, Dataset>(AttributeConstants.DatasetDefinitionDatasetRelationshipId,
+                (AttributeConstants.DatasetDefinitionId, definitionId),
+                (AttributeConstants.DatasetId, datasetId));
 
-            await AndTheRelationshipWasDeleted<Dataset, DatasetDefinition>(DatasetDatasetDefinitionRelationship,
-                (DatasetId, datasetId),
-                (DatasetDefinitionId, definitionId));
+            await AndTheRelationshipWasDeleted<Dataset, DatasetDefinition>(AttributeConstants.DatasetDatasetDefinitionRelationshipId,
+                (AttributeConstants.DatasetId, datasetId),
+                (AttributeConstants.DatasetDefinitionId, definitionId));
         }
         
         [TestMethod]
@@ -130,13 +122,13 @@ namespace CalculateFunding.Services.Graph.UnitTests
             await _datasetRepository.UpsertDatasetDataFieldRelationship(datasetId,
                 dataFieldId);
 
-            await ThenTheRelationshipWasCreated<Dataset, DataField>(DatasetDataFieldRelationship,
-                (DatasetId, datasetId),
-                (DataFieldId, dataFieldId));
+            await ThenTheRelationshipWasCreated<Dataset, DataField>(AttributeConstants.DatasetDataFieldRelationshipId,
+                (AttributeConstants.DatasetId, datasetId),
+                (AttributeConstants.DataFieldId, dataFieldId));
 
-            await AndTheRelationshipWasCreated<DataField, Dataset>(DataFieldDatasetRelationship,
-                (DataFieldId, dataFieldId),
-                (DatasetId, datasetId));
+            await AndTheRelationshipWasCreated<DataField, Dataset>(AttributeConstants.DataFieldDatasetRelationshipId,
+                (AttributeConstants.DataFieldId, dataFieldId),
+                (AttributeConstants.DatasetId, datasetId));
         }
         
         [TestMethod]
@@ -148,13 +140,13 @@ namespace CalculateFunding.Services.Graph.UnitTests
             await _datasetRepository.DeleteDatasetDataFieldRelationship(datasetId,
                 dataFieldId);
 
-            await ThenTheRelationshipWasDeleted<Dataset, DataField>(DatasetDataFieldRelationship,
-                (DatasetId, datasetId),
-                (DataFieldId, dataFieldId));
+            await ThenTheRelationshipWasDeleted<Dataset, DataField>(AttributeConstants.DatasetDataFieldRelationshipId,
+                (AttributeConstants.DatasetId, datasetId),
+                (AttributeConstants.DataFieldId, dataFieldId));
 
-            await AndTheRelationshipWasDeleted<DataField, Dataset>(DataFieldDatasetRelationship,
-                (DataFieldId, dataFieldId),
-                (DatasetId, datasetId));
+            await AndTheRelationshipWasDeleted<DataField, Dataset>(AttributeConstants.DataFieldDatasetRelationshipId,
+                (AttributeConstants.DataFieldId, dataFieldId),
+                (AttributeConstants.DatasetId, datasetId));
         }
 
         private Dataset NewDataset(Action<DatasetBuilder> setUp = null)
