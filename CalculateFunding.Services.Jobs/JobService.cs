@@ -200,7 +200,11 @@ namespace CalculateFunding.Services.Jobs
                     else
                     {
                         job = await _jobRepository.GetLatestJobBySpecificationIdAndDefinitionId(specificationId, jobDefinitionId);
-                        
+
+                        // create a new empty job if no job so we don't continually make calls as the cache will be invalidated in the create job and update job
+                        // with a valid job so this will only be hit if redis is empty or a job has never been created
+                        job ??= new Job();
+
                         await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, job));
 
                         jobsByDefinition[jobDefinitionId] = job;
@@ -215,7 +219,7 @@ namespace CalculateFunding.Services.Jobs
             JobSummary[] results = new JobSummary[jobDefinitionIds.Length];
             for (int i = 0; i < jobDefinitionIds.Length; i++)
             {
-                results[i] = jobSummaries.FirstOrDefault(x => string.Equals(x?.JobDefinitionId, jobDefinitionIds[i], StringComparison.InvariantCultureIgnoreCase));
+                results[i] = jobSummaries.FirstOrDefault(x => string.Equals(x.JobDefinitionId, jobDefinitionIds[i], StringComparison.InvariantCultureIgnoreCase));
             }
 
             return new OkObjectResult(results);
