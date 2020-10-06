@@ -119,5 +119,7 @@
         public string PaymentOrganisationCompanyHouseNumber { get; set; }
 
         public string PaymentOrganisationOrganisationType { get; set; }
+
+        public string PaymentOrganisationUkprn { get; set; }
     }
 }

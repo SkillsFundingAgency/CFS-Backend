@@ -89,7 +89,7 @@ Used as input for:
         [SwaggerOperation(Summary = "Get a single provider within a provider snapshot", Description = GetProviderInSnapshotDescription)]
         [HttpGet("api/providers/snapshots/{providerSnapshotId}/providers/{providerId}")]
         [Produces(typeof(Provider))]
-        public async Task<ActionResult<IEnumerable<Provider>>> GetProviderInSnapshot(
+        public async Task<ActionResult<Provider>> GetProviderInSnapshot(
             [FromRoute] int providerSnapshotId,
             [FromRoute] string providerId)
         {
