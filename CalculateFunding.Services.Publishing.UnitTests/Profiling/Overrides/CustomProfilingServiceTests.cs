@@ -8,7 +8,6 @@ using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Profiling.Custom;
 using CalculateFunding.Tests.Common.Builders;
 using FluentAssertions;
-using FluentAssertions.Collections;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using FluentValidation;
 using FluentValidation.Results;
@@ -46,7 +45,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
         }
 
         [TestMethod]
-        public async Task ExistsEarlyIfRequestDoesntPassValidation()
+        public async Task ExitsEarlyIfRequestDoesntPassValidation()
         {
             ApplyCustomProfileRequest request = NewApplyCustomProfileRequest();
             
@@ -72,36 +71,24 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
             PublishedProviderStatus expectedRequestedStatus)
         {
             string fundingLineOne = NewRandomString();
-            string fundingLineTwo = NewRandomString();
-            
-            ApplyCustomProfileRequest request = NewApplyCustomProfileRequest(_ => _.WithProfileOverrides(
-                NewFundingLineProfileOverrides(flo => flo.WithFundingLineCode(fundingLineOne)
-                    .WithDistributionPeriods(NewDistributionPeriod(dp => 
-                        dp.WithProfilePeriods(NewProfilePeriod(), NewProfilePeriod())))),
-                NewFundingLineProfileOverrides(flo => flo.WithFundingLineCode(fundingLineTwo)
-                    .WithDistributionPeriods(NewDistributionPeriod(dp => 
-                        dp.WithProfilePeriods(NewProfilePeriod(), NewProfilePeriod()))))
-                ));
-            
+            ProfilePeriod profilePeriod1 = NewProfilePeriod();
+            ProfilePeriod profilePeriod2 = NewProfilePeriod();
+
+            ApplyCustomProfileRequest request = NewApplyCustomProfileRequest(_ => _
+                .WithFundingLineCode(fundingLineOne)
+                .WithProfilePeriods(profilePeriod1, profilePeriod2));
+
             PublishedProvider publishedProvider = NewPublishedProvider(_ => _.WithCurrent(
-                NewPublishedProviderVersion(ppv => 
+                NewPublishedProviderVersion(ppv =>
                 ppv.WithPublishedProviderStatus(currentStatus)
                     .WithFundingLines(NewFundingLine(fl =>
                         fl.WithFundingLineCode(fundingLineOne)
-                            .WithDistributionPeriods(NewDistributionPeriod(dp => 
-                                dp.WithProfilePeriods(NewProfilePeriod(), NewProfilePeriod())),
-                                NewDistributionPeriod(dp => 
-                                    dp.WithProfilePeriods(NewProfilePeriod(), NewProfilePeriod())))),
-                        NewFundingLine(fl =>
-                            fl.WithFundingLineCode(fundingLineTwo)
-                                .WithDistributionPeriods(NewDistributionPeriod(dp => 
-                                        dp.WithProfilePeriods(NewProfilePeriod(), NewProfilePeriod())),
-                                    NewDistributionPeriod(dp => 
-                                        dp.WithProfilePeriods(NewProfilePeriod(), NewProfilePeriod()))))
+                            .WithDistributionPeriods(NewDistributionPeriod(dp =>
+                                dp.WithProfilePeriods(profilePeriod1, profilePeriod2))))
                         ))));
 
             Reference author = NewAuthor();
-            
+
             GivenTheValidationResultForTheRequest(NewValidationResult(), request);
             AndThePublishedProvider(request.PublishedProviderId, publishedProvider);
 
@@ -111,14 +98,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
                 .Should()
                 .BeOfType<NoContentResult>();
 
-            Dictionary<string, IEnumerable<ProfilePeriod>> customProfiles = request.ProfileOverrides.ToDictionary(_ => _.FundingLineCode,
-                _ => _.DistributionPeriods.SelectMany(dp => dp.ProfilePeriods));
-            Dictionary<string, FundingLine> fundingLines = publishedProvider.Current.FundingLines.ToDictionary(_ => _.FundingLineCode);
+            IEnumerable<ProfilePeriod> profilePeriods = request.ProfilePeriods;
+            FundingLine fundingLine = publishedProvider.Current.FundingLines.Single(fl => fl.FundingLineCode == fundingLineOne);
 
-            AndTheCustomProfilePeriodsWereUsedOn(fundingLineOne, fundingLines, customProfiles);
-            AndTheCustomProfilePeriodsWereUsedOn(fundingLineTwo, fundingLines, customProfiles);
+            AndTheCustomProfilePeriodsWereUsedOn(fundingLine, profilePeriods);
             AndANewProviderVersionWasCreatedFor(publishedProvider, expectedRequestedStatus, author);
-            AndProfilingAuditUpdatedForFundingLines(publishedProvider, new[] { fundingLineOne, fundingLineTwo }, author);
+            AndProfilingAuditUpdatedForFundingLines(publishedProvider, new[] { fundingLineOne }, author);
         }
 
         private void AndProfilingAuditUpdatedForFundingLines(PublishedProvider publishedProvider, string[] fundingLines, Reference author)
@@ -137,14 +122,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
             }
         }
 
-        private void AndTheCustomProfilePeriodsWereUsedOn(string fundingLineCode, 
-            IDictionary<string, FundingLine> fundingLines, 
-            IDictionary<string, IEnumerable<ProfilePeriod>> customProfiles)
+        private void AndTheCustomProfilePeriodsWereUsedOn(FundingLine fundingLine, IEnumerable<ProfilePeriod> profilePeriods)
         {
-            fundingLines[fundingLineCode]
+            fundingLine
                 .DistributionPeriods.SelectMany(_ => _.ProfilePeriods)
                 .Should()
-                .BeEquivalentTo(customProfiles[fundingLineCode]);
+                .BeEquivalentTo(profilePeriods);
         }
 
         private void GivenTheValidationResultForTheRequest(ValidationResult result, ApplyCustomProfileRequest request)

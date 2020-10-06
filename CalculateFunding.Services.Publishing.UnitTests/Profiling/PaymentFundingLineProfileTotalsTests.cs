@@ -49,14 +49,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                             dp.WithProfilePeriods(NewProfilePeriod(pp => pp.WithAmount(123)
                                     .WithTypeValue("January")
                                     .WithOccurence(0)
+                                    .WithDistributionPeriodId("FY2021")
                                     .WithYear(2021)),
                                 NewProfilePeriod(pp => pp.WithAmount(999)
                                     .WithTypeValue("January")
                                     .WithOccurence(1)
+                                    .WithDistributionPeriodId("FY2021")
                                     .WithYear(2021)),
                                 NewProfilePeriod(pp => pp.WithAmount(666)
                                     .WithTypeValue("February")
                                     .WithOccurence(0)
+                                    .WithDistributionPeriodId("FY2021")
                                     .WithYear(2021)))))))),
                 FundingLineCode,
                 Array.Empty<ProfileTotal>()
@@ -71,10 +74,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                                     NewProfilePeriod(pp => pp.WithAmount(999)
                                         .WithTypeValue("January")
                                         .WithOccurence(1)
+                                        .WithDistributionPeriodId("FY2021")
                                         .WithYear(2021)),
                                     NewProfilePeriod(pp => pp.WithAmount(666)
                                         .WithTypeValue("February")
                                         .WithOccurence(0)
+                                        .WithDistributionPeriodId("FY2021")
                                         .WithYear(2021)))))),
                 NewFundingLine(fl =>
                     fl.WithFundingLineCode("funding-line-2")
@@ -83,6 +88,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                                 dp.WithProfilePeriods(NewProfilePeriod(pp => pp.WithAmount(123)
                                         .WithTypeValue("January")
                                         .WithOccurence(0)
+                                        .WithDistributionPeriodId("FY2021")
                                         .WithYear(2021)))))))),
                 FundingLineCode,
                 new[]

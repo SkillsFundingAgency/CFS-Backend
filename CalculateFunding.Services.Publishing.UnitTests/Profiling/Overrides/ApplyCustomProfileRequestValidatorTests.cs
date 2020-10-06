@@ -47,109 +47,90 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
             GivenThePublishedProvider(NewOtherwiseValidPublishedProvider());
 
             await WhenTheRequestIsValidated(NewOtherwiseValidRequest(_ => _.ProviderId = null));
-            
+
             ThenTheValidationResultsContainsTheErrors(("ProviderId", "You must supply a provider id"));
         }
-        
+
         [TestMethod]
         public async Task FailsValidationIfNoFundingStreamIdOnRequest()
         {
             GivenThePublishedProvider(NewOtherwiseValidPublishedProvider());
 
             await WhenTheRequestIsValidated(NewOtherwiseValidRequest(_ => _.FundingStreamId = null));
-            
+
             ThenTheValidationResultsContainsTheErrors(("FundingStreamId", "You must supply a funding stream id"));
         }
-        
+
         [TestMethod]
         public async Task FailsValidationIfNoFundingPeriodIdOnRequest()
         {
             GivenThePublishedProvider(NewOtherwiseValidPublishedProvider());
 
             await WhenTheRequestIsValidated(NewOtherwiseValidRequest(_ => _.FundingPeriodId = null));
-            
+
             ThenTheValidationResultsContainsTheErrors(("FundingPeriodId", "You must supply a funding period id"));
         }
-        
+
+        [TestMethod]
+        public async Task FailsValidationIfNoFundingLineCodeOnRequest()
+        {
+            GivenThePublishedProvider(NewOtherwiseValidPublishedProvider());
+
+            await WhenTheRequestIsValidated(NewOtherwiseValidRequest(_ => _.FundingLineCode = null));
+
+            ThenTheValidationResultsContainsTheErrors(("FundingLineCode", "You must supply a funding line code"));
+        }
+
         [TestMethod]
         public async Task FailsValidationIfNoCustomProfileNameOnRequest()
         {
             GivenThePublishedProvider(NewOtherwiseValidPublishedProvider());
 
             await WhenTheRequestIsValidated(NewOtherwiseValidRequest(_ => _.CustomProfileName = null));
-            
+
             ThenTheValidationResultsContainsTheErrors(("CustomProfileName", "You must supply a custom profile name"));
         }
-        
+
         [TestMethod]
-        public async Task FailsValidationIfNoProfileOverridesOnRequest()
+        public async Task FailsValidationIfNoProfilePeriodsOnRequest()
         {
             GivenThePublishedProvider(NewOtherwiseValidPublishedProvider());
 
-            await WhenTheRequestIsValidated(NewOtherwiseValidRequest(_ => _.ProfileOverrides = null));
-            
-            ThenTheValidationResultsContainsTheErrors(("ProfileOverrides", "You must supply at least one set of profile overrides"));
+            await WhenTheRequestIsValidated(NewOtherwiseValidRequest(_ => _.ProfilePeriods = null));
+
+            ThenTheValidationResultsContainsTheErrors(("ProfilePeriods", "You must supply at least one profile period"));
         }
-        
+
         [TestMethod]
         public async Task FailsValidationIfNoPublishedProviderMatchingTheRequest()
         {
             GivenThePublishedProvider(NewOtherwiseValidPublishedProvider());
 
             await WhenTheRequestIsValidated(NewOtherwiseValidRequest(_ => _.ProviderId = NewRandomString()));
-            
+
             ThenTheValidationResultsContainsTheErrors(("Request", "No matching published provider located"));
         }
-        
+
         [TestMethod]
-        public async Task FailsValidationIfNoProfilePeriodsInSuppliedOverrides()
+        public async Task FailsValidationIfTheProfilePeriodsHaveDuplicateOccurrencesInAFundingLine()
         {
             GivenThePublishedProvider(NewOtherwiseValidPublishedProvider());
 
-            await WhenTheRequestIsValidated(NewOtherwiseValidRequest(_ => _.ProfileOverrides = NewProfileOverrides(
-                NewFundingLineProfileOverrides(fl => fl.WithFundingLineCode(_fundingLineCode)
-                    .WithDistributionPeriods(
-                    NewDistributionPeriod())))));
-            
-            ThenTheValidationResultsContainsTheErrors(("ProfilePeriods", "The funding line overrides must contain at least one profile period"));
-        }
-        
-        [TestMethod]
-        public async Task FailsValidationIfOverridesReferenceAFundingLineCodeNotInPublishedProvider()
-        {
-            string missingFundingLineCode = NewRandomString();
-            
-            GivenThePublishedProvider(NewOtherwiseValidPublishedProvider());
+            await WhenTheRequestIsValidated(NewOtherwiseValidRequest(_ => _.ProfilePeriods =
+                NewProfilePeriods(
+                    NewProfilePeriod(pp =>
+                        pp.WithOccurence(1)
+                            .WithYear(2020)
+                            .WithTypeValue("January")
+                            .WithDistributionPeriodId("FY-2021")
+                            .WithType(ProfilePeriodType.CalendarMonth)),
+                    NewProfilePeriod(pp =>
+                        pp.WithOccurence(1)
+                            .WithYear(2020)
+                            .WithTypeValue("January")
+                            .WithDistributionPeriodId("FY-2021")
+                            .WithType(ProfilePeriodType.CalendarMonth)))));
 
-            await WhenTheRequestIsValidated(NewOtherwiseValidRequest(_ => _.ProfileOverrides = NewProfileOverrides(
-                NewFundingLineProfileOverrides(fl => fl.WithFundingLineCode(missingFundingLineCode)
-                    .WithDistributionPeriods(
-                        NewDistributionPeriod(pp => 
-                            pp.WithProfilePeriods(NewProfilePeriod())))))));
-            
-            ThenTheValidationResultsContainsTheErrors(("FundingLineCode", $"Did not locate a funding line with code {missingFundingLineCode}"));
-        }
-
-        [TestMethod]
-        public async Task FailsValidationIfTheProfileOverridesHaveDuplicateOccurrencesInAFundingLine()
-        {
-            GivenThePublishedProvider(NewOtherwiseValidPublishedProvider());
-
-            await WhenTheRequestIsValidated(NewOtherwiseValidRequest(_ => _.ProfileOverrides = NewProfileOverrides(
-                NewFundingLineProfileOverrides(_ => _.WithFundingLineCode(_fundingLineCode)
-                    .WithDistributionPeriods(NewDistributionPeriod(dp =>
-                        dp.WithProfilePeriods(NewProfilePeriod(pp =>
-                                pp.WithOccurence(1)
-                                    .WithYear(2020)
-                                    .WithTypeValue("January")
-                                    .WithType(ProfilePeriodType.CalendarMonth)),
-                            NewProfilePeriod(pp =>
-                                pp.WithOccurence(1)
-                                    .WithYear(2020)
-                                    .WithTypeValue("January")
-                                    .WithType(ProfilePeriodType.CalendarMonth))
-                        )))))));
-            
             ThenTheValidationResultsContainsTheErrors(("ProfilePeriods", "The profile periods must be for unique occurrences in a funding line"));
         }
 
@@ -159,7 +140,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
             GivenThePublishedProvider(NewOtherwiseValidPublishedProvider());
 
             await WhenTheRequestIsValidated(NewOtherwiseValidRequest());
-            
+
             ThenThereAreNoValidationErrors();
         }
 
@@ -202,13 +183,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
 
         private ApplyCustomProfileRequest NewOtherwiseValidRequest(Action<ApplyCustomProfileRequest> overrides = null)
         {
-            ApplyCustomProfileRequest request = NewApplyCustomProfileRequest(_ => _.WithProviderId(_providerId)
+            ApplyCustomProfileRequest request = NewApplyCustomProfileRequest(_ => _
+                .WithProviderId(_providerId)
                 .WithFundingStreamId(_fundingStreamId)
-                .WithFundingPeriodId(_fundingPeriodId)
-                .WithProfileOverrides(NewFundingLineProfileOverrides(fl =>
-                    fl.WithFundingLineCode(_fundingLineCode)
-                        .WithDistributionPeriods(NewDistributionPeriod(dp =>
-                            dp.WithProfilePeriods(NewProfilePeriod()))))));
+                .WithFundingLineCode(_fundingLineCode)
+                .WithProfilePeriods(NewProfilePeriod(pp =>
+                    pp.WithOccurence(1)
+                        .WithYear(2020)
+                        .WithTypeValue("January")
+                        .WithType(ProfilePeriodType.CalendarMonth)))
+                .WithFundingPeriodId(_fundingPeriodId));
 
             overrides?.Invoke(request);
 

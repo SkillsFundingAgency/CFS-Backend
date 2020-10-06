@@ -7,7 +7,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
 {
     public abstract class CustomProfileRequestTestBase
     {
-        protected FundingLineProfileOverrides[] NewProfileOverrides(params FundingLineProfileOverrides[] overrides) => overrides;
+        protected ProfilePeriod[] NewProfilePeriods(params ProfilePeriod[] profilePeriods) => profilePeriods;
 
         protected ApplyCustomProfileRequest NewApplyCustomProfileRequest(Action<ApplyCustomProfileRequestBuilder> setUp = null)
         {
@@ -16,15 +16,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
             setUp?.Invoke(requestBuilder);
 
             return requestBuilder.Build();
-        }
-
-        protected FundingLineProfileOverrides NewFundingLineProfileOverrides(Action<FundingLineProfileOverridesBuilder> setUp = null)
-        {
-            FundingLineProfileOverridesBuilder profileOverridesBuilder = new FundingLineProfileOverridesBuilder();
-
-            setUp?.Invoke(profileOverridesBuilder);
-
-            return profileOverridesBuilder.Build();
         }
 
         protected FundingLine NewFundingLine(Action<FundingLineBuilder> setUp = null)

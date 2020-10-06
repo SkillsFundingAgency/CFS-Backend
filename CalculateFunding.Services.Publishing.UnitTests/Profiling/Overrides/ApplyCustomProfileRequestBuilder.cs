@@ -10,12 +10,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
         private string _providerId;
         private string _fundingStreamId;
         private string _fundingPeriodId;
+        private string _fundingLineCode;
         private string _customProfileName;
-        private IEnumerable<FundingLineProfileOverrides> _overrides;
+        private decimal? _carryOver;
+        private IEnumerable<ProfilePeriod> _profilePeriods;
 
-        public ApplyCustomProfileRequestBuilder WithProfileOverrides(params FundingLineProfileOverrides[] overrides)
+        public ApplyCustomProfileRequestBuilder WithProfilePeriods(params ProfilePeriod[] profilePeriods)
         {
-            _overrides = overrides;
+            _profilePeriods = profilePeriods;
 
             return this;
         }
@@ -41,13 +43,27 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
             return this;
         }
 
+        public ApplyCustomProfileRequestBuilder WithFundingLineCode(string fundingLineCode)
+        {
+            _fundingLineCode = fundingLineCode;
+
+            return this;
+        }
+
         public ApplyCustomProfileRequestBuilder WithCustomProfileName(string customProfileName)
         {
             _customProfileName = customProfileName;
 
             return this;
         }
-        
+
+        public ApplyCustomProfileRequestBuilder WithCarryOver(decimal? carryOver)
+        {
+            _carryOver = carryOver;
+
+            return this;
+        }
+
         public ApplyCustomProfileRequest Build()
         {
             return new ApplyCustomProfileRequest
@@ -55,8 +71,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
                 ProviderId    = _providerId ?? NewRandomString(),
                 FundingPeriodId = _fundingPeriodId ?? NewRandomString(),
                 FundingStreamId = _fundingStreamId ?? NewRandomString(),
+                FundingLineCode = _fundingLineCode ?? NewRandomString(),
                 CustomProfileName = _customProfileName ?? NewRandomString(),
-                ProfileOverrides = _overrides
+                CarryOver = _carryOver,
+                ProfilePeriods = _profilePeriods
             };
         }
     }

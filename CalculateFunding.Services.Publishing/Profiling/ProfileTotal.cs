@@ -23,6 +23,8 @@ namespace CalculateFunding.Services.Publishing.Profiling
 
         public DateTimeOffset? ActualDate { get; set; }
 
+        public string DistributionPeriodId { get; set; }
+
         public override bool Equals(object obj)
         {
             return GetHashCode().Equals(obj?.GetHashCode());

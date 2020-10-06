@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
@@ -66,25 +65,16 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
 
             PublishedProviderVersion current = publishedProvider.Current;
 
-            current.CustomProfiles = request.ProfileOverrides.DeepCopy();
+            FundingLine fundingLine = current.FundingLines.SingleOrDefault(fl => fl.FundingLineCode == request.FundingLineCode);
 
-            Dictionary<string, FundingLine> fundingLines = current.FundingLines.ToDictionary(_ => _.FundingLineCode);
-
-            foreach (FundingLineProfileOverrides profileOverride in request.ProfileOverrides)
+            if (request.HasCarryOver)
             {
-                FundingLine fundingLine = fundingLines[profileOverride.FundingLineCode];
-
-                fundingLine.DistributionPeriods = profileOverride.DistributionPeriods.DeepCopy();
-
-                if (profileOverride.HasCarryOver)
-                {
-                    current.AddCarryOver(fundingLine.FundingLineCode,
-                        ProfilingCarryOverType.CustomProfile,
-                        profileOverride.CarryOver.GetValueOrDefault());
-                }
-
-                current.AddProfilingAudit(profileOverride.FundingLineCode, author);
+                current.AddCarryOver(fundingLine.FundingLineCode,
+                    ProfilingCarryOverType.CustomProfile,
+                    request.CarryOver.GetValueOrDefault());
             }
+
+            current.AddProfilingAudit(request.FundingLineCode, author);
 
             await _publishedProviderVersionCreation.UpdatePublishedProviderStatus(new[] { publishedProvider },
                 author,

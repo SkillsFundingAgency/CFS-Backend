@@ -42,7 +42,8 @@ namespace CalculateFunding.Services.Publishing.Profiling
                 {
                     orderProfilePeriod.Year,
                     orderProfilePeriod.TypeValue,
-                    orderProfilePeriod.Occurrence
+                    orderProfilePeriod.Occurrence,
+                    orderProfilePeriod.DistributionPeriodId
                 })
                 .Select(grouping => new ProfileTotal
                 {
@@ -50,7 +51,8 @@ namespace CalculateFunding.Services.Publishing.Profiling
                     Year = grouping.Key.Year,
                     TypeValue = grouping.Key.TypeValue,
                     Value = grouping.Sum(profilePeriod => profilePeriod.ProfiledValue),
-                    PeriodType = grouping.FirstOrDefault().Type.ToString()
+                    PeriodType = grouping.FirstOrDefault().Type.ToString(),
+                    DistributionPeriodId = grouping.Key.DistributionPeriodId
                 })
                 .ToArray();
         }
