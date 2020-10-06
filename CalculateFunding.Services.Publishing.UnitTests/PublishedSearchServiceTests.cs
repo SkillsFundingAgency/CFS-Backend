@@ -68,16 +68,35 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             ThenTheErrorWasLogged("A null or invalid search model was provided for searching published providers");
         }
-
+                
         [TestMethod]
         public async Task DelegatesToSearchRepositoryAndMapsResultsIntoOkObjectResult()
         {
-            SearchModel searchModel = NewSearchModel(_ => _.WithTop(50)
-                .WithPageNumber(1)
-                .WithSearchTerm(NewRandomString())
-                .WithIncludeFacets(true)
-                .AddFilter("filter1", "filter1value1", "filter1value2")
-                .AddFilter("providerType", "test", ""));
+            Dictionary<string, string[]> nonFacetFilters = new Dictionary<string, string[]>
+            {
+                {"filter1", new[] {"filter1value1", "filter1value2"}}
+            };
+            Dictionary<string, string[]> facetFilters = new Dictionary<string, string[]>
+            {
+                {"hasErrors", new[] {"true"}}, 
+                {"providerType", new[] {"test", ""}}
+            };
+
+            SearchModel searchModel = NewSearchModel(builder =>
+            {
+                builder.WithTop(50)
+                    .WithPageNumber(1)
+                    .WithSearchTerm(NewRandomString())
+                    .WithIncludeFacets(true);
+                foreach (var nonFacetFilter in nonFacetFilters)
+                {
+                    builder.AddFilter(nonFacetFilter.Key, nonFacetFilter.Value);
+                }
+                foreach (var facetFilter in facetFilters)
+                {
+                    builder.AddFilter(facetFilter.Key, facetFilter.Value);
+                }
+            });
 
             GivenTheSearchModel(searchModel);
 
@@ -110,13 +129,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Should()
                 .BeEquivalentTo(searchIndexResults.Results.Select(_ => _.Result.Id));
 
+            await ThenTheFiltersWasSearched(searchModel,
+                PublishedSearchService.Facets.Length - nonFacetFilters.Count,
+                "(providerType eq 'test' or providerType eq '') and (hasErrors eq true) and (filter1 eq 'filter1value1' or filter1 eq 'filter1value2')");
             await ThenTheFiltersWasSearched(searchModel, 
-                4, 
+                1,
                 "(providerType eq 'test' or providerType eq '') and (filter1 eq 'filter1value1' or filter1 eq 'filter1value2')");
             await AndTheFilterWasSearched(searchModel,
                 1,
-                "(filter1 eq 'filter1value1' or filter1 eq 'filter1value2')");
+                "(hasErrors eq true) and (filter1 eq 'filter1value1' or filter1 eq 'filter1value2')");
         }
+
 
         [TestMethod]
         [DataRow(10, 50, 450)]

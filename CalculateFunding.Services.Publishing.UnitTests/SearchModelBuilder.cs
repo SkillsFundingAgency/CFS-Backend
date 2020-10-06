@@ -14,7 +14,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
         public SearchModelBuilder AddFilter(string name, params string[] filters)
         {
-            _filters = _filters ?? new Dictionary<string, string[]>();
+            _filters ??= new Dictionary<string, string[]>();
             _filters.Add(name, filters);
 
             return this;

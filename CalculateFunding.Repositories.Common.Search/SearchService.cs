@@ -113,12 +113,19 @@ namespace CalculateFunding.Repositories.Common.Search
             foreach (FacetFilterType facet in facets)
             {
                 string filter = "";
+                bool useQuotes = facet.FieldType == SearchFieldType.String;
                 if (searchModel.Filters.ContainsKey(facet.Name) && searchModel.Filters[facet.Name] != null)
                 {
+                    string[] facetFilters = searchModel.Filters[facet.Name];
+
                     if (facet.IsMulti)
-                        filter = $"({facet.Name}/any(x: {string.Join(" or ", searchModel.Filters[facet.Name].Select(x => $"x eq '{x}'"))}))";
+                    {
+                        filter = $"({facet.Name}/any(x: {string.Join(" or ", facetFilters.Select(i => useQuotes ? $"x eq '{i}'" : $"x eq {i}"))}))";
+                    }
                     else
-                        filter = $"({string.Join(" or ", searchModel.Filters[facet.Name].Select(x => $"{facet.Name} eq '{x}'"))})";
+                    {
+                        filter = $"({string.Join(" or ", facetFilters.Select(i => useQuotes ? $"{facet.Name} eq '{i}'" : $"{facet.Name} eq {i}"))})";
+                    }
                 }
                 facetDictionary.Add(facet.Name, filter);
             }

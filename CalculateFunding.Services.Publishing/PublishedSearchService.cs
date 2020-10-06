@@ -23,11 +23,12 @@ namespace CalculateFunding.Services.Publishing
 {
     public class PublishedSearchService : SearchService<PublishedProviderIndex>, IPublishedSearchService, IHealthChecker
     {
-        private static readonly FacetFilterType[] Facets = {
+        public static readonly FacetFilterType[] Facets = {
             new FacetFilterType("providerType"),
             new FacetFilterType("providerSubType"),
             new FacetFilterType("localAuthority"),
-            new FacetFilterType("fundingStatus")
+            new FacetFilterType("fundingStatus"),
+            new FacetFilterType("hasErrors", fieldType: SearchFieldType.Boolean)
         };
 
         private static readonly string[] IntegerFields =
@@ -68,11 +69,9 @@ namespace CalculateFunding.Services.Publishing
             IEnumerable<string> distinctFacetValues = searchResults
                 .Facets
                 .SingleOrDefault(x => x.Name == facetName)
-                .FacetValues
-                .Where(x => x.Name?.Split().Any(s=> 
-                { 
-                    return searchText != null ? s.ToLowerInvariant().StartsWith(searchText.ToLowerInvariant()) : true; 
-                }) == true)
+                ?.FacetValues
+                .Where(x => x.Name?.Split()
+                    .Any(s=> searchText == null || s.ToLowerInvariant().StartsWith(searchText.ToLowerInvariant())) == true)
                 .Select(x => x.Name);
 
             return new OkObjectResult(distinctFacetValues);
@@ -159,7 +158,8 @@ namespace CalculateFunding.Services.Publishing
                             {
                                 try
                                 {
-                                    SearchResults<PublishedProviderIndex> nextSearchResults =  await SearchRepository.Search(searchModel.SearchTerm, searchParams);
+                                    SearchResults<PublishedProviderIndex> nextSearchResults =  
+                                        await SearchRepository.Search(searchModel.SearchTerm, searchParams);
                                     nextSearchResults.Results.ForEach(_ => results.Add(_.Result.Id));
                                 }
                                 finally
