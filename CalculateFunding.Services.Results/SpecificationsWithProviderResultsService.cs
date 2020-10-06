@@ -117,10 +117,18 @@ namespace CalculateFunding.Services.Results
         }
 
         private async Task StartTrackingJob(string jobId)
-            => await AddJobLogWithCompleteFlag(jobId, false);
+            => await UpdateJobStatus(jobId);
 
         private async Task CompleteJob(string jobId)
-            => await AddJobLogWithCompleteFlag(jobId, true);
+            => await UpdateJobStatus(jobId, true);
+
+        private async Task UpdateJobStatus(string jobId,
+            bool? completed = null)
+            => await _jobsPolicy.ExecuteAsync(() => _jobs.UpdateJobStatus(jobId,
+                0,
+                0,
+                completed, 
+                null));
 
         private async Task AddJobLogWithCompleteFlag(string jobId,
             bool completed)

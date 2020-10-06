@@ -298,7 +298,7 @@ namespace CalculateFunding.Services.Results.UnitTests
 
         private void ThenTheJobTrackingWasStarted(string jobId)
         {
-            VerifyJobUpdateWasSent(jobId, false);
+            VerifyJobUpdateWasSent(jobId);
         }
 
         private void AndTheJobTrackingWasCompleted(string jobId)
@@ -327,11 +327,13 @@ namespace CalculateFunding.Services.Results.UnitTests
         }
 
         private void VerifyJobUpdateWasSent(string jobId,
-            bool completed)
+            bool? completed = null)
         {
-            _jobs.Verify(_ => _.AddJobLog(jobId,
-                    It.Is<JobLogUpdateModel>(jb =>
-                        jb.CompletedSuccessfully == completed)),
+            _jobs.Verify(_ => _.UpdateJobStatus(jobId,
+                    0,
+                    0,
+                    completed,
+                    null),
                 Times.Once);
         }
 
