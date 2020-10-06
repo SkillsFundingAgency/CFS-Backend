@@ -407,6 +407,11 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 scalingRepository
                 .Received(1)
                 .SetThroughput(Arg.Is(150000));
+
+            await
+                cosmosDbScalingConfigRepository
+                .Received(1)
+                .UpdateCollectionSettings(Arg.Is<CosmosDbScalingCollectionSettings>(m => m.CurrentRequestUnits == 150000));
         }
 
         [TestMethod]
@@ -477,6 +482,12 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 scalingRepository
                 .Received(1)
                 .SetThroughput(Arg.Is(settings.MaxRequestUnits));
+            
+            await
+                 cosmosDbScalingConfigRepository
+                 .Received(1)
+                 .UpdateCollectionSettings(Arg.Is<CosmosDbScalingCollectionSettings>(m => m.CurrentRequestUnits == settings.MaxRequestUnits));
+
         }
 
         [TestMethod]
@@ -546,6 +557,11 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 scalingRepository
                 .Received(1)
                 .SetThroughput(Arg.Is(settings.MaxRequestUnits));
+
+            await
+                 cosmosDbScalingConfigRepository
+                 .Received(1)
+                 .UpdateCollectionSettings(Arg.Is<CosmosDbScalingCollectionSettings>(m => m.CurrentRequestUnits == settings.MaxRequestUnits));
         }
 
         [TestMethod]
@@ -623,6 +639,11 @@ namespace CalculateFunding.Services.CosmosDbScaling
              scalingRepository
                  .Received(1)
                  .SetThroughput(Arg.Is(11000));
+
+            await
+                 cosmosDbScalingConfigRepository
+                 .Received(1)
+                 .UpdateCollectionSettings(Arg.Is<CosmosDbScalingCollectionSettings>(m => m.CurrentRequestUnits == 11000));
         }
 
         [TestMethod]
@@ -692,6 +713,11 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 scalingRepository
                 .Received(1)
                 .SetThroughput(Arg.Is(150000));
+
+            await
+                 cosmosDbScalingConfigRepository
+                 .Received(1)
+                 .UpdateCollectionSettings(Arg.Is<CosmosDbScalingCollectionSettings>(m => m.CurrentRequestUnits == 150000));
         }
 
         [TestMethod]
@@ -753,6 +779,11 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 scalingRepository
                     .Received(1)
                     .SetThroughput(Arg.Is(maxRequestUnits));
+
+            await
+                 cosmosDbScalingConfigRepository
+                 .Received(1)
+                 .UpdateCollectionSettings(Arg.Is<CosmosDbScalingCollectionSettings>(m => m.CurrentRequestUnits == maxRequestUnits));
         }
 
         [TestMethod]

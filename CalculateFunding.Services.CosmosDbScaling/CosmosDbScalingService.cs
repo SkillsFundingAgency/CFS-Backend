@@ -157,9 +157,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
                         incrementalRequestUnitsValue = settings.AvailableRequestUnits;
                     }
 
-                    settings.CurrentRequestUnits = increasedRequestUnits;
-
-                    await ScaleCollection(cosmosRepositoryType, increasedRequestUnits, settings.MaxRequestUnits);
+                    settings.CurrentRequestUnits = await ScaleCollection(cosmosRepositoryType, increasedRequestUnits, settings.MaxRequestUnits);
 
                     await UpdateCollectionSettings(settings, CosmosDbScalingDirection.Up, incrementalRequestUnitsValue);
                 }
@@ -224,7 +222,9 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 {
                     try
                     {
-                        await ScaleCollection(settings.CosmosCollectionType, settings.MinRequestUnits, settings.MaxRequestUnits);
+                        settings.CurrentRequestUnits = await ScaleCollection(settings.CosmosCollectionType, settings.MinRequestUnits, settings.MaxRequestUnits);
+
+                        await UpdateCollectionSettings(settings);
                     }
                     catch (Exception ex)
                     {
@@ -264,7 +264,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
                         continue;
                     }
 
-                    await ScaleCollection(settings.CosmosCollectionType, settings.CurrentRequestUnits, settings.MaxRequestUnits);
+                    settings.CurrentRequestUnits = await ScaleCollection(settings.CosmosCollectionType, settings.CurrentRequestUnits, settings.MaxRequestUnits);
 
                     await UpdateCollectionSettings(settings, CosmosDbScalingDirection.Down, requestUnitsToDecrement);
                 }
@@ -306,14 +306,14 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 throw new RetriableException(errorMessage);
             }
 
-            int currentRequestUnits = settings.CurrentRequestUnits;
-
             settings.CurrentRequestUnits =
                     settings.AvailableRequestUnits >= cosmosDbScalingJobConfig.JobRequestUnits ?
                         (settings.CurrentRequestUnits + cosmosDbScalingJobConfig.JobRequestUnits) :
                         settings.MaxRequestUnits;
 
-            await ScaleCollection(cosmosDbScalingConfig.RepositoryType, settings.CurrentRequestUnits, settings.MaxRequestUnits);
+            settings.CurrentRequestUnits = await ScaleCollection(cosmosDbScalingConfig.RepositoryType, settings.CurrentRequestUnits, settings.MaxRequestUnits);
+
+            await UpdateCollectionSettings(settings);
         }
 
         private async Task UpdateCollectionSettings(CosmosDbScalingCollectionSettings settings, CosmosDbScalingDirection direction, int requestUnits)
@@ -329,6 +329,11 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 settings.LastScalingDecrementValue = requestUnits;
             }
 
+            await UpdateCollectionSettings(settings);
+        }
+
+        private async Task UpdateCollectionSettings(CosmosDbScalingCollectionSettings settings)
+        {
             HttpStatusCode statusCode = await _scalingConfigRepositoryPolicy.ExecuteAsync(
                () => _cosmosDbScalingConfigRepository.UpdateCollectionSettings(settings));
 
@@ -340,28 +345,17 @@ namespace CalculateFunding.Services.CosmosDbScaling
             }
         }
 
-        public async Task ScaleCollection(CosmosCollectionType cosmosRepositoryType, int requestUnits, int maxRequestUnits)
+        public async Task<int> ScaleCollection(CosmosCollectionType cosmosRepositoryType, int requestUnits, int maxRequestUnits)
         {
             ICosmosDbScalingRepository cosmosDbScalingRepository = _cosmosDbScalingRepositoryProvider.GetRepository(cosmosRepositoryType);
 
+            int throughPutRequestUnits = Math.Min(requestUnits, maxRequestUnits);
+
             try
             {
-                //added brute force guard to prevent scaling beyond the configured max permitted in the settings for this collection
+                await _scalingRepositoryPolicy.ExecuteAsync(async () => await cosmosDbScalingRepository.SetThroughput(throughPutRequestUnits));
 
-                await _scalingRepositoryPolicy.ExecuteAsync(async () => await cosmosDbScalingRepository.SetThroughput(Math.Min(requestUnits, maxRequestUnits)));
-
-                //HACK Couldn't find a way to make a mock ThroughputResponse, without which this code stops being testable
-                //The below would be more robust, but without refactoring the service along SOLID principles to remove the dependencies
-                //loads of methods aren't testable without that mock.
-                //https://docs.microsoft.com/en-us/dotnet/api/microsoft.azure.cosmos.throughputresponse.-ctor?view=azure-dotnet#Microsoft_Azure_Cosmos_ThroughputResponse__ctor implies MS _think_ it's testable, so hopefully...
-
-                //ThroughputResponse throughputResponse;
-                //throughputResponse = await _scalingRepositoryPolicy.ExecuteAsync(async () => await cosmosDbScalingRepository.SetThroughput(Math.Min(requestUnits, maxRequestUnits)));
-
-                //if (throughputResponse?.StatusCode != HttpStatusCode.OK)
-                //{
-                //    throw new Exception($"Unable to set throughput as requested: {throughputResponse?.StatusCode.ToString() ?? "No throughput response"}");
-                //}
+                return throughPutRequestUnits;
             }
             catch (Exception ex)
             {
