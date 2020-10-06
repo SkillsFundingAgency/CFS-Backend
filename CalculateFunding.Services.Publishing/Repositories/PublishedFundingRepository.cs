@@ -972,6 +972,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                                'providerType' : c.content.current.provider.providerType,
                                                'providerSubType' : c.content.current.provider.providerSubType,
                                                'localAuthorityName' : c.content.current.provider.localAuthorityName,
+                                               'authority' : c.content.current.provider.authority,
                                                'name' : c.content.current.provider.name,
                                                'ukprn' : c.content.current.provider.ukprn,
                                                'urn' : c.content.current.provider.urn,
