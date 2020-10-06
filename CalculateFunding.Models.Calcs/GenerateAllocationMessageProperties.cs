@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace CalculateFunding.Models.Calcs
 {
@@ -12,7 +10,7 @@ namespace CalculateFunding.Models.Calcs
 
         public string ProviderCacheKey { get; set; }
 
-        public string SpecificationSummaryCachekey { get; set; }
+        public string SpecificationSummaryCacheKey { get; set; }
 
         public string CalculationsAggregationsBatchCacheKey { get; set; }
        
@@ -27,5 +25,7 @@ namespace CalculateFunding.Models.Calcs
         public IEnumerable<string> CalculationsToAggregate { get; set; }
 
         public bool GenerateCalculationAggregationsOnly { get; set; }
+        
+        public string AssemblyETag { get; set; }
     }
 }

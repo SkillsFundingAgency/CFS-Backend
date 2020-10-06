@@ -158,7 +158,7 @@ namespace CalculateFunding.Services.Calcs
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
-            JobViewModel job = null;
+            JobViewModel job;
 
             if (!message.UserProperties.ContainsKey("jobId"))
             {
@@ -196,11 +196,9 @@ namespace CalculateFunding.Services.Calcs
 
                 foreach (CalculationEntity calculationEntity in circularDependencies)
                 {
-                    StringBuilder stringBuilder = new StringBuilder();
-
                     int i = 0;
 
-                    _logger.Information((new[] { calculationEntity.Node.CalculationName }).Concat(calculationEntity.Relationships.Reverse().Select(rel =>
+                    _logger.Information(new[] { calculationEntity.Node.CalculationName }.Concat(calculationEntity.Relationships.Reverse().Select(rel =>
                     {
                         try
                         {
@@ -221,16 +219,9 @@ namespace CalculateFunding.Services.Calcs
                 properties.Add("ignore-save-provider-results", "true");
             }
 
-            string specificationSummaryCachekey = "";
-
-            if (message.UserProperties.ContainsKey("specification-summary-cache-key"))
-            {
-                specificationSummaryCachekey = message.UserProperties["specification-summary-cache-key"].ToString();
-            }
-            else
-            {
-                specificationSummaryCachekey = $"{CacheKeys.SpecificationSummaryById}{specificationId}";
-            }
+            string specificationSummaryCachekey = message.UserProperties.ContainsKey("specification-summary-cache-key") ? 
+                message.UserProperties["specification-summary-cache-key"].ToString() : 
+                $"{CacheKeys.SpecificationSummaryById}{specificationId}";
 
             bool specificationSummaryExists = await _cacheProvider.KeyExists<Models.Specs.SpecificationSummary>(specificationSummaryCachekey);
             if (!specificationSummaryExists)
@@ -243,16 +234,9 @@ namespace CalculateFunding.Services.Calcs
                 }
             }
 
-            string providerCacheKey = "";
-
-            if (message.UserProperties.ContainsKey("provider-cache-key"))
-            {
-                providerCacheKey = message.UserProperties["provider-cache-key"].ToString();
-            }
-            else
-            {
-                providerCacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
-            }
+            string providerCacheKey = message.UserProperties.ContainsKey("provider-cache-key") ? 
+                message.UserProperties["provider-cache-key"].ToString() : 
+                $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
 
             bool summariesExist = await _cacheProvider.KeyExists<ProviderSummary>(providerCacheKey);
             long? totalCount = await _cacheProvider.ListLengthAsync<ProviderSummary>(providerCacheKey);
@@ -295,7 +279,7 @@ namespace CalculateFunding.Services.Calcs
                     ApiResponse<bool> refreshCacheFromApi = await _providersApiClientPolicy.ExecuteAsync(() =>
                                     _providersApiClient.RegenerateProviderSummariesForSpecification(specificationId, !summariesExist));
 
-                    if (!refreshCacheFromApi.StatusCode.IsSuccess() || refreshCacheFromApi?.Content == null)
+                    if (!refreshCacheFromApi.StatusCode.IsSuccess())
                     {
                         string errorMessage = $"Unable to re-generate scoped providers while building projects '{specificationId}' with status code: {refreshCacheFromApi.StatusCode}";
 
@@ -303,7 +287,7 @@ namespace CalculateFunding.Services.Calcs
                     }
 
                     // returns true if job queued
-                    return Convert.ToBoolean(refreshCacheFromApi?.Content);
+                    return refreshCacheFromApi.Content;
                 },
                 DefinitionNames.PopulateScopedProvidersJob,
                 specificationId,
@@ -324,6 +308,10 @@ namespace CalculateFunding.Services.Calcs
 
             const string providerSummariesPartitionSize = "provider-summaries-partition-size";
 
+            const string assembly_etag = "assembly-etag";
+
+            string assemblyEtag = message.GetUserProperty<string>(assembly_etag);
+
             properties.Add(providerSummariesPartitionSize, _engineSettings.MaxPartitionSize.ToString());
 
             properties.Add("provider-cache-key", providerCacheKey);
@@ -331,6 +319,8 @@ namespace CalculateFunding.Services.Calcs
             properties.Add("specification-id", specificationId);
 
             properties.Add("specification-summary-cache-key", specificationSummaryCachekey);
+            
+            properties.Add(assembly_etag, assemblyEtag);
 
             IList<IDictionary<string, string>> allJobProperties = new List<IDictionary<string, string>>();
 
@@ -374,7 +364,7 @@ namespace CalculateFunding.Services.Calcs
                 IEnumerable<Job> newJobs = await CreateGenerateAllocationJobs(job, allJobProperties);
 
                 int newJobsCount = newJobs.Count();
-                int batchCount = allJobProperties.Count();
+                int batchCount = allJobProperties.Count;
 
                 if (newJobsCount != batchCount)
                 {
@@ -390,7 +380,7 @@ namespace CalculateFunding.Services.Calcs
                 await _jobManagement.UpdateJobStatus(jobId, new JobLogUpdateModel()
                 {
                     CompletedSuccessfully = false,
-                    Outcome = ex.Message,
+                    Outcome = ex.Message
                 });
 
                 throw new NonRetriableException(ex.Message, ex);

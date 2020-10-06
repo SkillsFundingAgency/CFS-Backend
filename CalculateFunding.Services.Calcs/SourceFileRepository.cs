@@ -29,22 +29,34 @@ namespace CalculateFunding.Services.Calcs
 
         public async Task<Stream> GetAssembly(string specificationId)
         {
-            string blobName = $"{specificationId}/{dllFileName}";
+            string blobName = GetAssemblyBlobName(specificationId);
 
             ICloudBlob blockBlob = GetBlockBlobReference(blobName);
 
             return await DownloadToStreamAsync(blockBlob);
         }
 
+        public string GetAssemblyETag(string specificationId)
+        {
+            string blobName = GetAssemblyBlobName(specificationId);
+
+            ICloudBlob blockBlob = GetBlockBlobReference(blobName);
+
+            blockBlob?.FetchAttributes();
+
+            return blockBlob?.Properties?.ETag;
+        }
+
         public async Task SaveSourceFiles(byte[] zippedContent, string specificationId, string sourceType)
         {
             ICloudBlob blockBlob = GetBlockBlobReference($"{specificationId}/{specificationId}-{sourceType}.zip");
 
-            using (MemoryStream memoryStream = new MemoryStream(zippedContent))
-            {
-                await blockBlob.UploadFromStreamAsync(memoryStream);
-            }
+            await using MemoryStream memoryStream = new MemoryStream(zippedContent);
+            
+            await blockBlob.UploadFromStreamAsync(memoryStream);
         }
+
+        private static string GetAssemblyBlobName(string specificationId) => $"{specificationId}/{dllFileName}";
 
         public async Task<bool> DoesAssemblyExist(string specificationId)
         {

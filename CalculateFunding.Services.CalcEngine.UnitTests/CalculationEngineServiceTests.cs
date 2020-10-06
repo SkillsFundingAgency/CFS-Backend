@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
@@ -20,6 +21,7 @@ using CalculateFunding.Services.CalcEngine.UnitTests;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.Azure.ServiceBus;
@@ -1293,10 +1295,12 @@ namespace CalculateFunding.Services.Calculator
                 .GetBuildProjectBySpecificationId(Arg.Any<string>())
                 .Returns(buildProject);
 
+            byte[] expectedAssembly = MockData.GetMockAssembly();
+            
             _calculationEngineServiceTestsHelper
                 .MockCalculationRepository
                 .GetAssemblyBySpecificationId(Arg.Is(specificationId))
-                .Returns(MockData.GetMockAssembly());
+                .Returns(expectedAssembly);
 
             _calculationEngineServiceTestsHelper
                 .MockCacheProvider
@@ -1383,6 +1387,12 @@ namespace CalculateFunding.Services.Calculator
                              m.ItemsFailed == 0 &&
                              m.ItemsProcessed == 20 &&
                              m.Outcome == "20 provider results were generated successfully from 20 providers"));
+            
+            
+            await _calculationEngineServiceTestsHelper.MockSpecificationAssemblyProvider
+                .Received(1)
+                .SetAssembly(Arg.Is(specificationId),
+                    Arg.Is<Stream>(ass => ass.ReadAllBytes().SequenceEqual(expectedAssembly)));
         }
 
         [TestMethod]
@@ -1481,8 +1491,133 @@ namespace CalculateFunding.Services.Calculator
                 .Message
                 .Should()
                 .Be($"Failed to get assembly for specification Id '{specificationId}'");
+
         }
 
+        [TestMethod]
+        public async Task UsesAssemblyFromProviderIfFound()
+        {
+             //Arrange
+            const string cacheKey = "Cache-key";
+            const string specificationSummaryCacheKey = "specification-summary-cache-key";
+            const string specificationId = "spec1";
+            const int partitionIndex = 0;
+            const int partitionSize = 100;
+            const int stop = partitionIndex + partitionSize - 1;
+            const string jobId = "job-id-1";
+
+            BuildProject buildProject = CreateBuildProject();
+
+            JobViewModel jobViewModel = new JobViewModel { Id = jobId };
+
+            IList<ProviderSummary> providerSummaries = MockData.GetDummyProviders(20);
+
+            IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
+            
+            mockAllocationModel
+                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>())
+                .Returns(new CalculationResultContainer());
+
+            _calculationEngineServiceTestsHelper
+                .MockCacheProvider
+                .ListRangeAsync<ProviderSummary>(cacheKey, partitionIndex, stop)
+                .Returns(providerSummaries);
+
+            _calculationEngineServiceTestsHelper
+                .MockCalculationRepository
+                .GetBuildProjectBySpecificationId(Arg.Any<string>())
+                .Returns(buildProject);
+
+            _calculationEngineServiceTestsHelper
+                .MockCalculationRepository
+                .GetAssemblyBySpecificationId(Arg.Is(specificationId))
+                .Returns(MockData.GetMockAssembly());
+
+            _calculationEngineServiceTestsHelper
+                .MockCacheProvider
+                .GetAsync<Dictionary<string, List<decimal>>>($"{CacheKeys.CalculationAggregations}{specificationId}_1")
+                .Returns((Dictionary<string, List<decimal>>)null);
+
+            _calculationEngineServiceTestsHelper
+                .MockJobManagement
+                .RetrieveJobAndCheckCanBeProcessed(Arg.Is(jobId))
+                .Returns(jobViewModel);
+
+            IList<CalculationSummaryModel> calculationSummaryModelsReturn = CreateDummyCalculationSummaryModels();
+            _calculationEngineServiceTestsHelper
+                .MockCalculationRepository
+                .GetCalculationSummariesForSpecification(specificationId)
+                .Returns(calculationSummaryModelsReturn);
+
+            _calculationEngineServiceTestsHelper
+                .MockCalculationEngine
+                .GenerateAllocationModel(Arg.Any<Assembly>())
+                .Returns(mockAllocationModel);
+
+            _calculationEngineServiceTestsHelper
+                .MockCalculationEngine
+                .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
+                    Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
+                    Arg.Any<IEnumerable<ProviderSourceDataset>>(),
+                    Arg.Any<IEnumerable<CalculationAggregation>>())
+                .Returns(new ProviderResult());
+
+            _calculationEngineServiceTestsHelper
+                .MockEngineSettings
+                .ProviderBatchSize = 3;
+
+            _calculationEngineServiceTestsHelper
+                .MockDatasetRepo
+                .GetProviderSourceDatasetsByProviderIdsAndRelationshipIds(Arg.Any<IEnumerable<string>>(), Arg.Any<IEnumerable<string>>())
+                .Returns(providerSummaries.ToDictionary(x => x.Id, x => Enumerable.Empty<ProviderSourceDataset>()));
+
+            CalculationEngineService service = _calculationEngineServiceTestsHelper.CreateCalculationEngineService();
+
+            Message message = new Message();
+            IDictionary<string, object> messageUserProperties = message.UserProperties;
+
+            string etag = NewRandomString();
+
+            messageUserProperties.Add("provider-summaries-partition-index", partitionIndex);
+            messageUserProperties.Add("provider-summaries-partition-size", partitionSize);
+            messageUserProperties.Add("provider-cache-key", cacheKey);
+            messageUserProperties.Add("specification-summary-cache-key", specificationSummaryCacheKey);
+            messageUserProperties.Add("specification-id", specificationId);
+            messageUserProperties.Add("ignore-save-provider-results", "true");
+            messageUserProperties.Add("jobId", jobId);
+            messageUserProperties.Add("batch-count", "1");
+            messageUserProperties.Add("batch-number", "1");
+            messageUserProperties.Add("assembly-etag", etag);
+
+            ISpecificationAssemblyProvider assemblyProvider = _calculationEngineServiceTestsHelper.MockSpecificationAssemblyProvider;
+
+            assemblyProvider
+                .GetAssembly(specificationId, etag)
+                .Returns(new MemoryStream(MockData.GetMockAssembly()));
+            
+            _calculationEngineServiceTestsHelper
+                .MockCalculationRepository
+                .GetAssemblyBySpecificationId(Arg.Is(specificationId))
+                .Returns(MockData.GetMockAssembly());
+
+            //Act
+            await service.GenerateAllocations(message);
+
+            await _calculationEngineServiceTestsHelper
+                .MockCalculationRepository
+                .Received(0)
+                .GetAssemblyBySpecificationId(Arg.Is(specificationId));
+
+            _calculationEngineServiceTestsHelper
+                .MockCalculationEngine
+                .Received(providerSummaries.Count)
+                .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
+                    Arg.Any<ProviderSummary>(), Arg.Any<IEnumerable<ProviderSourceDataset>>(),
+                    Arg.Is<IEnumerable<CalculationAggregation>>(m =>
+                        !m.Any()
+                    ));   
+        }
+        
         private static BuildProject CreateBuildProject()
         {
             BuildProject buildProject = JsonConvert.DeserializeObject<BuildProject>(MockData.SerializedBuildProject());

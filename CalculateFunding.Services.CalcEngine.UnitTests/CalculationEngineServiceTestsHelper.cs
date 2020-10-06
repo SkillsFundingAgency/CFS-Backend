@@ -4,6 +4,7 @@ using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.ServiceBus.Interfaces;
+using CalculateFunding.Services.CalcEngine.Caching;
 using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Core.Interfaces.Logging;
@@ -53,7 +54,8 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
                     MockPoliciesApiClient,
                     MockCalculatorResiliencePoliciesValidator,
                     MockCalculationEngineServiceValidator,
-                    MockMapper
+                    MockMapper,
+                    MockSpecificationAssemblyProvider
                     );
 
             return service;
@@ -77,6 +79,7 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
         public ISpecificationsApiClient MockSpecificationsApiClient { get; set; } = Substitute.For<ISpecificationsApiClient>();
         public IPoliciesApiClient MockPoliciesApiClient { get; set; } = Substitute.For<IPoliciesApiClient>();
         public IMapper MockMapper { get; set; } = Substitute.For<IMapper>();
+        public ISpecificationAssemblyProvider MockSpecificationAssemblyProvider { get; set; } = Substitute.For<ISpecificationAssemblyProvider>();
         public AsyncPolicy MockCacheProviderPolicy { get; set; } = Policy.NoOpAsync();
         public AsyncPolicy MockMessengerPolicy { get; set; } = Policy.NoOpAsync();
         public AsyncPolicy MockProviderSourceDatasetsRepositoryPolicy { get; set; } = Policy.NoOpAsync();

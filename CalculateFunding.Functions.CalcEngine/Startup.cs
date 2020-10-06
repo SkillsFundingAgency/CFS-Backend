@@ -210,17 +210,26 @@ namespace CalculateFunding.Functions.CalcEngine
 
             builder.AddSingleton<ICalculatorResiliencePolicies>(calcResiliencePolicies);
             builder.AddSingleton<IJobHelperResiliencePolicies>(calcResiliencePolicies);
-            builder.AddSingleton<IJobManagementResiliencePolicies>((ctx) =>
+            builder.AddSingleton<IJobManagementResiliencePolicies>((ctx) => new JobManagementResiliencePolicies()
             {
-                return new JobManagementResiliencePolicies()
-                {
-                    JobsApiClient = calcResiliencePolicies.JobsApiClient
-                };
-
+                JobsApiClient = calcResiliencePolicies.JobsApiClient
             });
 
             builder.AddSingleton<IValidator<ICalculatorResiliencePolicies>, CalculatorResiliencePoliciesValidator>();
             builder.AddSingleton<ICalculationEngineServiceValidator, CalculationEngineServiceValidator>();
+            builder.AddSingleton<ISpecificationAssemblyProvider, SpecificationAssemblyProvider>();
+            builder.AddSingleton<IBlobContainerRepository, BlobContainerRepository>();
+            builder.AddSingleton<IBlobClient>(ctx =>
+            {
+                BlobStorageOptions options = new BlobStorageOptions();
+                
+                config.Bind("AzureStorageSettings", options);
+                
+                options.ContainerName = "source";
+                
+                return new BlobClient(options, ctx.GetService<IBlobContainerRepository>());
+            });
+            
 
             return builder.BuildServiceProvider();
         }
@@ -239,7 +248,8 @@ namespace CalculateFunding.Functions.CalcEngine
                 JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 SpecificationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                ResultsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                ResultsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                BlobClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
             };
 
             return resiliencePolicies;

@@ -54,7 +54,8 @@ namespace CalculateFunding.Services.Calcs.Services
             ISpecificationsApiClient specificationsApiClient = null,
             IGraphRepository graphRepository = null,
             ICalculationsFeatureFlag calculationsFeatureFlag = null,
-            ICodeContextCache codeContextCache = null)
+            ICodeContextCache codeContextCache = null,
+            ISourceFileRepository sourceFileRepository = null)
         {
             CalculationNameInUseCheck calculationNameInUseCheck = new CalculationNameInUseCheck(calculationsRepository ?? CreateCalculationsRepository(),
                 specificationsApiClient ?? CreateSpecificationsApiClient(),
@@ -66,7 +67,8 @@ namespace CalculateFunding.Services.Calcs.Services
                     resiliencePolicies ?? CalcsResilienceTestHelper.GenerateTestPolicies(),
                     logger ?? CreateLogger(),
                     calculationsFeatureFlag ?? CreateCalculationsFeatureFlag(),
-                    jobManagement ?? CreateJobManagement());
+                    jobManagement ?? CreateJobManagement(),
+                    sourceFileRepository ?? Substitute.For<ISourceFileRepository>());
 
             return new CalculationService
                 (

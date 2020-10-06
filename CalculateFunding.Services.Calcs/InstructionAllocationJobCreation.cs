@@ -23,17 +23,19 @@ namespace CalculateFunding.Services.Calcs
         private readonly IJobManagement _jobManagement;
         private readonly ILogger _logger;
         private readonly ICalculationsFeatureFlag _calculationsFeatureFlag;
+        private readonly ISourceFileRepository _sourceFileRepository;
         private bool? _graphEnabled;
         public InstructionAllocationJobCreation(ICalculationsRepository calculationsRepository, 
             ICalcsResiliencePolicies calculationsResiliencePolicies,
             ILogger logger,
             ICalculationsFeatureFlag calculationsFeatureFlag,
-            IJobManagement jobManagement)
+            IJobManagement jobManagement,
+            ISourceFileRepository sourceFileRepository)
         {
             Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
             Guard.ArgumentNotNull(calculationsFeatureFlag, nameof(calculationsFeatureFlag));
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
-
+            Guard.ArgumentNotNull(sourceFileRepository, nameof(sourceFileRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(calculationsResiliencePolicies?.CalculationsRepository, nameof(calculationsResiliencePolicies.CalculationsRepository));
 
@@ -41,6 +43,7 @@ namespace CalculateFunding.Services.Calcs
             _calculationsRepository = calculationsRepository;
             _logger = logger;
             _jobManagement = jobManagement;
+            _sourceFileRepository = sourceFileRepository;
             _calculationRepositoryPolicy = calculationsResiliencePolicies.CalculationsRepository;
         }
 
@@ -51,6 +54,8 @@ namespace CalculateFunding.Services.Calcs
             IEnumerable<Calculation> allCalculations = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specificationId));
 
             bool generateCalculationAggregations = SourceCodeHelpers.HasCalculationAggregateFunctionParameters(allCalculations.Select(m => m.Current.SourceCode));
+
+           
             
             string jobDefinitionId = generateCalculationAggregations ?
                     JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob :
@@ -75,6 +80,8 @@ namespace CalculateFunding.Services.Calcs
                 Trigger = trigger,
                 CorrelationId = correlationId
             };
+            
+            
 
             if (await GraphEnabled())
             {
@@ -84,7 +91,7 @@ namespace CalculateFunding.Services.Calcs
 
                 try
                 {
-                    parentJob = await _jobManagement.QueueJob(new JobCreateModel
+                    JobCreateModel instructJob = new JobCreateModel
                     {
                         InvokerUserDisplayName = userName,
                         InvokerUserId = userId,
@@ -96,7 +103,16 @@ namespace CalculateFunding.Services.Calcs
                         },
                         Trigger = trigger,
                         CorrelationId = correlationId
-                    });
+                    };
+                    
+                    string assemblyETag = _sourceFileRepository.GetAssemblyETag(specificationId);
+
+                    if (assemblyETag.IsNotNullOrWhitespace())
+                    {
+                        instructJob.Properties.Add("assembly-etag", assemblyETag);
+                    }
+                    
+                    parentJob = await _jobManagement.QueueJob(instructJob);
 
                     _logger.Information($"New job of type '{parentJob.JobDefinitionId}' created with id: '{parentJob.Id}'");
                 }

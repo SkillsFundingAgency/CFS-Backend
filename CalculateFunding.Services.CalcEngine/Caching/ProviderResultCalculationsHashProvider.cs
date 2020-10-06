@@ -38,7 +38,7 @@ namespace CalculateFunding.Services.CalcEngine.Caching
                     .GetAwaiter()
                     .GetResult();
 
-                batchHashContainer = batchHashContainer ?? new Dictionary<string, string>();
+                batchHashContainer ??= new Dictionary<string, string>();
 
                 if (!BatchHashContainers.TryAdd(specificationBatchKey, batchHashContainer))
                 {

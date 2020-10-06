@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
@@ -21,6 +22,7 @@ using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.ProviderLegacy;
+using CalculateFunding.Services.CalcEngine.Caching;
 using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Core;
@@ -64,6 +66,7 @@ namespace CalculateFunding.Services.CalcEngine
         private readonly ICalculationEngineServiceValidator _calculationEngineServiceValidator;
         private readonly IPoliciesApiClient _policiesApiClient;
         private readonly IMapper _mapper;
+        private readonly ISpecificationAssemblyProvider _specificationAssemblies;
 
         public CalculationEngineService(
             ILogger logger,
@@ -82,7 +85,8 @@ namespace CalculateFunding.Services.CalcEngine
             IPoliciesApiClient policiesApiClient,
             IValidator<ICalculatorResiliencePolicies> calculatorResiliencePoliciesValidator,
             ICalculationEngineServiceValidator calculationEngineServiceValidator,
-            IMapper mapper)
+            IMapper mapper,
+            ISpecificationAssemblyProvider specificationAssemblies)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(calculationEngine, nameof(calculationEngine));
@@ -107,6 +111,7 @@ namespace CalculateFunding.Services.CalcEngine
             Guard.ArgumentNotNull(calculationEngineServiceValidator, nameof(calculationEngineServiceValidator));
             Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
+            Guard.ArgumentNotNull(specificationAssemblies, nameof(specificationAssemblies));
 
             _calculationEngineServiceValidator = calculationEngineServiceValidator;
             _logger = logger;
@@ -130,6 +135,7 @@ namespace CalculateFunding.Services.CalcEngine
             _policiesApiClientPolicy = resiliencePolicies.PoliciesApiClient;
             _policiesApiClient = policiesApiClient;
             _mapper = mapper;
+            _specificationAssemblies = specificationAssemblies;
         }
 
         public async Task<IActionResult> GenerateAllocations(HttpRequest request)
@@ -165,7 +171,6 @@ namespace CalculateFunding.Services.CalcEngine
         public string GetMessage()
         {
             StringBuilder sb = new StringBuilder();
-
             sb.AppendLine("Copy message here from dead letter");
             return sb.ToString();
         }
@@ -174,7 +179,7 @@ namespace CalculateFunding.Services.CalcEngine
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
-            _logger.Debug($"Validating new allocations message");
+            _logger.Debug("Validating new allocations message");
 
             _calculationEngineServiceValidator.ValidateMessage(_logger, message);
 
@@ -189,11 +194,11 @@ namespace CalculateFunding.Services.CalcEngine
 
             string specificationId = messageProperties.SpecificationId;
 
-            messageProperties.GenerateCalculationAggregationsOnly = (job.JobDefinitionId == JobConstants.DefinitionNames.GenerateCalculationAggregationsJob);
+            messageProperties.GenerateCalculationAggregationsOnly = job.JobDefinitionId == JobConstants.DefinitionNames.GenerateCalculationAggregationsJob;
 
             _logger.Information($"Generating allocations for specification id {specificationId}");
 
-            Task<(byte[], long)> getAssemblyTask = GetAssemblyForSpecification(specificationId);
+            Task<(byte[], long)> getAssemblyTask = GetAssemblyForSpecification(specificationId, messageProperties.AssemblyETag);
             Task<(IEnumerable<ProviderSummary>, long)> providerSummaryTask = GetProviderSummaries(messageProperties);
             Task<(IEnumerable<CalculationSummaryModel>, long)> calculationSummaryTask = GetCalculationSummaries(specificationId);
             Task<(SpecificationSummary, long)> specificationSummaryTask = GetSpecificationSummary(specificationId);
@@ -388,17 +393,34 @@ namespace CalculateFunding.Services.CalcEngine
             return (summaries, providerSummaryLookup.ElapsedMilliseconds);
         }
 
-        private async Task<(byte[], long)> GetAssemblyForSpecification(string specificationId)
+        private async Task<(byte[], long)> GetAssemblyForSpecification(string specificationId, string etag)
         {
             Stopwatch assemblyLookupStopwatch = Stopwatch.StartNew();
+
+            if (etag.IsNotNullOrWhitespace())
+            {
+                Stream cachedAssembly = await _specificationAssemblies.GetAssembly(specificationId, etag);
+                
+                if (cachedAssembly != null)
+                {
+                    assemblyLookupStopwatch.Stop();
+                    
+                    return (cachedAssembly.ReadAllBytes(), assemblyLookupStopwatch.ElapsedMilliseconds);
+                }
+            }
+            
             byte[] assembly = await _calculationsRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetAssemblyBySpecificationId(specificationId));
 
             if (assembly == null)
             {
                 string error = $"Failed to get assembly for specification Id '{specificationId}'";
+                
                 _logger.Error(error);
+                
                 throw new RetriableException(error);
             }
+
+            await _specificationAssemblies.SetAssembly(specificationId, new MemoryStream(assembly));
 
             assemblyLookupStopwatch.Stop();
 
@@ -516,7 +538,7 @@ namespace CalculateFunding.Services.CalcEngine
 
             properties.ProviderCacheKey = message.UserProperties["provider-cache-key"].ToString();
 
-            properties.SpecificationSummaryCachekey = message.UserProperties["specification-summary-cache-key"].ToString();
+            properties.SpecificationSummaryCacheKey = message.UserProperties["specification-summary-cache-key"].ToString();
 
             properties.PartitionIndex = int.Parse(message.UserProperties["provider-summaries-partition-index"].ToString());
 
@@ -526,6 +548,8 @@ namespace CalculateFunding.Services.CalcEngine
 
             properties.CalculationsToAggregate = message.UserProperties.ContainsKey("calculations-to-aggregate") && !string.IsNullOrWhiteSpace(message.UserProperties["calculations-to-aggregate"].ToString()) ? message.UserProperties["calculations-to-aggregate"].ToString().Split(',') : null;
 
+            properties.AssemblyETag = message.GetUserProperty<string>("assembly-etag");
+            
             return properties;
         }
 
