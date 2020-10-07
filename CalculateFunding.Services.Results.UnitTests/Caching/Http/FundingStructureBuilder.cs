@@ -1,8 +1,8 @@
 using System;
-using CalculateFunding.Models.Policy;
+using CalculateFunding.Models.Result;
 using CalculateFunding.Tests.Common.Helpers;
 
-namespace CalculateFunding.Services.Policy.Caching.Http
+namespace CalculateFunding.Services.Results.UnitTests.Caching.Http
 {
     public class FundingStructureBuilder : TestEntityBuilder
     {

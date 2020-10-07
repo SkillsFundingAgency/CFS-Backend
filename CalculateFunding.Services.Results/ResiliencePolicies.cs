@@ -34,5 +34,7 @@ namespace CalculateFunding.Services.Results
         public AsyncPolicy PoliciesApiClient { get; set; }
         
         public AsyncPolicy BlobClient { get; set; }
+
+        public AsyncPolicy CacheProvider { get; set; }
     }
 }

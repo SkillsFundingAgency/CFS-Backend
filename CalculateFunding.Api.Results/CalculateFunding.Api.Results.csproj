@@ -13,6 +13,8 @@
 
   <ItemGroup>
 
+    <PackageReference Include="CacheCow.Server.Core.Mvc" Version="2.7.4" />
+
     <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="5.8.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="3.0.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="3.9.0" />
@@ -23,6 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CalculateFunding.Models.Result\CalculateFunding.Models.Result.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Core.AspNet\CalculateFunding.Services.Core.AspNet.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Results\CalculateFunding.Services.Results.csproj" />
 	

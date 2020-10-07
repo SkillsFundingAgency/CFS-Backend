@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using AutoMapper;
+using CacheCow.Server.Core.Mvc;
 using CalculateFunding.Common.Config.ApiClient.Calcs;
 using CalculateFunding.Common.Config.ApiClient.Jobs;
 using CalculateFunding.Common.Config.ApiClient.Policies;
@@ -13,6 +14,8 @@ using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.MappingProfiles;
+using CalculateFunding.Models.Result;
+using CalculateFunding.Models.Result.ViewModels;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.AspNet.Extensions;
@@ -25,8 +28,11 @@ using CalculateFunding.Services.Core.Interfaces.Threading;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Threading;
 using CalculateFunding.Services.Results;
+using CalculateFunding.Services.Results.Caching.Http;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Results.Repositories;
+using CalculateFunding.Services.Results.Validators;
+using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -93,6 +99,18 @@ namespace CalculateFunding.Api.Results
 
         private void RegisterComponents(IServiceCollection builder)
         {
+            builder.AddHttpCachingMvc();
+
+            builder.AddQueryProviderAndExtractorForViewModelMvc<
+                FundingStructure, 
+                TemplateMetadataContentsTimedETagProvider, 
+                TemplateMatadataContentsTimedETagExtractor>(false);
+
+            builder.AddSingleton<IFundingStructureService, FundingStructureService>()
+                .AddSingleton<IValidator<UpdateFundingStructureLastModifiedRequest>, UpdateFundingStructureLastModifiedRequestValidator>()
+                .AddSpecificationsInterServiceClient(Configuration, handlerLifetime: Timeout.InfiniteTimeSpan)
+                .AddCalculationsInterServiceClient(Configuration, handlerLifetime: Timeout.InfiniteTimeSpan);
+
             builder.AddScoped<ISpecificationsWithProviderResultsService, SpecificationsWithProviderResultsService>();
             builder.AddScoped<IProducerConsumerFactory, ProducerConsumerFactory>();
             
@@ -172,8 +190,6 @@ namespace CalculateFunding.Api.Results
             builder.AddLogging("CalculateFunding.Api.Results");
             builder.AddTelemetry();
 
-            builder.AddSpecificationsInterServiceClient(Configuration);
-            builder.AddCalculationsInterServiceClient(Configuration);
             builder.AddJobsInterServiceClient(Configuration);
             builder.AddPoliciesInterServiceClient(Configuration);
 
@@ -210,7 +226,8 @@ namespace CalculateFunding.Api.Results
                     ProviderChangesRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     ProviderCalculationResultsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
                     PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    CalculationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                    CalculationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    CacheProvider = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy)
                 };
             });
 

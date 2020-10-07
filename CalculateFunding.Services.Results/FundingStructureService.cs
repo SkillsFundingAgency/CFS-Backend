@@ -1,79 +1,89 @@
+﻿using CalculateFunding.Common.ApiClient.Calcs;
+using CalculateFunding.Common.ApiClient.Calcs.Models;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalculateFunding.Common.TemplateMetadata.Models;
+using CalculateFunding.Common.Utility;
+using CalculateFunding.Models;
+using CalculateFunding.Repositories.Common.Search.Results;
+using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Results.Interfaces;
+using Microsoft.AspNetCore.Mvc;
+using Polly;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Calcs;
-using CalculateFunding.Common.ApiClient.Calcs.Models;
-using CalculateFunding.Common.ApiClient.Models;
-using CalculateFunding.Common.ApiClient.Results;
-using CalculateFunding.Common.ApiClient.Results.Models;
-using CalculateFunding.Common.ApiClient.Specifications;
-using CalculateFunding.Common.ApiClient.Specifications.Models;
-using CalculateFunding.Common.Caching;
-using CalculateFunding.Common.Models.Search;
-using CalculateFunding.Common.TemplateMetadata.Enums;
-using CalculateFunding.Common.TemplateMetadata.Models;
-using CalculateFunding.Common.Utility;
-using CalculateFunding.Models.Policy;
-using CalculateFunding.Models.Policy.FundingPolicy.ViewModels;
-using CalculateFunding.Services.Core.Caching;
-using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Policy.Interfaces;
-using FluentValidation;
-using FluentValidation.Results;
-using Microsoft.AspNetCore.Mvc;
-using Polly;
 using TemplateCalculation = CalculateFunding.Common.TemplateMetadata.Models.Calculation;
+using CalcModels = CalculateFunding.Models.Calcs;
+using CalculateFunding.Common.TemplateMetadata.Enums;
+using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Common.Caching;
+using CalculateFunding.Models.Result;
+using FluentValidation.Results;
+using CalculateFunding.Models.Result.ViewModels;
+using FluentValidation;
 
-namespace CalculateFunding.Services.Policy
+namespace CalculateFunding.Services.Results
 {
     public class FundingStructureService : IFundingStructureService
     {
-        private readonly IValidator<UpdateFundingStructureLastModifiedRequest> _validator;
-        private readonly IFundingTemplateService _fundingTemplateService;
-        private readonly ICacheProvider _cacheProvider;
         private readonly ISpecificationsApiClient _specificationsApiClient;
+        private readonly Common.ApiClient.Policies.IPoliciesApiClient _policiesApiClient;
         private readonly ICalculationsApiClient _calculationsApiClient;
-        private readonly IResultsApiClient _resultsApiClient;
-        private readonly AsyncPolicy _cacheResilience;
-        private readonly AsyncPolicy _specificationsResilience;
-        private readonly AsyncPolicy _calculationsResilience;
-        private readonly AsyncPolicy _resultsResilience;
+        private readonly IProviderCalculationResultsSearchService _providerCalculationResultsSearchService;
+        private readonly IResultsService _resultsService;
+        private readonly ICacheProvider _cacheProvider;
+        private readonly IValidator<UpdateFundingStructureLastModifiedRequest> _validator;
 
-        public FundingStructureService(ICacheProvider cacheProvider,
+        private readonly AsyncPolicy _calculationsResilience;
+        private readonly AsyncPolicy _specificationsResilience;
+        private readonly AsyncPolicy _policiesResilience;
+        private readonly AsyncPolicy _cacheResilience;
+
+        public FundingStructureService(
+            ICacheProvider cacheProvider,
             ISpecificationsApiClient specificationsApiClient,
             ICalculationsApiClient calculationsApiClient,
-            IResultsApiClient resultsApiClient,
-            IFundingTemplateService fundingTemplateService,
+            IProviderCalculationResultsSearchService providerCalculationResultsSearchService,
+            IResultsService resultsService,
+            Common.ApiClient.Policies.IPoliciesApiClient policiesApiClient,
             IValidator<UpdateFundingStructureLastModifiedRequest> validator,
-            IPolicyResiliencePolicies resiliencePolicies)
+            IResultsResiliencePolicies resiliencePolicies)
         {
-            Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
+            Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
             Guard.ArgumentNotNull(calculationsApiClient, nameof(calculationsApiClient));
+            Guard.ArgumentNotNull(providerCalculationResultsSearchService, nameof(providerCalculationResultsSearchService));
+            Guard.ArgumentNotNull(resultsService, nameof(resultsService));
+            Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(validator, nameof(validator));
-            Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
-            Guard.ArgumentNotNull(resiliencePolicies?.CacheProvider, nameof(resiliencePolicies.CacheProvider));
-            Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsApiClient, nameof(resiliencePolicies.SpecificationsApiClient));
-            Guard.ArgumentNotNull(resiliencePolicies?.CalculationsApiClient, nameof(resiliencePolicies.CalculationsApiClient));
-            Guard.ArgumentNotNull(resiliencePolicies?.ResultsApiClient, nameof(resiliencePolicies.ResultsApiClient));
 
-            _cacheProvider = cacheProvider;
+            Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
+            Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsApiClient, nameof(resiliencePolicies.SpecificationsApiClient));
+            Guard.ArgumentNotNull(resiliencePolicies?.PoliciesApiClient, nameof(resiliencePolicies.PoliciesApiClient));
+            Guard.ArgumentNotNull(resiliencePolicies?.CalculationsApiClient, nameof(resiliencePolicies.CalculationsApiClient));
+            Guard.ArgumentNotNull(resiliencePolicies?.CacheProvider, nameof(resiliencePolicies.CacheProvider));
+
             _specificationsApiClient = specificationsApiClient;
+            _policiesApiClient = policiesApiClient;
             _calculationsApiClient = calculationsApiClient;
-            _resultsApiClient = resultsApiClient;
-            _fundingTemplateService = fundingTemplateService;
+            _providerCalculationResultsSearchService = providerCalculationResultsSearchService;
+            _resultsService = resultsService;
+            _cacheProvider = cacheProvider;
             _validator = validator;
-            _cacheResilience = resiliencePolicies.CacheProvider;
+
             _specificationsResilience = resiliencePolicies.SpecificationsApiClient;
+            _policiesResilience = resiliencePolicies.PoliciesApiClient;
             _calculationsResilience = resiliencePolicies.CalculationsApiClient;
-            _resultsResilience = resiliencePolicies.ResultsApiClient;
+            _cacheResilience = resiliencePolicies.CacheProvider;
         }
-        
+
         public async Task<IActionResult> UpdateFundingStructureLastModified(UpdateFundingStructureLastModifiedRequest request)
         {
             Guard.ArgumentNotNull(request, nameof(request));
-            
+
             // ReSharper disable once MethodHasAsyncOverload
             ValidationResult validationResult = _validator.Validate(request);
 
@@ -81,7 +91,7 @@ namespace CalculateFunding.Services.Policy
             {
                 return validationResult.AsBadRequest();
             }
-            
+
             string cacheKey = GetCacheKeyFundingStructure(request.SpecificationId,
                 request.FundingStreamId,
                 request.FundingPeriodId);
@@ -95,7 +105,6 @@ namespace CalculateFunding.Services.Policy
             string fundingPeriodId,
             string specificationId)
         {
-            
             string cacheKey = GetCacheKeyFundingStructure(specificationId, fundingStreamId, fundingPeriodId);
 
             DateTimeOffset timestamp = await _cacheResilience.ExecuteAsync(() => _cacheProvider.GetAsync<DateTimeOffset>(cacheKey));
@@ -103,90 +112,7 @@ namespace CalculateFunding.Services.Policy
             return timestamp;
         }
 
-        private static string GetCacheKeyFundingStructure(string specificationId,
-            string fundingStreamId,
-            string fundingPeriodId)
-        {
-            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
-            Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
-            Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
-
-            return $"{CacheKeys.FundingLineStructureTimestamp}{specificationId}:{fundingStreamId}:{fundingPeriodId}";
-        }
-
-        //this was lifted pretty much as is from the FE
-        public async Task<IActionResult> GetFundingStructure(string fundingStreamId,
-            string fundingPeriodId,
-            string specificationId)
-        {
-            ApiResponse<SpecificationSummary> specificationSummaryApiResponse =
-		        await _specificationsResilience.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId));
-	        IActionResult specificationSummaryApiResponseErrorResult =
-		        specificationSummaryApiResponse.IsSuccessOrReturnFailureResult("GetSpecificationSummaryById");
-	        if (specificationSummaryApiResponseErrorResult != null)
-	        {
-		        return specificationSummaryApiResponseErrorResult;
-	        }
-
-	        string templateVersion = specificationSummaryApiResponse.Content.TemplateIds.ContainsKey(fundingStreamId)
-		        ? specificationSummaryApiResponse.Content.TemplateIds[fundingStreamId]
-		        : null;
-	        if (templateVersion == null)
-		        return new InternalServerErrorResult(
-			        $"Specification contains no matching template version for funding stream '{fundingStreamId}'");
-
-            TemplateMetadataContents fundingTemplateContents =
-                (await _fundingTemplateService.GetFundingTemplateContents(fundingStreamId, fundingPeriodId, templateVersion) as OkObjectResult)
-                .Value as TemplateMetadataContents;
-            
-	        if (fundingTemplateContents == null)
-	        {
-		        return new InternalServerErrorResult($"Unable to locate funding template contents for {fundingStreamId} {fundingPeriodId} {templateVersion}");
-	        }
-
-	        ApiResponse<TemplateMapping> templateMappingResponse =
-		        await _calculationsResilience.ExecuteAsync(() => _calculationsApiClient.GetTemplateMapping(specificationId, fundingStreamId));
-	        IActionResult templateMappingResponseErrorResult =
-		        templateMappingResponse.IsSuccessOrReturnFailureResult("GetTemplateMapping");
-	        if (templateMappingResponseErrorResult != null)
-	        {
-		        return templateMappingResponseErrorResult;
-	        }
-
-	        ApiResponse<IEnumerable<CalculationMetadata>> calculationMetadata =
-		        await _calculationsResilience.ExecuteAsync(() => _calculationsApiClient.GetCalculationMetadataForSpecification(specificationId));
-	        IActionResult calculationMetadataErrorResult =
-		        calculationMetadata.IsSuccessOrReturnFailureResult("calculationMetadata");
-	        if (calculationMetadataErrorResult != null)
-	        {
-		        return calculationMetadataErrorResult;
-	        }
-
-	        List<FundingStructureItem> fundingStructures = new List<FundingStructureItem>();
-	        RecursivelyAddFundingLineToFundingStructure(
-		        fundingStructures,
-                fundingTemplateContents.RootFundingLines,
-		        templateMappingResponse.Content.TemplateMappingItems.ToList(),
-		        calculationMetadata.Content.ToList(),
-		        null,
-                null);
-
-            FundingStructure fundingStructure = new FundingStructure
-            {
-                Items = fundingStructures,
-                LastModified = await GetFundingStructureTimeStamp(fundingStreamId,
-                    fundingPeriodId,
-                    specificationId)
-            };
-            
-            return new OkObjectResult(fundingStructure);
-        }
-
-        //this was lifted pretty much as is from the FE
-        public async Task<IActionResult> GetFundingStructureWithCalculationResults(string fundingStreamId,
-            string fundingPeriodId,
-            string specificationId,
-            string providerId = null) 
+        public async Task<IActionResult> GetFundingStructure(string fundingStreamId, string fundingPeriodId, string specificationId)
         {
             ApiResponse<SpecificationSummary> specificationSummaryApiResponse =
                 await _specificationsResilience.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId));
@@ -204,13 +130,13 @@ namespace CalculateFunding.Services.Policy
                 return new InternalServerErrorResult(
                     $"Specification contains no matching template version for funding stream '{fundingStreamId}'");
 
-            TemplateMetadataContents fundingTemplateContents =
-                (await _fundingTemplateService.GetFundingTemplateContents(fundingStreamId, fundingPeriodId, templateVersion) as OkObjectResult)
-                .Value as TemplateMetadataContents;
-            
-            if (fundingTemplateContents == null)
+            ApiResponse<TemplateMetadataContents> templateMetadataContentsApiResponse =
+                await _policiesResilience.ExecuteAsync(() => _policiesApiClient.GetFundingTemplateContents(fundingStreamId, fundingPeriodId, templateVersion));
+            IActionResult templateMetadataContentsApiResponseErrorResult =
+                templateMetadataContentsApiResponse.IsSuccessOrReturnFailureResult("GetFundingTemplateContents");
+            if (templateMetadataContentsApiResponseErrorResult != null)
             {
-                return new InternalServerErrorResult($"Unable to locate funding template contents for {fundingStreamId} {fundingPeriodId} {templateVersion}");
+                return templateMetadataContentsApiResponseErrorResult;
             }
 
             ApiResponse<TemplateMapping> templateMappingResponse =
@@ -231,13 +157,83 @@ namespace CalculateFunding.Services.Policy
                 return calculationMetadataErrorResult;
             }
 
-            ApiResponse<CalculationProviderResultSearchResults> calculationProviderResultsResponse = null;
-            ApiResponse<ProviderResultResponse> providerResultResponse = null;
+            List<FundingStructureItem> fundingStructures = new List<FundingStructureItem>();
+            RecursivelyAddFundingLineToFundingStructure(
+                fundingStructures,
+                templateMetadataContentsApiResponse.Content.RootFundingLines,
+                templateMappingResponse.Content.TemplateMappingItems.ToList(),
+                calculationMetadata.Content.ToList(),
+                null,
+                null);
+
+            FundingStructure fundingStructure = new FundingStructure
+            {
+                Items = fundingStructures,
+                LastModified = await GetFundingStructureTimeStamp(fundingStreamId,
+                    fundingPeriodId,
+                    specificationId)
+            };
+
+            return new OkObjectResult(fundingStructure);
+        }
+
+        public async Task<IActionResult> GetFundingStructureWithCalculationResults(
+            string fundingStreamId, 
+            string fundingPeriodId, 
+            string specificationId, 
+            string providerId = null)
+        {
+            ApiResponse<SpecificationSummary> specificationSummaryApiResponse =
+                await _specificationsResilience.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId));
+            IActionResult specificationSummaryApiResponseErrorResult =
+                specificationSummaryApiResponse.IsSuccessOrReturnFailureResult("GetSpecificationSummaryById");
+            if (specificationSummaryApiResponseErrorResult != null)
+            {
+                return specificationSummaryApiResponseErrorResult;
+            }
+
+            string templateVersion = specificationSummaryApiResponse.Content.TemplateIds.ContainsKey(fundingStreamId)
+                ? specificationSummaryApiResponse.Content.TemplateIds[fundingStreamId]
+                : null;
+            if (templateVersion == null)
+                return new InternalServerErrorResult(
+                    $"Specification contains no matching template version for funding stream '{fundingStreamId}'");
+
+            ApiResponse<TemplateMetadataContents> templateMetadataContentsApiResponse =
+                await _policiesResilience.ExecuteAsync(() => _policiesApiClient.GetFundingTemplateContents(fundingStreamId, fundingPeriodId, templateVersion));
+            IActionResult templateMetadataContentsApiResponseErrorResult =
+                templateMetadataContentsApiResponse.IsSuccessOrReturnFailureResult("GetFundingTemplateContents");
+            if (templateMetadataContentsApiResponseErrorResult != null)
+            {
+                return templateMetadataContentsApiResponseErrorResult;
+            }
+
+
+            ApiResponse<TemplateMapping> templateMappingResponse =
+                await _calculationsResilience.ExecuteAsync(() => _calculationsApiClient.GetTemplateMapping(specificationId, fundingStreamId));
+            IActionResult templateMappingResponseErrorResult =
+                templateMappingResponse.IsSuccessOrReturnFailureResult("GetTemplateMapping");
+            if (templateMappingResponseErrorResult != null)
+            {
+                return templateMappingResponseErrorResult;
+            }
+
+            ApiResponse<IEnumerable<CalculationMetadata>> calculationMetadata =
+                await _calculationsResilience.ExecuteAsync(() => _calculationsApiClient.GetCalculationMetadataForSpecification(specificationId));
+            IActionResult calculationMetadataErrorResult =
+                calculationMetadata.IsSuccessOrReturnFailureResult("calculationMetadata");
+            if (calculationMetadataErrorResult != null)
+            {
+                return calculationMetadataErrorResult;
+            }
+
+            CalcModels.ProviderResultResponse providerResultResponse = null;
+            CalculationProviderResultSearchResults calculationProviderResultSearchResults = null;
 
             if (providerId.IsNullOrWhitespace())
             {
-                calculationProviderResultsResponse =
-                    await _resultsResilience.ExecuteAsync(() => _resultsApiClient.SearchCalculationProviderResults(new SearchModel
+                IActionResult calculationProviderResultsResponseResult =
+                    await _providerCalculationResultsSearchService.SearchCalculationProviderResults(new SearchModel
                     {
                         PageNumber = 1,
                         Top = 10000,
@@ -252,34 +248,37 @@ namespace CalculateFunding.Services.Policy
                                 }
                             }
                         }
-                    }));
-                IActionResult calculationProviderResultsErrorResult =
-                    calculationProviderResultsResponse.IsSuccessOrReturnFailureResult("SearchCalculationProviderResults");
-                if (calculationProviderResultsErrorResult != null)
+                    });
+
+                if(!(calculationProviderResultsResponseResult is OkObjectResult))
                 {
-                    return calculationProviderResultsErrorResult;
+                    return calculationProviderResultsResponseResult;
                 }
+
+                calculationProviderResultSearchResults = (calculationProviderResultsResponseResult as OkObjectResult).Value
+                    as CalculationProviderResultSearchResults;
             }
             else
             {
-                providerResultResponse =
-                    await _resultsResilience.ExecuteAsync(() => _resultsApiClient.GetProviderResults(providerId, specificationId));
-                    
-                IActionResult providerResultResponseErrorResult = providerResultResponse.IsSuccessOrReturnFailureResult("GetProviderResults");
-                if (providerResultResponseErrorResult != null)
+                IActionResult providerResultResponseResult = await _resultsService.GetProviderResults(providerId, specificationId);
+
+                if (!(providerResultResponseResult is OkObjectResult))
                 {
-                    return providerResultResponseErrorResult;
+                    return providerResultResponseResult;
                 }
+
+                providerResultResponse = (providerResultResponseResult as OkObjectResult).Value 
+                    as CalcModels.ProviderResultResponse;
             }
 
             List<FundingStructureItem> fundingStructures = new List<FundingStructureItem>();
             RecursivelyAddFundingLineToFundingStructure(
                 fundingStructures,
-                fundingTemplateContents.RootFundingLines,
+                templateMetadataContentsApiResponse.Content.RootFundingLines,
                 templateMappingResponse.Content.TemplateMappingItems.ToList(),
                 calculationMetadata.Content.ToList(),
-                providerResultResponse?.Content,
-                calculationProviderResultsResponse?.Content);
+                providerResultResponse,
+                calculationProviderResultSearchResults);
 
             FundingStructure fundingStructure = new FundingStructure
             {
@@ -288,33 +287,44 @@ namespace CalculateFunding.Services.Policy
                     fundingPeriodId,
                     specificationId)
             };
-            
+
             return new OkObjectResult(fundingStructure);
+        }
+
+        private static string GetCacheKeyFundingStructure(string specificationId,
+            string fundingStreamId,
+            string fundingPeriodId)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+            Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
+            Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
+
+            return $"{CacheKeys.FundingLineStructureTimestamp}{specificationId}:{fundingStreamId}:{fundingPeriodId}";
         }
 
         private static void RecursivelyAddFundingLineToFundingStructure(List<FundingStructureItem> fundingStructures,
             IEnumerable<FundingLine> fundingLines,
             List<TemplateMappingItem> templateMappingItems,
             List<CalculationMetadata> calculationMetadata,
-            ProviderResultResponse providerResult,
+            CalcModels.ProviderResultResponse providerResult,
             CalculationProviderResultSearchResults calculationProviderResultSearchResults,
             int level = 0) =>
-            fundingStructures.AddRange(fundingLines.Select(fundingLine =>
-                RecursivelyAddFundingLines(
-                    fundingLine.FundingLines,
-                    templateMappingItems,
-                    calculationMetadata,
-                    level,
-                    fundingLine,
-                    providerResult,
-                    calculationProviderResultSearchResults)));
+                fundingStructures.AddRange(fundingLines.Select(fundingLine =>
+                    RecursivelyAddFundingLines(
+                        fundingLine.FundingLines,
+                        templateMappingItems,
+                        calculationMetadata,
+                        level,
+                        fundingLine,
+                        providerResult,
+                        calculationProviderResultSearchResults)));
 
         private static FundingStructureItem RecursivelyAddFundingLines(IEnumerable<FundingLine> fundingLines,
             List<TemplateMappingItem> templateMappingItems,
             List<CalculationMetadata> calculationMetadata,
             int level,
             FundingLine fundingLine,
-            ProviderResultResponse providerResult,
+            CalcModels.ProviderResultResponse providerResult,
             CalculationProviderResultSearchResults calculationProviderResultSearchResults)
         {
             level++;
@@ -353,7 +363,8 @@ namespace CalculateFunding.Services.Policy
                 }
             }
 
-            FundingLineResult fundingLineResult = providerResult?.FundingLineResults?.FirstOrDefault(_ => _.FundingLine.Id == fundingLine.TemplateLineId.ToString());
+            CalcModels.FundingLineResult fundingLineResult = 
+                providerResult?.FundingLineResults?.FirstOrDefault(_ => _.FundingLine.Id == fundingLine.TemplateLineId.ToString());
             string calculationValue = null;
             if (fundingLineResult != null)
             {
@@ -379,7 +390,7 @@ namespace CalculateFunding.Services.Policy
             int level,
             List<TemplateMappingItem> templateMappingItems,
             List<CalculationMetadata> calculationMetadata,
-            ProviderResultResponse providerResult,
+            CalcModels.ProviderResultResponse providerResult,
             CalculationProviderResultSearchResults calculationProviderResultSearchResults)
         {
             level++;
@@ -389,7 +400,8 @@ namespace CalculateFunding.Services.Policy
             string calculationId = GetCalculationId(calculation, templateMappingItems);
             string calculationPublishStatus = calculationMetadata.FirstOrDefault(_ => _.CalculationId == calculationId)?
                 .PublishStatus.ToString();
-            CalculationResultResponse calculationResult = providerResult?.CalculationResults.FirstOrDefault(_ => _.Calculation.Id == calculationId);
+            CalcModels.CalculationResultResponse calculationResult 
+                = providerResult?.CalculationResults.FirstOrDefault(_ => _.Calculation.Id == calculationId);
 
             string calculationType = null;
             string calculationValue = null;
@@ -440,16 +452,18 @@ namespace CalculateFunding.Services.Policy
             List<FundingStructureItem> fundingStructureItems = null,
             string value = null,
             DateTimeOffset? lastUpdatedDate = null) =>
-            new FundingStructureItem(
-                level,
-                name,
-                calculationId,
-                calculationPublishStatus,
-                type,
-                calculationType,
-                fundingStructureItems,
-                value,
-                lastUpdatedDate);
+            new FundingStructureItem
+            {
+                Level = level,
+                Name = name,
+                CalculationId = calculationId,
+                CalculationPublishStatus = calculationPublishStatus,
+                Type = type,
+                CalculationType = calculationType,
+                FundingStructureItems = fundingStructureItems,
+                Value = value,
+                LastUpdatedDate = lastUpdatedDate
+            };
 
         private static string GetCalculationId(
             TemplateCalculation calculation,

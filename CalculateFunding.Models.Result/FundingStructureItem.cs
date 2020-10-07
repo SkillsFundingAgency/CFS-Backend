@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace CalculateFunding.Models.Policy
+namespace CalculateFunding.Models.Result
 {
     public class FundingStructureItem
     {

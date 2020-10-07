@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
+using CalculateFunding.Services.Results.Caching.Http;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CalculateFunding.Services.Policy.Caching.Http
+namespace CalculateFunding.Services.Results.UnitTests.Caching.Http
 {
     [TestClass]
     [Ignore("failing on server - look into DT issues")]

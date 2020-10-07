@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CacheCow.Server;
-using CalculateFunding.Services.Policy.Interfaces;
+using CalculateFunding.Services.Results.Caching.Http;
+using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 
-namespace CalculateFunding.Services.Policy.Caching.Http
+namespace CalculateFunding.Services.Results.UnitTests.Caching.Http
 {
     [TestClass]
     public class TemplateMetadataContentsTimedETagProviderTests

@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 
-namespace CalculateFunding.Services.Policy.Caching.Http
+namespace CalculateFunding.Services.Results.Caching.Http
 {
     public static class TimedEtagExtensions
     {

@@ -1,10 +1,11 @@
 using System;
 using CacheCow.Server;
-using CalculateFunding.Models.Policy;
+using CalculateFunding.Models.Result;
+using CalculateFunding.Services.Results.Caching.Http;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CalculateFunding.Services.Policy.Caching.Http
+namespace CalculateFunding.Services.Results.UnitTests.Caching.Http
 {
     [TestClass]
     public class TemplateMatadataContentsTimedETagExtractorTests

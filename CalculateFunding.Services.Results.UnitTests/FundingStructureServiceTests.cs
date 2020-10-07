@@ -6,21 +6,17 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Common.ApiClient.Models;
-using CalculateFunding.Common.ApiClient.Results;
-using CalculateFunding.Common.ApiClient.Results.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
-using CalculateFunding.Common.Models.Search;
 using CalculateFunding.Common.TemplateMetadata.Models;
-using CalculateFunding.Models.Policy;
-using CalculateFunding.Models.Policy.FundingPolicy.ViewModels;
+using CalculateFunding.Models.Result;
+using CalculateFunding.Models.Result.ViewModels;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Policy.Interfaces;
-using CalculateFunding.Services.Policy.Validators;
+using CalculateFunding.Services.Results.Interfaces;
+using CalculateFunding.Services.Results.UnitTests.Validators;
 using CalculateFunding.Tests.Common.Builders;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
@@ -30,10 +26,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Calculation = CalculateFunding.Common.TemplateMetadata.Models.Calculation;
-using CalculationType = CalculateFunding.Common.ApiClient.Results.Models.CalculationType;
-using CalculationValueType = CalculateFunding.Common.ApiClient.Results.Models.CalculationValueType;
+using CalcModels = CalculateFunding.Models.Calcs;
 
-namespace CalculateFunding.Services.Policy
+namespace CalculateFunding.Services.Results.UnitTests
 {
     [TestClass]
     public class FundingStructureServiceTests
@@ -52,9 +47,10 @@ namespace CalculateFunding.Services.Policy
 
         private ISpecificationsApiClient _specificationsApiClient;
         private ICalculationsApiClient _calculationsApiClient;
-        private IResultsApiClient _resultsApiClient;
+        private IProviderCalculationResultsSearchService _providerCalculationResultsSearchService;
+        private IResultsService _resultsService;
         private ICacheProvider _cacheProvider;
-        private IFundingTemplateService _fundingTemplateService;
+        private Common.ApiClient.Policies.IPoliciesApiClient _policiesApiClient;
         private IValidator<UpdateFundingStructureLastModifiedRequest> _validator;
         
         private FundingStructureService _service;
@@ -64,24 +60,26 @@ namespace CalculateFunding.Services.Policy
         {
             _specificationsApiClient = Substitute.For<ISpecificationsApiClient>();
             _calculationsApiClient = Substitute.For<ICalculationsApiClient>();
-            _resultsApiClient = Substitute.For<IResultsApiClient>();
+            _providerCalculationResultsSearchService = Substitute.For<IProviderCalculationResultsSearchService>();
+            _resultsService = Substitute.For<IResultsService>();
             _cacheProvider = Substitute.For<ICacheProvider>();
-            _fundingTemplateService = Substitute.For<IFundingTemplateService>();
+            _policiesApiClient = Substitute.For<Common.ApiClient.Policies.IPoliciesApiClient>();
             _validator = Substitute.For<IValidator<UpdateFundingStructureLastModifiedRequest>>();
 
             _service = new FundingStructureService(
                 _cacheProvider,
                 _specificationsApiClient,
                 _calculationsApiClient,
-                _resultsApiClient,
-                _fundingTemplateService,
+                _providerCalculationResultsSearchService,
+                _resultsService,
+                _policiesApiClient,
                 _validator,
-                new PolicyResiliencePolicies
+                new ResiliencePolicies
                 {
                     CacheProvider = Polly.Policy.NoOpAsync(),
                     SpecificationsApiClient = Polly.Policy.NoOpAsync(),
                     CalculationsApiClient = Polly.Policy.NoOpAsync(),
-                    ResultsApiClient = Polly.Policy.NoOpAsync()
+                    PoliciesApiClient = Polly.Policy.NoOpAsync()
                 });
         }
 
@@ -396,8 +394,8 @@ namespace CalculateFunding.Services.Policy
             _specificationsApiClient.GetSpecificationSummaryById(SpecificationId)
                 .Returns(new ApiResponse<SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
-            _fundingTemplateService.GetFundingTemplateContents(FundingStreamId, FundingPeriodId, TemplateVersion)
-                .Returns(new OkObjectResult(templateMetadataContents));
+            _policiesApiClient.GetFundingTemplateContents(FundingStreamId, FundingPeriodId, TemplateVersion)
+                .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK, templateMetadataContents));
 
             _calculationsApiClient.GetTemplateMapping(SpecificationId, FundingStreamId)
                 .Returns(new ApiResponse<TemplateMapping>(HttpStatusCode.OK,
@@ -444,24 +442,24 @@ namespace CalculateFunding.Services.Policy
                         
                     }));
 
-            _resultsApiClient.GetProviderResults(ProviderId, SpecificationId)
-                .Returns(new ApiResponse<ProviderResultResponse>(HttpStatusCode.OK,
-                    new ProviderResultResponse()
+            _resultsService.GetProviderResults(ProviderId, SpecificationId)
+                .Returns(new OkObjectResult(
+                    new CalcModels.ProviderResultResponse()
                     {
-                        FundingLineResults = new List<FundingLineResult>
+                        FundingLineResults = new List<CalcModels.FundingLineResult>
                         {
-                            new FundingLineResult
+                            new CalcModels.FundingLineResult
                             {
                                 FundingLine = new Reference { Id = "123", Name = "FundingLine-1"},
                                 Value = null
                             }
                         },
-                        CalculationResults = new List<CalculationResultResponse>
+                        CalculationResults = new List<CalcModels.CalculationResultResponse>
                         {
-                            new CalculationResultResponse
+                            new CalcModels.CalculationResultResponse
                             {
                                 Calculation = new Reference(aValidCalculationId1, "FundingLine-3-calc-1"),
-                                CalculationValueType = CalculationValueType.Currency,
+                                CalculationValueType = CalcModels.CalculationValueType.Currency,
                                 Value = 2.3m
                             }
                         }

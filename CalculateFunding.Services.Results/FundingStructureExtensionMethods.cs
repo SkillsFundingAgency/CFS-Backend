@@ -1,7 +1,7 @@
 using System;
 using CalculateFunding.Common.TemplateMetadata.Enums;
 
-namespace CalculateFunding.Services.Policy
+namespace CalculateFunding.Services.Results
 {
     public static class FundingStructureExtensionMethods
     {

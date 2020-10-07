@@ -1,30 +1,31 @@
-using System;
-using System.Threading.Tasks;
-using CacheCow.Server.Core.Mvc;
+﻿using CacheCow.Server.Core.Mvc;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Models.Policy;
-using CalculateFunding.Models.Policy.FundingPolicy.ViewModels;
-using CalculateFunding.Services.Policy.Interfaces;
+using CalculateFunding.Models.Result;
+using CalculateFunding.Models.Result.ViewModels;
+using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Threading.Tasks;
 
-namespace CalculateFunding.Api.Policy.Controllers
+namespace CalculateFunding.Api.Results.Controllers
 {
     [ApiController]
     public class FundingStructureController : ControllerBase
     {
         private readonly IFundingStructureService _fundingStructureService;
 
-        public FundingStructureController(IFundingStructureService fundingStructureService)
+        public FundingStructureController(
+            IFundingStructureService fundingStructureService)
         {
             Guard.ArgumentNotNull(fundingStructureService, nameof(fundingStructureService));
-            
+
             _fundingStructureService = fundingStructureService;
         }
 
         [HttpPost("api/funding-structures/lastModified")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DateTimeOffset))]
-        public async Task<IActionResult> UpdateFundingStructureLastModified([FromBody] UpdateFundingStructureLastModifiedRequest request) 
+        public async Task<IActionResult> UpdateFundingStructureLastModified([FromBody] UpdateFundingStructureLastModifiedRequest request)
             => await _fundingStructureService.UpdateFundingStructureLastModified(request);
 
         [HttpGet("api/funding-structures")]
@@ -35,7 +36,7 @@ namespace CalculateFunding.Api.Policy.Controllers
             [FromQuery] string fundingPeriodId,
             [FromQuery] string specificationId)
             => await _fundingStructureService.GetFundingStructure(fundingStreamId, fundingPeriodId, specificationId);
-        
+
         [HttpGet("api/funding-structures/results")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(FundingStructure))]
         [ProducesResponseType(StatusCodes.Status304NotModified)]

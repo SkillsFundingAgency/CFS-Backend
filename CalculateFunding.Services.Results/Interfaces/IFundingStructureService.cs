@@ -1,9 +1,9 @@
+﻿using CalculateFunding.Models.Result.ViewModels;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
-using CalculateFunding.Models.Policy.FundingPolicy.ViewModels;
-using Microsoft.AspNetCore.Mvc;
 
-namespace CalculateFunding.Services.Policy.Interfaces
+namespace CalculateFunding.Services.Results.Interfaces
 {
     public interface IFundingStructureService
     {

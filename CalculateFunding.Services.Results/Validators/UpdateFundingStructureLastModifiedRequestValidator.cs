@@ -1,10 +1,11 @@
 using System;
-using CalculateFunding.Models.Policy.FundingPolicy.ViewModels;
+using CalculateFunding.Models.Result.ViewModels;
 using FluentValidation;
 
-namespace CalculateFunding.Services.Policy.Validators
+namespace CalculateFunding.Services.Results.Validators
 {
-    public class UpdateFundingStructureLastModifiedRequestValidator : AbstractValidator<UpdateFundingStructureLastModifiedRequest>
+    public class UpdateFundingStructureLastModifiedRequestValidator 
+        : AbstractValidator<UpdateFundingStructureLastModifiedRequest>
     {
         public UpdateFundingStructureLastModifiedRequestValidator()
         {
