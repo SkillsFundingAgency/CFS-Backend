@@ -1,0 +1,31 @@
+﻿{
+  "FundingStreamPeriodCode": "PSG1819",
+  "FundingStreamPeriodStartDate": "2018-09-01T00:00:00",
+  "FundingStreamPeriodEndDate": "2019-08-31T23:59:59",
+  "ReProfilePastPeriods": false,
+  "CalculateBalancingPayment": false,
+  "AllowUserToEditProfilePattern": false,
+  "ProfilePattern": [
+    {
+      "PeriodType": "CalendarMonth",
+      "Period": "October",
+      "PeriodStartDate": "2018-09-01T00:00:00",
+      "PeriodEndDate": "2019-03-31T23:59:59",
+      "PeriodYear": 2018,
+      "Occurrence": 1,
+      "DistributionPeriod": "FY-1819",
+      "PeriodPatternPercentage": 58.33333333
+    },
+    {
+      "PeriodType": "CalendarMonth",
+      "Period": "April",
+      "PeriodStartDate": "2019-04-01T00:00:00",
+      "PeriodEndDate": "2019-08-31T23:59:59",
+      "PeriodYear": 2019,
+      "Occurrence": 1,
+      "DistributionPeriod": "FY-1920",
+      "PeriodPatternPercentage": 41.6666667
+    }
+  ],
+  "profilePatternDisplayName": "National Pattern"
+}

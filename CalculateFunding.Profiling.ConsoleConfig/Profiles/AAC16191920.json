@@ -1,0 +1,130 @@
+{
+  "FundingStreamPeriodCode": "AAC16191920",
+  "FundingStreamPeriodStartDate": "2019-08-01T00:00:00",
+  "FundingStreamPeriodEndDate": "2020-07-31T23:59:59",
+  "CalculateBalancingPayment": false,
+  "ReProfilePastPeriods": false,
+  "ProfilePattern": [
+    {
+      "PeriodType": "CalendarMonth",
+      "Period": "August",
+      "PeriodStartDate": "2019-08-01T00:00:00",
+      "PeriodEndDate": "2019-08-31T23:59:59",
+      "PeriodYear": 2019,
+      "Occurrence": 1,
+      "DistributionPeriod": "FY1920",
+      "PeriodPatternPercentage": 12.56
+    },
+    {
+      "PeriodType": "CalendarMonth",
+      "Period": "September",
+      "PeriodStartDate": "2019-09-01T00:00:00",
+      "PeriodEndDate": "2019-09-30T23:59:59",
+      "PeriodYear": 2019,
+      "Occurrence": 1,
+      "DistributionPeriod": "FY1920",
+      "PeriodPatternPercentage": 9.44
+    },
+    {
+      "PeriodType": "CalendarMonth",
+      "Period": "October",
+      "PeriodStartDate": "2019-10-01T00:00:00",
+      "PeriodEndDate": "2019-10-31T23:59:59",
+      "PeriodYear": 2019,
+      "Occurrence": 1,
+      "DistributionPeriod": "FY1920",
+      "PeriodPatternPercentage": 9.56
+    },
+    {
+      "PeriodType": "CalendarMonth",
+      "Period": "November",
+      "PeriodStartDate": "2019-11-01T00:00:00",
+      "PeriodEndDate": "2019-11-30T23:59:59",
+      "PeriodYear": 2019,
+      "Occurrence": 1,
+      "DistributionPeriod": "FY1920",
+      "PeriodPatternPercentage": 7.44
+    },
+    {
+      "PeriodType": "CalendarMonth",
+      "Period": "December",
+      "PeriodStartDate": "2019-12-01T00:00:00",
+      "PeriodEndDate": "2019-12-31T23:59:59",
+      "PeriodYear": 2019,
+      "Occurrence": 1,
+      "DistributionPeriod": "FY1920",
+      "PeriodPatternPercentage": 5.60
+    },
+    {
+      "PeriodType": "CalendarMonth",
+      "Period": "January",
+      "PeriodStartDate": "2020-01-01T00:00:00",
+      "PeriodEndDate": "2020-01-31T23:59:59",
+      "PeriodYear": 2020,
+      "Occurrence": 1,
+      "DistributionPeriod": "FY1920",
+      "PeriodPatternPercentage": 5.60
+    },
+    {
+      "PeriodType": "CalendarMonth",
+      "Period": "February",
+      "PeriodStartDate": "2020-02-01T00:00:00",
+      "PeriodEndDate": "2020-02-28T23:59:59",
+      "PeriodYear": 2020,
+      "Occurrence": 1,
+      "DistributionPeriod": "FY1920",
+      "PeriodPatternPercentage": 5.20
+    },
+    {
+      "PeriodType": "CalendarMonth",
+      "Period": "March",
+      "PeriodStartDate": "2020-03-01T00:00:00",
+      "PeriodEndDate": "2020-03-31T23:59:59",
+      "PeriodYear": 2020,
+      "Occurrence": 1,
+      "DistributionPeriod": "FY1920",
+      "PeriodPatternPercentage": 5.16
+    },
+    {
+      "PeriodType": "CalendarMonth",
+      "Period": "April",
+      "PeriodStartDate": "2020-04-01T00:00:00",
+      "PeriodEndDate": "2020-04-30T23:59:59",
+      "PeriodYear": 2020,
+      "Occurrence": 1,
+      "DistributionPeriod": "FY2021",
+      "PeriodPatternPercentage": 12.56
+    },
+    {
+      "PeriodType": "CalendarMonth",
+      "Period": "May",
+      "PeriodStartDate": "2020-05-01T00:00:00",
+      "PeriodEndDate": "2020-05-30T23:59:59",
+      "PeriodYear": 2020,
+      "Occurrence": 1,
+      "DistributionPeriod": "FY2021",
+      "PeriodPatternPercentage": 11.60
+    },
+    {
+      "PeriodType": "CalendarMonth",
+      "Period": "June",
+      "PeriodStartDate": "2020-04-01T00:00:00",
+      "PeriodEndDate": "2020-04-30T23:59:59",
+      "PeriodYear": 2020,
+      "Occurrence": 1,
+      "DistributionPeriod": "FY2021",
+      "PeriodPatternPercentage": 9.60
+    },
+    {
+      "PeriodType": "CalendarMonth",
+      "Period": "July",
+      "PeriodStartDate": "2020-04-01T00:00:00",
+      "PeriodEndDate": "2020-04-30T23:59:59",
+      "PeriodYear": 2020,
+      "Occurrence": 1,
+      "DistributionPeriod": "FY2021",
+      "PeriodPatternPercentage": 5.68
+    }
+  ]
+}
+

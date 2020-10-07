@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Profiles\1618APPS1920.json" />
+    <None Remove="Profiles\AAC16191920.json" />
+    <None Remove="Profiles\AAC1920.json" />
+    <None Remove="Profiles\PSG1819.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Profiles\1618APPS1920.json" />
+    <EmbeddedResource Include="Profiles\AAC16191920.json" />
+    <EmbeddedResource Include="Profiles\PSG1819.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.2.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
+  </ItemGroup>
+
+</Project>

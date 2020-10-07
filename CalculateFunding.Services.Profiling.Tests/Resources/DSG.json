@@ -1,0 +1,265 @@
+{
+  "fundingPeriodId": "FY-2021",
+  "fundingStreamId": "DSG",
+  "fundingLineId": "DSG-002",
+  "profilePatternKey": null,
+  "fundingStreamPeriodStartDate": "2020-04-01T00:00:00",
+  "fundingStreamPeriodEndDate": "2021-03-31T23:59:59",
+  "reProfilePastPeriods": false,
+  "calculateBalancingPayment": true,
+  "allowUserToEditProfilePattern": false,
+  "profilePattern": [
+    {
+      "periodType": "CalendarMonth",
+      "period": "April",
+      "periodStartDate": "2020-04-01T00:00:00",
+      "periodEndDate": "2020-04-07T23:59:59",
+      "periodYear": 2020,
+      "occurrence": 1,
+      "distributionPeriod": "FY-2021",
+      "periodPatternPercentage": 4
+    },
+    {
+      "periodType": "CalendarMonth",
+      "period": "April",
+      "periodStartDate": "2020-04-08T00:00:00",
+      "periodEndDate": "2020-04-14T23:59:59",
+      "periodYear": 2020,
+      "occurrence": 2,
+      "distributionPeriod": "FY-2021",
+      "periodPatternPercentage": 4
+    },
+    {
+      "periodType": "CalendarMonth",
+      "period": "April",
+      "periodStartDate": "2020-04-15T00:00:00",
+      "periodEndDate": "2020-04-30T23:59:59",
+      "periodYear": 2020,
+      "occurrence": 3,
+      "distributionPeriod": "FY-2021",
+      "periodPatternPercentage": 4
+    },
+    {
+      "periodType": "CalendarMonth",
+      "period": "May",
+      "periodStartDate": "2020-05-01T00:00:00",
+      "periodEndDate": "2020-05-14T23:59:59",
+      "periodYear": 2020,
+      "occurrence": 1,
+      "distributionPeriod": "FY-2021",
+      "periodPatternPercentage": 4
+    },
+    {
+      "periodType": "CalendarMonth",
+      "period": "May",
+      "periodStartDate": "2020-05-15T00:00:00",
+      "periodEndDate": "2020-05-31T23:59:59",
+      "periodYear": 2020,
+      "occurrence": 2,
+      "distributionPeriod": "FY-2021",
+      "periodPatternPercentage": 4
+    },
+    {
+      "periodType": "CalendarMonth",
+      "period": "June",
+      "periodStartDate": "2020-06-01T00:00:00",
+      "periodEndDate": "2020-06-14T23:59:59",
+      "periodYear": 2020,
+      "occurrence": 1,
+      "distributionPeriod": "FY-2021",
+      "periodPatternPercentage": 4
+    },
+    {
+      "periodType": "CalendarMonth",
+      "period": "June",
+      "periodStartDate": "2020-06-15T00:00:00",
+      "periodEndDate": "2020-06-30T23:59:59",
+      "periodYear": 2020,
+      "occurrence": 2,
+      "distributionPeriod": "FY-2021",
+      "periodPatternPercentage": 4
+    },
+    {
+      "periodType": "CalendarMonth",
+      "period": "July",
+      "periodStartDate": "2020-07-01T00:00:00",
+      "periodEndDate": "2020-07-14T23:59:59",
+      "periodYear": 2020,
+      "occurrence": 1,
+      "distributionPeriod": "FY-2021",
+      "periodPatternPercentage": 4
+    },
+    {
+      "periodType": "CalendarMonth",
+      "period": "July",
+      "periodStartDate": "2020-07-15T00:00:00",
+      "periodEndDate": "2020-07-31T23:59:59",
+      "periodYear": 2020,
+      "occurrence": 2,
+      "distributionPeriod": "FY-2021",
+      "periodPatternPercentage": 4
+    },
+    {
+      "periodType": "CalendarMonth",
+      "period": "August",
+      "periodStartDate": "2020-08-01T00:00:00",
+      "periodEndDate": "2020-08-14T23:59:59",
+      "periodYear": 2020,
+      "occurrence": 1,
+      "distributionPeriod": "FY-2021",
+      "periodPatternPercentage": 4
+    },
+    {
+      "periodType": "CalendarMonth",
+      "period": "August",
+      "periodStartDate": "2020-08-15T00:00:00",
+      "periodEndDate": "2020-08-31T23:59:59",
+      "periodYear": 2020,
+      "occurrence": 2,
+      "distributionPeriod": "FY-2021",
+      "periodPatternPercentage": 4
+    },
+    {
+      "periodType": "CalendarMonth",
+      "period": "September",
+      "periodStartDate": "2020-09-01T00:00:00",
+      "periodEndDate": "2020-09-14T23:59:59",
+      "periodYear": 2020,
+      "occurrence": 1,
+      "distributionPeriod": "FY-2021",
+      "periodPatternPercentage": 4
+    },
+    {
+      "periodType": "CalendarMonth",
+      "period": "September",
+      "periodStartDate": "2020-09-15T00:00:00",
+      "periodEndDate": "2020-09-30T23:59:59",
+      "periodYear": 2020,
+      "occurrence": 2,
+      "distributionPeriod": "FY-2021",
+      "periodPatternPercentage": 4
+    },
+    {
+      "periodType": "CalendarMonth",
+      "period": "October",
+      "periodStartDate": "2020-10-01T00:00:00",
+      "periodEndDate": "2020-10-14T23:59:59",
+      "periodYear": 2020,
+      "occurrence": 1,
+      "distributionPeriod": "FY-2021",
+      "periodPatternPercentage": 4
+    },
+    {
+      "periodType": "CalendarMonth",
+      "period": "October",
+      "periodStartDate": "2020-10-15T00:00:00",
+      "periodEndDate": "2020-10-31T23:59:59",
+      "periodYear": 2020,
+      "occurrence": 2,
+      "distributionPeriod": "FY-2021",
+      "periodPatternPercentage": 4
+    },
+    {
+      "periodType": "CalendarMonth",
+      "period": "November",
+      "periodStartDate": "2020-11-01T00:00:00",
+      "periodEndDate": "2020-11-14T23:59:59",
+      "periodYear": 2020,
+      "occurrence": 1,
+      "distributionPeriod": "FY-2021",
+      "periodPatternPercentage": 4
+    },
+    {
+      "periodType": "CalendarMonth",
+      "period": "November",
+      "periodStartDate": "2020-11-15T00:00:00",
+      "periodEndDate": "2020-11-30T23:59:59",
+      "periodYear": 2020,
+      "occurrence": 2,
+      "distributionPeriod": "FY-2021",
+      "periodPatternPercentage": 4
+    },
+    {
+      "periodType": "CalendarMonth",
+      "period": "December",
+      "periodStartDate": "2020-12-01T00:00:00",
+      "periodEndDate": "2020-12-14T23:59:59",
+      "periodYear": 2020,
+      "occurrence": 1,
+      "distributionPeriod": "FY-2021",
+      "periodPatternPercentage": 4
+    },
+    {
+      "periodType": "CalendarMonth",
+      "period": "December",
+      "periodStartDate": "2020-12-15T00:00:00",
+      "periodEndDate": "2020-12-31T23:59:59",
+      "periodYear": 2020,
+      "occurrence": 2,
+      "distributionPeriod": "FY-2021",
+      "periodPatternPercentage": 4
+    },
+    {
+      "periodType": "CalendarMonth",
+      "period": "January",
+      "periodStartDate": "2021-01-01T00:00:00",
+      "periodEndDate": "2021-01-14T23:59:59",
+      "periodYear": 2021,
+      "occurrence": 1,
+      "distributionPeriod": "FY-2021",
+      "periodPatternPercentage": 4
+    },
+    {
+      "periodType": "CalendarMonth",
+      "period": "January",
+      "periodStartDate": "2021-01-15T00:00:00",
+      "periodEndDate": "2021-01-31T23:59:59",
+      "periodYear": 2021,
+      "occurrence": 2,
+      "distributionPeriod": "FY-2021",
+      "periodPatternPercentage": 4
+    },
+    {
+      "periodType": "CalendarMonth",
+      "period": "February",
+      "periodStartDate": "2021-02-01T00:00:00",
+      "periodEndDate": "2021-02-14T23:59:59",
+      "periodYear": 2021,
+      "occurrence": 1,
+      "distributionPeriod": "FY-2021",
+      "periodPatternPercentage": 4
+    },
+    {
+      "periodType": "CalendarMonth",
+      "period": "February",
+      "periodStartDate": "2021-02-15T00:00:00",
+      "periodEndDate": "2021-02-28T23:59:59",
+      "periodYear": 2021,
+      "occurrence": 2,
+      "distributionPeriod": "FY-2021",
+      "periodPatternPercentage": 4
+    },
+    {
+      "periodType": "CalendarMonth",
+      "period": "March",
+      "periodStartDate": "2021-03-01T00:00:00",
+      "periodEndDate": "2021-03-14T23:59:59",
+      "periodYear": 2021,
+      "occurrence": 1,
+      "distributionPeriod": "FY-2021",
+      "periodPatternPercentage": 4
+    },
+    {
+      "periodType": "CalendarMonth",
+      "period": "March",
+      "periodStartDate": "2021-03-15T00:00:00",
+      "periodEndDate": "2021-03-31T23:59:59",
+      "periodYear": 2021,
+      "occurrence": 2,
+      "distributionPeriod": "FY-2021",
+      "periodPatternPercentage": 4
+    }
+  ],
+  "profilePatternDisplayName": "National Pattern",
+  "id": "FY-2021-DSG-DSG-002"
+}
