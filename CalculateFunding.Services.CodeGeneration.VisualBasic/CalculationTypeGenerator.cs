@@ -136,6 +136,10 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             foreach (NamespaceClassDefinition namespaceDefinition in namespaceDefinitions)
             {
                 builder.AppendLine($"{namespaceDefinition.Variable} = New {namespaceDefinition.ClassName}()");
+            }
+
+            foreach (NamespaceClassDefinition namespaceDefinition in namespaceDefinitions)
+            {
                 builder.AppendLine($"{namespaceDefinition.Variable}.Initialise(Me)");
             }
 

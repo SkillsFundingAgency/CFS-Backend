@@ -33,7 +33,7 @@ namespace CalculateFunding.Models.Calcs
                 {
                     foreach (CalculationResult calculationResult in providerResult.CalculationResults)
                     {
-                        if (string.IsNullOrWhiteSpace(calculationResult.ExceptionMessage))
+                        if (!string.IsNullOrWhiteSpace(calculationResult.ExceptionMessage))
                         {
                             messages.Add($"{calculationResult.Calculation?.Id ?? "" }: {calculationResult.ExceptionMessage}");
                         }
