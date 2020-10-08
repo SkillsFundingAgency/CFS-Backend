@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
@@ -132,6 +133,56 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
                             .WithType(ProfilePeriodType.CalendarMonth)))));
 
             ThenTheValidationResultsContainsTheErrors(("ProfilePeriods", "The profile periods must be for unique occurrences in a funding line"));
+        }
+
+        [TestMethod]
+        public async Task FailsValidationIfTheProfilePeriodsHaveMoreThanOneDistinctDistributionPeriodInRequest()
+        {
+            GivenThePublishedProvider(NewOtherwiseValidPublishedProvider());
+
+            await WhenTheRequestIsValidated(NewOtherwiseValidRequest(_ => _.ProfilePeriods =
+                NewProfilePeriods(
+                    NewProfilePeriod(pp =>
+                        pp.WithOccurence(1)
+                            .WithYear(2020)
+                            .WithTypeValue("January")
+                            .WithDistributionPeriodId("FY-2021")
+                            .WithType(ProfilePeriodType.CalendarMonth)),
+                    NewProfilePeriod(pp =>
+                        pp.WithOccurence(1)
+                            .WithYear(2020)
+                            .WithTypeValue("January")
+                            .WithDistributionPeriodId("FY-2022")
+                            .WithType(ProfilePeriodType.CalendarMonth)))));
+
+            ThenTheValidationResultsContainsTheErrors(("ProfilePeriods", "The profile periods must be specified for one distribution period only"));
+        }
+
+        [TestMethod]
+        [DataRow(null)]
+        [DataRow("")]
+        public async Task FailsValidationIfDistributionIdIsNotSet(string distributionId)
+        {
+            GivenThePublishedProvider(NewOtherwiseValidPublishedProvider());
+
+            ApplyCustomProfileRequest request = NewOtherwiseValidRequest(_ => _.ProfilePeriods =
+                NewProfilePeriods(
+                    NewProfilePeriod(pp =>
+                        pp.WithOccurence(1)
+                            .WithYear(2020)
+                            .WithTypeValue("January")
+                            .WithType(ProfilePeriodType.CalendarMonth)),
+                    NewProfilePeriod(pp =>
+                        pp.WithOccurence(1)
+                            .WithYear(2020)
+                            .WithTypeValue("February")
+                            .WithType(ProfilePeriodType.CalendarMonth))));
+
+            request.ProfilePeriods.First().DistributionPeriodId = distributionId;
+
+            await WhenTheRequestIsValidated(request);
+
+            ThenTheValidationResultsContainsTheErrors(("ProfilePeriods", "The distribution id must be supplied for all profile periods"));
         }
 
         [TestMethod]

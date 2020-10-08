@@ -71,8 +71,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
             PublishedProviderStatus expectedRequestedStatus)
         {
             string fundingLineOne = NewRandomString();
-            ProfilePeriod profilePeriod1 = NewProfilePeriod();
-            ProfilePeriod profilePeriod2 = NewProfilePeriod();
+            ProfilePeriod profilePeriod1 = NewProfilePeriod(_ => _.WithDistributionPeriodId("FY-2021"));
+            ProfilePeriod profilePeriod2 = NewProfilePeriod(_ => _.WithDistributionPeriodId("FY-2021"));
 
             ApplyCustomProfileRequest request = NewApplyCustomProfileRequest(_ => _
                 .WithFundingLineCode(fundingLineOne)
@@ -84,7 +84,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
                     .WithFundingLines(NewFundingLine(fl =>
                         fl.WithFundingLineCode(fundingLineOne)
                             .WithDistributionPeriods(NewDistributionPeriod(dp =>
-                                dp.WithProfilePeriods(profilePeriod1, profilePeriod2))))
+                                dp.WithDistributionPeriodId("FY-2021")
+                                    .WithProfilePeriods(profilePeriod1, profilePeriod2))))
                         ))));
 
             Reference author = NewAuthor();
@@ -138,7 +139,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
 
         private void AndANewProviderVersionWasCreatedFor(PublishedProvider publishedProvider, PublishedProviderStatus newStatus, Reference author)
         {
-            _publishedProviderVersionCreation.Verify(_ => _.UpdatePublishedProviderStatus(new [] { publishedProvider },
+            _publishedProviderVersionCreation.Verify(_ => _.UpdatePublishedProviderStatusForceUpdate(new [] { publishedProvider },
                 author,
                 newStatus,
                 null,
@@ -168,7 +169,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
 
         private void AndNoNewVersionWasCreated()
         {
-            _publishedProviderVersionCreation.Verify(_ => _.UpdatePublishedProviderStatus(It.IsAny<IEnumerable<PublishedProvider>>(),
+            _publishedProviderVersionCreation.Verify(_ => _.UpdatePublishedProviderStatusForceUpdate(It.IsAny<IEnumerable<PublishedProvider>>(),
                 It.IsAny<Reference>(),
                 It.IsAny<PublishedProviderStatus>(),
                 It.IsAny<string>(),

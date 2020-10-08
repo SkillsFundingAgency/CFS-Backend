@@ -68,23 +68,46 @@ namespace CalculateFunding.Services.Publishing
             string jobId = null,
             string correlationId = null)
         {
+            return await UpdatePublishedProviderStatusInternal(publishedProviders, author, publishedProviderStatus, jobId, correlationId);
+        }
+
+        public async Task<int> UpdatePublishedProviderStatusForceUpdate(IEnumerable<PublishedProvider> publishedProviders,
+            Reference author,
+            PublishedProviderStatus publishedProviderStatus,
+            string jobId = null,
+            string correlationId = null)
+        {
+            return await UpdatePublishedProviderStatusInternal(publishedProviders, author, publishedProviderStatus, jobId, correlationId, forceUpdate: true);
+        }
+
+        private async Task<int> UpdatePublishedProviderStatusInternal(IEnumerable<PublishedProvider> publishedProviders, Reference author,
+            PublishedProviderStatus publishedProviderStatus, string jobId, string correlationId, bool forceUpdate = false)
+        {
             Guard.ArgumentNotNull(publishedProviders, nameof(publishedProviders));
             Guard.ArgumentNotNull(author, nameof(author));
 
-            IEnumerable<PublishedProviderCreateVersionRequest> publishedProviderCreateVersionRequests =
-               _publishedProviderVersioningService.AssemblePublishedProviderCreateVersionRequests(publishedProviders.ToList(), author, publishedProviderStatus, jobId, correlationId);
+            IEnumerable<PublishedProviderCreateVersionRequest> publishedProviderCreateVersionRequests = forceUpdate
+                ? _publishedProviderVersioningService.AssemblePublishedProviderCreateVersionRequestsForceUpdate(
+                    publishedProviders.ToList(),
+                    author, publishedProviderStatus, jobId, correlationId)
+                : _publishedProviderVersioningService.AssemblePublishedProviderCreateVersionRequests(
+                    publishedProviders.ToList(),
+                    author, publishedProviderStatus, jobId, correlationId);
+
 
             if (!publishedProviderCreateVersionRequests.IsNullOrEmpty())
-            { 
+            {
                 bool shouldNotifyProgress = !jobId.IsNullOrWhitespace();
 
                 if (shouldNotifyProgress)
                 {
-                    await CreatePublishedProviderVersionsInBatches(publishedProviderStatus, publishedProviderCreateVersionRequests.ToList(), jobId);
+                    await CreatePublishedProviderVersionsInBatches(publishedProviderStatus,
+                        publishedProviderCreateVersionRequests.ToList(), jobId);
                 }
                 else
                 {
-                    await CreateLatestPublishedProviderVersions(publishedProviderStatus, publishedProviderCreateVersionRequests);
+                    await CreateLatestPublishedProviderVersions(publishedProviderStatus,
+                        publishedProviderCreateVersionRequests);
                 }
 
                 return publishedProviderCreateVersionRequests.Count();

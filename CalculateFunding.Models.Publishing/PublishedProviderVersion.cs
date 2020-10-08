@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Versioning;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Versioning;
+using CalculateFunding.Services.Core.Extensions;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Publishing
@@ -271,6 +271,80 @@ namespace CalculateFunding.Models.Publishing
                 profilingAudit.User = user;
                 profilingAudit.Date = DateTime.Now.ToLocalTime();
             }
+        }
+
+        public void AddOrUpdateCustomProfile(string fundingLineCode, decimal? carryOver, string distributionPeriodId)
+        {
+            if (string.IsNullOrWhiteSpace(fundingLineCode))
+            {
+                throw new ArgumentOutOfRangeException(nameof(fundingLineCode), fundingLineCode, "Funding line code cannot be null or empty");
+            }
+
+            if (string.IsNullOrWhiteSpace(distributionPeriodId))
+            {
+                throw new ArgumentOutOfRangeException(nameof(distributionPeriodId), distributionPeriodId, "Distribution period cannot be null");
+            }
+
+            FundingLine fundingLine = FundingLines.Single(fl => fl.FundingLineCode == fundingLineCode);
+
+            DistributionPeriod distributionPeriod = fundingLine.DistributionPeriods?
+                .SingleOrDefault(d => d.DistributionPeriodId == distributionPeriodId);
+
+            if (distributionPeriod == null)
+            {
+                throw new ArgumentException($"Distribution period {distributionPeriodId} not found for funding line {fundingLineCode}.");
+            }
+
+            CustomProfiles ??= new List<FundingLineProfileOverrides>();
+
+            FundingLineProfileOverrides customProfile = CustomProfiles.SingleOrDefault(c =>
+                                                            c.FundingLineCode == fundingLineCode) ?? new FundingLineProfileOverrides();
+
+            customProfile.FundingLineCode = fundingLineCode;
+            customProfile.CarryOver = carryOver;
+            customProfile.DistributionPeriods ??= new List<DistributionPeriod>();
+
+            DistributionPeriod existingDistributionPeriod = customProfile.DistributionPeriods
+                .SingleOrDefault(_ => _.DistributionPeriodId == distributionPeriod.DistributionPeriodId);
+
+            if (existingDistributionPeriod == null)
+            {
+                customProfile.DistributionPeriods = customProfile.DistributionPeriods.Concat(new[] { distributionPeriod });
+                CustomProfiles = CustomProfiles.Concat(new[] { customProfile });
+            }
+            else
+            {
+                existingDistributionPeriod.Value = distributionPeriod.Value;
+                existingDistributionPeriod.ProfilePeriods = distributionPeriod.ProfilePeriods.DeepCopy();
+            }
+        }
+
+        public void UpdateDistributionPeriodForFundingLine(string fundingLineCode, string distributionPeriodId, IEnumerable<ProfilePeriod> profilePeriods)
+        {
+            if (string.IsNullOrWhiteSpace(fundingLineCode))
+            {
+                throw new ArgumentOutOfRangeException(nameof(fundingLineCode), fundingLineCode, "Funding line code cannot be null or empty");
+            }
+
+            if (string.IsNullOrWhiteSpace(distributionPeriodId))
+            {
+                throw new ArgumentOutOfRangeException(nameof(distributionPeriodId), distributionPeriodId, "Distribution period id cannot be null or empty");
+            }
+
+            FundingLine fundingLine = FundingLines.Single(fl => fl.FundingLineCode == fundingLineCode);
+
+            DistributionPeriod distributionPeriod = fundingLine.DistributionPeriods?
+                .SingleOrDefault(d => d.DistributionPeriodId == distributionPeriodId);
+
+            if (distributionPeriod == null)
+            {
+                throw new ArgumentException($"Distribution period {distributionPeriodId} not found for funding line {fundingLineCode}.");
+            }
+
+            IEnumerable<ProfilePeriod> distributionPeriodProfilePeriods = profilePeriods as ProfilePeriod[] ?? profilePeriods.ToArray();
+            decimal sumTotalForDistributionPeriod = distributionPeriodProfilePeriods.Sum(p => p.ProfiledValue);
+            distributionPeriod.Value = sumTotalForDistributionPeriod;
+            distributionPeriod.ProfilePeriods = distributionPeriodProfilePeriods;
         }
 
         [JsonIgnore]

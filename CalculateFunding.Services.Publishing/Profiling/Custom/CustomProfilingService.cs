@@ -59,26 +59,29 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
             }
 
             string publishedProviderId = request.PublishedProviderId;
+            string fundingLineCode = request.FundingLineCode;
+            string distributionPeriodId = request.ProfilePeriods.First()?.DistributionPeriodId;
 
             PublishedProvider publishedProvider = await _publishedFundingResilience.ExecuteAsync(() =>
                 _publishedFundingRepository.GetPublishedProviderById(publishedProviderId, publishedProviderId));
 
-            PublishedProviderVersion current = publishedProvider.Current;
+            PublishedProviderVersion currentProviderVersion = publishedProvider.Current;
 
-            FundingLine fundingLine = current.FundingLines.SingleOrDefault(fl => fl.FundingLineCode == request.FundingLineCode);
+            currentProviderVersion.UpdateDistributionPeriodForFundingLine(fundingLineCode, distributionPeriodId, request.ProfilePeriods);
+            currentProviderVersion.AddOrUpdateCustomProfile(fundingLineCode, request.CarryOver, distributionPeriodId);
 
             if (request.HasCarryOver)
             {
-                current.AddCarryOver(fundingLine.FundingLineCode,
+                currentProviderVersion.AddCarryOver(fundingLineCode,
                     ProfilingCarryOverType.CustomProfile,
                     request.CarryOver.GetValueOrDefault());
             }
 
-            current.AddProfilingAudit(request.FundingLineCode, author);
+            currentProviderVersion.AddProfilingAudit(fundingLineCode, author);
 
-            await _publishedProviderVersionCreation.UpdatePublishedProviderStatus(new[] { publishedProvider },
+            await _publishedProviderVersionCreation.UpdatePublishedProviderStatusForceUpdate(new[] { publishedProvider },
                 author,
-                current.Status switch
+                currentProviderVersion.Status switch
                 {
                     PublishedProviderStatus.Draft => PublishedProviderStatus.Draft,
                     _ => PublishedProviderStatus.Updated

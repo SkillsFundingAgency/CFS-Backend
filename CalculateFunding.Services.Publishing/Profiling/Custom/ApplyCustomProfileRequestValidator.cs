@@ -63,6 +63,11 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
                         {
                             ctx.AddFailure("Request", "No matching published provider located");
                         }
+                        else if (publishedProvider.Current.FundingLines.All(_ => _.FundingLineCode != fundingLineCode))
+                        {
+                            ctx.AddFailure(nameof(request.FundingLineCode),
+                                $"Did not locate a funding line with code {fundingLineCode}");
+                        }
                     }
 
                     //TODO: check whether the custom name is already in use on the provider??
@@ -80,6 +85,19 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
                     {
                         ctx.AddFailure(nameof(DistributionPeriod.ProfilePeriods),
                             "The profile periods must be for unique occurrences in a funding line");
+                    }
+
+                    if (profilePeriods.Where(_ => _.DistributionPeriodId != null && _.DistributionPeriodId.Trim().Length > 0)
+                            .GroupBy(_ => _.DistributionPeriodId).Count() > 1)
+                    {
+                        ctx.AddFailure(nameof(DistributionPeriod.ProfilePeriods),
+                            "The profile periods must be specified for one distribution period only");
+                    }
+
+                    if (profilePeriods.Any(_ => _.DistributionPeriodId == null || _.DistributionPeriodId.Trim().Length == 0))
+                    {
+                        ctx.AddFailure(nameof(DistributionPeriod.ProfilePeriods),
+                            "The distribution id must be supplied for all profile periods");
                     }
                 });
         }

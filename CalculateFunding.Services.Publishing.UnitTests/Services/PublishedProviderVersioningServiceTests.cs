@@ -510,6 +510,39 @@ namespace CalculateFunding.Services.Publishing.Services.UnitTests
         }
 
         [TestMethod]
+        public void AssemblePublishedProviderCreateVersionRequests_GivenTwoPublishedProvidersButStatusHasntChangedForOne_ReturnsListWithTwoCreatedVersionRequest_WhenForceUpdated()
+        {
+            //Arrange
+            IEnumerable<PublishedProvider> publishedProviders = new[]
+            {
+                new PublishedProvider
+                {
+                    Current = new PublishedProviderVersion
+                    {
+                        Status = PublishedProviderStatus.Approved
+                    }
+                },
+                new PublishedProvider
+                {
+                    Current = new PublishedProviderVersion
+                    {
+                        Status = PublishedProviderStatus.Updated
+                    }
+                }
+            };
+
+            PublishedProviderVersioningService service = CreateVersioningService();
+
+            //Act
+            IEnumerable<PublishedProviderCreateVersionRequest> results = service.AssemblePublishedProviderCreateVersionRequestsForceUpdate(publishedProviders, new Reference(), PublishedProviderStatus.Approved);
+
+            //Assert
+            results
+                .Should()
+                .HaveCount(2);
+        }
+
+        [TestMethod]
         public void AssemblePublishedProviderCreateVersionRequests_GivenPublishedProviders_EnsuresAssembled()
         {
             //Arrange

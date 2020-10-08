@@ -56,18 +56,42 @@ namespace CalculateFunding.Services.Publishing
             return health;
         }
 
-        public IEnumerable<PublishedProviderCreateVersionRequest> AssemblePublishedProviderCreateVersionRequests(IEnumerable<PublishedProvider> publishedProviders, Reference author, PublishedProviderStatus publishedProviderStatus, string jobId = null, string correlationId = null)
+        public IEnumerable<PublishedProviderCreateVersionRequest> AssemblePublishedProviderCreateVersionRequestsForceUpdate(
+            IEnumerable<PublishedProvider> publishedProviders,
+            Reference author,
+            PublishedProviderStatus publishedProviderStatus,
+            string jobId = null,
+            string correlationId = null)
+        {
+            return AssemblePublishedProviderCreateVersionRequestsInternal(publishedProviders, author, publishedProviderStatus, jobId, correlationId, forceUpdate: true);
+        }
+
+        public IEnumerable<PublishedProviderCreateVersionRequest> AssemblePublishedProviderCreateVersionRequests(
+            IEnumerable<PublishedProvider> publishedProviders,
+            Reference author,
+            PublishedProviderStatus publishedProviderStatus,
+            string jobId = null,
+            string correlationId = null)
+        {
+            return AssemblePublishedProviderCreateVersionRequestsInternal(publishedProviders, author, publishedProviderStatus, jobId, correlationId, forceUpdate: false);
+        }
+
+        private static IEnumerable<PublishedProviderCreateVersionRequest> AssemblePublishedProviderCreateVersionRequestsInternal(IEnumerable<PublishedProvider> publishedProviders,
+            Reference author, PublishedProviderStatus publishedProviderStatus, string jobId, string correlationId,
+            bool forceUpdate)
         {
             Guard.ArgumentNotNull(publishedProviders, nameof(publishedProviders));
             Guard.ArgumentNotNull(author, nameof(author));
 
-            IList<PublishedProviderCreateVersionRequest> publishedProviderCreateVersionRequests = new List<PublishedProviderCreateVersionRequest>();
+            IList<PublishedProviderCreateVersionRequest> publishedProviderCreateVersionRequests =
+                new List<PublishedProviderCreateVersionRequest>();
 
             foreach (PublishedProvider publishedProvider in publishedProviders)
             {
                 Guard.ArgumentNotNull(publishedProvider.Current, nameof(publishedProvider.Current));
 
-                if (publishedProviderStatus != PublishedProviderStatus.Draft && publishedProvider.Current.Status == publishedProviderStatus)
+                if (!forceUpdate && publishedProviderStatus != PublishedProviderStatus.Draft &&
+                    publishedProvider.Current.Status == publishedProviderStatus)
                 {
                     continue;
                 }
@@ -81,7 +105,7 @@ namespace CalculateFunding.Services.Publishing
                 int majorVersion = publishedProvider.Current.MajorVersion;
 
                 if ((publishedProvider.Current.Status == PublishedProviderStatus.Approved
-                    || publishedProvider.Current.Status == PublishedProviderStatus.Released)
+                     || publishedProvider.Current.Status == PublishedProviderStatus.Released)
                     && publishedProviderStatus == PublishedProviderStatus.Updated)
                 {
                     Interlocked.Increment(ref minorVersion);
