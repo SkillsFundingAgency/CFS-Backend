@@ -48,18 +48,19 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         }
 
         [TestMethod]
-        [DataRow(JobType.Released, ReportCategory.History)]
-        [DataRow(JobType.History, ReportCategory.History)]
-        [DataRow(JobType.CurrentState, ReportCategory.History)]
-        [DataRow(JobType.CurrentProfileValues, ReportCategory.History)]
-        [DataRow(JobType.HistoryProfileValues, ReportCategory.History)]
-        [DataRow(JobType.CurrentOrganisationGroupValues, ReportCategory.History)]
-        [DataRow(JobType.HistoryOrganisationGroupValues, ReportCategory.History)]
-        [DataRow(JobType.HistoryPublishedProviderEstate, ReportCategory.History)]
-        [DataRow(JobType.CalcResult, ReportCategory.Live)]
-        [DataRow((JobType)int.MaxValue, ReportCategory.Undefined)]
+        [DataRow(JobType.Released, ReportCategory.History, "fp-1")]
+        [DataRow(JobType.History, ReportCategory.History, null)]
+        [DataRow(JobType.CurrentState, ReportCategory.History, null)]
+        [DataRow(JobType.CurrentProfileValues, ReportCategory.History, null)]
+        [DataRow(JobType.HistoryProfileValues, ReportCategory.History, null)]
+        [DataRow(JobType.CurrentOrganisationGroupValues, ReportCategory.History, null)]
+        [DataRow(JobType.HistoryOrganisationGroupValues, ReportCategory.History, null)]
+        [DataRow(JobType.HistoryPublishedProviderEstate, ReportCategory.History, null)]
+        [DataRow(JobType.CalcResult, ReportCategory.Live, null)]
+        [DataRow((JobType)int.MaxValue, ReportCategory.Undefined, null)]
         public void GetReportMetadata_GivenSpecificationIdWithBlobs_ReturnsReportMetadata(JobType jobType,
-            ReportCategory expectedReportCategory)
+            ReportCategory expectedReportCategory,
+            string targetFundingPeriodId)
         {
             string fundingLineBlobName = NewRandomString();
             string fundingLineFileExtension = "csv";
@@ -69,7 +70,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             string calcResultsFileExtension = "xlsx";
 
             string fundingLineCode = NewRandomString();
-            string fundingPeriodId = NewRandomString();
+            string fundingPeriodId = targetFundingPeriodId ?? NewRandomString();
             string fundingStreamId = NewRandomString();
             string specificationId = NewRandomString();
 
@@ -144,7 +145,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                     BlobListingDetails.Metadata)
                 .Returns(calcResultsListBlobItems);
 
-            IActionResult result = _service.GetReportMetadata(specificationId);
+            IActionResult result = _service.GetReportMetadata(specificationId, targetFundingPeriodId);
 
             result
                 .Should()
@@ -156,10 +157,20 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Should()
                 .NotBeNull();
 
-            reportMetadata
-                .Count()
-                .Should()
-                .Be(2);
+            if (string.IsNullOrWhiteSpace(targetFundingPeriodId))
+            {
+                reportMetadata
+                    .Count()
+                    .Should()
+                    .Be(2);
+            }
+            else
+            {
+                reportMetadata
+                    .Count()
+                    .Should()
+                    .Be(1);
+            }
 
             SpecificationReport metadata = reportMetadata
                 .ElementAt(0);

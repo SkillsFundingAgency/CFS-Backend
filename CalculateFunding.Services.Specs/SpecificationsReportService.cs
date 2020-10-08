@@ -35,14 +35,14 @@ namespace CalculateFunding.Services.Specs
             _blobClient = blobClient;
         }
 
-        public IActionResult GetReportMetadata(string specificationId)
+        public IActionResult GetReportMetadata(string specificationId, string targetFundingPeriodId = null)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
             IEnumerable<SpecificationReport> specificationReports =
-                GetReportMetadata($"{FundingLineReportFilePrefix}-{specificationId}", PublishedProviderVersionsContainerName)
+                GetReportMetadata($"{FundingLineReportFilePrefix}-{specificationId}", PublishedProviderVersionsContainerName, targetFundingPeriodId: targetFundingPeriodId)
                 .Concat(
-                    GetReportMetadata($"{CalculationResultsReportFilePrefix}-{specificationId}", CalcsResultsContainerName, JobType.CalcResult));
+                    GetReportMetadata($"{CalculationResultsReportFilePrefix}-{specificationId}", CalcsResultsContainerName, JobType.CalcResult, targetFundingPeriodId: targetFundingPeriodId));
 
             return new OkObjectResult(specificationReports);
         }
@@ -88,25 +88,32 @@ namespace CalculateFunding.Services.Specs
             return health;
         }
 
-        private IEnumerable<SpecificationReport> GetReportMetadata(string fileNamePrefix, string containerName, JobType? reportType = null)
+        private IEnumerable<SpecificationReport> GetReportMetadata(string fileNamePrefix, string containerName, JobType? reportType = null, string targetFundingPeriodId = null)
         {
             IEnumerable<IListBlobItem> listBlobItems = _blobClient.ListBlobs(fileNamePrefix, containerName, true, BlobListingDetails.Metadata).ToList();
-            return GetReportMetadata(listBlobItems, reportType);
+            return GetReportMetadata(listBlobItems, reportType, targetFundingPeriodId);
         }
 
         private IEnumerable<SpecificationReport> GetReportMetadata(
             IEnumerable<IListBlobItem> listBlobItems, 
-            JobType? metadataJobType = null)
+            JobType? metadataJobType = null,
+            string targetFundingPeriodId = null)
         {
             return listBlobItems.Select(b =>
             {
                 ICloudBlob cloudBlob = (ICloudBlob)b;
                 
                 cloudBlob.Metadata.TryGetValue("file_name", out string fileName);
+                cloudBlob.Metadata.TryGetValue("funding_period_id", out string fundingPeriodId);
                 ByteSize fileLength = ByteSize.FromBytes(cloudBlob.Properties.Length);
                 string fileSuffix = Path.GetExtension(b.Uri.AbsolutePath).Replace(".", string.Empty);
                 
                 JobType jobType = metadataJobType.GetValueOrDefault();
+
+                if (!string.IsNullOrWhiteSpace(targetFundingPeriodId) && fundingPeriodId != targetFundingPeriodId)
+                {
+                    return null;
+                }
 
                 if (!metadataJobType.HasValue)
                 {
