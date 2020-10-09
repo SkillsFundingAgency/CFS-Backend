@@ -158,7 +158,7 @@ namespace CalculateFunding.Services.Profiling.Services
         {
 
             IReadOnlyCollection<DeliveryProfilePeriod> profilePeriods = GetProfiledAllocationPeriodsWithPatternApplied(
-                 request, profilePattern.ProfilePattern);
+                 request, profilePattern.ProfilePattern, profilePattern.RoundingStrategy);
 
             IReadOnlyCollection<DistributionPeriods> distributionPeriods = GetDistributionPeriodWithPatternApplied(
                 profilePeriods);
@@ -240,12 +240,13 @@ namespace CalculateFunding.Services.Profiling.Services
 
         private IReadOnlyCollection<DeliveryProfilePeriod> GetProfiledAllocationPeriodsWithPatternApplied(
             ProfileRequest profileRequest,
-            IReadOnlyCollection<ProfilePeriodPattern> profilePattern)
+            IReadOnlyCollection<ProfilePeriodPattern> profilePattern,
+            RoundingStrategy roundingStrategy)
         {
             IReadOnlyCollection<DeliveryProfilePeriod> allocationProfilePeriods =
                 GetProfilePeriodsForAllocation(profilePattern);
 
-            return ApplyProfilePattern(profileRequest, profilePattern, allocationProfilePeriods);
+            return ApplyProfilePattern(profileRequest, profilePattern, allocationProfilePeriods, roundingStrategy);
         }
 
         private IReadOnlyCollection<DeliveryProfilePeriod> GetProfilePeriodsForAllocation(
@@ -260,7 +261,8 @@ namespace CalculateFunding.Services.Profiling.Services
         private IReadOnlyCollection<DeliveryProfilePeriod> ApplyProfilePattern(
             ProfileRequest profileRequest,
             IReadOnlyCollection<ProfilePeriodPattern> profilePattern,
-            IReadOnlyCollection<DeliveryProfilePeriod> profilePeriods)
+            IReadOnlyCollection<DeliveryProfilePeriod> profilePeriods,
+            RoundingStrategy roundingStrategy)
         {
             List<DeliveryProfilePeriod> calculatedDeliveryProfile = new List<DeliveryProfilePeriod>();
 
@@ -284,9 +286,19 @@ namespace CalculateFunding.Services.Profiling.Services
                         profiledValue /= 100;
                     }
 
-                    decimal roundedValue = profiledValue
+                    decimal roundedValue;
+
+
+                    if (roundingStrategy == RoundingStrategy.RoundUp)
+                    {
+                        roundedValue = profiledValue
                             .RoundToDecimalPlaces(2)
                             .RoundToDecimalPlaces(0);
+                    }
+                    else
+                    {
+                        roundedValue = (int)profiledValue;
+                    }
 
                     return pp.WithValue(roundedValue);
                 }).ToList();

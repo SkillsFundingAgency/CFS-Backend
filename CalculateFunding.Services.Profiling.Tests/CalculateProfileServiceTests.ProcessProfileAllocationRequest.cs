@@ -246,6 +246,42 @@ namespace CalculateFunding.Services.Profiling.Tests
         }
 
         [TestMethod, TestCategory("UnitTest")]
+        public async Task CalculateProfileService_ShouldCorrectlyProfileFullLengthAllocationWithRoundUp()
+        {
+            // arrange
+            FundingStreamPeriodProfilePattern pattern = TestResource.FromJson<FundingStreamPeriodProfilePattern>(
+             NamespaceResourcesResideIn, "Resources.DSG.json");
+
+            // first period rouonds down
+            ProfileRequest peSportsPremReq1 = new ProfileRequest(
+               fundingStreamId: "DSG",
+                fundingPeriodId: "FY-2021",
+                fundingLineCode: "DSG-002",
+                fundingValue: 10000543);
+
+            IProfilePatternRepository mockProfilePatternRepository = Substitute.For<IProfilePatternRepository>();
+            mockProfilePatternRepository
+                .GetProfilePattern(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>())
+                .Returns(pattern);
+
+            ICalculateProfileService calculateProfileService = GetCalculateProfileServiceWithMockedDependencies(mockProfilePatternRepository);
+
+            // act
+            IActionResult responseResult = await calculateProfileService.ProcessProfileAllocationRequest(peSportsPremReq1);
+
+            // assert
+            responseResult
+                .Should().BeOfType<OkObjectResult>();
+
+            OkObjectResult responseAsOkObjectResult = responseResult as OkObjectResult;
+            AllocationProfileResponse response = responseAsOkObjectResult.Value as AllocationProfileResponse;
+
+            response.DeliveryProfilePeriods.ToArray().FirstOrDefault(q => q.TypeValue == "April").ProfileValue.Should().Be(400021M);
+            response.DeliveryProfilePeriods.ToArray().LastOrDefault(q => q.TypeValue == "March").ProfileValue.Should().Be(400039M);
+            response.DeliveryProfilePeriods.Length.Should().Be(25);
+        }
+
+        [TestMethod, TestCategory("UnitTest")]
         public async Task CalculateProfileService_ShouldCorrectlyProfileAllocationStartsLate()
         {
             // arrange

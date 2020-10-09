@@ -24,7 +24,8 @@ namespace CalculateFunding.Services.Profiling.Models
             bool allowUserToEditProfilePattern,
             ProfilePeriodPattern[] profilePattern,
             string profilePatternDisplayName,
-            string profilePatternDescription)
+            string profilePatternDescription,
+            RoundingStrategy roundingStrategy)
         {
             FundingPeriodId = fundingPeriodId;
             FundingStreamId = fundingStreamId;
@@ -37,6 +38,7 @@ namespace CalculateFunding.Services.Profiling.Models
             ProfilePattern = profilePattern;
             ProfilePatternDisplayName = profilePatternDisplayName;
             ProfilePatternDescription = profilePatternDescription;
+            RoundingStrategy = roundingStrategy;
         }
 
         [JsonProperty("fundingPeriodId")]
@@ -44,6 +46,9 @@ namespace CalculateFunding.Services.Profiling.Models
 
         [JsonProperty("fundingStreamId")]
         public string FundingStreamId { get; set; }
+
+        [JsonProperty("roundingStrategy")]
+        public RoundingStrategy RoundingStrategy { get; set; }
 
         [JsonProperty("fundingLineId")]
         public string FundingLineId { get; set; }
