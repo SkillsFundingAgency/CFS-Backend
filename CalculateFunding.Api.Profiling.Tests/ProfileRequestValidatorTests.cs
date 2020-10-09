@@ -36,7 +36,8 @@
                         periodPatternPercentage: 100m)
                 },
                 profilePatternDisplayName: "FSP-ProfilePattern1",
-                profilePatternDescription: "FSP-ProfilePatternDescription1");
+                profilePatternDescription: "FSP-ProfilePatternDescription1",
+                RoundingStrategy.RoundDown);
 
             ProfileRequest request = new ProfileRequest(
                 fundingStreamId: "PSG",
@@ -90,7 +91,8 @@
                     periodPatternPercentage: 12.56m)
                 },
                 profilePatternDisplayName: "FSP-ProfilePattern1",
-                profilePatternDescription: "FSP-ProfilePatternDescription1");
+                profilePatternDescription: "FSP-ProfilePatternDescription1",
+                RoundingStrategy.RoundDown);
 
             ProfileRequest request = new ProfileRequest(
                  fundingStreamId: "PSG",
