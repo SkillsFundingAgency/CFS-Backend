@@ -163,7 +163,15 @@ namespace CalculateFunding.Services.Providers
 
         private ProviderVersionViewModel CreateProviderVersionViewModel(string fundingStreamId, string providerVersionId, ProviderSnapshot providerSnapshot, IEnumerable<Common.ApiClient.FundingDataZone.Models.Provider> fdzProviders)
         {
-            IEnumerable<Models.Providers.Provider> providers = _mapper.Map<IEnumerable<Models.Providers.Provider>>(fdzProviders);
+            IEnumerable<Models.Providers.Provider> providers = fdzProviders.Select(_ =>
+            {
+                return _mapper.Map<Common.ApiClient.FundingDataZone.Models.Provider, Models.Providers.Provider>(_, opt =>
+                    opt.AfterMap((src, dest) =>
+                    {
+                        dest.ProviderVersionId = providerVersionId;
+                        dest.ProviderVersionIdProviderId = $"{providerVersionId}_{dest.ProviderId}";
+                    }));
+            });
 
             ProviderVersionViewModel providerVersionViewModel = new ProviderVersionViewModel()
             {

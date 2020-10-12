@@ -254,7 +254,8 @@ namespace CalculateFunding.Services.Providers.UnitTests
         {
             _providerVersionService.Setup(_ => _.UploadProviderVersion(providerVersionId,
                     It.Is<ProviderVersionViewModel>(pv
-                        => pv.Providers.Select(p => p.ProviderId).SequenceEqual(providerIds))))
+                        => pv.Providers.Select(p => p.ProviderId).SequenceEqual(providerIds) && 
+                        pv.Providers.All(p => p.ProviderVersionId == providerVersionId && p.ProviderVersionIdProviderId == $"{providerVersionId}_{p.ProviderId}"))))
                 .ReturnsAsync((success, actionResult))
                 .Verifiable();
         }

@@ -69,7 +69,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         }
 
         [TestMethod]
-        public async Task ReturnsThePublishedProviderStatuFromPublishedProviderRepository()
+        public async Task ReturnsThePublishedProviderStatusFromPublishedProviderRepository()
         {
             string fundingStreamId1 = NewRandomString();
             string fundingStreamId2 = NewRandomString();
