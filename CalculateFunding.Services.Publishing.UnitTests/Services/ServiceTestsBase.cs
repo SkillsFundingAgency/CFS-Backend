@@ -7,6 +7,7 @@ using CalculateFunding.Services.Publishing.Services.UnitTests;
 using CalculateFunding.Tests.Common.Helpers;
 using Microsoft.Azure.ServiceBus;
 using System;
+using CalculateFunding.Tests.Common.Builders;
 using TemplateFundingLine = CalculateFunding.Common.TemplateMetadata.Models.FundingLine;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Services

@@ -1,4 +1,9 @@
-﻿using AutoMapper;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using AutoMapper;
 using CalculateFunding.Common.ApiClient.FundingDataZone;
 using CalculateFunding.Common.ApiClient.FundingDataZone.Models;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
@@ -8,371 +13,309 @@ using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Models.Providers.ViewModels;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Providers.Interfaces;
+using CalculateFunding.Tests.Common.Builders;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
+using Moq;
 using Polly;
-using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
+using Serilog.Core;
+using FundingDataZoneProvider = CalculateFunding.Common.ApiClient.FundingDataZone.Models.Provider;
+using ProvidersProvider = CalculateFunding.Models.Providers.Provider;
 
 namespace CalculateFunding.Services.Providers.UnitTests
 {
     [TestClass]
     public class ProviderSnapshotDataLoadServiceTests
     {
-        private ILogger _logger;
-        private ISpecificationsApiClient _specificationsApiClient;
-        private IProviderVersionService _providerVersionService;
-        private IFundingDataZoneApiClient _fundingDataZoneApiClient;
-        private IMapper _mapper;
-        private ProvidersResiliencePolicies _providerResiliencePolicies;
-        private IJobManagement _jobManagement;
-        private IProviderSnapshotDataLoadService _service;
+        private const string JobId = "jobId";
+        private const string SpecificationId = "specification-id";
+        private const string FundingStreamId = "fundingstream-id";
+        private const string ProviderSnapshotId = "providerSanpshot-id"; //TODO; check this spelling
+
+        private Mock<ISpecificationsApiClient> _specifications;
+        private Mock<IProviderVersionService> _providerVersionService;
+        private Mock<IFundingDataZoneApiClient> _fundingDataZone;
+        private Mock<IJobManagement> _jobs;
+
+        private ProviderSnapshotDataLoadService _service;
+        private string _specificationId;
+        private string _fundingStreamId;
+        private string _jobId;
+        private int _providerSnapshotId;
 
         [TestInitialize]
         public void Setup()
         {
-            _logger = Substitute.For<ILogger>();
-            _specificationsApiClient = Substitute.For<ISpecificationsApiClient>();
-            _providerVersionService = Substitute.For<IProviderVersionService>();
-            _fundingDataZoneApiClient = Substitute.For<IFundingDataZoneApiClient>();
-            _mapper = new MapperConfiguration(c =>
-            {
-                c.AddProfile<ProviderVersionsMappingProfile>();
-            }).CreateMapper();
-            _providerResiliencePolicies = new ProvidersResiliencePolicies()
-            {
-                SpecificationsApiClient = Policy.NoOpAsync(),
-                FundingDataZoneApiClient = Policy.NoOpAsync(),
-            };
-            _jobManagement = Substitute.For<IJobManagement>();
+            _specifications = new Mock<ISpecificationsApiClient>();
+            _providerVersionService = new Mock<IProviderVersionService>();
+            _fundingDataZone = new Mock<IFundingDataZoneApiClient>();
+            _jobs = new Mock<IJobManagement>();
 
             _service = new ProviderSnapshotDataLoadService(
-                _logger,
-                _specificationsApiClient,
-                _providerVersionService,
-                _providerResiliencePolicies,
-                _fundingDataZoneApiClient,
-                _mapper,
-                _jobManagement);
+                Logger.None,
+                _specifications.Object,
+                _providerVersionService.Object,
+                new ProvidersResiliencePolicies
+                {
+                    SpecificationsApiClient = Policy.NoOpAsync(),
+                    FundingDataZoneApiClient = Policy.NoOpAsync()
+                },
+                _fundingDataZone.Object,
+                new MapperConfiguration(c => { c.AddProfile<ProviderVersionsMappingProfile>(); }).CreateMapper(),
+                _jobs.Object);
+
+            _specificationId = NewRandomString();
+            _fundingStreamId = NewRandomString();
+            _jobId = NewRandomString();
+            _providerSnapshotId = NewRandomInt();
         }
 
         [TestMethod]
         public async Task ShouldDownloadAndSaveProviderVersionFDZProvidersWhenProviderVersionNotExistsForGivenSpecificationAndProviderSnapshot()
         {
-            // Arrange
-            string specificationId = NewRandomString();
-            string fundingStreamId = NewRandomString();
-            string jobId = NewRandomString();
-            int providerSnapshotId = NewRandomInt();
+            ProviderSnapshot providerSnapshot = NewProviderSnapshotForFundingStream();
+            FundingDataZoneProvider expectedProviderOne = NewFundingDataZoneProvider();
+            FundingDataZoneProvider expectedProviderTwo = NewFundingDataZoneProvider();
 
-            Message message = CreateMessage(jobId, specificationId, fundingStreamId, providerSnapshotId);
-            ProviderSnapshot providerSnapshot = CreateProviderSnapshot(fundingStreamId, providerSnapshotId);
-            string providerVersionId = $"{fundingStreamId}-{providerSnapshot.TargetDate:yyyy}-{providerSnapshot.TargetDate:MM}-{providerSnapshot.TargetDate:dd}-{providerSnapshotId}";
+            GivenTheProviderSnapshotForTheFundingStream(providerSnapshot);
+            AndTheFundingDataZoneProvidersForTheSnapshot(providerSnapshot.ProviderSnapshotId, expectedProviderOne, expectedProviderTwo);
 
-            _fundingDataZoneApiClient.GetProviderSnapshotsForFundingStream(Arg.Is(fundingStreamId))
-                .Returns(new ApiResponse<IEnumerable<ProviderSnapshot>>(HttpStatusCode.OK, new[] { providerSnapshot }));
-            _providerVersionService.Exists(providerVersionId)
-                .Returns(false);
-            _fundingDataZoneApiClient.GetProvidersInSnapshot(Arg.Is(providerSnapshotId))
-                .Returns(new ApiResponse<IEnumerable<Provider>>(HttpStatusCode.OK, new[] { CreateFdzProvider(), CreateFdzProvider() }));
-            _providerVersionService.UploadProviderVersion(Arg.Is(providerVersionId), Arg.Is<ProviderVersionViewModel>(_ => _.Name == providerSnapshot.Name))
-                .Returns((true, null));
+            string providerVersionId = GetProviderVersionIdFromSnapshot(providerSnapshot);
 
-            _specificationsApiClient.SetProviderVersion(Arg.Is(specificationId), Arg.Is(providerVersionId))
-                .Returns(HttpStatusCode.OK);
+            AndSettingTheProviderVersionForTheSpecificationSucceeds(providerVersionId);
+            AndTheProviderVersionUploadSucceeds(providerVersionId, null, expectedProviderOne.ProviderId, expectedProviderTwo.ProviderId);
 
-            // Act
-            await _service.LoadProviderSnapshotData(message);
+            await WhenTheProviderSnapshotDataIsLoaded(NewValidMessage());
 
-            // Assert
-            await _fundingDataZoneApiClient
-                .Received(1)
-                .GetProviderSnapshotsForFundingStream(Arg.Is(fundingStreamId));
-
-            await _providerVersionService
-                .Received(1)
-                .Exists(providerVersionId);
-
-            await _fundingDataZoneApiClient
-                .Received(1)
-                .GetProvidersInSnapshot(Arg.Is(providerSnapshotId));
-
-            await _providerVersionService
-                 .Received(1)
-                 .UploadProviderVersion(Arg.Is(providerVersionId), Arg.Is<ProviderVersionViewModel>(_ => _.Name == providerSnapshot.Name));
-
-            await _specificationsApiClient
-                .Received(1)
-                .SetProviderVersion(Arg.Is(specificationId), Arg.Is(providerVersionId));
+            ThenTheProviderVersionWasSetOnTheSpecification();
+            AndTheProviderVersionsWereUploaded();
+            AndAMapFdzDatasetsJobWasQueued();
         }
 
-        [TestMethod]
-        public async Task ShouldQueueMapFdzDatasetsJobForGivenSpecificationAndProviderSnapshot()
-        {
-            // Arrange
-            string specificationId = NewRandomString();
-            string fundingStreamId = NewRandomString();
-            string jobId = NewRandomString();
-            int providerSnapshotId = NewRandomInt();
-            Job mapFdzDatasetsJob = new Job() { Id = NewRandomString() };
-
-            Message message = CreateMessage(jobId, specificationId, fundingStreamId, providerSnapshotId);
-            ProviderSnapshot providerSnapshot = CreateProviderSnapshot(fundingStreamId, providerSnapshotId);
-            string providerVersionId = $"{fundingStreamId}-{providerSnapshot.TargetDate:yyyy}-{providerSnapshot.TargetDate:MM}-{providerSnapshot.TargetDate:dd}-{providerSnapshotId}";
-
-            _fundingDataZoneApiClient.GetProviderSnapshotsForFundingStream(Arg.Is(fundingStreamId))
-                .Returns(new ApiResponse<IEnumerable<ProviderSnapshot>>(HttpStatusCode.OK, new[] { providerSnapshot }));
-            _providerVersionService.Exists(providerVersionId)
-                .Returns(true);
-            _specificationsApiClient.SetProviderVersion(Arg.Is(specificationId), Arg.Is(providerVersionId))
-                .Returns(HttpStatusCode.OK);
-
-            _jobManagement.QueueJob(Arg.Is<JobCreateModel>(_ => _.JobDefinitionId == JobConstants.DefinitionNames.MapFdzDatasetsJob
-                                                             && _.SpecificationId == specificationId
-                                                             && _.Properties.ContainsKey("specification-id")
-                                                             && _.Properties["specification-id"] == specificationId))
-                .Returns(new Job());
-
-            // Act
-            await _service.LoadProviderSnapshotData(message);
-
-            // Assert
-            await _fundingDataZoneApiClient
-                .Received(1)
-                .GetProviderSnapshotsForFundingStream(Arg.Is(fundingStreamId));
-
-            await _providerVersionService
-                .Received(1)
-                .Exists(providerVersionId);
-
-            await _fundingDataZoneApiClient
-                .Received(0)
-                .GetProvidersInSnapshot(Arg.Is(providerSnapshotId));
-
-            await _providerVersionService
-                 .Received(0)
-                 .UploadProviderVersion(Arg.Is(providerVersionId), Arg.Is<ProviderVersionViewModel>(_ => _.Name == providerSnapshot.Name));
-
-            await _specificationsApiClient
-                .Received(1)
-                .SetProviderVersion(Arg.Is(specificationId), Arg.Is(providerVersionId));
-
-            await _jobManagement
-                .Received(1)
-                .QueueJob(Arg.Is<JobCreateModel>(_ => _.JobDefinitionId == JobConstants.DefinitionNames.MapFdzDatasetsJob
-                                                             && _.SpecificationId == specificationId
-                                                             && _.Properties.ContainsKey("specification-id")
-                                                             && _.Properties["specification-id"] == specificationId));
-        }
 
         [TestMethod]
         public void ShouldProviderVersionFDZProvidersThrowsExceptionWhenUploadProviderVersionReturnsError()
         {
-            // Arrange
-            ILogger logger = CreateLogger();
-            string specificationId = NewRandomString();
-            string fundingStreamId = NewRandomString();
-            string jobId = NewRandomString();
-            int providerSnapshotId = NewRandomInt();
+            ProviderSnapshot providerSnapshot = NewProviderSnapshotForFundingStream();
+            FundingDataZoneProvider expectedProviderOne = NewFundingDataZoneProvider();
+            FundingDataZoneProvider expectedProviderTwo = NewFundingDataZoneProvider();
 
-            Message message = CreateMessage(jobId, specificationId, fundingStreamId, providerSnapshotId);
-            ProviderSnapshot providerSnapshot = CreateProviderSnapshot(fundingStreamId, providerSnapshotId);
-            string providerVersionId = $"{fundingStreamId}-{providerSnapshot.TargetDate:yyyy}-{providerSnapshot.TargetDate:MM}-{providerSnapshot.TargetDate:dd}-{providerSnapshotId}";
-            string errorMessage = $"Failed to upload provider version {providerVersionId}. ";
+            GivenTheProviderSnapshotForTheFundingStream(providerSnapshot);
+            AndTheFundingDataZoneProvidersForTheSnapshot(providerSnapshot.ProviderSnapshotId, expectedProviderOne, expectedProviderTwo);
 
-            _fundingDataZoneApiClient.GetProviderSnapshotsForFundingStream(Arg.Is(fundingStreamId))
-                .Returns(new ApiResponse<IEnumerable<ProviderSnapshot>>(HttpStatusCode.OK, new[] { providerSnapshot }));
-            _providerVersionService.Exists(providerVersionId)
-                .Returns(false);
-            _fundingDataZoneApiClient.GetProvidersInSnapshot(Arg.Is(providerSnapshotId))
-                .Returns(new ApiResponse<IEnumerable<Provider>>(HttpStatusCode.OK, new[] { CreateFdzProvider(), CreateFdzProvider() }));
-            _providerVersionService.UploadProviderVersion(Arg.Is(providerVersionId), Arg.Is<ProviderVersionViewModel>(_ => _.Name == providerSnapshot.Name))
-                .Returns((false, null));
+            string providerVersionId = GetProviderVersionIdFromSnapshot(providerSnapshot);
 
-            _specificationsApiClient.SetProviderVersion(Arg.Is(specificationId), Arg.Is(providerVersionId))
-                .Returns(HttpStatusCode.OK);
+            AndSettingTheProviderVersionForTheSpecificationSucceeds(providerVersionId);
+            AndTheProviderVersionUploadFails(providerVersionId, null, expectedProviderOne.ProviderId, expectedProviderTwo.ProviderId);
 
-            // Act
-            Func<Task> invocation = async () => await _service.LoadProviderSnapshotData(message);
+            Func<Task> invocation = async () => await WhenTheProviderSnapshotDataIsLoaded(NewValidMessage());
 
-            // Assert
             invocation
-               .Should()
-               .ThrowExactly<Exception>()
-               .Which
-               .Message
-               .Should()
-               .Be(errorMessage);
+                .Should()
+                .ThrowExactly<Exception>()
+                .Which
+                .Message
+                .Should()
+                .Be($"Failed to upload provider version {providerVersionId}. ");
         }
+
 
         [TestMethod]
         public void ShouldProviderVersionFDZProvidersThrowsExceptionWhenUploadProviderVersionReturnsValidationError()
         {
-            // Arrange
-            ILogger logger = CreateLogger();
-            string specificationId = NewRandomString();
-            string fundingStreamId = NewRandomString();
-            string jobId = NewRandomString();
-            int providerSnapshotId = NewRandomInt();
+            ProviderSnapshot providerSnapshot = NewProviderSnapshotForFundingStream();
+            FundingDataZoneProvider expectedProviderOne = NewFundingDataZoneProvider();
+            FundingDataZoneProvider expectedProviderTwo = NewFundingDataZoneProvider();
 
-            Message message = CreateMessage(jobId, specificationId, fundingStreamId, providerSnapshotId);
-            ProviderSnapshot providerSnapshot = CreateProviderSnapshot(fundingStreamId, providerSnapshotId);
-            string providerVersionId = $"{fundingStreamId}-{providerSnapshot.TargetDate:yyyy}-{providerSnapshot.TargetDate:MM}-{providerSnapshot.TargetDate:dd}-{providerSnapshotId}";
-            string errorMessage = $"Failed to upload provider version {providerVersionId}. ProviderVersion alreay exists for - {providerVersionId}";
+            GivenTheProviderSnapshotForTheFundingStream(providerSnapshot);
+            AndTheFundingDataZoneProvidersForTheSnapshot(providerSnapshot.ProviderSnapshotId, expectedProviderOne, expectedProviderTwo);
 
-            _fundingDataZoneApiClient.GetProviderSnapshotsForFundingStream(Arg.Is(fundingStreamId))
-                .Returns(new ApiResponse<IEnumerable<ProviderSnapshot>>(HttpStatusCode.OK, new[] { providerSnapshot }));
-            _providerVersionService.Exists(providerVersionId)
-                .Returns(false);
-            _fundingDataZoneApiClient.GetProvidersInSnapshot(Arg.Is(providerSnapshotId))
-                .Returns(new ApiResponse<IEnumerable<Provider>>(HttpStatusCode.OK, new[] { CreateFdzProvider(), CreateFdzProvider() }));
-            _providerVersionService.UploadProviderVersion(Arg.Is(providerVersionId), Arg.Is<ProviderVersionViewModel>(_ => _.Name == providerSnapshot.Name))
-                .Returns((false, new ConflictResult()));
+            string providerVersionId = GetProviderVersionIdFromSnapshot(providerSnapshot);
 
-            _specificationsApiClient.SetProviderVersion(Arg.Is(specificationId), Arg.Is(providerVersionId))
-                .Returns(HttpStatusCode.OK);
+            AndSettingTheProviderVersionForTheSpecificationSucceeds(providerVersionId);
+            AndTheProviderVersionUploadFails(providerVersionId, new ConflictResult(), expectedProviderOne.ProviderId, expectedProviderTwo.ProviderId);
 
-            // Act
-            Func<Task> invocation = async () => await _service.LoadProviderSnapshotData(message);
+            Func<Task> invocation = async () => await WhenTheProviderSnapshotDataIsLoaded(NewValidMessage());
 
-            // Assert
             invocation
-               .Should()
-               .ThrowExactly<Exception>()
-               .Which
-               .Message
-               .Should()
-               .Be(errorMessage);
+                .Should()
+                .ThrowExactly<Exception>()
+                .Which
+                .Message
+                .Should()
+                .Be($"Failed to upload provider version {providerVersionId}. ProviderVersion alreay exists for - {providerVersionId}");
         }
 
         [TestMethod]
         public void ShouldProviderVersionFDZProvidersThrowsExceptionWhenSetProviderVersionReturnsError()
         {
-            // Arrange
-            ILogger logger = CreateLogger();
-            string specificationId = NewRandomString();
-            string fundingStreamId = NewRandomString();
-            string jobId = NewRandomString();
-            int providerSnapshotId = NewRandomInt();
+            ProviderSnapshot providerSnapshot = NewProviderSnapshotForFundingStream();
+            FundingDataZoneProvider expectedProviderOne = NewFundingDataZoneProvider();
+            FundingDataZoneProvider expectedProviderTwo = NewFundingDataZoneProvider();
 
-            Message message = CreateMessage(jobId, specificationId, fundingStreamId, providerSnapshotId);
-            ProviderSnapshot providerSnapshot = CreateProviderSnapshot(fundingStreamId, providerSnapshotId);
-            string providerVersionId = $"{fundingStreamId}-{providerSnapshot.TargetDate:yyyy}-{providerSnapshot.TargetDate:MM}-{providerSnapshot.TargetDate:dd}-{providerSnapshotId}";
-            string errorMessage = $"Unable to update the specification - {specificationId}, with provider version id  - {providerVersionId}. HttpStatusCode - {HttpStatusCode.BadRequest}";
+            GivenTheProviderSnapshotForTheFundingStream(providerSnapshot);
+            AndTheFundingDataZoneProvidersForTheSnapshot(providerSnapshot.ProviderSnapshotId, expectedProviderOne, expectedProviderTwo);
 
-            _fundingDataZoneApiClient.GetProviderSnapshotsForFundingStream(Arg.Is(fundingStreamId))
-                .Returns(new ApiResponse<IEnumerable<ProviderSnapshot>>(HttpStatusCode.OK, new[] { providerSnapshot }));
-            _providerVersionService.Exists(providerVersionId)
-                .Returns(false);
-            _fundingDataZoneApiClient.GetProvidersInSnapshot(Arg.Is(providerSnapshotId))
-                .Returns(new ApiResponse<IEnumerable<Provider>>(HttpStatusCode.OK, new[] { CreateFdzProvider(), CreateFdzProvider() }));
-            _providerVersionService.UploadProviderVersion(Arg.Is(providerVersionId), Arg.Is<ProviderVersionViewModel>(_ => _.Name == providerSnapshot.Name))
-                .Returns((true, null));
+            string providerVersionId = GetProviderVersionIdFromSnapshot(providerSnapshot);
 
-            _specificationsApiClient.SetProviderVersion(Arg.Is(specificationId), Arg.Is(providerVersionId))
-                .Returns(HttpStatusCode.BadRequest);
+            AndSettingTheProviderVersionForTheSpecificationFails(providerVersionId);
+            AndTheProviderVersionUploadSucceeds(providerVersionId, null, expectedProviderOne.ProviderId, expectedProviderTwo.ProviderId);
 
-            // Act
-            Func<Task> invocation = async () => await _service.LoadProviderSnapshotData(message);
+            Func<Task> invocation = async () => await WhenTheProviderSnapshotDataIsLoaded(NewValidMessage());
 
-            // Assert
             invocation
-               .Should()
-               .ThrowExactly<Exception>()
-               .Which
-               .Message
-               .Should()
-               .Be(errorMessage);
+                .Should()
+                .ThrowExactly<Exception>()
+                .Which
+                .Message
+                .Should()
+                .Be($"Unable to update the specification - {_specificationId}, with provider version id  - {providerVersionId}. HttpStatusCode - {HttpStatusCode.BadRequest}");
         }
+
 
         [TestMethod]
-        public async Task ShouldThrowAnExceptionIfAnyMapFdzDatasetsJobFailedToQueue()
+        public void ShouldThrowAnExceptionIfAnyMapFdzDatasetsJobFailedToQueue()
         {
-            // Arrange
-            string specificationId = NewRandomString();
-            string fundingStreamId = NewRandomString();
-            string jobId = NewRandomString();
-            int providerSnapshotId = NewRandomInt();
-            string errorMessage = $"Failed to queue MapFdzDatasetsJob for specification - {specificationId}";
+            ProviderSnapshot providerSnapshot = NewProviderSnapshotForFundingStream();
+            FundingDataZoneProvider expectedProviderOne = NewFundingDataZoneProvider();
+            FundingDataZoneProvider expectedProviderTwo = NewFundingDataZoneProvider();
 
-            Message message = CreateMessage(jobId, specificationId, fundingStreamId, providerSnapshotId);
-            ProviderSnapshot providerSnapshot = CreateProviderSnapshot(fundingStreamId, providerSnapshotId);
-            string providerVersionId = $"{fundingStreamId}-{providerSnapshot.TargetDate:yyyy}-{providerSnapshot.TargetDate:MM}-{providerSnapshot.TargetDate:dd}-{providerSnapshotId}";
+            GivenTheProviderSnapshotForTheFundingStream(providerSnapshot);
+            AndTheFundingDataZoneProvidersForTheSnapshot(providerSnapshot.ProviderSnapshotId, expectedProviderOne, expectedProviderTwo);
 
-            _fundingDataZoneApiClient.GetProviderSnapshotsForFundingStream(Arg.Is(fundingStreamId))
-                .Returns(new ApiResponse<IEnumerable<ProviderSnapshot>>(HttpStatusCode.OK, new[] { providerSnapshot }));
-            _providerVersionService.Exists(providerVersionId)
-                .Returns(true);
-            _specificationsApiClient.SetProviderVersion(Arg.Is(specificationId), Arg.Is(providerVersionId))
-                .Returns(HttpStatusCode.OK);
+            string providerVersionId = GetProviderVersionIdFromSnapshot(providerSnapshot);
 
-            _jobManagement.QueueJob(Arg.Is<JobCreateModel>(_ => _.JobDefinitionId == JobConstants.DefinitionNames.MapFdzDatasetsJob
-                                                             && _.SpecificationId == specificationId
-                                                             && _.Properties.ContainsKey("specification-id")
-                                                             && _.Properties["specification-id"] == specificationId))
-                .Returns<Task<Job>>(a => { throw new Exception(errorMessage); });
+            AndSettingTheProviderVersionForTheSpecificationSucceeds(providerVersionId);
+            AndTheProviderVersionUploadSucceeds(providerVersionId, null, expectedProviderOne.ProviderId, expectedProviderTwo.ProviderId);
 
-            // Act
-            // Act
-            Func<Task> invocation = async () => await _service.LoadProviderSnapshotData(message);
+            string expectedExceptionMessage = NewRandomString();
 
-            // Assert
+            AndTheJobCreationThrowsAnException(expectedExceptionMessage);
+
+            Func<Task> invocation = async () => await WhenTheProviderSnapshotDataIsLoaded(NewValidMessage());
+
             invocation
-               .Should()
-               .ThrowExactly<Exception>()
-               .Which
-               .Message
-               .Should()
-               .Be(errorMessage);
+                .Should()
+                .ThrowExactly<Exception>()
+                .Which
+                .Message
+                .Should()
+                .Be(expectedExceptionMessage);
         }
 
-        private static Message CreateMessage(string jobId, string specificationId, string fundingStreamId, int providerSnapshotId)
-        {
-            Message message = new Message();
-            message.UserProperties.Add("jobId", jobId);
-            message.UserProperties.Add("specification-id", specificationId);
-            message.UserProperties.Add("fundingstream-id", fundingStreamId);
-            message.UserProperties.Add("providerSanpshot-id", providerSnapshotId.ToString());
+        private async Task WhenTheProviderSnapshotDataIsLoaded(Message message)
+            => await _service.LoadProviderSnapshotData(message);
 
-            return message;
+        private void GivenTheProviderSnapshotForTheFundingStream(ProviderSnapshot providerSnapshot)
+            => _fundingDataZone.Setup(_ => _.GetProviderSnapshotsForFundingStream(_fundingStreamId))
+                .ReturnsAsync(new ApiResponse<IEnumerable<ProviderSnapshot>>(HttpStatusCode.OK,
+                    new[]
+                    {
+                        providerSnapshot
+                    }));
+
+        private void AndTheFundingDataZoneProvidersForTheSnapshot(int providerSnapshotId,
+            params FundingDataZoneProvider[] providers)
+            => _fundingDataZone.Setup(_ => _.GetProvidersInSnapshot(providerSnapshotId))
+                .ReturnsAsync(new ApiResponse<IEnumerable<FundingDataZoneProvider>>(HttpStatusCode.OK, providers));
+
+        private void AndSettingTheProviderVersionForTheSpecificationSucceeds(string providerVersionId)
+            => SetUpSetProviderVersion(providerVersionId, HttpStatusCode.OK);
+
+        private void AndSettingTheProviderVersionForTheSpecificationFails(string providerVersionId)
+            => SetUpSetProviderVersion(providerVersionId, HttpStatusCode.BadRequest);
+
+        private void SetUpSetProviderVersion(string providerVersionId,
+            HttpStatusCode statusCode)
+        {
+            _specifications.Setup(_ => _.SetProviderVersion(_specificationId, providerVersionId))
+                .ReturnsAsync(statusCode)
+                .Verifiable();
         }
 
-        private static ProviderSnapshot CreateProviderSnapshot(string fundingStreamId, int providerSnapshotId)
+
+        private void AndTheProviderVersionUploadSucceeds(string providerVersionId,
+            IActionResult actionResult = null,
+            params string[] providerIds)
+            => SetupProviderVersionUpload(providerVersionId, providerIds, true, actionResult);
+
+        private void AndTheProviderVersionUploadFails(string providerVersionId,
+            IActionResult actionResult = null,
+            params string[] providerIds)
+            => SetupProviderVersionUpload(providerVersionId, providerIds, false, actionResult);
+
+        private void SetupProviderVersionUpload(string providerVersionId,
+            string[] providerIds,
+            bool success,
+            IActionResult actionResult)
         {
-            return new ProviderSnapshot()
-            {
-                Name = NewRandomString(),
-                TargetDate = NewRandomDate(),
-                FundingStreamCode = fundingStreamId,
-                ProviderSnapshotId = providerSnapshotId
-            };
+            _providerVersionService.Setup(_ => _.UploadProviderVersion(providerVersionId,
+                    It.Is<ProviderVersionViewModel>(pv
+                        => pv.Providers.Select(p => p.ProviderId).SequenceEqual(providerIds))))
+                .ReturnsAsync((success, actionResult))
+                .Verifiable();
         }
 
-        private static Provider CreateFdzProvider()
+        private void AndTheJobCreationThrowsAnException(string expectedMessage)
+            => _jobs.Setup(_ => _.QueueJob(It.IsAny<JobCreateModel>()))
+                .Throws(new Exception(expectedMessage));
+
+        private void ThenTheProviderVersionWasSetOnTheSpecification()
+            => _specifications
+                .Verify();
+
+        private void AndTheProviderVersionsWereUploaded()
+            => _providerVersionService
+                .Verify();
+
+        private void AndAMapFdzDatasetsJobWasQueued()
+            => _jobs.Verify(_ => _.QueueJob(It.Is<JobCreateModel>(job => job.JobDefinitionId == JobConstants.DefinitionNames.MapFdzDatasetsJob
+                                                                         && job.SpecificationId == _specificationId
+                                                                         && job.Properties.ContainsKey(SpecificationId)
+                                                                         && job.Properties[SpecificationId] == _specificationId)),
+                Times.Once);
+
+        private static string GetProviderVersionIdFromSnapshot(ProviderSnapshot providerSnapshot) =>
+            $"{providerSnapshot.FundingStreamCode}-{providerSnapshot.TargetDate:yyyy}-{providerSnapshot.TargetDate:MM}-{providerSnapshot.TargetDate:dd}-{providerSnapshot.ProviderSnapshotId}";
+
+        private Message NewValidMessage(Action<MessageBuilder> overrides = null)
         {
-            return new Provider() { Name = NewRandomString() };
+            MessageBuilder messageBuilder = new MessageBuilder()
+                .WithUserProperty(JobId, _jobId)
+                .WithUserProperty(SpecificationId, _specificationId)
+                .WithUserProperty(FundingStreamId, _fundingStreamId)
+                .WithUserProperty(ProviderSnapshotId, _providerSnapshotId.ToString());
+
+            overrides?.Invoke(messageBuilder);
+
+            return messageBuilder.Build();
         }
 
-        private async Task WhenLoadProviderSnapshotDataAreApplied(Message message)
+        private ProviderSnapshot NewProviderSnapshotForFundingStream(Action<ProviderSnapshotBuilder> overrides = null)
         {
-            await _service.LoadProviderSnapshotData(message);
+            ProviderSnapshotBuilder providerSnapshotBuilder = new ProviderSnapshotBuilder()
+                .WithId(_providerSnapshotId)
+                .WithFundingStreamCode(_fundingStreamId);
+
+            overrides?.Invoke(providerSnapshotBuilder);
+
+            return providerSnapshotBuilder.Build();
         }
 
-        private static ILogger CreateLogger()
+        private FundingDataZoneProvider NewFundingDataZoneProvider(Action<FundingDataZoneProviderBuilder> setUp = null)
         {
-            return Substitute.For<ILogger>();
+            FundingDataZoneProviderBuilder fundingDataZoneProviderBuilder = new FundingDataZoneProviderBuilder();
+
+            setUp?.Invoke(fundingDataZoneProviderBuilder);
+
+            return fundingDataZoneProviderBuilder.Build();
         }
 
         private static string NewRandomString() => new RandomString();
-        private static int NewRandomInt() => new RandomNumberBetween(1, 100000);
-        private static DateTime NewRandomDate() => new RandomDateTime();
+
+        private static int NewRandomInt() => new RandomNumberBetween(1, int.MaxValue);
     }
 }

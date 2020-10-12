@@ -111,7 +111,9 @@ namespace CalculateFunding.Services.Providers
                 if(!success)
                 {
                     string errorMessage = $"Failed to upload provider version {providerVersionId}. {GetErrorMessage(actionResult, providerVersionId)}";
+                    
                     _logger.Error(errorMessage);
+                    
                     throw new Exception(errorMessage);
                 }
             }
@@ -121,7 +123,9 @@ namespace CalculateFunding.Services.Providers
             if(!httpStatusCode.IsSuccess())
             {
                 string errorMessage = $"Unable to update the specification - {specificationId}, with provider version id  - {providerVersionId}. HttpStatusCode - {httpStatusCode}";
+                
                 _logger.Error(errorMessage);
+                
                 throw new Exception(errorMessage);
             }
 
@@ -147,7 +151,7 @@ namespace CalculateFunding.Services.Providers
 
             try
             {
-                Job mapFdzDatasetsJob = await _jobManagement.QueueJob(mapFdzDatasetsJobCreateModel);
+                await _jobManagement.QueueJob(mapFdzDatasetsJobCreateModel);
             }
             catch (Exception ex)
             {

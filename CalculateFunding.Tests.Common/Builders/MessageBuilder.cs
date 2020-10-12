@@ -3,12 +3,20 @@ using System.Linq;
 using CalculateFunding.Tests.Common.Helpers;
 using Microsoft.Azure.ServiceBus;
 
-namespace CalculateFunding.Services.Results.UnitTests
+namespace CalculateFunding.Tests.Common.Builders
 {
     public class MessageBuilder : TestEntityBuilder
     {
-        private ICollection<(string key, string value)> _properties = new List<(string key, string value)>();
+        private readonly ICollection<(string key, string value)> _properties = new List<(string key, string value)>();
         private byte[] _messageBody;
+
+        public MessageBuilder WithoutUserProperty(string key)
+        {
+            _properties.Remove(_properties.First(_ => _.key == key));
+
+            return this;
+        }
+
 
         public MessageBuilder WithMessageBody(byte[] messageBody)
         {
