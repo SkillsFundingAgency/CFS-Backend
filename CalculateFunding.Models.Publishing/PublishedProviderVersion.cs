@@ -243,6 +243,28 @@ namespace CalculateFunding.Models.Publishing
             });
         }
 
+        public void RemoveCarryOver(string fundingLineCode, ProfilingCarryOverType type)
+        {
+            if (type == ProfilingCarryOverType.Undefined)
+            {
+                throw new ArgumentOutOfRangeException(nameof(type), $"Unsupported {nameof(ProfilingCarryOverType)}");
+            }
+
+            if (string.IsNullOrWhiteSpace(fundingLineCode))
+            {
+                throw new ArgumentOutOfRangeException(nameof(fundingLineCode), fundingLineCode, "Funding Line Id cannot be missing");
+            }
+
+            CarryOvers ??= new List<ProfilingCarryOver>();
+
+            List<ProfilingCarryOver> carryOvers = CarryOvers.Where(s => s.FundingLineCode == fundingLineCode).ToList();
+
+            if (carryOvers.Any())
+            {
+                carryOvers.ForEach(_ => CarryOvers.Remove(_));
+            }
+        }
+
         public void AddProfilingAudit(string fundingLineCode, Reference user)
         {
             if (string.IsNullOrWhiteSpace(fundingLineCode))
