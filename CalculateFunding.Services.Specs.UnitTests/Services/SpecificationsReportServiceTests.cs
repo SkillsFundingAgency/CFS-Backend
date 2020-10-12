@@ -56,6 +56,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         [DataRow(JobType.CurrentOrganisationGroupValues, ReportCategory.History, null)]
         [DataRow(JobType.HistoryOrganisationGroupValues, ReportCategory.History, null)]
         [DataRow(JobType.HistoryPublishedProviderEstate, ReportCategory.History, null)]
+        [DataRow(JobType.PublishedGroups, ReportCategory.History, null)]
         [DataRow(JobType.CalcResult, ReportCategory.Live, null)]
         [DataRow((JobType)int.MaxValue, ReportCategory.Undefined, null)]
         public void GetReportMetadata_GivenSpecificationIdWithBlobs_ReturnsReportMetadata(JobType jobType,

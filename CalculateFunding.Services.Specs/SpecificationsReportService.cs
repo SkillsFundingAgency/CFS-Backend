@@ -149,7 +149,8 @@ namespace CalculateFunding.Services.Specs
                               type ==  JobType.CurrentState ||
                               type ==  JobType.CurrentOrganisationGroupValues ||
                               type ==  JobType.HistoryOrganisationGroupValues ||
-                              type ==  JobType.HistoryPublishedProviderEstate) => ReportCategory.History,
+                              type ==  JobType.HistoryPublishedProviderEstate ||
+                              type == JobType.PublishedGroups) => ReportCategory.History,
                 JobType.CalcResult => ReportCategory.Live,
                 _ => ReportCategory.Undefined
             };
