@@ -407,7 +407,7 @@ namespace CalculateFunding.Services.Datasets
 
             if (jobResponse == null)
             {
-                string errorMessage = $"Error occurred while retireving the job. JobId {jobId}";
+                string errorMessage = $"Error occurred while retrieving the job. JobId {jobId}";
                 _logger.Error(errorMessage);
                 throw new Exception(errorMessage);
             }

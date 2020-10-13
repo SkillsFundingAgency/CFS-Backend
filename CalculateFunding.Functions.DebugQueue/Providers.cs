@@ -54,5 +54,20 @@ namespace CalculateFunding.Functions.DebugQueue
                 log.LogInformation($"C# Queue trigger function processed: {item}");
             }
         }
+
+        [FunctionName(FunctionConstants.ProviderSnapshotDataLoadPoisoned)]
+        public static async Task RunOnProviderSnapshotDataLoadEventTriggerFailure([QueueTrigger(ServiceBusConstants.QueueNames.ProviderSnapshotDataLoadPoisonedLocal, Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using (IServiceScope scope = Functions.Providers.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
+            {
+                Message message = Helpers.ConvertToMessage<string>(item);
+
+                OnProviderSnapshotDataLoadEventTriggerFailure function = scope.ServiceProvider.GetService<OnProviderSnapshotDataLoadEventTriggerFailure>();
+
+                await function.Run(message);
+
+                log.LogInformation($"C# Queue trigger function processed: {item}");
+            }
+        }
     }
 }

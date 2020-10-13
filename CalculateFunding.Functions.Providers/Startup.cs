@@ -63,6 +63,7 @@ namespace CalculateFunding.Functions.Providers
                 builder.AddScoped<OnPopulateScopedProvidersEventTrigger>();
                 builder.AddScoped<OnPopulateScopedProvidersEventTriggerFailure>();
                 builder.AddScoped<OnProviderSnapshotDataLoadEventTrigger>();
+                builder.AddScoped<OnProviderSnapshotDataLoadEventTriggerFailure>();
             }
 
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();

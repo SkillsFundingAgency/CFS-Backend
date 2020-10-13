@@ -11,6 +11,7 @@ using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Models.Providers.ViewModels;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Providers.Interfaces;
 using CalculateFunding.Tests.Common.Builders;
@@ -23,7 +24,6 @@ using Moq;
 using Polly;
 using Serilog.Core;
 using FundingDataZoneProvider = CalculateFunding.Common.ApiClient.FundingDataZone.Models.Provider;
-using ProvidersProvider = CalculateFunding.Models.Providers.Provider;
 
 namespace CalculateFunding.Services.Providers.UnitTests
 {
@@ -175,6 +175,35 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 .Be($"Unable to update the specification - {_specificationId}, with provider version id  - {providerVersionId}. HttpStatusCode - {HttpStatusCode.BadRequest}");
         }
 
+        [TestMethod]
+        public void ShouldThrowAnExceptionIfProviderSnapShotIdNotSet()
+        {
+            ProviderSnapshot providerSnapshot = NewProviderSnapshotForFundingStream();
+            FundingDataZoneProvider expectedProviderOne = NewFundingDataZoneProvider();
+            FundingDataZoneProvider expectedProviderTwo = NewFundingDataZoneProvider();
+
+            GivenTheProviderSnapshotForTheFundingStream(providerSnapshot);
+            AndTheFundingDataZoneProvidersForTheSnapshot(providerSnapshot.ProviderSnapshotId, expectedProviderOne, expectedProviderTwo);
+
+            string providerVersionId = GetProviderVersionIdFromSnapshot(providerSnapshot);
+
+            AndSettingTheProviderVersionForTheSpecificationSucceeds(providerVersionId);
+            AndTheProviderVersionUploadSucceeds(providerVersionId, null, expectedProviderOne.ProviderId, expectedProviderTwo.ProviderId);
+
+            string expectedExceptionMessage = "Invalid provider snapshot id";
+
+            AndTheJobCreationThrowsAnException(expectedExceptionMessage);
+
+            Func<Task> invocation = async () => await WhenTheProviderSnapshotDataIsLoaded(NewValidMessage(_ => _.WithoutUserProperty(ProviderSnapshotId)));
+
+            invocation
+                .Should()
+                .ThrowExactly<NonRetriableException>()
+                .Which
+                .Message
+                .Should()
+                .Be(expectedExceptionMessage);
+        }
 
         [TestMethod]
         public void ShouldThrowAnExceptionIfAnyMapFdzDatasetsJobFailedToQueue()

@@ -28,6 +28,8 @@
 
         public const string ProviderSnapshotDataLoad = "on-provider-snapshot-data-load";
 
+        public const string ProviderSnapshotDataLoadPoisoned = "on-provider-snapshot-data-load-poisoned";
+
         public const string MapFdzDatasets = "on-map-fdz-datasets";
     }
 }

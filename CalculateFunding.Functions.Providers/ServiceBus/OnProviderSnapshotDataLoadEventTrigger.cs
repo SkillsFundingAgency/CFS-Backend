@@ -9,6 +9,7 @@ using Serilog;
 using System;
 using System.Threading.Tasks;
 using CalculateFunding.Services.Providers.Interfaces;
+using CalculateFunding.Services.Core;
 
 namespace CalculateFunding.Functions.Providers.ServiceBus
 {
@@ -48,6 +49,10 @@ namespace CalculateFunding.Functions.Providers.ServiceBus
                 try
                 {
                     await _providerSnapshotDataLoadService.LoadProviderSnapshotData(message);
+                }
+                catch (NonRetriableException ex)
+                {
+                    _logger.Error(ex, $"Job threw non retriable exception: {QueueName}");
                 }
                 catch (Exception exception)
                 {

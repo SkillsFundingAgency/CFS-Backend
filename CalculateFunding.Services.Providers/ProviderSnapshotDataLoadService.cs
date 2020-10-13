@@ -22,6 +22,7 @@ using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Services.Core.Constants;
+using CalculateFunding.Services.Core;
 
 namespace CalculateFunding.Services.Providers
 {
@@ -91,9 +92,14 @@ namespace CalculateFunding.Services.Providers
             Reference user = message.GetUserDetails();
             string correlationId = message.GetCorrelationId();
 
+            await EnsureJobCanBeProcessed(jobId);
+
+            // Update job to set status to processing
+            await _jobManagement.UpdateJobStatus(jobId, 0, 0, null, null);
+
             if (string.IsNullOrWhiteSpace(providerSnapshotIdValue) || !int.TryParse(providerSnapshotIdValue, out int providerSnapshotId))
             {
-                throw new Exception($"Invalid provider snapshot id");
+                throw new NonRetriableException("Invalid provider snapshot id");
             }
 
             ProviderSnapshot providerSnapshot = await GetProviderSnapshot(fundingStreamId, providerSnapshotId);
@@ -106,26 +112,26 @@ namespace CalculateFunding.Services.Providers
                 IEnumerable<Common.ApiClient.FundingDataZone.Models.Provider> fdzProviders = await GetProvidersInSnapshot(providerSnapshotId);
 
                 ProviderVersionViewModel providerVersionViewModel = CreateProviderVersionViewModel(fundingStreamId, providerVersionId, providerSnapshot, fdzProviders);
-               (bool success, IActionResult actionResult) = await _providerVersionService.UploadProviderVersion(providerVersionId, providerVersionViewModel);
+                (bool success, IActionResult actionResult) = await _providerVersionService.UploadProviderVersion(providerVersionId, providerVersionViewModel);
 
-                if(!success)
+                if (!success)
                 {
                     string errorMessage = $"Failed to upload provider version {providerVersionId}. {GetErrorMessage(actionResult, providerVersionId)}";
-                    
+
                     _logger.Error(errorMessage);
-                    
+
                     throw new Exception(errorMessage);
                 }
             }
 
             HttpStatusCode httpStatusCode = await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.SetProviderVersion(specificationId, providerVersionId));
 
-            if(!httpStatusCode.IsSuccess())
+            if (!httpStatusCode.IsSuccess())
             {
                 string errorMessage = $"Unable to update the specification - {specificationId}, with provider version id  - {providerVersionId}. HttpStatusCode - {httpStatusCode}";
-                
+
                 _logger.Error(errorMessage);
-                
+
                 throw new Exception(errorMessage);
             }
 
@@ -144,9 +150,9 @@ namespace CalculateFunding.Services.Providers
                 SpecificationId = specificationId,
                 CorrelationId = correlationId,
                 Properties = new Dictionary<string, string>
-                    {
-                        {"specification-id", specificationId}
-                    }
+                {
+                    {"specification-id", specificationId}
+                }
             };
 
             try
@@ -158,6 +164,23 @@ namespace CalculateFunding.Services.Providers
                 string errorMessage = $"Failed to queue MapFdzDatasetsJob for specification - {specificationId}";
                 _logger.Error(ex, errorMessage);
                 throw;
+            }
+
+            await _jobManagement.UpdateJobStatus(jobId, 0, 0, true, null);
+        }
+
+        private async Task EnsureJobCanBeProcessed(string jobId)
+        {
+            try
+            {
+                await _jobManagement.RetrieveJobAndCheckCanBeProcessed(jobId);
+            }
+            catch
+            {
+                string errorMessage = "Job can not be run";
+                _logger.Error(errorMessage);
+
+                throw new NonRetriableException(errorMessage);
             }
         }
 

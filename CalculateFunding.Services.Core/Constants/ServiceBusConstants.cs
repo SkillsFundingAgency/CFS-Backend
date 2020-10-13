@@ -151,6 +151,10 @@
 
             public const string ProviderSnapshotDataLoad = "provider-snapshot-data-load";
 
+            public const string ProviderSnapshotDataLoadPoisoned = "provider-snapshot-data-load/$DeadLetterQueue";
+
+            public const string ProviderSnapshotDataLoadPoisonedLocal = "provider-snapshot-data-load-poisoned";
+
             public const string UpdateCodeContextCache = "code-context-update";
             
             public const string UpdateCodeContextCachePoisoned = "code-context-update/$DeadLetterQueue";
