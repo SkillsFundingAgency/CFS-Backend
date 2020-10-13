@@ -17,7 +17,7 @@
     <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="5.8.0" />
 
     <PackageReference Include="CalculateFunding.Common.ApiClient.Results" Version="5.0.0" />
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="6.14.0" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="6.15.0" />
     <PackageReference Include="CalculateFunding.Common.Storage" Version="2.0.1" />
     <PackageReference Include="CalculateFunding.Common.JobManagement" Version="4.3.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
