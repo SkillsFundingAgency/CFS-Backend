@@ -13,6 +13,7 @@ namespace CalculateFunding.Services.Results.Interfaces
 {
     public interface ICalculationResultsRepository
     {
+        Task<ProviderResult> GetProviderResultById(string providerResultId);
         Task<ProviderResult> GetProviderResult(string providerId, string specificationId);
         Task<ProviderResult> GetProviderResultByCalculationType(string providerId, string specificationId, CalculationType calculationType);
         Task<IEnumerable<ProviderResult>> GetSpecificationResults(string providerId);

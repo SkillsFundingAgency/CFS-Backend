@@ -164,6 +164,8 @@
             public const string UpdateCodeContextCachePoisoned = "code-context-update/$DeadLetterQueue";
             
             public const string UpdateCodeContextCachePoisonedLocal = "code-context-update-poisoned";
+
+            public const string SearchIndexWriter = "search-index-writer";
         }
 
         public static class TopicNames

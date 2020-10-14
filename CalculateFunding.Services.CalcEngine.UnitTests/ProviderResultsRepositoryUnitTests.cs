@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Results;
 using CalculateFunding.Common.ApiClient.Results.Models;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Repositories.Common.Search;
@@ -13,10 +15,12 @@ using CalculateFunding.Services.CalcEngine;
 using CalculateFunding.Services.CalcEngine.Caching;
 using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Services.CalcEngine.UnitTests;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Tests.Common.Helpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
 using CalculationResult = CalculateFunding.Models.Calcs.CalculationResult;
@@ -31,11 +35,15 @@ namespace CalculateFunding.Services.Calculator
     public class ProviderResultsRepositoryUnitTests
     {
         private IResultsApiClient _resultsApiClient;
+        private Reference _user;
+        private string _correlationId;
 
         [TestInitialize]
         public void SetUp()
         {
             _resultsApiClient = Substitute.For<IResultsApiClient>();
+            _user = new Reference("test-user-id", "test-user-name");
+            _correlationId = Guid.NewGuid().ToString();
         }
 
         [TestMethod]
@@ -93,7 +101,7 @@ namespace CalculateFunding.Services.Calculator
             };
 
             // Act
-            await repo.SaveProviderResults(results, specificationSummary, 1, 1);
+            await repo.SaveProviderResults(results, specificationSummary, 1, 1, _user, _correlationId);
 
             // Assert
             await cosmosRepository.Received().BulkUpsertAsync(Arg.Is<IEnumerable<KeyValuePair<string, ProviderResult>>>(r => r.Count() == 1),
@@ -161,7 +169,7 @@ namespace CalculateFunding.Services.Calculator
             };
 
             // Act
-            await repo.SaveProviderResults(results, specificationSummary, 1, 1);
+            await repo.SaveProviderResults(results, specificationSummary, 1, 1, _user, _correlationId);
 
             // Assert
             await cosmosRepository.Received().BulkUpsertAsync(Arg.Is<IEnumerable<KeyValuePair<string, ProviderResult>>>(r => r.Count() == 1),
@@ -222,7 +230,7 @@ namespace CalculateFunding.Services.Calculator
             };
 
             // Act
-            await repo.SaveProviderResults(results, specificationSummary, 1, 1);
+            await repo.SaveProviderResults(results, specificationSummary, 1, 1, _user, _correlationId);
 
             // Assert
             await cosmosRepository.Received(0).BulkUpsertAsync(Arg.Is<IEnumerable<KeyValuePair<string, ProviderResult>>>(r => r.Count() == 1),
@@ -234,18 +242,23 @@ namespace CalculateFunding.Services.Calculator
         private static RandomString NewRandomString() => new RandomString();
 
         [TestMethod]
-        public async Task SaveProviderResults_WhenResultsAndIsNewProviderCalculationResultsIndexEnabled_ThenResultsSavedToSearch()
+        public async Task SaveProviderResults_WhenResultsAndIsNewProviderCalculationResultsIndexEnabled_ThenQueueSearchIndexWriterJob()
         {
             // Arrange
             ICosmosRepository cosmosRepository = CreateCosmosRepository();
             ISearchRepository<ProviderCalculationResultsIndex> searchRepository = CreateProviderCalculationResultsSearchRepository();
+            IJobManagement jobManagement = CreateJobManagement();
 
             IFeatureToggle featureToggle = CreateFeatureToggle();
             featureToggle
                 .IsNewProviderCalculationResultsIndexEnabled()
                 .Returns(true);
 
-            ProviderResultsRepository repo = CreateProviderResultsRepository(cosmosRepository, providerCalculationResultsSearchRepository: searchRepository, featureToggle: featureToggle);
+            ProviderResultsRepository repo = CreateProviderResultsRepository(
+                cosmosRepository, 
+                providerCalculationResultsSearchRepository: searchRepository, 
+                featureToggle: featureToggle,
+                jobManagement: jobManagement);
 
             SpecificationSummary specificationSummary = new SpecificationSummary
             {
@@ -314,36 +327,15 @@ namespace CalculateFunding.Services.Calculator
             };
 
             // Act
-            await repo.SaveProviderResults(results, specificationSummary, 1, 1);
+            await repo.SaveProviderResults(results, specificationSummary, 1, 1, _user, _correlationId);
 
             // Assert
-            await searchRepository.Received(1).Index(Arg.Is<IEnumerable<ProviderCalculationResultsIndex>>(r => r.Count() == 1));
-
-            await searchRepository.Received(1).Index(Arg.Is<IEnumerable<ProviderCalculationResultsIndex>>(r =>
-                r.First().SpecificationId == results.First().SpecificationId &&
-                r.First().SpecificationName == specificationSummary.Name &&
-                r.First().CalculationId.Any() &&
-                r.First().CalculationId.First() == results.First().CalculationResults.First().Calculation.Id &&
-                r.First().CalculationName.Any() &&
-                r.First().CalculationName.First() == results.First().CalculationResults.First().Calculation.Name &&
-                r.First().FundingLineId.Any() &&
-                r.First().FundingLineId.First() == results.First().FundingLineResults.First().FundingLine.Id &&
-                r.First().FundingLineName.Any() &&
-                r.First().FundingLineName.First() == results.First().FundingLineResults.First().FundingLine.Name &&
-                r.First().ProviderId == results.First().Provider.Id &&
-                r.First().ProviderName == results.First().Provider.Name &&
-                r.First().ProviderType == results.First().Provider.ProviderType &&
-                r.First().ProviderSubType == results.First().Provider.ProviderSubType &&
-                r.First().LocalAuthority == results.First().Provider.Authority &&
-                r.First().UKPRN == results.First().Provider.UKPRN &&
-                r.First().URN == results.First().Provider.URN &&
-                r.First().UPIN == results.First().Provider.UPIN &&
-                r.First().EstablishmentNumber == results.First().Provider.EstablishmentNumber &&
-                r.First().OpenDate == results.First().Provider.DateOpened &&
-                r.First().CalculationResult.Any() &&
-                r.First().CalculationResult.First() == results.First().CalculationResults.First().Value.ToString() &&
-                r.First().FundingLineResult.Any() &&
-                r.First().FundingLineResult.First() == results.First().FundingLineResults.First().Value.ToString()));
+            await jobManagement.Received(1).QueueJob(Arg.Is<JobCreateModel>(_ =>
+             _.JobDefinitionId == JobConstants.DefinitionNames.SearchIndexWriterJob &&
+             _.Properties["specification-id"] == specificationSummary.GetSpecificationId() &&
+             _.Properties["specification-name"] == specificationSummary.Name &&
+             _.Properties["index-writer-type"] == SearchIndexWriterTypes.ProviderCalculationResultsIndexWriter &&
+             _.MessageBody == JsonConvert.SerializeObject(results.Select(x => x.Provider.Id))));
 
             await _resultsApiClient.Received(1)
                 .QueueMergeSpecificationInformationJob(Arg.Is<MergeSpecificationInformationRequest>(_ =>
@@ -361,13 +353,19 @@ namespace CalculateFunding.Services.Calculator
             // Arrange
             ICosmosRepository cosmosRepository = CreateCosmosRepository();
             ISearchRepository<ProviderCalculationResultsIndex> searchRepository = CreateProviderCalculationResultsSearchRepository();
+            IJobManagement jobManagement = CreateJobManagement();
 
             IFeatureToggle featureToggle = CreateFeatureToggle();
             featureToggle
                 .IsNewProviderCalculationResultsIndexEnabled()
                 .Returns(true);
 
-            ProviderResultsRepository repo = CreateProviderResultsRepository(cosmosRepository, providerCalculationResultsSearchRepository: searchRepository, featureToggle: featureToggle);
+            ProviderResultsRepository repo = CreateProviderResultsRepository(
+                cosmosRepository, 
+                providerCalculationResultsSearchRepository: 
+                searchRepository, 
+                featureToggle: featureToggle,
+                jobManagement: jobManagement);
 
             SpecificationSummary specificationSummary = new SpecificationSummary
             {
@@ -416,7 +414,7 @@ namespace CalculateFunding.Services.Calculator
             };
 
             // Act
-            await repo.SaveProviderResults(results, specificationSummary, 1, 1);
+            await repo.SaveProviderResults(results, specificationSummary, 1, 1, _user, _correlationId);
 
             // Assert
             await cosmosRepository.Received().BulkUpsertAsync(Arg.Is<IEnumerable<KeyValuePair<string, ProviderResult>>>(r => r.Count() == 1),
@@ -424,31 +422,12 @@ namespace CalculateFunding.Services.Calculator
                 Arg.Any<bool>(),
                 Arg.Is<bool>(false));
 
-            await searchRepository.Received(1).Index(Arg.Is<IEnumerable<ProviderCalculationResultsIndex>>(r =>
-               r.First().SpecificationId == results.First().SpecificationId &&
-               r.First().SpecificationName == "Specification 1" &&
-               r.First().CalculationId.Any() &&
-               r.First().CalculationId.First() == results.First().CalculationResults.First().Calculation.Id &&
-               r.First().CalculationName.Any() &&
-               r.First().CalculationName.First() == results.First().CalculationResults.First().Calculation.Name &&
-               r.First().FundingLineId.Any() &&
-               r.First().FundingLineId.First() == results.First().FundingLineResults.First().FundingLine.Id &&
-               r.First().FundingLineName.Any() &&
-               r.First().FundingLineName.First() == results.First().FundingLineResults.First().FundingLine.Name &&
-               r.First().ProviderId == results.First().Provider.Id &&
-               r.First().ProviderName == results.First().Provider.Name &&
-               r.First().ProviderType == results.First().Provider.ProviderType &&
-               r.First().ProviderSubType == results.First().Provider.ProviderSubType &&
-               r.First().LocalAuthority == results.First().Provider.Authority &&
-               r.First().UKPRN == results.First().Provider.UKPRN &&
-               r.First().URN == results.First().Provider.URN &&
-               r.First().UPIN == results.First().Provider.UPIN &&
-               r.First().EstablishmentNumber == results.First().Provider.EstablishmentNumber &&
-               r.First().OpenDate == results.First().Provider.DateOpened &&
-               r.First().CalculationResult.Any() &&
-               r.First().CalculationResult.First() == "null" &&
-               r.First().FundingLineResult.Any() &&
-               r.First().FundingLineResult.First() == "null"));
+            await jobManagement.Received(1).QueueJob(Arg.Is<JobCreateModel>(_ => 
+            _.JobDefinitionId == JobConstants.DefinitionNames.SearchIndexWriterJob &&
+            _.Properties["specification-id"] == specificationSummary.GetSpecificationId() &&
+            _.Properties["specification-name"] == specificationSummary.Name &&
+            _.Properties["index-writer-type"] == SearchIndexWriterTypes.ProviderCalculationResultsIndexWriter &&
+            _.MessageBody == JsonConvert.SerializeObject(results.Select(x => x.Provider.Id))));
         }
 
         private ProviderResultsRepository CreateProviderResultsRepository(
@@ -458,7 +437,8 @@ namespace CalculateFunding.Services.Calculator
             ISearchRepository<ProviderCalculationResultsIndex> providerCalculationResultsSearchRepository = null,
             EngineSettings engineSettings = null,
             IProviderResultCalculationsHashProvider calculationsHashProvider = null,
-            ICalculatorResiliencePolicies calculatorResiliencePolicies = null) =>
+            ICalculatorResiliencePolicies calculatorResiliencePolicies = null,
+            IJobManagement jobManagement = null) =>
             new ProviderResultsRepository(
                 cosmosRepository ?? CreateCosmosRepository(),
                 logger ?? CreateLogger(),
@@ -467,7 +447,8 @@ namespace CalculateFunding.Services.Calculator
                 engineSettings ?? CreateEngineSettings(),
                 calculationsHashProvider ?? CreateCalcHashProvider(),
                 calculatorResiliencePolicies ?? CreateCalculatorResiliencePolicies(),
-                _resultsApiClient);
+                _resultsApiClient,
+                jobManagement ?? CreateJobManagement());
 
         private static ICalculatorResiliencePolicies CreateCalculatorResiliencePolicies()
         {
@@ -492,6 +473,11 @@ namespace CalculateFunding.Services.Calculator
         private static ICosmosRepository CreateCosmosRepository()
         {
             return Substitute.For<ICosmosRepository>();
+        }
+
+        private static IJobManagement CreateJobManagement()
+        {
+            return Substitute.For<IJobManagement>();
         }
 
         private static EngineSettings CreateEngineSettings()

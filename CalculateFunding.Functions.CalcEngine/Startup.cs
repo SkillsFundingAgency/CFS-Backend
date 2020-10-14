@@ -130,6 +130,8 @@ namespace CalculateFunding.Functions.CalcEngine
 
                 IResultsApiClient resultsApiClient = ctx.GetService<IResultsApiClient>();
 
+                IJobManagement jobManagement = ctx.GetService<IJobManagement>();
+
                 return new ProviderResultsRepository(
                     calcsCosmosRepostory,
                     logger,
@@ -138,7 +140,8 @@ namespace CalculateFunding.Functions.CalcEngine
                     engineSettings,
                     calculationsHashProvider,
                     calculatorResiliencePolicies,
-                    resultsApiClient);
+                    resultsApiClient,
+                    jobManagement);
             });
 
             builder

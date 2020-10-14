@@ -1,3 +1,7 @@
+﻿using CalculateFunding.Common.Models;
+using System;
+using System.Collections.Generic;
+using System.Text;
 ﻿using System.Collections.Generic;
 
 namespace CalculateFunding.Models.Calcs
@@ -13,10 +17,10 @@ namespace CalculateFunding.Models.Calcs
         public string SpecificationSummaryCacheKey { get; set; }
 
         public string CalculationsAggregationsBatchCacheKey { get; set; }
-       
+
         public int PartitionIndex { get; set; }
 
-        public int PartitionSize{ get; set; }
+        public int PartitionSize { get; set; }
 
         public int BatchCount { get; set; }
 
@@ -25,7 +29,12 @@ namespace CalculateFunding.Models.Calcs
         public IEnumerable<string> CalculationsToAggregate { get; set; }
 
         public bool GenerateCalculationAggregationsOnly { get; set; }
+
+        public Reference User { get; set; }
+
+        public string CorrelationId {get; set;}
         
         public string AssemblyETag { get; set; }
+
     }
 }

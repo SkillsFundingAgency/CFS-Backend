@@ -31,6 +31,7 @@ using CalculateFunding.Services.DeadletterProcessor;
 using CalculateFunding.Services.Results;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Results.Repositories;
+using CalculateFunding.Services.Results.SearchIndex;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -73,6 +74,7 @@ namespace CalculateFunding.Functions.Results
                 builder.AddScoped<OnMergeSpecificationInformationForProviderWithResults>();
                 builder.AddScoped<OnMergeSpecificationInformationForProviderWithResultsFailure>();
                 builder.AddScoped<OnDeleteCalculationResults>();
+                builder.AddScoped<OnSearchIndexWriterEventTrigger>();
             }
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
             builder.AddScoped<ISpecificationsWithProviderResultsService, SpecificationsWithProviderResultsService>();
@@ -93,6 +95,19 @@ namespace CalculateFunding.Functions.Results
             builder.AddTransient<IProviderResultsToCsvRowsTransformation, ProviderResultsToCsvRowsTransformation>();
             builder.AddSingleton<IFileSystemAccess, FileSystemAccess>();
             builder.AddSingleton<IFileSystemCacheSettings, FileSystemCacheSettings>();
+
+            builder
+                 .AddSingleton<ISearchIndexWriterSettings, SearchIndexWriterSettings>((ctx) =>
+                 {
+                     IConfigurationSection setttingConfig = config.GetSection("searchIndexWriterSettings");
+                     return new SearchIndexWriterSettings(setttingConfig);
+                 });
+
+            builder.AddScoped<ISearchIndexProcessorFactory, SearchIndexProcessorFactory>();
+            builder.AddScoped<ISearchIndexDataReader<string, ProviderResult>, ProviderCalculationResultsIndexDataReader>();
+            builder.AddScoped<ISearchIndexTrasformer<ProviderResult, ProviderCalculationResultsIndex>, ProviderCalculationResultsIndexTransformer>();
+            builder.AddScoped<ISearchIndexProcessor, ProviderCalculationResultsIndexProcessor>();
+            builder.AddScoped<ISearchIndexWriterService, SearchIndexWriterService>();
 
             builder.AddCaching(config);
 

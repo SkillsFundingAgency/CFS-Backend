@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
 
 namespace CalculateFunding.Services.CalcEngine.Interfaces
@@ -12,6 +13,8 @@ namespace CalculateFunding.Services.CalcEngine.Interfaces
             SpecificationSummary specificationSummary,
             int partitionIndex,
             int partitionSize,
+            Reference user,
+            string correlationId,
             int degreeOfParallelism = 5);
     }
 }

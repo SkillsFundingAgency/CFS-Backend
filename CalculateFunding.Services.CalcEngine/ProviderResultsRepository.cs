@@ -3,19 +3,23 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Results;
 using CalculateFunding.Common.ApiClient.Results.Models;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.CalcEngine.Caching;
 using CalculateFunding.Services.CalcEngine.Interfaces;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
+using Newtonsoft.Json;
 using Polly;
 using Serilog;
 using ProviderResult = CalculateFunding.Models.Calcs.ProviderResult;
@@ -32,6 +36,7 @@ namespace CalculateFunding.Services.CalcEngine
         private readonly IProviderResultCalculationsHashProvider _calculationsHashProvider;
         private readonly AsyncPolicy _resultsApiClientPolicy;
         private readonly IResultsApiClient _resultsApiClient;
+        private readonly IJobManagement _jobManagement;
 
         public ProviderResultsRepository(
             ICosmosRepository cosmosRepository,
@@ -41,7 +46,8 @@ namespace CalculateFunding.Services.CalcEngine
             EngineSettings engineSettings,
             IProviderResultCalculationsHashProvider calculationsHashProvider,
             ICalculatorResiliencePolicies calculatorResiliencePolicies,
-            IResultsApiClient resultsApiClient)
+            IResultsApiClient resultsApiClient,
+            IJobManagement jobManagement)
         {
             Guard.ArgumentNotNull(cosmosRepository, nameof(cosmosRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -52,6 +58,7 @@ namespace CalculateFunding.Services.CalcEngine
             Guard.ArgumentNotNull(calculatorResiliencePolicies, nameof(calculatorResiliencePolicies));
             Guard.ArgumentNotNull(resultsApiClient, nameof(resultsApiClient));
             Guard.ArgumentNotNull(calculatorResiliencePolicies.ResultsApiClient, nameof(calculatorResiliencePolicies.ResultsApiClient));
+            Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
 
             _cosmosRepository = cosmosRepository;
             _logger = logger;
@@ -61,6 +68,7 @@ namespace CalculateFunding.Services.CalcEngine
             _calculationsHashProvider = calculationsHashProvider;
             _resultsApiClient = resultsApiClient;
             _resultsApiClientPolicy = calculatorResiliencePolicies.ResultsApiClient;
+            _jobManagement = jobManagement;
         }
 
         public async Task<(long saveToCosmosElapsedMs, long saveToSearchElapsedMs, int savedProviders)> SaveProviderResults(
@@ -68,6 +76,8 @@ namespace CalculateFunding.Services.CalcEngine
             SpecificationSummary specificationSummary,
             int partitionIndex,
             int partitionSize,
+            Reference user,
+            string correlationId,
             int degreeOfParallelism = 5)
         {
             if (providerResults == null || providerResults.Count() == 0)
@@ -87,16 +97,64 @@ namespace CalculateFunding.Services.CalcEngine
             IEnumerable<KeyValuePair<string, ProviderResult>> results = providerResults.Select(m => new KeyValuePair<string, ProviderResult>(m.Provider.Id, m));
 
             Task<long> cosmosSaveTask = BulkSaveProviderResults(results, degreeOfParallelism);
-            Task<long> searchSaveTask = UpdateSearch(providerResults, specificationSummary);
+            Task<long> queueSearchWriterJobTask = QueueSearchIndexWriterJob(providerResults, specificationSummary, user, correlationId);
 
-            await TaskHelper.WhenAllAndThrow(cosmosSaveTask, searchSaveTask);
+            await TaskHelper.WhenAllAndThrow(cosmosSaveTask, queueSearchWriterJobTask);
 
             // Only save batch to redis if it has been saved successfully. This enables the message to be requeued for throttled scenarios and will resave to cosmos/search
             _calculationsHashProvider.EndBatch(batchSpecificationId, partitionIndex, partitionSize);
 
             await QueueMergeSpecificationJobsInBatches(providerResults, specificationSummary);
 
-            return (cosmosSaveTask.Result, searchSaveTask.Result, providerResults.Count());
+            return (cosmosSaveTask.Result, queueSearchWriterJobTask.Result, providerResults.Count());
+        }
+
+        private async Task<long> QueueSearchIndexWriterJob(IEnumerable<ProviderResult> providerResults, SpecificationSummary specificationSummary, Reference user,string correlationId)
+        {
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
+            string specificationId = specificationSummary.GetSpecificationId();
+            IEnumerable<string> providerIds = providerResults.Select(x => x.Provider?.Id).Where(x => !string.IsNullOrWhiteSpace(x)).ToArray();
+            if(!providerIds.Any())
+            {
+                return 0;
+            }
+
+            try
+            {
+                Job searchIndexWriterJob = await _jobManagement.QueueJob(
+                    new JobCreateModel()
+                    {
+                        Trigger = new Trigger
+                        {
+                            EntityId = specificationId,
+                            EntityType = "Specification",
+                            Message = "Write ProviderCalculationResultsIndex serach index for specification"
+                        },
+                        InvokerUserId = user.Id,
+                        InvokerUserDisplayName = user.Name,
+                        JobDefinitionId = JobConstants.DefinitionNames.SearchIndexWriterJob,
+                        ParentJobId = null,
+                        SpecificationId = specificationId,
+                        CorrelationId = correlationId,
+                        Properties = new Dictionary<string, string>
+                        {
+                            {"specification-id", specificationId},
+                            {"specification-name", specificationSummary.Name},
+                            {"index-writer-type", SearchIndexWriterTypes.ProviderCalculationResultsIndexWriter }
+                        },
+                        MessageBody = JsonConvert.SerializeObject(providerIds)
+                    });
+            }
+            catch (Exception ex)
+            {
+                string errorMessage = $"Failed to queue SearchIndexWriterJob for specification - {specificationId}";
+                _logger.Error(ex, errorMessage);
+                throw;
+            }
+
+            stopwatch.Stop();
+            return stopwatch.ElapsedMilliseconds;
         }
 
         private bool ResultsHaveChanged(ProviderResult providerResult, int partitionIndex, int partitionSize)
@@ -120,100 +178,6 @@ namespace CalculateFunding.Services.CalcEngine
 
             stopwatch.Stop();
 
-            return stopwatch.ElapsedMilliseconds;
-        }
-
-        private async Task<long> UpdateSearch(IEnumerable<ProviderResult> providerResults, SpecificationSummary specification)
-        {
-            Stopwatch assembleStopwatch = Stopwatch.StartNew();
-
-            List<ProviderCalculationResultsIndex> results = new List<ProviderCalculationResultsIndex>();
-
-            foreach (ProviderResult providerResult in providerResults)
-            {
-                if (!providerResult.CalculationResults.IsNullOrEmpty())
-                {
-                    ProviderCalculationResultsIndex providerCalculationResultsIndex = new ProviderCalculationResultsIndex
-                    {
-                        SpecificationId = providerResult.SpecificationId,
-                        SpecificationName = specification?.Name,
-                        ProviderId = providerResult.Provider?.Id,
-                        ProviderName = providerResult.Provider?.Name,
-                        ProviderType = providerResult.Provider?.ProviderType,
-                        ProviderSubType = providerResult.Provider?.ProviderSubType,
-                        LocalAuthority = providerResult.Provider?.Authority,
-                        LastUpdatedDate = DateTimeOffset.Now,
-                        UKPRN = providerResult.Provider?.UKPRN,
-                        URN = providerResult.Provider?.URN,
-                        UPIN = providerResult.Provider?.UPIN,
-                        EstablishmentNumber = providerResult.Provider?.EstablishmentNumber,
-                        OpenDate = providerResult.Provider?.DateOpened,
-                        CalculationId = providerResult.CalculationResults.Select(m => m.Calculation.Id).ToArraySafe(),
-                        CalculationName = providerResult.CalculationResults.Select(m => m.Calculation.Name).ToArraySafe(),
-                        CalculationResult = providerResult.CalculationResults.Select(m => !string.IsNullOrEmpty(m.Value?.ToString()) ? m.Value.ToString() : "null").ToArraySafe(),
-                    };
-
-                    if (providerResult.FundingLineResults != null)
-                    {
-                        providerCalculationResultsIndex.FundingLineName = providerResult.FundingLineResults.Select(m => m.FundingLine.Name).ToArraySafe();
-                        providerCalculationResultsIndex.FundingLineFundingStreamId = providerResult.FundingLineResults.Select(m => m.FundingLineFundingStreamId).ToArraySafe();
-                        providerCalculationResultsIndex.FundingLineId = providerResult.FundingLineResults.Select(m => m.FundingLine.Id).ToArraySafe();
-                        providerCalculationResultsIndex.FundingLineResult = providerResult.FundingLineResults.Select(m => !string.IsNullOrEmpty(m.Value?.ToString()) ? m.Value.ToString() : "null").ToArraySafe();
-                    }
-
-                    if (_featureToggle.IsExceptionMessagesEnabled())
-                    {
-                        providerCalculationResultsIndex.CalculationException = providerResult.CalculationResults
-                            .Where(m => !string.IsNullOrWhiteSpace(m.ExceptionType))
-                            .Select(e => e.Calculation.Id)
-                            .ToArraySafe();
-
-                        providerCalculationResultsIndex.CalculationExceptionType = providerResult.CalculationResults
-                            .Select(m => m.ExceptionType ?? string.Empty)
-                            .ToArraySafe();
-
-                        providerCalculationResultsIndex.CalculationExceptionMessage = providerResult.CalculationResults
-                            .Select(m => m.ExceptionMessage ?? string.Empty)
-                            .ToArraySafe();
-
-                        if (providerResult.FundingLineResults != null)
-                        {
-                            providerCalculationResultsIndex.FundingLineException = providerResult.FundingLineResults
-                            .Where(m => !string.IsNullOrWhiteSpace(m.ExceptionType))
-                            .Select(e => e.FundingLine.Id)
-                            .ToArraySafe();
-
-                            providerCalculationResultsIndex.FundingLineExceptionType = providerResult.FundingLineResults
-                                .Select(m => m.ExceptionType ?? string.Empty)
-                                .ToArraySafe();
-
-                            providerCalculationResultsIndex.FundingLineExceptionMessage = providerResult.FundingLineResults
-                                .Select(m => m.ExceptionMessage ?? string.Empty)
-                                .ToArraySafe();
-                        }
-                    }
-
-                    results.Add(providerCalculationResultsIndex);
-                }
-            }
-
-            assembleStopwatch.Stop();
-
-            Stopwatch stopwatch = Stopwatch.StartNew();
-
-            foreach (IEnumerable<ProviderCalculationResultsIndex> resultsBatch in results.ToBatches(_engineSettings.CalculationResultSearchIndexBatchSize))
-            {
-                IEnumerable<IndexError> indexErrors = await _providerCalculationResultsSearchRepository.Index(resultsBatch);
-                if (!indexErrors.IsNullOrEmpty())
-                {
-                    _logger.Error($"Failed to index provider results with the following errors: {string.Join(";", indexErrors.Select(m => m.ErrorMessage))}");
-
-                    // Throw exception so Service Bus message can be requeued and calc results can have a chance to get saved again
-                    throw new FailedToIndexSearchException(indexErrors);
-                }
-            }
-
-            stopwatch.Stop();
             return stopwatch.ElapsedMilliseconds;
         }
 

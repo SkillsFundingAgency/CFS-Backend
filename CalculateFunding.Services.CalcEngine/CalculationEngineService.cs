@@ -16,6 +16,7 @@ using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Aggregations;
@@ -222,7 +223,6 @@ namespace CalculateFunding.Services.CalcEngine
             }
 
             int totalProviderResults = 0;
-
             bool calculationResultsHaveExceptions = false;
 
             Dictionary<string, List<object>> cachedCalculationAggregationsBatch = CreateCalculationAggregateBatchDictionary(messageProperties);
@@ -548,8 +548,12 @@ namespace CalculateFunding.Services.CalcEngine
 
             properties.CalculationsToAggregate = message.UserProperties.ContainsKey("calculations-to-aggregate") && !string.IsNullOrWhiteSpace(message.UserProperties["calculations-to-aggregate"].ToString()) ? message.UserProperties["calculations-to-aggregate"].ToString().Split(',') : null;
 
-            properties.AssemblyETag = message.GetUserProperty<string>("assembly-etag");
-            
+
+            properties.User = message.GetUserDetails();
+            properties.CorrelationId = message.GetCorrelationId();
+
+            properties.AssemblyETag = message.GetUserProperty<string>("assembly-etag");            
+
             return properties;
         }
 
@@ -759,6 +763,8 @@ namespace CalculateFunding.Services.CalcEngine
                     specificationSummary,
                     messageProperties.PartitionIndex,
                     messageProperties.PartitionSize,
+                    messageProperties.User,
+                    messageProperties.CorrelationId,
                     _engineSettings.SaveProviderDegreeOfParallelism));
 
                 _logger.Information($"Saving results completeed for specification id {messageProperties.SpecificationId}");

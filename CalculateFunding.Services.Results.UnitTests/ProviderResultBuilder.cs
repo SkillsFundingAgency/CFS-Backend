@@ -11,6 +11,7 @@ namespace CalculateFunding.Services.Results.UnitTests
         private ProviderSummary _providerSummary;
         private IEnumerable<CalculationResult> _calculationResults;
         private IEnumerable<FundingLineResult> _fundingLineResults;
+        private string _specificationId;
 
         public ProviderResultBuilder WithProviderSummary(ProviderSummary providerSummary)
         {
@@ -33,10 +34,18 @@ namespace CalculateFunding.Services.Results.UnitTests
             return this;
         }
 
+        public ProviderResultBuilder WithSpecificationId(string specificationId)
+        {
+            _specificationId = specificationId;
+
+            return this;
+        }
+
         public ProviderResult Build()
         {
             return new ProviderResult
             {
+                SpecificationId = _specificationId,
                 Provider = _providerSummary,
                 CalculationResults =  _calculationResults?.ToList() ?? new List<CalculationResult>(),
                 FundingLineResults = _fundingLineResults?.ToList() ?? new List<FundingLineResult>()

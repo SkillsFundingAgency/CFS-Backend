@@ -339,5 +339,10 @@ namespace CalculateFunding.Services.Results.Repositories
         {
             return await _cosmosRepository.Query<ProviderResult>(x => x.Content.SpecificationId == specificationId);
         }
+
+        public async Task<ProviderResult> GetProviderResultById(string providerResultId)
+        {
+            return (await _cosmosRepository.ReadDocumentByIdAsync<ProviderResult>(providerResultId))?.Content;
+        }
     }
 }

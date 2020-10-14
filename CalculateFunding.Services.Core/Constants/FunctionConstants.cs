@@ -32,6 +32,9 @@
 
         public const string MapFdzDatasets = "on-map-fdz-datasets";
 
+        public const string SearchIndexWriter = "on-search-index-writer";
+
         public const string MapFdzDatasetsPoisoned = "on-map-fdz-datasets-poisoned";
+
     }
 }

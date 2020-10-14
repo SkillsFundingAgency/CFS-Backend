@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ServiceBus;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Functions.Calcs.ServiceBus;
 using CalculateFunding.Functions.Results.ServiceBus;
 using CalculateFunding.Functions.Results.Timer;
@@ -117,6 +118,23 @@ namespace CalculateFunding.Functions.DebugQueue
             await function.Run(timerInfo);
 
             log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
+
+        [FunctionName(FunctionConstants.SearchIndexWriter)]
+        public static async Task RunOnSearchIndexWriterEventTrigger([QueueTrigger(ServiceBusConstants.QueueNames.SearchIndexWriter, Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using (IServiceScope scope = Functions.Results.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
+            {
+                Message message = Helpers.ConvertToMessage<IEnumerable<string>>(item);
+
+                OnSearchIndexWriterEventTrigger function = scope.ServiceProvider.GetService<OnSearchIndexWriterEventTrigger>();
+
+                Guard.ArgumentNotNull(function, nameof(OnSearchIndexWriterEventTrigger));
+
+                await function.Run(message);
+
+                log.LogInformation($"C# Queue trigger function processed: {item}");
+            }
         }
     }
 }

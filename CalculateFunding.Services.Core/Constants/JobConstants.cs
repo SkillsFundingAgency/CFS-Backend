@@ -72,6 +72,8 @@
             public const string MergeSpecificationInformationForProviderJob = nameof(MergeSpecificationInformationForProviderJob);
 
             public const string UpdateCodeContextJob = nameof(UpdateCodeContextJob);
+
+            public const string SearchIndexWriterJob = nameof(SearchIndexWriterJob);
         }
 
         public static class NotificationChannels
