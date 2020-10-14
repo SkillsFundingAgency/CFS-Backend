@@ -56,6 +56,23 @@ namespace CalculateFunding.Functions.Datasets.SmokeTests
         }
 
         [TestMethod]
+        public async Task OnMapFdzDatasetsEventFired_SmokeTestSucceeds()
+        {
+            OnMapFdzDatasetsEventFired onMapFdzDatasetsEventFired = new OnMapFdzDatasetsEventFired(_logger,
+                _processDatasetService,
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                _userProfileProvider,
+                IsDevelopment);
+
+            SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.MapFdzDatasets,
+                (Message smokeResponse) => onMapFdzDatasetsEventFired.Run(smokeResponse), useSession: true);
+
+            response
+                .Should()
+                .NotBeNull();
+        }
+
+        [TestMethod]
         public async Task OnDatasetEventFired_SmokeTestSucceeds()
         {
             OnDatasetEvent onDatasetEvent = new OnDatasetEvent(_logger,
