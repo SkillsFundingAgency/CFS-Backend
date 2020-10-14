@@ -99,7 +99,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests
         private void GivenTheEtag(string specificationId,
             string etag)
             => _sourceCode.Setup(_ => _.GetAssemblyETag(specificationId))
-                .Returns(etag);
+                .ReturnsAsync(etag);
 
         private static string NewRandomString() => new RandomString();
     }

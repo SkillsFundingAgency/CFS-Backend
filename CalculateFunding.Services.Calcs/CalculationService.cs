@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
@@ -43,11 +42,9 @@ using CalculationResponseModel = CalculateFunding.Models.Calcs.CalculationRespon
 using Job = CalculateFunding.Common.ApiClient.Jobs.Models.Job;
 using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 using Trigger = CalculateFunding.Common.ApiClient.Jobs.Models.Trigger;
-using CalculateFunding.Models.Graph;
-using Microsoft.CodeAnalysis.CSharp;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
-using Microsoft.Spatial;
+using CalculateFunding.Common.ApiClient.Results;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -75,6 +72,8 @@ namespace CalculateFunding.Services.Calcs
         private readonly IValidator<CalculationCreateModel> _calculationCreateModelValidator;
         private readonly IPoliciesApiClient _policiesApiClient;
         private readonly Polly.AsyncPolicy _policiesApiClientPolicy;
+        private readonly IResultsApiClient _resultsApiClient;
+        private readonly Polly.AsyncPolicy _resultsApiClientPolicy;
         private readonly ISpecificationsApiClient _specificationsApiClient;
         private readonly Polly.AsyncPolicy _specificationsApiClientPolicy;
         private readonly IValidator<CalculationEditModel> _calculationEditModelValidator;
@@ -106,7 +105,8 @@ namespace CalculateFunding.Services.Calcs
             ICreateCalculationService createCalculationService,
             IGraphRepository graphRepository,
             IJobManagement jobManagement,
-            ICodeContextCache codeContextCache)
+            ICodeContextCache codeContextCache,
+            IResultsApiClient resultsApiClient)
         {
             Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -133,9 +133,11 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(resiliencePolicies?.BuildProjectRepositoryPolicy, nameof(resiliencePolicies.BuildProjectRepositoryPolicy));
             Guard.ArgumentNotNull(resiliencePolicies?.PoliciesApiClient, nameof(resiliencePolicies.PoliciesApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsApiClient, nameof(resiliencePolicies.SpecificationsApiClient));
+            Guard.ArgumentNotNull(resiliencePolicies?.ResultsApiClient, nameof(resiliencePolicies.ResultsApiClient));
             Guard.ArgumentNotNull(graphRepository, nameof(graphRepository));
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(codeContextCache, nameof(codeContextCache));
+            Guard.ArgumentNotNull(resultsApiClient, nameof(resultsApiClient));
 
             _calculationsRepository = calculationsRepository;
             _logger = logger;
@@ -165,6 +167,8 @@ namespace CalculateFunding.Services.Calcs
             _graphRepository = graphRepository;
             _jobManagement = jobManagement;
             _codeContextCache = codeContextCache;
+            _resultsApiClient = resultsApiClient;
+            _resultsApiClientPolicy = resiliencePolicies?.ResultsApiClient;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -952,8 +956,9 @@ namespace CalculateFunding.Services.Calcs
 
                 string cacheKey = $"{CacheKeys.TemplateMapping}{specificationId}-{fundingStreamId}";
                 await _cachePolicy.ExecuteAsync(() => _cacheProvider.RemoveAsync<TemplateMapping>(cacheKey));
-                await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.UpdateFundingStructureLastModified(new UpdateFundingStructureLastModifiedRequest
-                {
+                await _resultsApiClientPolicy.ExecuteAsync(() => _resultsApiClient.UpdateFundingStructureLastModified(
+                    new Common.ApiClient.Results.Models.UpdateFundingStructureLastModifiedRequest
+                    {
                     LastModified = DateTimeOffset.UtcNow,
                     FundingPeriodId = specificationSummary.FundingPeriod?.Id,
                     FundingStreamId = fundingStreamId,
@@ -1244,7 +1249,8 @@ namespace CalculateFunding.Services.Calcs
             await _cachePolicy.ExecuteAsync(() => _cacheProvider.SetAsync($"{CacheKeys.CurrentCalculation}{calculation.Id}", currentVersion, TimeSpan.FromDays(7), true));
             
             //invalidate funding structure lastModified for this calcs specification
-            await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.UpdateFundingStructureLastModified(new UpdateFundingStructureLastModifiedRequest
+            await _policiesApiClientPolicy.ExecuteAsync(() => _resultsApiClient.UpdateFundingStructureLastModified(
+                new Common.ApiClient.Results.Models.UpdateFundingStructureLastModifiedRequest
             {
                 LastModified = DateTimeOffset.UtcNow,
                 SpecificationId = calculation.SpecificationId,

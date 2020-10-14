@@ -20,6 +20,7 @@ using Serilog;
 using TemplateMetadataModels = CalculateFunding.Common.TemplateMetadata.Models;
 using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 using FundingLine = CalculateFunding.Common.TemplateMetadata.Models.FundingLine;
+using CalculateFunding.Common.ApiClient.Results;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -54,6 +55,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
+            IResultsApiClient resultsApiClient = CreateResultsApiClient();
 
             TemplateMetadataContents fundingMetadataContents = new TemplateMetadataContents()
             {
@@ -164,7 +166,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 calculationsRepository: calculationsRepository,
                 policiesApiClient: policiesApiClient,
                 specificationsApiClient: specificationsApiClient,
-                cacheProvider: cacheProvider);
+                cacheProvider: cacheProvider,
+                resultsApiClient: resultsApiClient);
 
             // Act
             IActionResult result = await service.ProcessTemplateMappings(specificationId, templateVersion, fundingStreamId);
@@ -242,9 +245,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Received(1)
                 .RemoveAsync<TemplateMapping>(cacheKey);
             
-            await policiesApiClient
+            await resultsApiClient
                 .Received(1)
-                .UpdateFundingStructureLastModified(Arg.Is<UpdateFundingStructureLastModifiedRequest>(req =>
+                .UpdateFundingStructureLastModified(Arg.Is<Common.ApiClient.Results.Models.UpdateFundingStructureLastModifiedRequest>(req =>
                     req.LastModified <= DateTimeOffset.UtcNow &&
                     req.SpecificationId == specificationId &&
                     req.FundingStreamId == fundingStreamId &&

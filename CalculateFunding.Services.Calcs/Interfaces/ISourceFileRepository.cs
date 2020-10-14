@@ -1,8 +1,4 @@
-﻿using CalculateFunding.Models.Calcs;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
+﻿using System.IO;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Calcs.Interfaces
@@ -19,6 +15,6 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 
         Task<bool> DeleteAssembly(string specificationId);
         
-        string GetAssemblyETag(string specificationId);
+        Task<string> GetAssemblyETag(string specificationId);
     }
 }

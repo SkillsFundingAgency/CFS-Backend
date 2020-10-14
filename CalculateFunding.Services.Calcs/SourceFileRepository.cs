@@ -36,11 +36,16 @@ namespace CalculateFunding.Services.Calcs
             return await DownloadToStreamAsync(blockBlob);
         }
 
-        public string GetAssemblyETag(string specificationId)
+        public async Task<string> GetAssemblyETag(string specificationId)
         {
             string blobName = GetAssemblyBlobName(specificationId);
 
             ICloudBlob blockBlob = GetBlockBlobReference(blobName);
+
+            if (!(await blockBlob.ExistsAsync()))
+            {
+                return null;
+            }
 
             blockBlob?.FetchAttributes();
 

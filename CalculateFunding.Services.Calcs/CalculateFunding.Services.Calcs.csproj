@@ -17,7 +17,12 @@
 
 
 
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="5.8.0" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="6.0.0" />
+
+
+
+
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Results" Version="5.1.0" />
 
     <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="6.15.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Calcs" Version="3.4.0" />

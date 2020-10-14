@@ -105,7 +105,7 @@ namespace CalculateFunding.Services.Calcs
                         CorrelationId = correlationId
                     };
                     
-                    string assemblyETag = _sourceFileRepository.GetAssemblyETag(specificationId);
+                    string assemblyETag = await _sourceFileRepository.GetAssemblyETag(specificationId);
 
                     if (assemblyETag.IsNotNullOrWhitespace())
                     {

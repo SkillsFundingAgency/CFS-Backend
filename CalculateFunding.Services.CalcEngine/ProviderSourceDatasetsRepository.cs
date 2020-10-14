@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Services.CalcEngine.Interfaces;
@@ -40,7 +41,9 @@ namespace CalculateFunding.Services.CalcEngine
             _fileSystemCache = fileSystemCache;
         }
 
-        public async Task<IDictionary<string,IEnumerable<ProviderSourceDataset>>> GetProviderSourceDatasetsByProviderIdsAndRelationshipIds(IEnumerable<string> providerIds,
+        public async Task<IDictionary<string, IEnumerable<ProviderSourceDataset>>> GetProviderSourceDatasetsByProviderIdsAndRelationshipIds(
+            string specificationId,
+            IEnumerable<string> providerIds,
             IEnumerable<string> dataRelationshipIds)
         {
             if (providerIds.IsNullOrEmpty() || dataRelationshipIds.IsNullOrEmpty())
@@ -49,9 +52,6 @@ namespace CalculateFunding.Services.CalcEngine
             }
 
             ConcurrentDictionary<string, ConcurrentBag<ProviderSourceDataset>> results = new ConcurrentDictionary<string, ConcurrentBag<ProviderSourceDataset>>();
-
-            List<Task> allTasks = new List<Task>();
-            SemaphoreSlim throttler = new SemaphoreSlim(_engineSettings.GetProviderSourceDatasetsDegreeOfParallelism);
 
             foreach (string dataRelationshipId in dataRelationshipIds)
             {
@@ -66,10 +66,13 @@ namespace CalculateFunding.Services.CalcEngine
                     await _datasetVersionKeyProvider.AddOrUpdateProviderSourceDatasetVersionKey(dataRelationshipId, cachedVersionKey);
                 }
 
+                List<Task> allTasks = new List<Task>();
+                SemaphoreSlim throttler = new SemaphoreSlim(_engineSettings.GetProviderSourceDatasetsDegreeOfParallelism);
+
                 foreach (string providerId in providerIds)
                 {
-                    ConcurrentBag<ProviderSourceDataset> providerSourceDatasets =  results.GetOrAdd(providerId, new ConcurrentBag<ProviderSourceDataset>());
-                    
+                    ConcurrentBag<ProviderSourceDataset> providerSourceDatasets = results.GetOrAdd(providerId, new ConcurrentBag<ProviderSourceDataset>());
+
                     if (versionKeyExisted && TryGetProviderDataSourceFromFileSystem(dataRelationshipId, providerId, cachedVersionKey, providerSourceDatasets))
                     {
                         continue;
@@ -82,25 +85,14 @@ namespace CalculateFunding.Services.CalcEngine
                         {
                             try
                             {
-                                CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
-                                {
-                                    QueryText = @"SELECT     *
-                                            FROM    Root r 
-                                            WHERE   r.documentType = @DocumentType
-                                                    AND r.content.dataRelationship.id = @DataRelationshipId 
-                                                    AND r.deleted = false",
-                                    Parameters = new[]
-                                    {
-                                        new CosmosDbQueryParameter("@DocumentType", nameof(ProviderSourceDataset)),
-                                        new CosmosDbQueryParameter("@DataRelationshipId", dataRelationshipId)
-                                    }
-                                };
+                                string documentKey = $"{specificationId}_{dataRelationshipId}_{providerId}";
 
-                                ProviderSourceDataset providerSourceDatasetResult =
-                                    (await _cosmosRepository.QueryPartitionedEntity<ProviderSourceDataset>(cosmosDbQuery, partitionKey: providerId, maxItemCount: 1)).SingleOrDefault();
+                                DocumentEntity<ProviderSourceDataset> providerSourceDatasetDocument = await _cosmosRepository.ReadDocumentByIdPartitionedAsync<ProviderSourceDataset>(documentKey, providerId);
 
-                                if (providerSourceDatasetResult != null)
+                                if (providerSourceDatasetDocument != null && !providerSourceDatasetDocument.Deleted)
                                 {
+                                    ProviderSourceDataset providerSourceDatasetResult = providerSourceDatasetDocument.Content;
+
                                     providerSourceDatasets.Add(providerSourceDatasetResult);
 
                                     CacheProviderSourceDatasetToFileSystem(dataRelationshipId, providerId, cachedVersionKey, providerSourceDatasetResult);

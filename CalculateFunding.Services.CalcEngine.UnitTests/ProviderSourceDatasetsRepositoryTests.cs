@@ -1,11 +1,11 @@
 using System;
-using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Services.CalcEngine;
 using CalculateFunding.Services.Core.Caching;
@@ -29,11 +29,7 @@ namespace CalculateFunding.Services.Calculator
 
         private ProviderSourceDatasetsRepository _repository;
 
-        private const string sql = @"SELECT     *
-                                            FROM    Root r 
-                                            WHERE   r.documentType = @DocumentType
-                                                    AND r.content.dataRelationship.id = @DataRelationshipId 
-                                                    AND r.deleted = false";
+        private string _specificationId;
 
         [TestInitialize]
         public void SetUp()
@@ -49,6 +45,8 @@ namespace CalculateFunding.Services.Calculator
                 },
                 _versionKeyProvider,
                 _fileSystemCache);
+
+            _specificationId = "specId";
         }
 
         [TestMethod]
@@ -78,12 +76,14 @@ namespace CalculateFunding.Services.Calculator
             AndTheCachedProviderSourceDataSet(relationshipIdOne, providerIdTwo, relationshipOneVersionKey, dataSetTwo);
             AndTheCachedProviderSourceDataSet(relationshipIdOne, providerIdThree, relationshipOneVersionKey, dataSetThree);
             AndTheCachedProviderSourceDataSet(relationshipIdOne, providerIdFour, relationshipOneVersionKey, dataSetFour);
-            AndTheProviderSourceDataset(providerIdOne, relationshipIdTwo, dataSetFive);
-            AndTheProviderSourceDataset(providerIdTwo, relationshipIdTwo, dataSetSix);
-            AndTheProviderSourceDataset(providerIdThree, relationshipIdTwo, dataSetSeven);
-            AndTheProviderSourceDataset(providerIdFour, relationshipIdTwo, dataSetEight);
+            AndTheProviderSourceDataset(_specificationId, providerIdOne, relationshipIdTwo, dataSetFive);
+            AndTheProviderSourceDataset(_specificationId, providerIdTwo, relationshipIdTwo, dataSetSix);
+            AndTheProviderSourceDataset(_specificationId, providerIdThree, relationshipIdTwo, dataSetSeven);
+            AndTheProviderSourceDataset(_specificationId, providerIdFour, relationshipIdTwo, dataSetEight);
 
-            IDictionary<string, IEnumerable<ProviderSourceDataset>> datasets = await _repository.GetProviderSourceDatasetsByProviderIdsAndRelationshipIds(new[]
+            IDictionary<string, IEnumerable<ProviderSourceDataset>> datasets = await _repository.GetProviderSourceDatasetsByProviderIdsAndRelationshipIds(
+               _specificationId,
+                new[]
                 {
                     providerIdOne,
                     providerIdTwo,
@@ -113,7 +113,7 @@ namespace CalculateFunding.Services.Calculator
                     dataSetSeven,
                     dataSetEight
                 }.Select(_ => _.Id));
-            
+
             ThenTheProviderSourceDatasetWasCachedToTheFileSystem(dataSetFive);
             AndTheProviderSourceDatasetWasCachedToTheFileSystem(dataSetSix);
             AndTheProviderSourceDatasetWasCachedToTheFileSystem(dataSetSeven);
@@ -123,10 +123,10 @@ namespace CalculateFunding.Services.Calculator
 
         private async Task AndTheANewVersionKeyWasCachedForTheRelationshipId(string relationshipId)
         {
-           await _versionKeyProvider
-                .Received(1)
-                .AddOrUpdateProviderSourceDatasetVersionKey(Arg.Is(relationshipId),
-                    Arg.Is<Guid>(_ => _ != Guid.Empty));
+            await _versionKeyProvider
+                 .Received(1)
+                 .AddOrUpdateProviderSourceDatasetVersionKey(Arg.Is(relationshipId),
+                     Arg.Is<Guid>(_ => _ != Guid.Empty));
         }
 
         private void GivenTheDatasetVersionKey(string relationshipId, Guid versionKey)
@@ -135,20 +135,21 @@ namespace CalculateFunding.Services.Calculator
                 .Returns(versionKey);
         }
 
-        private void AndTheProviderSourceDataset(string providerId,
-            string relationshipId,
+        private void AndTheProviderSourceDataset(
+            string specificationId,
+            string providerId,
+            string dataRelationshipId,
             ProviderSourceDataset providerSourceDataset)
         {
-            _cosmosRepository.QueryPartitionedEntity<ProviderSourceDataset>(Arg.Is<CosmosDbQuery>(_ =>
-                    _.QueryText.Equals(sql) &&
-                    _.Parameters.Any(prm => prm.Name.Equals("@DataRelationshipId") &&
-                                            prm.Value.Equals(relationshipId)) &&
-                    _.Parameters.Any(prm => prm.Name.Equals("@DocumentType") &&
-                                            prm.Value.Equals(nameof(ProviderSourceDataset)))),
-                    Arg.Is(-1),
-                    Arg.Is<int?>(1),
-                    Arg.Is(providerId))
-                .Returns(new[] {providerSourceDataset});
+            string documentKey = $"{specificationId}_{dataRelationshipId}_{providerId}";
+
+            _cosmosRepository
+                .ReadDocumentByIdPartitionedAsync<ProviderSourceDataset>(Arg.Is(documentKey), Arg.Is(providerId))
+                .Returns(new DocumentEntity<ProviderSourceDataset>
+                { 
+                    Deleted = false, 
+                    Content = providerSourceDataset 
+                });
         }
 
         private void AndTheCachedProviderSourceDataSet(string relationshipId,
@@ -163,7 +164,7 @@ namespace CalculateFunding.Services.Calculator
                 .Returns(true);
 
             byte[] buffer = providerSourceDataset.AsJson().AsUTF8Bytes();
-            
+
             _fileSystemCache.Get(Arg.Is<FileSystemCacheKey>(_ =>
                     _.Key.Equals(key)))
                 .Returns(new MemoryStream(buffer, 0, buffer.Length, false, true));
@@ -191,7 +192,7 @@ namespace CalculateFunding.Services.Calculator
                 string actualJson = copy.AsPoco<ProviderSourceDataset>().AsJson();
                 string expectedJson = dataset.AsJson();
 
-                return actualJson.Equals(expectedJson); 
+                return actualJson.Equals(expectedJson);
             }
         }
 

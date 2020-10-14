@@ -33,5 +33,6 @@ namespace CalculateFunding.Services.Calcs
         public AsyncPolicy SpecificationsApiClient { get; set; }
 
         public AsyncPolicy DatasetsApiClient { get; set; }
+        public AsyncPolicy ResultsApiClient { get; set; }
     }
 }

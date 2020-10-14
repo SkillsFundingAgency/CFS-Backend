@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using CalculateFunding.Common.ApiClient.Policies;
+using CalculateFunding.Common.ApiClient.Results;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.JobManagement;
@@ -27,6 +28,7 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
             MockCalculatorResiliencePolicies.ProviderResultsRepository.Returns(MockProviderResultsRepositoryPolicy);
             MockCalculatorResiliencePolicies.CalculationsRepository.Returns(MockCalculationRepositoryPolicy);
             MockCalculatorResiliencePolicies.PoliciesApiClient.Returns(MockPoliciesApiClientPolicy);
+            MockCalculatorResiliencePolicies.ResultsApiClient.Returns(MockResultsApiClientPolicy);
             MockCalculatorResiliencePoliciesValidator
                 .Validate(Arg.Any<ICalculatorResiliencePolicies>())
                 .Returns(new ValidationResult());
@@ -51,7 +53,7 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
                     DatasetAggregationsRepository,
                     MockJobManagement,
                     MockSpecificationsApiClient,
-                    MockPoliciesApiClient,
+                    MockResultsApiClient,
                     MockCalculatorResiliencePoliciesValidator,
                     MockCalculationEngineServiceValidator,
                     MockMapper,
@@ -78,6 +80,7 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
         public IJobManagement MockJobManagement { get; set; } = Substitute.For<IJobManagement>();
         public ISpecificationsApiClient MockSpecificationsApiClient { get; set; } = Substitute.For<ISpecificationsApiClient>();
         public IPoliciesApiClient MockPoliciesApiClient { get; set; } = Substitute.For<IPoliciesApiClient>();
+        public IResultsApiClient MockResultsApiClient { get; set; } = Substitute.For<IResultsApiClient>();
         public IMapper MockMapper { get; set; } = Substitute.For<IMapper>();
         public ISpecificationAssemblyProvider MockSpecificationAssemblyProvider { get; set; } = Substitute.For<ISpecificationAssemblyProvider>();
         public AsyncPolicy MockCacheProviderPolicy { get; set; } = Policy.NoOpAsync();
@@ -86,6 +89,7 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
         public AsyncPolicy MockProviderResultsRepositoryPolicy { get; set; } = Policy.NoOpAsync();
         public AsyncPolicy MockCalculationRepositoryPolicy { get; set; } = Policy.NoOpAsync();
         public AsyncPolicy MockPoliciesApiClientPolicy { get; set; } = Policy.NoOpAsync();
+        public AsyncPolicy MockResultsApiClientPolicy { get; set; } = Policy.NoOpAsync();
         public AsyncPolicy MockJobsApiClientPolicy { get; set; } = Policy.NoOpAsync();
         public AsyncPolicy MockSpecificationsApiClientPolicy { get; set; } = Policy.NoOpAsync();
     }

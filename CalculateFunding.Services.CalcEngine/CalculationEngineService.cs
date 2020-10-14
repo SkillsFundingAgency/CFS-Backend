@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
-using CalculateFunding.Common.ApiClient.Policies;
+using CalculateFunding.Common.ApiClient.Results;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Caching;
@@ -23,7 +23,6 @@ using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.ProviderLegacy;
-using CalculateFunding.Services.CalcEngine.Caching;
 using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Core;
@@ -61,11 +60,11 @@ namespace CalculateFunding.Services.CalcEngine
         private readonly AsyncPolicy _providerResultsRepositoryPolicy;
         private readonly AsyncPolicy _calculationsRepositoryPolicy;
         private readonly AsyncPolicy _specificationsApiPolicy;
-        private readonly AsyncPolicy _policiesApiClientPolicy;
+        private readonly AsyncPolicy _resultsApiClientPolicy;
         private readonly IDatasetAggregationsRepository _datasetAggregationsRepository;
         private readonly IJobManagement _jobManagement;
         private readonly ICalculationEngineServiceValidator _calculationEngineServiceValidator;
-        private readonly IPoliciesApiClient _policiesApiClient;
+        private readonly IResultsApiClient _resultsApiClient;
         private readonly IMapper _mapper;
         private readonly ISpecificationAssemblyProvider _specificationAssemblies;
 
@@ -83,7 +82,7 @@ namespace CalculateFunding.Services.CalcEngine
             IDatasetAggregationsRepository datasetAggregationsRepository,
             IJobManagement jobManagement,
             ISpecificationsApiClient specificationsApiClient,
-            IPoliciesApiClient policiesApiClient,
+            IResultsApiClient resultsApiClient,
             IValidator<ICalculatorResiliencePolicies> calculatorResiliencePoliciesValidator,
             ICalculationEngineServiceValidator calculationEngineServiceValidator,
             IMapper mapper,
@@ -104,13 +103,13 @@ namespace CalculateFunding.Services.CalcEngine
             Guard.ArgumentNotNull(resiliencePolicies?.ProviderSourceDatasetsRepository, nameof(resiliencePolicies.ProviderSourceDatasetsRepository));
             Guard.ArgumentNotNull(resiliencePolicies?.ProviderResultsRepository, nameof(resiliencePolicies.ProviderResultsRepository));
             Guard.ArgumentNotNull(resiliencePolicies?.CalculationsRepository, nameof(resiliencePolicies.CalculationsRepository));
-            Guard.ArgumentNotNull(resiliencePolicies?.PoliciesApiClient, nameof(resiliencePolicies.PoliciesApiClient));
+            Guard.ArgumentNotNull(resiliencePolicies?.ResultsApiClient, nameof(resiliencePolicies.ResultsApiClient));
             Guard.ArgumentNotNull(datasetAggregationsRepository, nameof(datasetAggregationsRepository));
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
             Guard.ArgumentNotNull(calculatorResiliencePoliciesValidator, nameof(calculatorResiliencePoliciesValidator));
             Guard.ArgumentNotNull(calculationEngineServiceValidator, nameof(calculationEngineServiceValidator));
-            Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
+            Guard.ArgumentNotNull(resultsApiClient, nameof(resultsApiClient));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(specificationAssemblies, nameof(specificationAssemblies));
 
@@ -133,8 +132,8 @@ namespace CalculateFunding.Services.CalcEngine
             _jobManagement = jobManagement;
             _specificationsApiClient = specificationsApiClient;
             _specificationsApiPolicy = resiliencePolicies.SpecificationsApiClient;
-            _policiesApiClientPolicy = resiliencePolicies.PoliciesApiClient;
-            _policiesApiClient = policiesApiClient;
+            _resultsApiClientPolicy = resiliencePolicies.ResultsApiClient;
+            _resultsApiClient = resultsApiClient;
             _mapper = mapper;
             _specificationAssemblies = specificationAssemblies;
         }
@@ -451,7 +450,7 @@ namespace CalculateFunding.Services.CalcEngine
             _logger.Information($"Fetching provider sources for specification id {messageProperties.SpecificationId}");
 
             IDictionary<string, IEnumerable<ProviderSourceDataset>> providerSourceDatasetsByProvider = await _providerSourceDatasetsRepositoryPolicy.ExecuteAsync(
-                () => _providerSourceDatasetsRepository.GetProviderSourceDatasetsByProviderIdsAndRelationshipIds(providerIdList, dataRelationshipIds));
+                () => _providerSourceDatasetsRepository.GetProviderSourceDatasetsByProviderIdsAndRelationshipIds(specificationId, providerIdList, dataRelationshipIds));
 
             providerSourceDatasetsStopwatch.Stop();
 
@@ -707,7 +706,8 @@ namespace CalculateFunding.Services.CalcEngine
                 Outcome = outcome
             });
 
-            await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.UpdateFundingStructureLastModified(new UpdateFundingStructureLastModifiedRequest
+            await _resultsApiClientPolicy.ExecuteAsync(() => _resultsApiClient.UpdateFundingStructureLastModified(
+                new Common.ApiClient.Results.Models.UpdateFundingStructureLastModifiedRequest
             {
                 LastModified = DateTimeOffset.UtcNow,
                 SpecificationId = messageProperties.SpecificationId,

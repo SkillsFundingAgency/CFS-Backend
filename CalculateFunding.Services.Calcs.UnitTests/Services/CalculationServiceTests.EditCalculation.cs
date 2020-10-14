@@ -30,6 +30,7 @@ using Serilog;
 using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 using DatasetReference = CalculateFunding.Models.Graph.DatasetReference;
 using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Common.ApiClient.Results;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -267,6 +268,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(new Job { Id = "job-id-1" });
 
             IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
+            IResultsApiClient resultsApiClient = CreateResultsApiClient();
 
             CalculationService service = CreateCalculationService(
                 logger: logger,
@@ -278,7 +280,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 jobManagement: jobManagement,
                 buildProjectsService: buildProjectsService,
                 cacheProvider: cacheProvider,
-                policiesApiClient: policiesApiClient);
+                policiesApiClient: policiesApiClient,
+                resultsApiClient: resultsApiClient);
 
             // Act
             IActionResult result = await service.EditCalculation(SpecificationId, CalculationId, calculationEditModel, author, CorrelationId);
@@ -308,9 +311,9 @@ namespace CalculateFunding.Services.Calcs.Services
                     .Received(1)
                     .RemoveAsync<List<CalculationMetadata>>(Arg.Is(cacheKey));
             
-            await policiesApiClient
+            await resultsApiClient
                 .Received(1)
-                .UpdateFundingStructureLastModified(Arg.Is<UpdateFundingStructureLastModifiedRequest>(req =>
+                .UpdateFundingStructureLastModified(Arg.Is<Common.ApiClient.Results.Models.UpdateFundingStructureLastModifiedRequest>(req =>
                     req.LastModified.Date == DateTimeOffset.UtcNow.Date &&
                     req.SpecificationId == calculation.SpecificationId &&
                     req.FundingStreamId == calculation.FundingStreamId &&

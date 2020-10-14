@@ -22,6 +22,7 @@ namespace CalculateFunding.Services.Calcs
                 BuildProjectRepositoryPolicy = Policy.NoOpAsync(),
                 PoliciesApiClient = Policy.NoOpAsync(),
                 SpecificationsApiClient = Policy.NoOpAsync(),
+                ResultsApiClient = Policy.NoOpAsync()
             };
         }
     }
