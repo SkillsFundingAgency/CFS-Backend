@@ -115,5 +115,22 @@ namespace CalculateFunding.Functions.DebugQueue
                 log.LogInformation($"C# Queue trigger function processed: {item}");
             }
         }
+
+        [FunctionName(FunctionConstants.MapFdzDatasetsPoisoned)]
+        public static async Task RunOnMapFdzDatasetsEventFiredFailure([QueueTrigger(ServiceBusConstants.QueueNames.MapFdzDatasetsPoisonedLocal, Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using (IServiceScope scope = Functions.Datasets.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
+            {
+                Message message = Helpers.ConvertToMessage<string>(item);
+
+                OnMapFdzDatasetsEventFiredFailure function = scope.ServiceProvider.GetService<OnMapFdzDatasetsEventFiredFailure>();
+
+                Guard.ArgumentNotNull(function, nameof(OnMapFdzDatasetsEventFiredFailure));
+
+                await function.Run(message);
+
+                log.LogInformation($"C# Queue trigger function processed: {item}");
+            }
+        }
     }
 }

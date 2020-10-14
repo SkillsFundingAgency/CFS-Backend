@@ -403,29 +403,25 @@ namespace CalculateFunding.Services.Datasets
 
             string jobId = message.GetUserProperty<string>("jobId");
 
-            JobViewModel jobResponse = await _jobManagement.GetJobById(jobId);
+            await EnsureJobCanBeProcessed(jobId);
 
-            if (jobResponse == null)
-            {
-                string errorMessage = $"Error occurred while retrieving the job. JobId {jobId}";
-                _logger.Error(errorMessage);
-                throw new Exception(errorMessage);
-            }
+            // Update job to set status to processing
+            await _jobManagement.UpdateJobStatus(jobId, 0, 0, null, null);
 
             string specificationId = message.GetUserProperty<string>("specification-id");
-            if (string.IsNullOrWhiteSpace(specificationId))
-            {
-                _logger.Error("Specification Id key is missing in MapFdzDatasets message properties");
-                await _jobManagement.UpdateJobStatus(jobId, 100, false, "Failed to Process - specification id not provided");
-                return;
-            }
-
-            Reference user = message.GetUserDetails();
-
-            string correlationId = message.GetCorrelationId();
 
             try
             {
+                Reference user = message.GetUserDetails();
+
+                string correlationId = message.GetCorrelationId();
+
+                if (string.IsNullOrWhiteSpace(specificationId))
+                {
+                    _logger.Error("Specification Id key is missing in MapFdzDatasets message properties");
+                    throw new NonRetriableException("Failed to Process - specification id not provided");
+                }
+
                 IEnumerable<DefinitionSpecificationRelationship> relationships = await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(r => r.Content.Specification.Id == specificationId);
 
                 Dictionary<string, Dataset> datasets = new Dictionary<string, Dataset>();
@@ -472,13 +468,28 @@ namespace CalculateFunding.Services.Datasets
             }
             catch (NonRetriableException ex)
             {
-                _logger.Error(ex, $"Failed to run MapFdzDatasets with exception: {ex.Message}, for specification id '{specificationId}'");
                 await _jobManagement.UpdateJobStatus(jobId, 100, false, $"Failed to run MapFdzDatasets - {ex.Message}");
+                throw;
             }
             catch (Exception exception)
             {
                 _logger.Error(exception, $"Failed to run MapFdzDatasets with exception: {exception.Message}, for specification id '{specificationId}'");
                 throw;
+            }
+        }
+
+        private async Task EnsureJobCanBeProcessed(string jobId)
+        {
+            try
+            {
+                await _jobManagement.RetrieveJobAndCheckCanBeProcessed(jobId);
+            }
+            catch
+            {
+                string errorMessage = "Job can not be run";
+                _logger.Error(errorMessage);
+
+                throw new NonRetriableException(errorMessage);
             }
         }
 

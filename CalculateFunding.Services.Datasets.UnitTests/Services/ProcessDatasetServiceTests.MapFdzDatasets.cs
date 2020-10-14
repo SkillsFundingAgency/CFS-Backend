@@ -5,6 +5,7 @@ using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Models.Datasets;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Datasets.Interfaces;
 using CalculateFunding.Tests.Common.Helpers;
@@ -12,6 +13,7 @@ using FluentAssertions;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -67,15 +69,84 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        public async Task MapFdzDatasets_GivenNoSpecificationIdKeyInProperties_DoesNoProcessing()
+        public void MapFdzDatasets_GivenNoSpecificationIdKeyInProperties_DoesNoProcessing()
         {
             string jobId = NewRandomString();
             GivenTheMessageProperties(("jobId", jobId));
             AndTheJobDetails(jobId, JobConstants.DefinitionNames.MapFdzDatasetsJob);
 
-            await WhenTheMapFdzDatasetsMessageIsProcessed();
+            Func<Task> invocation = WhenTheMapFdzDatasetsMessageIsProcessed;
+
+            invocation
+                .Should()
+                .ThrowExactly<NonRetriableException>()
+                .WithMessage("Failed to Process - specification id not provided");
 
             ThenTheErrorWasLogged("Specification Id key is missing in MapFdzDatasets message properties");
+        }
+
+        [TestMethod]
+        public void MapFdzDatasets_GivenQueueMapDatasetJobFailed_NonRetriableExceptionThrown()
+        {
+            string jobId = NewRandomString();
+            string relationshipId1 = NewRandomString();
+            string datasetVersionId1 = NewRandomString();
+            string datasetId1 = NewRandomString();
+
+            IEnumerable<DefinitionSpecificationRelationship> relationships = new[]
+            {
+                NewRelationship(_ => _.WithDatasetDefinition(NewReference())
+                                    .WithId(relationshipId1)
+                                    .WithDatasetVersion(NewRelationshipVersion(v => v.WithId(datasetVersionId1))))
+            };
+
+            Dataset dataset1 = NewDataset(_ => _.WithId(datasetId1));
+
+            GivenTheMessageProperties(("jobId", jobId), ("specification-id", SpecificationId), ("user-id", UserId), ("user-name", Username));
+            AndTheJobDetails(jobId, JobConstants.DefinitionNames.MapFdzDatasetsJob);
+            AndRelationshipsForSpecification(relationships);
+            AndDatasetForDatasetVersion(datasetVersionId1, dataset1);
+            string exception = "Failed to queue map fdz dataset";
+            AndTheMapDatasetFailsToQueue(exception, true);
+
+            Func<Task> invocation = WhenTheMapFdzDatasetsMessageIsProcessed;
+
+            invocation
+                .Should()
+                .ThrowExactly<NonRetriableException>()
+                .WithMessage(exception);
+        }
+
+        [TestMethod]
+        public void MapFdzDatasets_GivenQueueMapDatasetJobFailed_ExceptionThrown()
+        {
+            string jobId = NewRandomString();
+            string relationshipId1 = NewRandomString();
+            string datasetVersionId1 = NewRandomString();
+            string datasetId1 = NewRandomString();
+
+            IEnumerable<DefinitionSpecificationRelationship> relationships = new[]
+            {
+                NewRelationship(_ => _.WithDatasetDefinition(NewReference())
+                                    .WithId(relationshipId1)
+                                    .WithDatasetVersion(NewRelationshipVersion(v => v.WithId(datasetVersionId1))))
+            };
+
+            Dataset dataset1 = NewDataset(_ => _.WithId(datasetId1));
+
+            GivenTheMessageProperties(("jobId", jobId), ("specification-id", SpecificationId), ("user-id", UserId), ("user-name", Username));
+            AndTheJobDetails(jobId, JobConstants.DefinitionNames.MapFdzDatasetsJob);
+            AndRelationshipsForSpecification(relationships);
+            AndDatasetForDatasetVersion(datasetVersionId1, dataset1);
+            string exception = "Failed to queue map fdz dataset";
+            AndTheMapDatasetFailsToQueue(exception);
+
+            Func<Task> invocation = WhenTheMapFdzDatasetsMessageIsProcessed;
+
+            invocation
+                .Should()
+                .ThrowExactly<Exception>()
+                .WithMessage(exception);
         }
 
         [TestMethod]
@@ -112,6 +183,22 @@ namespace CalculateFunding.Services.Datasets.Services
 
             await ThenTheMapDatasetJobWasCreated(JobConstants.DefinitionNames.MapDatasetJob, relationshipId1, datasetId1, jobId);
             await ThenTheMapDatasetJobWasCreated(JobConstants.DefinitionNames.MapDatasetJob, relationshipId2, datasetId2, jobId);
+        }
+
+        private void AndTheMapDatasetFailsToQueue(string exception, bool retriable = false)
+        {
+            if (retriable)
+            {
+                _jobsApiClient
+                    .CreateJob(Arg.Any<JobCreateModel>())
+                    .Throws(new NonRetriableException(exception));
+            }
+            else
+            {
+                _jobsApiClient
+                    .CreateJob(Arg.Any<JobCreateModel>())
+                    .Throws(new Exception(exception));
+            }
         }
 
         private void AndDatasetForDatasetVersion(string datasetVersionId, Dataset dataset)

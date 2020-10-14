@@ -31,5 +31,7 @@
         public const string ProviderSnapshotDataLoadPoisoned = "on-provider-snapshot-data-load-poisoned";
 
         public const string MapFdzDatasets = "on-map-fdz-datasets";
+
+        public const string MapFdzDatasetsPoisoned = "on-map-fdz-datasets-poisoned";
     }
 }

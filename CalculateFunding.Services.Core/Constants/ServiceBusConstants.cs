@@ -32,6 +32,10 @@
 
             public const string MapFdzDatasets = "map-fdz-datasets";
 
+            public const string MapFdzDatasetsPoisoned = "map-fdz-datasets/$DeadLetterQueue";
+
+            public const string MapFdzDatasetsPoisonedLocal = "map-fdz-datasets-poisoned";
+
             public const string ProcessDatasetPoisoned = "dataset-events-datasets/$DeadLetterQueue";
 
             public const string ProcessDatasetPoisonedLocal = "dataset-events-datasets-poisoned";
