@@ -243,12 +243,15 @@ namespace CalculateFunding.Services.Jobs.Repositories
 
             foreach (dynamic existingResult in existingResults)
             {
+                string runningStatus = existingResult.runningStatus;
+                string completionStatus = existingResult.completionStatus;
+
                 jobs.Add(new Job
                 {
                     Id = existingResult.id,
                     JobDefinitionId = existingResult.jobDefinitionId,
-                    RunningStatus = Enum.Parse<RunningStatus>(existingResult.runningStatus),
-                    CompletionStatus = string.IsNullOrWhiteSpace(existingResult.completionStatus) ? default(CompletionStatus?) : Enum.Parse<CompletionStatus>(existingResult.completionStatus),
+                    RunningStatus = Enum.Parse<RunningStatus>(runningStatus),
+                    CompletionStatus = string.IsNullOrWhiteSpace(completionStatus) ? default(CompletionStatus?) : Enum.Parse<CompletionStatus>(completionStatus),
                     InvokerUserId = existingResult.invokeUserId,
                     InvokerUserDisplayName = existingResult.invokerDisplayName,
                     ItemCount = existingResult.itemCount,

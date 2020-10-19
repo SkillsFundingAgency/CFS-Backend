@@ -129,8 +129,8 @@ namespace CalculateFunding.Api.Jobs.Controllers
         [HttpGet]
         [Route("api/jobs/noncompleted/dateTimeFrom/{dateTimeFrom}/dateTimeTo/{dateTimeTo}")]
         [ProducesResponseType(200, Type = typeof(JobSummary))]
-        public async Task<IActionResult> GetCreatedJobsWithinTimeFrame([FromQuery] DateTimeOffset dateTimeFrom,
-            [FromQuery] DateTimeOffset dateTimeTo) =>
+        public async Task<IActionResult> GetCreatedJobsWithinTimeFrame([FromRoute] DateTimeOffset dateTimeFrom,
+            [FromRoute] DateTimeOffset dateTimeTo) =>
             await _jobService.GetCreatedJobsWithinTimeFrame(dateTimeFrom, dateTimeTo);
 
         private Reference CurrentUserOrDefault => Request.GetUserOrDefault();
