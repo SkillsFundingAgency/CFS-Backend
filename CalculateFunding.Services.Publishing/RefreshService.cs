@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Models;
@@ -342,12 +343,13 @@ namespace CalculateFunding.Services.Publishing
             FundingConfiguration fundingConfiguration = await _policiesService.GetFundingConfiguration(fundingStream.Id, specification.FundingPeriod.Id);
             _logger.Information($"Retrieved funding stream configuration for '{fundingStream.Id}'");
 
-
             PublishedProvidersContext publishedProvidersContext = new PublishedProvidersContext
             {
                 ScopedProviders = scopedProviders.Values,
                 SpecificationId = specification.Id,
                 ProviderVersionId = specification.ProviderVersionId,
+                CurrentPublishedFunding = (await _publishingResiliencePolicy.ExecuteAsync(() => _publishedFundingDataService.GetCurrentPublishedFunding(specification.Id, GroupingReason.Payment)))
+                    .Where(x => x.Current.GroupingReason == CalculateFunding.Models.Publishing.GroupingReason.Payment),
                 OrganisationGroupResultsData = new Dictionary<string, IEnumerable<OrganisationGroupResult>>(),
                 FundingConfiguration = fundingConfiguration
             };

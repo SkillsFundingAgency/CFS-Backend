@@ -132,7 +132,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
             GivenTheOrganisationGroupsForTheFundingConfiguration(fundingConfiguration, providers, providerVersionId, organisationGroupResults);
             
             // Act
-            await WhenErrorsAreDetectedOnThePublishedProvider(publishedProvider, providers, specificationId, providerVersionId, fundingConfiguration);
+            await WhenErrorsAreDetectedOnThePublishedProvider(publishedProvider, providers, specificationId, providerVersionId, fundingConfiguration, publishedFundings);
 
             publishedProvider.Current
                 .Errors
@@ -156,13 +156,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
                 .Be(summaryErrorMessage);
         }
 
-        private async Task WhenErrorsAreDetectedOnThePublishedProvider(PublishedProvider publishedProvider, IEnumerable<Provider> providers, string specificationId, string providerVersionId, FundingConfiguration fundingConfiguration)
+        private async Task WhenErrorsAreDetectedOnThePublishedProvider(PublishedProvider publishedProvider, IEnumerable<Provider> providers, string specificationId, string providerVersionId, FundingConfiguration fundingConfiguration, IEnumerable<PublishedFunding> publishedFundings)
         {
             PublishedProvidersContext publishedProvidersContext = new PublishedProvidersContext
             {
                 ScopedProviders = providers,
                 SpecificationId = specificationId,
                 ProviderVersionId = providerVersionId,
+                CurrentPublishedFunding = publishedFundings,
                 OrganisationGroupResultsData = new Dictionary<string, IEnumerable<OrganisationGroupResult>>(),
                 FundingConfiguration = fundingConfiguration
             };
@@ -172,7 +173,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
 
         private void GivenTheCurrentPublishedFundingForTheSpecification(string specificationId, IEnumerable<PublishedFunding> publishedFundings)
         {
-            _publishedFundingDataService.GetCurrentPublishedFunding(specificationId)
+            _publishedFundingDataService.GetCurrentPublishedFunding(specificationId, GroupingReason.Payment)
                 .Returns(publishedFundings);
         }
 

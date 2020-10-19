@@ -399,23 +399,34 @@ namespace CalculateFunding.Services.Publishing.Repositories
             return results;
         }
 
-        public async Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedFundingIds(string specificationId)
+        public async Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedFundingIds(string specificationId, GroupingReason? groupReason = null)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
             Dictionary<string, string> results = new Dictionary<string, string>();
-            IEnumerable<dynamic> queryResults = await _repository
-             .DynamicQuery(new CosmosDbQuery
-             {
-                 QueryText = @"
-                                SELECT c.id as id, c.content.partitionKey as partitionKey FROM c
-                                WHERE c.documentType = 'PublishedFunding'
-                                AND c.content.current.specificationId = @specificationId",
-                 Parameters = new[]
-                 {
+
+            CosmosDbQuery query = new CosmosDbQuery
+            {
+                QueryText = @"SELECT c.id as id, c.content.partitionKey as partitionKey FROM c
+                              WHERE c.documentType = 'PublishedFunding'
+                              AND c.content.current.specificationId = @specificationId",
+                Parameters = new[]
+                {
                     new CosmosDbQueryParameter("@specificationId", specificationId)
-                 }
-             });
+                }
+            };
+
+            if (groupReason.HasValue)
+            {
+                query.QueryText += " AND c.content.current.groupReason = @groupReason";
+                query.Parameters = query.Parameters.Concat(new[]
+                {
+                    new CosmosDbQueryParameter("@groupReason", groupReason.ToString())
+                });
+            }
+
+            IEnumerable<dynamic> queryResults = await _repository
+             .DynamicQuery(query);
 
             foreach (dynamic item in queryResults)
             {
@@ -986,7 +997,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
 
             if (!string.IsNullOrWhiteSpace(specificationId))
             {
-                query.QueryText += $"{query.QueryText} AND c.content.current.specificationId = @specificationId";
+                query.QueryText += " AND c.content.current.specificationId = @specificationId";
                 query.Parameters = new[]
                 {
                     new CosmosDbQueryParameter("@specificationId", specificationId)

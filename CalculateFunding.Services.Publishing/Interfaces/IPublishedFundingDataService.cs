@@ -14,6 +14,6 @@ namespace CalculateFunding.Services.Publishing.Interfaces
 
         Task<IEnumerable<string>> GetPublishedProviderFundingLines(string specificationId);
 
-        Task<IEnumerable<PublishedFunding>> GetCurrentPublishedFunding(string specificationId);
+        Task<IEnumerable<PublishedFunding>> GetCurrentPublishedFunding(string specificationId, GroupingReason? groupingReason = null);
     }
 }

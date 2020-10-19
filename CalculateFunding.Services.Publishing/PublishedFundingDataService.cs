@@ -142,14 +142,14 @@ namespace CalculateFunding.Services.Publishing
             return results;
         }
 
-        public async Task<IEnumerable<PublishedFunding>> GetCurrentPublishedFunding(string specificationId)
+        public async Task<IEnumerable<PublishedFunding>> GetCurrentPublishedFunding(string specificationId, GroupingReason? groupingReason = null)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
             ConcurrentBag<PublishedFunding> results = new ConcurrentBag<PublishedFunding>();
 
             IEnumerable<KeyValuePair<string, string>> publishedFundingIds = await _publishedFundingRepositoryPolicy.ExecuteAsync(
-                                () => _publishedFundingRepository.GetPublishedFundingIds(specificationId));
+                                () => _publishedFundingRepository.GetPublishedFundingIds(specificationId, groupingReason));
 
             List<Task> allTasks = new List<Task>();
             SemaphoreSlim throttler = new SemaphoreSlim(initialCount: _publishingEngineOptions.GetCurrentPublishedFundingConcurrencyCount);

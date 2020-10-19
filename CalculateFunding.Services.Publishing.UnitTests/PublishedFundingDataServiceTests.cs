@@ -79,18 +79,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             const string specificationId = "spec-1";
 
-            _publishedFunding.Setup(x => x.GetPublishedFundingIds(specificationId))
+            _publishedFunding.Setup(x => x.GetPublishedFundingIds(specificationId, GroupingReason.Payment))
                 .ReturnsAsync(new[] {
                     new KeyValuePair<string, string>("pf1", "p1"),
                     new KeyValuePair<string, string>("pf2", "p2")
-                });
+                })
+                .Verifiable();
 
             _publishedFunding.Setup(x => x.GetPublishedFundingById(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(() => new PublishedFunding());
             _publishingEngineOptions.SetupGet(x => x.GetCurrentPublishedFundingConcurrencyCount)
                 .Returns(2);
 
-            IEnumerable<PublishedFunding> publishedFundings = await _dataService.GetCurrentPublishedFunding(specificationId);
+            IEnumerable<PublishedFunding> publishedFundings = await _dataService.GetCurrentPublishedFunding(specificationId, GroupingReason.Payment);
 
             publishedFundings.Count().Should().Be(2);
         }

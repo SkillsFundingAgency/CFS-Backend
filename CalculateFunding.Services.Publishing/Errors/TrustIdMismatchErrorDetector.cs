@@ -61,12 +61,6 @@ namespace CalculateFunding.Services.Publishing.Errors
             static string OrganisationGroupsKey(string fundingStreamId, string fundingPeriodId) => 
                 $"{fundingStreamId}:{fundingPeriodId}";
             
-            IList<PublishedFunding> paymentPublishedFundings = 
-                (await _publishingResiliencePolicy.ExecuteAsync(() => 
-                    _publishedFundingDataService.GetCurrentPublishedFunding(publishedProvidersContext.SpecificationId)))
-                        .Where(x => x.Current.GroupingReason == CalculateFunding.Models.Publishing.GroupingReason.Payment)
-                        .ToList();
-            
             IEnumerable<OrganisationGroupResult> organisationGroups;
             string keyForOrganisationGroups = OrganisationGroupsKey(publishedProvider.Current.FundingStreamId, publishedProvider.Current.FundingPeriodId);
 
@@ -84,7 +78,7 @@ namespace CalculateFunding.Services.Publishing.Errors
             }
 
             IEnumerable<PublishedFunding> unmatchedPublishedFundings 
-                = paymentPublishedFundings
+                = publishedProvidersContext.CurrentPublishedFunding
                     .Where(x => organisationGroups.Any(t =>
                         t.Identifiers.Any(i => 
                             x.Current.OrganisationGroupIdentifierValue == i.Value && 

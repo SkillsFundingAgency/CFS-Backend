@@ -17,6 +17,11 @@ namespace CalculateFunding.Services.Publishing.Models
             get; set;
         }
 
+        public IEnumerable<PublishedFunding> CurrentPublishedFunding
+        {
+            get; set;
+        }
+
         public string SpecificationId
         {
             get; set;

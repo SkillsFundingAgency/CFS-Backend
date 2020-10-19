@@ -401,7 +401,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedFundingIds(string specificationId)
+        public Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedFundingIds(string specificationId, GroupingReason? groupingReason = null)
         {
             IEnumerable<KeyValuePair<string, string>> results = _repo.PublishedFunding
                 .SelectMany(c => c.Value)
