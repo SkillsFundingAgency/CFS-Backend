@@ -72,7 +72,7 @@ namespace CalculateFunding.Services.Publishing
             ITransactionFactory transactionFactory,
             IPublishedProviderVersionService publishedProviderVersionService,
             IPoliciesService policiesService,
-            IGeneratePublishedFundingCsvJobsCreationLocator generateCsvJobsLocator, 
+            IGeneratePublishedFundingCsvJobsCreationLocator generateCsvJobsLocator,
             IReApplyCustomProfiles reApplyCustomProfiles,
             IPublishedProviderErrorDetection detection)
         {
@@ -173,17 +173,17 @@ namespace CalculateFunding.Services.Publishing
                 _logger.Information($"Found {publishedProviders.Count} existing published providers for funding stream {fundingStream.Id} from cosmos for refresh job");
             }
 
-            _logger.Information($"Verifying prerequisites for funding refresh");
+            _logger.Information("Verifying prerequisites for funding refresh");
 
             // Check prerequisites for this specification to be chosen/refreshed
             IPrerequisiteChecker prerequisiteChecker = _prerequisiteCheckerLocator.GetPreReqChecker(PrerequisiteCheckerType.Refresh);
             await prerequisiteChecker.PerformChecks(specification, jobId, existingPublishedProvidersByFundingStream.SelectMany(x => x.Value), scopedProviders.Values);
 
-            _logger.Information($"Prerequisites for refresh passed");
+            _logger.Information("Prerequisites for refresh passed");
 
 
             // Get calculation results for specification 
-            _logger.Information($"Looking up calculation results");
+            _logger.Information("Looking up calculation results");
 
             IDictionary<string, ProviderCalculationResult> allCalculationResults;
             try
@@ -204,35 +204,42 @@ namespace CalculateFunding.Services.Publishing
             {
                 foreach (Reference fundingStream in specification.FundingStreams)
                 {
-                    await RefreshFundingStream(fundingStream, 
-                        specification, 
-                        scopedProviders, 
-                        allCalculationResults, 
-                        jobId, 
-                        author, 
-                        correlationId, 
+                    _logger.Information($"Starting to refresh funding for '{fundingStream.Id}'");
+
+                    await RefreshFundingStream(fundingStream,
+                        specification,
+                        scopedProviders,
+                        allCalculationResults,
+                        jobId,
+                        author,
+                        correlationId,
                         existingPublishedProvidersByFundingStream[fundingStream.Id],
                         specification.FundingPeriod.Id);
+
+                    _logger.Information($"Finished processing refresh funding for '{fundingStream.Id}'");
+
                 }
             }
             finally
             {
+                _logger.Information("Starting to clear variation snapshots");
                 _variationService.ClearSnapshots();
+                _logger.Information("Finished clearing variation snapshots");
             }
 
-            _logger.Information("Marking job as complete");
+            _logger.Information("Marking refresh job as complete");
             // Mark job as complete
             await _jobManagement.UpdateJobStatus(jobId, 0, 0, true, null);
             _logger.Information("Refresh complete");
         }
 
-        private async Task RefreshFundingStream(Reference fundingStream, 
-            SpecificationSummary specification, 
-            IDictionary<string, Provider> scopedProviders, 
-            IDictionary<string, ProviderCalculationResult> allCalculationResults, 
-            string jobId, Reference author, 
-            string correlationId, 
-            IEnumerable<PublishedProvider> existingPublishedProviders, 
+        private async Task RefreshFundingStream(Reference fundingStream,
+            SpecificationSummary specification,
+            IDictionary<string, Provider> scopedProviders,
+            IDictionary<string, ProviderCalculationResult> allCalculationResults,
+            string jobId, Reference author,
+            string correlationId,
+            IEnumerable<PublishedProvider> existingPublishedProviders,
             string fundingPeriodId)
         {
             TemplateMetadataContents templateMetadataContents = await _policiesService.GetTemplateMetadataContents(fundingStream.Id, specification.FundingPeriod.Id, specification.TemplateIds[fundingStream.Id]);
@@ -322,15 +329,20 @@ namespace CalculateFunding.Services.Publishing
 
             _logger.Information("Finished profiling providers for refresh");
 
+            _logger.Information("Start snapshots for published provider variations");
             // snapshot the current published providers so any changes aren't reflected when we detect variations later
             _variationService.SnapShot(publishedProviders, fundingStream.Id);
+            _logger.Information("Finished snapshots for published provider variations");
 
             //we need enumerate a readonly cut of this as we add to it in some variations now (for missing providers not in scope)
             Dictionary<string, PublishedProvider> publishedProvidersReadonlyDictionary = publishedProviders.ToDictionary(_ => _.Key, _ => _.Value);
 
+            _logger.Information($"Start getting funding configuration for funding stream '{fundingStream.Id}'");
             // set up the published providers context for error detection laterawait 
             FundingConfiguration fundingConfiguration = await _policiesService.GetFundingConfiguration(fundingStream.Id, specification.FundingPeriod.Id);
-            
+            _logger.Information($"Retrieved funding stream configuration for '{fundingStream.Id}'");
+
+
             PublishedProvidersContext publishedProvidersContext = new PublishedProvidersContext
             {
                 ScopedProviders = scopedProviders.Values,
@@ -339,6 +351,8 @@ namespace CalculateFunding.Services.Publishing
                 OrganisationGroupResultsData = new Dictionary<string, IEnumerable<OrganisationGroupResult>>(),
                 FundingConfiguration = fundingConfiguration
             };
+
+            _logger.Information("Starting to process providers for variations and exclusions");
 
             foreach (KeyValuePair<string, PublishedProvider> publishedProvider in publishedProvidersReadonlyDictionary)
             {
@@ -380,6 +394,8 @@ namespace CalculateFunding.Services.Publishing
                     specification.TemplateIds[fundingStream.Id],
                     newProviders.ContainsKey(publishedProvider.Key));
 
+                _logger.Verbose($"Published provider '{publishedProvider.Key}' updated: '{publishedProviderUpdated}'");
+
                 //reapply any custom profiles this provider has and internally check for errors
                 _reApplyCustomProfiles.ProcessPublishedProvider(publishedProviderVersion);
 
@@ -415,7 +431,13 @@ namespace CalculateFunding.Services.Publishing
                 publishedProvidersToUpdate.Add(publishedProvider.Key, publishedProvider.Value);
             }
 
+            _logger.Information("Finished processing providers for variations and exclusions");
+
+            _logger.Information("Adding additional variation reasons");
             AddInitialPublishVariationReasons(newProviders.Values);
+            _logger.Information("Finished adding additional variation reasons");
+
+            _logger.Information("Starting to apply variations");
 
             if (!(await _variationService.ApplyVariations(publishedProvidersToUpdate, newProviders, specification.Id)))
             {
@@ -423,6 +445,9 @@ namespace CalculateFunding.Services.Publishing
 
                 throw new NonRetriableException($"Unable to refresh funding. Variations generated {_variationService.ErrorCount} errors. Check log for details");
             }
+
+            _logger.Information("Finished applying variations");
+
 
             _logger.Information($"Updating a total of {publishedProvidersToUpdate.Count} published providers");
 
@@ -446,7 +471,7 @@ namespace CalculateFunding.Services.Publishing
                                 _logger.Information($"Saving updates to existing published providers. Total={existingPublishedProvidersToUpdate.Count}");
                                 await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(existingPublishedProvidersToUpdate.Values, author, PublishedProviderStatus.Updated, jobId, correlationId);
 
-                                _logger.Information($"Indexing existing PublishedProviders");
+                                _logger.Information("Indexing existing PublishedProviders");
                                 await _publishedProviderIndexerService.IndexPublishedProviders(existingPublishedProvidersToUpdate.Values.Select(_ => _.Current));
                             }
 
@@ -455,7 +480,7 @@ namespace CalculateFunding.Services.Publishing
                                 _logger.Information($"Saving new published providers. Total={newProviders.Count}");
                                 await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(newProviders.Values, author, PublishedProviderStatus.Draft, jobId, correlationId);
 
-                                _logger.Information($"Indexing newly added PublishedProviders");
+                                _logger.Information("Indexing newly added PublishedProviders");
                                 await _publishedProviderIndexerService.IndexPublishedProviders(newProviders.Values.Select(_ => _.Current));
                             }
 
