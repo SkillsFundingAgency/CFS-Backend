@@ -66,7 +66,7 @@ namespace CalculateFunding.Api.Profiling.Controllers
         /// <returns></returns>
         [HttpPut("api/profiling/patterns")]
         [Produces(typeof(HttpStatusCode))]
-        public async Task<IActionResult> UpsertProfilePattern([FromBody] UpsertProfilePatternRequest request)
+        public async Task<IActionResult> UpsertProfilePattern([FromBody] EditProfilePatternRequest request)
         {
             return await _profilePatternService.UpsertProfilePattern(request);
         }

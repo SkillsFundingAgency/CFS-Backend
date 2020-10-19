@@ -14,6 +14,7 @@ namespace CalculateFunding.Services.Profiling.Models
 
         }
 
+        //TODO: this constructor is ONLY for unit tests - replace with a builder
         public FundingStreamPeriodProfilePattern(string fundingPeriodId,
             string fundingStreamId, 
             string fundingLineId,
@@ -46,13 +47,13 @@ namespace CalculateFunding.Services.Profiling.Models
 
         [JsonProperty("fundingStreamId")]
         public string FundingStreamId { get; set; }
-
+        
         [JsonProperty("roundingStrategy")]
         public RoundingStrategy RoundingStrategy { get; set; }
 
         [JsonProperty("fundingLineId")]
         public string FundingLineId { get; set; }
-        
+
         [JsonProperty("profilePatternKey")]
         public string ProfilePatternKey { get; set; }
 
@@ -61,7 +62,7 @@ namespace CalculateFunding.Services.Profiling.Models
 
         [JsonProperty("fundingStreamPeriodEndDate")]
         public DateTime FundingStreamPeriodEndDate { get; set; }
-
+        
         [JsonProperty("reProfilePastPeriods")]
         public bool ReProfilePastPeriods { get; set; }
 
@@ -83,9 +84,15 @@ namespace CalculateFunding.Services.Profiling.Models
         [JsonProperty("providerTypeSubTypes")]
         public IEnumerable<ProviderTypeSubType> ProviderTypeSubTypes { get; set; }
 
+        [JsonProperty("reProfilingConfiguration")]
+        public ProfilePatternReProfilingConfiguration ReProfilingConfiguration { get; set; }
+
         [JsonProperty("id")]
         public string Id => $"{FundingPeriodId}-{FundingStreamId}-{FundingLineId}{ProfilePatternKeyString}";
 
         private string ProfilePatternKeyString => ProfilePatternKey.IsNullOrEmpty() ? null : $"-{ProfilePatternKey}";
+
+        public string GetReProfilingStrategyKeyForFundingAmountChange(decimal change)
+            => ReProfilingConfiguration?.GetReProfilingStrategyKeyForFundingAmountChange(change);
     }
 }

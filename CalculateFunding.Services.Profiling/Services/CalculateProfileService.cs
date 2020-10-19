@@ -181,7 +181,7 @@ namespace CalculateFunding.Services.Profiling.Services
            IReadOnlyCollection<DeliveryProfilePeriod> profilePattern)
         {
             return profilePattern
-                .Select(ppp => new DeliveryProfilePeriod(ppp.TypeValue, ppp.Occurrence, ppp.Type, ppp.Year, ppp.ProfileValue, ppp.DistributionPeriod))
+                .Select(ppp => DeliveryProfilePeriod.CreateInstance(ppp.TypeValue, ppp.Occurrence, ppp.Type, ppp.Year, ppp.ProfileValue, ppp.DistributionPeriod))
                 .ToList();
         }
 
@@ -253,7 +253,7 @@ namespace CalculateFunding.Services.Profiling.Services
              IReadOnlyCollection<ProfilePeriodPattern> profilePattern)
         {
             return profilePattern
-                .Select(ppp => new DeliveryProfilePeriod(ppp.Period, ppp.Occurrence, ppp.PeriodType, ppp.PeriodYear, 0m, ppp.DistributionPeriod))
+                .Select(ppp => DeliveryProfilePeriod.CreateInstance(ppp.Period, ppp.Occurrence, ppp.PeriodType, ppp.PeriodYear, 0m, ppp.DistributionPeriod))
                 .Distinct()
                 .ToList();
         }
@@ -280,7 +280,7 @@ namespace CalculateFunding.Services.Profiling.Services
                     decimal profilePercentage = profilePeriodPattern
                         .PeriodPatternPercentage;
 
-                    decimal profiledValue = (profilePercentage * allocationValueToBeProfiled);
+                    decimal profiledValue = profilePercentage * allocationValueToBeProfiled;
                     if (profiledValue != 0)
                     {
                         profiledValue /= 100;

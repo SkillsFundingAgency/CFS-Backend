@@ -7,5 +7,8 @@ namespace CalculateFunding.Services.Profiling.Services
 	public interface ICalculateProfileService
 	{
 		Task<IActionResult> ProcessProfileAllocationRequest(ProfileRequest profileRequest);
+		
+		AllocationProfileResponse ProfileAllocation(
+			ProfileRequest request, FundingStreamPeriodProfilePattern profilePattern);
 	}
 }

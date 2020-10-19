@@ -12,7 +12,15 @@ namespace CalculateFunding.Services.Profiling.Tests
         private string _profilePatternDisplayName;
         private IEnumerable<ProviderTypeSubType> _providerTypeSubTypes;
         private string _profilePatternKey;
+        private ProfilePatternReProfilingConfiguration _configuration;
 
+        public FundingStreamPeriodProfilePatternBuilder WithReProfilingConfiguration(ProfilePatternReProfilingConfiguration configuration)
+        {
+            _configuration = configuration;
+
+            return this;
+        }
+        
         public FundingStreamPeriodProfilePatternBuilder WithPeriods(params ProfilePeriodPattern[] patterns)
         {
             _patterns = patterns;
@@ -52,6 +60,7 @@ namespace CalculateFunding.Services.Profiling.Tests
                 ProfilePattern = _patterns?.ToArray() ?? Array.Empty<ProfilePeriodPattern>(),
                 ProfilePatternDisplayName = _profilePatternDisplayName ?? NewRandomString(),
                 ProviderTypeSubTypes = _providerTypeSubTypes?.ToArray() ?? Array.Empty<ProviderTypeSubType>(),
+                ReProfilingConfiguration = _configuration
             };
         }
     }

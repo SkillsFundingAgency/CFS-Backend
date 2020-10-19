@@ -3,20 +3,20 @@ using CalculateFunding.Services.Profiling.Tests.TestHelpers;
 
 namespace CalculateFunding.Services.Profiling.Tests
 {
-    public class UpsertProfilePatternRequestBuilder : TestEntityBuilder
+    public class EditProfilePatternRequestBuilder : TestEntityBuilder
     {
         private FundingStreamPeriodProfilePattern _pattern;
 
-        public UpsertProfilePatternRequestBuilder WithPattern(FundingStreamPeriodProfilePattern pattern)
+        public EditProfilePatternRequestBuilder WithPattern(FundingStreamPeriodProfilePattern pattern)
         {
             _pattern = pattern;
 
             return this;
         }
         
-        public UpsertProfilePatternRequest Build()
+        public EditProfilePatternRequest Build()
         {
-            return new UpsertProfilePatternRequest
+            return new EditProfilePatternRequest
             {
                 Pattern = _pattern
             };

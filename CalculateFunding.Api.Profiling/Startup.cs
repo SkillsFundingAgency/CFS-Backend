@@ -8,6 +8,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Profiling.Models;
 using CalculateFunding.Services.Profiling.Repositories;
 using CalculateFunding.Services.Profiling.ResiliencePolicies;
+using CalculateFunding.Services.Profiling.ReProfilingStrategies;
 using CalculateFunding.Services.Profiling.Services;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -120,12 +121,18 @@ namespace CalculateFunding.Api.Profiling
                 .AddSingleton<ICacheProvider, StackExchangeRedisClientCacheProvider>();
 
             builder
-                .AddScoped<IValidator<UpsertProfilePatternRequest>, UpsertProfilePatternValidator>();
+                .AddScoped<IValidator<EditProfilePatternRequest>, UpsertProfilePatternValidator>();
 
             builder
                 .AddScoped<IValidator<CreateProfilePatternRequest>, CreateProfilePatternValidator>();
             builder
                 .AddScoped<IProfilePatternService, ProfilePatternService>();
+            
+            builder.AddScoped<IReprofilingService, ReProfilingService>();
+
+            builder.AddScoped<IReprofilingService, ReProfilingService>();
+
+            builder.AddScoped<IReprofilingStrategyListService, ReProfilingStrategyListService>();
 
             builder.AddSingleton<IProfilingResiliencePolicies>(ctx =>
             {
@@ -141,6 +148,9 @@ namespace CalculateFunding.Api.Profiling
                     ProfilePatternRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
+
+            builder.AddSingleton<IReProfilingStrategy, ReProfileDsgFundingLine>();
+            builder.AddSingleton<IReProfilingStrategyLocator, ReProfilingStrategyLocator>();
         }
 
         public static void ConfigureSwaggerServices(IServiceCollection services,

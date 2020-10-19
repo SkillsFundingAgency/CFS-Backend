@@ -6,8 +6,7 @@ namespace CalculateFunding.Services.Profiling.Extensions
     {
         public static DeliveryProfilePeriod WithValue(this DeliveryProfilePeriod original, decimal newValue)
         {
-            return new DeliveryProfilePeriod(
-                original.TypeValue,
+            return DeliveryProfilePeriod.CreateInstance(original.TypeValue,
                 original.Occurrence,
                 original.Type,
                 original.Year,

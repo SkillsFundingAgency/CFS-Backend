@@ -1,25 +1,29 @@
 ﻿namespace CalculateFunding.Services.Profiling.Models
 {
-    public class DeliveryProfilePeriod
+    public class DeliveryProfilePeriod : IProfilePeriod
     {
+        public static DeliveryProfilePeriod CreateInstance(string period,
+            int occurrence,
+            PeriodType periodType,
+            int periodYear,
+            decimal profileValue,
+            string distributionPeriod)
+        {
+            return new DeliveryProfilePeriod(period, occurrence, periodType, periodYear, profileValue, distributionPeriod);
+        }
+
         public DeliveryProfilePeriod()
         {
 
         }
 
-        public DeliveryProfilePeriod(string period, int occurrence, PeriodType periodType, int periodYear, decimal profileValue, string distributionPeriod)
+        private DeliveryProfilePeriod(string period, int occurrence, PeriodType periodType, int periodYear, decimal profileValue, string distributionPeriod)
         {
             TypeValue = period;
             Occurrence = occurrence;
             Type = periodType;
             Year = periodYear;
             ProfileValue = profileValue;
-            DistributionPeriod = distributionPeriod;
-        }
-
-        public DeliveryProfilePeriod(string distributionPeriod)
-        {
-
             DistributionPeriod = distributionPeriod;
         }
 
@@ -34,5 +38,10 @@
         public decimal ProfileValue { get; set; }
 
         public string DistributionPeriod { get; set; }
+        
+        public decimal GetProfileValue() => ProfileValue;
+
+        public void SetProfiledValue(decimal value)
+            => ProfileValue = value;
     }
 }

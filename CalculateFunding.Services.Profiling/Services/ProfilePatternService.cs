@@ -26,12 +26,12 @@ namespace CalculateFunding.Services.Profiling.Services
         private readonly IProfilePatternRepository _profilePatterns;
         private readonly ICacheProvider _cacheProvider;
         private readonly IValidator<CreateProfilePatternRequest> _createPatternValidation;
-        private readonly IValidator<UpsertProfilePatternRequest> _upsertPatternValidation;
+        private readonly IValidator<EditProfilePatternRequest> _upsertPatternValidation;
 
         public ProfilePatternService(IProfilePatternRepository profilePatterns,
             ICacheProvider cacheProvider,
             IValidator<CreateProfilePatternRequest> createPatternValidation,
-            IValidator<UpsertProfilePatternRequest> upsertPatternValidation,
+            IValidator<EditProfilePatternRequest> upsertPatternValidation,
             IProfilingResiliencePolicies resiliencePolicies,
             ILogger logger)
         {
@@ -102,13 +102,22 @@ namespace CalculateFunding.Services.Profiling.Services
             
             return new OkObjectResult(profilePattern);
         }
+        
+        public async Task<FundingStreamPeriodProfilePattern> GetProfilePattern(string fundingStreamId, string fundingPeriodId, string fundingLineCode, string profilePatternKey)
+        {
+            string streamId = $"{fundingStreamId}-{fundingPeriodId}-{fundingLineCode}{(string.IsNullOrWhiteSpace(profilePatternKey) ? "" : $"-{profilePatternKey}")}";
+            
+            ActionResult<FundingStreamPeriodProfilePattern> getProfilePattern = await GetProfilePattern(streamId) as OkObjectResult;
+
+            return getProfilePattern?.Value;
+        }
 
         public async Task<IActionResult> CreateProfilePattern(CreateProfilePatternRequest createProfilePatternRequest)
         {
             return await SaveProfilePattern(createProfilePatternRequest, _createPatternValidation);
         }
         
-        public async Task<IActionResult> UpsertProfilePattern(UpsertProfilePatternRequest upsertProfilePatternRequest)
+        public async Task<IActionResult> UpsertProfilePattern(EditProfilePatternRequest upsertProfilePatternRequest)
         {
             return await SaveProfilePattern(upsertProfilePatternRequest, _upsertPatternValidation);
         }

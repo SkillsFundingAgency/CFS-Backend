@@ -26,7 +26,7 @@ namespace CalculateFunding.Services.Profiling.Tests
         private Mock<IProfilePatternRepository> _profilePatterns;
         private Mock<ICacheProvider> _caching;
         private Mock<IValidator<CreateProfilePatternRequest>> _createValidation;
-        private Mock<IValidator<UpsertProfilePatternRequest>> _upsertValidation;
+        private Mock<IValidator<EditProfilePatternRequest>> _upsertValidation;
 
         private ProfilePatternService _service;
 
@@ -36,7 +36,7 @@ namespace CalculateFunding.Services.Profiling.Tests
             _profilePatterns = new Mock<IProfilePatternRepository>();
             _caching = new Mock<ICacheProvider>();
             _createValidation = new Mock<IValidator<CreateProfilePatternRequest>>();
-            _upsertValidation = new Mock<IValidator<UpsertProfilePatternRequest>>();
+            _upsertValidation = new Mock<IValidator<EditProfilePatternRequest>>();
 
             _service = new ProfilePatternService(_profilePatterns.Object,
                 _caching.Object, 
@@ -259,7 +259,7 @@ namespace CalculateFunding.Services.Profiling.Tests
         [TestMethod]
         public void UpsertThrowsInvalidOperationExceptionIfSaveFails()
         {
-            UpsertProfilePatternRequest request = NewEditRequest(_ =>
+            EditProfilePatternRequest request = NewEditRequest(_ =>
                 _.WithPattern(NewProfilePattern()));
             HttpStatusCode invalidStatusCode = HttpStatusCode.Conflict;
 
@@ -279,7 +279,7 @@ namespace CalculateFunding.Services.Profiling.Tests
             AndTheCacheWasNotInvalidated();
         }
 
-        private async Task<IActionResult> WhenTheProfilePatternIsEdited(UpsertProfilePatternRequest request)
+        private async Task<IActionResult> WhenTheProfilePatternIsEdited(EditProfilePatternRequest request)
         {
             return await _service.UpsertProfilePattern(request);
         }
@@ -422,9 +422,9 @@ namespace CalculateFunding.Services.Profiling.Tests
                 .Build();
         }
 
-        private UpsertProfilePatternRequest NewEditRequest(Action<UpsertProfilePatternRequestBuilder> setUp = null)
+        private EditProfilePatternRequest NewEditRequest(Action<EditProfilePatternRequestBuilder> setUp = null)
         {
-            UpsertProfilePatternRequestBuilder builder = new UpsertProfilePatternRequestBuilder();
+            EditProfilePatternRequestBuilder builder = new EditProfilePatternRequestBuilder();
 
             setUp?.Invoke(builder);
 

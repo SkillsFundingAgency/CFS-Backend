@@ -2,7 +2,7 @@
 
 namespace CalculateFunding.Services.Profiling.Services
 {
-    public class UpsertProfilePatternValidator : ProfilePatternRequestBaseValidator<UpsertProfilePatternRequest>
+    public class UpsertProfilePatternValidator : ProfilePatternRequestBaseValidator<EditProfilePatternRequest>
     {
     }
 }
