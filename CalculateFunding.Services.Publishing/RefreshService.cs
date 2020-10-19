@@ -400,7 +400,8 @@ namespace CalculateFunding.Services.Publishing
                 _reApplyCustomProfiles.ProcessPublishedProvider(publishedProviderVersion);
 
                 // process published provider and detect errors
-                await _detection.ProcessPublishedProvider(publishedProvider.Value, publishedProvidersContext);
+                // Disabled due to memory bug - TODO reimplement to fix implementation - add existing published funding to context and optimise to send only the funding groups this provider is in, instead of whole published funding
+                //await _detection.ProcessPublishedProvider(publishedProvider.Value, publishedProvidersContext);
 
                 if (publishedProviderUpdated && existingPublishedProviders.AnyWithNullCheck())
                 {
