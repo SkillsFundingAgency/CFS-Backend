@@ -53,6 +53,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
                 .Returns(new ApiResponse<IEnumerable<ProfileVariationPointer>>(HttpStatusCode.OK, variationPointers));
         }
 
+        protected void GivenTheVariationPointersForTheSpecificationAreNull()
+        {
+            _specificationsApiClient
+                .GetProfileVariationPointers(VariationContext.RefreshState.SpecificationId)
+                .Returns(new ApiResponse<IEnumerable<ProfileVariationPointer>>(HttpStatusCode.OK, null));
+        }
+
         protected void GivenTheVariationPointersForTheSpecificationReturnsNoContent()
         {
             _specificationsApiClient

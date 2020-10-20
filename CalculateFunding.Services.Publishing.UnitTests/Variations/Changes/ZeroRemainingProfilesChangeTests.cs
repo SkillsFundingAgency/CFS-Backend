@@ -18,6 +18,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
         }
 
         [TestMethod]
+        public async Task HandlesNullVariationPointers()
+        {
+            GivenTheVariationPointersForTheSpecificationAreNull();
+
+            await WhenTheChangeIsApplied();
+
+            AndNoVariationChangesWereQueued();
+        }
+
+        [TestMethod]
         public async Task RecordsErrorIfNoVariationPointersCouldBeObtainedForSpecification()
         {
             await WhenTheChangeIsApplied();

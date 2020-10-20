@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
@@ -46,11 +47,13 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 
                 IEnumerable<ProfileVariationPointer> variationPointers = variationPointersResponse?.Content;
 
-                foreach (ProfileVariationPointer variationPointer in variationPointers)
+                if (!variationPointers.IsNullOrEmpty())
                 {
-                    MakeAdjustmentsFromProfileVariationPointer(variationPointer);
+                    foreach (ProfileVariationPointer variationPointer in variationPointers)
+                    {
+                        MakeAdjustmentsFromProfileVariationPointer(variationPointer);
+                    }
                 }
-
             }
             catch (Exception exception)
             {
