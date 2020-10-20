@@ -1,47 +1,45 @@
-﻿using AutoMapper;
-using CalculateFunding.Common.ApiClient.Calcs;
-using CalculateFunding.Common.ApiClient.Calcs.Models;
-using CalculateFunding.Common.ApiClient.Jobs;
-using CalculateFunding.Common.ApiClient.Jobs.Models;
-using CalculateFunding.Common.ApiClient.Models;
-using CalculateFunding.Common.ApiClient.Policies.Models;
-using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
-using CalculateFunding.Common.ApiClient.Specifications;
-using CalculateFunding.Common.ApiClient.Specifications.Models;
-using CalculateFunding.Common.JobManagement;
-using CalculateFunding.Common.Models;
-using CalculateFunding.Common.TemplateMetadata.Models;
-using CalculateFunding.Models.Publishing;
-using CalculateFunding.Services.Core;
-using CalculateFunding.Services.Core.Constants;
-using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Publishing.Interfaces;
-using CalculateFunding.Services.Publishing.Specifications;
-using CalculateFunding.Services.Publishing.Variations;
-using CalculateFunding.Services.Publishing.Variations.Strategies;
-using FluentAssertions;
-using FluentAssertions.Common;
-using Microsoft.Azure.ServiceBus;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
-using NSubstitute.ExceptionExtensions;
-using Polly;
-using Serilog;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using AutoMapper;
+using CalculateFunding.Common.ApiClient.Calcs;
+using CalculateFunding.Common.ApiClient.Calcs.Models;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
+using CalculateFunding.Common.ApiClient.Policies.Models;
+using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
+using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Common.Models;
+using CalculateFunding.Common.TemplateMetadata.Models;
+using CalculateFunding.Generators.OrganisationGroup.Interfaces;
+using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Core;
+using CalculateFunding.Services.Core.Constants;
+using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Publishing.Errors;
+using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Specifications;
+using CalculateFunding.Services.Publishing.Variations;
+using CalculateFunding.Services.Publishing.Variations.Strategies;
+using CalculateFunding.Tests.Common.Helpers;
+using FluentAssertions;
+using FluentAssertions.Common;
+using Microsoft.Azure.ServiceBus;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using NSubstitute;
+using NSubstitute.ExceptionExtensions;
+using Polly;
+using Serilog;
 using FundingLine = CalculateFunding.Models.Publishing.FundingLine;
 using TemplateCalculation = CalculateFunding.Common.TemplateMetadata.Models.Calculation;
 using TemplateFundingLine = CalculateFunding.Common.TemplateMetadata.Models.FundingLine;
-using CalculateFunding.Tests.Common.Helpers;
-using CalculateFunding.Common.ServiceBus.Interfaces;
-using CalculateFunding.Generators.OrganisationGroup.Interfaces;
-using CalculateFunding.Services.Publishing.Errors;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Services
 {
@@ -142,7 +140,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _organisationGroupGenerator = Substitute.For<IOrganisationGroupGenerator>();
             _policiesService = Substitute.For<IPoliciesService>();
             _prerequisiteCheckerLocator.GetPreReqChecker(PrerequisiteCheckerType.Refresh)
-                .Returns(new RefreshPrerequisiteChecker(_specificationFundingStatusService, 
+                .Returns(new RefreshPrerequisiteChecker(_specificationFundingStatusService,
                 _specificationService, _jobsRunning, _calculationApprovalCheckerService, _jobManagement, _logger));
             _transactionFactory = new TransactionFactory(_logger, new TransactionResiliencePolicies { TransactionPolicy = Policy.NoOpAsync() });
             _publishedProviderVersionService = Substitute.For<IPublishedProviderVersionService>();
@@ -293,39 +291,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                         VariationReason.FundingUpdated, VariationReason.ProfilingUpdated
                     },
                     opt => opt.WithoutStrictOrdering());
-        }
-
-        [TestMethod]
-        public async Task RefreshResults_WhenProviderClosedWithSuccessorButNoPointerSet_RecordsErrors()
-        {
-            GivenJobCanBeProcessed();
-            AndSpecification();
-            AndCalculationResultsBySpecificationId();
-            AndTemplateMetadataContents();
-            AndScopedProviders((_) =>
-            {
-                _.Successor = Successor;
-                _.Status = "Closed";
-            });
-            AndScopedProviderCalculationResults();
-            AndTemplateMapping();
-            GivenPublishedProviderClosedWithSuccessor();
-            AndPublishedProviders();
-            GivenFundingConfiguration(new ClosureWithSuccessorVariationStrategy(_providerService));
-
-            Func<Task> invocation = WhenMessageReceivedWithJobIdAndCorrelationId;
-
-            invocation
-                .Should()
-                .Throw<NonRetriableException>()
-                .And
-                .Message
-                .Should()
-                .Be($"Unable to refresh funding. Variations generated {_variationService.ErrorCount} errors. Check log for details");
-
-            await _recordVariationErrors.Received(1)
-                .RecordVariationErrors(Arg.Is<IEnumerable<string>>(_ => _.First().Equals($"Unable to transfer remaining profiles for provider id {_providerIdVaried}") && _.Skip(1).First().Equals($"Unable to zero remaining profiles for provider id {_providerIdVaried}")), Arg.Is(SpecificationId));
-
         }
 
         [TestMethod]
@@ -530,7 +495,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndCalculationResultsBySpecificationId();
             AndTemplateMetadataContents();
             AndScopedProviders();
-            
+
             var newProvider = _publishedProviders.First();
             var existingProviders = _publishedProviders.Skip(1).ToList();
 

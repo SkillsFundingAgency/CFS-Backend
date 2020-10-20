@@ -1,8 +1,6 @@
-using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Variations.Changes;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
@@ -10,21 +8,24 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
     [TestClass]
     public class ZeroRemainingProfilesChangeTests : ZeroRemainingProfilesChangeTestBase
     {
+        private string _changeName = "zero remaining profiles";
+
         [TestInitialize]
         public void SetUp()
         {
             Change = new ZeroRemainingProfilesChange(VariationContext);
+
         }
 
         [TestMethod]
-        public async Task RecordsErrorIfNoVariationPointersForSpecificationId()
+        public async Task RecordsErrorIfNoVariationPointersCouldBeObtainedForSpecification()
         {
             await WhenTheChangeIsApplied();
-            
-            ThenTheErrorWasRecorded($"Unable to zero remaining profiles for provider id {VariationContext.ProviderId}");
+
+            ThenTheErrorWasRecorded($"Unable to obtain variation pointers for {_changeName} for provider id {VariationContext.ProviderId}");
             AndNoVariationChangesWereQueued();
         }
-        
+
 
         [TestMethod]
         public async Task ZerosProfilesAfterProfileVariationPointersInSpecificationOnEachMatchingFundingLine()
@@ -34,7 +35,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
             int year = 2020;
             int occurence = 1;
             string typeValue = "January";
-            
+
             GivenTheVariationPointersForTheSpecification(NewVariationPointer(_ => _.WithFundingLineId(fundingLineOneId)
                 .WithOccurence(occurence)
                 .WithYear(year)
@@ -45,19 +46,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
                     .WithTypeValue(typeValue)));
 
             decimal periodOneAmount = 293487M;
-            
+
             ProfilePeriod periodOne = NewProfilePeriod(0, 2020, "January", periodOneAmount);
             ProfilePeriod periodTwo = NewProfilePeriod(1, 2020, "January", 2973864M);
             ProfilePeriod periodThree = NewProfilePeriod(0, 2020, "February", 123764M);
             ProfilePeriod periodFour = NewProfilePeriod(1, 2020, "January", 6487234M);
             ProfilePeriod periodFive = NewProfilePeriod(2, 2020, "January", 1290837M);
-            
+
             AndTheFundingLines(NewFundingLine(_ => _.WithFundingLineCode(fundingLineOneId)
                 .WithDistributionPeriods(NewDistributionPeriod(dp => dp.WithProfilePeriods(periodOne, periodTwo, periodThree)),
                     NewDistributionPeriod(dp => dp.WithProfilePeriods(periodFour, periodFive)))));
-            
+
             await WhenTheChangeIsApplied();
-            
+
             ThenProfilePeriodsShouldBeZeroAmount(periodTwo, periodThree, periodFive, periodFour);
             AndTheProfilePeriodAmountShouldBe(periodOne, periodOneAmount);
         }
@@ -71,12 +72,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
         public async Task RecordsErrorIfNoMatchingProfilePeriodForAVariationPointer()
         {
             string fundingLineId = NewRandomString();
-            
+
             GivenTheVariationPointersForTheSpecification(NewVariationPointer(_ => _.WithFundingLineId(fundingLineId)));
             AndTheFundingLines(NewFundingLine(_ => _.WithFundingLineCode(fundingLineId)));
 
             await WhenTheChangeIsApplied();
-            
+
             ThenTheErrorWasRecorded($"Did not locate profile period corresponding to variation pointer for funding line id {fundingLineId}");
             AndNoVariationChangesWereQueued();
         }

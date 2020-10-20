@@ -18,23 +18,25 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
             Guard.ArgumentNotNull(providerVariationContext, nameof(providerVariationContext));
 
             PublishedProviderVersion priorState = providerVariationContext.PriorState;
-            
+
             if (priorState == null ||
-                priorState.Provider.Status == Closed || 
+                priorState.Provider.Status == Closed ||
                 providerVariationContext.UpdatedProvider.Status != Closed ||
                 !providerVariationContext.UpdatedProvider.Successor.IsNullOrWhitespace())
             {
                 return Task.CompletedTask;
             }
-            
+
             if (providerVariationContext.UpdatedTotalFunding != priorState.TotalFunding)
             {
                 providerVariationContext.RecordErrors("Unable to run Closure variation as TotalFunding has changed during the refresh funding");
-                
+
                 return Task.CompletedTask;
             }
-            
+
+
             providerVariationContext.QueueVariationChange(new ZeroRemainingProfilesChange(providerVariationContext));
+            providerVariationContext.QueueVariationChange(new ZeroInitialPaymentProfilesChange(providerVariationContext));
             providerVariationContext.QueueVariationChange(new ReAdjustFundingValuesForProfileValuesChange(providerVariationContext));
 
             return Task.CompletedTask;

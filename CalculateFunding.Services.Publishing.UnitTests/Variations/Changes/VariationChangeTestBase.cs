@@ -4,7 +4,6 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Models;
-using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Models.Publishing;
@@ -52,6 +51,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
             _specificationsApiClient
                 .GetProfileVariationPointers(VariationContext.RefreshState.SpecificationId)
                 .Returns(new ApiResponse<IEnumerable<ProfileVariationPointer>>(HttpStatusCode.OK, variationPointers));
+        }
+
+        protected void GivenTheVariationPointersForTheSpecificationReturnInternalServerError()
+        {
+            _specificationsApiClient
+                .GetProfileVariationPointers(VariationContext.RefreshState.SpecificationId)
+                .Returns(new ApiResponse<IEnumerable<ProfileVariationPointer>>(HttpStatusCode.InternalServerError, null));
         }
 
         protected void AndTheVariationPointersForTheSpecification(params ProfileVariationPointer[] variationPointers)

@@ -41,6 +41,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             await WhenTheVariationsAreDetermined();
 
             ThenTheVariationChangeWasQueued<ZeroRemainingProfilesChange>();
+            ThenTheVariationChangeWasQueued<ZeroInitialPaymentProfilesChange>();
             AndTheVariationChangeWasQueued<ReAdjustFundingValuesForProfileValuesChange>();
         }
 
