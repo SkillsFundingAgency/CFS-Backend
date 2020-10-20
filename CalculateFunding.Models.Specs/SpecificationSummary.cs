@@ -18,6 +18,9 @@ namespace CalculateFunding.Models.Specs
         [JsonProperty("fundingStreams")]
         public IEnumerable<Reference> FundingStreams { get; set; }
 
+        [JsonProperty("providerSnapshotId")]
+        public int? ProviderSnapshotId { get; set; }
+
         [JsonProperty("providerVersionId")]
         public string ProviderVersionId { get; set; }
 

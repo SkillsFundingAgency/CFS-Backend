@@ -109,6 +109,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                            "dr1",
                            "dr2"
                        },
+                    ProviderSnapshotId = 1,
                     Description = "Specification Description",
                     FundingPeriod = new Reference("FP1", "Funding Period"),
                     PublishStatus = Models.Versioning.PublishStatus.Draft,
@@ -157,6 +158,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                     },
                     Description = "Specification Description",
                     FundingPeriod = new Reference("FP1", "Funding Period"),
+                    ProviderSnapshotId = 1,
                     DataDefinitionRelationshipIds = new []
                     {
                         "dr1", 
