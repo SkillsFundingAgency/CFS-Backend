@@ -65,10 +65,12 @@ namespace CalculateFunding.Services.Publishing.Comparers
         {
             bool equals = true;
 
-            (bool equal, FundingLine fundingLine) hasFundingLineChanges = CompareEnumerable(x.FundingLines, y.FundingLines, (xfl, yfl) => {
+            (bool equal, FundingLine fundingLine) hasFundingLineChanges = CompareEnumerable(x.FundingLines, y.FundingLines, (xfl, yfl) =>
+            {
                 if (xfl.TemplateLineId == yfl.TemplateLineId && xfl.FundingLineCode == yfl.FundingLineCode && xfl.Name == yfl.Name && xfl.Type == yfl.Type && xfl.Value == yfl.Value)
                 {
-                    (bool equal, DistributionPeriod distributionPeriod) hasDistributionPeriodChanges = CompareEnumerable(xfl.DistributionPeriods, yfl.DistributionPeriods, (xdp, ydp) => {
+                    (bool equal, DistributionPeriod distributionPeriod) hasDistributionPeriodChanges = CompareEnumerable(xfl.DistributionPeriods, yfl.DistributionPeriods, (xdp, ydp) =>
+                    {
                         {
                             if (xdp.DistributionPeriodId == ydp.DistributionPeriodId && xdp.Value == ydp.Value)
                             {
@@ -108,7 +110,7 @@ namespace CalculateFunding.Services.Publishing.Comparers
                 equals = false;
             }
 
-            (bool equal, FundingCalculation calculation) hasCalcChanges = CompareEnumerable(x.Calculations, y.Calculations, (xc, yc) => xc.TemplateCalculationId == yc.TemplateCalculationId && xc.Value.ToString() == yc.Value.ToString());
+            (bool equal, FundingCalculation calculation) hasCalcChanges = CompareEnumerable(x.Calculations, y.Calculations, (xc, yc) => xc.TemplateCalculationId == yc.TemplateCalculationId && xc.Value?.ToString() == yc.Value?.ToString());
 
             if (!hasCalcChanges.equal)
             {

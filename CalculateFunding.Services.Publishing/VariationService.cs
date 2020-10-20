@@ -1,15 +1,15 @@
-﻿using CalculateFunding.Common.ApiClient.Policies.Models;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Services.Publishing.Variations;
 using Serilog;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing
 {
@@ -60,10 +60,10 @@ namespace CalculateFunding.Services.Publishing
 
         }
 
-        public async Task<IDictionary<string, PublishedProvider>> PrepareVariedProviders(decimal? updatedTotalFunding, 
-            IDictionary<string, PublishedProvider> allPublishedProviderRefreshStates, 
-            PublishedProvider existingPublishedProvider, 
-            Provider updatedProvider, 
+        public async Task<IDictionary<string, PublishedProvider>> PrepareVariedProviders(decimal? updatedTotalFunding,
+            IDictionary<string, PublishedProvider> allPublishedProviderRefreshStates,
+            PublishedProvider existingPublishedProvider,
+            Provider updatedProvider,
             IEnumerable<FundingVariation> variations,
             string snapshotId,
             string specificationProviderVersionId)
@@ -76,14 +76,14 @@ namespace CalculateFunding.Services.Publishing
             bool shouldRunVariations = variations.AnyWithNullCheck() &&
                                         !string.IsNullOrWhiteSpace(snapshotId);
 
-            _logger.Information($"Variations enabled = {shouldRunVariations}");
+            _logger.Verbose($"Variations enabled = {shouldRunVariations}");
 
             if (!shouldRunVariations || !_snapshots.TryGetValue(snapshotId, out IDictionary<string, PublishedProviderSnapShots> publishedProviderSnapshots))
             {
                 return null;
             }
 
-            _logger.Information($"Number of snapshot providers = {publishedProviderSnapshots.Count}");
+            _logger.Verbose($"Number of snapshot providers = {publishedProviderSnapshots.Count}");
 
             ProviderVariationContext variationContext = await _detectProviderVariations.CreateRequiredVariationChanges(existingPublishedProvider,
                 updatedTotalFunding,
@@ -106,8 +106,8 @@ namespace CalculateFunding.Services.Publishing
             return null;
         }
 
-        public async Task<bool> ApplyVariations(IDictionary<string, PublishedProvider> publishedProvidersToUpdate, 
-            IDictionary<string, PublishedProvider> newProviders, 
+        public async Task<bool> ApplyVariations(IDictionary<string, PublishedProvider> publishedProvidersToUpdate,
+            IDictionary<string, PublishedProvider> newProviders,
             string specificationId)
         {
             Guard.ArgumentNotNull(publishedProvidersToUpdate, nameof(publishedProvidersToUpdate));

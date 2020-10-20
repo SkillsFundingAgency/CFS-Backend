@@ -3,16 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using AutoMapper;
 using CalculateFunding.Models.Publishing;
-using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using Serilog;
 using DistributionPeriod = CalculateFunding.Models.Publishing.DistributionPeriod;
 using FundingLine = CalculateFunding.Models.Publishing.FundingLine;
 using ProfilePeriod = CalculateFunding.Models.Publishing.ProfilePeriod;
 using Provider = CalculateFunding.Models.Publishing.Provider;
-using Serilog;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
 {
@@ -48,7 +47,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Returns(_publishedProviderVersionForMapping.Provider);
 
             _logger = CreateLogger();
-            
+
             _publishedProviderDataPopulator = new PublishedProviderDataPopulator(_mapper, _logger);
         }
 
@@ -60,7 +59,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _publishedProviderVersion.TemplateVersion = newTemplateVersion;
 
             bool result = WhenThePublishedProviderIsUpdated();
-            
+
             result
                 .Should()
                 .BeTrue();
@@ -74,7 +73,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         public void UpdatePublishedProvider_GivenNoChanges_ReturnsFalse()
         {
             _publishedProviderVersionForMapping.Provider.ProviderVersionId = "1";
-            
+
             bool result = WhenThePublishedProviderIsUpdated();
 
             result
@@ -94,7 +93,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             result
                 .Should()
                 .BeTrue();
-            
+
             _logger
                  .Received(1)
                  .Information($"changes for new published provider version : {_publishedProviderVersion.Id} : [\"Provider: Name: {initialProviderName} != {newProviderName}\"]");
@@ -106,7 +105,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _generatedProviderResult.FundingLines.First().Name = "New Name";
 
             bool result = WhenThePublishedProviderIsUpdated();
-            
+
             //NB - test title says should return false but assertion is returns true
 
             result
@@ -137,6 +136,22 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         }
 
         [TestMethod]
+        public void UpdatePublishedProvider_GivenCalculationChangesWithNullResultFromCalcs_ThenHasCalculationChanges()
+        {
+            _generatedProviderResult.Calculations.First().Value = null;
+
+            bool result = WhenThePublishedProviderIsUpdated();
+
+            result
+                .Should()
+                .BeTrue();
+
+            _logger
+                 .Received(1)
+                 .Information($"changes for new published provider version : {_publishedProviderVersion.Id} : [\"Calculation:{_generatedProviderResult.Calculations.First().TemplateCalculationId}\"]");
+        }
+
+        [TestMethod]
         public void UpdatePublishedProvider_GivenReferenceDataChanges_ReturnsFalse()
         {
             _generatedProviderResult.ReferenceData.First().Value = 56;
@@ -156,9 +171,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
         private bool WhenThePublishedProviderIsUpdated()
         {
-            return _publishedProviderDataPopulator.UpdatePublishedProvider(_publishedProviderVersion, 
-                _generatedProviderResult, 
-                _provider, 
+            return _publishedProviderDataPopulator.UpdatePublishedProvider(_publishedProviderVersion,
+                _generatedProviderResult,
+                _provider,
                 _templateVersion,
                 false);
         }
