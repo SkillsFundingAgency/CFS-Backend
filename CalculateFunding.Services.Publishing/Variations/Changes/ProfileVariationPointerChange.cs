@@ -36,7 +36,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
                         specificationsApiClient.GetProfileVariationPointers(VariationContext.RefreshState.SpecificationId));
 
 
-                if (variationPointersResponse == null || variationPointersResponse.StatusCode != System.Net.HttpStatusCode.OK)
+                if (variationPointersResponse == null
+                    || !(variationPointersResponse.StatusCode == System.Net.HttpStatusCode.OK || variationPointersResponse.StatusCode == System.Net.HttpStatusCode.NoContent))
                 {
                     RecordMissingProfileVariationPointers();
 
