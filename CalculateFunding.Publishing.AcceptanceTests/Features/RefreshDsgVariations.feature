@@ -64,6 +64,7 @@ Background:
 	And the specification has the following template versions for funding streams
 		| Key | Value |
 		| DSG | 2.0   |
+	And the specification is approved
 	And the publishing dates for the specifcation are set as following
 		| Field                        | Value               |
 		| StatusChangedDate            | 2019-09-27 00:00:00 |

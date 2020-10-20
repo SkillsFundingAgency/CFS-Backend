@@ -10,6 +10,7 @@ using CalculateFunding.Services.Publishing.Interfaces;
 using Polly;
 using ApiSpecificationSummary = CalculateFunding.Common.ApiClient.Specifications.Models.SpecificationSummary;
 using ApiProfileVariationPointer = CalculateFunding.Common.ApiClient.Specifications.Models.ProfileVariationPointer;
+using CalculateFunding.Common.Models.Versioning;
 
 namespace CalculateFunding.Services.Publishing.Specifications
 {
@@ -85,6 +86,19 @@ namespace CalculateFunding.Services.Publishing.Specifications
             }
 
             return profileVariationPointerResponse.Content;
+        }
+
+        public async Task<PublishStatusResponseModel> EditSpecificationStatus(
+            string specificationId, 
+            Common.Models.Versioning.PublishStatus publishStatus)
+        {
+            ApiResponse<PublishStatusResponseModel> response =
+                await _resiliencePolicy.ExecuteAsync(() => 
+                _specifications.UpdateSpecificationStatus(
+                    specificationId, 
+                    new Common.Models.Versioning.PublishStatusRequestModel { PublishStatus = publishStatus }));
+
+            return response?.Content;
         }
     }
 }

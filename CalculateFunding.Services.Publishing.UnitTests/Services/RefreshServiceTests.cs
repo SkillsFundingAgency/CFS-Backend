@@ -799,6 +799,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         {
             _specificationSummary = NewSpecificationSummary(_ => _
                 .WithId(SpecificationId)
+                .WithPublishStatus(PublishStatus.Approved)
                 .WithFundingStreamIds(new[] { FundingStreamId })
                 .WithFundingPeriodId(FundingPeriodId)
                 .WithTemplateIds((FundingStreamId, "1.0"))

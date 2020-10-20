@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Models;
@@ -17,10 +18,18 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private bool _withNoId;
         private IEnumerable<(string fundingId, string version)> _templateIds = Enumerable.Empty<(string fundingId, string version)>();
         private string _providerVersionId;
+        private PublishStatus _publishStatus;
 
         public SpecificationSummaryBuilder WithNoId()
         {
             _withNoId = true;
+
+            return this;
+        }
+
+        public SpecificationSummaryBuilder WithPublishStatus(PublishStatus publishStatus)
+        {
+            _publishStatus = publishStatus;
 
             return this;
         }
@@ -88,7 +97,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     Id = _
                 }).ToArray(),
                 TemplateIds = _templateIds.ToDictionary(_ => _.fundingId, _ => _.version),
-                ProviderVersionId = _providerVersionId ?? NewRandomString()
+                ProviderVersionId = _providerVersionId ?? NewRandomString(),
+                ApprovalStatus = _publishStatus
             };
         }
     }

@@ -7,15 +7,14 @@ using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Models.Publishing;
-using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Services.Publishing.Specifications;
-using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -60,6 +59,63 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 _prerequisiteCheckerLocator);
 
             _approveProvidersRequest = BuildApproveProvidersRequest(_ => _.WithProviders(ProviderIds));
+        }
+
+        [TestMethod]
+        public async Task ReturnsBadRequestWhenSuppliedSpecificationIdFailsValidationForGetRefreshFundingJobPrereqErrors()
+        {
+            string[] expectedErrors = { NewRandomString(), NewRandomString() };
+
+            GivenTheValidationErrors(expectedErrors);
+
+            await WhenGetRefreshFundingJobPrereqErrors();
+
+            ThenTheResponseShouldBe<BadRequestObjectResult>();
+        }
+
+        [TestMethod]
+        public async Task ReturnsNotFoundResultIfNoSpecificationLocatedWithTheSuppliedIdForGetRefreshFundingJobPrereqErrors()
+        {
+            GivenTheApiResponseDetailsForTheSuppliedId(null, HttpStatusCode.NotFound);
+
+            await WhenGetRefreshFundingJobPrereqErrors();
+
+            ThenTheResponseShouldBe<NotFoundResult>();
+        }
+
+        [TestMethod]
+        public async Task Returns200IfPrereqChecksFailsForGetRefreshFundingJobPrereqErrors()
+        {
+            string errorMessage = "calc error";
+
+            ApiSpecificationSummary specificationSummary = NewApiSpecificationSummary(_ => _.WithId(SpecificationId));
+            GivenTheApiResponseDetailsForTheSuppliedId(specificationSummary);
+
+            AndGetPreReqCheckerLocatorReturnsRefreshPreReqChecker();
+            AndPrereqChecksFails(specificationSummary, errors: new[] { errorMessage });
+
+            await WhenGetRefreshFundingJobPrereqErrors();
+
+            ThenTheResponseShouldBe<BadRequestObjectResult>();
+
+            BadRequestObjectResult objectResult = ActionResult as BadRequestObjectResult;
+
+            objectResult.Should().NotBeNull();
+            objectResult.Value.Should().BeOfType<SerializableError>();
+
+            SerializableError errors = objectResult.Value as SerializableError;
+
+            errors.Should().NotBeNull();
+            errors.Count.Should().Be(1);
+
+            errors.FirstOrDefault().Value.Should().BeOfType<string[]>();
+
+            string[] errorArray = errors.FirstOrDefault().Value as string[];
+
+            errorArray.Should().NotBeNull();
+            errorArray.Length.Should().Be(1);
+
+            errorArray.FirstOrDefault().Should().Be(errorMessage);
         }
 
         [TestMethod]
@@ -145,7 +201,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         public async Task Returns400IfPrereqChecksFails()
         {
             string fundingPeriodId = NewRandomString();
-            string preReqCheckFailedErrorMessage = "Prerequisite check for refresh failed Error in the application." ;
+            string exceptionErrorMessage = "Error in the application.";
+            string preReqCheckFailedErrorMessage = $"Prerequisite check for refresh failed {exceptionErrorMessage}";
 
             ApiSpecificationSummary specificationSummary =
                 NewApiSpecificationSummary(_ => _
@@ -158,7 +215,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             GivenTheApiResponseDetailsForTheSuppliedId(specificationSummary);
             AndTheApiResponseDetailsForTheFundingPeriodId(fundingPeriodId);
             AndGetPreReqCheckerLocatorReturnsRefreshPreReqChecker();
-            AndPrereqChecksFails(specificationSummary);
+            AndPrereqChecksFails(specificationSummary, message: exceptionErrorMessage);
 
             await WhenTheSpecificationIsPublished();
 
@@ -411,7 +468,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         }
 
         private void AndPrereqChecksFails(
-            ApiSpecificationSummary specificationSummary)
+            ApiSpecificationSummary specificationSummary,
+            string message = null,
+            IEnumerable<string> errors = null)
         {
             _prerequisiteChecker
                 .PerformChecks(
@@ -419,7 +478,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                     null,
                     Arg.Is<IEnumerable<PublishedProvider>>(_ => !_.Any()),
                     Arg.Is<IEnumerable<Provider>>(_ => !_.Any()))
-                .Throws(new NonRetriableException());
+                .Throws(new JobPrereqFailedException(message, errors));
         }
 
         private void AndTheSpecificationHasTheStatus(ApiSpecificationSummary specificationSummary,
@@ -438,6 +497,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         private async Task WhenTheSpecificationIsPublished()
         {
             ActionResult = await _service.CreateRefreshFundingJob(SpecificationId, User, CorrelationId);
+        }
+
+        private async Task WhenGetRefreshFundingJobPrereqErrors()
+        {
+            ActionResult = await _service.ValidateSpecificationForRefresh(SpecificationId);
         }
 
         private void AndTheApiResponseDetailsForApproveSpecificationJob(ApiJob job)

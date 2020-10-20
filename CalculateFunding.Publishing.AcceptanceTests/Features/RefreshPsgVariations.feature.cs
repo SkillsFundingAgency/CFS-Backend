@@ -357,6 +357,9 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
 #line 91
  testRunner.And("the specification has the following template versions for funding streams", ((string)(null)), table646, "And ");
 #line hidden
+#line 94
+ testRunner.And("the specification is approved", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
             TechTalk.SpecFlow.Table table647 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
@@ -369,7 +372,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
             table647.AddRow(new string[] {
                         "EarliestPaymentAvailableDate",
                         "2019-09-29 00:00:00"});
-#line 94
+#line 95
  testRunner.And("the publishing dates for the specifcation are set as following", ((string)(null)), table647, "And ");
 #line hidden
             TechTalk.SpecFlow.Table table648 = new TechTalk.SpecFlow.Table(new string[] {
@@ -387,10 +390,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
             table648.AddRow(new string[] {
                         "ParentJobId",
                         ""});
-#line 99
+#line 100
  testRunner.And("the following job is requested to be queued for the current specification", ((string)(null)), table648, "And ");
 #line hidden
-#line 105
+#line 106
  testRunner.And("the job is submitted to the job service", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             TechTalk.SpecFlow.Table table649 = new TechTalk.SpecFlow.Table(new string[] {
@@ -420,7 +423,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
             table649.AddRow(new string[] {
                         "Created",
                         "2019-12-11 00:00"});
-#line 106
+#line 107
  testRunner.And("the following provider version exists in the providers service", ((string)(null)), table649, "And ");
 #line hidden
             TechTalk.SpecFlow.Table table650 = new TechTalk.SpecFlow.Table(new string[] {
@@ -450,7 +453,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
             table650.AddRow(new string[] {
                         "MinorVersion",
                         "1"});
-#line 117
+#line 118
  testRunner.And("the following Published Provider has been previously generated for the current sp" +
                     "ecification", ((string)(null)), table650, "And ");
 #line hidden
@@ -466,7 +469,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
                         "12000",
                         "1",
                         "Payment"});
-#line 127
+#line 128
  testRunner.And("the Published Provider has the following funding lines", ((string)(null)), table651, "And ");
 #line hidden
             TechTalk.SpecFlow.Table table652 = new TechTalk.SpecFlow.Table(new string[] {
@@ -478,7 +481,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
             table652.AddRow(new string[] {
                         "FY-2021",
                         "5000"});
-#line 130
+#line 131
  testRunner.And("the Published Provider has the following distribution period for funding line \'To" +
                     "talAllocation\'", ((string)(null)), table652, "And ");
 #line hidden
@@ -503,7 +506,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
                         "2021",
                         "1",
                         "5000"});
-#line 134
+#line 135
  testRunner.And("the Published Providers distribution period has the following profiles for fundin" +
                     "g line \'TotalAllocation\'", ((string)(null)), table653, "And ");
 #line hidden
@@ -537,7 +540,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
                         "calculation5",
                         "6",
                         "Additional Rate"});
-#line 138
+#line 139
  testRunner.And("template mapping exists", ((string)(null)), table654, "And ");
 #line hidden
             TechTalk.SpecFlow.Table table655 = new TechTalk.SpecFlow.Table(new string[] {
@@ -558,7 +561,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
             table655.AddRow(new string[] {
                         "6",
                         "20"});
-#line 145
+#line 146
  testRunner.And("the Published Provider contains the following calculation results", ((string)(null)), table655, "And ");
 #line hidden
             TechTalk.SpecFlow.Table table656 = new TechTalk.SpecFlow.Table(new string[] {
@@ -597,10 +600,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
             table656.AddRow(new string[] {
                         "UKPRN",
                         "1000000"});
-#line 152
+#line 153
  testRunner.And("the Published Provider has the following provider information", ((string)(null)), table656, "And ");
 #line hidden
-#line 165
+#line 166
  testRunner.And("the Published Provider is available in the repository for this specification", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             TechTalk.SpecFlow.Table table657 = new TechTalk.SpecFlow.Table(new string[] {
@@ -630,7 +633,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
             table657.AddRow(new string[] {
                         "MinorVersion",
                         "1"});
-#line 166
+#line 167
  testRunner.And("the following Published Provider has been previously generated for the current sp" +
                     "ecification", ((string)(null)), table657, "And ");
 #line hidden
@@ -646,7 +649,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
                         "24000",
                         "1",
                         "Payment"});
-#line 176
+#line 177
  testRunner.And("the Published Provider has the following funding lines", ((string)(null)), table658, "And ");
 #line hidden
             TechTalk.SpecFlow.Table table659 = new TechTalk.SpecFlow.Table(new string[] {
@@ -658,7 +661,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
             table659.AddRow(new string[] {
                         "FY-2021",
                         "10000"});
-#line 179
+#line 180
  testRunner.And("the Published Provider has the following distribution period for funding line \'To" +
                     "talAllocation\'", ((string)(null)), table659, "And ");
 #line hidden
@@ -683,7 +686,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
                         "2021",
                         "1",
                         "10000"});
-#line 183
+#line 184
  testRunner.And("the Published Providers distribution period has the following profiles for fundin" +
                     "g line \'TotalAllocation\'", ((string)(null)), table660, "And ");
 #line hidden
@@ -705,7 +708,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
             table661.AddRow(new string[] {
                         "6",
                         "20"});
-#line 187
+#line 188
  testRunner.And("the Published Provider contains the following calculation results", ((string)(null)), table661, "And ");
 #line hidden
             TechTalk.SpecFlow.Table table662 = new TechTalk.SpecFlow.Table(new string[] {
@@ -744,10 +747,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
             table662.AddRow(new string[] {
                         "UKPRN",
                         "1000002"});
-#line 194
+#line 195
  testRunner.And("the Published Provider has the following provider information", ((string)(null)), table662, "And ");
 #line hidden
-#line 207
+#line 208
  testRunner.And("the Published Provider is available in the repository for this specification", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             TechTalk.SpecFlow.Table table663 = new TechTalk.SpecFlow.Table(new string[] {
@@ -777,7 +780,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
             table663.AddRow(new string[] {
                         "MinorVersion",
                         "1"});
-#line 208
+#line 209
  testRunner.And("the following Published Provider has been previously generated for the current sp" +
                     "ecification", ((string)(null)), table663, "And ");
 #line hidden
@@ -793,7 +796,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
                         "24000",
                         "1",
                         "Payment"});
-#line 218
+#line 219
  testRunner.And("the Published Provider has the following funding lines", ((string)(null)), table664, "And ");
 #line hidden
             TechTalk.SpecFlow.Table table665 = new TechTalk.SpecFlow.Table(new string[] {
@@ -805,7 +808,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
             table665.AddRow(new string[] {
                         "FY-2021",
                         "10000"});
-#line 221
+#line 222
  testRunner.And("the Published Provider has the following distribution period for funding line \'To" +
                     "talAllocation\'", ((string)(null)), table665, "And ");
 #line hidden
@@ -830,7 +833,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
                         "2021",
                         "1",
                         "10000"});
-#line 225
+#line 226
  testRunner.And("the Published Providers distribution period has the following profiles for fundin" +
                     "g line \'TotalAllocation\'", ((string)(null)), table666, "And ");
 #line hidden
@@ -852,7 +855,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
             table667.AddRow(new string[] {
                         "6",
                         "20"});
-#line 229
+#line 230
  testRunner.And("the Published Provider contains the following calculation results", ((string)(null)), table667, "And ");
 #line hidden
             TechTalk.SpecFlow.Table table668 = new TechTalk.SpecFlow.Table(new string[] {
@@ -894,10 +897,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
             table668.AddRow(new string[] {
                         "UKPRN",
                         "1000102"});
-#line 236
+#line 237
  testRunner.And("the Published Provider has the following provider information", ((string)(null)), table668, "And ");
 #line hidden
-#line 250
+#line 251
  testRunner.And("the Published Provider is available in the repository for this specification", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             TechTalk.SpecFlow.Table table669 = new TechTalk.SpecFlow.Table(new string[] {
@@ -936,11 +939,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
             table669.AddRow(new string[] {
                         "UKPRN",
                         "1000000"});
-#line 252
+#line 253
  testRunner.And("the following provider exists within core provider data in provider version \'psg-" +
                     "providers-1.0\'", ((string)(null)), table669, "And ");
 #line hidden
-#line 265
+#line 266
  testRunner.And("the provider with id \'1000000\' should be a scoped provider in the current specifi" +
                     "cation in provider version \'psg-providers-1.0\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
@@ -980,11 +983,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
             table670.AddRow(new string[] {
                         "UKPRN",
                         "1000002"});
-#line 266
+#line 267
  testRunner.And("the following provider exists within core provider data in provider version \'psg-" +
                     "providers-1.0\'", ((string)(null)), table670, "And ");
 #line hidden
-#line 279
+#line 280
  testRunner.And("the provider with id \'1000002\' should be a scoped provider in the current specifi" +
                     "cation in provider version \'psg-providers-1.0\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
@@ -1027,11 +1030,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
             table671.AddRow(new string[] {
                         "UKPRN",
                         "1000102"});
-#line 280
+#line 281
  testRunner.And("the following provider exists within core provider data in provider version \'psg-" +
                     "providers-1.0\'", ((string)(null)), table671, "And ");
 #line hidden
-#line 294
+#line 295
  testRunner.And("the provider with id \'1000102\' should be a scoped provider in the current specifi" +
                     "cation in provider version \'psg-providers-1.0\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
@@ -1071,7 +1074,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
             table672.AddRow(new string[] {
                         "UKPRN",
                         "9000000"});
-#line 296
+#line 297
  testRunner.And("the following provider exists within core provider data in provider version \'psg-" +
                     "providers-1.0\'", ((string)(null)), table672, "And ");
 #line hidden
@@ -1111,7 +1114,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
             table673.AddRow(new string[] {
                         "UKPRN",
                         "9000001"});
-#line 309
+#line 310
  testRunner.And("the following provider exists within core provider data in provider version \'psg-" +
                     "providers-1.0\'", ((string)(null)), table673, "And ");
 #line hidden
@@ -1145,7 +1148,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
                         "calculation5",
                         "Additional Rate",
                         "Approved"});
-#line 322
+#line 323
  testRunner.And("calculation meta data exists for \'PSG\'", ((string)(null)), table674, "And ");
 #line hidden
             TechTalk.SpecFlow.Table table675 = new TechTalk.SpecFlow.Table(new string[] {
@@ -1166,7 +1169,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
             table675.AddRow(new string[] {
                         "20",
                         "calculation5"});
-#line 329
+#line 330
  testRunner.And("calculations exists", ((string)(null)), table675, "And ");
 #line hidden
             TechTalk.SpecFlow.Table table676 = new TechTalk.SpecFlow.Table(new string[] {
@@ -1178,7 +1181,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
             table676.AddRow(new string[] {
                         "FY-2021",
                         "10000"});
-#line 336
+#line 337
  testRunner.And("the following distribution periods exist", ((string)(null)), table676, "And ");
 #line hidden
             TechTalk.SpecFlow.Table table677 = new TechTalk.SpecFlow.Table(new string[] {
@@ -1223,7 +1226,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
                         "2021",
                         "1",
                         "10000"});
-#line 340
+#line 341
  testRunner.And("the following profiles exist", ((string)(null)), table677, "And ");
 #line hidden
         }
@@ -1235,7 +1238,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
         {
             string[] tagsOfScenario = ((string[])(null));
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Metadata changed some of the published providers", null, ((string[])(null)));
-#line 348
+#line 349
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -1300,7 +1303,7 @@ this.FeatureBackground();
                 table678.AddRow(new string[] {
                             "UKPRN",
                             "1000000"});
-#line 349
+#line 350
  testRunner.Given("the following provider exists within core provider data in provider version \'psg-" +
                         "providers-1.0\'", ((string)(null)), table678, "Given ");
 #line hidden
@@ -1346,11 +1349,11 @@ this.FeatureBackground();
                 table679.AddRow(new string[] {
                             "UKPRN",
                             "1000102"});
-#line 364
+#line 365
  testRunner.And("the following provider exists within core provider data in provider version \'psg-" +
                         "providers-1.0\'", ((string)(null)), table679, "And ");
 #line hidden
-#line 379
+#line 380
  testRunner.When("funding is refreshed", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
                 TechTalk.SpecFlow.Table table680 = new TechTalk.SpecFlow.Table(new string[] {
@@ -1365,7 +1368,7 @@ this.FeatureBackground();
                 table680.AddRow(new string[] {
                             "1000102",
                             "CensusWardNameFieldUpdated"});
-#line 380
+#line 381
  testRunner.Then("the provider variation reasons were recorded", ((string)(null)), table680, "Then ");
 #line hidden
             }
@@ -1379,7 +1382,7 @@ this.FeatureBackground();
         {
             string[] tagsOfScenario = ((string[])(null));
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("New LACode for a provider after already being published", null, ((string[])(null)));
-#line 386
+#line 387
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -1438,11 +1441,11 @@ this.FeatureBackground();
                 table681.AddRow(new string[] {
                             "UKPRN",
                             "1000000"});
-#line 387
+#line 388
  testRunner.Given("the following provider exists within core provider data in provider version \'psg-" +
                         "providers-1.0\'", ((string)(null)), table681, "Given ");
 #line hidden
-#line 400
+#line 401
  testRunner.When("funding is refreshed", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
                 TechTalk.SpecFlow.Table table682 = new TechTalk.SpecFlow.Table(new string[] {
@@ -1451,7 +1454,7 @@ this.FeatureBackground();
                 table682.AddRow(new string[] {
                             "1000000",
                             "LACodeFieldUpdated"});
-#line 401
+#line 402
  testRunner.Then("the provider variation reasons were recorded", ((string)(null)), table682, "Then ");
 #line hidden
             }
@@ -1465,7 +1468,7 @@ this.FeatureBackground();
         {
             string[] tagsOfScenario = ((string[])(null));
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("New TrustCode for a provider after already being published", null, ((string[])(null)));
-#line 405
+#line 406
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -1527,11 +1530,11 @@ this.FeatureBackground();
                 table683.AddRow(new string[] {
                             "UKPRN",
                             "1000000"});
-#line 406
+#line 407
  testRunner.Given("the following provider exists within core provider data in provider version \'psg-" +
                         "providers-1.0\'", ((string)(null)), table683, "Given ");
 #line hidden
-#line 420
+#line 421
  testRunner.When("funding is refreshed", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
                 TechTalk.SpecFlow.Table table684 = new TechTalk.SpecFlow.Table(new string[] {
@@ -1540,7 +1543,7 @@ this.FeatureBackground();
                 table684.AddRow(new string[] {
                             "1000000",
                             "TrustCodeFieldUpdated"});
-#line 421
+#line 422
  testRunner.Then("the provider variation reasons were recorded", ((string)(null)), table684, "Then ");
 #line hidden
             }
@@ -1554,7 +1557,7 @@ this.FeatureBackground();
         {
             string[] tagsOfScenario = ((string[])(null));
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Provider closes without successor", null, ((string[])(null)));
-#line 425
+#line 426
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -1616,7 +1619,7 @@ this.FeatureBackground();
                 table685.AddRow(new string[] {
                             "UKPRN",
                             "1000000"});
-#line 426
+#line 427
  testRunner.Given("the following provider exists within core provider data in provider version \'psg-" +
                         "providers-1.0\'", ((string)(null)), table685, "Given ");
 #line hidden
@@ -1632,7 +1635,7 @@ this.FeatureBackground();
                             "30000",
                             "1",
                             "Payment"});
-#line 440
+#line 441
    testRunner.And("the Published Provider \'1000000\' has the following funding lines", ((string)(null)), table686, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table687 = new TechTalk.SpecFlow.Table(new string[] {
@@ -1641,7 +1644,7 @@ this.FeatureBackground();
                 table687.AddRow(new string[] {
                             "FY-2021",
                             "30000"});
-#line 443
+#line 444
    testRunner.And("the Published Provider \'1000000\' has the following distribution period for fundin" +
                         "g line \'TotalAllocation\'", ((string)(null)), table687, "And ");
 #line hidden
@@ -1680,7 +1683,7 @@ this.FeatureBackground();
                             "2021",
                             "1",
                             "10000"});
-#line 446
+#line 447
    testRunner.And("the Published Provider \'1000000\' distribution period has the following profiles f" +
                         "or funding line \'TotalAllocation\'", ((string)(null)), table688, "And ");
 #line hidden
@@ -1698,10 +1701,10 @@ this.FeatureBackground();
                             "May",
                             "2021",
                             "0"});
-#line 452
+#line 453
    testRunner.And("the following variation pointers exist", ((string)(null)), table689, "And ");
 #line hidden
-#line 455
+#line 456
    testRunner.When("funding is refreshed", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
                 TechTalk.SpecFlow.Table table690 = new TechTalk.SpecFlow.Table(new string[] {
@@ -1744,7 +1747,7 @@ this.FeatureBackground();
                             "2021",
                             "1",
                             "0"});
-#line 456
+#line 457
    testRunner.Then("the upserted provider version for \'1000000\' has the following funding line profil" +
                         "e periods", ((string)(null)), table690, "Then ");
 #line hidden
@@ -1754,7 +1757,7 @@ this.FeatureBackground();
                 table691.AddRow(new string[] {
                             "TotalAllocation",
                             "10000"});
-#line 462
+#line 463
    testRunner.And("the upserted provider version for \'1000000\' has the funding line totals", ((string)(null)), table691, "And ");
 #line hidden
             }
@@ -1768,7 +1771,7 @@ this.FeatureBackground();
         {
             string[] tagsOfScenario = ((string[])(null));
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Providers close with successor", null, ((string[])(null)));
-#line 466
+#line 467
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -1833,7 +1836,7 @@ this.FeatureBackground();
                 table692.AddRow(new string[] {
                             "UKPRN",
                             "1000000"});
-#line 467
+#line 468
  testRunner.Given("the following provider exists within core provider data in provider version \'psg-" +
                         "providers-1.0\'", ((string)(null)), table692, "Given ");
 #line hidden
@@ -1879,7 +1882,7 @@ this.FeatureBackground();
                 table693.AddRow(new string[] {
                             "UKPRN",
                             "1000002"});
-#line 482
+#line 483
    testRunner.And("the following provider exists within core provider data in provider version \'psg-" +
                         "providers-1.0\'", ((string)(null)), table693, "And ");
 #line hidden
@@ -1895,7 +1898,7 @@ this.FeatureBackground();
                             "30000",
                             "1",
                             "Payment"});
-#line 497
+#line 498
    testRunner.And("the Published Provider \'1000000\' has the following funding lines", ((string)(null)), table694, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table695 = new TechTalk.SpecFlow.Table(new string[] {
@@ -1904,7 +1907,7 @@ this.FeatureBackground();
                 table695.AddRow(new string[] {
                             "FY-2021",
                             "30000"});
-#line 500
+#line 501
    testRunner.And("the Published Provider \'1000000\' has the following distribution period for fundin" +
                         "g line \'TotalAllocation\'", ((string)(null)), table695, "And ");
 #line hidden
@@ -1943,7 +1946,7 @@ this.FeatureBackground();
                             "2021",
                             "1",
                             "10000"});
-#line 503
+#line 504
    testRunner.And("the Published Provider \'1000000\' distribution period has the following profiles f" +
                         "or funding line \'TotalAllocation\'", ((string)(null)), table696, "And ");
 #line hidden
@@ -1959,7 +1962,7 @@ this.FeatureBackground();
                             "40000",
                             "1",
                             "Payment"});
-#line 509
+#line 510
    testRunner.And("the Published Provider \'1000002\' has the following funding lines", ((string)(null)), table697, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table698 = new TechTalk.SpecFlow.Table(new string[] {
@@ -1968,7 +1971,7 @@ this.FeatureBackground();
                 table698.AddRow(new string[] {
                             "FY-2021",
                             "40000"});
-#line 512
+#line 513
    testRunner.And("the Published Provider \'1000002\' has the following distribution period for fundin" +
                         "g line \'TotalAllocation\'", ((string)(null)), table698, "And ");
 #line hidden
@@ -2007,7 +2010,7 @@ this.FeatureBackground();
                             "2021",
                             "1",
                             "10000"});
-#line 515
+#line 516
    testRunner.And("the Published Provider \'1000002\' distribution period has the following profiles f" +
                         "or funding line \'TotalAllocation\'", ((string)(null)), table699, "And ");
 #line hidden
@@ -2023,7 +2026,7 @@ this.FeatureBackground();
                             "2600",
                             "1",
                             "Payment"});
-#line 521
+#line 522
    testRunner.And("the Published Provider \'1000102\' has the following funding lines", ((string)(null)), table700, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table701 = new TechTalk.SpecFlow.Table(new string[] {
@@ -2032,7 +2035,7 @@ this.FeatureBackground();
                 table701.AddRow(new string[] {
                             "FY-2021",
                             "2600"});
-#line 524
+#line 525
    testRunner.And("the Published Provider \'1000102\' has the following distribution period for fundin" +
                         "g line \'TotalAllocation\'", ((string)(null)), table701, "And ");
 #line hidden
@@ -2071,7 +2074,7 @@ this.FeatureBackground();
                             "2021",
                             "1",
                             "800"});
-#line 527
+#line 528
    testRunner.And("the Published Provider \'1000102\' distribution period has the following profiles f" +
                         "or funding line \'TotalAllocation\'", ((string)(null)), table702, "And ");
 #line hidden
@@ -2089,10 +2092,10 @@ this.FeatureBackground();
                             "May",
                             "2021",
                             "0"});
-#line 533
+#line 534
    testRunner.And("the following variation pointers exist", ((string)(null)), table703, "And ");
 #line hidden
-#line 536
+#line 537
    testRunner.When("funding is refreshed", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
                 TechTalk.SpecFlow.Table table704 = new TechTalk.SpecFlow.Table(new string[] {
@@ -2135,7 +2138,7 @@ this.FeatureBackground();
                             "2021",
                             "1",
                             "0"});
-#line 537
+#line 538
    testRunner.Then("the upserted provider version for \'1000000\' has the following funding line profil" +
                         "e periods", ((string)(null)), table704, "Then ");
 #line hidden
@@ -2145,7 +2148,7 @@ this.FeatureBackground();
                 table705.AddRow(new string[] {
                             "TotalAllocation",
                             "10000"});
-#line 543
+#line 544
    testRunner.And("the upserted provider version for \'1000000\' has the funding line totals", ((string)(null)), table705, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table706 = new TechTalk.SpecFlow.Table(new string[] {
@@ -2188,7 +2191,7 @@ this.FeatureBackground();
                             "2021",
                             "1",
                             "0"});
-#line 546
+#line 547
    testRunner.And("the upserted provider version for \'1000002\' has the following funding line profil" +
                         "e periods", ((string)(null)), table706, "And ");
 #line hidden
@@ -2198,7 +2201,7 @@ this.FeatureBackground();
                 table707.AddRow(new string[] {
                             "TotalAllocation",
                             "20000"});
-#line 552
+#line 553
    testRunner.And("the upserted provider version for \'1000002\' has the funding line totals", ((string)(null)), table707, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table708 = new TechTalk.SpecFlow.Table(new string[] {
@@ -2241,7 +2244,7 @@ this.FeatureBackground();
                             "2021",
                             "1",
                             "20800"});
-#line 555
+#line 556
    testRunner.And("the upserted provider version for \'1000102\' has the following funding line profil" +
                         "e periods", ((string)(null)), table708, "And ");
 #line hidden
@@ -2251,7 +2254,7 @@ this.FeatureBackground();
                 table709.AddRow(new string[] {
                             "TotalAllocation",
                             "24600"});
-#line 561
+#line 562
    testRunner.And("the upserted provider version for \'1000102\' has the funding line totals", ((string)(null)), table709, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table710 = new TechTalk.SpecFlow.Table(new string[] {
@@ -2260,7 +2263,7 @@ this.FeatureBackground();
                             "1000002"});
                 table710.AddRow(new string[] {
                             "1000000"});
-#line 564
+#line 565
    testRunner.And("the upserted provider version for \'1000102\' has the following predecessors", ((string)(null)), table710, "And ");
 #line hidden
             }
@@ -2274,7 +2277,7 @@ this.FeatureBackground();
         {
             string[] tagsOfScenario = ((string[])(null));
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Providers close with successor but successor not in scope for specification yet", null, ((string[])(null)));
-#line 569
+#line 570
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -2339,11 +2342,11 @@ this.FeatureBackground();
                 table711.AddRow(new string[] {
                             "UKPRN",
                             "1000000"});
-#line 570
+#line 571
  testRunner.Given("the following provider exists within core provider data in provider version \'psg-" +
                         "providers-1.0\'", ((string)(null)), table711, "Given ");
 #line hidden
-#line 585
+#line 586
  testRunner.And("the provider with id \'1000000\' should be a scoped provider in the current specifi" +
                         "cation in provider version \'psg-providers-1.0\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
@@ -2383,7 +2386,7 @@ this.FeatureBackground();
                 table712.AddRow(new string[] {
                             "UKPRN",
                             "2000002"});
-#line 586
+#line 587
  testRunner.And("the following provider exists within core provider data in provider version \'psg-" +
                         "providers-1.0\'", ((string)(null)), table712, "And ");
 #line hidden
@@ -2399,7 +2402,7 @@ this.FeatureBackground();
                             "30000",
                             "1",
                             "Payment"});
-#line 599
+#line 600
    testRunner.And("the Published Provider \'1000000\' has the following funding lines", ((string)(null)), table713, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table714 = new TechTalk.SpecFlow.Table(new string[] {
@@ -2408,7 +2411,7 @@ this.FeatureBackground();
                 table714.AddRow(new string[] {
                             "FY-2021",
                             "30000"});
-#line 602
+#line 603
    testRunner.And("the Published Provider \'1000000\' has the following distribution period for fundin" +
                         "g line \'TotalAllocation\'", ((string)(null)), table714, "And ");
 #line hidden
@@ -2447,7 +2450,7 @@ this.FeatureBackground();
                             "2021",
                             "1",
                             "10000"});
-#line 605
+#line 606
    testRunner.And("the Published Provider \'1000000\' distribution period has the following profiles f" +
                         "or funding line \'TotalAllocation\'", ((string)(null)), table715, "And ");
 #line hidden
@@ -2465,10 +2468,10 @@ this.FeatureBackground();
                             "May",
                             "2021",
                             "0"});
-#line 611
+#line 612
    testRunner.And("the following variation pointers exist", ((string)(null)), table716, "And ");
 #line hidden
-#line 614
+#line 615
    testRunner.When("funding is refreshed", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
                 TechTalk.SpecFlow.Table table717 = new TechTalk.SpecFlow.Table(new string[] {
@@ -2511,7 +2514,7 @@ this.FeatureBackground();
                             "2021",
                             "1",
                             "0"});
-#line 615
+#line 616
    testRunner.Then("the upserted provider version for \'1000000\' has the following funding line profil" +
                         "e periods", ((string)(null)), table717, "Then ");
 #line hidden
@@ -2521,7 +2524,7 @@ this.FeatureBackground();
                 table718.AddRow(new string[] {
                             "TotalAllocation",
                             "10000"});
-#line 621
+#line 622
    testRunner.And("the upserted provider version for \'1000000\' has the funding line totals", ((string)(null)), table718, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table719 = new TechTalk.SpecFlow.Table(new string[] {
@@ -2564,7 +2567,7 @@ this.FeatureBackground();
                             "2021",
                             "1",
                             "10000"});
-#line 624
+#line 625
    testRunner.And("the upserted provider version for \'2000002\' has the following funding line profil" +
                         "e periods", ((string)(null)), table719, "And ");
 #line hidden
@@ -2574,14 +2577,14 @@ this.FeatureBackground();
                 table720.AddRow(new string[] {
                             "TotalAllocation",
                             "11000"});
-#line 630
+#line 631
    testRunner.And("the upserted provider version for \'2000002\' has the funding line totals", ((string)(null)), table720, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table721 = new TechTalk.SpecFlow.Table(new string[] {
                             "ProviderId"});
                 table721.AddRow(new string[] {
                             "1000000"});
-#line 633
+#line 634
    testRunner.And("the upserted provider version for \'2000002\' has the following predecessors", ((string)(null)), table721, "And ");
 #line hidden
             }

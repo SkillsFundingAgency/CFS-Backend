@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Common.Models.Versioning;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Publishing.AcceptanceTests.Contexts;
 using FluentAssertions;
@@ -77,5 +78,14 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             specificationSummary.TemplateIds = new Dictionary<string, string>(templateVersions);
         }
 
+        [Given(@"the specification is approved")]
+        public void GivenTheSpecificationIsApproved()
+        {
+            Guard.IsNullOrWhiteSpace(_currentSpecificationContext.SpecificationId, nameof(_currentSpecificationContext.SpecificationId));
+
+            _currentSpecificationContext.Repo.EditSpecificationStatus(
+                _currentSpecificationContext.SpecificationId, 
+                PublishStatus.Approved);
+        }
     }
 }

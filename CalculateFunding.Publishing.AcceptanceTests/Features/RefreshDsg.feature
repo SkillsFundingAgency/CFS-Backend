@@ -63,6 +63,7 @@ Scenario Outline: Successful refresh of funding
 	And the specification has the following template versions for funding streams
 		| Key               | Value |
 		| <FundingStreamId> | 1.0   |
+	And the specification is approved
 	And the publishing dates for the specifcation are set as following
 		| Field                        | Value               |
 		| StatusChangedDate            | 2019-09-27 00:00:00 |

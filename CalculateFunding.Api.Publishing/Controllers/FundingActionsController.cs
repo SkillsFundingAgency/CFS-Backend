@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
@@ -23,6 +24,20 @@ namespace CalculateFunding.Api.Publishing.Controllers
             return await specificationPublishingService.CreateRefreshFundingJob(specificationId,
                 Request.GetUser(),
                 GetCorrelationId());
+        }
+
+        /// <summary>
+        /// Validate Refresh funding for a specification
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost("api/specifications/{specificationId}/validate-specification-for-refresh")]
+        [ProducesResponseType(400, Type = typeof(IEnumerable<string>))]
+        [ProducesResponseType(204)]
+        public async Task<IActionResult> ValidateSpecificationForRefresh
+            ([FromRoute] string specificationId,
+            [FromServices] ISpecificationPublishingService specificationPublishingService)
+        {
+            return await specificationPublishingService.ValidateSpecificationForRefresh(specificationId);
         }
 
         /// <summary>

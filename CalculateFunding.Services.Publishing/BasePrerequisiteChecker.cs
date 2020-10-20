@@ -54,7 +54,7 @@ namespace CalculateFunding.Services.Publishing
                 }
 
                 string errorMessage = $"Specification with id: '{specificationId} has prerequisites which aren't complete.";
-                throw new NonRetriableException(errorMessage);
+                throw new JobPrereqFailedException(errorMessage, results);
             }
         }
     }

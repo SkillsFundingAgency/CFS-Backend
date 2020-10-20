@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalculateFunding.Common.Models.Versioning;
 
 namespace CalculateFunding.Services.Publishing.Interfaces
 {
@@ -13,5 +14,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         Task SelectSpecificationForFunding(string specificationId);
 
         Task<IEnumerable<ProfileVariationPointer>> GetProfileVariationPointers(string specificationId);
+
+        Task<PublishStatusResponseModel> EditSpecificationStatus(string specificationId, PublishStatus publishStatus);
     }
 }

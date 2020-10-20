@@ -11,14 +11,12 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
-using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using ApiJob = CalculateFunding.Common.ApiClient.Jobs.Models.Job;
 using ApiSpecificationSummary = CalculateFunding.Common.ApiClient.Specifications.Models.SpecificationSummary;
 
@@ -32,7 +30,6 @@ namespace CalculateFunding.Services.Publishing.Specifications
         private readonly ICacheProvider _cacheProvider;
         private readonly ISpecificationFundingStatusService _specificationFundingStatusService;
         private readonly IPrerequisiteCheckerLocator _prerequisiteCheckerLocator;
-
         public SpecificationPublishingService(
             ISpecificationIdServiceRequestValidator specificationIdValidator,
             IPublishedProviderIdsServiceRequestValidator publishedProviderIdsValidator,
@@ -76,6 +73,44 @@ namespace CalculateFunding.Services.Publishing.Specifications
             return health;
         }
 
+        public async Task<IActionResult> ValidateSpecificationForRefresh(string specificationId)
+        {
+            List<string> prereqErrors = new List<string>();
+
+            ValidationResult validationResult = SpecificationIdValidator.Validate(specificationId);
+
+            if (!validationResult.IsValid)
+            {
+                return validationResult.AsBadRequest();
+            }
+
+            ApiResponse<ApiSpecificationSummary> specificationIdResponse =
+                await ResiliencePolicy.ExecuteAsync(() => Specifications.GetSpecificationSummaryById(specificationId));
+
+            ApiSpecificationSummary specificationSummary = specificationIdResponse.Content;
+
+            if (specificationSummary == null)
+            {
+                return new NotFoundResult();
+            }
+
+            IPrerequisiteChecker prerequisiteChecker = _prerequisiteCheckerLocator.GetPreReqChecker(PrerequisiteCheckerType.Refresh);
+            try
+            {
+                await prerequisiteChecker.PerformChecks(
+                        specificationSummary,
+                        null,
+                        Array.Empty<PublishedProvider>(),
+                        Array.Empty<Provider>());
+            }
+            catch (JobPrereqFailedException ex)
+            {
+                return new BadRequestObjectResult(ex.Errors.ToArray().ToModelStateDictionary());
+            }
+            
+            return new NoContentResult();
+        }
+
         public async Task<IActionResult> CreateRefreshFundingJob(string specificationId,
             Reference user,
             string correlationId)
@@ -114,7 +149,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
                         Array.Empty<PublishedProvider>(),
                         Array.Empty<Provider>());
             }
-            catch (NonRetriableException ex)
+            catch (JobPrereqFailedException ex)
             {
                 return new BadRequestObjectResult(new [] {$"Prerequisite check for refresh failed {ex.Message}"}.ToModelStateDictionary());
             }

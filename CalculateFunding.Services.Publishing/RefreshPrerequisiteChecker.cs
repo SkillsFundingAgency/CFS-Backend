@@ -67,6 +67,12 @@ namespace CalculateFunding.Services.Publishing
 
             Guard.ArgumentNotNull(specification, nameof(specification));
 
+            if(specification.ApprovalStatus != Common.ApiClient.Models.PublishStatus.Approved)
+            {
+                _logger.Error("Specification failed refresh prerequisite check. Reason: must be approved");
+                return new string[] { "Specification must be approved." };
+            }
+
             SpecificationFundingStatus specificationFundingStatus = await _specificationFundingStatusService.CheckChooseForFundingStatus(specification);
 
             if (specificationFundingStatus == SpecificationFundingStatus.SharesAlreadyChosenFundingStream)
@@ -95,12 +101,8 @@ namespace CalculateFunding.Services.Publishing
             IEnumerable<string> calculationPrereqValidationErrors = await _calculationApprovalCheckerService.VerifyCalculationPrerequisites(specification);
             if (calculationPrereqValidationErrors.AnyWithNullCheck())
             {
-                results.AddRange(calculationPrereqValidationErrors);
-            }
-            
-            if (results.Any())
-            {
-                _logger.Error(string.Join(Environment.NewLine, results));
+                results.Add("All template calculations for this specification must be approved.");
+                _logger.Error(string.Join(Environment.NewLine, calculationPrereqValidationErrors));
             }
 
             return results;

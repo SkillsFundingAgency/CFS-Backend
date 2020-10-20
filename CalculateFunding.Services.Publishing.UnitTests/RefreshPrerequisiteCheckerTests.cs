@@ -1,25 +1,21 @@
-﻿using AutoMapper;
-using CalculateFunding.Common.ApiClient.Specifications.Models;
+﻿using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.JobManagement;
-using CalculateFunding.Generators.OrganisationGroup.Interfaces;
 using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
-using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Publishing.Interfaces;
-using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
-using Polly;
 using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
+using CalculateFunding.Common.ApiClient.Models;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
 {
@@ -71,11 +67,37 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         }
 
         [TestMethod]
+        public void ReturnsErrorMessageWhenSpecificationPublishStatusIsNotApproved()
+        {
+            // Arrange
+            string specificationId = "specId01";
+            SpecificationSummary specificationSummary = new SpecificationSummary { Id = specificationId, ApprovalStatus = PublishStatus.Archived };
+
+            string errorMessage = "Specification failed refresh prerequisite check. Reason: must be approved";
+
+            // Act
+            Func<Task> invocation
+                = () => WhenThePreRequisitesAreChecked(specificationSummary, Enumerable.Empty<PublishedProvider>(), Enumerable.Empty<Provider>());
+
+            // Assert
+            invocation
+                .Should()
+                .Throw<JobPrereqFailedException>()
+                .Where(_ =>
+                    _.Message == $"Specification with id: '{specificationSummary.Id} has prerequisites which aren't complete.");
+
+            _logger
+                .Received()
+                .Error(errorMessage);
+
+        }
+
+        [TestMethod]
         public void ReturnsErrorMessageWhenSharesAlreadyChoseFundingStream()
         {
             // Arrange
             string specificationId = "specId01";
-            SpecificationSummary specificationSummary = new SpecificationSummary { Id = specificationId };
+            SpecificationSummary specificationSummary = new SpecificationSummary { Id = specificationId, ApprovalStatus = PublishStatus.Approved };
 
             string errorMessage = $"Specification with id: '{specificationId} already shares chosen funding streams";
             
@@ -88,7 +110,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             // Assert
             invocation
                 .Should()
-                .Throw<NonRetriableException>()
+                .Throw<JobPrereqFailedException>()
                 .Where(_ =>
                     _.Message == $"Specification with id: '{specificationSummary.Id} has prerequisites which aren't complete.");
 
@@ -103,7 +125,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             // Arrange
             string specificationId = "specId01";
-            SpecificationSummary specificationSummary = new SpecificationSummary { Id = specificationId };
+            SpecificationSummary specificationSummary = new SpecificationSummary { Id = specificationId, ApprovalStatus = PublishStatus.Approved };
 
             string errorMessage = "Generic error message";
 
@@ -117,7 +139,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             // Assert
             invocation
                 .Should()
-                .Throw<NonRetriableException>()
+                .Throw<JobPrereqFailedException>()
                 .Where(_ =>
                     _.Message == $"Specification with id: '{specificationSummary.Id} has prerequisites which aren't complete.");
 
@@ -146,7 +168,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             // Assert
             invocation
                 .Should()
-                .Throw<NonRetriableException>()
+                .Throw<JobPrereqFailedException>()
                 .Where(_ =>
                     _.Message == $"Specification with id: '{specificationSummary.Id} has prerequisites which aren't complete.");
 
@@ -160,7 +182,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             // Arrange
             string specificationId = "specId01";
-            SpecificationSummary specificationSummary = new SpecificationSummary { Id = specificationId };
+            SpecificationSummary specificationSummary = new SpecificationSummary { Id = specificationId, ApprovalStatus = PublishStatus.Approved };
 
             string errorMessage = "Error message";
 
@@ -175,7 +197,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             // Assert
             invocation
                 .Should()
-                .Throw<NonRetriableException>()
+                .Throw<JobPrereqFailedException>()
                 .Where(_ =>
                     _.Message == $"Specification with id: '{specificationSummary.Id} has prerequisites which aren't complete.");
 
@@ -206,7 +228,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             string errorMessage = $"TrustIds {groupTypeIdentifier}-{identifierValue2} not matched.";
             
-            SpecificationSummary specificationSummary = NewSpecificationSummary(_ => _.WithId(specificationId).WithProviderVersionId(providerVersionId));
+            SpecificationSummary specificationSummary = NewSpecificationSummary(_ => _
+                .WithId(specificationId)
+                .WithProviderVersionId(providerVersionId)
+                .WithPublishStatus(PublishStatus.Approved));
             IEnumerable<PublishedProvider> publishedProviders = new[] 
             {
                 NewPublishedProvider(_ => _

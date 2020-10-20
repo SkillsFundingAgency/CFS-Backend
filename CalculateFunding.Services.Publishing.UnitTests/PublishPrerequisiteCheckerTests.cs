@@ -60,7 +60,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             invocation
                 .Should()
-                .Throw<NonRetriableException>()
+                .Throw<JobPrereqFailedException>()
                 .Where(_ =>
                     _.Message == $"Specification with id: '{_specification.Id} has prerequisites which aren't complete.");
 
@@ -89,7 +89,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             invocation
                 .Should()
-                .Throw<NonRetriableException>()
+                .Throw<JobPrereqFailedException>()
                 .Where(_ =>
                     _.Message == $"Specification with id: '{_specification.Id} has prerequisites which aren't complete.");
 
