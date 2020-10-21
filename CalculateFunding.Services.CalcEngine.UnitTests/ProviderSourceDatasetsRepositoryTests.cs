@@ -144,7 +144,7 @@ namespace CalculateFunding.Services.Calculator
             string documentKey = $"{specificationId}_{dataRelationshipId}_{providerId}";
 
             _cosmosRepository
-                .ReadDocumentByIdPartitionedAsync<ProviderSourceDataset>(Arg.Is(documentKey), Arg.Is(providerId))
+                .TryReadDocumentByIdPartitionedAsync<ProviderSourceDataset>(Arg.Is(documentKey), Arg.Is(providerId))
                 .Returns(new DocumentEntity<ProviderSourceDataset>
                 { 
                     Deleted = false, 

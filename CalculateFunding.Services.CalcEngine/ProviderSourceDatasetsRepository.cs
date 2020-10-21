@@ -87,7 +87,7 @@ namespace CalculateFunding.Services.CalcEngine
                             {
                                 string documentKey = $"{specificationId}_{dataRelationshipId}_{providerId}";
 
-                                DocumentEntity<ProviderSourceDataset> providerSourceDatasetDocument = await _cosmosRepository.ReadDocumentByIdPartitionedAsync<ProviderSourceDataset>(documentKey, providerId);
+                                DocumentEntity<ProviderSourceDataset> providerSourceDatasetDocument = await _cosmosRepository.TryReadDocumentByIdPartitionedAsync<ProviderSourceDataset>(documentKey, providerId);
 
                                 if (providerSourceDatasetDocument != null && !providerSourceDatasetDocument.Deleted)
                                 {
