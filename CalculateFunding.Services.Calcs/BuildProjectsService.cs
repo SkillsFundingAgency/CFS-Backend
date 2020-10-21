@@ -36,6 +36,7 @@ using CalculateFunding.Services.Core.Options;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Azure.ServiceBus;
+using Polly;
 using Serilog;
 using static CalculateFunding.Services.Core.Constants.JobConstants;
 using CalculationEntity = CalculateFunding.Models.Graph.Entity<CalculateFunding.Common.ApiClient.Graph.Models.Calculation, CalculateFunding.Common.ApiClient.Graph.Models.Relationship>;
@@ -52,25 +53,26 @@ namespace CalculateFunding.Services.Calcs
         private readonly ILogger _logger;
         private readonly ITelemetry _telemetry;
         private readonly IProvidersApiClient _providersApiClient;
-        private readonly Polly.AsyncPolicy _providersApiClientPolicy;
+        private readonly AsyncPolicy _providersApiClientPolicy;
         private readonly ICacheProvider _cacheProvider;
         private readonly ICalculationsRepository _calculationsRepository;
-        private readonly Polly.AsyncPolicy _calculationsRepositoryPolicy;
+        private readonly ISourceFileRepository _sourceFileRepository;
+        private readonly AsyncPolicy _calculationsRepositoryPolicy;
         private readonly IFeatureToggle _featureToggle;
         private readonly EngineSettings _engineSettings;
         private readonly ISourceCodeService _sourceCodeService;
         private readonly IDatasetsApiClient _datasetsApiClient;
         private readonly IJobManagement _jobManagement;
-        private readonly Polly.AsyncPolicy _datasetsApiClientPolicy;
+        private readonly AsyncPolicy _datasetsApiClientPolicy;
         private readonly IBuildProjectsRepository _buildProjectsRepository;
-        private readonly Polly.AsyncPolicy _buildProjectsRepositoryPolicy;
+        private readonly AsyncPolicy _buildProjectsRepositoryPolicy;
         private readonly ICalculationEngineRunningChecker _calculationEngineRunningChecker;
         private readonly IGraphRepository _graphRepository;
         private readonly IMapper _mapper;
         private readonly ISpecificationsApiClient _specificationsApiClient;
-        private readonly Polly.AsyncPolicy _specificationsApiClientPolicy;
+        private readonly AsyncPolicy _specificationsApiClientPolicy;
         private readonly IPoliciesApiClient _policiesApiClient;
-        private readonly Polly.AsyncPolicy _policiesApiClientPolicy;
+        private readonly AsyncPolicy _policiesApiClientPolicy;
 
         public BuildProjectsService(
             ILogger logger,
@@ -89,7 +91,8 @@ namespace CalculateFunding.Services.Calcs
             IGraphRepository graphRepository,
             IMapper mapper,
             ISpecificationsApiClient specificationsApiClient,
-            IPoliciesApiClient policiesApiClient)
+            IPoliciesApiClient policiesApiClient,
+            ISourceFileRepository sourceFileRepository)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(telemetry, nameof(telemetry));
@@ -114,6 +117,7 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsApiClient, nameof(resiliencePolicies.SpecificationsApiClient));
             Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.PoliciesApiClient, nameof(resiliencePolicies.PoliciesApiClient));
+            Guard.ArgumentNotNull(sourceFileRepository, nameof(sourceFileRepository));
 
             _logger = logger;
             _telemetry = telemetry;
@@ -137,6 +141,7 @@ namespace CalculateFunding.Services.Calcs
             _specificationsApiClientPolicy = resiliencePolicies.SpecificationsApiClient;
             _policiesApiClient = policiesApiClient;
             _policiesApiClientPolicy = resiliencePolicies.PoliciesApiClient;
+            _sourceFileRepository = sourceFileRepository;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -308,10 +313,6 @@ namespace CalculateFunding.Services.Calcs
 
             const string providerSummariesPartitionSize = "provider-summaries-partition-size";
 
-            const string assembly_etag = "assembly-etag";
-
-            string assemblyEtag = message.GetUserProperty<string>(assembly_etag);
-
             properties.Add(providerSummariesPartitionSize, _engineSettings.MaxPartitionSize.ToString());
 
             properties.Add("provider-cache-key", providerCacheKey);
@@ -320,7 +321,12 @@ namespace CalculateFunding.Services.Calcs
 
             properties.Add("specification-summary-cache-key", specificationSummaryCachekey);
             
-            properties.Add(assembly_etag, assemblyEtag);
+            string assemblyETag = await _sourceFileRepository.GetAssemblyETag(specificationId);
+
+            if (assemblyETag.IsNotNullOrWhitespace())
+            {
+                properties.Add("assembly-etag", assemblyETag);
+            }
 
             IList<IDictionary<string, string>> allJobProperties = new List<IDictionary<string, string>>();
 
@@ -624,7 +630,7 @@ namespace CalculateFunding.Services.Calcs
 
             HashSet<string> calculationsToAggregate = new HashSet<string>();
 
-            if (parentJob.JobDefinitionId == JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob)
+            if (parentJob.JobDefinitionId == DefinitionNames.CreateInstructGenerateAggregationsAllocationJob)
             {
                 string calculationAggregatesCacheKeyPrefix = $"{CacheKeys.CalculationAggregations}{parentJob.SpecificationId}";
 
@@ -642,7 +648,7 @@ namespace CalculateFunding.Services.Calcs
 
                     foreach (string aggregateParameter in aggregateParameters)
                     {
-                        Models.Calcs.Calculation referencedCalculation = calculations.FirstOrDefault(m => string.Equals(CalculationTypeGenerator.GenerateIdentifier(m.Name.Trim()), aggregateParameter.Trim(), StringComparison.InvariantCultureIgnoreCase));
+                        Models.Calcs.Calculation referencedCalculation = calculations.FirstOrDefault(m => string.Equals(VisualBasicTypeGenerator.GenerateIdentifier(m.Name.Trim()), aggregateParameter.Trim(), StringComparison.InvariantCultureIgnoreCase));
 
                         if (referencedCalculation != null)
                         {
@@ -675,7 +681,7 @@ namespace CalculateFunding.Services.Calcs
                 {
                     InvokerUserDisplayName = parentJob.InvokerUserDisplayName,
                     InvokerUserId = parentJob.InvokerUserId,
-                    JobDefinitionId = parentJob.JobDefinitionId == JobConstants.DefinitionNames.CreateInstructAllocationJob ? JobConstants.DefinitionNames.CreateAllocationJob : JobConstants.DefinitionNames.GenerateCalculationAggregationsJob,
+                    JobDefinitionId = parentJob.JobDefinitionId == DefinitionNames.CreateInstructAllocationJob ? DefinitionNames.CreateAllocationJob : DefinitionNames.GenerateCalculationAggregationsJob,
                     SpecificationId = parentJob.SpecificationId,
                     Properties = properties,
                     ParentJobId = parentJob.Id,
@@ -845,7 +851,7 @@ namespace CalculateFunding.Services.Calcs
                         DatasetDefinitionId = datasetRelationshipModel.Definition.Id,
                         DatasetId = datasetRelationshipModel.DatasetId,
                         DatasetName = datasetRelationshipModel.DatasetName,
-                        Relationship = new Common.Models.Reference(datasetRelationshipModel.Id, datasetRelationshipModel.Name),
+                        Relationship = new Reference(datasetRelationshipModel.Id, datasetRelationshipModel.Name),
                         DefinesScope = datasetRelationshipModel.IsProviderData,
                         Id = datasetRelationshipModel.Id,
                         Name = datasetRelationshipModel.Name,

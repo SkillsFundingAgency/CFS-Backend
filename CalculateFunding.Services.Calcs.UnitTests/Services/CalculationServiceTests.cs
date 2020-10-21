@@ -69,8 +69,7 @@ namespace CalculateFunding.Services.Calcs.Services
                     resiliencePolicies ?? CalcsResilienceTestHelper.GenerateTestPolicies(),
                     logger ?? CreateLogger(),
                     calculationsFeatureFlag ?? CreateCalculationsFeatureFlag(),
-                    jobManagement ?? CreateJobManagement(),
-                    sourceFileRepository ?? Substitute.For<ISourceFileRepository>());
+                    jobManagement ?? CreateJobManagement());
 
             return new CalculationService
                 (

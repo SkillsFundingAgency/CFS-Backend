@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Utility;
@@ -23,19 +22,16 @@ namespace CalculateFunding.Services.Calcs
         private readonly IJobManagement _jobManagement;
         private readonly ILogger _logger;
         private readonly ICalculationsFeatureFlag _calculationsFeatureFlag;
-        private readonly ISourceFileRepository _sourceFileRepository;
         private bool? _graphEnabled;
         public InstructionAllocationJobCreation(ICalculationsRepository calculationsRepository, 
             ICalcsResiliencePolicies calculationsResiliencePolicies,
             ILogger logger,
             ICalculationsFeatureFlag calculationsFeatureFlag,
-            IJobManagement jobManagement,
-            ISourceFileRepository sourceFileRepository)
+            IJobManagement jobManagement)
         {
             Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
             Guard.ArgumentNotNull(calculationsFeatureFlag, nameof(calculationsFeatureFlag));
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
-            Guard.ArgumentNotNull(sourceFileRepository, nameof(sourceFileRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(calculationsResiliencePolicies?.CalculationsRepository, nameof(calculationsResiliencePolicies.CalculationsRepository));
 
@@ -43,7 +39,6 @@ namespace CalculateFunding.Services.Calcs
             _calculationsRepository = calculationsRepository;
             _logger = logger;
             _jobManagement = jobManagement;
-            _sourceFileRepository = sourceFileRepository;
             _calculationRepositoryPolicy = calculationsResiliencePolicies.CalculationsRepository;
         }
 
@@ -81,7 +76,6 @@ namespace CalculateFunding.Services.Calcs
                 CorrelationId = correlationId
             };
             
-            
 
             if (await GraphEnabled())
             {
@@ -104,13 +98,6 @@ namespace CalculateFunding.Services.Calcs
                         Trigger = trigger,
                         CorrelationId = correlationId
                     };
-                    
-                    string assemblyETag = await _sourceFileRepository.GetAssemblyETag(specificationId);
-
-                    if (assemblyETag.IsNotNullOrWhitespace())
-                    {
-                        instructJob.Properties.Add("assembly-etag", assemblyETag);
-                    }
                     
                     parentJob = await _jobManagement.QueueJob(instructJob);
 

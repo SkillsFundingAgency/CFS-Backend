@@ -57,6 +57,7 @@ namespace CalculateFunding.Services.Calcs.Services
     {
         const string SpecificationId = "bbe8bec3-1395-445f-a190-f7e300a8c336";
         const string BuildProjectId = "47b680fa-4dbe-41e0-a4ce-c25e41a634c1";
+        private const string AssemblyEtag = "assembly-etag";
 
         [TestMethod]
         public void UpdateAllocations_GivenNullMessage_ThrowsArgumentNullException()
@@ -1944,12 +1945,21 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(new ApiResponse<Common.ApiClient.DataSets.Models.DatasetDefinition>(HttpStatusCode.OK, CreateDatsetDefinition()));
 
             IMapper mapper = CreateMapper();
+            
+            ISourceFileRepository sourceFileRepository = Substitute.For<ISourceFileRepository>();
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
                 logger: logger, providersApiClient: providersApiClient, cacheProvider: cacheProvider,
                 jobManagement: jobManagement, engineSettings: engineSettings,
-                datasetsApiClient: datasetsApiClient, mapper: mapper);
+                datasetsApiClient: datasetsApiClient, mapper: mapper,
+                sourceFileRepository: sourceFileRepository);
 
+            string assemblyETag = new RandomString();
+
+            sourceFileRepository
+                .GetAssemblyETag(specificationId)
+                .Returns(assemblyETag);
+            
             IEnumerable<JobCreateModel> jobModelsToTest = null;
 
             jobsApiClient
@@ -1971,6 +1981,11 @@ namespace CalculateFunding.Services.Calcs.Services
             jobModelsToTest.ElementAt(7).Properties["provider-summaries-partition-index"].Should().Be("7");
             jobModelsToTest.ElementAt(8).Properties["provider-summaries-partition-index"].Should().Be("8");
             jobModelsToTest.ElementAt(9).Properties["provider-summaries-partition-index"].Should().Be("9");
+
+            jobModelsToTest.All(_ => _.Properties.ContainsKey(AssemblyEtag) &&
+                                     _.Properties[AssemblyEtag] == assemblyETag)
+                .Should()
+                .BeTrue();
         }
 
         [TestMethod]
@@ -3623,7 +3638,8 @@ namespace CalculateFunding.Services.Calcs.Services
             IGraphRepository graphRepository = null,
             IMapper mapper = null,
             ISpecificationsApiClient specificationsApiClient = null,
-            IPoliciesApiClient policiesApiClient = null)
+            IPoliciesApiClient policiesApiClient = null,
+            ISourceFileRepository sourceFileRepository = null)
         {
             return new BuildProjectsService(
                 logger ?? CreateLogger(),
@@ -3642,7 +3658,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 graphRepository ?? CreateGraphRepository(),
                 mapper ?? CreateMapper(),
                 specificationsApiClient ?? CreateSpecificationsApiClient(),
-                policiesApiClient ?? CreatePolicyApiClient());
+                policiesApiClient ?? CreatePolicyApiClient(),
+                sourceFileRepository ?? Substitute.For<ISourceFileRepository>());
         }
 
         private static ISpecificationsApiClient CreateSpecificationsApiClient()
