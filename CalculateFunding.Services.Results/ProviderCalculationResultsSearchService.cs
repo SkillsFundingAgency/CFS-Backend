@@ -26,7 +26,7 @@ namespace CalculateFunding.Services.Results
         private readonly AsyncPolicy _searchRepositoryPolicy;
         private readonly IFeatureToggle _featureToggle;
 
-        private readonly FacetFilterType[] Facets = {
+        private static readonly FacetFilterType[] Facets = {
             new FacetFilterType("calculationId", true),
             new FacetFilterType("calculationName", true),
             new FacetFilterType("specificationName"),
@@ -40,7 +40,7 @@ namespace CalculateFunding.Services.Results
             new FacetFilterType("fundingLineName", true),
         };
 
-        private IEnumerable<string> DefaultOrderBy = new[] { "providerName" };
+        private static readonly IEnumerable<string> DefaultOrderBy = new[] { "providerName" };
 
         public ProviderCalculationResultsSearchService(ILogger logger,
             ISearchRepository<ProviderCalculationResultsIndex> searchRepository,
@@ -71,7 +71,7 @@ namespace CalculateFunding.Services.Results
             return health;
         }
 
-        async public Task<IActionResult> SearchCalculationProviderResults(SearchModel searchModel, bool useCalculationId = true)
+        public async Task<IActionResult> SearchCalculationProviderResults(SearchModel searchModel, bool useCalculationId = true)
         {
             if (searchModel == null || searchModel.PageNumber < 1 || searchModel.Top < 1)
             {
@@ -115,19 +115,16 @@ namespace CalculateFunding.Services.Results
 
         private string GetSearchModelFilterValue(SearchModel searchModel, string filterName)
         {
-            return (searchModel.Filters != null &&
-                                        searchModel.Filters.ContainsKey(filterName) &&
-                                        searchModel.Filters[filterName].FirstOrDefault() != null)
+            return searchModel.Filters != null &&
+                   searchModel.Filters.ContainsKey(filterName) &&
+                   searchModel.Filters[filterName].FirstOrDefault() != null
                 ? searchModel.Filters[filterName].FirstOrDefault()
                 : string.Empty;
         }
 
         IDictionary<string, string> BuildFacetDictionary(SearchModel searchModel)
         {
-            if (searchModel.Filters == null)
-            {
-                searchModel.Filters = new Dictionary<string, string[]>();
-            }
+            searchModel.Filters ??= new Dictionary<string, string[]>();
 
             searchModel.Filters = searchModel.Filters.ToList().Where(m => !m.Value.IsNullOrEmpty())
                 .ToDictionary(m => m.Key, m => m.Value);
@@ -137,6 +134,7 @@ namespace CalculateFunding.Services.Results
             foreach (FacetFilterType facet in Facets)
             {
                 string filter = "";
+                
                 if (searchModel.Filters.ContainsKey(facet.Name) && searchModel.Filters[facet.Name].AnyWithNullCheck())
                 {
                     if (facet.IsMulti)
@@ -176,15 +174,28 @@ namespace CalculateFunding.Services.Results
                     {
                         Task.Run(() =>
                         {
-                            return _searchRepositoryPolicy.ExecuteAsync(()=> _searchRepository.Search(searchModel.SearchTerm, new SearchParameters
+                            List<string> searchFields = searchModel.SearchFields?.ToList();
+
+                            searchFields = searchFields.IsNullOrEmpty() ? new List<string>{
+                                "providerName"
+                            } : searchFields;
+                            
+                            return _searchRepositoryPolicy.ExecuteAsync(()=>
                             {
-                                Facets = new[]{ filterPair.Key },
-                                SearchMode = (SearchMode)searchModel.SearchMode,
-                                SearchFields = new List<string>{ "providerName" },
-                                IncludeTotalResultCount = true,
-                                Filter = string.Join(" and ", facetDictionary.Where(x => x.Key != filterPair.Key && !string.IsNullOrWhiteSpace(x.Value)).Select(x => x.Value)),
-                                QueryType = QueryType.Full
-                            }));
+                                return _searchRepository.Search(searchModel.SearchTerm,
+                                    new SearchParameters
+                                    {
+                                        Facets = new[]
+                                        {
+                                            filterPair.Key
+                                        },
+                                        SearchMode = (SearchMode) searchModel.SearchMode,
+                                        SearchFields = searchFields,
+                                        IncludeTotalResultCount = true,
+                                        Filter = string.Join(" and ", facetDictionary.Where(x => x.Key != filterPair.Key && !string.IsNullOrWhiteSpace(x.Value)).Select(x => x.Value)),
+                                        QueryType = QueryType.Full
+                                    });
+                            });
                         })
                     });
                 }
@@ -209,7 +220,7 @@ namespace CalculateFunding.Services.Results
             return searchTasks;
         }
 
-        Task<SearchResults<ProviderCalculationResultsIndex>> BuildCalculationErrorsSearchTask(string entityValueFilter, string entityValue, string entityFieldName, string entityExceptionFieldName)
+        private Task<SearchResults<ProviderCalculationResultsIndex>> BuildCalculationErrorsSearchTask(string entityValueFilter, string entityValue, string entityFieldName, string entityExceptionFieldName)
         {
             return Task.Run(() =>
             {
@@ -225,14 +236,14 @@ namespace CalculateFunding.Services.Results
             });
         }
 
-        Task<SearchResults<ProviderCalculationResultsIndex>> BuildCalculationItemsSearchTask(
+        private Task<SearchResults<ProviderCalculationResultsIndex>> BuildCalculationItemsSearchTask(
             IDictionary<string, string> facetDictionary, 
             SearchModel searchModel, 
             string entityValue,
             string entityExceptionFieldName)
         {
             int skip = (searchModel.PageNumber - 1) * searchModel.Top;
-            List<string> errorToggleWhere = (!searchModel.ErrorToggle.HasValue || string.IsNullOrWhiteSpace(entityValue))
+            List<string> errorToggleWhere = !searchModel.ErrorToggle.HasValue || string.IsNullOrWhiteSpace(entityValue)
                 ? new List<string>()
                 : searchModel.ErrorToggle.Value
                     ? new List<string> { $"{entityExceptionFieldName}/any(x: x eq '{entityValue}')" }
@@ -241,12 +252,18 @@ namespace CalculateFunding.Services.Results
             IEnumerable<string> where = facetDictionary.Values.Where(x => !string.IsNullOrWhiteSpace(x)).Concat(errorToggleWhere);
             return Task.Run(() =>
             {
+                List<string> searchFields = searchModel.SearchFields?.ToList();
+
+                searchFields = searchFields.IsNullOrEmpty() ? new List<string>{
+                    "providerName", "ukPrn", "urn", "upin", "establishmentNumber"
+                } : searchFields;
+                
                 return _searchRepositoryPolicy.ExecuteAsync(() => _searchRepository.Search(searchModel.SearchTerm, new SearchParameters
                 {
                     Skip = skip,
                     Top = searchModel.Top,
                     SearchMode = (SearchMode)searchModel.SearchMode,
-                    SearchFields = new List<string> { "providerName", "ukPrn", "urn", "upin", "establishmentNumber" },
+                    SearchFields = searchFields,
                     IncludeTotalResultCount = true,
                     Filter = string.Join(" and ", where),
                     OrderBy = searchModel.OrderBy.IsNullOrEmpty() ? DefaultOrderBy.ToList() : searchModel.OrderBy.ToList(),
@@ -266,7 +283,7 @@ namespace CalculateFunding.Services.Results
             {
                 if (_featureToggle.IsExceptionMessagesEnabled() && searchResult.Facets.Any(f => f.Name == entityExceptionFieldName))
                 {
-                    results.TotalErrorCount = (int)(searchResult?.TotalCount ?? 0);
+                    results.TotalErrorCount = (int)(searchResult.TotalCount ?? 0);
                 }
                 else
                 {

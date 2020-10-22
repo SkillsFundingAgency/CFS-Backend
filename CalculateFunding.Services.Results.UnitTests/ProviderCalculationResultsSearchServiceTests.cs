@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Models;
@@ -266,18 +267,27 @@ namespace CalculateFunding.Services.Results.UnitTests
         [TestMethod]
         [DataRow(true, "calculationId")]
         [DataRow(false, "fundingLineId")]
+        [DataRow(false, "fundingLineId", "fieldOne", "fieldTwo")]
         public async Task SearchTestScenarioResults_GivenValidModelWithOneFilter_ThenSearchIsPerformed(
-            bool useCalculationId, string idFilterName)
+            bool useCalculationId, string idFilterName, params string[] searchFields)
         {
+            string[] expectedFacetSearchFields = searchFields.IsNullOrEmpty()
+                ? new[]
+                {
+                    "providerName"
+                }
+                : searchFields;
+            
             //Arrange
             SearchModel model = new SearchModel
             {
                 PageNumber = 1,
                 Top = 50,
                 IncludeFacets = true,
+                SearchFields = searchFields ?? new string[0],
                 Filters = new Dictionary<string, string[]>()
                 {
-                    { idFilterName, new string []{ "test" } }
+                    { idFilterName, new[]{ "test" } }
                 },
                 SearchTerm = "testTerm",
             };
@@ -301,13 +311,34 @@ namespace CalculateFunding.Services.Results.UnitTests
                  .Should()
                  .BeOfType<OkObjectResult>();
 
+            int expectedFacetsSearchCount = expectedFacetSearchFields.SequenceEqual(searchFields ?? ArraySegment<string>.Empty) ? ProviderCalculationResultsFacetCount : ProviderCalculationResultsFacetCount - 1;
+
+            //facet search
             await
                searchRepository
-               .Received(ProviderCalculationResultsFacetCount)
+               .Received(expectedFacetsSearchCount)
                    .Search(model.SearchTerm, Arg.Is<SearchParameters>(c =>
-                       model.Filters.Keys.All(f => c.Filter.Contains(f))
-                       && !string.IsNullOrWhiteSpace(c.Filter)
+                       SearchFiltersMatch(c, model)
+                       && SearchFieldsMatch(c.SearchFields, expectedFacetSearchFields)
                    ));
+        }
+
+        private bool SearchFiltersMatch(SearchParameters searchParameters,
+            SearchModel searchModel)
+        {
+            bool searchFiltersMatch = searchModel.Filters.Keys.All(_ => searchParameters.Filter.Contains(_)) &&
+                                      !string.IsNullOrEmpty(searchParameters.Filter);
+            
+            return searchFiltersMatch;
+        }
+
+        private bool SearchFieldsMatch(IEnumerable<string> actualSearchFields,
+            IEnumerable<string> expectedSearchFields)
+        {
+            bool searchFieldsMatch = actualSearchFields.Count() == expectedSearchFields.Count() &&
+                                     expectedSearchFields.All(actualSearchFields.Contains);
+            
+            return searchFieldsMatch;
         }
 
         [TestMethod]
