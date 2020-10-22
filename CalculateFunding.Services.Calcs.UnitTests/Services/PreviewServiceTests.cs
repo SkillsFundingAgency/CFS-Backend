@@ -19,7 +19,6 @@ using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
@@ -1311,7 +1310,7 @@ End Class";
             IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
             buildProjectsService
                 .GetBuildProjectForSpecificationId(Arg.Is(calculation.SpecificationId))
-                .Returns(buildProject);   
+                .Returns(buildProject);
 
             IEnumerable<Common.ApiClient.DataSets.Models.DatasetSchemaRelationshipModel> relationshipModels = new[]
             {
@@ -1432,7 +1431,7 @@ End Class";
 
             IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
             datasetsApiClient
-                .GetDatasetSchemaRelationshipModelsForSpecificationId(Arg.Is(SpecificationId))               
+                .GetDatasetSchemaRelationshipModelsForSpecificationId(Arg.Is(SpecificationId))
                 .Returns(new ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetSchemaRelationshipModel>>(HttpStatusCode.OK, relationshipModels));
 
 
@@ -2455,6 +2454,7 @@ End Class";
         [Ignore]
 #endif
         [TestMethod]
+        [Ignore("Does not cover case insenstive tests + brackets properly")]
         [DynamicData(nameof(CodeContainsItsOwnNameTestCases), DynamicDataSourceType.Method)]
         public async Task Compile_GivenCodeContainsItsOwnName_ReturnsBasedOnWhetherNameIsToken(
             CalculationNamespace calcNamespace,

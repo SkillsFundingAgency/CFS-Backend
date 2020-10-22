@@ -195,10 +195,10 @@ namespace CalculateFunding.Services.Calcs
 
                 IDictionary<string, string> functions = _sourceCodeService.GetCalculationFunctions(compilerOutput.SourceFiles);
                 IDictionary<string, string> calculationIdentifierMap = calculations
-                    .Select(_ => new 
-                    { 
-                        Identifier = $"{VisualBasicTypeGenerator.GenerateIdentifier(_.Namespace)}.{VisualBasicTypeGenerator.GenerateIdentifier(_.Name)}", 
-                        CalcName = _.Name 
+                    .Select(_ => new
+                    {
+                        Identifier = $"{VisualBasicTypeGenerator.GenerateIdentifier(_.Namespace)}.{VisualBasicTypeGenerator.GenerateIdentifier(_.Name)}",
+                        CalcName = _.Name
                     })
                     .ToDictionary(d => d.Identifier, d => d.CalcName);
 
@@ -238,11 +238,15 @@ namespace CalculateFunding.Services.Calcs
                                     {
                                         Calculation calculation = calculations.SingleOrDefault(_ => _.Name == calculationIdentifierMap[aggregateParameter]);
 
-                                        if(calculation.Current.DataType != CalculationDataType.Decimal)
+                                        if (calculation.Current.DataType != CalculationDataType.Decimal)
                                         {
                                             compilerOutput.Success = false;
-                                            compilerOutput.CompilerMessages.Add(new CompilerMessage { Message = 
-                                                $"Only decimal fields can be used on aggregation. {aggregateParameter} has data type of {calculation.Current.DataType}", Severity = Severity.Error });
+                                            compilerOutput.CompilerMessages.Add(new CompilerMessage
+                                            {
+                                                Message =
+                                                $"Only decimal fields can be used on aggregation. {aggregateParameter} has data type of {calculation.Current.DataType}",
+                                                Severity = Severity.Error
+                                            });
                                             continueChecking = false;
                                             break;
                                         }
@@ -287,12 +291,14 @@ namespace CalculateFunding.Services.Calcs
         {
             string sourceCode = calculationToPreview.Current.SourceCode;
 
-            if (sourceCode.Contains(calculationToPreview.Current.SourceCodeName, StringComparison.InvariantCultureIgnoreCase))
+            string sourceCodeToken = $"{calculationToPreview.Current.SourceCodeName}()";
+
+            if (sourceCode.Contains(sourceCodeToken, StringComparison.InvariantCultureIgnoreCase))
             {
                 int? token = _tokenChecker.CheckIsToken(sourceCode,
                                  calculationToPreview.Current.Namespace.ToString(),
                                  calculationToPreview.Current.SourceCodeName,
-                                 sourceCode.IndexOf(calculationToPreview.Current.SourceCodeName));
+                                 sourceCode.IndexOf(calculationToPreview.Current.SourceCodeName, StringComparison.InvariantCultureIgnoreCase));
 
                 if (token != null)
                 {

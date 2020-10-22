@@ -25,7 +25,7 @@ namespace CalculateFunding.Services.Calcs
         {
             CheckTokenLegal(tokenName, isNamespaced);
 
-            if (sourceCode.IndexOf(tokenName, position) < 0) return null;
+            if (sourceCode.IndexOf(tokenName, position, StringComparison.InvariantCultureIgnoreCase) < 0) return null;
 
             bool result = sourceCode.Substring(position, tokenName.Length) == tokenName;
             string[] validPrecedingCharacters = { "(", ",", "=", "+", "-", "*", "/" };
