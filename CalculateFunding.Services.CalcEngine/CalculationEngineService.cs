@@ -16,7 +16,6 @@ using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.JobManagement;
-using CalculateFunding.Common.Models;
 using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Aggregations;
@@ -399,23 +398,23 @@ namespace CalculateFunding.Services.CalcEngine
             if (etag.IsNotNullOrWhitespace())
             {
                 Stream cachedAssembly = await _specificationAssemblies.GetAssembly(specificationId, etag);
-                
+
                 if (cachedAssembly != null)
                 {
                     assemblyLookupStopwatch.Stop();
-                    
+
                     return (cachedAssembly.ReadAllBytes(), assemblyLookupStopwatch.ElapsedMilliseconds);
                 }
             }
-            
+
             byte[] assembly = await _calculationsRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetAssemblyBySpecificationId(specificationId));
 
             if (assembly == null)
             {
                 string error = $"Failed to get assembly for specification Id '{specificationId}'";
-                
+
                 _logger.Error(error);
-                
+
                 throw new RetriableException(error);
             }
 
@@ -551,7 +550,7 @@ namespace CalculateFunding.Services.CalcEngine
             properties.User = message.GetUserDetails();
             properties.CorrelationId = message.GetCorrelationId();
 
-            properties.AssemblyETag = message.GetUserProperty<string>("assembly-etag");            
+            properties.AssemblyETag = message.GetUserProperty<string>("assembly-etag");
 
             return properties;
         }
@@ -615,7 +614,7 @@ namespace CalculateFunding.Services.CalcEngine
 
             aggregations = await _cacheProvider.GetAsync<List<CalculationAggregation>>($"{ CacheKeys.DatasetAggregationsForSpecification}{messageProperties.SpecificationId}");
 
-            if (aggregations.IsNullOrEmpty())
+            if (DoesNotExistInCache(aggregations))
             {
                 aggregations = (await _datasetAggregationsRepository.GetDatasetAggregationsForSpecificationId(messageProperties.SpecificationId)).Select(m => new CalculationAggregation
                 {
@@ -708,12 +707,12 @@ namespace CalculateFunding.Services.CalcEngine
 
             await _resultsApiClientPolicy.ExecuteAsync(() => _resultsApiClient.UpdateFundingStructureLastModified(
                 new Common.ApiClient.Results.Models.UpdateFundingStructureLastModifiedRequest
-            {
-                LastModified = DateTimeOffset.UtcNow,
-                SpecificationId = messageProperties.SpecificationId,
-                FundingPeriodId = specificationSummary.FundingPeriod?.Id,
-                FundingStreamId = specificationSummary.FundingStreams?.FirstOrDefault().Id
-            }));
+                {
+                    LastModified = DateTimeOffset.UtcNow,
+                    SpecificationId = messageProperties.SpecificationId,
+                    FundingPeriodId = specificationSummary.FundingPeriod?.Id,
+                    FundingStreamId = specificationSummary.FundingStreams?.FirstOrDefault().Id
+                }));
         }
 
         private void PopulateCachedCalculationAggregationsBatch(IEnumerable<ProviderResult> providerResults, Dictionary<string, List<object>> cachedCalculationAggregationsBatch, GenerateAllocationMessageProperties messageProperties)
@@ -828,6 +827,11 @@ namespace CalculateFunding.Services.CalcEngine
         {
             _logger.Error(message);
             throw (T)Activator.CreateInstance(typeof(T), message);
+        }
+
+        private bool DoesNotExistInCache(IEnumerable<CalculationAggregation> aggregations)
+        {
+            return aggregations == null;
         }
     }
 }

@@ -18,7 +18,7 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
             new ProviderSourceDatasetFileSystemCacheKey(relationshipId, providerId, versionKey)
                 .Path
                 .Should()
-                .Be($"{ProviderSourceDatasetFileSystemCacheKey.Folder}\\{relationshipId}_{providerId}_{versionKey}.json");
+                .Be($"providersourcedatasets\\{providerId}\\{relationshipId}_{versionKey}.json");
         }
     }
 }

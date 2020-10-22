@@ -109,13 +109,13 @@ namespace CalculateFunding.Services.CalcEngine
             return (cosmosSaveTask.Result, queueSearchWriterJobTask.Result, providerResults.Count());
         }
 
-        private async Task<long> QueueSearchIndexWriterJob(IEnumerable<ProviderResult> providerResults, SpecificationSummary specificationSummary, Reference user,string correlationId)
+        private async Task<long> QueueSearchIndexWriterJob(IEnumerable<ProviderResult> providerResults, SpecificationSummary specificationSummary, Reference user, string correlationId)
         {
             Stopwatch stopwatch = Stopwatch.StartNew();
 
             string specificationId = specificationSummary.GetSpecificationId();
             IEnumerable<string> providerIds = providerResults.Select(x => x.Provider?.Id).Where(x => !string.IsNullOrWhiteSpace(x)).ToArray();
-            if(!providerIds.Any())
+            if (!providerIds.Any())
             {
                 return 0;
             }
@@ -163,7 +163,7 @@ namespace CalculateFunding.Services.CalcEngine
 
             if (!hasChanged)
             {
-                _logger.Information(
+                _logger.Verbose(
                     $"Provider:{providerResult.Provider.Id} Spec:{providerResult.SpecificationId} results have no changes so will not be stored this time");
             }
 

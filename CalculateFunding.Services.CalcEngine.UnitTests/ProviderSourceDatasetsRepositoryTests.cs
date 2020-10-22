@@ -146,9 +146,9 @@ namespace CalculateFunding.Services.Calculator
             _cosmosRepository
                 .TryReadDocumentByIdPartitionedAsync<ProviderSourceDataset>(Arg.Is(documentKey), Arg.Is(providerId))
                 .Returns(new DocumentEntity<ProviderSourceDataset>
-                { 
-                    Deleted = false, 
-                    Content = providerSourceDataset 
+                {
+                    Deleted = false,
+                    Content = providerSourceDataset
                 });
         }
 
@@ -157,16 +157,16 @@ namespace CalculateFunding.Services.Calculator
             Guid versionKey,
             ProviderSourceDataset providerSourceDataset)
         {
-            string key = $"{relationshipId}_{providerId}_{versionKey}";
+            string key = $"providersourcedatasets\\{providerId}\\{relationshipId}_{versionKey}.json";
 
-            _fileSystemCache.Exists(Arg.Is<FileSystemCacheKey>(_ =>
-                    _.Key.Equals(key)))
+            _fileSystemCache.Exists(Arg.Is<ProviderSourceDatasetFileSystemCacheKey>(_ =>
+                    _.CachePath.Equals(key)))
                 .Returns(true);
 
             byte[] buffer = providerSourceDataset.AsJson().AsUTF8Bytes();
 
-            _fileSystemCache.Get(Arg.Is<FileSystemCacheKey>(_ =>
-                    _.Key.Equals(key)))
+            _fileSystemCache.Get(Arg.Is<ProviderSourceDatasetFileSystemCacheKey>(_ =>
+                    _.CachePath.Equals(key)))
                 .Returns(new MemoryStream(buffer, 0, buffer.Length, false, true));
         }
 
@@ -179,7 +179,7 @@ namespace CalculateFunding.Services.Calculator
         {
             _fileSystemCache
                 .Received(1)
-                .Add(Arg.Any<FileSystemCacheKey>(),
+                .Add(Arg.Any<ProviderSourceDatasetFileSystemCacheKey>(),
                     Arg.Is<MemoryStream>(stream => StreamMatchesDataset(stream, providerSourceDataset)),
                     Arg.Any<CancellationToken>(),
                     Arg.Is(true));
