@@ -11,16 +11,18 @@ namespace CalculateFunding.Api.Publishing.Controllers
     [ApiController]
     public class ProviderProfileInformationController : ControllerBase
     {
-
         private readonly IProfileTotalsService _profileTotalsService;
+        private readonly IProfileHistoryService _profileHistoryService;
 
         public ProviderProfileInformationController(
-            IProfileTotalsService profileTotalsService
-            )
+            IProfileTotalsService profileTotalsService,
+            IProfileHistoryService profileHistoryService)
         {
             Guard.ArgumentNotNull(profileTotalsService, nameof(profileTotalsService));
+            Guard.ArgumentNotNull(profileHistoryService, nameof(profileHistoryService));
 
             _profileTotalsService = profileTotalsService;
+            _profileHistoryService = profileHistoryService;
         }
 
         /// <summary>
@@ -142,17 +144,15 @@ namespace CalculateFunding.Api.Publishing.Controllers
         /// <param name="fundingStreamId">Funding Stream Id</param>
         /// <param name="fundingPeriodId">Funding period Id</param>
         /// <param name="providerId">Provider Id</param>
-        /// <param name="profileHistoryService"></param>
         /// <returns></returns>
         [HttpGet("api/fundingstreams/{fundingStreamId}/fundingperiods/{fundingPeriodId}/providers/{providerId}/profilinghistory")]
         [ProducesResponseType(typeof(IEnumerable<PaymentFundingLineProfileTotals>), 200)]
         [ProducesResponseType(404)]
         public async Task<IActionResult> GetProfileHistory([FromRoute] string fundingStreamId,
             [FromRoute] string fundingPeriodId,
-            [FromRoute] string providerId,
-            [FromServices] IProfileHistoryService profileHistoryService)
+            [FromRoute] string providerId)
         {
-            return await profileHistoryService.GetProfileHistory(fundingStreamId, fundingPeriodId, providerId);
+            return await _profileHistoryService.GetProfileHistory(fundingStreamId, fundingPeriodId, providerId);
         }
     }
 }

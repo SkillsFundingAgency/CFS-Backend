@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using CalculateFunding.Api.Publishing.Controllers;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Publishing;
-using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Profiling.Custom;
 using CalculateFunding.Tests.Common.Helpers;
@@ -23,8 +22,7 @@ namespace CalculateFunding.Api.Publishing.UnitTests.Controllers
     {
         private ProfilingActionsController _controller;
         private Mock<ICustomProfileService> _customProfileService;
-        private IPublishedProviderProfilingService _publishedProviderProfilingService;
-        private IFeatureToggle _featureToggle;
+        private Mock<IPublishedProviderProfilingService> _publishedProviderProfilingService;
 
         private string _fundingStreamId;
         private string _fundPeriodId;
@@ -37,11 +35,12 @@ namespace CalculateFunding.Api.Publishing.UnitTests.Controllers
         [TestInitialize]
         public void SetUp()
         {
-            _featureToggle = Substitute.For<IFeatureToggle>();
             _customProfileService = new Mock<ICustomProfileService>();
-            _publishedProviderProfilingService = Substitute.For<IPublishedProviderProfilingService>();
+            _publishedProviderProfilingService = new Mock<IPublishedProviderProfilingService>();
 
-            _controller = new ProfilingActionsController();
+            _controller = new ProfilingActionsController(
+                _publishedProviderProfilingService.Object,
+                _customProfileService.Object);
 
             _fundingStreamId = NewRandomString();
             _fundPeriodId = NewRandomString();
@@ -100,7 +99,7 @@ namespace CalculateFunding.Api.Publishing.UnitTests.Controllers
 
         private async Task<IActionResult> WhenTheCustomProfileIsApplied(ApplyCustomProfileRequest request)
         {
-            return await _controller.ApplyCustomProfilePattern(request, _customProfileService.Object);
+            return await _controller.ApplyCustomProfilePattern(request);
         }
 
         [TestMethod]
@@ -113,8 +112,7 @@ namespace CalculateFunding.Api.Publishing.UnitTests.Controllers
             IActionResult actualResult = await _controller.AssignProfilePatternKeyToPublishedProvider(_fundingStreamId,
                 _fundPeriodId,
                 _providerId,
-                _profilePatternKey,
-                _publishedProviderProfilingService);
+                _profilePatternKey);
 
             actualResult
                 .Should()
@@ -124,14 +122,13 @@ namespace CalculateFunding.Api.Publishing.UnitTests.Controllers
         private void GivenAssignProfilePatternKeyToPublishedProvider(IActionResult result)
         {
             _publishedProviderProfilingService
-                .AssignProfilePatternKey(_fundingStreamId,
+                .Setup(_ => _.AssignProfilePatternKey(_fundingStreamId,
                     _fundPeriodId,
                     _providerId,
                     _profilePatternKey,
-                    Arg.Any<Reference>())
-                .Returns(result);
+                    It.IsAny<Reference>()))
+                .ReturnsAsync(result);
         }
-
 
         private string NewRandomString()
         {

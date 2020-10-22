@@ -14,14 +14,17 @@ namespace CalculateFunding.Api.Publishing.Controllers
     public class PublishedProviderSearchController : ControllerBase
     {
         private readonly IPublishedSearchService _publishedSearchService;
+        private readonly IPublishedProviderVersionService _publishedProviderVersionService;
 
         public PublishedProviderSearchController(
-            IPublishedSearchService publishedSearchService
-           )
+            IPublishedSearchService publishedSearchService,
+            IPublishedProviderVersionService publishedProviderVersionService)
         {
             Guard.ArgumentNotNull(publishedSearchService, nameof(publishedSearchService));
+            Guard.ArgumentNotNull(publishedProviderVersionService, nameof(publishedProviderVersionService));
 
             _publishedSearchService = publishedSearchService;
+            _publishedProviderVersionService = publishedProviderVersionService;
         }
 
         /// <summary>
@@ -53,13 +56,12 @@ namespace CalculateFunding.Api.Publishing.Controllers
         /// <summary>
         /// Reindex published providers in search index
         /// </summary>
-        /// <param name="publishedProviderVersionService"></param>
         /// <returns></returns>
         [HttpGet("api/publishedprovider/reindex")]
         [ProducesResponseType(204)]
-        public async Task<IActionResult> ReIndex([FromServices] IPublishedProviderVersionService publishedProviderVersionService)
+        public async Task<IActionResult> ReIndex()
         {
-            return await publishedProviderVersionService.ReIndex(
+            return await _publishedProviderVersionService.ReIndex(
                 Request.GetUser(),
                 Request.GetCorrelationId());
         }

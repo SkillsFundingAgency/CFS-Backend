@@ -18,6 +18,12 @@ namespace CalculateFunding.Api.Publishing.UnitTests.Controllers
     public class PublishedProviderControllerTests
     {
         private PublishedProvidersController _controller;
+
+        private IProviderFundingPublishingService _providerFundingPublishingService;
+        private IPublishedProviderStatusService _publishedProviderStatusService;
+        private IPublishedProviderVersionService _publishedProviderVersionService;
+        private IPublishedProviderFundingService _publishedProviderFundingService;
+        private IPublishedProviderFundingStructureService _publishedProviderFundingStructureService;
         private IDeletePublishedProvidersService _deletePublishedProvidersService;
         private IFeatureToggle _featureToggle;
 
@@ -32,10 +38,23 @@ namespace CalculateFunding.Api.Publishing.UnitTests.Controllers
         [TestInitialize]
         public void SetUp()
         {
-            _featureToggle = Substitute.For<IFeatureToggle>();
+            _providerFundingPublishingService = Substitute.For<IProviderFundingPublishingService>();
+            _publishedProviderStatusService = Substitute.For<IPublishedProviderStatusService>();
+            _publishedProviderVersionService = Substitute.For<IPublishedProviderVersionService>();
+            _publishedProviderFundingService = Substitute.For<IPublishedProviderFundingService>();
+            _publishedProviderFundingStructureService = Substitute.For<IPublishedProviderFundingStructureService>();
             _deletePublishedProvidersService = Substitute.For<IDeletePublishedProvidersService>();
+            _featureToggle = Substitute.For<IFeatureToggle>();
 
-            _controller = new PublishedProvidersController(Substitute.For<IProviderFundingPublishingService>());
+            _controller = new PublishedProvidersController(
+                _providerFundingPublishingService,
+                _publishedProviderStatusService,
+                _publishedProviderVersionService,
+                _publishedProviderFundingService,
+                _publishedProviderFundingStructureService,
+                _deletePublishedProvidersService,
+                _featureToggle
+                );
 
             _fundingStreamId = NewRandomString();
             _fundPeriodId = NewRandomString();
@@ -104,9 +123,7 @@ namespace CalculateFunding.Api.Publishing.UnitTests.Controllers
         private async Task WhenThePublishedProvidersAreDeleted()
         {
             _result = await _controller.DeletePublishedProviders(_fundingStreamId,
-                _fundPeriodId,
-                _deletePublishedProvidersService,
-                _featureToggle);
+                _fundPeriodId);
         }
 
         private string NewRandomString()

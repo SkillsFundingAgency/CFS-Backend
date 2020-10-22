@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
@@ -12,6 +13,20 @@ namespace CalculateFunding.Api.Publishing.Controllers
     [ApiController]
     public class ProfilingActionsController : ControllerBase
     {
+        private readonly IPublishedProviderProfilingService _publishedProviderProfilingService;
+        private readonly ICustomProfileService _customProfileService;
+
+        public ProfilingActionsController(
+            IPublishedProviderProfilingService publishedProviderProfilingService,
+            ICustomProfileService customProfileService)
+        {
+            Guard.ArgumentNotNull(publishedProviderProfilingService, nameof(publishedProviderProfilingService));
+            Guard.ArgumentNotNull(customProfileService, nameof(customProfileService));
+
+            _publishedProviderProfilingService = publishedProviderProfilingService;
+            _customProfileService = customProfileService;
+        }
+
         /// <summary>
         /// Assign rule based pattern to provider for funding line
         /// </summary>
@@ -19,7 +34,6 @@ namespace CalculateFunding.Api.Publishing.Controllers
         /// <param name="fundingPeriodId">Funding Period Id</param>
         /// <param name="providerId">Provider Id</param>
         /// <param name="profilePatternKey">Profile pattern and funding line code</param>
-        /// <param name="publishedProviderProfilingService"></param>
         /// <returns></returns>
         [HttpPost("api/publishedprovider/fundingStream/{fundingStreamId}/fundingPeriod/{fundingPeriodId}/provider/{providerId}")]
         [ProducesResponseType(200, Type = typeof(HttpStatusCode))]
@@ -30,10 +44,9 @@ namespace CalculateFunding.Api.Publishing.Controllers
            [FromRoute] string fundingStreamId,
            [FromRoute] string fundingPeriodId,
            [FromRoute] string providerId,
-           [FromBody] ProfilePatternKey profilePatternKey,
-           [FromServices] IPublishedProviderProfilingService publishedProviderProfilingService)
+           [FromBody] ProfilePatternKey profilePatternKey)
         {
-            return await publishedProviderProfilingService.AssignProfilePatternKey(
+            return await _publishedProviderProfilingService.AssignProfilePatternKey(
                 fundingStreamId, fundingPeriodId, providerId, profilePatternKey, Request.GetUserOrDefault());
         }
 
@@ -41,15 +54,13 @@ namespace CalculateFunding.Api.Publishing.Controllers
         /// Assign and set a custom profile for this provider for a funding line
         /// </summary>
         /// <param name="request">Request</param>
-        /// <param name="customProfileService"></param>
         /// <returns></returns>
         [HttpPost("api/publishedproviders/customprofiles")]
         [ProducesResponseType(204)]
         public async Task<IActionResult> ApplyCustomProfilePattern(
-            [FromBody] ApplyCustomProfileRequest request,
-            [FromServices] ICustomProfileService customProfileService)
+            [FromBody] ApplyCustomProfileRequest request)
         {
-            return await customProfileService.ApplyCustomProfile(request, Request.GetUser());
+            return await _customProfileService.ApplyCustomProfile(request, Request.GetUser());
         }
     }
 }

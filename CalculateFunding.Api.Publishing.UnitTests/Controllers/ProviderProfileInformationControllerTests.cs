@@ -19,6 +19,7 @@ namespace CalculateFunding.Api.Publishing.UnitTests.Controllers
         private ProviderProfileInformationController _controller;
 
         private IProfileTotalsService _profileTotalsService;
+        private IProfileHistoryService _profileHistoryService;
 
         private string _fundingStreamId;
         private string _fundPeriodId;
@@ -31,9 +32,11 @@ namespace CalculateFunding.Api.Publishing.UnitTests.Controllers
         public void SetUp()
         {
             _profileTotalsService = Substitute.For<IProfileTotalsService>();
+            _profileHistoryService = Substitute.For<IProfileHistoryService>();
 
             _controller = new ProviderProfileInformationController(
-                _profileTotalsService);
+                _profileTotalsService,
+                _profileHistoryService);
 
             _fundingStreamId = NewRandomString();
             _fundPeriodId = NewRandomString();
