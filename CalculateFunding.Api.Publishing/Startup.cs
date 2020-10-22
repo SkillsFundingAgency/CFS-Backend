@@ -119,6 +119,8 @@ namespace CalculateFunding.Api.Publishing
 
         private void RegisterComponents(IServiceCollection builder)
         {
+            builder.AddSingleton<IProfilePatternPreview, ProfilePatternPreview>();
+            builder.AddSingleton<IReProfilingRequestBuilder, ReProfilingRequestBuilder>();
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
 
             builder

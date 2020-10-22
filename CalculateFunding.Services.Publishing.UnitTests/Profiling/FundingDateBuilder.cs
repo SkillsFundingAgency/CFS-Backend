@@ -24,7 +24,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             return this;
         }
 
-        public FundingDateBuilder WithPatterns(IEnumerable<FundingDatePattern> patterns)
+        public FundingDateBuilder WithPatterns(params FundingDatePattern[] patterns)
         {
             _patterns = patterns;
 

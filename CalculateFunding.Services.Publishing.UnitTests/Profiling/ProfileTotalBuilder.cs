@@ -15,6 +15,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
         private DateTimeOffset? _actualDate;
         private int? _installmentNumber;
         private decimal? _profileRemainingPercentage;
+        private string _distributionPeriodId;
+
+        public ProfileTotalBuilder WithDistributionPeriod(string distributionPeriod)
+        {
+            _distributionPeriodId = distributionPeriod;
+
+            return this;
+        }
 
         public ProfileTotalBuilder WithProfileRemainingPercentage(decimal profileRemainingPercentage)
         {
@@ -92,7 +100,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                 ActualDate = _actualDate,
                 InstallmentNumber = _installmentNumber.GetValueOrDefault(),
                 ProfileRemainingPercentage = _profileRemainingPercentage,
-                PeriodType = _periodType
+                PeriodType = _periodType,
+                DistributionPeriodId = _distributionPeriodId
             };
         }     
     }

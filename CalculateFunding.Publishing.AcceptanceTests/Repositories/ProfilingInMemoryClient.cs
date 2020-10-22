@@ -83,5 +83,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             return Task.FromResult((true, string.Empty));
         }
+
+        public Task<ApiResponse<ReProfileResponse>> ReProfile(ReProfileRequest request) => throw new NotImplementedException();
+        
+
+        public Task<ApiResponse<IEnumerable<ReProfilingStrategyResponse>>> GetAllReProfilingStrategies() => throw new NotImplementedException();
     }
 }
