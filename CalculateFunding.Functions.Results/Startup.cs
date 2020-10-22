@@ -77,8 +77,8 @@ namespace CalculateFunding.Functions.Results
                 builder.AddScoped<OnSearchIndexWriterEventTrigger>();
             }
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
-            builder.AddScoped<ISpecificationsWithProviderResultsService, SpecificationsWithProviderResultsService>();
-            builder.AddScoped<IProducerConsumerFactory, ProducerConsumerFactory>();
+            builder.AddSingleton<ISpecificationsWithProviderResultsService, SpecificationsWithProviderResultsService>();
+            builder.AddSingleton<IProducerConsumerFactory, ProducerConsumerFactory>();
 
             builder.AddSingleton<IConfiguration>(config);
             builder.AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>();
