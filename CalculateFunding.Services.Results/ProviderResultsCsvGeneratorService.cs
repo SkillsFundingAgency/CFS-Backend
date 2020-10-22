@@ -2,11 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching.FileSystem;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
@@ -29,6 +33,7 @@ namespace CalculateFunding.Services.Results
         private readonly IProviderResultsToCsvRowsTransformation _resultsToCsvRowsTransformation;
         private readonly IFileSystemAccess _fileSystemAccess;
         private readonly IFileSystemCacheSettings _fileSystemCacheSettings;
+        private readonly IJobManagement _jobManagement;
         private readonly AsyncPolicy _blobClientPolicy;
         private readonly AsyncPolicy _resultsRepositoryPolicy;
 
@@ -39,7 +44,8 @@ namespace CalculateFunding.Services.Results
             ICsvUtils csvUtils,
             IProviderResultsToCsvRowsTransformation resultsToCsvRowsTransformation,
             IFileSystemAccess fileSystemAccess,
-            IFileSystemCacheSettings fileSystemCacheSettings)
+            IFileSystemCacheSettings fileSystemCacheSettings,
+            IJobManagement jobManagement)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(blobClient, nameof(blobClient));
@@ -49,6 +55,7 @@ namespace CalculateFunding.Services.Results
             Guard.ArgumentNotNull(policies?.BlobClient, nameof(policies.BlobClient));
             Guard.ArgumentNotNull(policies?.ResultsRepository, nameof(policies.ResultsRepository));
             Guard.ArgumentNotNull(fileSystemCacheSettings, nameof(fileSystemCacheSettings));
+            Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
 
             _logger = logger;
             _blobClient = blobClient;
@@ -59,6 +66,7 @@ namespace CalculateFunding.Services.Results
             _resultsToCsvRowsTransformation = resultsToCsvRowsTransformation;
             _fileSystemAccess = fileSystemAccess;
             _fileSystemCacheSettings = fileSystemCacheSettings;
+            _jobManagement = jobManagement;
         }
 
         public async Task Run(Message message)
@@ -73,6 +81,21 @@ namespace CalculateFunding.Services.Results
                 _logger.Error(error);
 
                 throw new NonRetriableException(error);
+            }
+
+            IEnumerable<string> jobDefinitions = new List<string>
+            {
+                JobConstants.DefinitionNames.CreateInstructAllocationJob
+            };
+
+            IEnumerable<string> jobTypesRunning = await GetJobTypes(specificationId, jobDefinitions);
+
+            if (!jobTypesRunning.IsNullOrEmpty())
+            {
+                string errorMessage = string.Join(Environment.NewLine, jobTypesRunning.Select(_ => $"{_} is still running"));
+                _logger.Error(errorMessage);
+
+                throw new NonRetriableException(errorMessage);
             }
 
             string temporaryFilePath = new CsvFilePath(_fileSystemCacheSettings.Path, specificationId);
@@ -146,6 +169,15 @@ namespace CalculateFunding.Services.Results
             health.Dependencies.Add(new DependencyHealth { HealthOk = blobHealth.Ok, DependencyName = _blobClient.GetType().GetFriendlyName(), Message = blobHealth.Message });
 
             return health;
+        }
+
+        public async Task<IEnumerable<string>> GetJobTypes(string specificationId, IEnumerable<string> jobTypes)
+        {
+            Guard.ArgumentNotNull(jobTypes, nameof(jobTypes));
+
+            IEnumerable<JobSummary> jobSummaries = await _jobManagement.GetLatestJobsForSpecification(specificationId, jobTypes);
+
+            return jobSummaries.Where(_ => _ != null && _.RunningStatus == RunningStatus.InProgress).Select(_ => _.JobType);
         }
 
         private class CsvFilePath

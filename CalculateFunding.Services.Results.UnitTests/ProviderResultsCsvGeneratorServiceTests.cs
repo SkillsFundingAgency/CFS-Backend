@@ -4,9 +4,12 @@ using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching.FileSystem;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Results.Interfaces;
@@ -34,6 +37,7 @@ namespace CalculateFunding.Services.Results.UnitTests
         private IFileSystemCacheSettings _fileSystemCacheSettings;
         private string _rootPath;
         private BlobProperties _blobProperties;
+        private IJobManagement _jobManagement;
 
         private Message _message;
         
@@ -47,7 +51,8 @@ namespace CalculateFunding.Services.Results.UnitTests
             _cloudBlob = Substitute.For<ICloudBlob>();
             _fileSystemAccess = Substitute.For<IFileSystemAccess>();
             _fileSystemCacheSettings = Substitute.For<IFileSystemCacheSettings>();
-            
+            _jobManagement = Substitute.For<IJobManagement>();
+
             _service = new ProviderResultsCsvGeneratorService(Substitute.For<ILogger>(),
                 _blobClient,
                 _calculationResultsRepository,
@@ -59,7 +64,8 @@ namespace CalculateFunding.Services.Results.UnitTests
                 _csvUtils,
                 _transformation,
                 _fileSystemAccess,
-                _fileSystemCacheSettings);
+                _fileSystemCacheSettings,
+                _jobManagement);
             
             _message = new Message();
             _rootPath = NewRandomString();
@@ -87,6 +93,33 @@ namespace CalculateFunding.Services.Results.UnitTests
                 .Should()
                 .ThrowAsync<NonRetriableException>()
                 .WithMessage("Specification id missing");
+        }
+
+        [TestMethod]
+        public void ThrowsExceptionIfCalcJobIsRunning()
+        {
+            string specificationId = NewRandomString();
+
+            List<JobSummary> latestJobSummaries = new List<JobSummary>
+            {
+                new JobSummary
+                {
+                    RunningStatus = RunningStatus.InProgress,
+                    JobType = JobConstants.DefinitionNames.CreateInstructAllocationJob
+                }
+            };
+
+            GivenGetLatestJobsForSpecification(
+                specificationId,
+                new List<string> { JobConstants.DefinitionNames.CreateInstructAllocationJob },
+                latestJobSummaries);
+
+            Func<Task> invocation = WhenTheCsvIsGenerated;
+
+            invocation
+                .Should()
+                .ThrowAsync<NonRetriableException>()
+                .WithMessage($"{JobConstants.DefinitionNames.CreateInstructAllocationJob} is still running");
         }
 
         [TestMethod]
@@ -197,6 +230,18 @@ namespace CalculateFunding.Services.Results.UnitTests
         private void AndTheCsvRowTransformation(List<ProviderResult> providerResults, ExpandoObject[] transformedRows, string csv, bool outputHeaders)
         {
             GivenTheCsvRowTransformation(providerResults, transformedRows, csv, outputHeaders);
+        }
+
+        private void GivenGetLatestJobsForSpecification(
+            string specificationId, 
+            IEnumerable<string> jobTypes,
+            IEnumerable<JobSummary> latestJobs)
+        {
+            _jobManagement
+                .GetLatestJobsForSpecification(
+                    Arg.Is(specificationId),
+                    Arg.Is<IEnumerable<string>>(_ => _.SequenceEqual(jobTypes)))
+                .Returns(Task.FromResult(latestJobs));
         }
 
         private void GivenTheCsvRowTransformation(List<ProviderResult> providerResult, ExpandoObject[] transformedRows, string csv, bool outputHeaders)
