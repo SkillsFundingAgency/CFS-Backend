@@ -244,7 +244,8 @@ namespace CalculateFunding.Services.Results.UnitTests
             AndTheProviderWithResultsForSpecificationsWereUpserted(providerSeven,
                 providerEight);
 
-            AndTheProviderWithResultsForSpecificationsWereUpserted(providerNine);
+            //only upserts dirty records
+            AndTheProviderWithResultsForSpecificationsWereNotUpserted(providerNine);
 
             expectedSpecificationInformation.IsDirty = true;
 
@@ -268,7 +269,8 @@ namespace CalculateFunding.Services.Results.UnitTests
                 providerWithResultsForSpecification
                     .Specifications
                     .Should()
-                    .BeEquivalentTo(specificationInformation);
+                    .BeEquivalentTo(new [] { specificationInformation },
+                        opt => opt.Excluding(_ => _.IsDirty));
             }
         }
 
@@ -318,6 +320,13 @@ namespace CalculateFunding.Services.Results.UnitTests
             _calculationResults.Verify(_ => _.UpsertSpecificationWithProviderResults(It.Is<ProviderWithResultsForSpecifications[]>(results =>
                     results.SequenceEqual(providerWithResultsForSpecifications))),
                 Times.Once);
+        }
+        
+        private void AndTheProviderWithResultsForSpecificationsWereNotUpserted(ProviderWithResultsForSpecifications providerWithResultsForSpecification)
+        {
+            _calculationResults.Verify(_ => _.UpsertSpecificationWithProviderResults(It.Is<ProviderWithResultsForSpecifications[]>(results =>
+                    results.First().Provider.Id == providerWithResultsForSpecification.Provider.Id)),
+                Times.Never);
         }
 
         private void AndTheProviderWithResultsForSpecificationsWereUpserted(ProviderWithResultsForSpecifications providerWithResultsForSpecification)

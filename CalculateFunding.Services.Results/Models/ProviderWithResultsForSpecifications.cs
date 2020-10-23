@@ -7,6 +7,8 @@ namespace CalculateFunding.Services.Results.Models
 {
     public class ProviderWithResultsForSpecifications : IIdentifiable
     {
+        private bool _isDirty;
+        
         [JsonProperty("id")] 
         public string Id => Provider.Id;
             
@@ -14,7 +16,10 @@ namespace CalculateFunding.Services.Results.Models
         public ProviderInformation Provider { get; set; }
         
         [JsonProperty("specifications")]
-        public IEnumerable<SpecificationInformation> Specifications { get; set; }
+        public ICollection<SpecificationInformation> Specifications { get; set; }
+
+        public bool GetIsDirty() 
+            => _isDirty || Specifications?.Any(_ => _.IsDirty) == true;
 
         public void MergeSpecificationInformation(SpecificationInformation specificationInformation)
         {
@@ -24,13 +29,9 @@ namespace CalculateFunding.Services.Results.Models
 
             if (existingSpecificationInformation == null)
             {
-                // set the spec to is dirty so we upsert to cosmos
-                specificationInformation.IsDirty = true;
+                _isDirty = true;
 
-                Specifications = Specifications.Concat(new[]
-                {
-                    specificationInformation
-                }).ToList();
+                Specifications.Add(specificationInformation);
             }
             else
             {

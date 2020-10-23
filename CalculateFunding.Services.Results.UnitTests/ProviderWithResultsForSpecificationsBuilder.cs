@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using CalculateFunding.Services.Results.Models;
 using CalculateFunding.Tests.Common.Helpers;
 
@@ -28,7 +29,7 @@ namespace CalculateFunding.Services.Results.UnitTests
             return new ProviderWithResultsForSpecifications
             {
                 Provider = _providerInformation,
-                Specifications = _specifications
+                Specifications = _specifications?.ToList()
             };
         }
     }
