@@ -715,9 +715,19 @@ namespace CalculateFunding.Services.Calcs
 
         private static IEnumerable<FundingLine> GetFundingLines(TemplateMetadataContents templateMetadataContents, string fundingStreamId)
         {
-            IEnumerable<FundingLine> flattenedFundingLines = templateMetadataContents.RootFundingLines.Flatten(_ => 
+            IEnumerable<FundingLine> flattenedFundingLines = templateMetadataContents.RootFundingLines?.Flatten(_ =>
             {
+                // get all calculations for current funding line
                 _.Calculations = GetCalculations(_.Calculations);
+
+                IEnumerable<TemplateFundingLine> currentFlattenedFundingLines = _.FundingLines?.Flatten(_ =>
+                {
+                    return _.FundingLines;
+                });
+
+                // concat all calculations for all funding lines below current funding line
+                _.Calculations = _.Calculations?.Concat(currentFlattenedFundingLines?.SelectMany(_ => GetCalculations(_.Calculations)));
+
                 return _.FundingLines;
             }).Where(_ => _.Calculations.AnyWithNullCheck()).Select(_ =>
             {
