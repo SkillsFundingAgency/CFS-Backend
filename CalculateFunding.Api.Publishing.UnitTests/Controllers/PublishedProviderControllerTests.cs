@@ -25,6 +25,7 @@ namespace CalculateFunding.Api.Publishing.UnitTests.Controllers
         private IPublishedProviderFundingService _publishedProviderFundingService;
         private IPublishedProviderFundingStructureService _publishedProviderFundingStructureService;
         private IDeletePublishedProvidersService _deletePublishedProvidersService;
+       
         private IFeatureToggle _featureToggle;
 
         private string _fundingStreamId;
@@ -44,6 +45,7 @@ namespace CalculateFunding.Api.Publishing.UnitTests.Controllers
             _publishedProviderFundingService = Substitute.For<IPublishedProviderFundingService>();
             _publishedProviderFundingStructureService = Substitute.For<IPublishedProviderFundingStructureService>();
             _deletePublishedProvidersService = Substitute.For<IDeletePublishedProvidersService>();
+
             _featureToggle = Substitute.For<IFeatureToggle>();
 
             _controller = new PublishedProvidersController(
@@ -55,6 +57,7 @@ namespace CalculateFunding.Api.Publishing.UnitTests.Controllers
                 _deletePublishedProvidersService,
                 _featureToggle
                 );
+
 
             _fundingStreamId = NewRandomString();
             _fundPeriodId = NewRandomString();

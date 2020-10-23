@@ -137,5 +137,9 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             params PublishedProviderStatus[] statuses);
 
         Task<IEnumerable<string>> GetPublishedProviderErrorSummaries(string specificationId);
+
+        Task<IEnumerable<PublishedProviderFundingCsvData>> GetPublishedProvidersFundingDataForCsvReport(IEnumerable<string> publishedProviderIds,
+            string specificationId,
+            params PublishedProviderStatus[] statuses);
     }
 }

@@ -1318,5 +1318,65 @@ namespace CalculateFunding.Services.Publishing.Repositories
 
             return (providerVersionId: (dynamic)item.providerVersionId, providerId: (dynamic)item.providerId);
         }
+
+        public async Task<IEnumerable<PublishedProviderFundingCsvData>> GetPublishedProvidersFundingDataForCsvReport(IEnumerable<string> publishedProviderIds, string specificationId, params PublishedProviderStatus[] statuses)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+            Guard.IsNotEmpty(publishedProviderIds, nameof(publishedProviderIds));
+            Guard.Ensure(publishedProviderIds.Count() <= 100, "You can only filter against 100 published provider ids at a time");
+            Guard.IsNotEmpty(statuses, nameof(statuses));
+
+            StringBuilder queryTextBuilder = new StringBuilder(@"
+                              SELECT 
+                                    c.content.current.specificationId,
+                                    c.content.current.fundingStreamId, 
+                                    c.content.current.fundingPeriodId,
+                                    c.content.current.status,
+                                    c.content.current.provider.providerId,
+                                    c.content.current.provider.ukprn,
+                                    c.content.current.provider.urn,
+                                    c.content.current.provider.upin,
+                                    c.content.current.provider.name,
+                                    c.content.current.totalFunding
+                              FROM publishedProvider c
+                              WHERE c.documentType = 'PublishedProvider'
+                              AND c.deleted = false 
+                              AND c.content.current.specificationId = @specificationId");
+
+            List<CosmosDbQueryParameter> cosmosDbQueryParameters = new List<CosmosDbQueryParameter>{
+                new CosmosDbQueryParameter("@specificationId", specificationId)
+            };
+
+            string publishedProviderIdQueryText = string.Join(',', publishedProviderIds.Select((_, index) => $"@publishedProviderId_{index}"));
+            queryTextBuilder.Append($" AND c.content.current.publishedProviderId IN ({publishedProviderIdQueryText})");
+
+            cosmosDbQueryParameters.AddRange(publishedProviderIds.Select((_, index) => new CosmosDbQueryParameter($"@publishedProviderId_{index}", _)));
+
+            string statusesQueryText = string.Join(',', statuses.Select((_, index) => $"@status_{index}"));
+            queryTextBuilder.Append($" AND c.content.current.status IN ({statusesQueryText})");
+
+            cosmosDbQueryParameters.AddRange(statuses.Select((_, index) => new CosmosDbQueryParameter($"@status_{index}", _.ToString())));
+
+            CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
+            {
+                QueryText = queryTextBuilder.ToString(),
+                Parameters = cosmosDbQueryParameters
+            };
+
+            IEnumerable<dynamic> results = await _repository.DynamicQuery(cosmosDbQuery);
+
+            return results.Select(_ => new PublishedProviderFundingCsvData()
+            {
+                SpecificationId = (string)_.specificationId,
+                FundingStreamId = (string)_.fundingStreamId,
+                FundingPeriodId = (string)_.fundingPeriodId,
+                ProviderName = (string)_.name,
+                Ukprn = (string)_.ukprn,
+                Urn = (string)_.urn,
+                Upin = (string)_.upin,
+                TotalFunding = (decimal?)_.totalFunding,
+                Status = (string)_.status
+            });
+        }
     }
 }

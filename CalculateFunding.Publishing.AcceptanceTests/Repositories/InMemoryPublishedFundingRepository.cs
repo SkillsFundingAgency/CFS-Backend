@@ -464,5 +464,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task<IEnumerable<PublishedProviderFundingCsvData>> GetPublishedProvidersFundingDataForCsvReport(IEnumerable<string> publishedProviderIds, string specificationId, params PublishedProviderStatus[] statuses)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

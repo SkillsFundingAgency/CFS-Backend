@@ -137,7 +137,22 @@ namespace CalculateFunding.Api.Publishing
                 .AddSingleton<IHealthChecker, PublishedSearchService>();
 
             builder.AddSingleton<IPoliciesService, PoliciesService>();
-            builder.AddSingleton<IPublishedProviderStatusService, PublishedProviderStatusService>();
+            builder.AddSingleton<IPublishedProviderStatusService>((ctx) => 
+            {
+                AzureStorageSettings storageSettings = new AzureStorageSettings();
+                Configuration.Bind("AzureStorageSettings", storageSettings);
+                storageSettings.ContainerName = "publishingconfirmation";
+
+                return new PublishedProviderStatusService(
+                    ctx.GetService<ISpecificationIdServiceRequestValidator>(),
+                    ctx.GetService<ISpecificationService>(),
+                    ctx.GetService<IPublishedFundingRepository>(),
+                    ctx.GetService<IPublishingResiliencePolicies>(),
+                    ctx.GetService<IPublishedProviderFundingCountProcessor>(),
+                    ctx.GetService<IPublishedProviderFundingCsvDataProcessor>(),
+                    ctx.GetService<ICsvUtils>(),
+                    new LocalBlobClient(storageSettings));
+            });
             builder.AddScoped<IProfileTotalsService, ProfileTotalsService>();
             builder.AddSingleton<IFundingConfigurationService, FundingConfigurationService>();
 
@@ -355,6 +370,7 @@ namespace CalculateFunding.Api.Publishing
             });
 
             builder.AddSingleton<IPublishedProviderFundingCountProcessor, PublishedProviderFundingCountProcessor>();
+            builder.AddSingleton<IPublishedProviderFundingCsvDataProcessor, PublishedProviderFundingCsvDataProcessor>();
 
             if (Configuration.IsSwaggerEnabled())
             {

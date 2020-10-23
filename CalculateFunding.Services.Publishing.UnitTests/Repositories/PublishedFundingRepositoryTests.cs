@@ -693,6 +693,64 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                      HasParameter(_, "@status_1", status1.ToString());
         }
         
+        [TestMethod]
+        public async Task GetPublishedProvidersFundingDataForCsvReport()
+        {
+            string publishedProviderId0 = NewRandomString();
+            string publishedProviderId1 = NewRandomString();
+            string publishedProviderId2 = NewRandomString();
+
+            string[] publishedProviderIds = AsArray(publishedProviderId0, publishedProviderId1, publishedProviderId2);
+
+            PublishedProviderStatus status0 = NewRandomStatus();
+            PublishedProviderStatus status1 = NewRandomStatus();
+
+            PublishedProviderStatus[] statuses = AsArray(status0, status1);
+            string specificationId = NewRandomString();
+            string fundingStreamId = NewRandomString();
+
+            List<dynamic> results = new List<dynamic>() {
+                CreatePublishedProviderFundingCsvData(specificationId, publishedProviderId0, status0.ToString()),
+                CreatePublishedProviderFundingCsvData(specificationId, publishedProviderId1, status1.ToString()),
+                CreatePublishedProviderFundingCsvData(specificationId, publishedProviderId2, status0.ToString())
+            };
+
+            GivenTheDynamicResultsForTheQuery(QueryMatch(specificationId, publishedProviderIds, statuses), results);
+
+            IEnumerable<PublishedProviderFundingCsvData> fundings = await WhenThePublishedProviderFundingDataForCsvReportIsQueried(publishedProviderIds, specificationId, statuses);
+
+            fundings
+                .Count()
+                .Should()
+                .Be(3);
+
+            Func<CosmosDbQuery, bool> QueryMatch(string s,
+                string[] strings,
+                PublishedProviderStatus[] publishedProviderStatuses) =>
+                _ => _.QueryText == @"
+                              SELECT 
+                                    c.content.current.specificationId,
+                                    c.content.current.fundingStreamId, 
+                                    c.content.current.fundingPeriodId,
+                                    c.content.current.status,
+                                    c.content.current.provider.providerId,
+                                    c.content.current.provider.ukprn,
+                                    c.content.current.provider.urn,
+                                    c.content.current.provider.upin,
+                                    c.content.current.provider.name,
+                                    c.content.current.totalFunding
+                              FROM publishedProvider c
+                              WHERE c.documentType = 'PublishedProvider'
+                              AND c.deleted = false 
+                              AND c.content.current.specificationId = @specificationId AND c.content.current.publishedProviderId IN (@publishedProviderId_0,@publishedProviderId_1,@publishedProviderId_2) AND c.content.current.status IN (@status_0,@status_1)" &&
+                     HasParameter(_, "@specificationId", s) &&
+                     HasParameter(_, "@publishedProviderId_0", publishedProviderId0) &&
+                     HasParameter(_, "@publishedProviderId_1", publishedProviderId1) &&
+                     HasParameter(_, "@publishedProviderId_2", publishedProviderId2) &&
+                     HasParameter(_, "@status_0", status0.ToString()) &&
+                     HasParameter(_, "@status_1", status1.ToString());
+        }
+
         private void GivenTheDynamicResultsForTheQuery(Func<CosmosDbQuery, bool> queryMatch, IEnumerable<object> expectedResults)
         {
             _cosmosRepository
@@ -706,6 +764,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
             string specificationId,
             params PublishedProviderStatus[] statuses)
             => await _repository.GetPublishedProvidersFunding(publishedProviderIds, specificationId, statuses);
+
+        private async Task<IEnumerable<PublishedProviderFundingCsvData>> WhenThePublishedProviderFundingDataForCsvReportIsQueried(IEnumerable<string> publishedProviderIds,
+            string specificationId,
+            params PublishedProviderStatus[] statuses)
+            => await _repository.GetPublishedProvidersFundingDataForCsvReport(publishedProviderIds, specificationId, statuses);
 
         private async Task WhenThePublishedProvidersAreDeleted()
         {
@@ -780,6 +843,22 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
             result.laCode = laCode;
 
             return result;
+        }
+
+        private dynamic CreatePublishedProviderFundingCsvData(string specificationid, string providerName, string status)
+        {
+            dynamic data = new ExpandoObject();
+            data.specificationId = specificationid;
+            data.fundingStreamId = NewRandomString();
+            data.fundingPeriodId = NewRandomString();
+            data.name = providerName;
+            data.ukprn = NewRandomString();
+            data.urn = NewRandomString();
+            data.upin = NewRandomString();
+            data.totalFunding = NewRandomNumber();
+            data.status = status;
+
+            return data;
         }
     }
 }

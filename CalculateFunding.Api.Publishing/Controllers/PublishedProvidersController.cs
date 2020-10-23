@@ -48,6 +48,7 @@ namespace CalculateFunding.Api.Publishing.Controllers
             _publishedProviderFundingStructureService = publishedProviderFundingStructureService;
             _deletePublishedProvidersService = deletePublishedProvidersService;
             _featureToggle = featureToggle;
+
         }
 
         /// <summary>
@@ -199,5 +200,36 @@ The publishedProviderVersionId will be in the context of funding stream ID, fund
         public async Task<IActionResult> GetPublishedProviderFundingStructure(
             [FromRoute]string publishedProviderVersionId) =>
             await _publishedProviderFundingStructureService.GetPublishedProviderFundingStructure(publishedProviderVersionId);
+
+        /// <summary>
+        ///     Generates a csv file for given providers where they are ready for approval
+        /// </summary>
+        /// <param name="providerIds">the provider ids making up the batch</param>
+        /// <param name="specificationId">the specification id to limit the published provider ids to</param>
+        /// <returns>Url for generated CSV file that is stored in blob storage</returns>
+        [HttpPost("api/specifications/{specificationId}/publishedproviders/generate-csv-for-approval")]
+        [ProducesResponseType(200, Type = typeof(PublishedProviderDataDownload))]
+        public async Task<IActionResult> GenerateCsvForPublishedProvidersForApproval(
+            [FromBody] PublishedProviderIdsRequest providerIds,
+            [FromRoute] string specificationId)
+        {
+            return await _publishedProviderStatusService.GetProviderDataForApprovalAsCsv(providerIds, specificationId);
+        }
+
+        /// <summary>
+        ///     Generates a csv file for given providers where they are ready for release
+        /// </summary>
+        /// <param name="providerIds">the provider ids making up the batch</param>
+        /// <param name="specificationId">the specification id to limit the published provider ids to</param>
+        /// <returns>Url for generated CSV file that is stored in blob storage</returns>
+        [HttpPost("api/specifications/{specificationId}/publishedproviders/generate-csv-for-release")]
+        [ProducesResponseType(200, Type = typeof(PublishedProviderDataDownload))]
+        public async Task<IActionResult> GenerateCsvForPublishedProvidersForRelease(
+            [FromBody] PublishedProviderIdsRequest providerIds,
+            [FromRoute] string specificationId)
+        {
+            return await _publishedProviderStatusService.GetProviderDataForReleaseAsCsv(providerIds, specificationId);
+
+        }
     }
 }
