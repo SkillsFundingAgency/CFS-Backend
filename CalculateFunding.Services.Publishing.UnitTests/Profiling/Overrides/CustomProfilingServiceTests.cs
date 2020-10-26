@@ -139,7 +139,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
 
         private void AndANewProviderVersionWasCreatedFor(PublishedProvider publishedProvider, PublishedProviderStatus newStatus, Reference author)
         {
-            _publishedProviderVersionCreation.Verify(_ => _.UpdatePublishedProviderStatusForceUpdate(new [] { publishedProvider },
+            _publishedProviderVersionCreation.Verify(_ => _.UpdatePublishedProviderStatus(new [] { publishedProvider },
                 author,
                 newStatus,
                 null,
@@ -169,7 +169,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
 
         private void AndNoNewVersionWasCreated()
         {
-            _publishedProviderVersionCreation.Verify(_ => _.UpdatePublishedProviderStatusForceUpdate(It.IsAny<IEnumerable<PublishedProvider>>(),
+            _publishedProviderVersionCreation.Verify(_ => _.UpdatePublishedProviderStatus(It.IsAny<IEnumerable<PublishedProvider>>(),
                 It.IsAny<Reference>(),
                 It.IsAny<PublishedProviderStatus>(),
                 It.IsAny<string>(),

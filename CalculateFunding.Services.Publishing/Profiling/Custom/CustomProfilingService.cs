@@ -84,7 +84,7 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
 
             currentProviderVersion.AddProfilingAudit(fundingLineCode, author);
 
-            await _publishedProviderVersionCreation.UpdatePublishedProviderStatusForceUpdate(new[] { publishedProvider },
+            await _publishedProviderVersionCreation.UpdatePublishedProviderStatus(new[] { publishedProvider },
                 author,
                 currentProviderVersion.Status switch
                 {

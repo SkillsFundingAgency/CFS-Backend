@@ -9,7 +9,6 @@ namespace CalculateFunding.Services.Publishing.Interfaces
     public interface IPublishedProviderVersioningService
     {
         IEnumerable<PublishedProviderCreateVersionRequest> AssemblePublishedProviderCreateVersionRequests(IEnumerable<PublishedProvider> publishedProviders, Reference author, PublishedProviderStatus publishedProviderStatusstring, string jobId = null, string correlationId = null);
-        IEnumerable<PublishedProviderCreateVersionRequest> AssemblePublishedProviderCreateVersionRequestsForceUpdate(IEnumerable<PublishedProvider> publishedProviders, Reference author, PublishedProviderStatus publishedProviderStatusstring, string jobId = null, string correlationId = null);
         Task<PublishedProvider> CreateVersion(PublishedProviderCreateVersionRequest publishedProviderCreateVersionRequest);
         Task<IEnumerable<PublishedProvider>> CreateVersions(IEnumerable<PublishedProviderCreateVersionRequest> publishedProviderCreateVersionRequests);
         Task<IEnumerable<PublishedProviderVersion>> GetVersions(PublishedProvider publishedProvider);

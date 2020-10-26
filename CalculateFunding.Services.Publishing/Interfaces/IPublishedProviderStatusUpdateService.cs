@@ -12,11 +12,5 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             PublishedProviderStatus publishedProviderStatus, 
             string jobId = null,
             string correlationId = null);
-
-        Task<int> UpdatePublishedProviderStatusForceUpdate(IEnumerable<PublishedProvider> publishedProviders,
-            Reference author,
-            PublishedProviderStatus publishedProviderStatus,
-            string jobId = null,
-            string correlationId = null);
     }
 }
