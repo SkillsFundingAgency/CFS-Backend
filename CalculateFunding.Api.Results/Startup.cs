@@ -2,6 +2,7 @@
 using System.Threading;
 using AutoMapper;
 using CacheCow.Server.Core.Mvc;
+using CalculateFunding.Common.ApiClient.Graph;
 using CalculateFunding.Common.Config.ApiClient.Calcs;
 using CalculateFunding.Common.Config.ApiClient.Jobs;
 using CalculateFunding.Common.Config.ApiClient.Policies;
@@ -99,12 +100,15 @@ namespace CalculateFunding.Api.Results
 
         private void RegisterComponents(IServiceCollection builder)
         {
+
             builder.AddHttpCachingMvc();
 
             builder.AddQueryProviderAndExtractorForViewModelMvc<
                 FundingStructure, 
                 TemplateMetadataContentsTimedETagProvider, 
                 TemplateMatadataContentsTimedETagExtractor>(false);
+
+            builder.AddSingleton<IGraphApiClient, GraphApiClient>();
 
             builder.AddSingleton<IFundingStructureService, FundingStructureService>()
                 .AddSingleton<IValidator<UpdateFundingStructureLastModifiedRequest>, UpdateFundingStructureLastModifiedRequestValidator>()

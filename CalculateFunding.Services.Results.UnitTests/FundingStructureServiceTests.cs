@@ -5,6 +5,8 @@ using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Calcs.Models;
+using CalculateFunding.Common.ApiClient.Graph;
+using CalculateFunding.Common.ApiClient.Graph.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
@@ -27,6 +29,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Calculation = CalculateFunding.Common.TemplateMetadata.Models.Calculation;
 using CalcModels = CalculateFunding.Models.Calcs;
+using FundingLine = CalculateFunding.Common.TemplateMetadata.Models.FundingLine;
 
 namespace CalculateFunding.Services.Results.UnitTests
 {
@@ -47,6 +50,7 @@ namespace CalculateFunding.Services.Results.UnitTests
 
         private ISpecificationsApiClient _specificationsApiClient;
         private ICalculationsApiClient _calculationsApiClient;
+        private IGraphApiClient _graphApiClient;
         private IProviderCalculationResultsSearchService _providerCalculationResultsSearchService;
         private IResultsService _resultsService;
         private ICacheProvider _cacheProvider;
@@ -60,6 +64,7 @@ namespace CalculateFunding.Services.Results.UnitTests
         {
             _specificationsApiClient = Substitute.For<ISpecificationsApiClient>();
             _calculationsApiClient = Substitute.For<ICalculationsApiClient>();
+            _graphApiClient = Substitute.For<IGraphApiClient>();
             _providerCalculationResultsSearchService = Substitute.For<IProviderCalculationResultsSearchService>();
             _resultsService = Substitute.For<IResultsService>();
             _cacheProvider = Substitute.For<ICacheProvider>();
@@ -70,6 +75,7 @@ namespace CalculateFunding.Services.Results.UnitTests
                 _cacheProvider,
                 _specificationsApiClient,
                 _calculationsApiClient,
+                _graphApiClient,
                 _providerCalculationResultsSearchService,
                 _resultsService,
                 _policiesApiClient,
@@ -439,7 +445,7 @@ namespace CalculateFunding.Services.Results.UnitTests
                             CalculationId = aValidCalculationId2,
                             PublishStatus = CalculationExpectedPublishStatus
                         }
-                        
+
                     }));
 
             _resultsService.GetProviderResults(ProviderId, SpecificationId)
@@ -450,7 +456,7 @@ namespace CalculateFunding.Services.Results.UnitTests
                         {
                             new CalcModels.FundingLineResult
                             {
-                                FundingLine = new Reference { Id = "123", Name = "FundingLine-1"},
+                                FundingLine = new Reference {Id = "123", Name = "FundingLine-1"},
                                 Value = null
                             }
                         },
@@ -461,6 +467,20 @@ namespace CalculateFunding.Services.Results.UnitTests
                                 Calculation = new Reference(aValidCalculationId1, "FundingLine-3-calc-1"),
                                 CalculationValueType = CalcModels.CalculationValueType.Currency,
                                 Value = 2.3m
+                            }
+                        }
+                    }));
+
+            _graphApiClient.GetCircularDependencies(SpecificationId)
+                .Returns(new ApiResponse<IEnumerable<Entity<Common.ApiClient.Graph.Models.Calculation>>>(
+                    HttpStatusCode.OK, new List<Entity<Common.ApiClient.Graph.Models.Calculation>>()
+                    {
+                        new Entity<Common.ApiClient.Graph.Models.Calculation>()
+                        {
+                            Node = new Common.ApiClient.Graph.Models.Calculation()
+                            {
+                                SpecificationId = SpecificationId,
+                                CalculationId = "CalculationIdForTemplateCalculationId2"
                             }
                         }
                     }));
@@ -498,7 +518,7 @@ namespace CalculateFunding.Services.Results.UnitTests
                 new FundingStructureItem(1,
                     "FundingLine-3-withCalculationsAndFundingLines",
                     null,
-                    null,
+                    "Error",
                     FundingStructureType.FundingLine,
                     null,
                     new List<FundingStructureItem>
@@ -513,7 +533,7 @@ namespace CalculateFunding.Services.Results.UnitTests
                             2,
                             "FundingLine-3-calc-2",
                             aValidCalculationId2,
-                            CalculationExpectedPublishStatus.ToString(),
+                            "Error",
                             FundingStructureType.Calculation,
                             null,
                             new List<FundingStructureItem>
@@ -522,7 +542,7 @@ namespace CalculateFunding.Services.Results.UnitTests
                                     3,
                                     "FundingLine-3-calc-2-calc-1",
                                     "CalculationIdForTemplateCalculationId2",
-                                    null,
+                                    "Error",
                                     FundingStructureType.Calculation)
                             }),
                         new FundingStructureItem(

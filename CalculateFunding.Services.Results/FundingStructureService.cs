@@ -15,6 +15,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Graph;
+using CalculateFunding.Common.ApiClient.Graph.Models;
 using TemplateCalculation = CalculateFunding.Common.TemplateMetadata.Models.Calculation;
 using CalcModels = CalculateFunding.Models.Calcs;
 using CalculateFunding.Common.TemplateMetadata.Enums;
@@ -24,6 +26,8 @@ using CalculateFunding.Models.Result;
 using FluentValidation.Results;
 using CalculateFunding.Models.Result.ViewModels;
 using FluentValidation;
+using Calculation = CalculateFunding.Common.ApiClient.Graph.Models.Calculation;
+using FundingLine = CalculateFunding.Common.TemplateMetadata.Models.FundingLine;
 
 namespace CalculateFunding.Services.Results
 {
@@ -32,6 +36,7 @@ namespace CalculateFunding.Services.Results
         private readonly ISpecificationsApiClient _specificationsApiClient;
         private readonly Common.ApiClient.Policies.IPoliciesApiClient _policiesApiClient;
         private readonly ICalculationsApiClient _calculationsApiClient;
+        private readonly IGraphApiClient _graphApiClient;
         private readonly IProviderCalculationResultsSearchService _providerCalculationResultsSearchService;
         private readonly IResultsService _resultsService;
         private readonly ICacheProvider _cacheProvider;
@@ -46,6 +51,7 @@ namespace CalculateFunding.Services.Results
             ICacheProvider cacheProvider,
             ISpecificationsApiClient specificationsApiClient,
             ICalculationsApiClient calculationsApiClient,
+            IGraphApiClient graphApiClient,
             IProviderCalculationResultsSearchService providerCalculationResultsSearchService,
             IResultsService resultsService,
             Common.ApiClient.Policies.IPoliciesApiClient policiesApiClient,
@@ -55,6 +61,7 @@ namespace CalculateFunding.Services.Results
             Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
             Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
             Guard.ArgumentNotNull(calculationsApiClient, nameof(calculationsApiClient));
+            Guard.ArgumentNotNull(graphApiClient, nameof(graphApiClient));
             Guard.ArgumentNotNull(providerCalculationResultsSearchService, nameof(providerCalculationResultsSearchService));
             Guard.ArgumentNotNull(resultsService, nameof(resultsService));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
@@ -69,6 +76,7 @@ namespace CalculateFunding.Services.Results
             _specificationsApiClient = specificationsApiClient;
             _policiesApiClient = policiesApiClient;
             _calculationsApiClient = calculationsApiClient;
+            _graphApiClient = graphApiClient;
             _providerCalculationResultsSearchService = providerCalculationResultsSearchService;
             _resultsService = resultsService;
             _cacheProvider = cacheProvider;
@@ -157,6 +165,18 @@ namespace CalculateFunding.Services.Results
                 return calculationMetadataErrorResult;
             }
 
+            List<string> calculationIdsWithError = new List<string>();
+
+            ApiResponse<IEnumerable<Entity<Calculation>>> getCircularDependenciesApiResponse = 
+                await _graphApiClient.GetCircularDependencies(specificationId);
+            IActionResult circularDependenciesApiErrorResult =
+                getCircularDependenciesApiResponse.IsSuccessOrReturnFailureResult("GetCircularDependencies");
+            if (circularDependenciesApiErrorResult == null)
+            {
+                calculationIdsWithError =
+                    getCircularDependenciesApiResponse.Content.Select(calcs => calcs.Node.CalculationId).ToList();
+            }
+
             List<FundingStructureItem> fundingStructures = new List<FundingStructureItem>();
             RecursivelyAddFundingLineToFundingStructure(
                 fundingStructures,
@@ -164,7 +184,8 @@ namespace CalculateFunding.Services.Results
                 templateMappingResponse.Content.TemplateMappingItems.ToList(),
                 calculationMetadata.Content.ToList(),
                 null,
-                null);
+                null,
+                calculationIdsWithError);
 
             FundingStructure fundingStructure = new FundingStructure
             {
@@ -271,6 +292,18 @@ namespace CalculateFunding.Services.Results
                     as CalcModels.ProviderResultResponse;
             }
 
+            List<string> calculationIdsWithError = new List<string>();
+
+            ApiResponse<IEnumerable<Entity<Calculation>>> getCircularDependenciesApiResponse = 
+                await _graphApiClient.GetCircularDependencies(specificationId);
+            IActionResult circularDependenciesApiErrorResult =
+                getCircularDependenciesApiResponse.IsSuccessOrReturnFailureResult("GetCircularDependencies");
+            if (circularDependenciesApiErrorResult == null)
+            {
+                calculationIdsWithError =
+                    getCircularDependenciesApiResponse.Content.Select(calcs => calcs.Node.CalculationId).ToList();
+            }
+
             List<FundingStructureItem> fundingStructures = new List<FundingStructureItem>();
             RecursivelyAddFundingLineToFundingStructure(
                 fundingStructures,
@@ -278,7 +311,8 @@ namespace CalculateFunding.Services.Results
                 templateMappingResponse.Content.TemplateMappingItems.ToList(),
                 calculationMetadata.Content.ToList(),
                 providerResultResponse,
-                calculationProviderResultSearchResults);
+                calculationProviderResultSearchResults,
+                calculationIdsWithError);
 
             FundingStructure fundingStructure = new FundingStructure
             {
@@ -308,6 +342,7 @@ namespace CalculateFunding.Services.Results
             List<CalculationMetadata> calculationMetadata,
             CalcModels.ProviderResultResponse providerResult,
             CalculationProviderResultSearchResults calculationProviderResultSearchResults,
+            List<string> calculationIdsWithError,
             int level = 0) =>
                 fundingStructures.AddRange(fundingLines.Select(fundingLine =>
                     RecursivelyAddFundingLines(
@@ -317,7 +352,8 @@ namespace CalculateFunding.Services.Results
                         level,
                         fundingLine,
                         providerResult,
-                        calculationProviderResultSearchResults)));
+                        calculationProviderResultSearchResults,
+                        calculationIdsWithError)));
 
         private static FundingStructureItem RecursivelyAddFundingLines(IEnumerable<FundingLine> fundingLines,
             List<TemplateMappingItem> templateMappingItems,
@@ -325,7 +361,8 @@ namespace CalculateFunding.Services.Results
             int level,
             FundingLine fundingLine,
             CalcModels.ProviderResultResponse providerResult,
-            CalculationProviderResultSearchResults calculationProviderResultSearchResults)
+            CalculationProviderResultSearchResults calculationProviderResultSearchResults,
+            List<string> calculationIdsWithError)
         {
             level++;
 
@@ -343,7 +380,8 @@ namespace CalculateFunding.Services.Results
                             templateMappingItems,
                             calculationMetadata,
                             providerResult,
-                            calculationProviderResultSearchResults));
+                            calculationProviderResultSearchResults,
+                            calculationIdsWithError));
                 }
             }
 
@@ -359,7 +397,8 @@ namespace CalculateFunding.Services.Results
                         level,
                         line,
                         providerResult,
-                        calculationProviderResultSearchResults));
+                        calculationProviderResultSearchResults,
+                        calculationIdsWithError));
                 }
             }
 
@@ -372,6 +411,12 @@ namespace CalculateFunding.Services.Results
                 calculationValue = fundingLineResult.Value.AsFormatCalculationType(calculationValueTypeViewModel);
             }
 
+
+            string status =
+                innerFundingStructureItems.FirstOrDefault(f => f.CalculationPublishStatus == "Error") != null
+                    ? "Error"
+                    : null;
+
             // Add FundingStructureItem
             FundingStructureItem fundingStructureItem = MapToFundingStructureItem(
                 level,
@@ -379,7 +424,7 @@ namespace CalculateFunding.Services.Results
                 FundingStructureType.FundingLine,
                 null,
                 null,
-                null,
+                status,
                 innerFundingStructureItems.Any() ? innerFundingStructureItems : null,
                 calculationValue);
 
@@ -391,20 +436,21 @@ namespace CalculateFunding.Services.Results
             List<TemplateMappingItem> templateMappingItems,
             List<CalculationMetadata> calculationMetadata,
             CalcModels.ProviderResultResponse providerResult,
-            CalculationProviderResultSearchResults calculationProviderResultSearchResults)
+            CalculationProviderResultSearchResults calculationProviderResultSearchResults,
+            List<string> calculationIdsWithError)
         {
             level++;
 
+            string calculationType = null;
+            string calculationValue = null;
             List<FundingStructureItem> innerFundingStructureItems = null;
 
             string calculationId = GetCalculationId(calculation, templateMappingItems);
-            string calculationPublishStatus = calculationMetadata.FirstOrDefault(_ => _.CalculationId == calculationId)?
-                .PublishStatus.ToString();
+
+            string calculationPublishStatus = GetCalculationPublishStatus(calculationMetadata, calculationIdsWithError, calculationId);
+
             CalcModels.CalculationResultResponse calculationResult 
                 = providerResult?.CalculationResults.FirstOrDefault(_ => _.Calculation.Id == calculationId);
-
-            string calculationType = null;
-            string calculationValue = null;
 
             if (calculationResult != null)
             {
@@ -427,9 +473,15 @@ namespace CalculateFunding.Services.Results
                             templateMappingItems,
                             calculationMetadata,
                             providerResult,
-                            calculationProviderResultSearchResults))
+                            calculationProviderResultSearchResults,
+                            calculationIdsWithError))
                     .ToList();
             }
+
+            calculationPublishStatus =
+                innerFundingStructureItems?.FirstOrDefault(f => f.CalculationPublishStatus == "Error") != null
+                    ? "Error"
+                    : calculationPublishStatus;
 
             return MapToFundingStructureItem(
                 level,
@@ -442,6 +494,14 @@ namespace CalculateFunding.Services.Results
                 calculationValue,
                 lastUpdatedDate);
         }
+
+        private static string GetCalculationPublishStatus(List<CalculationMetadata> calculationMetadata, List<string> calculationIdsWithError,
+            string calculationId) =>
+                calculationIdsWithError?.FirstOrDefault(calcErrorId => calcErrorId == calculationId) != null
+                    ? "Error"
+                    : calculationMetadata
+                        .FirstOrDefault(_ => _.CalculationId == calculationId)?
+                        .PublishStatus.ToString();
 
         private static FundingStructureItem MapToFundingStructureItem(int level,
             string name,
