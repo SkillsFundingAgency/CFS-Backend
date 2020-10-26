@@ -143,7 +143,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
                 author,
                 newStatus,
                 null,
-                null),
+                null,
+                true),
                 Times.Once);
         }
 
@@ -173,7 +174,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
                 It.IsAny<Reference>(),
                 It.IsAny<PublishedProviderStatus>(),
                 It.IsAny<string>(),
-                It.IsAny<string>()),
+                It.IsAny<string>(),
+                true),
                 Times.Never);
         }
 

@@ -57,7 +57,7 @@ namespace CalculateFunding.Services.Publishing
         }
 
         public IEnumerable<PublishedProviderCreateVersionRequest> AssemblePublishedProviderCreateVersionRequests(IEnumerable<PublishedProvider> publishedProviders,
-            Reference author, PublishedProviderStatus publishedProviderStatus, string jobId = null, string correlationId = null)
+            Reference author, PublishedProviderStatus publishedProviderStatus, string jobId = null, string correlationId = null, bool force = false)
         {
             Guard.ArgumentNotNull(publishedProviders, nameof(publishedProviders));
             Guard.ArgumentNotNull(author, nameof(author));
@@ -69,7 +69,9 @@ namespace CalculateFunding.Services.Publishing
             {
                 Guard.ArgumentNotNull(publishedProvider.Current, nameof(publishedProvider.Current));
 
-                if (publishedProviderStatus != PublishedProviderStatus.Draft &&
+                // always update if it's a refresh
+                if (!force && publishedProviderStatus != PublishedProviderStatus.Draft &&
+                    publishedProviderStatus != PublishedProviderStatus.Updated &&
                     publishedProvider.Current.Status == publishedProviderStatus)
                 {
                     continue;

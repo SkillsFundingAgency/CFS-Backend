@@ -90,7 +90,8 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
                 {
                     PublishedProviderStatus.Draft => PublishedProviderStatus.Draft,
                     _ => PublishedProviderStatus.Updated
-                });
+                },
+                force: true);
 
             _logger.Information(
                 $"Successfully applied custom profiling {request.CustomProfileName} to published provider {publishedProviderId}");

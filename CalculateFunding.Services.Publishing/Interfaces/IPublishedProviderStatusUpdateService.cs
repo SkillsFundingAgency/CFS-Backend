@@ -11,6 +11,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             Reference author, 
             PublishedProviderStatus publishedProviderStatus, 
             string jobId = null,
-            string correlationId = null);
+            string correlationId = null,
+            bool force = false);
     }
 }

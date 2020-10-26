@@ -63,14 +63,14 @@ namespace CalculateFunding.Services.Publishing
         }
 
         public async Task<int> UpdatePublishedProviderStatus(IEnumerable<PublishedProvider> publishedProviders, Reference author,
-            PublishedProviderStatus publishedProviderStatus, string jobId = null, string correlationId = null)
+            PublishedProviderStatus publishedProviderStatus, string jobId = null, string correlationId = null, bool force = false)
         {
             Guard.ArgumentNotNull(publishedProviders, nameof(publishedProviders));
             Guard.ArgumentNotNull(author, nameof(author));
 
             IEnumerable<PublishedProviderCreateVersionRequest> publishedProviderCreateVersionRequests = _publishedProviderVersioningService.AssemblePublishedProviderCreateVersionRequests(
                     publishedProviders.ToList(),
-                    author, publishedProviderStatus, jobId, correlationId);
+                    author, publishedProviderStatus, jobId, correlationId, force);
 
 
             if (!publishedProviderCreateVersionRequests.IsNullOrEmpty())

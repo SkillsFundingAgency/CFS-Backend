@@ -47,7 +47,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                     It.Is<Reference>(_ => _ == author),
                     It.Is<PublishedProviderStatus>(_ => _ == PublishedProviderStatus.Approved),
                     It.Is<string>(_ => _ == jobId),
-                    It.Is<string>(_ => _ == correlationId)))
+                    It.Is<string>(_ => _ == correlationId),
+                    false))
                 .Returns(publishedProviderCreateVersionRequests);
 
             providerVersioningService
@@ -136,7 +137,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                         It.Is<Reference>(_ => _ == author), 
                         It.Is<PublishedProviderStatus>(_ => _ == PublishedProviderStatus.Approved),
                         It.Is<string>(_ => _ == jobId),
-                        It.Is<string>(_ => _ == correlationId)))
+                        It.Is<string>(_ => _ == correlationId),
+                        false))
                 .Returns(publishedProviderCreateVersionRequests);
             
             PublishedProviderStatusUpdateService publishedProviderStatusUpdateService =
@@ -171,7 +173,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                         It.Is<Reference>(_ => _ == author),
                         It.Is<PublishedProviderStatus>(_ => _ == PublishedProviderStatus.Approved),
                         It.Is<string>(_ => _ == jobId),
-                        It.Is<string>(_ => _ == correlationId)))
+                        It.Is<string>(_ => _ == correlationId),
+                        false))
                 .Returns(publishedProviderCreateVersionRequests);
 
             PublishedProviderStatusUpdateService publishedProviderStatusUpdateService =
@@ -185,7 +188,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                         It.Is<Reference>(_ => _ == author),
                         It.Is<PublishedProviderStatus>(_ => _ == PublishedProviderStatus.Approved),
                         It.Is<string>(_ => _ == jobId),
-                        It.Is<string>(_ => _ == correlationId)), Times.Once);
+                        It.Is<string>(_ => _ == correlationId),
+                        false), Times.Once);
         }
 
         [TestMethod]
@@ -211,7 +215,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                         It.Is<Reference>(_ => _ == author), 
                         It.Is<PublishedProviderStatus>(_ => _ == PublishedProviderStatus.Approved),
                         It.Is<string>(_ => _ == jobId),
-                        It.Is<string>(_ => _ == correlationId)))
+                        It.Is<string>(_ => _ == correlationId),
+                        false))
                 .Returns(publishedProviderCreateVersionRequests);
 
             providerVersioningService.Setup(x => 
@@ -266,7 +271,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                         It.Is<Reference>(_ => _ == author), 
                         It.Is<PublishedProviderStatus>(_ => _ == PublishedProviderStatus.Approved),
                          It.Is<string>(_ => _ == jobId),
-                        It.Is<string>(_ => _ == correlationId)))
+                        It.Is<string>(_ => _ == correlationId),
+                        false))
                 .Returns(publishedProviderCreateVersionRequests);
             providerVersioningService
                 .Setup(x => 
@@ -325,7 +331,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                         It.Is<Reference>(_ => _ == author), 
                         It.Is<PublishedProviderStatus>(_ => _ == PublishedProviderStatus.Approved),
                           It.Is<string>(_ => _ == jobId),
-                        It.Is<string>(_ => _ == correlationId)))
+                        It.Is<string>(_ => _ == correlationId),
+                        false))
                 .Returns(publishedProviderCreateVersionRequests);
             providerVersioningService.Setup(x => 
                     x.CreateVersions(It.Is<IEnumerable<PublishedProviderCreateVersionRequest>>(_ => _ == publishedProviderCreateVersionRequests)))

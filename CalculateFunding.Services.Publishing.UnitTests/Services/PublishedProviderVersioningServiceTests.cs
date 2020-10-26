@@ -508,6 +508,38 @@ namespace CalculateFunding.Services.Publishing.Services.UnitTests
                 .Should()
                 .HaveCount(1);
         }
+        [TestMethod]
+        public void AssemblePublishedProviderCreateVersionRequests_GivenTwoPublishedProvidersButStatusHasntChangedForOne_ReturnsListWithTwoCreatedVersionRequest_WhenForceUpdated()
+        {
+            //Arrange
+            IEnumerable<PublishedProvider> publishedProviders = new[]
+            {
+                new PublishedProvider
+                {
+                    Current = new PublishedProviderVersion
+                    {
+                        Status = PublishedProviderStatus.Approved
+                    }
+                },
+                new PublishedProvider
+                {
+                    Current = new PublishedProviderVersion
+                    {
+                        Status = PublishedProviderStatus.Updated
+                    }
+                }
+            };
+
+            PublishedProviderVersioningService service = CreateVersioningService();
+
+            //Act
+            IEnumerable<PublishedProviderCreateVersionRequest> results = service.AssemblePublishedProviderCreateVersionRequests(publishedProviders, new Reference(), PublishedProviderStatus.Approved, force: true);
+
+            //Assert
+            results
+                .Should()
+                .HaveCount(2);
+        }
 
         [TestMethod]
         public void AssemblePublishedProviderCreateVersionRequests_GivenPublishedProviders_EnsuresAssembled()
@@ -769,12 +801,12 @@ namespace CalculateFunding.Services.Publishing.Services.UnitTests
         }
 
         [DataTestMethod]
-        [DataRow(PublishedProviderStatus.Approved, PublishStatus.Approved)]
-        [DataRow(PublishedProviderStatus.Released, PublishStatus.Approved)]
-        [DataRow(PublishedProviderStatus.Updated, PublishStatus.Updated)]
-        [DataRow(PublishedProviderStatus.Draft, PublishStatus.Draft)]
+        [DataRow(PublishedProviderStatus.Approved, PublishedProviderStatus.Released, PublishStatus.Approved)]
+        [DataRow(PublishedProviderStatus.Updated, PublishedProviderStatus.Updated, PublishStatus.Updated)]
+        [DataRow(PublishedProviderStatus.Draft, PublishedProviderStatus.Draft, PublishStatus.Draft)]
+        [DataRow(PublishedProviderStatus.Updated, PublishedProviderStatus.Approved, PublishStatus.Approved)]
         public void AssemblePublishedProviderCreateVersionRequests_GivenPublishedProviders_ReturnsCreateVersionRequestWithPublishStatus(
-            PublishedProviderStatus givenPublishedProviderStatus, PublishStatus expectedPublishStatus)
+            PublishedProviderStatus currentStatus, PublishedProviderStatus givenPublishedProviderStatus, PublishStatus expectedPublishStatus)
         {
             //Arrange
             IEnumerable<PublishedProvider> publishedProviders = new[]
@@ -783,6 +815,7 @@ namespace CalculateFunding.Services.Publishing.Services.UnitTests
                 {
                     Current = new PublishedProviderVersion
                     {
+                        Status = currentStatus
                     }
                 }
             };
