@@ -111,19 +111,47 @@
 
             public const string DeleteCalculations = "calculations-delete";
 
+            public const string DeleteCalculationsPoisoned = "calculations-delete/$DeadLetterQueue";
+
+            public const string DeleteCalculationsPoisonedLocal = "calculations-delete-poisoned";
+
             public const string DeleteCalculationResults = "calculation-results-delete";
+
+            public const string DeleteCalculationResultsPoisoned = "calculation-results-delete/$DeadLetterQueue";
+
+            public const string DeleteCalculationResultsPoisonedLocal = "calculation-results-delete-poisoned";
 
             public const string DeleteDatasets = "datasets-delete";
 
+            public const string DeleteDatasetsPoisoned = "datasets-delete/$DeadLetterQueue";
+
+            public const string DeleteDatasetsPoisonedLocal = "datasets-delete-poisoned";
+
             public const string DeleteTestResults = "test-results-delete";
+
+            public const string DeleteTestResultsPoisoned = "test-results-delete/$DeadLetterQueue";
+
+            public const string DeleteTestResultsPoisonedLocal = "test-results-delete-poisoned";
 
             public const string DeleteTests = "tests-delete";
 
+            public const string DeleteTestsPoisoned = "tests-delete/$DeadLetterQueue";
+
+            public const string DeleteTestsPoisonedLocal = "tests-delete-poisoned";
+
             public const string DeleteSpecifications = "specifications-delete";
-            
+
+            public const string DeleteSpecificationsPoisoned = "specifications-delete/$DeadLetterQueue";
+
+            public const string DeleteSpecificationsPoisonedLocal = "specifications-delete-poisoned";
+
             public const string ReIndexSingleSpecification = "publishing-reindex-specification";
             
             public const string DeletePublishedProviders = "publishing-delete-published-providers";
+
+            public const string DeletePublishedProvidersPoisoned = "on-publishing-delete-published-providers/$DeadLetterQueue";
+
+            public const string DeletePublishedProvidersPoisonedLocal = "on-publishing-delete-published-providers-poisoned";
 
             public const string ReIndexSpecificationCalculationRelationships = "calculations-reindex-specification-calculation-rels";
 
@@ -147,6 +175,10 @@
 
             public const string PolicyReIndexTemplates = "policy-reindex-templates";
 
+            public const string PolicyReIndexTemplatesPoisoned = "policy-reindex-templates/$DeadLetterQueue";
+
+            public const string PolicyReIndexTemplatesPoisonedLocal = "policy-reindex-templates-poisoned";
+
             public const string MergeSpecificationInformationForProvider = "merge-specification-information-for-provider-with-results";
             
             public const string MergeSpecificationInformationForProviderPoisoned = "merge-specification-information-for-provider-with-results/$DeadLetterQueue";
@@ -166,6 +198,10 @@
             public const string UpdateCodeContextCachePoisonedLocal = "code-context-update-poisoned";
 
             public const string SearchIndexWriter = "search-index-writer";
+
+            public const string SearchIndexWriterPoisoned = "search-index-writer/$DeadLetterQueue";
+            
+            public const string SearchIndexWriterPoisonedLocal = "search-index-writer-poisoned";
         }
 
         public static class TopicNames

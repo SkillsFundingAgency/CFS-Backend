@@ -14,8 +14,6 @@ namespace CalculateFunding.Functions.Scenarios.ServiceBus
 {
     public class OnEditCalculationEvent : SmokeTest
     {
-        private readonly ILogger _logger;
-        private readonly IScenariosService _scenariosService;
         public const string FunctionName = "on-edit-calculation-for-scenarios";
 
         public OnEditCalculationEvent(
@@ -23,13 +21,8 @@ namespace CalculateFunding.Functions.Scenarios.ServiceBus
             IScenariosService scenariosService,
             IMessengerService messengerService,
             IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider)
+            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider, scenariosService)
         {
-            Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(scenariosService, nameof(scenariosService));
-
-            _logger = logger;
-            _scenariosService = scenariosService;
         }
 
         [FunctionName(FunctionName)]
@@ -38,19 +31,7 @@ namespace CalculateFunding.Functions.Scenarios.ServiceBus
             ServiceBusConstants.TopicSubscribers.UpdateScenariosForEditCalculation,
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            await Run(async () =>
-            {
-                try
-                {
-                    await _scenariosService.UpdateScenarioForCalculation(message);
-                }
-                catch (Exception exception)
-                {
-                    _logger.Error(exception, $"An error occurred getting message from topic: {ServiceBusConstants.TopicNames.EditCalculation}");
-                    throw;
-                }
-            },
-            message);
+            await Run(message);
         }
     }
 }

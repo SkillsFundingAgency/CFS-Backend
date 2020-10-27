@@ -22,6 +22,7 @@ using Serilog;
 using PoliciesApiModels = CalculateFunding.Common.ApiClient.Policies.Models;
 using System;
 using System.Collections.Generic;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
@@ -36,6 +37,7 @@ namespace CalculateFunding.Services.Datasets.Services
         protected const string DatasetId = "e557a71b-f570-4436-801b-250b9129f999";
         protected const string FundingStreamId = "test-funding-stream-id";
         protected const string FundingStreamName = "test-funding-stream-name";
+        protected const string JobId = "job1";
 
         protected DatasetService CreateDatasetService(
             IBlobClient blobClient = null,
@@ -97,7 +99,13 @@ namespace CalculateFunding.Services.Datasets.Services
 
         protected IJobManagement CreateJobManagement()
         {
-            return Substitute.For<IJobManagement>();
+            IJobManagement jobManagement = Substitute.For<IJobManagement>();
+
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(JobId)
+                .Returns(new JobViewModel { Id = JobId });
+
+            return jobManagement;
         }
 
         protected IVersionRepository<ProviderSourceDatasetVersion> CreateVersionRepository()

@@ -12,24 +12,18 @@ using Serilog;
 
 namespace CalculateFunding.Functions.Datasets.ServiceBus
 {
-    public class OnDatasetEvent : SmokeTest
+    public class OnDatasetEvent : Retriable
     {
-        private readonly ILogger _logger;
-        private readonly IProcessDatasetService _processDatasetService;
-        public const string FunctionName = "on-dataset-event";
+        private const string FunctionName = "on-dataset-event";
+        private const string QueueName = ServiceBusConstants.QueueNames.ProcessDataset;
 
         public OnDatasetEvent(
             ILogger logger,
             IProcessDatasetService processDatasetService,
             IMessengerService messengerService,
             IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider)
+            : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, processDatasetService)
         {
-            Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(processDatasetService, nameof(processDatasetService));
-
-            _logger = logger;
-            _processDatasetService = processDatasetService;
         }
 
         [FunctionName(FunctionName)]
@@ -38,19 +32,7 @@ namespace CalculateFunding.Functions.Datasets.ServiceBus
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey,
             IsSessionsEnabled = true)] Message message)
         {
-            await Run(async () =>
-            {
-                try
-                {
-                    await _processDatasetService.ProcessDataset(message);
-                }
-                catch (Exception exception)
-                {
-                    _logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.ProcessDataset}");
-                    throw;
-                }
-            },
-            message);
+            await base.Run(message);
         }
     }
 }

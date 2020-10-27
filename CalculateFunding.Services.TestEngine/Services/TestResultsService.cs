@@ -20,6 +20,7 @@ using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Logging;
+using CalculateFunding.Services.Jobs;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search.Models;
@@ -30,7 +31,7 @@ using ApiClientProviders = CalculateFunding.Common.ApiClient.Providers;
 
 namespace CalculateFunding.Services.TestRunner.Services
 {
-    public class TestResultsService : ITestResultsService, IHealthChecker
+    public class TestResultsService : JobProcessingService, ITestResultsService, IHealthChecker
     {
         private readonly ITestResultsRepository _testResultsRepository;
         private readonly ISearchRepository<TestScenarioResultIndex> _searchRepository;
@@ -40,7 +41,6 @@ namespace CalculateFunding.Services.TestRunner.Services
         private readonly Polly.AsyncPolicy _testResultsPolicy;
         private readonly Polly.AsyncPolicy _testResultsSearchPolicy;
         private readonly IProvidersApiClient _providersApiClient;
-        private readonly IJobManagement _jobManagement;
 
         public TestResultsService(ITestResultsRepository testResultsRepository,
             ISearchRepository<TestScenarioResultIndex> searchRepository,
@@ -49,7 +49,7 @@ namespace CalculateFunding.Services.TestRunner.Services
             ITelemetry telemetry,
             ITestRunnerResiliencePolicies policies,
             IProvidersApiClient providersApiClient,
-            IJobManagement jobManagement)
+            IJobManagement jobManagement) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
             Guard.ArgumentNotNull(testResultsRepository, nameof(testResultsRepository));
@@ -59,7 +59,6 @@ namespace CalculateFunding.Services.TestRunner.Services
             Guard.ArgumentNotNull(policies?.TestResultsRepository, nameof(policies.TestResultsRepository));
             Guard.ArgumentNotNull(policies?.TestResultsSearchRepository, nameof(policies.TestResultsSearchRepository));
             Guard.ArgumentNotNull(providersApiClient, nameof(providersApiClient));
-            Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
 
             _testResultsRepository = testResultsRepository;
             _searchRepository = searchRepository;
@@ -69,7 +68,6 @@ namespace CalculateFunding.Services.TestRunner.Services
             _testResultsPolicy = policies.TestResultsRepository;
             _testResultsSearchPolicy = policies.TestResultsSearchRepository;
             _providersApiClient = providersApiClient;
-            _jobManagement = jobManagement;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -224,7 +222,7 @@ namespace CalculateFunding.Services.TestRunner.Services
             return new NoContentResult();
         }
 
-        public async Task UpdateTestResultsForSpecification(Message message)
+        public override async Task Process(Message message)
         {
             SpecificationVersionComparisonModel specificationVersionComparison = message.GetPayloadAsInstanceOf<SpecificationVersionComparisonModel>();
 
@@ -287,59 +285,24 @@ namespace CalculateFunding.Services.TestRunner.Services
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
-            string jobId = message.GetUserProperty<string>("jobId");
-
-            Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
-
-            try
+            string specificationId = message.UserProperties["specification-id"].ToString();
+            if (string.IsNullOrEmpty(specificationId))
             {
-                // Update job to set status to processing
-                await _jobManagement.UpdateJobStatus(jobId, 0, 0, null, null);
-
-                string specificationId = message.UserProperties["specification-id"].ToString();
-                if (string.IsNullOrEmpty(specificationId))
-                {
-                    string error = "Null or empty specification Id provided for deleting test results";
-                    _logger.Error(error);
-                    throw new Exception(error);
-                }
-
-                string deletionTypeProperty = message.UserProperties["deletion-type"].ToString();
-                if (string.IsNullOrEmpty(deletionTypeProperty))
-                {
-                    string error = "Null or empty deletion type provided for deleting test results";
-                    _logger.Error(error);
-                    throw new Exception(error);
-                }
-
-                await _testResultsRepository.DeleteTestResultsBySpecificationId(specificationId, deletionTypeProperty.ToDeletionType());
-
-                await _jobManagement.UpdateJobStatus(jobId, 0, 0, true, null);
+                string error = "Null or empty specification Id provided for deleting test results";
+                _logger.Error(error);
+                throw new Exception(error);
             }
-            catch (Exception exception)
+
+            string deletionTypeProperty = message.UserProperties["deletion-type"].ToString();
+            if (string.IsNullOrEmpty(deletionTypeProperty))
             {
-                _logger.Error(exception, "Unable to complete delete test results job");
-
-                await TrackJobFailed(jobId, exception);
-
-                throw new NonRetriableException("Unable to delete test results.", exception);
+                string error = "Null or empty deletion type provided for deleting test results";
+                _logger.Error(error);
+                throw new Exception(error);
             }
-        }
 
-        private async Task TrackJobFailed(string jobId, Exception exception)
-        {
-            await AddJobTracking(jobId, new JobLogUpdateModel
-            {
-                CompletedSuccessfully = false,
-                Outcome = exception.ToString()
-            });
+            await _testResultsRepository.DeleteTestResultsBySpecificationId(specificationId, deletionTypeProperty.ToDeletionType());
         }
-
-        private async Task AddJobTracking(string jobId, JobLogUpdateModel tracking)
-        {
-            await _jobManagement.AddJobLog(jobId, tracking);
-        }
-
         public async Task CleanupTestResultsForSpecificationProviders(Message message)
         {
             string specificationId = message.UserProperties["specificationId"].ToString();

@@ -13,11 +13,8 @@ using CalculateFunding.Services.Core;
 
 namespace CalculateFunding.Functions.Providers.ServiceBus
 {
-    public class OnProviderSnapshotDataLoadEventTrigger : SmokeTest
+    public class OnProviderSnapshotDataLoadEventTrigger : Retriable
     {
-        private readonly ILogger _logger;
-        private IProviderSnapshotDataLoadService _providerSnapshotDataLoadService;
-
         public const string FunctionName = FunctionConstants.ProviderSnapshotDataLoad;
         public const string QueueName = ServiceBusConstants.QueueNames.ProviderSnapshotDataLoad;
 
@@ -27,13 +24,8 @@ namespace CalculateFunding.Functions.Providers.ServiceBus
             IUserProfileProvider userProfileProvider,
             IProviderSnapshotDataLoadService providerSnapshotDataLoadService,
             bool useAzureStorage = false)
-            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider)
+            : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, providerSnapshotDataLoadService)
         {
-            Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(providerSnapshotDataLoadService, nameof(providerSnapshotDataLoadService));
-
-            _logger = logger;
-            _providerSnapshotDataLoadService = providerSnapshotDataLoadService;
         }
 
         [FunctionName(FunctionName)]
@@ -42,25 +34,7 @@ namespace CalculateFunding.Functions.Providers.ServiceBus
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey,
             IsSessionsEnabled = true)] Message message)
         {
-            Guard.ArgumentNotNull(message, nameof(message));
-
-            await Run(async () =>
-            {
-                try
-                {
-                    await _providerSnapshotDataLoadService.LoadProviderSnapshotData(message);
-                }
-                catch (NonRetriableException ex)
-                {
-                    _logger.Error(ex, $"Job threw non retriable exception: {QueueName}");
-                }
-                catch (Exception exception)
-                {
-                    _logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.ProviderSnapshotDataLoad}");
-                    throw;
-                }
-            },
-            message);
+            await base.Run(message);
         }
     }
 }

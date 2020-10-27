@@ -13,44 +13,24 @@ using Serilog;
 
 namespace CalculateFunding.Functions.Datasets.ServiceBus
 {
-    public class OnDatasetValidationEvent : SmokeTest
+    public class OnDatasetValidationEvent : Retriable
     {
-        private readonly ILogger _logger;
-        private readonly IDatasetService _datasetService;
-        public const string FunctionName = "on-dataset-validation-event";
+        private const string FunctionName = "on-dataset-validation-event";
+        private const string QueueName = ServiceBusConstants.QueueNames.ValidateDataset;
 
         public OnDatasetValidationEvent(
             ILogger logger,
             IDatasetService datasetService,
             IMessengerService messengerService,
             IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider)
+            : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, datasetService)
         {
-            Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(datasetService, nameof(datasetService));
-
-            _logger = logger;
-            _datasetService = datasetService;
         }
 
         [FunctionName(FunctionName)]
-        public async Task Run([ServiceBusTrigger(ServiceBusConstants.QueueNames.ValidateDataset, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
+        public async Task Run([ServiceBusTrigger(QueueName, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            await Run(async () =>
-            {
-                CultureInfo.CurrentCulture = new CultureInfo("en-GB");
-
-                try
-                {
-                    await _datasetService.ValidateDataset(message);
-                }
-                catch (Exception exception)
-                {
-                    _logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.ValidateDataset}");
-                    throw;
-                }
-            },
-            message);
+            await base.Run(message);
         }
     }
 }

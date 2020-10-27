@@ -8,27 +8,31 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Jobs;
 using CalculateFunding.Services.Specs.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Polly;
+using Serilog;
 
 namespace CalculateFunding.Services.Specs
 {
-    public class SpecificationIndexingService : ISpecificationIndexingService
+    public class SpecificationIndexingService : JobProcessingService, ISpecificationIndexingService
     {
         private const string ReIndexSpecificationJob = JobConstants.DefinitionNames.ReIndexSpecificationJob;
         private const string SpecificationId = "specification-id";
 
         private readonly IJobManagement _jobs;
+        private readonly ILogger _logger;
         private readonly ISpecificationIndexer _indexer;
         private readonly ISpecificationsRepository _specifications;
         private readonly AsyncPolicy _specificationsPolicy;
 
         public SpecificationIndexingService(IJobManagement jobs,
+            ILogger logger,
             ISpecificationIndexer indexer,
             ISpecificationsRepository specifications,
-            ISpecificationsResiliencePolicies resiliencePolicies)
+            ISpecificationsResiliencePolicies resiliencePolicies) : base(jobs, logger)
         {
             Guard.ArgumentNotNull(jobs, nameof(jobs));
             Guard.ArgumentNotNull(indexer, nameof(indexer));
@@ -68,15 +72,11 @@ namespace CalculateFunding.Services.Specs
             }));
         }
 
-        public async Task Run(Message message)
+        public override async Task Process(Message message)
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
             string specificationId = GetMessageProperty(message, SpecificationId);
-            string jobId = GetMessageProperty(message, "jobId");
-
-            await UpdateJobStatus(jobId);
-
             Specification specification = await _specificationsPolicy.ExecuteAsync(() => _specifications.GetSpecificationById(specificationId));
 
             if (specification == null)
@@ -85,18 +85,6 @@ namespace CalculateFunding.Services.Specs
             }
 
             await _indexer.Index(specification);
-
-            await UpdateJobStatus(jobId, true);
-        }
-
-        private async Task UpdateJobStatus(string jobId,
-            bool completed = false)
-        {
-            await _jobs.UpdateJobStatus(jobId,
-                new JobLogUpdateModel
-                {
-                    CompletedSuccessfully = completed
-                });
         }
 
         private string GetMessageProperty(Message message,

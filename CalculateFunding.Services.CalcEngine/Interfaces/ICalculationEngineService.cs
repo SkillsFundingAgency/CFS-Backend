@@ -1,14 +1,13 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using CalculateFunding.Services.Jobs.Interfaces;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.CalcEngine.Interfaces
 {
-    public interface ICalculationEngineService
+    public interface ICalculationEngineService : IJobProcessingService
     {
-        Task GenerateAllocations(Message message);
-
         Task<IActionResult> GenerateAllocations(HttpRequest request);
     }
 }

@@ -13,10 +13,8 @@ using Serilog;
 
 namespace CalculateFunding.Functions.Publishing.ServiceBus
 {
-    public class OnApproveAllProviderFunding : SmokeTest
+    public class OnApproveAllProviderFunding : Retriable
     {
-        private readonly ILogger _logger;
-        private readonly IApproveService _approveService;
         public const string FunctionName = FunctionConstants.PublishingApproveAllProviderFunding;
         public const string QueueName = ServiceBusConstants.QueueNames.PublishingApproveAllProviderFunding;
 
@@ -25,13 +23,8 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
             IApproveService approveService,
             IMessengerService messengerService,
             IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider)
+            : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, approveService)
         {
-            Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(approveService, nameof(approveService));
-
-            _logger = logger;
-            _approveService = approveService;
         }
 
         [FunctionName(FunctionName)]
@@ -40,23 +33,7 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey,
             IsSessionsEnabled = true)] Message message)
         {
-            await Run(async () =>
-            {
-                try
-                {
-                    await _approveService.ApproveResults(message);
-                }
-                catch (NonRetriableException ex)
-                {
-                    _logger.Error(ex, $"Job threw non retriable exception: {QueueName}");
-                }
-                catch (Exception exception)
-                {
-                    _logger.Error(exception, $"An error occurred getting message from queue: {QueueName}");
-                    throw;
-                }
-            },
-            message);
+            await base.Run(message);
         }
     }
 }

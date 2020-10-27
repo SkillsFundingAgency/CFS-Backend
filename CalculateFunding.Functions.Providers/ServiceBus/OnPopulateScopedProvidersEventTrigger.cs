@@ -12,25 +12,18 @@ using Serilog;
 
 namespace CalculateFunding.Functions.Providers.ServiceBus
 {
-    public class OnPopulateScopedProvidersEventTrigger : SmokeTest
+    public class OnPopulateScopedProvidersEventTrigger : Retriable
     {
-        private readonly ILogger _logger;
-        private readonly IScopedProvidersService _scopedProviderService;
-        public const string FunctionName = FunctionConstants.PopulateScopedProviders;
-        public const string QueueName = ServiceBusConstants.QueueNames.PopulateScopedProviders;
+        private const string FunctionName = FunctionConstants.PopulateScopedProviders;
+        private const string QueueName = ServiceBusConstants.QueueNames.PopulateScopedProviders;
 
         public OnPopulateScopedProvidersEventTrigger(
             ILogger logger,
             IScopedProvidersService scopedProviderService,
             IMessengerService messengerService,
             IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider)
+            : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, scopedProviderService)
         {
-            Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(scopedProviderService, nameof(scopedProviderService));
-
-            _logger = logger;
-            _scopedProviderService = scopedProviderService;
         }
 
         [FunctionName(FunctionName)]
@@ -38,21 +31,7 @@ namespace CalculateFunding.Functions.Providers.ServiceBus
             QueueName,
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         { 
-            Guard.ArgumentNotNull(message, nameof(message));
-
-            await Run(async () =>
-            {
-                try
-                {
-                    await _scopedProviderService.PopulateScopedProviders(message);
-                }
-                catch (Exception exception)
-                {
-                    _logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.PopulateScopedProviders}");
-                    throw;
-                }
-            },
-            message);
+            await base.Run(message);
         }
     }
 }

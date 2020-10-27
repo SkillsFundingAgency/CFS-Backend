@@ -12,45 +12,28 @@ using Serilog;
 
 namespace CalculateFunding.Functions.Results.ServiceBus
 {
-    public class OnCalculationResultsCsvGeneration : SmokeTest
+    public class OnCalculationResultsCsvGeneration : Retriable
     {
         private readonly ILogger _logger;
         private readonly IProviderResultsCsvGeneratorService _csvGeneratorService;
-        public const string FunctionName = "on-calculation-results-csv-generation";
+        private const string FunctionName = "on-calculation-results-csv-generation";
+        private const string QueueName = ServiceBusConstants.QueueNames.CalculationResultsCsvGeneration;
 
         public OnCalculationResultsCsvGeneration(
             ILogger logger,
             IProviderResultsCsvGeneratorService csvGeneratorService,
             IMessengerService messengerService,
             IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider)
+            : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, csvGeneratorService)
         {
-            Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(csvGeneratorService, nameof(csvGeneratorService));
-
-            _logger = logger;
-            _csvGeneratorService = csvGeneratorService;
         }
 
         [FunctionName(FunctionName)]
-        public async Task Run([ServiceBusTrigger(ServiceBusConstants.QueueNames.CalculationResultsCsvGeneration, 
+        public async Task Run([ServiceBusTrigger(QueueName, 
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] 
             Message message)
         {
-            await Run(async () =>
-            {
-                try
-                {
-                    await _csvGeneratorService.Run(message);
-                }
-                catch (Exception exception)
-                {
-                    _logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.CalculationResultsCsvGeneration}");
-                
-                    throw;
-                }
-            },
-            message);
+            await base.Run(message);
         }
     }
 }

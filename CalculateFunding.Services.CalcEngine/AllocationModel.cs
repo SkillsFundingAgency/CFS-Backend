@@ -228,7 +228,6 @@ namespace CalculateFunding.Services.CalcEngine
             List<(MemberInfo, CalculationAttributeMetadata)> funcs)
         {
             IList<CalculationResult> calculationResults = new List<CalculationResult>();
-
             foreach (KeyValuePair<string, string[]> calcResult in results)
             {
                 if (calcResult.Value.Length < 1)

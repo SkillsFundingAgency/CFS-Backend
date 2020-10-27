@@ -31,7 +31,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetDefinitionNameChangeProcessor processor = CreateProcessor(logger: logger, featureToggle: featureToggle);
 
             //Act
-            await processor.ProcessChanges(message);
+            await processor.Process(message);
 
             //Assert
             logger
@@ -48,7 +48,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetDefinitionNameChangeProcessor processor = CreateProcessor();
 
             //Act
-            Func<Task> test = async () => await processor.ProcessChanges(message);
+            Func<Task> test = async () => await processor.Process(message);
 
             //Assert
             test
@@ -80,7 +80,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetDefinitionNameChangeProcessor processor = CreateProcessor(logger: logger);
 
             //Act
-            await processor.ProcessChanges(message);
+            await processor.Process(message);
 
             //Assert
             logger
@@ -116,7 +116,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetDefinitionNameChangeProcessor processor = CreateProcessor(definitionSpecificationRelationshipService, datasetService, logger);
 
             //Act
-            await processor.ProcessChanges(message);
+            await processor.Process(message);
 
             //Assert
             await

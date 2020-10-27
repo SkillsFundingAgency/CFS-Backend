@@ -12,42 +12,24 @@ using Serilog;
 
 namespace CalculateFunding.Functions.TestEngine.ServiceBus
 {
-    public class OnTestExecution : SmokeTest
+    public class OnTestExecution : Retriable
     {
-        private readonly ILogger _logger;
-        private readonly ITestEngineService _testEngineService;
-        public const string FunctionName = "on-test-execution-event";
+        private const string FunctionName = "on-test-execution-event";
+        private const string QueueName = ServiceBusConstants.QueueNames.TestEngineExecuteTests;
 
         public OnTestExecution(
             ILogger logger,
             ITestEngineService testEngineService,
             IMessengerService messengerService,
             IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider)
+            : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, testEngineService)
         {
-            Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(testEngineService, nameof(testEngineService));
-
-            _logger = logger;
-            _testEngineService = testEngineService;
         }
 
         [FunctionName(FunctionName)]
-        public async Task Run([ServiceBusTrigger(ServiceBusConstants.QueueNames.TestEngineExecuteTests, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
+        public async Task Run([ServiceBusTrigger(QueueName, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            await Run(async () =>
-            {
-                try
-                {
-                    await _testEngineService.RunTests(message);
-                }
-                catch (Exception exception)
-                {
-                    _logger.Error(exception, $"An error occurred processing message on queue: '{ServiceBusConstants.QueueNames.TestEngineExecuteTests}'");
-                    throw;
-                }
-            },
-            message);
+            await base.Run(message);
         }
     }
 }

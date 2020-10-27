@@ -33,16 +33,16 @@ namespace CalculateFunding.Services.Results.UnitTests.SearchIndex
         }
 
         [TestMethod]
-        public async Task ShouldRaiseException_WhenNoIndexWriterTypeGivenOnMessageUserProperties()
+        public void ShouldRaiseException_WhenNoIndexWriterTypeGivenOnMessageUserProperties()
         {
             Message message = new Message();
             string jobId = Guid.NewGuid().ToString();
             message.UserProperties["jobId"] = jobId;
             string expectedErrorMessage = $"Index-writer-type missing from SearchIndexWriter job. JobId {jobId}";
 
-            _jobManagement.GetJobById(jobId).Returns(new JobViewModel() { Id = jobId });
+            _jobManagement.RetrieveJobAndCheckCanBeProcessed(jobId).Returns(new JobViewModel() { Id = jobId });
 
-            Func<Task> test = async () => await _service.CreateSearchIndex(message);
+            Func<Task> test = async () => await _service.Run(message);
 
             test
                 .Should()
@@ -66,7 +66,7 @@ namespace CalculateFunding.Services.Results.UnitTests.SearchIndex
             _searchIndexProcessorFactory.CreateProcessor(SearchIndexWriterTypes.ProviderCalculationResultsIndexWriter)
                 .Returns(_searchIndexProcessor);
 
-            await _service.CreateSearchIndex(message);
+            await _service.Process(message);
 
             _searchIndexProcessorFactory
                 .Received(1)

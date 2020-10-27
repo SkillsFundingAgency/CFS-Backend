@@ -51,10 +51,11 @@ using ApiClientSelectDatasourceModel = CalculateFunding.Common.ApiClient.DataSet
 using ApiClientDatasetDefinition = CalculateFunding.Common.ApiClient.DataSets.Models.DatasetDefinition;
 using ApiClientTableDefinition = CalculateFunding.Common.ApiClient.DataSets.Models.TableDefinition;
 using ApiClientFieldDefinition = CalculateFunding.Common.ApiClient.DataSets.Models.FieldDefinition;
+using CalculateFunding.Services.Core.Services;
 
 namespace CalculateFunding.Services.Calcs
 {
-    public class CalculationService : ICalculationService, IHealthChecker
+    public class CalculationService : ProcessingService, ICalculationService, IHealthChecker
     {
         public const string reasonForCommenting = "The dataset definition referenced by this calc has been updated and subsequently the code has been commented out";
         public const string exceptionMessage = "Code commented out for definition field updates";
@@ -434,7 +435,7 @@ namespace CalculateFunding.Services.Calcs
             return new InternalServerErrorResult(createCalculationResponse.ErrorMessage);
         }
 
-        public async Task UpdateCalculationsForSpecification(Message message)
+        public override async Task Process(Message message)
         {
             SpecificationVersionComparisonModel specificationVersionComparison = message.GetPayloadAsInstanceOf<SpecificationVersionComparisonModel>();
 

@@ -23,10 +23,11 @@ using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core;
+using CalculateFunding.Services.Jobs;
 
 namespace CalculateFunding.Services.Providers
 {
-    public class ProviderSnapshotDataLoadService : IProviderSnapshotDataLoadService
+    public class ProviderSnapshotDataLoadService : JobProcessingService, IProviderSnapshotDataLoadService
     {
         private const string SpecificationIdKey = "specification-id";
         private const string FundingStreamIdKey = "fundingstream-id";
@@ -47,7 +48,7 @@ namespace CalculateFunding.Services.Providers
             IProvidersResiliencePolicies resiliencePolicies,
             IFundingDataZoneApiClient fundingDataZoneApiClient,
             IMapper mapper,
-            IJobManagement jobManagement)
+            IJobManagement jobManagement) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
@@ -81,115 +82,83 @@ namespace CalculateFunding.Services.Providers
             return health;
         }
 
-        public async Task LoadProviderSnapshotData(Message message)
+        public override async Task Process(Message message)
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
-            string jobId = message.GetUserProperty<string>(JobIdKey);
             string specificationId = message.GetUserProperty<string>(SpecificationIdKey);
             string fundingStreamId = message.GetUserProperty<string>(FundingStreamIdKey);
             string providerSnapshotIdValue = message.GetUserProperty<string>(ProviderSnapshotIdKey);
             Reference user = message.GetUserDetails();
             string correlationId = message.GetCorrelationId();
 
-            await EnsureJobCanBeProcessed(jobId);
-
-            // Update job to set status to processing
-            await _jobManagement.UpdateJobStatus(jobId, 0, 0, null, null);
-
-            try
+            if (string.IsNullOrWhiteSpace(providerSnapshotIdValue) || !int.TryParse(providerSnapshotIdValue, out int providerSnapshotId))
             {
-                if (string.IsNullOrWhiteSpace(providerSnapshotIdValue) || !int.TryParse(providerSnapshotIdValue, out int providerSnapshotId))
+                throw new NonRetriableException("Invalid provider snapshot id");
+            }
+
+            ProviderSnapshot providerSnapshot = await GetProviderSnapshot(fundingStreamId, providerSnapshotId);
+
+            string providerVersionId = $"{fundingStreamId}-{providerSnapshot.TargetDate:yyyy}-{providerSnapshot.TargetDate:MM}-{providerSnapshot.TargetDate:dd}-{providerSnapshotId}";
+            bool isProviderVersionExists = await _providerVersionService.Exists(providerVersionId);
+
+            if (!isProviderVersionExists)
+            {
+                IEnumerable<Common.ApiClient.FundingDataZone.Models.Provider> fdzProviders = await GetProvidersInSnapshot(providerSnapshotId);
+
+                ProviderVersionViewModel providerVersionViewModel = CreateProviderVersionViewModel(fundingStreamId, providerVersionId, providerSnapshot, fdzProviders);
+                (bool success, IActionResult actionResult) = await _providerVersionService.UploadProviderVersion(providerVersionId, providerVersionViewModel);
+
+                if (!success)
                 {
-                    throw new NonRetriableException("Invalid provider snapshot id");
-                }
-
-                ProviderSnapshot providerSnapshot = await GetProviderSnapshot(fundingStreamId, providerSnapshotId);
-
-                string providerVersionId = $"{fundingStreamId}-{providerSnapshot.TargetDate:yyyy}-{providerSnapshot.TargetDate:MM}-{providerSnapshot.TargetDate:dd}-{providerSnapshotId}";
-                bool isProviderVersionExists = await _providerVersionService.Exists(providerVersionId);
-
-                if (!isProviderVersionExists)
-                {
-                    IEnumerable<Common.ApiClient.FundingDataZone.Models.Provider> fdzProviders = await GetProvidersInSnapshot(providerSnapshotId);
-
-                    ProviderVersionViewModel providerVersionViewModel = CreateProviderVersionViewModel(fundingStreamId, providerVersionId, providerSnapshot, fdzProviders);
-                    (bool success, IActionResult actionResult) = await _providerVersionService.UploadProviderVersion(providerVersionId, providerVersionViewModel);
-
-                    if (!success)
-                    {
-                        string errorMessage = $"Failed to upload provider version {providerVersionId}. {GetErrorMessage(actionResult, providerVersionId)}";
-
-                        _logger.Error(errorMessage);
-
-                        throw new Exception(errorMessage);
-                    }
-                }
-
-                HttpStatusCode httpStatusCode = await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.SetProviderVersion(specificationId, providerVersionId));
-
-                if (!httpStatusCode.IsSuccess())
-                {
-                    string errorMessage = $"Unable to update the specification - {specificationId}, with provider version id  - {providerVersionId}. HttpStatusCode - {httpStatusCode}";
+                    string errorMessage = $"Failed to upload provider version {providerVersionId}. {GetErrorMessage(actionResult, providerVersionId)}";
 
                     _logger.Error(errorMessage);
 
                     throw new Exception(errorMessage);
                 }
-
-                JobCreateModel mapFdzDatasetsJobCreateModel = new JobCreateModel
-                {
-                    Trigger = new Trigger
-                    {
-                        EntityId = specificationId,
-                        EntityType = "Specification",
-                        Message = "Map datasets for all relationships in specification"
-                    },
-                    InvokerUserId = user.Id,
-                    InvokerUserDisplayName = user.Name,
-                    JobDefinitionId = JobConstants.DefinitionNames.MapFdzDatasetsJob,
-                    ParentJobId = null,
-                    SpecificationId = specificationId,
-                    CorrelationId = correlationId,
-                    Properties = new Dictionary<string, string>
-                {
-                    {"specification-id", specificationId}
-                }
-                };
-
-                try
-                {
-                    await _jobManagement.QueueJob(mapFdzDatasetsJobCreateModel);
-                }
-                catch (Exception ex)
-                {
-                    string errorMessage = $"Failed to queue MapFdzDatasetsJob for specification - {specificationId}";
-                    _logger.Error(ex, errorMessage);
-                    throw;
-                }
-
-                await _jobManagement.UpdateJobStatus(jobId, 0, 0, true, null);
             }
-            catch (NonRetriableException)
-            {
-                await _jobManagement.UpdateJobStatus(jobId, 0, 0, false, "Provider snapshot data load job failed.");
 
-                throw;
-            }
-        }
+            HttpStatusCode httpStatusCode = await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.SetProviderVersion(specificationId, providerVersionId));
 
-        private async Task EnsureJobCanBeProcessed(string jobId)
-        {
-            try
+            if (!httpStatusCode.IsSuccess())
             {
-                await _jobManagement.RetrieveJobAndCheckCanBeProcessed(jobId);
-            }
-            catch
-            {
-                string errorMessage = "Job can not be run";
+                string errorMessage = $"Unable to update the specification - {specificationId}, with provider version id  - {providerVersionId}. HttpStatusCode - {httpStatusCode}";
+
                 _logger.Error(errorMessage);
 
-                throw new NonRetriableException(errorMessage);
+                throw new Exception(errorMessage);
+            }
+
+            JobCreateModel mapFdzDatasetsJobCreateModel = new JobCreateModel
+            {
+                Trigger = new Trigger
+                {
+                    EntityId = specificationId,
+                    EntityType = "Specification",
+                    Message = "Map datasets for all relationships in specification"
+                },
+                InvokerUserId = user.Id,
+                InvokerUserDisplayName = user.Name,
+                JobDefinitionId = JobConstants.DefinitionNames.MapFdzDatasetsJob,
+                ParentJobId = null,
+                SpecificationId = specificationId,
+                CorrelationId = correlationId,
+                Properties = new Dictionary<string, string>
+            {
+                {"specification-id", specificationId}
+            }
+            };
+
+            try
+            {
+                await _jobManagement.QueueJob(mapFdzDatasetsJobCreateModel);
+            }
+            catch (Exception ex)
+            {
+                string errorMessage = $"Failed to queue MapFdzDatasetsJob for specification - {specificationId}";
+                _logger.Error(ex, errorMessage);
+                throw;
             }
         }
 

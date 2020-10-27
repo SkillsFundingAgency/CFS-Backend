@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 using System.Net;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
-using CalculateFunding.Common.ApiClient.Policies.Models;
+using PolicyModels = CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Specs;
@@ -106,7 +106,42 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
                 .Be(1);
         }
 
-                [TestMethod]
+        [TestMethod]
+        public void Validate_GivenEmptyProviderSnapshotId_ValidIsFalse()
+        {
+            //Arrange
+            SpecificationEditModel model = CreateModel();
+            model.SpecificationId = "specId";
+
+            IPoliciesApiClient policiesApiClient = Substitute.For<IPoliciesApiClient>();
+
+            policiesApiClient
+            .GetFundingPeriodById(Arg.Any<string>())
+            .Returns(new ApiResponse<PolicyModels.FundingPeriod>(HttpStatusCode.OK, new PolicyModels.FundingPeriod()));
+
+            policiesApiClient
+            .GetFundingConfiguration(Arg.Any<string>(), Arg.Any<string>())
+            .Returns(new ApiResponse<PolicyModels.FundingConfig.FundingConfiguration>(HttpStatusCode.OK, new PolicyModels.FundingConfig.FundingConfiguration { ProviderSource = ProviderSource.FDZ }));
+
+            SpecificationEditModelValidator validator = CreateValidator(policiesApiClient: policiesApiClient);
+
+            //Act
+            ValidationResult result = validator.Validate(model);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .BeFalse();
+
+            result
+                .Errors
+                .Count
+                .Should()
+                .Be(1);
+        }
+
+        [TestMethod]
         public void Validate_GivenNonExistingFundingPeriodId_ValidIsFalse()
         {
             //Arrange
@@ -268,7 +303,11 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
 
             policiesApiClient
                 .GetFundingPeriodById(Arg.Any<string>())
-                .Returns(new ApiResponse<FundingPeriod>(statusCode));
+                .Returns(new ApiResponse<PolicyModels.FundingPeriod>(statusCode));
+
+            policiesApiClient
+            .GetFundingConfiguration(Arg.Any<string>(), Arg.Any<string>())
+            .Returns(new ApiResponse<PolicyModels.FundingConfig.FundingConfiguration>(HttpStatusCode.OK, new PolicyModels.FundingConfig.FundingConfiguration()));
 
             return policiesApiClient;
         }
@@ -281,7 +320,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
             return new SpecificationEditModelValidator(
                 repository ?? CreateSpecificationsRepository(),
                 providersApiClient ?? CreateProviderApiClient(),
-                policiesApiClient ?? CreatePoliciesApiClient());
+                policiesApiClient ?? CreatePoliciesApiClient(),
+                SpecificationsResilienceTestHelper.GenerateTestPolicies());
         }
     }
 }

@@ -3,12 +3,13 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Versioning;
+using CalculateFunding.Services.Jobs.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 
 namespace CalculateFunding.Services.Specs.Interfaces
 {
-    public interface ISpecificationsService
+    public interface ISpecificationsService : IJobProcessingService
     {
         Task<IActionResult> CreateSpecification(SpecificationCreateModel specificationCreateModel, Reference user, string correlationId);
 
@@ -31,8 +32,6 @@ namespace CalculateFunding.Services.Specs.Interfaces
         Task<IActionResult> GetSpecificationSummaryById(string specificationId);
 
         Task<IActionResult> GetSpecificationSummariesByIds(string[] specificationIds);
-
-        Task AssignDataDefinitionRelationship(Message message);
 
         Task<IActionResult> ReIndex();
 

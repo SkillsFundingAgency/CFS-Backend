@@ -12,7 +12,7 @@ using Serilog;
 
 namespace CalculateFunding.Functions.TestEngine.ServiceBus
 {
-    public class OnTestSpecificationProviderResultsCleanup : SmokeTest
+    public class OnTestSpecificationProviderResultsCleanup : Retriable
     {
         private readonly ILogger _logger;
         private readonly ITestResultsService _testResultsService;
@@ -23,7 +23,7 @@ namespace CalculateFunding.Functions.TestEngine.ServiceBus
             ITestResultsService testResultsService,
             IMessengerService messengerService,
             IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider)
+            : base(logger, messengerService, FunctionName, $"{ServiceBusConstants.TopicNames.ProviderSourceDatasetCleanup}/{ServiceBusConstants.TopicSubscribers.CleanupTestResultsForSpecificationProviders}" , useAzureStorage, userProfileProvider, testResultsService)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(testResultsService, nameof(testResultsService));
@@ -38,19 +38,11 @@ namespace CalculateFunding.Functions.TestEngine.ServiceBus
             ServiceBusConstants.TopicSubscribers.CleanupTestResultsForSpecificationProviders,
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            await Run(async () =>
-            {
-                try
+            await Run(message,
+                async () =>
                 {
                     await _testResultsService.CleanupTestResultsForSpecificationProviders(message);
-                }
-                catch (Exception exception)
-                {
-                    _logger.Error(exception, $"An error occurred getting message from topic: {ServiceBusConstants.TopicNames.ProviderSourceDatasetCleanup}");
-                    throw;
-                }
-            },
-            message);
+                });
         }
     }
 }

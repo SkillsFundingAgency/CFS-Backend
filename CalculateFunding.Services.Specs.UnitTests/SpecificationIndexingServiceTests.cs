@@ -14,6 +14,7 @@ using Microsoft.Azure.ServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Polly;
+using Serilog;
 
 namespace CalculateFunding.Services.Specs.UnitTests
 {
@@ -21,6 +22,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
     public class SpecificationIndexingServiceTests
     {
         private Mock<IJobManagement> _jobs;
+        private Mock<ILogger> _logger;
         private Mock<ISpecificationIndexer> _indexer;
         private Mock<ISpecificationsRepository> _specifications;
 
@@ -32,8 +34,10 @@ namespace CalculateFunding.Services.Specs.UnitTests
             _jobs = new Mock<IJobManagement>();
             _indexer = new Mock<ISpecificationIndexer>();
             _specifications = new Mock<ISpecificationsRepository>();
-            
+            _logger = new Mock<ILogger>();
+
             _service = new SpecificationIndexingService(_jobs.Object,
+                _logger.Object,
                 _indexer.Object,
                 _specifications.Object,
                 new SpecificationsResiliencePolicies
@@ -126,7 +130,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
 
         private void ThenTheJobTrackingWasStarted(string jobId)
         {
-            TheJobIdHadJobLogWithCompletedFlag(jobId, false);
+            TheJobIdHadJobLogWithCompletedFlag(jobId);
         }
 
         private void AndTheJobTrackingWasCompleted(string jobId)
@@ -135,10 +139,9 @@ namespace CalculateFunding.Services.Specs.UnitTests
         }
 
         private void TheJobIdHadJobLogWithCompletedFlag(string jobId,
-            bool completed)
+            bool? completed = null)
         {
-            _jobs.Verify(_ => _.UpdateJobStatus(jobId, It.Is<JobLogUpdateModel>(log => 
-                    log.CompletedSuccessfully == completed)),
+            _jobs.Verify(_ => _.UpdateJobStatus(jobId, 0, 0, completed, null),
                 Times.Once);    
         }
 

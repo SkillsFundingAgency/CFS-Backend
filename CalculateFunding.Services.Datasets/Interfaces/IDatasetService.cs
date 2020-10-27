@@ -2,13 +2,14 @@
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.ViewModels;
+using CalculateFunding.Services.Jobs.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 
 namespace CalculateFunding.Services.Datasets.Interfaces
 {
-    public interface IDatasetService
+    public interface IDatasetService : IJobProcessingService
     {
         Task<IActionResult> CreateNewDataset(CreateNewDatasetModel model, Reference author);
 
@@ -21,8 +22,6 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         Task<IActionResult> GetCurrentDatasetVersionByDatasetId(string datasetId);
 
         Task<IActionResult> ValidateDataset(GetDatasetBlobModel getDatasetBlobModel, Reference user, string correlationId);
-
-        Task ValidateDataset(Message message);
 
         Task<IActionResult> GetDatasetsByDefinitionId(string definitionId);
 

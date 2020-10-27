@@ -40,7 +40,7 @@ namespace CalculateFunding.Services.Results.UnitTests
             ProviderCalculationResultsReIndexerService service = CreateService(logger: logger);
 
             //Act
-            await service.ReIndexCalculationResults(message);
+            await service.Process(message);
 
             //Assert
             logger
@@ -95,7 +95,7 @@ namespace CalculateFunding.Services.Results.UnitTests
                 logger: logger);
 
             //Act
-            Func<Task> test = async () => await service.ReIndexCalculationResults(message);
+            Func<Task> test = async () => await service.Process(message);
 
             //Assert
             test
@@ -155,7 +155,7 @@ namespace CalculateFunding.Services.Results.UnitTests
                 featureToggle: featureToggle);
 
             //Act
-            await service.ReIndexCalculationResults(message);
+            await service.Process(message);
 
             //Assert
             await
@@ -225,7 +225,7 @@ namespace CalculateFunding.Services.Results.UnitTests
                 specificationsApiClient: specificationsApiClient);
 
             //Act
-            await service.ReIndexCalculationResults(message);
+            await service.Process(message);
 
             //Assert
             await

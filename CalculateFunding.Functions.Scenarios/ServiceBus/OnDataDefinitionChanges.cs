@@ -12,7 +12,7 @@ using Serilog;
 
 namespace CalculateFunding.Functions.Scenarios.ServiceBus
 {
-    public class OnDataDefinitionChanges : SmokeTest
+    public class OnDataDefinitionChanges : Retriable
     {
         private readonly ILogger _logger;
         private readonly IDatasetDefinitionFieldChangesProcessor _datasetDefinitionFieldChangesProcessor;
@@ -23,13 +23,8 @@ namespace CalculateFunding.Functions.Scenarios.ServiceBus
             IDatasetDefinitionFieldChangesProcessor datasetDefinitionFieldChangesProcessor,
             IMessengerService messengerService,
             IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider)
+            : base(logger, messengerService, FunctionName, $"{ServiceBusConstants.TopicNames.DataDefinitionChanges}/{ServiceBusConstants.TopicSubscribers.UpdateScenarioFieldDefinitionProperties}", useAzureStorage, userProfileProvider, datasetDefinitionFieldChangesProcessor)
         {
-            Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(datasetDefinitionFieldChangesProcessor, nameof(datasetDefinitionFieldChangesProcessor));
-
-            _logger = logger;
-            _datasetDefinitionFieldChangesProcessor = datasetDefinitionFieldChangesProcessor;
         }
 
         [FunctionName(FunctionName)]
@@ -38,19 +33,7 @@ namespace CalculateFunding.Functions.Scenarios.ServiceBus
             ServiceBusConstants.TopicSubscribers.UpdateScenarioFieldDefinitionProperties,
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            await Run(async () =>
-            {
-                try
-                {
-                    await _datasetDefinitionFieldChangesProcessor.ProcessChanges(message);
-                }
-                catch (Exception exception)
-                {
-                    _logger.Error(exception, $"An error occurred getting message from topic: {ServiceBusConstants.TopicNames.DataDefinitionChanges}");
-                    throw;
-                }
-            },
-            message);
+            await base.Run(message);
         }
     }
 }

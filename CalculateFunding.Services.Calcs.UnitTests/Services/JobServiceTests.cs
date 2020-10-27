@@ -33,7 +33,7 @@ namespace CalculateFunding.Services.Calcs.Services
             JobService jobService = CreateJobService();
 
             //Act
-            await jobService.CreateInstructAllocationJob(message);
+            await jobService.Process(message);
 
             //Assert
             await
@@ -58,7 +58,7 @@ namespace CalculateFunding.Services.Calcs.Services
             JobService jobService = CreateJobService(jobManagement);
 
             //Act
-            await jobService.CreateInstructAllocationJob(message);
+            await jobService.Process(message);
 
             //Assert
             await
@@ -87,7 +87,7 @@ namespace CalculateFunding.Services.Calcs.Services
             JobService jobService = CreateJobService(jobManagement, logger);
 
             //Act
-            Func<Task> test = () => jobService.CreateInstructAllocationJob(message);
+            Func<Task> test = () => jobService.Process(message);
 
             //Assert
             test
@@ -128,7 +128,7 @@ namespace CalculateFunding.Services.Calcs.Services
             JobService jobService = CreateJobService(jobManagement, logger);
 
             //Act
-            await jobService.CreateInstructAllocationJob(message);
+            await jobService.Process(message);
 
             //Assert
             logger

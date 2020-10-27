@@ -13,6 +13,7 @@ using CalculateFunding.Models.Jobs;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Jobs.Interfaces;
 using FluentValidation;
 using FluentValidation.Results;
@@ -23,7 +24,7 @@ using Serilog;
 
 namespace CalculateFunding.Services.Jobs
 {
-    public class JobManagementService : IJobManagementService, IHealthChecker
+    public class JobManagementService : ProcessingService, IJobManagementService, IHealthChecker
     {
         private const string SfaCorrelationId = "sfa-correlationId";
 
@@ -413,7 +414,7 @@ namespace CalculateFunding.Services.Jobs
             }
         }
 
-        public async Task ProcessJobNotification(Message message)
+        public override async Task Process(Message message)
         {
             Guard.ArgumentNotNull(message, nameof(message));
 

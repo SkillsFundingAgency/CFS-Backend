@@ -13,49 +13,29 @@ using Serilog;
 
 namespace CalculateFunding.Functions.Publishing.ServiceBus
 {
-    public class OnRefreshFunding : SmokeTest
+    public class OnRefreshFunding : Retriable
     {
         private readonly ILogger _logger;
         private readonly IRefreshService _refreshService;
         public const string FunctionName = "on-publishing-refresh-funding";
+        private const string QueueName = ServiceBusConstants.QueueNames.PublishingRefreshFunding;
 
         public OnRefreshFunding(
             ILogger logger,
             IRefreshService refreshService,
             IMessengerService messengerService,
             IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider)
+            : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, refreshService)
         {
-            Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(refreshService, nameof(refreshService));
-
-            _logger = logger;
-            _refreshService = refreshService;
         }
 
         [FunctionName(FunctionName)]
         public async Task Run([ServiceBusTrigger(
-            ServiceBusConstants.QueueNames.PublishingRefreshFunding,
+            QueueName,
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey,
             IsSessionsEnabled = true)] Message message)
         {
-            await Run(async () =>
-            {
-                try
-                {
-                    await _refreshService.RefreshResults(message);
-                }
-                catch (NonRetriableException ex)
-                {
-                    _logger.Error(ex, $"Job threw non retriable exception: {ServiceBusConstants.QueueNames.PublishingRefreshFunding}");
-                }
-                catch (Exception exception)
-                {
-                    _logger.Error(exception, $"An error occurred getting message from topic: {ServiceBusConstants.QueueNames.PublishingRefreshFunding}");
-                    throw;
-                }
-            },
-            message);
+            await base.Run(message);
         }
     }
 }

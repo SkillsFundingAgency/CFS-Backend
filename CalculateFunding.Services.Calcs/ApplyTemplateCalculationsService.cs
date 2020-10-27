@@ -9,6 +9,7 @@ using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata.Enums;
 using CalculateFunding.Common.TemplateMetadata.Models;
@@ -17,6 +18,7 @@ using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Jobs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -28,9 +30,8 @@ using FundingLine = CalculateFunding.Common.TemplateMetadata.Models.FundingLine;
 
 namespace CalculateFunding.Services.Calcs
 {
-    public class ApplyTemplateCalculationsService : IApplyTemplateCalculationsService
+    public class ApplyTemplateCalculationsService : JobProcessingService, IApplyTemplateCalculationsService
     {
-        private readonly IApplyTemplateCalculationsJobTrackerFactory _jobTrackerFactory;
         private readonly ICreateCalculationService _createCalculationService;
         private readonly ICalculationsRepository _calculationsRepository;
         private readonly IPoliciesApiClient _policiesApiClient;
@@ -49,17 +50,16 @@ namespace CalculateFunding.Services.Calcs
             IPoliciesApiClient policiesApiClient,
             ICalcsResiliencePolicies calculationsResiliencePolicies,
             ICalculationsRepository calculationsRepository,
-            IApplyTemplateCalculationsJobTrackerFactory jobTrackerFactory,
+            IJobManagement jobManagement,
             IInstructionAllocationJobCreation instructionAllocationJobCreation,
             ILogger logger,
             ICalculationService calculationService,
             ICacheProvider cacheProvider,
             ISpecificationsApiClient specificationsApiClient,
             IGraphRepository graphRepository,
-            ICodeContextCache codeContextCache)
+            ICodeContextCache codeContextCache) : base (jobManagement, logger)
         {
             Guard.ArgumentNotNull(instructionAllocationJobCreation, nameof(instructionAllocationJobCreation));
-            Guard.ArgumentNotNull(jobTrackerFactory, nameof(jobTrackerFactory));
             Guard.ArgumentNotNull(createCalculationService, nameof(createCalculationService));
             Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
             Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
@@ -79,7 +79,6 @@ namespace CalculateFunding.Services.Calcs
             _calculationsRepositoryPolicy = calculationsResiliencePolicies.CalculationsRepository;
             _logger = logger;
             _instructionAllocationJobCreation = instructionAllocationJobCreation;
-            _jobTrackerFactory = jobTrackerFactory;
             _calculationService = calculationService;
             _cachePolicy = calculationsResiliencePolicies.CacheProviderPolicy;
             _cacheProvider = cacheProvider;
@@ -88,109 +87,90 @@ namespace CalculateFunding.Services.Calcs
             _specificationsApiClientPolicy = calculationsResiliencePolicies.SpecificationsApiClient;
         }
 
-        public async Task ApplyTemplateCalculation(Message message)
+        public override async Task Process(Message message)
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
-            IApplyTemplateCalculationsJobTracker jobTracker = _jobTrackerFactory.CreateJobTracker(message);
+            string specificationId = UserPropertyFrom(message, "specification-id");
+            string fundingStreamId = UserPropertyFrom(message, "fundingstream-id");
+            string templateVersion = UserPropertyFrom(message, "template-version");
 
-            try
+            string correlationId = message.GetCorrelationId();
+            Reference author = message.GetUserDetails();
+
+            TemplateMapping templateMapping = await _calculationsRepositoryPolicy.ExecuteAsync(
+                () => _calculationsRepository.GetTemplateMapping(specificationId, fundingStreamId));
+
+            if (templateMapping == null)
             {
-                bool canRunJob = await jobTracker.TryStartTrackingJob();
-
-                if (!canRunJob) return;
-
-                string specificationId = UserPropertyFrom(message, "specification-id");
-                string fundingStreamId = UserPropertyFrom(message, "fundingstream-id");
-                string templateVersion = UserPropertyFrom(message, "template-version");
-
-                string correlationId = message.GetCorrelationId();
-                Reference author = message.GetUserDetails();
-
-                TemplateMapping templateMapping = await _calculationsRepositoryPolicy.ExecuteAsync(
-                    () => _calculationsRepository.GetTemplateMapping(specificationId, fundingStreamId));
-
-                if (templateMapping == null)
-                {
-                    LogAndThrowException(
-                        $"Did not locate Template Mapping for funding stream id {fundingStreamId} and specification id {specificationId}");
-                }
-
-                ApiResponse<SpecificationSummary> specificationApiResponse =
-                    await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId));
-
-                if (!specificationApiResponse.StatusCode.IsSuccess() || specificationApiResponse.Content == null)
-                {
-                    LogAndThrowException(
-                        $"Did not locate specification : {specificationId}");
-                }
-
-                SpecificationSummary specificationSummary = specificationApiResponse.Content;
-
-                ApiResponse<TemplateMetadataContents> templateContentsResponse = await _policiesResiliencePolicy.ExecuteAsync(
-                    () => _policiesApiClient.GetFundingTemplateContents(fundingStreamId, specificationSummary.FundingPeriod.Id, templateVersion));
-
-                TemplateMetadataContents templateMetadataContents = templateContentsResponse?.Content;
-
-                if (templateMetadataContents == null)
-                {
-                    LogAndThrowException(
-                        $"Did not locate Template Metadata Contents for funding stream id {fundingStreamId}, funding period id {specificationSummary.FundingPeriod.Id} and template version {templateVersion}");
-                }
-
-                TemplateMappingItem[] mappingsWithoutCalculations = templateMapping.TemplateMappingItems.Where(_ => _.CalculationId.IsNullOrWhitespace())
-                    .ToArray();
-
-                FundingLine[] flattenedFundingLines = templateMetadataContents.RootFundingLines.Flatten(_ => _.FundingLines).ToArray();
-
-                IDictionary<uint, Calculation> uniqueTemplateCalculations = flattenedFundingLines
-                    .SelectMany(_ => _.Calculations.Flatten(cal => cal.Calculations))
-                    .GroupBy(x => x.TemplateCalculationId)
-                    .Select(x => x.FirstOrDefault())
-                    .ToDictionary(_ => _.TemplateCalculationId);
-
-                TemplateMappingItem[] mappingsWithCalculations = templateMapping.TemplateMappingItems.Where(_ => !_.CalculationId.IsNullOrWhitespace())
-                    .ToArray();
-
-                int itemCount = uniqueTemplateCalculations.Count;
-
-                int startingItemCount = itemCount - mappingsWithoutCalculations.Length - mappingsWithCalculations.Length;
-
-                await jobTracker.NotifyProgress(startingItemCount + 1);
-
-                mappingsWithCalculations = await EnsureAllRequiredCalculationsExist(mappingsWithoutCalculations,
-                    mappingsWithCalculations,
-                    fundingStreamId,
-                    specificationSummary,
-                    author,
-                    correlationId,
-                    startingItemCount,
-                    jobTracker,
-                    uniqueTemplateCalculations);
-
-                await EnsureAllExistingCalculationsModified(mappingsWithCalculations,
-                    specificationSummary,
-                    correlationId,
-                    author,
-                    uniqueTemplateCalculations,
-                    jobTracker,
-                    startingItemCount + mappingsWithoutCalculations.Length);
-
-                // refresh template mapping
-                await RefreshTemplateMapping(specificationId, fundingStreamId, templateMapping);
-
-                await jobTracker.CompleteTrackingJob("Completed Successfully", itemCount);
-
-                await InitiateCalculationRun(specificationId, author, correlationId);
-
-                await QueueUpdateCodeContextJob(specificationId);
+                LogAndThrowException(
+                    $"Did not locate Template Mapping for funding stream id {fundingStreamId} and specification id {specificationId}");
             }
-            catch (Exception ex)
+
+            ApiResponse<SpecificationSummary> specificationApiResponse =
+                await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId));
+
+            if (!specificationApiResponse.StatusCode.IsSuccess() || specificationApiResponse.Content == null)
             {
-                await jobTracker.FailJob(ex.Message);
-
-                throw;
+                LogAndThrowException(
+                    $"Did not locate specification : {specificationId}");
             }
+
+            SpecificationSummary specificationSummary = specificationApiResponse.Content;
+
+            ApiResponse<TemplateMetadataContents> templateContentsResponse = await _policiesResiliencePolicy.ExecuteAsync(
+                () => _policiesApiClient.GetFundingTemplateContents(fundingStreamId, specificationSummary.FundingPeriod.Id, templateVersion));
+
+            TemplateMetadataContents templateMetadataContents = templateContentsResponse?.Content;
+
+            if (templateMetadataContents == null)
+            {
+                LogAndThrowException(
+                    $"Did not locate Template Metadata Contents for funding stream id {fundingStreamId}, funding period id {specificationSummary.FundingPeriod.Id} and template version {templateVersion}");
+            }
+
+            TemplateMappingItem[] mappingsWithoutCalculations = templateMapping.TemplateMappingItems.Where(_ => _.CalculationId.IsNullOrWhitespace())
+                .ToArray();
+
+            FundingLine[] flattenedFundingLines = templateMetadataContents.RootFundingLines.Flatten(_ => _.FundingLines).ToArray();
+
+            IDictionary<uint, Calculation> uniqueTemplateCalculations = flattenedFundingLines
+                .SelectMany(_ => _.Calculations.Flatten(cal => cal.Calculations))
+                .GroupBy(x => x.TemplateCalculationId)
+                .Select(x => x.FirstOrDefault())
+                .ToDictionary(_ => _.TemplateCalculationId);
+
+            TemplateMappingItem[] mappingsWithCalculations = templateMapping.TemplateMappingItems.Where(_ => !_.CalculationId.IsNullOrWhitespace())
+                .ToArray();
+
+            int itemCount = uniqueTemplateCalculations.Count;
+
+            int startingItemCount = itemCount - mappingsWithoutCalculations.Length - mappingsWithCalculations.Length;
+
+            await NotifyProgress(startingItemCount + 1);
+
+            mappingsWithCalculations = await EnsureAllRequiredCalculationsExist(mappingsWithoutCalculations,
+                mappingsWithCalculations,
+                fundingStreamId,
+                specificationSummary,
+                author,
+                correlationId,
+                startingItemCount,
+                uniqueTemplateCalculations);
+
+            await EnsureAllExistingCalculationsModified(mappingsWithCalculations,
+                specificationSummary,
+                correlationId,
+                author,
+                uniqueTemplateCalculations,
+                startingItemCount + mappingsWithoutCalculations.Length);
+
+            // refresh template mapping
+            await RefreshTemplateMapping(specificationId, fundingStreamId, templateMapping);
+
+            await InitiateCalculationRun(specificationId, author, correlationId);
+
+            await QueueUpdateCodeContextJob(specificationId);
         }
 
         private async Task QueueUpdateCodeContextJob(string specificationId)
@@ -203,7 +183,6 @@ namespace CalculateFunding.Services.Calcs
             string correlationId,
             Reference author,
             IDictionary<uint, Calculation> uniqueTemplateCalculations,
-            IApplyTemplateCalculationsJobTracker jobTracker,
             int startingItemCount)
         {
             if (!mappingsWithCalculations.Any()) return;
@@ -219,7 +198,7 @@ namespace CalculateFunding.Services.Calcs
                 Calculation templateCalculation = AllCalculation[calculationCount].TemplateCalculation;
                 Models.Calcs.Calculation existingCalculation = AllCalculation[calculationCount].Calculation;
 
-                if ((calculationCount + 1) % 10 == 0) await jobTracker.NotifyProgress(startingItemCount + calculationCount + 1);
+                if ((calculationCount + 1) % 10 == 0) await NotifyProgress(startingItemCount + calculationCount + 1);
 
                 CalculationEditModel calculationEditModel = new CalculationEditModel
                 {
@@ -281,7 +260,6 @@ namespace CalculateFunding.Services.Calcs
             Reference author,
             string correlationId,
             int startingItemCount,
-            IApplyTemplateCalculationsJobTracker jobTracker,
             IDictionary<uint, Calculation> uniqueTemplateCalculations)
         {
             if (!mappingsWithoutCalculations.Any()) return mappingsWithCalculations;
@@ -308,7 +286,7 @@ namespace CalculateFunding.Services.Calcs
                         uniqueTemplateCalculations);
                 }
 
-                if ((calculationCount + 1) % 10 == 0) await jobTracker.NotifyProgress(startingItemCount + calculationCount + 1);
+                if ((calculationCount + 1) % 10 == 0) await NotifyProgress(startingItemCount + calculationCount + 1);
             }
 
             return mappingsWithCalculations;

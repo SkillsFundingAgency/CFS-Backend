@@ -353,7 +353,7 @@ namespace CalculateFunding.Services.Results.UnitTests
             => await _service.QueueMergeSpecificationInformationJob(mergeRequest, user, correlationId);
 
         private async Task WhenTheSpecificationInformationIsMerged(Message message)
-            => await _service.MergeSpecificationInformation(message);
+            => await _service.Run(message);
 
         private async Task WhenTheSpecificationInformationIsMerged(MergeSpecificationInformationRequest mergeRequest,
             ConcurrentDictionary<string, FundingPeriod> fundingPeriods = null)

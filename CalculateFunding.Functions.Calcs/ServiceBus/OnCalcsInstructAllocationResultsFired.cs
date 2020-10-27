@@ -14,24 +14,18 @@ using Serilog;
 
 namespace CalculateFunding.Functions.Calcs.ServiceBus
 {
-    public class OnCalcsInstructAllocationResults : SmokeTest
+    public class OnCalcsInstructAllocationResults : Retriable
     {
-        private readonly ILogger _logger;
-        private readonly IBuildProjectsService _buildProjectsService;
         public const string FunctionName = "on-calcs-instruct-allocations";
+        public const string QueueName = ServiceBusConstants.QueueNames.CalculationJobInitialiser;
 
         public OnCalcsInstructAllocationResults(
             ILogger logger,
             IBuildProjectsService buildProjectsService,
             IMessengerService messengerService,
             IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider)
+            : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, buildProjectsService)
         {
-            Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(buildProjectsService, nameof(buildProjectsService));
-
-            _logger = logger;
-            _buildProjectsService = buildProjectsService;
         }
 
         [FunctionName(FunctionName)]
@@ -39,23 +33,7 @@ namespace CalculateFunding.Functions.Calcs.ServiceBus
             ServiceBusConstants.QueueNames.CalculationJobInitialiser,
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            await Run(async () =>
-            {
-                try
-                {
-                    await _buildProjectsService.UpdateAllocations(message);
-                }
-                catch (NonRetriableException ex)
-                {
-                    _logger.Error(ex, $"An error occurred processing message in queue, non retry: {ServiceBusConstants.QueueNames.CalculationJobInitialiser}");
-                }
-                catch (Exception exception)
-                {
-                    _logger.Error(exception, $"An error occurred processing message in queue: {ServiceBusConstants.QueueNames.CalculationJobInitialiser}");
-                    throw;
-                }
-            },
-            message);
+            await base.Run(message);
         }
     }
 

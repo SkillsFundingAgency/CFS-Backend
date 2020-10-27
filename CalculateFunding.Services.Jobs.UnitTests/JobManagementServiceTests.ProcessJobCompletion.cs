@@ -25,7 +25,7 @@ namespace CalculateFunding.Services.Jobs.Services
             JobManagementService jobManagementService = CreateJobManagementService();
 
             // Act
-            Func<Task> action = async () => await jobManagementService.ProcessJobNotification(null);
+            Func<Task> action = async () => await jobManagementService.Process(null);
 
             // Assert
             action
@@ -46,7 +46,7 @@ namespace CalculateFunding.Services.Jobs.Services
             Message message = new Message();
 
             // Act
-            Func<Task> action = async () => await jobManagementService.ProcessJobNotification(message);
+            Func<Task> action = async () => await jobManagementService.Process(message);
 
             // Assert
             action
@@ -80,7 +80,7 @@ namespace CalculateFunding.Services.Jobs.Services
             message.UserProperties["jobId"] = jobId;
 
             // Act
-            await jobManagementService.ProcessJobNotification(message);
+            await jobManagementService.Process(message);
 
             // Assert
             await jobRepository
@@ -104,7 +104,7 @@ namespace CalculateFunding.Services.Jobs.Services
             Message message = new Message(Encoding.UTF8.GetBytes(json));
 
             // Act
-            await jobManagementService.ProcessJobNotification(message);
+            await jobManagementService.Process(message);
 
             // Assert
             logger
@@ -139,7 +139,7 @@ namespace CalculateFunding.Services.Jobs.Services
             message.UserProperties["jobId"] = jobId;
 
             // Act
-            await jobManagementService.ProcessJobNotification(message);
+            await jobManagementService.Process(message);
 
             // Assert
             logger
@@ -175,7 +175,7 @@ namespace CalculateFunding.Services.Jobs.Services
             message.UserProperties["jobId"] = jobId;
 
             // Act
-            await jobManagementService.ProcessJobNotification(message);
+            await jobManagementService.Process(message);
 
             // Assert
             logger
@@ -221,7 +221,7 @@ namespace CalculateFunding.Services.Jobs.Services
             message.UserProperties["jobId"] = jobId;
 
             // Act
-            await jobManagementService.ProcessJobNotification(message);
+            await jobManagementService.Process(message);
 
             // Assert
             await jobRepository
@@ -278,7 +278,7 @@ namespace CalculateFunding.Services.Jobs.Services
             message.UserProperties["jobId"] = jobId;
 
             // Act
-            await jobManagementService.ProcessJobNotification(message);
+            await jobManagementService.Process(message);
 
             // Assert
             await jobRepository
@@ -346,7 +346,7 @@ namespace CalculateFunding.Services.Jobs.Services
             message.UserProperties["jobId"] = jobId;
 
             // Act
-            await jobManagementService.ProcessJobNotification(message);
+            await jobManagementService.Process(message);
 
             // Assert
             await jobRepository
@@ -399,7 +399,7 @@ namespace CalculateFunding.Services.Jobs.Services
             message.UserProperties["jobId"] = jobId;
 
             // Act
-            await jobManagementService.ProcessJobNotification(message);
+            await jobManagementService.Process(message);
 
             // Assert
             await jobRepository
@@ -457,8 +457,8 @@ namespace CalculateFunding.Services.Jobs.Services
             message2.UserProperties["jobId"] = jobId2;
 
             // Act
-            await jobManagementService.ProcessJobNotification(message1);
-            await jobManagementService.ProcessJobNotification(message2);
+            await jobManagementService.Process(message1);
+            await jobManagementService.Process(message2);
 
             // Assert
             await jobRepository
@@ -507,7 +507,7 @@ namespace CalculateFunding.Services.Jobs.Services
             message.UserProperties["jobId"] = jobId;
 
             // Act
-            await jobManagementService.ProcessJobNotification(message);
+            await jobManagementService.Process(message);
 
             // Assert
             await jobRepository
@@ -555,7 +555,7 @@ namespace CalculateFunding.Services.Jobs.Services
             message.UserProperties["jobId"] = jobId;
 
             // Act
-            await jobManagementService.ProcessJobNotification(message);
+            await jobManagementService.Process(message);
 
             // Assert
             await jobRepository
@@ -599,7 +599,7 @@ namespace CalculateFunding.Services.Jobs.Services
             message.UserProperties["jobId"] = jobId;
 
             // Act
-            await jobManagementService.ProcessJobNotification(message);
+            await jobManagementService.Process(message);
 
             // Assert
             await jobRepository
@@ -643,7 +643,7 @@ namespace CalculateFunding.Services.Jobs.Services
             message.UserProperties["jobId"] = jobId;
 
             // Act
-            await jobManagementService.ProcessJobNotification(message);
+            await jobManagementService.Process(message);
 
             // Assert
             await jobRepository
@@ -687,7 +687,7 @@ namespace CalculateFunding.Services.Jobs.Services
             message.UserProperties["jobId"] = jobId;
 
             // Act
-            await jobManagementService.ProcessJobNotification(message);
+            await jobManagementService.Process(message);
 
             // Assert
             await jobRepository
@@ -733,7 +733,7 @@ namespace CalculateFunding.Services.Jobs.Services
             message.UserProperties["jobId"] = jobId;
 
             // Act
-            await jobManagementService.ProcessJobNotification(message);
+            await jobManagementService.Process(message);
 
             // Assert
             await jobRepository
@@ -807,7 +807,7 @@ namespace CalculateFunding.Services.Jobs.Services
             message.UserProperties["jobId"] = jobId;
 
             // Act
-            await jobManagementService.ProcessJobNotification(message);
+            await jobManagementService.Process(message);
 
             // Assert
             await jobRepository
@@ -851,7 +851,7 @@ namespace CalculateFunding.Services.Jobs.Services
             message.UserProperties["jobId"] = jobId;
 
             // Act
-            await jobManagementService.ProcessJobNotification(message);
+            await jobManagementService.Process(message);
 
             // Assert
             await notificationService

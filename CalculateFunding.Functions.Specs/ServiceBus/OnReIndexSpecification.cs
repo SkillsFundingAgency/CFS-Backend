@@ -25,7 +25,7 @@ namespace CalculateFunding.Functions.Specs.ServiceBus
             ISpecificationIndexingService specificationIndexing,
             IMessengerService messengerService,
             IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider)
+            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider, specificationIndexing)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(specificationIndexing, nameof(specificationIndexing));
@@ -39,19 +39,7 @@ namespace CalculateFunding.Functions.Specs.ServiceBus
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey,
             IsSessionsEnabled = true)] Message message)
         {
-            await Run(async () =>
-            {
-                try
-                {
-                    await _specificationIndexing.Run(message);
-                }
-                catch (Exception exception)
-                {
-                    _logger.Error(exception, $"An error occurred getting message from queue: {ReIndexSingleSpecification}");
-                    throw;
-                }
-            },
-            message);
+            await base.Run(message);
         }
     }
 }

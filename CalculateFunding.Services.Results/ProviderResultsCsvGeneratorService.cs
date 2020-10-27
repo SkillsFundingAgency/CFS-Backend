@@ -14,6 +14,7 @@ using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
+using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.Storage.Blob;
@@ -22,7 +23,7 @@ using Serilog;
 
 namespace CalculateFunding.Services.Results
 {
-    public class ProviderResultsCsvGeneratorService : IProviderResultsCsvGeneratorService, IHealthChecker
+    public class ProviderResultsCsvGeneratorService : ProcessingService, IProviderResultsCsvGeneratorService, IHealthChecker
     {
         public const int BatchSize = 100;
         
@@ -69,7 +70,7 @@ namespace CalculateFunding.Services.Results
             _jobManagement = jobManagement;
         }
 
-        public async Task Run(Message message)
+        public override async Task Process(Message message)
         {
             string specificationId = message.GetUserProperty<string>("specification-id");
             string specificationName = message.GetUserProperty<string>("specification-name");

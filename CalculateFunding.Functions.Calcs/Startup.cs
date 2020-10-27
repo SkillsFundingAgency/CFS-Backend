@@ -91,6 +91,7 @@ namespace CalculateFunding.Functions.Calcs
                 builder.AddScoped<OnReIndexSpecificationCalculationRelationships>();
                 builder.AddScoped<OnReIndexSpecificationCalculationRelationshipsFailure>();
                 builder.AddScoped<OnDeleteCalculations>();
+                builder.AddScoped<OnDeleteCalculationsFailure>();
                 builder.AddScoped<OnUpdateCodeContextCache>();
                 builder.AddScoped<OnUpdateCodeContextCacheFailure>();
             }

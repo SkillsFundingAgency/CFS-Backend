@@ -13,51 +13,30 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Functions.Publishing.ServiceBus
 {
-    public class OnGeneratePublishedProviderEstateCsv : SmokeTest
+    public class OnGeneratePublishedProviderEstateCsv : Retriable
     {
         private readonly ILogger _logger;
         private readonly IPublishedProviderEstateCsvGenerator _csvGenerator;
 
         private const string FunctionName = "on-publishing-generate-published-provider-estate-csv";
+        private const string QueueName = ServiceBusConstants.QueueNames.GeneratePublishedProviderEstateCsv;
 
         public OnGeneratePublishedProviderEstateCsv(
             ILogger logger,
             IPublishedProviderEstateCsvGenerator csvGenerator,
             IMessengerService messengerService,
             IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider)
+            : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, csvGenerator)
         {
-            Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(csvGenerator, nameof(csvGenerator));
-
-            _logger = logger;
-            _csvGenerator = csvGenerator;
         }
 
         [FunctionName(FunctionName)]
         public async Task Run([ServiceBusTrigger(
-                ServiceBusConstants.QueueNames.GeneratePublishedProviderEstateCsv,
+                QueueName,
                 Connection = ServiceBusConstants.ConnectionStringConfigurationKey)]
                 Message message)
         {
-            await Run(async () =>
-            {
-                try
-                {
-                    await _csvGenerator.Run(message);
-                }
-                catch (NonRetriableException e)
-                {
-                    _logger.Error(e, $"Unable to complete job {FunctionName}");
-                }
-                catch (Exception e)
-                {
-                    _logger.Error(e, $"Encountered error completing job {FunctionName}");
-
-                    throw;
-                }
-            },
-                message);
+            await base.Run(message);
         }
     }
 }

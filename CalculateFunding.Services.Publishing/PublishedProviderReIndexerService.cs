@@ -9,6 +9,7 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Jobs;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Polly;
@@ -16,9 +17,8 @@ using Serilog;
 
 namespace CalculateFunding.Services.Publishing
 {
-    public class PublishedProviderReIndexerService : IPublishedProviderReIndexerService
+    public class PublishedProviderReIndexerService : JobProcessingService, IPublishedProviderReIndexerService
     {
-        private readonly IJobManagement _jobManagement;
         private readonly ISearchRepository<PublishedProviderIndex> _searchRepository;
         private readonly AsyncPolicy _searchRepositoryResilience;
         private readonly IPublishedFundingRepository _publishedFundingRepository;
@@ -31,24 +31,22 @@ namespace CalculateFunding.Services.Publishing
             IPublishingResiliencePolicies publishingResiliencePolicies,
             IPublishedFundingRepository publishedFundingRepository,
             IJobManagement jobManagement,
-            ILogger logger)
+            ILogger logger) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
             Guard.ArgumentNotNull(publishingResiliencePolicies?.PublishedProviderSearchRepository, nameof(publishingResiliencePolicies.PublishedProviderSearchRepository));
             Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
             Guard.ArgumentNotNull(publishingResiliencePolicies?.PublishedFundingRepository, nameof(publishingResiliencePolicies.PublishedFundingRepository));
-            Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(logger, nameof(logger));
 
             _searchRepository = searchRepository;
             _searchRepositoryResilience = publishingResiliencePolicies.PublishedProviderSearchRepository;
             _publishedFundingRepository = publishedFundingRepository;
             _publishedFundingResilience = publishingResiliencePolicies.PublishedFundingRepository;
-            _jobManagement = jobManagement;
             _logger = logger;
         }
 
-        public async Task Run(Message message)
+        public override async Task Process(Message message)
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
@@ -59,27 +57,7 @@ namespace CalculateFunding.Services.Publishing
                 _logger.Information($"{nameof(PublishedProviderReIndexerService)} initiated by: '{user.Name}'");
             }
 
-            string jobId = message.GetUserProperty<string>("jobId");
-
-            Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
-
             string specificationId = message.GetUserProperty<string>("specification-id");
-
-            try
-            {
-                await _jobManagement.RetrieveJobAndCheckCanBeProcessed(jobId);
-            }
-            catch
-            {
-                string errorMessage = "Job cannot be run";
-
-                _logger.Error(errorMessage);
-
-                throw new NonRetriableException(errorMessage);
-            }
-
-            // Update job to set status to processing
-            await _jobManagement.UpdateJobStatus(jobId, 0, 0, null, null);
 
             await _publishedFundingResilience.ExecuteAsync(() => _publishedFundingRepository.AllPublishedProviderBatchProcessing(async providerVersions =>
             {
@@ -118,10 +96,6 @@ namespace CalculateFunding.Services.Publishing
             },
             BatchSize,
             specificationId));
-
-            _logger.Information($"Completing published provider reindex job. JobId='{jobId}'");
-            await _jobManagement.UpdateJobStatus(jobId, 0, 0, true, null);
-            _logger.Information($"Completed published provider reindex job. JobId='{jobId}'");
         }
     }
 }

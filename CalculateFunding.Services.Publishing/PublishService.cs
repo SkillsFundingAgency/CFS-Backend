@@ -14,6 +14,8 @@ using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Jobs;
+using CalculateFunding.Services.Jobs.Interfaces;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using Microsoft.Azure.ServiceBus;
@@ -22,7 +24,7 @@ using Serilog;
 
 namespace CalculateFunding.Services.Publishing
 {
-    public class PublishService : IPublishService
+    public class PublishService : JobProcessingService, IPublishService
     {
         private const string SfaCorrelationId = "sfa-correlationId";
         
@@ -71,7 +73,7 @@ namespace CalculateFunding.Services.Publishing
             IPublishedFundingService publishedFundingService,
             IPublishedFundingDataService publishedFundingDataService,
             IPoliciesService policiesService,
-            ICreatePublishIntegrityJob createPublishIntegrityJob)
+            ICreatePublishIntegrityJob createPublishIntegrityJob) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(generateCsvJobsLocator, nameof(generateCsvJobsLocator));
             Guard.ArgumentNotNull(publishedFundingStatusUpdateService, nameof(publishedFundingStatusUpdateService));
@@ -122,6 +124,11 @@ namespace CalculateFunding.Services.Publishing
             _createPublishIntegrityJob = createPublishIntegrityJob;
         }
 
+        public override async Task Process(Message message)
+        {
+            await PublishProviderFundingResults(message);
+        }
+
         public async Task PublishProviderFundingResults(Message message, bool batched = false)
         {
             Guard.ArgumentNotNull(message, nameof(message));
@@ -132,13 +139,7 @@ namespace CalculateFunding.Services.Publishing
             Reference author = message.GetUserDetails();
 
             string specificationId = message.UserProperties["specification-id"] as string;
-            string jobId = message.UserProperties["jobId"]?.ToString();
-
-            await EnsureJobCanBeProcessed(jobId);
-
-            // Update job to set status to processing
-            await _jobManagement.UpdateJobStatus(jobId, 0, 0, null, null);
-
+            
             SpecificationSummary specification = await _specificationService.GetSpecificationSummaryById(specificationId);
 
             if (specification == null)
@@ -160,7 +161,7 @@ namespace CalculateFunding.Services.Publishing
             {
                 await PublishFundingStream(fundingStream, 
                     specification, 
-                    jobId, 
+                    Job.Id, 
                     author, 
                     correlationId,
                     batched ? PrerequisiteCheckerType.ReleaseBatchProviders : PrerequisiteCheckerType.ReleaseAllProviders,
@@ -171,12 +172,6 @@ namespace CalculateFunding.Services.Publishing
             await _publishedIndexSearchResiliencePolicy.ExecuteAsync(() => _publishedFundingSearchRepository.RunIndexer());
 
             await GenerateCsvJobs(specificationId, correlationId, specification, author);
-
-            // Mark job as complete
-            _logger.Information($"Marking publish funding job complete");
-
-            await _jobManagement.UpdateJobStatus(jobId, 0, 0, true, null);
-            _logger.Information($"Publish funding job complete");
         }
 
         private async Task GenerateCsvJobs(string specificationId, string correlationId, SpecificationSummary specification, Reference author)

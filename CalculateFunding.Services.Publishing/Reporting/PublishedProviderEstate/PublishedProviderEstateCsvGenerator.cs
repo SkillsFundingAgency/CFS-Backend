@@ -15,6 +15,7 @@ using System.Linq;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Reporting.FundingLines;
 using CalculateFunding.Common.Storage;
+using CalculateFunding.Common.JobManagement;
 
 namespace CalculateFunding.Services.Publishing.Reporting.PublishedProviderEstate
 {
@@ -28,7 +29,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.PublishedProviderEstate
         protected override string JobDefinitionName => JobConstants.DefinitionNames.GeneratePublishedProviderEstateCsvJob;
 
         public PublishedProviderEstateCsvGenerator(
-            IJobTracker jobTracker,
+            IJobManagement jobManagement,
             IFileSystemAccess fileSystemAccess,
             IFileSystemCacheSettings fileSystemCacheSettings,
             IBlobClient blobClient,
@@ -37,7 +38,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.PublishedProviderEstate
             ILogger logger,
             IPublishedProviderCsvTransformServiceLocator publishedProviderCsvTransformServiceLocator,
             IPublishingResiliencePolicies policies)
-            : base(jobTracker, fileSystemAccess, blobClient, policies, csvUtils, logger, fileSystemCacheSettings, publishedProviderCsvTransformServiceLocator)
+            : base(jobManagement, fileSystemAccess, blobClient, policies, csvUtils, logger, fileSystemCacheSettings, publishedProviderCsvTransformServiceLocator)
         {
             Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
             Guard.ArgumentNotNull(policies?.PublishedFundingRepository, nameof(policies.PublishedFundingRepository));

@@ -1,10 +1,10 @@
-﻿using Microsoft.Azure.ServiceBus;
+﻿using CalculateFunding.Services.Core.Interfaces.Services;
+using Microsoft.Azure.ServiceBus;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Scenarios.Interfaces
 {
-    public interface IDatasetDefinitionFieldChangesProcessor
+    public interface IDatasetDefinitionFieldChangesProcessor : IProcessingService
     {
-        Task ProcessChanges(Message message);
     }
 }

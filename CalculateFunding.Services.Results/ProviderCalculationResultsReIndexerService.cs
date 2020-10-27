@@ -13,6 +13,7 @@ using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.FeatureToggles;
+using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
@@ -21,7 +22,7 @@ using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.Results
 {
-    public class ProviderCalculationResultsReIndexerService : IProviderCalculationResultsReIndexerService
+    public class ProviderCalculationResultsReIndexerService : ProcessingService, IProviderCalculationResultsReIndexerService
     {
         private readonly ILogger _logger;
         private readonly ISearchRepository<ProviderCalculationResultsIndex> _providerCalculationResultsSearchRepository;
@@ -74,7 +75,7 @@ namespace CalculateFunding.Services.Results
             return new NoContentResult();
         }
 
-        public async Task ReIndexCalculationResults(Message message)
+        public override async Task Process(Message message)
         {
             Guard.ArgumentNotNull(message, nameof(message));
 

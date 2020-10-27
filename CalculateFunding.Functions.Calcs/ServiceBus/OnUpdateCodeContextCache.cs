@@ -13,24 +13,18 @@ using Serilog;
 
 namespace CalculateFunding.Functions.Calcs.ServiceBus
 {
-    public class OnUpdateCodeContextCache : SmokeTest
+    public class OnUpdateCodeContextCache : Retriable
     {
-        private readonly ILogger _logger;
-        private readonly ICodeContextCache _codeContextCache;
         public const string FunctionName = "on-update-code-context-cache";
+        public const string QueueName = ServiceBusConstants.QueueNames.UpdateCodeContextCache;
 
         public OnUpdateCodeContextCache(
             ILogger logger,
             ICodeContextCache codeContextCache,
             IMessengerService messengerService,
             IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider)
+            : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, codeContextCache)
         {
-            Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(codeContextCache, nameof(codeContextCache));
-
-            _logger = logger;
-            _codeContextCache = codeContextCache;
         }
 
         [FunctionName(FunctionName)]
@@ -39,24 +33,7 @@ namespace CalculateFunding.Functions.Calcs.ServiceBus
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey,
             IsSessionsEnabled = true)] Message message)
         {
-            await Run(async () =>
-            {
-                try
-                {
-                    await _codeContextCache.UpdateCodeContextCacheEntry(message);
-                }
-                catch (NonRetriableException ex)
-                {
-                    _logger.Error(ex, $"Job threw non retriable exception: {ServiceBusConstants.QueueNames.UpdateCodeContextCache}");
-                }
-                catch (Exception exception)
-                {
-                    _logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.UpdateCodeContextCache}");
-
-                    throw;
-                }
-            },
-            message);
+            await base.Run(message);
         }
     }
 }

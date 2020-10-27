@@ -12,10 +12,8 @@ using Serilog;
 
 namespace CalculateFunding.Functions.Datasets.ServiceBus
 {
-    public class OnDataDefinitionChanges : SmokeTest
+    public class OnDataDefinitionChanges : Retriable
     {
-        private readonly ILogger _logger;
-        private readonly IDatasetDefinitionNameChangeProcessor _datasetDefinitionChangesProcessor;
         public const string FunctionName = "on-data-definition-changes";
 
         public OnDataDefinitionChanges(
@@ -23,13 +21,8 @@ namespace CalculateFunding.Functions.Datasets.ServiceBus
             IDatasetDefinitionNameChangeProcessor datasetDefinitionChangesProcessor,
             IMessengerService messengerService,
             IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider)
+            : base(logger, messengerService, FunctionName, $"{ServiceBusConstants.TopicNames.DataDefinitionChanges}/{ServiceBusConstants.TopicSubscribers.UpdateDataDefinitionName}", useAzureStorage, userProfileProvider, datasetDefinitionChangesProcessor)
         {
-            Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(datasetDefinitionChangesProcessor, nameof(datasetDefinitionChangesProcessor));
-
-            _logger = logger;
-            _datasetDefinitionChangesProcessor = datasetDefinitionChangesProcessor;
         }
 
         [FunctionName(FunctionName)]
@@ -38,19 +31,7 @@ namespace CalculateFunding.Functions.Datasets.ServiceBus
             ServiceBusConstants.TopicSubscribers.UpdateDataDefinitionName,
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            await Run(async () =>
-            {
-                try
-                {
-                    await _datasetDefinitionChangesProcessor.ProcessChanges(message);
-                }
-                catch (Exception exception)
-                {
-                    _logger.Error(exception, $"An error occurred getting message from topic: {ServiceBusConstants.TopicNames.DataDefinitionChanges}");
-                    throw;
-                }
-            },
-            message);
+            await base.Run(message);
         }
     }
 }

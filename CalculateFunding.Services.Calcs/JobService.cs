@@ -4,6 +4,7 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Services;
 using Microsoft.Azure.ServiceBus;
 using Serilog;
 using System;
@@ -12,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Calcs
 {
-    public class JobService : IJobService
+    public class JobService : ProcessingService, IJobService
     {
         private readonly IJobManagement _jobManagement;
         private readonly ILogger _logger;
@@ -23,7 +24,7 @@ namespace CalculateFunding.Services.Calcs
             _logger = logger;
         }
 
-        public async Task CreateInstructAllocationJob(Message message)
+        public override async Task Process(Message message)
         {
             Guard.ArgumentNotNull(message, nameof(message));
 

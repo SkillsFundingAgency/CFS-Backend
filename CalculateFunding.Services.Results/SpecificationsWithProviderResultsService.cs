@@ -15,6 +15,7 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Threading;
+using CalculateFunding.Services.Jobs;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Results.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -25,7 +26,7 @@ using Serilog;
 
 namespace CalculateFunding.Services.Results
 {
-    public class SpecificationsWithProviderResultsService : ISpecificationsWithProviderResultsService
+    public class SpecificationsWithProviderResultsService : JobProcessingService, ISpecificationsWithProviderResultsService
     {
         private readonly IPoliciesApiClient _policies;
         private readonly ICalculationResultsRepository _results;
@@ -41,7 +42,7 @@ namespace CalculateFunding.Services.Results
             IJobManagement jobs,
             IProducerConsumerFactory producerConsumerFactory,
             IResultsResiliencePolicies resiliencePolicies,
-            ILogger logger)
+            ILogger logger) : base(jobs, logger)
         {
             Guard.ArgumentNotNull(results, nameof(results));
             Guard.ArgumentNotNull(policies, nameof(policies));
@@ -84,19 +85,13 @@ namespace CalculateFunding.Services.Results
             return new OkObjectResult(await _jobsPolicy.ExecuteAsync(() => _jobs.QueueJob(job)));   
         }
 
-        public async Task MergeSpecificationInformation(Message message)
+        public override async Task Process(Message message)
         {
             Guard.ArgumentNotNull(message, nameof(message));
-
-            string jobId = GetMessageProperty(message, "jobId");
-
-            await StartTrackingJob(jobId);
 
             MergeSpecificationInformationRequest mergeRequest = message.GetPayloadAsInstanceOf<MergeSpecificationInformationRequest>();
 
             await MergeSpecificationInformation(mergeRequest);
-
-            await CompleteJob(jobId);
         }
 
         public async Task MergeSpecificationInformation(MergeSpecificationInformationRequest mergeRequest,
@@ -115,23 +110,6 @@ namespace CalculateFunding.Services.Results
                     fundingPeriods);   
             }
         }
-
-        private async Task StartTrackingJob(string jobId)
-            => await UpdateJobStatus(jobId);
-
-        private async Task CompleteJob(string jobId)
-            => await UpdateJobStatus(jobId, true);
-
-        private async Task UpdateJobStatus(string jobId,
-            bool? completed = null)
-            => await _jobsPolicy.ExecuteAsync(() => _jobs.UpdateJobStatus(jobId,
-                0,
-                0,
-                completed));
-
-        private string GetMessageProperty(Message message,
-            string key)
-            => message.GetUserProperty<string>(key);
 
         private async Task MergeSpecificationInformationForAllProviders(SpecificationInformation specificationInformation)
         {

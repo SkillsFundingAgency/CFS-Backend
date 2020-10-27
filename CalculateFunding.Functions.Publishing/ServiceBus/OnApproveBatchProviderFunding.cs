@@ -13,9 +13,8 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Functions.Publishing.ServiceBus
 {
-    public class OnApproveBatchProviderFunding : SmokeTest
+    public class OnApproveBatchProviderFunding : Retriable
     {
-        private readonly ILogger _logger;
         private readonly IApproveService _approveService;
         public const string FunctionName = FunctionConstants.PublishingApproveBatchProviderFunding;
         public const string QueueName = ServiceBusConstants.QueueNames.PublishingApproveBatchProviderFunding;
@@ -25,12 +24,10 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
             IApproveService approveService,
             IMessengerService messengerService,
             IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider)
+            : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, approveService)
         {
-            Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(approveService, nameof(approveService));
 
-            _logger = logger;
             _approveService = approveService;
         }
 
@@ -40,23 +37,10 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey,
             IsSessionsEnabled = true)] Message message)
         {
-            await Run(async () =>
+            await Run(message, async () =>
             {
-                try
-                {
-                    await _approveService.ApproveResults(message, batched: true);
-                }
-                catch (NonRetriableException ex)
-                {
-                    _logger.Error(ex, $"Job threw non retriable exception: {QueueName}");
-                }
-                catch (Exception exception)
-                {
-                    _logger.Error(exception, $"An error occurred getting message from topic: {QueueName}");
-                    throw;
-                }
-            },
-            message);
+                await _approveService.ApproveResults(message, batched: true);
+            });
         }
     }
 }

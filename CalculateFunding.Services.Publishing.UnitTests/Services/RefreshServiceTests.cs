@@ -79,7 +79,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private IEnumerable<PublishedProvider> _publishedProviders;
         private ISpecificationsApiClient _specificationsApiClient;
         private IVariationStrategyServiceLocator _variationStrategyServiceLocator;
-        private IPublishedProviderErrorDetection _detection;
         private IDetectProviderVariations _detectProviderVariation;
         private IApplyProviderVariations _applyProviderVariation;
         private IRecordVariationErrors _recordVariationErrors;
@@ -88,7 +87,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private IJobsRunning _jobsRunning;
         private ICalculationPrerequisiteCheckerService _calculationApprovalCheckerService;
         private IMapper _mapper;
-        private IOrganisationGroupGenerator _organisationGroupGenerator;
         private string _providerIdVaried;
         private const string SpecificationId = "SpecificationId";
         private const string FundingPeriodId = "AY-2020";
@@ -137,7 +135,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _publishedProviderIndexerService = Substitute.For<IPublishedProviderIndexerService>();
             _jobManagement = Substitute.For<IJobManagement>();
             _prerequisiteCheckerLocator = Substitute.For<IPrerequisiteCheckerLocator>();
-            _organisationGroupGenerator = Substitute.For<IOrganisationGroupGenerator>();
             _policiesService = Substitute.For<IPoliciesService>();
             _prerequisiteCheckerLocator.GetPreReqChecker(PrerequisiteCheckerType.Refresh)
                 .Returns(new RefreshPrerequisiteChecker(_specificationFundingStatusService,
@@ -146,14 +143,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _publishedProviderVersionService = Substitute.For<IPublishedProviderVersionService>();
             _generateCsvJobsLocator = Substitute.For<IGeneratePublishedFundingCsvJobsCreationLocator>();
             _reApplyCustomProfiles = new Mock<IReApplyCustomProfiles>();
-            IDetectPublishedProviderErrors[] detectPublishedProviderErrors = typeof(IDetectPublishedProviderErrors).Assembly.GetTypes()
-                .Where(_ => _.Implements(typeof(IDetectPublishedProviderErrors)) &&
-                            !_.IsAbstract &&
-                            _.GetConstructors().Any(ci => !ci.GetParameters().Any()))
-                .Select(_ => (IDetectPublishedProviderErrors)Activator.CreateInstance(_))
-                .ToArray();
-            detectPublishedProviderErrors.Concat(new[] { new TrustIdMismatchErrorDetector(_organisationGroupGenerator, _mapper, _publishedFundingDataService, _publishingResiliencePolicies) });
-            _detection = new PublishedProviderErrorDetection(detectPublishedProviderErrors);
             _policiesApiClient = new Mock<IPoliciesApiClient>();
             _cacheProvider = new Mock<ICacheProvider>();
 
@@ -193,8 +182,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 _publishedProviderVersionService,
                 _policiesService,
                 _generateCsvJobsLocator,
-                _reApplyCustomProfiles.Object,
-                _detection);
+                _reApplyCustomProfiles.Object);
         }
 
         [TestMethod]
@@ -306,7 +294,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .And
                 .Message
                 .Should()
-                .Be("Job cannot be run. Received job with id: 'JobId' is already in a completed state with status Superseded");
+                .Be("Received job with id: 'JobId' is already in a completed state with status 'Superseded'");
         }
 
         [TestMethod]
@@ -395,7 +383,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             _jobManagement
                 .Received(1)
-                .UpdateJobStatus(JobId, 0, false, string.Join(", ", prereqValidationErrors));
+                .UpdateJobStatus(JobId, completedSuccessfully: false, outcome: string.Join(", ", prereqValidationErrors));
         }
 
         [TestMethod]
@@ -574,7 +562,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .And
                 .Message
                 .Should()
-                .Be($"Job cannot be run. Could not find the job with id: '{JobId}'");
+                .Be($"Could not find the job with id: '{JobId}'");
         }
 
         private void AndScopedProviderCalculationResults()
@@ -772,7 +760,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
         private void GivenJobCanBeProcessed()
         {
-            JobViewModel jobViewModel = NewJobViewModel();
+            JobViewModel jobViewModel = NewJobViewModel(_ => _.WithJobId(JobId));
 
             _jobManagement.RetrieveJobAndCheckCanBeProcessed(JobId)
                 .Returns(jobViewModel);
@@ -815,7 +803,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .WithUserProperty("jobId", JobId)
                 .WithUserProperty("sfa-correlationId", CorrelationId));
 
-            await _refreshService.RefreshResults(message);
+            await _refreshService.Run(message);
         }
 
         private void AndTheCustomProfilesWereReApplied()
@@ -826,7 +814,5 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                     Times.Once);
             }
         }
-
-        private static string NewRandomString() => new RandomString();
     }
 }

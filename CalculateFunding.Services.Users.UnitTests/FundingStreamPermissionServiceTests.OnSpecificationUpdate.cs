@@ -92,7 +92,7 @@ namespace CalculateFunding.Services.Users
                 logger: logger);
 
             // Act
-            await service.OnSpecificationUpdate(message);
+            await service.Process(message);
 
             // Assert
             await userRepository
@@ -215,7 +215,7 @@ namespace CalculateFunding.Services.Users
                 logger: logger);
 
             // Act
-            await service.OnSpecificationUpdate(message);
+            await service.Process(message);
 
             // Assert
             await userRepository
@@ -343,7 +343,7 @@ namespace CalculateFunding.Services.Users
                 logger: logger);
 
             // Act
-            await service.OnSpecificationUpdate(message);
+            await service.Process(message);
 
             // Assert
             await userRepository
@@ -451,7 +451,7 @@ namespace CalculateFunding.Services.Users
                 logger: logger);
 
             // Act
-            await service.OnSpecificationUpdate(message);
+            await service.Process(message);
 
             // Assert
             await userRepository
@@ -524,7 +524,7 @@ namespace CalculateFunding.Services.Users
                 logger: logger);
 
             // Act
-            await service.OnSpecificationUpdate(message);
+            await service.Process(message);
 
             // Assert
             await userRepository
@@ -567,7 +567,7 @@ namespace CalculateFunding.Services.Users
             // Act
             Func<Task> func = async () =>
             {
-                await service.OnSpecificationUpdate(message);
+                await service.Run(message);
             };
 
             // Assert
@@ -581,7 +581,7 @@ namespace CalculateFunding.Services.Users
 
             logger
                 .Received(1)
-                .Error(Arg.Is("A null versionComparison was provided to users OnSpecificationUpdate"));
+                .Error(Arg.Is("A null versionComparison was provided to users"));
         }
 
         [TestMethod]
@@ -597,7 +597,7 @@ namespace CalculateFunding.Services.Users
             // Act
             Func<Task> func = async () =>
             {
-                await service.OnSpecificationUpdate(message);
+                await service.Process(message);
             };
 
             // Assert
@@ -611,7 +611,7 @@ namespace CalculateFunding.Services.Users
 
             logger
                 .Received(1)
-                .Error(Arg.Is("A null versionComparison was provided to users OnSpecificationUpdate"));
+                .Error(Arg.Is("A null versionComparison was provided to users"));
         }
 
         [TestMethod]
@@ -634,7 +634,7 @@ namespace CalculateFunding.Services.Users
             // Act
             Func<Task> func = async () =>
             {
-                await service.OnSpecificationUpdate(message);
+                await service.Process(message);
             };
 
             // Assert
@@ -648,7 +648,7 @@ namespace CalculateFunding.Services.Users
 
             logger
                 .Received(1)
-                .Error(Arg.Is("A null specificationId was provided to users OnSpecificationUpdate in model"));
+                .Error(Arg.Is("A null specificationId was provided to users in model"));
         }
     }
 }

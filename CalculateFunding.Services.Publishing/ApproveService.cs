@@ -10,6 +10,7 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Jobs;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using Microsoft.Azure.ServiceBus;
@@ -17,11 +18,10 @@ using Serilog;
 
 namespace CalculateFunding.Services.Publishing
 {
-    public class ApproveService : IApproveService
+    public class ApproveService : JobProcessingService, IApproveService
     {
         private const string SfaCorrelationId = "sfa-correlationId";
 
-        private readonly IJobManagement _jobManagement;
         private readonly ILogger _logger;
         private readonly IPublishedProviderStatusUpdateService _publishedProviderStatusUpdateService;
         private readonly IPublishedFundingDataService _publishedFundingDataService;
@@ -40,11 +40,10 @@ namespace CalculateFunding.Services.Publishing
             ILogger logger,
             ITransactionFactory transactionFactory,
             IPublishedProviderVersionService publishedProviderVersionService,
-            IGeneratePublishedFundingCsvJobsCreationLocator generateCsvJobsLocator)
+            IGeneratePublishedFundingCsvJobsCreationLocator generateCsvJobsLocator) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(generateCsvJobsLocator, nameof(generateCsvJobsLocator));
             Guard.ArgumentNotNull(prerequisiteCheckerLocator, nameof(prerequisiteCheckerLocator));
-            Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(publishedProviderStatusUpdateService, nameof(publishedProviderStatusUpdateService));
             Guard.ArgumentNotNull(publishedFundingDataService, nameof(publishedFundingDataService));
             Guard.ArgumentNotNull(publishedProviderIndexerService, nameof(publishedProviderIndexerService));
@@ -57,31 +56,26 @@ namespace CalculateFunding.Services.Publishing
             _publishedFundingDataService = publishedFundingDataService;
             _publishedProviderIndexerService = publishedProviderIndexerService;
             _prerequisiteCheckerLocator = prerequisiteCheckerLocator;
-            _jobManagement = jobManagement;
             _logger = logger;
             _generateCsvJobsLocator = generateCsvJobsLocator;
             _transactionFactory = transactionFactory;
             _publishedProviderVersionService = publishedProviderVersionService;
         }
 
+        public override async Task Process(Message message)
+        {
+            await ApproveResults(message);
+        }
+
         public async Task ApproveResults(Message message, bool batched = false)
         {
             Guard.ArgumentNotNull(message, nameof(message));
             _logger.Information("Starting approve provider funding job");
-            string jobId = message.GetUserProperty<string>("jobId");
-
-            Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
-
-            await EnsureJobCanBeProcessed(jobId);
-
-            // Update job to set status to processing
-            await _jobManagement.UpdateJobStatus(jobId, 0, 0, null, null);
-
             string specificationId = message.GetUserProperty<string>("specification-id");
 
             PublishedProviderIdsRequest publishedProviderIdsRequest = null;
 
-            string logApproveProcessingMessage = $"Processing approve specification funding job. JobId='{jobId}'. SpecificationId='{specificationId}'.";
+            string logApproveProcessingMessage = $"Processing approve specification funding job. JobId='{Job.Id}'. SpecificationId='{specificationId}'.";
 
             if (batched)
             {
@@ -91,7 +85,7 @@ namespace CalculateFunding.Services.Publishing
             }
 
             await PerformPrerequisiteChecks(specificationId, 
-                jobId, 
+                Job.Id, 
                 batched == true ? PrerequisiteCheckerType.ApproveBatchProviders : PrerequisiteCheckerType.ApproveAllProviders);
 
             _logger.Information(logApproveProcessingMessage);
@@ -107,13 +101,9 @@ namespace CalculateFunding.Services.Publishing
 
             await ApproveProviders(publishedProviders, 
                 specificationId, 
-                jobId, 
+                Job.Id, 
                 author, 
                 correlationId);
-
-            _logger.Information($"Completing approve provider funding job. JobId='{jobId}'");
-            await _jobManagement.UpdateJobStatus(jobId, 0, 0, true, null);
-            _logger.Information($"Approve provider funding job complete. JobId='{jobId}'");
         }
 
         private async Task<IEnumerable<PublishedProvider>> GetPublishedProvidersForApproval(string specificationId, string[] publishedProviderIds = null)
@@ -172,7 +162,7 @@ namespace CalculateFunding.Services.Publishing
 
                 transaction.Complete();
             }
-            catch (Exception ex)
+            catch
             {
                 await transaction.Compensate();
 
@@ -189,21 +179,6 @@ namespace CalculateFunding.Services.Publishing
             {
                 throw new InvalidOperationException(
                     $"There are published providers with errors that must be fixed before they can be approved under specification {specificationId}.");
-            }
-        }
-
-        private async Task EnsureJobCanBeProcessed(string jobId)
-        {
-            try
-            {
-                await _jobManagement.RetrieveJobAndCheckCanBeProcessed(jobId);
-            }
-            catch
-            {
-                string errorMessage = "Job can not be run";
-                _logger.Error(errorMessage);
-
-                throw new NonRetriableException(errorMessage);
             }
         }
 

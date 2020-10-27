@@ -13,23 +13,21 @@ using Serilog;
 
 namespace CalculateFunding.Functions.Calcs.ServiceBus
 {
-    public class OnDeleteCalculations : SmokeTest
+    public class OnDeleteCalculations : Retriable
     {
-        private readonly ILogger _logger;
         private readonly ICalculationService _calculationService;
-        public const string FunctionName = "on-delete-calculations";
+        private const string FunctionName = "on-delete-calculations";
+        private const string QueueName = ServiceBusConstants.QueueNames.DeleteCalculations;
 
         public OnDeleteCalculations(
             ILogger logger,
             ICalculationService calculationService,
             IMessengerService messengerService,
             IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider)
+            : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, calculationService)
         {
-            Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(calculationService, nameof(calculationService));
 
-            _logger = logger;
             _calculationService = calculationService;
         }
 
@@ -38,24 +36,10 @@ namespace CalculateFunding.Functions.Calcs.ServiceBus
             ServiceBusConstants.QueueNames.DeleteCalculations,
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            await Run(async () =>
+            await base.Run(message, async() =>
             {
-                try
-                {
-                    await _calculationService.DeleteCalculations(message);
-                }
-                catch (NonRetriableException ex)
-                {
-                    _logger.Error(ex, $"Job threw non retriable exception: {ServiceBusConstants.QueueNames.DeleteCalculations}");
-                }
-                catch (Exception exception)
-                {
-                    _logger.Error(exception, $"An error occurred getting message from topic: {ServiceBusConstants.QueueNames.DeleteCalculations}");
-
-                    throw;
-                }
-            },
-            message);
+                await _calculationService.DeleteCalculations(message);
+            });
         }
     }
 }

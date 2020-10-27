@@ -36,7 +36,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             SpecificationsService service = CreateService(logs: logger);
 
             //Act
-            Func<Task> test = async () => await service.AssignDataDefinitionRelationship(message);
+            Func<Task> test = async () => await service.Process(message);
 
             //Assert
             test
@@ -68,7 +68,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             SpecificationsService service = CreateService(assignDefinitionRelationshipMessageValidator: validator);
 
             //Act
-            Func<Task> test = async () => await service.AssignDataDefinitionRelationship(message);
+            Func<Task> test = async () => await service.Process(message);
 
             //Assert
             test
@@ -94,7 +94,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             SpecificationsService service = CreateService(specificationsRepository: specificationsRepository);
 
             //Act
-            Func<Task> test = async () => await service.AssignDataDefinitionRelationship(message);
+            Func<Task> test = async () => await service.Process(message);
 
             //Assert
             test
@@ -130,7 +130,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             SpecificationsService service = CreateService(specificationsRepository: specificationsRepository, logs: logger);
 
             //Act
-            Func<Task> test = async () => await service.AssignDataDefinitionRelationship(message);
+            Func<Task> test = async () => await service.Process(message);
 
             //Assert
             test
@@ -183,7 +183,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             SpecificationsService service = CreateService(specificationsRepository: specificationsRepository, logs: logger, specificationVersionRepository: versionRepository);
 
             //Act
-            await service.AssignDataDefinitionRelationship(message);
+            await service.Process(message);
 
             //Assert
             logger

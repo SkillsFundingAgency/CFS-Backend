@@ -12,24 +12,18 @@ using Serilog;
 
 namespace CalculateFunding.Functions.Calcs.ServiceBus
 {
-    public class OnReIndexSpecificationCalculationRelationships : SmokeTest
+    public class OnReIndexSpecificationCalculationRelationships : Retriable
     {
-        private readonly ILogger _logger;
-        private readonly IReIndexSpecificationCalculationRelationships _reIndexSpecificationRelationships;
-        public const string FunctionName = "on-reindex-specification-calculation-relationships";
+        private const string FunctionName = "on-reindex-specification-calculation-relationships";
+        private const string QueueName = ServiceBusConstants.QueueNames.ReIndexSpecificationCalculationRelationships;
 
         public OnReIndexSpecificationCalculationRelationships(
             ILogger logger,
             IReIndexSpecificationCalculationRelationships service,
             IMessengerService messengerService,
             IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider)
+            : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, service)
         {
-            Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(service, nameof(service));
-
-            _logger = logger;
-            _reIndexSpecificationRelationships = service;
         }
 
         [FunctionName(FunctionName)]
@@ -38,19 +32,7 @@ namespace CalculateFunding.Functions.Calcs.ServiceBus
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey,
             IsSessionsEnabled = true)] Message message)
         {
-            await Run(async () =>
-            {
-                try
-                {
-                    await _reIndexSpecificationRelationships.Run(message);
-                }
-                catch (Exception exception)
-                {
-                    _logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.ReIndexSpecificationCalculationRelationships}");
-                    throw;
-                }
-            },
-            message);
+            await base.Run(message);
         }
     }
 }

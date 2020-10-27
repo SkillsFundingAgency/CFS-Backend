@@ -11,6 +11,7 @@ using CalculateFunding.Models.Policy.TemplateBuilder;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Jobs;
 using CalculateFunding.Services.Policy.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Polly;
@@ -18,7 +19,7 @@ using Serilog;
 
 namespace CalculateFunding.Services.Policy.TemplateBuilder
 {
-    public class TemplatesReIndexerService : ITemplatesReIndexerService
+    public class TemplatesReIndexerService : JobProcessingService, ITemplatesReIndexerService
     {
         private readonly ILogger _logger;
         private readonly IJobManagement _jobManagement;
@@ -34,7 +35,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             IPolicyRepository policyRepository,
             ITemplateRepository templateRepository,
             IJobManagement jobManagement,
-            ILogger logger)
+            ILogger logger) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
             Guard.ArgumentNotNull(policyResiliencePolicies?.TemplatesSearchRepository,
@@ -56,86 +57,54 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             _logger = logger;
         }
 
-        public async Task Run(Message message)
+        public override async Task Process(Message message)
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
             Reference user = message.GetUserDetails();
 
-            string jobId = message.GetUserProperty<string>("jobId");
+            await _templatesRepositoryResilience.ExecuteAsync(() => _templatesRepository.GetTemplatesForIndexing(
+                async templates =>
+                {
+                    IList<TemplateIndex> results = new List<TemplateIndex>();
 
-            Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
-
-            JobViewModel currentJob;
-
-            try
-            {
-                currentJob = await _jobManagement.RetrieveJobAndCheckCanBeProcessed(jobId);
-            }
-            catch (Exception e)
-            {
-                string errorMessage = "Job cannot be run";
-                _logger.Error(e, errorMessage);
-
-                throw new NonRetriableException(errorMessage);
-            }
-
-            try
-            {
-                await _jobManagement.UpdateJobStatus(jobId, 0, 0, null);
-
-                await _templatesRepositoryResilience.ExecuteAsync(() => _templatesRepository.GetTemplatesForIndexing(
-                    async templates =>
+                    foreach (Template template in templates)
                     {
-                        IList<TemplateIndex> results = new List<TemplateIndex>();
-
-                        foreach (Template template in templates)
+                        results.Add(new TemplateIndex
                         {
-                            results.Add(new TemplateIndex
-                            {
-                                Id = template.TemplateId,
-                                Name = template.Name,
-                                FundingStreamId = template.FundingStream.Id,
-                                FundingStreamName = template.FundingStream.Name,
-                                FundingPeriodId = template.FundingPeriod.Id,
-                                FundingPeriodName = template.FundingPeriod.Name,
-                                LastUpdatedAuthorId = template.Current.Author?.Id,
-                                LastUpdatedAuthorName = template.Current.Author?.Name,
-                                LastUpdatedDate = template.Current.Date,
-                                Version = template.Current.Version,
-                                Status = template.Current.Status.ToString(),
-                                CurrentMajorVersion = template.Current.MajorVersion,
-                                CurrentMinorVersion = template.Current.MinorVersion,
-                                PublishedMajorVersion = template.Released?.MajorVersion ?? 0,
-                                PublishedMinorVersion = template.Released?.MinorVersion ?? 0,
-                                HasReleasedVersion = template.Released?.Status != null ? "Yes" : "No"
-                            });
-                        }
+                            Id = template.TemplateId,
+                            Name = template.Name,
+                            FundingStreamId = template.FundingStream.Id,
+                            FundingStreamName = template.FundingStream.Name,
+                            FundingPeriodId = template.FundingPeriod.Id,
+                            FundingPeriodName = template.FundingPeriod.Name,
+                            LastUpdatedAuthorId = template.Current.Author?.Id,
+                            LastUpdatedAuthorName = template.Current.Author?.Name,
+                            LastUpdatedDate = template.Current.Date,
+                            Version = template.Current.Version,
+                            Status = template.Current.Status.ToString(),
+                            CurrentMajorVersion = template.Current.MajorVersion,
+                            CurrentMinorVersion = template.Current.MinorVersion,
+                            PublishedMajorVersion = template.Released?.MajorVersion ?? 0,
+                            PublishedMinorVersion = template.Released?.MinorVersion ?? 0,
+                            HasReleasedVersion = template.Released?.Status != null ? "Yes" : "No"
+                        });
+                    }
 
-                        IEnumerable<IndexError> errors =
-                            await _searchRepositoryResilience.ExecuteAsync(() => _searchRepository.Index(results));
+                    IEnumerable<IndexError> errors =
+                        await _searchRepositoryResilience.ExecuteAsync(() => _searchRepository.Index(results));
 
-                        if (errors != null && errors.Any())
-                        {
-                            string errorMessage =
-                                $"Failed to index published provider documents with errors: {string.Join(";", errors.Select(m => m.ErrorMessage))}";
+                    if (errors != null && errors.Any())
+                    {
+                        string errorMessage =
+                            $"Failed to index published provider documents with errors: {string.Join(";", errors.Select(m => m.ErrorMessage))}";
 
-                            _logger.Error(errorMessage);
+                        _logger.Error(errorMessage);
 
-                            throw new NonRetriableException(errorMessage);
-                        }
-                    },
-                    BatchSize));
-
-                _logger.Information($"Completing templates reindex job. JobId='{jobId}'");
-                await _jobManagement.UpdateJobStatus(jobId, 0, 0, true, null);
-                _logger.Information($"Completed templates reindex job. JobId='{jobId}'");
-            }
-            catch (Exception)
-            {
-                await _jobManagement.UpdateJobStatus(jobId, 0, 0, false, null);
-                throw;
-            }
+                        throw new NonRetriableException(errorMessage);
+                    }
+                },
+                BatchSize));
         }
     }
 }

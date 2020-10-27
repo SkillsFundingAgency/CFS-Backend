@@ -13,10 +13,8 @@ using Serilog;
 
 namespace CalculateFunding.Functions.Publishing.ServiceBus
 {
-    public class OnPublishBatchProviderFunding : SmokeTest
+    public class OnPublishBatchProviderFunding : Retriable
     {
-        private readonly ILogger _logger;
-        private readonly IPublishService _publishService;
         public const string FunctionName = FunctionConstants.PublishingPublishBatchProviderFunding;
         public const string QueueName = ServiceBusConstants.QueueNames.PublishingPublishBatchProviderFunding;
 
@@ -25,13 +23,8 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
             IPublishService publishService,
             IMessengerService messengerService,
             IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider)
+            : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, publishService)
         {
-            Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(publishService, nameof(publishService));
-
-            _logger = logger;
-            _publishService = publishService;
         }
 
         [FunctionName(FunctionName)]
@@ -40,23 +33,7 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey,
             IsSessionsEnabled = true)] Message message)
         {
-            await Run(async () =>
-            {
-                try
-                {
-                    await _publishService.PublishProviderFundingResults(message, batched: true);
-                }
-                catch (NonRetriableException ex)
-                {
-                    _logger.Error(ex, $"Job threw non retriable exception: {QueueName}");
-                }
-                catch (Exception exception)
-                {
-                    _logger.Error(exception, $"An error occurred getting message from topic: {QueueName}");
-                    throw;
-                }
-            },
-            message);
+            await Run(message);
         }
     }
 }

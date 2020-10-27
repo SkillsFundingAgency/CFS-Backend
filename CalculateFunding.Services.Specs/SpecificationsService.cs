@@ -31,6 +31,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Services.Jobs;
 using CalculateFunding.Services.Specs.Interfaces;
 using FluentValidation;
 using FluentValidation.Results;
@@ -45,7 +46,7 @@ using SpecificationVersion = CalculateFunding.Models.Specs.SpecificationVersion;
 
 namespace CalculateFunding.Services.Specs
 {
-    public class SpecificationsService : ISpecificationsService, IHealthChecker
+    public class SpecificationsService : JobProcessingService, ISpecificationsService, IHealthChecker
     {
         private readonly IMapper _mapper;
         private readonly ISpecificationsRepository _specificationsRepository;
@@ -99,7 +100,7 @@ namespace CalculateFunding.Services.Specs
             IResultsApiClient results,
             ISpecificationTemplateVersionChangedHandler templateVersionChangedHandler,
             IValidator<AssignSpecificationProviderVersionModel> assignSpecificationProviderVersionModelValidator,
-            IJobManagement jobManagement)
+            IJobManagement jobManagement) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
@@ -1050,7 +1051,7 @@ namespace CalculateFunding.Services.Specs
             await _messengerService.SendToTopic(topicName, comparisonModel, properties, true);
         }
 
-        public async Task AssignDataDefinitionRelationship(Message message)
+        public override async Task Process(Message message)
         {
             AssignDefinitionRelationshipMessage relationshipMessage =
                 message.GetPayloadAsInstanceOf<AssignDefinitionRelationshipMessage>();
@@ -1616,45 +1617,25 @@ WHERE   s.documentType = @DocumentType",
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
-            string jobId = message.GetUserProperty<string>("jobId");
-
-            Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
-
-            try
+            string specificationId = message.UserProperties["specification-id"].ToString();
+            if (string.IsNullOrEmpty(specificationId))
             {
-                // Update job to set status to processing
-                await _jobManagement.UpdateJobStatus(jobId, 0, 0, null, null);
-
-                string specificationId = message.UserProperties["specification-id"].ToString();
-                if (string.IsNullOrEmpty(specificationId))
-                {
-                    string error = "Null or empty specification Id provided";
-                    _logger.Error(error);
-                    throw new Exception(error);
-                }
-
-                string deletionTypeProperty = message.UserProperties["deletion-type"].ToString();
-                if (string.IsNullOrEmpty(deletionTypeProperty))
-                {
-                    string error = "Null or empty deletion type provided";
-                    _logger.Error(error);
-                    throw new Exception(error);
-                }
-
-                DeletionType deletionType = deletionTypeProperty.ToDeletionType();
-
-                await _specificationsRepository.DeleteSpecifications(specificationId, deletionType);
-
-                await _jobManagement.UpdateJobStatus(jobId, 0, 0, true, null);
+                string error = "Null or empty specification Id provided";
+                _logger.Error(error);
+                throw new Exception(error);
             }
-            catch (Exception exception)
+
+            string deletionTypeProperty = message.UserProperties["deletion-type"].ToString();
+            if (string.IsNullOrEmpty(deletionTypeProperty))
             {
-                _logger.Error(exception, "Unable to complete delete specification job");
-
-                await TrackJobFailed(jobId, exception);
-
-                throw new NonRetriableException("Unable to delete specification.", exception);
+                string error = "Null or empty deletion type provided";
+                _logger.Error(error);
+                throw new Exception(error);
             }
+
+            DeletionType deletionType = deletionTypeProperty.ToDeletionType();
+
+            await _specificationsRepository.DeleteSpecifications(specificationId, deletionType);
         }
 
         private async Task TrackJobFailed(string jobId, Exception exception)

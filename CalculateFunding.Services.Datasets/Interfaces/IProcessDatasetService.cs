@@ -1,13 +1,12 @@
 ﻿using System.Threading.Tasks;
+using CalculateFunding.Services.Jobs.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 
 namespace CalculateFunding.Services.Datasets.Interfaces
 {
-    public interface IProcessDatasetService
+    public interface IProcessDatasetService : IJobProcessingService
     {
-        Task ProcessDataset(Message message);
-
         Task<IActionResult> GetDatasetAggregationsBySpecificationId(string specificationId);
 
         Task MapFdzDatasets(Message message);

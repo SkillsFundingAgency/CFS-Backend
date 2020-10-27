@@ -355,7 +355,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
         private async Task WhenTheScopedProvidersArePopulated()
         {
-            await _scopedProvidersService.PopulateScopedProviders(_message);
+            await _scopedProvidersService.Process(_message);
         }
 
         private void ThenTheEquivalentProviderSummaryWasCached(string key, ProviderSummary provider)

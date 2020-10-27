@@ -187,8 +187,7 @@ namespace CalculateFunding.Functions.CalcEngine
             builder.AddJobsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
             builder.AddPoliciesInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
             builder.AddResultsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
-
-            builder.AddDatasetsInterServiceClient(config);
+            builder.AddDatasetsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
 
             builder.AddEngineSettings(config);
 

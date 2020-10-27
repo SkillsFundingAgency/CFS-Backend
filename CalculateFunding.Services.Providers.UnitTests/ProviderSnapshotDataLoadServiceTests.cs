@@ -236,7 +236,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
         }
 
         private async Task WhenTheProviderSnapshotDataIsLoaded(Message message)
-            => await _service.LoadProviderSnapshotData(message);
+            => await _service.Process(message);
 
         private void GivenTheProviderSnapshotForTheFundingStream(ProviderSnapshot providerSnapshot)
             => _fundingDataZone.Setup(_ => _.GetProviderSnapshotsForFundingStream(_fundingStreamId))

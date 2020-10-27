@@ -12,10 +12,8 @@ using Serilog;
 
 namespace CalculateFunding.Functions.Users.ServiceBus
 {
-    public class OnEditSpecificationEvent : SmokeTest
+    public class OnEditSpecificationEvent : Retriable
     {
-        private readonly ILogger _logger;
-        private readonly IFundingStreamPermissionService _fundingStreamPermissionService;
         public const string FunctionName = "users-on-edit-specification";
 
         public OnEditSpecificationEvent(
@@ -23,13 +21,8 @@ namespace CalculateFunding.Functions.Users.ServiceBus
             IFundingStreamPermissionService fundingStreamPermissionService,
             IMessengerService messengerService,
             IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider)
+            : base(logger, messengerService, FunctionName, $"{ServiceBusConstants.TopicNames.EditSpecification}/{ServiceBusConstants.TopicSubscribers.UpdateUsersForEditSpecification}", useAzureStorage, userProfileProvider, fundingStreamPermissionService)
         {
-            Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(fundingStreamPermissionService, nameof(fundingStreamPermissionService));
-
-            _logger = logger;
-            _fundingStreamPermissionService = fundingStreamPermissionService;
         }
 
         [FunctionName(FunctionName)]
@@ -38,19 +31,7 @@ namespace CalculateFunding.Functions.Users.ServiceBus
             ServiceBusConstants.TopicSubscribers.UpdateUsersForEditSpecification,
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            await Run(async () =>
-            {
-                try
-                {
-                    await _fundingStreamPermissionService.OnSpecificationUpdate(message);
-                }
-                catch (Exception exception)
-                {
-                    _logger.Error(exception, $"An error occurred getting message from topic: {ServiceBusConstants.TopicNames.EditSpecification}");
-                    throw;
-                }
-            },
-            message);
+            await base.Run(message);
         }
     }
 }

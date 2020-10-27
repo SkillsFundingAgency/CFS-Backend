@@ -349,7 +349,11 @@ namespace CalculateFunding.Services.Datasets.Services
                 policyRepository: policyRepository);
 
             // Act
-            await service.ValidateDataset(message);
+            Func<Task> invocation = async() => await service.Run(message);
+
+            invocation
+                .Should()
+                .Throw<NonRetriableException>();
 
             // Assert     
             mapper
@@ -452,7 +456,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 policyRepository: policyRepository);
 
             // Act
-            Func<Task> result = () => service.ValidateDataset(message);
+            Func<Task> result = () => service.Run(message);
 
             // Assert
             result
@@ -551,9 +555,13 @@ namespace CalculateFunding.Services.Datasets.Services
                 policyRepository: policyRepository);
 
             // Act
-           await service.ValidateDataset(message);
+           Func<Task> invocation = async() => await service.Run(message);
 
             // Assert
+            invocation
+                .Should()
+                .Throw<NonRetriableException>();
+
             logger
                 .Received(1)
                 .Error(Arg.Is($"No provider version for the funding stream {datasetDefinition.FundingStreamId}"));
@@ -826,12 +834,13 @@ namespace CalculateFunding.Services.Datasets.Services
                 jobManagement: jobManagement);
 
             // Act
-            Func<Task> test = async () => { await service.ValidateDataset(message); };
+            Func<Task> test = async () => { await service.Run(message); };
 
             // Assert
             test
                 .Should()
-                .NotThrow();
+                .Throw<NonRetriableException>()
+                .WithMessage("Failed Validation - invalid funding stream ID");
 
             logger
                 .Received(1)
@@ -847,7 +856,7 @@ namespace CalculateFunding.Services.Datasets.Services
                         v.ErrorMessage == $"Unable to valdate given funding stream ID: {FundingStreamId}"));
             await jobManagement
                 .Received(1)
-                .UpdateJobStatus("job1", 100, false, "Failed Validation - invalid funding stream ID");
+                .UpdateJobStatus("job1", 0, 0, false, "Failed Validation - invalid funding stream ID");
         }
 
         [TestMethod]
@@ -952,12 +961,12 @@ namespace CalculateFunding.Services.Datasets.Services
                 policyRepository: policyRepository);
 
             // Act
-            Func<Task> test = async () => { await service.ValidateDataset(message); };
+            Func<Task> test = async () => { await service.Run(message); };
 
             // Assert
             test
                 .Should()
-                .NotThrow();
+                .Throw<NonRetriableException>();
 
             await cacheProvider
                 .Received(1)
@@ -1049,18 +1058,17 @@ namespace CalculateFunding.Services.Datasets.Services
             IProvidersApiClient providersApiClient = CreateProvidersApiClient();
             providersApiClient
                 .GetCurrentProvidersForFundingStream(FundingStreamId)
-                .Returns(providerVersionResponse);
+                .Returns(providerVersionResponse); 
 
             DatasetService service = CreateDatasetService(
                 logger: logger,
                 blobClient: blobClient,
                 datasetRepository: datasetRepository,
                 providersApiClient: providersApiClient,
-                policyRepository: policyRepository
-                );
+                policyRepository: policyRepository);
 
             // Act
-            Func<Task> result = async () => { await service.ValidateDataset(message); };
+            Func<Task> result = async () => { await service.Run(message); };
 
             // Assert
             result
@@ -1187,7 +1195,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 policyRepository: policyRepository);
 
             // Act
-            Func<Task> result = async () => { await service.ValidateDataset(message); };
+            Func<Task> result = async () => { await service.Run(message); };
 
             // Assert
             result
@@ -1293,7 +1301,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 policyRepository: policyRepository);
 
             // Act
-            Func<Task> result = async () => { await service.ValidateDataset(message); };
+            Func<Task> result = async () => { await service.Run(message); };
 
             // Assert
             result
@@ -1491,12 +1499,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Returns(existingDataset);
 
             // Act
-            Func<Task> result = async () => { await service.ValidateDataset(message); };
+            await service.Run(message);
 
             // Assert
-            result
-                .Should().NotThrow();
-
             // Ensure next version is set
             await datasetRepository
                 .Received(1)
@@ -1693,7 +1698,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Returns(existingDataset);
 
             // Act
-            Func<Task> result = () => service.ValidateDataset(message);
+            Func<Task> result = () => service.Run(message);
 
             // Assert
             result
@@ -1824,7 +1829,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Returns(existingDataset);
 
             // Act
-            Func<Task> action = () => service.ValidateDataset(message);
+            Func<Task> action = () => service.Run(message);
 
             // Assert
             action
@@ -1960,7 +1965,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Returns(existingDataset);
 
             // Act
-            Func<Task> result = () => service.ValidateDataset(message);
+            Func<Task> result = () => service.Run(message);
 
             // Assert
             result
@@ -2109,7 +2114,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Returns(indexErrors);
 
             // Act
-            Func<Task> result = () => service.ValidateDataset(message);
+            Func<Task> result = () => service.Run(message);
 
             // Assert
             result
@@ -2134,7 +2139,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetService service = CreateDatasetService(logger: logger);
 
             // Act
-            await service.ValidateDataset(message);
+            await service.Process(message);
 
             // Assert
             logger
@@ -2155,7 +2160,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetService service = CreateDatasetService(logger: logger);
 
             // Act
-            await service.ValidateDataset(message);
+            await service.Process(message);
 
             // Assert
             logger
@@ -2176,7 +2181,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetService service = CreateDatasetService(logger: logger);
 
             // Act
-            await service.ValidateDataset(message);
+            await service.Process(message);
 
             // Assert
             logger
@@ -2197,7 +2202,11 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetService service = CreateDatasetService(logger: logger, cacheProvider: cacheProvider);
 
             // Act
-            await service.ValidateDataset(message);
+            Func<Task> invocation = async() => await service.Run(message);
+
+            invocation
+                .Should()
+                .Throw<NonRetriableException>();
 
             // Assert
             logger
@@ -2246,7 +2255,11 @@ namespace CalculateFunding.Services.Datasets.Services
                 getDatasetBlobModelValidator: validator);
 
             // Act
-            await service.ValidateDataset(message);
+            Func<Task> invocation = async() => await service.Run(message);
+
+            invocation
+                .Should()
+                .Throw<NonRetriableException>();
 
             // Assert
             logger
@@ -2302,9 +2315,13 @@ namespace CalculateFunding.Services.Datasets.Services
                 getDatasetBlobModelValidator: validator);
 
             // Act
-            await service.ValidateDataset(message);
+            Func<Task> invocation = async () => await service.Run(message);
 
             // Assert
+            invocation
+                .Should()
+                .Throw<NonRetriableException>();
+
             logger
                 .Received(1)
                 .Error(Arg.Is("GetDatasetBlobModel model error: {0}"), Arg.Any<IList<ValidationFailure>>());
@@ -2366,9 +2383,13 @@ namespace CalculateFunding.Services.Datasets.Services
                 blobClient: blobClient);
 
             // Act
-            await service.ValidateDataset(message);
+            Func<Task> invocation = async () => await service.Run(message);
 
             // Assert
+            invocation
+                .Should()
+                .Throw<NonRetriableException>();
+
             logger
                 .Received(1)
                 .Error(Arg.Is($"Failed to find blob with path: {getDatasetBlobModel.DatasetId}/v{getDatasetBlobModel.Version}/{getDatasetBlobModel.Filename}"));
@@ -2433,9 +2454,13 @@ namespace CalculateFunding.Services.Datasets.Services
                 blobClient: blobClient);
 
             // Act
-            await service.ValidateDataset(message);
+            Func<Task> invocation = async () => await service.Run(message);
 
             // Assert
+            invocation
+                .Should()
+                .Throw<NonRetriableException>();
+
             logger
                 .Received(1)
                 .Error(Arg.Is($"Blob {getDatasetBlobModel.DatasetId}/v{getDatasetBlobModel.Version}/{getDatasetBlobModel.Filename} contains no data"));
@@ -2519,9 +2544,13 @@ namespace CalculateFunding.Services.Datasets.Services
                 blobClient: blobClient);
 
             // Act
-            await service.ValidateDataset(message);
+            Func<Task> invocation = async () => await service.Run(message);
 
             // Assert
+            invocation
+                .Should()
+                .Throw<NonRetriableException>();
+
             logger
                 .Received(1)
                 .Error(Arg.Is("Dataset dataset needs to be a unique name"));
@@ -2605,9 +2634,13 @@ namespace CalculateFunding.Services.Datasets.Services
                 blobClient: blobClient);
 
             // Act
-            await service.ValidateDataset(message);
+            Func<Task> invocation = async () => await service.Run(message);
 
             // Assert
+            invocation
+                .Should()
+                .Throw<NonRetriableException>();
+
             logger
                 .Received(1)
                 .Error(Arg.Is("Dataset dataset needs to be a unique name"));
@@ -2697,9 +2730,13 @@ namespace CalculateFunding.Services.Datasets.Services
                 datasetWorksheetValidator: excelPackageValidator);
 
             // Act
-            await service.ValidateDataset(message);
+            Func<Task> invocation = async () => await service.Run(message);
 
             // Assert
+            invocation
+                .Should()
+                .Throw<NonRetriableException>();
+
             await cacheProvider
                 .Received(1)
                 .SetAsync<DatasetValidationStatusModel>(
@@ -2782,9 +2819,13 @@ namespace CalculateFunding.Services.Datasets.Services
                 datasetWorksheetValidator: excelPackageValidator);
 
             // Act
-            await service.ValidateDataset(message);
+            Func<Task> invocation = async () => await service.Run(message);
 
             // Assert
+            invocation
+                .Should()
+                .Throw<NonRetriableException>();
+
             logger
                 .Received(1)
                 .Error(Arg.Any<Exception>(), Arg.Is("The data source file type is invalid. Check that your file is an xls or xlsx file"));
@@ -2885,9 +2926,13 @@ namespace CalculateFunding.Services.Datasets.Services
                 datasetRepository: datasetRepository);
 
             // Act
-            await service.ValidateDataset(message);
+            Func<Task> invocation = async () => await service.Run(message);
 
             // Assert
+            invocation
+                .Should()
+                .Throw<NonRetriableException>();
+
             logger
                 .Received(1)
                 .Error(Arg.Is($"Unable to find a data definition for id: {getDatasetBlobModel.DefinitionId}, for blob: {getDatasetBlobModel.DatasetId}/v{getDatasetBlobModel.Version}/{getDatasetBlobModel.Filename}"));
@@ -2934,7 +2979,6 @@ namespace CalculateFunding.Services.Datasets.Services
             const string name = "name";
             const string description = "updated description";
             const string operationId = "operationId";
-            const string jobId = "job-id";
 
             IDictionary<string, string> metaData = new Dictionary<string, string>
                 {
@@ -2963,7 +3007,7 @@ namespace CalculateFunding.Services.Datasets.Services
             Message message = new Message(byteArray);
 
             message.UserProperties.Add("operation-id", operationId);
-            message.UserProperties.Add("jobId", jobId);
+            message.UserProperties.Add("jobId", JobId);
 
             ILogger logger = CreateLogger();
 
@@ -3036,11 +3080,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 policyRepository: policyRepository);
 
             // Act
-            Func<Task> result = async () => { await service.ValidateDataset(message); };
+            await service.Run(message);
 
             // Assert
-            result
-                .Should().NotThrow();
 
             // Ensure initial version is set
             await datasetRepository
@@ -3092,15 +3134,15 @@ namespace CalculateFunding.Services.Datasets.Services
                      s.OperationId == operationId
                      ));
 
-            for (int percentComplete = 0; percentComplete < 75; percentComplete += 25)
+            for (int percentComplete = 25; percentComplete < 75; percentComplete += 25)
             {
                 await jobManagement
                     .Received(1)
-                    .UpdateJobStatus(Arg.Is(jobId), percentComplete, null, null);
+                    .UpdateJobStatus(Arg.Is(JobId), percentComplete, null, null);
             }
             await jobManagement
                 .Received(1)
-                .UpdateJobStatus(Arg.Is(jobId), 100, true, "Dataset passed validation");
+                .UpdateJobStatus(Arg.Is(JobId), 0, 0, true, "Dataset passed validation");
         }
 
         private GetDatasetBlobModel NewGetDatasetBlobModel(Action<GetDatasetBlobModelBuilder> setUp = null)
@@ -3121,7 +3163,7 @@ namespace CalculateFunding.Services.Datasets.Services
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
 
             Message message = new Message(byteArray);
-            message.UserProperties.Add("jobId", "job1");
+            message.UserProperties.Add("jobId", JobId);
             message.UserProperties.Add("operation-id", operationId);
 
             return message;

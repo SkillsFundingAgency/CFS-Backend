@@ -16,6 +16,7 @@ using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Users.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
@@ -24,7 +25,7 @@ using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.Users
 {
-    public class FundingStreamPermissionService : IFundingStreamPermissionService, IHealthChecker
+    public class FundingStreamPermissionService : ProcessingService, IFundingStreamPermissionService, IHealthChecker
     {
         private readonly IUserRepository _userRepository;
         private readonly ISpecificationsApiClient _specificationsApiClient;
@@ -158,13 +159,13 @@ namespace CalculateFunding.Services.Users
             return new OkObjectResult(_mapper.Map<FundingStreamPermissionCurrent>(newPermissions));
         }
 
-        public async Task OnSpecificationUpdate(Message message)
+        public override async Task Process(Message message)
         {
             SpecificationVersionComparisonModel versionComparison = message.GetPayloadAsInstanceOf<SpecificationVersionComparisonModel>();
 
             if (versionComparison == null || versionComparison.Current == null || versionComparison.Previous == null)
             {
-                _logger.Error($"A null versionComparison was provided to users {nameof(OnSpecificationUpdate)}");
+                _logger.Error($"A null versionComparison was provided to users");
 
                 throw new InvalidModelException(nameof(SpecificationVersionComparisonModel), new[] { "Null or invalid model provided" });
             }
@@ -172,7 +173,7 @@ namespace CalculateFunding.Services.Users
             string specificationId = versionComparison.Id;
             if (string.IsNullOrWhiteSpace(specificationId))
             {
-                _logger.Error($"A null specificationId was provided to users {nameof(OnSpecificationUpdate)} in model");
+                _logger.Error($"A null specificationId was provided to users in model");
 
                 throw new InvalidModelException(nameof(SpecificationVersionComparisonModel), new[] { "Null or invalid specificationId on model" });
             }

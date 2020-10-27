@@ -20,6 +20,9 @@ namespace CalculateFunding.Models.Specs
         [JsonProperty("fundingPeriodId")]
         public string FundingPeriodId { get; set; }
 
+        [JsonProperty("fundingStreamId")]
+        public string FundingStreamId { get; set; }
+
         [JsonProperty("assignedTemplateIds")]
         public IDictionary<string, string> AssignedTemplateIds { get; set; }
 

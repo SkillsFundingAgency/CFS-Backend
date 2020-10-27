@@ -1,16 +1,15 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Models.CosmosDbScaling;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.ServiceBus;
 
 namespace CalculateFunding.Services.CosmosDbScaling.Interfaces
 {
-    public interface ICosmosDbScalingService
+    public interface ICosmosDbScalingService : IProcessingService
     {
-        Task ScaleUp(Message message);
-
         Task ScaleUp(IEnumerable<EventData> events);
 
         Task ScaleDownForJobConfiguration();

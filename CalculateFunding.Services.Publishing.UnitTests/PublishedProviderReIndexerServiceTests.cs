@@ -111,7 +111,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             invocation
                 .Should()
                 .Throw<NonRetriableException>()
-                .WithMessage("Job cannot be run");
+                .WithMessage($"Job can not be run '{JobId}'");
         }
 
         private static JobViewModel NewJobViewModel(Action<JobViewModelBuilder> setup = null)

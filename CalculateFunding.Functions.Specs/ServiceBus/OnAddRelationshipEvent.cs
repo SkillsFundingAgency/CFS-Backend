@@ -12,42 +12,24 @@ using Serilog;
 
 namespace CalculateFunding.Functions.Specs.ServiceBus
 {
-    public class OnAddRelationshipEvent : SmokeTest
+    public class OnAddRelationshipEvent : Retriable
     {
-        private readonly ILogger _logger;
-        private readonly ISpecificationsService _specificationsService;
         public const string FunctionName = "on-add-relationship-event";
+        private const string QueueName = ServiceBusConstants.QueueNames.AddDefinitionRelationshipToSpecification;
 
         public OnAddRelationshipEvent(
             ILogger logger,
             ISpecificationsService specificationsService,
             IMessengerService messengerService,
             IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider)
+            : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, specificationsService)
         {
-            Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(specificationsService, nameof(specificationsService));
-
-            _logger = logger;
-            _specificationsService = specificationsService;
         }
 
         [FunctionName(FunctionName)]
-        public async Task Run([ServiceBusTrigger(ServiceBusConstants.QueueNames.AddDefinitionRelationshipToSpecification, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
+        public async Task Run([ServiceBusTrigger(QueueName, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            await Run(async () =>
-            {
-                try
-                {
-                    await _specificationsService.AssignDataDefinitionRelationship(message);
-                }
-                catch (Exception exception)
-                {
-                    _logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.AddDefinitionRelationshipToSpecification}");
-                    throw;
-                }
-            },
-            message);
+            await Run(message);
         }
     }
 }

@@ -1,12 +1,14 @@
 ﻿using System.Threading.Tasks;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Services.Jobs.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 
 namespace CalculateFunding.Services.Results.Interfaces
 {
-    public interface IResultsService
+    public interface IResultsService : IJobProcessingService
     {
 	    Task<IActionResult> GetProviderResults(string providerId, string specificationId);
 
@@ -26,12 +28,10 @@ namespace CalculateFunding.Services.Results.Interfaces
 
         Task<IActionResult> GetFundingCalculationResultsForSpecifications(SpecificationListModel specificationListModel);
 
-        Task CleanupProviderResultsForSpecification(Message message);
+        Task DeleteCalculationResults(Message message);
 
         Task<IActionResult> HasCalculationResults(string calculationId);
 
         Task QueueCsvGenerationMessages();
-
-        Task DeleteCalculationResults(Message message);
     }
 }

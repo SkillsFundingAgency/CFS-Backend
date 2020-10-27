@@ -6,48 +6,36 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Functions;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Serilog;
 
 namespace CalculateFunding.Functions.Calcs.ServiceBus
 {
-    public class CalcsAddRelationshipToBuildProject : SmokeTest
+    public class CalcsAddRelationshipToBuildProject : Retriable
     {
-        private readonly ILogger _logger;
-        private readonly IBuildProjectsService _buildProjectsService;
+        private IBuildProjectsService _buildProjectsService;
         public const string FunctionName = "on-calcs-add-data-relationship";
+        public const string QueueName = ServiceBusConstants.QueueNames.UpdateBuildProjectRelationships;
 
         public CalcsAddRelationshipToBuildProject(
             ILogger logger,
             IBuildProjectsService buildProjectsService,
             IMessengerService messengerService,
             IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider)
+            : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, buildProjectsService)
         {
-            Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(buildProjectsService, nameof(buildProjectsService));
-
-            _logger = logger;
-            _buildProjectsService = buildProjectsService;
         }
 
         [FunctionName(FunctionName)]
-        public async Task Run([ServiceBusTrigger(ServiceBusConstants.QueueNames.UpdateBuildProjectRelationships, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
+        public async Task Run([ServiceBusTrigger(QueueName, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            await Run(async () =>
+            // ToDo:
+            await base.Run(message, async() =>
             {
-                try
-                {
-                    await _buildProjectsService.UpdateBuildProjectRelationships(message);
-                }
-                catch (Exception exception)
-                {
-                    _logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.UpdateBuildProjectRelationships}");
-                    throw;
-                }
-            },
-            message);
+                await _buildProjectsService.UpdateBuildProjectRelationships(message);
+            });
         }
     }
 }

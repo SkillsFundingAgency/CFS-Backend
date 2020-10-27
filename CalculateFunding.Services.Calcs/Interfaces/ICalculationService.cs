@@ -5,12 +5,14 @@ using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Models.Versioning;
+using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Services.Jobs.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 
 namespace CalculateFunding.Services.Calcs.Interfaces
 {
-    public interface ICalculationService
+    public interface ICalculationService : IProcessingService
     {
         Task<IActionResult> GetCalculationById(string calculationId);
 
@@ -39,8 +41,6 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         Task<IActionResult> GetCalculationCodeContext(string specificationId);
 
         Task<IActionResult> ReIndex();
-
-        Task UpdateCalculationsForSpecification(Message message);
 
         Task<IActionResult> GetCalculationStatusCounts(SpecificationListModel specifications);
 

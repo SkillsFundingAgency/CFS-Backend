@@ -13,49 +13,33 @@ using Serilog;
 
 namespace CalculateFunding.Functions.Results.ServiceBus
 {
-    public class OnDeleteCalculationResults : SmokeTest
+    public class OnDeleteCalculationResults : Retriable
     {
-        private readonly ILogger _logger;
         private readonly IResultsService _resultsService;
-        public const string FunctionName = "on-delete-calculation-results";
+        private const string FunctionName = "on-delete-calculation-results";
+        private const string QueueName = ServiceBusConstants.QueueNames.DeleteCalculationResults;
 
         public OnDeleteCalculationResults(
             ILogger logger,
             IResultsService resultsService,
             IMessengerService messengerService,
             IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider)
+            : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, resultsService)
         {
-            Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(resultsService, nameof(resultsService));
 
-            _logger = logger;
             _resultsService = resultsService;
         }
 
         [FunctionName(FunctionName)]
         public async Task Run([ServiceBusTrigger(
-            ServiceBusConstants.QueueNames.DeleteCalculationResults,
+            QueueName,
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            await Run(async () =>
+            await base.Run(message, async() =>
             {
-                try
-                {
-                    await _resultsService.DeleteCalculationResults(message);
-                }
-                catch (NonRetriableException ex)
-                {
-                    _logger.Error(ex, $"Job threw non retriable exception: {ServiceBusConstants.QueueNames.DeleteCalculationResults}");
-                }
-                catch (Exception exception)
-                {
-                    _logger.Error(exception, $"An error occurred getting message from topic: {ServiceBusConstants.QueueNames.DeleteCalculationResults}");
-
-                    throw;
-                }
-            },
-            message);
+                await _resultsService.DeleteCalculationResults(message);
+            });
         }
     }
 }

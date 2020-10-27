@@ -12,10 +12,8 @@ using Serilog;
 
 namespace CalculateFunding.Functions.Results.ServiceBus
 {
-    public class OnProviderResultsSpecificationCleanup : SmokeTest
+    public class OnProviderResultsSpecificationCleanup : Retriable
     {
-        private readonly ILogger _logger;
-        private readonly IResultsService _resultsService;
         public const string FunctionName = "on-provider-results-specification-cleanup";
 
         public OnProviderResultsSpecificationCleanup(
@@ -23,13 +21,8 @@ namespace CalculateFunding.Functions.Results.ServiceBus
             IResultsService resultsService,
             IMessengerService messengerService,
             IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider)
+            : base(logger, messengerService, FunctionName, $"{ServiceBusConstants.TopicNames.ProviderSourceDatasetCleanup}/{ServiceBusConstants.TopicSubscribers.CleanupCalculationResultsForSpecificationProviders}", useAzureStorage, userProfileProvider, resultsService)
         {
-            Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(resultsService, nameof(resultsService));
-
-            _logger = logger;
-            _resultsService = resultsService;
         }
 
         [FunctionName(FunctionName)]
@@ -38,19 +31,7 @@ namespace CalculateFunding.Functions.Results.ServiceBus
             ServiceBusConstants.TopicSubscribers.CleanupCalculationResultsForSpecificationProviders,
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            await Run(async () =>
-            {
-                try
-                {
-                    await _resultsService.CleanupProviderResultsForSpecification(message);
-                }
-                catch (Exception exception)
-                {
-                    _logger.Error(exception, $"An error occurred getting message from topic: {ServiceBusConstants.TopicNames.ProviderSourceDatasetCleanup}");
-                    throw;
-                }
-            },
-            message);
+            await Run(message);
         }
     }
 }

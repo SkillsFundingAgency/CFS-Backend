@@ -7,6 +7,7 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Jobs;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Polly;
@@ -14,7 +15,7 @@ using Serilog;
 
 namespace CalculateFunding.Services.Publishing.Providers
 {
-    public class DeletePublishedProvidersService : IDeletePublishedProvidersService
+    public class DeletePublishedProvidersService : JobProcessingService, IDeletePublishedProvidersService
     {
         private readonly ICreateDeletePublishedProvidersJobs _jobs;
         private readonly IDeleteFundingSearchDocumentsService _deleteFundingSearchDocumentsService;
@@ -22,7 +23,6 @@ namespace CalculateFunding.Services.Publishing.Providers
         private readonly IDeselectSpecificationForFundingService _deselectSpecificationForFundingService;
         private readonly IPublishedFundingRepository _publishedFundingRepository;
         private readonly AsyncPolicy _publishedFundingRepositoryPolicy;
-        private readonly IJobManagement _jobManagement;
         private readonly ILogger _logger;
 
         public DeletePublishedProvidersService(ICreateDeletePublishedProvidersJobs jobs,
@@ -32,14 +32,13 @@ namespace CalculateFunding.Services.Publishing.Providers
             IDeleteFundingSearchDocumentsService deleteFundingSearchDocumentsService,
             IDeletePublishedFundingBlobDocumentsService deletePublishedFundingBlobDocumentsService,
             IDeselectSpecificationForFundingService deselectSpecificationForFundingService,
-            ILogger logger)
+            ILogger logger) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(jobs, nameof(jobs));
             Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
             Guard.ArgumentNotNull(publishedFundingResilience?.PublishedFundingRepository, nameof(publishedFundingResilience.PublishedFundingRepository));
             Guard.ArgumentNotNull(publishedFundingResilience?.BlobClient, nameof(publishedFundingResilience.BlobClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(deletePublishedFundingBlobDocumentsService, nameof(deletePublishedFundingBlobDocumentsService));
             Guard.ArgumentNotNull(deleteFundingSearchDocumentsService, nameof(deleteFundingSearchDocumentsService));
             Guard.ArgumentNotNull(deselectSpecificationForFundingService, nameof(deleteFundingSearchDocumentsService));
@@ -50,7 +49,6 @@ namespace CalculateFunding.Services.Publishing.Providers
             _deselectSpecificationForFundingService = deselectSpecificationForFundingService;
             _deleteFundingSearchDocumentsService = deleteFundingSearchDocumentsService;
             _deletePublishedFundingBlobDocumentsService = deletePublishedFundingBlobDocumentsService;
-            _jobManagement = jobManagement;
             _publishedFundingRepositoryPolicy = publishedFundingResilience.PublishedFundingRepository;
         }
 
@@ -66,47 +64,28 @@ namespace CalculateFunding.Services.Publishing.Providers
                 correlationId);
         }
 
-        public async Task DeletePublishedProvidersJob(Message message)
+        public override async Task Process(Message message)
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
             string fundingPeriodId = message.GetUserProperty<string>("funding-period-id");
             string fundingStreamId = message.GetUserProperty<string>("funding-stream-id");
-            string jobId = message.GetUserProperty<string>("jobId");
-
+            
             Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
             Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
-            Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
+            
+            _logger.Information($"Started delete published providers job for {fundingStreamId} {fundingPeriodId}");
 
-            try
-            {
-                await CheckJobStatus(jobId);
+            await TaskHelper.WhenAllAndThrow(DeletePublishedProviders(fundingStreamId, fundingPeriodId),
+            DeletePublishedProviderVersions(fundingStreamId, fundingPeriodId),
+            DeletePublishedFunding(fundingStreamId, fundingPeriodId),
+            DeletePublishedFundingVersions(fundingStreamId, fundingPeriodId),
+            DeletePublishedProviderSearchDocuments(fundingStreamId, fundingPeriodId),
+            DeletePublishedFundingBlobDocuments(fundingStreamId, fundingPeriodId, "publishedproviderversions"),
+            DeletePublishedFundingBlobDocuments(fundingStreamId, fundingPeriodId, "publishedfunding"),
+            DeletePublishedProviderFundingSearchDocuments(fundingStreamId, fundingPeriodId));
 
-                _logger.Information($"Started delete published providers job for {fundingStreamId} {fundingPeriodId}");
-
-                await TaskHelper.WhenAllAndThrow(DeletePublishedProviders(fundingStreamId, fundingPeriodId),
-                DeletePublishedProviderVersions(fundingStreamId, fundingPeriodId),
-                DeletePublishedFunding(fundingStreamId, fundingPeriodId),
-                DeletePublishedFundingVersions(fundingStreamId, fundingPeriodId),
-                DeletePublishedProviderSearchDocuments(fundingStreamId, fundingPeriodId),
-                DeletePublishedFundingBlobDocuments(fundingStreamId, fundingPeriodId, "publishedproviderversions"),
-                DeletePublishedFundingBlobDocuments(fundingStreamId, fundingPeriodId, "publishedfunding"),
-                DeletePublishedProviderFundingSearchDocuments(fundingStreamId, fundingPeriodId));
-
-                await DeselectSpecificationForFunding(fundingStreamId, fundingPeriodId);
-
-                _logger.Information($"Completed delete published providers job for {fundingStreamId} {fundingPeriodId}");
-
-                await TrackJobCompleted(jobId);
-            }
-            catch (Exception exception)
-            {
-                _logger.Error(exception, "Unable to complete delete published providers job");
-
-                await TrackJobFailed(jobId, exception);
-
-                throw new NonRetriableException("Unable to delete published providers.", exception);
-            }
+            await DeselectSpecificationForFunding(fundingStreamId, fundingPeriodId);
         }
 
         private async Task DeselectSpecificationForFunding(string fundingStreamId, string fundingPeriodId)
@@ -165,33 +144,6 @@ namespace CalculateFunding.Services.Publishing.Providers
             where TIndex : class
         {
             await _deleteFundingSearchDocumentsService.DeleteFundingSearchDocuments<TIndex>(fundingStreamId, fundingPeriodId);
-        }
-
-        private async Task CheckJobStatus(string jobId)
-        {
-            await _jobManagement.RetrieveJobAndCheckCanBeProcessed(jobId);
-        }
-
-        private async Task TrackJobFailed(string jobId, Exception exception)
-        {
-            await AddJobTracking(jobId, new JobLogUpdateModel
-            {
-                CompletedSuccessfully = false,
-                Outcome = exception.ToString()
-            });
-        }
-
-        private async Task TrackJobCompleted(string jobId)
-        {
-            await AddJobTracking(jobId, new JobLogUpdateModel
-            {
-                CompletedSuccessfully = true
-            });
-        }
-
-        private async Task AddJobTracking(string jobId, JobLogUpdateModel tracking)
-        {
-            await _jobManagement.AddJobLog(jobId, tracking);
         }
     }
 }

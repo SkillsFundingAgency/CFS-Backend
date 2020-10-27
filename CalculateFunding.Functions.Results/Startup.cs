@@ -74,7 +74,9 @@ namespace CalculateFunding.Functions.Results
                 builder.AddScoped<OnMergeSpecificationInformationForProviderWithResults>();
                 builder.AddScoped<OnMergeSpecificationInformationForProviderWithResultsFailure>();
                 builder.AddScoped<OnDeleteCalculationResults>();
+                builder.AddScoped<OnDeleteCalculationResultsFailure>();
                 builder.AddScoped<OnSearchIndexWriterEventTrigger>();
+                builder.AddScoped<OnSearchIndexWriterEventTriggerFailure>();
             }
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
             builder.AddSingleton<ISpecificationsWithProviderResultsService, SpecificationsWithProviderResultsService>();

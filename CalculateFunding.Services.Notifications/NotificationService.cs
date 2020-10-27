@@ -4,15 +4,22 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Jobs;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Notifications.Interfaces;
+using Microsoft.Azure.Search.Common;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.SignalRService;
 
 namespace CalculateFunding.Services.Notifications
 {
-    public class NotificationService : INotificationService
+    public class NotificationService : ProcessingService, INotificationService
     {
+        public override Task Process(Message message)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task OnNotificationEvent(Message message, IAsyncCollector<SignalRMessage> signalRMessages)
         {
             Guard.ArgumentNotNull(message, nameof(message));

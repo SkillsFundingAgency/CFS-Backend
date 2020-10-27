@@ -15,6 +15,7 @@ using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Jobs;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using Microsoft.Azure.ServiceBus;
@@ -24,7 +25,7 @@ using FundingLine = CalculateFunding.Common.TemplateMetadata.Models.FundingLine;
 
 namespace CalculateFunding.Services.Publishing
 {
-    public class RefreshService : IRefreshService
+    public class RefreshService : JobProcessingService, IRefreshService
     {
         private const string SfaCorrelationId = "sfa-correlationId";
 
@@ -51,7 +52,6 @@ namespace CalculateFunding.Services.Publishing
         private readonly IPoliciesService _policiesService;
         private readonly IVariationService _variationService;
         private readonly IReApplyCustomProfiles _reApplyCustomProfiles;
-        private readonly IPublishedProviderErrorDetection _detection;
 
         public RefreshService(IPublishedProviderStatusUpdateService publishedProviderStatusUpdateService,
             IPublishedFundingDataService publishedFundingDataService,
@@ -74,8 +74,7 @@ namespace CalculateFunding.Services.Publishing
             IPublishedProviderVersionService publishedProviderVersionService,
             IPoliciesService policiesService,
             IGeneratePublishedFundingCsvJobsCreationLocator generateCsvJobsLocator,
-            IReApplyCustomProfiles reApplyCustomProfiles,
-            IPublishedProviderErrorDetection detection)
+            IReApplyCustomProfiles reApplyCustomProfiles) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(generateCsvJobsLocator, nameof(generateCsvJobsLocator));
             Guard.ArgumentNotNull(publishedProviderStatusUpdateService, nameof(publishedProviderStatusUpdateService));
@@ -99,7 +98,6 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(prerequisiteCheckerLocator, nameof(prerequisiteCheckerLocator));
             Guard.ArgumentNotNull(reApplyCustomProfiles, nameof(reApplyCustomProfiles));
-            Guard.ArgumentNotNull(detection, nameof(detection));
 
             _publishedProviderStatusUpdateService = publishedProviderStatusUpdateService;
             _publishedFundingDataService = publishedFundingDataService;
@@ -117,7 +115,6 @@ namespace CalculateFunding.Services.Publishing
             _variationService = variationService;
             _generateCsvJobsLocator = generateCsvJobsLocator;
             _reApplyCustomProfiles = reApplyCustomProfiles;
-            _detection = detection;
             _publishedProviderIndexerService = publishedProviderIndexerService;
 
             _publishingResiliencePolicy = publishingResiliencePolicies.PublishedFundingRepository;
@@ -128,27 +125,14 @@ namespace CalculateFunding.Services.Publishing
             _policiesService = policiesService;
         }
 
-        public async Task RefreshResults(Message message)
+        public override async Task Process(Message message)
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
             Reference author = message.GetUserDetails();
 
             string specificationId = message.UserProperties["specification-id"] as string;
-            string jobId = message.UserProperties["jobId"]?.ToString();
-
-            try
-            {
-                await _jobManagement.RetrieveJobAndCheckCanBeProcessed(jobId);
-            }
-            catch (Exception e)
-            {
-                throw new NonRetriableException($"Job cannot be run. {e.Message}");
-            }
-
-            // Update job to set status to processing
-            await _jobManagement.UpdateJobStatus(jobId, 0, 0, null, null);
-
+            
             SpecificationSummary specification = await _specificationService.GetSpecificationSummaryById(specificationId);
 
             if (specification == null)
@@ -178,7 +162,7 @@ namespace CalculateFunding.Services.Publishing
 
             // Check prerequisites for this specification to be chosen/refreshed
             IPrerequisiteChecker prerequisiteChecker = _prerequisiteCheckerLocator.GetPreReqChecker(PrerequisiteCheckerType.Refresh);
-            await prerequisiteChecker.PerformChecks(specification, jobId, existingPublishedProvidersByFundingStream.SelectMany(x => x.Value), scopedProviders.Values);
+            await prerequisiteChecker.PerformChecks(specification, Job.Id, existingPublishedProvidersByFundingStream.SelectMany(x => x.Value), scopedProviders.Values);
 
             _logger.Information("Prerequisites for refresh passed");
 
@@ -211,7 +195,7 @@ namespace CalculateFunding.Services.Publishing
                         specification,
                         scopedProviders,
                         allCalculationResults,
-                        jobId,
+                        Job.Id,
                         author,
                         correlationId,
                         existingPublishedProvidersByFundingStream[fundingStream.Id],
@@ -227,11 +211,6 @@ namespace CalculateFunding.Services.Publishing
                 _variationService.ClearSnapshots();
                 _logger.Information("Finished clearing variation snapshots");
             }
-
-            _logger.Information("Marking refresh job as complete");
-            // Mark job as complete
-            await _jobManagement.UpdateJobStatus(jobId, 0, 0, true, null);
-            _logger.Information("Refresh complete");
         }
 
         private async Task RefreshFundingStream(Reference fundingStream,

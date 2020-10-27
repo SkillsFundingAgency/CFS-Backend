@@ -32,6 +32,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.Jobs;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -42,7 +43,7 @@ using AggregatedType = CalculateFunding.Models.Aggregations.AggregatedType;
 
 namespace CalculateFunding.Services.CalcEngine
 {
-    public class CalculationEngineService : ICalculationEngineService
+    public class CalculationEngineService : JobProcessingService, ICalculationEngineService
     {
         private readonly ILogger _logger;
         private readonly ICalculationEngine _calculationEngine;
@@ -62,7 +63,6 @@ namespace CalculateFunding.Services.CalcEngine
         private readonly AsyncPolicy _specificationsApiPolicy;
         private readonly AsyncPolicy _resultsApiClientPolicy;
         private readonly IDatasetAggregationsRepository _datasetAggregationsRepository;
-        private readonly IJobManagement _jobManagement;
         private readonly ICalculationEngineServiceValidator _calculationEngineServiceValidator;
         private readonly IResultsApiClient _resultsApiClient;
         private readonly ISpecificationAssemblyProvider _specificationAssemblies;
@@ -84,7 +84,7 @@ namespace CalculateFunding.Services.CalcEngine
             IResultsApiClient resultsApiClient,
             IValidator<ICalculatorResiliencePolicies> calculatorResiliencePoliciesValidator,
             ICalculationEngineServiceValidator calculationEngineServiceValidator,
-            ISpecificationAssemblyProvider specificationAssemblies)
+            ISpecificationAssemblyProvider specificationAssemblies) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(calculationEngine, nameof(calculationEngine));
@@ -103,7 +103,6 @@ namespace CalculateFunding.Services.CalcEngine
             Guard.ArgumentNotNull(resiliencePolicies?.CalculationsRepository, nameof(resiliencePolicies.CalculationsRepository));
             Guard.ArgumentNotNull(resiliencePolicies?.ResultsApiClient, nameof(resiliencePolicies.ResultsApiClient));
             Guard.ArgumentNotNull(datasetAggregationsRepository, nameof(datasetAggregationsRepository));
-            Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
             Guard.ArgumentNotNull(calculatorResiliencePoliciesValidator, nameof(calculatorResiliencePoliciesValidator));
             Guard.ArgumentNotNull(calculationEngineServiceValidator, nameof(calculationEngineServiceValidator));
@@ -126,7 +125,6 @@ namespace CalculateFunding.Services.CalcEngine
             _providerResultsRepositoryPolicy = resiliencePolicies.ProviderResultsRepository;
             _calculationsRepositoryPolicy = resiliencePolicies.CalculationsRepository;
             _datasetAggregationsRepository = datasetAggregationsRepository;
-            _jobManagement = jobManagement;
             _specificationsApiClient = specificationsApiClient;
             _specificationsApiPolicy = resiliencePolicies.SpecificationsApiClient;
             _resultsApiClientPolicy = resiliencePolicies.ResultsApiClient;
@@ -171,7 +169,12 @@ namespace CalculateFunding.Services.CalcEngine
             return sb.ToString();
         }
 
-        public async Task GenerateAllocations(Message message)
+        public override async Task Process(Message message)
+        {
+            await GenerateAllocations(message);
+        }
+
+        private async Task GenerateAllocations(Message message)
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
@@ -181,16 +184,9 @@ namespace CalculateFunding.Services.CalcEngine
 
             GenerateAllocationMessageProperties messageProperties = GetMessageProperties(message);
 
-            JobViewModel job = await AddStartingProcessJobLog(messageProperties.JobId);
-
-            if (job == null)
-            {
-                return;
-            }
-
             string specificationId = messageProperties.SpecificationId;
 
-            messageProperties.GenerateCalculationAggregationsOnly = job.JobDefinitionId == JobConstants.DefinitionNames.GenerateCalculationAggregationsJob;
+            messageProperties.GenerateCalculationAggregationsOnly = Job.JobDefinitionId == JobConstants.DefinitionNames.GenerateCalculationAggregationsJob;
 
             _logger.Information($"Generating allocations for specification id {specificationId}");
 
@@ -250,6 +246,7 @@ namespace CalculateFunding.Services.CalcEngine
                     if (messageProperties.GenerateCalculationAggregationsOnly)
                     {
                         PopulateCachedCalculationAggregationsBatch(calculationResults.ProviderResults, cachedCalculationAggregationsBatch, messageProperties);
+                        totalProviderResults += calculationResults.ProviderResults.Count();
                     }
                     else
                     {
@@ -316,9 +313,12 @@ namespace CalculateFunding.Services.CalcEngine
                 );
             }
 
+            ItemsProcessed = summaries.Count();
+            ItemsFailed = summaries.Count() - totalProviderResults;
+
             if (calculationResultsHaveExceptions)
             {
-                await FailJob(messageProperties.JobId, totalProviderResults, "Exceptions were thrown during generation of calculation results");
+                throw new NonRetriableException("Exceptions were thrown during generation of calculation results");
             }
             else
             {
@@ -572,35 +572,6 @@ namespace CalculateFunding.Services.CalcEngine
             return properties;
         }
 
-        private async Task<JobViewModel> AddStartingProcessJobLog(string jobId)
-        {
-            if (string.IsNullOrWhiteSpace(jobId))
-            {
-                _logger.Error($"No jobId given.");
-                throw new NonRetriableException("No Job Id given");
-            }
-
-            JobViewModel job;
-
-            try
-            {
-                job = await _jobManagement.RetrieveJobAndCheckCanBeProcessed(jobId);
-            }
-            catch (JobNotFoundException)
-            {
-                throw new NonRetriableException($"Could not find the parent job with job id: '{jobId}'");
-            }
-            catch (JobAlreadyCompletedException)
-            {
-                return null;
-            }
-
-            await _jobManagement.AddJobLog(jobId, new JobLogUpdateModel());
-
-            return job;
-        }
-
-
         private Dictionary<string, List<object>> CreateCalculationAggregateBatchDictionary(GenerateAllocationMessageProperties messageProperties)
         {
             if (!messageProperties.GenerateCalculationAggregationsOnly)
@@ -702,25 +673,14 @@ namespace CalculateFunding.Services.CalcEngine
             int itemsProcessed,
             int totalProviderResults)
         {
-            int itemsSucceeded = totalProviderResults;
-            int itemsFailed = itemsProcessed - itemsSucceeded;
-            string outcome = $"{itemsSucceeded} provider results were generated successfully from {itemsProcessed} providers";
+            Outcome = $"{ItemsSucceeded} provider results were generated successfully from {ItemsProcessed} providers";
 
             if (messageProperties.GenerateCalculationAggregationsOnly)
             {
                 await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(messageProperties.CalculationsAggregationsBatchCacheKey, cachedCalculationAggregationsBatch));
 
-                outcome = $"{itemsSucceeded} provider result calculation aggregations were generated successfully from {itemsProcessed} providers";
+                Outcome = $"{ItemsSucceeded} provider result calculation aggregations were generated successfully from {ItemsProcessed} providers";
             }
-
-            await _jobManagement.AddJobLog(messageProperties.JobId, new JobLogUpdateModel
-            {
-                CompletedSuccessfully = true,
-                ItemsSucceeded = itemsSucceeded,
-                ItemsFailed = itemsFailed,
-                ItemsProcessed = itemsProcessed,
-                Outcome = outcome
-            });
 
             await _resultsApiClientPolicy.ExecuteAsync(() => _resultsApiClient.UpdateFundingStructureLastModified(
                 new Common.ApiClient.Results.Models.UpdateFundingStructureLastModifiedRequest
@@ -821,23 +781,6 @@ namespace CalculateFunding.Services.CalcEngine
                 saveRedisStopwatch != null ? saveRedisStopwatch.ElapsedMilliseconds : 0,
                 saveQueueStopwatch?.ElapsedMilliseconds,
                 saveProviderResultsTimings.savedProviders);
-        }
-
-        private async Task FailJob(string jobId, int itemsProcessed, string outcome = null)
-        {
-            JobLogUpdateModel jobLogUpdateModel = new JobLogUpdateModel
-            {
-                CompletedSuccessfully = false,
-                ItemsProcessed = itemsProcessed,
-                Outcome = outcome
-            };
-
-            JobLog jobLog = await _jobManagement.AddJobLog(jobId, jobLogUpdateModel);
-
-            if (jobLog == null)
-            {
-                _logger.Error($"Failed to add a job log for job id '{jobId}'");
-            }
         }
 
         private bool DoesNotExistInCache(IEnumerable<CalculationAggregation> aggregations)

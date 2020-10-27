@@ -245,7 +245,7 @@ namespace CalculateFunding.Services.Jobs
 
             IEnumerable<Job> jobs = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.GetRunningJobsWithinTimeFrame(dateTimeFromAsString, dateTimeToAsString));
 
-            return new OkObjectResult(jobs.Select(_mapper.Map<JobSummary>));
+            return new OkObjectResult(jobs?.Select(_mapper.Map<JobSummary>));
         }
 
         public Task<IActionResult> UpdateJob(string jobId, JobUpdateModel jobUpdate)

@@ -162,7 +162,7 @@ namespace CalculateFunding.Services.Calculator
             messageUserProperties.Add("provider-cache-key", cacheKey);
             messageUserProperties.Add("specification-id", specificationId);
 
-            await service.GenerateAllocations(message);
+            await service.Run(message);
 
             await _calculationEngineServiceTestsHelper
                 .MockProviderResultRepo
@@ -270,7 +270,7 @@ namespace CalculateFunding.Services.Calculator
                 .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK, new TemplateMetadataContents { RootFundingLines = new FundingLine[0] }));
 
             //Act
-            await service.GenerateAllocations(message);
+            await service.Run(message);
 
             //Assert
             _calculationEngineServiceTestsHelper
@@ -390,7 +390,7 @@ namespace CalculateFunding.Services.Calculator
             messageUserProperties.Add("jobId", jobId);
 
             //Act
-            await service.GenerateAllocations(message);
+            await service.Run(message);
 
             //Assert
             _calculationEngineServiceTestsHelper
@@ -497,7 +497,7 @@ namespace CalculateFunding.Services.Calculator
             messageUserProperties.Add("jobId", jobId);
 
             //Act
-            await service.GenerateAllocations(message);
+            await service.Run(message);
 
             _calculationEngineServiceTestsHelper
                 .MockCalculationEngine
@@ -512,48 +512,6 @@ namespace CalculateFunding.Services.Calculator
                     .MockProviderResultRepo
                     .Received(0)
                     .SaveProviderResults(Arg.Any<IEnumerable<ProviderResult>>(), Arg.Is(_specificationSummary), Arg.Is(partitionIndex), Arg.Is(partitionSize), Arg.Any<Reference>(), Arg.Any<string>(), Arg.Any<int>());
-        }
-
-        [TestMethod]
-        public async Task GenerateAllocations_GivenJobIdMisingFromMessage_LogsErrorDoesNotAddJoblog()
-        {
-            //Arrange
-            const string cacheKey = "Cache-key";
-            const string specificationSummaryCacheKey = "specification-summary-cache-key";
-            const string specificationId = "spec1";
-            const int partitionIndex = 0;
-            const int partitionSize = 100;
-
-            Message message = new Message();
-            IDictionary<string, object> messageUserProperties = message.UserProperties;
-
-            messageUserProperties.Add("provider-summaries-partition-index", partitionIndex);
-            messageUserProperties.Add("provider-summaries-partition-size", partitionSize);
-            messageUserProperties.Add("provider-cache-key", cacheKey);
-            messageUserProperties.Add("specification-summary-cache-key", specificationSummaryCacheKey);
-            messageUserProperties.Add("specification-id", specificationId);
-            messageUserProperties.Add("ignore-save-provider-results", "true");
-
-            CalculationEngineService service = _calculationEngineServiceTestsHelper.CreateCalculationEngineService();
-
-            //Act
-            Func<Task> action = async () => await service.GenerateAllocations(message);
-
-            //Assert
-            action
-                .Should()
-                .ThrowExactly<NonRetriableException>();
-
-            await
-                _calculationEngineServiceTestsHelper
-                    .MockJobManagement
-                    .DidNotReceive()
-                    .AddJobLog(Arg.Any<string>(), Arg.Any<JobLogUpdateModel>());
-
-            _calculationEngineServiceTestsHelper
-                .MockLogger
-                .Received(1)
-                .Error("Missing job id for generating allocations");
         }
 
         [TestMethod]
@@ -643,7 +601,7 @@ namespace CalculateFunding.Services.Calculator
             messageUserProperties.Add("jobId", jobId);
 
             //Act
-            await service.GenerateAllocations(message);
+            await service.Run(message);
 
             _calculationEngineServiceTestsHelper
                 .MockCalculationEngine
@@ -657,18 +615,13 @@ namespace CalculateFunding.Services.Calculator
                 _calculationEngineServiceTestsHelper
                     .MockJobManagement
                     .Received(1)
-                    .AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(m => m.CompletedSuccessfully == null));
+                    .UpdateJobStatus(Arg.Is(jobId), 0, 0, null, null);
 
             await
                 _calculationEngineServiceTestsHelper
                     .MockJobManagement
                     .Received(1)
-                    .AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(
-                        m => m.CompletedSuccessfully.Value &&
-                             m.ItemsSucceeded == 20 &&
-                             m.ItemsFailed == 0 &&
-                             m.ItemsProcessed == 20 &&
-                             m.Outcome == "20 provider results were generated successfully from 20 providers"));
+                    .UpdateJobStatus(Arg.Is(jobId), 20, 0, true, "20 provider results were generated successfully from 20 providers");
         }
 
         [TestMethod]
@@ -764,124 +717,22 @@ namespace CalculateFunding.Services.Calculator
             messageUserProperties.Add("jobId", jobId);
 
             //Act
-            await service.GenerateAllocations(message);
+            Func<Task> test = async () => await service.Run(message);
+
+            test
+                .Should()
+                .ThrowExactly<NonRetriableException>()
+                .Which
+                .Message
+                .Should()
+                .Be("Exceptions were thrown during generation of calculation results");
 
             //Assert
             await
                 _calculationEngineServiceTestsHelper
                     .MockJobManagement
                     .Received(1)
-                    .AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(m =>
-                        m.CompletedSuccessfully == false &&
-                        m.Outcome == "Exceptions were thrown during generation of calculation results" &&
-                        m.ItemsProcessed == 20));
-        }
-
-        [TestMethod]
-        public async Task GenerateAllocations_GivenCalculationResultsContainExcptionButFailsToAddAJobLog_ThrowsNonRetriableExceptionAndLogsError()
-        {
-            //Arrange
-            const string cacheKey = "Cache-key";
-            const string specificationSummaryCacheKey = "specification-summary-cache-key";
-            const string specificationId = "spec1";
-            const int partitionIndex = 0;
-            const int partitionSize = 100;
-            const int stop = partitionIndex + partitionSize - 1;
-            const string jobId = "job-id-1";
-
-            BuildProject buildProject = CreateBuildProject();
-
-            JobViewModel jobViewModel = new JobViewModel { Id = jobId };
-
-            IList<ProviderSummary> providerSummaries = MockData.GetDummyProviders(20);
-
-            IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
-            mockAllocationModel
-                .Execute(Arg.Any<Dictionary<string, ProviderSourceDataset>>(), Arg.Any<ProviderSummary>())
-                .Returns(new CalculationResultContainer());
-
-            _calculationEngineServiceTestsHelper
-                .MockCacheProvider
-                .ListRangeAsync<ProviderSummary>(cacheKey, partitionIndex, stop)
-                .Returns(providerSummaries);
-
-            _calculationEngineServiceTestsHelper
-                .MockCalculationRepository
-                .GetBuildProjectBySpecificationId(Arg.Any<string>())
-                .Returns(buildProject);
-
-            _calculationEngineServiceTestsHelper
-                .MockCalculationRepository
-                .GetAssemblyBySpecificationId(Arg.Is(specificationId))
-                .Returns(MockData.GetMockAssembly());
-
-            _calculationEngineServiceTestsHelper
-                .MockJobManagement
-                .RetrieveJobAndCheckCanBeProcessed(Arg.Is(jobId))
-                .Returns(jobViewModel);
-
-            _calculationEngineServiceTestsHelper
-                .MockJobManagement
-                .AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(m => m.ItemsProcessed == 3))
-                .Returns((JobLog)null);
-
-            IList<CalculationSummaryModel> calculationSummaryModelsReturn = CreateDummyCalculationSummaryModels();
-            _calculationEngineServiceTestsHelper
-                .MockCalculationRepository
-                .GetCalculationSummariesForSpecification(specificationId)
-                .Returns(calculationSummaryModelsReturn);
-
-            _calculationEngineServiceTestsHelper
-                .MockCalculationEngine
-                .GenerateAllocationModel(Arg.Any<Assembly>())
-                .Returns(mockAllocationModel);
-            _calculationEngineServiceTestsHelper
-                .MockCalculationEngine
-                .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
-                    Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
-                    Arg.Any<IDictionary<string, ProviderSourceDataset>>(),
-                    Arg.Any<IEnumerable<CalculationAggregation>>())
-                .Returns(new ProviderResult()
-                {
-                    CalculationResults = new List<CalculationResult>
-                    {
-                        new CalculationResult
-                        {
-                            ExceptionMessage = "Exception occurred"
-                        }
-                    }
-                });
-
-            _calculationEngineServiceTestsHelper
-                .MockEngineSettings
-                .ProviderBatchSize = 3;
-
-            _calculationEngineServiceTestsHelper
-                .MockDatasetRepo
-                .GetProviderSourceDatasetsByProviderIdsAndRelationshipIds(specificationId, Arg.Any<IEnumerable<string>>(), Arg.Any<IEnumerable<string>>())
-                .Returns(new ProviderSourceDatasetLookupResult { ProviderSourceDatasets = providerSummaries.ToDictionary(x => x.Id, x => new Dictionary<string, ProviderSourceDataset>()) });
-
-            CalculationEngineService service = _calculationEngineServiceTestsHelper.CreateCalculationEngineService();
-
-            Message message = new Message();
-            IDictionary<string, object> messageUserProperties = message.UserProperties;
-
-            messageUserProperties.Add("provider-summaries-partition-index", partitionIndex);
-            messageUserProperties.Add("provider-summaries-partition-size", partitionSize);
-            messageUserProperties.Add("provider-cache-key", cacheKey);
-            messageUserProperties.Add("specification-summary-cache-key", specificationSummaryCacheKey);
-            messageUserProperties.Add("specification-id", specificationId);
-            messageUserProperties.Add("ignore-save-provider-results", "true");
-            messageUserProperties.Add("jobId", jobId);
-
-            //Act
-            await service.GenerateAllocations(message);
-
-            //Assert
-            _calculationEngineServiceTestsHelper
-                .MockLogger
-                .Received(1)
-                .Error(Arg.Is($"Failed to add a job log for job id '{jobId}'"));
+                    .UpdateJobStatus(Arg.Is(jobId), 20, 0, false, "Exceptions were thrown during generation of calculation results");
         }
 
         [TestMethod]
@@ -916,9 +767,16 @@ namespace CalculateFunding.Services.Calculator
             messageUserProperties.Add("jobId", jobId);
 
             //Act
-            await service.GenerateAllocations(message);
+            Func<Task> test = async () => await service.Run(message);
 
             //Assert
+            test
+                .Should()
+                .ThrowExactly<NonRetriableException>()
+                .Which
+                .Message
+                .Should()
+                .Be($"Received job with id: '{jobId}' is already in a completed state with status 'Superseded'");
 
             await
                 _calculationEngineServiceTestsHelper
@@ -957,7 +815,7 @@ namespace CalculateFunding.Services.Calculator
             messageUserProperties.Add("jobId", jobId);
 
             //Act
-            Func<Task> test = async () => await service.GenerateAllocations(message);
+            Func<Task> test = async () => await service.Run(message);
 
             //Assert
             test
@@ -966,7 +824,7 @@ namespace CalculateFunding.Services.Calculator
                 .Which
                 .Message
                 .Should()
-                .Be($"Could not find the parent job with job id: '{jobId}'");
+                .Be($"Could not find the job with id: '{jobId}'");
 
             await
                 _calculationEngineServiceTestsHelper
@@ -1085,7 +943,7 @@ namespace CalculateFunding.Services.Calculator
             messageUserProperties.Add("calculations-to-aggregate", calculationsToAggregate);
 
             //Act
-            await service.GenerateAllocations(message);
+            await service.Run(message);
 
             //Assert
             _calculationEngineServiceTestsHelper
@@ -1111,7 +969,7 @@ namespace CalculateFunding.Services.Calculator
                 _calculationEngineServiceTestsHelper
                     .MockJobManagement
                     .Received()
-                    .AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(m => m.CompletedSuccessfully == true));
+                    .UpdateJobStatus(Arg.Is(jobId), 20, 0, true, Arg.Any<string>());
         }
 
         [TestMethod]
@@ -1220,7 +1078,7 @@ namespace CalculateFunding.Services.Calculator
             messageUserProperties.Add("calculations-to-aggregate", calculationsToAggregate);
 
             //Act
-            await service.GenerateAllocations(message);
+            await service.Run(message);
 
             _calculationEngineServiceTestsHelper
                 .MockCalculationEngine
@@ -1248,18 +1106,13 @@ namespace CalculateFunding.Services.Calculator
                 _calculationEngineServiceTestsHelper
                     .MockJobManagement
                     .Received(1)
-                    .AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(m => m.CompletedSuccessfully == null));
+                    .UpdateJobStatus(Arg.Is(jobId), 20, 0, true, Arg.Any<string>());
 
             await
                 _calculationEngineServiceTestsHelper
                     .MockJobManagement
                     .Received(1)
-                    .AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(
-                        m => m.CompletedSuccessfully.Value &&
-                             m.ItemsSucceeded == 20 &&
-                             m.ItemsFailed == 0 &&
-                             m.ItemsProcessed == 20 &&
-                             m.Outcome == "20 provider results were generated successfully from 20 providers"));
+                    .UpdateJobStatus(Arg.Is(jobId), 20, 0, true, "20 provider results were generated successfully from 20 providers");
         }
 
         [TestMethod]
@@ -1359,7 +1212,7 @@ namespace CalculateFunding.Services.Calculator
             messageUserProperties.Add("batch-number", "1");
 
             //Act
-            await service.GenerateAllocations(message);
+            await service.Run(message);
 
             _calculationEngineServiceTestsHelper
                 .MockCalculationEngine
@@ -1375,18 +1228,13 @@ namespace CalculateFunding.Services.Calculator
                 _calculationEngineServiceTestsHelper
                     .MockJobManagement
                     .Received(1)
-                    .AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(m => m.CompletedSuccessfully == null));
+                    .UpdateJobStatus(Arg.Is(jobId), 0, 0, null, null);
 
             await
                 _calculationEngineServiceTestsHelper
                     .MockJobManagement
                     .Received(1)
-                    .AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(
-                        m => m.CompletedSuccessfully.Value &&
-                             m.ItemsSucceeded == 20 &&
-                             m.ItemsFailed == 0 &&
-                             m.ItemsProcessed == 20 &&
-                             m.Outcome == "20 provider results were generated successfully from 20 providers"));
+                    .UpdateJobStatus(Arg.Is(jobId), 20, 0, true, "20 provider results were generated successfully from 20 providers");
             
             
             await _calculationEngineServiceTestsHelper.MockSpecificationAssemblyProvider
@@ -1481,7 +1329,7 @@ namespace CalculateFunding.Services.Calculator
             messageUserProperties.Add("jobId", jobId);
 
             //Act
-            Func<Task> test = async () => await service.GenerateAllocations(message);
+            Func<Task> test = async () => await service.Run(message);
 
             //Assert
             test
@@ -1601,7 +1449,7 @@ namespace CalculateFunding.Services.Calculator
                 .Returns(MockData.GetMockAssembly());
 
             //Act
-            await service.GenerateAllocations(message);
+            await service.Run(message);
 
             await _calculationEngineServiceTestsHelper
                 .MockCalculationRepository

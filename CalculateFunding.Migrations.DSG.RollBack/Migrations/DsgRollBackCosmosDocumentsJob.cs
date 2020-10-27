@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Interfaces.Undo;
 using CalculateFunding.Services.Publishing.Undo;
@@ -9,9 +10,9 @@ namespace CalculateFunding.Migrations.DSG.RollBack.Migrations
     public class DsgRollBackCosmosDocumentsJob : PublishedFundingUndoJobService, IDsgRollBackCosmosDocumentsJob
     {
         public DsgRollBackCosmosDocumentsJob(IPublishedFundingUndoTaskFactoryLocator factoryLocator,
-            IJobTracker jobTracker,
+            IJobManagement jobManagement,
             IPublishedFundingUndoJobCreation jobCreation,
-            ILogger logger) : base(factoryLocator, jobTracker, jobCreation, logger)
+            ILogger logger) : base(factoryLocator, jobManagement, jobCreation, logger)
         {
         }
 
@@ -21,13 +22,5 @@ namespace CalculateFunding.Migrations.DSG.RollBack.Migrations
 
             await PerformUndo(rollBackParameters);
         }
-
-        protected override Task FailJob(string message,
-            PublishedFundingUndoJobParameters parameters) =>
-            Task.CompletedTask;
-
-        protected override Task CompleteTrackingJob(PublishedFundingUndoJobParameters parameters) => Task.CompletedTask;
-
-        protected override Task<bool> TryStartTrackingJob(PublishedFundingUndoJobParameters parameters) => Task.FromResult(true);
     }
 }

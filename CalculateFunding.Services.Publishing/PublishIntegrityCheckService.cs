@@ -9,6 +9,7 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Jobs;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Polly;
@@ -20,9 +21,8 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing
 {
-    public class PublishIntegrityCheckService : IPublishIntegrityCheckService
+    public class PublishIntegrityCheckService : JobProcessingService, IPublishIntegrityCheckService
     {
-        private readonly IJobManagement _jobManagement;
         private readonly ILogger _logger;
         private readonly IPublishedFundingContentsPersistanceService _publishedFundingContentsPersistanceService;
         private readonly IPublishedProviderContentPersistanceService _publishedProviderContentsPersistanceService;
@@ -48,10 +48,9 @@ namespace CalculateFunding.Services.Publishing
             ICalculationsApiClient calculationsApiClient,
             IPublishedFundingService publishedFundingService,
             IPublishedProviderContentsGeneratorResolver publishedProviderContentsGeneratorResolver,
-            IPublishedFundingVersionDataService publishedFundingVersionDataService)
+            IPublishedFundingVersionDataService publishedFundingVersionDataService) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(specificationService, nameof(specificationService));
             Guard.ArgumentNotNull(publishedFundingContentsPersistanceService, nameof(publishedFundingContentsPersistanceService));
             Guard.ArgumentNotNull(publishedProviderContentsPersistanceService, nameof(publishedProviderContentsPersistanceService));
@@ -65,7 +64,6 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(publishedProviderContentsGeneratorResolver, nameof(publishedProviderContentsGeneratorResolver));
             Guard.ArgumentNotNull(publishedFundingVersionDataService, nameof(publishedFundingVersionDataService));
 
-            _jobManagement = jobManagement;
             _logger = logger;
             _calculationsApiClient = calculationsApiClient;
             _calculationsApiClientPolicy = publishingResiliencePolicies.CalculationsApiClient;
@@ -80,14 +78,13 @@ namespace CalculateFunding.Services.Publishing
             _publishedFundingVersionDataService = publishedFundingVersionDataService;
         }
 
-        public async Task Run(Message message)
+        public override async Task Process(Message message)
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
             Reference author = message.GetUserDetails();
 
             string specificationId = message.UserProperties["specification-id"] as string;
-            string jobId = message.UserProperties["jobId"]?.ToString();
             bool publishAll = false;
 
             if (message.UserProperties.ContainsKey("publish-all"))
@@ -101,11 +98,6 @@ namespace CalculateFunding.Services.Publishing
             {
                 batchProviders = JsonExtensions.AsPoco<IEnumerable<string>>(message.UserProperties["providers-batch"].ToString());
             }
-
-            await EnsureJobCanBeProcessed(jobId);
-
-            // Update job to set status to processing
-            await _jobManagement.UpdateJobStatus(jobId, 0, 0, null, null);
 
             SpecificationSummary specification = await _specificationService.GetSpecificationSummaryById(specificationId);
 
@@ -152,8 +144,6 @@ namespace CalculateFunding.Services.Publishing
                 await _publishedProviderContentsPersistanceService.SavePublishedProviderContents(templateMetadataContents, templateMapping,
                     selectedPublishedProviders, generator, publishAll);
             }
-
-            await _jobManagement.UpdateJobStatus(jobId, 0, 0, true, null);
         }
 
         private async Task<TemplateMapping> GetTemplateMapping(Reference fundingStream, string specificationId)
@@ -167,21 +157,6 @@ namespace CalculateFunding.Services.Publishing
             }
 
             return calculationMappingResult.Content;
-        }
-
-        private async Task EnsureJobCanBeProcessed(string jobId)
-        {
-            try
-            {
-                await _jobManagement.RetrieveJobAndCheckCanBeProcessed(jobId);
-            }
-            catch
-            {
-                string errorMessage = "Job can not be run";
-                _logger.Error(errorMessage);
-
-                throw new NonRetriableException(errorMessage);
-            }
         }
     }
 }

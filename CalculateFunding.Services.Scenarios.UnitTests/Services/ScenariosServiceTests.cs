@@ -1131,7 +1131,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             ScenariosService service = CreateScenariosService();
 
             //Act
-            Func<Task> test = async () => await service.UpdateScenarioForSpecification(message);
+            Func<Task> test = async () => await service.Process(message);
 
             //Assert
             test
@@ -1158,7 +1158,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             ScenariosService service = CreateScenariosService(logger: logger);
 
             //Act
-            await service.UpdateScenarioForSpecification(message);
+            await service.Process(message);
 
             //Assert
             logger
@@ -1191,7 +1191,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             ScenariosService service = CreateScenariosService(logger, scenarioRepository);
 
             //Act
-            await service.UpdateScenarioForSpecification(message);
+            await service.Process(message);
 
             //Assert
             logger
@@ -1257,7 +1257,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             ScenariosService service = CreateScenariosService(logger, scenarioRepository, searchRepository: searchRepository, versionRepository: versionRepository);
 
             //Act
-            await service.UpdateScenarioForSpecification(message);
+            await service.Process(message);
 
             //Assert
             scenarios

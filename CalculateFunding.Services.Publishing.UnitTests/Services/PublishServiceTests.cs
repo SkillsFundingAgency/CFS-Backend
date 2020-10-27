@@ -412,7 +412,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .And
                 .Message
                 .Should()
-                .Be("Job can not be run");
+                .Be($"Could not find the job with id: '{JobId}'");
         }
 
         [TestMethod]
@@ -420,7 +420,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         {
             _jobManagement
                 .RetrieveJobAndCheckCanBeProcessed(JobId)
-                .Throws(new JobNotFoundException(string.Empty, JobId));
+                .Throws(new Exception());
 
             Func<Task> invocation = () => WhenPublishBatchProvidersMessageReceivedWithJobIdAndCorrelationId(BuildPublishProvidersRequest(_ => _.WithProviders(_publishedProviderIds)));
 
@@ -430,7 +430,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .And
                 .Message
                 .Should()
-                .Be("Job can not be run");
+                .Be($"Job can not be run '{JobId}'");
         }
 
         [TestMethod]
@@ -516,7 +516,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
         private void GivenJobCanBeProcessed()
         {
-            JobViewModel jobViewModel = NewJobViewModel();
+            JobViewModel jobViewModel = NewJobViewModel(_ => _.WithJobId(JobId));
 
             _jobManagement.RetrieveJobAndCheckCanBeProcessed(JobId)
                 .Returns(jobViewModel);
@@ -746,7 +746,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .WithUserProperty("jobId", JobId)
                 .WithUserProperty("sfa-correlationId", CorrelationId));
 
-            await _publishService.PublishProviderFundingResults(message);
+            await _publishService.Run(message);
         }
 
         private async Task WhenPublishBatchProvidersMessageReceivedWithJobIdAndCorrelationId(PublishedProviderIdsRequest publishProvidersRequest)
@@ -758,7 +758,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .WithUserProperty(
                     JobConstants.MessagePropertyNames.PublishedProviderIdsRequest, publishProvidersRequest.AsJson()));
 
-            await _publishService.PublishProviderFundingResults(message, batched: true);
+            await _publishService.Run(message, async () =>
+            {
+                await _publishService.PublishProviderFundingResults(message, batched: true);
+            });
         }
 
         private PublishedProviderIdsRequest BuildPublishProvidersRequest(Action<PublishedProviderIdsRequestBuilder> setUp = null)
@@ -769,8 +772,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             return publishProvidersRequestBuilder.Build();
         }
-
-        private static RandomString NewRandomString() => new RandomString();
 
         protected static TEnum NewRandomEnum<TEnum>(params TEnum[] except) where TEnum : struct => new RandomEnum<TEnum>(except);
     }

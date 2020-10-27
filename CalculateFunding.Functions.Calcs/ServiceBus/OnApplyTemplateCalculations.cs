@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Functions;
@@ -12,44 +13,26 @@ using Serilog;
 
 namespace CalculateFunding.Functions.Calcs.ServiceBus
 {
-    public class OnApplyTemplateCalculations : SmokeTest
+    public class OnApplyTemplateCalculations : Retriable
     {
-        private readonly ILogger _logger;
-        private readonly IApplyTemplateCalculationsService _templateCalculationsService;
         public const string FunctionName = "on-apply-template-calculations";
+        public const string QueueName = ServiceBusConstants.QueueNames.ApplyTemplateCalculations;
 
         public OnApplyTemplateCalculations(
             ILogger logger,
             IApplyTemplateCalculationsService templateCalculationsService,
             IMessengerService messengerService,
             IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider)
+            : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, templateCalculationsService)
         {
-            Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(templateCalculationsService, nameof(templateCalculationsService));
-
-            _logger = logger;
-            _templateCalculationsService = templateCalculationsService;
         }
 
         [FunctionName(FunctionName)]
         public async Task Run([ServiceBusTrigger(
-            ServiceBusConstants.QueueNames.ApplyTemplateCalculations,
+            QueueName,
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey, IsSessionsEnabled = true)] Message message)
         {
-            await Run(async () =>
-            {
-                try
-                {
-                    await _templateCalculationsService.ApplyTemplateCalculation(message);
-                }
-                catch (Exception exception)
-                {
-                    _logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.ApplyTemplateCalculations}");
-                    throw;
-                }
-            },
-            message);
+            await base.Run(message);
         }
     }
 }

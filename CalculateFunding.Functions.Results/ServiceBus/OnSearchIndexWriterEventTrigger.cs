@@ -1,6 +1,7 @@
 ﻿using CalculateFunding.Common.Models;
 using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Functions;
 using CalculateFunding.Services.Results.Interfaces;
@@ -12,10 +13,8 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Functions.Results.ServiceBus
 {
-    public class OnSearchIndexWriterEventTrigger : SmokeTest
+    public class OnSearchIndexWriterEventTrigger : Retriable
     {
-        private readonly ILogger _logger;
-        private readonly ISearchIndexWriterService _searchIndexWriterService;
         public const string FunctionName = FunctionConstants.SearchIndexWriter;
         public const string QueueName = ServiceBusConstants.QueueNames.SearchIndexWriter;
 
@@ -24,13 +23,8 @@ namespace CalculateFunding.Functions.Results.ServiceBus
             IUserProfileProvider userProfileProvider,
             ISearchIndexWriterService searchIndexWriterService,
             bool useAzureStorage = false)
-            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider)
+            : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, searchIndexWriterService)
         {
-            Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(searchIndexWriterService, nameof(searchIndexWriterService));
-
-            _logger = logger;
-            _searchIndexWriterService = searchIndexWriterService;
         }
 
         [FunctionName(FunctionName)]
@@ -39,19 +33,7 @@ namespace CalculateFunding.Functions.Results.ServiceBus
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey,
             IsSessionsEnabled = true)] Message message)
         {
-            await Run(async () =>
-            {
-                try
-                {
-                    await _searchIndexWriterService.CreateSearchIndex(message);
-                }
-                catch (Exception exception)
-                {
-                    _logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.MapFdzDatasets}");
-                    throw;
-                }
-            },
-            message);
+            await base.Run(message);
         }
     }
 }

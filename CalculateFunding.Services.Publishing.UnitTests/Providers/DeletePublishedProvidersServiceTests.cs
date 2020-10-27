@@ -109,14 +109,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
         }
 
         [TestMethod]
-        public void ThrowsExceptionIfNoJobIdInMessage()
-        {
-            GivenTheMessage((FundingStreamId, _fundingStreamId), (FundingPeriodId, _fundingPeriodId));
-
-            ThenDeletingThePublishedProvidersShouldThrowArgumentNullFor("jobId");
-        }
-
-        [TestMethod]
         public void ThrowsExceptionIfNoFundingStreamIdInMessage()
         {
             GivenTheMessage((JobId, _jobId), (FundingPeriodId, _fundingPeriodId));
@@ -237,7 +229,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
 
         private async Task WhenThePublishedProvidersAreDeleted()
         {
-            await _service.DeletePublishedProvidersJob(_message);
+            await _service.Process(_message);
         }
 
         public static IEnumerable<object[]> QueueDeleteExceptionExamples()

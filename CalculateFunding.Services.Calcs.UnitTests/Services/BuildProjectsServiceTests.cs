@@ -60,7 +60,7 @@ namespace CalculateFunding.Services.Calcs.Services
         private const string AssemblyEtag = "assembly-etag";
 
         [TestMethod]
-        public void UpdateAllocations_GivenNullMessage_ThrowsArgumentNullException()
+        public void Process_GivenNullMessage_ThrowsArgumentNullException()
         {
             //Arrange
             Message message = null;
@@ -68,7 +68,7 @@ namespace CalculateFunding.Services.Calcs.Services
             BuildProjectsService buildProjectsService = CreateBuildProjectsService();
 
             //Act
-            Func<Task> test = () => buildProjectsService.UpdateAllocations(message);
+            Func<Task> test = () => buildProjectsService.Process(message);
 
             //Assert
             test
@@ -1027,7 +1027,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task UpdateAllocations_GivenBuildProjectButNoSummariesInCache_CallsRegeneratePopulateScopedProviders()
+        public async Task Process_GivenBuildProjectButNoSummariesInCache_CallsRegeneratePopulateScopedProviders()
         {
             //Arrange
             string specificationId = "test-spec1";
@@ -1119,7 +1119,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 datasetsApiClient: datasetsApiClient, mapper: mapper);
 
             //Act
-            await buildProjectsService.UpdateAllocations(message);
+            await buildProjectsService.Process(message);
 
             //Assert
             await
@@ -1129,7 +1129,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public void UpdateAllocations_GivenBuildProjectButNoSummariesInCacheRegeneratePopulateScopedProvidersFails_ExceptionThrown()
+        public void Process_GivenBuildProjectButNoSummariesInCacheRegeneratePopulateScopedProvidersFails_ExceptionThrown()
         {
             //Arrange
             string specificationId = "test-spec1";
@@ -1221,7 +1221,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 datasetsApiClient: datasetsApiClient, mapper: mapper);
 
             //Act
-            Func<Task> invocation = async () => await buildProjectsService.UpdateAllocations(message);
+            Func<Task> invocation = async () => await buildProjectsService.Process(message);
 
             //Assert
             invocation
@@ -1231,7 +1231,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public void UpdateAllocations_GivenBuildProjectButNoSummariesInCacheRegeneratePopulateScopedProvidersJobFails_ExceptionThrown()
+        public void Process_GivenBuildProjectButNoSummariesInCacheRegeneratePopulateScopedProvidersJobFails_ExceptionThrown()
         {
             //Arrange
             string specificationId = "test-spec1";
@@ -1320,7 +1320,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 datasetsApiClient: datasetsApiClient, mapper: mapper);
 
             //Act
-            Func<Task> invocation = async () => await buildProjectsService.UpdateAllocations(message);
+            Func<Task> invocation = async () => await buildProjectsService.Run(message);
 
             //Assert
             invocation
@@ -1334,6 +1334,8 @@ namespace CalculateFunding.Services.Calcs.Services
         {
             //Arrange
             Message message = new Message(Encoding.UTF8.GetBytes(""));
+            message.UserProperties.Add("jobId", null);
+            string errorMessage = "Missing job id";
 
             ILogger logger = CreateLogger();
 
@@ -1346,21 +1348,27 @@ namespace CalculateFunding.Services.Calcs.Services
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(logger: logger, jobManagement: jobManagement);
 
             //Act
-            await buildProjectsService.UpdateAllocations(message);
+            Func<Task> invocation = async() => await buildProjectsService.Run(message);
 
             //Assert
+            invocation
+                .Should()
+                .Throw<NonRetriableException>()
+                .WithMessage(errorMessage);
+
             await
+
                 jobsApiClient
                     .DidNotReceive()
                     .AddJobLog(Arg.Any<string>(), Arg.Any<JobLogUpdateModel>());
 
             logger
                 .Received(1)
-                .Error(Arg.Is("Missing parent job id to instruct generating allocations"));
+                .Error(Arg.Is(errorMessage));
         }
 
         [TestMethod]
-        public async Task UpdateAllocations_GivenBuildProjectAndSummariesInCache_DoesntCallPopulateSummaries()
+        public async Task Process_GivenBuildProjectAndSummariesInCache_DoesntCallPopulateSummaries()
         {
             //Arrange
             IEnumerable<ProviderSummary> providerSummaries = new[]
@@ -1378,6 +1386,7 @@ namespace CalculateFunding.Services.Calcs.Services
             };
 
             string specificationId = "test-spec1";
+            string jobId = "job-id-1";
 
             string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
 
@@ -1391,6 +1400,7 @@ namespace CalculateFunding.Services.Calcs.Services
             Message message = new Message(Encoding.UTF8.GetBytes(""));
 
             message.UserProperties.Add("specification-id", specificationId);
+            message.UserProperties.Add("jobId", jobId);
 
             ICacheProvider cacheProvider = CreateCacheProvider();
             cacheProvider
@@ -1412,15 +1422,33 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetScopedProviderIds(Arg.Is(specificationId))
                 .Returns(new ApiResponse<IEnumerable<string>>(HttpStatusCode.OK, providerIds));
 
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
+                .GetSpecificationSummaryById(specificationId)
+                .Returns(new ApiResponse<SpecModels.SpecificationSummary>(HttpStatusCode.OK, new SpecModels.SpecificationSummary { Id = specificationId }));
+
             ILogger logger = CreateLogger();
 
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(jobId)
+                .Returns(new JobViewModel { Id = jobId });
+
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
-                logger: logger, cacheProvider: cacheProvider, providersApiClient: providersApiClient);
+                logger: logger, cacheProvider: cacheProvider, providersApiClient: providersApiClient, specificationsApiClient: specificationsApiClient, jobManagement: jobManagement);
 
             //Act
-            await buildProjectsService.UpdateAllocations(message);
+            Func<Task> test = async () => await buildProjectsService.Run(message);
 
             //Assert
+            test
+                .Should()
+                .ThrowExactly<Exception>()
+                .Which
+                .Message
+                .Should()
+                .Be($"Only 0 child jobs from 1 were created with parent id: '{jobId}'");
+
             await
                 providersApiClient
                     .DidNotReceive()
@@ -1428,7 +1456,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task UpdateAllocations_GivenBuildProjectAndSpecificationSummaryInCache_DoesntCallGetSpecificationSummaryById()
+        public async Task Process_GivenBuildProjectAndSpecificationSummaryInCache_DoesntCallGetSpecificationSummaryById()
         {
             //Arrange
             EngineSettings engineSettings = CreateEngineSettings();
@@ -1559,7 +1587,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 specificationsApiClient: specificationsApiClient);
 
             //Act
-            await buildProjectsService.UpdateAllocations(message);
+            await buildProjectsService.Run(message);
 
             //Assert
             await
@@ -1569,7 +1597,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task UpdateAllocations_GivenBuildProjectAndSpecificationSummaryNotInCache_CallGetSpecificationSummaryById()
+        public async Task Process_GivenBuildProjectAndSpecificationSummaryNotInCache_CallGetSpecificationSummaryById()
         {
             //Arrange
             EngineSettings engineSettings = CreateEngineSettings();
@@ -1700,7 +1728,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 specificationsApiClient: specificationsApiClient);
 
             //Act
-            await buildProjectsService.UpdateAllocations(message);
+            await buildProjectsService.Run(message);
 
             //Assert
             await
@@ -1710,7 +1738,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task UpdateAllocations_GivenBuildProjectAndListLengthOfTenThousandProviders_CreatesTenJobs()
+        public async Task Process_GivenBuildProjectAndListLengthOfTenThousandProviders_CreatesTenJobs()
         {
             //Arrange
             EngineSettings engineSettings = CreateEngineSettings();
@@ -1816,7 +1844,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 mapper: mapper);
 
             //Act
-            await buildProjectsService.UpdateAllocations(message);
+            await buildProjectsService.Run(message);
 
             //Assert
             await
@@ -1846,11 +1874,11 @@ namespace CalculateFunding.Services.Calcs.Services
             await
                 jobsApiClient
                     .Received(1)
-                    .AddJobLog(Arg.Is(parentJobId), Arg.Any<JobLogUpdateModel>());
+                    .AddJobLog(Arg.Is(parentJobId), Arg.Is<JobLogUpdateModel>(_ => _.CompletedSuccessfully == true));
         }
 
         [TestMethod]
-        public async Task UpdateAllocations_GivenBuildProjectAndProviderListIsNotAMultipleOfTheBatchSize_CreatesJobsWithCorrectBatches()
+        public async Task Process_GivenBuildProjectAndProviderListIsNotAMultipleOfTheBatchSize_CreatesJobsWithCorrectBatches()
         {
             //Arrange
             EngineSettings engineSettings = CreateEngineSettings();
@@ -1968,7 +1996,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Do(y => jobModelsToTest = y.Arg<IEnumerable<JobCreateModel>>());
 
             //Act
-            await buildProjectsService.UpdateAllocations(message);
+            await buildProjectsService.Run(message);
 
             //Assert
             jobModelsToTest.Should().HaveCount(10);
@@ -1990,7 +2018,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task UpdateAllocations_GivenBuildProjectAndProviderListIsNotAMultipleOfTheBatchSizeAndMaxPartitionSizeIs1_CreatesJobsWithCorrectBatches()
+        public async Task Process_GivenBuildProjectAndProviderListIsNotAMultipleOfTheBatchSizeAndMaxPartitionSizeIs1_CreatesJobsWithCorrectBatches()
         {
             //Arrange
             IEnumerable<ProviderSummary> providerSummaries = new[]
@@ -2098,7 +2126,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Do(y => jobModelsToTest = y.Arg<IEnumerable<JobCreateModel>>());
 
             //Act
-            await buildProjectsService.UpdateAllocations(message);
+            await buildProjectsService.Run(message);
 
             //Assert
             jobModelsToTest.Should().HaveCount(10);
@@ -2115,7 +2143,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task UpdateAllocations_GivenBuildProjectAndListLengthOfTenProvidersButOnlyCreatedFiveJobs_ThrowsExceptionLogsAnError()
+        public async Task Process_GivenBuildProjectAndListLengthOfTenProvidersButOnlyCreatedFiveJobs_ThrowsExceptionLogsAnError()
         {
             //Arrange
             EngineSettings engineSettings = CreateEngineSettings();
@@ -2216,7 +2244,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 datasetsApiClient: datasetsApiClient, mapper: mapper);
 
             //Act
-            Func<Task> test = async () => await buildProjectsService.UpdateAllocations(message);
+            Func<Task> test = async () => await buildProjectsService.Run(message);
 
             //Assert
             test
@@ -2253,7 +2281,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task UpdateAllocations_GivenBuildProjectAndListLengthOfTenThousandProvidersButParentJobNotFound_ThrowsExceptionLogsAnError()
+        public async Task Process_GivenBuildProjectAndListLengthOfTenThousandProvidersButParentJobNotFound_ThrowsExceptionLogsAnError()
         {
             //Arrange
             string parentJobId = "job-id-1";
@@ -2308,7 +2336,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 jobManagement: jobManagement);
 
             //Act
-            Func<Task> test = async () => await buildProjectsService.UpdateAllocations(message);
+            Func<Task> test = async () => await buildProjectsService.Run(message);
 
             //Assert
             test
@@ -2317,7 +2345,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Which
                 .Message
                 .Should()
-                .Be($"Could not find the parent job with job id: '{parentJobId}'");
+                .Be($"Could not find the job with id: '{parentJobId}'");
 
             await
                 jobsApiClient
@@ -2326,7 +2354,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task UpdateAllocations_GivenBuildProjectAndJobFoundButAlreadyInCompletedState_LogsAndReturns()
+        public async Task Process_GivenBuildProjectAndJobFoundButAlreadyInCompletedState_LogsAndReturns()
         {
             //Arrange
             string jobId = "job-id-1";
@@ -2345,13 +2373,6 @@ namespace CalculateFunding.Services.Calcs.Services
             ApiResponse<JobViewModel> jobResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, job);
 
             string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
-
-            BuildProject buildProject = new BuildProject
-            {
-                SpecificationId = specificationId,
-                Id = Guid.NewGuid().ToString(),
-                Name = specificationId
-            };
 
             Message message = new Message(Encoding.UTF8.GetBytes(""));
             message.UserProperties.Add("jobId", "job-id-1");
@@ -2377,9 +2398,13 @@ namespace CalculateFunding.Services.Calcs.Services
                 jobManagement: jobManagement);
 
             //Act
-            await buildProjectsService.UpdateAllocations(message);
+            Func<Task> invocation = async () => await buildProjectsService.Run(message);
 
             //Assert
+            invocation
+                .Should()
+                .Throw<NonRetriableException>();
+
             logger
                 .Received(1)
                 .Write(LogEventLevel.Information, $"Received job with id: '{jobId}' is already in a completed state with status {job.CompletionStatus}");
@@ -2391,7 +2416,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public void UpdateAllocations_GivenSpecificationHasCirculardependencies_ExceptionThrown()
+        public void Process_GivenSpecificationHasCirculardependencies_ExceptionThrown()
         {
             string parentJobId = "job-id-1";
 
@@ -2456,7 +2481,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 }});
 
             //Act
-            Func<Task> invocation = async () => await buildProjectsService.UpdateAllocations(message);
+            Func<Task> invocation = async () => await buildProjectsService.Process(message);
 
             //Assert
             invocation
@@ -2468,7 +2493,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task UpdateAllocations_GivenBuildProjectAndListLengthOfTenProvidersAndIsAggregationJobAndOneAggregatedCalcsFound_CreatesTenJobs()
+        public async Task Process_GivenBuildProjectAndListLengthOfTenProvidersAndIsAggregationJobAndOneAggregatedCalcsFound_CreatesTenJobs()
         {
             //Arrange
             EngineSettings engineSettings = CreateEngineSettings();
@@ -2602,7 +2627,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 jobManagement: jobManagement);
 
             //Act
-            await buildProjectsService.UpdateAllocations(message);
+            await buildProjectsService.Run(message);
 
             //Assert
             await
@@ -2644,7 +2669,7 @@ namespace CalculateFunding.Services.Calcs.Services
             await
                 jobsApiClient
                     .Received(1)
-                    .AddJobLog(Arg.Is(parentJobId), Arg.Any<JobLogUpdateModel>());
+                    .AddJobLog(Arg.Is(parentJobId), Arg.Is<JobLogUpdateModel>(_ => _.CompletedSuccessfully == true));
 
             await
                 cacheProvider
@@ -2653,7 +2678,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task UpdateAllocations_GivenBuildProjectAndListLengthOfTenProvidersAndIsAggregationJobAndTwoAggregatedCalcsFound_CreatesTenJobs()
+        public async Task Process_GivenBuildProjectAndListLengthOfTenProvidersAndIsAggregationJobAndTwoAggregatedCalcsFound_CreatesTenJobs()
         {
             //Arrange
             EngineSettings engineSettings = CreateEngineSettings();
@@ -2800,7 +2825,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 mapper: mapper);
 
             //Act
-            await buildProjectsService.UpdateAllocations(message);
+            await buildProjectsService.Run(message);
 
             //Assert
             await
@@ -2841,7 +2866,7 @@ namespace CalculateFunding.Services.Calcs.Services
             await
                 jobsApiClient
                     .Received(1)
-                    .AddJobLog(Arg.Is(parentJobId), Arg.Any<JobLogUpdateModel>());
+                    .AddJobLog(Arg.Is(parentJobId), Arg.Is<JobLogUpdateModel>(_ => _.CompletedSuccessfully == true));
 
             await
                cacheProvider
@@ -2850,7 +2875,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task UpdateAllocations_GivenBuildProjectButNoScopedProviders_DoesNotCreateChildJobs()
+        public async Task Process_GivenBuildProjectButNoScopedProviders_DoesNotCreateChildJobs()
         {
             //Arrange
             string parentJobId = "job-id-1";
@@ -2973,7 +2998,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 mapper: mapper);
 
             //Act
-            await buildProjectsService.UpdateAllocations(message);
+            await buildProjectsService.Run(message);
 
             //Assert
             await
@@ -2993,7 +3018,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
 
         [TestMethod]
-        public async Task UpdateAllocations_GivenBuildProjectAndSummariesInCacheButDoesntMatchScopedProviderIdCountAndUsingServiceBus_CallsRegenerateScopedProviders()
+        public async Task Process_GivenBuildProjectAndSummariesInCacheButDoesntMatchScopedProviderIdCountAndUsingServiceBus_CallsRegenerateScopedProviders()
         {
             //Arrange
             EngineSettings engineSettings = CreateEngineSettings();
@@ -3119,7 +3144,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 mapper: mapper);
 
             //Act
-            await buildProjectsService.UpdateAllocations(message);
+            await buildProjectsService.Run(message);
 
             //Assert
             await
@@ -3130,7 +3155,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
 
         [TestMethod]
-        public async Task UpdateAllocations_GivenBuildProjectAndSummariesInCacheButDoesntMatchScopedProviderIdCount_CallsRegenerateScopedProviders()
+        public async Task Process_GivenBuildProjectAndSummariesInCacheButDoesntMatchScopedProviderIdCount_CallsRegenerateScopedProviders()
         {
             //Arrange
             EngineSettings engineSettings = CreateEngineSettings();
@@ -3256,7 +3281,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 mapper: mapper);
 
             //Act
-            await buildProjectsService.UpdateAllocations(message);
+            await buildProjectsService.Run(message);
 
             //Assert
             await
@@ -3266,7 +3291,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task UpdateAllocations_GivenRefreshFundingJobIsRunning_JobNotRun()
+        public async Task Process_GivenRefreshFundingJobIsRunning_JobNotRun()
         {
             //Arrange
             EngineSettings engineSettings = CreateEngineSettings();
@@ -3376,7 +3401,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 mapper: mapper);
 
             //Act
-            Func<Task> test = async () => await buildProjectsService.UpdateAllocations(message);
+            Func<Task> test = async () => await buildProjectsService.Run(message);
 
             //Assert
 

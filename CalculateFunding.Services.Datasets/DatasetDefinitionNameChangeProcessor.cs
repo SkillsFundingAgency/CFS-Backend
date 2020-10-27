@@ -9,10 +9,11 @@ using Serilog;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Services.Core.FeatureToggles;
+using CalculateFunding.Services.Core.Services;
 
 namespace CalculateFunding.Services.Datasets
 {
-    public class DatasetDefinitionNameChangeProcessor : IDatasetDefinitionNameChangeProcessor
+    public class DatasetDefinitionNameChangeProcessor : ProcessingService, IDatasetDefinitionNameChangeProcessor
     {
         private readonly IDefinitionSpecificationRelationshipService _definitionSpecificationRelationshipService;
         private readonly IDatasetService _datasetService;
@@ -36,7 +37,7 @@ namespace CalculateFunding.Services.Datasets
             _featureToggle = featureToggle;
         }
 
-        public async Task ProcessChanges(Message message)
+        public override async Task Process(Message message)
         {
             Guard.ArgumentNotNull(message, nameof(message));
 

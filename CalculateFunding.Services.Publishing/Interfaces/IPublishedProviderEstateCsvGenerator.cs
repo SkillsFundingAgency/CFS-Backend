@@ -1,10 +1,10 @@
-﻿using Microsoft.Azure.ServiceBus;
+﻿using CalculateFunding.Services.Jobs.Interfaces;
+using Microsoft.Azure.ServiceBus;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing.Interfaces
 {
-    public interface IPublishedProviderEstateCsvGenerator
+    public interface IPublishedProviderEstateCsvGenerator : IJobProcessingService
     {
-        Task Run(Message message);
     }
 }

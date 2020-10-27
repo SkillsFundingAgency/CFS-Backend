@@ -13,9 +13,8 @@ using Serilog;
 
 namespace CalculateFunding.Functions.Notifications
 {
-    public class OnNotificationEventTrigger : SmokeTest
+    public class OnNotificationEventTrigger : Retriable
     {
-        private readonly ILogger _logger;
         private readonly INotificationService _notificationService;
         public const string FunctionName = "notification-event";
 
@@ -24,12 +23,10 @@ namespace CalculateFunding.Functions.Notifications
             INotificationService notificationService,
             IMessengerService messengerService,
             IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider)
+            : base(logger, messengerService, FunctionName, $"{ServiceBusConstants.TopicNames.JobNotifications}/{ServiceBusConstants.TopicSubscribers.JobNotificationsToSignalR}", useAzureStorage, userProfileProvider, notificationService)
         {
-            Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(notificationService, nameof(notificationService));
 
-            _logger = logger;
             _notificationService = notificationService;
         }
 
@@ -41,23 +38,11 @@ namespace CalculateFunding.Functions.Notifications
                 Connection = ServiceBusConstants.ConnectionStringConfigurationKey)]Message message,
             [SignalR(HubName = JobConstants.NotificationsHubName)] IAsyncCollector<SignalRMessage> signalRMessages)
         {
-            // Send message body (JobNotification) to SignalR as body
-            Guard.ArgumentNotNull(message, nameof(message));
-
-            await Run(async () =>
+            await Run(message,
+            async () =>
             {
-                Guard.ArgumentNotNull(signalRMessages, nameof(signalRMessages));
-                try
-                {
-                    await _notificationService.OnNotificationEvent(message, signalRMessages);
-                }
-                catch (Exception exception)
-                {
-                    _logger.Error(exception, $"An error occurred getting message from topic: {ServiceBusConstants.TopicNames.JobNotifications} in subscriber { ServiceBusConstants.TopicSubscribers.JobNotificationsToSignalR}");
-                    throw;
-                }
-            },
-            message);
+                await _notificationService.OnNotificationEvent(message, signalRMessages);
+            });
         }
     }
 }

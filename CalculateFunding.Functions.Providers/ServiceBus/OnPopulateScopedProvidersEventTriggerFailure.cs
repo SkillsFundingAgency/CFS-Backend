@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Constants;
+using CalculateFunding.Services.Core.Functions;
 using CalculateFunding.Services.DeadletterProcessor;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
@@ -9,7 +10,7 @@ using Serilog;
 
 namespace CalculateFunding.Functions.Providers.ServiceBus
 {
-    public class OnPopulateScopedProvidersEventTriggerFailure
+    public class OnPopulateScopedProvidersEventTriggerFailure : Failure
     {
         private readonly ILogger _logger;
         private readonly IJobHelperService _jobHelperService;
@@ -19,31 +20,13 @@ namespace CalculateFunding.Functions.Providers.ServiceBus
 
         public OnPopulateScopedProvidersEventTriggerFailure(
             ILogger logger,
-            IJobHelperService jobHelperService)
+            IJobHelperService jobHelperService) : base(logger, jobHelperService, QueueName)
         {
-            Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(jobHelperService, nameof(jobHelperService));
-
-            _logger = logger;
-            _jobHelperService = jobHelperService;
         }
 
         [FunctionName(FunctionName)]
         public async Task Run([ServiceBusTrigger(
             QueueName,
-            Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
-        {
-            _logger.Information("Starting to process dead letter message for populate scoped providers.");
-
-            try
-            {
-                await _jobHelperService.ProcessDeadLetteredMessage(message);
-            }
-            catch (Exception exception)
-            {
-                _logger.Error(exception, $"An error occurred getting message from queue: {QueueName}");
-                throw;
-            }
-        }
+            Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message) => await Process(message);
     }
 }

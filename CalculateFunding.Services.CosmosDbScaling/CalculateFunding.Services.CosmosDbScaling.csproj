@@ -15,6 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="..\CalculateFunding.Models.CosmosDbScaling\CalculateFunding.Models.CosmosDbScaling.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Core\CalculateFunding.Services.Core.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.Jobs\CalculateFunding.Services.Jobs.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,5 +1,6 @@
 ﻿using CalculateFunding.Common.Models;
 using CalculateFunding.Common.ServiceBus.Interfaces;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using Microsoft.Azure.ServiceBus;
 using Serilog;
 using System;
@@ -18,19 +19,27 @@ namespace CalculateFunding.Services.Core.Functions
             IMessengerService messengerService,           
             bool isDevelopment,
             IUserProfileProvider userProfileProvider,
+            IProcessingService processingService,
             Func<Task> action = null) : base(logger,
                 messengerService,
                 FunctionName,               
                 isDevelopment,
-                userProfileProvider)
+                userProfileProvider,
+                processingService)
         {
             _action = action;
         }
 
         public async Task Run(Message message)
         {
-            await Run(_action,
-            message);
+            if (_action != null)
+            {
+                await base.Run(message, _action);
+            }
+            else
+            {
+                await base.Run(message);
+            }
         }
     }
 }

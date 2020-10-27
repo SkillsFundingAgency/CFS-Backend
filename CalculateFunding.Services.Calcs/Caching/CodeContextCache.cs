@@ -12,6 +12,7 @@ using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Jobs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Polly;
@@ -19,7 +20,7 @@ using Serilog;
 
 namespace CalculateFunding.Services.Calcs.Caching
 {
-    public class CodeContextCache : ICodeContextCache
+    public class CodeContextCache : JobProcessingService, ICodeContextCache
     {
         private readonly ICacheProvider _cache;
         private readonly AsyncPolicy _cacheResilience;
@@ -31,19 +32,19 @@ namespace CalculateFunding.Services.Calcs.Caching
             ICodeContextBuilder codeContextBuilder,
             IJobManagement jobs,
             ICalcsResiliencePolicies resiliencePolicies,
-            ILogger logger)
+            ILogger logger) : base(jobs, logger)
         {
             Guard.ArgumentNotNull(cache, nameof(cache));
             Guard.ArgumentNotNull(codeContextBuilder, nameof(codeContextBuilder));
             Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(jobs, nameof(jobs));
             Guard.ArgumentNotNull(resiliencePolicies.CacheProviderPolicy, nameof(resiliencePolicies.CacheProviderPolicy));
+            Guard.ArgumentNotNull(jobs, nameof(jobs));
 
             _cache = cache;
             _codeContextBuilder = codeContextBuilder;
-            _jobs = jobs;
             _cacheResilience = resiliencePolicies.CacheProviderPolicy;
             _logger = logger;
+            _jobs = jobs;
         }
 
         public async Task<IActionResult> QueueCodeContextCacheUpdate(string specificationId)
@@ -69,22 +70,16 @@ namespace CalculateFunding.Services.Calcs.Caching
             return new ObjectResult(job);
         }
 
-        public async Task UpdateCodeContextCacheEntry(Message message)
+        public override async Task Process(Message message)
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
             JobParameters parameters = message;
 
-            string jobId = parameters.JobId;
-            
-            await StartJob(jobId);
-            
             string parametersSpecificationId = parameters.SpecificationId;
             string cacheKey = GetCacheKey(parametersSpecificationId);
 
             await UpdateCache(parametersSpecificationId, cacheKey);
-
-            await CompleteJob(jobId);
         }
 
         public async Task<IEnumerable<TypeInformation>> GetCodeContext(string specificationId)

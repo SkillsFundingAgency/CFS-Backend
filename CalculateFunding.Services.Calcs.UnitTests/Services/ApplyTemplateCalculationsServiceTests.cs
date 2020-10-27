@@ -10,6 +10,7 @@ using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata.Enums;
 using CalculateFunding.Common.TemplateMetadata.Models;
@@ -38,7 +39,6 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
         private ICreateCalculationService _createCalculationService;
         private ICalculationsRepository _calculationsRepository;
         private IApplyTemplateCalculationsJobTrackerFactory _jobTrackerFactory;
-        private IApplyTemplateCalculationsJobTracker _jobTracker;
         private IInstructionAllocationJobCreation _instructionAllocationJobCreation;
         private IPoliciesApiClient _policies;
         private ISpecificationsApiClient _specificationApiClient;
@@ -46,6 +46,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
         private ICalculationService _calculationService;
         private ICacheProvider _cacheProvider;
         private ICodeContextCache _codeContextCache;
+        private IJobManagement _jobManagement;
 
         private string _specificationId;
         private string _fundingStreamId;
@@ -54,6 +55,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
         private string _templateVersion;
         private string _userId;
         private string _userName;
+        private string _jobId;
         private Message _message;
 
         private const string SpecificationId = "specification-id";
@@ -62,6 +64,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
         private const string CorrelationId = "sfa-correlationId";
         private const string UserId = "user-id";
         private const string UserName = "user-name";
+        private const string JobId = "jobId";
 
         private ApplyTemplateCalculationsService _service;
 
@@ -74,21 +77,11 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
             _createCalculationService = Substitute.For<ICreateCalculationService>();
             _calculationsRepository = Substitute.For<ICalculationsRepository>();
             _jobTrackerFactory = Substitute.For<IApplyTemplateCalculationsJobTrackerFactory>();
-            _jobTracker = Substitute.For<IApplyTemplateCalculationsJobTracker>();
             _instructionAllocationJobCreation = Substitute.For<IInstructionAllocationJobCreation>();
             _calculationService = Substitute.For<ICalculationService>();
             _cacheProvider = Substitute.For<ICacheProvider>();
             _codeContextCache = Substitute.For<ICodeContextCache>();
-
-            _jobTrackerFactory.CreateJobTracker(Arg.Any<Message>())
-                .Returns(_jobTracker);
-
-            _jobTracker.NotifyProgress(Arg.Any<int>())
-                .Returns(Task.CompletedTask);
-            _jobTracker.TryStartTrackingJob()
-                .Returns(Task.FromResult(true));
-            _jobTracker.CompleteTrackingJob(Arg.Any<string>(), Arg.Any<int>())
-                .Returns(Task.CompletedTask);
+            _jobManagement = Substitute.For<IJobManagement>();
 
             _userId = $"{NewRandomString()}_userId";
             _userName = $"{NewRandomString()}_userName";
@@ -97,6 +90,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
             _fundingStreamId = $"{NewRandomString()}_fundingStreamId";
             _fundingPeriodId = $"{NewRandomString()}_fundingPeriodId";
             _templateVersion = $"{NewRandomString()}_templateVersion";
+            _jobId = $"{NewRandomString()}_jobId";
 
             _calculationsRepository.UpdateTemplateMapping(Arg.Any<string>(),
                     Arg.Any<string>(),
@@ -113,7 +107,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
                     SpecificationsApiClient = Policy.NoOpAsync()
                 },
                 _calculationsRepository,
-                _jobTrackerFactory,
+                _jobManagement,
                 _instructionAllocationJobCreation,
                 Substitute.For<ILogger>(),
                 _calculationService,
@@ -182,6 +176,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
             TemplateCalculation templateCalculationOne = NewTemplateMappingCalculation(_ => _.WithName("template calculation 1"));
 
             GivenAValidMessage();
+            AndTheJobCanBeRun();
             AndTheTemplateMapping(templateMapping);
             AndTheTemplateMetaDataContents(templateMetadataContents);
             AndTheTemplateContentsCalculation(mappingWithMissingCalculation1, templateMetadataContents, templateCalculationOne);
@@ -231,6 +226,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
             string newCalculationId4 = NewRandomString();
 
             GivenAValidMessage();
+            AndTheJobCanBeRun();
             AndTheTemplateMapping(templateMapping);
             AndTheTemplateMetaDataContents(templateMetadataContents);
 
@@ -358,6 +354,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
                                         })));
 
             GivenAValidMessage();
+            AndTheJobCanBeRun();
             AndTheTemplateMapping(templateMapping);
             AndTheTemplateMetaDataContents(templateMetadataContents);
 
@@ -458,6 +455,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
             };
 
             GivenAValidMessage();
+            AndTheJobCanBeRun();
             AndTheTemplateMapping(templateMapping);
             AndTheTemplateMetaDataContents(templateMetadataContents);
 
@@ -592,11 +590,18 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
                 .WithUserProperty(FundingStreamId, _fundingStreamId)
                 .WithUserProperty(TemplateVersion, _templateVersion)
                 .WithUserProperty(UserId, _userId)
-                .WithUserProperty(UserName, _userName);
+                .WithUserProperty(UserName, _userName)
+                .WithUserProperty(JobId, _jobId);
 
             overrides?.Invoke(messageBuilder);
 
             _message = messageBuilder.Build();
+        }
+
+        private void AndTheJobCanBeRun()
+        {
+            _jobManagement.RetrieveJobAndCheckCanBeProcessed(_jobId)
+                .Returns(new JobViewModel { Id = _jobId });
         }
 
         private void AndTheTemplateMapping(TemplateMapping templateMapping)
@@ -613,7 +618,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
 
         private async Task WhenTheTemplateCalculationsAreApplied()
         {
-            await _service.ApplyTemplateCalculation(_message);
+            await _service.Run(_message);
         }
 
         private void AndTheTemplateContentsCalculation(TemplateMappingItem mappingItem,
@@ -650,16 +655,16 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
 
         private void AndTheJobsStartWasLogged()
         {
-            _jobTracker
+            _jobManagement
                 .Received(1)
-                .TryStartTrackingJob();
+                .UpdateJobStatus(_jobId, 0, 0, null, null);
         }
 
         private void AndTheJobCompletionWasLogged()
         {
-            _jobTracker
+            _jobManagement
                 .Received(1)
-                .CompleteTrackingJob("Completed Successfully", Arg.Any<int>());
+                .UpdateJobStatus(_jobId, 0, 0, true, null);
         }
 
         private void AndCalculationEdited(Expression<Predicate<CalculationEditModel>> editModelMatching, string calculationId, int requiredNumberOfCalls)

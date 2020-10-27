@@ -50,7 +50,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             _currentCorrelationStepContext.CorrelationId = Guid.NewGuid().ToString();
             message.UserProperties.Add("sfa-correlationId", _currentCorrelationStepContext.CorrelationId);
 
-            await _approveService.ApproveResults(message);
+            await _approveService.Run(message);
         }
 
         [When(@"partial funding is approved")]
@@ -68,7 +68,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             message.UserProperties.Add("jobId", _currentJobStepContext.JobId);
             message.UserProperties.Add(JobConstants.MessagePropertyNames.PublishedProviderIdsRequest, approveProvidersRequestJson);
 
-            await _approveService.ApproveResults(message, batched: true);
+            await _approveService.Run(message, async () =>
+            {
+                await _approveService.ApproveResults(message, batched: true);
+            });
+
         }
     }
 }

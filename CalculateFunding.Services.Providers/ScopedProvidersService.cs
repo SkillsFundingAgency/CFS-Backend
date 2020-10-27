@@ -20,6 +20,7 @@ using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Jobs;
 using CalculateFunding.Services.Providers.Caching;
 using CalculateFunding.Services.Providers.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -30,7 +31,7 @@ using ProviderSource = CalculateFunding.Common.ApiClient.Models.ProviderSource;
 
 namespace CalculateFunding.Services.Providers
 {
-    public class ScopedProvidersService : IScopedProvidersService, IHealthChecker
+    public class ScopedProvidersService : JobProcessingService, IScopedProvidersService, IHealthChecker
     {
         private const string SpecificationId = "specification-id";
         private const string JobId = "jobId";
@@ -55,7 +56,7 @@ namespace CalculateFunding.Services.Providers
             IFileSystemCache fileSystemCache,
             IJobManagement jobManagement,
             IProvidersResiliencePolicies providersResiliencePolicies,
-            ILogger logger)
+            ILogger logger) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(resultsApiClient, nameof(resultsApiClient));
@@ -103,17 +104,14 @@ namespace CalculateFunding.Services.Providers
             return health;
         }
 
-        public async Task PopulateScopedProviders(Message message)
+        public override async Task Process(Message message)
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
-            string jobId = message.GetUserProperty<string>(JobId);
             string specificationId = message.GetUserProperty<string>(SpecificationId);
 
             string scopedProviderSummariesCountCacheKey = $"{CacheKeys.ScopedProviderSummariesCount}{specificationId}";
             string cacheKeyScopedListCacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
-
-            await _jobManagement.UpdateJobStatus(jobId, 0, null);
 
             SpecificationSummary specificationSummary =  await GetSpecificationSummary(specificationId);
 
@@ -215,12 +213,6 @@ namespace CalculateFunding.Services.Providers
 
             string filesystemCacheKey = $"{CacheKeys.ScopedProviderSummariesFilesystemKeyPrefix}{specificationId}";
             await _cachePolicy.ExecuteAsync(() => _cacheProvider.KeyDeleteAsync<string>(filesystemCacheKey));
-
-            // Mark job as complete
-            _logger.Information("Marking populate scoped providers job complete");
-
-            await _jobManagement.UpdateJobStatus(jobId, 0, 0, true);
-            _logger.Information("Populate scoped providers job complete");
         }
 
         public async Task<IActionResult> PopulateProviderSummariesForSpecification(string specificationId,

@@ -15,7 +15,6 @@ namespace CalculateFunding.Functions.Scenarios.ServiceBus
 {
     public class OnDeleteTests : SmokeTest
     {
-        private readonly ILogger _logger;
         private readonly IScenariosService _scenariosService;
         public const string FunctionName = "on-delete-tests";
 
@@ -24,12 +23,10 @@ namespace CalculateFunding.Functions.Scenarios.ServiceBus
             IScenariosService scenariosService,
             IMessengerService messengerService,
             IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider)
+            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider, scenariosService)
         {
-            Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(scenariosService, nameof(scenariosService));
 
-            _logger = logger;
             _scenariosService = scenariosService;
         }
 
@@ -38,24 +35,12 @@ namespace CalculateFunding.Functions.Scenarios.ServiceBus
             ServiceBusConstants.QueueNames.DeleteTests, 
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            await Run(async () =>
-            {
-                try
+            await Run(message,
+                async () =>
                 {
                     await _scenariosService.DeleteTests(message);
                 }
-                catch (NonRetriableException ex)
-                {
-                    _logger.Error(ex, $"Job threw non retriable exception: {ServiceBusConstants.QueueNames.DeleteTests}");
-                }
-                catch (Exception exception)
-                {
-                    _logger.Error(exception, $"An error occurred getting message from topic: {ServiceBusConstants.QueueNames.DeleteTests}");
-
-                    throw;
-                }
-            },
-            message);
+            );
         }
     }
 }

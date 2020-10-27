@@ -5,6 +5,8 @@ using System.Reflection;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.ServiceBus.Interfaces;
+using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.Azure.ServiceBus;
@@ -22,6 +24,7 @@ namespace CalculateFunding.Services.Core.Functions
         private IMessengerService _messengerService;
         private string _expectedFileVersion;
         private IUserProfileProvider _userProfileProvider;
+        private IProcessingService _processingService;
 
         [TestInitialize]
         public void Setup()
@@ -33,6 +36,9 @@ namespace CalculateFunding.Services.Core.Functions
                 .Returns("SmokeService");
 
             _userProfileProvider = Substitute.For<IUserProfileProvider>();
+            _processingService = Substitute.For<IProcessingService>();
+            _processingService
+                .Run(Arg.Any<Message>(), Arg.Do<Func<Task>>(_ => _?.Invoke()));
         }
 
         [TestMethod]
@@ -104,13 +110,14 @@ namespace CalculateFunding.Services.Core.Functions
 
         private void GivenSmokeTestCreatedInDevelopment(Func<Task> action = null)
         {
-            _smokeFunction = new SmokeFunction(_logger, _messengerService, true, _userProfileProvider,action);
+            _smokeFunction = new SmokeFunction(_logger, _messengerService, true, _userProfileProvider, _processingService, action);
+
             _expectedFileVersion = _smokeFunction.BuildNumber;
         }
 
         private void GivenSmokeTestCreatedNotInDevelopment()
         {
-            _smokeFunction = new SmokeFunction(_logger, _messengerService, false, _userProfileProvider);
+            _smokeFunction = new SmokeFunction(_logger, _messengerService, false, _userProfileProvider, _processingService);
             _expectedFileVersion = _smokeFunction.BuildNumber;
         }
 

@@ -1,14 +1,13 @@
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Services.Jobs.Interfaces;
 using Microsoft.Azure.ServiceBus;
 
 namespace CalculateFunding.Services.Publishing.Interfaces.Undo
 {
-    public interface IPublishedFundingUndoJobService
+    public interface IPublishedFundingUndoJobService : IJobProcessingService
     {
-        Task Run(Message message);
-
         Task<Job> QueueJob(string forCorrelationId,
             bool isHardDelete,
             Reference user,

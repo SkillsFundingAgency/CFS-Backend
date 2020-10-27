@@ -1,10 +1,8 @@
-﻿using Microsoft.Azure.ServiceBus;
-using System.Threading.Tasks;
+﻿using CalculateFunding.Services.Jobs.Interfaces;
 
 namespace CalculateFunding.Services.Results.Interfaces
 {
-    public interface ISearchIndexWriterService
+    public interface ISearchIndexWriterService : IJobProcessingService
     {
-        Task CreateSearchIndex(Message message);
     }
 }

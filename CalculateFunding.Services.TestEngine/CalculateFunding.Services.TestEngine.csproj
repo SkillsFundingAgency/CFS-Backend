@@ -24,6 +24,7 @@
     <ProjectReference Include="..\CalculateFunding.Models.Scenarios\CalculateFunding.Models.Scenarios.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.CodeMetadataGenerator\CalculateFunding.Services.CodeMetadataGenerator.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Core\CalculateFunding.Services.Core.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.Jobs\CalculateFunding.Services.Jobs.csproj" />
   </ItemGroup>
 
 </Project>

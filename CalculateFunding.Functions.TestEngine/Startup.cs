@@ -64,6 +64,7 @@ namespace CalculateFunding.Functions.TestEngine
                 builder.AddScoped<OnEditSpecificationEvent>();
                 builder.AddScoped<OnTestExecution>();
                 builder.AddScoped<OnDeleteTestResults>();
+                builder.AddScoped<OnDeleteTestResultsFailure>();
             }
 
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();

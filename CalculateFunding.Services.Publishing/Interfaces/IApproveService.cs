@@ -1,10 +1,11 @@
 ﻿using System.Threading.Tasks;
+using CalculateFunding.Services.Jobs.Interfaces;
 using Microsoft.Azure.ServiceBus;
 
 namespace CalculateFunding.Services.Publishing.Interfaces
 {
-    public interface IPublishIntegrityCheckService
+    public interface IApproveService : IJobProcessingService
     {
-        Task Run(Message message);
+        Task ApproveResults(Message message, bool batched = false);
     }
 }

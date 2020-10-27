@@ -10,13 +10,14 @@ using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.FeatureToggles;
+using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Scenarios.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Serilog;
 
 namespace CalculateFunding.Services.Scenarios
 {
-    public class DatasetDefinitionFieldChangesProcessor : IDatasetDefinitionFieldChangesProcessor
+    public class DatasetDefinitionFieldChangesProcessor : ProcessingService, IDatasetDefinitionFieldChangesProcessor
     {
         private readonly IFeatureToggle _featureToggle;
         private readonly ILogger _logger;
@@ -48,7 +49,7 @@ namespace CalculateFunding.Services.Scenarios
             _mapper = mapper;
         }
 
-        public async Task ProcessChanges(Message message)
+        public override async Task Process(Message message)
         {
             Guard.ArgumentNotNull(message, nameof(message));
 

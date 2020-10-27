@@ -1,8 +1,13 @@
-﻿using CalculateFunding.Common.ApiClient.Policies;
+﻿using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Policies;
+using PolicyModels = CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
 using FluentValidation;
+using CalculateFunding.Common.Utility;
+using System.Net;
+using System.Linq;
 
 namespace CalculateFunding.Services.Specs.Validators
 {
@@ -11,16 +16,24 @@ namespace CalculateFunding.Services.Specs.Validators
         private readonly ISpecificationsRepository _specificationsRepository;
         private readonly IProvidersApiClient _providersApiClient;
         private readonly IPoliciesApiClient _policiesApiClient;
+        private readonly Polly.AsyncPolicy _policiesApiClientPolicy;
 
         public SpecificationEditModelValidator(
             ISpecificationsRepository specificationsRepository, 
             IProvidersApiClient providersApiClient,
-            IPoliciesApiClient policiesApiClient
+            IPoliciesApiClient policiesApiClient,
+            ISpecificationsResiliencePolicies resiliencePolicies
             )
         {
+            Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
+            Guard.ArgumentNotNull(providersApiClient, nameof(providersApiClient));
+            Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
+            Guard.ArgumentNotNull(resiliencePolicies?.PoliciesApiClient, nameof(resiliencePolicies.PoliciesApiClient));
+            
             _specificationsRepository = specificationsRepository;
             _providersApiClient = providersApiClient;
             _policiesApiClient = policiesApiClient;
+            _policiesApiClientPolicy = resiliencePolicies.PoliciesApiClient;
 
             RuleFor(model => model.FundingPeriodId)
                 .NotEmpty()
@@ -33,14 +46,45 @@ namespace CalculateFunding.Services.Specs.Validators
                     }
                 });
 
+
+
             RuleFor(model => model.ProviderVersionId)
-                .NotEmpty()
-                .WithMessage("Null or empty provider version id")
-                .Custom((name, context) => {
+                .Custom(async (name, context) => {
                     SpecificationEditModel specModel = context.ParentContext.InstanceToValidate as SpecificationEditModel;
-                    if (_providersApiClient.DoesProviderVersionExist(specModel.ProviderVersionId).Result == System.Net.HttpStatusCode.NotFound)
+                    ApiResponse<PolicyModels.FundingConfig.FundingConfiguration> fundingConfigResponse =
+                        await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingConfiguration(specModel.FundingStreamId, specModel.FundingPeriodId));
+
+                    if (fundingConfigResponse?.StatusCode != HttpStatusCode.OK || fundingConfigResponse?.Content == null)
                     {
-                        context.AddFailure($"Provider version id selected does not exist");
+                        context.AddFailure("Funding config not found");
+                        return;
+                    }
+
+                    switch (fundingConfigResponse.Content.ProviderSource)
+                    {
+                        case ProviderSource.CFS:
+                            {
+                                if (string.IsNullOrWhiteSpace(specModel.ProviderVersionId))
+                                {
+                                    context.AddFailure($"Null or empty provider version id");
+                                }
+
+                                if (_providersApiClient.DoesProviderVersionExist(specModel.ProviderVersionId).Result == System.Net.HttpStatusCode.NotFound)
+                                {
+                                    context.AddFailure($"Provider version id selected does not exist");
+                                }
+
+                                break;
+                            }
+                        case ProviderSource.FDZ:
+                            {
+                                if (!specModel.ProviderSnapshotId.HasValue)
+                                {
+                                    context.AddFailure($"Null or empty provider snapshot id");
+                                }
+
+                                break;
+                            }
                     }
                 });
 

@@ -805,7 +805,7 @@ namespace CalculateFunding.Services.Results.UnitTests
             message.UserProperties["specificationId"] = specificationId;
 
             //Act
-            await resultsService.CleanupProviderResultsForSpecification(message);
+            await resultsService.Process(message);
 
             //Assert
             await calculationResultsRepository

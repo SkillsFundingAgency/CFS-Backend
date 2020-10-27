@@ -30,10 +30,12 @@ using ApiModels = CalculateFunding.Common.ApiClient.Models;
 using AutoMapper;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Services.Core.Services;
+using CalculateFunding.Services.Jobs;
 
 namespace CalculateFunding.Services.Results
 {
-    public class ResultsService : IResultsService, IHealthChecker
+    public class ResultsService : JobProcessingService, IResultsService, IHealthChecker
     {
         private readonly ILogger _logger;
         private readonly ICalculationResultsRepository _resultsRepository;
@@ -50,7 +52,6 @@ namespace CalculateFunding.Services.Results
         private readonly Polly.AsyncPolicy _calculationsApiClientPolicy;
         private readonly IFeatureToggle _featureToggle;
         private readonly IMapper _mapper;
-        private readonly IJobManagement _jobManagement;
 
         public ResultsService(ILogger logger,
             IFeatureToggle featureToggle,
@@ -63,7 +64,7 @@ namespace CalculateFunding.Services.Results
             IMessengerService messengerService,
             ICalculationsRepository calculationRepository,
             IMapper mapper,
-            IJobManagement jobManagement)
+            IJobManagement jobManagement) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(resultsRepository, nameof(resultsRepository));
             Guard.ArgumentNotNull(providerSourceDatasetRepository, nameof(providerSourceDatasetRepository));
@@ -79,7 +80,6 @@ namespace CalculateFunding.Services.Results
             Guard.ArgumentNotNull(calculationRepository, nameof(calculationRepository));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
-            Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
 
             _logger = logger;
             _mapper = mapper;
@@ -96,7 +96,6 @@ namespace CalculateFunding.Services.Results
             _calculationRepository = calculationRepository;
             _calculationsRepositoryPolicy = resiliencePolicies.CalculationsRepository;
             _featureToggle = featureToggle;
-            _jobManagement = jobManagement;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -120,57 +119,23 @@ namespace CalculateFunding.Services.Results
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
-            string jobId = message.GetUserProperty<string>("jobId");
-
-            Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
-
-            try
+            string specificationId = message.UserProperties["specification-id"].ToString();
+            if (string.IsNullOrEmpty(specificationId))
             {
-                // Update job to set status to processing
-                await _jobManagement.UpdateJobStatus(jobId, 0, 0, null, null);
-
-                string specificationId = message.UserProperties["specification-id"].ToString();
-                if (string.IsNullOrEmpty(specificationId))
-                {
-                    string error = "Null or empty specification Id provided for deleting calculation results";
-                    _logger.Error(error);
-                    throw new Exception(error);
-                }
-
-                string deletionTypeProperty = message.UserProperties["deletion-type"].ToString();
-                if (string.IsNullOrEmpty(deletionTypeProperty))
-                {
-                    string error = "Null or empty deletion type provided for deleting calculation results";
-                    _logger.Error(error);
-                    throw new Exception(error);
-                }
-
-                await _resultsRepository.DeleteCalculationResultsBySpecificationId(specificationId, deletionTypeProperty.ToDeletionType());
-
-                await _jobManagement.UpdateJobStatus(jobId, 0, 0, true, null);
+                string error = "Null or empty specification Id provided for deleting calculation results";
+                _logger.Error(error);
+                throw new Exception(error);
             }
-            catch (Exception exception)
+
+            string deletionTypeProperty = message.UserProperties["deletion-type"].ToString();
+            if (string.IsNullOrEmpty(deletionTypeProperty))
             {
-                _logger.Error(exception, "Unable to complete delete calculation results job");
-
-                await TrackJobFailed(jobId, exception);
-
-                throw new NonRetriableException("Unable to delete calculation results.", exception);
+                string error = "Null or empty deletion type provided for deleting calculation results";
+                _logger.Error(error);
+                throw new Exception(error);
             }
-        }
 
-        private async Task TrackJobFailed(string jobId, Exception exception)
-        {
-            await AddJobTracking(jobId, new JobLogUpdateModel
-            {
-                CompletedSuccessfully = false,
-                Outcome = exception.ToString()
-            });
-        }
-
-        private async Task AddJobTracking(string jobId, JobLogUpdateModel tracking)
-        {
-            await _jobManagement.AddJobLog(jobId, tracking);
+            await _resultsRepository.DeleteCalculationResultsBySpecificationId(specificationId, deletionTypeProperty.ToDeletionType());
         }
 
         public async Task<IActionResult> GetProviderResults(string providerId, string specificationId)
@@ -509,7 +474,7 @@ namespace CalculateFunding.Services.Results
             return new NoContentResult();
         }
 
-        public async Task CleanupProviderResultsForSpecification(Message message)
+        public override async Task Process(Message message)
         {
             string specificationId = message.UserProperties["specificationId"].ToString();
 

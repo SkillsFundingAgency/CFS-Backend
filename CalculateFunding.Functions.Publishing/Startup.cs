@@ -144,6 +144,7 @@ namespace CalculateFunding.Functions.Publishing
                 builder.AddScoped<OnPublishIntegrityCheck>();
                 builder.AddScoped<OnPublishIntegrityCheckFailure>();
                 builder.AddScoped<OnDeletePublishedProviders>();
+                builder.AddScoped<OnDeletePublishedProvidersFailure>();
                 builder.AddScoped<OnReIndexPublishedProviders>();
                 builder.AddScoped<OnGeneratePublishedFundingCsv>();
                 builder.AddScoped<OnGeneratePublishedFundingCsvFailure>();

@@ -39,6 +39,7 @@ using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.Datasets.Interfaces;
+using CalculateFunding.Services.Jobs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.Storage.Blob;
@@ -52,7 +53,7 @@ using VersionReference = CalculateFunding.Models.VersionReference;
 
 namespace CalculateFunding.Services.Datasets
 {
-    public class ProcessDatasetService : IProcessDatasetService, IHealthChecker
+    public class ProcessDatasetService : JobProcessingService, IProcessDatasetService, IHealthChecker
     {
         private readonly IDatasetRepository _datasetRepository;
         private readonly IExcelDatasetReader _excelDatasetReader;
@@ -60,6 +61,7 @@ namespace CalculateFunding.Services.Datasets
         private readonly ICalcsRepository _calcsRepository;
         private readonly IBlobClient _blobClient;
         private readonly IMessengerService _messengerService;
+        private readonly IJobManagement _jobManagement;
         private readonly IProviderSourceDatasetsRepository _providersResultsRepository;
         private readonly IProvidersApiClient _providersApiClient;
         private readonly ISpecificationsApiClient _specsApiClient;
@@ -71,7 +73,6 @@ namespace CalculateFunding.Services.Datasets
         private readonly AsyncPolicy _providersApiClientPolicy;
         private readonly IFeatureToggle _featureToggle;
         private readonly IMapper _mapper;
-        private readonly IJobManagement _jobManagement;
         private readonly IProviderSourceDatasetVersionKeyProvider _datasetVersionKeyProvider;
      
 
@@ -94,7 +95,7 @@ namespace CalculateFunding.Services.Datasets
             IMapper mapper,
             IJobManagement jobManagement,
             IProviderSourceDatasetVersionKeyProvider datasetVersionKeyProvider
-            )
+            ) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
             Guard.ArgumentNotNull(excelDatasetReader, nameof(excelDatasetReader));
@@ -111,8 +112,8 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(datasetsResiliencePolicies?.ProviderResultsRepository, nameof(datasetsResiliencePolicies.ProviderResultsRepository));
             Guard.ArgumentNotNull(datasetsResiliencePolicies?.ProvidersApiClient, nameof(datasetsResiliencePolicies.ProvidersApiClient));
+            Guard.ArgumentNotNull(datasetVersionKeyProvider, nameof(datasetVersionKeyProvider));
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
-            Guard.ArgumentNotNull(datasetVersionKeyProvider, nameof(datasetVersionKeyProvider));          
             Guard.ArgumentNotNull(datasetsResiliencePolicies?.JobsApiClient, nameof(datasetsResiliencePolicies.JobsApiClient));
 
             _datasetRepository = datasetRepository;
@@ -156,22 +157,11 @@ namespace CalculateFunding.Services.Datasets
             return health;
         }
 
-        public async Task ProcessDataset(Message message)
+        public override async Task Process(Message message)
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
             Dataset dataset = message.GetPayloadAsInstanceOf<Dataset>();
-
-            string jobId = message.UserProperties["jobId"].ToString();
-
-            JobViewModel jobResponse = await _jobManagement.GetJobById(jobId);
-
-            if (jobResponse == null)
-            {
-                _logger.Error($"Error occurred while retireving the job. JobId {jobId}");
-                await _jobManagement.UpdateJobStatus(jobId, 100, false, "Failed to Process - No job details found.");
-                return;
-            }
 
             // if we need to spawn any jobs then the map scoped dataset job needs to be set as the parent job
             string parentJobId = message.UserProperties.ContainsKey("parentJobId") ? message.UserProperties["parentJobId"].ToString() : null;
@@ -181,20 +171,16 @@ namespace CalculateFunding.Services.Datasets
             bool queueCalculationJob = !isScopedJob &&
                 !(message.UserProperties.ContainsKey("disableQueueCalculationJob") && bool.Parse(message.UserProperties["disableQueueCalculationJob"].ToString()));
             
-            await _jobManagement.UpdateJobStatus(jobId, 0, null);
-
             if (dataset == null)
             {
                 _logger.Error("A null dataset was provided to ProcessData");
-                await _jobManagement.UpdateJobStatus(jobId, 100, false, "Failed to Process - null dataset provided");
-                return;
+                throw new NonRetriableException("A null dataset was provided to ProcessData");
             }
 
             if (!message.UserProperties.ContainsKey("specification-id"))
             {
                 _logger.Error("Specification Id key is missing in ProcessDataset message properties");
-                await _jobManagement.UpdateJobStatus(jobId, 100, false, "Failed to Process - specification id not provided");
-                return;
+                throw new NonRetriableException("Specification Id key is missing in ProcessDataset message properties");
             }
 
             string specificationId = message.UserProperties["specification-id"].ToString();
@@ -202,38 +188,33 @@ namespace CalculateFunding.Services.Datasets
             if (string.IsNullOrWhiteSpace(specificationId))
             {
                 _logger.Error("A null or empty specification id was provided to ProcessData");
-                await _jobManagement.UpdateJobStatus(jobId, 100, false, "Failed to Process - specification if is null or empty");
-                return;
+                throw new NonRetriableException("A null or empty specification id was provided to ProcessData");
             }
 
             if (!message.UserProperties.ContainsKey("relationship-id"))
             {
                 _logger.Error("Relationship Id key is missing in ProcessDataset message properties");
-                await _jobManagement.UpdateJobStatus(jobId, 100, false, "Failed to Process - relationship id not provided");
-                return;
+                throw new NonRetriableException("Relationship Id key is missing in ProcessDataset message properties");
             }
 
             string relationshipId = message.UserProperties["relationship-id"].ToString();
             if (string.IsNullOrWhiteSpace(relationshipId))
             {
                 _logger.Error("A null or empty relationship id was provided to ProcessDataset");
-                await _jobManagement.UpdateJobStatus(jobId, 100, false, "Failed to Process - relationship id is null or empty");
-                return;
+                throw new NonRetriableException("A null or empty relationship id was provided to ProcessDataset");
             }
 
             ApiResponse<SpecificationSummary> specificationSummaryResponse = await _specsApiClient.GetSpecificationSummaryById(specificationId);
             if (specificationSummaryResponse == null)
             {
                 _logger.Error("Specification summary response was null");
-                await _jobManagement.UpdateJobStatus(jobId, 100, false, "Specification summary response was null");
-                return;
+                throw new NonRetriableException("Specification summary response was null");
             }
 
             if (specificationSummaryResponse.StatusCode != HttpStatusCode.OK)
             {
                 _logger.Error($"Specification summary returned invalid status code of '{specificationSummaryResponse.StatusCode}'");
-                await _jobManagement.UpdateJobStatus(jobId, 100, false, $"Specification summary returned invalid status code of '{specificationSummaryResponse.StatusCode}'");
-                return;
+                throw new NonRetriableException($"Specification summary returned invalid status code of '{specificationSummaryResponse.StatusCode}'");
             }
 
             SpecificationSummary specification = specificationSummaryResponse.Content;
@@ -243,8 +224,7 @@ namespace CalculateFunding.Services.Datasets
             if (relationship == null)
             {
                 _logger.Error($"Relationship not found for relationship id: {relationshipId}");
-                await _jobManagement.UpdateJobStatus(jobId, 100, false, "Failed to Process - relationship not found");
-                return;
+                throw new NonRetriableException($"Relationship not found for relationship id: {relationshipId}");
             }
 
             Reference user = message.GetUserDetails();
@@ -366,14 +346,8 @@ namespace CalculateFunding.Services.Datasets
                     }
                 }
 
-                // don't complete the job until the allocation jobs have been created
-                await _jobManagement.UpdateJobStatus(jobId, 100, true, "Processed Dataset");
-            }
-            catch (NonRetriableException argEx)
-            {
-                // This type of exception is not retriable so fail
-                _logger.Error(argEx, $"Failed to run ProcessDataset with exception: {argEx.Message} for relationship ID '{relationshipId}'");
-                await _jobManagement.UpdateJobStatus(jobId, 100, false, $"Failed to run Process - {argEx.Message}");
+                ItemsProcessed = 100;
+                Outcome = "Processed Dataset";
             }
             catch (Exception exception)
             {
@@ -400,18 +374,11 @@ namespace CalculateFunding.Services.Datasets
         public async Task MapFdzDatasets(Message message)
          {
             Guard.ArgumentNotNull(message, nameof(message));
-
-            string jobId = message.GetUserProperty<string>("jobId");
-
-            await EnsureJobCanBeProcessed(jobId);
-
-            // Update job to set status to processing
-            await _jobManagement.UpdateJobStatus(jobId, 0, 0, null, null);
-
+            
             string specificationId = message.GetUserProperty<string>("specification-id");
 
             try
-            {
+            { 
                 Reference user = message.GetUserDetails();
 
                 string correlationId = message.GetCorrelationId();
@@ -457,39 +424,17 @@ namespace CalculateFunding.Services.Datasets
                                             },
                         SpecificationId = specificationId,
                         Trigger = trigger,
-                        ParentJobId = jobId,
+                        ParentJobId = Job.Id,
                         CorrelationId = correlationId,
                     };
 
                     await _jobManagement.QueueJob(mapDatasetJob);
                 }
-
-                await _jobManagement.UpdateJobStatus(jobId, 100, true, "Mapped FDZ Datasets");
-            }
-            catch (NonRetriableException ex)
-            {
-                await _jobManagement.UpdateJobStatus(jobId, 100, false, $"Failed to run MapFdzDatasets - {ex.Message}");
-                throw;
             }
             catch (Exception exception)
             {
                 _logger.Error(exception, $"Failed to run MapFdzDatasets with exception: {exception.Message}, for specification id '{specificationId}'");
                 throw;
-            }
-        }
-
-        private async Task EnsureJobCanBeProcessed(string jobId)
-        {
-            try
-            {
-                await _jobManagement.RetrieveJobAndCheckCanBeProcessed(jobId);
-            }
-            catch
-            {
-                string errorMessage = "Job can not be run";
-                _logger.Error(errorMessage);
-
-                throw new NonRetriableException(errorMessage);
             }
         }
 

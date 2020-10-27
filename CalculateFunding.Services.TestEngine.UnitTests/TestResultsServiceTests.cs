@@ -251,7 +251,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             TestResultsService service = CreateTestResultsService();
 
             //Act
-            Func<Task> test = async () => await service.UpdateTestResultsForSpecification(message);
+            Func<Task> test = async () => await service.Process(message);
 
             //Assert
             test
@@ -281,7 +281,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             TestResultsService service = CreateTestResultsService(logger: logger);
 
             //Act
-            await service.UpdateTestResultsForSpecification(message);
+            await service.Process(message);
 
             //Assert
             logger
@@ -318,7 +318,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             TestResultsService service = CreateTestResultsService(logger: logger, searchRepository: searchRepository);
 
             //Act
-            await service.UpdateTestResultsForSpecification(message);
+            await service.Process(message);
 
             //Assert
             await
@@ -426,7 +426,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             TestResultsService service = CreateTestResultsService(logger: logger, searchRepository: searchRepository);
 
             //Act
-            await service.UpdateTestResultsForSpecification(message);
+            await service.Process(message);
 
             //Assert
             await

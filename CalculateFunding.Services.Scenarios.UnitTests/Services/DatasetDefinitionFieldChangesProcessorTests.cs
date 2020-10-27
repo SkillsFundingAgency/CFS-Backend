@@ -50,7 +50,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             DatasetDefinitionFieldChangesProcessor processor = CreateProcessor(featureToggle, logger: logger);
 
             //Act
-            await processor.ProcessChanges(message);
+            await processor.Process(message);
 
             //Assert
             logger
@@ -67,7 +67,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             DatasetDefinitionFieldChangesProcessor processor = CreateProcessor();
 
             //Act
-            Func<Task> test = async () => await processor.ProcessChanges(message);
+            Func<Task> test = async () => await processor.Process(message);
 
             //Assert
             test
@@ -99,7 +99,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             DatasetDefinitionFieldChangesProcessor processor = CreateProcessor(logger: logger);
 
             //Act
-            await processor.ProcessChanges(message);
+            await processor.Process(message);
 
             //Assert
             logger
@@ -129,7 +129,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             DatasetDefinitionFieldChangesProcessor processor = CreateProcessor(logger: logger);
 
             //Act
-            await processor.ProcessChanges(message);
+            await processor.Process(message);
 
             //Assert
             logger
@@ -171,7 +171,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             DatasetDefinitionFieldChangesProcessor processor = CreateProcessor(logger: logger, datasetRepository: datasetRepository);
 
             //Act
-            await processor.ProcessChanges(message);
+            await processor.Process(message);
 
             //Assert
             logger
@@ -225,7 +225,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             DatasetDefinitionFieldChangesProcessor processor = CreateProcessor(logger: logger, datasetRepository: datasetRepository);
 
             //Act
-            Func<Task> test = async () => await processor.ProcessChanges(message);
+            Func<Task> test = async () => await processor.Process(message);
 
             //Assert
             test
@@ -300,7 +300,7 @@ namespace CalculateFunding.Services.Scenarios.Services
                 mapper: mapper);
 
             //Act
-            await processor.ProcessChanges(message);
+            await processor.Process(message);
 
             //Assert
             await
@@ -377,7 +377,7 @@ namespace CalculateFunding.Services.Scenarios.Services
                 scenariosService: scenariosService);
 
             //Act
-            await processor.ProcessChanges(message);
+            await processor.Process(message);
 
             //Assert
             await

@@ -1,10 +1,10 @@
-﻿using Microsoft.Azure.ServiceBus;
+﻿using CalculateFunding.Services.Jobs.Interfaces;
+using Microsoft.Azure.ServiceBus;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Calcs.Interfaces
 {
-    public interface IApplyTemplateCalculationsService
+    public interface IApplyTemplateCalculationsService : IJobProcessingService
     {
-        Task ApplyTemplateCalculation(Message message);
     }
 }

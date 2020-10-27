@@ -1,12 +1,13 @@
 ﻿using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Users;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 
 namespace CalculateFunding.Services.Users.Interfaces
 {
-    public interface IFundingStreamPermissionService
+    public interface IFundingStreamPermissionService : IProcessingService
     {
         /// <summary>
         /// Update Funding Stream permissions for a user
@@ -30,12 +31,5 @@ namespace CalculateFunding.Services.Users.Interfaces
         /// <param name="userId">User ID</param>
         /// <returns>IEnumerable of Funding Stream Permissions</returns>
         Task<IActionResult> GetFundingStreamPermissionsForUser(string userId);
-
-        /// <summary>
-        /// Triggered when a specification is updated. This method should check for differences in Funding Streams and update the effective permissions for users
-        /// </summary>
-        /// <param name="message">Message</param>
-        /// <returns>Task</returns>
-        Task OnSpecificationUpdate(Message message);
     }
 }

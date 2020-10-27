@@ -11,6 +11,7 @@ using CalculateFunding.Models.CosmosDbScaling;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.CosmosDbScaling.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
@@ -21,7 +22,7 @@ using Serilog;
 
 namespace CalculateFunding.Services.CosmosDbScaling
 {
-    public class CosmosDbScalingService : ICosmosDbScalingService
+    public class CosmosDbScalingService : ProcessingService, ICosmosDbScalingService
     {
         private readonly ILogger _logger;
         private readonly ICosmosDbScalingRepositoryProvider _cosmosDbScalingRepositoryProvider;
@@ -75,7 +76,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
             _scalingConfigurationUpdateModelValidator = scalingConfigurationUpdateModelValidator;
         }
 
-        public async Task ScaleUp(Message message)
+        public override async Task Process(Message message)
         {
             Guard.ArgumentNotNull(message, nameof(message));
 

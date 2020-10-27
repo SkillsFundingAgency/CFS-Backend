@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Threading.Tasks;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces.Services;
 
 namespace CalculateFunding.Services.Core.Functions
 {
@@ -19,6 +20,7 @@ namespace CalculateFunding.Services.Core.Functions
         private readonly ILogger _logger;
         private readonly IMessengerService _messengerService;
         private readonly bool _useAzureStorage;
+        private readonly IProcessingService _processingService;
         private readonly IUserProfileProvider _userProfileProvider;
         private readonly string _functionName;
 
@@ -26,16 +28,19 @@ namespace CalculateFunding.Services.Core.Functions
             IMessengerService messengerService, 
             string functionName, 
             bool useAzureStorage,
-            IUserProfileProvider userProfileProvider)
+            IUserProfileProvider userProfileProvider,
+            IProcessingService processingService)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
+            Guard.ArgumentNotNull(processingService, nameof(processingService));
             Guard.IsNullOrWhiteSpace(functionName, nameof(functionName));
 
             _logger = logger;
             _messengerService = messengerService;
             _useAzureStorage = useAzureStorage;
             _userProfileProvider = userProfileProvider;
+            _processingService = processingService;
             _functionName = functionName;
         }
 
@@ -43,7 +48,7 @@ namespace CalculateFunding.Services.Core.Functions
 
         public string BuildNumber => FileVersionInfo.GetVersionInfo(GetType().Assembly.Location).FileVersion;
 
-        protected async Task Run(Func<Task> function, Message message)
+        protected virtual async Task Run(Message message, Func<Task> func = null)
         {
             _userProfileProvider.UserProfile = message.GetUserProfile();
 
@@ -70,7 +75,7 @@ namespace CalculateFunding.Services.Core.Functions
             }
             else
             {
-                await function();
+                await _processingService.Run(message, func);
             }
         }
 

@@ -61,6 +61,7 @@ namespace CalculateFunding.Functions.Scenarios
                 builder.AddScoped<OnEditCalculationEvent>();
                 builder.AddScoped<OnEditSpecificationEvent>();
                 builder.AddScoped<OnDeleteTests>();
+                builder.AddScoped<OnDeleteTestsFailure>();
             }
 
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();

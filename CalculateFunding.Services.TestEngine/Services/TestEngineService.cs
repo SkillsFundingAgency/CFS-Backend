@@ -11,6 +11,7 @@ using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Logging;
+using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.TestEngine.Interfaces;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using CalculateFunding.Services.TestRunner.Testing;
@@ -28,7 +29,7 @@ using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.TestRunner.Services
 {
-    public class TestEngineService : ITestEngineService, IHealthChecker
+    public class TestEngineService : ProcessingService, ITestEngineService, IHealthChecker
     {
         private readonly ICacheProvider _cacheProvider;
         private readonly ISpecificationsApiClient _specificationsApiClient;
@@ -127,7 +128,7 @@ namespace CalculateFunding.Services.TestRunner.Services
             return health;
         }
 
-        public async Task RunTests(Message message)
+        public override async Task Process(Message message)
         {
             Stopwatch runTestsStopWatch = Stopwatch.StartNew();
 

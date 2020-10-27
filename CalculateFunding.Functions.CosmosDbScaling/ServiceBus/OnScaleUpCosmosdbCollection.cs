@@ -12,10 +12,8 @@ using Serilog;
 
 namespace CalculateFunding.Functions.CosmosDbScaling.ServiceBus
 {
-    public class OnScaleUpCosmosDbCollection : SmokeTest
+    public class OnScaleUpCosmosDbCollection : Retriable
     {
-        private readonly ILogger _logger;
-        private readonly ICosmosDbScalingService _scalingService;
         public const string FunctionName = "on-scale-up-cosmosdb-collection";
 
         public OnScaleUpCosmosDbCollection(
@@ -23,13 +21,8 @@ namespace CalculateFunding.Functions.CosmosDbScaling.ServiceBus
            ICosmosDbScalingService scalingService,
            IMessengerService messengerService,
            IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider)
+            : base(logger, messengerService, FunctionName, $"{ServiceBusConstants.TopicNames.JobNotifications}/{ServiceBusConstants.TopicSubscribers.ScaleUpCosmosdbCollection}" , useAzureStorage, userProfileProvider, scalingService)
         {
-            Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(scalingService, nameof(scalingService));
-
-            _logger = logger;
-            _scalingService = scalingService;
         }
 
         [FunctionName(FunctionName)]
@@ -38,19 +31,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling.ServiceBus
             ServiceBusConstants.TopicSubscribers.ScaleUpCosmosdbCollection,
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            await Run(async () =>
-            {
-                try
-                {
-                    await _scalingService.ScaleUp(message);
-                }
-                catch (Exception exception)
-                {
-                    _logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.TopicSubscribers.ScaleUpCosmosdbCollection}");
-                    throw;
-                }
-            },
-            message);
+            await base.Run(message);
         }
     }
 }

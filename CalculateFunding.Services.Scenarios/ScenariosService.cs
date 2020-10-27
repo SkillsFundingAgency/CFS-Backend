@@ -34,10 +34,11 @@ using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 using JobsModels = CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Services.Core.Services;
 
 namespace CalculateFunding.Services.Scenarios
 {
-    public class ScenariosService : IScenariosService, IHealthChecker
+    public class ScenariosService : ProcessingService, IScenariosService, IHealthChecker
     {
         private readonly IScenariosRepository _scenariosRepository;
         private readonly ILogger _logger;
@@ -298,7 +299,7 @@ namespace CalculateFunding.Services.Scenarios
             return new OkObjectResult(testScenario);
         }
 
-        public async Task UpdateScenarioForSpecification(Message message)
+        public override async Task Process(Message message)
         {
             SpecificationVersionComparisonModel specificationVersionComparison = message.GetPayloadAsInstanceOf<SpecificationVersionComparisonModel>();
 
@@ -475,43 +476,23 @@ namespace CalculateFunding.Services.Scenarios
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
-            string jobId = message.GetUserProperty<string>("jobId");
-
-            Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
-
-            try
+            string specificationId = message.UserProperties["specification-id"].ToString();
+            if (string.IsNullOrEmpty(specificationId))
             {
-                // Update job to set status to processing
-                await _jobManagement.UpdateJobStatus(jobId, 0, 0, null, null);
-
-                string specificationId = message.UserProperties["specification-id"].ToString();
-                if (string.IsNullOrEmpty(specificationId))
-                {
-                    string error = "Null or empty specification Id provided for deleting test results";
-                    _logger.Error(error);
-                    throw new Exception(error);
-                }
-
-                string deletionTypeProperty = message.UserProperties["deletion-type"].ToString();
-                if (string.IsNullOrEmpty(deletionTypeProperty))
-                {
-                    string error = "Null or empty deletion type provided for deleting test results";
-                    _logger.Error(error);
-                    throw new Exception(error);
-                }
-
-                await _scenariosRepository.DeleteTestsBySpecificationId(specificationId, deletionTypeProperty.ToDeletionType());
-
-                await _jobManagement.UpdateJobStatus(jobId, 0, 0, true, null);
+                string error = "Null or empty specification Id provided for deleting test results";
+                _logger.Error(error);
+                throw new Exception(error);
             }
-            catch (Exception exception)
+
+            string deletionTypeProperty = message.UserProperties["deletion-type"].ToString();
+            if (string.IsNullOrEmpty(deletionTypeProperty))
             {
-                _logger.Error(exception, "Unable to complete delete tests job");
-
-                await TrackJobFailed(jobId, exception);
-
-                throw new NonRetriableException("Unable to delete tests.", exception);
+                string error = "Null or empty deletion type provided for deleting test results";
+                _logger.Error(error);
+                throw new Exception(error);
             }
+
+            await _scenariosRepository.DeleteTestsBySpecificationId(specificationId, deletionTypeProperty.ToDeletionType());
         }
 
         private async Task TrackJobFailed(string jobId, Exception exception)

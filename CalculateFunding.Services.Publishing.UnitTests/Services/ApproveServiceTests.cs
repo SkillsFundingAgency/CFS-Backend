@@ -91,6 +91,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             SetUserProperty("user-id", _userId);
             SetUserProperty("user-name", _userName);
+            SetUserProperty("jobId", null);
 
             _publishedFundingDataService.GetPublishedProvidersForApproval(Arg.Any<string>(), Arg.Any<string[]>())
                 .Returns(new[] { new PublishedProvider() });
@@ -109,7 +110,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             GivenTheMessageHasTheSpecificationId(specificationId);
             AndTheMessageIsOtherwiseValid();
             AndCalculationEngineApproveSpecificationRunning(specificationId);
-            AndRetrieveJobAndCheckCanBeProcessedSuccessfully();
+            AndRetrieveJobAndCheckCanBeProcessedSuccessfully(_ => _.WithJobId(_jobId));
 
             Func<Task> invocation = WhenAllProvidersResultsAreApproved;
 
@@ -142,7 +143,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             GivenTheMessageHasTheApproveProvidersRequest(BuildApproveProvidersRequest(_=>_.WithProviders(providers)));
             AndTheMessageIsOtherwiseValid();
             AndCalculationEngineApproveProviderRunning(specificationId);
-            AndRetrieveJobAndCheckCanBeProcessedSuccessfully();
+            AndRetrieveJobAndCheckCanBeProcessedSuccessfully(_ => _.WithJobId(_jobId));
 
             Func<Task> invocation = WhenBatchProvidersResultsAreApproved;
 
@@ -183,7 +184,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             GivenTheMessageHasTheSpecificationId(specificationId);
             AndTheMessageIsOtherwiseValid();
             AndTheSpecificationHasTheHeldUnApprovedPublishedProviders(specificationId, null, expectedPublishedProviders);
-            AndRetrieveJobAndCheckCanBeProcessedSuccessfully();
+            AndRetrieveJobAndCheckCanBeProcessedSuccessfully(_ => _.WithJobId(_jobId));
             AndNumberOfApprovedPublishedProvidersThrowsException(expectedPublishedProviders);
 
             Func<Task> invocation = WhenAllProvidersResultsAreApproved;
@@ -219,7 +220,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             GivenTheMessageHasTheApproveProvidersRequest(BuildApproveProvidersRequest(_ => _.WithProviders(providerIds)));
             AndTheMessageIsOtherwiseValid();
             AndTheSpecificationHasTheHeldUnApprovedPublishedProviders(specificationId, providerIds, expectedPublishedProviders);
-            AndRetrieveJobAndCheckCanBeProcessedSuccessfully();
+            AndRetrieveJobAndCheckCanBeProcessedSuccessfully(_ => _.WithJobId(_jobId));
             AndNumberOfApprovedPublishedProvidersThrowsException(expectedPublishedProviders);
 
             Func<Task> invocation = WhenBatchProvidersResultsAreApproved;
@@ -240,11 +241,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             invocation
                 .Should()
-                .Throw<ArgumentNullException>()
-                .And
-                .ParamName
-                .Should()
-                .Be("jobId");
+                .Throw<NonRetriableException>()
+                .WithMessage("Missing job id");
         }
 
         [TestMethod]
@@ -254,11 +252,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             invocation
                 .Should()
-                .Throw<ArgumentNullException>()
-                .And
-                .ParamName
-                .Should()
-                .Be("jobId");
+                .Throw<NonRetriableException>()
+                .WithMessage("Missing job id");
         }
 
         [TestMethod]
@@ -295,28 +290,28 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         public void ApproveAllProvidersResults_ExitsEarlyIfUnableToStartTrackingJob()
         {
             GivenTheMessageHasAJobId();
-            AndRetrieveJobAndCheckCannotBeProcessedSuccessfully();
+            AndRetrieveJobAndCheckCannotBeProcessedSuccessfully(new JobNotFoundException(string.Empty, string.Empty));
 
             Func<Task> invocation = WhenAllProvidersResultsAreApproved;
 
             invocation
                 .Should()
                 .Throw<NonRetriableException>()
-                .WithMessage("Job can not be run");
+                .WithMessage($"Could not find the job with id: '{_jobId}'");
         }
 
         [TestMethod]
         public void ApproveBatchProvidersResults_ExitsEarlyIfUnableToStartTrackingJob()
         {
             GivenTheMessageHasAJobId();            
-            AndRetrieveJobAndCheckCannotBeProcessedSuccessfully();
+            AndRetrieveJobAndCheckCannotBeProcessedSuccessfully(new Exception());
 
             Func<Task> invocation = WhenBatchProvidersResultsAreApproved;
 
             invocation
                 .Should()
                 .Throw<NonRetriableException>()
-                .WithMessage("Job can not be run");
+                .WithMessage($"Job can not be run '{_jobId}'");
         }
 
         [TestMethod]
@@ -400,7 +395,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndTheMessageIsOtherwiseValid();
             AndTheSpecificationHasTheHeldUnApprovedPublishedProviders(specificationId, null, expectedPublishedProviders);
 
-            AndRetrieveJobAndCheckCanBeProcessedSuccessfully();
+            AndRetrieveJobAndCheckCanBeProcessedSuccessfully(_ => _.WithJobId(_jobId));
             AndNumberOfApprovedPublishedProvidersIsReturned(expectedPublishedProviders);
 
             await WhenAllProvidersResultsAreApproved();
@@ -434,7 +429,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndTheMessageIsOtherwiseValid();
             AndTheSpecificationHasTheHeldUnApprovedPublishedProviders(specificationId, publishedProviderIds, expectedPublishedProviders);
 
-            AndRetrieveJobAndCheckCanBeProcessedSuccessfully();
+            AndRetrieveJobAndCheckCanBeProcessedSuccessfully(_ => _.WithJobId(_jobId));
             AndNumberOfApprovedPublishedProvidersIsReturned(expectedPublishedProviders);
 
             await WhenBatchProvidersResultsAreApproved();
@@ -491,6 +486,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
         private void GivenTheUserProperty(string key, string value)
         {
+            _message.UserProperties.Remove(key);
             _message.UserProperties.Add(key, value);
         }
 
@@ -551,12 +547,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
         private async Task WhenBatchProvidersResultsAreApproved()
         {
-            await _approveService.ApproveResults(_message, batched: true);
+            await _approveService.Run(_message, async () =>
+            {
+                await _approveService.ApproveResults(_message, batched: true);
+            });
         }
 
         private async Task WhenAllProvidersResultsAreApproved()
         {
-            await _approveService.ApproveResults(_message);
+            await _approveService.Run(_message);
         }
 
         private void ThenThePublishedProvidersWereApproved(IEnumerable<PublishedProvider> publishedProviders)
@@ -592,10 +591,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             return approveProvidersRequestBuilder.Build();
         }
 
-        private void AndRetrieveJobAndCheckCannotBeProcessedSuccessfully()
+        private void AndRetrieveJobAndCheckCannotBeProcessedSuccessfully(Exception exception)
         {
             _jobManagement.RetrieveJobAndCheckCanBeProcessed(_jobId)
-                .Throws(new JobNotFoundException(string.Empty, string.Empty));
+                .Throws(exception);
         }
 
         private void AndTheJobEndWasTracked()

@@ -40,7 +40,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
             CosmosDbScalingService cosmosDbScalingService = CreateScalingService();
 
             //Act
-            Func<Task> test = async () => await cosmosDbScalingService.ScaleUp(message);
+            Func<Task> test = async () => await cosmosDbScalingService.Process(message);
 
             //Assert
             test
@@ -79,7 +79,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
             CosmosDbScalingService cosmosDbScalingService = CreateScalingService(cosmosDbScalingRequestModelBuilder: modelBuilder);
 
             //Act
-            Func<Task> test = async () => await cosmosDbScalingService.ScaleUp(message);
+            Func<Task> test = async () => await cosmosDbScalingService.Process(message);
 
             //Assert
             test
@@ -111,7 +111,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 cosmosDbScalingRequestModelBuilder: modelBuilder);
 
             //Act
-            await cosmosDbScalingService.ScaleUp(message);
+            await cosmosDbScalingService.Process(message);
 
             //Assert
             modelBuilder
@@ -179,7 +179,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 cosmosDbScalingRequestModelBuilder: modelBuilder);
 
             //Act
-            Func<Task> test = async () => await cosmosDbScalingService.ScaleUp(message);
+            Func<Task> test = async () => await cosmosDbScalingService.Process(message);
 
             //Assert
             test
@@ -254,7 +254,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 cosmosDbScalingRequestModelBuilder: modelBuilder);
 
             //Act
-            Func<Task> test = async () => await cosmosDbScalingService.ScaleUp(message);
+            Func<Task> test = async () => await cosmosDbScalingService.Process(message);
 
             //Assert
             test
@@ -331,7 +331,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 cosmosDbScalingRequestModelBuilder: modelBuilder);
 
             //Act
-            await cosmosDbScalingService.ScaleUp(message);
+            await cosmosDbScalingService.Process(message);
 
             //Assert
             await
@@ -400,7 +400,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 cosmosDbScalingRequestModelBuilder: modelBuilder);
 
             //Act
-            await cosmosDbScalingService.ScaleUp(message);
+            await cosmosDbScalingService.Process(message);
 
             //Assert
             await
@@ -475,7 +475,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 cosmosDbScalingRequestModelBuilder: modelBuilder);
 
             //Act
-            await cosmosDbScalingService.ScaleUp(message);
+            await cosmosDbScalingService.Process(message);
 
             //Assert
             await
@@ -550,7 +550,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 cosmosDbScalingRequestModelBuilder: modelBuilder);
 
             //Act
-            await cosmosDbScalingService.ScaleUp(message);
+            await cosmosDbScalingService.Process(message);
 
             //Assert
             await
@@ -706,7 +706,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 cosmosDbScalingRequestModelBuilder: modelBuilder);
 
             //Act
-            await cosmosDbScalingService.ScaleUp(message);
+            await cosmosDbScalingService.Process(message);
 
             //Assert
             await

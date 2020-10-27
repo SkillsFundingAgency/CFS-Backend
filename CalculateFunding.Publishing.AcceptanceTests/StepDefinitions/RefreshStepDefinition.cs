@@ -88,7 +88,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             _currentCorrelationStepContext.CorrelationId = Guid.NewGuid().ToString();
             message.UserProperties.Add("sfa-correlationId", _currentCorrelationStepContext.CorrelationId);
 
-            await _refreshService.RefreshResults(message);
+            await _refreshService.Run(message);
         }
 
         [Given(@"the following variation pointers exist")]

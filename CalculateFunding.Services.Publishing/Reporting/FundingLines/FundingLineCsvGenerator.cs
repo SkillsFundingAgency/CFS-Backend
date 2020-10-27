@@ -13,10 +13,12 @@ using Microsoft.Azure.Storage.Blob;
 using Polly;
 using Serilog;
 using CalculateFunding.Common.Storage;
+using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Services.Jobs;
 
 namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
 {
-    public class FundingLineCsvGenerator : IFundingLineCsvGenerator
+    public class FundingLineCsvGenerator : JobProcessingService, IFundingLineCsvGenerator
     {
         private const string PublishedFundingReportContainerName = "publishingreports";
 
@@ -27,7 +29,6 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
         private readonly IFileSystemAccess _fileSystemAccess;
         private readonly IFileSystemCacheSettings _fileSystemCacheSettings;
         private readonly AsyncPolicy _blobClientPolicy;
-        private readonly IJobTracker _jobTracker;
 
         public FundingLineCsvGenerator(IFundingLineCsvTransformServiceLocator transformServiceLocator,
             IPublishedFundingPredicateBuilder predicateBuilder,
@@ -36,10 +37,9 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
             IFileSystemCacheSettings fileSystemCacheSettings,
             IFundingLineCsvBatchProcessorServiceLocator batchProcessorServiceLocator,
             IPublishingResiliencePolicies policies,
-            IJobTracker jobTracker,
-            ILogger logger)
+            IJobManagement jobManagement,
+            ILogger logger) : base(jobManagement, logger)
         {
-            Guard.ArgumentNotNull(jobTracker, nameof(jobTracker));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(blobClient, nameof(blobClient));
             Guard.ArgumentNotNull(transformServiceLocator, nameof(transformServiceLocator));
@@ -51,7 +51,6 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
 
             _logger = logger;
             _batchProcessorServiceLocator = batchProcessorServiceLocator;
-            _jobTracker = jobTracker;
             _blobClient = blobClient;
             _transformServiceLocator = transformServiceLocator;
             _fileSystemAccess = fileSystemAccess;
@@ -59,84 +58,53 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
             _blobClientPolicy = policies.BlobClient;
         }
         
-        public async Task Run(Message message)
+        public override async Task Process(Message message)
         {
             JobParameters parameters = message;
 
-            if (!await _jobTracker.TryStartTrackingJob(parameters.JobId,
-                    JobConstants.DefinitionNames.GeneratePublishedFundingCsvJob))
+            string specificationId = parameters.SpecificationId;
+            string fundingLineCode = parameters.FundingLineCode;
+            string fundingStreamId = parameters.FundingStreamId;
+            string fundingPeriodId = parameters.FundingPeriodId;
+            FundingLineCsvGeneratorJobType jobType = parameters.JobType;
+
+            CsvFileInfo fileInfo = new CsvFileInfo(_fileSystemCacheSettings.Path,
+                jobType,
+                specificationId,
+                fundingLineCode,
+                fundingStreamId,
+                fundingPeriodId);
+
+            string temporaryPath = fileInfo.TemporaryPath;
+                
+            EnsureFileIsNew(temporaryPath);
+                
+            IFundingLineCsvTransform fundingLineCsvTransform = _transformServiceLocator.GetService(jobType);
+            IFundingLineCsvBatchProcessor fundingLineCsvBatchProcessor = _batchProcessorServiceLocator.GetService(jobType);
+
+            bool processedResults = await fundingLineCsvBatchProcessor.GenerateCsv(jobType, 
+                specificationId,
+                fundingPeriodId,
+                temporaryPath, 
+                fundingLineCsvTransform,
+                fundingLineCode,
+                fundingStreamId);
+
+            if (!processedResults)
             {
+                _logger.Information(
+                    $"Did not create a new csv report as no providers matched for the job type {jobType} in the specification {specificationId}" + 
+                    $" and funding line code {fundingLineCode} and funding stream id {fundingStreamId}");
+
                 return;
             }
 
-            try
+            ICloudBlob blob = _blobClient.GetBlockBlobReference(fileInfo.FileName, PublishedFundingReportContainerName);
+            blob.Properties.ContentDisposition = fileInfo.ContentDisposition;
+
+            await using (Stream csvFileStream = _fileSystemAccess.OpenRead(temporaryPath))
             {
-                string specificationId = parameters.SpecificationId;
-                string fundingLineCode = parameters.FundingLineCode;
-                string fundingStreamId = parameters.FundingStreamId;
-                string fundingPeriodId = parameters.FundingPeriodId;
-                FundingLineCsvGeneratorJobType jobType = parameters.JobType;
-
-                CsvFileInfo fileInfo = new CsvFileInfo(_fileSystemCacheSettings.Path,
-                    jobType,
-                    specificationId,
-                    fundingLineCode,
-                    fundingStreamId,
-                    fundingPeriodId);
-
-                string temporaryPath = fileInfo.TemporaryPath;
-                
-                EnsureFileIsNew(temporaryPath);
-                
-                IFundingLineCsvTransform fundingLineCsvTransform = _transformServiceLocator.GetService(jobType);
-                IFundingLineCsvBatchProcessor fundingLineCsvBatchProcessor = _batchProcessorServiceLocator.GetService(jobType);
-
-                bool processedResults = await fundingLineCsvBatchProcessor.GenerateCsv(jobType, 
-                    specificationId,
-                    fundingPeriodId,
-                    temporaryPath, 
-                    fundingLineCsvTransform,
-                    fundingLineCode,
-                    fundingStreamId);
-
-                if (!processedResults)
-                {
-                    _logger.Information(
-                        $"Did not create a new csv report as no providers matched for the job type {jobType} in the specification {specificationId}" + 
-                        $" and funding line code {fundingLineCode} and funding stream id {fundingStreamId}");
-
-                    await CompleteJob(parameters);
-                    
-                    return;
-                }
-
-                ICloudBlob blob = _blobClient.GetBlockBlobReference(fileInfo.FileName, PublishedFundingReportContainerName);
-                blob.Properties.ContentDisposition = fileInfo.ContentDisposition;
-
-                await using (Stream csvFileStream = _fileSystemAccess.OpenRead(temporaryPath))
-                {
-                    await _blobClientPolicy.ExecuteAsync(() => UploadBlob(blob, csvFileStream, parameters.ToDictionary()));
-                }
-
-                await CompleteJob(parameters);
-            }
-            catch (Exception e)
-            {
-                const string error = "Unable to complete funding line csv generation job.";
-
-                _logger.Error(e, error);
-
-                if (e.GetType() != typeof(RetriableException))
-                {
-                    // need to fail job here otherwise it will remain in-progress
-                    await FailJob(error, parameters);
-
-                    throw new NonRetriableException(error);
-                }
-                else
-                {
-                    throw;
-                }
+                await _blobClientPolicy.ExecuteAsync(() => UploadBlob(blob, csvFileStream, parameters.ToDictionary()));
             }
         }
 
@@ -144,16 +112,6 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
         {
             await _blobClient.UploadFileAsync(blob, csvFileStream);
             await _blobClient.AddMetadataAsync(blob, metadata);
-        }
-
-        private async Task CompleteJob(JobParameters parameters)
-        {
-            await _jobTracker.CompleteTrackingJob(parameters.JobId);
-        }
-
-        private async Task FailJob(string outcome, JobParameters parameters)
-        {
-            await _jobTracker.FailJob(outcome, parameters.JobId);
         }
 
         private void EnsureFileIsNew(string path)

@@ -4,6 +4,7 @@ using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
@@ -37,7 +38,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
         private Mock<IPublishedFundingRepository> _publishedFunding;
         private Mock<IFileSystemAccess> _fileSystemAccess;
         private Mock<IFileSystemCacheSettings> _fileSystemCacheSettings;
-        private Mock<IJobTracker> _jobTracker;
+        private Mock<IJobManagement> _jobManagement;
 
         private BlobProperties _blobProperties;
         
@@ -59,10 +60,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
             _cloudBlob = new Mock<ICloudBlob>();
             _fileSystemAccess = new Mock<IFileSystemAccess>();
             _fileSystemCacheSettings = new Mock<IFileSystemCacheSettings>();
-            _jobTracker = new Mock<IJobTracker>();
+            _jobManagement = new Mock<IJobManagement>();
             
             _service = new PublishedProviderEstateCsvGenerator(
-                _jobTracker.Object,
+                _jobManagement.Object,
                 _fileSystemAccess.Object,
                 _fileSystemCacheSettings.Object,
                 _blobClient.Object,
@@ -132,8 +133,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
             AndTheJobExists(jobId);
 
             await WhenTheCsvIsGenerated();
-            
-            _jobTracker.Verify(_ => _.TryStartTrackingJob(jobId, JobConstants.DefinitionNames.GeneratePublishedProviderEstateCsvJob),
+
+            _jobManagement.Verify(_ => _.UpdateJobStatus(jobId, 0, 0, null, null),
                 Times.Once);
 
             _fileSystemAccess
@@ -150,14 +151,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
                 .Verify(_ => _.UploadFileAsync(_cloudBlob.Object, It.IsAny<Stream>()),
                     Times.Never);
 
-            _jobTracker.Verify(_ => _.CompleteTrackingJob(jobId),
+            _jobManagement.Verify(_ => _.UpdateJobStatus(jobId, 0, 0, true, null),
                 Times.Once);
         }
 
         [TestMethod]
-        [DataRow(true)]
-        [DataRow(false)]
-        public void TransformsPublishedProvidersForSpecificationInBatchesAndFailsJobIfUploadFails(bool throwNonRetriableException)
+        public void TransformsPublishedProvidersForSpecificationInBatchesAndFailsJobIfUploadFails()
         {
             string specificationId = NewRandomString();
             string jobId = NewRandomString();
@@ -204,9 +203,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
             AndTheFileStream(expectedInterimFilePath, incrementalFileStream);
             AndTheFileExists(expectedInterimFilePath);
             AndTheTransformForJobDefinition(jobDefinitionName);
+            AndTheJobCanBeRun(jobId);
             AndTheJobExists(jobId);
             string errorMessage = "Unable to complete csv generation job.";
-            AndTheBlobThrowsError(incrementalFileStream, throwNonRetriableException ? new Exception() : new RetriableException(errorMessage));
+            AndTheBlobThrowsError(incrementalFileStream, new NonRetriableException(errorMessage));
 
             _publishedFunding.Setup(_ => _.RefreshedProviderVersionBatchProcessing(
                     specificationId,
@@ -227,28 +227,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
             Func<Task> test = async () => await WhenTheCsvIsGenerated();
 
 
-            if (throwNonRetriableException)
-            {
-                test
-                    .Should()
-                    .ThrowExactly<NonRetriableException>()
-                    .Which
-                    .Message
-                    .Should()
-                    .Be(errorMessage);
-            }
-            else
-            {
-                test
-                    .Should()
-                    .ThrowExactly<RetriableException>()
-                    .Which
-                    .Message
-                    .Should()
-                    .Be(errorMessage);
-            }
+            test
+                .Should()
+                .ThrowExactly<NonRetriableException>()
+                .Which
+                .Message
+                .Should()
+                .Be(errorMessage);
 
-            _jobTracker.Verify(_ => _.TryStartTrackingJob(jobId, JobConstants.DefinitionNames.GeneratePublishedProviderEstateCsvJob),
+            _jobManagement.Verify(_ => _.UpdateJobStatus(jobId, 0, 0, null, null),
                 Times.Once);
 
             _fileSystemAccess
@@ -265,11 +252,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
                 .Verify(_ => _.UploadFileAsync(_cloudBlob.Object, incrementalFileStream),
                     Times.Once);
 
-            if (throwNonRetriableException)
-            {
-                _jobTracker.Verify(_ => _.FailJob(errorMessage, jobId),
+            _jobManagement.Verify(_ => _.UpdateJobStatus(jobId, 0, 0, false, errorMessage),
                 Times.Once);
-            }
 
             _blobProperties.ContentDisposition
                 .Should()
@@ -344,7 +328,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
 
             await WhenTheCsvIsGenerated();
             
-            _jobTracker.Verify(_ => _.TryStartTrackingJob(jobId, JobConstants.DefinitionNames.GeneratePublishedProviderEstateCsvJob),
+            _jobManagement.Verify(_ => _.UpdateJobStatus(jobId, 0, 0, null, null),
                 Times.Once);
             
             _fileSystemAccess
@@ -363,7 +347,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
 
             AndBlobMetadataSet(specificationId);
 
-            _jobTracker.Verify(_ => _.CompleteTrackingJob(jobId),
+            _jobManagement.Verify(_ => _.UpdateJobStatus(jobId, 0, 0, null, null),
                 Times.Once);
 
             _blobProperties.ContentDisposition
@@ -413,6 +397,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
             AndTheFileStream(expectedInterimFilePath, incrementalFileStream);
             AndTheFileExists(expectedInterimFilePath);
             AndTheTransformForJobDefinition(jobDefinitionName);
+            AndTheJobCanBeRun(jobId);
             AndTheJobExists(jobId);
 
             _publishedFunding.Setup(_ => _.RefreshedProviderVersionBatchProcessing(
@@ -432,8 +417,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
                 .Returns(Task.CompletedTask);
 
             await WhenTheCsvIsGenerated();
-            
-            _jobTracker.Verify(_ => _.TryStartTrackingJob(jobId, JobConstants.DefinitionNames.GeneratePublishedProviderEstateCsvJob),
+
+            _jobManagement.Verify(_ => _.UpdateJobStatus(jobId, 0, 0, null, null),
                 Times.Once);
             
             _fileSystemAccess
@@ -452,7 +437,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
 
             AndBlobMetadataSet(specificationId);
 
-            _jobTracker.Verify(_ => _.CompleteTrackingJob(jobId));
+            _jobManagement.Verify(_ => _.UpdateJobStatus(jobId, 0, 0, true, null));
         }
 
         private void AndBlobMetadataSet(string specificationId)
@@ -465,10 +450,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
                 Times.Once);
         }
 
+        private void AndTheJobCanBeRun(string jobId)
+        {
+            _jobManagement.Setup(_ => _.RetrieveJobAndCheckCanBeProcessed(jobId))
+                .ReturnsAsync(new Common.ApiClient.Jobs.Models.JobViewModel { Id = jobId });
+        }
+
         private void AndTheJobExists(string jobId)
         {
-            _jobTracker.Setup(_ => _.TryStartTrackingJob(jobId, JobConstants.DefinitionNames.GeneratePublishedProviderEstateCsvJob))
-                .ReturnsAsync(true);
+            _jobManagement.Setup(_ => _.UpdateJobStatus(jobId, 0, 0, null, null));
         }
 
         private void AndTheBlobThrowsError(Stream incrementalFileStream, Exception exception)

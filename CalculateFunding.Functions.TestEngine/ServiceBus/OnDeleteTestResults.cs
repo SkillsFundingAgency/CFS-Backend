@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.ServiceBus.Interfaces;
@@ -13,23 +14,21 @@ using Serilog;
 
 namespace CalculateFunding.Functions.TestEngine.ServiceBus
 {
-    public class OnDeleteTestResults : SmokeTest
+    public class OnDeleteTestResults : Retriable
     {
-        private readonly ILogger _logger;
         private readonly ITestResultsService _testResultsService;
-        public const string FunctionName = "on-delete-test-results";
+        private const string FunctionName = "on-delete-test-results";
+        private const string QueueName = ServiceBusConstants.QueueNames.DeleteTestResults;
 
         public OnDeleteTestResults(
             ILogger logger,
             ITestResultsService testResultsService,
             IMessengerService messengerService,
             IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider)
+            : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, testResultsService)
         {
-            Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(testResultsService, nameof(testResultsService));
 
-            _logger = logger;
             _testResultsService = testResultsService;
         }
 
@@ -38,24 +37,11 @@ namespace CalculateFunding.Functions.TestEngine.ServiceBus
             ServiceBusConstants.QueueNames.DeleteTestResults,
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            await Run(async () =>
-            {
-                try
+            await base.Run(message,
+                async() =>
                 {
                     await _testResultsService.DeleteTestResults(message);
-                }
-                catch (NonRetriableException ex)
-                {
-                    _logger.Error(ex, $"Job threw non retriable exception: {ServiceBusConstants.QueueNames.DeleteTestResults}");
-                }
-                catch (Exception exception)
-                {
-                    _logger.Error(exception, $"An error occurred getting message from topic: {ServiceBusConstants.QueueNames.DeleteTestResults}");
-
-                    throw;
-                }
-            },
-            message);
+                });
         }
     }
 }

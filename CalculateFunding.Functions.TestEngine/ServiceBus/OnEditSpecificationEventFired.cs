@@ -14,7 +14,6 @@ namespace CalculateFunding.Functions.TestEngine.ServiceBus
 {
     public class OnEditSpecificationEvent : SmokeTest
     {
-        private readonly ILogger _logger;
         private readonly ITestResultsService _testResultsService;
         public const string FunctionName = "on-edit-specification";
 
@@ -23,12 +22,10 @@ namespace CalculateFunding.Functions.TestEngine.ServiceBus
             ITestResultsService testResultsService,
             IMessengerService messengerService,
             IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider)
+            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider, testResultsService)
         {
-            Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(testResultsService, nameof(testResultsService));
 
-            _logger = logger;
             _testResultsService = testResultsService;
         }
 
@@ -38,19 +35,7 @@ namespace CalculateFunding.Functions.TestEngine.ServiceBus
             ServiceBusConstants.TopicSubscribers.UpdateScenarioResultsForEditSpecification,
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            await Run(async () =>
-            {
-                try
-                {
-                    await _testResultsService.UpdateTestResultsForSpecification(message);
-                }
-                catch (Exception exception)
-                {
-                    _logger.Error(exception, $"An error occurred getting message from topic: {ServiceBusConstants.TopicNames.EditSpecification}");
-                    throw;
-                }
-            },
-            message);
+            await base.Run(message);
         }
     }
 }

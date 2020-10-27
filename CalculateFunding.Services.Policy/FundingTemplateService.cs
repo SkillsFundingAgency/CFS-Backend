@@ -283,7 +283,7 @@ namespace CalculateFunding.Services.Policy
 
         public async Task<IActionResult> GetFundingTemplates(string fundingStreamId, string fundingPeriodId)
         {
-            IEnumerable<PublishedFundingTemplate> publishFundingTemplates = await SearchTemplates($"{fundingStreamId}/{ fundingPeriodId}/");
+            IEnumerable<PublishedFundingTemplate> publishFundingTemplates = await SearchTemplates($"{fundingStreamId}/{fundingPeriodId}/");
             IEnumerable<TemplateSummaryResponse> templateResponses = await _templateBuilderService.FindVersionsByFundingStreamAndPeriod(new FindTemplateVersionQuery()
             {
                 FundingStreamId = fundingStreamId,

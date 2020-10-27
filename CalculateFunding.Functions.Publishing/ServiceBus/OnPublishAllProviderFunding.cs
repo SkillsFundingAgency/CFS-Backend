@@ -13,7 +13,7 @@ using Serilog;
 
 namespace CalculateFunding.Functions.Publishing.ServiceBus
 {
-    public class OnPublishAllProviderFunding : SmokeTest
+    public class OnPublishAllProviderFunding : Retriable
     {
         private readonly ILogger _logger;
         private readonly IPublishService _publishService;
@@ -25,7 +25,7 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
             IPublishService publishService,
             IMessengerService messengerService,
             IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider)
+            : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, publishService)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(publishService, nameof(publishService));
@@ -40,23 +40,7 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey,
             IsSessionsEnabled = true)] Message message)
         {
-            await Run(async () =>
-            {
-                try
-                {
-                    await _publishService.PublishProviderFundingResults(message);
-                }
-                catch (NonRetriableException ex)
-                {
-                    _logger.Error(ex, $"Job threw non retriable exception: {QueueName}");
-                }
-                catch (Exception exception)
-                {
-                    _logger.Error(exception, $"An error occurred getting message from topic: {QueueName}");
-                    throw;
-                }
-            },
-            message);
+            await base.Run(message);
         }
     }
 }

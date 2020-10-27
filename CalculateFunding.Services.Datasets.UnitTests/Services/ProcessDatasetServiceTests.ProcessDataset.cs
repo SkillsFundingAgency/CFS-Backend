@@ -149,7 +149,11 @@ namespace CalculateFunding.Services.Datasets.Services
             GivenTheMessageProperties(("jobId", "job1"));
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
 
-            await WhenTheProcessDatasetMessageIsProcessed();
+            Func<Task> invocation = async () => await WhenTheProcessDatasetMessageIsProcessed();
+
+            invocation
+                .Should()
+                .Throw<NonRetriableException>();
 
             await _datasetRepository
                 .DidNotReceive()
@@ -165,7 +169,11 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheMessageBody(new Dataset());
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
 
-            await WhenTheProcessDatasetMessageIsProcessed();
+            Func<Task> invocation = async () => await WhenTheProcessDatasetMessageIsProcessed();
+
+            invocation
+                .Should()
+                .Throw<NonRetriableException>();
 
             await _datasetRepository
                 .DidNotReceive()
@@ -181,7 +189,11 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheMessageBody(new Dataset());
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
 
-            await WhenTheProcessDatasetMessageIsProcessed();
+            Func<Task> invocation = async () => await WhenTheProcessDatasetMessageIsProcessed();
+
+            invocation
+                .Should()
+                .Throw<NonRetriableException>();
 
             await _datasetRepository
                 .DidNotReceive()
@@ -205,15 +217,18 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference())
                 .WithDatasetVersion(NewRelationshipVersion())));
             AndThePopulationOfProviderSummeriesForSpecification(false, false);
-            
-            await WhenTheProcessDatasetMessageIsProcessed();
+
+            Func<Task> invocation = async () => await WhenTheProcessDatasetMessageIsProcessed();
+
+            invocation.Should()
+                .Throw<NonRetriableException>();
 
             ThenTheErrorWasLogged($"Unable to find a data definition for id: {DataDefintionId}, for blob: {BlobPath}");
             AndAnExceptionWasLogged();
         }
 
         [TestMethod]
-        public async Task ProcessDataset_GivenPayloadButBuildProjectCouldNotBeFound_DoesNotProcess()
+        public void ProcessDataset_GivenPayloadButBuildProjectCouldNotBeFound_DoesNotProcess()
         {
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"));
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
@@ -229,7 +244,10 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheDatasetDefinitions(NewDatasetDefinition());
             AndThePopulationOfProviderSummeriesForSpecification(false, false);
 
-            await WhenTheProcessDatasetMessageIsProcessed();
+            Func<Task> invocation = async () => await WhenTheProcessDatasetMessageIsProcessed();
+
+            invocation.Should()
+                .Throw<NonRetriableException>();
 
             ThenTheErrorWasLogged($"Unable to find a build project for specification id: {SpecificationId}");
             AndAnExceptionWasLogged();
@@ -254,14 +272,17 @@ namespace CalculateFunding.Services.Datasets.Services
             AndThePopulationOfProviderSummeriesForSpecification(false, false);
             AndTheCloudBlob(BlobPath, null);
 
-            await WhenTheProcessDatasetMessageIsProcessed();
+            Func<Task> invocation = async () => await WhenTheProcessDatasetMessageIsProcessed();
+
+            invocation.Should()
+                .Throw<NonRetriableException>();
 
             ThenTheErrorWasLogged($"Failed to find blob with path: {BlobPath}");
             AndAnExceptionWasLogged();
         }
 
         [TestMethod]
-        public async Task ProcessDataset_GivenPayloadAndBlobFoundButEmptyFile_DoesNotProcess()
+        public void ProcessDataset_GivenPayloadAndBlobFoundButEmptyFile_DoesNotProcess()
         {
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"));
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
@@ -283,7 +304,10 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheCloudBlob(BlobPath, cloudBlob);
             AndTheCloudStream(cloudBlob, NewStream());
 
-            await WhenTheProcessDatasetMessageIsProcessed();
+            Func<Task> invocation = async () => await WhenTheProcessDatasetMessageIsProcessed();
+
+            invocation.Should()
+                .Throw<NonRetriableException>();
 
             ThenTheErrorWasLogged($"Invalid blob returned: {BlobPath}");
             AndAnExceptionWasLogged();
@@ -312,7 +336,10 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheCloudBlob(BlobPath, cloudBlob);
             AndTheCloudStream(cloudBlob, NewStream(new byte[100]));
 
-            await WhenTheProcessDatasetMessageIsProcessed();
+            Func<Task> invocation = async () => await WhenTheProcessDatasetMessageIsProcessed();
+
+            invocation.Should()
+                .Throw<NonRetriableException>();
 
             ThenTheErrorWasLogged("Failed to load table result");
             AndAnExceptionWasLogged();
@@ -426,7 +453,7 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheCachedTableLoadResults(_datasetCacheKey, tableLoadResult);
             AndTheTableLoadResultsFromExcel(tableStream, datasetDefinition, tableLoadResult);
 
-            await WhenTheProcessDatasetMessageIsProcessed();
+            Func<Task> invocation = async () => await WhenTheProcessDatasetMessageIsProcessed();
 
             await ThenNoResultsWereSaved();
         }
@@ -465,7 +492,7 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheCachedTableLoadResults(_datasetCacheKey, tableLoadResult);
             AndTheTableLoadResultsFromExcel(tableStream, datasetDefinition, tableLoadResult);
 
-            await WhenTheProcessDatasetMessageIsProcessed();
+            Func<Task> invocation = async() => await WhenTheProcessDatasetMessageIsProcessed();
 
             await ThenNoResultsWereSaved();
         }
@@ -1014,7 +1041,10 @@ namespace CalculateFunding.Services.Datasets.Services
                         .WithName("ds-1")
                         .WithVersion(1)))))));
 
-            await WhenTheProcessDatasetMessageIsProcessed();
+            Func<Task> invocation = async () => await WhenTheProcessDatasetMessageIsProcessed();
+
+            invocation.Should()
+                .Throw<NonRetriableException>();
 
             await ThenNoResultsWereSaved();
             await AndNoDatasetVersionsWereCreated();
@@ -1474,7 +1504,10 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheCoreProviderData(NewApiProviderSummary(_ => _.WithId(_providerId)
                 .WithUPIN(_upin)));
 
-            await WhenTheProcessDatasetMessageIsProcessed();
+            Func<Task> invocation = async () => await WhenTheProcessDatasetMessageIsProcessed();
+
+            invocation.Should()
+                .Throw<NonRetriableException>();
 
             AndTheErrorWasLogged($"Failed to create job of type '{CreateInstructAllocationJob}' on specification '{SpecificationId}'");
         }
@@ -1647,7 +1680,11 @@ namespace CalculateFunding.Services.Datasets.Services
                 .WithUPIN(_upin)));
             AndTheCoreProviderVersion(NewApiProviderVersion(_ => _.WithProviders(new ApiProvider[] { new ApiProvider { ProviderId = _providerId, UPIN = _upin } })));
 
-            await WhenTheProcessDatasetMessageIsProcessed();
+            Func<Task> invocation = async () => await WhenTheProcessDatasetMessageIsProcessed();
+
+            invocation
+                .Should()
+                .Throw<NonRetriableException>();
 
             await ThenTheRegenerateProviderSummariesForSpecificationInvoked(setCachedProviders);
             AndTheErrorWasLogged($"Unable to re-generate providers while updating dataset '{_relationshipId}' for specification '{SpecificationId}' with status code: {HttpStatusCode.BadRequest}");
@@ -1730,7 +1767,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
         private async Task WhenTheProcessDatasetMessageIsProcessed()
         {
-            await _service.ProcessDataset(_message);
+            await _service.Run(_message);
         }
 
         private void GivenTheMessageProperties(params (string, string)[] properties)

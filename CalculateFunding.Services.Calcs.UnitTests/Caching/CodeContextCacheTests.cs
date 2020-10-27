@@ -137,6 +137,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Caching
             };
             
             GivenTheNewCodeContextForSpecificationId(specificationId, codeContext);
+            AndTheJobCanBeRun(jobId);
 
             await WhenACodeContextCacheEntryIsUpdated(message);
             
@@ -198,6 +199,12 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Caching
                 Times.Once);
         }
 
+        private void AndTheJobCanBeRun(string jobId)
+        {
+            _jobs.Setup(_ => _.RetrieveJobAndCheckCanBeProcessed(jobId))
+                .ReturnsAsync(new JobViewModel { Id = jobId });
+        }
+
         private void ThenTheJobWasStarted(string jobId)
         {
             VerifyJobLogWasAdded(jobId, null);
@@ -210,8 +217,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Caching
 
         private void VerifyJobLogWasAdded(string jobId,
             bool? completedSuccessfully)
-            => _jobs.Verify(_ => _.AddJobLog(jobId,
-                    It.Is<JobLogUpdateModel>(log => log.CompletedSuccessfully == completedSuccessfully)),
+            => _jobs.Verify(_ => _.UpdateJobStatus(jobId, 0, 0, completedSuccessfully, null),
                 Times.Once);
 
         private void GivenTheNewCodeContextForSpecificationId(string specificationId,
@@ -242,7 +248,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Caching
         private TypeInformation NewTypeInformation() => new TypeInformation();
 
         private async Task WhenACodeContextCacheEntryIsUpdated(Message message)
-            => await _codeContextCache.UpdateCodeContextCacheEntry(message);
+            => await _codeContextCache.Run(message);
 
         private void ThenANewUpdateCodeContextJobWasQueued(string specificationId)
         {

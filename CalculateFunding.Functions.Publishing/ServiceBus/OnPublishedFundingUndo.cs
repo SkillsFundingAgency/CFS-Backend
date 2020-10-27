@@ -13,7 +13,7 @@ using Serilog;
 
 namespace CalculateFunding.Functions.Publishing.ServiceBus
 {
-    public class OnPublishedFundingUndo : SmokeTest
+    public class OnPublishedFundingUndo : Retriable
     {
         private const string FunctionName = "on-published-funding-undo";
         private const string QueueName = ServiceBusConstants.QueueNames.PublishedFundingUndo;
@@ -26,13 +26,8 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
             IPublishedFundingUndoJobService undoService,
             IMessengerService messengerService,
            IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider)
+            : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, undoService)
         {
-            Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(undoService, nameof(undoService));
-
-            _logger = logger;
-            _undoService = undoService;
         }
 
         [FunctionName(FunctionName)]
@@ -41,24 +36,7 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] 
             Message message)
         {
-            await Run(async () =>
-            {
-                try
-                {
-                    await _undoService.Run(message);
-                }
-                catch (NonRetriableException ex)
-                {
-                    _logger.Error(ex, $"Job threw non retriable exception: {QueueName}");
-                }
-                catch (Exception exception)
-                {
-                    _logger.Error(exception, $"An error occurred getting message from topic: {QueueName}");
-                    
-                    throw;
-                }
-            },
-            message);
+            await base.Run(message);
         }
     }
 }

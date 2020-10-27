@@ -12,26 +12,18 @@ using Serilog;
 
 namespace CalculateFunding.Functions.Results.ServiceBus
 {
-    public class OnMergeSpecificationInformationForProviderWithResults : SmokeTest
+    public class OnMergeSpecificationInformationForProviderWithResults : Retriable
     {
         private const string FunctionName = "on-merge-specification-information-for-provider-with-results";
         private const string QueueName = ServiceBusConstants.QueueNames.MergeSpecificationInformationForProvider;
-
-        private readonly ISpecificationsWithProviderResultsService _service;
-        private readonly ILogger _logger;
 
         public OnMergeSpecificationInformationForProviderWithResults(
             ILogger logger,
             ISpecificationsWithProviderResultsService service,
             IMessengerService messengerService,
             IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider)
+            : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, service)
         {
-            Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(service, nameof(service));
-
-            _logger = logger;
-            _service = service;
         }
 
         [FunctionName(FunctionName)]
@@ -39,20 +31,7 @@ namespace CalculateFunding.Functions.Results.ServiceBus
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] 
             Message message)
         {
-            await Run(async () =>
-            {
-                try
-                {
-                    await _service.MergeSpecificationInformation(message);
-                }
-                catch (Exception exception)
-                {
-                    _logger.Error(exception, $"An error occurred getting message from queue: {QueueName}");
-                
-                    throw;
-                }
-            },
-            message);
+            await base.Run(message);
         }
     }
 }

@@ -32,6 +32,7 @@ using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.Jobs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Azure.ServiceBus;
@@ -47,7 +48,7 @@ using TemplateFundingLine = CalculateFunding.Common.TemplateMetadata.Models.Fund
 
 namespace CalculateFunding.Services.Calcs
 {
-    public class BuildProjectsService : IBuildProjectsService, IHealthChecker
+    public class BuildProjectsService : JobProcessingService, IBuildProjectsService, IHealthChecker
     {
         private readonly ILogger _logger;
         private readonly ITelemetry _telemetry;
@@ -91,7 +92,7 @@ namespace CalculateFunding.Services.Calcs
             IMapper mapper,
             ISpecificationsApiClient specificationsApiClient,
             IPoliciesApiClient policiesApiClient,
-            ISourceFileRepository sourceFileRepository)
+            ISourceFileRepository sourceFileRepository) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(telemetry, nameof(telemetry));
@@ -158,36 +159,10 @@ namespace CalculateFunding.Services.Calcs
             return health;
         }
 
-        public async Task UpdateAllocations(Message message)
+        public override async Task Process(Message message)
         {
             Guard.ArgumentNotNull(message, nameof(message));
-
-            JobViewModel job;
-
-            if (!message.UserProperties.ContainsKey("jobId"))
-            {
-                _logger.Error("Missing parent job id to instruct generating allocations");
-
-                return;
-            }
-
-            string jobId = message.UserProperties["jobId"].ToString();
-
-            try
-            {
-                job = await _jobManagement.RetrieveJobAndCheckCanBeProcessed(jobId);
-            }
-            catch (JobNotFoundException)
-            {
-                throw new NonRetriableException($"Could not find the parent job with job id: '{jobId}'");
-            }
-            catch (JobAlreadyCompletedException)
-            {
-                return;
-            }
-
-            await _jobManagement.AddJobLog(jobId, new JobLogUpdateModel());
-
+            
             IDictionary<string, string> properties = message.BuildMessageProperties();
 
             string specificationId = message.UserProperties["specification-id"].ToString();
@@ -359,49 +334,38 @@ namespace CalculateFunding.Services.Calcs
                 {
                     _logger.Information($"No scoped providers set for specification '{specificationId}'");
 
-                    JobLogUpdateModel jobCompletedLog = new JobLogUpdateModel
-                    {
-                        CompletedSuccessfully = true,
-                        Outcome = "Calculations not run as no scoped providers set for specification"
-                    };
-                    await _jobManagement.AddJobLog(job.Id, jobCompletedLog);
+                    Outcome = "Calculations not run as no scoped providers set for specification";
 
                     return;
                 }
 
-                IEnumerable<Job> newJobs = await CreateGenerateAllocationJobs(job, allJobProperties);
+                IEnumerable<Job> newJobs = await CreateGenerateAllocationJobs(allJobProperties);
 
                 int newJobsCount = newJobs.Count();
                 int batchCount = allJobProperties.Count;
 
                 if (newJobsCount != batchCount)
                 {
-                    string errorMessage = $"Only {newJobsCount} child jobs from {batchCount} were created with parent id: '{job.Id}'";
-                    _logger.Error(errorMessage); 
+                    string errorMessage = $"Only {newJobsCount} child jobs from {batchCount} were created with parent id: '{Job.Id}'";
+                    _logger.Error(errorMessage);
                     throw new Exception(errorMessage);
                 }
                 else
                 {
-                    _logger.Information($"{newJobsCount} child jobs were created for parent id: '{job.Id}'");
+                    _logger.Information($"{newJobsCount} child jobs were created for parent id: '{Job.Id}'");
                 }
             }
             catch (RefreshJobRunningException ex)
             {
-                await _jobManagement.UpdateJobStatus(jobId, new JobLogUpdateModel()
-                {
-                    CompletedSuccessfully = false,
-                    Outcome = ex.Message
-                });
-
                 throw new NonRetriableException(ex.Message, ex);
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, $"Failed to create child jobs for parent job: '{job.Id}'");
+                _logger.Error(ex, $"Failed to create child jobs for parent job: '{Job.Id}'");
 
                 throw;
             }
-        }
+}
 
         public async Task<IActionResult> UpdateBuildProjectRelationships(string specificationId, DatasetRelationshipSummary relationship)
         {
@@ -623,24 +587,24 @@ namespace CalculateFunding.Services.Calcs
             return new OkObjectResult(assembly);
         }
 
-        private async Task<IEnumerable<Job>> CreateGenerateAllocationJobs(JobViewModel parentJob, IEnumerable<IDictionary<string, string>> jobProperties)
+        private async Task<IEnumerable<Job>> CreateGenerateAllocationJobs(IEnumerable<IDictionary<string, string>> jobProperties)
         {
-            bool calculationEngineRunning = await _calculationEngineRunningChecker.IsCalculationEngineRunning(parentJob.SpecificationId, new string[] { DefinitionNames.RefreshFundingJob });
+            bool calculationEngineRunning = await _calculationEngineRunningChecker.IsCalculationEngineRunning(Job.SpecificationId, new string[] { DefinitionNames.RefreshFundingJob });
 
             if (calculationEngineRunning)
             {
-                throw new RefreshJobRunningException($"Can not create job for specification: {parentJob.SpecificationId} as there is an existing Refresh Funding Job running for it. Please wait for that job to finish.");
+                throw new RefreshJobRunningException($"Can not create job for specification: {Job.SpecificationId} as there is an existing Refresh Funding Job running for it. Please wait for that job to finish.");
             }
 
             HashSet<string> calculationsToAggregate = new HashSet<string>();
 
-            if (parentJob.JobDefinitionId == DefinitionNames.CreateInstructGenerateAggregationsAllocationJob)
+            if (Job.JobDefinitionId == JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob)
             {
-                string calculationAggregatesCacheKeyPrefix = $"{CacheKeys.CalculationAggregations}{parentJob.SpecificationId}";
+                string calculationAggregatesCacheKeyPrefix = $"{CacheKeys.CalculationAggregations}{Job.SpecificationId}";
 
                 await _cacheProvider.RemoveByPatternAsync(calculationAggregatesCacheKeyPrefix);
 
-                IEnumerable<Models.Calcs.Calculation> calculations = await _calculationsRepository.GetCalculationsBySpecificationId(parentJob.SpecificationId);
+                IEnumerable<Models.Calcs.Calculation> calculations = await _calculationsRepository.GetCalculationsBySpecificationId(Job.SpecificationId);
 
                 foreach (Models.Calcs.Calculation calculation in calculations)
                 {
@@ -666,9 +630,9 @@ namespace CalculateFunding.Services.Calcs
 
             Trigger trigger = new Trigger
             {
-                EntityId = parentJob.Id,
+                EntityId = Job.Id,
                 EntityType = nameof(Job),
-                Message = $"Triggered by parent job with id: '{parentJob.Id}"
+                Message = $"Triggered by parent job with id: '{Job.Id}"
             };
 
             int batchNumber = 1;
@@ -683,14 +647,14 @@ namespace CalculateFunding.Services.Calcs
 
                 JobCreateModel jobCreateModel = new JobCreateModel
                 {
-                    InvokerUserDisplayName = parentJob.InvokerUserDisplayName,
-                    InvokerUserId = parentJob.InvokerUserId,
-                    JobDefinitionId = parentJob.JobDefinitionId == DefinitionNames.CreateInstructAllocationJob ? DefinitionNames.CreateAllocationJob : DefinitionNames.GenerateCalculationAggregationsJob,
-                    SpecificationId = parentJob.SpecificationId,
+                    InvokerUserDisplayName = Job.InvokerUserDisplayName,
+                    InvokerUserId = Job.InvokerUserId,
+                    JobDefinitionId = Job.JobDefinitionId == JobConstants.DefinitionNames.CreateInstructAllocationJob ? JobConstants.DefinitionNames.CreateAllocationJob : JobConstants.DefinitionNames.GenerateCalculationAggregationsJob,
+                    SpecificationId = Job.SpecificationId,
                     Properties = properties,
-                    ParentJobId = parentJob.Id,
+                    ParentJobId = Job.Id,
                     Trigger = trigger,
-                    CorrelationId = parentJob.CorrelationId
+                    CorrelationId = Job.CorrelationId
                 };
 
                 batchNumber++;
@@ -724,7 +688,7 @@ namespace CalculateFunding.Services.Calcs
 
         private static IEnumerable<FundingLine> GetFundingLines(TemplateMetadataContents templateMetadataContents, string fundingStreamId)
         {
-            IEnumerable<FundingLine> flattenedFundingLines = templateMetadataContents.RootFundingLines?.Flatten(_ =>
+            IEnumerable<FundingLine> flattenedFundingLines = templateMetadataContents.RootFundingLines?.Flatten(_ => 
             {
                 // get all calculations for current funding line
                 _.Calculations = GetCalculations(_.Calculations);
@@ -735,8 +699,8 @@ namespace CalculateFunding.Services.Calcs
                 }) ?? new TemplateFundingLine[] { };
 
                 // concat all calculations for all funding lines below current funding line
-                _.Calculations = _.Calculations?.Concat(currentFlattenedFundingLines.SelectMany(_ => GetCalculations(_?.Calculations)));
-
+                _.Calculations = _.Calculations?.Concat(currentFlattenedFundingLines?.SelectMany(_ => GetCalculations(_.Calculations)));
+                
                 return _.FundingLines;
             }).Where(_ => _.Calculations.AnyWithNullCheck()).Select(_ =>
             {

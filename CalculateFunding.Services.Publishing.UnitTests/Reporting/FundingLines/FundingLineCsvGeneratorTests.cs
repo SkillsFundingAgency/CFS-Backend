@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.IO;
 using System.Threading.Tasks;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching.FileSystem;
@@ -34,7 +35,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         private Mock<IFundingLineCsvTransform> _transformation;
         private Mock<IFileSystemAccess> _fileSystemAccess;
         private Mock<IFileSystemCacheSettings> _fileSystemCacheSettings;
-        private Mock<IJobTracker> _jobTracker;
+        private Mock<IJobManagement> _jobManagement;
         private Mock<IFundingLineCsvBatchProcessor> _batchProcessor;
         private BlobProperties _blobProperties;
         private string _rootPath;
@@ -55,7 +56,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             _cloudBlob = new Mock<ICloudBlob>();
             _fileSystemAccess = new Mock<IFileSystemAccess>();
             _fileSystemCacheSettings = new Mock<IFileSystemCacheSettings>();
-            _jobTracker = new Mock<IJobTracker>();
+            _jobManagement = new Mock<IJobManagement>();
             
             _service = new FundingLineCsvGenerator(_transformServiceLocator.Object,
                 _predicateBuilder.Object,
@@ -67,7 +68,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                 {
                     BlobClient = Policy.NoOpAsync()
                 },
-                _jobTracker.Object,
+                _jobManagement.Object,
                 Logger.None);
             
             _message = new Message();
@@ -137,8 +138,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             AndTheBatchProcessorForJobType(jobType);
 
             await WhenTheCsvIsGenerated();
-            
-            _jobTracker.Verify(_ => _.TryStartTrackingJob(jobId, JobConstants.DefinitionNames.GeneratePublishedFundingCsvJob),
+
+            _jobManagement.Verify(_ => _.UpdateJobStatus(jobId, 0, 0, null, null),
                 Times.Once);
 
             _fileSystemAccess
@@ -155,20 +156,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                 .Verify(_ => _.UploadFileAsync(_cloudBlob.Object, It.IsAny<Stream>()),
                     Times.Never);
 
-            _jobTracker.Verify(_ => _.CompleteTrackingJob(jobId),
+            _jobManagement.Verify(_ => _.UpdateJobStatus(jobId, 0, 0, true, null),
                 Times.Once);
         }
 
         [TestMethod]
         [DataRow(FundingLineCsvGeneratorJobType.CurrentState, "spec1", null, null, "AY-1920",
             "funding-lines-spec1-CurrentState.csv",
-            " AY-1920 Provider Funding Lines Current State", null)]
+            " AY-1920 Provider Funding Lines Current State", false)]
         [DataRow(FundingLineCsvGeneratorJobType.Released, "spec2", "FL1", "DSG", "AY-2020",
             "funding-lines-spec2-Released-FL1-DSG.csv",
-            "DSG AY-2020 Provider Funding Lines Released Only", null)]
+            "DSG AY-2020 Provider Funding Lines Released Only", false)]
         [DataRow(FundingLineCsvGeneratorJobType.CurrentProfileValues, "spec3", null, "PSG", "AY-2021",
             "funding-lines-spec3-CurrentProfileValues-PSG.csv",
-            "PSG AY-2021  Profile Current State", null)]
+            "PSG AY-2021  Profile Current State", false)]
         [DataRow(FundingLineCsvGeneratorJobType.CurrentProfileValues, "spec3", null, "PSG", "AY-2021",
             "funding-lines-spec3-CurrentProfileValues-PSG.csv",
             "PSG AY-2021  Profile Current State", false)]
@@ -183,7 +184,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             string fundingPeriodId,
             string expectedFileName,
             string expectedContentDisposition,
-            bool? throwNonRetriableException)
+            bool throwException)
         {
             string jobId = NewRandomString();
             string expectedInterimFilePath = Path.Combine(_rootPath, expectedFileName);
@@ -209,39 +210,26 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
 
             string errorMessage = "Unable to complete funding line csv generation job.";
 
-            if (throwNonRetriableException.HasValue)
+            if (throwException)
             {
-                AndTheBlobThrowsError(incrementalFileStream, throwNonRetriableException.Value ? new Exception() : new RetriableException(errorMessage));
+                AndTheBlobThrowsError(incrementalFileStream, new NonRetriableException(errorMessage));
 
                 Func<Task> test = async () => await WhenTheCsvIsGenerated();
 
-                if (throwNonRetriableException.Value)
-                {
-                    test
-                        .Should()
-                        .ThrowExactly<NonRetriableException>()
-                        .Which
-                        .Message
-                        .Should()
-                        .Be(errorMessage);
-                }
-                else
-                {
-                    test
-                        .Should()
-                        .ThrowExactly<RetriableException>()
-                        .Which
-                        .Message
-                        .Should()
-                        .Be(errorMessage);
-                }
+                test
+                    .Should()
+                    .ThrowExactly<NonRetriableException>()
+                    .Which
+                    .Message
+                    .Should()
+                    .Be(errorMessage);
             }
             else
             {
                 await WhenTheCsvIsGenerated();
             }
-            
-            _jobTracker.Verify(_ => _.TryStartTrackingJob(jobId, JobConstants.DefinitionNames.GeneratePublishedFundingCsvJob),
+
+            _jobManagement.Verify(_ => _.UpdateJobStatus(jobId, 0, 0, null, null),
                 Times.Once);
             
             _fileSystemAccess
@@ -258,14 +246,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                 .Verify(_ => _.UploadFileAsync(_cloudBlob.Object, incrementalFileStream),
                     Times.Once);
 
-            if (throwNonRetriableException.HasValue && throwNonRetriableException.Value)
+            if (throwException)
             {
-                _jobTracker.Verify(_ => _.FailJob(errorMessage, jobId),
+                _jobManagement.Verify(_ => _.UpdateJobStatus(jobId, 0, 0, false, errorMessage),
                 Times.Once);
             }
-            else if (!throwNonRetriableException.HasValue)
+            else
             {
-                _jobTracker.Verify(_ => _.CompleteTrackingJob(jobId),
+                _jobManagement.Verify(_ => _.UpdateJobStatus(jobId, 0, 0, true, null),
                 Times.Once);
             }
         }
@@ -278,8 +266,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
 
         private void AndTheJobExists(string jobId)
         {
-            _jobTracker.Setup(_ => _.TryStartTrackingJob(jobId, JobConstants.DefinitionNames.GeneratePublishedFundingCsvJob))
-                .ReturnsAsync(true);
+            _jobManagement.Setup(_ => _.UpdateJobStatus(jobId, 0, 0, false, null));
         }
 
         private void AndTheBatchProcessorProcessedResults(FundingLineCsvGeneratorJobType jobType,

@@ -12,7 +12,7 @@ using Serilog;
 
 namespace CalculateFunding.Functions.Scenarios.ServiceBus
 {
-    public class OnEditSpecificationEvent : SmokeTest
+    public class OnEditSpecificationEvent : Retriable
     {
         private readonly ILogger _logger;
         private readonly IScenariosService _scenariosService;
@@ -23,13 +23,8 @@ namespace CalculateFunding.Functions.Scenarios.ServiceBus
             IScenariosService scenariosService,
             IMessengerService messengerService,
             IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider)
+            : base(logger, messengerService, FunctionName, $"{ServiceBusConstants.TopicNames.EditSpecification}/{ServiceBusConstants.TopicSubscribers.UpdateScenariosForEditSpecification}", useAzureStorage, userProfileProvider, scenariosService)
         {
-            Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(scenariosService, nameof(scenariosService));
-
-            _logger = logger;
-            _scenariosService = scenariosService;
         }
 
         [FunctionName(FunctionName)]
@@ -38,19 +33,7 @@ namespace CalculateFunding.Functions.Scenarios.ServiceBus
             ServiceBusConstants.TopicSubscribers.UpdateScenariosForEditSpecification,
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            await Run(async () =>
-            {
-                try
-                {
-                    await _scenariosService.UpdateScenarioForSpecification(message);
-                }
-                catch (Exception exception)
-                {
-                    _logger.Error(exception, $"An error occurred getting message from topic: {ServiceBusConstants.TopicNames.EditSpecification}");
-                    throw;
-                }
-            },
-            message);
+            await Run(message);
         }
     }
 }

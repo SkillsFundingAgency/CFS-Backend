@@ -45,10 +45,11 @@ using JobCreateModel = CalculateFunding.Common.ApiClient.Jobs.Models.JobCreateMo
 using Trigger = CalculateFunding.Common.ApiClient.Jobs.Models.Trigger;
 using PoliciesApiModels = CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Services.Jobs;
 
 namespace CalculateFunding.Services.Datasets
 {
-    public class DatasetService : IDatasetService, IHealthChecker
+    public class DatasetService : JobProcessingService, IDatasetService, IHealthChecker
     {
         private readonly IBlobClient _blobClient;
         private readonly ILogger _logger;
@@ -89,7 +90,7 @@ namespace CalculateFunding.Services.Datasets
             IJobManagement jobManagement,
             IProviderSourceDatasetRepository providerSourceDatasetRepository,
             ISpecificationsApiClient specificationsApiClient,
-            IPolicyRepository policyRepository)
+            IPolicyRepository policyRepository) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(blobClient, nameof(blobClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -419,7 +420,7 @@ namespace CalculateFunding.Services.Datasets
             return new OkObjectResult(responseModel);
         }
 
-        public async Task ValidateDataset(Message message)
+        public override async Task Process(Message message)
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
@@ -438,19 +439,13 @@ namespace CalculateFunding.Services.Datasets
 
             await SetValidationStatus(operationId, DatasetValidationStatus.Processing);
 
-            string jobId = message.UserProperties["jobId"].ToString();
-
-            await _jobManagement.UpdateJobStatus(jobId, 0, null);
-
             GetDatasetBlobModel model = message.GetPayloadAsInstanceOf<GetDatasetBlobModel>();
 
             if (model == null)
             {
                 _logger.Error("Null model was provided to ValidateDataset");
                 await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, "Null model was provided to ValidateDataset");
-                await _jobManagement.UpdateJobStatus(jobId, 100, false, "Failed Validation - Null model was provided to ValidateDataset");
-
-                return;
+                throw new NonRetriableException("Failed Validation - Null model was provided to ValidateDataset");
             }
 
             ValidationResult validationResult = (await _getDatasetBlobModelValidator.ValidateAsync(model));
@@ -458,17 +453,13 @@ namespace CalculateFunding.Services.Datasets
             {
                 _logger.Error($"{nameof(GetDatasetBlobModel)} validation result returned null");
                 await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, $"{nameof(GetDatasetBlobModel)} validation result returned null");
-                await _jobManagement.UpdateJobStatus(jobId, 100, false, "Failed Validation - no validation result");
-
-                return;
+                throw new NonRetriableException("Failed Validation - no validation result");
             }
             else if (!validationResult.IsValid || validationResult.Errors.Count > 0)
             {
                 _logger.Error($"{nameof(GetDatasetBlobModel)} model error: {{0}}", validationResult.Errors);
                 await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, $"{nameof(GetDatasetBlobModel)} model error", ConvertToErrorDictionary(validationResult));
-                await _jobManagement.UpdateJobStatus(jobId, 100, false, "Failed Validation - model errors");
-
-                return;
+                throw new NonRetriableException("Failed Validation - model errors");
             }
 
             string fullBlobName = model.ToString();
@@ -478,8 +469,7 @@ namespace CalculateFunding.Services.Datasets
             {
                 _logger.Error($"Failed to find blob with path: {fullBlobName}");
                 await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, $"Failed to find blob with path: {fullBlobName}");
-                await _jobManagement.UpdateJobStatus(jobId, 100, false, "Failed Validation - file not found in blob storage");
-                return;
+                throw new NonRetriableException("Failed Validation - file not found in blob storage");
             }
 
             await blob.FetchAttributesAsync();
@@ -489,9 +479,7 @@ namespace CalculateFunding.Services.Datasets
             {
                 _logger.Error($"Blob {blob.Name} contains no data");
                 await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, $"Blob {blob.Name} contains no data");
-                await _jobManagement.UpdateJobStatus(jobId, 100, false, "Failed validation - file contains no data");
-
-                return;
+                throw new NonRetriableException("Failed validation - file contains no data");
             }
 
             IEnumerable<Dataset> datasets = _datasetRepository.GetDatasetsByQuery(m => m.Content.Name.ToLower() == blob.Metadata["name"].ToLower()).Result;
@@ -501,15 +489,13 @@ namespace CalculateFunding.Services.Datasets
                 _logger.Error($"Dataset {blob.Metadata["name"]} needs to be a unique name");
 
                 await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, $"Dataset {blob.Metadata["name"]} needs to be a unique name");
-                await _jobManagement.UpdateJobStatus(jobId, 100, false, "Failed validation - dataset name needs to be unique");
-
-                return;
+                throw new NonRetriableException("Failed validation - dataset name needs to be unique");
             }
 
             try
             {
                 await SetValidationStatus(operationId, DatasetValidationStatus.ValidatingExcelWorkbook);
-                await _jobManagement.UpdateJobStatus(jobId, 25, null);
+                await NotifyPercentComplete(25);
 
                 using ExcelPackage excel = new ExcelPackage(datasetStream);
                 validationResult = _dataWorksheetValidator.Validate(excel);
@@ -517,8 +503,7 @@ namespace CalculateFunding.Services.Datasets
                 if (validationResult != null && (!validationResult.IsValid || validationResult.Errors.Count > 0))
                 {
                     await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, null, ConvertToErrorDictionary(validationResult));
-                    await _jobManagement.UpdateJobStatus(jobId, 100, false, "Failed validation - with validation errors");
-                    return;
+                    throw new NonRetriableException("Failed validation - with validation errors");
                 }
             }
             catch (Exception exception)
@@ -532,9 +517,7 @@ namespace CalculateFunding.Services.Datasets
                 validationResult.Errors.Add(new ValidationFailure(nameof(model.Filename), errorMessage));
 
                 await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, null, ConvertToErrorDictionary(validationResult));
-                await _jobManagement.UpdateJobStatus(jobId, 100, false, "Failed validation - the data source file type is invalid");
-
-                return;
+                throw new NonRetriableException("Failed validation - the data source file type is invalid");
             }
 
             string dataDefinitionId = blob.Metadata["dataDefinitionId"];
@@ -547,9 +530,7 @@ namespace CalculateFunding.Services.Datasets
                 _logger.Error(errorMessage);
 
                 await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, errorMessage);
-                await _jobManagement.UpdateJobStatus(jobId, 100, false, "Failed Validation - invalid data definition");
-
-                return;
+                throw new NonRetriableException("Failed Validation - invalid data definition");
             }
 
             string fundingStreamId = blob.Metadata["fundingStreamId"];
@@ -561,15 +542,13 @@ namespace CalculateFunding.Services.Datasets
                 _logger.Error(errorMessage);
 
                 await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, errorMessage);
-                await _jobManagement.UpdateJobStatus(jobId, 100, false, "Failed Validation - invalid funding stream ID");
-
-                return;
+                throw new NonRetriableException("Failed Validation - invalid funding stream ID");
             }
 
             PoliciesApiModels.FundingStream fundingStream = fundingStreams.SingleOrDefault(_ => _.Id == fundingStreamId);
 
             await SetValidationStatus(operationId, DatasetValidationStatus.ValidatingTableResults);
-            await _jobManagement.UpdateJobStatus(jobId, 50, null);
+            await NotifyPercentComplete(50);
 
             (IDictionary<string, IEnumerable<string>> validationFailures, int rowCount) = await ValidateTableResults(datasetDefinition, blob);
 
@@ -583,7 +562,7 @@ namespace CalculateFunding.Services.Datasets
                     };
 
                     await SetValidationStatus(operationId, DatasetValidationStatus.SavingResults);
-                    await _jobManagement.UpdateJobStatus(jobId, 75, null);
+                    await NotifyPercentComplete(75);
 
                     Dataset dataset;
 
@@ -608,7 +587,9 @@ namespace CalculateFunding.Services.Datasets
                     }
 
                     await SetValidationStatus(operationId, DatasetValidationStatus.Validated, datasetId: dataset.Id);
-                    await _jobManagement.UpdateJobStatus(jobId, 100, true, "Dataset passed validation");
+                    
+                    // set the outcome of the job
+                    Outcome = "Dataset passed validation";
                 }
                 catch (Exception exception)
                 {
@@ -621,7 +602,7 @@ namespace CalculateFunding.Services.Datasets
             else
             {
                 await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, validationFailures: validationFailures);
-                await _jobManagement.UpdateJobStatus(jobId, 100, false, "Failed validation - table validation");
+                throw new NonRetriableException("Failed validation - table validation");
             }
         }
 
@@ -966,83 +947,49 @@ namespace CalculateFunding.Services.Datasets
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
-            string jobId = message.GetUserProperty<string>("jobId");
-
-            Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
-
-            try
+            string specificationId = message.UserProperties["specification-id"].ToString();
+            if (string.IsNullOrEmpty(specificationId))
             {
-                // Update job to set status to processing
-                await _jobManagement.UpdateJobStatus(jobId, 0, 0, null, null);
-
-                string specificationId = message.UserProperties["specification-id"].ToString();
-                if (string.IsNullOrEmpty(specificationId))
-                {
-                    string error = "Null or empty specification Id provided for deleting datasets";
-                    _logger.Error(error);
-                    throw new Exception(error);
-                }
-
-                string deletionTypeProperty = message.UserProperties["deletion-type"].ToString();
-                if (string.IsNullOrEmpty(deletionTypeProperty))
-                {
-                    string error = "Null or empty deletion type provided for deleting datasets";
-                    _logger.Error(error);
-                    throw new Exception(error);
-                }
-
-                DeletionType deletionType = deletionTypeProperty.ToDeletionType();
-
-                SpecificationSummary specificationSummary;
-                ApiResponse<SpecificationSummary> specificationSummaryApiResponse =
-                    await _specificationsApiClient.GetSpecificationSummaryById(specificationId);
-
-                if (specificationSummaryApiResponse.StatusCode == HttpStatusCode.OK)
-                {
-                    specificationSummary = specificationSummaryApiResponse.Content;
-                }
-                else
-                {
-                    string error = $"There was an issue with retrieving specification '{specificationId}'";
-                    _logger.Error(error);
-                    throw new Exception(error);
-                }
-
-                foreach (var id in specificationSummary.DataDefinitionRelationshipIds)
-                {
-                    await _providerSourceDatasetRepository.DeleteProviderSourceDatasetVersion(id, deletionType);
-
-                    await _providerSourceDatasetRepository.DeleteProviderSourceDataset(id, deletionType);
-                }
-
-                await _datasetRepository.DeleteDefinitionSpecificationRelationshipBySpecificationId(specificationId, deletionType);
-
-                await _datasetRepository.DeleteDatasetsBySpecificationId(specificationId, deletionType);
-
-                await _jobManagement.UpdateJobStatus(jobId, 0, 0, true, null);
+                string error = "Null or empty specification Id provided for deleting datasets";
+                _logger.Error(error);
+                throw new Exception(error);
             }
-            catch (Exception exception)
+
+            string deletionTypeProperty = message.UserProperties["deletion-type"].ToString();
+            if (string.IsNullOrEmpty(deletionTypeProperty))
             {
-                _logger.Error(exception, "Unable to complete delete datasets job");
-
-                await TrackJobFailed(jobId, exception);
-
-                throw new NonRetriableException("Unable to delete datasets.", exception);
+                string error = "Null or empty deletion type provided for deleting datasets";
+                _logger.Error(error);
+                throw new Exception(error);
             }
-        }
 
-        private async Task TrackJobFailed(string jobId, Exception exception)
-        {
-            await AddJobTracking(jobId, new JobLogUpdateModel
+            DeletionType deletionType = deletionTypeProperty.ToDeletionType();
+
+            SpecificationSummary specificationSummary;
+            ApiResponse<SpecificationSummary> specificationSummaryApiResponse =
+                await _specificationsApiClient.GetSpecificationSummaryById(specificationId);
+
+            if (specificationSummaryApiResponse.StatusCode == HttpStatusCode.OK)
             {
-                CompletedSuccessfully = false,
-                Outcome = exception.ToString()
-            });
-        }
+                specificationSummary = specificationSummaryApiResponse.Content;
+            }
+            else
+            {
+                string error = $"There was an issue with retrieving specification '{specificationId}'";
+                _logger.Error(error);
+                throw new Exception(error);
+            }
 
-        private async Task AddJobTracking(string jobId, JobLogUpdateModel tracking)
-        {
-            await _jobManagement.AddJobLog(jobId, tracking);
+            foreach (var id in specificationSummary.DataDefinitionRelationshipIds)
+            {
+                await _providerSourceDatasetRepository.DeleteProviderSourceDatasetVersion(id, deletionType);
+
+                await _providerSourceDatasetRepository.DeleteProviderSourceDataset(id, deletionType);
+            }
+
+            await _datasetRepository.DeleteDefinitionSpecificationRelationshipBySpecificationId(specificationId, deletionType);
+
+            await _datasetRepository.DeleteDatasetsBySpecificationId(specificationId, deletionType);
         }
 
         private async Task<Dataset> SaveNewDatasetAndVersion(

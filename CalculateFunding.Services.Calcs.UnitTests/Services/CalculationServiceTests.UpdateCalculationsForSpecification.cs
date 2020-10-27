@@ -39,7 +39,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService service = CreateCalculationService();
 
             //Act
-            Func<Task> test = async () => await service.UpdateCalculationsForSpecification(message);
+            Func<Task> test = async () => await service.Run(message);
 
             //Assert
             test
@@ -65,7 +65,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService service = CreateCalculationService(logger: logger);
 
             //Act
-            await service.UpdateCalculationsForSpecification(message);
+            await service.Run(message);
 
             //Assert
             logger
@@ -100,7 +100,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService service = CreateCalculationService(calculationsRepository, logger);
 
             //Act
-            await service.UpdateCalculationsForSpecification(message);
+            await service.Run(message);
 
             //Assert
             logger
@@ -183,7 +183,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 jobManagement: jobManagement);
 
             // Act
-            await service.UpdateCalculationsForSpecification(message);
+            await service.Run(message);
 
             // Assert
             await
@@ -292,7 +292,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 calculationsFeatureFlag: calculationsFeatureFlag);
 
             // Act
-            await service.UpdateCalculationsForSpecification(message);
+            await service.Run(message);
 
             // Assert
             await
@@ -408,7 +408,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 jobManagement: jobManagement);
 
             // Act
-            Func<Task> test = async () => await service.UpdateCalculationsForSpecification(message);
+            Func<Task> test = async () => await service.Run(message);
 
             // Assert
             test
@@ -514,7 +514,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 jobManagement: jobManagement);
 
             // Act
-            await service.UpdateCalculationsForSpecification(message);
+            await service.Run(message);
 
             // Assert
             await

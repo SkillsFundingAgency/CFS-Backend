@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
@@ -24,7 +25,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
         private Mock<IPublishedFundingUndoJobCreation> _jobCreation;
         private Mock<IPublishedFundingUndoTaskFactoryLocator> _taskFactoryLocator;
         private Mock<IPublishedFundingUndoTaskFactory> _taskFactory;
-        private Mock<IJobTracker> _jobTracker;
+        private Mock<IJobManagement> _jobManagement;
         private Mock<IPublishedFundingUndoJobTask> _initialiseTask;
         private Mock<IPublishedFundingUndoJobTask> _undoPublishedProvidersTask;
         private Mock<IPublishedFundingUndoJobTask> _undoPublishedProviderVersionsTask;
@@ -43,7 +44,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
             _jobCreation = new Mock<IPublishedFundingUndoJobCreation>();
             _taskFactoryLocator = new Mock<IPublishedFundingUndoTaskFactoryLocator>();
             _taskFactory = new Mock<IPublishedFundingUndoTaskFactory>();
-            _jobTracker = new Mock<IJobTracker>();
+            _jobManagement = new Mock<IJobManagement>();
 
             _initialiseTask = NewMockTask();
             _undoPublishedFundingTask = NewMockTask();
@@ -63,7 +64,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
                 .Returns(_undoPublishedProviderVersionsTask.Object);
             
             _service = new PublishedFundingUndoJobService(_taskFactoryLocator.Object,
-                _jobTracker.Object,
+                _jobManagement.Object,
                 _jobCreation.Object,
                 Logger.None);
             
@@ -147,9 +148,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
         public void ThrowsExceptionIfTaskContextCollectsExceptionsWhenTasksRun()
         {
             string jobId = NewRandomString();
-            
+            string correlationId = NewRandomString();
+
             GivenTheMessageProperties(("jobId", jobId),
-                ("for-correlation-id", NewRandomString()),
+                ("for-correlation-id", correlationId),
                 ("is-hard-delete", NewRandomFlag().ToString()));
             AndTheTaskFactoryIsForTheSuppliedParameters();
             AndTheJobCanBeTracked(jobId);
@@ -176,7 +178,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
                 .Should()
                 .BeEquivalentTo(new object[] { expectedInnerException });
             
-            AndTheJobWasFailed(jobId);
+            AndTheJobWasFailed(jobId, $"Unable to complete {JobConstants.DefinitionNames.PublishedFundingUndoJob} for correlationId: {correlationId}.\nUndo tasks generated unhandled exceptions");
         }
 
         [TestMethod]
@@ -212,45 +214,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
                 .Should()
                 .Be("user");
         }
-
-        [TestMethod]
-        public async Task QueuesJobAndReturnsDetails()
-        {
-            string forCorrelationId = NewRandomString();
-            string correlationId = NewRandomString();
-            Reference user = NewUser();
-            bool isHardDelete = NewRandomFlag();
-            
-            Job expectedJobDetails = new Job();
-            
-            GivenTheJobForSuppliedParameters(forCorrelationId,
-                isHardDelete,
-                user,
-                correlationId,
-                expectedJobDetails);
-
-            Job actualJobDetails = await WhenTheJobIsQueued(forCorrelationId,
-                isHardDelete,
-                user,
-                correlationId);
-
-            actualJobDetails
-                .Should()
-                .BeSameAs(expectedJobDetails);
-        }
-
-        private void GivenTheJobForSuppliedParameters(string forCorrelationId,
-            bool isHardDelete,
-            Reference user,
-            string correlationId,
-            Job job)
-        {
-            _jobCreation.Setup(_ => _.CreateJob(forCorrelationId,
-                    isHardDelete,
-                    user,
-                    correlationId))
-                .ReturnsAsync(job);
-        }
         
         private async Task<Job> WhenTheJobIsQueued(string forCorrelationId,
             bool isHardDelete,
@@ -270,13 +233,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
 
         public void AndTheJobWasCompleted(string jobId)
         {
-            _jobTracker.Verify(_ => _.CompleteTrackingJob(jobId),
+            _jobManagement.Verify(_ => _.UpdateJobStatus(jobId, 0, 0, true, null),
                 Times.Once);
         }
 
-        public void AndTheJobWasFailed(string jobId)
+        public void AndTheJobWasFailed(string jobId, string outcome = null)
         {
-            _jobTracker.Verify(_ => _.FailJob(It.IsAny<string>(), jobId),
+            _jobManagement.Verify(_ => _.UpdateJobStatus(jobId, 0, 0, false, outcome),
                 Times.Once);
         }
 
@@ -304,8 +267,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
 
         private void AndTheJobCanBeTracked(string jobId)
         {
-            _jobTracker.Setup(_ => _.TryStartTrackingJob(jobId, JobConstants.DefinitionNames.PublishedFundingUndoJob))
-                .ReturnsAsync(true);
+            _jobManagement.Setup(_ => _.UpdateJobStatus(jobId, 0, 0, null, null));
         }
 
         private void AndTheTaskCollectsException(Mock<IPublishedFundingUndoJobTask> task, Exception exception)

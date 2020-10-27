@@ -217,7 +217,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
         private async Task WhenTheMapFdzDatasetsMessageIsProcessed()
         {
-            await _service.MapFdzDatasets(_message);
+            await _service.Run(_message, async() => { await _service.MapFdzDatasets(_message); });
         }
 
         private void GivenTheMessageProperties(params (string, string)[] properties)
