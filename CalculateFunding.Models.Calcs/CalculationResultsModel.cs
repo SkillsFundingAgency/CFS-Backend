@@ -1,8 +1,8 @@
-﻿using CalculateFunding.Models.ProviderLegacy;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using CalculateFunding.Models.ProviderLegacy;
 
 namespace CalculateFunding.Models.Calcs
 {
@@ -47,5 +47,8 @@ namespace CalculateFunding.Models.Calcs
                 return string.Empty;
             }
         }
+
+        public long CalculationRunMs { get; set; }
+        public long AssemblyLoadMs { get; set; }
     }
 }

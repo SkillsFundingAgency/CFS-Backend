@@ -82,7 +82,7 @@ namespace CalculateFunding.Services.CalcEngine.Caching
             Guard.ArgumentNotNull(assemblyBlob, nameof(assemblyBlob));
 
             await assemblyBlob.FetchAttributesAsync();
-            
+
             _fileSystemCache.Add(GetFileSystemCacheKey(specificationId, assemblyBlob.Properties.ETag), assembly, ensureFolderExists: true);
         }
 

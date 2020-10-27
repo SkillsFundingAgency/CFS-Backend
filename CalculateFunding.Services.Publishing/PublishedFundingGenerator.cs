@@ -34,7 +34,7 @@ namespace CalculateFunding.Services.Publishing
         /// <param name="publishedFundingInput"></param>
         /// <param name="publishedProviders"></param>
         /// <returns></returns>
-        public IEnumerable<(PublishedFunding, PublishedFundingVersion)> GeneratePublishedFunding(PublishedFundingInput publishedFundingInput, 
+        public IEnumerable<(PublishedFunding, PublishedFundingVersion)> GeneratePublishedFunding(PublishedFundingInput publishedFundingInput,
             IEnumerable<PublishedProvider> publishedProviders)
         {
             Guard.ArgumentNotNull(publishedFundingInput, nameof(publishedFundingInput));
@@ -61,7 +61,7 @@ namespace CalculateFunding.Services.Publishing
                 IEnumerable<string> providerIds = organisationGroup.OrganisationGroupResult.Providers.Select(p => p.ProviderId);
                 IEnumerable<string> publishedProvidersIds = publishedProviders.Select(p => p.Current.ProviderId);
 
-                List<PublishedProvider> publishedProvidersForOrganisationGroup = new List<PublishedProvider>(publishedProviders.Where(p 
+                List<PublishedProvider> publishedProvidersForOrganisationGroup = new List<PublishedProvider>(publishedProviders.Where(p
                     => providerIds.Contains(p.Current.ProviderId)));
                 List<PublishedProviderVersion> publishedProviderVersionsForOrganisationGroup = new List<PublishedProviderVersion>(
                     publishedProvidersForOrganisationGroup.Select(p => p.Current));
@@ -77,8 +77,10 @@ namespace CalculateFunding.Services.Publishing
                 List<AggregateFundingLine> fundingLineAggregates = new List<AggregateFundingLine>(
                     fundingValueAggregator.GetTotals(templateMetadataContents, publishedProviderVersionsForOrganisationGroup));
 
-                IEnumerable<Common.TemplateMetadata.Models.FundingLine> fundingLineDefinitions = templateMetadataContents.RootFundingLines.Flatten(_ => _.FundingLines) ?? 
+                IEnumerable<Common.TemplateMetadata.Models.FundingLine> fundingLineDefinitions = templateMetadataContents.RootFundingLines.Flatten(_ => _.FundingLines) ??
                                                                                                  Enumerable.Empty<Common.TemplateMetadata.Models.FundingLine>();
+
+                // Add in calculations in numerator/demoninator and percentagechange targets
 
                 List<PublishingModels.FundingLine> fundingLines = GenerateFundingLines(fundingLineAggregates, fundingLineDefinitions);
                 List<FundingCalculation> calculations = GenerateCalculations(fundingLineAggregates.Flatten(_ => _.FundingLines)
@@ -156,7 +158,7 @@ namespace CalculateFunding.Services.Publishing
             return calculations;
         }
 
-        private List<PublishingModels.FundingLine> GenerateFundingLines(IEnumerable<AggregateFundingLine> fundingLineAggregates, 
+        private List<PublishingModels.FundingLine> GenerateFundingLines(IEnumerable<AggregateFundingLine> fundingLineAggregates,
             IEnumerable<Common.TemplateMetadata.Models.FundingLine> fundingLineDefinitions)
         {
             List<PublishingModels.FundingLine> fundingLines = new List<PublishingModels.FundingLine>();
@@ -168,7 +170,7 @@ namespace CalculateFunding.Services.Publishing
                     throw new InvalidOperationException("Null aggregate funding line");
                 }
 
-                Common.TemplateMetadata.Models.FundingLine fundingLineDefinition = fundingLineDefinitions.FirstOrDefault(_ 
+                Common.TemplateMetadata.Models.FundingLine fundingLineDefinition = fundingLineDefinitions.FirstOrDefault(_
                     => _.TemplateLineId == aggregateFundingLine.TemplateLineId);
                 if (fundingLineDefinition == null)
                 {

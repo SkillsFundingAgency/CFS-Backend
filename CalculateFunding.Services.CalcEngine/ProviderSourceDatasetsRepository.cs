@@ -41,17 +41,20 @@ namespace CalculateFunding.Services.CalcEngine
             _fileSystemCache = fileSystemCache;
         }
 
-        public async Task<IDictionary<string, IEnumerable<ProviderSourceDataset>>> GetProviderSourceDatasetsByProviderIdsAndRelationshipIds(
+        public async Task<ProviderSourceDatasetLookupResult> GetProviderSourceDatasetsByProviderIdsAndRelationshipIds(
             string specificationId,
             IEnumerable<string> providerIds,
             IEnumerable<string> dataRelationshipIds)
         {
+            ProviderSourceDatasetLookupResult result = new ProviderSourceDatasetLookupResult();
+
             if (providerIds.IsNullOrEmpty() || dataRelationshipIds.IsNullOrEmpty())
             {
-                return new Dictionary<string, IEnumerable<ProviderSourceDataset>>();
+                result.ProviderSourceDatasets = new Dictionary<string, Dictionary<string, ProviderSourceDataset>>();
+                return result;
             }
 
-            ConcurrentDictionary<string, ConcurrentBag<ProviderSourceDataset>> results = new ConcurrentDictionary<string, ConcurrentBag<ProviderSourceDataset>>();
+            ConcurrentDictionary<string, ConcurrentDictionary<string, ProviderSourceDataset>> results = new ConcurrentDictionary<string, ConcurrentDictionary<string, ProviderSourceDataset>>();
 
             foreach (string dataRelationshipId in dataRelationshipIds)
             {
@@ -66,12 +69,13 @@ namespace CalculateFunding.Services.CalcEngine
                     await _datasetVersionKeyProvider.AddOrUpdateProviderSourceDatasetVersionKey(dataRelationshipId, cachedVersionKey);
                 }
 
+                Console.WriteLine("Starting to lookup provider source datasets from cosmos");
                 List<Task> allTasks = new List<Task>();
                 SemaphoreSlim throttler = new SemaphoreSlim(_engineSettings.GetProviderSourceDatasetsDegreeOfParallelism);
 
                 foreach (string providerId in providerIds)
                 {
-                    ConcurrentBag<ProviderSourceDataset> providerSourceDatasets = results.GetOrAdd(providerId, new ConcurrentBag<ProviderSourceDataset>());
+                    ConcurrentDictionary<string, ProviderSourceDataset> providerSourceDatasets = results.GetOrAdd(providerId, new ConcurrentDictionary<string, ProviderSourceDataset>());
 
                     if (versionKeyExisted && TryGetProviderDataSourceFromFileSystem(dataRelationshipId, providerId, cachedVersionKey, providerSourceDatasets))
                     {
@@ -93,7 +97,7 @@ namespace CalculateFunding.Services.CalcEngine
                                 {
                                     ProviderSourceDataset providerSourceDatasetResult = providerSourceDatasetDocument.Content;
 
-                                    providerSourceDatasets.Add(providerSourceDatasetResult);
+                                    results[providerId].TryAdd(dataRelationshipId, providerSourceDatasetResult);
 
                                     CacheProviderSourceDatasetToFileSystem(dataRelationshipId, providerId, cachedVersionKey, providerSourceDatasetResult);
                                 }
@@ -108,7 +112,9 @@ namespace CalculateFunding.Services.CalcEngine
                 await TaskHelper.WhenAllAndThrow(allTasks.ToArray());
             }
 
-            return results.ToDictionary(x => x.Key, x => x.Value.AsEnumerable());
+            result.ProviderSourceDatasets = results.ToDictionary(x => x.Key, x => x.Value.ToDictionary(y => y.Key, y => y.Value));
+
+            return result;
         }
 
         private void CacheProviderSourceDatasetToFileSystem(string relationshipId,
@@ -133,7 +139,7 @@ namespace CalculateFunding.Services.CalcEngine
         private bool TryGetProviderDataSourceFromFileSystem(string relationshipId,
             string providerId,
             Guid versionKey,
-            ConcurrentBag<ProviderSourceDataset> datasets)
+            ConcurrentDictionary<string, ProviderSourceDataset> datasets)
         {
             ProviderSourceDatasetFileSystemCacheKey fileSystemCacheKey = new ProviderSourceDatasetFileSystemCacheKey(relationshipId, providerId, versionKey);
 
@@ -151,7 +157,7 @@ namespace CalculateFunding.Services.CalcEngine
                     return false;
                 }
 
-                datasets.Add(providerSourceDataset);
+                datasets.TryAdd(relationshipId, providerSourceDataset);
                 return true;
             }
         }

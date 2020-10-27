@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
@@ -64,7 +65,6 @@ namespace CalculateFunding.Services.CalcEngine
         private readonly IJobManagement _jobManagement;
         private readonly ICalculationEngineServiceValidator _calculationEngineServiceValidator;
         private readonly IResultsApiClient _resultsApiClient;
-        private readonly IMapper _mapper;
         private readonly ISpecificationAssemblyProvider _specificationAssemblies;
 
         public CalculationEngineService(
@@ -84,7 +84,6 @@ namespace CalculateFunding.Services.CalcEngine
             IResultsApiClient resultsApiClient,
             IValidator<ICalculatorResiliencePolicies> calculatorResiliencePoliciesValidator,
             ICalculationEngineServiceValidator calculationEngineServiceValidator,
-            IMapper mapper,
             ISpecificationAssemblyProvider specificationAssemblies)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -109,7 +108,6 @@ namespace CalculateFunding.Services.CalcEngine
             Guard.ArgumentNotNull(calculatorResiliencePoliciesValidator, nameof(calculatorResiliencePoliciesValidator));
             Guard.ArgumentNotNull(calculationEngineServiceValidator, nameof(calculationEngineServiceValidator));
             Guard.ArgumentNotNull(resultsApiClient, nameof(resultsApiClient));
-            Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(specificationAssemblies, nameof(specificationAssemblies));
 
             _calculationEngineServiceValidator = calculationEngineServiceValidator;
@@ -133,7 +131,6 @@ namespace CalculateFunding.Services.CalcEngine
             _specificationsApiPolicy = resiliencePolicies.SpecificationsApiClient;
             _resultsApiClientPolicy = resiliencePolicies.ResultsApiClient;
             _resultsApiClient = resultsApiClient;
-            _mapper = mapper;
             _specificationAssemblies = specificationAssemblies;
         }
 
@@ -227,9 +224,6 @@ namespace CalculateFunding.Services.CalcEngine
 
             for (int i = 0; i < summaries.Count(); i += providerBatchSize)
             {
-                Stopwatch calculationStopwatch = new Stopwatch();
-                Stopwatch providerSourceDatasetsStopwatch = new Stopwatch();
-
                 Stopwatch calcTiming = Stopwatch.StartNew();
 
                 CalculationResultsModel calculationResults = await CalculateResults(specificationId,
@@ -240,9 +234,7 @@ namespace CalculateFunding.Services.CalcEngine
                     assembly,
                     messageProperties,
                     providerBatchSize,
-                    i,
-                    providerSourceDatasetsStopwatch,
-                    calculationStopwatch);
+                    i);
 
                 _logger.Information($"Calculating results complete for specification id {specificationId}");
 
@@ -289,9 +281,8 @@ namespace CalculateFunding.Services.CalcEngine
                     { "calculation-run-lookupCalculationDefinitionsMs", calculationsLookupStopwatchElapsedMilliseconds },
                     { "calculation-run-providersResultsFromCache", summaries.Count() },
                     { "calculation-run-partitionSize", messageProperties.PartitionSize },
-                    { "calculation-run-providerSourceDatasetQueryMs", providerSourceDatasetsStopwatch.ElapsedMilliseconds },
                     { "calculation-run-saveProviderResultsRedisMs", saveRedisElapsedMs },
-                    { "calculation-run-runningCalculationMs",  calculationStopwatch.ElapsedMilliseconds },
+                    { "calculation-run-runningCalculationMs",  calculationResults.CalculationRunMs },
                     { "calculation-run-savedProviders",  savedProviders },
                     { "calculation-run-savePercentage ",  percentageProvidersSaved },
                     { "calculation-run-specLookup ",  specificationSummaryElapsedMilliseconds },
@@ -338,7 +329,7 @@ namespace CalculateFunding.Services.CalcEngine
         private async Task<(SpecificationSummary, long)> GetSpecificationSummary(string specificationId)
         {
             Stopwatch specsLookupStopwatch = Stopwatch.StartNew();
-            ApiResponse<SpecificationSummary> specificationQuery = await _specificationsApiClient.GetSpecificationSummaryById(specificationId);
+            ApiResponse<SpecificationSummary> specificationQuery = await _specificationsApiPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId));
             if (specificationQuery == null || specificationQuery.StatusCode != HttpStatusCode.OK || specificationQuery.Content == null)
             {
                 throw new InvalidOperationException("Specification summary is null");
@@ -432,9 +423,7 @@ namespace CalculateFunding.Services.CalcEngine
             byte[] assemblyForSpecification,
             GenerateAllocationMessageProperties messageProperties,
             int providerBatchSize,
-            int index,
-            Stopwatch providerSourceDatasetsStopwatch,
-            Stopwatch calculationStopwatch)
+            int index)
         {
             ConcurrentBag<ProviderResult> providerResults = new ConcurrentBag<ProviderResult>();
 
@@ -444,58 +433,86 @@ namespace CalculateFunding.Services.CalcEngine
 
             IList<string> providerIdList = partitionedSummaries.Select(m => m.Id).ToList();
 
-            providerSourceDatasetsStopwatch.Start();
+            Stopwatch providerSourceDatasetsStopwatch = Stopwatch.StartNew();
 
             _logger.Information($"Fetching provider sources for specification id {messageProperties.SpecificationId}");
 
-            IDictionary<string, IEnumerable<ProviderSourceDataset>> providerSourceDatasetsByProvider = await _providerSourceDatasetsRepositoryPolicy.ExecuteAsync(
+            var providerSourceDatasetResult = await _providerSourceDatasetsRepositoryPolicy.ExecuteAsync(
                 () => _providerSourceDatasetsRepository.GetProviderSourceDatasetsByProviderIdsAndRelationshipIds(specificationId, providerIdList, dataRelationshipIds));
 
             providerSourceDatasetsStopwatch.Stop();
 
+            var providerSourceDatasetsByProvider = providerSourceDatasetResult.ProviderSourceDatasets;
+
             _logger.Information($"Fetched provider sources found for specification id {messageProperties.SpecificationId}");
 
-            calculationStopwatch.Start();
 
             _logger.Information($"Calculating results for specification id {messageProperties.SpecificationId}");
-
+            Stopwatch assemblyLoadStopwatch = Stopwatch.StartNew();
             Assembly assembly = Assembly.Load(assemblyForSpecification);
+            assemblyLoadStopwatch.Stop();
 
-            Parallel.ForEach(partitionedSummaries, new ParallelOptions { MaxDegreeOfParallelism = _engineSettings.CalculateProviderResultsDegreeOfParallelism }, provider =>
+            Stopwatch calculationStopwatch = Stopwatch.StartNew();
+
+            List<Task> allTasks = new List<Task>();
+            SemaphoreSlim throttler = new SemaphoreSlim(_engineSettings.CalculateProviderResultsDegreeOfParallelism);
+
+            IAllocationModel allocationModel = _calculationEngine.GenerateAllocationModel(assembly);
+
+            foreach (ProviderSummary provider in partitionedSummaries)
             {
-                if (provider == null)
-                {
-                    throw new Exception("Provider summary is null");
-                }
+                await throttler.WaitAsync();
 
-                IAllocationModel allocationModel = _calculationEngine.GenerateAllocationModel(assembly);
+                allTasks.Add(
+                    Task.Run(async () =>
+                    {
+                        try
+                        {
+                            //Console.WriteLine($"Starting calc run for {provider.Id}");
+                            if (provider == null)
+                            {
+                                throw new Exception("Provider summary is null");
+                            }
 
-                IEnumerable<ProviderSourceDataset> providerDatasets = Enumerable.Empty<ProviderSourceDataset>();
+                            Dictionary<string, ProviderSourceDataset> providerDatasets;
 
-                if (!providerSourceDatasetsByProvider.TryGetValue(provider.Id, out providerDatasets))
-                {
-                    throw new Exception($"Provider source dataset not found for {provider.Id}.");
-                }
+                            if (!providerSourceDatasetsByProvider.TryGetValue(provider.Id, out providerDatasets))
+                            {
+                                throw new Exception($"Provider source dataset not found for {provider.Id}.");
+                            }
 
-                ProviderResult result = _calculationEngine.CalculateProviderResults(allocationModel, specificationId, calculations, provider, providerDatasets, aggregations);
+                            ProviderResult result = _calculationEngine.CalculateProviderResults(allocationModel, specificationId, calculations, provider, providerDatasets, aggregations);
 
-                if (result == null)
-                {
-                    throw new InvalidOperationException("Null result from Calc Engine CalculateProviderResults");
-                }
+                            if (result == null)
+                            {
+                                throw new InvalidOperationException("Null result from Calc Engine CalculateProviderResults");
+                            }
 
-                providerResults.Add(result);
-            });
+                            providerResults.Add(result);
+                        }
+                        finally
+                        {
+                            throttler.Release();
+                        }
 
+                        //Console.WriteLine($"Finished calc run for {provider.Id}");
 
-            _logger.Information($"Calculating results complete for specification id {messageProperties.SpecificationId}");
+                        return Task.CompletedTask;
+                    }));
+            }
+
+            await TaskHelper.WhenAllAndThrow(allTasks.ToArray());
 
             calculationStopwatch.Stop();
+
+            _logger.Information($"Calculating results complete for specification id {messageProperties.SpecificationId} in {calculationStopwatch.ElapsedMilliseconds}ms");
 
             return new CalculationResultsModel
             {
                 ProviderResults = providerResults,
-                PartitionedSummaries = partitionedSummaries
+                PartitionedSummaries = partitionedSummaries,
+                CalculationRunMs = calculationStopwatch.ElapsedMilliseconds,
+                AssemblyLoadMs = assemblyLoadStopwatch.ElapsedMilliseconds,
             };
         }
 
@@ -821,12 +838,6 @@ namespace CalculateFunding.Services.CalcEngine
             {
                 _logger.Error($"Failed to add a job log for job id '{jobId}'");
             }
-        }
-
-        private void LogAndThrowException<T>(string message) where T : Exception
-        {
-            _logger.Error(message);
-            throw (T)Activator.CreateInstance(typeof(T), message);
         }
 
         private bool DoesNotExistInCache(IEnumerable<CalculationAggregation> aggregations)

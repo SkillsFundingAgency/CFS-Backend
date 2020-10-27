@@ -56,7 +56,6 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
                     MockResultsApiClient,
                     MockCalculatorResiliencePoliciesValidator,
                     MockCalculationEngineServiceValidator,
-                    MockMapper,
                     MockSpecificationAssemblyProvider
                     );
 
@@ -81,7 +80,6 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
         public ISpecificationsApiClient MockSpecificationsApiClient { get; set; } = Substitute.For<ISpecificationsApiClient>();
         public IPoliciesApiClient MockPoliciesApiClient { get; set; } = Substitute.For<IPoliciesApiClient>();
         public IResultsApiClient MockResultsApiClient { get; set; } = Substitute.For<IResultsApiClient>();
-        public IMapper MockMapper { get; set; } = Substitute.For<IMapper>();
         public ISpecificationAssemblyProvider MockSpecificationAssemblyProvider { get; set; } = Substitute.For<ISpecificationAssemblyProvider>();
         public AsyncPolicy MockCacheProviderPolicy { get; set; } = Policy.NoOpAsync();
         public AsyncPolicy MockMessengerPolicy { get; set; } = Policy.NoOpAsync();

@@ -81,7 +81,7 @@ namespace CalculateFunding.Services.Calculator
             AndTheProviderSourceDataset(_specificationId, providerIdThree, relationshipIdTwo, dataSetSeven);
             AndTheProviderSourceDataset(_specificationId, providerIdFour, relationshipIdTwo, dataSetEight);
 
-            IDictionary<string, IEnumerable<ProviderSourceDataset>> datasets = await _repository.GetProviderSourceDatasetsByProviderIdsAndRelationshipIds(
+            ProviderSourceDatasetLookupResult datasets = await _repository.GetProviderSourceDatasetsByProviderIdsAndRelationshipIds(
                _specificationId,
                 new[]
                 {
@@ -96,11 +96,11 @@ namespace CalculateFunding.Services.Calculator
                     relationshipIdTwo
                 });
 
-            datasets.SelectMany(x => x.Value).Count()
+            datasets.ProviderSourceDatasets.Values.SelectMany(x => x.Values).Count()
                 .Should()
                 .Be(8);
 
-            datasets.SelectMany(x => x.Value).Select(_ => _.Id)
+            datasets.ProviderSourceDatasets.Values.SelectMany(x => x.Values).Select(_ => _.Id)
                 .Should()
                 .BeEquivalentTo(new[]
                 {

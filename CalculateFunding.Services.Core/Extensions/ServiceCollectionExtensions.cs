@@ -1,25 +1,21 @@
 ﻿using System;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using CalculateFunding.Common.Caching;
-using CalculateFunding.Common.ServiceBus.Interfaces;
-using CalculateFunding.Common.Models;
 using CalculateFunding.Common.ServiceBus;
+using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Common.ServiceBus.Options;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Core.Logging;
 using CalculateFunding.Services.Core.Options;
-using CalculateFunding.Services.Core.Services;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
@@ -104,7 +100,7 @@ namespace CalculateFunding.Services.Core.Extensions
                 }
 
 #if DEBUG
-                loggerConfiguration.WriteTo.Console(LogEventLevel.Verbose);
+                loggerConfiguration.WriteTo.Console(LogEventLevel.Debug);
 #endif
 
                 return loggerConfiguration.CreateLogger();
@@ -252,7 +248,7 @@ namespace CalculateFunding.Services.Core.Extensions
             builder.AddSingleton<EngineSettings>(engineSettings);
 
             return builder;
-        }        
+        }
 
         public static IServiceCollection AddPolicySettings(this IServiceCollection builder, IConfiguration config)
         {

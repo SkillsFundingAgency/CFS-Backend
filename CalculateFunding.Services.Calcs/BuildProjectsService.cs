@@ -215,7 +215,8 @@ namespace CalculateFunding.Services.Calcs
                     })).Aggregate((partialLog, log) => $"{partialLog}\r\n{log}"));
                 }
 
-                LogAndThrowException<NonRetriableException>(errorMessage);
+                _logger.Error(errorMessage);
+                throw new NonRetriableException(errorMessage);
             }
 
             if (message.UserProperties.ContainsKey("ignore-save-provider-results"))
@@ -234,7 +235,8 @@ namespace CalculateFunding.Services.Calcs
                 if (!specificationSummaryResponse.StatusCode.IsSuccess())
                 {
                     string errorMessage = $"Unable to get specification summary by id: '{specificationId}' with status code: {specificationSummaryResponse.StatusCode}";
-                    LogAndThrowException<NonRetriableException>(errorMessage);
+                    _logger.Error(errorMessage);
+                    throw new NonRetriableException(errorMessage);
                 }
             }
 
@@ -286,8 +288,8 @@ namespace CalculateFunding.Services.Calcs
                     if (!refreshCacheFromApi.StatusCode.IsSuccess())
                     {
                         string errorMessage = $"Unable to re-generate scoped providers while building projects '{specificationId}' with status code: {refreshCacheFromApi.StatusCode}";
-
-                        LogAndThrowException<NonRetriableException>(errorMessage);
+                        _logger.Error(errorMessage);
+                        throw new NonRetriableException(errorMessage);
                     }
 
                     // returns true if job queued
@@ -302,7 +304,8 @@ namespace CalculateFunding.Services.Calcs
                 if (!jobCompletedSuccessfully)
                 {
                     string errorMessage = $"Unable to re-generate scoped providers while building projects '{specificationId}' job didn't complete successfully in time";
-                    LogAndThrowException<NonRetriableException>(errorMessage);
+                    _logger.Error(errorMessage);
+                    throw new NonRetriableException(errorMessage);
                 }
 
                 totalCount = await _cacheProvider.ListLengthAsync<ProviderSummary>(providerCacheKey);
@@ -373,7 +376,9 @@ namespace CalculateFunding.Services.Calcs
 
                 if (newJobsCount != batchCount)
                 {
-                    throw new Exception($"Only {newJobsCount} child jobs from {batchCount} were created with parent id: '{job.Id}'");
+                    string errorMessage = $"Only {newJobsCount} child jobs from {batchCount} were created with parent id: '{job.Id}'";
+                    _logger.Error(errorMessage); 
+                    throw new Exception(errorMessage);
                 }
                 else
                 {
@@ -795,8 +800,9 @@ namespace CalculateFunding.Services.Calcs
 
                 if (templateMapping == null)
                 {
-                    LogAndThrowException<Exception>(
-                        $"Did not locate Template Mapping for funding stream id {fundingStream.Id} and specification id {specificationId}");
+                    string errorMessage = $"Did not locate Template Mapping for funding stream id {fundingStream.Id} and specification id {specificationId}";
+                    _logger.Error(errorMessage);
+                    throw new Exception(errorMessage);
                 }
 
 
@@ -820,7 +826,7 @@ namespace CalculateFunding.Services.Calcs
             if (!datasetsApiClientResponse.StatusCode.IsSuccess())
             {
                 string message = $"No current dataset relationships found for specificationId '{specificationId}'.";
-                LogAndThrowException<RetriableException>(message);
+                throw new RetriableException(message);
             }
 
             IEnumerable<DatasetSpecificationRelationshipViewModel> datasetRelationshipModels = _mapper.Map<IEnumerable<DatasetSpecificationRelationshipViewModel>>(datasetsApiClientResponse.Content);
@@ -875,12 +881,6 @@ namespace CalculateFunding.Services.Calcs
             }
 
             return buildproject;
-        }
-
-        private void LogAndThrowException<T>(string message) where T : Exception
-        {
-            _logger.Error(message);
-            throw (T)Activator.CreateInstance(typeof(T), message);
         }
     }
 }

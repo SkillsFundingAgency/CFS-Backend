@@ -135,7 +135,7 @@ namespace CalculateFunding.Services.Profiling.Tests
             AndTheProfiling(request, profilePattern, profileResponse);
             AndTheReProfilingStrategyResponse(profileResponse, request, profilePattern, NewReProfileStrategyResult());
 
-            Func<Task<ActionResult<ReProfileResponse>>> invocation = () => WhenTheFundingLineIsReProfiled(request);
+            Func<Task<ActionResult<ReProfileResponse>>> invocation = async() => await WhenTheFundingLineIsReProfiled(request);
 
             invocation
                 .Should()
@@ -275,8 +275,8 @@ namespace CalculateFunding.Services.Profiling.Tests
                 });
         }
 
-        private async Task<ActionResult<ReProfileResponse>> WhenTheFundingLineIsReProfiled(ReProfileRequest request)
-            => await _service.ReProfile(request);
+        private Task<ActionResult<ReProfileResponse>> WhenTheFundingLineIsReProfiled(ReProfileRequest request)
+            => _service.ReProfile(request);
 
         private void GivenTheProfilePattern(ReProfileRequest request,
             FundingStreamPeriodProfilePattern profilePattern)

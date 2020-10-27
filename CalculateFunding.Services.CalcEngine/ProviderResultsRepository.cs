@@ -93,7 +93,6 @@ namespace CalculateFunding.Services.CalcEngine
             // ToArray required due to reevaulation of the providerResults further down
             providerResults = providerResults.Where(_ => ResultsHaveChanged(_, partitionIndex, partitionSize)).ToArray();
 
-
             IEnumerable<KeyValuePair<string, ProviderResult>> results = providerResults.Select(m => new KeyValuePair<string, ProviderResult>(m.Provider.Id, m));
 
             Task<long> cosmosSaveTask = BulkSaveProviderResults(results, degreeOfParallelism);

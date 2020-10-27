@@ -4,8 +4,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using CalculateFunding.Common.Utility;
-using Serilog;
 using Polly;
+using Serilog;
 // ReSharper disable InconsistentlySynchronizedField
 
 namespace CalculateFunding.Services.Core.Caching.FileSystem
@@ -13,7 +13,7 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
     public class FileSystemCache : IFileSystemCache
     {
         private static readonly object EvictionLock = new object();
-        
+
         private readonly ILogger _logger;
         private readonly IFileSystemAccess _fileSystemAccess;
         private readonly IFileSystemCacheSettings _settings;
@@ -54,7 +54,7 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
                 {
                     string message = $"Unable to evict all files older than {before} under {_settings.Path}.";
 
-                    _logger.Error(exception, message);   
+                    _logger.Error(exception, message);
                 }
                 finally
                 {
@@ -65,7 +65,7 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
 
         private void DeleteAllFilesCachedBefore(DateTimeOffset before)
         {
-            IEnumerable<string> filesToEvict = _fileSystemAccess.GetAllFiles(_settings.Path, 
+            IEnumerable<string> filesToEvict = _fileSystemAccess.GetAllFiles(_settings.Path,
                 file => file.CreationTimeUtc < before);
 
             foreach (string file in filesToEvict)
@@ -80,7 +80,7 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
 
                     _logger.Error(exception, message);
 
-                    throw new Exception(message, exception);   
+                    throw new Exception(message, exception);
                 }
             }
         }
@@ -104,7 +104,7 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
         public void Add(FileSystemCacheKey key, Stream contents, CancellationToken cancellationToken = default, bool ensureFolderExists = false)
         {
             string cachePathForKey = CachePathForKey(key);
-            
+
             try
             {
                 lock (KeyLockFor(key))
@@ -113,7 +113,7 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
                     {
                         EnsureFolderExists(Path.GetDirectoryName(cachePathForKey));
                     }
-                    
+
                     _fileSystemAccess.Write(cachePathForKey, contents, cancellationToken)
                         .GetAwaiter()
                         .GetResult();
@@ -121,7 +121,7 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
             }
             catch (IOException) when (_fileSystemAccess.Exists(cachePathForKey))
             {
-                _logger.Warning("Detected file collision for CachePathForKey(key). Swallowing exception");
+                _logger.Warning($"Detected file collision for {CachePathForKey(key)}. Swallowing exception");
             }
             catch (Exception exception)
             {
@@ -187,7 +187,7 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
             {
                 return KeyLocks.GetOrAdd(key.Key, new object());
             }
-            
+
             lock (EvictionLock)
             {
                 return KeyLocks.GetOrAdd(key.Key, new object());

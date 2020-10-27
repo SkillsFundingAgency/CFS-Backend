@@ -26,13 +26,16 @@
 
         public int GetCurrentProviderTestResultsDegreeOfParallelism { get; set; } = 5;
 
+        public int GetProviderSourceDatasetsFilesystemDegreeOfParallelism { get; set; } = 5;
+
+
         public int GetProviderSourceDatasetsDegreeOfParallelism { get; set; } = 5;
 
         /// <summary>
         /// Number of providers to index into search for calculation results in a single batch
         /// </summary>
         public int CalculationResultSearchIndexBatchSize { get; set; } = 100;
-        
+
         /// <summary>
         /// Feature toggle to control queueing test engine run after calc batch completes
         /// </summary>

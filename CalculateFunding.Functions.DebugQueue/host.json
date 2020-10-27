@@ -3,7 +3,8 @@
   "extensions": {
     "queues": {
       "visibilityTimeout": "00:05:00",
-      "maxDequeueCount": 3
+      "maxDequeueCount": 3,
+      "batchSize": 1
     }
   },
   "functionTimeout": "01:00:00"

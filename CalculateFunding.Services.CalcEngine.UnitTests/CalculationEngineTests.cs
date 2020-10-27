@@ -10,6 +10,7 @@ using CalculateFunding.Models.ProviderLegacy;
 using CalculateFunding.Services.CalcEngine;
 using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Services.CalcEngine.UnitTests;
+using CalculateFunding.Services.Core.Interfaces.Logging;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
@@ -33,7 +34,7 @@ namespace CalculateFunding.Services.Calculator
 
             IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
             mockAllocationModel
-                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>())
+                .Execute(Arg.Any<Dictionary<string, ProviderSourceDataset>>(), Arg.Any<ProviderSummary>())
                 .Throws(new DivideByZeroException());
 
             List<CalculationSummaryModel> models = new List<CalculationSummaryModel>
@@ -42,7 +43,7 @@ namespace CalculateFunding.Services.Calculator
             };
 
             ProviderSummary provider = new ProviderSummary();
-            List<ProviderSourceDataset> sourceDataset = new List<ProviderSourceDataset>();
+            Dictionary<string, ProviderSourceDataset> sourceDataset = new Dictionary<string, ProviderSourceDataset>();
 
             // Act
             Action calculateProviderResultMethod = () =>
@@ -63,7 +64,7 @@ namespace CalculateFunding.Services.Calculator
             IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
             mockAllocationModel
                 .Execute(
-                    Arg.Any<List<ProviderSourceDataset>>(), 
+                    Arg.Any<Dictionary<string, ProviderSourceDataset>>(), 
                     Arg.Any<ProviderSummary>(),
                     Arg.Any<IEnumerable<CalculationAggregation>>())
                 .Returns(new CalculationResultContainer
@@ -81,10 +82,10 @@ namespace CalculateFunding.Services.Calculator
                 buildProject.SpecificationId, 
                 null,
                 providerSummary, 
-                new List<ProviderSourceDataset>());
+                new Dictionary<string, ProviderSourceDataset>());
 
             // Assert
-            result.CalculationResults.Should().BeEmpty();
+            result.CalculationResults.Should().BeNull();
             result.Provider.Should().Be(providerSummary);
             result.SpecificationId.Should().BeEquivalentTo(buildProject.SpecificationId);
             result.Id.Should().BeEquivalentTo(GenerateId(providerSummary.Id, buildProject.SpecificationId));
@@ -160,7 +161,7 @@ namespace CalculateFunding.Services.Calculator
 
             IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
             mockAllocationModel
-                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>())
+                .Execute(Arg.Any<Dictionary<string, ProviderSourceDataset>>(), Arg.Any<ProviderSummary>())
                 .Returns(calculationResultContainer);
 
             CalculationEngine calculationEngine = CreateCalculationEngine();
@@ -202,14 +203,14 @@ namespace CalculateFunding.Services.Calculator
 
             // Act
             var calculateProviderResults = calculationEngine.CalculateProviderResults(mockAllocationModel, buildProject.SpecificationId, calculationSummaryModels,
-                providerSummary, new List<ProviderSourceDataset>());
+                providerSummary, new Dictionary<string, ProviderSourceDataset>());
             ProviderResult result = calculateProviderResults;
 
             // Assert
             result.Provider.Should().Be(providerSummary);
             result.SpecificationId.Should().BeEquivalentTo(buildProject.SpecificationId);
             result.Id.Should().BeEquivalentTo(GenerateId(providerSummary.Id, buildProject.SpecificationId));
-            result.CalculationResults.Should().HaveCount(4);
+            result.CalculationResults.Should().HaveCount(3);
             result.FundingLineResults.Should().HaveCount(1);
 
             CalculationResult fundingCalcResult = result.CalculationResults.First(cr => cr.Calculation.Id == fundingCalcReference.Id);
@@ -230,12 +231,6 @@ namespace CalculateFunding.Services.Calculator
             booleanCalcResult.Value.Should().Be(fundingCalcReturned3.Value);
             booleanCalcResult.CalculationDataType.Should().Be(CalculationDataType.Boolean);
 
-            CalculationResult nonMatchingCalcResult = result.CalculationResults.First(cr => cr.Calculation.Id == "Non matching calculation");
-            nonMatchingCalcResult.Calculation.Should().BeEquivalentTo(new Reference(nonMatchingCalculationModel.Id, nonMatchingCalculationModel.Name));
-            nonMatchingCalcResult.CalculationType.Should().BeEquivalentTo(nonMatchingCalculationModel.CalculationType);
-            nonMatchingCalcResult.Value.Should().BeNull();
-            nonMatchingCalcResult.CalculationDataType.Should().Be(CalculationDataType.Decimal);
-
             FundingLineResult fundingLineCalcResult = result.FundingLineResults.First(cr => cr.FundingLine.Id == fundingLineCalcReference.Id);
             fundingLineCalcResult.FundingLine.Should().BeEquivalentTo(fundingLineCalcReference);
             fundingLineCalcResult.Value.Should().Be(fundingLineResult.Value);
@@ -255,8 +250,8 @@ namespace CalculateFunding.Services.Calculator
         {
             return new CalculationEngine(
                 allocationFactory ?? CreateAllocationFactory(),
-                logger ?? CreateLogger()
-                );
+                logger ?? CreateLogger(),
+                CreateTelemetry());
         }
 
         private static ProviderSummary CreateDummyProviderSummary()
@@ -286,6 +281,11 @@ namespace CalculateFunding.Services.Calculator
         private static ILogger CreateLogger()
         {
             return Substitute.For<ILogger>();
+        }
+
+        private static ITelemetry CreateTelemetry()
+        {
+            return Substitute.For<ITelemetry>();
         }
     }
 }

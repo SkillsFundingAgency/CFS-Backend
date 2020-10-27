@@ -36,6 +36,7 @@ using FluentValidation;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Polly;
 using Polly.Bulkhead;
 using Serilog;
 using ServiceCollectionExtensions = CalculateFunding.Services.Core.Extensions.ServiceCollectionExtensions;
@@ -78,8 +79,8 @@ namespace CalculateFunding.Functions.CalcEngine
             }
 
             builder.AddScoped<ICalculationEngineService, CalculationEngineService>();
-            builder.AddSingleton<ICalculationEngine, CalculationEngine>();
-            builder.AddSingleton<IAllocationFactory, AllocationFactory>();
+            builder.AddScoped<ICalculationEngine, CalculationEngine>();
+            builder.AddScoped<IAllocationFactory, AllocationFactory>();
             builder.AddScoped<IJobHelperService, JobHelperService>();
             builder.AddScoped<IJobManagement, JobManagement>();
             builder.AddSingleton<IProviderSourceDatasetVersionKeyProvider, ProviderSourceDatasetVersionKeyProvider>();
@@ -225,14 +226,14 @@ namespace CalculateFunding.Functions.CalcEngine
             builder.AddSingleton<IBlobClient>(ctx =>
             {
                 BlobStorageOptions options = new BlobStorageOptions();
-                
+
                 config.Bind("AzureStorageSettings", options);
-                
+
                 options.ContainerName = "source";
-                
+
                 return new BlobClient(options, ctx.GetService<IBlobContainerRepository>());
             });
-            
+
 
             return builder.BuildServiceProvider();
         }
@@ -241,18 +242,32 @@ namespace CalculateFunding.Functions.CalcEngine
         {
             AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
 
+            //CalculatorResiliencePolicies resiliencePolicies = new CalculatorResiliencePolicies()
+            //{
+            //    ProviderResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+            //    ProviderSourceDatasetsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+            //    CacheProvider = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy),
+            //    Messenger = ResiliencePolicyHelpers.GenerateMessagingPolicy(totalNetworkRequestsPolicy),
+            //    CalculationsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+            //    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+            //    SpecificationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+            //    PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+            //    ResultsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+            //    BlobClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+            //};
             CalculatorResiliencePolicies resiliencePolicies = new CalculatorResiliencePolicies()
             {
-                ProviderResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
-                ProviderSourceDatasetsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
-                CacheProvider = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy),
-                Messenger = ResiliencePolicyHelpers.GenerateMessagingPolicy(totalNetworkRequestsPolicy),
-                CalculationsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                SpecificationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                ResultsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                BlobClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                ProviderResultsRepository = Policy.NoOpAsync(),
+                ProviderSourceDatasetsRepository = Policy.NoOpAsync(),
+                CacheProvider = Policy.NoOpAsync(),
+                Messenger = Policy.NoOpAsync(),
+                CalculationsRepository = Policy.NoOpAsync(),
+                JobsApiClient = Policy.NoOpAsync(),
+                SpecificationsApiClient = Policy.NoOpAsync(),
+                PoliciesApiClient = Policy.NoOpAsync(),
+                ResultsApiClient = Policy.NoOpAsync(),
+                BlobClient = Policy.NoOpAsync(),
+
             };
 
             return resiliencePolicies;

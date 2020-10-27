@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Jobs;
@@ -67,11 +68,14 @@ namespace CalculateFunding.Services.Jobs.Repositories
         {
             Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
 
-            CosmosDbQuery cosmosDbQuery = new CosmosDbQuery("SELECT TOP 1 * FROM Jobs AS j WHERE j.documentType = \"Job\" AND j.deleted = false");
+            DocumentEntity<Job> jobResult = await _cosmosRepository.TryReadDocumentByIdPartitionedAsync<Job>(jobId, jobId);
 
-            IEnumerable<Job> jobs = await _cosmosRepository.QueryPartitionedEntity<Job>(cosmosDbQuery, partitionKey: jobId);
+            if (jobResult != null && !jobResult.Deleted)
+            {
+                return jobResult.Content;
+            }
 
-            return jobs.FirstOrDefault();
+            return null;
         }
 
         public async Task<IEnumerable<Job>> GetRunningJobsForSpecificationAndJobDefinitionId(string specificationId, string jobDefinitionId)
