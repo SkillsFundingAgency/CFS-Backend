@@ -32,6 +32,8 @@ using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 using PoliciesApiModels = CalculateFunding.Common.ApiClient.Policies.Models;
 using CalcJob = CalculateFunding.Common.ApiClient.Calcs.Models.Job;
+using CalculateFunding.Common.ApiClient.Policies.Models;
+using CalculateFunding.Common.TemplateMetadata.Enums;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -50,6 +52,7 @@ namespace CalculateFunding.Services.Datasets
         private readonly IPolicyRepository _policyRepository;
         private readonly IValidator<DatasetDefinition> _datasetDefinitionValidator;
         private readonly AsyncPolicy _calculationsResilience;
+        private readonly IValidator<CreateDatasetDefinitionFromTemplateModel> _createDatasetDefinitionFromTemplateValidator;
         private readonly ICalculationsApiClient _calculations;
 
         public DefinitionsService(
@@ -63,7 +66,8 @@ namespace CalculateFunding.Services.Datasets
             IMessengerService messengerService,
             IPolicyRepository policyRepository,
             IValidator<DatasetDefinition> datasetDefinitionValidator,
-            ICalculationsApiClient calculations)
+            ICalculationsApiClient calculations,
+            IValidator<CreateDatasetDefinitionFromTemplateModel> createDatasetDefinitionFromTemplateValidator)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(dataSetsRepository, nameof(dataSetsRepository));
@@ -79,6 +83,7 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(datasetDefinitionValidator, nameof(datasetDefinitionValidator));
             Guard.ArgumentNotNull(calculations, nameof(calculations));
             Guard.ArgumentNotNull(datasetsResiliencePolicies?.CalculationsApiClient, nameof(datasetsResiliencePolicies.CalculationsApiClient));
+            Guard.ArgumentNotNull(createDatasetDefinitionFromTemplateValidator, nameof(createDatasetDefinitionFromTemplateValidator));
 
             _logger = logger;
             _datasetsRepository = dataSetsRepository;
@@ -94,6 +99,7 @@ namespace CalculateFunding.Services.Datasets
             _datasetDefinitionValidator = datasetDefinitionValidator;
             _calculations = calculations;
             _calculationsResilience = datasetsResiliencePolicies.CalculationsApiClient;
+            _createDatasetDefinitionFromTemplateValidator = createDatasetDefinitionFromTemplateValidator;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -148,95 +154,7 @@ namespace CalculateFunding.Services.Datasets
                 return new BadRequestObjectResult(errorMessage);
             }
 
-            DatasetDefinitionChanges datasetDefinitionChanges = new DatasetDefinitionChanges();
-
-            DatasetDefinition existingDefinition = await _datasetsRepositoryPolicy.ExecuteAsync(() => _datasetsRepository.GetDatasetDefinition(definition.Id));
-
-            IEnumerable<string> relationships = null;
-            
-            if (existingDefinition != null)
-            {
-                datasetDefinitionChanges = _definitionChangesDetectionService.DetectChanges(definition, existingDefinition);
-
-                relationships = await _datasetsRepositoryPolicy.ExecuteAsync(() => _datasetsRepository.GetDistinctRelationshipSpecificationIdsForDatasetDefinitionId(datasetDefinitionChanges.Id));
-
-                IEnumerable<FieldDefinitionChanges> fieldDefinitionChanges = datasetDefinitionChanges.TableDefinitionChanges.SelectMany(m => m.FieldChanges);
-
-                if (!relationships.IsNullOrEmpty() && !fieldDefinitionChanges.IsNullOrEmpty())
-                {
-                    if (fieldDefinitionChanges.Any(m => m.ChangeTypes.Any(c => c == FieldDefinitionChangeType.RemovedField)))
-                    {
-                        return new BadRequestObjectResult("Unable to remove a field as there are currently relationships setup against this schema");
-                    }
-
-                    if (fieldDefinitionChanges.Any(m => m.ChangeTypes.Any(c => c == FieldDefinitionChangeType.IdentifierType)))
-                    {
-                        return new BadRequestObjectResult("Unable to change provider identifier as there are currently relationships setup against this schema");
-                    }
-                }
-            }
-
-            try
-            {
-                HttpStatusCode result = await _datasetsRepositoryPolicy.ExecuteAsync(() => _datasetsRepository.SaveDefinition(definition));
-                if (!result.IsSuccess())
-                {
-                    int statusCode = (int)result;
-
-                    _logger.Error($"Failed to save yaml file: {yamlFilename} to cosmos db with status {statusCode}");
-
-                    return new StatusCodeResult(statusCode);
-                }
-
-                IEnumerable<PoliciesApiModels.FundingStream> fundingStreams = await _policyRepository.GetFundingStreams();
-                PoliciesApiModels.FundingStream fundingStream = fundingStreams.SingleOrDefault(_ => _.Id == definition.FundingStreamId);
-
-                await IndexDatasetDefinition(definition, fundingStream);
-            }
-            catch (Exception exception)
-            {
-                _logger.Error(exception, $"Exception occurred writing to yaml file: {yamlFilename} to cosmos db");
-
-                return new InternalServerErrorResult($"Exception occurred writing to yaml file: {yamlFilename} to cosmos db");
-            }
-
-            byte[] excelAsBytes = _excelWriter.Write(definition);
-
-            if (excelAsBytes == null || excelAsBytes.Length == 0)
-            {
-                _logger.Error($"Failed to generate excel file for {definition.Name}");
-
-                return new InternalServerErrorResult($"Failed to generate excel file for {definition.Name}");
-            }
-
-            try
-            {
-                await SaveToBlobStorage(excelAsBytes, definition.Name);
-            }
-            catch (Exception ex)
-            {
-                return new InternalServerErrorResult(ex.Message);
-            }
-
-            _logger.Information($"Successfully saved file: {yamlFilename} to cosmos db");
-
-            if (existingDefinition != null && datasetDefinitionChanges.HasChanges)
-            {
-                if (!relationships.IsNullOrEmpty())
-                {
-                    Task<ApiResponse<CalcJob>>[] updateCodeContextJobs =
-                        relationships.Select(specificationId => _calculationsResilience.ExecuteAsync(() => 
-                            _calculations.QueueCodeContextUpdate(specificationId))).ToArray();
-
-                    await TaskHelper.WhenAllAndThrow(updateCodeContextJobs);
-                }
-                
-                IDictionary<string, string> properties = MessageExtensions.BuildMessageProperties(correlationId, user);
-
-                await _messengerService.SendToTopic(ServiceBusConstants.TopicNames.DataDefinitionChanges, datasetDefinitionChanges, properties);
-            }
-
-            return new OkResult();
+            return await SaveDatasetDefinition(definition, correlationId, user);
         }
 
         private async Task<IEnumerable<IndexError>> IndexDatasetDefinition(DatasetDefinition definition, PoliciesApiModels.FundingStream fundingStream)
@@ -400,6 +318,198 @@ namespace CalculateFunding.Services.Datasets
             string blobUrl = _blobClient.GetBlobSasUrl(fileName, DateTimeOffset.UtcNow.AddDays(1), SharedAccessBlobPermissions.Read);
 
             return new OkObjectResult(new DatasetSchemaSasUrlResponseModel { SchemaUrl = blobUrl });
+        }
+
+        public async Task<IActionResult> CreateOrUpdateDatasetDefinition(CreateDatasetDefinitionFromTemplateModel model, string correlationId, Reference user)
+        {
+            ValidationResult validationResult = await _createDatasetDefinitionFromTemplateValidator.ValidateAsync(model);
+            if (!validationResult.IsValid)
+            {
+                string errorMessage = string.Join(";", validationResult.Errors.Select(x => x.ErrorMessage));
+                _logger.Error(errorMessage);
+                return new BadRequestObjectResult(errorMessage);
+            };
+
+            FundingStream fundingStream = await _policyRepository.GetFundingStream(model.FundingStreamId);
+            TemplateMetadataDistinctCalculationsContents templateContents = await _policyRepository.GetDistinctTemplateMetadataCalculationsContents(model.FundingStreamId, model.FundingPeriodId, model.TemplateVersion);
+
+            if(templateContents == null)
+            {
+                return new BadRequestObjectResult($"No funding template for given FundingStreamId " +
+                    $"- {model.FundingStreamId}, FundingPeriodId - {model.FundingPeriodId}, TemplateVersion - {model.TemplateVersion}");
+            }
+
+            DatasetDefinition datasetDefinition = CreateDatasetDefinition(model, templateContents, fundingStream);
+
+            return await SaveDatasetDefinition(datasetDefinition, correlationId, user);
+        }
+
+        private static DatasetDefinition CreateDatasetDefinition(
+            CreateDatasetDefinitionFromTemplateModel model,
+            TemplateMetadataDistinctCalculationsContents templateContent,
+            FundingStream fundingStream)
+        {
+            int id = model.DatasetDefinitionId;
+            string name = $"{fundingStream.Name}-{model.TemplateVersion}";
+            DatasetDefinition datasetDefinition = new DatasetDefinition()
+            {
+                Id = id.ToString(),
+                Name = name,
+                Description = name,
+                FundingStreamId = fundingStream.Id
+            };
+
+            id += 1;
+            datasetDefinition.TableDefinitions = new List<TableDefinition>();
+            TableDefinition tableDefinition = new TableDefinition
+            {
+                Id = id.ToString(),
+                Name = name,
+                FieldDefinitions = new List<FieldDefinition>()
+            };
+
+            id += 1;
+            tableDefinition.FieldDefinitions.Add(new FieldDefinition()
+            {
+                Id = id.ToString(),
+                Name = "UKPRN",
+                IdentifierFieldType = IdentifierFieldType.UKPRN,
+                Type = FieldType.String,
+                Required = true
+            });
+
+            foreach (TemplateMetadataCalculation calculation in templateContent.Calculations)
+            {
+                id += 1;
+                FieldDefinition fieldDefinition = new FieldDefinition()
+                {
+                    Id = id.ToString(),
+                    Name = calculation.Name,
+                    Required = false,
+                    Type = GetFieldType(calculation.Type),
+                    IsAggregable = calculation.AggregationType != AggregationType.None
+                };
+
+                tableDefinition.FieldDefinitions.Add(fieldDefinition);
+            }
+
+            datasetDefinition.TableDefinitions.Add(tableDefinition);
+
+            return datasetDefinition;
+        }
+
+        private static FieldType GetFieldType(CalculationType calculationType)
+        {
+            switch (calculationType)
+            {
+                case CalculationType.Cash:
+                case CalculationType.Rate:
+                case CalculationType.PupilNumber:
+                case CalculationType.Weighting:
+                case CalculationType.PerPupilFunding:
+                case CalculationType.LumpSum:
+                case CalculationType.Number:
+                    return FieldType.NullableOfDecimal;
+                case CalculationType.Boolean:
+                    return FieldType.Boolean;
+                case CalculationType.Enum:
+                    return FieldType.String;
+                default:
+                    return FieldType.String;
+            }
+        }
+
+        private async Task<IActionResult> SaveDatasetDefinition(DatasetDefinition definition, string correlationId, Reference user)
+        {
+            DatasetDefinitionChanges datasetDefinitionChanges = new DatasetDefinitionChanges();
+
+            DatasetDefinition existingDefinition = await _datasetsRepositoryPolicy.ExecuteAsync(() => _datasetsRepository.GetDatasetDefinition(definition.Id));
+
+            IEnumerable<string> relationships = null;
+
+            if (existingDefinition != null)
+            {
+                datasetDefinitionChanges = _definitionChangesDetectionService.DetectChanges(definition, existingDefinition);
+
+                relationships = await _datasetsRepositoryPolicy.ExecuteAsync(() => _datasetsRepository.GetDistinctRelationshipSpecificationIdsForDatasetDefinitionId(datasetDefinitionChanges.Id));
+
+                IEnumerable<FieldDefinitionChanges> fieldDefinitionChanges = datasetDefinitionChanges.TableDefinitionChanges.SelectMany(m => m.FieldChanges);
+
+                if (!relationships.IsNullOrEmpty() && !fieldDefinitionChanges.IsNullOrEmpty())
+                {
+                    if (fieldDefinitionChanges.Any(m => m.ChangeTypes.Any(c => c == FieldDefinitionChangeType.RemovedField)))
+                    {
+                        return new BadRequestObjectResult("Unable to remove a field as there are currently relationships setup against this schema");
+                    }
+
+                    if (fieldDefinitionChanges.Any(m => m.ChangeTypes.Any(c => c == FieldDefinitionChangeType.IdentifierType)))
+                    {
+                        return new BadRequestObjectResult("Unable to change provider identifier as there are currently relationships setup against this schema");
+                    }
+                }
+            }
+
+            try
+            {
+                HttpStatusCode result = await _datasetsRepositoryPolicy.ExecuteAsync(() => _datasetsRepository.SaveDefinition(definition));
+                if (!result.IsSuccess())
+                {
+                    int statusCode = (int)result;
+
+                    _logger.Error($"Failed to save dataset definition - {definition.Name} to cosmos db with status {statusCode}");
+
+                    return new StatusCodeResult(statusCode);
+                }
+
+                IEnumerable<PoliciesApiModels.FundingStream> fundingStreams = await _policyRepository.GetFundingStreams();
+                PoliciesApiModels.FundingStream fundingStream = fundingStreams.SingleOrDefault(_ => _.Id == definition.FundingStreamId);
+
+                await IndexDatasetDefinition(definition, fundingStream);
+            }
+            catch (Exception exception)
+            {
+                string errorMessage = $"Exception occurred writing dataset definition - {definition.Name} to cosmos db";
+                _logger.Error(exception, errorMessage);
+                return new InternalServerErrorResult(errorMessage);
+            }
+
+            byte[] excelAsBytes = _excelWriter.Write(definition);
+
+            if (excelAsBytes == null || excelAsBytes.Length == 0)
+            {
+                string errorMessage = $"Failed to generate excel file for {definition.Name}";
+                _logger.Error(errorMessage);
+                return new InternalServerErrorResult(errorMessage);
+            }
+
+            try
+            {
+                await SaveToBlobStorage(excelAsBytes, definition.Name);
+            }
+            catch (Exception ex)
+            {
+                return new InternalServerErrorResult(ex.Message);
+            }
+
+            _logger.Information($"Successfully saved dataset definition - {definition.Name} to cosmos db");
+
+            if (existingDefinition != null && datasetDefinitionChanges.HasChanges)
+            {
+                if (!relationships.IsNullOrEmpty())
+                {
+                    Task<ApiResponse<CalcJob>>[] updateCodeContextJobs =
+                        relationships.Select(specificationId => _calculationsResilience.ExecuteAsync(() =>
+                            _calculations.QueueCodeContextUpdate(specificationId))).ToArray();
+
+                    await TaskHelper.WhenAllAndThrow(updateCodeContextJobs);
+                }
+
+                IDictionary<string, string> properties = MessageExtensions.BuildMessageProperties(correlationId, user);
+
+                await _messengerService.SendToTopic(ServiceBusConstants.TopicNames.DataDefinitionChanges, datasetDefinitionChanges, properties);
+            }
+
+            return new OkResult();
         }
     }
 }

@@ -45,6 +45,12 @@ using Trigger = CalculateFunding.Common.ApiClient.Jobs.Models.Trigger;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Results;
+using CalculateFunding.Common.ApiClient.DataSets;
+using Polly;
+using ApiClientSelectDatasourceModel = CalculateFunding.Common.ApiClient.DataSets.Models.SelectDatasourceModel;
+using ApiClientDatasetDefinition = CalculateFunding.Common.ApiClient.DataSets.Models.DatasetDefinition;
+using ApiClientTableDefinition = CalculateFunding.Common.ApiClient.DataSets.Models.TableDefinition;
+using ApiClientFieldDefinition = CalculateFunding.Common.ApiClient.DataSets.Models.FieldDefinition;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -74,6 +80,8 @@ namespace CalculateFunding.Services.Calcs
         private readonly Polly.AsyncPolicy _policiesApiClientPolicy;
         private readonly IResultsApiClient _resultsApiClient;
         private readonly Polly.AsyncPolicy _resultsApiClientPolicy;
+        private readonly IDatasetsApiClient _datasetsApiClient;
+        private readonly AsyncPolicy _datasetsApiClientPolicy;
         private readonly ISpecificationsApiClient _specificationsApiClient;
         private readonly Polly.AsyncPolicy _specificationsApiClientPolicy;
         private readonly IValidator<CalculationEditModel> _calculationEditModelValidator;
@@ -106,7 +114,8 @@ namespace CalculateFunding.Services.Calcs
             IGraphRepository graphRepository,
             IJobManagement jobManagement,
             ICodeContextCache codeContextCache,
-            IResultsApiClient resultsApiClient)
+            IResultsApiClient resultsApiClient,
+            IDatasetsApiClient datasetsApiClient)
         {
             Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -134,10 +143,12 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(resiliencePolicies?.PoliciesApiClient, nameof(resiliencePolicies.PoliciesApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsApiClient, nameof(resiliencePolicies.SpecificationsApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.ResultsApiClient, nameof(resiliencePolicies.ResultsApiClient));
+            Guard.ArgumentNotNull(resiliencePolicies?.DatasetsApiClient, nameof(resiliencePolicies.DatasetsApiClient));
             Guard.ArgumentNotNull(graphRepository, nameof(graphRepository));
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(codeContextCache, nameof(codeContextCache));
             Guard.ArgumentNotNull(resultsApiClient, nameof(resultsApiClient));
+            Guard.ArgumentNotNull(datasetsApiClient, nameof(datasetsApiClient));
 
             _calculationsRepository = calculationsRepository;
             _logger = logger;
@@ -169,6 +180,8 @@ namespace CalculateFunding.Services.Calcs
             _codeContextCache = codeContextCache;
             _resultsApiClient = resultsApiClient;
             _resultsApiClientPolicy = resiliencePolicies?.ResultsApiClient;
+            _datasetsApiClient = datasetsApiClient;
+            _datasetsApiClientPolicy = resiliencePolicies?.DatasetsApiClient;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -1057,6 +1070,71 @@ namespace CalculateFunding.Services.Calcs
             }
         }
 
+        public async Task<IActionResult> UpdateTemplateCalculationsForSpecification(string specificationId, string datasetRelationshipId, Reference user)
+        {
+            IEnumerable<Calculation> templateCalculations = (await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetTemplateCalculationsBySpecificationId(specificationId))).ToList();
+
+            if (templateCalculations.IsNullOrEmpty())
+            {
+                string message = $"No template calculations found for specification id '{specificationId}'";
+                _logger.Information(message);
+                return new NotFoundObjectResult(message);
+            }
+
+            ApiResponse<ApiClientSelectDatasourceModel> datasetRelationshipResponse = await _datasetsApiClientPolicy.ExecuteAsync(() => _datasetsApiClient.GetDataSourcesByRelationshipId(datasetRelationshipId));
+            if (!datasetRelationshipResponse.StatusCode.IsSuccess() || datasetRelationshipResponse.Content == null)
+            {
+                string message = $"No dataset relationship found for dataset relationship id '{datasetRelationshipId}'";
+                _logger.Information(message);
+                return new NotFoundObjectResult(message);
+            }
+            ApiClientSelectDatasourceModel relationshipDatasourceModel = datasetRelationshipResponse.Content;
+
+            ApiResponse<ApiClientDatasetDefinition> datasetDefinitionResponse = await _datasetsApiClientPolicy.ExecuteAsync(() => _datasetsApiClient.GetDatasetDefinitionById(relationshipDatasourceModel.DefinitionId));
+            if(!datasetDefinitionResponse.StatusCode.IsSuccess() || datasetDefinitionResponse.Content == null)
+            {
+                string message = $"No dataset definition found for dataset definition id '{relationshipDatasourceModel.DefinitionId}'";
+                _logger.Information(message);
+                return new NotFoundObjectResult(message);
+            }
+
+            ApiResponse<SpecModel.SpecificationSummary> specificationResponse = await _specificationsApiClientPolicy.ExecuteAsync(() =>
+                _specificationsApiClient.GetSpecificationSummaryById(specificationId));
+            SpecModel.SpecificationSummary specificationSummary = specificationResponse?.Content;
+
+            if (!specificationResponse.StatusCode.IsSuccess() || specificationSummary == null)
+            {
+                string message = $"No specification with id {specificationId}. Unable to get Specification Summary for calculation";
+                _logger.Information(message);
+                return new NotFoundObjectResult(message);
+            }
+
+            ApiClientDatasetDefinition datasetDefinition = datasetDefinitionResponse.Content;
+            ApiClientTableDefinition tableDefinition = datasetDefinition.TableDefinitions.First();
+
+            foreach (Calculation templateCalculation in templateCalculations)
+            {
+                ApiClientFieldDefinition fieldDefinition = tableDefinition.FieldDefinitions.FirstOrDefault(x => x.Name == templateCalculation.Name);
+
+                if(fieldDefinition != null)
+                {
+                    CalculationVersion calculationVersion = templateCalculation.Current.Clone() as CalculationVersion;
+
+                    calculationVersion.SourceCode = $"Return Datasets.{VisualBasicTypeGenerator.GenerateIdentifier(relationshipDatasourceModel.RelationshipName)}.{VisualBasicTypeGenerator.GenerateIdentifier(fieldDefinition.Name)}";
+                    calculationVersion.PublishStatus = Models.Versioning.PublishStatus.Approved;
+
+                    UpdateCalculationResult updateCalculationResult = await UpdateCalculation(templateCalculation, calculationVersion, user, updateBuildProject: false);
+                }
+            }
+            
+            await UpdateBuildProject(specificationSummary);
+
+            string cacheKey = $"{CacheKeys.CalculationsMetadataForSpecification}{specificationId}";
+            await _cachePolicy.ExecuteAsync(() => _cacheProvider.RemoveAsync<List<CalculationMetadata>>(cacheKey));
+
+            return new OkResult();
+        }
+
         private async Task TrackJobFailed(string jobId, Exception exception)
         {
             await AddJobTracking(jobId, new JobLogUpdateModel
@@ -1120,7 +1198,7 @@ namespace CalculateFunding.Services.Calcs
                     {
                         CalculationVersion calculationVersion = calculation.Current.Clone() as CalculationVersion;
                         calculationVersion.SourceCode = result;
-
+                        
                         UpdateCalculationResult updateCalculationResult = await UpdateCalculation(calculation, calculationVersion, user, updateBuildProject: false);
 
                         updatedCalculations.Add(updateCalculationResult.Calculation);

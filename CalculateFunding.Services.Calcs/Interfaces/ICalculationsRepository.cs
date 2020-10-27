@@ -15,6 +15,8 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 
         Task<IEnumerable<Calculation>> GetCalculationsBySpecificationId(string specificationId);
 
+        Task<IEnumerable<Calculation>> GetTemplateCalculationsBySpecificationId(string specificationId);
+
         Task<HttpStatusCode> UpdateCalculation(Calculation calculation);
 
         Task<IEnumerable<Calculation>> GetAllCalculations();

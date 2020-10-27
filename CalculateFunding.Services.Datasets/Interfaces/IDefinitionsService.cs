@@ -19,5 +19,6 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         Task<IActionResult> GetDatasetDefinitionsByFundingStreamId(string fundingStreamId);
 
         Task<IActionResult> GetDatasetSchemaSasUrl(DatasetSchemaSasUrlRequestModel datasetSchemaSasUrlRequestModel);
+        Task<IActionResult> CreateOrUpdateDatasetDefinition(CreateDatasetDefinitionFromTemplateModel createDatasetDefinitionModel, string correlationId, Reference user);
     }
 }

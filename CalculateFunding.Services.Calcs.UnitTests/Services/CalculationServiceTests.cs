@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using CalculateFunding.Common.ApiClient.DataSets;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Results;
@@ -57,7 +58,8 @@ namespace CalculateFunding.Services.Calcs.Services
             ICalculationsFeatureFlag calculationsFeatureFlag = null,
             ICodeContextCache codeContextCache = null,
             ISourceFileRepository sourceFileRepository = null,
-            IResultsApiClient resultsApiClient = null)
+            IResultsApiClient resultsApiClient = null,
+            IDatasetsApiClient datasetsApiClient = null)
         {
             CalculationNameInUseCheck calculationNameInUseCheck = new CalculationNameInUseCheck(calculationsRepository ?? CreateCalculationsRepository(),
                 specificationsApiClient ?? CreateSpecificationsApiClient(),
@@ -102,7 +104,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 graphRepository?? CreateGraphRepository(),
                 CreateJobManagement(),
                 codeContextCache ?? Substitute.For<ICodeContextCache>(),
-                resultsApiClient ?? Substitute.For<IResultsApiClient>());
+                resultsApiClient ?? Substitute.For<IResultsApiClient>(),
+                datasetsApiClient ?? Substitute.For<IDatasetsApiClient>());
         }
 
         private static ICalculationCodeReferenceUpdate CreateCalculationCodeReferenceUpdate()
@@ -183,6 +186,11 @@ namespace CalculateFunding.Services.Calcs.Services
         private static IResultsApiClient CreateResultsApiClient()
         {
             return Substitute.For<IResultsApiClient>();
+        }
+
+        private static IDatasetsApiClient CreateDatasetsApiClient()
+        {
+            return Substitute.For<IDatasetsApiClient>();
         }
 
         private static IBuildProjectsRepository CreateBuildProjectsRepository()

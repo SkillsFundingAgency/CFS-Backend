@@ -26,6 +26,8 @@ using FluentValidation.Results;
 using PoliciesApiModels = CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Tests.Common.Builders;
 using CalculateFunding.Tests.Common.Helpers;
+using CalculateFunding.Common.Models;
+using CalculateFunding.Common.ApiClient.Policies.Models;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
@@ -275,7 +277,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             logger
                 .Received(1)
-                .Error(Arg.Is($"Failed to save yaml file: {yamlFile} to cosmos db with status 502"));
+                .Error(Arg.Is($"Failed to save dataset definition - 14/15 to cosmos db with status 502"));
         }
 
         [TestMethod]
@@ -310,11 +312,11 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Which
                 .Value
                 .Should()
-                .Be("Exception occurred writing to yaml file: 12345.yaml to cosmos db");
+                .Be("Exception occurred writing dataset definition - 14/15 to cosmos db");
 
             logger
                 .Received(1)
-                .Error(Arg.Any<Exception>(), Arg.Is($"Exception occurred writing to yaml file: {yamlFile} to cosmos db"));
+                .Error(Arg.Any<Exception>(), Arg.Is($"Exception occurred writing dataset definition - 14/15 to cosmos db"));
         }
 
         [TestMethod]
@@ -542,7 +544,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             logger
                 .Received(1)
-                .Information(Arg.Is($"Successfully saved file: {yamlFile} to cosmos db"));
+                .Information(Arg.Is($"Successfully saved dataset definition - 14/15 to cosmos db"));
         }
 
         [TestMethod]
@@ -644,7 +646,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             logger
                 .Received(1)
-                .Information(Arg.Is($"Successfully saved file: {yamlFile} to cosmos db"));
+                .Information(Arg.Is($"Successfully saved dataset definition - 14/15 to cosmos db"));
         }
 
         [TestMethod]
@@ -740,7 +742,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             logger
                 .Received(1)
-                .Information(Arg.Is($"Successfully saved file: {yamlFile} to cosmos db"));
+                .Information(Arg.Is($"Successfully saved dataset definition - 14/15 to cosmos db"));
         }
 
         [TestMethod]
@@ -1201,6 +1203,179 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetBlobSasUrl(Arg.Is("schemas/14 15.xlsx"), Arg.Any<DateTimeOffset>(), Arg.Any<SharedAccessBlobPermissions>());
         }
 
+        [TestMethod]
+        public async Task CreateOrUpdateDatasetDefinition_GivenFundingTemplate_ShouldSaveDatasetDefinitionSuccessfuly()
+        {
+            //Arrange
+            string fundingStreamId = NewRandomString();
+            string fundingStreamName = NewRandomString();
+            string fundingPeriodId = NewRandomString();
+            string templateVersion = $"{NewRandomNumberBetween(0, 100).ToString()}.{NewRandomNumberBetween(0, 100).ToString()}";
+            int definitionId = NewRandomNumberBetween(0, int.MaxValue);
+            string definitionName = $"{fundingStreamName}-{templateVersion}";
+
+            CreateDatasetDefinitionFromTemplateModel model = new CreateDatasetDefinitionFromTemplateModel()
+            {
+                FundingStreamId = fundingStreamId,
+                FundingPeriodId = fundingPeriodId,
+                TemplateVersion =  templateVersion,
+                DatasetDefinitionId = definitionId
+            };
+            string correlationId = NewRandomString();
+            Reference user = new Reference(NewRandomString(), NewRandomString());
+            FundingStream fundingStream = NewApiFundingStream(_ => _.WithId(fundingStreamId).WithName(fundingStreamName));
+
+            TemplateMetadataDistinctCalculationsContents contents = new TemplateMetadataDistinctCalculationsContents()
+            {
+                FundingStreamId = fundingStreamId,
+                FundingPeriodId = fundingPeriodId,
+                TemplateVersion = templateVersion,
+                Calculations = new List<TemplateMetadataCalculation>() 
+                { 
+                    new TemplateMetadataCalculation() 
+                    {
+                        Name = $"1_{NewRandomString()}",
+                        Type = Common.TemplateMetadata.Enums.CalculationType.Number,
+                        AggregationType = Common.TemplateMetadata.Enums.AggregationType.Sum
+                    },
+                    new TemplateMetadataCalculation()
+                    {
+                        Name = $"2_{NewRandomString()}",
+                        Type = Common.TemplateMetadata.Enums.CalculationType.Boolean,
+                        AggregationType = Common.TemplateMetadata.Enums.AggregationType.None
+                    },
+                    new TemplateMetadataCalculation()
+                    {
+                        Name = $"3_{NewRandomString()}",
+                        Type = Common.TemplateMetadata.Enums.CalculationType.Enum,
+                        AggregationType = Common.TemplateMetadata.Enums.AggregationType.None
+                    },
+                    new TemplateMetadataCalculation()
+                    {
+                        Name = $"4_{NewRandomString()}",
+                        Type = Common.TemplateMetadata.Enums.CalculationType.Information,
+                        AggregationType = Common.TemplateMetadata.Enums.AggregationType.None
+                    }
+                }
+            };
+
+            ILogger logger = CreateLogger();
+
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingStreams()
+                .Returns(new[] { fundingStream });
+            policyRepository
+                .GetFundingStream(Arg.Is(fundingStreamId))
+                .Returns(fundingStream);
+            policyRepository
+                .GetDistinctTemplateMetadataCalculationsContents(Arg.Is(fundingStreamId), Arg.Is(fundingPeriodId), Arg.Is(templateVersion))
+                .Returns(contents);
+
+            HttpStatusCode statusCode = HttpStatusCode.Created;
+
+            DatasetDefinitionIndex existingIndex = new DatasetDefinitionIndex()
+            {
+                Description = definitionName,
+                Id = definitionId.ToString(),
+                LastUpdatedDate = new DateTimeOffset(2018, 6, 19, 14, 10, 2, TimeSpan.Zero),
+                ModelHash = "OLDHASH",
+                Name = definitionName,
+                ProviderIdentifier = "None",
+            };
+
+            IDatasetRepository datasetsRepository = CreateDataSetsRepository();
+            datasetsRepository
+                .SaveDefinition(Arg.Any<DatasetDefinition>())
+                .Returns(statusCode);
+
+            ISearchRepository<DatasetDefinitionIndex> searchRepository = CreateDatasetDefinitionSearchRepository();
+            searchRepository
+                .SearchById(Arg.Is(definitionId.ToString()))
+                .Returns(existingIndex);
+
+            byte[] excelAsBytes = new byte[100];
+
+            IExcelWriter<DatasetDefinition> excelWriter = CreateExcelWriter();
+            excelWriter
+                .Write(Arg.Any<DatasetDefinition>())
+                .Returns(excelAsBytes);
+
+            ICloudBlob blob = Substitute.For<ICloudBlob>();
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .GetBlockBlobReference(Arg.Any<string>())
+                .Returns(blob);
+
+            DatasetDefinitionChanges datasetDefinitionChanges = new DatasetDefinitionChanges();
+
+            IDefinitionChangesDetectionService definitionChangesDetectionService = CreateChangesDetectionService();
+            definitionChangesDetectionService
+                .DetectChanges(Arg.Any<DatasetDefinition>(), Arg.Any<DatasetDefinition>())
+                .Returns(datasetDefinitionChanges);
+
+            DefinitionsService service = CreateDefinitionsService(
+                logger,
+                datasetsRepository,
+                searchRepository,
+                excelWriter: excelWriter,
+                blobClient: blobClient,
+                definitionChangesDetectionService: definitionChangesDetectionService,
+                policyRepository: policyRepository);
+
+            //Act
+            IActionResult result = await service.CreateOrUpdateDatasetDefinition(model, correlationId, user);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkResult>();
+
+            await searchRepository
+                 .Received(1)
+                 .SearchById(Arg.Is(definitionId.ToString()));
+
+            await searchRepository
+                .Received(1)
+                .Index(Arg.Is<IEnumerable<DatasetDefinitionIndex>>(
+                    i => i.First().Description == definitionName &&
+                    i.First().Id == definitionId.ToString() &&
+                    i.First().Name == definitionName));
+
+            await datasetsRepository
+                .Received(1)
+                .SaveDefinition(Arg.Is<DatasetDefinition>(
+                    i => i.Description == definitionName &&
+                    i.Id == definitionId.ToString() &&
+                    i.Name == definitionName &&
+                    i.TableDefinitions[0].FieldDefinitions.Count() == contents.Calculations.Count() + 1 &&
+                    i.TableDefinitions[0].FieldDefinitions.Single(x => x.Name == "UKPRN") != null &&
+                    i.TableDefinitions[0].FieldDefinitions.Single(x => x.Name == "UKPRN").Required == true &&
+                    i.TableDefinitions[0].FieldDefinitions.Single(x => x.Name == "UKPRN").Type == FieldType.String &&
+
+                    i.TableDefinitions[0].FieldDefinitions.Single(x => x.Name.StartsWith("1")).Required == false &&
+                    i.TableDefinitions[0].FieldDefinitions.Single(x => x.Name.StartsWith("1")).Type == FieldType.NullableOfDecimal &&
+                    i.TableDefinitions[0].FieldDefinitions.Single(x => x.Name.StartsWith("1")).IsAggregable == true &&
+
+                    i.TableDefinitions[0].FieldDefinitions.Single(x => x.Name.StartsWith("2")).Required == false &&
+                    i.TableDefinitions[0].FieldDefinitions.Single(x => x.Name.StartsWith("2")).Type == FieldType.Boolean &&
+                    i.TableDefinitions[0].FieldDefinitions.Single(x => x.Name.StartsWith("2")).IsAggregable == false &&
+
+                    i.TableDefinitions[0].FieldDefinitions.Single(x => x.Name.StartsWith("3")).Required == false &&
+                    i.TableDefinitions[0].FieldDefinitions.Single(x => x.Name.StartsWith("3")).Type == FieldType.String &&
+                    i.TableDefinitions[0].FieldDefinitions.Single(x => x.Name.StartsWith("3")).IsAggregable == false &&
+
+                    i.TableDefinitions[0].FieldDefinitions.Single(x => x.Name.StartsWith("4")).Required == false &&
+                    i.TableDefinitions[0].FieldDefinitions.Single(x => x.Name.StartsWith("4")).Type == FieldType.String &&
+                    i.TableDefinitions[0].FieldDefinitions.Single(x => x.Name.StartsWith("4")).IsAggregable == false
+                   ));
+
+            logger
+                .Received(1)
+                .Information(Arg.Is($"Successfully saved dataset definition - {definitionName} to cosmos db"));
+        }
+
         static DefinitionsService CreateDefinitionsService(
             ILogger logger = null,
             IDatasetRepository datasetsRepository = null,
@@ -1212,7 +1387,8 @@ namespace CalculateFunding.Services.Datasets.Services
             IMessengerService messengerService = null,
             IPolicyRepository policyRepository = null,
             IValidator<DatasetDefinition> datasetDefinitionValidator = null,
-            ICalculationsApiClient calculations = null)
+            ICalculationsApiClient calculations = null,
+            IValidator<CreateDatasetDefinitionFromTemplateModel> datasetDefinitionFromTemplateValidator = null)
         {
             return new DefinitionsService(logger ?? CreateLogger(),
                 datasetsRepository ?? CreateDataSetsRepository(),
@@ -1224,7 +1400,8 @@ namespace CalculateFunding.Services.Datasets.Services
                  messengerService ?? CreateMessengerService(),
                  policyRepository ?? CreatePolicyRepository(),
                  datasetDefinitionValidator ?? CreateDatasetDefinitionValidator(),
-                 calculations ?? CreateCalculationsApiClient());
+                 calculations ?? CreateCalculationsApiClient(),
+                 datasetDefinitionFromTemplateValidator ?? CreateDatasetDefinitionFromTemplateValidator());
         }
 
         protected static ICalculationsApiClient CreateCalculationsApiClient() => Substitute.For<ICalculationsApiClient>();
@@ -1245,6 +1422,21 @@ namespace CalculateFunding.Services.Datasets.Services
             return validator;
         }
 
+        static IValidator<CreateDatasetDefinitionFromTemplateModel> CreateDatasetDefinitionFromTemplateValidator(ValidationResult validationResult = null)
+        {
+            if (validationResult == null)
+            {
+                validationResult = new ValidationResult();
+            }
+
+            IValidator<CreateDatasetDefinitionFromTemplateModel> validator = Substitute.For<IValidator<CreateDatasetDefinitionFromTemplateModel>>();
+
+            validator
+               .ValidateAsync(Arg.Any<CreateDatasetDefinitionFromTemplateModel>())
+               .Returns(validationResult);
+
+            return validator;
+        }
         static IPolicyRepository CreatePolicyRepository()
         {
             return Substitute.For<IPolicyRepository>();
@@ -1345,5 +1537,6 @@ namespace CalculateFunding.Services.Datasets.Services
 
         private string NewRandomString() => new RandomString();
 
+        private int NewRandomNumberBetween(int min, int max) => new RandomNumberBetween(min, max);
     }
 }

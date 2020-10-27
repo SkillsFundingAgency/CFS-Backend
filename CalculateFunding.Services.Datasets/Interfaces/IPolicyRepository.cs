@@ -7,5 +7,8 @@ namespace CalculateFunding.Services.Datasets.Interfaces
     public interface IPolicyRepository
     {
         Task<IEnumerable<PoliciesApiModels.FundingStream>> GetFundingStreams();
+        Task<PoliciesApiModels.FundingStream> GetFundingStream(string fundingStreamId);
+        Task<PoliciesApiModels.FundingPeriod> GetFundingPeriod(string fundingPeriodId);
+        Task<PoliciesApiModels.TemplateMetadataDistinctCalculationsContents> GetDistinctTemplateMetadataCalculationsContents(string fundingStreamId, string fundingPeriodId, string templateVersion);
     }
 }

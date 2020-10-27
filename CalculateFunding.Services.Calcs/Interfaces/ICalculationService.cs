@@ -61,5 +61,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         Task<IActionResult> CheckHasAllApprovedTemplateCalculationsForSpecificationId(string specificationId);
 
         Task DeleteCalculations(Message message);
+
+        Task<IActionResult> UpdateTemplateCalculationsForSpecification(string specificationId, string datasetDefinitionId, Reference user);
     }
 }

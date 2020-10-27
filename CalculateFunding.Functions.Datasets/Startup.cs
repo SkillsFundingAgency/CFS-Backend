@@ -133,6 +133,9 @@ namespace CalculateFunding.Functions.Datasets
 
             builder
                 .AddScoped<IDatasetDefinitionNameChangeProcessor, DatasetDefinitionNameChangeProcessor>();
+            
+            builder
+                .AddSingleton<IValidator<CreateDatasetDefinitionFromTemplateModel>, CreateDatasetDefinitionFromTemplateModelValidator>();
 
             builder
                 .AddSingleton<IPolicyRepository, PolicyRepository>();

@@ -164,6 +164,9 @@ namespace CalculateFunding.Api.Datasets
               .AddSingleton<IDatasetDefinitionNameChangeProcessor, DatasetDefinitionNameChangeProcessor>();
 
             builder
+               .AddSingleton<IValidator<CreateDatasetDefinitionFromTemplateModel>, CreateDatasetDefinitionFromTemplateModelValidator>();
+
+            builder
                 .AddSingleton<IPolicyRepository, PolicyRepository>();
 
             builder

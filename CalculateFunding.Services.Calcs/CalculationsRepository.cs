@@ -68,6 +68,11 @@ namespace CalculateFunding.Services.Calcs
             return await _cosmosRepository.Query<Calculation>(x => x.Content.SpecificationId == specificationId);
         }
 
+        public async Task<IEnumerable<Calculation>> GetTemplateCalculationsBySpecificationId(string specificationId)
+        {
+            return await _cosmosRepository.Query<Calculation>(x => x.Content.SpecificationId == specificationId && x.Content.Current.CalculationType == CalculationType.Template);
+        }
+
         public async Task<IEnumerable<TemplateMapping>> GetTemplateMappinsBySpecificationId(string specificationId)
         {
             return await _cosmosRepository.Query<TemplateMapping>(x => x.Content.SpecificationId == specificationId);

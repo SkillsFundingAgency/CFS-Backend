@@ -340,5 +340,24 @@ namespace CalculateFunding.Api.Datasets.Controllers
         {
             return _definitionService.GetDatasetDefinitionsByFundingStreamId(fundingStreamId);
         }
+
+        [Route("api/datasets/data-definitions/{datasetDefinitionId}")]
+        [HttpPost]
+        public async Task<IActionResult> CreateOrUpdateDatasetDefinition([FromRoute]int datasetDefinitionId, [FromBody] CreateDatasetDefinitionFromTemplateModel createDatasetDefinitionModel)
+        {
+            if(datasetDefinitionId == 0)
+            {
+                return new BadRequestObjectResult("DatasetDefinition Id must be provided");
+            }
+
+            if (createDatasetDefinitionModel == null)
+            {
+                return new BadRequestObjectResult("Missing CreateDatasetDefinitionModel details");
+            }
+
+            createDatasetDefinitionModel.DatasetDefinitionId = datasetDefinitionId;
+            
+            return await _definitionService.CreateOrUpdateDatasetDefinition(createDatasetDefinitionModel, Request.GetCorrelationId(), Request.GetUserOrDefault());
+        }
     }
 }

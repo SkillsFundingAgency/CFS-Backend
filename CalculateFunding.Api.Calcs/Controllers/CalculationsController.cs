@@ -251,5 +251,12 @@ namespace CalculateFunding.Api.Calcs.Controllers
         [Produces(typeof(Job))]
         public async Task<IActionResult> QueueUpdateCodeContext([FromRoute] string specificationId)
             => await _codeContextCache.QueueCodeContextCacheUpdate(specificationId);
+
+        [HttpPost("api/calcs/specifications/{specificationId}/templatecalculations-update/{datasetRelationshipId}")]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        public async Task<IActionResult> UpdateTemplateCalculations([FromRoute]string specificationId, string datasetRelationshipId)
+        {
+            return await _calcsService.UpdateTemplateCalculationsForSpecification(specificationId, datasetRelationshipId, Request.GetUserOrDefault());
+        }
     }
 }
