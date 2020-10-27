@@ -2,7 +2,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.DataSets;
@@ -224,8 +223,8 @@ namespace CalculateFunding.Services.Calcs
                 properties.Add("ignore-save-provider-results", "true");
             }
 
-            string specificationSummaryCachekey = message.UserProperties.ContainsKey("specification-summary-cache-key") ? 
-                message.UserProperties["specification-summary-cache-key"].ToString() : 
+            string specificationSummaryCachekey = message.UserProperties.ContainsKey("specification-summary-cache-key") ?
+                message.UserProperties["specification-summary-cache-key"].ToString() :
                 $"{CacheKeys.SpecificationSummaryById}{specificationId}";
 
             bool specificationSummaryExists = await _cacheProvider.KeyExists<Models.Specs.SpecificationSummary>(specificationSummaryCachekey);
@@ -239,8 +238,8 @@ namespace CalculateFunding.Services.Calcs
                 }
             }
 
-            string providerCacheKey = message.UserProperties.ContainsKey("provider-cache-key") ? 
-                message.UserProperties["provider-cache-key"].ToString() : 
+            string providerCacheKey = message.UserProperties.ContainsKey("provider-cache-key") ?
+                message.UserProperties["provider-cache-key"].ToString() :
                 $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
 
             bool summariesExist = await _cacheProvider.KeyExists<ProviderSummary>(providerCacheKey);
@@ -320,7 +319,7 @@ namespace CalculateFunding.Services.Calcs
             properties.Add("specification-id", specificationId);
 
             properties.Add("specification-summary-cache-key", specificationSummaryCachekey);
-            
+
             string assemblyETag = await _sourceFileRepository.GetAssemblyETag(specificationId);
 
             if (assemblyETag.IsNotNullOrWhitespace())
@@ -696,9 +695,14 @@ namespace CalculateFunding.Services.Calcs
 
             return await _jobManagement.QueueJobs(jobCreateModels);
         }
-        
+
         private static IEnumerable<TemplateCalculation> GetCalculations(IEnumerable<TemplateCalculation> calculations)
         {
+            if (calculations == null)
+            {
+                return Enumerable.Empty<TemplateCalculation>();
+            }
+
             return calculations?.SelectMany(_ =>
             {
                 if (_.Type == TemplateCalculationType.Cash)
@@ -723,10 +727,10 @@ namespace CalculateFunding.Services.Calcs
                 IEnumerable<TemplateFundingLine> currentFlattenedFundingLines = _.FundingLines?.Flatten(_ =>
                 {
                     return _.FundingLines;
-                });
+                }) ?? new TemplateFundingLine[] { };
 
                 // concat all calculations for all funding lines below current funding line
-                _.Calculations = _.Calculations?.Concat(currentFlattenedFundingLines?.SelectMany(_ => GetCalculations(_.Calculations)));
+                _.Calculations = _.Calculations?.Concat(currentFlattenedFundingLines.SelectMany(_ => GetCalculations(_?.Calculations)));
 
                 return _.FundingLines;
             }).Where(_ => _.Calculations.AnyWithNullCheck()).Select(_ =>
