@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Profiling;
 using CalculateFunding.Services.Publishing.Variations;
 using CalculateFunding.Services.Publishing.Variations.Changes;
@@ -32,6 +33,39 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
             _year = NewRandomYear();
             _month = NewRandomMonth();
             _fundingLineCode = NewRandomString();
+        }
+
+        [TestMethod]
+        public async Task NoTotalAllocationChangeWithPreviousReleasedFundingDefect()
+        {
+            ProfilePeriod[] releasedProfilePeriods = GetProfilePeriods("released");
+            ProfilePeriod[] newProfiledProfilePeriods = GetProfilePeriods("profiled");
+            
+            GivenTheFundingLines(NewFundingLine(_ => _.WithFundingLineCode(_fundingLineCode)
+                .WithValue(89329262)
+                .WithDistributionPeriods(NewDistributionPeriod(dp => 
+                    dp.WithProfilePeriods(newProfiledProfilePeriods)))));
+            AndThePreviousSnapShotFundingLines(NewFundingLine(_ => _.WithFundingLineCode(_fundingLineCode)
+                .WithValue(89329262)
+                .WithDistributionPeriods(NewDistributionPeriod(dp => 
+                    dp.WithProfilePeriods(releasedProfilePeriods)))));
+            AndTheVariationPointersForTheSpecification(NewVariationPointer(_ => _.WithFundingLineId(_fundingLineCode)
+                .WithYear(2020)
+                .WithOccurence(2)
+                .WithTypeValue("November")));
+
+            await WhenTheChangeIsApplied();
+
+            VariationContext
+                .ErrorMessages
+                .Should()
+                .BeEmpty();
+            
+            decimal adjustedTotal = newProfiledProfilePeriods.Sum(_ => _.ProfiledValue);
+
+            adjustedTotal
+                .Should()
+                .Be(89329262);//total allocation should not be altered
         }
 
         [TestMethod]
@@ -67,9 +101,26 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
             AndTheFundingLinePeriodAmountsShouldBe(expectedAdjustedPeriodValues);
             AndTheFundingLineOverPaymentShouldBe(expectedRemainingOverPayment);
         }
-        
+
+        private static ProfilePeriod[] GetProfilePeriods(string file)
+            => typeof(AdjustDsgProfilesForUnderOverPaymentChangeTests)
+                .Assembly
+                .GetEmbeddedResourceFileContents($"CalculateFunding.Services.Publishing.UnitTests.Variations.Changes.{file}.json")
+                .AsPoco<ProfilePeriod[]>();
+
         private static IEnumerable<object[]> OverAndUnderPaymentExamples()
         {
+            //for defect 54331 - case with no change is incorrectly adjusting as an underpayment
+            yield return new object []
+            {
+                3, 
+                NewAmounts(1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000),
+                NewAmounts(1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000),
+                10000M,
+                10000M,
+                NewAmounts(1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000),
+                (decimal?)null
+            };
             yield return new object []
             {
                 3, 

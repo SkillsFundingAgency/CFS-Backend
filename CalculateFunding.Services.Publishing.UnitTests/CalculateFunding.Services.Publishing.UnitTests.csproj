@@ -28,6 +28,10 @@
     <EmbeddedResource Include="Resources\exampleProvider3Calculations_Schema1_1.json" />
     <EmbeddedResource Include="Resources\exampleProviderTemplate1_Schema1_1.json" />
     <EmbeddedResource Include="Resources\exampleProviderTemplate1_Schema1_0.json" />
+    <None Remove="Variations\Changes\profiled.json" />
+    <EmbeddedResource Include="Variations\Changes\profiled.json" />
+    <None Remove="Variations\Changes\released.json" />
+    <EmbeddedResource Include="Variations\Changes\released.json" />
   </ItemGroup>
 
   <ItemGroup>

@@ -139,7 +139,8 @@ namespace CalculateFunding.Services.Profiling.Tests
 
             invocation
                 .Should()
-                .Throw<InvalidOperationException>()
+                .ThrowAsync<InvalidOperationException>()
+                .Result
                 .Which
                 .Message
                 .Should()

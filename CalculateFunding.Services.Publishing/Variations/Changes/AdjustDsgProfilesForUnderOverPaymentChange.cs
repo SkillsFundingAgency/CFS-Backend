@@ -1,7 +1,9 @@
 using System;
+using System.IO;
 using System.Linq;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Services.Publishing.Profiling;
 
@@ -48,40 +50,51 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
                 return;
             }
             
-            ProfilePeriod[] orderRefreshProfilePeriods = new YearMonthOrderedProfilePeriods(latestFundingLine)
+            ProfilePeriod[] orderedRefreshProfilePeriods = new YearMonthOrderedProfilePeriods(latestFundingLine)
                 .ToArray();
             ProfilePeriod[] orderedSnapShotProfilePeriods = new YearMonthOrderedProfilePeriods(previousFundingLine)
                 .ToArray();
             
-            int variationPointerIndex = GetProfilePeriodIndexForVariationPoint(variationPointer, orderRefreshProfilePeriods);
+            int variationPointerIndex = GetProfilePeriodIndexForVariationPoint(variationPointer, orderedRefreshProfilePeriods);
 
             decimal previousFundingLineValue = previousFundingLine.Value.GetValueOrDefault();
             decimal latestFundingLineValue = latestFundingLine.Value.GetValueOrDefault();
             
             decimal fundingChange = latestFundingLineValue - previousFundingLineValue;
-            decimal latestPeriodAmount = (int)(latestFundingLineValue / orderRefreshProfilePeriods.Length);
+            decimal latestPeriodAmount = (int)(latestFundingLineValue / orderedRefreshProfilePeriods.Length);
 
             AdjustPeriodsForFundingAlreadyReleased(variationPointerIndex,
                 orderedSnapShotProfilePeriods,
-                orderRefreshProfilePeriods);
+                orderedRefreshProfilePeriods);
             
             if (fundingChange < 0)
             {
                 if (AdjustingPeriodsForOverPaymentLeavesRemainder(variationPointerIndex,
                     latestPeriodAmount,
                     orderedSnapShotProfilePeriods,
-                    orderRefreshProfilePeriods,
+                    orderedRefreshProfilePeriods,
                     out decimal remainingOverPayment))
                 {
-                    RefreshState.AddCarryOver(fundingLineId, ProfilingCarryOverType.DSGReProfiling, remainingOverPayment);
+                    if (remainingOverPayment > 0)
+                    {
+                        RefreshState.AddCarryOver(fundingLineId, ProfilingCarryOverType.DSGReProfiling, remainingOverPayment);
+                    }
                 }
             }
-            else
+            else if (fundingChange > 0)
             {
                 AdjustPeriodsForUnderPayment(variationPointerIndex,
                 latestPeriodAmount,
                 orderedSnapShotProfilePeriods,
-                orderRefreshProfilePeriods);
+                orderedRefreshProfilePeriods);
+            }
+            else
+            {
+                AdjustPeriodsForNoTotalAllocationChange(variationPointerIndex,
+                    latestPeriodAmount,
+                    orderedSnapShotProfilePeriods,
+                    orderedRefreshProfilePeriods,
+                    fundingLineId);     
             }
         }
 
@@ -109,6 +122,39 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 
             periodToAdjust.ProfiledValue = periodToAdjust.ProfiledValue + amountUnderPaid;
         }
+        
+        private void AdjustPeriodsForNoTotalAllocationChange(int variationPointerIndex,
+            decimal latestPeriodAmount,
+            ProfilePeriod[] orderedSnapShotProfilePeriods,
+            ProfilePeriod[] orderedRefreshProfilePeriods,
+            string fundingLineId)
+        {
+            decimal amountAlreadyPaid = orderedSnapShotProfilePeriods.Take(variationPointerIndex).Sum(_ => _.ProfiledValue);
+            decimal amountThatShouldHaveBeenPaid = latestPeriodAmount * variationPointerIndex;
+
+            decimal runningTotalChange = amountThatShouldHaveBeenPaid - amountAlreadyPaid;
+
+            if (runningTotalChange < 0)
+            {
+                AdjustingPeriodsForOverPaymentLeavesRemainder(variationPointerIndex,
+                    latestPeriodAmount,
+                    orderedSnapShotProfilePeriods,
+                    orderedRefreshProfilePeriods, 
+                    out decimal carryOver);
+
+                if (carryOver > 0)
+                {
+                    RefreshState.AddCarryOver(fundingLineId, ProfilingCarryOverType.DSGReProfiling, carryOver);
+                }
+            }
+            else if (runningTotalChange > 0)
+            {
+                AdjustPeriodsForUnderPayment(variationPointerIndex,
+                    latestPeriodAmount,
+                    orderedSnapShotProfilePeriods,
+                    orderedRefreshProfilePeriods);
+            }
+        }
 
         private bool AdjustingPeriodsForOverPaymentLeavesRemainder(int variationPointerIndex,
             decimal latestPeriodAmount,
@@ -117,7 +163,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
             out decimal remainingOverPayment)
         {
             decimal amountAlreadyPaid = orderedSnapShotProfilePeriods.Take(variationPointerIndex).Sum(_ => _.ProfiledValue);
-            decimal amountThatShouldHaveBeenPaid = latestPeriodAmount * (variationPointerIndex);
+            decimal amountThatShouldHaveBeenPaid = latestPeriodAmount * variationPointerIndex;
 
             remainingOverPayment = amountAlreadyPaid - amountThatShouldHaveBeenPaid;
 

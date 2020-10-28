@@ -30,7 +30,7 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
             
             ReProfileRequest reProfileRequest = context.Request;
             
-            IProfilePeriod[] orderRefreshProfilePeriods = new YearMonthOrderedProfilePeriods<IProfilePeriod>(context.ProfileResult.DeliveryProfilePeriods)
+            IProfilePeriod[] orderedRefreshProfilePeriods = new YearMonthOrderedProfilePeriods<IProfilePeriod>(context.ProfileResult.DeliveryProfilePeriods)
                 .ToArray();
             IExistingProfilePeriod[] orderedExistingProfilePeriods = new YearMonthOrderedProfilePeriods<IExistingProfilePeriod>(reProfileRequest.ExistingPeriods)
                 .ToArray();
@@ -43,29 +43,37 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
             decimal latestFundingLineValue = reProfileRequest.FundingLineTotal;
             
             decimal fundingChange = latestFundingLineValue - previousFundingLineValue;
-            decimal latestPeriodAmount = (int)(latestFundingLineValue / orderRefreshProfilePeriods.Length);
+            decimal latestPeriodAmount = (int)(latestFundingLineValue / orderedRefreshProfilePeriods.Length);
 
             AdjustPeriodsForFundingAlreadyReleased(variationPointerIndex,
                 orderedExistingProfilePeriods,
-                orderRefreshProfilePeriods);
+                orderedRefreshProfilePeriods);
             
             if (fundingChange < 0)
             {
                 if (AdjustingPeriodsForOverPaymentLeavesRemainder(variationPointerIndex,
                     latestPeriodAmount,
                     orderedExistingProfilePeriods,
-                    orderRefreshProfilePeriods,
+                    orderedRefreshProfilePeriods,
                     out decimal remainingOverPayment))
                 {
                     carryOverAmount = remainingOverPayment;
                 }
             }
-            else
+            else if (fundingChange > 0)
             {
                 AdjustPeriodsForUnderPayment(variationPointerIndex,
                 latestPeriodAmount,
                 orderedExistingProfilePeriods,
-                orderRefreshProfilePeriods);
+                orderedRefreshProfilePeriods);
+            }
+            else
+            {
+                AdjustPeriodsForNoTotalAllocationChange(variationPointerIndex,
+                    latestPeriodAmount,
+                    orderedExistingProfilePeriods,
+                    orderedRefreshProfilePeriods,
+                    out carryOverAmount);     
             }
 
             return carryOverAmount;
@@ -79,6 +87,40 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
             {
                 orderRefreshProfilePeriods[profilePeriod].SetProfiledValue(orderedExistingProfilePeriods[profilePeriod].GetProfileValue());
             }    
+        }
+        
+        private void AdjustPeriodsForNoTotalAllocationChange(int variationPointerIndex,
+            decimal latestPeriodAmount,
+            IExistingProfilePeriod[] orderedExistingProfilePeriods,
+            IProfilePeriod[] orderedRefreshProfilePeriods,
+            out decimal carryOver)
+        {
+            decimal amountAlreadyPaid = orderedExistingProfilePeriods.Take(variationPointerIndex).Sum(_ => _.GetProfileValue());
+            decimal amountThatShouldHaveBeenPaid = latestPeriodAmount * variationPointerIndex;
+
+            decimal runningTotalChange = amountThatShouldHaveBeenPaid - amountAlreadyPaid;
+
+            if (runningTotalChange < 0)
+            {
+                AdjustingPeriodsForOverPaymentLeavesRemainder(variationPointerIndex,
+                    latestPeriodAmount,
+                    orderedExistingProfilePeriods,
+                    orderedRefreshProfilePeriods, 
+                    out decimal overPaymentCarryOver);
+
+                carryOver = overPaymentCarryOver;
+                
+                return;
+            }
+            else if (runningTotalChange > 0)
+            {
+                AdjustPeriodsForUnderPayment(variationPointerIndex,
+                    latestPeriodAmount,
+                    orderedExistingProfilePeriods,
+                    orderedRefreshProfilePeriods);
+            }
+
+            carryOver = 0;
         }
 
         private void AdjustPeriodsForUnderPayment(int variationPointerIndex,
