@@ -1,9 +1,8 @@
-﻿using System;
-using System.Threading;
+﻿using System.Threading;
 using AutoMapper;
 using CacheCow.Server.Core.Mvc;
-using CalculateFunding.Common.ApiClient.Graph;
 using CalculateFunding.Common.Config.ApiClient.Calcs;
+using CalculateFunding.Common.Config.ApiClient.Graph;
 using CalculateFunding.Common.Config.ApiClient.Jobs;
 using CalculateFunding.Common.Config.ApiClient.Policies;
 using CalculateFunding.Common.Config.ApiClient.Specifications;
@@ -18,7 +17,6 @@ using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Result;
 using CalculateFunding.Models.Result.ViewModels;
 using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.AspNet.Extensions;
 using CalculateFunding.Services.Core.AspNet.HealthChecks;
 using CalculateFunding.Services.Core.AzureStorage;
@@ -36,11 +34,9 @@ using CalculateFunding.Services.Results.Validators;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.OpenApi.Models;
 using Polly.Bulkhead;
 
 namespace CalculateFunding.Api.Results
@@ -52,7 +48,7 @@ namespace CalculateFunding.Api.Results
             Configuration = configuration;
         }
 
-        public IConfiguration Configuration { get; }       
+        public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -84,7 +80,8 @@ namespace CalculateFunding.Api.Results
 
             app.MapWhen(
                     context => !context.Request.Path.Value.StartsWith("/swagger"),
-                    appBuilder => {
+                    appBuilder =>
+                    {
                         appBuilder.UseMiddleware<ApiKeyMiddleware>();
                         appBuilder.UseHealthCheckMiddleware();
                         appBuilder.UseMiddleware<LoggedInUserMiddleware>();
@@ -104,11 +101,9 @@ namespace CalculateFunding.Api.Results
             builder.AddHttpCachingMvc();
 
             builder.AddQueryProviderAndExtractorForViewModelMvc<
-                FundingStructure, 
-                TemplateMetadataContentsTimedETagProvider, 
+                FundingStructure,
+                TemplateMetadataContentsTimedETagProvider,
                 TemplateMatadataContentsTimedETagExtractor>(false);
-
-            builder.AddSingleton<IGraphApiClient, GraphApiClient>();
 
             builder.AddSingleton<IFundingStructureService, FundingStructureService>()
                 .AddSingleton<IValidator<UpdateFundingStructureLastModifiedRequest>, UpdateFundingStructureLastModifiedRequestValidator>()
@@ -117,7 +112,7 @@ namespace CalculateFunding.Api.Results
 
             builder.AddScoped<ISpecificationsWithProviderResultsService, SpecificationsWithProviderResultsService>();
             builder.AddScoped<IProducerConsumerFactory, ProducerConsumerFactory>();
-            
+
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
 
             builder
@@ -178,7 +173,7 @@ namespace CalculateFunding.Api.Results
 
                     return new BlobClient(storageSettings);
                 });
-                       
+
 
             builder.AddSearch(Configuration);
             builder
@@ -188,7 +183,7 @@ namespace CalculateFunding.Api.Results
 
             builder.AddCaching(Configuration);
 
-           
+
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Results");
             builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.Results");
             builder.AddLogging("CalculateFunding.Api.Results");
@@ -196,6 +191,7 @@ namespace CalculateFunding.Api.Results
 
             builder.AddJobsInterServiceClient(Configuration);
             builder.AddPoliciesInterServiceClient(Configuration);
+            builder.AddGraphInterServiceClient(Configuration);
 
             MapperConfiguration resultsConfig = new MapperConfiguration(c =>
             {

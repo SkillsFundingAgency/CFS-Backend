@@ -12,7 +12,7 @@ namespace CalculateFunding.Api.Results.UnitTests
     {
         protected override Dictionary<string, string> AddToConfiguration()
         {
-            var configData = new Dictionary<string, string>
+            return new Dictionary<string, string>
             {
                 { "SearchServiceName", "ss-t1te-cfs"},
                 { "SearchServiceKey", "test" },
@@ -23,15 +23,15 @@ namespace CalculateFunding.Api.Results.UnitTests
                 { "specificationsClient:ApiKey", "Local" },
                 { "calcsClient:ApiEndpoint", "https://localhost:7002/api/" },
                 { "calcsClient:ApiKey", "Local" },
+                { "graphClient:ApiEndpoint", "https://localhost:7020/api/" },
+                { "graphClient:ApiKey", "Local" },
                 { "jobsClient:ApiKey", "Local" },
                 { "jobsClient:ApiEndpoint", "https://localhost:7010/api/" },
             };
-
-            return configData;
         }
-                
+
         protected override Assembly EntryAssembly => typeof(ResultsController).Assembly;
-        
+
         protected override void RegisterDependencies()
         {
             new Startup(CreateTestConfiguration())

@@ -1,33 +1,33 @@
-﻿using CalculateFunding.Common.ApiClient.Calcs;
-using CalculateFunding.Common.ApiClient.Calcs.Models;
-using CalculateFunding.Common.ApiClient.Models;
-using CalculateFunding.Common.ApiClient.Specifications;
-using CalculateFunding.Common.ApiClient.Specifications.Models;
-using CalculateFunding.Common.TemplateMetadata.Models;
-using CalculateFunding.Common.Utility;
-using CalculateFunding.Models;
-using CalculateFunding.Repositories.Common.Search.Results;
-using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Results.Interfaces;
-using Microsoft.AspNetCore.Mvc;
-using Polly;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Calcs;
+using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Common.ApiClient.Graph;
 using CalculateFunding.Common.ApiClient.Graph.Models;
-using TemplateCalculation = CalculateFunding.Common.TemplateMetadata.Models.Calculation;
-using CalcModels = CalculateFunding.Models.Calcs;
-using CalculateFunding.Common.TemplateMetadata.Enums;
-using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.TemplateMetadata.Enums;
+using CalculateFunding.Common.TemplateMetadata.Models;
+using CalculateFunding.Common.Utility;
+using CalculateFunding.Models;
 using CalculateFunding.Models.Result;
-using FluentValidation.Results;
 using CalculateFunding.Models.Result.ViewModels;
+using CalculateFunding.Repositories.Common.Search.Results;
+using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Results.Interfaces;
 using FluentValidation;
+using FluentValidation.Results;
+using Microsoft.AspNetCore.Mvc;
+using Polly;
+using CalcModels = CalculateFunding.Models.Calcs;
 using Calculation = CalculateFunding.Common.ApiClient.Graph.Models.Calculation;
 using FundingLine = CalculateFunding.Common.TemplateMetadata.Models.FundingLine;
+using TemplateCalculation = CalculateFunding.Common.TemplateMetadata.Models.Calculation;
 
 namespace CalculateFunding.Services.Results
 {
@@ -167,7 +167,7 @@ namespace CalculateFunding.Services.Results
 
             List<string> calculationIdsWithError = new List<string>();
 
-            ApiResponse<IEnumerable<Entity<Calculation>>> getCircularDependenciesApiResponse = 
+            ApiResponse<IEnumerable<Entity<Calculation>>> getCircularDependenciesApiResponse =
                 await _graphApiClient.GetCircularDependencies(specificationId);
             IActionResult circularDependenciesApiErrorResult =
                 getCircularDependenciesApiResponse.IsSuccessOrReturnFailureResult("GetCircularDependencies");
@@ -199,9 +199,9 @@ namespace CalculateFunding.Services.Results
         }
 
         public async Task<IActionResult> GetFundingStructureWithCalculationResults(
-            string fundingStreamId, 
-            string fundingPeriodId, 
-            string specificationId, 
+            string fundingStreamId,
+            string fundingPeriodId,
+            string specificationId,
             string providerId = null)
         {
             ApiResponse<SpecificationSummary> specificationSummaryApiResponse =
@@ -271,7 +271,7 @@ namespace CalculateFunding.Services.Results
                         }
                     });
 
-                if(!(calculationProviderResultsResponseResult is OkObjectResult))
+                if (!(calculationProviderResultsResponseResult is OkObjectResult))
                 {
                     return calculationProviderResultsResponseResult;
                 }
@@ -288,13 +288,13 @@ namespace CalculateFunding.Services.Results
                     return providerResultResponseResult;
                 }
 
-                providerResultResponse = (providerResultResponseResult as OkObjectResult).Value 
+                providerResultResponse = (providerResultResponseResult as OkObjectResult).Value
                     as CalcModels.ProviderResultResponse;
             }
 
             List<string> calculationIdsWithError = new List<string>();
 
-            ApiResponse<IEnumerable<Entity<Calculation>>> getCircularDependenciesApiResponse = 
+            ApiResponse<IEnumerable<Entity<Calculation>>> getCircularDependenciesApiResponse =
                 await _graphApiClient.GetCircularDependencies(specificationId);
             IActionResult circularDependenciesApiErrorResult =
                 getCircularDependenciesApiResponse.IsSuccessOrReturnFailureResult("GetCircularDependencies");
@@ -402,7 +402,7 @@ namespace CalculateFunding.Services.Results
                 }
             }
 
-            CalcModels.FundingLineResult fundingLineResult = 
+            CalcModels.FundingLineResult fundingLineResult =
                 providerResult?.FundingLineResults?.FirstOrDefault(_ => _.FundingLine.Id == fundingLine.TemplateLineId.ToString());
             string calculationValue = null;
             if (fundingLineResult != null)
@@ -449,7 +449,7 @@ namespace CalculateFunding.Services.Results
 
             string calculationPublishStatus = GetCalculationPublishStatus(calculationMetadata, calculationIdsWithError, calculationId);
 
-            CalcModels.CalculationResultResponse calculationResult 
+            CalcModels.CalculationResultResponse calculationResult
                 = providerResult?.CalculationResults.FirstOrDefault(_ => _.Calculation.Id == calculationId);
 
             if (calculationResult != null)
