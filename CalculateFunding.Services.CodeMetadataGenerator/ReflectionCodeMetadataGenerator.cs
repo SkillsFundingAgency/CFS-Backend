@@ -21,6 +21,25 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                                 "FundingLineDictionaryValues"
                             };
 
+        private static readonly List<string> filteredMethodNames = new List<string>()
+                    {
+                        "ToString",
+                        "GetHashCode",
+                        "Equals",
+                        "GetType",
+                        "Initialise",
+                        "GetTypeCode",
+                    };
+
+        private static readonly List<string> filteredTemplateCalcMethods = new List<string>()
+                    {
+                        "Exclude",
+                        "Avg",
+                        "Sum",
+                        "Min",
+                        "Max"
+                    };
+
         public IEnumerable<TypeInformation> GetTypeInformation(byte[] rawAssembly)
         {
             if (rawAssembly == null || rawAssembly.Length == 0)
@@ -31,6 +50,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
             List<TypeInformation> results = new List<TypeInformation>();
 
             Assembly assembly = Assembly.Load(rawAssembly);
+            List<string> propertyNamesToFilterFromCalculationContexts = GeneratePropertyNameToFilterForCalculationContexts(assembly);
 
             foreach (TypeInfo typeInfo in assembly.DefinedTypes)
             {
@@ -48,15 +68,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                         Type = ConvertTypeName(typeInfo.FullName),
                     };
 
-                    List<string> filteredMethodNames = new List<string>()
-                    {
-                        "ToString",
-                        "GetHashCode",
-                        "Equals",
-                        "GetType",
-                        "Initialise",
-                        "GetTypeCode",
-                    };
+
 
                     if (typeInfo.Name.EndsWith("Exception", StringComparison.InvariantCultureIgnoreCase))
                     {
@@ -73,9 +85,16 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                         continue;
                     }
 
+                    bool isTemplateCalculationContainerClass = IsTemplateCalculationContextClass(typeInfo);
+
                     List<MethodInformation> methods = new List<MethodInformation>();
                     foreach (MethodInfo methodInfo in typeInfo.GetMethods())
                     {
+                        if (isTemplateCalculationContainerClass && filteredTemplateCalcMethods.Contains(methodInfo.Name))
+                        {
+                            continue;
+                        }
+
                         if (IsAggregateFunction(methodInfo.Name))
                         {
                             methods.Add(ConfigureAggregateFunctionMetadata(methodInfo));
@@ -137,7 +156,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                                 {
                                     methods.Add(methodInformation);
                                 }
-                            }                            
+                            }
                         }
                     }
 
@@ -146,109 +165,11 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                     FieldInfo[] fieldInfos = typeInfo.DeclaredFields.ToArray();
 
                     List<string> enumValues = new List<string>();
-
-                    foreach (FieldInfo fieldInfo in fieldInfos.Where(m => m.FieldType == typeof(Func<decimal?>)
-                    || m.FieldType == typeof(Func<bool?>)
-                    || m.CustomAttributes.Any(c => c.AttributeType.Name == "CalculationAttribute")
-                    || m.IsLiteral).ToList())
-                    {
-                        if (!fieldInfo.IsSpecialName)
-                        {
-                            if (fieldInfo.IsLiteral)
-                            {
-                                enumValues.Add(fieldInfo.Name);
-                                continue;
-                            }
-
-                            string entityId = null;
-
-                            bool isCustom = false;
-
-                            var calculationAttribute = fieldInfo.CustomAttributes.Where(c => c.AttributeType.Name == "CalculationAttribute").FirstOrDefault();
-
-                            if (calculationAttribute != null)
-                            {
-                                entityId = calculationAttribute.NamedArguments.Where(a => a.MemberName == "Id").FirstOrDefault().TypedValue.Value?.ToString();
-                                isCustom = true;
-                            }
-
-
-                            MethodInformation methodInformation = new MethodInformation()
-                            {
-                                Name = fieldInfo.Name,
-                                ReturnType = ConvertTypeName(fieldInfo.FieldType),
-                                EntityId = entityId,
-                                IsCustom = isCustom
-                            };
-
-                            if (string.IsNullOrWhiteSpace(methodInformation.FriendlyName))
-                            {
-                                methodInformation.FriendlyName = GetAttributeProperty(fieldInfo.CustomAttributes, "Calculation", "Name");
-                            }
-
-                            if (string.IsNullOrWhiteSpace(methodInformation.Description))
-                            {
-                                methodInformation.Description = GetAttributeProperty(fieldInfo.CustomAttributes, "Description", "Description");
-                            }
-
-                            if (fieldInfo.GetCustomAttribute<System.ComponentModel.EditorBrowsableAttribute>()?.State != System.ComponentModel.EditorBrowsableState.Never)
-                            {
-                                methods.Add(methodInformation);
-                            }
-                        }
-                    }
+                    AddMethodsForClass(methods, fieldInfos, enumValues);
 
                     List<PropertyInformation> properties = new List<PropertyInformation>();
 
-                    foreach (PropertyInfo property in typeInfo.GetProperties())
-                    {
-                        if (!property.IsSpecialName && property.MemberType == MemberTypes.Property)
-
-                        {
-                            
-
-                            if (filteredPropertyNames.Contains(property.Name))
-                            {
-                                continue;
-                            }
-
-                            PropertyInformation propertyInformation = new PropertyInformation()
-                            {
-                                Name = property.Name,
-                                Type = ConvertTypeName(property.PropertyType),
-                            };
-
-                            if (string.IsNullOrWhiteSpace(propertyInformation.FriendlyName))
-                            {
-                                propertyInformation.FriendlyName = GetAttributeProperty(property.CustomAttributes, "DatasetRelationship", "Name");
-                            }
-
-                            if (string.IsNullOrWhiteSpace(propertyInformation.FriendlyName))
-                            {
-                                propertyInformation.FriendlyName = GetAttributeProperty(property.CustomAttributes, "Field", "Name");
-                            }
-
-                            if (string.IsNullOrWhiteSpace(propertyInformation.FriendlyName))
-                            {
-                                propertyInformation.FriendlyName = GetAttributeProperty(property.CustomAttributes, "Calculation", "Name");
-                            }
-
-                            if (string.IsNullOrWhiteSpace(propertyInformation.Description))
-                            {
-                                propertyInformation.Description = GetAttributeProperty(property.CustomAttributes, "Description", "Description");
-                            }
-
-                            if (string.IsNullOrWhiteSpace(propertyInformation.IsAggregable))
-                            {
-                                propertyInformation.IsAggregable = GetAttributeProperty(property.CustomAttributes, "IsAggregable", "IsAggregable");
-                            }
-
-                            if (property.GetCustomAttribute<System.ComponentModel.EditorBrowsableAttribute>()?.State != System.ComponentModel.EditorBrowsableState.Never)
-                            {
-                                properties.Add(propertyInformation);
-                            }
-                        }
-                    }
+                    AddClassProperties(propertyNamesToFilterFromCalculationContexts, typeInfo, isTemplateCalculationContainerClass, properties);
 
                     typeInformationModel.Methods = methods;
                     typeInformationModel.Properties = properties;
@@ -274,6 +195,183 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
             return results;
         }
 
+        private void AddClassProperties(List<string> propertyNamesToFilterFromCalculationContexts, TypeInfo typeInfo, bool isTemplateCalculationContainerClass, List<PropertyInformation> properties)
+        {
+            foreach (PropertyInfo property in typeInfo.GetProperties())
+            {
+                if (!property.IsSpecialName && property.MemberType == MemberTypes.Property)
+
+                {
+                    if (filteredPropertyNames.Contains(property.Name))
+                    {
+                        continue;
+                    }
+
+                    if ((isTemplateCalculationContainerClass || IsFundingLineClass(typeInfo))
+                        && propertyNamesToFilterFromCalculationContexts.Contains(property.Name))
+                    {
+                        continue;
+                    }
+
+                    PropertyInformation propertyInformation = new PropertyInformation()
+                    {
+                        Name = property.Name,
+                        Type = ConvertTypeName(property.PropertyType),
+                    };
+
+                    if (string.IsNullOrWhiteSpace(propertyInformation.FriendlyName))
+                    {
+                        propertyInformation.FriendlyName = GetAttributeProperty(property.CustomAttributes, "DatasetRelationship", "Name");
+                    }
+
+                    if (string.IsNullOrWhiteSpace(propertyInformation.FriendlyName))
+                    {
+                        propertyInformation.FriendlyName = GetAttributeProperty(property.CustomAttributes, "Field", "Name");
+                    }
+
+                    if (string.IsNullOrWhiteSpace(propertyInformation.FriendlyName))
+                    {
+                        propertyInformation.FriendlyName = GetAttributeProperty(property.CustomAttributes, "Calculation", "Name");
+                    }
+
+                    if (string.IsNullOrWhiteSpace(propertyInformation.Description))
+                    {
+                        propertyInformation.Description = GetAttributeProperty(property.CustomAttributes, "Description", "Description");
+                    }
+
+                    if (string.IsNullOrWhiteSpace(propertyInformation.IsAggregable))
+                    {
+                        propertyInformation.IsAggregable = GetAttributeProperty(property.CustomAttributes, "IsAggregable", "IsAggregable");
+                    }
+
+                    if (property.GetCustomAttribute<System.ComponentModel.EditorBrowsableAttribute>()?.State != System.ComponentModel.EditorBrowsableState.Never)
+                    {
+                        properties.Add(propertyInformation);
+                    }
+                }
+            }
+        }
+
+        private void AddMethodsForClass(List<MethodInformation> methods, FieldInfo[] fieldInfos, List<string> enumValues)
+        {
+            foreach (FieldInfo fieldInfo in fieldInfos.Where(m => m.FieldType == typeof(Func<decimal?>)
+                                || m.CustomAttributes.Any(c => c.AttributeType.Name == "CalculationAttribute")
+                                || m.CustomAttributes.Any(c => c.AttributeType.Name == "FundingLineAttribute")
+                                || m.IsLiteral).ToList())
+            {
+                if (!fieldInfo.IsSpecialName)
+                {
+                    if (fieldInfo.IsLiteral)
+                    {
+                        enumValues.Add(fieldInfo.Name);
+                        continue;
+                    }
+
+                    string entityId = null;
+
+                    bool isCustom = false;
+                    ApplyCalculationMetadata(fieldInfo, ref entityId, ref isCustom);
+                    ApplyFundingLineMetadata(fieldInfo, ref entityId, ref isCustom);
+
+                    MethodInformation methodInformation = new MethodInformation()
+                    {
+                        Name = fieldInfo.Name,
+                        ReturnType = ConvertTypeName(fieldInfo.FieldType),
+                        EntityId = entityId,
+                        IsCustom = isCustom
+                    };
+
+                    if (string.IsNullOrWhiteSpace(methodInformation.FriendlyName))
+                    {
+                        methodInformation.FriendlyName = GetAttributeProperty(fieldInfo.CustomAttributes, "Calculation", "Name");
+                    }
+
+                    if (string.IsNullOrWhiteSpace(methodInformation.FriendlyName))
+                    {
+                        methodInformation.FriendlyName = GetAttributeProperty(fieldInfo.CustomAttributes, "FundingLine", "Name");
+                    }
+
+                    if (string.IsNullOrWhiteSpace(methodInformation.Description))
+                    {
+                        methodInformation.Description = GetAttributeProperty(fieldInfo.CustomAttributes, "Description", "Description");
+                    }
+
+                    if (fieldInfo.GetCustomAttribute<System.ComponentModel.EditorBrowsableAttribute>()?.State != System.ComponentModel.EditorBrowsableState.Never)
+                    {
+                        methods.Add(methodInformation);
+                    }
+                }
+            }
+        }
+
+        private static void ApplyCalculationMetadata(FieldInfo fieldInfo, ref string entityId, ref bool isCustom)
+        {
+            CustomAttributeData calculationAttribute = fieldInfo.CustomAttributes.Where(c => c.AttributeType.Name == "CalculationAttribute").FirstOrDefault();
+
+            if (calculationAttribute != null)
+            {
+                entityId = calculationAttribute.NamedArguments.Where(a => a.MemberName == "Id").FirstOrDefault().TypedValue.Value?.ToString();
+                isCustom = true;
+            }
+        }
+
+        private static void ApplyFundingLineMetadata(FieldInfo fieldInfo, ref string entityId, ref bool isCustom)
+        {
+            CustomAttributeData calculationAttribute = fieldInfo.CustomAttributes.Where(c => c.AttributeType.Name == "FundingLineAttribute").FirstOrDefault();
+
+            if (calculationAttribute != null)
+            {
+                entityId = calculationAttribute.NamedArguments.Where(a => a.MemberName == "Id").FirstOrDefault().TypedValue.Value?.ToString();
+                isCustom = true;
+            }
+        }
+
+        /// <summary>
+        /// Generates property names of internal implementation properties to remove from output
+        /// </summary>
+        /// <param name="assembly"></param>
+        /// <returns></returns>
+        private static List<string> GeneratePropertyNameToFilterForCalculationContexts(Assembly assembly)
+        {
+            TypeInfo calculationsContextType = assembly.DefinedTypes.Single(t => t.Name == "CalculationContext");
+
+            IEnumerable<TypeInfo> calculationClassTypesToFilter = assembly.DefinedTypes.Where(t => t.BaseType?.Name == "BaseCalculation");
+            IEnumerable<string> calculationClassTypesToFilterNames = calculationClassTypesToFilter.Select(t => t.Name);
+
+            List<string> propertyNamesToFilterFromCalculationContexts = new List<string>()
+            {
+                "Provider",
+                "Datasets",
+            };
+
+            foreach (PropertyInfo prop in calculationsContextType.GetProperties())
+            {
+                if (calculationClassTypesToFilterNames.Contains(prop.PropertyType.Name))
+                {
+                    propertyNamesToFilterFromCalculationContexts.Add(prop.Name);
+                }
+            }
+
+            return propertyNamesToFilterFromCalculationContexts;
+        }
+
+        private static bool IsTemplateCalculationContextClass(TypeInfo typeInfo)
+        {
+            return typeInfo.BaseType != null
+                                        && typeInfo.BaseType.Name.EndsWith("BaseCalculation")
+                                        && !typeInfo.Name.EndsWith("CalculationContext");
+        }
+
+        private bool IsFundingLineClass(TypeInfo typeInfo)
+        {
+            return typeInfo.Name.EndsWith("FundingLines") && ContainsFieldWithAttribute(typeInfo, "FundingLine");
+        }
+
+        private bool ContainsFieldWithAttribute(TypeInfo typeInfo, string attributeName)
+        {
+            return typeInfo.GetFields().Any(p => p.CustomAttributes.Any(a => a.AttributeType.Name == $"{attributeName}Attribute"));
+        }
+
         public string GetAttributeProperty(IEnumerable<CustomAttributeData> customAttibutes, string attributeName, string propertyName)
         {
             CustomAttributeData descriptionProperty = customAttibutes.Where(c => c.AttributeType.Name == $"{attributeName}Attribute").SingleOrDefault();
@@ -290,7 +388,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
         {
             if (type.IsGenericType && type.GenericTypeArguments != null && type.GenericTypeArguments.Length > 0)
             {
-                
+
 
                 if (regex.IsMatch(type.FullName))
                 {

@@ -66,7 +66,7 @@ namespace CalculateFunding.Services.Calcs.Caching
                     Message = "Specification change requires code context update"
                 }
             });
-            
+
             return new ObjectResult(job);
         }
 
@@ -95,7 +95,7 @@ namespace CalculateFunding.Services.Calcs.Caching
             return await GetFromCache(cacheKey);
         }
 
-        private async Task<TypeInformation[]> UpdateCache(string specificationId, 
+        private async Task<TypeInformation[]> UpdateCache(string specificationId,
             string cacheKey)
         {
             try
@@ -104,7 +104,7 @@ namespace CalculateFunding.Services.Calcs.Caching
                     .ToArray();
 
                 await _cacheResilience.ExecuteAsync(() => _cache.SetAsync(cacheKey, codeContext));
-                
+
                 LogInformation($"Updated code context cache entry for specification {specificationId}");
 
                 return codeContext;
@@ -131,7 +131,7 @@ namespace CalculateFunding.Services.Calcs.Caching
 
         private Task<JobLog> AddJobLog(string jobId,
             bool? completedSuccessfully = null,
-            string outcome = null) 
+            string outcome = null)
             => _jobs.AddJobLog(jobId, new JobLogUpdateModel
             {
                 CompletedSuccessfully = completedSuccessfully,
@@ -149,7 +149,7 @@ namespace CalculateFunding.Services.Calcs.Caching
         private static string GetCacheKey(string specificationId)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
-            
+
             return $"{CacheKeys.CodeContext}{specificationId}";
         }
 
@@ -163,11 +163,11 @@ namespace CalculateFunding.Services.Calcs.Caching
 
             private static string MessageProperty(Message message,
                 string key)
-                => message?.GetUserProperty<string>(key) ?? 
+                => message?.GetUserProperty<string>(key) ??
                    throw new ArgumentOutOfRangeException(key, $"No message property {key}");
-            
+
             public string SpecificationId { get; }
-            
+
             public string JobId { get; }
 
             public static implicit operator JobParameters(Message message)
