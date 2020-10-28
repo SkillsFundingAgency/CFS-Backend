@@ -232,6 +232,7 @@ namespace CalculateFunding.Services.Specs
                         case JobType.CurrentProfileValues:
                         case JobType.CurrentOrganisationGroupValues:
                         case JobType.HistoryOrganisationGroupValues:
+                        case JobType.PublishedGroups:
                             return $"{FundingLineReportFilePrefix}-{id.SpecificationId}-{id.JobType}{fundingLineCode}{fundingStreamId}.csv";
                         case JobType.HistoryPublishedProviderEstate:
                             return $"{FundingLineReportFilePrefix}-{id.SpecificationId}-{id.JobType}-{id.FundingPeriodId}.csv";
