@@ -1,6 +1,7 @@
 ﻿using CalculateFunding.Models.Calcs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Results.Interfaces;
+using CalculateFunding.Services.Results.Models;
 using CalculateFunding.Services.Results.SearchIndex;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
@@ -21,7 +22,7 @@ namespace CalculateFunding.Services.Results.UnitTests.SearchIndex
     public class ProviderCalculationResultsIndexProcessorTests
     {
         private ILogger _logger;
-        private ISearchIndexDataReader<string, ProviderResult> _reader;
+        private ISearchIndexDataReader<ProviderResultDataKey, ProviderResult> _reader;
         private ISearchIndexTrasformer<ProviderResult, ProviderCalculationResultsIndex> _transformer;
         private ISearchRepository<ProviderCalculationResultsIndex> _searchRepository;
         private ISearchIndexWriterSettings _settings;
@@ -31,7 +32,7 @@ namespace CalculateFunding.Services.Results.UnitTests.SearchIndex
         public void Setup()
         {
             _logger = Substitute.For<ILogger>();
-            _reader = Substitute.For<ISearchIndexDataReader<string, ProviderResult>>();
+            _reader = Substitute.For<ISearchIndexDataReader<ProviderResultDataKey, ProviderResult>>();
             _transformer = Substitute.For<ISearchIndexTrasformer<ProviderResult, ProviderCalculationResultsIndex>>();
             _searchRepository = Substitute.For<ISearchRepository<ProviderCalculationResultsIndex>>();
             _settings = Substitute.For<ISearchIndexWriterSettings>();
@@ -51,14 +52,19 @@ namespace CalculateFunding.Services.Results.UnitTests.SearchIndex
             string providerResultId1 = CreateProviderResultId(specificationId, providerId1);
             string providerResultId2 = CreateProviderResultId(specificationId, providerId2);
 
+            ProviderResultDataKey providerResultDataKey1 = new ProviderResultDataKey(providerResultId1, providerId1);
+            ProviderResultDataKey providerResultDataKey2 = new ProviderResultDataKey(providerResultId2, providerId2);
+
             ProviderResult providerResult1 = new ProviderResult() { Id = providerResultId1 };
             ProviderResult providerResult2 = new ProviderResult() { Id = providerResultId2 };
 
             ProviderCalculationResultsIndex index1 = new ProviderCalculationResultsIndex() { SpecificationId = specificationId, ProviderId = providerId1 };
             ProviderCalculationResultsIndex index2 = new ProviderCalculationResultsIndex() { SpecificationId = specificationId, ProviderId = providerId2 };
 
-            _reader.GetData(Arg.Is(providerResultId1)).Returns(providerResult1);
-            _reader.GetData(Arg.Is(providerResultId2)).Returns(providerResult2);
+            _reader.GetData(Arg.Is<ProviderResultDataKey>(_ => _.ProviderResultId == providerResultId1 && _.PartitionKey == providerId1))
+                .Returns(providerResult1);
+            _reader.GetData(Arg.Is<ProviderResultDataKey>(_ => _.ProviderResultId == providerResultId2 && _.PartitionKey == providerId2))
+                .Returns(providerResult2);
 
             _transformer.Transform(Arg.Is<ProviderResult>(_ => _.Id == providerResultId1), Arg.Is<ISearchIndexProcessorContext>(_ => _.GetType() == typeof(ProviderCalculationResultsIndexProcessorContext)))
                 .Returns(index1);
@@ -83,7 +89,8 @@ namespace CalculateFunding.Services.Results.UnitTests.SearchIndex
 
             await _reader
                 .Received(2)
-                .GetData(Arg.Is<string>(_ => _ == providerResultId1 || _ == providerResultId2));
+                .GetData(Arg.Is<ProviderResultDataKey>(_ => (_.ProviderResultId == providerResultId1 && _.PartitionKey == providerId1) || 
+                                                            (_.ProviderResultId == providerResultId2 && _.PartitionKey == providerId2)));
 
             await _transformer
                 .Received(2)
@@ -103,14 +110,19 @@ namespace CalculateFunding.Services.Results.UnitTests.SearchIndex
             string providerResultId1 = CreateProviderResultId(specificationId, providerId1);
             string providerResultId2 = CreateProviderResultId(specificationId, providerId2);
 
+            ProviderResultDataKey providerResultDataKey1 = new ProviderResultDataKey(providerResultId1, providerId1);
+            ProviderResultDataKey providerResultDataKey2 = new ProviderResultDataKey(providerResultId2, providerId2);
+
             ProviderResult providerResult1 = new ProviderResult() { Id = providerResultId1 };
             ProviderResult providerResult2 = new ProviderResult() { Id = providerResultId2 };
 
             ProviderCalculationResultsIndex index1 = new ProviderCalculationResultsIndex() { SpecificationId = specificationId, ProviderId = providerId1 };
             ProviderCalculationResultsIndex index2 = new ProviderCalculationResultsIndex() { SpecificationId = specificationId, ProviderId = providerId2 };
 
-            _reader.GetData(Arg.Is(providerResultId1)).Returns(Task.FromException<ProviderResult>(new Exception("Reader Failed")));
-            _reader.GetData(Arg.Is(providerResultId2)).Returns(providerResult2);
+            _reader.GetData(Arg.Is<ProviderResultDataKey>(_ => _.ProviderResultId == providerResultId1 && _.PartitionKey == providerId1))
+                .Returns(Task.FromException<ProviderResult>(new Exception("Reader Failed")));
+            _reader.GetData(Arg.Is<ProviderResultDataKey>(_ => _.ProviderResultId == providerResultId2 && _.PartitionKey == providerId2))
+                .Returns(providerResult2);
 
             _transformer.Transform(Arg.Is<ProviderResult>(_ => _.Id == providerResultId2), Arg.Is<ISearchIndexProcessorContext>(_ => _.GetType() == typeof(ProviderCalculationResultsIndexProcessorContext)))
                 .Returns(index2);
@@ -141,7 +153,8 @@ namespace CalculateFunding.Services.Results.UnitTests.SearchIndex
 
             await _reader
                 .Received(2)
-                .GetData(Arg.Is<string>(_ => _ == providerResultId1 || _ == providerResultId2));
+                .GetData(Arg.Is<ProviderResultDataKey>(_ => (_.ProviderResultId == providerResultId1 && _.PartitionKey == providerId1) ||
+                                                            (_.ProviderResultId == providerResultId2 && _.PartitionKey == providerId2)));
 
             await _transformer
                 .Received(1)

@@ -54,14 +54,23 @@ namespace CalculateFunding.Services.Results.SearchIndex
                             {
                                 TInput indexData = await _reader.GetData(key);
 
-                                TOutput indexDocument = await _transformer.Transform(indexData, context);
-
-                                IEnumerable<IndexError> results = await _searchRepository.Index(new[] { indexDocument });
-
-                                if (!results.IsNullOrEmpty())
+                                if (indexData != null)
                                 {
-                                    IndexError indexError = results.First(); // Only indexing one document
-                                    exceptionMessages.Add($"{indexError.Key}:{indexError.ErrorMessage}");
+                                    TOutput indexDocument = await _transformer.Transform(indexData, context);
+
+                                    IEnumerable<IndexError> results = await _searchRepository.Index(new[] { indexDocument });
+
+                                    if (!results.IsNullOrEmpty())
+                                    {
+                                        IndexError indexError = results.First(); // Only indexing one document
+                                        exceptionMessages.Add($"{indexError.Key}:{indexError.ErrorMessage}");
+                                    }
+                                }
+                                else
+                                {
+                                    string message = $"No data found for given Key - {key.ToString()}";
+                                    _logger.Error(message);
+                                    exceptionMessages.Add(message);
                                 }
                             }
                             catch (Exception ex)

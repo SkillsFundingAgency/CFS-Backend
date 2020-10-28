@@ -30,6 +30,7 @@ using CalculateFunding.Services.Core.Threading;
 using CalculateFunding.Services.DeadletterProcessor;
 using CalculateFunding.Services.Results;
 using CalculateFunding.Services.Results.Interfaces;
+using CalculateFunding.Services.Results.Models;
 using CalculateFunding.Services.Results.Repositories;
 using CalculateFunding.Services.Results.SearchIndex;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
@@ -106,7 +107,7 @@ namespace CalculateFunding.Functions.Results
                  });
 
             builder.AddScoped<ISearchIndexProcessorFactory, SearchIndexProcessorFactory>();
-            builder.AddScoped<ISearchIndexDataReader<string, ProviderResult>, ProviderCalculationResultsIndexDataReader>();
+            builder.AddScoped<ISearchIndexDataReader<ProviderResultDataKey, ProviderResult>, ProviderCalculationResultsIndexDataReader>();
             builder.AddScoped<ISearchIndexTrasformer<ProviderResult, ProviderCalculationResultsIndex>, ProviderCalculationResultsIndexTransformer>();
             builder.AddScoped<ISearchIndexProcessor, ProviderCalculationResultsIndexProcessor>();
             builder.AddScoped<ISearchIndexWriterService, SearchIndexWriterService>();

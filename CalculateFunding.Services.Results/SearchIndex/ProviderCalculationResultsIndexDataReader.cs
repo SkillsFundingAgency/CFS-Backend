@@ -2,10 +2,11 @@
 using CalculateFunding.Services.Results.Interfaces;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Services.Results.Models;
 
 namespace CalculateFunding.Services.Results.SearchIndex
 {
-    public class ProviderCalculationResultsIndexDataReader : ISearchIndexDataReader<string, ProviderResult>
+    public class ProviderCalculationResultsIndexDataReader : ISearchIndexDataReader<ProviderResultDataKey, ProviderResult>
     {
         private readonly ICalculationResultsRepository _calculationResultsRepository;
 
@@ -15,9 +16,9 @@ namespace CalculateFunding.Services.Results.SearchIndex
             _calculationResultsRepository = calculationResultsRepository;
         }
 
-        public async Task<ProviderResult> GetData(string key)
+        public async Task<ProviderResult> GetData(ProviderResultDataKey key)
         {
-            return await _calculationResultsRepository.GetProviderResultById(key);
+            return await _calculationResultsRepository.GetProviderResultById(key.ProviderResultId, key.PartitionKey);
         }
     }
 }

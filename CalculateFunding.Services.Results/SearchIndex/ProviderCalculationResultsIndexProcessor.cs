@@ -8,16 +8,17 @@ using CalculateFunding.Common.Utility;
 using System.Text;
 using System;
 using CalculateFunding.Services.Core.Constants;
+using CalculateFunding.Services.Results.Models;
 
 namespace CalculateFunding.Services.Results.SearchIndex
 {
-    public class ProviderCalculationResultsIndexProcessor : SearchIndexProcessor<string, ProviderResult, ProviderCalculationResultsIndex>
+    public class ProviderCalculationResultsIndexProcessor : SearchIndexProcessor<ProviderResultDataKey, ProviderResult, ProviderCalculationResultsIndex>
     {
         private readonly ISearchIndexWriterSettings _settings;
 
         public ProviderCalculationResultsIndexProcessor(
             ILogger logger,
-            ISearchIndexDataReader<string, ProviderResult> reader,
+            ISearchIndexDataReader<ProviderResultDataKey, ProviderResult> reader,
             ISearchIndexTrasformer<ProviderResult, ProviderCalculationResultsIndex> transformer,
             ISearchRepository<ProviderCalculationResultsIndex> searchRepository,
             ISearchIndexWriterSettings settings) : base(logger, reader, transformer, searchRepository)
@@ -33,7 +34,7 @@ namespace CalculateFunding.Services.Results.SearchIndex
             return new ProviderCalculationResultsIndexProcessorContext(message) { DegreeOfParallelism = _settings.ProviderCalculationResultsIndexWriterDegreeOfParallelism };
         }
 
-        protected override IEnumerable<string> IndexDataItemKeys(ISearchIndexProcessorContext context)
+        protected override IEnumerable<ProviderResultDataKey> IndexDataItemKeys(ISearchIndexProcessorContext context)
         {
             var processorContext = context as ProviderCalculationResultsIndexProcessorContext;
             Guard.ArgumentNotNull(processorContext, nameof(ProviderCalculationResultsIndexProcessorContext));
@@ -41,7 +42,7 @@ namespace CalculateFunding.Services.Results.SearchIndex
             foreach (string providerId in processorContext.ProviderIds)
             {
                 byte[] providerResultIdBytes = Encoding.UTF8.GetBytes($"{providerId}-{processorContext.SpecificationId}");
-                yield return Convert.ToBase64String(providerResultIdBytes);
+                yield return new ProviderResultDataKey(Convert.ToBase64String(providerResultIdBytes), providerId);
             }
         }
     }

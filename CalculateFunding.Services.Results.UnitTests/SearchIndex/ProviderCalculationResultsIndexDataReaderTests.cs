@@ -1,5 +1,6 @@
 ﻿using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Results.Interfaces;
+using CalculateFunding.Services.Results.Models;
 using CalculateFunding.Services.Results.SearchIndex;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
@@ -26,12 +27,14 @@ namespace CalculateFunding.Services.Results.UnitTests.SearchIndex
         public async Task ShouldGetProviderResultById()
         {
             string providerResultId = new RandomString();
+            string partitionKey = new RandomString();
+            ProviderResultDataKey providerResultDataKey = new ProviderResultDataKey(providerResultId, partitionKey);
 
             ProviderResult expectedProviderResult = new ProviderResult() { Id = providerResultId };
-            _repository.GetProviderResultById(providerResultId)
+            _repository.GetProviderResultById(Arg.Is(providerResultId), Arg.Is(partitionKey))
                 .Returns(expectedProviderResult);
 
-            ProviderResult providerResult = await _reader.GetData(providerResultId);
+            ProviderResult providerResult = await _reader.GetData(providerResultDataKey);
 
             providerResult
                 .Should()
@@ -39,7 +42,7 @@ namespace CalculateFunding.Services.Results.UnitTests.SearchIndex
 
             await _repository
                 .Received(1)
-                .GetProviderResultById(providerResultId);
+                .GetProviderResultById(Arg.Is(providerResultId), Arg.Is(partitionKey));
 
         }
     }
