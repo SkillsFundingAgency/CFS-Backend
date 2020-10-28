@@ -149,9 +149,9 @@
             
             public const string DeletePublishedProviders = "publishing-delete-published-providers";
 
-            public const string DeletePublishedProvidersPoisoned = "on-publishing-delete-published-providers/$DeadLetterQueue";
+            public const string DeletePublishedProvidersPoisoned = "publishing-delete-published-providers/$DeadLetterQueue";
 
-            public const string DeletePublishedProvidersPoisonedLocal = "on-publishing-delete-published-providers-poisoned";
+            public const string DeletePublishedProvidersPoisonedLocal = "publishing-delete-published-providers-poisoned";
 
             public const string ReIndexSpecificationCalculationRelationships = "calculations-reindex-specification-calculation-rels";
 

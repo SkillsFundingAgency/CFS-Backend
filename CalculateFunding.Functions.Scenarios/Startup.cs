@@ -18,6 +18,7 @@ using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
+using CalculateFunding.Services.DeadletterProcessor;
 using CalculateFunding.Services.Scenarios;
 using CalculateFunding.Services.Scenarios.Interfaces;
 using CalculateFunding.Services.Scenarios.MappingProfiles;
@@ -83,6 +84,7 @@ namespace CalculateFunding.Functions.Scenarios
             builder.AddSingleton<IScenariosService, ScenariosService>();
             builder.AddSingleton<IScenariosSearchService, ScenariosSearchService>();
             builder.AddSingleton<IJobManagement, JobManagement>();
+            builder.AddSingleton<IJobHelperService, JobHelperService>();
 
             builder
                 .AddSingleton<IValidator<CreateNewTestScenarioVersion>, CreateNewTestScenarioVersionValidator>();           
