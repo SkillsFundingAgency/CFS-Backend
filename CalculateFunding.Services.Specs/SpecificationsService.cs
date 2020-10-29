@@ -1012,21 +1012,6 @@ namespace CalculateFunding.Services.Specs
             return new OkObjectResult(result);
         }
 
-        private async Task QueueMergeSpecificationInformationJob(SpecificationVersion specification)
-        {
-            await _resultsApiClientPolicy.ExecuteAsync(() => _results.QueueMergeSpecificationInformationJob(new MergeSpecificationInformationRequest
-            {
-                SpecificationInformation = new SpecificationInformation
-                {
-                    Id = specification.Id,
-                    Name = specification.Name,
-                    FundingPeriodId = specification.FundingPeriod?.Id,
-                    FundingStreamIds = specification.FundingStreams?.Select(_ => _.Id).ToArray(),
-                    LastEditDate = specification.Date
-                }
-            }));
-        }
-
         private async Task SendSpecificationComparisonModelMessageToTopic(string specificationId, string topicName,
             SpecificationVersion current, SpecificationVersion previous, Reference user, string correlationId)
         {
@@ -1257,8 +1242,6 @@ WHERE   s.documentType = @DocumentType",
 
                 await _cacheProvider.RemoveAsync<SpecificationSummary>(
                     $"{CacheKeys.SpecificationSummaryById}{specification.Id}");
-                
-                await QueueMergeSpecificationInformationJob(specification.Current);
             }
             catch (Exception ex)
             {
@@ -1327,8 +1310,6 @@ WHERE   s.documentType = @DocumentType",
 
                 await _cacheProvider.RemoveAsync<SpecificationSummary>(
                     $"{CacheKeys.SpecificationSummaryById}{specification.Id}");
-                
-                await QueueMergeSpecificationInformationJob(specificationVersion);
             }
 
             return result;
@@ -1349,8 +1330,6 @@ WHERE   s.documentType = @DocumentType",
 
                 await _cacheProvider.RemoveAsync<SpecificationSummary>(
                     $"{CacheKeys.SpecificationSummaryById}{specification.Id}");
-                
-                await QueueMergeSpecificationInformationJob(specification.Current);  
             }
 
             return result;

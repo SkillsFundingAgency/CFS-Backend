@@ -155,17 +155,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 CreateJobManagement());
         }
 
-        private async Task AndAMergeSpecificationInformationJobWasQueued(SpecificationVersion specification)
-        {
-            await _resultsApiClient.Received(1)
-                .QueueMergeSpecificationInformationJob(Arg.Is<MergeSpecificationInformationRequest>(_ =>
-                    _.SpecificationInformation.Id == specification.Id &&
-                    _.SpecificationInformation.Name == specification.Name &&
-                    _.SpecificationInformation.LastEditDate == specification.Date &&
-                    _.SpecificationInformation.FundingStreamIds.SequenceEqual(specification.FundingStreams.Select(fs => fs.Id).ToArray()) &&
-                    _.SpecificationInformation.FundingPeriodId == specification.FundingPeriod.Id));
-        }
-
         protected IVersionRepository<Models.Specs.SpecificationVersion> CreateVersionRepository()
         {
             return Substitute.For<IVersionRepository<Models.Specs.SpecificationVersion>>();
