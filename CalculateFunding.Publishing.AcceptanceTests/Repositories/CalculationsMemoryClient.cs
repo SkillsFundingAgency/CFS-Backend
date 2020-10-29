@@ -168,5 +168,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task<ApiResponse<Job>> QueueApproveAllSpecificationCalculations(string specificationId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

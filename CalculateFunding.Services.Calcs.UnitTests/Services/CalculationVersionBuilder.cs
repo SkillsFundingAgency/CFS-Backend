@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Versioning;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Tests.Common.Helpers;
 
@@ -11,6 +12,7 @@ namespace CalculateFunding.Services.Calcs.Services
         private string _namespace;
         private string _sourceCode;
         private CalculationValueType _calculationValueType;
+        private PublishStatus _publishStatus;
 
         public CalculationVersionBuilder WithNameSpace(string nameSpace)
         {
@@ -47,6 +49,13 @@ namespace CalculateFunding.Services.Calcs.Services
             return this;
         }
 
+        public CalculationVersionBuilder WithPublishStatus(PublishStatus publishStatus)
+        {
+            _publishStatus = publishStatus;
+
+            return this;
+        }
+
         public CalculationVersion Build()
         {
             string name = _name ?? new RandomString();
@@ -58,7 +67,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 Namespace = CalculationNamespace.Additional,
                 SourceCode = _sourceCode,
                 SourceCodeName = VisualBasicTypeGenerator.GenerateIdentifier(name),
-                ValueType = _calculationValueType
+                ValueType = _calculationValueType,
+                PublishStatus = _publishStatus
             };
         }
     }

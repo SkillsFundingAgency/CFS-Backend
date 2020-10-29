@@ -38,7 +38,6 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
     {
         private ICreateCalculationService _createCalculationService;
         private ICalculationsRepository _calculationsRepository;
-        private IApplyTemplateCalculationsJobTrackerFactory _jobTrackerFactory;
         private IInstructionAllocationJobCreation _instructionAllocationJobCreation;
         private IPoliciesApiClient _policies;
         private ISpecificationsApiClient _specificationApiClient;
@@ -76,7 +75,6 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
             _graphRepository = Substitute.For<IGraphRepository>();
             _createCalculationService = Substitute.For<ICreateCalculationService>();
             _calculationsRepository = Substitute.For<ICalculationsRepository>();
-            _jobTrackerFactory = Substitute.For<IApplyTemplateCalculationsJobTrackerFactory>();
             _instructionAllocationJobCreation = Substitute.For<IInstructionAllocationJobCreation>();
             _calculationService = Substitute.For<ICalculationService>();
             _cacheProvider = Substitute.For<ICacheProvider>();

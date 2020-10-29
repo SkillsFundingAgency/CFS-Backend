@@ -6,7 +6,6 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Jobs.Interfaces;
 using Microsoft.Azure.ServiceBus;
-using Polly;
 using Serilog;
 using System;
 using System.Threading.Tasks;

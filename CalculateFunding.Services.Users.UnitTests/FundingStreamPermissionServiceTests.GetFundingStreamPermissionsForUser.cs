@@ -86,6 +86,7 @@ namespace CalculateFunding.Services.Users
                     CanApplyCustomProfilePattern = false,
                     CanApproveCalculations = true,
                     CanApproveAnyCalculations = false,
+                    CanApproveAllCalculations = false,
                     FundingStreamId = FundingStreamId,
                     UserId = UserId
                 },
@@ -105,6 +106,7 @@ namespace CalculateFunding.Services.Users
                     CanApplyCustomProfilePattern = false,
                     CanApproveCalculations = false,
                     CanApproveAnyCalculations = true,
+                    CanApproveAllCalculations = true,
                     FundingStreamId = "fs2",
                     UserId = UserId
                 }
@@ -146,6 +148,7 @@ namespace CalculateFunding.Services.Users
                         CanApplyCustomProfilePattern = false,
                         CanApproveCalculations = true,
                         CanApproveAnyCalculations = false,
+                        CanApproveAllCalculations = false,
                         FundingStreamId = FundingStreamId,
                         UserId = UserId
                     },
@@ -165,6 +168,7 @@ namespace CalculateFunding.Services.Users
                         CanApplyCustomProfilePattern = false,
                         CanApproveCalculations = false,
                         CanApproveAnyCalculations = true,
+                        CanApproveAllCalculations = true,
                         FundingStreamId = "fs2",
                         UserId = UserId
                     }

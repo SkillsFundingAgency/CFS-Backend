@@ -227,7 +227,8 @@ namespace CalculateFunding.Services.Users
                 CanAssignProfilePattern = false,
                 CanApplyCustomProfilePattern = false,
                 CanApproveCalculations = true,
-                CanApproveAnyCalculations = false
+                CanApproveAnyCalculations = false,
+                CanApproveAllCalculations = false
             };
 
             userRepository
@@ -270,6 +271,7 @@ namespace CalculateFunding.Services.Users
                     CanAssignProfilePattern = false,
                     CanDeleteCalculations = false,
                     CanDeleteQaTests = false,
+                    CanApproveAllCalculations = false
                 });
 
             await cacheProvider
@@ -359,6 +361,7 @@ namespace CalculateFunding.Services.Users
                 CanApplyCustomProfilePattern = false,
                 CanApproveCalculations = true,
                 CanApproveAnyCalculations = false,
+                CanApproveAllCalculations = false
             };
 
             userRepository
@@ -401,6 +404,7 @@ namespace CalculateFunding.Services.Users
                     CanDeleteCalculations = false,
                     CanDeleteQaTests = false,
                     CanDeleteSpecification = false,
+                    CanApproveAllCalculations = false
                 });
 
             await cacheProvider
@@ -486,7 +490,8 @@ namespace CalculateFunding.Services.Users
                 CanAssignProfilePattern = false,
                 CanApplyCustomProfilePattern = false,
                 CanApproveCalculations = true,
-                CanApproveAnyCalculations = false
+                CanApproveAnyCalculations = false,
+                CanApproveAllCalculations = false
             };
 
             FundingStreamPermission fs2Permission = new FundingStreamPermission()
@@ -708,7 +713,8 @@ namespace CalculateFunding.Services.Users
                 CanAssignProfilePattern = false,
                 CanApplyCustomProfilePattern = false,
                 CanApproveCalculations = true,
-                CanApproveAnyCalculations = false
+                CanApproveAnyCalculations = false,
+                CanApproveAllCalculations = false
             };
 
             FundingStreamPermission fs2Permission = new FundingStreamPermission()
@@ -741,6 +747,7 @@ namespace CalculateFunding.Services.Users
                 CanDeleteSpecification = false,
                 CanDeleteTemplates = false,
                 CanEditTemplates = false,
+                CanApproveAllCalculations = false
             };
 
             userRepository
@@ -787,6 +794,7 @@ namespace CalculateFunding.Services.Users
                     CanDeleteCalculations = false,
                     CanApplyCustomProfilePattern = false,
                     CanApproveCalculations = true,
+                    CanApproveAllCalculations = false
                 });
 
             await cacheProvider

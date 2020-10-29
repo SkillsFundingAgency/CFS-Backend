@@ -12,6 +12,12 @@
 
             public const string ApplyTemplateCalculationsPoisonedLocal = "apply-template-calculations-poisoned";
 
+            public const string ApproveAllCalculations = "calculations-approve-all";
+
+            public const string ApproveAllCalculationsPoisoned = "calculations-approve-all/$DeadLetterQueue";
+
+            public const string ApproveAllCalculationsPoisonedLocal = "calculations-approve-all-poisoned";
+
             public const string CalculationJobInitialiser = "calc-events-instruct-generate-allocations";
 
             public const string CalculationJobInitialiserPoisoned = "calc-events-instruct-generate-allocations/$DeadLetterQueue";

@@ -130,6 +130,7 @@ namespace CalculateFunding.Services.Users
                 CanApplyCustomProfilePattern = false,
                 CanApproveCalculations = true,
                 CanApproveAnyCalculations = false,
+                CanApproveAllCalculations = false
             };
             
             IVersionRepository<FundingStreamPermissionVersion> versionRepository = CreateFundingStreamPermissionRepository();
@@ -175,6 +176,7 @@ namespace CalculateFunding.Services.Users
                     CanApplyCustomProfilePattern = false,
                     CanApproveCalculations = true,
                     CanApproveAnyCalculations = false,
+                    CanApproveAllCalculations = false,
                 });
 
             await userRepository
@@ -199,7 +201,8 @@ namespace CalculateFunding.Services.Users
                     !p.CanAssignProfilePattern &&
                     !p.CanApplyCustomProfilePattern &&
                     p.CanApproveCalculations &&
-                    !p.CanApproveAnyCalculations
+                    !p.CanApproveAnyCalculations &&
+                    !p.CanApproveAllCalculations
                 ));
 
             await cacheProvider
@@ -250,6 +253,7 @@ namespace CalculateFunding.Services.Users
                 CanApplyCustomProfilePattern = false,
                 CanApproveCalculations = true,
                 CanApproveAnyCalculations = false,
+                CanApproveAllCalculations = false
             };
 
             userRepository
@@ -279,6 +283,7 @@ namespace CalculateFunding.Services.Users
                 CanApplyCustomProfilePattern = false,
                 CanApproveCalculations = false,
                 CanApproveAnyCalculations = true,
+                CanApproveAllCalculations = true
             };
 
             IVersionRepository<FundingStreamPermissionVersion> versionRepository = CreateFundingStreamPermissionRepository();
@@ -320,7 +325,8 @@ namespace CalculateFunding.Services.Users
                     CanAssignProfilePattern = false,
                     CanApplyCustomProfilePattern = false,
                     CanApproveCalculations = false,
-                    CanApproveAnyCalculations = true
+                    CanApproveAnyCalculations = true,
+                    CanApproveAllCalculations = true
                 });
 
             await userRepository
@@ -345,8 +351,8 @@ namespace CalculateFunding.Services.Users
                    !p.CanAssignProfilePattern &&
                    !p.CanApplyCustomProfilePattern && 
                    !p.CanApproveCalculations &&
-                   p.CanApproveAnyCalculations
-                   
+                   p.CanApproveAnyCalculations &&
+                   p.CanApproveAllCalculations
                ));
 
             await cacheProvider
@@ -394,7 +400,8 @@ namespace CalculateFunding.Services.Users
                 CanAssignProfilePattern = false,
                 CanApplyCustomProfilePattern = false,
                 CanApproveCalculations = false,
-                CanApproveAnyCalculations = true
+                CanApproveAnyCalculations = true,
+                CanApproveAllCalculations = true
             };
 
             userRepository
@@ -423,7 +430,8 @@ namespace CalculateFunding.Services.Users
                 CanAssignProfilePattern = false,
                 CanApplyCustomProfilePattern = false,
                 CanApproveCalculations = false,
-                CanApproveAnyCalculations = true
+                CanApproveAnyCalculations = true,
+                CanApproveAllCalculations = true
             };
 
             IVersionRepository<FundingStreamPermissionVersion> versionRepository = CreateFundingStreamPermissionRepository();
@@ -461,7 +469,8 @@ namespace CalculateFunding.Services.Users
                     CanAssignProfilePattern = false,
                     CanApplyCustomProfilePattern = false,
                     CanApproveCalculations = false,
-                    CanApproveAnyCalculations = true
+                    CanApproveAnyCalculations = true,
+                    CanApproveAllCalculations = true
                 });
 
             await userRepository
@@ -512,7 +521,8 @@ namespace CalculateFunding.Services.Users
                 CanAssignProfilePattern = false,
                 CanApplyCustomProfilePattern = false,
                 CanApproveCalculations = true,
-                CanApproveAnyCalculations = false
+                CanApproveAnyCalculations = false,
+                CanApproveAllCalculations = false
             };
 
             userRepository
@@ -540,7 +550,8 @@ namespace CalculateFunding.Services.Users
                 CanAssignProfilePattern = false,
                 CanApplyCustomProfilePattern = false,
                 CanApproveCalculations = false,
-                CanApproveAnyCalculations = true
+                CanApproveAnyCalculations = true,
+                CanApproveAllCalculations = true
             };
 
             FundingStreamPermissionService service = CreateService(userRepository, cacheProvider: cacheProvider);

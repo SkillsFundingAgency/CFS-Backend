@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
@@ -11,7 +10,6 @@ using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
-using CalculateFunding.Common.TemplateMetadata.Enums;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
@@ -21,7 +19,6 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Jobs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Polly;
 using Serilog;
 using Calculation = CalculateFunding.Common.TemplateMetadata.Models.Calculation;
@@ -46,7 +43,8 @@ namespace CalculateFunding.Services.Calcs
         private readonly ISpecificationsApiClient _specificationsApiClient;
         private readonly AsyncPolicy _specificationsApiClientPolicy;
 
-        public ApplyTemplateCalculationsService(ICreateCalculationService createCalculationService,
+        public ApplyTemplateCalculationsService(
+            ICreateCalculationService createCalculationService,
             IPoliciesApiClient policiesApiClient,
             ICalcsResiliencePolicies calculationsResiliencePolicies,
             ICalculationsRepository calculationsRepository,

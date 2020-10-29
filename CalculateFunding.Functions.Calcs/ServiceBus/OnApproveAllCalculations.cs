@@ -1,27 +1,27 @@
-﻿using System;
-using System.Threading.Tasks;
-using CalculateFunding.Common.Models;
+﻿using CalculateFunding.Common.Models;
 using CalculateFunding.Common.ServiceBus.Interfaces;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Functions;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Serilog;
+using System.Threading.Tasks;
 
 namespace CalculateFunding.Functions.Calcs.ServiceBus
 {
-    public class OnApplyTemplateCalculations : Retriable
+    public class OnApproveAllCalculations : Retriable
     {
-        public const string FunctionName = "on-apply-template-calculations";
-        public const string QueueName = ServiceBusConstants.QueueNames.ApplyTemplateCalculations;
+        public const string FunctionName = "on-approve-all-calculations";
+        public const string QueueName = ServiceBusConstants.QueueNames.ApproveAllCalculations;
 
-        public OnApplyTemplateCalculations(
+        public OnApproveAllCalculations(
             ILogger logger,
-            IApplyTemplateCalculationsService templateCalculationsService,
+            IApproveAllCalculationsService approveAllCalculationsService,
             IMessengerService messengerService,
-            IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, templateCalculationsService)
+            IUserProfileProvider userProfileProvider, bool useAzureStorage = false)
+            : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, approveAllCalculationsService)
         {
         }
 

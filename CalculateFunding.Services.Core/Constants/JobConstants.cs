@@ -74,6 +74,8 @@
             public const string UpdateCodeContextJob = nameof(UpdateCodeContextJob);
 
             public const string SearchIndexWriterJob = nameof(SearchIndexWriterJob);
+
+            public const string ApproveAllCalculationsJob = nameof(ApproveAllCalculationsJob);
         }
 
         public static class NotificationChannels

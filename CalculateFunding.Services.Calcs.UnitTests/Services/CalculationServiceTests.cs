@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using CalculateFunding.Common.ApiClient.DataSets;
-using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Results;
 using CalculateFunding.Common.ApiClient.Specifications;
@@ -59,7 +58,8 @@ namespace CalculateFunding.Services.Calcs.Services
             ICodeContextCache codeContextCache = null,
             ISourceFileRepository sourceFileRepository = null,
             IResultsApiClient resultsApiClient = null,
-            IDatasetsApiClient datasetsApiClient = null)
+            IDatasetsApiClient datasetsApiClient = null,
+            IApproveAllCalculationsJobAction approveAllCalculationsJobAction = null)
         {
             CalculationNameInUseCheck calculationNameInUseCheck = new CalculationNameInUseCheck(calculationsRepository ?? CreateCalculationsRepository(),
                 specificationsApiClient ?? CreateSpecificationsApiClient(),
@@ -105,7 +105,13 @@ namespace CalculateFunding.Services.Calcs.Services
                 CreateJobManagement(),
                 codeContextCache ?? Substitute.For<ICodeContextCache>(),
                 resultsApiClient ?? Substitute.For<IResultsApiClient>(),
-                datasetsApiClient ?? Substitute.For<IDatasetsApiClient>());
+                datasetsApiClient ?? Substitute.For<IDatasetsApiClient>(),
+                approveAllCalculationsJobAction ?? CreateApproveAllCalculationsJobAction());
+        }
+
+        private static IApproveAllCalculationsJobAction CreateApproveAllCalculationsJobAction()
+        {
+            return Substitute.For<IApproveAllCalculationsJobAction>();
         }
 
         private static ICalculationCodeReferenceUpdate CreateCalculationCodeReferenceUpdate()

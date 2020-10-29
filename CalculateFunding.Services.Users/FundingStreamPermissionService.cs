@@ -282,7 +282,8 @@ namespace CalculateFunding.Services.Users
                             CanAssignProfilePattern = false,
                             CanApplyCustomProfilePattern = false,
                             CanApproveCalculations = false,
-                            CanApproveAnyCalculations = false
+                            CanApproveAnyCalculations = false,
+                            CanApproveAllCalculations = false
                         });
                     }
                 }
@@ -335,6 +336,7 @@ namespace CalculateFunding.Services.Users
                     CanApproveAnyCalculations = false,
                     CanApproveCalculations = false,
                     CanAssignProfilePattern = false,
+                    CanApproveAllCalculations = false
                 };
             }
 
@@ -361,7 +363,8 @@ namespace CalculateFunding.Services.Users
                 CanApplyCustomProfilePattern = permissionsForUser.All(p => p.CanApplyCustomProfilePattern),
                 CanAssignProfilePattern = permissionsForUser.All(p => p.CanAssignProfilePattern),
                 CanApproveCalculations = permissionsForUser.All(p => p.CanApproveCalculations),
-                CanApproveAnyCalculations = permissionsForUser.All(p => p.CanApproveAnyCalculations)
+                CanApproveAnyCalculations = permissionsForUser.All(p => p.CanApproveAnyCalculations),
+                CanApproveAllCalculations = permissionsForUser.All(p => p.CanApproveAllCalculations)
             };
         }
 

@@ -254,9 +254,18 @@ namespace CalculateFunding.Api.Calcs.Controllers
 
         [HttpPost("api/calcs/specifications/{specificationId}/templatecalculations-update/{datasetRelationshipId}")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
-        public async Task<IActionResult> UpdateTemplateCalculations([FromRoute]string specificationId, string datasetRelationshipId)
+        public async Task<IActionResult> UpdateTemplateCalculations([FromRoute] string specificationId, string datasetRelationshipId)
         {
             return await _calcsService.UpdateTemplateCalculationsForSpecification(specificationId, datasetRelationshipId, Request.GetUserOrDefault());
+        }
+        
+        [HttpPost("api/calcs/specifications/{specificationId}/approve-all-calculations")]
+        [Produces(typeof(Job))]
+        public async Task<IActionResult> QueueApproveAllSpecificationCalculations([FromRoute] string specificationId)
+        {
+            HttpRequest httpRequest = ControllerContext.HttpContext.Request;
+
+            return await _calcsService.QueueApproveAllSpecificationCalculations(specificationId, httpRequest.GetUser(), httpRequest.GetCorrelationId());
         }
     }
 }

@@ -94,6 +94,8 @@ namespace CalculateFunding.Functions.Calcs
                 builder.AddScoped<OnDeleteCalculationsFailure>();
                 builder.AddScoped<OnUpdateCodeContextCache>();
                 builder.AddScoped<OnUpdateCodeContextCacheFailure>();
+                builder.AddScoped<OnApproveAllCalculations>();
+                builder.AddScoped<OnApproveAllCalculationsFailure>();
             }
 
             builder.AddScoped<IApplyTemplateCalculationsService, ApplyTemplateCalculationsService>();
@@ -110,7 +112,6 @@ namespace CalculateFunding.Functions.Calcs
                 return new CalculationsRepository(resultsRepostory);
             });
 
-            builder.AddScoped<IApplyTemplateCalculationsJobTrackerFactory, ApplyTemplateCalculationsJobTrackerFactory>();
             builder.AddScoped<ICalculationService, CalculationService>()
                 .AddScoped<IInstructionAllocationJobCreation, InstructionAllocationJobCreation>()
                 .AddScoped<ICreateCalculationService, CreateCalculationService>();
@@ -123,6 +124,7 @@ namespace CalculateFunding.Functions.Calcs
             builder.AddSingleton<ICompilerFactory, CompilerFactory>();
             //builder.AddSingleton<IDatasetRepository, DatasetRepository>();
             builder.AddScoped<IJobService, JobService>();
+            builder.AddScoped<IApproveAllCalculationsJobAction, ApproveAllCalculationsJobAction>();
             builder
                 .AddSingleton<CSharpCompiler>()
                 .AddSingleton<VisualBasicCompiler>()
@@ -168,6 +170,8 @@ namespace CalculateFunding.Functions.Calcs
             builder.AddScoped<ICalculationEngineRunningChecker, CalculationEngineRunningChecker>();
 
             builder.AddScoped<IValidator<CalculationCreateModel>, CalculationCreateModelValidator>();
+
+            builder.AddScoped<IApproveAllCalculationsService, ApproveAllCalculationsService>();
 
             builder
                .AddScoped<IDatasetReferenceService, DatasetReferenceService>();

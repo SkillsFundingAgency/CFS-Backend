@@ -6,7 +6,6 @@ using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Services.Core.Interfaces.Services;
-using CalculateFunding.Services.Jobs.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 
@@ -63,5 +62,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         Task DeleteCalculations(Message message);
 
         Task<IActionResult> UpdateTemplateCalculationsForSpecification(string specificationId, string datasetDefinitionId, Reference user);
+
+        Task<IActionResult> QueueApproveAllSpecificationCalculations(string specificationId, Reference author, string correlationId);
     }
 }

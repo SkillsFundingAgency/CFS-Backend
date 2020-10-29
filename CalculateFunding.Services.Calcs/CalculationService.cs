@@ -80,6 +80,7 @@ namespace CalculateFunding.Services.Calcs
         private readonly IPoliciesApiClient _policiesApiClient;
         private readonly Polly.AsyncPolicy _policiesApiClientPolicy;
         private readonly IResultsApiClient _resultsApiClient;
+        private readonly IApproveAllCalculationsJobAction _approveAllCalculationsJobAction;
         private readonly Polly.AsyncPolicy _resultsApiClientPolicy;
         private readonly IDatasetsApiClient _datasetsApiClient;
         private readonly AsyncPolicy _datasetsApiClientPolicy;
@@ -116,7 +117,8 @@ namespace CalculateFunding.Services.Calcs
             IJobManagement jobManagement,
             ICodeContextCache codeContextCache,
             IResultsApiClient resultsApiClient,
-            IDatasetsApiClient datasetsApiClient)
+            IDatasetsApiClient datasetsApiClient,
+            IApproveAllCalculationsJobAction approveAllCalculationsJobAction)
         {
             Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -180,6 +182,7 @@ namespace CalculateFunding.Services.Calcs
             _jobManagement = jobManagement;
             _codeContextCache = codeContextCache;
             _resultsApiClient = resultsApiClient;
+            _approveAllCalculationsJobAction = approveAllCalculationsJobAction;
             _resultsApiClientPolicy = resiliencePolicies?.ResultsApiClient;
             _datasetsApiClient = datasetsApiClient;
             _datasetsApiClientPolicy = resiliencePolicies?.DatasetsApiClient;
@@ -1092,7 +1095,7 @@ namespace CalculateFunding.Services.Calcs
             ApiClientSelectDatasourceModel relationshipDatasourceModel = datasetRelationshipResponse.Content;
 
             ApiResponse<ApiClientDatasetDefinition> datasetDefinitionResponse = await _datasetsApiClientPolicy.ExecuteAsync(() => _datasetsApiClient.GetDatasetDefinitionById(relationshipDatasourceModel.DefinitionId));
-            if(!datasetDefinitionResponse.StatusCode.IsSuccess() || datasetDefinitionResponse.Content == null)
+            if (!datasetDefinitionResponse.StatusCode.IsSuccess() || datasetDefinitionResponse.Content == null)
             {
                 string message = $"No dataset definition found for dataset definition id '{relationshipDatasourceModel.DefinitionId}'";
                 _logger.Information(message);
@@ -1117,7 +1120,7 @@ namespace CalculateFunding.Services.Calcs
             {
                 ApiClientFieldDefinition fieldDefinition = tableDefinition.FieldDefinitions.FirstOrDefault(x => x.Name == templateCalculation.Name);
 
-                if(fieldDefinition != null)
+                if (fieldDefinition != null)
                 {
                     CalculationVersion calculationVersion = templateCalculation.Current.Clone() as CalculationVersion;
 
@@ -1127,13 +1130,31 @@ namespace CalculateFunding.Services.Calcs
                     UpdateCalculationResult updateCalculationResult = await UpdateCalculation(templateCalculation, calculationVersion, user, updateBuildProject: false);
                 }
             }
-            
+
             await UpdateBuildProject(specificationSummary);
 
             string cacheKey = $"{CacheKeys.CalculationsMetadataForSpecification}{specificationId}";
             await _cachePolicy.ExecuteAsync(() => _cacheProvider.RemoveAsync<List<CalculationMetadata>>(cacheKey));
 
             return new OkResult();
+        }
+        public async Task<IActionResult> QueueApproveAllSpecificationCalculations(
+            string specificationId, Reference author, string correlationId)
+        {
+            try
+            {
+                Job approveCalculationsJob = await _approveAllCalculationsJobAction.Run(specificationId, author, correlationId);
+
+                return new OkObjectResult(approveCalculationsJob);
+            }
+            catch (Exception ex)
+            {
+                string errorMessage = "Unable to create approve all calculations job";
+
+                _logger.Error(ex, errorMessage);
+
+                return new InternalServerErrorResult(errorMessage);
+            }
         }
 
         private async Task TrackJobFailed(string jobId, Exception exception)

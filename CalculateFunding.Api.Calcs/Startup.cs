@@ -212,6 +212,9 @@ namespace CalculateFunding.Api.Calcs
             builder
                 .AddSingleton<IBlobContainerRepository, BlobContainerRepository>();
 
+            builder
+                .AddScoped<IApproveAllCalculationsJobAction, ApproveAllCalculationsJobAction>();
+
             builder.AddSingleton<ISourceFileRepository, SourceFileRepository>((ctx) =>
             {
                 BlobStorageOptions blobStorageOptions = new BlobStorageOptions();

@@ -1,7 +1,6 @@
 using System.Threading.Tasks;
 using CalculateFunding.Functions.Calcs.ServiceBus;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Services.Calcs.Caching;
 using CalculateFunding.Services.Core.Constants;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
@@ -136,6 +135,34 @@ namespace CalculateFunding.Functions.DebugQueue
             Message message = Helpers.ConvertToMessage<string>(item);
 
             OnReIndexSpecificationCalculationRelationshipsFailure function = scope.ServiceProvider.GetService<OnReIndexSpecificationCalculationRelationshipsFailure>();
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
+
+        [FunctionName("on-approve-all-calculations")]
+        public static async Task RunOnApproveAllCalculations(
+            [QueueTrigger(ServiceBusConstants.QueueNames.ApproveAllCalculations, Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using IServiceScope scope = Functions.Calcs.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+            Message message = Helpers.ConvertToMessage<string>(item);
+
+            OnApproveAllCalculations function = scope.ServiceProvider.GetService<OnApproveAllCalculations>();
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
+
+        [FunctionName("on-approve-all-calculations-poisoned")]
+        public static async Task RunOnApproveAllCalculationsFailure(
+            [QueueTrigger(ServiceBusConstants.QueueNames.ApproveAllCalculationsPoisonedLocal, Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using IServiceScope scope = Functions.Calcs.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+            Message message = Helpers.ConvertToMessage<string>(item);
+
+            OnApproveAllCalculationsFailure function = scope.ServiceProvider.GetService<OnApproveAllCalculationsFailure>();
 
             await function.Run(message);
 

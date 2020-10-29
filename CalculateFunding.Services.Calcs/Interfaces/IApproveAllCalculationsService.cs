@@ -2,7 +2,8 @@
 
 namespace CalculateFunding.Services.Calcs.Interfaces
 {
-    public interface IApplyTemplateCalculationsService : IJobProcessingService
+    public interface IApproveAllCalculationsService : IJobProcessingService
     {
+
     }
 }
