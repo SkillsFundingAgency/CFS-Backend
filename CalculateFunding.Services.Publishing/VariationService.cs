@@ -129,12 +129,12 @@ namespace CalculateFunding.Services.Publishing
 
                 foreach (PublishedProvider publishedProvider in _applyProviderVariations.ProvidersToUpdate)
                 {
-                    publishedProvidersToUpdate[publishedProvider.Id] = publishedProvider;
+                    publishedProvidersToUpdate[publishedProvider.Current.ProviderId] = publishedProvider;
                 }
 
                 foreach (PublishedProvider publishedProvider in _applyProviderVariations.NewProvidersToAdd)
                 {
-                    newProviders[publishedProvider.Id] = publishedProvider;
+                    newProviders[publishedProvider.Current.ProviderId] = publishedProvider;
                 }
             }
 

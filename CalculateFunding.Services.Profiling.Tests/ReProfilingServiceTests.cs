@@ -135,7 +135,7 @@ namespace CalculateFunding.Services.Profiling.Tests
             AndTheProfiling(request, profilePattern, profileResponse);
             AndTheReProfilingStrategyResponse(profileResponse, request, profilePattern, NewReProfileStrategyResult());
 
-            Func<Task<ActionResult<ReProfileResponse>>> invocation = async() => await WhenTheFundingLineIsReProfiled(request);
+            Func<Task<ActionResult<ReProfileResponse>>> invocation = () => WhenTheFundingLineIsReProfiled(request);
 
             invocation
                 .Should()
