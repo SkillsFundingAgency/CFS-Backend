@@ -38,7 +38,7 @@ namespace CalculateFunding.Functions.Notifications
                 Connection = ServiceBusConstants.ConnectionStringConfigurationKey)]Message message,
             [SignalR(HubName = JobConstants.NotificationsHubName)] IAsyncCollector<SignalRMessage> signalRMessages)
         {
-            await Run(message,
+            await base.Run(message,
             async () =>
             {
                 await _notificationService.OnNotificationEvent(message, signalRMessages);

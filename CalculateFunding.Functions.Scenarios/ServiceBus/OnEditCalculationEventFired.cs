@@ -31,7 +31,7 @@ namespace CalculateFunding.Functions.Scenarios.ServiceBus
             ServiceBusConstants.TopicSubscribers.UpdateScenariosForEditCalculation,
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            await Run(message);
+            await base.Run(message);
         }
     }
 }

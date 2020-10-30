@@ -29,7 +29,7 @@ namespace CalculateFunding.Functions.Specs.ServiceBus
         [FunctionName(FunctionName)]
         public async Task Run([ServiceBusTrigger(QueueName, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            await Run(message);
+            await base.Run(message);
         }
     }
 }

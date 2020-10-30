@@ -37,7 +37,7 @@ namespace CalculateFunding.Functions.Datasets.ServiceBus
             QueueName,
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            await Run(message, async () =>
+            await base.Run(message, async () =>
             {
                 await _datasetService.DeleteDatasets(message);
             });

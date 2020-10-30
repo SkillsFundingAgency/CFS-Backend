@@ -37,7 +37,7 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey,
             IsSessionsEnabled = true)] Message message)
         {
-            await Run(message, async () =>
+            await base.Run(message, async () =>
             {
                 await _approveService.ApproveResults(message, batched: true);
             });

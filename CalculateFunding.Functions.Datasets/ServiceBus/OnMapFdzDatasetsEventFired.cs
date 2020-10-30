@@ -39,7 +39,7 @@ namespace CalculateFunding.Functions.Datasets.ServiceBus
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey,
             IsSessionsEnabled = true)] Message message)
         {
-            await Run(message, async () =>
+            await base.Run(message, async () =>
             {
                 await _processDatasetService.MapFdzDatasets(message);
             });
