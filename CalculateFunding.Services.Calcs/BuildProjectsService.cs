@@ -162,6 +162,9 @@ namespace CalculateFunding.Services.Calcs
         public override async Task Process(Message message)
         {
             Guard.ArgumentNotNull(message, nameof(message));
+
+            // don't auto complete the job as this will be done through child notifications
+            AutoComplete = false;
             
             IDictionary<string, string> properties = message.BuildMessageProperties();
 
@@ -333,6 +336,8 @@ namespace CalculateFunding.Services.Calcs
                 if (!allJobProperties.Any())
                 {
                     _logger.Information($"No scoped providers set for specification '{specificationId}'");
+
+                    AutoComplete = true;
 
                     Outcome = "Calculations not run as no scoped providers set for specification";
 

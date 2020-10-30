@@ -1874,7 +1874,7 @@ namespace CalculateFunding.Services.Calcs.Services
             await
                 jobsApiClient
                     .Received(1)
-                    .AddJobLog(Arg.Is(parentJobId), Arg.Is<JobLogUpdateModel>(_ => _.CompletedSuccessfully == true));
+                    .AddJobLog(Arg.Is(parentJobId), Arg.Any<JobLogUpdateModel>());
         }
 
         [TestMethod]
@@ -2669,7 +2669,7 @@ namespace CalculateFunding.Services.Calcs.Services
             await
                 jobsApiClient
                     .Received(1)
-                    .AddJobLog(Arg.Is(parentJobId), Arg.Is<JobLogUpdateModel>(_ => _.CompletedSuccessfully == true));
+                    .AddJobLog(Arg.Is(parentJobId), Arg.Any<JobLogUpdateModel>());
 
             await
                 cacheProvider
@@ -2866,7 +2866,7 @@ namespace CalculateFunding.Services.Calcs.Services
             await
                 jobsApiClient
                     .Received(1)
-                    .AddJobLog(Arg.Is(parentJobId), Arg.Is<JobLogUpdateModel>(_ => _.CompletedSuccessfully == true));
+                    .AddJobLog(Arg.Is(parentJobId), Arg.Any<JobLogUpdateModel>());
 
             await
                cacheProvider

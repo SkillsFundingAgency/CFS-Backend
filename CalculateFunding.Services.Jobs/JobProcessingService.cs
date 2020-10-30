@@ -28,6 +28,8 @@ namespace CalculateFunding.Services.Jobs
 
         public string Outcome { get; set; }
 
+        public bool AutoComplete { get; set; } = true;
+
         public JobProcessingService(IJobManagement jobManagement,
                 ILogger logger)
         {
@@ -67,7 +69,10 @@ namespace CalculateFunding.Services.Jobs
             {
                 await base.Run(message, func);
 
-                await CompleteJob(jobId);
+                if (AutoComplete)
+                {
+                    await CompleteJob(jobId);
+                }
             }
             catch (NonRetriableException ex)
             {
