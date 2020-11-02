@@ -36,13 +36,13 @@ namespace CalculateFunding.Services.Specs.Validators
             RuleFor(model => model.FundingPeriodId)
                 .NotEmpty()
                 .WithMessage("Null or empty academic year id provided")
-                .Custom(async (name, context) =>
+                .Custom((name, context) =>
                 {
                     SpecificationCreateModel specModel = context.ParentContext.InstanceToValidate as SpecificationCreateModel;
                     if (!string.IsNullOrWhiteSpace(specModel.FundingPeriodId))
                     {                       
                         ApiResponse<PolicyModels.FundingPeriod> fundingPeriodResponse = 
-                        await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingPeriodById(specModel.FundingPeriodId));
+                        _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingPeriodById(specModel.FundingPeriodId)).GetAwaiter().GetResult();
                         if (fundingPeriodResponse?.StatusCode != HttpStatusCode.OK || fundingPeriodResponse?.Content == null)
                         {
                             context.AddFailure("Funding period not found");
@@ -51,10 +51,10 @@ namespace CalculateFunding.Services.Specs.Validators
                 });
 
             RuleFor(model => model.ProviderVersionId)
-                .Custom(async (name, context) => {
+                .Custom((name, context) => {
                     SpecificationCreateModel specModel = context.ParentContext.InstanceToValidate as SpecificationCreateModel;
                     ApiResponse<PolicyModels.FundingConfig.FundingConfiguration> fundingConfigResponse =
-                        await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingConfiguration(specModel.FundingStreamIds.FirstOrDefault(), specModel.FundingPeriodId));
+                        _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingConfiguration(specModel.FundingStreamIds.FirstOrDefault(), specModel.FundingPeriodId)).GetAwaiter().GetResult();
 
                     if (fundingConfigResponse?.StatusCode != HttpStatusCode.OK || fundingConfigResponse?.Content == null)
                     {

@@ -8,6 +8,7 @@ using FluentValidation;
 using CalculateFunding.Common.Utility;
 using System.Net;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Specs.Validators
 {
@@ -49,10 +50,10 @@ namespace CalculateFunding.Services.Specs.Validators
 
 
             RuleFor(model => model.ProviderVersionId)
-                .Custom(async (name, context) => {
+                .Custom((name, context) => {
                     SpecificationEditModel specModel = context.ParentContext.InstanceToValidate as SpecificationEditModel;
                     ApiResponse<PolicyModels.FundingConfig.FundingConfiguration> fundingConfigResponse =
-                        await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingConfiguration(specModel.FundingStreamId, specModel.FundingPeriodId));
+                        _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingConfiguration(specModel.FundingStreamId, specModel.FundingPeriodId)).GetAwaiter().GetResult();
 
                     if (fundingConfigResponse?.StatusCode != HttpStatusCode.OK || fundingConfigResponse?.Content == null)
                     {

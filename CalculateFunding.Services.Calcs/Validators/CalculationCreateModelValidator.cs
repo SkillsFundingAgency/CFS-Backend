@@ -107,7 +107,7 @@ namespace CalculateFunding.Services.Calcs.Validators
              });
 
             RuleFor(model => model.FundingStreamId)
-             .Custom(async (fs, context) =>
+             .Custom((fs, context) =>
              {
                  CalculationCreateModel calculationCreateModel = context.ParentContext.InstanceToValidate as CalculationCreateModel;
                  
@@ -121,7 +121,7 @@ namespace CalculateFunding.Services.Calcs.Validators
                  }
                  else
                  {
-                     ApiResponse<SpecModel.SpecificationSummary> specificationApiResponse = await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(calculationCreateModel.SpecificationId));
+                     ApiResponse<SpecModel.SpecificationSummary> specificationApiResponse = _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(calculationCreateModel.SpecificationId)).GetAwaiter().GetResult();
 
                      if (specificationApiResponse == null || !specificationApiResponse.StatusCode.IsSuccess() || specificationApiResponse.Content == null)
                      {
