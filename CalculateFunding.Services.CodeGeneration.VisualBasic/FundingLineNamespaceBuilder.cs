@@ -12,9 +12,10 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
     {
         public NamespaceBuilderResult BuildNamespacesForFundingLines(IDictionary<string, Funding> funding)
         {
-            NamespaceBuilderResult result = new NamespaceBuilderResult();
-
-            result.PropertiesDefinitions = new StatementSyntax[0];
+            NamespaceBuilderResult result = new NamespaceBuilderResult
+            {
+                PropertiesDefinitions = new StatementSyntax[0]
+            };
 
             foreach (string @namespace in funding.Keys)
             {
@@ -55,13 +56,29 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             yield return ParseSourceCodeToStatementSyntax($"Public Property {GenerateIdentifier(@namespace)} As {GenerateIdentifier(@namespace)}Calculations");
 
             // create funding line initialise method
+            yield return CreateAddToNullableMethod();
             yield return CreateInitialiseMethod(fundingLines.Where(_ => _.Namespace == @namespace), @namespace);
+        }
+
+        private StatementSyntax CreateAddToNullableMethod()
+        {
+            StringBuilder sourceCode = new StringBuilder();
+
+            sourceCode.AppendLine();
+            sourceCode.AppendLine("Sub AddToNullable(ByRef sum As Decimal?, amount as Decimal?)");
+            sourceCode.AppendLine("    If sum.HasValue Then");
+            sourceCode.AppendLine("        sum = amount + sum");
+            sourceCode.AppendLine("    Else");
+            sourceCode.AppendLine("        sum = amount");
+            sourceCode.AppendLine("    End If");
+            sourceCode.AppendLine("End Sub");
+
+            return ParseSourceCodeToStatementSyntax(sourceCode.ToString());
         }
 
         private StatementSyntax CreateInitialiseMethod(IEnumerable<FundingLine> fundingLines, string @namespace)
         {
             StringBuilder sourceCode = new StringBuilder();
-
             sourceCode.AppendLine("Public Sub Initialise(calculationContext As CalculationContext)");
             sourceCode.AppendLine($"{GenerateIdentifier(@namespace)} = calculationContext.{GenerateIdentifier(@namespace)}");
             sourceCode.AppendLine();
@@ -88,19 +105,19 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 sourceCode.AppendLine("    End If");
                 sourceCode.AppendLine("End If");
 
-                sourceCode.AppendLine($"Dim userCalculationCodeImplementation As Func(Of Decimal?) = Function() As Decimal?");
-                sourceCode.AppendLine($"Dim calcs As List(Of Decimal?) = New List(Of Decimal?)");
+                sourceCode.AppendLine("Dim userCalculationCodeImplementation As Func(Of Decimal?) = Function() As Decimal?");
+                sourceCode.AppendLine("Dim sum As Decimal? = Nothing");
 
                 foreach (FundingLineCalculation calculation in fundingLine.Calculations)
                 {
-                    sourceCode.AppendLine($"calcs.Add({GenerateIdentifier(calculation.Namespace)}.{calculation.SourceCodeName}())");
+                    sourceCode.AppendLine($"AddToNullable(sum, {GenerateIdentifier(calculation.Namespace)}.{calculation.SourceCodeName}())");
                 }
 
-                sourceCode.AppendLine($"Return calcs.Sum()");
+                sourceCode.AppendLine("Return sum");
                 sourceCode.AppendLine("End Function");
 
                 sourceCode.AppendLine("Try");
-                sourceCode.AppendLine($"Dim executedFundingLineResult As Decimal?  = userCalculationCodeImplementation()");
+                sourceCode.AppendLine("Dim executedFundingLineResult As Decimal?  = userCalculationCodeImplementation()");
                 sourceCode.AppendLine();
                 sourceCode.AppendLine(
                     $"calculationContext.FundingLineDictionary.Add(\"{@namespace}-{fundingLine.Id}\", {{If(executedFundingLineResult.HasValue, executedFundingLineResult.ToString(), \"\")}})");

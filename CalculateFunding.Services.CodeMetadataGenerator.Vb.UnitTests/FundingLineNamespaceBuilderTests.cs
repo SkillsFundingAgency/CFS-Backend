@@ -62,7 +62,15 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
             string[] expectedInitialiseMethod = {
                 @"PSGFundingLines<FundingLine(FundingStream := ""PSG"", Id := ""1"", Name := ""One"")>
 Public One As Func(Of decimal?) = Nothing
-Public Property PSG As PSGCalculationsPublic Sub Initialise(calculationContext As CalculationContext)
+Public Property PSG As PSGCalculations
+Sub AddToNullable(ByRef sum As Decimal?, amount as Decimal?)
+    If sum.HasValue Then
+        sum = amount + sum
+    Else
+        sum = amount
+    End If
+End Sub
+Public Sub Initialise(calculationContext As CalculationContext)
 PSG = calculationContext.PSG
 
 One = Function() As Decimal?"};
@@ -77,11 +85,11 @@ One = Function() As Decimal?"};
             WhenTheFundingLineNamespacesAreBuilt();
 
             ThenResultContainsNamespaceDefinitionsFor(psg);
-            AndTheNamespaceDefinition(psg, ns => HasSourceCodeContaining(ns, expectedInitialiseMethod));
+            AndTheNamespaceDefinition(psg, expectedInitialiseMethod);
         }
 
         [TestMethod]
-        public void EachNamespaceClassContainsPublicFieldsToAccessItsFundingLineResultssAsFunctionPointers()
+        public void EachNamespaceClassContainsPublicFieldsToAccessItsFundingLineResultsAsFunctionPointers()
         {
             string psg = "PSG";
             string dsg = "DSG";
@@ -107,7 +115,7 @@ One = Function() As Decimal?"};
             WhenTheFundingLineNamespacesAreBuilt();
 
             ThenResultContainsNamespaceDefinitionsFor(psg, dsg);
-            AndTheNamespaceDefinition(psg, ns => HasSourceCodeContaining(ns, expectedFunctionPointers));
+            AndTheNamespaceDefinition(psg, expectedFunctionPointers);
         }
 
         private void GivenTheFundingLine(string fundingStream, Funding funding)
@@ -133,16 +141,21 @@ One = Function() As Decimal?"};
                 .BeEquivalentTo(expectedNamespaces);
         }
 
-        private void AndTheNamespaceDefinition(string @namespace, Func<NamespaceClassDefinition, bool> predicate)
+        private void AndTheNamespaceDefinition(string @namespace, params string[] expectedSource)
         {
             NamespaceClassDefinition namespaceDefinition = _result.InnerClasses.FirstOrDefault(_ => _.Namespace == @namespace);
 
             namespaceDefinition.Should()
                 .NotBeNull();
 
-            predicate(namespaceDefinition)
-                .Should()
-                .BeTrue();
+            string sourceCode = GetSourceForClassBlock(namespaceDefinition.ClassBlockSyntax);
+
+            foreach (string block in expectedSource)
+            {
+                sourceCode
+                    .Should()
+                    .Contain(block);
+            }
         }
 
         private FundingLineCalculation NewFundingLineCalculation(Action<FundingLineCalculationBuilder> setUp = null)
