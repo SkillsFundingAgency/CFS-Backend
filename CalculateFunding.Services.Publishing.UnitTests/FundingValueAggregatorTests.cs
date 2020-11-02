@@ -41,6 +41,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Value
                 .Should()
                 .Be(10.001625M);
+
+            AggregateFundingCalculation groupRateDivideByZero = aggregateFundingCalculations.SingleOrDefault(_ => _.TemplateCalculationId == 9004);
+
+            groupRateDivideByZero
+                .Value
+                .Should()
+                .Be(0M);
         }
 
         [TestMethod]

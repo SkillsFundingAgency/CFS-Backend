@@ -154,7 +154,7 @@ namespace CalculateFunding.Services.Publishing
             decimal numerator = CalculateAggregateValueFor(numeratorCalculation, sum);
             decimal denominator = CalculateAggregateValueFor(denominatorCalculation, sum);
 
-            decimal rate = numerator / denominator;
+            decimal rate = denominator == 0 ? 0: numerator / denominator;
             
             AddRawCalculation(templateCalculation.TemplateCalculationId, rate);
             
@@ -182,7 +182,7 @@ namespace CalculateFunding.Services.Publishing
             decimal valueA = CalculateAggregateValueFor(calculationA, aggregationType);
             decimal valueB = CalculateAggregateValueFor(calculationB, aggregationType);
 
-            return (valueB - valueA) / valueA * 100;
+            return valueA == 0 ? 0 : (valueB - valueA) / valueA * 100;
         }
 
         private bool AggregationTypeIs(uint templateCalculationId,

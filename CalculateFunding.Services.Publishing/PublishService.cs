@@ -299,7 +299,7 @@ namespace CalculateFunding.Services.Publishing
 
                 transaction.Complete();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 await transaction.Compensate();
 

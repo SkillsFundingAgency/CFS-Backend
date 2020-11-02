@@ -36,6 +36,15 @@
     "aggregationType": "Sum"
   },
   {
+    "name": "Test Rate Divide By Zero",
+    "templateCalculationId": 153,
+    "value": "0",
+    "valueFormat": "Number",
+    "type": "Rate",
+    "formulaText": "Something * something else",
+    "aggregationType": "Sum"
+  },
+  {
     "name": "Number of pupils",
     "templateCalculationId": 1,
     "value": "1000.325",
