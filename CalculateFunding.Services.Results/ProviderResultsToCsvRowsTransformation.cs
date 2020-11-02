@@ -47,7 +47,7 @@ namespace CalculateFunding.Services.Results
                 //lists of template calculations so we don't really need to handle missing calc results
                 //from provider result to provider result
                 foreach (CalculationResult templateCalculationResult in result.CalculationResults.Where(_ => 
-                    _.CalculationType == CalculationType.Template)
+                    _.Calculation != null)
                     .OrderBy(_ => _.Calculation.Name))
                 {
                     row[templateCalculationResult.Calculation.Name] = templateCalculationResult.Value?.ToString();

@@ -112,24 +112,18 @@ namespace CalculateFunding.Services.Calculator
 
             CalculationResult fundingCalcReturned = new CalculationResult()
             {
-                CalculationType = CalculationType.Template,
                 Calculation = fundingCalcReference,
-                Value = 10000,
-                CalculationDataType = CalculationDataType.Decimal
+                Value = 10000
             };
             CalculationResult fundingCalcReturned2 = new CalculationResult()
             {
-                CalculationType = CalculationType.Template,
                 Calculation = numbercalcReference,
-                Value = 20000,
-                CalculationDataType = CalculationDataType.Decimal
+                Value = 20000
             };
             CalculationResult fundingCalcReturned3 = new CalculationResult()
             {
-                CalculationType = CalculationType.Template,
                 Calculation = booleancalcReference,
-                Value = true,
-                CalculationDataType = CalculationDataType.Boolean
+                Value = true
             };
 
             CalculationResultContainer calculationResultContainer = new CalculationResultContainer();
@@ -215,19 +209,19 @@ namespace CalculateFunding.Services.Calculator
 
             CalculationResult fundingCalcResult = result.CalculationResults.First(cr => cr.Calculation.Id == fundingCalcReference.Id);
             fundingCalcResult.Calculation.Should().BeEquivalentTo(fundingCalcReference);
-            fundingCalcResult.CalculationType.Should().BeEquivalentTo(fundingCalcReturned.CalculationType);
+            fundingCalcResult.CalculationType.Should().BeEquivalentTo(CalculationType.Template);
             fundingCalcResult.Value.Should().Be(fundingCalcReturned.Value);
             fundingCalcResult.CalculationDataType.Should().Be(CalculationDataType.Decimal);
 
             CalculationResult numberCalcResult = result.CalculationResults.First(cr => cr.Calculation.Id == numbercalcReference.Id);
             numberCalcResult.Calculation.Should().BeEquivalentTo(numbercalcReference);
-            numberCalcResult.CalculationType.Should().BeEquivalentTo(fundingCalcReturned2.CalculationType);
+            numberCalcResult.CalculationType.Should().BeEquivalentTo(CalculationType.Template);
             numberCalcResult.Value.Should().Be(fundingCalcReturned2.Value);
             numberCalcResult.CalculationDataType.Should().Be(CalculationDataType.Decimal);
 
             CalculationResult booleanCalcResult = result.CalculationResults.First(cr => cr.Calculation.Id == booleancalcReference.Id);
             booleanCalcResult.Calculation.Should().BeEquivalentTo(booleancalcReference);
-            booleanCalcResult.CalculationType.Should().BeEquivalentTo(fundingCalcReturned3.CalculationType);
+            booleanCalcResult.CalculationType.Should().BeEquivalentTo(CalculationType.Template);
             booleanCalcResult.Value.Should().Be(fundingCalcReturned3.Value);
             booleanCalcResult.CalculationDataType.Should().Be(CalculationDataType.Boolean);
 

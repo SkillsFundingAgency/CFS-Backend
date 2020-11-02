@@ -91,6 +91,7 @@ namespace CalculateFunding.Services.CalcEngine
                 {
                     CalculationSummaryModel calculationSummaryModel = calculations.First(c => c.Id == calcResult.Calculation.Id);
 
+                    calcResult.CalculationType = calculationSummaryModel.CalculationType;
                     calcResult.CalculationDataType = calculationSummaryModel.CalculationValueType.ToCalculationDataType();
 
                     if (calcResult.CalculationDataType == CalculationDataType.Decimal && Decimal.Equals(decimal.MinValue, calcResult.Value))
