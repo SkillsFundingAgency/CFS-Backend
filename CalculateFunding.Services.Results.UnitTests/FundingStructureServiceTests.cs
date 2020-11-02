@@ -44,6 +44,7 @@ namespace CalculateFunding.Services.Results.UnitTests
         private const string SpecificationId = "680898bd-9ddc-4d11-9913-2a2aa34f213c";
         private const string aValidCalculationId1 = "aValidCalculationId-1";
         private const string aValidCalculationId2 = "aValidCalculationId-2";
+        private const string aValidCalculationId3 = "aValidCalculationId-3";
         private const string ProviderId = "aValidProviderId";
 
         private const PublishStatus CalculationExpectedPublishStatus = PublishStatus.Approved;
@@ -303,6 +304,9 @@ namespace CalculateFunding.Services.Results.UnitTests
             expectedFundingStructureItems[2].FundingStructureItems.ToList()[0].Value = "£2.30";
             expectedFundingStructureItems[2].FundingStructureItems.ToList()[0].CalculationType = "Currency";
 
+            expectedFundingStructureItems[2].FundingStructureItems.ToList()[2].Value = "£123";
+            expectedFundingStructureItems[2].FundingStructureItems.ToList()[2].CalculationType = "Number";
+
             apiResponseResult.Should().BeOfType<OkObjectResult>();
             OkObjectResult typedResult = apiResponseResult as OkObjectResult;
             FundingStructure fundingStructureItems = typedResult?.Value as FundingStructure;
@@ -391,6 +395,11 @@ namespace CalculateFunding.Services.Results.UnitTests
                                         TemplateCalculationId = 2
                                     }
                                 }
+                            },
+                            new Calculation
+                            {
+                                Name = "FundingLine-3-calc-3",
+                                TemplateCalculationId = 3
                             }
                         }
                     }
@@ -425,6 +434,11 @@ namespace CalculateFunding.Services.Results.UnitTests
                             {
                                 TemplateId = 2,
                                 CalculationId = "CalculationIdForTemplateCalculationId2"
+                            },
+                            new TemplateMappingItem
+                            {
+                                TemplateId = 3,
+                                CalculationId = aValidCalculationId3
                             }
                         }
                     }));
@@ -443,6 +457,12 @@ namespace CalculateFunding.Services.Results.UnitTests
                         {
                             SpecificationId = SpecificationId,
                             CalculationId = aValidCalculationId2,
+                            PublishStatus = CalculationExpectedPublishStatus
+                        },
+                        new CalculationMetadata
+                        {
+                            SpecificationId = SpecificationId,
+                            CalculationId = aValidCalculationId3,
                             PublishStatus = CalculationExpectedPublishStatus
                         }
 
@@ -467,6 +487,12 @@ namespace CalculateFunding.Services.Results.UnitTests
                                 Calculation = new Reference(aValidCalculationId1, "FundingLine-3-calc-1"),
                                 CalculationValueType = CalcModels.CalculationValueType.Currency,
                                 Value = 2.3m
+                            },
+                            new CalcModels.CalculationResultResponse
+                            {
+                                Calculation = new Reference(aValidCalculationId3, "FundingLine-3-calc-3"),
+                                CalculationValueType = CalcModels.CalculationValueType.Number,
+                                Value = 123m
                             }
                         }
                     }));
@@ -545,6 +571,12 @@ namespace CalculateFunding.Services.Results.UnitTests
                                     "Error",
                                     FundingStructureType.Calculation)
                             }),
+                        new FundingStructureItem(
+                            2,
+                            "FundingLine-3-calc-3",
+                            aValidCalculationId3,
+                            CalculationExpectedPublishStatus.ToString(),
+                            FundingStructureType.Calculation),
                         new FundingStructureItem(
                             2,
                             "FundingLine-3-fl-1",
