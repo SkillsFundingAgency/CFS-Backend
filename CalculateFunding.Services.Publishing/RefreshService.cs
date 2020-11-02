@@ -52,6 +52,7 @@ namespace CalculateFunding.Services.Publishing
         private readonly IPoliciesService _policiesService;
         private readonly IVariationService _variationService;
         private readonly IReApplyCustomProfiles _reApplyCustomProfiles;
+        private readonly IPublishedProviderErrorDetection _detection;
 
         public RefreshService(IPublishedProviderStatusUpdateService publishedProviderStatusUpdateService,
             IPublishedFundingDataService publishedFundingDataService,
@@ -74,7 +75,8 @@ namespace CalculateFunding.Services.Publishing
             IPublishedProviderVersionService publishedProviderVersionService,
             IPoliciesService policiesService,
             IGeneratePublishedFundingCsvJobsCreationLocator generateCsvJobsLocator,
-            IReApplyCustomProfiles reApplyCustomProfiles) : base(jobManagement, logger)
+            IReApplyCustomProfiles reApplyCustomProfiles,
+            IPublishedProviderErrorDetection detection) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(generateCsvJobsLocator, nameof(generateCsvJobsLocator));
             Guard.ArgumentNotNull(publishedProviderStatusUpdateService, nameof(publishedProviderStatusUpdateService));
@@ -98,6 +100,7 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(prerequisiteCheckerLocator, nameof(prerequisiteCheckerLocator));
             Guard.ArgumentNotNull(reApplyCustomProfiles, nameof(reApplyCustomProfiles));
+            Guard.ArgumentNotNull(detection, nameof(detection));
 
             _publishedProviderStatusUpdateService = publishedProviderStatusUpdateService;
             _publishedFundingDataService = publishedFundingDataService;
@@ -115,6 +118,7 @@ namespace CalculateFunding.Services.Publishing
             _variationService = variationService;
             _generateCsvJobsLocator = generateCsvJobsLocator;
             _reApplyCustomProfiles = reApplyCustomProfiles;
+            _detection = detection;
             _publishedProviderIndexerService = publishedProviderIndexerService;
 
             _publishingResiliencePolicy = publishingResiliencePolicies.PublishedFundingRepository;
@@ -381,8 +385,7 @@ namespace CalculateFunding.Services.Publishing
                 _reApplyCustomProfiles.ProcessPublishedProvider(publishedProviderVersion);
 
                 // process published provider and detect errors
-                // Disabled due to memory bug - TODO reimplement to fix implementation - add existing published funding to context and optimise to send only the funding groups this provider is in, instead of whole published funding
-                //await _detection.ProcessPublishedProvider(publishedProvider.Value, publishedProvidersContext);
+                await _detection.ProcessPublishedProvider(publishedProvider.Value, publishedProvidersContext);
 
                 if (publishedProviderUpdated && existingPublishedProviders.AnyWithNullCheck())
                 {
