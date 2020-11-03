@@ -490,12 +490,10 @@ namespace CalculateFunding.Services.Graph.UnitTests
             Entity<Calculation, IRelationship> expectedCalculationOne = NewCalculationEntity(calculationOneId);
             Entity<Calculation, IRelationship> expectedCalculationTwo = NewCalculationEntity(calculationTwoId);
             
-            AndTheCalculationCircularDependencies(calculationOneId, expectedCalculationOne, expectedCalculationTwo, expectedCalculationTwo);
-            AndTheCalculationCircularDependencies(calculationTwoId, expectedCalculationTwo, expectedCalculationOne);
+            AndTheCalculationCircularDependenciesInSpecification(specificationId, expectedCalculationOne, expectedCalculationTwo);
             
             OkObjectResult result = await _graphService.GetCalculationCircularDependencies(specificationId) as OkObjectResult;
             
-            //gives distinct results by calc id
             result?.Value
                 .Should()
                 .BeEquivalentTo(new []
@@ -522,10 +520,10 @@ namespace CalculateFunding.Services.Graph.UnitTests
                 .Returns(contents);
         }
 
-        private void AndTheCalculationCircularDependencies(string calculationId,
+        private void AndTheCalculationCircularDependenciesInSpecification(string specificationId,
             params Entity<Calculation, IRelationship>[] calculations)
         {
-            _calculationRepository.GetCalculationCircularDependencies(calculationId)
+            _calculationRepository.GetCalculationCircularDependenciesBySpecificationId(specificationId)
                 .Returns(calculations);
         }
 

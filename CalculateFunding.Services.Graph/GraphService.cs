@@ -211,37 +211,8 @@ namespace CalculateFunding.Services.Graph
 
         public async Task<IActionResult> GetCalculationCircularDependencies(string specificationId)
         {
-            IEnumerable<Entity<Specification, IRelationship>> specificationContents = await _specRepository.GetAllEntities(specificationId);
-            IEnumerable<string> specificationCalculationIds = specificationContents
-                .SelectMany(_ => _.Relationships
-                    .Select(TryGetCalculationId)
-                    .Where(rel => rel.isCalculation)
-                    .Select(rel => rel.calculationId))
-                .ToArray();
-            
-            Dictionary<string, Entity<Calculation, IRelationship>> calculationsWithCircularDependencies = new Dictionary<string, Entity<Calculation, IRelationship>>();
-
-            //TODO: this will probably need to be optimised to run concurrently for specs with long calc lists etc.
-            
-            foreach (string calculationId in specificationCalculationIds)
-            {
-                OkObjectResult result =
-                   (OkObjectResult) await ExecuteRepositoryAction(() => _calcRepository.GetCalculationCircularDependencies(calculationId), "Unable to retrieve calculation circulardependencies.");
-
-                IEnumerable<Entity<Calculation,IRelationship>> resultValue = (IEnumerable<Entity<Calculation, IRelationship>>)result.Value;
-
-                if (resultValue.IsNullOrEmpty())
-                {
-                    continue;
-                }
-
-                foreach (Entity<Calculation,IRelationship> calculation in resultValue)
-                {
-                    calculationsWithCircularDependencies[calculation.Node.CalculationId] = calculation;
-                }
-            }
-            
-            return new OkObjectResult(calculationsWithCircularDependencies.Values);
+            return await ExecuteRepositoryAction(() => _calcRepository.GetCalculationCircularDependenciesBySpecificationId(specificationId), 
+                $"Unable to retrieve calculation circular dependencies for specification {specificationId}.");
         }
 
         private (bool isCalculation, string calculationId) TryGetCalculationId(dynamic relationship)

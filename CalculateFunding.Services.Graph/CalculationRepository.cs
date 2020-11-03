@@ -45,6 +45,14 @@ namespace CalculateFunding.Services.Graph
                 calculationId);
             return entities?.Select(_ => new Entity<Calculation, IRelationship> { Node = _.Node, Relationships = _.Relationships });
         }
+        
+        public async Task<IEnumerable<Entity<Calculation, IRelationship>>> GetCalculationCircularDependenciesBySpecificationId(string specificationId)
+        {
+            IEnumerable<Entity<Calculation>> entities = await GetCircularDependencies<Calculation>(AttributeConstants.CalculationACalculationBRelationship,
+                AttributeConstants.SpecificationId,
+                specificationId);
+            return entities?.Select(_ => new Entity<Calculation, IRelationship> { Node = _.Node, Relationships = _.Relationships });
+        }
 
         public async Task UpsertCalculationCalculationRelationship(string calculationIdA, string calculationIdB)
         {

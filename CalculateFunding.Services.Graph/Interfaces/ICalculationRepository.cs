@@ -20,5 +20,6 @@ namespace CalculateFunding.Services.Graph.Interfaces
         Task<IEnumerable<Entity<Calculation, IRelationship>>> GetCalculationCircularDependencies(string calculationId);
 
         Task<IEnumerable<Entity<Calculation, IRelationship>>> GetAllEntities(string calculationId);
+        Task<IEnumerable<Entity<Calculation, IRelationship>>> GetCalculationCircularDependenciesBySpecificationId(string specificationId);
     }
 }
