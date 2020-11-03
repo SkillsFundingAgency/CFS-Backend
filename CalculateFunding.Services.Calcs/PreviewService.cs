@@ -276,8 +276,6 @@ namespace CalculateFunding.Services.Calcs
                 _logger.Information($"Build did not compile successfully for calculation id {calculationToPreview.Id}");
             }
 
-            CheckCircularReference(calculationToPreview, compilerOutput);
-
             LogMessages(compilerOutput, buildProject, calculationToPreview);
 
             return new OkObjectResult(new PreviewResponse
@@ -285,31 +283,6 @@ namespace CalculateFunding.Services.Calcs
                 Calculation = calculationToPreview.ToResponseModel(),
                 CompilerOutput = compilerOutput
             });
-        }
-
-        private void CheckCircularReference(Calculation calculationToPreview, Build compilerOutput)
-        {
-            string sourceCode = calculationToPreview.Current.SourceCode;
-
-            string sourceCodeToken = $"{calculationToPreview.Current.SourceCodeName}()";
-
-            if (sourceCode.Contains(sourceCodeToken, StringComparison.InvariantCultureIgnoreCase))
-            {
-                int? token = _tokenChecker.CheckIsToken(sourceCode,
-                                 calculationToPreview.Current.Namespace.ToString(),
-                                 calculationToPreview.Current.SourceCodeName,
-                                 sourceCode.IndexOf(calculationToPreview.Current.SourceCodeName, StringComparison.InvariantCultureIgnoreCase));
-
-                if (token != null)
-                {
-                    compilerOutput.CompilerMessages.Add(new CompilerMessage
-                    {
-                        Message = $"Circular reference detected - Calculation '{calculationToPreview.Current.SourceCodeName}' calls itself",
-                        Severity = Severity.Error
-                    });
-                    compilerOutput.Success = false;
-                }
-            }
         }
 
         public void LogMessages(Build compilerOutput, BuildProject buildProject, Calculation calculation)
