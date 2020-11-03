@@ -4,6 +4,7 @@ using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Functions.CosmosDbScaling.ServiceBus;
+using CalculateFunding.Functions.CosmosDbScaling.Timer;
 using CalculateFunding.Models.CosmosDbScaling;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
@@ -49,6 +50,8 @@ namespace CalculateFunding.Functions.CosmosDbScaling
             if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
             {
                 builder.AddScoped<OnScaleUpCosmosDbCollection>();
+                builder.AddScoped<OnScaleDownCosmosDbCollection>();
+                builder.AddScoped<OnIncrementalScaleDownCosmosDbCollection>();
             }
 
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();

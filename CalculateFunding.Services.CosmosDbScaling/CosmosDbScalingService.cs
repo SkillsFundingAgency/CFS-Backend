@@ -223,6 +223,13 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 {
                     try
                     {
+                        int? minimumRequestUnitsAllowed = await GetMinimumThroughput(settings.CosmosCollectionType);
+
+                        if (minimumRequestUnitsAllowed.HasValue && settings.CurrentRequestUnits < minimumRequestUnitsAllowed.Value)
+                        {
+                            settings.CurrentRequestUnits = minimumRequestUnitsAllowed.Value;
+                        }
+
                         settings.CurrentRequestUnits = await ScaleCollection(settings.CosmosCollectionType, settings.MinRequestUnits, settings.MaxRequestUnits);
 
                         await UpdateCollectionSettings(settings);
@@ -239,9 +246,10 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
         public async Task ScaleDownIncrementally()
         {
-            IEnumerable<CosmosDbScalingCollectionSettings> collectionsToProcess = await _scalingConfigRepositoryPolicy.ExecuteAsync(() =>
+             IEnumerable<CosmosDbScalingCollectionSettings> collectionsToProcess = await _scalingConfigRepositoryPolicy.ExecuteAsync(() =>
                     _cosmosDbScalingConfigRepository.GetCollectionSettingsIncremented(previousMinutestoCheckForScaledCollections));
 
+            
             if (collectionsToProcess.IsNullOrEmpty())
             {
                 return;
@@ -255,8 +263,14 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 {
                     int previousCurrentRequestUnits = settings.CurrentRequestUnits;
 
-                    settings.CurrentRequestUnits =
-                        Math.Max(previousCurrentRequestUnits - settings.LastScalingIncrementValue, settings.MinRequestUnits);
+                    settings.CurrentRequestUnits = Math.Max(previousCurrentRequestUnits - settings.LastScalingIncrementValue, settings.MinRequestUnits);
+
+                    int? minimumRequestUnitsAllowed = await GetMinimumThroughput(settings.CosmosCollectionType);
+
+                    if (minimumRequestUnitsAllowed.HasValue && settings.CurrentRequestUnits < minimumRequestUnitsAllowed.Value)
+                    {
+                        settings.CurrentRequestUnits = minimumRequestUnitsAllowed.Value;
+                    }
 
                     int requestUnitsToDecrement = previousCurrentRequestUnits - settings.CurrentRequestUnits;
 
@@ -445,6 +459,12 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 _logger.Error(errorMessage);
                 throw new RetriableException(errorMessage);
             }
+        }
+
+        private async Task<int?> GetMinimumThroughput(CosmosCollectionType collectionType)
+        {
+            ICosmosDbScalingRepository cosmosDbScalingRepository = _cosmosDbScalingRepositoryProvider.GetRepository(collectionType);
+            return await _scalingRepositoryPolicy.ExecuteAsync(async () => await cosmosDbScalingRepository.GetMinimumThroughput());
         }
     }
 }

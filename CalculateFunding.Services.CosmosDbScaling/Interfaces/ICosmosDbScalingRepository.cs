@@ -8,5 +8,7 @@ namespace CalculateFunding.Services.CosmosDbScaling.Interfaces
         Task<ThroughputResponse> SetThroughput(int throughput);
 
         Task<int?> GetCurrentThroughput();
+
+        Task<int?> GetMinimumThroughput();
     }
 }

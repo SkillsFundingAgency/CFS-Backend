@@ -23,5 +23,10 @@ namespace CalculateFunding.Services.CosmosDbScaling.Repositories
         {
             return await _cosmosRepository.GetThroughput();
         }
+
+        public async Task<int?> GetMinimumThroughput()
+        {
+            return await _cosmosRepository.GetMinimumThroughput();
+        }
     }
 }

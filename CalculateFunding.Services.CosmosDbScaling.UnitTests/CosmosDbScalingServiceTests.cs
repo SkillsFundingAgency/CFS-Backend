@@ -1616,6 +1616,66 @@ namespace CalculateFunding.Services.CosmosDbScaling
         }
 
         [TestMethod]
+        public async Task ScaleDownIncrementally_GivenOneCollectionsToProcessAndLastIncremnetWas20000_ScalesCollectionEnsuresCurrentUpdatedWithMinimumThroughput()
+        {
+            //Arrange
+            CosmosDbScalingCollectionSettings cosmosDbScalingCollectionSettings = CreateCollectionSettings(CosmosCollectionType.CalculationProviderResults);
+            cosmosDbScalingCollectionSettings.CurrentRequestUnits = 50000;
+            cosmosDbScalingCollectionSettings.LastScalingIncrementValue = 20000;
+
+            IEnumerable<CosmosDbScalingCollectionSettings> collectionsToProcess = new[]
+            {
+                cosmosDbScalingCollectionSettings
+            };
+
+            ICosmosDbScalingConfigRepository cosmosDbScalingConfigRepository = CreateCosmosDbScalingConfigRepository();
+            cosmosDbScalingConfigRepository
+                .GetCollectionSettingsIncremented(Arg.Any<int>())
+                .Returns(collectionsToProcess);
+            cosmosDbScalingConfigRepository
+                .UpdateCollectionSettings(Arg.Any<CosmosDbScalingCollectionSettings>())
+                .Returns(HttpStatusCode.OK);
+
+            ICosmosDbScalingRepository scalingRepository = CreateCosmosDbScalingRepository();
+
+            ICosmosDbScalingRepositoryProvider cosmosDbScalingRepositoryProvider = CreateCosmosDbScalingRepositoryProvider();
+            cosmosDbScalingRepositoryProvider
+                .GetRepository(Arg.Is(CosmosCollectionType.CalculationProviderResults))
+                .Returns(scalingRepository);
+            scalingRepository.GetMinimumThroughput()
+                .Returns(35000);
+
+            ILogger logger = CreateLogger();
+
+            CosmosDbScalingService cosmosDbScalingService = CreateScalingService(
+                logger,
+                cosmosDbScalingConfigRepository: cosmosDbScalingConfigRepository,
+                cosmosDbScalingRepositoryProvider: cosmosDbScalingRepositoryProvider);
+
+            //Act
+            await cosmosDbScalingService.ScaleDownIncrementally();
+
+            //Assert
+            logger
+                .Received()
+                .Information(Arg.Is($"Found {collectionsToProcess.Count()} collections to scale down"));
+
+            await
+              cosmosDbScalingConfigRepository
+              .Received(1)
+              .UpdateCollectionSettings(Arg.Is<CosmosDbScalingCollectionSettings>(m =>
+                   m.CurrentRequestUnits == 35000 &&
+                   m.LastScalingIncrementValue == 20000 &&
+                   m.LastScalingDecrementDateTime.HasValue
+              ));
+
+            await
+                scalingRepository
+                .Received(1)
+                .SetThroughput(Arg.Is(35000));
+        }
+
+        [TestMethod]
         public async Task ScaleDownIncrementally_GivenOneCollectionsToProcessAndLastIncremnetWas10000AndCurrentAt10000_DoesnOtScalecollection()
         {
             //Arrange

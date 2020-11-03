@@ -278,5 +278,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task<int?> GetMinimumThroughput()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
