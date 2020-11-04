@@ -1159,7 +1159,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                     Count = (int)item.count,
                     FundingStreamId = (string)item.fundingStreamId,
                     Status = (string)item.status,
-                    TotalFunding = (decimal)item.totalFundingSum
+                    TotalFunding = (decimal?)item.totalFundingSum
                 });
             }
 
