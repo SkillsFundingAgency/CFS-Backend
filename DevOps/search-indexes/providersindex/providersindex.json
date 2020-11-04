@@ -40,7 +40,7 @@
       "facetable": false
     },
     {
-      "name": "ukPrn",
+      "name": "ukprn",
       "type": "Edm.String",
       "searchable": true,
       "filterable": false,

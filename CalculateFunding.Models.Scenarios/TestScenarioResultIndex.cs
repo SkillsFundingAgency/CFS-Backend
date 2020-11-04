@@ -96,7 +96,7 @@ namespace CalculateFunding.Models.Scenarios
         [JsonProperty("lastUpdatedDate")]
         public DateTimeOffset LastUpdatedDate { get; set; }
 
-        [JsonProperty("ukPrn")]
+        [JsonProperty("ukprn")]
         [IsRetrievable(true)]
         public string UKPRN { get; set; }
 

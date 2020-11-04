@@ -32,7 +32,7 @@ namespace CalculateFunding.Models.Providers
         public string URN { get; set; }
 
         [IsSearchable]
-        [JsonProperty("ukPrn")]
+        [JsonProperty("ukprn")]
         public string UKPRN { get; set; }
 
         [IsSearchable]

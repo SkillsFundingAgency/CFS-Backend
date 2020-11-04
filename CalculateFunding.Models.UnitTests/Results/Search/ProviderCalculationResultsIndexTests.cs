@@ -51,7 +51,7 @@ namespace CalculateFunding.Models.UnitTests.Results.Search
                     new[] {"localAuthority", "LocalAuthority"},
                     new[] {"providerSubType", "ProviderSubType"},
                     new[] {"lastUpdatedDate", "LastUpdatedDate"},
-                    new[] {"ukPrn", "UKPRN"},
+                    new[] {"ukprn", "UKPRN"},
                     new[] {"urn", "URN"},
                     new[] {"upin", "UPIN"},
                     new[] {"establishmentNumber", "EstablishmentNumber"},

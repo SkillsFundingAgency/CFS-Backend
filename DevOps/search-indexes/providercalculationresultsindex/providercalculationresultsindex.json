@@ -119,7 +119,7 @@
       "indexAnalyzer": null
     },
     {
-      "name": "ukPrn",
+      "name": "ukprn",
       "type": "Edm.String",
       "key": false,
       "facetable": false,

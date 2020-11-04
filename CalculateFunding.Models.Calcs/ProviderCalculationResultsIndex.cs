@@ -70,7 +70,7 @@ namespace CalculateFunding.Models.Calcs
 
         [IsSearchable]
         [IsRetrievable(true)]
-        [JsonProperty("ukPrn")]
+        [JsonProperty("ukprn")]
         public string UKPRN { get; set; }
 
         [IsSearchable]
