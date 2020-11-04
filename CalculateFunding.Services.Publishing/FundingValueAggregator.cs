@@ -176,8 +176,12 @@ namespace CalculateFunding.Services.Publishing
             
             uint calculationA = percentageChangeBetweenAandB.CalculationA;
             uint calculationB = percentageChangeBetweenAandB.CalculationB;
-            
-            AggregationType aggregationType = percentageChangeBetweenAandB.CalculationAggregationType;
+
+            //TODO: this is set by the template and it should be set correctly for GroupRate as a quick fix 
+            //      we will get it from calculation A.
+            //AggregationType aggregationType = percentageChangeBetweenAandB.CalculationAggregationType;
+
+            AggregationType aggregationType = GetAggregationType(calculationA);
 
             decimal valueA = CalculateAggregateValueFor(calculationA, aggregationType);
             decimal valueB = CalculateAggregateValueFor(calculationB, aggregationType);

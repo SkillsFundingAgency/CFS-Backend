@@ -40,7 +40,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             groupRate
                 .Value
                 .Should()
-                .Be(10.001625M);
+                .Be(4701.66478M);
 
             AggregateFundingCalculation groupRateDivideByZero = aggregateFundingCalculations.SingleOrDefault(_ => _.TemplateCalculationId == 9004);
 
@@ -62,13 +62,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             sum.Value
                 .Should()
-                .Be(-50M);
+                .Be(-4.7833722155895512153611024900M);
             
             AggregateFundingCalculation average = aggregateFundingCalculations.SingleOrDefault(_ => _.TemplateCalculationId == 9002);
 
             average.Value
                 .Should()
-                .Be(100M);
+                .Be(5.0236732038232500M);
+
+            AggregateFundingCalculation grouprate = aggregateFundingCalculations.SingleOrDefault(_ => _.TemplateCalculationId == 9005);
+
+            grouprate.Value
+                .Should()
+                .Be(5.0236732038232500M);
         }
 
         private IEnumerable<AggregateFundingLine> WhenTheSchema1_1FundingLinesAreAggregated()

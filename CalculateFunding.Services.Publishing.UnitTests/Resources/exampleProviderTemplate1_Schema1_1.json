@@ -36,6 +36,19 @@
             }
           },
           {
+            "name": "Percentage change between Made up Calc and Test Rate - Avg",
+            "templateCalculationId": 9005,
+            "valueFormat": "Percentage",
+            "type": "Number",
+            "formulaText": "",
+            "aggregationType": "PercentageChangeBetweenAandB",
+            "percentageChangeBetweenAandB": {
+              "calculationA": 9006,
+              "calculationB": 9003,
+              "calculationAggregationType": "Sum"
+            }
+          },
+          {
             "name": "Group rate for Made up Calc and Test Rate",
             "templateCalculationId": 9003,
             "valueFormat": "Currency",
@@ -60,6 +73,18 @@
             }
           },
           {
+            "name": "Group rate for Made up Calc and Another Test Rate",
+            "templateCalculationId": 9006,
+            "valueFormat": "Currency",
+            "type": "Number",
+            "formulaText": "",
+            "aggregationType": "GroupRate",
+            "groupRate": {
+              "numerator": 1,
+              "denominator": 156
+            }
+          },
+          {
             "name": "Number of pupils",
             "templateCalculationId": 1,
             "valueFormat": "Number",
@@ -73,7 +98,7 @@
                 "valueFormat": "Number",
                 "type": "Rate",
                 "formulaText": "Something * something else",
-                "aggregationType": "None",
+                "aggregationType": "Sum",
                 "calculations": [
                   {
                     "name": "Test Rate",
@@ -149,7 +174,7 @@
                     "valueFormat": "Number",
                     "type": "Rate",
                     "formulaText": "Something * something else",
-                    "aggregationType": "None",
+                    "aggregationType": "Sum",
                     "calculations": [
                       {
                         "name": "Test Rate",
@@ -165,7 +190,7 @@
                         "valueFormat": "Number",
                         "type": "Rate",
                         "formulaText": "Something * something else",
-                        "aggregationType": "None"
+                        "aggregationType": "Sum"
                       }
                     ]
                   },

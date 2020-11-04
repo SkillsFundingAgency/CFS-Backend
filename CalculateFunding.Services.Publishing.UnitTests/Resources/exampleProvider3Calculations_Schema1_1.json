@@ -2,7 +2,7 @@
   {
     "name": "Number of pupils",
     "templateCalculationId": 1,
-    "value": "3000.325",
+    "value": "940332.956",
     "valueFormat": "Number",
     "type": "PupilNumber",
     "formulaText": "Something * something",
@@ -11,7 +11,7 @@
   {
     "name": "Made up calc",
     "templateCalculationId": 156,
-    "value": "400",
+    "value": "213.0473464076465",
     "valueFormat": "Number",
     "type": "Rate",
     "formulaText": "Something * something else",
