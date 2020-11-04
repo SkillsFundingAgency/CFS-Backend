@@ -134,7 +134,7 @@ namespace CalculateFunding.Generators.Schema11
                         publishedProviderVersion.FundingLines)).ToDictionary(_ => _.TemplateLineId),
                     Calculations = calculations?.DistinctBy(x => x.TemplateCalculationId).Select(calculation => BuildCalculations(publishedProviderVersion.Calculations,
                         calculation,
-                        publishedProviderVersion.ProviderId)).ToDictionary(_ => _.TemplateCalculationId)
+                        publishedProviderVersion.ProviderId)).Where(_ => _ != null).ToDictionary(_ => _.TemplateCalculationId)
                 },
                 publishedProviderVersion.VariationReasons,
                 Successors = string.IsNullOrWhiteSpace(publishedProviderVersion.Provider.Successor)
@@ -199,8 +199,7 @@ namespace CalculateFunding.Generators.Schema11
 
             if (publishedFundingCalculation == null)
             {
-                throw new InvalidOperationException(
-                    $"Unable to find calculation result for provider '{providerId}' with TemplateCalculationId '{templateCalculation.TemplateCalculationId}'.");
+                return null;    
             }
 
             ICalculationMapper mapper = templateCalculation.AggregationType switch

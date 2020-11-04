@@ -145,7 +145,7 @@ namespace CalculateFunding.Generators.Schema11
                             BuildSchemaJsonCalculations(publishedFundingVersion.Calculations,
                                 calculation,
                                 publishedFundingVersion.OrganisationGroupTypeIdentifier,
-                                publishedFundingVersion.OrganisationGroupIdentifierValue)).ToDictionary(_ => _.TemplateCalculationId)
+                                publishedFundingVersion.OrganisationGroupIdentifierValue)).Where(_ => _ != null).ToDictionary(_ => _.TemplateCalculationId)
                     },
                     ProviderFundings = publishedFundingVersion.ProviderFundings.ToArray(),
                     publishedFundingVersion.GroupingReason,
@@ -198,9 +198,7 @@ namespace CalculateFunding.Generators.Schema11
 
             if (publishedFundingCalculation == null)
             {
-                throw new InvalidOperationException(
-                    $"Unable to find calculation result for TemplateCalculationId '{templateCalculation.TemplateCalculationId}' " +
-                    $"for group identifier '{organisationGroupTypeIdentifier}' value '{organisationGroupIdentifierValue}'");
+                return null;
             }
 
             ICalculationMapper mapper = templateCalculation.AggregationType switch
