@@ -2450,9 +2450,6 @@ End Class";
                .HaveCount(1);
         }
 
-#if NCRUNCH
-        [Ignore]
-#endif
         [TestMethod]
         [Ignore("Does not cover case insenstive tests + brackets properly")]
         [DynamicData(nameof(CodeContainsItsOwnNameTestCases), DynamicDataSourceType.Method)]

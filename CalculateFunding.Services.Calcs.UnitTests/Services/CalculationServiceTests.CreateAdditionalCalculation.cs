@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Policies.Models;
+using CalculateFunding.Common.ApiClient.Results;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Caching;
@@ -140,7 +142,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetSpecificationSummaryById(Arg.Is(SpecificationId))
                 .Returns(new ApiResponse<SpecificationSummary>(
                     HttpStatusCode.OK,
-                    new SpecificationSummary {Id = SpecificationId }
+                    new SpecificationSummary {
+                        Id = SpecificationId,
+                        FundingPeriod = new FundingPeriod { Id = FundingPeriodId}
+                    }
                 ));
 
             ILogger logger = CreateLogger();
@@ -148,6 +153,8 @@ namespace CalculateFunding.Services.Calcs.Services
             ICacheProvider cacheProvider = CreateCacheProvider();
 
             ICodeContextCache codeContextCache = Substitute.For<ICodeContextCache>();
+
+            IResultsApiClient resultsApiClient = CreateResultsApiClient();
 
             CalculationService calculationService = CreateCalculationService(
                 calculationsRepository: calculationsRepository,
@@ -157,7 +164,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 logger: logger,
                 cacheProvider: cacheProvider,
                 specificationsApiClient: specificationsApiClient,
-                codeContextCache: codeContextCache);
+                codeContextCache: codeContextCache,
+                resultsApiClient: resultsApiClient);
 
             IEnumerable<CalculationIndex> indexedCalculations = null;
 
@@ -177,6 +185,14 @@ namespace CalculateFunding.Services.Calcs.Services
             IActionResult result = await calculationService.CreateAdditionalCalculation(SpecificationId, model, author, CorrelationId);
 
             //Assert
+            await resultsApiClient
+                .Received(1)
+                .UpdateFundingStructureLastModified(Arg.Is<Common.ApiClient.Results.Models.UpdateFundingStructureLastModifiedRequest>(req =>
+                    req.LastModified.Date == DateTimeOffset.UtcNow.Date &&
+                    req.SpecificationId == model.SpecificationId &&
+                    req.FundingStreamId == model.FundingStreamId &&
+                    req.FundingPeriodId == FundingPeriodId));
+
             result
                 .Should()
                 .BeAssignableTo<OkObjectResult>();

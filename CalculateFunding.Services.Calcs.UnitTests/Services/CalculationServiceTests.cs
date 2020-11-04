@@ -29,6 +29,7 @@ namespace CalculateFunding.Services.Calcs.Services
         private const string CalculationId = "3abc2782-e8cb-4643-8803-951d715fci23";
         private const string Username = "test-user";
         private const string SpecificationId = "spec-id-1";
+        private const string FundingPeriodId = "fund-id-1";
         private const string JobId = "job-id";
         private const string CalculationName = "calc-name-1";
         private const string FundingStreamId = "fs-1";

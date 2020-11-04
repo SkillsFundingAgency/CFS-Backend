@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Results;
+using CalculateFunding.Common.ApiClient.Results.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
@@ -326,15 +328,21 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Models.Calcs.Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
+            IResultsApiClient resultsApiClient = CreateResultsApiClient();
+
             CalculationService service = CreateCalculationService(
                 logger: logger, calculationsRepository: CalculationsRepository, searchRepository: searchRepository,
                 specificationsApiClient: specificationsApiClient, calculationVersionRepository: versionRepository,
-                sourceCodeService: sourceCodeService, buildProjectsService: buildProjectsService);
+                sourceCodeService: sourceCodeService, buildProjectsService: buildProjectsService, resultsApiClient: resultsApiClient);
 
             //Act
             IActionResult result = await service.UpdateCalculationStatus(CalculationId, CalculationEditStatusModel);
 
             //Arrange
+            await resultsApiClient
+                .Received(1)
+                .UpdateFundingStructureLastModified(Arg.Any<UpdateFundingStructureLastModifiedRequest>());
+
             result
                 .Should()
                 .BeOfType<OkObjectResult>()
