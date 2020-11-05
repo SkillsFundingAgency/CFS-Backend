@@ -22,7 +22,8 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         
         Task<bool> ApplyVariations(IDictionary<string, PublishedProvider> publishedProvidersToUpdate, 
             IDictionary<string, PublishedProvider> newProviders, 
-            string specificationId);
+            string specificaitonId,
+            string jobId);
         void ClearSnapshots();
     }
 }

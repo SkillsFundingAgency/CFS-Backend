@@ -111,7 +111,8 @@ namespace CalculateFunding.Services.Publishing
 
         public async Task<bool> ApplyVariations(IDictionary<string, PublishedProvider> publishedProvidersToUpdate,
             IDictionary<string, PublishedProvider> newProviders,
-            string specificationId)
+            string specificationId,
+            string jobId)
         {
             Guard.ArgumentNotNull(publishedProvidersToUpdate, nameof(publishedProvidersToUpdate));
             Guard.ArgumentNotNull(newProviders, nameof(newProviders));
@@ -123,7 +124,7 @@ namespace CalculateFunding.Services.Publishing
 
                 if (_applyProviderVariations.HasErrors)
                 {
-                    await _recordVariationErrors.RecordVariationErrors(_applyProviderVariations.ErrorMessages, specificationId);
+                    await _recordVariationErrors.RecordVariationErrors(_applyProviderVariations.ErrorMessages, specificationId, jobId);
 
                     _logger.Error("Unable to complete refresh funding job. Encountered variation errors");
 

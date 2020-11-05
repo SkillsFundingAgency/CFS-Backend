@@ -41,21 +41,22 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Errors
             };
 
             string specificationId = NewRandomString();
+            string jobId = NewRandomString();
 
-            await WhenTheErrorsAreRecorded(variationErrors, specificationId);
+            await WhenTheErrorsAreRecorded(variationErrors, specificationId, jobId);
             
             string expectedFileContents = variationErrors.Join("\n");
             
             _blobClient.Verify(_ => _.UploadFileAsync(
-                $"variationerrors_{specificationId}.csv", 
-                expectedFileContents, 
-                "publishedproviderversions"),
+                $"{specificationId}/variationerrors_{jobId}.csv", 
+                expectedFileContents,
+                "variationerrors"),
                 Times.Once);
         }
 
-        private async Task WhenTheErrorsAreRecorded(IEnumerable<string> errors, string specificationId)
+        private async Task WhenTheErrorsAreRecorded(IEnumerable<string> errors, string specificationId, string jobId)
         {
-            await _errorRecorder.RecordVariationErrors(errors, specificationId);
+            await _errorRecorder.RecordVariationErrors(errors, specificationId, jobId);
         }
 
         private string NewRandomString() => new RandomString();

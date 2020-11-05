@@ -429,7 +429,7 @@ namespace CalculateFunding.Services.Publishing
 
             _logger.Information("Starting to apply variations");
 
-            if (!(await _variationService.ApplyVariations(publishedProvidersToUpdate, newProviders, specification.Id)))
+            if (!(await _variationService.ApplyVariations(publishedProvidersToUpdate, newProviders, specification.Id, jobId)))
             {
                 await _jobManagement.UpdateJobStatus(jobId, 0, 0, false, "Refresh job failed with variations errors.");
 
