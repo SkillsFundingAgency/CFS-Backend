@@ -155,8 +155,8 @@ namespace CalculateFunding.Services.Publishing
             decimal denominator = CalculateAggregateValueFor(denominatorCalculation, sum);
 
             decimal rate = denominator == 0 ? 0: numerator / denominator;
-            
-            AddRawCalculation(templateCalculation.TemplateCalculationId, rate);
+
+            UpdateRawCalculation(templateCalculation.TemplateCalculationId, new[] { rate });
             
             return rate;
         }
@@ -334,6 +334,12 @@ namespace CalculateFunding.Services.Publishing
                         value
                     });
             }
+        }
+
+        private void UpdateRawCalculation(uint key,
+            ICollection<decimal> values)
+        {
+            _rawCalculations[key] = values;
         }
 
         private AggregateFundingCalculation GetAggregateCalculation(Calculation calculation)
