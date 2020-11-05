@@ -95,17 +95,17 @@ namespace CalculateFunding.Services.CalcEngine
 
             IEnumerable<KeyValuePair<string, ProviderResult>> results = providerResults.Select(m => new KeyValuePair<string, ProviderResult>(m.Provider.Id, m));
 
-            Task<long> cosmosSaveTask = BulkSaveProviderResults(results, degreeOfParallelism);
-            Task<long> queueSearchWriterJobTask = QueueSearchIndexWriterJob(providerResults, specificationSummary, user, correlationId);
+            long cosmosSaveTime = await BulkSaveProviderResults(results, degreeOfParallelism);
 
-            await TaskHelper.WhenAllAndThrow(cosmosSaveTask, queueSearchWriterJobTask);
-
+            // Need to wait until the save provider results completed before triggering the search index writer jobs.
+            long queueSearchWriterJobTime = await QueueSearchIndexWriterJob(providerResults, specificationSummary, user, correlationId);
+            
             // Only save batch to redis if it has been saved successfully. This enables the message to be requeued for throttled scenarios and will resave to cosmos/search
             _calculationsHashProvider.EndBatch(batchSpecificationId, partitionIndex, partitionSize);
 
             await QueueMergeSpecificationJobsInBatches(providerResults, specificationSummary);
 
-            return (cosmosSaveTask.Result, queueSearchWriterJobTask.Result, providerResults.Count());
+            return (cosmosSaveTime, queueSearchWriterJobTime, providerResults.Count());
         }
 
         private async Task<long> QueueSearchIndexWriterJob(IEnumerable<ProviderResult> providerResults, SpecificationSummary specificationSummary, Reference user, string correlationId)
