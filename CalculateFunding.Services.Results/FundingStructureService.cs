@@ -404,11 +404,10 @@ namespace CalculateFunding.Services.Results
 
             CalcModels.FundingLineResult fundingLineResult =
                 providerResult?.FundingLineResults?.FirstOrDefault(_ => _.FundingLine.Id == fundingLine.TemplateLineId.ToString());
-            string calculationValue = null;
+            string fundingLineValue = null;
             if (fundingLineResult != null)
             {
-                CalculationValueFormat calculationValueTypeViewModel = CalculationValueFormat.Number;
-                calculationValue = fundingLineResult.Value.AsFormatCalculationType(calculationValueTypeViewModel);
+                fundingLineValue = fundingLineResult.Value.AsFormatCalculationType(CalculationValueFormat.Currency);
             }
 
 
@@ -426,7 +425,7 @@ namespace CalculateFunding.Services.Results
                 null,
                 status,
                 innerFundingStructureItems.Any() ? innerFundingStructureItems : null,
-                calculationValue);
+                fundingLineValue);
 
             return fundingStructureItem;
         }

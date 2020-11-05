@@ -288,7 +288,7 @@ namespace CalculateFunding.Services.Results.UnitTests
             apiResponseResult.Should().BeOfType<OkObjectResult>();
             OkObjectResult typedResult = apiResponseResult as OkObjectResult;
             FundingStructure fundingStructureItems = typedResult?.Value as FundingStructure;
-            fundingStructureItems?.Items.Count().Should().Be(3);
+            fundingStructureItems?.Items.Count().Should().Be(4);
             fundingStructureItems?.Items.Should().BeEquivalentTo(expectedFundingStructureItems);
         }
 
@@ -304,13 +304,15 @@ namespace CalculateFunding.Services.Results.UnitTests
             expectedFundingStructureItems[2].FundingStructureItems.ToList()[0].Value = "£2.30";
             expectedFundingStructureItems[2].FundingStructureItems.ToList()[0].CalculationType = "Currency";
 
-            expectedFundingStructureItems[2].FundingStructureItems.ToList()[2].Value = "£123";
+            expectedFundingStructureItems[2].FundingStructureItems.ToList()[2].Value = "333";
             expectedFundingStructureItems[2].FundingStructureItems.ToList()[2].CalculationType = "Number";
+
+            expectedFundingStructureItems[3].Value = "£9,999";
 
             apiResponseResult.Should().BeOfType<OkObjectResult>();
             OkObjectResult typedResult = apiResponseResult as OkObjectResult;
             FundingStructure fundingStructureItems = typedResult?.Value as FundingStructure;
-            fundingStructureItems?.Items.Count().Should().Be(3);
+            fundingStructureItems?.Items.Count().Should().Be(4);
             fundingStructureItems?.Items.Should().BeEquivalentTo(expectedFundingStructureItems);
         }
 
@@ -402,7 +404,12 @@ namespace CalculateFunding.Services.Results.UnitTests
                                 TemplateCalculationId = 3
                             }
                         }
-                    }
+                    },
+                    new FundingLine
+                    {
+                        TemplateLineId = 456,
+                        Name = "FundingLine-4"
+                    },
                 }
             };
 
@@ -476,8 +483,12 @@ namespace CalculateFunding.Services.Results.UnitTests
                         {
                             new CalcModels.FundingLineResult
                             {
-                                FundingLine = new Reference {Id = "123", Name = "FundingLine-1"},
-                                Value = null
+                                FundingLine = new Reference {Id = "123", Name = "FundingLine-1"}
+                            },
+                            new CalcModels.FundingLineResult
+                            {
+                                FundingLine = new Reference {Id = "456", Name = "FundingLine-4"},
+                                Value = 9999
                             }
                         },
                         CalculationResults = new List<CalcModels.CalculationResultResponse>
@@ -492,7 +503,7 @@ namespace CalculateFunding.Services.Results.UnitTests
                             {
                                 Calculation = new Reference(aValidCalculationId3, "FundingLine-3-calc-3"),
                                 CalculationValueType = CalcModels.CalculationValueType.Number,
-                                Value = 123m
+                                Value = 333m
                             }
                         }
                     }));
@@ -583,7 +594,8 @@ namespace CalculateFunding.Services.Results.UnitTests
                             null,
                             null,
                             FundingStructureType.FundingLine)
-                    })
+                    }),
+                new FundingStructureItem(1, "FundingLine-4", null, null, FundingStructureType.FundingLine),
             };
 
             return result;

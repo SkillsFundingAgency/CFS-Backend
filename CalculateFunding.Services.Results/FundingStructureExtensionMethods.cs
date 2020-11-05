@@ -29,7 +29,7 @@ namespace CalculateFunding.Services.Results
                         {
                             return calculationValueFormat switch
                             {
-                                CalculationValueFormat.Number => decimalValue.AsFormattedMoney(),
+                                CalculationValueFormat.Number => decimalValue.AsFormattedNumber(),
                                 CalculationValueFormat.Percentage => decimalValue.AsFormattedPercentage(),
                                 CalculationValueFormat.Currency => decimalValue.AsFormattedMoney(),
                                 _ => throw new InvalidOperationException("Unknown calculation type")
