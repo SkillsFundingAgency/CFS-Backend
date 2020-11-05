@@ -14,35 +14,18 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 {
     public class ZeroInitialPaymentProfilesChange : VariationChange
     {
-        private const string _changeName = "zero initial payment profiles";
+        private const string ChangeName = "zero initial payment profiles";
 
         public ZeroInitialPaymentProfilesChange(ProviderVariationContext variationContext)
             : base(variationContext)
         {
         }
 
-        protected override async Task ApplyChanges(IApplyProviderVariations variationsApplications)
+        protected override Task ApplyChanges(IApplyProviderVariations variationsApplications)
         {
             try
             {
-                AsyncPolicy resiliencePolicy = variationsApplications.ResiliencePolicies.SpecificationsApiClient;
-                ISpecificationsApiClient specificationsApiClient = variationsApplications.SpecificationsApiClient;
-
-                ApiResponse<IEnumerable<ProfileVariationPointer>> variationPointersResponse =
-                    await resiliencePolicy.ExecuteAsync(() =>
-                        specificationsApiClient.GetProfileVariationPointers(VariationContext.RefreshState.SpecificationId));
-
-
-                if (variationPointersResponse == null || !(
-                    variationPointersResponse.StatusCode == System.Net.HttpStatusCode.OK || variationPointersResponse.StatusCode == System.Net.HttpStatusCode.NoContent
-                    ))
-                {
-                    RecordErrors("Unable to obtain variation pointers");
-
-                    return;
-                }
-
-                IEnumerable<ProfileVariationPointer> variationPointers = variationPointersResponse?.Content;
+                IEnumerable<ProfileVariationPointer> variationPointers = VariationContext.VariationPointers;
 
                 if (variationPointers.IsNullOrEmpty())
                 {
@@ -79,8 +62,10 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
             }
             catch (Exception exception)
             {
-                RecordErrors($"Unable to {_changeName} for provider id {VariationContext.ProviderId}. {exception.Message}");
+                RecordErrors($"Unable to {ChangeName} for provider id {VariationContext.ProviderId}. {exception.Message}");
             }
+            
+            return Task.CompletedTask;
         }
     }
 }

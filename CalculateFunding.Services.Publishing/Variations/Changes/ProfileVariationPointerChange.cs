@@ -25,27 +25,11 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
             _changeName = changeName;
         }
 
-        protected override async Task ApplyChanges(IApplyProviderVariations variationsApplications)
+        protected override Task ApplyChanges(IApplyProviderVariations variationsApplications)
         {
             try
             {
-                AsyncPolicy resiliencePolicy = variationsApplications.ResiliencePolicies.SpecificationsApiClient;
-                ISpecificationsApiClient specificationsApiClient = variationsApplications.SpecificationsApiClient;
-
-                ApiResponse<IEnumerable<ProfileVariationPointer>> variationPointersResponse =
-                    await resiliencePolicy.ExecuteAsync(() =>
-                        specificationsApiClient.GetProfileVariationPointers(VariationContext.RefreshState.SpecificationId));
-
-
-                if (variationPointersResponse == null
-                    || !(variationPointersResponse.StatusCode == System.Net.HttpStatusCode.OK || variationPointersResponse.StatusCode == System.Net.HttpStatusCode.NoContent))
-                {
-                    RecordMissingProfileVariationPointers();
-
-                    return;
-                }
-
-                IEnumerable<ProfileVariationPointer> variationPointers = variationPointersResponse?.Content;
+                IEnumerable<ProfileVariationPointer> variationPointers = VariationContext.VariationPointers;
 
                 if (!variationPointers.IsNullOrEmpty())
                 {
@@ -59,11 +43,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
             {
                 RecordErrors($"Unable to {_changeName} for provider id {VariationContext.ProviderId}. {exception.Message}");
             }
-        }
-
-        protected virtual void RecordMissingProfileVariationPointers()
-        {
-            RecordErrors($"Unable to obtain variation pointers for {_changeName} for provider id {VariationContext.ProviderId}");
+            
+            return Task.CompletedTask;
         }
 
         protected abstract void MakeAdjustmentsFromProfileVariationPointer(ProfileVariationPointer variationPointer);

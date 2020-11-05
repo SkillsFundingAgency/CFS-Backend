@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Publishing.AcceptanceTests.Contexts;
@@ -31,7 +30,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
         private readonly IRefreshService _refreshService;
         private readonly ICurrentCorrelationStepContext _currentCorrelationStepContext;
         private readonly PublishedProviderVersionInMemoryRepository _providerVersionInMemoryRepository;
-        private readonly SpecificationsInMemoryClient _specificationsInMemoryClient;
+        private readonly SpecificationInMemoryRepository _specificationInMemoryRepository;
 
         public RefreshStepDefinition(IPublishFundingStepContext publishFundingStepContext,
             CurrentSpecificationStepContext currentSpecificationStepContext,
@@ -40,8 +39,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             IVariationServiceStepContext variationServiceStepContext,
             IRefreshService refreshService,
             IVersionRepository<PublishedProviderVersion> publishedProviderVersionRepository,
-            ISpecificationsApiClient specificationsApiClient,
-            ICurrentCorrelationStepContext currentCorrelationStepContext)
+            ICurrentCorrelationStepContext currentCorrelationStepContext,
+            ISpecificationService specificationService)
         {
             _publishFundingStepContext = publishFundingStepContext;
             _currentSpecificationStepContext = currentSpecificationStepContext;
@@ -52,7 +51,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             _currentCorrelationStepContext = currentCorrelationStepContext;
             _providerVersionInMemoryRepository =
                 (PublishedProviderVersionInMemoryRepository) publishedProviderVersionRepository;
-            _specificationsInMemoryClient = (SpecificationsInMemoryClient) specificationsApiClient;
+            _specificationInMemoryRepository = (SpecificationInMemoryRepository) specificationService;
         }
 
         [Given(@"variations are enabled")]
@@ -95,7 +94,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
         public void GivenTheFollowingVariationPointersExistForProvider(
             IEnumerable<ProfileVariationPointer> variationPointers)
         {
-            _specificationsInMemoryClient.SetProfileVariationPointers(_currentSpecificationStepContext.SpecificationId,
+            _specificationInMemoryRepository.AddVariationPointers(_currentSpecificationStepContext.SpecificationId,
                 variationPointers.ToArray());
         }
 

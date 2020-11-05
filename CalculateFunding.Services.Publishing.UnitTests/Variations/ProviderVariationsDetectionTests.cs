@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Policies.Models;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
@@ -39,6 +40,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
         public async Task ExecutesVariationStrategiesSpecifiedInSuppliedFundingVariationsAndReturnsVariationResult(
             FundingVariation[] fundingVariations)
         {
+            IEnumerable<ProfileVariationPointer> variationPointers = ArraySegment<ProfileVariationPointer>.Empty;
             PublishedProvider existingPublishedProvider = NewPublishedProvider();
             Provider updatedProvider = NewApiProvider();
             decimal updatedTotalFunding = new RandomNumberBetween(0, 1000);
@@ -52,12 +54,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
                 fundingVariations, 
                 allPublishedProviderSnapShots,
                 allPublishedProviderRefreshStates,
+                variationPointers,
                 providerVersionId);
 
             providerVariationContext
                 .UpdatedTotalFunding
                 .Should()
-                .Equals(updatedTotalFunding);
+                .Be(updatedTotalFunding);
 
             providerVariationContext
                 .ReleasedState

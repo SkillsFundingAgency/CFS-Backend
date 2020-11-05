@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Policies.Models;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
@@ -26,6 +27,7 @@ namespace CalculateFunding.Services.Publishing.Variations
             IEnumerable<FundingVariation> variations,
             IDictionary<string, PublishedProviderSnapShots> allPublishedProviderSnapShots,
             IDictionary<string, PublishedProvider> allPublishedProviderRefreshStates,
+            IEnumerable<ProfileVariationPointer> variationPointers,
             string providerVersionId)
         {
             Guard.ArgumentNotNull(existingPublishedProvider, nameof(existingPublishedProvider));
@@ -42,7 +44,8 @@ namespace CalculateFunding.Services.Publishing.Variations
                 UpdatedTotalFunding = updatedTotalFunding,
                 AllPublishedProviderSnapShots = allPublishedProviderSnapShots,
                 AllPublishedProvidersRefreshStates = allPublishedProviderRefreshStates,
-                ProviderVersionId = providerVersionId
+                ProviderVersionId = providerVersionId,
+                VariationPointers = variationPointers
             };
 
             foreach (FundingVariation configuredVariation in variations.OrderBy(_ => _.Order))

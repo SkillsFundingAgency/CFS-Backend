@@ -10,7 +10,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 {
     public class SpecificationInMemoryRepository : ISpecificationService
     {
-        private Dictionary<string, SpecificationSummary> _specifications = new Dictionary<string, SpecificationSummary>();
+        private readonly Dictionary<string, SpecificationSummary> _specifications = new Dictionary<string, SpecificationSummary>();
+        private readonly Dictionary<string, IEnumerable<ProfileVariationPointer>> _variationPointers = new Dictionary<string, IEnumerable<ProfileVariationPointer>>();
 
         public Task<IEnumerable<SpecificationSummary>> GetSpecificationsSelectedForFundingByPeriod(string fundingPeriodId)
         {
@@ -22,10 +23,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
         public Task<SpecificationSummary> GetSpecificationSummaryById(string specificationId)
         {
-            SpecificationSummary result = null;
-            if (_specifications.TryGetValue(specificationId, out result))
-            {
-            }
+            _specifications.TryGetValue(specificationId, value: out SpecificationSummary result);
 
             return Task.FromResult(result);
         }
@@ -41,9 +39,15 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             return Task.FromResult(specificationSummary);
         }
 
+        public void AddVariationPointers(string specificationId,
+            params ProfileVariationPointer[] variationPointers)
+        {
+            _variationPointers[specificationId] = variationPointers;
+        }
+
         public Task<IEnumerable<ProfileVariationPointer>> GetProfileVariationPointers(string specificationId)
         {
-            throw new NotImplementedException();
+            return _variationPointers.TryGetValue(specificationId, out IEnumerable<ProfileVariationPointer> variationPointers) ? Task.FromResult(variationPointers) : Task.FromResult((IEnumerable<ProfileVariationPointer>)null);
         }
 
         public Task<PublishStatusResponseModel> EditSpecificationStatus(string specificationId, PublishStatus publishStatus)

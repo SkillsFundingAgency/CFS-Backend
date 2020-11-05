@@ -101,6 +101,8 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(prerequisiteCheckerLocator, nameof(prerequisiteCheckerLocator));
             Guard.ArgumentNotNull(reApplyCustomProfiles, nameof(reApplyCustomProfiles));
             Guard.ArgumentNotNull(detection, nameof(detection));
+            Guard.ArgumentNotNull(publishingResiliencePolicies.CalculationsApiClient, nameof(publishingResiliencePolicies.CalculationsApiClient));
+            Guard.ArgumentNotNull(publishingResiliencePolicies.PublishedFundingRepository, nameof(publishingResiliencePolicies.PublishedFundingRepository));
 
             _publishedProviderStatusUpdateService = publishedProviderStatusUpdateService;
             _publishedFundingDataService = publishedFundingDataService;
@@ -233,6 +235,8 @@ namespace CalculateFunding.Services.Publishing
                 _logger.Information($"Unable to locate template meta data contents for funding stream:'{fundingStream.Id}' and template id:'{specification.TemplateIds[fundingStream.Id]}'");
                 return;
             }
+
+            IEnumerable<ProfileVariationPointer> variationPointers = await _specificationService.GetProfileVariationPointers(specification.Id) ?? ArraySegment<ProfileVariationPointer>.Empty;
 
             Dictionary<string, PublishedProvider> publishedProviders = new Dictionary<string, PublishedProvider>();
 
@@ -394,6 +398,7 @@ namespace CalculateFunding.Services.Publishing
                         publishedProvider.Value,
                         scopedProviders[providerId],
                         fundingConfiguration?.Variations,
+                        variationPointers,
                         fundingStream.Id,
                         specification.ProviderVersionId);
 

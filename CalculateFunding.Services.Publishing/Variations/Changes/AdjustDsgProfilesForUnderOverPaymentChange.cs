@@ -16,12 +16,6 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
         {
         }
 
-        protected override void RecordMissingProfileVariationPointers()
-        {
-            //this variation always runs - do not treat it as an error if there are no pointers
-            //just allow the change to exit early instead
-        }
-
         protected override void MakeAdjustmentsFromProfileVariationPointer(ProfileVariationPointer variationPointer)
         {
             PublishedProvider previousSnapshot = VariationContext.GetPublishedProviderOriginalSnapShot(ProviderId);

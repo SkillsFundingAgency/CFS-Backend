@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
@@ -21,6 +22,8 @@ namespace CalculateFunding.Services.Publishing.Models
         public Provider UpdatedProvider { get; set; }
 
         public decimal? UpdatedTotalFunding { get; set; }
+        
+        public IEnumerable<ProfileVariationPointer> VariationPointers { get; set; }
         
         public ICollection<PublishedProvider> NewProvidersToAdd { get; } = new List<PublishedProvider>(); 
 

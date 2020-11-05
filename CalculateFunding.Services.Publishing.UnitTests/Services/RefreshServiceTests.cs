@@ -101,6 +101,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private Mock<ICacheProvider> _cacheProvider;
         private string providerVersionId;
         private PublishedProvider _missingProvider;
+        private ArraySegment<ProfileVariationPointer> _profileVariationPointers;
 
         [TestInitialize]
         public void Setup()
@@ -120,6 +121,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             };
             _specificationsApiClient = Substitute.For<ISpecificationsApiClient>();
             _specificationService = new SpecificationService(_specificationsApiClient, _publishingResiliencePolicies);
+
+            _profileVariationPointers = ArraySegment<ProfileVariationPointer>.Empty;
+            
+            _specificationsApiClient
+                .GetProfileVariationPointers(Arg.Any<string>())
+                .Returns(new ApiResponse<IEnumerable<ProfileVariationPointer>>(HttpStatusCode.OK, _profileVariationPointers));
+            
             _providerService = Substitute.For<IProviderService>();
             _calculationResultsService = Substitute.For<ICalculationResultsService>();
             MapperConfiguration mappingConfig = new MapperConfiguration(c => c.AddProfile<PublishingServiceMappingProfile>());

@@ -48,30 +48,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
 
         protected void GivenTheVariationPointersForTheSpecification(params ProfileVariationPointer[] variationPointers)
         {
-            _specificationsApiClient
-                .GetProfileVariationPointers(VariationContext.RefreshState.SpecificationId)
-                .Returns(new ApiResponse<IEnumerable<ProfileVariationPointer>>(HttpStatusCode.OK, variationPointers));
-        }
-
-        protected void GivenTheVariationPointersForTheSpecificationAreNull()
-        {
-            _specificationsApiClient
-                .GetProfileVariationPointers(VariationContext.RefreshState.SpecificationId)
-                .Returns(new ApiResponse<IEnumerable<ProfileVariationPointer>>(HttpStatusCode.OK, null));
-        }
-
-        protected void GivenTheVariationPointersForTheSpecificationReturnsNoContent()
-        {
-            _specificationsApiClient
-                .GetProfileVariationPointers(VariationContext.RefreshState.SpecificationId)
-                .Returns(new ApiResponse<IEnumerable<ProfileVariationPointer>>(HttpStatusCode.NoContent, null));
-        }
-
-        protected void GivenTheVariationPointersForTheSpecificationReturnInternalServerError()
-        {
-            _specificationsApiClient
-                .GetProfileVariationPointers(VariationContext.RefreshState.SpecificationId)
-                .Returns(new ApiResponse<IEnumerable<ProfileVariationPointer>>(HttpStatusCode.InternalServerError, null));
+            VariationContext.VariationPointers = variationPointers;
         }
 
         protected void AndTheVariationPointersForTheSpecification(params ProfileVariationPointer[] variationPointers)

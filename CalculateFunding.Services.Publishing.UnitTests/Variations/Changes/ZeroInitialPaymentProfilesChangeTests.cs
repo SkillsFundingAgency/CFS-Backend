@@ -65,8 +65,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
             string fundingLineOneId = NewRandomString();
             int year = 2020;
 
-            GivenTheVariationPointersForTheSpecification(null);
-
             decimal periodOneAmount = 293487M;
 
             ProfilePeriod periodOne = NewProfilePeriod(0, year, "January", periodOneAmount);
@@ -83,43 +81,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
             await WhenTheChangeIsApplied();
 
             ThenProfilePeriodsShouldBeZeroAmount(periodOne, periodTwo, periodThree, periodFour, periodFive);
-        }
-
-        [TestMethod]
-        public async Task ZerosProfilesWhenNoVariationsPointersAreSetInSpecificationWithNoContentResponseOnEachMatchingFundingLine()
-        {
-            string fundingLineOneId = NewRandomString();
-            int year = 2020;
-
-            GivenTheVariationPointersForTheSpecificationReturnsNoContent();
-
-            decimal periodOneAmount = 293487M;
-
-            ProfilePeriod periodOne = NewProfilePeriod(0, year, "January", periodOneAmount);
-            ProfilePeriod periodTwo = NewProfilePeriod(1, year, "January", 2973864M);
-            ProfilePeriod periodThree = NewProfilePeriod(0, year, "February", 123764M);
-            ProfilePeriod periodFour = NewProfilePeriod(1, year, "January", 6487234M);
-            ProfilePeriod periodFive = NewProfilePeriod(2, year, "January", 1290837M);
-
-            AndTheFundingLines(NewFundingLine(_ => _.WithFundingLineCode(fundingLineOneId)
-            .WithOrganisationGroupingReason(OrganisationGroupingReason.Payment)
-                .WithDistributionPeriods(NewDistributionPeriod(dp => dp.WithProfilePeriods(periodOne, periodTwo, periodThree)),
-                    NewDistributionPeriod(dp => dp.WithProfilePeriods(periodFour, periodFive)))));
-
-            await WhenTheChangeIsApplied();
-
-            ThenProfilePeriodsShouldBeZeroAmount(periodOne, periodTwo, periodThree, periodFour, periodFive);
-        }
-
-        [TestMethod]
-        public async Task RecordsErrorIfNoVariationPointersUnableToBeObtained()
-        {
-            GivenTheVariationPointersForTheSpecificationReturnInternalServerError();
-
-            await WhenTheChangeIsApplied();
-
-            ThenTheErrorWasRecorded($"Unable to obtain variation pointers");
-            AndNoVariationChangesWereQueued();
         }
 
         private void ThenProfilePeriodsShouldBeZeroAmount(params ProfilePeriod[] profilePeriods)

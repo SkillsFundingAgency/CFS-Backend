@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Policies.Models;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
@@ -65,6 +66,7 @@ namespace CalculateFunding.Services.Publishing
             PublishedProvider existingPublishedProvider,
             Provider updatedProvider,
             IEnumerable<FundingVariation> variations,
+            IEnumerable<ProfileVariationPointer> variationPointers,
             string snapshotId,
             string specificationProviderVersionId)
         {
@@ -91,6 +93,7 @@ namespace CalculateFunding.Services.Publishing
                 variations,
                 publishedProviderSnapshots,
                 allPublishedProviderRefreshStates,
+                variationPointers,
                 specificationProviderVersionId);
 
             if (variationContext.HasVariationChanges)

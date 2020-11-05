@@ -8,34 +8,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
     [TestClass]
     public class ZeroRemainingProfilesChangeTests : ZeroRemainingProfilesChangeTestBase
     {
-        private string _changeName = "zero remaining profiles";
-
         [TestInitialize]
         public void SetUp()
         {
             Change = new ZeroRemainingProfilesChange(VariationContext);
-
         }
 
         [TestMethod]
         public async Task HandlesNullVariationPointers()
         {
-            GivenTheVariationPointersForTheSpecificationAreNull();
-
             await WhenTheChangeIsApplied();
 
             AndNoVariationChangesWereQueued();
         }
-
-        [TestMethod]
-        public async Task RecordsErrorIfNoVariationPointersCouldBeObtainedForSpecification()
-        {
-            await WhenTheChangeIsApplied();
-
-            ThenTheErrorWasRecorded($"Unable to obtain variation pointers for {_changeName} for provider id {VariationContext.ProviderId}");
-            AndNoVariationChangesWereQueued();
-        }
-
 
         [TestMethod]
         public async Task ZerosProfilesAfterProfileVariationPointersInSpecificationOnEachMatchingFundingLine()
