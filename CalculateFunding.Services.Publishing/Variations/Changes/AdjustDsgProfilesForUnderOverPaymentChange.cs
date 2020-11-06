@@ -51,10 +51,11 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
             
             int variationPointerIndex = GetProfilePeriodIndexForVariationPoint(variationPointer, orderedRefreshProfilePeriods);
 
-            decimal previousFundingLineValue = previousFundingLine.Value.GetValueOrDefault();
+            decimal previousFundingLineValuePaid = orderedSnapShotProfilePeriods.Take(variationPointerIndex).Sum(_ => _.ProfiledValue);
+            decimal latestFundingLineValuePaid = orderedRefreshProfilePeriods.Take(variationPointerIndex).Sum(_ => _.ProfiledValue);
             decimal latestFundingLineValue = latestFundingLine.Value.GetValueOrDefault();
-            
-            decimal fundingChange = latestFundingLineValue - previousFundingLineValue;
+
+            decimal fundingChange = latestFundingLineValuePaid - previousFundingLineValuePaid;
             decimal latestPeriodAmount = (int)(latestFundingLineValue / orderedRefreshProfilePeriods.Length);
 
             AdjustPeriodsForFundingAlreadyReleased(variationPointerIndex,

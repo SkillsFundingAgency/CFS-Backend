@@ -83,32 +83,5 @@ namespace CalculateFunding.Services.Publishing
 
             return results;
         }
-
-        private Common.TemplateMetadata.Models.FundingLine ToFundingLine(Common.TemplateMetadata.Models.FundingLine fundingLine, Common.ApiClient.Calcs.Models.TemplateMapping mapping, IEnumerable<CalculationResult> calculationResults)
-        {
-            fundingLine.Calculations = fundingLine.Calculations?.Select(_ => ToCalculation(_, mapping, calculationResults));
-
-            fundingLine.FundingLines = fundingLine.FundingLines?.Select(_ => ToFundingLine(_, mapping, calculationResults));
-
-            return fundingLine;
-        }
-
-        private Calculation ToCalculation(Calculation calculation, Common.ApiClient.Calcs.Models.TemplateMapping mapping, IEnumerable<CalculationResult> calculationResults)
-        {
-            object value = calculationResults.SingleOrDefault(calc => calc.Id == GetCalculationId(mapping, calculation.TemplateCalculationId))?.Value;
-
-            calculation.Value = calculation.Type == CalculationType.Cash && value is decimal calculationResultValue
-                ? Math.Round(calculationResultValue, 2, MidpointRounding.AwayFromZero)
-                : value;
-
-            calculation.Calculations = calculation.Calculations?.Select(_ => ToCalculation(_, mapping, calculationResults));
-
-            return calculation;
-        }
-
-        private string GetCalculationId(Common.ApiClient.Calcs.Models.TemplateMapping mapping, uint templateId)
-        {
-            return mapping.TemplateMappingItems.SingleOrDefault(_ => _.TemplateId == templateId)?.CalculationId;
-        }
     }
 }
