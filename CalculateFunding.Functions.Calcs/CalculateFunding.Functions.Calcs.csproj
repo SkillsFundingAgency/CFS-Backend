@@ -10,34 +10,33 @@
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="9.0.0" />
 
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Datasets" Version="5.4.0" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Graph" Version="2.4.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Datasets" Version="5.4.1" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Graph" Version="2.4.1" />
 
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="3.9.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="4.0.1" />
 
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="3.0.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="3.0.1" />
 
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Providers" Version="4.2.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Providers" Version="4.2.1" />
 
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Results" Version="4.1.0" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="3.12.0" />
-    <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.0.0" />
-    <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.ServiceBus" Version="3.1.0" />
-    <PackageReference Include="Microsoft.Azure.WebJobs.ServiceBus" Version="3.0.0-beta8" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Results" Version="4.1.1" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="3.13.1" />
+    <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
+    <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.ServiceBus" Version="4.2.0" />
     <PackageReference Include="Microsoft.CodeAnalysis" Version="3.6.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="3.1.3" />
-    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="3.0.3" />
+    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="3.0.9" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.6.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" Version="3.6.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" Version="2.0.0-preview-010610001-1263" />
+    <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" Version="2.2.0" />
     
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\CalculateFunding.Services.Calcs\CalculateFunding.Services.Calcs.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Compiler\CalculateFunding.Services.Compiler.csproj" />
-    <ProjectReference Include="..\CalculateFunding.Services.Core.AspNet\CalculateFunding.Services.Core.AspNet.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.Core.Functions\CalculateFunding.Services.Core.Functions.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Core\CalculateFunding.Services.Core.csproj" />
   </ItemGroup>
 

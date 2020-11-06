@@ -2,6 +2,7 @@
   "profiles": {
     "CalculateFunding.Functions.CalcEngine": {
       "commandName": "Project",
+      "commandLineArgs": "start --verbose",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }

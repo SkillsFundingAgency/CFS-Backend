@@ -1,8 +1,6 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.ServiceBus.Interfaces;
-using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Functions;
 using CalculateFunding.Services.CosmosDbScaling.Interfaces;
@@ -20,8 +18,8 @@ namespace CalculateFunding.Functions.CosmosDbScaling.ServiceBus
            ILogger logger,
            ICosmosDbScalingService scalingService,
            IMessengerService messengerService,
-           IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, $"{ServiceBusConstants.TopicNames.JobNotifications}/{ServiceBusConstants.TopicSubscribers.ScaleUpCosmosdbCollection}" , useAzureStorage, userProfileProvider, scalingService)
+           IUserProfileProvider userProfileProvider, bool useAzureStorage = false)
+            : base(logger, messengerService, FunctionName, $"{ServiceBusConstants.TopicNames.JobNotifications}/{ServiceBusConstants.TopicSubscribers.ScaleUpCosmosdbCollection}", useAzureStorage, userProfileProvider, scalingService)
         {
         }
 

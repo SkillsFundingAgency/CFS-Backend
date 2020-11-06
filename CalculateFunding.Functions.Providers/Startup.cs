@@ -1,36 +1,36 @@
 ﻿using System;
+using System.Threading;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Providers;
+using CalculateFunding.Common.Config.ApiClient.FundingDataZone;
 using CalculateFunding.Common.Config.ApiClient.Jobs;
-using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.Config.ApiClient.Results;
+using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Functions.Providers.ServiceBus;
+using CalculateFunding.Models.Providers;
+using CalculateFunding.Models.Providers.ViewModels;
+using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core.AzureStorage;
+using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Functions.Extensions;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.DeadletterProcessor;
 using CalculateFunding.Services.Providers;
 using CalculateFunding.Services.Providers.Interfaces;
+using CalculateFunding.Services.Providers.Validators;
+using FluentValidation;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
-using CalculateFunding.Services.Core.Interfaces.AzureStorage;
-using CalculateFunding.Services.Core.AzureStorage;
-using FluentValidation;
-using CalculateFunding.Models.Providers.ViewModels;
-using CalculateFunding.Services.Providers.Validators;
-using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Services.Core.Caching.FileSystem;
-using CalculateFunding.Models.Providers;
-using System.Threading;
-using CalculateFunding.Services.DeadletterProcessor;
 using ServiceCollectionExtensions = CalculateFunding.Services.Core.Extensions.ServiceCollectionExtensions;
-using CalculateFunding.Common.Models;
-using CalculateFunding.Services.Core.Services;
-using CalculateFunding.Common.Config.ApiClient.FundingDataZone;
 
 [assembly: FunctionsStartup(typeof(CalculateFunding.Functions.Providers.Startup))]
 
@@ -40,12 +40,12 @@ namespace CalculateFunding.Functions.Providers
     {
         public override void Configure(IFunctionsHostBuilder builder)
         {
-            RegisterComponents(builder.Services);
+            RegisterComponents(builder.Services, builder.GetFunctionsConfigurationToIncludeHostJson());
         }
 
-        public static IServiceProvider RegisterComponents(IServiceCollection builder)
+        public static IServiceProvider RegisterComponents(IServiceCollection builder, IConfiguration azureFuncConfig = null)
         {
-            IConfigurationRoot config = ConfigHelper.AddConfig();
+            IConfigurationRoot config = ConfigHelper.AddConfig(azureFuncConfig);
 
             return RegisterComponents(builder, config);
         }

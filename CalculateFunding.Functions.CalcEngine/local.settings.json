@@ -5,6 +5,7 @@
     "AzureWebJobsDashboard": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet",
     "AzureWebJobsServiceBus": "",
-    "ServiceBusSettings:ConnectionString": ""
+    "ServiceBusSettings:ConnectionString": "",
+    "AzureConnectionString": "UseDevelopmentStorage=true"
   }
 }

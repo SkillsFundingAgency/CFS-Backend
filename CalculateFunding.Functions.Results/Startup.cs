@@ -17,15 +17,14 @@ using CalculateFunding.Functions.Results.Timer;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Functions.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Interfaces.Threading;
 using CalculateFunding.Services.Core.Options;
-using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Core.Threading;
 using CalculateFunding.Services.DeadletterProcessor;
 using CalculateFunding.Services.Results;
@@ -48,12 +47,12 @@ namespace CalculateFunding.Functions.Results
     {
         public override void Configure(IFunctionsHostBuilder builder)
         {
-            RegisterComponents(builder.Services);
+            RegisterComponents(builder.Services, builder.GetFunctionsConfigurationToIncludeHostJson());
         }
 
-        public static IServiceProvider RegisterComponents(IServiceCollection builder)
+        public static IServiceProvider RegisterComponents(IServiceCollection builder, IConfiguration azureFuncConfig = null)
         {
-            IConfigurationRoot config = ConfigHelper.AddConfig();
+            IConfigurationRoot config = ConfigHelper.AddConfig(azureFuncConfig);
 
             return RegisterComponents(builder, config);
         }

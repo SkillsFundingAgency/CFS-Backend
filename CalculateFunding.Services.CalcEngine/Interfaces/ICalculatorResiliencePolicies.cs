@@ -10,9 +10,9 @@ namespace CalculateFunding.Services.CalcEngine.Interfaces
 
         AsyncPolicy ProviderSourceDatasetsRepository { get; set; }
 
-        AsyncPolicy ProviderResultsRepository { get; set; }
+        AsyncPolicy CalculationResultsRepository { get; set; }
 
-        AsyncPolicy CalculationsRepository { get; set; }
+        AsyncPolicy CalculationsApiClient { get; set; }
 
         AsyncPolicy JobsApiClient { get; set; }
 

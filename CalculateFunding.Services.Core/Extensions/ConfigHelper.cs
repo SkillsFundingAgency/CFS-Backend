@@ -1,8 +1,7 @@
-﻿using Microsoft.Extensions.Configuration;
-using System;
+﻿using System;
 using System.IO;
 using CalculateFunding.Services.Core.Caching.FileSystem;
-using Microsoft.Extensions.Configuration.AzureAppConfiguration;
+using Microsoft.Extensions.Configuration;
 
 namespace CalculateFunding.Services.Core.Extensions
 {
@@ -10,7 +9,7 @@ namespace CalculateFunding.Services.Core.Extensions
     {
         private static readonly string AppConfigConnectionString = Environment.GetEnvironmentVariable("AzureConfiguration:ConnectionString");
 
-        public static IConfigurationRoot AddConfig()
+        public static IConfigurationRoot AddConfig(IConfiguration additionalConfiguration = null)
         {
             IConfigurationBuilder configBuilder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
@@ -18,6 +17,11 @@ namespace CalculateFunding.Services.Core.Extensions
                 .AddJsonFile("appsettings.json", optional: true)
                 .AddEnvironmentVariables()
                 .AddAppConfiguration();
+
+            if (additionalConfiguration != null)
+            {
+                configBuilder.AddConfiguration(additionalConfiguration);
+            }
 
             if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
             {

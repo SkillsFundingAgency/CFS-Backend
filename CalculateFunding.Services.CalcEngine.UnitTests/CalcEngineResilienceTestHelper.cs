@@ -9,8 +9,8 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
         {
             return new CalculatorResiliencePolicies()
             {
-                CalculationsRepository = Policy.NoOpAsync(),
-                ProviderResultsRepository = Policy.NoOpAsync(),
+                CalculationsApiClient = Policy.NoOpAsync(),
+                CalculationResultsRepository = Policy.NoOpAsync(),
                 ProviderSourceDatasetsRepository = Policy.NoOpAsync(),
                 CacheProvider = Policy.NoOpAsync(),
                 Messenger = Policy.NoOpAsync(),

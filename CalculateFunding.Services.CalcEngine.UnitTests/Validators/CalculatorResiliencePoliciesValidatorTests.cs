@@ -15,8 +15,8 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests.Validators
             // Arrange
             CalculatorResiliencePolicies model = new CalculatorResiliencePolicies()
             {
-                CalculationsRepository = Policy.NoOpAsync(),
-                ProviderResultsRepository = Policy.NoOpAsync(),
+                CalculationsApiClient = Policy.NoOpAsync(),
+                CalculationResultsRepository = Policy.NoOpAsync(),
                 ProviderSourceDatasetsRepository = Policy.NoOpAsync(),
                 CacheProvider = Policy.NoOpAsync(),
                 Messenger = Policy.NoOpAsync()
@@ -39,8 +39,8 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests.Validators
             // Arrange
             CalculatorResiliencePolicies model = new CalculatorResiliencePolicies()
             {
-                CalculationsRepository = null,
-                ProviderResultsRepository = Policy.NoOpAsync(),
+                CalculationsApiClient = null,
+                CalculationResultsRepository = Policy.NoOpAsync(),
                 ProviderSourceDatasetsRepository = Policy.NoOpAsync(),
                 CacheProvider = Policy.NoOpAsync(),
                 Messenger = Policy.NoOpAsync()
@@ -73,8 +73,8 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests.Validators
             // Arrange
             CalculatorResiliencePolicies model = new CalculatorResiliencePolicies()
             {
-                CalculationsRepository = Policy.NoOpAsync(),
-                ProviderResultsRepository = null,
+                CalculationsApiClient = Policy.NoOpAsync(),
+                CalculationResultsRepository = null,
                 ProviderSourceDatasetsRepository = Policy.NoOpAsync(),
                 CacheProvider = Policy.NoOpAsync(),
                 Messenger = Policy.NoOpAsync()
@@ -107,8 +107,8 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests.Validators
             // Arrange
             CalculatorResiliencePolicies model = new CalculatorResiliencePolicies()
             {
-                CalculationsRepository = Policy.NoOpAsync(),
-                ProviderResultsRepository = Policy.NoOpAsync(),
+                CalculationsApiClient = Policy.NoOpAsync(),
+                CalculationResultsRepository = Policy.NoOpAsync(),
                 ProviderSourceDatasetsRepository = null,
                 CacheProvider = Policy.NoOpAsync(),
                 Messenger = Policy.NoOpAsync()
@@ -141,8 +141,8 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests.Validators
             // Arrange
             CalculatorResiliencePolicies model = new CalculatorResiliencePolicies()
             {
-                CalculationsRepository = Policy.NoOpAsync(),
-                ProviderResultsRepository = Policy.NoOpAsync(),
+                CalculationsApiClient = Policy.NoOpAsync(),
+                CalculationResultsRepository = Policy.NoOpAsync(),
                 ProviderSourceDatasetsRepository = Policy.NoOpAsync(),
                 CacheProvider = null,
                 Messenger = Policy.NoOpAsync()
@@ -175,8 +175,8 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests.Validators
             // Arrange
             CalculatorResiliencePolicies model = new CalculatorResiliencePolicies()
             {
-                CalculationsRepository = Policy.NoOpAsync(),
-                ProviderResultsRepository = Policy.NoOpAsync(),
+                CalculationsApiClient = Policy.NoOpAsync(),
+                CalculationResultsRepository = Policy.NoOpAsync(),
                 ProviderSourceDatasetsRepository = Policy.NoOpAsync(),
                 CacheProvider = Policy.NoOpAsync(),
                 Messenger = null

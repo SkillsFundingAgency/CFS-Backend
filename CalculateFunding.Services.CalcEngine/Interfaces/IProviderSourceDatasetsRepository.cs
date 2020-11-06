@@ -6,6 +6,6 @@ namespace CalculateFunding.Services.CalcEngine.Interfaces
 {
     public interface IProviderSourceDatasetsRepository
     {
-        Task<ProviderSourceDatasetLookupResult> GetProviderSourceDatasetsByProviderIdsAndRelationshipIds(string specificationId, IEnumerable<string> providerIds, IEnumerable<string> dataRelationshipIds);
+        Task<Dictionary<string, Dictionary<string, ProviderSourceDataset>>> GetProviderSourceDatasetsByProviderIdsAndRelationshipIds(string specificationId, IEnumerable<string> providerIds, IEnumerable<string> dataRelationshipIds);
     }
 }

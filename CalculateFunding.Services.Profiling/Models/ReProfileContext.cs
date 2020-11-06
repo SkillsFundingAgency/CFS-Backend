@@ -1,6 +1,4 @@
-﻿using System.ServiceModel.Channels;
-
-namespace CalculateFunding.Services.Profiling.Models
+﻿namespace CalculateFunding.Services.Profiling.Models
 {
     public class ReProfileContext
     {

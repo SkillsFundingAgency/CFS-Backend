@@ -11,8 +11,8 @@ namespace CalculateFunding.Services.CalcEngine.Validators
             RuleFor(m => m.CacheProvider).NotNull().WithMessage(GenerateNotNullMessage("CacheProvider Policy"));
             RuleFor(m => m.Messenger).NotNull().WithMessage(GenerateNotNullMessage("Messenger policy"));
             RuleFor(m => m.ProviderSourceDatasetsRepository).NotNull().WithMessage(GenerateNotNullMessage("ProviderSourceDatasetsRepository"));
-            RuleFor(m => m.ProviderResultsRepository).NotNull().WithMessage(GenerateNotNullMessage("ProviderResultsRepository"));
-            RuleFor(m => m.CalculationsRepository).NotNull().WithMessage(GenerateNotNullMessage("CalculationRepository"));
+            RuleFor(m => m.CalculationResultsRepository).NotNull().WithMessage(GenerateNotNullMessage("ProviderResultsRepository"));
+            RuleFor(m => m.CalculationsApiClient).NotNull().WithMessage(GenerateNotNullMessage("CalculationRepository"));
         }
 
         private static string GenerateNotNullMessage(string componentName)

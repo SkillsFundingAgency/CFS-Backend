@@ -1,8 +1,6 @@
-using System;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.ServiceBus.Interfaces;
-using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Functions;
 using CalculateFunding.Services.Jobs.Interfaces;
@@ -14,14 +12,13 @@ namespace CalculateFunding.Functions.Jobs.ServiceBus
 {
     public class OnJobNotification : Retriable
     {
-        private readonly IJobManagementService _jobManagementService;
         public const string FunctionName = "on-job-notification";
 
         public OnJobNotification(
             ILogger logger,
             IJobManagementService jobManagementService,
             IMessengerService messengerService,
-            IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
+            IUserProfileProvider userProfileProvider, bool useAzureStorage = false)
             : base(logger, messengerService, FunctionName, $"{ServiceBusConstants.TopicNames.JobNotifications}/{ServiceBusConstants.TopicSubscribers.UpdateJobsOnCompletion}", useAzureStorage, userProfileProvider, jobManagementService)
         {
         }

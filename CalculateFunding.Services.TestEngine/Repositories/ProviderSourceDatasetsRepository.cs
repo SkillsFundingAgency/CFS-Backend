@@ -38,6 +38,12 @@ namespace CalculateFunding.Services.TestRunner.Repositories
             return Task.FromResult(health);
         }
 
+        /// <summary>
+        /// NOTE: This implementation should be replaced with the same one as the calc engine, if the test engine is used again
+        /// </summary>
+        /// <param name="providerIds"></param>
+        /// <param name="specificationId"></param>
+        /// <returns></returns>
         public async Task<IEnumerable<ProviderSourceDataset>> GetProviderSourceDatasetsByProviderIdsAndSpecificationId(IEnumerable<string> providerIds, string specificationId)
         {
             if (providerIds.IsNullOrEmpty())

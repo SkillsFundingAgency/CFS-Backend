@@ -11,14 +11,10 @@ using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Models.Calcs;
-using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.CalcEngine.Caching;
 using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Services.Core.Constants;
-using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Core.Options;
 using Newtonsoft.Json;
 using Polly;
 using Serilog;
@@ -30,20 +26,16 @@ namespace CalculateFunding.Services.CalcEngine
     {
         private readonly ICosmosRepository _cosmosRepository;
         private readonly ILogger _logger;
-        private readonly ISearchRepository<ProviderCalculationResultsIndex> _providerCalculationResultsSearchRepository;
-        private readonly IFeatureToggle _featureToggle;
-        private readonly EngineSettings _engineSettings;
+
         private readonly IProviderResultCalculationsHashProvider _calculationsHashProvider;
         private readonly AsyncPolicy _resultsApiClientPolicy;
+        private readonly AsyncPolicy _calculationResultsCosmosPolicy;
         private readonly IResultsApiClient _resultsApiClient;
         private readonly IJobManagement _jobManagement;
 
         public ProviderResultsRepository(
             ICosmosRepository cosmosRepository,
             ILogger logger,
-            ISearchRepository<ProviderCalculationResultsIndex> providerCalculationResultsSearchRepository,
-            IFeatureToggle featureToggle,
-            EngineSettings engineSettings,
             IProviderResultCalculationsHashProvider calculationsHashProvider,
             ICalculatorResiliencePolicies calculatorResiliencePolicies,
             IResultsApiClient resultsApiClient,
@@ -51,9 +43,6 @@ namespace CalculateFunding.Services.CalcEngine
         {
             Guard.ArgumentNotNull(cosmosRepository, nameof(cosmosRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(providerCalculationResultsSearchRepository, nameof(providerCalculationResultsSearchRepository));
-            Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
-            Guard.ArgumentNotNull(engineSettings, nameof(engineSettings));
             Guard.ArgumentNotNull(calculationsHashProvider, nameof(calculationsHashProvider));
             Guard.ArgumentNotNull(calculatorResiliencePolicies, nameof(calculatorResiliencePolicies));
             Guard.ArgumentNotNull(resultsApiClient, nameof(resultsApiClient));
@@ -62,12 +51,11 @@ namespace CalculateFunding.Services.CalcEngine
 
             _cosmosRepository = cosmosRepository;
             _logger = logger;
-            _providerCalculationResultsSearchRepository = providerCalculationResultsSearchRepository;
-            _featureToggle = featureToggle;
-            _engineSettings = engineSettings;
+
             _calculationsHashProvider = calculationsHashProvider;
             _resultsApiClient = resultsApiClient;
             _resultsApiClientPolicy = calculatorResiliencePolicies.ResultsApiClient;
+            _calculationResultsCosmosPolicy = calculatorResiliencePolicies.CalculationResultsRepository;
             _jobManagement = jobManagement;
         }
 
@@ -77,8 +65,7 @@ namespace CalculateFunding.Services.CalcEngine
             int partitionIndex,
             int partitionSize,
             Reference user,
-            string correlationId,
-            int degreeOfParallelism = 5)
+            string correlationId)
         {
             if (providerResults == null || providerResults.Count() == 0)
             {
@@ -95,11 +82,11 @@ namespace CalculateFunding.Services.CalcEngine
 
             IEnumerable<KeyValuePair<string, ProviderResult>> results = providerResults.Select(m => new KeyValuePair<string, ProviderResult>(m.Provider.Id, m));
 
-            long cosmosSaveTime = await BulkSaveProviderResults(results, degreeOfParallelism);
+            long cosmosSaveTime = await BulkSaveProviderResults(results);
 
             // Need to wait until the save provider results completed before triggering the search index writer jobs.
             long queueSearchWriterJobTime = await QueueSearchIndexWriterJob(providerResults, specificationSummary, user, correlationId);
-            
+
             // Only save batch to redis if it has been saved successfully. This enables the message to be requeued for throttled scenarios and will resave to cosmos/search
             _calculationsHashProvider.EndBatch(batchSpecificationId, partitionIndex, partitionSize);
 
@@ -169,11 +156,19 @@ namespace CalculateFunding.Services.CalcEngine
             return hasChanged;
         }
 
-        private async Task<long> BulkSaveProviderResults(IEnumerable<KeyValuePair<string, ProviderResult>> providerResults, int degreeOfParallelism = 5)
+        private async Task<long> BulkSaveProviderResults(IEnumerable<KeyValuePair<string, ProviderResult>> providerResults)
         {
             Stopwatch stopwatch = Stopwatch.StartNew();
 
-            await _cosmosRepository.BulkUpsertAsync(providerResults, degreeOfParallelism: degreeOfParallelism, maintainCreatedDate: false);
+            List<Task> tasks = new List<Task>(providerResults.Count());
+
+            foreach (KeyValuePair<string, ProviderResult> result in providerResults)
+            {
+                tasks.Add(_calculationResultsCosmosPolicy.ExecuteAsync(() => _cosmosRepository.UpsertAsync(result.Value, partitionKey: result.Key, maintainCreatedDate: false)));
+            }
+
+            // CosmosClient is expected to use AllowBulk=true, so give all requests to the client to handle the parallelism
+            await TaskHelper.WhenAllAndThrow(tasks.ToArray());
 
             stopwatch.Stop();
 

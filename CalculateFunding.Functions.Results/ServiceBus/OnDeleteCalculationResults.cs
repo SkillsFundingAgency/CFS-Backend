@@ -1,9 +1,7 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Functions;
 using CalculateFunding.Services.Results.Interfaces;
@@ -23,7 +21,7 @@ namespace CalculateFunding.Functions.Results.ServiceBus
             ILogger logger,
             IResultsService resultsService,
             IMessengerService messengerService,
-            IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
+            IUserProfileProvider userProfileProvider, bool useAzureStorage = false)
             : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, resultsService)
         {
             Guard.ArgumentNotNull(resultsService, nameof(resultsService));
@@ -36,7 +34,7 @@ namespace CalculateFunding.Functions.Results.ServiceBus
             QueueName,
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            await base.Run(message, async() =>
+            await base.Run(message, async () =>
             {
                 await _resultsService.DeleteCalculationResults(message);
             });

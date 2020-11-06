@@ -14,6 +14,7 @@ using CalculateFunding.Functions.Scenarios.ServiceBus;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Functions.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Options;
@@ -38,12 +39,12 @@ namespace CalculateFunding.Functions.Scenarios
     {
         public override void Configure(IFunctionsHostBuilder builder)
         {
-            RegisterComponents(builder.Services);
+            RegisterComponents(builder.Services, builder.GetFunctionsConfigurationToIncludeHostJson());
         }
 
-        public static IServiceProvider RegisterComponents(IServiceCollection builder)
+        public static IServiceProvider RegisterComponents(IServiceCollection builder, IConfiguration azureFuncConfig = null)
         {
-            IConfigurationRoot config = ConfigHelper.AddConfig();
+            IConfigurationRoot config = ConfigHelper.AddConfig(azureFuncConfig);
 
             return RegisterComponents(builder, config);
         }
@@ -87,7 +88,7 @@ namespace CalculateFunding.Functions.Scenarios
             builder.AddSingleton<IJobHelperService, JobHelperService>();
 
             builder
-                .AddSingleton<IValidator<CreateNewTestScenarioVersion>, CreateNewTestScenarioVersionValidator>();           
+                .AddSingleton<IValidator<CreateNewTestScenarioVersion>, CreateNewTestScenarioVersionValidator>();
 
             builder
               .AddSingleton<ICalcsRepository, CalcsRepository>();
@@ -138,7 +139,7 @@ namespace CalculateFunding.Functions.Scenarios
 
             builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.Scenarios");
             builder.AddApplicationInsightsServiceName(config, "CalculateFunding.Functions.Scenarios");
-            
+
             builder.AddLogging("CalculateFunding.Functions.Scenarios");
 
             builder.AddTelemetry();

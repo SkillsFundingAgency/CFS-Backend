@@ -5,6 +5,11 @@
       "messageHandlerOptions": {
         "maxConcurrentCalls": 1
       },
+      "sessionHandlerOptions": {
+        "maxConcurrentSessions": 1,
+        "maxAutoRenewDuration": "00:10:00",
+        "maxConcurrentCalls": 1
+      },
       "prefetchCount": 0
     }
   }

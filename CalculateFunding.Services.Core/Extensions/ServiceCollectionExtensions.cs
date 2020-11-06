@@ -58,10 +58,10 @@ namespace CalculateFunding.Services.Core.Extensions
             {
                 builder
                     .AddSingleton<IMessengerService, QueueMessengerService>((ctx) =>
-                {
-                    Common.ServiceBus.QueueClient queueClient = new Common.ServiceBus.QueueClient("UseDevelopmentStorage=true");
-                    return new QueueMessengerService(queueClient, serviceName);
-                });
+                    {
+                        Common.ServiceBus.QueueClient queueClient = new Common.ServiceBus.QueueClient("UseDevelopmentStorage=true");
+                        return new QueueMessengerService(queueClient, serviceName);
+                    });
             }
             else
             {

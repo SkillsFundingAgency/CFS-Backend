@@ -6,6 +6,11 @@
         "maxConcurrentCalls": 1,
         "maxAutoRenewDuration": "00:30:00"
       },
+      "sessionHandlerOptions": {
+        "maxConcurrentSessions": 1,
+        "maxAutoRenewDuration": "00:30:00",
+        "maxConcurrentCalls": 1
+      },
       "prefetchCount": 0
     }
   },

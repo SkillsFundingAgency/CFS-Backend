@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Functions.Policy.ServiceBus;
@@ -10,7 +11,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Functions.Policy.SmokeTests
 {
@@ -42,7 +42,7 @@ namespace CalculateFunding.Functions.Policy.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.PolicyReIndexTemplates,
-                (Message smokeResponse) => onReIndexTemplates.Run(smokeResponse));
+                async (Message smokeResponse) => await onReIndexTemplates.Run(smokeResponse));
 
             response
                 .Should()

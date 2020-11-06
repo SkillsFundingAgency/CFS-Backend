@@ -167,7 +167,7 @@ namespace CalculateFunding.Services.Calculator
             await _calculationEngineServiceTestsHelper
                 .MockProviderResultRepo
                 .Received(0)
-                .SaveProviderResults(Arg.Any<IEnumerable<ProviderResult>>(), _specificationSummary, partitionIndex, partitionSize, Arg.Any<Reference>(), Arg.Any<string>(), Arg.Any<int>());
+                .SaveProviderResults(Arg.Any<IEnumerable<ProviderResult>>(), _specificationSummary, partitionIndex, partitionSize, Arg.Any<Reference>(), Arg.Any<string>());
         }
 
         [TestMethod]
@@ -240,7 +240,7 @@ namespace CalculateFunding.Services.Calculator
             _calculationEngineServiceTestsHelper
                 .MockDatasetRepo
                 .GetProviderSourceDatasetsByProviderIdsAndRelationshipIds(specificationId, Arg.Any<IEnumerable<string>>(), Arg.Any<IEnumerable<string>>())
-                .Returns(new ProviderSourceDatasetLookupResult { ProviderSourceDatasets = providerSummaries.ToDictionary(x => x.Id, x => new Dictionary<string, ProviderSourceDataset>()) });
+                .Returns(providerSummaries.ToDictionary(x => x.Id, x => new Dictionary<string, ProviderSourceDataset>()));
 
             CalculationEngineService service = _calculationEngineServiceTestsHelper.CreateCalculationEngineService();
 
@@ -284,7 +284,7 @@ namespace CalculateFunding.Services.Calculator
             _calculationEngineServiceTestsHelper
                 .MockProviderResultRepo
                 .Received(7)
-                .SaveProviderResults(Arg.Any<IEnumerable<ProviderResult>>(), Arg.Is(_specificationSummary), Arg.Is(partitionIndex), Arg.Is(partitionSize), Arg.Any<Reference>(), Arg.Any<string>(), Arg.Any<int>());
+                .SaveProviderResults(Arg.Any<IEnumerable<ProviderResult>>(), Arg.Is(_specificationSummary), Arg.Is(partitionIndex), Arg.Is(partitionSize), Arg.Any<Reference>(), Arg.Any<string>());
         }
 
         [TestMethod]
@@ -375,7 +375,7 @@ namespace CalculateFunding.Services.Calculator
             _calculationEngineServiceTestsHelper
                 .MockDatasetRepo
                 .GetProviderSourceDatasetsByProviderIdsAndRelationshipIds(specificationId, Arg.Any<IEnumerable<string>>(), Arg.Any<IEnumerable<string>>())
-                .Returns(new ProviderSourceDatasetLookupResult { ProviderSourceDatasets = providerSummaries.ToDictionary(x => x.Id, x => new Dictionary<string, ProviderSourceDataset>()) });
+                .Returns(providerSummaries.ToDictionary(x => x.Id, x => new Dictionary<string, ProviderSourceDataset>()));
 
             CalculationEngineService service = _calculationEngineServiceTestsHelper.CreateCalculationEngineService();
 
@@ -404,13 +404,13 @@ namespace CalculateFunding.Services.Calculator
             _calculationEngineServiceTestsHelper
                 .MockProviderResultRepo
                 .Received(6)
-                .SaveProviderResults(Arg.Is<IEnumerable<ProviderResult>>(m => m.Count() == 3), Arg.Is(_specificationSummary), Arg.Is(partitionIndex), Arg.Is(partitionSize), Arg.Any<Reference>(), Arg.Any<string>(), Arg.Any<int>());
+                .SaveProviderResults(Arg.Is<IEnumerable<ProviderResult>>(m => m.Count() == 3), Arg.Is(_specificationSummary), Arg.Is(partitionIndex), Arg.Is(partitionSize), Arg.Any<Reference>(), Arg.Any<string>());
 
             await
             _calculationEngineServiceTestsHelper
                 .MockProviderResultRepo
                 .Received(1)
-                .SaveProviderResults(Arg.Is<IEnumerable<ProviderResult>>(m => m.Count() == 2), Arg.Is(_specificationSummary), Arg.Is(partitionIndex), Arg.Is(partitionSize), Arg.Any<Reference>(), Arg.Any<string>(), Arg.Any<int>());
+                .SaveProviderResults(Arg.Is<IEnumerable<ProviderResult>>(m => m.Count() == 2), Arg.Is(_specificationSummary), Arg.Is(partitionIndex), Arg.Is(partitionSize), Arg.Any<Reference>(), Arg.Any<string>());
         }
 
         [TestMethod]
@@ -481,7 +481,7 @@ namespace CalculateFunding.Services.Calculator
             _calculationEngineServiceTestsHelper
                 .MockDatasetRepo
                 .GetProviderSourceDatasetsByProviderIdsAndRelationshipIds(specificationId, Arg.Any<IEnumerable<string>>(), Arg.Any<IEnumerable<string>>())
-                .Returns(new ProviderSourceDatasetLookupResult { ProviderSourceDatasets = providerSummaries.ToDictionary(x => x.Id, x => new Dictionary<string, ProviderSourceDataset>()) });
+                .Returns(providerSummaries.ToDictionary(x => x.Id, x => new Dictionary<string, ProviderSourceDataset>()));
 
             CalculationEngineService service = _calculationEngineServiceTestsHelper.CreateCalculationEngineService();
 
@@ -511,7 +511,7 @@ namespace CalculateFunding.Services.Calculator
                 _calculationEngineServiceTestsHelper
                     .MockProviderResultRepo
                     .Received(0)
-                    .SaveProviderResults(Arg.Any<IEnumerable<ProviderResult>>(), Arg.Is(_specificationSummary), Arg.Is(partitionIndex), Arg.Is(partitionSize), Arg.Any<Reference>(), Arg.Any<string>(), Arg.Any<int>());
+                    .SaveProviderResults(Arg.Any<IEnumerable<ProviderResult>>(), Arg.Is(_specificationSummary), Arg.Is(partitionIndex), Arg.Is(partitionSize), Arg.Any<Reference>(), Arg.Any<string>());
         }
 
         [TestMethod]
@@ -585,7 +585,7 @@ namespace CalculateFunding.Services.Calculator
             _calculationEngineServiceTestsHelper
                 .MockDatasetRepo
                 .GetProviderSourceDatasetsByProviderIdsAndRelationshipIds(specificationId, Arg.Any<IEnumerable<string>>(), Arg.Any<IEnumerable<string>>())
-                .Returns(new ProviderSourceDatasetLookupResult { ProviderSourceDatasets = providerSummaries.ToDictionary(x => x.Id, x => new Dictionary<string, ProviderSourceDataset>()) });
+                .Returns(providerSummaries.ToDictionary(x => x.Id, x => new Dictionary<string, ProviderSourceDataset>()));
 
             CalculationEngineService service = _calculationEngineServiceTestsHelper.CreateCalculationEngineService();
 
@@ -701,7 +701,7 @@ namespace CalculateFunding.Services.Calculator
             _calculationEngineServiceTestsHelper
                 .MockDatasetRepo
                 .GetProviderSourceDatasetsByProviderIdsAndRelationshipIds(specificationId, Arg.Any<IEnumerable<string>>(), Arg.Any<IEnumerable<string>>())
-                .Returns(new ProviderSourceDatasetLookupResult { ProviderSourceDatasets = providerSummaries.ToDictionary(x => x.Id, x => new Dictionary<string, ProviderSourceDataset>()) });
+                .Returns(providerSummaries.ToDictionary(x => x.Id, x => new Dictionary<string, ProviderSourceDataset>()));
 
             CalculationEngineService service = _calculationEngineServiceTestsHelper.CreateCalculationEngineService();
 
@@ -725,14 +725,14 @@ namespace CalculateFunding.Services.Calculator
                 .Which
                 .Message
                 .Should()
-                .Be("Exceptions were thrown during generation of calculation results");
+                .Be($"Exceptions were thrown during generation of calculation results for specification '{specificationId}'");
 
             //Assert
             await
                 _calculationEngineServiceTestsHelper
                     .MockJobManagement
                     .Received(1)
-                    .UpdateJobStatus(Arg.Is(jobId), 20, 0, false, "Exceptions were thrown during generation of calculation results");
+                    .UpdateJobStatus(Arg.Is(jobId), 20, 0, false, "Exceptions were thrown during generation of calculation results for specification 'spec1'");
         }
 
         [TestMethod]
@@ -925,7 +925,7 @@ namespace CalculateFunding.Services.Calculator
             _calculationEngineServiceTestsHelper
                 .MockDatasetRepo
                 .GetProviderSourceDatasetsByProviderIdsAndRelationshipIds(specificationId, Arg.Any<IEnumerable<string>>(), Arg.Any<IEnumerable<string>>())
-                .Returns(new ProviderSourceDatasetLookupResult { ProviderSourceDatasets = providerSummaries.ToDictionary(x => x.Id, x => new Dictionary<string, ProviderSourceDataset>()) });
+                .Returns(providerSummaries.ToDictionary(x => x.Id, x => new Dictionary<string, ProviderSourceDataset>()));
 
             CalculationEngineService service = _calculationEngineServiceTestsHelper.CreateCalculationEngineService();
 
@@ -976,7 +976,7 @@ namespace CalculateFunding.Services.Calculator
         [DataRow("Calc1,Calc2,Calc3")]
         [DataRow("calc1,calc2,calc3")]
         [DataRow("cAlC1,calC2,CALC3")]
-        public async Task GenerateAllocations_GivenCachedAggregateValuesExistAndAggregationsToAggregateInMessageAreInAnyCase_EnsuresAllocationModelCalledWithCachecdAggregates(string calculationsToAggregate)
+        public async Task GenerateAllocations_GivenCachedAggregateValuesExistAndAggregationsToAggregateInMessageAreInAnyCase_EnsuresAllocationModelCalledWithCachedAggregates(string calculationsToAggregate)
         {
             //Arrange
             const string cacheKey = "Cache-key";
@@ -1059,7 +1059,7 @@ namespace CalculateFunding.Services.Calculator
             _calculationEngineServiceTestsHelper
                 .MockDatasetRepo
                 .GetProviderSourceDatasetsByProviderIdsAndRelationshipIds(specificationId, Arg.Any<IEnumerable<string>>(), Arg.Any<IEnumerable<string>>())
-                .Returns(new ProviderSourceDatasetLookupResult { ProviderSourceDatasets = providerSummaries.ToDictionary(x => x.Id, x => new Dictionary<string, ProviderSourceDataset>()) });
+                .Returns(providerSummaries.ToDictionary(x => x.Id, x => new Dictionary<string, ProviderSourceDataset>()));
 
             CalculationEngineService service = _calculationEngineServiceTestsHelper.CreateCalculationEngineService();
 
@@ -1084,7 +1084,8 @@ namespace CalculateFunding.Services.Calculator
                 .MockCalculationEngine
                 .Received(providerSummaries.Count)
                 .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
-                    Arg.Any<ProviderSummary>(), Arg.Any<IDictionary<string, ProviderSourceDataset>>(),
+                    Arg.Any<ProviderSummary>(),
+                    Arg.Any<IDictionary<string, ProviderSourceDataset>>(),
                     Arg.Is<IEnumerable<CalculationAggregation>>(m =>
                         m.Count() == 3 &&
                         m.ElementAt(0).Values.ElementAt(0).Value == 200 &&
@@ -1149,7 +1150,7 @@ namespace CalculateFunding.Services.Calculator
                 .Returns(buildProject);
 
             byte[] expectedAssembly = MockData.GetMockAssembly();
-            
+
             _calculationEngineServiceTestsHelper
                 .MockCalculationRepository
                 .GetAssemblyBySpecificationId(Arg.Is(specificationId))
@@ -1194,7 +1195,7 @@ namespace CalculateFunding.Services.Calculator
             _calculationEngineServiceTestsHelper
                 .MockDatasetRepo
                 .GetProviderSourceDatasetsByProviderIdsAndRelationshipIds(specificationId, Arg.Any<IEnumerable<string>>(), Arg.Any<IEnumerable<string>>())
-                .Returns(new ProviderSourceDatasetLookupResult { ProviderSourceDatasets = providerSummaries.ToDictionary(x => x.Id, x => new Dictionary<string, ProviderSourceDataset>()) });
+                .Returns(providerSummaries.ToDictionary(x => x.Id, x => new Dictionary<string, ProviderSourceDataset>()));
 
             CalculationEngineService service = _calculationEngineServiceTestsHelper.CreateCalculationEngineService();
 
@@ -1235,8 +1236,8 @@ namespace CalculateFunding.Services.Calculator
                     .MockJobManagement
                     .Received(1)
                     .UpdateJobStatus(Arg.Is(jobId), 20, 0, true, "20 provider results were generated successfully from 20 providers");
-            
-            
+
+
             await _calculationEngineServiceTestsHelper.MockSpecificationAssemblyProvider
                 .Received(1)
                 .SetAssembly(Arg.Is(specificationId),
@@ -1314,7 +1315,7 @@ namespace CalculateFunding.Services.Calculator
             _calculationEngineServiceTestsHelper
                 .MockDatasetRepo
                 .GetProviderSourceDatasetsByProviderIdsAndRelationshipIds(specificationId, Arg.Any<IEnumerable<string>>(), Arg.Any<IEnumerable<string>>())
-                .Returns(new ProviderSourceDatasetLookupResult { ProviderSourceDatasets = providerSummaries.ToDictionary(x => x.Id, x => new Dictionary<string, ProviderSourceDataset>()) });
+                .Returns(providerSummaries.ToDictionary(x => x.Id, x => new Dictionary<string, ProviderSourceDataset>()));
 
             CalculationEngineService service = _calculationEngineServiceTestsHelper.CreateCalculationEngineService();
 
@@ -1345,7 +1346,7 @@ namespace CalculateFunding.Services.Calculator
         [TestMethod]
         public async Task UsesAssemblyFromProviderIfFound()
         {
-             //Arrange
+            //Arrange
             const string cacheKey = "Cache-key";
             const string specificationSummaryCacheKey = "specification-summary-cache-key";
             const string specificationId = "spec1";
@@ -1361,7 +1362,7 @@ namespace CalculateFunding.Services.Calculator
             IList<ProviderSummary> providerSummaries = MockData.GetDummyProviders(20);
 
             IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
-            
+
             mockAllocationModel
                 .Execute(Arg.Any<Dictionary<string, ProviderSourceDataset>>(), Arg.Any<ProviderSummary>())
                 .Returns(new CalculationResultContainer());
@@ -1417,7 +1418,7 @@ namespace CalculateFunding.Services.Calculator
             _calculationEngineServiceTestsHelper
                 .MockDatasetRepo
                 .GetProviderSourceDatasetsByProviderIdsAndRelationshipIds(specificationId, Arg.Any<IEnumerable<string>>(), Arg.Any<IEnumerable<string>>())
-                .Returns(new ProviderSourceDatasetLookupResult { ProviderSourceDatasets = providerSummaries.ToDictionary(x => x.Id, x => new Dictionary<string, ProviderSourceDataset>()) });
+                .Returns(providerSummaries.ToDictionary(x => x.Id, x => new Dictionary<string, ProviderSourceDataset>()));
 
             CalculationEngineService service = _calculationEngineServiceTestsHelper.CreateCalculationEngineService();
 
@@ -1442,7 +1443,7 @@ namespace CalculateFunding.Services.Calculator
             assemblyProvider
                 .GetAssembly(specificationId, etag)
                 .Returns(new MemoryStream(MockData.GetMockAssembly()));
-            
+
             _calculationEngineServiceTestsHelper
                 .MockCalculationRepository
                 .GetAssemblyBySpecificationId(Arg.Is(specificationId))
@@ -1463,9 +1464,9 @@ namespace CalculateFunding.Services.Calculator
                     Arg.Any<ProviderSummary>(), Arg.Any<IDictionary<string, ProviderSourceDataset>>(),
                     Arg.Is<IEnumerable<CalculationAggregation>>(m =>
                         !m.Any()
-                    ));   
+                    ));
         }
-        
+
         private static BuildProject CreateBuildProject()
         {
             BuildProject buildProject = JsonConvert.DeserializeObject<BuildProject>(MockData.SerializedBuildProject());

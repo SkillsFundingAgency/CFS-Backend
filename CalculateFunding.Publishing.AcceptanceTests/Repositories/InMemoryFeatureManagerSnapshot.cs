@@ -1,6 +1,7 @@
-﻿using Microsoft.FeatureManagement;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.FeatureManagement;
 
 namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 {
@@ -11,7 +12,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         public void SetIsEnabled(string feature, bool isEnabled)
         {
             _featureFlags[feature] = isEnabled;
-        } 
+        }
 
         public Task<bool> IsEnabledAsync(string feature)
         {
@@ -21,6 +22,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         public Task<bool> IsEnabledAsync<TContext>(string feature, TContext context)
         {
             return IsEnabledAsync(feature);
+        }
+
+        public IAsyncEnumerable<string> GetFeatureNamesAsync()
+        {
+            throw new NotImplementedException();
         }
     }
 }

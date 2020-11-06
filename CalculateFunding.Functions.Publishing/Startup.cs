@@ -9,7 +9,9 @@ using CalculateFunding.Common.Config.ApiClient.Providers;
 using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Functions.Publishing;
 using CalculateFunding.Functions.Publishing.ServiceBus;
@@ -17,6 +19,7 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Functions.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Threading;
@@ -48,11 +51,9 @@ using Microsoft.FeatureManagement;
 using Polly.Bulkhead;
 using Serilog;
 using BlobClient = CalculateFunding.Services.Core.AzureStorage.BlobClient;
-using IBlobClient = CalculateFunding.Services.Core.Interfaces.AzureStorage.IBlobClient;
 using CommonBlobClient = CalculateFunding.Common.Storage.BlobClient;
+using IBlobClient = CalculateFunding.Services.Core.Interfaces.AzureStorage.IBlobClient;
 using ServiceCollectionExtensions = CalculateFunding.Services.Core.Extensions.ServiceCollectionExtensions;
-using CalculateFunding.Common.Models;
-using CalculateFunding.Common.ServiceBus.Interfaces;
 
 [assembly: FunctionsStartup(typeof(Startup))]
 
@@ -62,12 +63,12 @@ namespace CalculateFunding.Functions.Publishing
     {
         public override void Configure(IFunctionsHostBuilder builder)
         {
-            RegisterComponents(builder.Services);
+            RegisterComponents(builder.Services, builder.GetFunctionsConfigurationToIncludeHostJson());
         }
 
-        public static IServiceProvider RegisterComponents(IServiceCollection builder)
+        public static IServiceProvider RegisterComponents(IServiceCollection builder, IConfiguration azureFuncConfig = null)
         {
-            IConfigurationRoot config = ConfigHelper.AddConfig();
+            IConfigurationRoot config = ConfigHelper.AddConfig(azureFuncConfig);
 
             return RegisterComponents(builder, config);
         }
@@ -220,7 +221,7 @@ namespace CalculateFunding.Functions.Publishing
 
             builder.AddScoped<IFundingLineCsvTransformServiceLocator, FundingLineCsvTransformServiceLocator>();
             builder.AddScoped<IPublishedFundingPredicateBuilder, PublishedFundingPredicateBuilder>();
-            
+
             builder.AddScoped<IFundingLineCsvBatchProcessorServiceLocator, FundingLineCsvBatchProcessorServiceLocator>();
             builder.AddScoped<IFundingLineCsvBatchProcessor, PublishedProviderCsvBatchProcessor>();
             builder.AddScoped<IFundingLineCsvBatchProcessor, PublishedProviderVersionCsvBatchProcessor>();
@@ -432,7 +433,7 @@ namespace CalculateFunding.Functions.Publishing
 
             builder
                 .AddProfilingInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
-            
+
             builder.AddScoped<IPublishedFundingUndoJobService, PublishedFundingUndoJobService>();
             builder.AddScoped<IPublishedFundingUndoJobCreation, PublishedFundingUndoJobCreation>();
             builder.AddScoped<IPublishedFundingUndoTaskFactoryLocator, PublishedFundingUndoTaskFactoryLocator>();
@@ -456,13 +457,13 @@ namespace CalculateFunding.Functions.Publishing
                 config.Bind("AzureStorageSettings", settings);
 
                 settings.ContainerName = "publishedproviderversions";
-                
-                return new PublishedFundingUndoBlobStoreRepository(new CommonBlobClient(settings, 
+
+                return new PublishedFundingUndoBlobStoreRepository(new CommonBlobClient(settings,
                         ctx.GetService<IBlobContainerRepository>()),
                     ctx.GetService<IPublishingResiliencePolicies>(),
                     ctx.GetService<ILogger>());
             });
-            
+
             builder.AddSingleton<IProducerConsumerFactory, ProducerConsumerFactory>();
 
             builder.AddScoped<IUserProfileProvider, UserProfileProvider>();

@@ -13,12 +13,12 @@
 
     <ItemGroup>
 
-      <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="3.0.0" />
-      <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="3.9.0" />
+      <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="3.0.1" />
+      <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="4.0.1" />
 
 
 
-      <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Results" Version="4.0.0" />
+      <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Results" Version="4.1.1" />
     </ItemGroup>
 
 </Project>

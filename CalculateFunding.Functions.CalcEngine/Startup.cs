@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Threading;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient;
@@ -28,15 +29,15 @@ using CalculateFunding.Services.Calcs.MappingProfiles;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.FeatureToggles;
+using CalculateFunding.Services.Core.Functions.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.DeadletterProcessor;
 using FluentValidation;
+using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Polly;
 using Polly.Bulkhead;
 using Serilog;
 using ServiceCollectionExtensions = CalculateFunding.Services.Core.Extensions.ServiceCollectionExtensions;
@@ -49,12 +50,12 @@ namespace CalculateFunding.Functions.CalcEngine
     {
         public override void Configure(IFunctionsHostBuilder builder)
         {
-            RegisterComponents(builder.Services);
+            RegisterComponents(builder.Services, builder.GetFunctionsConfigurationToIncludeHostJson());
         }
 
-        public static IServiceProvider RegisterComponents(IServiceCollection builder)
+        public static IServiceProvider RegisterComponents(IServiceCollection builder, IConfiguration azureFuncConfig = null)
         {
-            IConfigurationRoot config = ConfigHelper.AddConfig();
+            IConfigurationRoot config = ConfigHelper.AddConfig(azureFuncConfig);
 
             return RegisterComponents(builder, config);
         }
@@ -67,6 +68,7 @@ namespace CalculateFunding.Functions.CalcEngine
         private static IServiceProvider Register(IServiceCollection builder, IConfigurationRoot config)
         {
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
+
 
             builder.AddSingleton<IConfiguration>(config);
             builder.AddCaching(config);
@@ -97,12 +99,21 @@ namespace CalculateFunding.Functions.CalcEngine
 
                 providerSourceDatasetsCosmosSettings.ContainerName = "providerdatasets";
 
-                CosmosRepository calcsCosmosRepository = new CosmosRepository(providerSourceDatasetsCosmosSettings);
-                EngineSettings engineSettings = ctx.GetService<EngineSettings>();
-                IFileSystemCache fileSystemCache = ctx.GetService<IFileSystemCache>();
-                IProviderSourceDatasetVersionKeyProvider versionKeyProvider = ctx.GetService<IProviderSourceDatasetVersionKeyProvider>();
+                CosmosRepository calcsCosmosRepository = new CosmosRepository(providerSourceDatasetsCosmosSettings, new CosmosClientOptions()
+                {
+                    ConnectionMode = ConnectionMode.Direct,
+                    RequestTimeout = new TimeSpan(0, 0, 15),
+                    MaxRequestsPerTcpConnection = 8,
+                    MaxTcpConnectionsPerEndpoint = 4,
+                    ConsistencyLevel = ConsistencyLevel.Eventual,
+                    AllowBulkExecution = true,
+                    // MaxRetryAttemptsOnRateLimitedRequests = 1,
+                    // MaxRetryWaitTimeOnRateLimitedRequests = new TimeSpan(0, 0, 30),
+                });
 
-                return new ProviderSourceDatasetsRepository(calcsCosmosRepository, engineSettings, versionKeyProvider, fileSystemCache);
+                ICalculatorResiliencePolicies calculatorResiliencePolicies = ctx.GetService<ICalculatorResiliencePolicies>();
+
+                return new ProviderSourceDatasetsRepository(calcsCosmosRepository, calculatorResiliencePolicies);
             });
 
             builder.AddSingleton<IProviderResultCalculationsHashProvider, ProviderResultCalculationsHashProvider>();
@@ -115,15 +126,17 @@ namespace CalculateFunding.Functions.CalcEngine
 
                 calcResultsDbSettings.ContainerName = "calculationresults";
 
-                CosmosRepository calcsCosmosRepostory = new CosmosRepository(calcResultsDbSettings);
-
-                ISearchRepository<ProviderCalculationResultsIndex> providerCalculationResultsSearchRepository = ctx.GetService<ISearchRepository<ProviderCalculationResultsIndex>>();
+                CosmosRepository calcsCosmosRepostory = new CosmosRepository(calcResultsDbSettings, new CosmosClientOptions()
+                {
+                    ConnectionMode = ConnectionMode.Direct,
+                    RequestTimeout = new TimeSpan(0, 0, 15),
+                    MaxRequestsPerTcpConnection = 8,
+                    MaxTcpConnectionsPerEndpoint = 2,
+                    // MaxRetryWaitTimeOnRateLimitedRequests = new TimeSpan(0, 0, 30),
+                    AllowBulkExecution = true,
+                });
 
                 ILogger logger = ctx.GetService<ILogger>();
-
-                IFeatureToggle featureToggle = ctx.GetService<IFeatureToggle>();
-
-                EngineSettings engineSettings = ctx.GetService<EngineSettings>();
 
                 IProviderResultCalculationsHashProvider calculationsHashProvider = ctx.GetService<IProviderResultCalculationsHashProvider>();
 
@@ -136,9 +149,6 @@ namespace CalculateFunding.Functions.CalcEngine
                 return new ProviderResultsRepository(
                     calcsCosmosRepostory,
                     logger,
-                    providerCalculationResultsSearchRepository,
-                    featureToggle,
-                    engineSettings,
                     calculationsHashProvider,
                     calculatorResiliencePolicies,
                     resultsApiClient,
@@ -233,6 +243,7 @@ namespace CalculateFunding.Functions.CalcEngine
                 return new BlobClient(options, ctx.GetService<IBlobContainerRepository>());
             });
 
+            ServicePointManager.DefaultConnectionLimit = 200;
 
             return builder.BuildServiceProvider();
         }
@@ -241,33 +252,34 @@ namespace CalculateFunding.Functions.CalcEngine
         {
             AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
 
-            //CalculatorResiliencePolicies resiliencePolicies = new CalculatorResiliencePolicies()
-            //{
-            //    ProviderResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
-            //    ProviderSourceDatasetsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
-            //    CacheProvider = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy),
-            //    Messenger = ResiliencePolicyHelpers.GenerateMessagingPolicy(totalNetworkRequestsPolicy),
-            //    CalculationsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-            //    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-            //    SpecificationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-            //    PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-            //    ResultsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-            //    BlobClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
-            //};
             CalculatorResiliencePolicies resiliencePolicies = new CalculatorResiliencePolicies()
             {
-                ProviderResultsRepository = Policy.NoOpAsync(),
-                ProviderSourceDatasetsRepository = Policy.NoOpAsync(),
-                CacheProvider = Policy.NoOpAsync(),
-                Messenger = Policy.NoOpAsync(),
-                CalculationsRepository = Policy.NoOpAsync(),
-                JobsApiClient = Policy.NoOpAsync(),
-                SpecificationsApiClient = Policy.NoOpAsync(),
-                PoliciesApiClient = Policy.NoOpAsync(),
-                ResultsApiClient = Policy.NoOpAsync(),
-                BlobClient = Policy.NoOpAsync(),
-
+                CalculationResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                ProviderSourceDatasetsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                CacheProvider = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy),
+                Messenger = ResiliencePolicyHelpers.GenerateMessagingPolicy(totalNetworkRequestsPolicy),
+                CalculationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                SpecificationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                ResultsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                BlobClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
             };
+
+            //CalculatorResiliencePolicies resiliencePolicies = new CalculatorResiliencePolicies()
+            //{
+            //    ProviderResultsRepository = Policy.NoOpAsync(),
+            //    ProviderSourceDatasetsRepository = Policy.NoOpAsync(),
+            //    CacheProvider = Policy.NoOpAsync(),
+            //    Messenger = Policy.NoOpAsync(),
+            //    CalculationsRepository = Policy.NoOpAsync(),
+            //    JobsApiClient = Policy.NoOpAsync(),
+            //    SpecificationsApiClient = Policy.NoOpAsync(),
+            //    PoliciesApiClient = Policy.NoOpAsync(),
+            //    ResultsApiClient = Policy.NoOpAsync(),
+            //    BlobClient = Policy.NoOpAsync(),
+
+            //};
 
             return resiliencePolicies;
         }

@@ -13,7 +13,7 @@ namespace CalculateFunding.Services.Core.AspNet.HealthChecks
     {
         private static readonly Lazy<Type[]> ControllerTypesAccessor = new Lazy<Type[]>(GetControllerTypesInCurrentAppDomain,
             LazyThreadSafetyMode.ExecutionAndPublication);
-        
+
         private readonly IServiceProvider _serviceProvider;
 
         public ControllerResolverHealthCheck(IServiceProvider serviceProvider)
@@ -42,9 +42,9 @@ namespace CalculateFunding.Services.Core.AspNet.HealthChecks
                         {
                             DependencyName = controllerType.GetFriendlyName(),
                             HealthOk = true
-                        });  
+                        });
                     }
-                    
+
                 }
                 catch (Exception exception)
                 {

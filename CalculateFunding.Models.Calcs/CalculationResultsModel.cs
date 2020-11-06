@@ -50,5 +50,6 @@ namespace CalculateFunding.Models.Calcs
 
         public long CalculationRunMs { get; set; }
         public long AssemblyLoadMs { get; set; }
+        public long ProviderSourceDatasetsLookupMs { get; set; }
     }
 }

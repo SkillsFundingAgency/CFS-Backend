@@ -7,9 +7,9 @@ using CalculateFunding.Functions.CosmosDbScaling.ServiceBus;
 using CalculateFunding.Functions.CosmosDbScaling.Timer;
 using CalculateFunding.Models.CosmosDbScaling;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Functions.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
-using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.CosmosDbScaling;
 using CalculateFunding.Services.CosmosDbScaling.Interfaces;
 using CalculateFunding.Services.CosmosDbScaling.Repositories;
@@ -29,12 +29,12 @@ namespace CalculateFunding.Functions.CosmosDbScaling
     {
         public override void Configure(IFunctionsHostBuilder builder)
         {
-            RegisterComponents(builder.Services);
+            RegisterComponents(builder.Services, builder.GetFunctionsConfigurationToIncludeHostJson());
         }
 
-        public static IServiceProvider RegisterComponents(IServiceCollection builder)
+        public static IServiceProvider RegisterComponents(IServiceCollection builder, IConfiguration azureFuncConfig = null)
         {
-            IConfigurationRoot config = ConfigHelper.AddConfig();
+            IConfigurationRoot config = ConfigHelper.AddConfig(azureFuncConfig);
 
             return RegisterComponents(builder, config);
         }
@@ -271,7 +271,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling
                 PolicySettings policySettings = ServiceCollectionExtensions.GetPolicySettings(config);
 
                 AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
-                
+
                 return new JobManagementResiliencePolicies()
                 {
                     JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),

@@ -1,14 +1,12 @@
 ﻿using System;
 using CalculateFunding.Common.Models;
-using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Functions.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
-using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Notifications;
 using CalculateFunding.Services.Notifications.Interfaces;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
-using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
@@ -21,12 +19,12 @@ namespace CalculateFunding.Functions.Notifications
     {
         public override void Configure(IFunctionsHostBuilder builder)
         {
-            RegisterComponents(builder.Services);
+            RegisterComponents(builder.Services, builder.GetFunctionsConfigurationToIncludeHostJson());
         }
 
-        public static IServiceProvider RegisterComponents(IServiceCollection builder)
+        public static IServiceProvider RegisterComponents(IServiceCollection builder, IConfiguration azureFuncConfig = null)
         {
-            IConfigurationRoot config = ConfigHelper.AddConfig();
+            IConfigurationRoot config = ConfigHelper.AddConfig(azureFuncConfig);
 
             return RegisterComponents(builder, config);
         }

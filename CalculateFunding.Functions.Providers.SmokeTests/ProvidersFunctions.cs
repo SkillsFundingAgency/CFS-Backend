@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Functions.Providers.ServiceBus;
@@ -10,7 +11,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Functions.Providers.SmokeTests
 {
@@ -44,7 +44,7 @@ namespace CalculateFunding.Functions.Providers.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.PopulateScopedProviders,
-                (Message smokeResponse) => onPopulateScopedProvidersEventTrigger.Run(smokeResponse));
+                async (Message smokeResponse) => await onPopulateScopedProvidersEventTrigger.Run(smokeResponse));
 
             response
                 .Should()
@@ -61,7 +61,7 @@ namespace CalculateFunding.Functions.Providers.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.ProviderSnapshotDataLoad,
-                (Message smokeResponse) => onProviderSnapshotDataLoadEventTrigger.Run(smokeResponse), useSession: true);
+                async (Message smokeResponse) => await onProviderSnapshotDataLoadEventTrigger.Run(smokeResponse), useSession: true);
 
             response
                 .Should()

@@ -10,7 +10,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
-using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Results;
 using CalculateFunding.Common.ApiClient.Specifications;
@@ -59,7 +58,7 @@ namespace CalculateFunding.Services.CalcEngine
         private readonly AsyncPolicy _messengerServicePolicy;
         private readonly AsyncPolicy _providerSourceDatasetsRepositoryPolicy;
         private readonly AsyncPolicy _providerResultsRepositoryPolicy;
-        private readonly AsyncPolicy _calculationsRepositoryPolicy;
+        private readonly AsyncPolicy _calculationsApiClientPolicy;
         private readonly AsyncPolicy _specificationsApiPolicy;
         private readonly AsyncPolicy _resultsApiClientPolicy;
         private readonly IDatasetAggregationsRepository _datasetAggregationsRepository;
@@ -99,8 +98,8 @@ namespace CalculateFunding.Services.CalcEngine
             Guard.ArgumentNotNull(resiliencePolicies?.CacheProvider, nameof(resiliencePolicies.CacheProvider));
             Guard.ArgumentNotNull(resiliencePolicies?.Messenger, nameof(resiliencePolicies.Messenger));
             Guard.ArgumentNotNull(resiliencePolicies?.ProviderSourceDatasetsRepository, nameof(resiliencePolicies.ProviderSourceDatasetsRepository));
-            Guard.ArgumentNotNull(resiliencePolicies?.ProviderResultsRepository, nameof(resiliencePolicies.ProviderResultsRepository));
-            Guard.ArgumentNotNull(resiliencePolicies?.CalculationsRepository, nameof(resiliencePolicies.CalculationsRepository));
+            Guard.ArgumentNotNull(resiliencePolicies?.CalculationResultsRepository, nameof(resiliencePolicies.CalculationResultsRepository));
+            Guard.ArgumentNotNull(resiliencePolicies?.CalculationsApiClient, nameof(resiliencePolicies.CalculationsApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.ResultsApiClient, nameof(resiliencePolicies.ResultsApiClient));
             Guard.ArgumentNotNull(datasetAggregationsRepository, nameof(datasetAggregationsRepository));
             Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
@@ -122,8 +121,8 @@ namespace CalculateFunding.Services.CalcEngine
             _cacheProviderPolicy = resiliencePolicies.CacheProvider;
             _messengerServicePolicy = resiliencePolicies.Messenger;
             _providerSourceDatasetsRepositoryPolicy = resiliencePolicies.ProviderSourceDatasetsRepository;
-            _providerResultsRepositoryPolicy = resiliencePolicies.ProviderResultsRepository;
-            _calculationsRepositoryPolicy = resiliencePolicies.CalculationsRepository;
+            _providerResultsRepositoryPolicy = resiliencePolicies.CalculationResultsRepository;
+            _calculationsApiClientPolicy = resiliencePolicies.CalculationsApiClient;
             _datasetAggregationsRepository = datasetAggregationsRepository;
             _specificationsApiClient = specificationsApiClient;
             _specificationsApiPolicy = resiliencePolicies.SpecificationsApiClient;
@@ -188,14 +187,15 @@ namespace CalculateFunding.Services.CalcEngine
 
             messageProperties.GenerateCalculationAggregationsOnly = Job.JobDefinitionId == JobConstants.DefinitionNames.GenerateCalculationAggregationsJob;
 
-            _logger.Information($"Generating allocations for specification id {specificationId}");
+            _logger.Information($"Generating allocations for specification id {specificationId} on server '{Environment.MachineName}'");
+
+            Stopwatch prerequisiteStopwatch = Stopwatch.StartNew();
 
             Task<(byte[], long)> getAssemblyTask = GetAssemblyForSpecification(specificationId, messageProperties.AssemblyETag);
             Task<(IEnumerable<ProviderSummary>, long)> providerSummaryTask = GetProviderSummaries(messageProperties);
             Task<(IEnumerable<CalculationSummaryModel>, long)> calculationSummaryTask = GetCalculationSummaries(specificationId);
             Task<(SpecificationSummary, long)> specificationSummaryTask = GetSpecificationSummary(specificationId);
             Task<(IEnumerable<CalculationAggregation>, long)> aggregationsTask = BuildAggregations(messageProperties);
-
 
             await TaskHelper.WhenAllAndThrow(getAssemblyTask, providerSummaryTask, calculationSummaryTask, specificationSummaryTask, aggregationsTask);
 
@@ -204,6 +204,8 @@ namespace CalculateFunding.Services.CalcEngine
             (IEnumerable<CalculationSummaryModel> calculations, long calculationsLookupStopwatchElapsedMilliseconds) = calculationSummaryTask.Result;
             (SpecificationSummary specificationSummary, long specificationSummaryElapsedMilliseconds) = specificationSummaryTask.Result;
             (IEnumerable<CalculationAggregation> aggregations, long aggregationsElapsedMilliseconds) = aggregationsTask.Result;
+
+            prerequisiteStopwatch.Stop();
 
             int providerBatchSize = _engineSettings.ProviderBatchSize;
 
@@ -235,7 +237,7 @@ namespace CalculateFunding.Services.CalcEngine
                 _logger.Information($"Calculating results complete for specification id {specificationId}");
 
                 long saveCosmosElapsedMs = -1;
-                long saveSearchElapsedMs = -1;
+                long queueSearchWriterElapsedMs = -1;
                 long saveRedisElapsedMs = 0;
                 long? saveQueueElapsedMs = null;
                 int savedProviders = 0;
@@ -250,11 +252,11 @@ namespace CalculateFunding.Services.CalcEngine
                     }
                     else
                     {
-                        (long saveCosmosElapsedMs, long saveSearchElapsedMs, long saveRedisElapsedMs, long? saveQueueElapsedMs, int savedProviders) processResultsMetrics =
+                        (long saveCosmosElapsedMs, long queueSerachWriterElapsedMs, long saveRedisElapsedMs, long? saveQueueElapsedMs, int savedProviders) processResultsMetrics =
                             await ProcessProviderResults(calculationResults.ProviderResults, specificationSummary, messageProperties, message);
 
                         saveCosmosElapsedMs = processResultsMetrics.saveCosmosElapsedMs;
-                        saveSearchElapsedMs = processResultsMetrics.saveSearchElapsedMs;
+                        queueSearchWriterElapsedMs = processResultsMetrics.queueSerachWriterElapsedMs;
                         saveRedisElapsedMs = processResultsMetrics.saveRedisElapsedMs;
                         saveQueueElapsedMs = processResultsMetrics.saveQueueElapsedMs;
                         savedProviders = processResultsMetrics.savedProviders;
@@ -284,8 +286,10 @@ namespace CalculateFunding.Services.CalcEngine
                     { "calculation-run-savePercentage ",  percentageProvidersSaved },
                     { "calculation-run-specLookup ",  specificationSummaryElapsedMilliseconds },
                     { "calculation-run-providerSummaryLookup ",  providerSummaryLookupElapsedMilliseconds },
+                    { "calculation-run-providerSourceDatasetsLookupMs ",  calculationResults.ProviderSourceDatasetsLookupMs },
                     { "calculation-run-assemblyLookup ",  assemblyLookupElapsedMilliseconds },
                     { "calculation-run-aggregationsLookup ",  aggregationsElapsedMilliseconds },
+                    { "calculation-run-prerequisiteMs ",  prerequisiteStopwatch.ElapsedMilliseconds },
                 };
 
                 if (saveQueueElapsedMs.HasValue)
@@ -295,13 +299,18 @@ namespace CalculateFunding.Services.CalcEngine
 
                 if (saveCosmosElapsedMs > -1)
                 {
-                    metrics.Add("calculation-run-elapsedMilliseconds", calcTiming.ElapsedMilliseconds);
+                    metrics.Add("calculation-run-batchElapsedMilliseconds", calcTiming.ElapsedMilliseconds);
                     metrics.Add("calculation-run-saveProviderResultsCosmosMs", saveCosmosElapsedMs);
-                    metrics.Add("calculation-run-saveProviderResultsSearchMs", saveSearchElapsedMs);
                 }
                 else
                 {
                     metrics.Add("calculation-run-for-tests-ms", calcTiming.ElapsedMilliseconds);
+                }
+
+                if (queueSearchWriterElapsedMs > 0)
+                {
+                    metrics.Add("calculation-run-queueSearchWriterMs", queueSearchWriterElapsedMs);
+
                 }
 
                 _telemetry.TrackEvent("CalculationRunProvidersProcessed",
@@ -318,7 +327,7 @@ namespace CalculateFunding.Services.CalcEngine
 
             if (calculationResultsHaveExceptions)
             {
-                throw new NonRetriableException("Exceptions were thrown during generation of calculation results");
+                throw new NonRetriableException($"Exceptions were thrown during generation of calculation results for specification '{specificationId}'");
             }
             else
             {
@@ -343,7 +352,7 @@ namespace CalculateFunding.Services.CalcEngine
         private async Task<(IEnumerable<CalculationSummaryModel>, long)> GetCalculationSummaries(string specificationId)
         {
             Stopwatch calculationsLookupStopwatch = Stopwatch.StartNew();
-            IEnumerable<CalculationSummaryModel> calculations = await _calculationsRepositoryPolicy.ExecuteAsync(() =>
+            IEnumerable<CalculationSummaryModel> calculations = await _calculationsApiClientPolicy.ExecuteAsync(() =>
                 _calculationsRepository.GetCalculationSummariesForSpecification(specificationId));
 
             if (calculations == null)
@@ -398,7 +407,7 @@ namespace CalculateFunding.Services.CalcEngine
                 }
             }
 
-            byte[] assembly = await _calculationsRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetAssemblyBySpecificationId(specificationId));
+            byte[] assembly = await _calculationsApiClientPolicy.ExecuteAsync(() => _calculationsRepository.GetAssemblyBySpecificationId(specificationId));
 
             if (assembly == null)
             {
@@ -437,12 +446,10 @@ namespace CalculateFunding.Services.CalcEngine
 
             _logger.Information($"Fetching provider sources for specification id {messageProperties.SpecificationId}");
 
-            var providerSourceDatasetResult = await _providerSourceDatasetsRepositoryPolicy.ExecuteAsync(
+            Dictionary<string, Dictionary<string, ProviderSourceDataset>> providerSourceDatasetResult = await _providerSourceDatasetsRepositoryPolicy.ExecuteAsync(
                 () => _providerSourceDatasetsRepository.GetProviderSourceDatasetsByProviderIdsAndRelationshipIds(specificationId, providerIdList, dataRelationshipIds));
 
             providerSourceDatasetsStopwatch.Stop();
-
-            var providerSourceDatasetsByProvider = providerSourceDatasetResult.ProviderSourceDatasets;
 
             _logger.Information($"Fetched provider sources found for specification id {messageProperties.SpecificationId}");
 
@@ -464,19 +471,16 @@ namespace CalculateFunding.Services.CalcEngine
                 await throttler.WaitAsync();
 
                 allTasks.Add(
-                    Task.Run(async () =>
+                    Task.Run(() =>
                     {
                         try
                         {
-                            //Console.WriteLine($"Starting calc run for {provider.Id}");
                             if (provider == null)
                             {
                                 throw new Exception("Provider summary is null");
                             }
 
-                            Dictionary<string, ProviderSourceDataset> providerDatasets;
-
-                            if (!providerSourceDatasetsByProvider.TryGetValue(provider.Id, out providerDatasets))
+                            if (!providerSourceDatasetResult.TryGetValue(provider.Id, out Dictionary<string, ProviderSourceDataset> providerDatasets))
                             {
                                 throw new Exception($"Provider source dataset not found for {provider.Id}.");
                             }
@@ -495,8 +499,6 @@ namespace CalculateFunding.Services.CalcEngine
                             throttler.Release();
                         }
 
-                        //Console.WriteLine($"Finished calc run for {provider.Id}");
-
                         return Task.CompletedTask;
                     }));
             }
@@ -513,6 +515,7 @@ namespace CalculateFunding.Services.CalcEngine
                 PartitionedSummaries = partitionedSummaries,
                 CalculationRunMs = calculationStopwatch.ElapsedMilliseconds,
                 AssemblyLoadMs = assemblyLoadStopwatch.ElapsedMilliseconds,
+                ProviderSourceDatasetsLookupMs = providerSourceDatasetsStopwatch.ElapsedMilliseconds,
             };
         }
 
@@ -620,31 +623,48 @@ namespace CalculateFunding.Services.CalcEngine
 
             if (!messageProperties.GenerateCalculationAggregationsOnly)
             {
-                Dictionary<string, List<decimal>> cachedCalculationAggregations = new Dictionary<string, List<decimal>>(StringComparer.InvariantCultureIgnoreCase);
+                ConcurrentDictionary<string, List<decimal>> cachedCalculationAggregations = new ConcurrentDictionary<string, List<decimal>>(StringComparer.InvariantCultureIgnoreCase);
+
+                List<Task> allTasks = new List<Task>();
+                SemaphoreSlim throttler = new SemaphoreSlim(_engineSettings.CalculationAggregationRetreivalParallelism);
 
                 for (int i = 1; i <= messageProperties.BatchCount; i++)
                 {
-                    string batchedCacheKey = $"{CacheKeys.CalculationAggregations}{messageProperties.SpecificationId}_{i}";
+                    await throttler.WaitAsync();
 
-                    Dictionary<string, List<decimal>> cachedCalculationAggregationsPart = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.GetAsync<Dictionary<string, List<decimal>>>(batchedCacheKey));
+                    int currentBatchNumber = i;
 
-                    if (!cachedCalculationAggregationsPart.IsNullOrEmpty())
-                    {
-                        foreach (KeyValuePair<string, List<decimal>> cachedAggregations in cachedCalculationAggregationsPart)
+                    allTasks.Add(
+                        Task.Run(async () =>
                         {
-                            if (!cachedCalculationAggregations.ContainsKey(cachedAggregations.Key))
+                            try
                             {
-                                cachedCalculationAggregations.Add(cachedAggregations.Key, new List<decimal>());
-                            }
+                                string batchedCacheKey = $"{CacheKeys.CalculationAggregations}{messageProperties.SpecificationId}_{currentBatchNumber}";
 
-                            cachedCalculationAggregations[cachedAggregations.Key].AddRange(cachedAggregations.Value);
-                        }
-                    }
+                                Dictionary<string, List<decimal>> cachedCalculationAggregationsPart = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.GetAsync<Dictionary<string, List<decimal>>>(batchedCacheKey));
+
+                                if (!cachedCalculationAggregationsPart.IsNullOrEmpty())
+                                {
+                                    foreach (KeyValuePair<string, List<decimal>> cachedAggregations in cachedCalculationAggregationsPart)
+                                    {
+                                        List<decimal> values = cachedCalculationAggregations.GetOrAdd(cachedAggregations.Key, new List<decimal>());
+
+                                        values.AddRange(cachedAggregations.Value);
+                                    }
+                                }
+                            }
+                            finally
+                            {
+                                throttler.Release();
+                            }
+                        }));
                 }
+
+                await TaskHelper.WhenAllAndThrow(allTasks.ToArray());
 
                 if (!cachedCalculationAggregations.IsNullOrEmpty())
                 {
-                    foreach (KeyValuePair<string, List<decimal>> cachedCalculationAggregation in cachedCalculationAggregations)
+                    foreach (KeyValuePair<string, List<decimal>> cachedCalculationAggregation in cachedCalculationAggregations.OrderBy(o => o.Key))
                     {
                         aggregations = aggregations.Concat(new[]
                         {
@@ -723,7 +743,7 @@ namespace CalculateFunding.Services.CalcEngine
             }
         }
 
-        private async Task<(long saveCosmosElapsedMs, long saveToSearchElapsedMs, long saveRedisElapsedMs, long? saveQueueElapsedMs, int savedProviders)> ProcessProviderResults(
+        private async Task<(long saveCosmosElapsedMs, long queueSerachWriterElapsedMs, long saveRedisElapsedMs, long? saveQueueElapsedMs, int savedProviders)> ProcessProviderResults(
             IEnumerable<ProviderResult> providerResults,
             SpecificationSummary specificationSummary,
             GenerateAllocationMessageProperties messageProperties,
@@ -740,8 +760,7 @@ namespace CalculateFunding.Services.CalcEngine
                     messageProperties.PartitionIndex,
                     messageProperties.PartitionSize,
                     messageProperties.User,
-                    messageProperties.CorrelationId,
-                    _engineSettings.SaveProviderDegreeOfParallelism));
+                    messageProperties.CorrelationId));
 
                 _logger.Information($"Saving results completeed for specification id {messageProperties.SpecificationId}");
             }

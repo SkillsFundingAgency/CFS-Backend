@@ -25,8 +25,8 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
             MockCalculatorResiliencePolicies.CacheProvider.Returns(MockCacheProviderPolicy);
             MockCalculatorResiliencePolicies.Messenger.Returns(MockMessengerPolicy);
             MockCalculatorResiliencePolicies.ProviderSourceDatasetsRepository.Returns(MockProviderSourceDatasetsRepositoryPolicy);
-            MockCalculatorResiliencePolicies.ProviderResultsRepository.Returns(MockProviderResultsRepositoryPolicy);
-            MockCalculatorResiliencePolicies.CalculationsRepository.Returns(MockCalculationRepositoryPolicy);
+            MockCalculatorResiliencePolicies.CalculationResultsRepository.Returns(MockProviderResultsRepositoryPolicy);
+            MockCalculatorResiliencePolicies.CalculationsApiClient.Returns(MockCalculationRepositoryPolicy);
             MockCalculatorResiliencePolicies.PoliciesApiClient.Returns(MockPoliciesApiClientPolicy);
             MockCalculatorResiliencePolicies.ResultsApiClient.Returns(MockResultsApiClientPolicy);
             MockCalculatorResiliencePoliciesValidator

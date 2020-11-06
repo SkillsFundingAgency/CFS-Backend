@@ -201,7 +201,7 @@ namespace CalculateFunding.Services.CalcEngine
             IEnumerable<FundingLineResult> fundingLineResults = ProcessFundingLineResults(results.Item2, _fundingLineResultFuncs);
             swProcess.Stop();
 
-            Console.WriteLine("Processed provider {0} - {1}", stopwatch.ElapsedMilliseconds, swProcess.ElapsedMilliseconds);
+            //Console.WriteLine("Processed provider {0} - {1}", stopwatch.ElapsedMilliseconds, swProcess.ElapsedMilliseconds);
 
             return new CalculationResultContainer
             {

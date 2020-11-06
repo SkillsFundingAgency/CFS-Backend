@@ -1,4 +1,6 @@
-﻿namespace CalculateFunding.Services.Core.Options
+﻿using System;
+
+namespace CalculateFunding.Services.Core.Options
 {
     public class EngineSettings
     {
@@ -13,11 +15,6 @@
         public int MaxPartitionSize { get; set; } = 100;
 
         /// <summary>
-        /// Number of parallel saves for Calculation results per provider
-        /// </summary>
-        public int SaveProviderDegreeOfParallelism { get; set; } = 5;
-
-        /// <summary>
         /// Number of calculations to run in parallel
         /// </summary>
         public int CalculateProviderResultsDegreeOfParallelism { get; set; } = 5;
@@ -26,19 +23,17 @@
 
         public int GetCurrentProviderTestResultsDegreeOfParallelism { get; set; } = 5;
 
-        public int GetProviderSourceDatasetsFilesystemDegreeOfParallelism { get; set; } = 5;
-
-
-        public int GetProviderSourceDatasetsDegreeOfParallelism { get; set; } = 5;
-
-        /// <summary>
-        /// Number of providers to index into search for calculation results in a single batch
-        /// </summary>
-        public int CalculationResultSearchIndexBatchSize { get; set; } = 100;
-
         /// <summary>
         /// Feature toggle to control queueing test engine run after calc batch completes
         /// </summary>
         public bool IsTestEngineEnabled { get; set; }
+
+        /// <summary>
+        /// Number of parallel requests to lookup batches of calculation aggregations
+        /// </summary>
+        public int CalculationAggregationRetreivalParallelism { get; set; } = 15;
+
+        [Obsolete("Remove once/if test engine is updated")]
+        public int GetProviderSourceDatasetsDegreeOfParallelism { get; set; }
     }
 }

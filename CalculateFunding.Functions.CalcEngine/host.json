@@ -4,14 +4,15 @@
     "serviceBus": {
       "messageHandlerOptions": {
         "maxConcurrentCalls": 1,
-        "maxAutoRenewDuration": "01:00:00"
+        "maxAutoRenewDuration": "00:10:00"
       },
       "sessionHandlerOptions": {
         "maxConcurrentSessions": 1,
-        "maxAutoRenewDuration": "01:00:00"
+        "maxAutoRenewDuration": "00:10:00",
+        "maxConcurrentCalls": 1
       },
-        "prefetchCount": 0
-      }
+      "prefetchCount": 0
+    }
   },
-  "functionTimeout": "01:00:00"
+  "functionTimeout": "00:10:00"
 }

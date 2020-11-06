@@ -69,7 +69,7 @@ namespace CalculateFunding.Services.CalcEngine
 
             if (calculationResultItems.AnyWithNullCheck() && calculationResultItems.Count() > 0)
             {
-                _logger.Information($"Processed results for {calculationResultItems.Count()} calcs in {stopwatch.ElapsedMilliseconds}ms ({stopwatch.ElapsedMilliseconds / calculationResultItems.Count(): 0.0000}ms)");
+                _logger.Verbose($"Processed results for {calculationResultItems.Count()} calcs in {stopwatch.ElapsedMilliseconds}ms ({stopwatch.ElapsedMilliseconds / calculationResultItems.Count(): 0.0000}ms)");
             }
             else
             {

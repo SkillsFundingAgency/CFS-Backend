@@ -33,6 +33,7 @@ using CalculateFunding.Services.Compiler.Analysis;
 using CalculateFunding.Services.Compiler.Interfaces;
 using CalculateFunding.Services.Compiler.Languages;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Functions.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Options;
@@ -55,12 +56,12 @@ namespace CalculateFunding.Functions.Calcs
     {
         public override void Configure(IFunctionsHostBuilder builder)
         {
-            RegisterComponents(builder.Services);
+            RegisterComponents(builder.Services, builder.GetFunctionsConfigurationToIncludeHostJson());
         }
 
-        public static IServiceProvider RegisterComponents(IServiceCollection builder)
+        public static IServiceProvider RegisterComponents(IServiceCollection builder, IConfiguration azureFuncConfig = null)
         {
-            IConfigurationRoot config = ConfigHelper.AddConfig();
+            IConfigurationRoot config = ConfigHelper.AddConfig(azureFuncConfig);
 
             return RegisterComponents(builder, config);
         }
@@ -150,7 +151,7 @@ namespace CalculateFunding.Functions.Calcs
             builder.AddSingleton<ISourceCodeService, SourceCodeService>();
             builder.AddScoped<IJobHelperService, JobHelperService>();
             builder.AddScoped<IJobManagement, JobManagement>();
-            
+
             MapperConfiguration calculationsConfig = new MapperConfiguration(c =>
             {
                 c.AddProfile<CalculationsMappingProfile>();

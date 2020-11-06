@@ -6,12 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-
-    <PackageReference Include="CalculateFunding.Common.JobManagement" Version="4.3.0" />
-    <PackageReference Include="FluentValidation" Version="8.6.0" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\CalculateFunding.Models.Jobs\CalculateFunding.Models.Jobs.csproj" />
     <ProjectReference Include="..\CalculateFunding.Models.Messages\CalculateFunding.Models.Messages.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Core\CalculateFunding.Services.Core.csproj" />

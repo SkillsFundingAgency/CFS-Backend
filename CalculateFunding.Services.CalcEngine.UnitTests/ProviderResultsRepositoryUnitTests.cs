@@ -104,9 +104,10 @@ namespace CalculateFunding.Services.Calculator
             await repo.SaveProviderResults(results, specificationSummary, 1, 1, _user, _correlationId);
 
             // Assert
-            await cosmosRepository.Received().BulkUpsertAsync(Arg.Is<IEnumerable<KeyValuePair<string, ProviderResult>>>(r => r.Count() == 1),
-                Arg.Any<int>(),
-                Arg.Any<bool>(),
+            await cosmosRepository.Received(1).UpsertAsync<ProviderResult>(
+                Arg.Any<ProviderResult>(),
+                Arg.Any<string>(),
+                Arg.Is<bool>(false),
                 Arg.Is<bool>(false));
         }
 
@@ -172,9 +173,10 @@ namespace CalculateFunding.Services.Calculator
             await repo.SaveProviderResults(results, specificationSummary, 1, 1, _user, _correlationId);
 
             // Assert
-            await cosmosRepository.Received().BulkUpsertAsync(Arg.Is<IEnumerable<KeyValuePair<string, ProviderResult>>>(r => r.Count() == 1),
-                Arg.Any<int>(),
-                Arg.Any<bool>(),
+            await cosmosRepository.Received(1).UpsertAsync<ProviderResult>(
+                Arg.Any<ProviderResult>(),
+                Arg.Any<string>(),
+                Arg.Is<bool>(false),
                 Arg.Is<bool>(false));
         }
 
@@ -246,18 +248,10 @@ namespace CalculateFunding.Services.Calculator
         {
             // Arrange
             ICosmosRepository cosmosRepository = CreateCosmosRepository();
-            ISearchRepository<ProviderCalculationResultsIndex> searchRepository = CreateProviderCalculationResultsSearchRepository();
             IJobManagement jobManagement = CreateJobManagement();
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsNewProviderCalculationResultsIndexEnabled()
-                .Returns(true);
-
             ProviderResultsRepository repo = CreateProviderResultsRepository(
-                cosmosRepository, 
-                providerCalculationResultsSearchRepository: searchRepository, 
-                featureToggle: featureToggle,
+                cosmosRepository,
                 jobManagement: jobManagement);
 
             SpecificationSummary specificationSummary = new SpecificationSummary
@@ -352,19 +346,10 @@ namespace CalculateFunding.Services.Calculator
         {
             // Arrange
             ICosmosRepository cosmosRepository = CreateCosmosRepository();
-            ISearchRepository<ProviderCalculationResultsIndex> searchRepository = CreateProviderCalculationResultsSearchRepository();
             IJobManagement jobManagement = CreateJobManagement();
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsNewProviderCalculationResultsIndexEnabled()
-                .Returns(true);
-
             ProviderResultsRepository repo = CreateProviderResultsRepository(
-                cosmosRepository, 
-                providerCalculationResultsSearchRepository: 
-                searchRepository, 
-                featureToggle: featureToggle,
+                cosmosRepository,
                 jobManagement: jobManagement);
 
             SpecificationSummary specificationSummary = new SpecificationSummary
@@ -417,12 +402,13 @@ namespace CalculateFunding.Services.Calculator
             await repo.SaveProviderResults(results, specificationSummary, 1, 1, _user, _correlationId);
 
             // Assert
-            await cosmosRepository.Received().BulkUpsertAsync(Arg.Is<IEnumerable<KeyValuePair<string, ProviderResult>>>(r => r.Count() == 1),
-                Arg.Any<int>(),
-                Arg.Any<bool>(),
+            await cosmosRepository.Received(1).UpsertAsync<ProviderResult>(
+                Arg.Any<ProviderResult>(),
+                Arg.Any<string>(),
+                Arg.Is<bool>(false),
                 Arg.Is<bool>(false));
 
-            await jobManagement.Received(1).QueueJob(Arg.Is<JobCreateModel>(_ => 
+            await jobManagement.Received(1).QueueJob(Arg.Is<JobCreateModel>(_ =>
             _.JobDefinitionId == JobConstants.DefinitionNames.SearchIndexWriterJob &&
             _.Properties["specification-id"] == specificationSummary.GetSpecificationId() &&
             _.Properties["specification-name"] == specificationSummary.Name &&
@@ -433,18 +419,13 @@ namespace CalculateFunding.Services.Calculator
         private ProviderResultsRepository CreateProviderResultsRepository(
             ICosmosRepository cosmosRepository = null,
             ILogger logger = null,
-            IFeatureToggle featureToggle = null,
-            ISearchRepository<ProviderCalculationResultsIndex> providerCalculationResultsSearchRepository = null,
-            EngineSettings engineSettings = null,
             IProviderResultCalculationsHashProvider calculationsHashProvider = null,
             ICalculatorResiliencePolicies calculatorResiliencePolicies = null,
             IJobManagement jobManagement = null) =>
             new ProviderResultsRepository(
                 cosmosRepository ?? CreateCosmosRepository(),
                 logger ?? CreateLogger(),
-                providerCalculationResultsSearchRepository ?? CreateProviderCalculationResultsSearchRepository(),
-                featureToggle ?? CreateFeatureToggle(),
-                engineSettings ?? CreateEngineSettings(),
+
                 calculationsHashProvider ?? CreateCalcHashProvider(),
                 calculatorResiliencePolicies ?? CreateCalculatorResiliencePolicies(),
                 _resultsApiClient,

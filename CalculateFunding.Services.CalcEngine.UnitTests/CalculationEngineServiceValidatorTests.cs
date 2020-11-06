@@ -36,8 +36,8 @@ namespace CalculateFunding.Services.Calculator
             mockCalculatorResiliencePolicies.CacheProvider.Returns((AsyncPolicy)null);
             mockCalculatorResiliencePolicies.Messenger.Returns(mockMessengerPolicy);
             mockCalculatorResiliencePolicies.ProviderSourceDatasetsRepository.Returns((AsyncPolicy)null);
-            mockCalculatorResiliencePolicies.ProviderResultsRepository.Returns(mockProviderResultsRepositoryPolicy);
-            mockCalculatorResiliencePolicies.CalculationsRepository.Returns((AsyncPolicy)null);
+            mockCalculatorResiliencePolicies.CalculationResultsRepository.Returns(mockProviderResultsRepositoryPolicy);
+            mockCalculatorResiliencePolicies.CalculationsApiClient.Returns((AsyncPolicy)null);
             IValidator<ICalculatorResiliencePolicies> validator = new CalculatorResiliencePoliciesValidator();
 
             // Act
