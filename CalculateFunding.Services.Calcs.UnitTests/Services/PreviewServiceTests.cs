@@ -351,6 +351,115 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
+        public async Task Compile_GivenSourceFileGeneratorNotCreatedFiles_ReturnsOK()
+        {
+            //Arrange
+            PreviewRequest model = new PreviewRequest
+            {
+                CalculationId = CalculationId,
+                SourceCode = SourceCode,
+                SpecificationId = SpecificationId,
+            };
+
+            Calculation calculation = new Calculation
+            {
+                Id = CalculationId,
+
+                Current = new CalculationVersion
+                {
+                    SourceCodeName = "Horace"
+                },
+                SpecificationId = SpecificationId,
+            };
+
+            IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
+
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = SpecificationId
+            };
+
+            IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            calculationsRepository
+                           .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
+                           .Returns(calculations);
+
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(SpecificationId))
+                .Returns(buildProject);
+
+            Build build = new Build
+            {
+                Success = false,
+                SourceFiles = null
+            };
+
+            Dictionary<string, string> sourceCodes = new Dictionary<string, string>()
+            {
+                { "Calculations.TestFunction", model.SourceCode },
+                { "Calculations.Calc1", "return 1" }
+            };
+
+            ISourceCodeService sourceCodeService = CreateSourceCodeService();
+            sourceCodeService
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
+                .Returns(build);
+
+            sourceCodeService
+                .GetCalculationFunctions(Arg.Any<IEnumerable<SourceFile>>())
+                .Returns(sourceCodes);
+
+            PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
+                buildProjectsService: buildProjectsService, sourceCodeService: sourceCodeService);
+
+            //Act
+            IActionResult result = await service.Compile(model);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            OkObjectResult okResult = (OkObjectResult)result;
+            okResult
+                .Value
+                .Should()
+                .BeOfType<PreviewResponse>();
+
+            PreviewResponse previewResponse = (PreviewResponse)okResult.Value;
+            previewResponse
+                .Calculation
+                .SourceCode
+                .Should()
+                .Be(SourceCode);
+
+            previewResponse
+                .CompilerOutput
+                .Success
+                .Should()
+                .BeFalse();
+
+            logger
+                .Received(1)
+                .Information(Arg.Is($"Build did not compile successfully for calculation id {calculation.Id}"));
+
+            sourceCodeService
+                .DidNotReceive()
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Is<CompilerOptions>(
+                        m => m.OptionStrictEnabled == false
+                    ));
+        }
+
+        [TestMethod]
         public async Task Compile_GivenSourceFileGeneratorCreatedFilesAndCodeDidSucceed_ReturnsOK()
         {
             //Arrange

@@ -185,7 +185,10 @@ namespace CalculateFunding.Services.Calcs
 
             compilerOutput = FilterDoubleToDecimalErrors(compilerOutput);
 
-            await _sourceCodeService.SaveSourceFiles(compilerOutput.SourceFiles, buildProject.SpecificationId, SourceCodeType.Preview);
+            if (compilerOutput.SourceFiles != null)
+            {
+                await _sourceCodeService.SaveSourceFiles(compilerOutput.SourceFiles, buildProject.SpecificationId, SourceCodeType.Preview);
+            }
 
             if (compilerOutput.Success)
             {
