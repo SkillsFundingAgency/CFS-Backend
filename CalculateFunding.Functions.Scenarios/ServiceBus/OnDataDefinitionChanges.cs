@@ -14,8 +14,6 @@ namespace CalculateFunding.Functions.Scenarios.ServiceBus
 {
     public class OnDataDefinitionChanges : Retriable
     {
-        private readonly ILogger _logger;
-        private readonly IDatasetDefinitionFieldChangesProcessor _datasetDefinitionFieldChangesProcessor;
         public const string FunctionName = "on-data-definition-changes";
 
         public OnDataDefinitionChanges(
