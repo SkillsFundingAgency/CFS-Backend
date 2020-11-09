@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Profiling.Models;
 using CalculateFunding.Services.Profiling.ReProfilingStrategies;
-using CalculateFunding.Services.Profiling.Tests.TestHelpers;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -38,6 +40,24 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
         }
 
         [TestMethod]
+        public void NoTotalAllocationChangeWithPreviousReleasedFundingDefect()
+        {
+            ExistingProfilePeriod[] releasedProfilePeriods = GetProfilePeriods<ExistingProfilePeriod>("existing");
+            DeliveryProfilePeriod[] newProfiledProfilePeriods = GetProfilePeriods<DeliveryProfilePeriod>("delivery");
+
+            GivenTheLatestProfiling(newProfiledProfilePeriods);
+            AndTheExistingProfilePeriods(releasedProfilePeriods);
+
+            WhenTheFundingLineIsReProfiled();
+
+            decimal adjustedTotal = newProfiledProfilePeriods.Sum(_ => _.GetProfileValue());
+
+            adjustedTotal
+                .Should()
+                .Be(57170720M);//total allocation should not be altered
+        }
+
+        [TestMethod]
         [DynamicData(nameof(OverAndUnderPaymentExamples), DynamicDataSourceType.Method)]
         public void BundlesUnderAndOverPaymentsAcrossTheFundingLinePeriodsAndCarriesOverRemainingOverPayments(int variationPointerIndex,
             decimal[] originalPeriodValues,
@@ -48,7 +68,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
             decimal? expectedRemainingOverPayment)
         {
             GivenTheLatestProfiling(AsLatestProfiling(newTheoreticalPeriodValues));
-            AndTheExistingProfilePeriods(AsExistingProfilePeriods(originalPeriodValues.Take(variationPointerIndex + 1).ToArray()));
+            AndTheExistingProfilePeriods(AsExistingProfilePeriods(originalPeriodValues.Take(variationPointerIndex).ToArray()));
             AndThePreviousFundingTotal(previousTotalAllocation);
             AndTheLatestFundingTotal(totalAllocation);
             
@@ -57,6 +77,12 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
             AndTheFundingLinePeriodAmountsShouldBe(expectedAdjustedPeriodValues);
             AndTheCarryOverShouldBe(expectedRemainingOverPayment);
         }
+
+        private static T[] GetProfilePeriods<T>(string file)
+            => typeof(ReProfileDsgFundingLineTests)
+                .Assembly
+                .GetEmbeddedResourceFileContents($"CalculateFunding.Services.Profiling.Tests.Resources.{file}.json")
+                .AsPoco<T[]>();
 
         private void WhenTheFundingLineIsReProfiled()
             => _result = _reProfiling.ReProfile(_context);

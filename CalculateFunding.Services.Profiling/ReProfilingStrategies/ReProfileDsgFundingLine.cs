@@ -35,14 +35,17 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
             IExistingProfilePeriod[] orderedExistingProfilePeriods = new YearMonthOrderedProfilePeriods<IExistingProfilePeriod>(reProfileRequest.ExistingPeriods)
                 .ToArray();
 
+            // get the last profile period paid
             IExistingProfilePeriod existingProfilePeriod = orderedExistingProfilePeriods.LastOrDefault(_ => _.IsPaid);
             
-            int variationPointerIndex = existingProfilePeriod == null ? 0 : Array.IndexOf(orderedExistingProfilePeriods, existingProfilePeriod);
+            // the variation pointer is the index of the next period after the last paid profile period
+            int variationPointerIndex = existingProfilePeriod == null ? 0 : Array.IndexOf(orderedExistingProfilePeriods, existingProfilePeriod) + 1;
 
-            decimal previousFundingLineValue = reProfileRequest.ExistingFundingLineTotal;
+            decimal previousFundingLineValuePaid = orderedExistingProfilePeriods.Take(variationPointerIndex).Sum(_ => _.GetProfileValue());
+            decimal latestFundingLineValuePaid = orderedRefreshProfilePeriods.Take(variationPointerIndex).Sum(_ => _.GetProfileValue());
             decimal latestFundingLineValue = reProfileRequest.FundingLineTotal;
             
-            decimal fundingChange = latestFundingLineValue - previousFundingLineValue;
+            decimal fundingChange = latestFundingLineValuePaid - previousFundingLineValuePaid;
             decimal latestPeriodAmount = (int)(latestFundingLineValue / orderedRefreshProfilePeriods.Length);
 
             AdjustPeriodsForFundingAlreadyReleased(variationPointerIndex,

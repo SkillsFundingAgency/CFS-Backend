@@ -8,7 +8,9 @@
 
   <ItemGroup>
     <None Remove="Resources\AAC1920.json" />
+    <None Remove="Resources\delivery.json" />
     <None Remove="Resources\DSG.json" />
+    <None Remove="Resources\existing.json" />
     <None Remove="Resources\PESPORTSPREM.json" />
   </ItemGroup>
 
@@ -17,20 +19,23 @@
     <EmbeddedResource Include="Resources\PESPORTSPREM.json">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>
+    <EmbeddedResource Include="Resources\delivery.json" />
+    <EmbeddedResource Include="Resources\existing.json" />
   </ItemGroup>
 
 
   <ItemGroup>
-    <PackageReference Include="FluentAssertions" Version="5.5.3" />
+    <PackageReference Include="FluentAssertions" Version="5.10.3" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
     <PackageReference Include="Moq" Version="4.13.1" />
-    <PackageReference Include="MSTest.TestAdapter" Version="1.4.0" />
-    <PackageReference Include="MSTest.TestFramework" Version="1.4.0" />
-    <PackageReference Include="NSubstitute" Version="3.1.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="2.1.1" />
+    <PackageReference Include="MSTest.TestFramework" Version="2.1.1" />
+    <PackageReference Include="NSubstitute" Version="4.2.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\CalculateFunding.Services.Profiling\CalculateFunding.Services.Profiling.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Tests.Common\CalculateFunding.Tests.Common.csproj" />
   </ItemGroup>
 
 </Project>
