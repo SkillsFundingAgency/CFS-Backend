@@ -165,7 +165,7 @@ namespace CalculateFunding.Services.Calcs
 
             // don't auto complete the job as this will be done through child notifications
             AutoComplete = false;
-            
+
             IDictionary<string, string> properties = message.BuildMessageProperties();
 
             string specificationId = message.UserProperties["specification-id"].ToString();
@@ -370,7 +370,7 @@ namespace CalculateFunding.Services.Calcs
 
                 throw;
             }
-}
+        }
 
         public async Task<IActionResult> UpdateBuildProjectRelationships(string specificationId, DatasetRelationshipSummary relationship)
         {
@@ -537,7 +537,11 @@ namespace CalculateFunding.Services.Calcs
 
             ApiResponse<SpecificationSummary> specificationSummaryResponse = await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId));
 
-            if (specificationSummaryResponse?.Content == null)
+            if (specificationSummaryResponse != null && specificationSummaryResponse.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                throw new EntityNotFoundException($"Specification with ID '{specificationId}' was not found");
+            }
+            else if (specificationSummaryResponse?.Content == null)
             {
                 _logger.Error($"Failed to get specification for specification id '{specificationId}'");
 
@@ -693,7 +697,7 @@ namespace CalculateFunding.Services.Calcs
 
         private static IEnumerable<FundingLine> GetFundingLines(TemplateMetadataContents templateMetadataContents, string fundingStreamId)
         {
-            IEnumerable<FundingLine> flattenedFundingLines = templateMetadataContents.RootFundingLines?.Flatten(_ => 
+            IEnumerable<FundingLine> flattenedFundingLines = templateMetadataContents.RootFundingLines?.Flatten(_ =>
             {
                 // get all calculations for current funding line
                 _.Calculations = GetCalculations(_.Calculations);
@@ -705,7 +709,7 @@ namespace CalculateFunding.Services.Calcs
 
                 // concat all calculations for all funding lines below current funding line
                 _.Calculations = _.Calculations?.Concat(currentFlattenedFundingLines?.SelectMany(_ => GetCalculations(_.Calculations)));
-                
+
                 return _.FundingLines;
             }).Where(_ => _.Calculations.AnyWithNullCheck()).Select(_ =>
             {

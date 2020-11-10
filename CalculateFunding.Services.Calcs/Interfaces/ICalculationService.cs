@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Code;
 using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Services.Core.Interfaces.Services;
@@ -37,7 +38,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 
         Task<IActionResult> UpdateCalculationStatus(string calculationId, EditStatusModel editStatusModel);
 
-        Task<IActionResult> GetCalculationCodeContext(string specificationId);
+        Task<ActionResult<IEnumerable<TypeInformation>>> GetCalculationCodeContext(string specificationId);
 
         Task<IActionResult> ReIndex();
 

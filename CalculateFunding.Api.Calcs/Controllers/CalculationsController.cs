@@ -140,10 +140,16 @@ namespace CalculateFunding.Api.Calcs.Controllers
         [Produces(typeof(BuildProject))]
         public Task<IActionResult> GetBuildProjectBySpecificationId([FromQuery] string specificationId) => _buildProjectsService.GetBuildProjectBySpecificationId(specificationId);
 
+        /// <summary>
+        /// Get calculation code context for intellisense
+        /// </summary>
+        /// <param name="specificationId">Specifcation Id</param>
+        /// <returns></returns>
         [Route("api/calcs/get-calculation-code-context")]
         [HttpGet]
-        [Produces(typeof(IEnumerable<TypeInformation>))]
-        public Task<IActionResult> GetCalculationCodeContext([FromQuery] string specificationId) => _calcsService.GetCalculationCodeContext(specificationId);
+        [ProducesResponseType(200, Type = typeof(IEnumerable<TypeInformation>))]
+        [ProducesResponseType(419, Type = typeof(string))]
+        public Task<ActionResult<IEnumerable<TypeInformation>>> GetCalculationCodeContext([FromQuery] string specificationId) => _calcsService.GetCalculationCodeContext(specificationId);
 
         [Route("api/calcs/update-buildproject-relationships")]
         [HttpPost]
@@ -238,7 +244,7 @@ namespace CalculateFunding.Api.Calcs.Controllers
             await _calcsService.CheckHasAllApprovedTemplateCalculationsForSpecificationId(specificationId);
 
         [HttpPost("api/calcs/specifications/{specificationId}/relationships/reindex")]
-        [ProducesResponseType((int) HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
         public async Task<IActionResult> QueueReIndexSpecificationCalculationsRelationships([FromRoute] string specificationId) =>
             await _calculationRelationships.QueueForSpecification(specificationId);
 
@@ -258,7 +264,7 @@ namespace CalculateFunding.Api.Calcs.Controllers
         {
             return await _calcsService.UpdateTemplateCalculationsForSpecification(specificationId, datasetRelationshipId, Request.GetUserOrDefault());
         }
-        
+
         [HttpPost("api/calcs/specifications/{specificationId}/approve-all-calculations")]
         [Produces(typeof(Job))]
         public async Task<IActionResult> QueueApproveAllSpecificationCalculations([FromRoute] string specificationId)

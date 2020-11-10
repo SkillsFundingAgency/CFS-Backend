@@ -4,18 +4,26 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using AutoMapper;
+using CalculateFunding.Common.ApiClient.DataSets;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Providers;
+using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Common.Models;
+using CalculateFunding.Common.ServiceBus.Interfaces;
+using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Models.ProviderLegacy;
+using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
+using CalculateFunding.Services.Calcs.MappingProfiles;
 using CalculateFunding.Services.Compiler.Interfaces;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
@@ -24,31 +32,21 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
-using Serilog;
-using GraphCalculation = CalculateFunding.Common.ApiClient.Graph.Models.Calculation;
-using CalculationEntity = CalculateFunding.Models.Graph.Entity<CalculateFunding.Common.ApiClient.Graph.Models.Calculation, CalculateFunding.Common.ApiClient.Graph.Models.Relationship>;
-using GraphRelationship = CalculateFunding.Common.ApiClient.Graph.Models.Relationship;
-using CalculateFunding.Common.ServiceBus.Interfaces;
 using Polly.NoOp;
-using CalculateFunding.Common.ApiClient.DataSets;
-using AutoMapper;
-using CalculateFunding.Services.Calcs.MappingProfiles;
-using CalculateFunding.Common.ApiClient.Specifications;
-using CalculateFunding.Models.Specs;
+using Serilog;
 using Serilog.Events;
-using CalculateFunding.Common.ApiClient.Policies;
-using SpecModels = CalculateFunding.Common.ApiClient.Specifications.Models;
-using CalculateFunding.Common.Models;
-using CalculateFunding.Tests.Common.Helpers;
-using CalculateFunding.Common.ApiClient.Policies.Models;
-using CalculateFunding.Common.TemplateMetadata.Models;
 using Calculation = CalculateFunding.Models.Calcs.Calculation;
+using CalculationEntity = CalculateFunding.Models.Graph.Entity<CalculateFunding.Common.ApiClient.Graph.Models.Calculation, CalculateFunding.Common.ApiClient.Graph.Models.Relationship>;
+using GraphCalculation = CalculateFunding.Common.ApiClient.Graph.Models.Calculation;
+using GraphRelationship = CalculateFunding.Common.ApiClient.Graph.Models.Relationship;
+using SpecModels = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -223,9 +221,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(sourceCodeService: sourceCodeService, 
-                datasetsApiClient: datasetsApiClient, 
-                mapper: mapper, 
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(sourceCodeService: sourceCodeService,
+                datasetsApiClient: datasetsApiClient,
+                mapper: mapper,
                 specificationsApiClient: specificationsApiClient,
                 policiesApiClient: policiesApiClient,
                 calculationsRepository: calculationsRepository);
@@ -319,8 +317,8 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IMapper mapper = CreateMapper();
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(sourceCodeService: sourceCodeService, 
-                datasetsApiClient: datasetsApiClient, 
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(sourceCodeService: sourceCodeService,
+                datasetsApiClient: datasetsApiClient,
                 mapper: mapper,
                 specificationsApiClient: specificationsApiClient,
                 policiesApiClient: policiesApiClient,
@@ -534,8 +532,8 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IMapper mapper = CreateMapper();
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(sourceCodeService: sourceCodeService, 
-                datasetsApiClient: datasetsApiClient, 
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(sourceCodeService: sourceCodeService,
+                datasetsApiClient: datasetsApiClient,
                 mapper: mapper,
                 specificationsApiClient: specificationsApiClient,
                 policiesApiClient: policiesApiClient,
@@ -621,7 +619,7 @@ namespace CalculateFunding.Services.Calcs.Services
                                                     .WithTemplateCalculationId(4))))))))));
 
             IMapper mapper = CreateMapper();
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(datasetsApiClient: datasetsApiClient, 
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(datasetsApiClient: datasetsApiClient,
                 mapper: mapper,
                 specificationsApiClient: specificationsApiClient,
                 policiesApiClient: policiesApiClient,
@@ -652,6 +650,87 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
+        public void GetBuildProjectForSpecificationId_GivenBuildProjectGeneratedAndSpecificationNotFound_ThenThrowsException()
+        {
+            //Arrange
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+
+            SpecModels.SpecificationSummary specificationSummary = CreateSpecificationSummary(SpecificationId);
+
+            specificationsApiClient
+                .GetSpecificationSummaryById(SpecificationId)
+                .Returns(new ApiResponse<SpecModels.SpecificationSummary>(HttpStatusCode.NotFound, null));
+
+
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(
+                specificationsApiClient: specificationsApiClient);
+
+            //Act
+            Func<Task> result = async () => await buildProjectsService.GetBuildProjectForSpecificationId(SpecificationId);
+
+            //Assert
+            result
+                .Should()
+                .Throw<EntityNotFoundException>()
+                .WithMessage($"Specification with ID '{SpecificationId}' was not found");
+        }
+
+        [TestMethod]
+        public void GetBuildProjectForSpecificationId_GivenBuildProjectGeneratedAndSpecificationContentIsEmpty_ThenThrowsException()
+        {
+            //Arrange
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+
+            SpecModels.SpecificationSummary specificationSummary = CreateSpecificationSummary(SpecificationId);
+
+            specificationsApiClient
+                .GetSpecificationSummaryById(SpecificationId)
+                .Returns(new ApiResponse<SpecModels.SpecificationSummary>(HttpStatusCode.OK, null));
+
+
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(
+                specificationsApiClient: specificationsApiClient);
+
+            //Act
+            Func<Task> result = async () => await buildProjectsService.GetBuildProjectForSpecificationId(SpecificationId);
+
+            //Assert
+            result
+                .Should()
+                .Throw<ArgumentException>()
+                .WithMessage("Value cannot be null. (Parameter 'SpecificationSummary')");
+        }
+
+        [TestMethod]
+        public void GetBuildProjectForSpecificationId_GivenBuildProjectGeneratedAndSpecificationLookupIsInternalServerError_ThenThrowsException()
+        {
+            //Arrange
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+
+            SpecModels.SpecificationSummary specificationSummary = CreateSpecificationSummary(SpecificationId);
+
+            specificationsApiClient
+                .GetSpecificationSummaryById(SpecificationId)
+                .Returns(new ApiResponse<SpecModels.SpecificationSummary>(HttpStatusCode.InternalServerError, null));
+
+
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(
+                specificationsApiClient: specificationsApiClient);
+
+            //Act
+            Func<Task> result = async () => await buildProjectsService.GetBuildProjectForSpecificationId(SpecificationId);
+
+            //Assert
+            result
+                .Should()
+                .Throw<ArgumentException>()
+                .WithMessage("Value cannot be null. (Parameter 'SpecificationSummary')");
+        }
+
+        [TestMethod]
         public async Task GetBuildProjectBySpecificationId_GivenBuildProjectGeneratedAndDatasetRelationshipsFound_ReturnsOKResult()
         {
             //Arrange
@@ -664,7 +743,7 @@ namespace CalculateFunding.Services.Calcs.Services
             datasetsApiClient
                 .GetDatasetDefinitionById(Arg.Is("111"))
                 .Returns(new ApiResponse<Common.ApiClient.DataSets.Models.DatasetDefinition>(HttpStatusCode.OK, datasetDefinition));
-            
+
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
 
             SpecModels.SpecificationSummary specificationSummary = CreateSpecificationSummary(SpecificationId);
@@ -695,7 +774,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IMapper mapper = CreateMapper();
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(datasetsApiClient: datasetsApiClient, 
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(datasetsApiClient: datasetsApiClient,
                 mapper: mapper,
                 specificationsApiClient: specificationsApiClient,
                 policiesApiClient: policiesApiClient,
@@ -768,7 +847,7 @@ namespace CalculateFunding.Services.Calcs.Services
                     new TemplateMetadataContents { RootFundingLines = new Common.TemplateMetadata.Models.FundingLine[0] }));
 
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(featureToggle: featureToggle, 
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(featureToggle: featureToggle,
                 buildProjectsRepository: buildProjectsRepository,
                 specificationsApiClient: specificationsApiClient,
                 policiesApiClient: policiesApiClient,
@@ -1009,9 +1088,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IMapper mapper = CreateMapper();
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(logger: logger, 
-                sourceCodeService: sourceCodeService, 
-                datasetsApiClient: datasetsApiClient, 
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(logger: logger,
+                sourceCodeService: sourceCodeService,
+                datasetsApiClient: datasetsApiClient,
                 mapper: mapper,
                 policiesApiClient: policiesApiClient,
                 specificationsApiClient: specificationsApiClient,
@@ -1348,7 +1427,7 @@ namespace CalculateFunding.Services.Calcs.Services
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(logger: logger, jobManagement: jobManagement);
 
             //Act
-            Func<Task> invocation = async() => await buildProjectsService.Run(message);
+            Func<Task> invocation = async () => await buildProjectsService.Run(message);
 
             //Assert
             invocation
@@ -1974,7 +2053,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(new ApiResponse<Common.ApiClient.DataSets.Models.DatasetDefinition>(HttpStatusCode.OK, CreateDatsetDefinition()));
 
             IMapper mapper = CreateMapper();
-            
+
             ISourceFileRepository sourceFileRepository = Substitute.For<ISourceFileRepository>();
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
@@ -1988,7 +2067,7 @@ namespace CalculateFunding.Services.Calcs.Services
             sourceFileRepository
                 .GetAssemblyETag(specificationId)
                 .Returns(assemblyETag);
-            
+
             IEnumerable<JobCreateModel> jobModelsToTest = null;
 
             jobsApiClient

@@ -1,18 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Code;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs.Services;
 using CalculateFunding.Tests.Common.Helpers;
-using Castle.Components.DictionaryAdapter;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using NSubstitute;
 using Polly;
 using Serilog.Core;
 
@@ -33,14 +30,14 @@ namespace CalculateFunding.Services.Calcs.UnitTests
             _buildProjects = new Mock<IBuildProjectsService>();
             _compiler = new Mock<ISourceCodeService>();
             _calculations = new Mock<ICalculationsRepository>();
-            
+
             _codeContextBuilder = new CodeContextBuilder(_buildProjects.Object,
                 _calculations.Object,
                 _compiler.Object,
                 new ResiliencePolicies
                 {
                     CalculationsRepository = Policy.NoOpAsync()
-                }, 
+                },
                 Logger.None);
         }
 
@@ -62,7 +59,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests
         public async Task BuildCodeContextForSpecificationCompilesCalculationsForSuppliedSpecificationIdAndGetsTheirTypeInformation()
         {
             string specificationId = NewRandomString();
-            
+
             BuildProject expectedBuildProject = NewBuildProject();
             Calculation[] calculations = new[]
             {
@@ -73,7 +70,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests
                 NewTypeInformation(), NewTypeInformation()
             };
             Build expectedBuild = NewBuild();
-            
+
             GivenTheBuildProject(specificationId, expectedBuildProject);
             AndTheCalculations(specificationId, calculations);
             AndTheBuild(expectedBuildProject, calculations, expectedBuild);
@@ -85,19 +82,19 @@ namespace CalculateFunding.Services.Calcs.UnitTests
                 .Should()
                 .BeEquivalentTo<TypeInformation>(expectedTypeInformation);
         }
-        
+
         [TestMethod]
         public async Task BuildCodeContextForSpecificationCompilesAgainstEmptyCalcsListIfNoneExistForSuppliedSpecificationIdAndGetsTheirTypeInformation()
         {
             string specificationId = NewRandomString();
-            
+
             BuildProject expectedBuildProject = NewBuildProject();
             TypeInformation[] expectedTypeInformation = new[]
             {
                 NewTypeInformation(), NewTypeInformation()
             };
             Build expectedBuild = NewBuild();
-            
+
             GivenTheBuildProject(specificationId, expectedBuildProject);
             AndTheCalculations(specificationId, null);
             AndTheBuild(expectedBuildProject, null, expectedBuild);
@@ -140,11 +137,11 @@ namespace CalculateFunding.Services.Calcs.UnitTests
         private Build NewBuild() => new Build();
 
         private BuildProject NewBuildProject() => new BuildProject();
-        
+
         private Calculation NewCalculation() => new CalculationBuilder().Build();
-        
+
         private TypeInformation NewTypeInformation() => new TypeInformation();
-        
+
         private string NewRandomString() => new RandomString();
 
         private async Task<IEnumerable<TypeInformation>> WhenTheCodeContextIsBuilt(string specification)

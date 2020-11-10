@@ -4,10 +4,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.DataSets;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
+using CalculateFunding.Common.ApiClient.Results;
 using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.TemplateMetadata.Models;
@@ -31,28 +36,23 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Services.Core.Services;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
+using Polly;
 using Serilog;
+using ApiClientDatasetDefinition = CalculateFunding.Common.ApiClient.DataSets.Models.DatasetDefinition;
+using ApiClientFieldDefinition = CalculateFunding.Common.ApiClient.DataSets.Models.FieldDefinition;
+using ApiClientSelectDatasourceModel = CalculateFunding.Common.ApiClient.DataSets.Models.SelectDatasourceModel;
+using ApiClientTableDefinition = CalculateFunding.Common.ApiClient.DataSets.Models.TableDefinition;
 using Calculation = CalculateFunding.Models.Calcs.Calculation;
-using CalculationType = CalculateFunding.Models.Calcs.CalculationType;
 using CalculationResponseModel = CalculateFunding.Models.Calcs.CalculationResponseModel;
+using CalculationType = CalculateFunding.Models.Calcs.CalculationType;
 using Job = CalculateFunding.Common.ApiClient.Jobs.Models.Job;
 using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 using Trigger = CalculateFunding.Common.ApiClient.Jobs.Models.Trigger;
-using CalculateFunding.Common.JobManagement;
-using CalculateFunding.Common.ApiClient.Jobs.Models;
-using CalculateFunding.Common.ApiClient.Results;
-using CalculateFunding.Common.ApiClient.DataSets;
-using Polly;
-using ApiClientSelectDatasourceModel = CalculateFunding.Common.ApiClient.DataSets.Models.SelectDatasourceModel;
-using ApiClientDatasetDefinition = CalculateFunding.Common.ApiClient.DataSets.Models.DatasetDefinition;
-using ApiClientTableDefinition = CalculateFunding.Common.ApiClient.DataSets.Models.TableDefinition;
-using ApiClientFieldDefinition = CalculateFunding.Common.ApiClient.DataSets.Models.FieldDefinition;
-using CalculateFunding.Services.Core.Services;
-using CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -580,7 +580,7 @@ namespace CalculateFunding.Services.Calcs
                 calculationVersion.ValueType = calculationEditModel.ValueType.GetValueOrDefault();
                 calculationVersion.SourceCodeName = VisualBasicTypeGenerator.GenerateIdentifier(calculationEditModel.Name);
                 calculationVersion.Description = calculationEditModel.Description;
-               
+
 
                 UpdateCalculationResult result = await UpdateCalculation(calculation, calculationVersion, author, updateBuildProject);
 
@@ -588,7 +588,7 @@ namespace CalculateFunding.Services.Calcs
 
                 await _cachePolicy.ExecuteAsync(() => _cacheProvider.RemoveAsync<List<CalculationMetadata>>(cacheKey));
 
-                if(skipInstruct)
+                if (skipInstruct)
                 {
                     return new OkObjectResult(result.CurrentVersion);
                 }
@@ -704,11 +704,23 @@ namespace CalculateFunding.Services.Calcs
             return new OkObjectResult(result);
         }
 
-        public async Task<IActionResult> GetCalculationCodeContext(string specificationId)
+        /// <summary>
+        /// Get calculation code context
+        /// </summary>
+        /// <param name="specificationId">Specification Id</param>
+        /// <returns></returns>
+        public async Task<ActionResult<IEnumerable<TypeInformation>>> GetCalculationCodeContext(string specificationId)
         {
-            IEnumerable<TypeInformation> result = await _codeContextCache.GetCodeContext(specificationId);
+            try
+            {
+                IEnumerable<TypeInformation> result = await _codeContextCache.GetCodeContext(specificationId);
 
-            return new OkObjectResult(result);
+                return new OkObjectResult(result);
+            }
+            catch (EntityNotFoundException ex)
+            {
+                return new PreconditionFailedResult(ex.Message);
+            }
         }
 
         public async Task<IActionResult> ReIndex()
@@ -737,14 +749,14 @@ namespace CalculateFunding.Services.Calcs
                         specifications.Add(calculation.SpecificationId, specification);
                     }
                 }
-                
+
                 //bad data has crept into Test so we've added this temp guard to make the reindex more
                 //resilient to breaks in referential integrity between calcs and specs
                 if (specification == null)
                 {
                     _logger.Warning($"Did not locate the specification for calculation {calculation.Id} " +
                                     $"with id {calculation.SpecificationId}. Skipping indexing this calculation");
-                    
+
                     continue;
                 }
 
@@ -931,8 +943,8 @@ namespace CalculateFunding.Services.Calcs
             }
 
             ApiResponse<TemplateMetadataContents> fundingTemplateContentsResponse =
-                await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingTemplateContents(fundingStreamId, 
-                specificationSummary.FundingPeriod.Id,  templateVersion));
+                await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingTemplateContents(fundingStreamId,
+                specificationSummary.FundingPeriod.Id, templateVersion));
 
             if (fundingTemplateContentsResponse?.StatusCode != HttpStatusCode.OK)
             {
@@ -981,11 +993,11 @@ namespace CalculateFunding.Services.Calcs
                 await _resultsApiClientPolicy.ExecuteAsync(() => _resultsApiClient.UpdateFundingStructureLastModified(
                     new Common.ApiClient.Results.Models.UpdateFundingStructureLastModifiedRequest
                     {
-                    LastModified = DateTimeOffset.UtcNow,
-                    FundingPeriodId = specificationSummary.FundingPeriod?.Id,
-                    FundingStreamId = fundingStreamId,
-                    SpecificationId = specificationId
-                }));
+                        LastModified = DateTimeOffset.UtcNow,
+                        FundingPeriodId = specificationSummary.FundingPeriod?.Id,
+                        FundingStreamId = fundingStreamId,
+                        SpecificationId = specificationId
+                    }));
                 await _cachePolicy.ExecuteAsync(() => _cacheProvider.RemoveByPatternAsync($"{CacheKeys.CalculationFundingLines}{specificationId}"));
             }
 
@@ -1225,7 +1237,7 @@ namespace CalculateFunding.Services.Calcs
                     {
                         CalculationVersion calculationVersion = calculation.Current.Clone() as CalculationVersion;
                         calculationVersion.SourceCode = result;
-                        
+
                         UpdateCalculationResult updateCalculationResult = await UpdateCalculation(calculation, calculationVersion, user, updateBuildProject: false);
 
                         updatedCalculations.Add(updateCalculationResult.Calculation);
@@ -1283,7 +1295,7 @@ namespace CalculateFunding.Services.Calcs
             await UpdateSearch(calculation, specificationSummary.Name, fundingStreamName);
 
             CalculationResponseModel currentVersion = calculation.ToResponseModel();
-            
+
             await UpdateCalculationInCache(currentVersion, specificationSummary.FundingPeriod?.Id);
 
             return new UpdateCalculationResult()
@@ -1306,10 +1318,10 @@ namespace CalculateFunding.Services.Calcs
 
             return await UpdateBuildProject(specificationSummary, calculations, buildProject);
         }
-               
+
 
         private async Task<BuildProject> UpdateBuildProject(SpecModel.SpecificationSummary specificationSummary, IEnumerable<Calculation> calculations, BuildProject buildProject = null)
-        {           
+        {
             buildProject ??= await _buildProjectsService.GetBuildProjectForSpecificationId(specificationSummary.Id);
 
             CompilerOptions compilerOptions = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCompilerOptions(specificationSummary.Id));
@@ -1352,15 +1364,15 @@ namespace CalculateFunding.Services.Calcs
 
             // Set current version in cache
             await _cachePolicy.ExecuteAsync(() => _cacheProvider.SetAsync($"{CacheKeys.CurrentCalculation}{currentVersion.Id}", currentVersion, TimeSpan.FromDays(7), true));
-            
+
             //invalidate funding structure lastModified for this calcs specification
             await _policiesApiClientPolicy.ExecuteAsync(() => _resultsApiClient.UpdateFundingStructureLastModified(
                 new Common.ApiClient.Results.Models.UpdateFundingStructureLastModifiedRequest
-            {
-                LastModified = DateTimeOffset.UtcNow,
-                SpecificationId = currentVersion.SpecificationId,
-                FundingPeriodId = fundingPeriodId,//add to call stack
-                FundingStreamId = currentVersion.FundingStreamId
+                {
+                    LastModified = DateTimeOffset.UtcNow,
+                    SpecificationId = currentVersion.SpecificationId,
+                    FundingPeriodId = fundingPeriodId,//add to call stack
+                    FundingStreamId = currentVersion.FundingStreamId
                 }));
         }
 
