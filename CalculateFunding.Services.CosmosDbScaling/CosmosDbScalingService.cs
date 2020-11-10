@@ -225,9 +225,9 @@ namespace CalculateFunding.Services.CosmosDbScaling
                     {
                         int? minimumRequestUnitsAllowed = await GetMinimumThroughput(settings.CosmosCollectionType);
 
-                        if (minimumRequestUnitsAllowed.HasValue && settings.CurrentRequestUnits < minimumRequestUnitsAllowed.Value)
+                        if (minimumRequestUnitsAllowed.HasValue && settings.MinRequestUnits < minimumRequestUnitsAllowed.Value)
                         {
-                            settings.CurrentRequestUnits = minimumRequestUnitsAllowed.Value;
+                            settings.MinRequestUnits = minimumRequestUnitsAllowed.Value;
                         }
 
                         settings.CurrentRequestUnits = await ScaleCollection(settings.CosmosCollectionType, settings.MinRequestUnits, settings.MaxRequestUnits);

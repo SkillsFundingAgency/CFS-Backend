@@ -1354,6 +1354,72 @@ namespace CalculateFunding.Services.CosmosDbScaling
         }
 
         [TestMethod]
+        public async Task ScaleDownForJobConfiguration_WhenJobSummariesReturnedAndConfigsReturnedFromCacheAndCurrentRequestsButOnlyOneNotAtBaselineButExceedsMinimumThroughput_SetsMinimumThroughputForOne()
+        {
+            //Arrange
+            IEnumerable<CosmosDbScalingConfig> configs = CreateCosmosScalingConfigs();
+
+            IEnumerable<JobSummary> jobSummariesResponse = Enumerable.Empty<JobSummary>();
+
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .GetNonCompletedJobsWithinTimeFrame(Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>())
+                .Returns(jobSummariesResponse);
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .GetAsync<List<CosmosDbScalingConfig>>(Arg.Is(CacheKeys.AllCosmosScalingConfigs))
+                .Returns(configs.ToList());
+
+            CosmosDbScalingCollectionSettings settings1 = CreateCollectionSettings(CosmosCollectionType.CalculationProviderResults);
+            settings1.CurrentRequestUnits = 100000;
+
+            CosmosDbScalingCollectionSettings settings2 = CreateCollectionSettings(CosmosCollectionType.ProviderSourceDatasets);
+            settings2.CurrentRequestUnits = settings2.MinRequestUnits;
+
+            CosmosDbScalingCollectionSettings settings3 = CreateCollectionSettings(CosmosCollectionType.PublishedFunding);
+            settings3.CurrentRequestUnits = settings3.MinRequestUnits;
+
+            ICosmosDbScalingConfigRepository cosmosDbScalingConfigRepository = CreateCosmosDbScalingConfigRepository();
+            cosmosDbScalingConfigRepository
+               .UpdateCollectionSettings(Arg.Any<CosmosDbScalingCollectionSettings>())
+               .Returns(HttpStatusCode.OK);
+
+            cosmosDbScalingConfigRepository
+                .GetCollectionSettingsByRepositoryType(Arg.Any<CosmosCollectionType>())
+                .Returns(settings1, settings2, settings3);
+
+            ILogger logger = CreateLogger();
+
+            ICosmosDbScalingRepository scalingRepository = CreateCosmosDbScalingRepository();
+
+            ICosmosDbScalingRepositoryProvider cosmosDbScalingRepositoryProvider = CreateCosmosDbScalingRepositoryProvider();
+            cosmosDbScalingRepositoryProvider
+                .GetRepository(Arg.Is(CosmosCollectionType.CalculationProviderResults))
+                .Returns(scalingRepository);
+
+            scalingRepository.GetMinimumThroughput()
+                .Returns(35000);
+
+            CosmosDbScalingService cosmosDbScalingService = CreateScalingService(
+                logger,
+                jobManagement: jobManagement,
+                cosmosDbScalingConfigRepository: cosmosDbScalingConfigRepository,
+                cacheProvider: cacheProvider,
+                cosmosDbScalingRepositoryProvider: cosmosDbScalingRepositoryProvider);
+
+            //Act
+            await cosmosDbScalingService.ScaleDownForJobConfiguration();
+
+            //Assert
+            await
+                scalingRepository
+                .Received(1)
+                .SetThroughput(35000);
+        }
+
+
+        [TestMethod]
         public async Task ScaleDownForJobConfiguration_WhenActiveJobSummariesReturnedAndConfigsReturnedFromCacheAndCurrentRequestsButOnlyOneNotAtBaseline_SetsThroughputForOne()
         {
             //Arrange
