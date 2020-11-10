@@ -8,5 +8,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
         public ICollection<NamespaceClassDefinition> InnerClasses { get; } = new List<NamespaceClassDefinition>();
 
         public IEnumerable<StatementSyntax> PropertiesDefinitions { get; set; }
+
+        public IEnumerable<StatementSyntax> EnumsDefinitions { get; set; }
     }
 }

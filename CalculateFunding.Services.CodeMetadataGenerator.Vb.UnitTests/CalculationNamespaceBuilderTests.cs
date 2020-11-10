@@ -47,6 +47,26 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
         }
 
         [TestMethod]
+        public void CreatesEnumForEachEnumCalculationInSpecification()
+        {
+            const string EnumName = nameof(EnumName);
+            const string Option1 = nameof(Option1);
+            const string Option2 = nameof(Option2);
+
+            string ExpectedEnumSourceCode = 
+@$"Enum {EnumName}Options
+    {Option1}
+    {Option2}
+End Enum";
+
+            GivenTheCalculations(NewCalculationWithNamespaceAndEnumDataType(EnumName, new[] { Option1, Option2}));
+
+            WhenTheCalculationNamespacesAreBuilt();
+
+            ThenTheEnumDefinition(_ => StatementHasSourceCodeContaining(_, ExpectedEnumSourceCode));
+        }
+
+        [TestMethod]
         public void EachNamespaceClassContainsAMethodToInitialiseAllOfTheSharedContextAndNamespaces()
         {
             const string one = "One";
@@ -115,6 +135,11 @@ Calculations = calculationContext.Calculations"
             ThenResultContainsNamespaceDefinitionsFor(Additional);
         }
 
+        private void ThenTheEnumDefinition(Func<StatementSyntax, bool> predicate)
+        {
+            _result.EnumsDefinitions.Any(_ => predicate(_)).Should().BeTrue();
+        }
+
         private void GivenTheCalculations(params Calculation[] calculations)
         {
             _calculations.AddRange(calculations);
@@ -152,6 +177,15 @@ Calculations = calculationContext.Calculations"
                 .WithSourceCodeName(sourceCodeName));
         }
 
+        private Calculation NewCalculationWithNamespaceAndEnumDataType(string name, IEnumerable<string> allowedEnumTypeValues, string sourceCodeName = null)
+        {
+            return NewCalculation(_ => _.WithCalculationNamespaceType(CalculationNamespace.Template)
+                .WithSourceCodeName(sourceCodeName)
+                .WithName(name)
+                .WithDataType(CalculationDataType.Enum)
+                .WithAllowedEnumTypeValues(allowedEnumTypeValues));
+        }
+
         private Calculation NewCalculation(Action<CalculationBuilder> setUp = null)
         {
             CalculationBuilder calculationBuilder = new CalculationBuilder();
@@ -178,14 +212,23 @@ Calculations = calculationContext.Calculations"
             return expectedSourceCode.All(expectedSourceCodeSnippet
                 => classSourceCode.Contains(expectedSourceCodeSnippet));
         }
-        
+
+        private bool StatementHasSourceCodeContaining(StatementSyntax statementSyntax,
+            params string[] expectedSourceCode)
+        {
+            var classSourceCode = GetSourceForClassBlock(statementSyntax);
+
+            return expectedSourceCode.All(expectedSourceCodeSnippet
+                => classSourceCode.Contains(expectedSourceCodeSnippet));
+        }
+
         private bool HasSourceCodeNotContaining(NamespaceClassDefinition namespaceClassDefinition,
             params string[] expectedSourceCode)
         {
             return !HasSourceCodeContaining(namespaceClassDefinition, expectedSourceCode);
         }
 
-        private string GetSourceForClassBlock(ClassBlockSyntax classBlockSyntax)
+        private string GetSourceForClassBlock(StatementSyntax classBlockSyntax)
         {
             CompilationUnitSyntax syntaxTree = SyntaxFactory
                 .CompilationUnit()

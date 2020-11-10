@@ -34,6 +34,8 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             IEnumerable<(StatementSyntax Syntax, bool IsFundingLines, string Namespace)> propertyDefinitions = CreateProperties(fundingStreamNamespaces);
 
             result.PropertiesDefinitions = propertyDefinitions.Where(_ => !_.IsFundingLines).Select(_ => _.Syntax).ToArray();
+            
+            result.EnumsDefinitions = CreateEnums(calculations);
 
             foreach (IGrouping<string, Calculation> fundingStreamCalculationGroup in fundingStreamCalculationGroups)
                 result.InnerClasses.Add(CreateNamespaceDefinition(GenerateIdentifier(fundingStreamCalculationGroup.Key),
@@ -65,8 +67,6 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 ? SyntaxFactory.ParseTypeName("LegacyBaseCalculation")
                 : SyntaxFactory.ParseTypeName("BaseCalculation")));
 
-            IEnumerable<StatementSyntax> enums = CreateEnums(calculationsInNamespace);
-
             IEnumerable<StatementSyntax> namespaceFunctionPointers = CreateNamespaceFunctionPointers(calculationsInNamespace);
 
             StatementSyntax initialiseMethodDefinition = CreateInitialiseMethod(calculationsInNamespace, propertyAssignments, className);
@@ -75,7 +75,6 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 inherits,
                 new SyntaxList<ImplementsStatementSyntax>(),
                 SyntaxFactory.List(propertyDefinitions
-                    .Concat(enums)
                     .Concat(namespaceFunctionPointers)
                     .Concat(new[]
                     {

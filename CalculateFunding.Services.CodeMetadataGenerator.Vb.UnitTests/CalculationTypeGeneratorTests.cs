@@ -105,6 +105,41 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
         }
 
         [TestMethod]
+        public void GenerateCalculations_GivenEnumCalculation_ThenEnumCreated()
+        {
+            Calculation _1619 = NewCalculation(_ => _.WithFundingStream(NewReference(rf => rf.WithId("1619")))
+                .WithSourceCodeName("One")
+                .WithCalculationNamespaceType(CalculationNamespace.Template)
+                .WithSourceCode("return 456")
+                .WithName("EnumName")
+                .WithDataType(CalculationDataType.Enum)
+                .WithAllowedEnumTypeValues(new[] { "Option1", "Option2" }));
+            
+            FundingLine _1619fl = NewFundingLine(_ => _.WithCalculations(new[] { NewFundingLineCalculation(_ => _.WithId(1)
+                .WithCalculationNamespaceType(CalculationNamespace.Template))})
+                .WithId(1)
+                .WithName("One")
+                .WithSourceCodeName("One")
+                .WithNamespace("1619"));
+
+            IDictionary<string, Funding> fundingLines = new Dictionary<string, Funding> {
+                {"1619", NewFunding(_ => _.WithFundingLines(new[] { _1619fl }))},
+            };
+
+            IEnumerable<SourceFile> results = new CalculationTypeGenerator(new CompilerOptions()).GenerateCalcs(new[] { _1619}, fundingLines);
+
+            results.Should().HaveCount(1);
+            results.First()
+                .SourceCode
+                .Should()
+                .Contain(
+@$"Enum EnumNameOptions
+        Option1
+        Option2
+    End Enum");
+        }
+
+        [TestMethod]
         public void GenerateCalculations_GivenNoAdditionalCalculations_ThenSingleInnerClassForAdditionalStillCreated()
         {
             Calculation _1619 = NewCalculation(_ => _.WithFundingStream(NewReference(rf => rf.WithId("1619")))

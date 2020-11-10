@@ -108,6 +108,11 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                     yield return propertiesDefinition;
                 }
 
+                foreach (StatementSyntax enumsDefinition in namespaceBuilderResult.EnumsDefinitions)
+                {
+                    yield return enumsDefinition;
+                }
+
                 foreach (NamespaceClassDefinition namespaceClassDefinition in namespaceBuilderResult.InnerClasses)
                 {
                     yield return namespaceClassDefinition.ClassBlockSyntax;
