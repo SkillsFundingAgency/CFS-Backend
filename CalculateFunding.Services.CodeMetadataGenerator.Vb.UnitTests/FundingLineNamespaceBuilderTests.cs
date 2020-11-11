@@ -65,7 +65,7 @@ Public One As Func(Of decimal?) = Nothing
 Public Property PSG As PSGCalculations
 Sub AddToNullable(ByRef sum As Decimal?, amount as Decimal?)
     If sum.HasValue Then
-        sum = If(amount,0) + sum
+        sum = amount.GetValueOrDefault() + sum
     Else
         sum = amount
     End If
