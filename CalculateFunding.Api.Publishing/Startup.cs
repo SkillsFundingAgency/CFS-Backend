@@ -81,14 +81,14 @@ namespace CalculateFunding.Api.Publishing
         public void Configure(IApplicationBuilder app,
             IWebHostEnvironment env)
         {
-            app.UseAzureAppConfiguration();
-
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
             else
             {
+                app.UseAzureAppConfiguration();
+
                 app.UseHsts();
 
                 app.UseMiddleware<LoggedInUserMiddleware>();

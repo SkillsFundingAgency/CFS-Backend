@@ -69,7 +69,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             sourceCode.AppendLine();
             sourceCode.AppendLine("Sub AddToNullable(ByRef sum As Decimal?, amount as Decimal?)");
             sourceCode.AppendLine("    If sum.HasValue Then");
-            sourceCode.AppendLine("        sum = amount + sum");
+            sourceCode.AppendLine("        sum = If(amount,0) + sum");
             sourceCode.AppendLine("    Else");
             sourceCode.AppendLine("        sum = amount");
             sourceCode.AppendLine("    End If");
