@@ -81,14 +81,15 @@ namespace CalculateFunding.Api.Publishing
         public void Configure(IApplicationBuilder app,
             IWebHostEnvironment env)
         {
+            //TODO: this is required for dynamic changes and more config implementation is required
+            //app.UseAzureAppConfiguration();
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
             else
             {
-                app.UseAzureAppConfiguration();
-
                 app.UseHsts();
 
                 app.UseMiddleware<LoggedInUserMiddleware>();
