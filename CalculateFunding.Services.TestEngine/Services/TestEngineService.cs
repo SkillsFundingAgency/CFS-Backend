@@ -12,6 +12,7 @@ using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Services;
+using CalculateFunding.Services.Processing;
 using CalculateFunding.Services.TestEngine.Interfaces;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using CalculateFunding.Services.TestRunner.Testing;

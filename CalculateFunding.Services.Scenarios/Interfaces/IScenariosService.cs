@@ -1,7 +1,7 @@
 ﻿using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Models.Scenarios;
-using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Services.Processing.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using System.Collections.Generic;

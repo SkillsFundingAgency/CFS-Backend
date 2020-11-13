@@ -10,6 +10,7 @@ using System;
 using System.Threading.Tasks;
 using CalculateFunding.Services.Providers.Interfaces;
 using CalculateFunding.Services.Core;
+using CalculateFunding.Services.Processing.Functions;
 
 namespace CalculateFunding.Functions.Providers.ServiceBus
 {

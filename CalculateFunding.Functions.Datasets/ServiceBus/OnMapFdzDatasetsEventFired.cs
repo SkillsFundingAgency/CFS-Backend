@@ -1,16 +1,12 @@
 ﻿using CalculateFunding.Common.Models;
 using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
-using CalculateFunding.Services.Core.Functions;
 using CalculateFunding.Services.Datasets.Interfaces;
+using CalculateFunding.Services.Processing.Functions;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Functions.Datasets.ServiceBus

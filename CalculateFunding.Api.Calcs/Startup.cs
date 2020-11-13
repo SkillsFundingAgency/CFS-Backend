@@ -288,7 +288,6 @@ namespace CalculateFunding.Api.Calcs
             ResiliencePolicies resiliencePolicies = CreateResiliencePolicies(totalNetworkRequestsPolicy);
 
             builder.AddSingleton<ICalcsResiliencePolicies>(resiliencePolicies);
-            builder.AddSingleton<IJobHelperResiliencePolicies>(resiliencePolicies);
             builder.AddSingleton<IJobManagementResiliencePolicies>((ctx) =>
             {
                 return new JobManagementResiliencePolicies()

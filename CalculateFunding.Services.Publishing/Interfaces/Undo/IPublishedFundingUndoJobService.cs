@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.Models;
-using CalculateFunding.Services.Jobs.Interfaces;
+using CalculateFunding.Services.Processing.Interfaces;
 using Microsoft.Azure.ServiceBus;
 
 namespace CalculateFunding.Services.Publishing.Interfaces.Undo

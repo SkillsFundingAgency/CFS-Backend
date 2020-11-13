@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <AzureFunctionsVersion>v3</AzureFunctionsVersion>
@@ -13,6 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="..\CalculateFunding.Services.Core.Functions\CalculateFunding.Services.Core.Functions.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Core\CalculateFunding.Services.Core.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.Processing\CalculateFunding.Services.Processing.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Users\CalculateFunding.Services.Users.csproj" />
   </ItemGroup>
   <ItemGroup>

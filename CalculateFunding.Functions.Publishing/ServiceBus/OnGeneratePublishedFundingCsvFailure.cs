@@ -3,46 +3,28 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.DeadletterProcessor;
+using CalculateFunding.Services.Processing.Functions;
+using CalculateFunding.Services.Processing.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Serilog;
 
 namespace CalculateFunding.Functions.Publishing.ServiceBus
 {
-    public class OnGeneratePublishedFundingCsvFailure
+    public class OnGeneratePublishedFundingCsvFailure : Failure
     {
-        private readonly ILogger _logger;
-        private readonly IJobHelperService _jobHelperService;
-
+        private const string FunctionName = "on-publishing-generate-published-funding-csv-poisoned";
+        private const string QueueName = ServiceBusConstants.QueueNames.GeneratePublishedFundingCsvPoisoned;
+        
         public OnGeneratePublishedFundingCsvFailure(
             ILogger logger,
-            IJobHelperService jobHelperService)
+            IDeadletterService jobHelperService) : base(logger, jobHelperService, QueueName)
         {
-            Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(jobHelperService, nameof(jobHelperService));
-
-            _logger = logger;
-            _jobHelperService = jobHelperService;
         }
 
-        [FunctionName("on-publishing-generate-published-funding-csv-poisoned")]
+        [FunctionName(FunctionName)]
         public async Task Run([ServiceBusTrigger(
-                ServiceBusConstants.QueueNames.GeneratePublishedFundingCsvPoisoned,
-                Connection = ServiceBusConstants.ConnectionStringConfigurationKey)]
-            Message message)
-        {
-            _logger.Information("Starting to process dead letter message for generate published funding csv.");
-
-            try
-            {
-                await _jobHelperService.ProcessDeadLetteredMessage(message);
-            }
-            catch (Exception exception)
-            {
-                _logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.GeneratePublishedFundingCsvPoisoned}");
-
-                throw;
-            }
-        }
+            QueueName,
+            Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message) => await Process(message);
     }
 }

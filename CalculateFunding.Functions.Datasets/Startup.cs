@@ -32,6 +32,7 @@ using CalculateFunding.Services.Datasets.Interfaces;
 using CalculateFunding.Services.Datasets.MappingProfiles;
 using CalculateFunding.Services.Datasets.Validators;
 using CalculateFunding.Services.DeadletterProcessor;
+using CalculateFunding.Services.Processing.Interfaces;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Results.Repositories;
 using FluentValidation;
@@ -101,7 +102,7 @@ namespace CalculateFunding.Functions.Datasets
                 .AddSingleton<IJobManagement, JobManagement>();
 
             builder
-                .AddSingleton<IJobHelperService, JobHelperService>();
+                .AddSingleton<IDeadletterService, DeadletterService>();
 
             builder
                 .AddScoped<IProcessDatasetService, ProcessDatasetService>();
@@ -226,8 +227,6 @@ namespace CalculateFunding.Functions.Datasets
             PolicySettings policySettings = ServiceCollectionExtensions.GetPolicySettings(config);
 
             DatasetsResiliencePolicies resiliencePolicies = CreateResiliencePolicies(policySettings);
-
-            builder.AddSingleton<IJobHelperResiliencePolicies>(resiliencePolicies);
 
             builder.AddSingleton<IDatasetsResiliencePolicies>(resiliencePolicies);
 

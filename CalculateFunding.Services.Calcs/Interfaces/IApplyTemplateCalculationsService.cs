@@ -1,4 +1,4 @@
-﻿using CalculateFunding.Services.Jobs.Interfaces;
+﻿using CalculateFunding.Services.Processing.Interfaces;
 
 namespace CalculateFunding.Services.Calcs.Interfaces
 {

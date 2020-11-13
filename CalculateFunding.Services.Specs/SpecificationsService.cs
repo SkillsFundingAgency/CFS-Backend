@@ -31,7 +31,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Services.Jobs;
+using CalculateFunding.Services.Processing;
 using CalculateFunding.Services.Specs.Interfaces;
 using FluentValidation;
 using FluentValidation.Results;

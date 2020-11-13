@@ -2,7 +2,7 @@
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.ViewModels;
-using CalculateFunding.Services.Jobs.Interfaces;
+using CalculateFunding.Services.Processing.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;

@@ -6,6 +6,7 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Functions;
+using CalculateFunding.Services.Processing.Functions;
 using CalculateFunding.Services.Specs.Interfaces;
 using Microsoft.AspNetCore.Server.IIS.Core;
 using Microsoft.Azure.ServiceBus;
@@ -16,7 +17,6 @@ namespace CalculateFunding.Functions.Specs.ServiceBus
 {
     public class OnDeleteSpecifications : Retriable
     {
-        private readonly ILogger _logger;
         private readonly ISpecificationsService _specificationsService;
         public const string FunctionName = "on-delete-specifications";
         private const string QueueName = ServiceBusConstants.QueueNames.DeleteSpecifications;
@@ -28,10 +28,8 @@ namespace CalculateFunding.Functions.Specs.ServiceBus
             IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
             : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, specificationsService)
         {
-            Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(specificationsService, nameof(specificationsService));
 
-            _logger = logger;
             _specificationsService = specificationsService;
         }
 

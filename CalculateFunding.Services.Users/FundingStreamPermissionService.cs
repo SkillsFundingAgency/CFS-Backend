@@ -16,7 +16,7 @@ using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Services.Core.Services;
+using CalculateFunding.Services.Processing;
 using CalculateFunding.Services.Users.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;

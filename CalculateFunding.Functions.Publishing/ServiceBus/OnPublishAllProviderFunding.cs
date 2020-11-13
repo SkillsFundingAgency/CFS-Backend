@@ -6,6 +6,7 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Functions;
+using CalculateFunding.Services.Processing.Functions;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
@@ -15,8 +16,6 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
 {
     public class OnPublishAllProviderFunding : Retriable
     {
-        private readonly ILogger _logger;
-        private readonly IPublishService _publishService;
         public const string FunctionName = FunctionConstants.PublishingPublishAllProviderFunding;
         public const string QueueName = ServiceBusConstants.QueueNames.PublishingPublishAllProviderFunding;
 
@@ -27,11 +26,6 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
             IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
             : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, publishService)
         {
-            Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(publishService, nameof(publishService));
-
-            _logger = logger;
-            _publishService = publishService;
         }
 
         [FunctionName(FunctionName)]

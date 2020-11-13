@@ -6,7 +6,7 @@ using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Code;
 using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Models.Versioning;
-using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Services.Processing.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 

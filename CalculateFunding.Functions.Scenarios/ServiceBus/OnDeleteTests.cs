@@ -6,6 +6,7 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Functions;
+using CalculateFunding.Services.Processing.Functions;
 using CalculateFunding.Services.Scenarios.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
@@ -13,17 +14,18 @@ using Serilog;
 
 namespace CalculateFunding.Functions.Scenarios.ServiceBus
 {
-    public class OnDeleteTests : SmokeTest
+    public class OnDeleteTests : Retriable
     {
         private readonly IScenariosService _scenariosService;
         public const string FunctionName = "on-delete-tests";
+        public const string QueueName = ServiceBusConstants.QueueNames.DeleteTests;
 
         public OnDeleteTests(
             ILogger logger,
             IScenariosService scenariosService,
             IMessengerService messengerService,
             IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider, scenariosService)
+            : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, scenariosService)
         {
             Guard.ArgumentNotNull(scenariosService, nameof(scenariosService));
 
@@ -32,7 +34,7 @@ namespace CalculateFunding.Functions.Scenarios.ServiceBus
 
         [FunctionName(FunctionName)]
         public async Task Run([ServiceBusTrigger(
-            ServiceBusConstants.QueueNames.DeleteTests, 
+            QueueName, 
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
             await Run(message,

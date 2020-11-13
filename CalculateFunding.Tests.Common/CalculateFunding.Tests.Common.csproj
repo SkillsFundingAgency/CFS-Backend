@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CalculateFunding.Services.Core\CalculateFunding.Services.Core.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.Processing\CalculateFunding.Services.Processing.csproj" />
   </ItemGroup>
 
 </Project>

@@ -4,7 +4,7 @@ using Polly;
 
 namespace CalculateFunding.Services.CalcEngine
 {
-    public class CalculatorResiliencePolicies : ICalculatorResiliencePolicies, IJobHelperResiliencePolicies
+    public class CalculatorResiliencePolicies : ICalculatorResiliencePolicies
     {
         public AsyncPolicy CacheProvider { get; set; }
 

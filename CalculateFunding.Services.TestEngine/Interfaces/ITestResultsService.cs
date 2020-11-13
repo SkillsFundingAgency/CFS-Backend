@@ -1,6 +1,6 @@
 ﻿using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Scenarios;
-using CalculateFunding.Services.Jobs.Interfaces;
+using CalculateFunding.Services.Processing.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using System.Collections.Generic;

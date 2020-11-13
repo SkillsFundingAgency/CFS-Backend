@@ -1,6 +1,7 @@
 ﻿using CalculateFunding.Common.Models;
 using CalculateFunding.Common.ServiceBus.Interfaces;
-using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Services.Processing.Functions;
+using CalculateFunding.Services.Processing.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Serilog;
 using System;

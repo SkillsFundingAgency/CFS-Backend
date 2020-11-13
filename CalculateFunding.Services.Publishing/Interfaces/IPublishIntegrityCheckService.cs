@@ -1,7 +1,4 @@
-﻿using CalculateFunding.Services.Jobs.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using CalculateFunding.Services.Processing.Interfaces;
 
 namespace CalculateFunding.Services.Publishing.Interfaces
 {

@@ -3,44 +3,28 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.DeadletterProcessor;
+using CalculateFunding.Services.Processing.Functions;
+using CalculateFunding.Services.Processing.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Serilog;
 
 namespace CalculateFunding.Functions.Publishing.ServiceBus
 {
-    public class OnRefreshFundingFailure
+    public class OnRefreshFundingFailure : Failure
     {
-        private readonly ILogger _logger;
-        private readonly IJobHelperService _jobHelperService;
+        public const string FunctionName = "on-publishing-refresh-funding-poisoned";
+        public const string QueueName = ServiceBusConstants.QueueNames.PublishingRefreshFundingPoisoned;
 
         public OnRefreshFundingFailure(
             ILogger logger,
-            IJobHelperService jobHelperService)
+            IDeadletterService jobHelperService) : base(logger, jobHelperService, QueueName)
         {
-            Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(jobHelperService, nameof(jobHelperService));
-
-            _logger = logger;
-            _jobHelperService = jobHelperService;
         }
 
-        [FunctionName("on-publishing-refresh-funding-poisoned")]
+        [FunctionName(FunctionName)]
         public async Task Run([ServiceBusTrigger(
-            ServiceBusConstants.QueueNames.PublishingRefreshFundingPoisoned,
-            Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
-        {
-            _logger.Information("Starting to process dead letter message for refreshing funding.");
-
-            try
-            {
-                await _jobHelperService.ProcessDeadLetteredMessage(message);
-            }
-            catch (Exception exception)
-            {
-                _logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.PublishingRefreshFundingPoisoned}");
-                throw;
-            }
-        }
+            QueueName,
+            Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message) => await Process(message);
     }
 }

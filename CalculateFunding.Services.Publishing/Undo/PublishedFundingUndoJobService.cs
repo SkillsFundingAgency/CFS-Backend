@@ -8,7 +8,7 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Jobs;
+using CalculateFunding.Services.Processing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Interfaces.Undo;
 using Microsoft.Azure.ServiceBus;

@@ -3,7 +3,7 @@ using Polly;
 
 namespace CalculateFunding.Services.Policy.Interfaces
 {
-    public interface IPolicyResiliencePolicies : IJobHelperResiliencePolicies
+    public interface IPolicyResiliencePolicies
     {
         AsyncPolicy PolicyRepository { get; set; }
 
@@ -16,7 +16,9 @@ namespace CalculateFunding.Services.Policy.Interfaces
         AsyncPolicy TemplatesSearchRepository { get; set; }
         
         AsyncPolicy SpecificationsApiClient { get; set; }
-        
+
+        AsyncPolicy JobsApiClient { get; set; }
+
         AsyncPolicy ResultsApiClient { get; set; }
 
         AsyncPolicy CalculationsApiClient { get; set; }

@@ -14,7 +14,7 @@ using Polly;
 using Serilog;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.JobManagement;
-using CalculateFunding.Services.Jobs;
+using CalculateFunding.Services.Processing;
 
 namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
 {

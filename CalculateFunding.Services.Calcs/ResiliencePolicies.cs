@@ -1,10 +1,9 @@
 ﻿using CalculateFunding.Services.Calcs.Interfaces;
-using CalculateFunding.Services.DeadletterProcessor;
 using Polly;
 
 namespace CalculateFunding.Services.Calcs
 {
-    public class ResiliencePolicies : ICalcsResiliencePolicies, IJobHelperResiliencePolicies
+    public class ResiliencePolicies : ICalcsResiliencePolicies
     {
         public AsyncPolicy GraphApiClientPolicy { get; set; }
         

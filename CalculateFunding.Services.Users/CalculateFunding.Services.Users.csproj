@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
@@ -10,6 +10,7 @@
     <ProjectReference Include="..\CalculateFunding.Models.Messages\CalculateFunding.Models.Messages.csproj" />
     <ProjectReference Include="..\CalculateFunding.Models.Users\CalculateFunding.Models.Users.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Core\CalculateFunding.Services.Core.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.Processing\CalculateFunding.Services.Processing.csproj" />
   </ItemGroup>
 
   <ItemGroup>

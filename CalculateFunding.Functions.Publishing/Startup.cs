@@ -27,6 +27,7 @@ using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Core.Threading;
 using CalculateFunding.Services.DeadletterProcessor;
+using CalculateFunding.Services.Processing.Interfaces;
 using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.Errors;
 using CalculateFunding.Services.Publishing.Helper;
@@ -383,7 +384,7 @@ namespace CalculateFunding.Functions.Publishing
                 return resolver;
             });
 
-            builder.AddSingleton<IJobHelperService, JobHelperService>();
+            builder.AddSingleton<IDeadletterService, DeadletterService>();
 
             builder.AddSingleton<IPublishedProviderReIndexerService, PublishedProviderReIndexerService>();
 
@@ -411,8 +412,6 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddPublishingServices(config);
 
             builder.AddSingleton<IPublishingResiliencePolicies>(publishingResiliencePolicies);
-
-            builder.AddSingleton<IJobHelperResiliencePolicies>(publishingResiliencePolicies);
 
             builder.AddSpecificationsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
             builder.AddProvidersInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);

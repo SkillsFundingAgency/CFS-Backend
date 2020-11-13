@@ -22,6 +22,7 @@ using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.DeadletterProcessor;
+using CalculateFunding.Services.Processing.Interfaces;
 using CalculateFunding.Services.Providers;
 using CalculateFunding.Services.Providers.Interfaces;
 using CalculateFunding.Services.Providers.Validators;
@@ -92,7 +93,7 @@ namespace CalculateFunding.Functions.Providers
             builder.AddSpecificationsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
             builder.AddResultsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
             builder.AddFundingDataServiceInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
-            builder.AddSingleton<IJobHelperService, JobHelperService>();
+            builder.AddSingleton<IDeadletterService, DeadletterService>();
 
             builder.AddCaching(config);
 
@@ -145,8 +146,6 @@ namespace CalculateFunding.Functions.Providers
             ProvidersResiliencePolicies resiliencePolicies = CreateResiliencePolicies(totalNetworkRequestsPolicy);
 
             builder.AddSingleton<IJobManagementResiliencePolicies>(resiliencePolicies);
-
-            builder.AddSingleton<IJobHelperResiliencePolicies>(resiliencePolicies);
 
             builder.AddSingleton<IProvidersResiliencePolicies>(resiliencePolicies);
 

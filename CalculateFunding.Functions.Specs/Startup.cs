@@ -26,6 +26,8 @@ using CalculateFunding.Services.Core.Interfaces.Threading;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Core.Threading;
+using CalculateFunding.Services.DeadletterProcessor;
+using CalculateFunding.Services.Processing.Interfaces;
 using CalculateFunding.Services.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
 using CalculateFunding.Services.Specs.MappingProfiles;
@@ -103,6 +105,7 @@ namespace CalculateFunding.Functions.Specs
             builder.AddSingleton<ISpecificationIndexer, SpecificationIndexer>();
             builder.AddSingleton<IProducerConsumerFactory, ProducerConsumerFactory>();
             builder.AddSingleton<ISpecificationIndexingService, SpecificationIndexingService>();
+            builder.AddSingleton<IDeadletterService, DeadletterService>();
 
             builder.AddSingleton<ITemplateMetadataResolver>((ctx) =>
             {

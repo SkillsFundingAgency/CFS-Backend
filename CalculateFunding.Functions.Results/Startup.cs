@@ -27,6 +27,7 @@ using CalculateFunding.Services.Core.Interfaces.Threading;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Threading;
 using CalculateFunding.Services.DeadletterProcessor;
+using CalculateFunding.Services.Processing.Interfaces;
 using CalculateFunding.Services.Results;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Results.Models;
@@ -87,7 +88,7 @@ namespace CalculateFunding.Functions.Results
             builder.AddSingleton<IResultsService, ResultsService>();
             builder.AddSingleton<IJobManagement, JobManagement>();
             builder.AddSingleton<ICalculationsRepository, CalculationsRepository>();
-            builder.AddSingleton<IJobHelperService, JobHelperService>();
+            builder.AddSingleton<IDeadletterService, DeadletterService>();
             builder.AddSingleton<IProviderCalculationResultsReIndexerService, ProviderCalculationResultsReIndexerService>();
             builder.AddTransient<ICsvUtils, CsvUtils>();
             builder
@@ -185,7 +186,6 @@ namespace CalculateFunding.Functions.Results
             ResiliencePolicies resultsResiliencePolicies = CreateResiliencePolicies(policySettings);
 
             builder.AddSingleton<IResultsResiliencePolicies>(resultsResiliencePolicies);
-            builder.AddSingleton<IJobHelperResiliencePolicies>(resultsResiliencePolicies);
 
             builder.AddSingleton<IJobManagementResiliencePolicies>((ctx) =>
             {

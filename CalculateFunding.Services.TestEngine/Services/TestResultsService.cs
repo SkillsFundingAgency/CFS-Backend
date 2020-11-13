@@ -20,7 +20,7 @@ using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Logging;
-using CalculateFunding.Services.Jobs;
+using CalculateFunding.Services.Processing;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search.Models;

@@ -14,6 +14,7 @@
   <ItemGroup>
     <ProjectReference Include="..\CalculateFunding.Services.Core.Functions\CalculateFunding.Services.Core.Functions.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Notifications\CalculateFunding.Services.Notifications.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.Processing\CalculateFunding.Services.Processing.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="host.json">

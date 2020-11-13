@@ -32,7 +32,7 @@ using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Options;
-using CalculateFunding.Services.Jobs;
+using CalculateFunding.Services.Processing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Azure.ServiceBus;

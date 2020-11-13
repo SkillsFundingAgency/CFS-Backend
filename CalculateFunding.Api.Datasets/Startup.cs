@@ -259,8 +259,6 @@ namespace CalculateFunding.Api.Datasets
 
             DatasetsResiliencePolicies resiliencePolicies = CreateResiliencePolicies(policySettings);
 
-            builder.AddSingleton<IJobHelperResiliencePolicies>(resiliencePolicies);
-
             builder.AddSingleton<IDatasetsResiliencePolicies>(resiliencePolicies);
 
             builder.AddSingleton<IJobManagementResiliencePolicies>((ctx) =>

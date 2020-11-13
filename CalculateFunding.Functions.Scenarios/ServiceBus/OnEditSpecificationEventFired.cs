@@ -5,6 +5,7 @@ using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Functions;
+using CalculateFunding.Services.Processing.Functions;
 using CalculateFunding.Services.Scenarios.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
@@ -14,8 +15,6 @@ namespace CalculateFunding.Functions.Scenarios.ServiceBus
 {
     public class OnEditSpecificationEvent : Retriable
     {
-        private readonly ILogger _logger;
-        private readonly IScenariosService _scenariosService;
         public const string FunctionName = "on-edit-specification";
 
         public OnEditSpecificationEvent(

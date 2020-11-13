@@ -27,6 +27,7 @@
     <ProjectReference Include="..\CalculateFunding.Services.CalcEngine\CalculateFunding.Services.CalcEngine.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Calcs\CalculateFunding.Services.Calcs.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Core.Functions\CalculateFunding.Services.Core.Functions.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.Processing\CalculateFunding.Services.Processing.csproj" />
   </ItemGroup>
 
   <ItemGroup>

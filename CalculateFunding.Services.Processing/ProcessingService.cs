@@ -1,11 +1,9 @@
-﻿using CalculateFunding.Services.Core.Interfaces.Services;
+﻿using CalculateFunding.Services.Processing.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
-namespace CalculateFunding.Services.Core.Services
+namespace CalculateFunding.Services.Processing
 {
     public abstract class ProcessingService : IProcessingService
     {

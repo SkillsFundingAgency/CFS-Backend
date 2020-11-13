@@ -4,19 +4,19 @@ using Microsoft.Azure.ServiceBus;
 using Serilog;
 using System;
 using System.Threading.Tasks;
-using CalculateFunding.Services.DeadletterProcessor;
+using CalculateFunding.Services.Processing.Interfaces;
 
-namespace CalculateFunding.Services.Core.Functions
+namespace CalculateFunding.Services.Processing.Functions
 {
     public abstract class Failure
     {
         private readonly ILogger _logger;
         private readonly string _queueName;
-        private readonly IJobHelperService _jobHelperService;
+        private readonly IDeadletterService _jobHelperService;
 
         protected Failure(
             ILogger logger,
-            IJobHelperService jobHelperService,
+            IDeadletterService jobHelperService,
             string queueName)
         {
             _logger = logger;
@@ -30,7 +30,7 @@ namespace CalculateFunding.Services.Core.Functions
 
             try
             {
-                await _jobHelperService.ProcessDeadLetteredMessage(message);
+                await _jobHelperService.Process(message);
 
                 _logger.Information($"Proccessed {_queueName} dead lettered message complete");
             }

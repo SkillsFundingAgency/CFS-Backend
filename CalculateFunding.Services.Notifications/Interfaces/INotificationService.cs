@@ -1,5 +1,5 @@
 ﻿using System.Threading.Tasks;
-using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Services.Processing.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.SignalRService;

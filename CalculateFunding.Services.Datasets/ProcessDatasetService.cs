@@ -39,7 +39,7 @@ using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.Datasets.Interfaces;
-using CalculateFunding.Services.Jobs;
+using CalculateFunding.Services.Processing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.Storage.Blob;

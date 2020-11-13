@@ -3,46 +3,28 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.DeadletterProcessor;
+using CalculateFunding.Services.Processing.Functions;
+using CalculateFunding.Services.Processing.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Serilog;
 
 namespace CalculateFunding.Functions.Publishing.ServiceBus
 {
-    public class OnReIndexPublishedProvidersFailure
+    public class OnReIndexPublishedProvidersFailure : Failure
     {
-        private readonly ILogger _logger;
-        private readonly IJobHelperService _jobHelperService;
+        public const string FunctionName = "on-publishing-reindex-published-providers-poisoned";
+        public const string QueueName = ServiceBusConstants.QueueNames.PublishingReIndexPublishedProvidersPoisoned;
 
         public OnReIndexPublishedProvidersFailure(
             ILogger logger,
-            IJobHelperService jobHelperService)
+            IDeadletterService jobHelperService) : base(logger, jobHelperService, QueueName)
         {
-            Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(jobHelperService, nameof(jobHelperService));
-
-            _logger = logger;
-            _jobHelperService = jobHelperService;
         }
 
-        [FunctionName("on-publishing-reindex-published-providers-poisoned")]
+        [FunctionName(FunctionName)]
         public async Task Run([ServiceBusTrigger(
-                ServiceBusConstants.QueueNames.PublishingReIndexPublishedProvidersPoisoned,
-                Connection = ServiceBusConstants.ConnectionStringConfigurationKey)]
-            Message message)
-        {
-            _logger.Information("Starting to process dead letter message for reindex published providers.");
-
-            try
-            {
-                await _jobHelperService.ProcessDeadLetteredMessage(message);
-            }
-            catch (Exception exception)
-            {
-                _logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.PublishingReIndexPublishedProvidersPoisoned}");
-
-                throw;
-            }
-        }
+            QueueName,
+            Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message) => await Process(message);
     }
 }

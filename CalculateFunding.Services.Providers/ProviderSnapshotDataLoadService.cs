@@ -23,7 +23,7 @@ using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core;
-using CalculateFunding.Services.Jobs;
+using CalculateFunding.Services.Processing;
 
 namespace CalculateFunding.Services.Providers
 {

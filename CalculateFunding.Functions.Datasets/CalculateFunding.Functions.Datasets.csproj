@@ -30,6 +30,7 @@
     <ProjectReference Include="..\CalculateFunding.Services.Core\CalculateFunding.Services.Core.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.DataImporter\CalculateFunding.Services.DataImporter.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Datasets\CalculateFunding.Services.Datasets.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.Processing\CalculateFunding.Services.Processing.csproj" />
   </ItemGroup>
   
   <ItemGroup>

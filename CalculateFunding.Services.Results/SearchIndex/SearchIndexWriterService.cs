@@ -3,7 +3,7 @@ using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Jobs;
+using CalculateFunding.Services.Processing;
 using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Serilog;

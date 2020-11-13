@@ -1,6 +1,6 @@
 ﻿using CalculateFunding.Services.Core.Constants;
-using CalculateFunding.Services.Core.Functions;
-using CalculateFunding.Services.DeadletterProcessor;
+using CalculateFunding.Services.Processing.Functions;
+using CalculateFunding.Services.Processing.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Serilog;
@@ -15,7 +15,7 @@ namespace CalculateFunding.Functions.Calcs.ServiceBus
 
         public OnApproveAllCalculationsFailure(
             ILogger logger,
-            IJobHelperService jobHelperService) : base(logger, jobHelperService, QueueName)
+            IDeadletterService jobHelperService) : base(logger, jobHelperService, QueueName)
         {
         }
 

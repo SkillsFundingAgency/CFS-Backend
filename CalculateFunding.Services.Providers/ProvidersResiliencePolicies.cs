@@ -5,7 +5,7 @@ using Polly;
 
 namespace CalculateFunding.Services.Providers
 {
-    public class ProvidersResiliencePolicies : IProvidersResiliencePolicies, IJobManagementResiliencePolicies, IJobHelperResiliencePolicies
+    public class ProvidersResiliencePolicies : IProvidersResiliencePolicies, IJobManagementResiliencePolicies
     {
         public AsyncPolicy ProviderVersionsSearchRepository { get; set; }
 

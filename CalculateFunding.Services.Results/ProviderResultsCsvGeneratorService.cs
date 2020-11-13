@@ -14,7 +14,7 @@ using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
-using CalculateFunding.Services.Core.Services;
+using CalculateFunding.Services.Processing;
 using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.Storage.Blob;

@@ -39,6 +39,7 @@ using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.DeadletterProcessor;
+using CalculateFunding.Services.Processing.Interfaces;
 using FluentValidation;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
@@ -149,7 +150,7 @@ namespace CalculateFunding.Functions.Calcs
             builder.AddSingleton<ICodeMetadataGeneratorService, ReflectionCodeMetadataGenerator>();
             builder.AddSingleton<ICancellationTokenProvider, InactiveCancellationTokenProvider>();
             builder.AddSingleton<ISourceCodeService, SourceCodeService>();
-            builder.AddScoped<IJobHelperService, JobHelperService>();
+            builder.AddScoped<IDeadletterService, DeadletterService>();
             builder.AddScoped<IJobManagement, JobManagement>();
 
             MapperConfiguration calculationsConfig = new MapperConfiguration(c =>
@@ -243,7 +244,6 @@ namespace CalculateFunding.Functions.Calcs
             ResiliencePolicies resiliencePolicies = CreateResiliencePolicies(totalNetworkRequestsPolicy);
 
             builder.AddSingleton<ICalcsResiliencePolicies>(resiliencePolicies);
-            builder.AddSingleton<IJobHelperResiliencePolicies>(resiliencePolicies);
             builder.AddSingleton<IJobManagementResiliencePolicies>((ctx) => new JobManagementResiliencePolicies()
             {
                 JobsApiClient = resiliencePolicies.JobsApiClient,

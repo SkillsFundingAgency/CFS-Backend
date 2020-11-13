@@ -4,9 +4,10 @@ using Microsoft.Azure.ServiceBus;
 using Serilog;
 using System;
 using System.Threading.Tasks;
-using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Services.Processing.Interfaces;
+using CalculateFunding.Services.Core;
 
-namespace CalculateFunding.Services.Core.Functions
+namespace CalculateFunding.Services.Processing.Functions
 {
     public abstract class Retriable : SmokeTest
     {

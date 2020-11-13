@@ -19,6 +19,8 @@ using CalculateFunding.Services.Core.Functions.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Logging;
 using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.DeadletterProcessor;
+using CalculateFunding.Services.Processing.Interfaces;
 using CalculateFunding.Services.TestEngine.Interfaces;
 using CalculateFunding.Services.TestEngine.MappingProfiles;
 using CalculateFunding.Services.TestRunner;
@@ -147,6 +149,8 @@ namespace CalculateFunding.Functions.TestEngine
             builder.AddSingleton<ITestResultsCountsService, TestResultsCountsService>();
 
             builder.AddSingleton<IJobManagement, JobManagement>();
+
+            builder.AddSingleton<IDeadletterService, DeadletterService>();
 
             MapperConfiguration mappingConfiguration = new MapperConfiguration(c =>
             {

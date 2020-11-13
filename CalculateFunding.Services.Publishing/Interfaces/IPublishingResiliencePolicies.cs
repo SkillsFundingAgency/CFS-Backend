@@ -3,11 +3,12 @@ using Polly;
 
 namespace CalculateFunding.Services.Publishing.Interfaces
 {
-    public interface IPublishingResiliencePolicies : IJobHelperResiliencePolicies
+    public interface IPublishingResiliencePolicies
     {
         AsyncPolicy CalculationResultsRepository { get; set; }
         AsyncPolicy SpecificationsRepositoryPolicy { get; set; }
         AsyncPolicy ProvidersApiClient { get; set; }
+        AsyncPolicy JobsApiClient { get; set; }
         AsyncPolicy PublishedProviderVersionRepository { get; set; }
         AsyncPolicy PublishedFundingRepository { get; set; }
         AsyncPolicy BlobClient { get; set; }

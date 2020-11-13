@@ -14,7 +14,7 @@ using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.FeatureToggles;
-using CalculateFunding.Services.Core.Services;
+using CalculateFunding.Services.Processing;
 using Microsoft.Azure.ServiceBus;
 using Serilog;
 

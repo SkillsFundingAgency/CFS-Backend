@@ -9,7 +9,7 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Jobs;
+using CalculateFunding.Services.Processing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Polly;

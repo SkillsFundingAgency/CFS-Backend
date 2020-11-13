@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Net;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
-using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Services.DeadletterProcessor;
+using CalculateFunding.Services.Processing.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -14,7 +12,7 @@ using Serilog;
 namespace CalculateFunding.Services.Core.Services
 {
     [TestClass]
-    public class JobHelperServiceTests
+    public class DeadletterServiceTests
     {
         [TestMethod]
         public async Task ProcessDeadLetteredMessage_GivenMessageButNoJobId_LogsAnErrorAndDoesNotUpdadeJobLog()
@@ -26,10 +24,10 @@ namespace CalculateFunding.Services.Core.Services
 
             ILogger logger = CreateLogger();
 
-            IJobHelperService service = CreateJobHelperService(jobManagement, logger);
+            IDeadletterService service = CreateJobHelperService(jobManagement, logger);
 
             // Act
-            await service.ProcessDeadLetteredMessage(message);
+            await service.Process(message);
 
             // Assert
             logger
@@ -58,10 +56,10 @@ namespace CalculateFunding.Services.Core.Services
 
             ILogger logger = CreateLogger();
 
-            IJobHelperService service = CreateJobHelperService(jobManagement, logger);
+            IDeadletterService service = CreateJobHelperService(jobManagement, logger);
 
             // Act
-            await service.ProcessDeadLetteredMessage(message);
+            await service.Process(message);
 
             // Assert
             logger
@@ -90,10 +88,10 @@ namespace CalculateFunding.Services.Core.Services
 
             ILogger logger = CreateLogger();
 
-            IJobHelperService service = CreateJobHelperService(jobManagement, logger);
+            IDeadletterService service = CreateJobHelperService(jobManagement, logger);
 
             // Act
-            await service.ProcessDeadLetteredMessage(message);
+            await service.Process(message);
 
             // Assert
             logger
@@ -101,9 +99,9 @@ namespace CalculateFunding.Services.Core.Services
                 .Information(Arg.Is($"A new job log was added to inform of a dead lettered message with job log id '{jobLog.Id}' on job with id '{jobId}'"));
         }
 
-        private IJobHelperService CreateJobHelperService(IJobManagement jobManagement, ILogger logger = null)
+        private IDeadletterService CreateJobHelperService(IJobManagement jobManagement, ILogger logger = null)
         {
-            return new JobHelperService(jobManagement ?? CreateJobManagement(), logger ?? CreateLogger());
+            return new DeadletterService(jobManagement ?? CreateJobManagement(), logger ?? CreateLogger());
         }
 
         private IJobManagement CreateJobManagement() => Substitute.For<IJobManagement>();

@@ -29,9 +29,7 @@ using CalcModels = CalculateFunding.Common.ApiClient.Calcs.Models;
 using ApiModels = CalculateFunding.Common.ApiClient.Models;
 using AutoMapper;
 using CalculateFunding.Common.JobManagement;
-using CalculateFunding.Common.ApiClient.Jobs.Models;
-using CalculateFunding.Services.Core.Services;
-using CalculateFunding.Services.Jobs;
+using CalculateFunding.Services.Processing;
 
 namespace CalculateFunding.Services.Results
 {

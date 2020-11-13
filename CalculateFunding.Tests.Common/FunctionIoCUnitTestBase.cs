@@ -1,4 +1,4 @@
-using CalculateFunding.Services.Core.Functions;
+using CalculateFunding.Services.Processing.Functions;
 
 namespace CalculateFunding.Tests.Common
 {

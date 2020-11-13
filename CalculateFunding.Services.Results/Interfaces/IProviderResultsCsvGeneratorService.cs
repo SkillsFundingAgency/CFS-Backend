@@ -1,6 +1,4 @@
-using System.Threading.Tasks;
-using CalculateFunding.Services.Core.Interfaces.Services;
-using Microsoft.Azure.ServiceBus;
+using CalculateFunding.Services.Processing.Interfaces;
 
 namespace CalculateFunding.Services.Results.Interfaces
 {

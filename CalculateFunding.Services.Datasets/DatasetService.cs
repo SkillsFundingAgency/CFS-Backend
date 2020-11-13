@@ -44,8 +44,7 @@ using ApiClientProviders = CalculateFunding.Common.ApiClient.Providers;
 using JobCreateModel = CalculateFunding.Common.ApiClient.Jobs.Models.JobCreateModel;
 using Trigger = CalculateFunding.Common.ApiClient.Jobs.Models.Trigger;
 using PoliciesApiModels = CalculateFunding.Common.ApiClient.Policies.Models;
-using CalculateFunding.Common.ApiClient.Jobs.Models;
-using CalculateFunding.Services.Jobs;
+using CalculateFunding.Services.Processing;
 
 namespace CalculateFunding.Services.Datasets
 {

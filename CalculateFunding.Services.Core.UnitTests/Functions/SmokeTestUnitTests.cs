@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Reflection;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.ServiceBus.Interfaces;
-using CalculateFunding.Services.Core.Interfaces.Services;
-using CalculateFunding.Services.Core.Services;
+using CalculateFunding.Services.Processing.Interfaces;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.Azure.ServiceBus;

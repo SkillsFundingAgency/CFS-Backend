@@ -15,7 +15,7 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Threading;
-using CalculateFunding.Services.Jobs;
+using CalculateFunding.Services.Processing;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Results.Models;
 using Microsoft.AspNetCore.Mvc;

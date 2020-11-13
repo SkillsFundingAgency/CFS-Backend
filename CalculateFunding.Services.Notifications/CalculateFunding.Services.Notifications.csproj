@@ -13,6 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="..\CalculateFunding.Models.Jobs\CalculateFunding.Models.Jobs.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Core\CalculateFunding.Services.Core.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.Processing\CalculateFunding.Services.Processing.csproj" />
   </ItemGroup>
 
 </Project>

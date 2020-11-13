@@ -6,6 +6,7 @@ using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Notifications.Interfaces;
+using CalculateFunding.Services.Processing;
 using Microsoft.Azure.Search.Common;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;

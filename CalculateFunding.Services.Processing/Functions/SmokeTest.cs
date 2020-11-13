@@ -6,12 +6,11 @@ using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Reflection;
 using System.Threading.Tasks;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Services.Processing.Interfaces;
 
-namespace CalculateFunding.Services.Core.Functions
+namespace CalculateFunding.Services.Processing.Functions
 {
     public abstract class SmokeTest
     {

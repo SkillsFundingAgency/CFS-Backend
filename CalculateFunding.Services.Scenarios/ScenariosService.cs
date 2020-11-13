@@ -34,7 +34,7 @@ using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 using JobsModels = CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
-using CalculateFunding.Services.Core.Services;
+using CalculateFunding.Services.Processing;
 
 namespace CalculateFunding.Services.Scenarios
 {

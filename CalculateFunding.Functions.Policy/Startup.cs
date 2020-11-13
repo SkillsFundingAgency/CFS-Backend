@@ -19,6 +19,7 @@ using CalculateFunding.Services.Policy;
 using CalculateFunding.Services.Policy.Interfaces;
 using CalculateFunding.Services.Policy.TemplateBuilder;
 using CalculateFunding.Services.Policy.Validators;
+using CalculateFunding.Services.Processing.Interfaces;
 using CalculateFunding.Services.Providers.Validators;
 using FluentValidation;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
@@ -124,8 +125,7 @@ namespace CalculateFunding.Functions.Policy
             builder.AddTelemetry();
 
             builder.AddSingleton<IPolicyResiliencePolicies>(policyResiliencePolicies);
-            builder.AddSingleton<IJobHelperResiliencePolicies>(policyResiliencePolicies);
-            builder.AddSingleton<IJobHelperService, JobHelperService>();
+            builder.AddSingleton<IDeadletterService, DeadletterService>();
             builder.AddSingleton<IJobManagement, JobManagement>();
             builder.AddSingleton<ITemplatesReIndexerService, TemplatesReIndexerService>();
 

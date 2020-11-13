@@ -27,8 +27,7 @@
     <ProjectReference Include="..\CalculateFunding.Models.ProviderLegacy\CalculateFunding.Models.ProviderLegacy.csproj" />
     <ProjectReference Include="..\CalculateFunding.Models.Providers\CalculateFunding.Models.Providers.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Core\CalculateFunding.Services.Core.csproj" />
-    <ProjectReference Include="..\CalculateFunding.Services.DeadletterProcessor\CalculateFunding.Services.DeadletterProcessor.csproj" />
-    <ProjectReference Include="..\CalculateFunding.Services.Jobs\CalculateFunding.Services.Jobs.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.Processing\CalculateFunding.Services.Processing.csproj" />
   </ItemGroup>
 
 </Project>

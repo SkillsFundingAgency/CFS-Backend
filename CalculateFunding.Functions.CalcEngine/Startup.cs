@@ -33,6 +33,7 @@ using CalculateFunding.Services.Core.Functions.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.DeadletterProcessor;
+using CalculateFunding.Services.Processing.Interfaces;
 using FluentValidation;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
@@ -83,7 +84,7 @@ namespace CalculateFunding.Functions.CalcEngine
             builder.AddScoped<ICalculationEngineService, CalculationEngineService>();
             builder.AddScoped<ICalculationEngine, CalculationEngine>();
             builder.AddScoped<IAllocationFactory, AllocationFactory>();
-            builder.AddScoped<IJobHelperService, JobHelperService>();
+            builder.AddScoped<IDeadletterService, DeadletterService>();
             builder.AddScoped<IJobManagement, JobManagement>();
             builder.AddSingleton<IProviderSourceDatasetVersionKeyProvider, ProviderSourceDatasetVersionKeyProvider>();
             builder.AddSingleton<IFileSystemAccess, FileSystemAccess>();
@@ -222,7 +223,6 @@ namespace CalculateFunding.Functions.CalcEngine
             CalculatorResiliencePolicies calcResiliencePolicies = CreateResiliencePolicies(policySettings);
 
             builder.AddSingleton<ICalculatorResiliencePolicies>(calcResiliencePolicies);
-            builder.AddSingleton<IJobHelperResiliencePolicies>(calcResiliencePolicies);
             builder.AddSingleton<IJobManagementResiliencePolicies>((ctx) => new JobManagementResiliencePolicies()
             {
                 JobsApiClient = calcResiliencePolicies.JobsApiClient

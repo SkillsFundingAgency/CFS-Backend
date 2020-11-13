@@ -4,7 +4,7 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Services;
+using CalculateFunding.Services.Processing;
 using Microsoft.Azure.ServiceBus;
 using Serilog;
 using System;

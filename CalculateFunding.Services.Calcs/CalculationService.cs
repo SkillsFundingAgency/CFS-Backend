@@ -36,7 +36,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Services.Core.Services;
+using CalculateFunding.Services.Processing;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;

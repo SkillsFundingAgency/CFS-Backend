@@ -2,17 +2,18 @@
 using System.Threading.Tasks;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Services.Processing.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Serilog;
 
 namespace CalculateFunding.Services.DeadletterProcessor
 {
-    public class JobHelperService : IJobHelperService
+    public class DeadletterService : IDeadletterService
     {
         private readonly IJobManagement _jobManagement;
         private readonly ILogger _logger;
 
-        public JobHelperService(IJobManagement jobManagement, ILogger logger)
+        public DeadletterService(IJobManagement jobManagement, ILogger logger)
         {
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -21,7 +22,7 @@ namespace CalculateFunding.Services.DeadletterProcessor
             _logger = logger;
         }
 
-        public async Task ProcessDeadLetteredMessage(Message message)
+        public async Task Process(Message message)
         {
             Guard.ArgumentNotNull(message, nameof(message));
 

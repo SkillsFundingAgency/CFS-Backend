@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
-using CalculateFunding.Services.Jobs.Interfaces;
+using CalculateFunding.Services.Processing.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 

@@ -9,7 +9,7 @@ using Serilog;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Services.Core.FeatureToggles;
-using CalculateFunding.Services.Core.Services;
+using CalculateFunding.Services.Processing;
 
 namespace CalculateFunding.Services.Datasets
 {

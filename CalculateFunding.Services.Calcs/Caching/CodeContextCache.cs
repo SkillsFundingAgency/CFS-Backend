@@ -12,7 +12,7 @@ using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Jobs;
+using CalculateFunding.Services.Processing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Polly;

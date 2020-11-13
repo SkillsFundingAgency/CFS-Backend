@@ -2,9 +2,8 @@
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Jobs;
-using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Services.Processing.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.ServiceBus;
 
 namespace CalculateFunding.Services.Jobs.Interfaces
 {
