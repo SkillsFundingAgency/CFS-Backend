@@ -56,7 +56,7 @@ namespace CalculateFunding.Services.Profiling.Tests
         protected FundingStreamPeriodProfilePattern NewProfilePattern(Action<FundingStreamPeriodProfilePatternBuilder> setUp = null)
         {
             FundingStreamPeriodProfilePatternBuilder builder = new FundingStreamPeriodProfilePatternBuilder()
-                .WithPeriods(NewPeriod(pp => pp.WithPercentage(99.9996M)));
+                .WithPeriods(NewPeriod(pp => pp.WithPercentage(100M)));
 
             setUp?.Invoke(builder);
             

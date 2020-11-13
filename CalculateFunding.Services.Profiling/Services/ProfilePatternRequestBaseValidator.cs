@@ -72,7 +72,7 @@ namespace CalculateFunding.Services.Profiling.Services
                             "The profile periods must be for unique dates and occurence");
                     }
 
-                    if (Math.Round(patterns.Sum(_ => _.PeriodPatternPercentage), 3) != 100M)
+                    if (patterns.Sum(_ => _.PeriodPatternPercentage) != 100M)
                     {
                         ctx.AddFailure(nameof(FundingStreamPeriodProfilePattern.ProfilePattern),
                             "The profile period percentages must total 100%");
