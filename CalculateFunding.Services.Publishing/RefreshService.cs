@@ -168,10 +168,15 @@ namespace CalculateFunding.Services.Publishing
 
             // Check prerequisites for this specification to be chosen/refreshed
             IPrerequisiteChecker prerequisiteChecker = _prerequisiteCheckerLocator.GetPreReqChecker(PrerequisiteCheckerType.Refresh);
-            await prerequisiteChecker.PerformChecks(specification, Job.Id, existingPublishedProvidersByFundingStream.SelectMany(x => x.Value), scopedProviders.Values);
-
+            try
+            { 
+                await prerequisiteChecker.PerformChecks(specification, Job.Id, existingPublishedProvidersByFundingStream.SelectMany(x => x.Value), scopedProviders.Values);
+            }
+            catch (JobPrereqFailedException ex)
+            {
+                throw new NonRetriableException(ex.Message, ex);
+            }
             _logger.Information("Prerequisites for refresh passed");
-
 
             // Get calculation results for specification 
             _logger.Information("Looking up calculation results");

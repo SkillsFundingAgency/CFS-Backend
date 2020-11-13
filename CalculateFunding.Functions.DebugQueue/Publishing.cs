@@ -135,7 +135,7 @@ namespace CalculateFunding.Functions.DebugQueue
         }
 
         [FunctionName(FunctionConstants.PublishingApproveBatchProviderFundingPoisoned)]
-        public static async Task RunApproveBatchProviderFundingFailure([QueueTrigger(ServiceBusConstants.QueueNames.PublishingApproveAllProviderFundingPoisonedLocal, Connection = "AzureConnectionString")] string item, ILogger log)
+        public static async Task RunApproveBatchProviderFundingFailure([QueueTrigger(ServiceBusConstants.QueueNames.PublishingApproveBatchProviderFundingPoisoned, Connection = "AzureConnectionString")] string item, ILogger log)
         {
             using IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
             Message message = Helpers.ConvertToMessage<string>(item);

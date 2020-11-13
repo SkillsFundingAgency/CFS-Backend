@@ -339,7 +339,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             invocation
                 .Should()
-                .Throw<InvalidOperationException>();
+                .Throw<NonRetriableException>();
         }
 
         [TestMethod]
@@ -370,7 +370,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             invocation
                 .Should()
-                .Throw<InvalidOperationException>();
+                .Throw<NonRetriableException>();
         }
 
         [TestMethod]

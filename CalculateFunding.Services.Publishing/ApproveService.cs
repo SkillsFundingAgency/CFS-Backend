@@ -177,7 +177,7 @@ namespace CalculateFunding.Services.Publishing
 
             if (publishedProviders.Any(_ => _.Current?.HasErrors == true))
             {
-                throw new InvalidOperationException(
+                throw new NonRetriableException(
                     $"There are published providers with errors that must be fixed before they can be approved under specification {specificationId}.");
             }
         }
@@ -187,7 +187,14 @@ namespace CalculateFunding.Services.Publishing
             _logger.Information($"Verifying prerequisites for {prerequisiteCheckerType}");
 
             IPrerequisiteChecker prerequisiteChecker = _prerequisiteCheckerLocator.GetPreReqChecker(prerequisiteCheckerType);
-            await prerequisiteChecker.PerformChecks(specificationId, jobId, null, null);
+            try
+            {
+                await prerequisiteChecker.PerformChecks(specificationId, jobId, null, null);
+            }
+            catch (JobPrereqFailedException ex)
+            {
+                throw new NonRetriableException(ex.Message, ex);
+            }
 
             _logger.Information($"Prerequisites for {prerequisiteCheckerType} passed");
         }

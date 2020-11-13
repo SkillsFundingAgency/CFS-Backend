@@ -231,8 +231,17 @@ namespace CalculateFunding.Services.Publishing
             _logger.Information($"Verifying prerequisites for funding publish");
 
             IPrerequisiteChecker prerequisiteChecker = _prerequisiteCheckerLocator.GetPreReqChecker(prerequisiteCheckerType);
-            await prerequisiteChecker.PerformChecks(specification, jobId, selectedPublishedProviders?.ToList());
-            _logger.Information($"Prerequisites for publish passed");
+
+            try
+            {
+                await prerequisiteChecker.PerformChecks(specification, jobId, selectedPublishedProviders?.ToList());
+            }
+            catch (JobPrereqFailedException ex)
+            {
+                throw new NonRetriableException(ex.Message, ex);
+            }
+
+            _logger.Information("Prerequisites for publish passed");
 
             TemplateMapping templateMapping = await GetTemplateMapping(fundingStream, specification.Id);
 
