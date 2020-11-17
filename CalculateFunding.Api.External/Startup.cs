@@ -155,10 +155,10 @@ namespace CalculateFunding.Api.External
 
             builder
                 .AddSingleton<IPublishedFundingQueryBuilder, PublishedFundingQueryBuilder>();
-            
+
             builder
                 .AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
-            
+
             builder.AddFeatureToggling(Configuration);
 
             // Register v3 services
@@ -172,9 +172,6 @@ namespace CalculateFunding.Api.External
                 .AddSingleton<IFileSystemCache, FileSystemCache>()
                 .AddSingleton<IFileSystemAccess, FileSystemAccess>()
                 .AddSingleton<IFileSystemCacheSettings, FileSystemCacheSettings>();
-
-            builder
-                .AddSingleton<IBlobContainerRepository, BlobContainerRepository>();
 
             builder.AddSingleton<IFeedItemPreloader, FeedItemPreLoader>()
                 .AddSingleton<IFeedItemPreloaderSettings>(ctx =>
@@ -203,7 +200,8 @@ namespace CalculateFunding.Api.External
 
                 storageSettings.ContainerName = "publishedfunding";
 
-                IBlobClient blobClient = new BlobClient(storageSettings, ctx.GetService<IBlobContainerRepository>());
+                IBlobContainerRepository blobContainerRepository = new BlobContainerRepository(storageSettings);
+                IBlobClient blobClient = new BlobClient(blobContainerRepository);
 
                 IExternalApiResiliencePolicies resiliencePolicies = ctx.GetService<IExternalApiResiliencePolicies>();
                 ILogger logger = ctx.GetService<ILogger>();
@@ -300,7 +298,8 @@ namespace CalculateFunding.Api.External
 
                 storageSettings.ContainerName = "publishedproviderversions";
 
-                IBlobClient blobClient = new BlobClient(storageSettings, ctx.GetService<IBlobContainerRepository>());
+                IBlobContainerRepository blobContainerRepository = new BlobContainerRepository(storageSettings);
+                IBlobClient blobClient = new BlobClient(blobContainerRepository);
 
                 IExternalApiResiliencePolicies publishingResiliencePolicies = ctx.GetService<IExternalApiResiliencePolicies>();
                 ILogger logger = ctx.GetService<ILogger>();

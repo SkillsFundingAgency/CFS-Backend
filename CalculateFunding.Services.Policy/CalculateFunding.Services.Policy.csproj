@@ -11,9 +11,8 @@
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Calcs" Version="3.5.1" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Results" Version="4.1.1" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="3.13.1" />
-    <PackageReference Include="CalculateFunding.Common.Storage" Version="2.0.1" />
     <PackageReference Include="CalculateFunding.Common.JobManagement" Version="4.3.1" />
-    <PackageReference Include="CalculateFunding.Common.Storage" Version="2.0.2" />
+    <PackageReference Include="CalculateFunding.Common.Storage" Version="2.0.3" />
     <PackageReference Include="CalculateFunding.Common.TemplateMetadata" Version="2.2.1" />
     <PackageReference Include="CalculateFunding.Common.TemplateMetadata.Schema10" Version="2.1.1" />
     <PackageReference Include="CalculateFunding.Common.TemplateMetadata.Schema11" Version="2.1.1" />
@@ -27,7 +26,6 @@
   <ItemGroup>
     <ProjectReference Include="..\CalculateFunding.Models.Policy\CalculateFunding.Models.Policy.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Core\CalculateFunding.Services.Core.csproj" />
-    <ProjectReference Include="..\CalculateFunding.Services.DeadletterProcessor\CalculateFunding.Services.DeadletterProcessor.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Processing\CalculateFunding.Services.Processing.csproj" />
   </ItemGroup>
   <ItemGroup>

@@ -232,8 +232,6 @@ namespace CalculateFunding.Api.Publishing
             builder
                 .AddSingleton<IPublishingEngineOptions>(_ => new PublishingEngineOptions(Configuration));
             builder
-                .AddSingleton<IBlobContainerRepository, BlobContainerRepository>();
-            builder
                 .AddSingleton<IBlobClient, BlobClient>((ctx) =>
                 {
                     BlobStorageOptions storageSettings = new BlobStorageOptions();
@@ -242,7 +240,8 @@ namespace CalculateFunding.Api.Publishing
 
                     storageSettings.ContainerName = "publishedproviderversions";
 
-                    return new BlobClient(storageSettings, ctx.GetService<IBlobContainerRepository>());
+                    IBlobContainerRepository blobContainerRepository = new BlobContainerRepository(storageSettings);
+                    return new BlobClient(blobContainerRepository);
                 });
 
             builder.AddCaching(Configuration);
@@ -305,9 +304,9 @@ namespace CalculateFunding.Api.Publishing
                 Configuration.Bind("AzureStorageSettings", settings);
 
                 settings.ContainerName = "publishedproviderversions";
-                
-                return new PublishedFundingUndoBlobStoreRepository(new BlobClient(settings, 
-                        ctx.GetService<IBlobContainerRepository>()),
+
+                IBlobContainerRepository blobContainerRepository = new BlobContainerRepository(settings);
+                return new PublishedFundingUndoBlobStoreRepository(new BlobClient(blobContainerRepository),
                     ctx.GetService<IPublishingResiliencePolicies>(),
                     ctx.GetService<ILogger>());
             });

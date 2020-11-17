@@ -11,7 +11,7 @@ namespace CalculateFunding.Services.Policy
 {
     public class FundingTemplateRepository : FundingBlobRepository, IFundingTemplateRepository
     {
-        public FundingTemplateRepository(BlobStorageOptions blobStorageOptions, IBlobContainerRepository blobContainerRepository) : base(blobStorageOptions, blobContainerRepository) { }
+        public FundingTemplateRepository(IBlobContainerRepository blobContainerRepository) : base(blobContainerRepository) { }
 
         public async Task SaveFundingTemplateVersion(string blobName, byte[] templateBytes)
         {

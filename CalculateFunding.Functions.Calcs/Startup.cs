@@ -180,9 +180,7 @@ namespace CalculateFunding.Functions.Calcs
 
             builder
               .AddScoped<IValidator<CalculationEditModel>, CalculationEditModelValidator>();
-            builder
-                .AddSingleton<IBlobContainerRepository, BlobContainerRepository>();
-
+            
             builder.AddSingleton<ISourceFileRepository, SourceFileRepository>(ctx =>
             {
                 BlobStorageOptions blobStorageOptions = new BlobStorageOptions();
@@ -191,7 +189,8 @@ namespace CalculateFunding.Functions.Calcs
 
                 blobStorageOptions.ContainerName = "source";
 
-                return new SourceFileRepository(blobStorageOptions, ctx.GetService<IBlobContainerRepository>());
+                IBlobContainerRepository blobContainerRepository = new BlobContainerRepository(blobStorageOptions);
+                return new SourceFileRepository(blobContainerRepository);
             });
 
             builder.AddSingleton<IVersionRepository<CalculationVersion>, VersionRepository<CalculationVersion>>((ctx) =>

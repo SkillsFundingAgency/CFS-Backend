@@ -267,9 +267,6 @@ namespace CalculateFunding.Functions.Publishing
                 .AddSingleton<IPublishingEngineOptions>(_ => new PublishingEngineOptions(config));
 
             builder
-                .AddSingleton<IBlobContainerRepository, BlobContainerRepository>();
-
-            builder
                 .AddSingleton<Common.Storage.IBlobClient, CommonBlobClient>((ctx) =>
                 {
                     BlobStorageOptions storageSettings = new BlobStorageOptions();
@@ -278,7 +275,8 @@ namespace CalculateFunding.Functions.Publishing
 
                     storageSettings.ContainerName = "publishedproviderversions";
 
-                    return new CommonBlobClient(storageSettings, ctx.GetService<IBlobContainerRepository>());
+                    IBlobContainerRepository blobContainerRepository = new BlobContainerRepository(storageSettings);
+                    return new CommonBlobClient(blobContainerRepository);
                 });
 
             builder
@@ -457,8 +455,8 @@ namespace CalculateFunding.Functions.Publishing
 
                 settings.ContainerName = "publishedproviderversions";
 
-                return new PublishedFundingUndoBlobStoreRepository(new CommonBlobClient(settings,
-                        ctx.GetService<IBlobContainerRepository>()),
+                IBlobContainerRepository blobContainerRepository = new BlobContainerRepository(settings);
+                return new PublishedFundingUndoBlobStoreRepository(new CommonBlobClient(blobContainerRepository),
                     ctx.GetService<IPublishingResiliencePolicies>(),
                     ctx.GetService<ILogger>());
             });

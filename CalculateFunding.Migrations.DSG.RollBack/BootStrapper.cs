@@ -95,13 +95,12 @@ namespace CalculateFunding.Migrations.DSG.RollBack
                 Configuration.Bind("AzureStorageSettings", settings);
 
                 settings.ContainerName = "publishedproviderversions";
-                
-                return new PublishedFundingUndoBlobStoreRepository(new CommonBlobClient(settings, 
-                        ctx.GetService<IBlobContainerRepository>()),
+
+                IBlobContainerRepository blobContainerRepository = new BlobContainerRepository(settings);
+                return new PublishedFundingUndoBlobStoreRepository(new CommonBlobClient(blobContainerRepository),
                     ctx.GetService<IPublishingResiliencePolicies>(),
                     ctx.GetService<ILogger>());
             });
-            builder.AddSingleton<IBlobContainerRepository>(ctx => new BlobContainerRepository());
             builder.AddSingleton<IPublishedFundingUndoJobCreation, PublishedFundingUndoJobCreation>();
             builder.AddSingleton<IPublishedFundingUndoTaskFactoryLocator, PublishedFundingUndoTaskFactoryLocator>();
             builder.AddSingleton<IDsgRollBackCosmosDocumentsJob, DsgRollBackCosmosDocumentsJob>();

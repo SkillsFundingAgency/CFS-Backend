@@ -156,9 +156,6 @@ namespace CalculateFunding.Functions.CalcEngine
                     jobManagement);
             });
 
-            builder
-                .AddSingleton<IBlobContainerRepository, BlobContainerRepository>();
-
             builder.AddSingleton<ISourceFileRepository, SourceFileRepository>((ctx) =>
             {
                 BlobStorageOptions blobStorageOptions = new BlobStorageOptions();
@@ -167,7 +164,8 @@ namespace CalculateFunding.Functions.CalcEngine
 
                 blobStorageOptions.ContainerName = "source";
 
-                return new SourceFileRepository(blobStorageOptions, ctx.GetService<IBlobContainerRepository>());
+                IBlobContainerRepository blobContainerRepository = new BlobContainerRepository(blobStorageOptions);
+                return new SourceFileRepository(blobContainerRepository);
             });
 
             builder
@@ -231,7 +229,6 @@ namespace CalculateFunding.Functions.CalcEngine
             builder.AddSingleton<IValidator<ICalculatorResiliencePolicies>, CalculatorResiliencePoliciesValidator>();
             builder.AddSingleton<ICalculationEngineServiceValidator, CalculationEngineServiceValidator>();
             builder.AddSingleton<ISpecificationAssemblyProvider, SpecificationAssemblyProvider>();
-            builder.AddSingleton<IBlobContainerRepository, BlobContainerRepository>();
             builder.AddSingleton<IBlobClient>(ctx =>
             {
                 BlobStorageOptions options = new BlobStorageOptions();
@@ -240,7 +237,8 @@ namespace CalculateFunding.Functions.CalcEngine
 
                 options.ContainerName = "source";
 
-                return new BlobClient(options, ctx.GetService<IBlobContainerRepository>());
+                IBlobContainerRepository blobContainerRepository = new BlobContainerRepository(options);
+                return new BlobClient(blobContainerRepository);
             });
 
             ServicePointManager.DefaultConnectionLimit = 200;

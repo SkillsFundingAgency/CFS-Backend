@@ -176,9 +176,6 @@ namespace CalculateFunding.Api.Specs
             builder.AddSingleton<ISpecificationTemplateVersionChangedHandler, SpecificationTemplateVersionChangedHandler>();
 
             builder
-                .AddSingleton<IBlobContainerRepository, BlobContainerRepository>();
-
-            builder
                 .AddSingleton<IBlobClient, BlobClient>((ctx) =>
                 {
                     BlobStorageOptions storageSettings = new BlobStorageOptions();
@@ -187,7 +184,8 @@ namespace CalculateFunding.Api.Specs
 
                     storageSettings.ContainerName = "providerversions";
 
-                    return new BlobClient(storageSettings, ctx.GetService<IBlobContainerRepository>());
+                    IBlobContainerRepository blobContainerRepository = new BlobContainerRepository(storageSettings);
+                    return new BlobClient(blobContainerRepository);
                 });
 
             builder.AddSingleton<IVersionRepository<Models.Specs.SpecificationVersion>, VersionRepository<Models.Specs.SpecificationVersion>>((ctx) =>

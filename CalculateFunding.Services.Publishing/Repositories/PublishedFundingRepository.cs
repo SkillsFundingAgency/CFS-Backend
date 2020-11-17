@@ -268,7 +268,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
             string id = $"publishedprovider-{providerId}-{fundingPeriodId}-{fundingStreamId}-{version}";
             string partitionKey = $"publishedprovider-{providerId}-{fundingPeriodId}-{fundingStreamId}";
 
-            return (await _repository.ReadDocumentByIdPartitionedAsync<PublishedProviderVersion>(id, partitionKey))?.Content;
+            return (await _repository.TryReadDocumentByIdPartitionedAsync<PublishedProviderVersion>(id, partitionKey))?.Content;
         }
 
         public async Task<HttpStatusCode> UpsertPublishedFunding(PublishedFunding publishedFunding)

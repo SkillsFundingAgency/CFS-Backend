@@ -89,8 +89,6 @@ namespace CalculateFunding.Services.Publishing.IoC
 
             serviceCollection.AddSingleton(searchSettings);
             serviceCollection.AddSingleton<ISearchRepository<PublishedFundingIndex>, SearchRepository<PublishedFundingIndex>>();
-            serviceCollection
-                .AddSingleton<IBlobContainerRepository, BlobContainerRepository>();
             serviceCollection.AddSingleton<IPublishedFundingContentsPersistanceService>((ctx) =>
             {
                 BlobStorageOptions storageSettings = new BlobStorageOptions();
@@ -99,7 +97,9 @@ namespace CalculateFunding.Services.Publishing.IoC
 
                 storageSettings.ContainerName = "publishedfunding";
 
-                IBlobClient blobClient = new BlobClient(storageSettings, ctx.GetService<IBlobContainerRepository>());
+                IBlobContainerRepository blobContainerRepository = new BlobContainerRepository(storageSettings);
+
+                IBlobClient blobClient = new BlobClient(blobContainerRepository);
 
                 IPublishedFundingContentsGeneratorResolver publishedFundingContentsGeneratorResolver = ctx.GetService<IPublishedFundingContentsGeneratorResolver>();
 
