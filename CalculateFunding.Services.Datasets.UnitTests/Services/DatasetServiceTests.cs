@@ -297,7 +297,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetService service = CreateDatasetService(datasetRepository: datasetRepository);
 
             // Act
-            IActionResult result = await service.GetDatasetsByDefinitionId(DataDefintionId);
+            IActionResult result = await service.GetDatasetsByDefinitionId(DataDefinitionId);
 
             // Assert
             result
@@ -338,7 +338,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetService service = CreateDatasetService(datasetRepository: datasetRepository, mapper: mapper);
 
             // Act
-            IActionResult result = await service.GetDatasetsByDefinitionId(DataDefintionId);
+            IActionResult result = await service.GetDatasetsByDefinitionId(DataDefinitionId);
 
             // Assert
             result

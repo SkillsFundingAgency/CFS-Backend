@@ -23,6 +23,10 @@ namespace CalculateFunding.Models.Datasets
 
         public int RowCount { get; set; }
 
+        public int NewRowCount { get; set; }
+
+        public int AmendedRowCount { get; set; }
+
         public Reference FundingStream { get; set; }
 
         public override VersionedItem Clone()
@@ -36,7 +40,9 @@ namespace CalculateFunding.Models.Datasets
                 Author = Author,
                 Comment = Comment,
                 BlobName = BlobName,
-                FundingStream = FundingStream
+                FundingStream = FundingStream,
+                NewRowCount = NewRowCount,
+                AmendedRowCount = AmendedRowCount
             };
         }
     }

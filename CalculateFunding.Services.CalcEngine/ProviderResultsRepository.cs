@@ -82,11 +82,12 @@ namespace CalculateFunding.Services.CalcEngine
 
             IEnumerable<KeyValuePair<string, ProviderResult>> results = providerResults.Select(m => new KeyValuePair<string, ProviderResult>(m.Provider.Id, m));
 
+
             long cosmosSaveTime = await BulkSaveProviderResults(results);
 
             // Need to wait until the save provider results completed before triggering the search index writer jobs.
             long queueSearchWriterJobTime = await QueueSearchIndexWriterJob(providerResults, specificationSummary, user, correlationId);
-
+            
             // Only save batch to redis if it has been saved successfully. This enables the message to be requeued for throttled scenarios and will resave to cosmos/search
             _calculationsHashProvider.EndBatch(batchSpecificationId, partitionIndex, partitionSize);
 

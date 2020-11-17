@@ -342,7 +342,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             byte[] excelAsBytes = new byte[0];
 
-            IExcelWriter<DatasetDefinition> excelWriter = CreateExcelWriter();
+            IExcelDatasetWriter excelWriter = CreateExcelWriter();
             excelWriter
                 .Write(Arg.Any<DatasetDefinition>())
                 .Returns(excelAsBytes);
@@ -407,7 +407,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             byte[] excelAsBytes = new byte[100];
 
-            IExcelWriter<DatasetDefinition> excelWriter = CreateExcelWriter();
+            IExcelDatasetWriter excelWriter = CreateExcelWriter();
             excelWriter
                 .Write(Arg.Any<DatasetDefinition>())
                 .Returns(excelAsBytes);
@@ -479,7 +479,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             byte[] excelAsBytes = new byte[100];
 
-            IExcelWriter<DatasetDefinition> excelWriter = CreateExcelWriter();
+            IExcelDatasetWriter excelWriter = CreateExcelWriter();
             excelWriter
                 .Write(Arg.Any<DatasetDefinition>())
                 .Returns(excelAsBytes);
@@ -580,7 +580,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             byte[] excelAsBytes = new byte[100];
 
-            IExcelWriter<DatasetDefinition> excelWriter = CreateExcelWriter();
+            IExcelDatasetWriter excelWriter = CreateExcelWriter();
             excelWriter
                 .Write(Arg.Any<DatasetDefinition>())
                 .Returns(excelAsBytes);
@@ -683,7 +683,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             byte[] excelAsBytes = new byte[100];
 
-            IExcelWriter<DatasetDefinition> excelWriter = CreateExcelWriter();
+            IExcelDatasetWriter excelWriter = CreateExcelWriter();
             excelWriter
                 .Write(Arg.Any<DatasetDefinition>())
                 .Returns(excelAsBytes);
@@ -773,7 +773,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             byte[] excelAsBytes = new byte[100];
 
-            IExcelWriter<DatasetDefinition> excelWriter = CreateExcelWriter();
+            IExcelDatasetWriter excelWriter = CreateExcelWriter();
             excelWriter
                 .Write(Arg.Any<DatasetDefinition>())
                 .Returns(excelAsBytes);
@@ -886,7 +886,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             byte[] excelAsBytes = new byte[100];
 
-            IExcelWriter<DatasetDefinition> excelWriter = CreateExcelWriter();
+            IExcelDatasetWriter excelWriter = CreateExcelWriter();
             excelWriter
                 .Write(Arg.Any<DatasetDefinition>())
                 .Returns(excelAsBytes);
@@ -1296,7 +1296,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             byte[] excelAsBytes = new byte[100];
 
-            IExcelWriter<DatasetDefinition> excelWriter = CreateExcelWriter();
+            IExcelDatasetWriter excelWriter = CreateExcelWriter();
             excelWriter
                 .Write(Arg.Any<DatasetDefinition>())
                 .Returns(excelAsBytes);
@@ -1381,7 +1381,7 @@ namespace CalculateFunding.Services.Datasets.Services
             IDatasetRepository datasetsRepository = null,
             ISearchRepository<DatasetDefinitionIndex> datasetDefinitionSearchRepository = null,
             IDatasetsResiliencePolicies datasetsResiliencePolicies = null,
-            IExcelWriter<DatasetDefinition> excelWriter = null,
+            IExcelDatasetWriter excelWriter = null,
             IBlobClient blobClient = null,
             IDefinitionChangesDetectionService definitionChangesDetectionService = null,
             IMessengerService messengerService = null,
@@ -1447,9 +1447,9 @@ namespace CalculateFunding.Services.Datasets.Services
             return Substitute.For<IBlobClient>();
         }
 
-        static IExcelWriter<DatasetDefinition> CreateExcelWriter()
+        static IExcelDatasetWriter CreateExcelWriter()
         {
-            return Substitute.For<IExcelWriter<DatasetDefinition>>();
+            return Substitute.For<IExcelDatasetWriter>();
         }
 
         static ILogger CreateLogger()

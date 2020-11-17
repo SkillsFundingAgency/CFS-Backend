@@ -24,6 +24,7 @@ using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.DataImporter;
+using CalculateFunding.Services.DataImporter.Models;
 using CalculateFunding.Services.DataImporter.Validators.Models;
 using CalculateFunding.Services.Datasets.Interfaces;
 using FluentAssertions;
@@ -139,7 +140,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IDictionary<string, string> metaData = new Dictionary<string, string>
             {
-                { "dataDefinitionId", DataDefintionId }
+                { "dataDefinitionId", DataDefinitionId }
             };
 
             ICloudBlob blob = Substitute.For<ICloudBlob>();
@@ -162,7 +163,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetDefinition datasetDefinition = new DatasetDefinition
             {
-                Id = DataDefintionId,
+                Id = DataDefinitionId,
                 FundingStreamId = FundingStreamId
             };
 
@@ -207,7 +208,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IDictionary<string, string> metaData = new Dictionary<string, string>
             {
-                { "dataDefinitionId", DataDefintionId }
+                { "dataDefinitionId", DataDefinitionId }
             };
 
             ICloudBlob blob = Substitute.For<ICloudBlob>();
@@ -244,11 +245,11 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Which
                 .Value
                 .Should()
-                .Be($"Unable to find a data definition for id: {DataDefintionId}, for blob: {blobPath}");
+                .Be($"Unable to find a data definition for id: {DataDefinitionId}, for blob: {blobPath}");
 
             logger
                 .Received(1)
-                .Error(Arg.Is($"Unable to find a data definition for id: {DataDefintionId}, for blob: {blobPath}"));
+                .Error(Arg.Is($"Unable to find a data definition for id: {DataDefinitionId}, for blob: {blobPath}"));
         }
 
         [TestMethod]
@@ -265,7 +266,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IDictionary<string, string> metaData = new Dictionary<string, string>
             {
-                { "dataDefinitionId", DataDefintionId },
+                { "dataDefinitionId", DataDefinitionId },
                 { "fundingStreamId", FundingStreamId }
             };
 
@@ -291,7 +292,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetDefinition datasetDefinition = new DatasetDefinition
             {
-                Id = DataDefintionId,
+                Id = DataDefinitionId,
                 FundingStreamId = FundingStreamId
             };
 
@@ -383,7 +384,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IDictionary<string, string> metaData = new Dictionary<string, string>
             {
-                { "dataDefinitionId", DataDefintionId },
+                { "dataDefinitionId", DataDefinitionId },
                 { "fundingStreamId", FundingStreamId }
             };
 
@@ -409,7 +410,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetDefinition datasetDefinition = new DatasetDefinition
             {
-                Id = DataDefintionId,
+                Id = DataDefinitionId,
                 FundingStreamId = FundingStreamId
             };
 
@@ -482,7 +483,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IDictionary<string, string> metaData = new Dictionary<string, string>
             {
-                { "dataDefinitionId", DataDefintionId },
+                { "dataDefinitionId", DataDefinitionId },
                 { "fundingStreamId", FundingStreamId }
             };
 
@@ -508,7 +509,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetDefinition datasetDefinition = new DatasetDefinition
             {
-                Id = DataDefintionId,
+                Id = DataDefinitionId,
                 FundingStreamId = FundingStreamId
             };
 
@@ -571,7 +572,7 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task ValidateDataset_GivenDatasetBlobModel_CallsJobServiceToQueueJob()
         {
             // Arrange
-            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _.WithDefinitionId(DataDefintionId));
+            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _.WithDefinitionId(DataDefinitionId));
 
             string blobPath = $"{model.DatasetId}/v{model.Version}/{model.Filename}";
 
@@ -579,7 +580,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IDictionary<string, string> metaData = new Dictionary<string, string>
             {
-                { "dataDefinitionId", DataDefintionId }
+                { "dataDefinitionId", DataDefinitionId }
             };
 
             ICloudBlob blob = Substitute.For<ICloudBlob>();
@@ -599,7 +600,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetDefinition datasetDefinition = new DatasetDefinition()
             {
-                Id = DataDefintionId,
+                Id = DataDefinitionId,
                 FundingStreamId = FundingStreamId
             };
 
@@ -652,7 +653,7 @@ namespace CalculateFunding.Services.Datasets.Services
             const string authorId = "user1";
             const string authorName = "user 1";
 
-            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _.WithDefinitionId(DataDefintionId));
+            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _.WithDefinitionId(DataDefinitionId));
 
             string blobPath = $"{model.DatasetId}/v{model.Version}/{model.Filename}";
 
@@ -660,7 +661,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IDictionary<string, string> metaData = new Dictionary<string, string>
             {
-                { "dataDefinitionId", DataDefintionId },
+                { "dataDefinitionId", DataDefinitionId },
                 { "authorId", authorId },
                 { "authorName", authorName }
             };
@@ -682,7 +683,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetDefinition datasetDefinition = new DatasetDefinition()
             {
-                Id = DataDefintionId,
+                Id = DataDefinitionId,
                 FundingStreamId = FundingStreamId
             };
 
@@ -736,7 +737,7 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task OnValidateDataset_GivenInvalidFundingStreamId_EnsuresFundingStreamIdErrorReturned()
         {
             //Arrange
-            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _.WithDefinitionId(DataDefintionId));
+            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _.WithDefinitionId(DataDefinitionId));
 
             string blobPath = $"{model.DatasetId}/v{model.Version}/{model.Filename}";
 
@@ -746,7 +747,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IDictionary<string, string> metaData = new Dictionary<string, string>
             {
-                { "dataDefinitionId", DataDefintionId },
+                { "dataDefinitionId", DataDefinitionId },
                 { "fundingStreamId", FundingStreamId }
             };
 
@@ -769,7 +770,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetDefinition datasetDefinition = new DatasetDefinition
             {
-                Id = DataDefintionId,
+                Id = DataDefinitionId,
                 FundingStreamId = FundingStreamId
             };
 
@@ -863,7 +864,7 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task OnValidateDataset_GivenTableResultsContainsThreeErrors_EnsuresValidationResultModelIsWrittenToCache()
         {
             //Arrange
-            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _.WithDefinitionId(DataDefintionId));
+            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _.WithDefinitionId(DataDefinitionId));
 
             string blobPath = $"{model.DatasetId}/v{model.Version}/{model.Filename}";
 
@@ -873,7 +874,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IDictionary<string, string> metaData = new Dictionary<string, string>
             {
-                { "dataDefinitionId", DataDefintionId },
+                { "dataDefinitionId", DataDefinitionId },
                 { "fundingStreamId", FundingStreamId }
             };
 
@@ -899,7 +900,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetDefinition datasetDefinition = new DatasetDefinition
             {
-                Id = DataDefintionId,
+                Id = DataDefinitionId,
                 FundingStreamId = FundingStreamId
             };
 
@@ -1025,7 +1026,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetDefinition datasetDefinition = new DatasetDefinition
             {
-                Id = DataDefintionId,
+                Id = DataDefinitionId,
                 FundingStreamId = FundingStreamId
             };
 
@@ -1133,7 +1134,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetDefinition datasetDefinition = new DatasetDefinition
             {
-                Id = DataDefintionId,
+                Id = DataDefinitionId,
                 FundingStreamId = FundingStreamId
             };
 
@@ -2485,7 +2486,6 @@ namespace CalculateFunding.Services.Datasets.Services
                      ));
         }
 
-
         [TestMethod]
         public async Task OnValidateDataset_WhenBlobReturnsDuplicateDatasetNameWithDifferentDataSetId_ThenErrorLogged()
         {
@@ -2669,9 +2669,12 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task OnValidateDataset_WhenExcelValidationErrorsReturned_ThenErrorLogged()
         {
             const string testXlsxLocation = @"TestItems/TestCheck.xlsx";
+            const string name = "name";
+            const string initialDescription = "Initial description";
 
             // Arrange
-            GetDatasetBlobModel getDatasetBlobModel = NewGetDatasetBlobModel();
+            GetDatasetBlobModel getDatasetBlobModel = NewGetDatasetBlobModel(_ => _.WithVersion(2)
+            .WithFundingStreamId(FundingStreamId));
 
             Message message = GetValidateDatasetMessage(getDatasetBlobModel);
 
@@ -2690,15 +2693,23 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Returns(validationResult);
 
 
-            ICloudBlob cloubBlob = Substitute.For<ICloudBlob>();
-            cloubBlob
+            ICloudBlob cloudBlob = Substitute.For<ICloudBlob>();
+            cloudBlob
                 .Name
                 .Returns($"{getDatasetBlobModel.DatasetId}/v{getDatasetBlobModel.Version}/{getDatasetBlobModel.Filename}");
+
+            Dictionary<string, string> blobMetadata = new Dictionary<string, string>();
+            blobMetadata.Add("fundingStreamId", getDatasetBlobModel.FundingStreamId);
+            blobMetadata.Add("dataDefinitionId", getDatasetBlobModel.DefinitionId);
+
+            cloudBlob
+                .Metadata
+                .Returns(blobMetadata);
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
                 .GetBlobReferenceFromServerAsync(Arg.Any<string>())
-                .Returns(cloubBlob);
+                .Returns(cloudBlob);
 
             File.Copy(@"TestItems/1718HNStudNumbers.xlsx", testXlsxLocation, true);
             FileInfo testFile = new FileInfo(testXlsxLocation);
@@ -2722,9 +2733,53 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Validate(Arg.Any<ExcelPackage>())
                 .Returns(excelValidationResult);
 
+            DatasetDefinition datasetDefinition = new DatasetDefinition
+            {
+                Id = getDatasetBlobModel.DefinitionId,
+                Name = "Dataset Definition Name",
+                FundingStreamId = FundingStreamId
+            };
+
+            IEnumerable<DatasetDefinition> datasetDefinitions = new[]
+            {
+                datasetDefinition
+            };
+
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            datasetRepository
+                .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DocumentEntity<DatasetDefinition>, bool>>>())
+                .Returns(datasetDefinitions);
+
+            DatasetVersion existingDatasetVersion = new DatasetVersion()
+            {
+                Version = 1,
+            };
+
+            Dataset existingDataset = new Dataset()
+            {
+                Id = getDatasetBlobModel.DatasetId,
+                Current = existingDatasetVersion,
+                History = new List<DatasetVersion>() { existingDatasetVersion },
+                Definition = new Reference(datasetDefinition.Id, datasetDefinition.Name),
+                Description = initialDescription,
+                Name = name,
+                Published = null,
+            };
+
+            datasetRepository
+                .GetDatasetsByQuery(Arg.Any<Expression<Func<DocumentEntity<Dataset>, bool>>>())
+                .Returns(new[] { existingDataset });
+
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingStreams()
+                .Returns(NewFundingStreams());
+
             DatasetService service = CreateDatasetService(
                 logger: logger,
                 cacheProvider: cacheProvider,
+                datasetRepository: datasetRepository,
+                policyRepository: policyRepository,
                 getDatasetBlobModelValidator: validator,
                 blobClient: blobClient,
                 datasetWorksheetValidator: excelPackageValidator);
@@ -2769,8 +2824,12 @@ namespace CalculateFunding.Services.Datasets.Services
         [TestMethod]
         public async Task OnValidateDataset_WhenExceptionThrownDuringExcelValidation_ThenErrorLogged()
         {
+            const string name = "name";
+            const string initialDescription = "Initial description";
+
             // Arrange
-            GetDatasetBlobModel getDatasetBlobModel = NewGetDatasetBlobModel();
+            GetDatasetBlobModel getDatasetBlobModel = NewGetDatasetBlobModel(_ => _.WithVersion(2)
+            .WithFundingStreamId(FundingStreamId));
 
             Message message = GetValidateDatasetMessage(getDatasetBlobModel);
 
@@ -2789,15 +2848,23 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Returns(validationResult);
 
 
-            ICloudBlob cloubBlob = Substitute.For<ICloudBlob>();
-            cloubBlob
+            ICloudBlob cloudBlob = Substitute.For<ICloudBlob>();
+            cloudBlob
                 .Name
                 .Returns($"{getDatasetBlobModel.DatasetId}/v{getDatasetBlobModel.Version}/{getDatasetBlobModel.Filename}");
+
+            Dictionary<string, string> blobMetadata = new Dictionary<string, string>();
+            blobMetadata.Add("fundingStreamId", getDatasetBlobModel.FundingStreamId);
+            blobMetadata.Add("dataDefinitionId", getDatasetBlobModel.DefinitionId);
+
+            cloudBlob
+                .Metadata
+                .Returns(blobMetadata);
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
                 .GetBlobReferenceFromServerAsync(Arg.Any<string>())
-                .Returns(cloubBlob);
+                .Returns(cloudBlob);
 
             MemoryStream stream = new MemoryStream(new byte[] { 0 });
 
@@ -2811,9 +2878,53 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Validate(Arg.Any<ExcelPackage>())
                 .Returns(x => { throw new Exception("Test exception"); });
 
+            DatasetDefinition datasetDefinition = new DatasetDefinition
+            {
+                Id = getDatasetBlobModel.DefinitionId,
+                Name = "Dataset Definition Name",
+                FundingStreamId = FundingStreamId
+            };
+
+            IEnumerable<DatasetDefinition> datasetDefinitions = new[]
+            {
+                datasetDefinition
+            };
+
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            datasetRepository
+                .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DocumentEntity<DatasetDefinition>, bool>>>())
+                .Returns(datasetDefinitions);
+
+            DatasetVersion existingDatasetVersion = new DatasetVersion()
+            {
+                Version = 1,
+            };
+
+            Dataset existingDataset = new Dataset()
+            {
+                Id = getDatasetBlobModel.DatasetId,
+                Current = existingDatasetVersion,
+                History = new List<DatasetVersion>() { existingDatasetVersion },
+                Definition = new Reference(datasetDefinition.Id, datasetDefinition.Name),
+                Description = initialDescription,
+                Name = name,
+                Published = null,
+            };
+
+            datasetRepository
+                .GetDatasetsByQuery(Arg.Any<Expression<Func<DocumentEntity<Dataset>, bool>>>())
+                .Returns(new[] { existingDataset });
+
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingStreams()
+                .Returns(NewFundingStreams());
+
             DatasetService service = CreateDatasetService(
                 logger: logger,
                 cacheProvider: cacheProvider,
+                datasetRepository: datasetRepository,
+                policyRepository: policyRepository,
                 getDatasetBlobModelValidator: validator,
                 blobClient: blobClient,
                 datasetWorksheetValidator: excelPackageValidator);
@@ -2946,16 +3057,7 @@ namespace CalculateFunding.Services.Datasets.Services
                     s.OperationId == message.UserProperties["operation-id"].ToString()
                     ));
 
-            await cacheProvider
-                .Received(1)
-                .SetAsync<DatasetValidationStatusModel>(
-                Arg.Is<string>(a => a.StartsWith(CacheKeys.DatasetValidationStatus)),
-                Arg.Is<DatasetValidationStatusModel>(s =>
-                    s.CurrentOperation == DatasetValidationStatus.ValidatingExcelWorkbook &&
-                    s.OperationId == message.UserProperties["operation-id"].ToString()
-                    ));
-
-            await cacheProvider
+              await cacheProvider
                  .Received(1)
                  .SetAsync<DatasetValidationStatusModel>(
                  Arg.Is<string>(a => a.StartsWith(CacheKeys.DatasetValidationStatus)),
@@ -3140,6 +3242,227 @@ namespace CalculateFunding.Services.Datasets.Services
                     .Received(1)
                     .UpdateJobStatus(Arg.Is(JobId), percentComplete, null, null);
             }
+            await jobManagement
+                .Received(1)
+                .UpdateJobStatus(Arg.Is(JobId), 0, 0, true, "Dataset passed validation");
+        }
+
+        [TestMethod]
+        public async Task OnValidateDataset_GivenValidDatasetToMerge_ThenItMergesWithPreviousVersionOfDataset()
+        {
+            //Arrange
+            const string authorId = "author-id";
+            const string authorName = "author-name";
+            const string name = "name";
+            const string description = "updated description";
+            const string operationId = "operationId";
+            const int newRowCount = 3;
+            const int updatedRowCount = 2;
+
+            IDictionary<string, string> metaData = new Dictionary<string, string>
+                {
+                    { "dataDefinitionId", DataDefinitionId },
+                    { "authorName", authorName },
+                    { "authorId", authorId },
+                    { "datasetId", DatasetId },
+                    { "name", name },
+                    { "description", description },
+                    { "fundingStreamId", FundingStreamId }
+            };
+
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingStreams()
+                .Returns(NewFundingStreams());
+
+            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _.WithVersion(2)
+                                                                    .WithFundingStreamId(FundingStreamId)
+                                                                    .WithDatasetId(DatasetId)
+                                                                    .WithFileName("ds.xlsx")
+                                                                    .WithMergeExistingVersion(true)
+                                                                    .WithComment("MergeTest")
+                                                                    .WithLastUpdatedBy(new ReferenceBuilder()
+                                                                    .WithId(authorId)
+                                                                    .WithName(authorName))
+                                                                    .WithDescription(description));
+
+            Message message = GetValidateDatasetMessage(model);
+
+            ILogger logger = CreateLogger();
+
+            ICloudBlob blob = Substitute.For<ICloudBlob>();
+            blob
+                .Metadata
+                .Returns(metaData);
+
+            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .GetBlobReferenceFromServerAsync(Arg.Is(model.ToString()))
+                .Returns(blob);
+            blobClient
+                .DownloadToStreamAsync(Arg.Is(blob))
+                .Returns(memoryStream);
+
+            DatasetDefinition datasetDefinition = new DatasetDefinition
+            {
+                Id = DataDefinitionId,
+                FundingStreamId = FundingStreamId,
+                Name = name
+            };
+
+            IEnumerable<DatasetDefinition> datasetDefinitions = new[]
+            {
+                datasetDefinition
+            };
+
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            datasetRepository
+                .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DocumentEntity<DatasetDefinition>, bool>>>())
+                .Returns(datasetDefinitions);
+            
+            DatasetVersion existingDatasetVersion = new DatasetVersion()
+            {
+                Version = 1,
+            };
+
+            Dataset existingDataset = new Dataset()
+            {
+                Id = model.DatasetId,
+                Current = existingDatasetVersion,
+                History = new List<DatasetVersion>() { existingDatasetVersion },
+                Definition = new Reference(datasetDefinition.Id, datasetDefinition.Name),
+                Description = "description",
+                Name = name,
+                Published = null,
+            };
+
+            datasetRepository
+                .GetDatasetsByQuery(Arg.Any<Expression<Func<DocumentEntity<Dataset>, bool>>>())
+                .Returns(new[] { existingDataset });
+
+            datasetRepository.GetDatasetByDatasetId(model.DatasetId)
+                .Returns(existingDataset);
+
+            datasetRepository
+                .SaveDataset(Arg.Any<Dataset>())
+                .Returns(HttpStatusCode.OK);
+
+            IEnumerable<TableLoadResult> tableLoadResults = new[]
+            {
+                new TableLoadResult{ GlobalErrors = new List<DatasetValidationError>() }
+            };
+
+            ISearchRepository<DatasetIndex> searchRepository = CreateSearchRepository();
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
+            ApiResponse<ProviderVersion> providerVersionResponse = new ApiResponse<ProviderVersion>(HttpStatusCode.OK, new ProviderVersion
+            {
+                Providers = new[]
+                {
+                    new Common.ApiClient.Providers.Models.Provider()
+                }
+            });
+
+            IJobManagement jobManagement = CreateJobManagement();
+
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
+                .GetCurrentProvidersForFundingStream(FundingStreamId)
+                .Returns(providerVersionResponse);
+
+            DatasetDataTableMergeResult tableMergeResult = new DatasetDataTableMergeResult()
+            {
+                TableDefinitionName = "Test-data-definition-name",
+                NewRowsCount = newRowCount,
+                UpdatedRowsCount = updatedRowCount
+            };
+            DatasetDataMergeResult mergeResult = new DatasetDataMergeResult();
+            mergeResult.TablesMergeResults.Add(tableMergeResult);
+
+            IDatasetDataMergeService datasetDataMergeService = CreateDatasetDataMergeService();
+            datasetDataMergeService.Merge(Arg.Is<DatasetDefinition>(_ => _.Id == DataDefinitionId), Arg.Any<string>(), Arg.Any<string>())
+                .Returns(mergeResult);
+
+            DatasetService service = CreateDatasetService(logger: logger,
+                blobClient: blobClient,
+                datasetRepository: datasetRepository,
+                searchRepository: searchRepository,
+                cacheProvider: cacheProvider,
+                jobManagement: jobManagement,
+                providersApiClient: providersApiClient,
+                policyRepository: policyRepository,
+                datasetDataMergeService: datasetDataMergeService);
+
+            // Act
+            await service.Run(message);
+
+            // Assert
+
+            // Ensure initial version is set
+            await datasetRepository
+                .Received(1)
+                .SaveDataset(Arg.Is<Dataset>(d =>
+                d.Current.Version == 2
+                ));
+
+            await datasetRepository
+                .Received(1)
+                .SaveDataset(Arg.Is<Dataset>(d =>
+                d.Current.Comment == "MergeTest"
+                ));
+
+            // Ensure the rest of the properties are set
+            await datasetRepository
+                .Received(1)
+                .SaveDataset(Arg.Is<Dataset>(d =>
+                d.Definition.Id == DataDefinitionId &&
+                d.Current.Author.Name == authorName &&
+                d.Current.Author.Id == authorId &&
+                d.Name == name &&
+                d.Description == description &&
+                d.Current.NewRowCount == newRowCount &&
+                d.Current.AmendedRowCount == updatedRowCount
+                ));
+
+            await searchRepository
+                .Received(1)
+                .Index(Arg.Is<IEnumerable<DatasetIndex>>(
+                    d => d.First().Id == DatasetId &&
+                    d.First().DefinitionId == DataDefinitionId &&
+                    d.First().DefinitionName == datasetDefinition.Name &&
+                    d.First().Name == name &&
+                    d.First().Status == "Draft" &&
+                    d.First().Version == 2 &&
+                    d.First().Description == description &&
+                    d.First().LastUpdatedById == authorId &&
+                    d.First().LastUpdatedByName == authorName &&
+                    d.First().ChangeNote == "MergeTest"
+              ));
+
+            await cacheProvider
+                 .Received(1)
+                 .SetAsync<DatasetValidationStatusModel>(
+                 Arg.Is<string>(a => a.StartsWith(CacheKeys.DatasetValidationStatus)),
+                 Arg.Is<DatasetValidationStatusModel>(s =>
+                     s.CurrentOperation == DatasetValidationStatus.Validated &&
+                     s.ErrorMessage == null &&
+                     s.OperationId == operationId
+                     ));
+
+            for (int percentComplete = 25; percentComplete < 75; percentComplete += 25)
+            {
+                await jobManagement
+                    .Received(1)
+                    .UpdateJobStatus(Arg.Is(JobId), percentComplete, null, null);
+            }
+
+            await jobManagement
+                    .Received(1)
+                    .UpdateJobStatus(Arg.Is(JobId), 35, null, null);
+
             await jobManagement
                 .Received(1)
                 .UpdateJobStatus(Arg.Is(JobId), 0, 0, true, "Dataset passed validation");

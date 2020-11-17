@@ -45,6 +45,7 @@ using JobCreateModel = CalculateFunding.Common.ApiClient.Jobs.Models.JobCreateMo
 using Trigger = CalculateFunding.Common.ApiClient.Jobs.Models.Trigger;
 using PoliciesApiModels = CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Services.Processing;
+using CalculateFunding.Services.DataImporter.Models;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -69,6 +70,7 @@ namespace CalculateFunding.Services.Datasets
         private readonly IProviderSourceDatasetRepository _providerSourceDatasetRepository;
         private readonly ISpecificationsApiClient _specificationsApiClient;
         private readonly IPolicyRepository _policyRepository;
+        private readonly IDatasetDataMergeService _datasetDataMergeService;
 
         public DatasetService(
             IBlobClient blobClient,
@@ -89,7 +91,8 @@ namespace CalculateFunding.Services.Datasets
             IJobManagement jobManagement,
             IProviderSourceDatasetRepository providerSourceDatasetRepository,
             ISpecificationsApiClient specificationsApiClient,
-            IPolicyRepository policyRepository) : base(jobManagement, logger)
+            IPolicyRepository policyRepository,
+            IDatasetDataMergeService datasetDataMergeService) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(blobClient, nameof(blobClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -109,6 +112,7 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(providerSourceDatasetRepository, nameof(providerSourceDatasetRepository));
             Guard.ArgumentNotNull(policyRepository, nameof(policyRepository));
+            Guard.ArgumentNotNull(datasetDataMergeService, nameof(datasetDataMergeService));
 
             _blobClient = blobClient;
             _logger = logger;
@@ -129,6 +133,7 @@ namespace CalculateFunding.Services.Datasets
             _providerSourceDatasetRepository = providerSourceDatasetRepository;
             _specificationsApiClient = specificationsApiClient;
             _policyRepository = policyRepository;
+            _datasetDataMergeService = datasetDataMergeService;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -416,6 +421,8 @@ namespace CalculateFunding.Services.Datasets
 
             await _cacheProvider.SetAsync($"{CacheKeys.DatasetValidationStatus}:{responseModel.OperationId}", responseModel);
 
+            //Validate the dataset
+
             return new OkObjectResult(responseModel);
         }
 
@@ -481,6 +488,7 @@ namespace CalculateFunding.Services.Datasets
                 throw new NonRetriableException("Failed validation - file contains no data");
             }
 
+            Dataset dataset;
             IEnumerable<Dataset> datasets = _datasetRepository.GetDatasetsByQuery(m => m.Content.Name.ToLower() == blob.Metadata["name"].ToLower()).Result;
             if (datasets != null && datasets.Any() &&
                 (datasets.Any(d => d.Id != model.DatasetId) || datasets.Any(d => d.Id == model.DatasetId && d.Current.Version >= model.Version)))
@@ -490,33 +498,9 @@ namespace CalculateFunding.Services.Datasets
                 await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, $"Dataset {blob.Metadata["name"]} needs to be a unique name");
                 throw new NonRetriableException("Failed validation - dataset name needs to be unique");
             }
-
-            try
+            else
             {
-                await SetValidationStatus(operationId, DatasetValidationStatus.ValidatingExcelWorkbook);
-                await NotifyPercentComplete(25);
-
-                using ExcelPackage excel = new ExcelPackage(datasetStream);
-                validationResult = _dataWorksheetValidator.Validate(excel);
-
-                if (validationResult != null && (!validationResult.IsValid || validationResult.Errors.Count > 0))
-                {
-                    await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, null, ConvertToErrorDictionary(validationResult));
-                    throw new NonRetriableException("Failed validation - with validation errors");
-                }
-            }
-            catch (Exception exception)
-            {
-                const string errorMessage = "The data source file type is invalid. Check that your file is an xls or xlsx file";
-
-                _logger.Error(exception, errorMessage);
-
-                validationResult = new ValidationResult();
-                validationResult.Errors.Add(new ValidationFailure("typical-model-validation-error", string.Empty));
-                validationResult.Errors.Add(new ValidationFailure(nameof(model.Filename), errorMessage));
-
-                await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, null, ConvertToErrorDictionary(validationResult));
-                throw new NonRetriableException("Failed validation - the data source file type is invalid");
+                dataset = datasets.FirstOrDefault(d => d.Id == model.DatasetId);
             }
 
             string dataDefinitionId = blob.Metadata["dataDefinitionId"];
@@ -545,7 +529,55 @@ namespace CalculateFunding.Services.Datasets
             }
 
             PoliciesApiModels.FundingStream fundingStream = fundingStreams.SingleOrDefault(_ => _.Id == fundingStreamId);
+            DatasetDataMergeResult mergeResult = new DatasetDataMergeResult();
 
+            try
+            {
+                await SetValidationStatus(operationId, DatasetValidationStatus.ValidatingExcelWorkbook);
+                await NotifyPercentComplete(25);
+
+                using ExcelPackage excel = new ExcelPackage(datasetStream);
+                
+                validationResult = _dataWorksheetValidator.Validate(excel);
+
+                if (validationResult != null && (!validationResult.IsValid || validationResult.Errors.Count > 0))
+                {
+                    await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, null, ConvertToErrorDictionary(validationResult));
+
+                    throw new NonRetriableException("Failed validation - with validation errors");
+                }
+                else if(model.MergeExistingVersion && dataset != null)
+                {
+                    await NotifyPercentComplete(35);
+                    await SetValidationStatus(operationId, DatasetValidationStatus.MergeInprogress);
+
+                    mergeResult = await _datasetDataMergeService.Merge(datasetDefinition, dataset.Current.BlobName, fullBlobName);
+
+                    if(mergeResult.HasErrors)
+                    {
+                        await SetValidationStatus(operationId, DatasetValidationStatus.MergeFailed, mergeResult.ErrorMessage);
+                        throw new NonRetriableException(mergeResult.ErrorMessage);
+                    }
+                    else
+                    {
+                        await SetValidationStatus(operationId, DatasetValidationStatus.MergeCompleted, mergeResult.GetMergeResultsMessage());
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                const string errorMessage = "The data source file type is invalid. Check that your file is an xls or xlsx file";
+
+                _logger.Error(exception, errorMessage);
+
+                validationResult = new ValidationResult();
+                validationResult.Errors.Add(new ValidationFailure("typical-model-validation-error", string.Empty));
+                validationResult.Errors.Add(new ValidationFailure(nameof(model.Filename), errorMessage));
+
+                await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, null, ConvertToErrorDictionary(validationResult));
+                throw new NonRetriableException("Failed validation - the data source file type is invalid");
+            }
+            
             await SetValidationStatus(operationId, DatasetValidationStatus.ValidatingTableResults);
             await NotifyPercentComplete(50);
 
@@ -562,8 +594,6 @@ namespace CalculateFunding.Services.Datasets
 
                     await SetValidationStatus(operationId, DatasetValidationStatus.SavingResults);
                     await NotifyPercentComplete(75);
-
-                    Dataset dataset;
 
                     if (model.Version == 1)
                     {
@@ -582,11 +612,11 @@ namespace CalculateFunding.Services.Datasets
                             user = message.GetUserDetails();
                         }
 
-                        dataset = await UpdateExistingDatasetAndAddVersion(blob, model, user, rowCount, fundingStream);
+                        dataset = await UpdateExistingDatasetAndAddVersion(blob, model, user, rowCount, fundingStream, mergeResult);
                     }
 
                     await SetValidationStatus(operationId, DatasetValidationStatus.Validated, datasetId: dataset.Id);
-                    
+
                     // set the outcome of the job
                     Outcome = "Dataset passed validation";
                 }
@@ -992,9 +1022,9 @@ namespace CalculateFunding.Services.Datasets
         }
 
         private async Task<Dataset> SaveNewDatasetAndVersion(
-            ICloudBlob blob, 
-            DatasetDefinition datasetDefinition, 
-            int rowCount, 
+            ICloudBlob blob,
+            DatasetDefinition datasetDefinition,
+            int rowCount,
             PoliciesApiModels.FundingStream fundingStream)
         {
             Guard.ArgumentNotNull(blob, nameof(blob));
@@ -1076,11 +1106,12 @@ namespace CalculateFunding.Services.Datasets
         }
 
         private async Task<Dataset> UpdateExistingDatasetAndAddVersion(
-            ICloudBlob blob, 
-            GetDatasetBlobModel model, 
-            Reference author, 
+            ICloudBlob blob,
+            GetDatasetBlobModel model,
+            Reference author,
             int rowCount,
-            PoliciesApiModels.FundingStream fundingStream)
+            PoliciesApiModels.FundingStream fundingStream,
+            DatasetDataMergeResult mergeResult)
         {
             Guard.ArgumentNotNull(blob, nameof(blob));
 
@@ -1112,7 +1143,9 @@ namespace CalculateFunding.Services.Datasets
                 BlobName = blob.Name,
                 Comment = model.Comment,
                 RowCount = rowCount,
-                FundingStream = fundingStream
+                FundingStream = fundingStream,
+                NewRowCount = mergeResult.TotalRowsCreated,
+                AmendedRowCount = mergeResult.TotalRowsAmended
             };
 
             dataset.Description = model.Description;
@@ -1210,7 +1243,7 @@ namespace CalculateFunding.Services.Datasets
                 throw new RetriableException(errorMessage);
             }
 
-            if(providerVersionResponse.StatusCode == HttpStatusCode.NotFound || providerVersionResponse.Content == null || providerVersionResponse.Content.Providers.IsNullOrEmpty())
+            if (providerVersionResponse.StatusCode == HttpStatusCode.NotFound || providerVersionResponse.Content == null || providerVersionResponse.Content.Providers.IsNullOrEmpty())
             {
                 _logger.Error($"No provider version for the funding stream {datasetDefinition.FundingStreamId}");
                 validationFailures.Add(nameof(datasetDefinition.FundingStreamId), new string[] { $"No provider version for the funding stream {datasetDefinition.FundingStreamId}" });
@@ -1247,8 +1280,6 @@ namespace CalculateFunding.Services.Datasets
                         {
                             excelPackage.Stream.Position = 0;
                         }
-
-                        await blob.UploadFromStreamAsync(excelPackage.Stream);
 
                         string blobUrl = _blobClient.GetBlobSasUrl(blob.Name, DateTimeOffset.Now.AddDays(1), SharedAccessBlobPermissions.Read | SharedAccessBlobPermissions.Write);
 

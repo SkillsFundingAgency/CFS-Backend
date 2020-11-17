@@ -7,19 +7,21 @@ using System.Linq;
 
 namespace CalculateFunding.Services.DataImporter
 {
-    public class DataDefinitionExcelWriter : IExcelWriter<DatasetDefinition>
+    public class DataDefinitionExcelWriter : IExcelDatasetWriter
     {
-        public byte[] Write(DatasetDefinition data)
+        public byte[] Write(DatasetDefinition datasetDefinition, IEnumerable<TableLoadResult> data = null)
         {
-            if (data == null)
-                throw new ArgumentNullException(nameof(data), "Null dataset definition was provided");
+            if (datasetDefinition == null)
+                throw new ArgumentNullException(nameof(datasetDefinition), "Null dataset definition was provided");
 
-            if (data.TableDefinitions == null || !data.TableDefinitions.Any())
+            if (datasetDefinition.TableDefinitions == null || !datasetDefinition.TableDefinitions.Any())
                 return null;
+
+            bool haveData = data != null;
 
             using (ExcelPackage package = new ExcelPackage())
             {
-                foreach(TableDefinition tableDefinition in data.TableDefinitions)
+                foreach(TableDefinition tableDefinition in datasetDefinition.TableDefinitions)
                 {
                     int fieldCount = tableDefinition.FieldDefinitions.Count();
 
@@ -38,6 +40,31 @@ namespace CalculateFunding.Services.DataImporter
                         cell.AddComment(excelCellModel.Comment, "Calculate Funding");
 
                         cell.Style.Font.Bold = true;
+                    }
+
+                    if(haveData)
+                    {
+                        TableLoadResult tableData = data.FirstOrDefault(x => x.TableDefinition.Name == tableDefinition.Name);
+
+                        if(tableData != null)
+                        {
+                            int rowNumber = 2;
+                            foreach (RowLoadResult row in tableData.Rows)
+                            {
+                                for (int i = 1; i <= headers.Count(); i++)
+                                {
+                                    ExcelCellModel excelCellModel = headers.ElementAt(i - 1);
+                                    object fieldValue = row.Fields.FirstOrDefault(x => x.Key == excelCellModel.Value.ToString()).Value;
+
+                                    if(fieldValue != null)
+                                    {
+                                        workSheet.Cells[rowNumber, i].Value = fieldValue;
+                                    }
+                                }
+
+                                rowNumber++;
+                            }
+                        }
                     }
 
                     workSheet.Cells[workSheet.Dimension.Address].AutoFitColumns();

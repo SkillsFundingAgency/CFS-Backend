@@ -44,7 +44,7 @@ namespace CalculateFunding.Services.Datasets
         private readonly ISearchRepository<DatasetDefinitionIndex> _datasetDefinitionSearchRepository;
         private readonly AsyncPolicy _datasetDefinitionSearchRepositoryPolicy;
         private readonly AsyncPolicy _datasetsRepositoryPolicy;
-        private readonly IExcelWriter<DatasetDefinition> _excelWriter;
+        private readonly IExcelDatasetWriter _excelWriter;
         private readonly IBlobClient _blobClient;
         private readonly AsyncPolicy _blobClientPolicy;
         private readonly IDefinitionChangesDetectionService _definitionChangesDetectionService;
@@ -60,7 +60,7 @@ namespace CalculateFunding.Services.Datasets
             IDatasetRepository dataSetsRepository,
             ISearchRepository<DatasetDefinitionIndex> datasetDefinitionSearchRepository,
             IDatasetsResiliencePolicies datasetsResiliencePolicies,
-            IExcelWriter<DatasetDefinition> excelWriter,
+            IExcelDatasetWriter excelWriter,
             IBlobClient blobClient,
             IDefinitionChangesDetectionService definitionChangesDetectionService,
             IMessengerService messengerService,

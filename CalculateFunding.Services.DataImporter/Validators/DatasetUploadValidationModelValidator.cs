@@ -14,7 +14,7 @@ using OfficeOpenXml;
 
 namespace CalculateFunding.Services.DataImporter.Validators
 {
-    public class DatasetItemValidator : AbstractValidator<DatasetUploadValidationModel>
+    public class DatasetUploadValidationModelValidator : AbstractValidator<DatasetUploadValidationModel>
     {
 	    public IHeaderValidator HeaderValidator { private get; set; }
         public IList<IFieldValidator> FieldValidators { private get; set; }
@@ -23,7 +23,7 @@ namespace CalculateFunding.Services.DataImporter.Validators
 
         private bool _isValid = true;
 
-        public DatasetItemValidator(IExcelDatasetReader excelDatasetReader)
+        public DatasetUploadValidationModelValidator(IExcelDatasetReader excelDatasetReader)
         {
 	        RuleFor(model => model)
                 .NotNull()

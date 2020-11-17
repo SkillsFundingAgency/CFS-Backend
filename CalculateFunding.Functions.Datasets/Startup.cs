@@ -99,6 +99,9 @@ namespace CalculateFunding.Functions.Datasets
                 .AddSingleton<IDatasetService, DatasetService>();
 
             builder
+                .AddSingleton<IDatasetDataMergeService, DatasetDataMergeService>();
+
+            builder
                 .AddSingleton<IJobManagement, JobManagement>();
 
             builder
@@ -123,7 +126,7 @@ namespace CalculateFunding.Functions.Datasets
                .AddSingleton<IValidator<CreateDefinitionSpecificationRelationshipModel>, CreateDefinitionSpecificationRelationshipModelValidator>();
 
             builder
-               .AddSingleton<IExcelWriter<DatasetDefinition>, DataDefinitionExcelWriter>();
+               .AddSingleton<IExcelDatasetWriter, DataDefinitionExcelWriter>();
 
             builder
                 .AddSingleton<IValidator<ExcelPackage>, DatasetWorksheetValidator>();
@@ -179,7 +182,7 @@ namespace CalculateFunding.Functions.Datasets
             builder
                .AddSingleton<ICalcsRepository, CalcsRepository>();
 
-            builder.AddTransient<IValidator<DatasetUploadValidationModel>, DatasetItemValidator>();
+            builder.AddTransient<IValidator<DatasetUploadValidationModel>, DatasetUploadValidationModelValidator>();
 
             MapperConfiguration dataSetsConfig = new MapperConfiguration(c =>
             {

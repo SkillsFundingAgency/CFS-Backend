@@ -127,6 +127,9 @@ namespace CalculateFunding.Api.Datasets
                 .AddSingleton<IHealthChecker, DatasetService>();
 
             builder
+                .AddSingleton<IDatasetDataMergeService, DatasetDataMergeService>();
+
+            builder
                 .AddSingleton<IJobManagement, JobManagement>();
 
             builder
@@ -152,7 +155,7 @@ namespace CalculateFunding.Api.Datasets
                .AddSingleton<IValidator<CreateDefinitionSpecificationRelationshipModel>, CreateDefinitionSpecificationRelationshipModelValidator>();
 
             builder
-                .AddSingleton<IExcelWriter<DatasetDefinition>, DataDefinitionExcelWriter>();
+                .AddSingleton<IExcelDatasetWriter, DataDefinitionExcelWriter>();
 
             builder
               .AddSingleton<IValidator<ExcelPackage>, DatasetWorksheetValidator>();
@@ -272,7 +275,7 @@ namespace CalculateFunding.Api.Datasets
 
             });
 
-            builder.AddTransient<IValidator<DatasetUploadValidationModel>, DatasetItemValidator>();
+            builder.AddTransient<IValidator<DatasetUploadValidationModel>, DatasetUploadValidationModelValidator>();
             //builder.AddSpecificationsInterServiceClient(Configuration);
             Common.Config.ApiClient.Specifications.ServiceCollectionExtensions.AddSpecificationsInterServiceClient(builder, Configuration);
 

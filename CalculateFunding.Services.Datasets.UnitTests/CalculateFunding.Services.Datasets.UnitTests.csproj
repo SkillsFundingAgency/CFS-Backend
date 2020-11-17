@@ -27,10 +27,25 @@
     <None Update="DatasetDefinitions\Factors.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="DatasetDefinitions\TestDatasetDefinition_DSG.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="DatasetDefinitions\TestDatasetDefinition_PSG.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="IntegrationTestItems\1718HNStudNumbers.xlsx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="TestItems\1718HNStudNumbers.xlsx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TestItems\DSG_Rate_and_Baselines_data_result.xlsx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TestItems\DSG_Rate_and_Baselines_data_V2.xlsx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TestItems\DSG_Rate_and_Baselines_data_V1.xlsx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="TestItems\FactorsValid.xlsx">
@@ -44,6 +59,15 @@
 
   <ItemGroup>
     <None Update="TestItems\jpgImage.xlsx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TestItems\PE_and_Sports_Grant_Data_result.xlsx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TestItems\PE_and_Sports_Grant_Data_v1.xlsx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TestItems\PE_and_Sports_Grant_Data_v2.xlsx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

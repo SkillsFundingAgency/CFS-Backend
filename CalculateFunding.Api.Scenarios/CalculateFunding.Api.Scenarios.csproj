@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Datasets" Version="5.4.1" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Datasets" Version="5.5.0" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.15.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.2" />
 

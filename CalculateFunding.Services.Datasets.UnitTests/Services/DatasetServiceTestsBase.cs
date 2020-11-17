@@ -31,7 +31,7 @@ namespace CalculateFunding.Services.Datasets.Services
         protected const string DatasetName = "test-dataset";
         protected const string Username = "test-user";
         protected const string UserId = "33d7a71b-f570-4425-801b-250b9129f3d3";
-        protected const string DataDefintionId = "45d7a71b-f570-4425-801b-250b9129f124";
+        protected const string DataDefinitionId = "45d7a71b-f570-4425-801b-250b9129f124";
         protected const string SpecificationId = "d557a71b-f570-4425-801b-250b9129f111";
         protected const string BuildProjectId = "d557a71b-f570-4425-801b-250b9129f111";
         protected const string DatasetId = "e557a71b-f570-4436-801b-250b9129f999";
@@ -58,7 +58,8 @@ namespace CalculateFunding.Services.Datasets.Services
             IJobManagement jobManagement = null,
             IProviderSourceDatasetRepository providerSourceDatasetRepository = null,
             ISpecificationsApiClient specificationsApiClient = null,
-            IPolicyRepository policyRepository = null)
+            IPolicyRepository policyRepository = null,
+            IDatasetDataMergeService datasetDataMergeService = null)
         {
             return new DatasetService(
                 blobClient ?? CreateBlobClient(),
@@ -79,7 +80,13 @@ namespace CalculateFunding.Services.Datasets.Services
                 jobManagement ?? CreateJobManagement(),
                 providerSourceDatasetRepository ?? CreateProviderSourceDatasetRepository(),
                 specificationsApiClient ?? CreateSpecificationsApiClient(),
-                policyRepository ?? CreatePolicyRepository());
+                policyRepository ?? CreatePolicyRepository(),
+                datasetDataMergeService ?? CreateDatasetDataMergeService());
+        }
+
+        protected IDatasetDataMergeService CreateDatasetDataMergeService()
+        {
+            return Substitute.For<IDatasetDataMergeService>();
         }
 
         protected IPolicyRepository CreatePolicyRepository()

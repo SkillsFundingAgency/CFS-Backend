@@ -60,7 +60,7 @@ namespace CalculateFunding.Services.Datasets.Validators
 
 		private static void ValidationShouldBeValid(string datasetDefinitionName, string excelFileToTest, Dictionary<CellReference, FieldValidationResult.ReasonForFailure> expectedErrors, List<string> expectedHeaderErrors, bool expectedValidationResult)
 		{
-			DatasetItemValidator datasetItemValidatorUnderTest = new DatasetItemValidator(new ExcelDatasetReader());
+			DatasetUploadValidationModelValidator datasetItemValidatorUnderTest = new DatasetUploadValidationModelValidator(new ExcelDatasetReader());
 			DatasetDefinition datasetDefinition = GetDatasetDefinitionByName(datasetDefinitionName);
 			FileInfo fileInfoForXlsxFile = GetFileInfoForXlsxFile(excelFileToTest);
 

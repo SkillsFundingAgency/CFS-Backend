@@ -1,0 +1,158 @@
+{
+  "id": "0001349",
+  "name": "Rates and baselines",
+  "description": "Rates and baselines for DSG",
+  "fundingStreamId": "DSG",
+  "tableDefinitions": [
+    {
+      "id": "0001350",
+      "name": "Rates and baselines",
+      "description": "Rates and baselines for DSG",
+      "fieldDefinitions": [
+        {
+          "id": "0001353",
+          "name": "UKPRN",
+          "identifierFieldType": "UKPRN",
+          "matchExpression": null,
+          "description": "UKPRN",
+          "type": "Integer",
+          "required": true,
+          "min": null,
+          "max": null,
+          "mustMatch": null,
+          "isAggregable": false
+        },
+        {
+          "id": "0001354",
+          "name": "PUF",
+          "identifierFieldType": null,
+          "matchExpression": null,
+          "description": "NFF Schools Block Primary Unit of Funding",
+          "type": "Decimal",
+          "required": true,
+          "min": null,
+          "max": null,
+          "mustMatch": null,
+          "isAggregable": false
+        },
+        {
+          "id": "0001355",
+          "name": "SUF",
+          "identifierFieldType": null,
+          "matchExpression": null,
+          "description": "NFF Schools Block Seconday Unit of Funding",
+          "type": "Decimal",
+          "required": true,
+          "min": null,
+          "max": null,
+          "mustMatch": null,
+          "isAggregable": false
+        },
+        {
+          "id": "0001356",
+          "name": "Schools Block Premises and Mobility Factor",
+          "identifierFieldType": null,
+          "matchExpression": null,
+          "description": "NFF Schools Block Premises and Mobility Factor",
+          "type": "Decimal",
+          "required": true,
+          "min": null,
+          "max": null,
+          "mustMatch": null,
+          "isAggregable": false
+        },
+        {
+          "id": "0001357",
+          "name": "CSSB Unit of Funding",
+          "identifierFieldType": null,
+          "matchExpression": null,
+          "description": "NFF CSSB Unit of Funding",
+          "type": "Decimal",
+          "required": true,
+          "min": null,
+          "max": null,
+          "mustMatch": null,
+          "isAggregable": false
+        },
+        {
+          "id": "0001358",
+          "name": "CSSB Historic Commitments",
+          "identifierFieldType": null,
+          "matchExpression": null,
+          "description": "NFF CSSB Historic Commitments",
+          "type": "Decimal",
+          "required": true,
+          "min": null,
+          "max": null,
+          "mustMatch": null,
+          "isAggregable": false
+        },
+        {
+          "id": "0001359",
+          "name": "Early Years 3-4 Year Old Rate",
+          "identifierFieldType": null,
+          "matchExpression": null,
+          "description": "Early Years 3-4 Year Old Rate",
+          "type": "Decimal",
+          "required": true,
+          "min": null,
+          "max": null,
+          "mustMatch": null,
+          "isAggregable": false
+        },
+        {
+          "id": "0001360",
+          "name": "Early Years 2 Year Old Rate",
+          "identifierFieldType": null,
+          "matchExpression": null,
+          "description": "Early Years 2 Year Old Rate",
+          "type": "Decimal",
+          "required": true,
+          "min": null,
+          "max": null,
+          "mustMatch": null,
+          "isAggregable": false
+        },
+        {
+          "id": "0001361",
+          "name": "Early Years NMSS Rate",
+          "identifierFieldType": null,
+          "matchExpression": null,
+          "description": "Early Years NMSS Rate",
+          "type": "Decimal",
+          "required": true,
+          "min": null,
+          "max": null,
+          "mustMatch": null,
+          "isAggregable": false
+        },
+        {
+          "id": "0001362",
+          "name": "High Needs Baseline",
+          "identifierFieldType": null,
+          "matchExpression": null,
+          "description": "High Needs Baseline",
+          "type": "Decimal",
+          "required": true,
+          "min": null,
+          "max": null,
+          "mustMatch": null,
+          "isAggregable": false
+        },
+        {
+          "id": "0001363",
+          "name": "High Needs Basic Entitlement Rate Inc ACA",
+          "identifierFieldType": null,
+          "matchExpression": null,
+          "description": "High Needs Basic Entitlement Rate Inc ACA",
+          "type": "Decimal",
+          "required": true,
+          "min": null,
+          "max": null,
+          "mustMatch": null,
+          "isAggregable": false
+        }
+      ]
+    }
+  ]
+}

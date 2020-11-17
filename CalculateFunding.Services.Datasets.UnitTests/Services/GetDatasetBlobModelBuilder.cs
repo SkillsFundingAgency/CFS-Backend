@@ -16,6 +16,7 @@ namespace CalculateFunding.Services.Datasets.Services
         private string _comment;
         private string _fundingStreamId;
         private ReferenceBuilder _lastUpdatedBy;
+        private bool? _mergeExistingVersion;
 
         public GetDatasetBlobModelBuilder WithFundingStreamId(string fundingStreamId)
         {
@@ -73,6 +74,13 @@ namespace CalculateFunding.Services.Datasets.Services
             return this;
         }
 
+        public GetDatasetBlobModelBuilder WithMergeExistingVersion(bool? mergeExistingVersion)
+        {
+            _mergeExistingVersion = mergeExistingVersion;
+
+            return this;
+        }
+
         public GetDatasetBlobModel Build()
         {
             _lastUpdatedBy = _lastUpdatedBy ?? new ReferenceBuilder();
@@ -87,6 +95,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 LastUpdatedById = _lastUpdatedBy.Build().Id,
                 LastUpdatedByName = _lastUpdatedBy.Build().Name,
                 FundingStreamId = _fundingStreamId ?? NewRandomString(),
+                MergeExistingVersion = _mergeExistingVersion.GetValueOrDefault(false)
             };
         }
     }
