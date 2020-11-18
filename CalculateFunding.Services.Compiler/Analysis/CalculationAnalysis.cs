@@ -45,6 +45,7 @@ namespace CalculateFunding.Services.Compiler.Analysis
             foreach (Funding funding in fundingLines.Values)
             {
                 Dictionary<string, (FundingLine, IEnumerable<string>)> fundingLineIdsBySourceCodeName = funding.FundingLines
+                    .DistinctBy(_ => $"{_.Namespace}.FundingLines.{_.SourceCodeName}")
                     .ToDictionary(_ => $"{_.Namespace}.FundingLines.{_.SourceCodeName}", _ => (_ , _.Calculations.Select(calc => funding.Mappings[calc.Id])));
                 string[] fundingLineNames = fundingLines.SelectMany(_ => _.Value.FundingLines).Select(_ => $"{_.Namespace}.FundingLines.{_.SourceCodeName}")
                     .ToArray();
@@ -63,7 +64,7 @@ namespace CalculateFunding.Services.Compiler.Analysis
                 }));
             }
 
-            return relationships;
+            return relationships.ToList();
         }
     }
 }

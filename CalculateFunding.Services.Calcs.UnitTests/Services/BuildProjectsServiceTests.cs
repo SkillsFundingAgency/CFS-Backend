@@ -604,19 +604,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetFundingTemplateContents(specificationSummary.FundingStreams.Single().Id, specificationSummary.FundingPeriod.Id, specificationSummary.TemplateIds[specificationSummary.FundingStreams.Single().Id])
                 .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK,
                     NewTemplateMetadataContents(_ =>
-                        _.WithFundingLines(NewFundingLine(fl => fl
-                            .WithCalculations(NewTemplateMappingCalculation(temp => temp
-                                                    .WithTemplateCalculationId(1)),
-                                              NewTemplateMappingCalculation(calc => calc
-                                                    .WithTemplateCalculationId(2)
-                                                    .WithType(Common.TemplateMetadata.Enums.CalculationType.Number)
-                                                    .WithCalculations(NewTemplateMappingCalculation(temp => temp
-                                                                        .WithTemplateCalculationId(3)),
-                                                                      NewTemplateMappingCalculation(temp => temp
-                                                                        .WithTemplateCalculationId(3)))))
-                            .WithFundingLines(NewFundingLine(fl => fl
-                                .WithCalculations(NewTemplateMappingCalculation(temp => temp
-                                                    .WithTemplateCalculationId(4))))))))));
+                        _.WithFundingLines(GetFundingLines(), GetFundingLines()))));
 
             IMapper mapper = CreateMapper();
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(datasetsApiClient: datasetsApiClient,
@@ -647,6 +635,25 @@ namespace CalculateFunding.Services.Calcs.Services
             buildProject.FundingLines[mapping.FundingStreamId].FundingLines.Skip(1).First().Calculations.First().Id.Should().Be(1);
             buildProject.FundingLines[mapping.FundingStreamId].FundingLines.Skip(1).First().Calculations.Skip(1).First().Id.Should().Be(3);
             buildProject.FundingLines[mapping.FundingStreamId].FundingLines.Skip(1).First().Calculations.Last().Id.Should().Be(4);
+        }
+
+        private Common.TemplateMetadata.Models.FundingLine GetFundingLines()
+        {
+            return NewFundingLine(fl => fl
+                            .WithCalculations(NewTemplateMappingCalculation(temp => temp
+                                                    .WithTemplateCalculationId(1)),
+                                              NewTemplateMappingCalculation(calc => calc
+                                                    .WithTemplateCalculationId(2)
+                                                    .WithType(Common.TemplateMetadata.Enums.CalculationType.Number)
+                                                    .WithCalculations(NewTemplateMappingCalculation(temp => temp
+                                                                        .WithTemplateCalculationId(3)),
+                                                                      NewTemplateMappingCalculation(temp => temp
+                                                                        .WithTemplateCalculationId(3)))))
+                            .WithTemplateId(1)
+                            .WithFundingLines(NewFundingLine(fl => fl
+                                .WithTemplateId(2)
+                                .WithCalculations(NewTemplateMappingCalculation(temp => temp
+                                                    .WithTemplateCalculationId(4))))));
         }
 
         [TestMethod]

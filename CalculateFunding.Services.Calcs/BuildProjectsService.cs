@@ -711,7 +711,7 @@ namespace CalculateFunding.Services.Calcs
                 _.Calculations = _.Calculations?.Concat(currentFlattenedFundingLines?.SelectMany(_ => GetCalculations(_.Calculations)));
 
                 return _.FundingLines;
-            }).Where(_ => _.Calculations.AnyWithNullCheck()).Select(_ =>
+            }).Where(_ => _.Calculations.AnyWithNullCheck()).DistinctBy(_ => _.TemplateLineId).Select(_ =>
             {
                 return new FundingLine
                 {
