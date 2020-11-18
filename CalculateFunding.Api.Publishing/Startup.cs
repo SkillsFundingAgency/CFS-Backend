@@ -125,6 +125,8 @@ namespace CalculateFunding.Api.Publishing
 
         private void RegisterComponents(IServiceCollection builder)
         {
+            builder.AddSingleton<IPublishedProviderUpdateDateService, PublishedProviderUpdateDateService>();
+            
             ISqlSettings sqlSettings = new SqlSettings();
 
             Configuration.Bind("saSql", sqlSettings);

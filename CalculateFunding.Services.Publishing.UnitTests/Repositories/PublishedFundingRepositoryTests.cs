@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
@@ -14,6 +15,7 @@ using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using Newtonsoft.Json.Linq;
 using NSubstitute;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
@@ -71,6 +73,31 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                 .Should()
                 .Match<DependencyHealth>(_ => _.HealthOk == expectedIsOkFlag &&
                                               _.Message == expectedMessage);
+        }
+
+        [TestMethod]
+        public async Task GetLatestPublishedDateGetsMaxUpdateAtForPublishedProvidersByFundingStreamAndPeriod()
+        {
+            string fundingPeriodId = NewRandomString();
+            string fundingStreamId = NewRandomString();
+            
+            DateTime expectedLastPublishedDate = new RandomDateTime();
+            
+            GivenTheDynamicResultsForTheQuery(_ => _.QueryText?.Equals(@"SELECT MAX(c.updatedAt)
+                                  FROM c
+                                  WHERE c.documentType = 'PublishedProvider'
+                                  AND c.deleted = false
+                                  AND c.content.current.fundingStreamId = @fundingStreamId
+                                  AND c.content.current.fundingPeriodId = @fundingPeriodId") == true &&
+                HasParameter(_, "@fundingPeriodId", fundingPeriodId) &&
+                HasParameter(_, "@fundingStreamId", fundingStreamId), 
+                JObject.Parse($"{{\"$1\" : \"{expectedLastPublishedDate.ToString(CultureInfo.InvariantCulture)}\"}}"));
+
+            DateTime? actualLastPublishedDate = await _repository.GetLatestPublishedDate(fundingStreamId, fundingPeriodId);
+
+            actualLastPublishedDate
+                .Should()
+                .BeCloseTo(expectedLastPublishedDate, 999);
         }
 
         [TestMethod]
@@ -175,8 +202,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                 .DynamicQuery(query)
                 .Returns(expectedResults);
         }
-        
-        
 
         private int NewRandomNumber() => new RandomNumberBetween(1, 10000);
         
@@ -648,11 +673,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
 
             PublishedProviderStatus[] statuses = AsArray(status0, status1);
             string specificationId = NewRandomString();
-            string fundingStreamId = NewRandomString();
-            string providerType = NewRandomString();
-            string providerSubType = NewRandomString();
-            string laCode = NewRandomString();
-            decimal totalFunding = NewRandomNumber();
 
             List<dynamic> results = new List<dynamic>() {
                 CreatePublishedProviderFundingResult(specificationId, publishedProviderId0),

@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using NSubstitute;
 
 namespace CalculateFunding.Api.Publishing.UnitTests.Controllers
@@ -55,6 +56,7 @@ namespace CalculateFunding.Api.Publishing.UnitTests.Controllers
                 _publishedProviderFundingService,
                 _publishedProviderFundingStructureService,
                 _deletePublishedProvidersService,
+                new Mock<IPublishedProviderUpdateDateService>().Object,
                 _featureToggle
                 );
 

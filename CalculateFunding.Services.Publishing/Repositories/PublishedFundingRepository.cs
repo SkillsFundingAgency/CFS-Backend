@@ -13,6 +13,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
+using Newtonsoft.Json.Linq;
 using StackExchange.Redis;
 
 namespace CalculateFunding.Services.Publishing.Repositories
@@ -67,6 +68,33 @@ namespace CalculateFunding.Services.Publishing.Repositories
             });
 
             return Task.FromResult(health);
+        }
+
+        public async Task<DateTime?> GetLatestPublishedDate(string fundingStreamId,
+            string fundingPeriodId)
+        {
+            Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
+            Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
+
+            IEnumerable<dynamic> dynamicQuery = (await _repository.DynamicQuery(new CosmosDbQuery
+            {
+                QueryText = @"SELECT MAX(c.updatedAt)
+                                  FROM c
+                                  WHERE c.documentType = 'PublishedProvider'
+                                  AND c.deleted = false
+                                  AND c.content.current.fundingStreamId = @fundingStreamId
+                                  AND c.content.current.fundingPeriodId = @fundingPeriodId",
+                Parameters = new[]
+                {
+                    new CosmosDbQueryParameter("@fundingPeriodId", fundingPeriodId),
+                    new CosmosDbQueryParameter("@fundingStreamId", fundingStreamId)
+                }
+            }));
+            
+            JToken dynamic = dynamicQuery
+                .SingleOrDefault();
+
+            return dynamic?.HasValues == true ? dynamic.First.ToObject<DateTime>() : (DateTime?) null;
         }
 
         public async Task<IEnumerable<dynamic>> GetFundings(string publishedProviderVersion)

@@ -469,5 +469,9 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task<DateTime?> GetLatestPublishedDate(string fundingStreamId,
+            string fundingPeriodId) =>
+            throw new NotImplementedException();
     }
 }

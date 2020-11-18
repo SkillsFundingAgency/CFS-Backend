@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using CacheCow.Server.Core.Mvc;
@@ -22,15 +23,16 @@ namespace CalculateFunding.Api.Publishing.Controllers
         private readonly IPublishedProviderFundingService _publishedProviderFundingService;
         private readonly IPublishedProviderFundingStructureService _publishedProviderFundingStructureService;
         private readonly IDeletePublishedProvidersService _deletePublishedProvidersService;
+        private readonly IPublishedProviderUpdateDateService _publishedProviderUpdateDateService;
         private readonly IFeatureToggle _featureToggle;
 
-        public PublishedProvidersController(
-            IProviderFundingPublishingService providerFundingPublishingService,
+        public PublishedProvidersController(IProviderFundingPublishingService providerFundingPublishingService,
             IPublishedProviderStatusService publishedProviderStatusService,
             IPublishedProviderVersionService publishedProviderVersionService,
             IPublishedProviderFundingService publishedProviderFundingService,
             IPublishedProviderFundingStructureService publishedProviderFundingStructureService,
             IDeletePublishedProvidersService deletePublishedProvidersService,
+            IPublishedProviderUpdateDateService publishedProviderUpdateDateService,
             IFeatureToggle featureToggle)
         {
             Guard.ArgumentNotNull(providerFundingPublishingService, nameof(providerFundingPublishingService));
@@ -39,6 +41,7 @@ namespace CalculateFunding.Api.Publishing.Controllers
             Guard.ArgumentNotNull(publishedProviderFundingService, nameof(publishedProviderFundingService));
             Guard.ArgumentNotNull(publishedProviderFundingStructureService, nameof(publishedProviderFundingStructureService));
             Guard.ArgumentNotNull(deletePublishedProvidersService, nameof(deletePublishedProvidersService));
+            Guard.ArgumentNotNull(publishedProviderUpdateDateService, nameof(publishedProviderUpdateDateService));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
 
             _providerFundingPublishingService = providerFundingPublishingService;
@@ -47,9 +50,19 @@ namespace CalculateFunding.Api.Publishing.Controllers
             _publishedProviderFundingService = publishedProviderFundingService;
             _publishedProviderFundingStructureService = publishedProviderFundingStructureService;
             _deletePublishedProvidersService = deletePublishedProvidersService;
+            _publishedProviderUpdateDateService = publishedProviderUpdateDateService;
             _featureToggle = featureToggle;
-
         }
+
+        /// <summary>
+        ///     Query the latest updated date for published providers
+        ///     with funding streams and funding periods matching the supplied value
+        /// </summary>
+        [HttpGet("api/publishedproviders/{fundingStreamId}/{fundingPeriodId}/lastupdated")]
+        [ProducesResponseType(200, Type = typeof(DateTime?))]
+        public async Task<IActionResult> GetLatestPublishedDate([FromRoute] string fundingStreamId,
+            [FromRoute] string fundingPeriodId)
+            => await _publishedProviderUpdateDateService.GetLatestPublishedDate(fundingStreamId, fundingPeriodId);
 
         /// <summary>
         /// Get all published providers (latest version) for a specification

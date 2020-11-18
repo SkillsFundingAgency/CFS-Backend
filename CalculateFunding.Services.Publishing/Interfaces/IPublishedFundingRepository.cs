@@ -141,5 +141,8 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         Task<IEnumerable<PublishedProviderFundingCsvData>> GetPublishedProvidersFundingDataForCsvReport(IEnumerable<string> publishedProviderIds,
             string specificationId,
             params PublishedProviderStatus[] statuses);
+
+        Task<DateTime?> GetLatestPublishedDate(string fundingStreamId,
+            string fundingPeriodId);
     }
 }
