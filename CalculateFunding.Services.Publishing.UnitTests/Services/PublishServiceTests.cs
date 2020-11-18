@@ -178,11 +178,26 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             await WhenPublishAllProvidersMessageReceivedWithJobId();
 
-            ThenEachNewProviderVersionHasTheFollowingVariationReasons(VariationReason.FundingUpdated, VariationReason.ProfilingUpdated, VariationReason.AuthorityFieldUpdated);
+            ThenEachProviderVersionHasTheFollowingVariationReasons(VariationReason.FundingUpdated, VariationReason.ProfilingUpdated, VariationReason.AuthorityFieldUpdated);
+        }
+        
+        [TestMethod]
+        public async Task PublishAllProviderFundingResults_DoesNotAddInitialAllocationVariationReasonsToExistingProviderVersions()
+        {
+            GivenJobCanBeProcessed();
+            AndSpecification();
+            AndCalculationResultsBySpecificationId();
+            AndTemplateMetadataContents();
+            AndPublishedProviders(wasReleased: true, minorVersion: 1);
+            AndTemplateMapping();
+
+            await WhenPublishAllProvidersMessageReceivedWithJobId();
+
+            ThenEachProviderVersionHasTheFollowingVariationReasons(VariationReason.AuthorityFieldUpdated);
         }
 
         [TestMethod]
-        public async Task PublishAllProviderFundingResults_AddsPublishedFundingVariationReasonsToAllPublishedProiders()
+        public async Task PublishAllProviderFundingResults_AddsPublishedFundingVariationReasonsToAllPublishedProviders()
         {
             GivenJobCanBeProcessed();
             AndSpecification();
@@ -487,7 +502,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .UpdateJobStatus(JobId, 0, false, string.Join(", ", prereqValidationErrors));
         }
 
-        private void ThenEachNewProviderVersionHasTheFollowingVariationReasons(params VariationReason[] variationReasons)
+        private void ThenEachProviderVersionHasTheFollowingVariationReasons(params VariationReason[] variationReasons)
         {
             foreach (PublishedProvider publishedProvider in _publishedProviders)
             {
@@ -596,7 +611,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Returns(new ApiResponse<TemplateMapping>(HttpStatusCode.OK, _templateMapping));
         }
         
-        private void AndPublishedProviders()
+        private void AndPublishedProviders(int majorVersion = 1, int minorVersion = 0, bool wasReleased = false)
         {
             Provider[] providers = new[] { NewProvider(), 
                 NewProvider(), 
@@ -606,23 +621,35 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             TemplateFundingLine templateFundingLine = _fundingLines[0];
 
             _publishedProviders = providers.Select(_ =>
-                    NewPublishedProvider(pp => pp.WithCurrent(
-                        NewPublishedProviderVersion(ppv => ppv
+                    NewPublishedProvider(pp =>
+                    {
+                        PublishedProviderVersion current = NewPublishedProviderVersion(ppv => ppv
                             .WithProvider(_)
                             .WithProviderId(_.ProviderId)
                             .WithTotalFunding(9)
+                            .WithMajorVersion(majorVersion)
+                            .WithMinorVersion(minorVersion)
                             .WithFundingLines(NewFundingLine(fl => fl.WithFundingLineCode(templateFundingLine.FundingLineCode)
                                 .WithTemplateLineId(templateFundingLine.TemplateLineId)
                                 .WithValue(9)))
                             .WithFundingCalculations(NewFundingCalculation(fc => fc.WithTemplateCalculationId(_calculationTemplateIds[0].TemplateCalculationId)
-                                .WithValue(_calculationTemplateIds[0].Value)),
+                                    .WithValue(_calculationTemplateIds[0].Value)),
                                 NewFundingCalculation(fc => fc.WithTemplateCalculationId(_calculationTemplateIds[1].TemplateCalculationId)
                                     .WithValue(_calculationTemplateIds[1].Value)),
                                 NewFundingCalculation(fc => fc.WithTemplateCalculationId(_calculationTemplateIds[2].TemplateCalculationId)
                                     .WithValue(_calculationTemplateIds[2].Value)))
                             .WithPublishedProviderStatus(PublishedProviderStatus.Approved)
                             .WithVariationReasons(new[] { VariationReason.AuthorityFieldUpdated })
-                            )))).ToList();
+                        );
+                        
+                        pp.WithCurrent(current);
+
+                        if (wasReleased)
+                        {
+                            pp.WithReleased(current);
+                        }
+                        
+                    })).ToList();
 
             _providerService
                 .GetPublishedProviders(Arg.Is<Reference>(_ => _.Id == FundingStreamId),

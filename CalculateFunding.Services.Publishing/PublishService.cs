@@ -327,25 +327,14 @@ namespace CalculateFunding.Services.Publishing
         {
             foreach (PublishedProvider publishedProvider in publishedProviders)
             {
-                publishedProvider.Current.AddVariationReasons(VariationReason.FundingUpdated, VariationReason.ProfilingUpdated);
+                PublishedProviderVersion current = publishedProvider.Current;
+
+                if (publishedProvider.Released == null || current.MajorVersion == 1 && current.MinorVersion == 0)
+                {
+                    current.AddVariationReasons(VariationReason.FundingUpdated, VariationReason.ProfilingUpdated);    
+                }
             }
         }
-
-        private async Task EnsureJobCanBeProcessed(string jobId)
-        {
-            try
-            {
-                await _jobManagement.RetrieveJobAndCheckCanBeProcessed(jobId);
-            }
-            catch
-            {
-                string errorMessage = "Job can not be run";
-                _logger.Error(errorMessage);
-
-                throw new NonRetriableException(errorMessage);
-            }
-        }
-
 
         private async Task SavePublishedProvidersAsReleased(string jobId, Reference author, IEnumerable<PublishedProvider> publishedProviders,string correlationId)
         {
