@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Processing.Functions;
 using CalculateFunding.Tests.Common.Helpers;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
@@ -31,7 +33,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private IEnumerable<PublishedProviderError> _errors;
         private IEnumerable<ProfilingCarryOver> _carryOvers;
         private IEnumerable<ProfilingAudit> _profilingAudits;
-
+        
         public PublishedProviderVersionBuilder WithProfilingAudits(params ProfilingAudit[] profilingAudits)
         {
             _profilingAudits = profilingAudits;
@@ -211,7 +213,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 CustomProfiles = _customProfiles,
                 Errors = _errors?.ToList(),
                 CarryOvers = _carryOvers?.ToList(),
-                ProfilingAudits = _profilingAudits?.ToList()
+                ProfilingAudits = _profilingAudits?.ToList(),
             };
         }
     }

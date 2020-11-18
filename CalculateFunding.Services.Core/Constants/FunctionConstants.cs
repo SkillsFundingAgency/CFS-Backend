@@ -3,6 +3,8 @@
     public static class FunctionConstants
     {
         public const string PublishingApproveAllProviderFunding = "on-publishing-approve-all-provider-funding";
+        
+        public const string PublishingRunSqlImport = "on-publishing-run-sql-import";
 
         public const string PublishIntegrityCheck = "on-publish-integrity-check";
 

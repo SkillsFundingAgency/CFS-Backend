@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using CalculateFunding.Common.TemplateMetadata.Enums;
 using CalculateFunding.Common.TemplateMetadata.Models;
+using CalculateFunding.Services.Processing.Functions;
 using CalculateFunding.Tests.Common.Helpers;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
@@ -10,6 +11,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private uint? _templateCalculationId;
         private IEnumerable<Calculation> _calculations;
         private CalculationType? _type;
+        private string _name;
+
+        public TemplateCalculationBuilder WithName(string name)
+        {
+            _name = name;
+
+            return this;
+        }
 
         public TemplateCalculationBuilder WithType(CalculationType type)
         {
@@ -38,7 +47,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             {
                 Calculations = _calculations ?? new Calculation[0],
                 TemplateCalculationId = _templateCalculationId.GetValueOrDefault((uint)NewRandomNumberBetween(1, int.MaxValue)),
-                Type = _type.GetValueOrDefault()
+                Type = _type.GetValueOrDefault(),
+                Name = _name
             };
         }
     }

@@ -7,6 +7,8 @@ using CalculateFunding.Services.Processing.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Serilog;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Processing
@@ -29,7 +31,7 @@ namespace CalculateFunding.Services.Processing
 
         public bool AutoComplete { get; set; } = true;
 
-        public JobProcessingService(IJobManagement jobManagement,
+        protected JobProcessingService(IJobManagement jobManagement,
                 ILogger logger)
         {
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
@@ -79,6 +81,12 @@ namespace CalculateFunding.Services.Processing
                 throw;
             }
         }
+
+        protected async Task<Job> QueueJob(JobCreateModel job)
+            => await _jobManagement.QueueJob(job);
+
+        protected async Task<IEnumerable<Job>> QueueJobs(params JobCreateModel[] jobs)
+            => await _jobManagement.QueueJobs(jobs);
 
         public async Task NotifyProgress(int itemCount) => await _jobManagement.AddJobLog(Job.Id, new JobLogUpdateModel { ItemsProcessed = itemCount });
 

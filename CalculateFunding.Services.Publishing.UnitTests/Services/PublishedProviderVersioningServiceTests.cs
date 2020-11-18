@@ -658,8 +658,9 @@ namespace CalculateFunding.Services.Publishing.Services.UnitTests
 
 
             results
+                .Select(_ => _.NewVersion.Id)
                 .Should()
-                .BeEquivalentTo(expectedproviders);
+                .BeEquivalentTo(expectedproviders.Select(_ => _.NewVersion.Id));
             
         }
 

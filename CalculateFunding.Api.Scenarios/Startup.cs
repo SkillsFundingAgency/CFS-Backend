@@ -30,7 +30,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.OpenApi.Models;
 using Polly;
 using Polly.Bulkhead;
 
@@ -75,7 +74,8 @@ namespace CalculateFunding.Api.Scenarios
 
             app.MapWhen(
                     context => !context.Request.Path.Value.StartsWith("/swagger"),
-                    appBuilder => {
+                    appBuilder =>
+                    {
                         appBuilder.UseMiddleware<ApiKeyMiddleware>();
                         appBuilder.UseHealthCheckMiddleware();
                         appBuilder.UseMiddleware<LoggedInUserMiddleware>();
@@ -119,7 +119,7 @@ namespace CalculateFunding.Api.Scenarios
             builder.AddSingleton<IJobManagement, JobManagement>();
 
             builder
-                .AddSingleton<IValidator<CreateNewTestScenarioVersion>, CreateNewTestScenarioVersionValidator>();         
+                .AddSingleton<IValidator<CreateNewTestScenarioVersion>, CreateNewTestScenarioVersionValidator>();
 
             builder
                .AddSingleton<IDatasetDefinitionFieldChangesProcessor, DatasetDefinitionFieldChangesProcessor>();
@@ -144,7 +144,7 @@ namespace CalculateFunding.Api.Scenarios
                .AddSingleton<ICancellationTokenProvider, HttpContextCancellationProvider>();
 
             builder
-                .AddSingleton<IDatasetDefinitionFieldChangesProcessor, DatasetDefinitionFieldChangesProcessor>();          
+                .AddSingleton<IDatasetDefinitionFieldChangesProcessor, DatasetDefinitionFieldChangesProcessor>();
 
             MapperConfiguration scenariosConfig = new MapperConfiguration(c =>
             {
@@ -171,7 +171,7 @@ namespace CalculateFunding.Api.Scenarios
 
             builder.AddFeatureToggling(Configuration);
 
-           
+
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Scenarios");
             builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.Scenarios");
             builder.AddLogging("CalculateFunding.Api.Scenarios");

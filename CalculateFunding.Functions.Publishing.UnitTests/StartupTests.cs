@@ -31,7 +31,8 @@ namespace CalculateFunding.Functions.Publishing.UnitTests
                 { "providerProfilingAzureBearerTokenOptions:GrantType", "client_credentials" },
                 { "providerProfilingAzureBearerTokenOptions:Scope", "https://wahetever-scope" },
                 { "providerProfilingAzureBearerTokenOptions:ClientId", "client-id" },
-                { "providerProfilingAzureBearerTokenOptions:ClientSecret", "client-secret"}
+                { "providerProfilingAzureBearerTokenOptions:ClientSecret", "client-secret"},
+                { "saSql:ConnectionString", "StorageConnection" }
             };
 
             return configData;

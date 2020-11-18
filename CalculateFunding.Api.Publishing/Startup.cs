@@ -12,7 +12,10 @@ using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.Sql;
+using CalculateFunding.Common.Sql.Interfaces;
 using CalculateFunding.Common.Storage;
+using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.Publishing;
@@ -38,6 +41,7 @@ using CalculateFunding.Services.Publishing.Profiling;
 using CalculateFunding.Services.Publishing.Profiling.Custom;
 using CalculateFunding.Services.Publishing.Repositories;
 using CalculateFunding.Services.Publishing.Specifications;
+using CalculateFunding.Services.Publishing.SqlExport;
 using CalculateFunding.Services.Publishing.Undo;
 using CalculateFunding.Services.Publishing.Undo.Repositories;
 using FluentValidation;
@@ -47,7 +51,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.FeatureManagement;
-using Microsoft.OpenApi.Models;
 using Polly;
 using Polly.Bulkhead;
 using Serilog;
@@ -55,6 +58,8 @@ using BlobClient = CalculateFunding.Common.Storage.BlobClient;
 using IBlobClient = CalculateFunding.Common.Storage.IBlobClient;
 using LocalBlobClient = CalculateFunding.Services.Core.AzureStorage.BlobClient;
 using LocalIBlobClient = CalculateFunding.Services.Core.Interfaces.AzureStorage.IBlobClient;
+using TemplateMetadataSchema10 = CalculateFunding.Common.TemplateMetadata.Schema10;
+using TemplateMetadataSchema11 = CalculateFunding.Common.TemplateMetadata.Schema11;
 
 namespace CalculateFunding.Api.Publishing
 {
@@ -120,6 +125,68 @@ namespace CalculateFunding.Api.Publishing
 
         private void RegisterComponents(IServiceCollection builder)
         {
+            ISqlSettings sqlSettings = new SqlSettings();
+
+            Configuration.Bind("saSql", sqlSettings);
+
+            builder.AddSingleton(sqlSettings);
+
+            builder.AddScoped<IDataTableImporter, DataTableImporter>();
+            builder.AddScoped<ISqlImportContextBuilder, SqlImportContextBuilder>();
+            builder.AddSingleton<ISqlPolicyFactory, SqlPolicyFactory>();
+            builder.AddScoped<ISqlConnectionFactory, SqlConnectionFactory>();
+            builder.AddScoped<ISqlImportContextBuilder, SqlImportContextBuilder>();
+            builder.AddScoped<ISqlImporter, SqlImporter>();
+            builder.AddScoped<ISqlImportService, SqlImportService>();
+            builder.AddScoped<ISqlNameGenerator, SqlNameGenerator>();
+            builder.AddScoped<ISqlSchemaGenerator, SqlSchemaGenerator>();
+            builder.AddScoped<IQaSchemaService, QaSchemaService>();
+            builder.AddScoped<IQaRepository, QaRepository>();
+            builder .AddSingleton<ITemplateMetadataResolver>(ctx =>
+            {
+                TemplateMetadataResolver resolver = new TemplateMetadataResolver();
+                ILogger logger = ctx.GetService<ILogger>();
+                    
+                TemplateMetadataSchema10.TemplateMetadataGenerator schema10Generator = new TemplateMetadataSchema10.TemplateMetadataGenerator(logger);
+                resolver.Register("1.0", schema10Generator);
+
+                TemplateMetadataSchema11.TemplateMetadataGenerator schema11Generator = new TemplateMetadataSchema11.TemplateMetadataGenerator(logger);
+                resolver.Register("1.1", schema11Generator);
+
+                return resolver;
+            });
+            builder.AddSingleton<ICosmosRepository, CosmosRepository>();
+            
+            CosmosDbSettings settings = new CosmosDbSettings();
+
+            Configuration.Bind("CosmosDbSettings", settings);
+
+            settings.ContainerName = "publishedfunding";
+
+            builder.AddSingleton(settings);
+
+            builder.AddSingleton<IPublishedFundingContentsGeneratorResolver>(ctx =>
+            {
+                PublishedFundingContentsGeneratorResolver resolver = new PublishedFundingContentsGeneratorResolver();
+                
+                resolver.Register("1.0", new Generators.Schema10.PublishedFundingContentsGenerator());
+                resolver.Register("1.1", new Generators.Schema11.PublishedFundingContentsGenerator());
+
+                return resolver;
+            });
+
+            builder.AddSingleton<IPublishedFundingIdGeneratorResolver>(ctx =>
+            {
+                PublishedFundingIdGeneratorResolver resolver = new PublishedFundingIdGeneratorResolver();
+
+                IPublishedFundingIdGenerator v10Generator = new Generators.Schema10.PublishedFundingIdGenerator();
+
+                resolver.Register("1.0", v10Generator);
+                resolver.Register("1.1", v10Generator);
+
+                return resolver;
+            });
+            
             builder.AddSingleton<IProfilePatternPreview, ProfilePatternPreview>();
             builder.AddSingleton<IReProfilingRequestBuilder, ReProfilingRequestBuilder>();
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();

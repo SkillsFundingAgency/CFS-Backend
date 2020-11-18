@@ -28,7 +28,7 @@ namespace CalculateFunding.Tests.Common
         public void CanResolveAllSystemEntryPoints()
         {
             IEnumerable<Type> EntryPoints = EntryAssembly.GetTypes()
-                .Where(_ => _.IsAssignableFrom(typeof(TBase)) &&
+                .Where(_ => typeof(TBase).IsAssignableFrom(_) &&
                             !_.IsAbstract)
                 .ToArray();
 

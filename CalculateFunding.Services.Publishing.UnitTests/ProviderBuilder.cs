@@ -1,6 +1,8 @@
+using System;
+using CalculateFunding.Common.Extensions;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Tests.Common.Helpers;
-using System;
+using Microsoft.Azure.Search.Models;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
 {
@@ -18,13 +20,21 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private string _providerSubType;
         private string _name;
         private Provider _copyFrom;
-        private string _successor; 
+        private string _successor;
         private DateTimeOffset? _dateClosed;
         private DateTimeOffset? _dateOpened;
         private string _reasonEstablishmentOpened;
         private string _trustCode;
         private string _trustName;
         private string _reasonEstablishmentClosed;
+        private string _paymentOrganisationIdentifier;
+
+        public ProviderBuilder WithPaymentOrganisationIdentifier(string paymentOrganisationIdentifier)
+        {
+            _paymentOrganisationIdentifier = paymentOrganisationIdentifier;
+
+            return this;
+        }
 
         public ProviderBuilder WithReasonEstablishmentClosed(string reasonEstablishmentClosed)
         {
@@ -39,7 +49,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             return this;
         }
-        
+
         public ProviderBuilder WithSuccessor(string successor)
         {
             _successor = successor;
@@ -53,6 +63,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             return this;
         }
+
         public ProviderBuilder WithTrustName(string trustName)
         {
             _trustName = trustName;
@@ -87,7 +98,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             return this;
         }
-        
+
         public ProviderBuilder WithLACode(string laCode)
         {
             _laCode = laCode;
@@ -126,17 +137,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         public ProviderBuilder WithAuthority(string authority)
         {
             _authority = authority;
-        
+
             return this;
         }
-        
+
         public ProviderBuilder WithEstablishmentNumber(string establishmentNumber)
         {
             _establishmentNumber = establishmentNumber;
 
             return this;
         }
-        
+
         public ProviderBuilder WithStatus(string status)
         {
             _status = status;
@@ -158,51 +169,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return this;
         }
 
-        public Provider Build()
-        {
-            if (_copyFrom != null)
-            {
-                return new Provider
-                {
-                    ProviderVersionId = _copyFrom.ProviderVersionId,
-                    ProviderId = _copyFrom.ProviderId,
-                    Status = _copyFrom.Status,
-                    Authority = _copyFrom.Authority,
-                    Name = _copyFrom.Name,
-                    Postcode = _copyFrom.Postcode,
-                    Successor = _copyFrom.Successor,
-                    Town = _copyFrom.Town,
-                    CountryCode = _copyFrom.CountryCode,
-                    CountryName = _copyFrom.CountryName,
-                    DateClosed = _copyFrom.DateClosed,
-                    DateOpened = _copyFrom.DateOpened,
-                    DistrictCode = _copyFrom.DistrictCode,
-                    DistrictName = _copyFrom.DistrictName,
-                    EstablishmentNumber = _copyFrom.EstablishmentNumber,
-                    LegalName = _copyFrom.LegalName,
-                    ProviderType = _copyFrom.ProviderType,
-                    TrustCode = _copyFrom.TrustCode,
-                    TrustStatus = _copyFrom.TrustStatus,
-                    TrustName = _copyFrom.TrustName,
-                    WardCode = _copyFrom.WardCode,
-                    WardName = _copyFrom.WardName,
-                    CensusWardCode = _copyFrom.CensusWardCode,
-                    CensusWardName = _copyFrom.CensusWardName,
-                    CompaniesHouseNumber = _copyFrom.CompaniesHouseNumber,
-                    DfeEstablishmentNumber = _copyFrom.DfeEstablishmentNumber,
-                    GroupIdNumber = _copyFrom.GroupIdNumber,
-                    LACode = _copyFrom.LACode,
-                    ParliamentaryConstituencyCode = _copyFrom.ParliamentaryConstituencyCode,
-                    ParliamentaryConstituencyName = _copyFrom.ParliamentaryConstituencyName,
-                    RscRegionCode = _copyFrom.RscRegionCode,
-                    RscRegionName = _copyFrom.RscRegionName,
-                    URN = _copyFrom.URN,
-                    GovernmentOfficeRegionCode = _copyFrom.GovernmentOfficeRegionCode,
-                    GovernmentOfficeRegionName = _copyFrom.GovernmentOfficeRegionName
-                };
-            }
-
-            return new Provider
+        public Provider Build() =>
+            _copyFrom?.DeepCopy() ?? new Provider
             {
                 ProviderVersionId = _providerVersionId ?? NewRandomString(),
                 ProviderId = _providerId ?? NewRandomString(),
@@ -242,8 +210,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 GovernmentOfficeRegionCode = NewRandomString(),
                 GovernmentOfficeRegionName = NewRandomString(),
                 ReasonEstablishmentOpened = _reasonEstablishmentOpened,
-                ReasonEstablishmentClosed = _reasonEstablishmentClosed
+                ReasonEstablishmentClosed = _reasonEstablishmentClosed,
+                PaymentOrganisationIdentifier = _paymentOrganisationIdentifier ?? NewRandomString(),
+                PaymentOrganisationName = NewRandomString(),
             };
-        }
     }
 }

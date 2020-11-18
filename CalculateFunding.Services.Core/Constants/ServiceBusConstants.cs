@@ -207,7 +207,9 @@
 
             public const string SearchIndexWriterPoisoned = "search-index-writer/$DeadLetterQueue";
             
-            public const string SearchIndexWriterPoisonedLocal = "search-index-writer-poison";
+            public const string SearchIndexWriterPoisonedLocal = "search-index-writer-poisoned";
+
+            public const string PublishingRunSqlImport = "publishing-run-sql-import";
         }
 
         public static class TopicNames

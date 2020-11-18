@@ -24,4 +24,8 @@
     <ProjectReference Include="..\CalculateFunding.Tests.Common\CalculateFunding.Tests.Common.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="SqlExport" />
+  </ItemGroup>
+
 </Project>

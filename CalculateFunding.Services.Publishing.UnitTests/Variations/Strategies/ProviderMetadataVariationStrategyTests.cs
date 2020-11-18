@@ -171,7 +171,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             
             setUp?.Invoke(variationContextBuilder);
 
-            var providerVariationContext = variationContextBuilder.Build();
+            ProviderVariationContext providerVariationContext = variationContextBuilder.Build();
 
             providerVariationContext.AllPublishedProviderSnapShots = AsDictionary(new PublishedProviderSnapShots(providerVariationContext.PublishedProvider));
             providerVariationContext.AllPublishedProvidersRefreshStates = AsDictionary(providerVariationContext.PublishedProvider);

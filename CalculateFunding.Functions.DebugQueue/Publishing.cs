@@ -10,6 +10,20 @@ namespace CalculateFunding.Functions.DebugQueue
 {
     public static class Publishing
     {
+        [FunctionName("on-publishing-run-sql-import")]
+        public static async Task RunSqlImport([QueueTrigger(ServiceBusConstants.QueueNames.PublishingRunSqlImport, 
+            Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+            Message message = Helpers.ConvertToMessage<string>(item);
+
+            OnRunSqlImport function = scope.ServiceProvider.GetService<OnRunSqlImport>();
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
+        
         [FunctionName("on-published-funding-undo")]
         public static async Task RunUndoPublishedFunding([QueueTrigger(ServiceBusConstants.QueueNames.PublishedFundingUndo, 
             Connection = "AzureConnectionString")] string item, ILogger log)

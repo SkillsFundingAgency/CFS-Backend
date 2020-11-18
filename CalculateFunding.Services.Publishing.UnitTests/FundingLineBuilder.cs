@@ -8,7 +8,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
     {
         private OrganisationGroupingReason? _organisationGroupingReason;
         private uint? _templateLineId;
-        private decimal _value;
+        private decimal? _value;
         private IEnumerable<DistributionPeriod> _distributionPeriods;
         private string _fundingLineCode;
         private string _name;

@@ -76,6 +76,8 @@
             public const string SearchIndexWriterJob = nameof(SearchIndexWriterJob);
 
             public const string ApproveAllCalculationsJob = nameof(ApproveAllCalculationsJob);
+
+            public const string RunSqlImportJob = nameof(RunSqlImportJob);
         }
 
         public static class NotificationChannels

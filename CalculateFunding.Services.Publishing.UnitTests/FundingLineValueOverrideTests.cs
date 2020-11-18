@@ -45,7 +45,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             generatedResultFundingLine.Value
                 .Should()
-                .Be(0M);
+                .BeNull();
 
         }
 

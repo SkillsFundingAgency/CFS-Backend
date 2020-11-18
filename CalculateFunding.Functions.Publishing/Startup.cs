@@ -55,6 +55,14 @@ using BlobClient = CalculateFunding.Services.Core.AzureStorage.BlobClient;
 using CommonBlobClient = CalculateFunding.Common.Storage.BlobClient;
 using IBlobClient = CalculateFunding.Services.Core.Interfaces.AzureStorage.IBlobClient;
 using ServiceCollectionExtensions = CalculateFunding.Services.Core.Extensions.ServiceCollectionExtensions;
+using CalculateFunding.Common.Models;
+using CalculateFunding.Common.ServiceBus.Interfaces;
+using CalculateFunding.Common.Sql;
+using CalculateFunding.Common.Sql.Interfaces;
+using CalculateFunding.Common.TemplateMetadata;
+using CalculateFunding.Services.Publishing.SqlExport;
+using TemplateMetadataSchema10 = CalculateFunding.Common.TemplateMetadata.Schema10;
+using TemplateMetadataSchema11 = CalculateFunding.Common.TemplateMetadata.Schema11;
 
 [assembly: FunctionsStartup(typeof(Startup))]
 
@@ -82,7 +90,47 @@ namespace CalculateFunding.Functions.Publishing
 
         private static IServiceProvider Register(IServiceCollection builder,
             IConfigurationRoot config)
-        {
+        { 
+            ISqlSettings sqlSettings = new SqlSettings();
+
+            config.Bind("saSql", sqlSettings);
+
+            builder.AddSingleton(sqlSettings);
+            
+            builder.AddSingleton<ISqlPolicyFactory, SqlPolicyFactory>();
+            builder.AddScoped<ISqlConnectionFactory, SqlConnectionFactory>();
+
+            builder.AddScoped<IDataTableImporter, DataTableImporter>();
+            builder.AddScoped<ISqlImportContextBuilder, SqlImportContextBuilder>();
+            builder.AddScoped<ISqlImporter, SqlImporter>();
+            builder.AddScoped<ISqlImportService, SqlImportService>();
+            builder.AddScoped<ISqlNameGenerator, SqlNameGenerator>();
+            builder.AddScoped<ISqlSchemaGenerator, SqlSchemaGenerator>();
+            builder.AddScoped<IQaSchemaService, QaSchemaService>();
+            builder.AddScoped<IQaRepository, QaRepository>();
+            builder .AddSingleton<ITemplateMetadataResolver>(ctx =>
+            {
+                TemplateMetadataResolver resolver = new TemplateMetadataResolver();
+                ILogger logger = ctx.GetService<ILogger>();
+                    
+                TemplateMetadataSchema10.TemplateMetadataGenerator schema10Generator = new TemplateMetadataSchema10.TemplateMetadataGenerator(logger);
+                resolver.Register("1.0", schema10Generator);
+
+                TemplateMetadataSchema11.TemplateMetadataGenerator schema11Generator = new TemplateMetadataSchema11.TemplateMetadataGenerator(logger);
+                resolver.Register("1.1", schema11Generator);
+
+                return resolver;
+            });
+            builder.AddSingleton<ICosmosRepository, CosmosRepository>();
+            
+            CosmosDbSettings settings = new CosmosDbSettings();
+
+            config.Bind("CosmosDbSettings", settings);
+
+            settings.ContainerName = "publishedfunding";
+
+            builder.AddSingleton(settings);
+            
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
 
             builder.AddFeatureManagement();
@@ -104,7 +152,14 @@ namespace CalculateFunding.Functions.Publishing
 
                 return new PublishedFundingRepository(calcsCosmosRepostory, publishedFundingQueryBuilder);
             });
+            
+            CosmosDbSettings publishedfundingCosmosSettings = new CosmosDbSettings();
 
+            config.Bind("CosmosDbSettings", publishedfundingCosmosSettings);
+
+            publishedfundingCosmosSettings.ContainerName = "publishedfunding";
+
+            builder.AddSingleton(publishedfundingCosmosSettings);
             builder.AddSingleton<ICosmosRepository, CosmosRepository>();
             builder.AddCaching(config);
             builder.AddSearch(config);
@@ -116,30 +171,22 @@ namespace CalculateFunding.Functions.Publishing
             // These registrations of the functions themselves are just for the DebugQueue. Ideally we don't want these registered in production
             if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
             {
-                builder.AddScoped(_ =>
-                {
-                    return new OnRefreshFunding(_.GetService<ILogger>(),
-                        _.GetService<IRefreshService>(),
-                        _.GetService<IMessengerService>(),
-                        _.GetService<IUserProfileProvider>(),
-                        true);
-                });
-                builder.AddScoped(_ =>
-                {
-                    return new OnApproveAllProviderFunding(_.GetService<ILogger>(),
-                        _.GetService<IApproveService>(),
-                        _.GetService<IMessengerService>(),
-                        _.GetService<IUserProfileProvider>(),
-                        true);
-                });
-                builder.AddScoped(_ =>
-                {
-                    return new OnPublishAllProviderFunding(_.GetService<ILogger>(),
-                        _.GetService<IPublishService>(),
-                        _.GetService<IMessengerService>(),
-                        _.GetService<IUserProfileProvider>(),
-                        true);
-                });
+                builder.AddScoped(_ => new OnRefreshFunding(_.GetService<ILogger>(),
+                    _.GetService<IRefreshService>(),
+                    _.GetService<IMessengerService>(),
+                    _.GetService<IUserProfileProvider>(),
+                    true));
+                builder.AddScoped(_ => new OnApproveAllProviderFunding(_.GetService<ILogger>(),
+                    _.GetService<IApproveService>(),
+                    _.GetService<IMessengerService>(),
+                    _.GetService<IUserProfileProvider>(),
+                    true));
+                builder.AddScoped(_ => new OnPublishAllProviderFunding(_.GetService<ILogger>(),
+                    _.GetService<IPublishService>(),
+                    _.GetService<IMessengerService>(),
+                    _.GetService<IUserProfileProvider>(),
+                    true));
+                builder.AddScoped<OnRunSqlImport>();
                 builder.AddScoped<OnRefreshFundingFailure>();
                 builder.AddScoped<OnApproveAllProviderFundingFailure>();
                 builder.AddScoped<OnPublishAllProviderFundingFailure>();
@@ -152,23 +199,17 @@ namespace CalculateFunding.Functions.Publishing
                 builder.AddScoped<OnGeneratePublishedFundingCsvFailure>();
                 builder.AddScoped<OnGeneratePublishedProviderEstateCsv>();
                 builder.AddScoped<OnGeneratePublishedProviderEstateCsvFailure>();
-                builder.AddScoped(_ =>
-                {
-                    return new OnApproveBatchProviderFunding(_.GetService<ILogger>(),
-                        _.GetService<IApproveService>(),
-                        _.GetService<IMessengerService>(),
-                        _.GetService<IUserProfileProvider>(),
-                        true);
-                });
+                builder.AddScoped(_ => new OnApproveBatchProviderFunding(_.GetService<ILogger>(),
+                    _.GetService<IApproveService>(),
+                    _.GetService<IMessengerService>(),
+                    _.GetService<IUserProfileProvider>(),
+                    true));
                 builder.AddScoped<OnApproveBatchProviderFundingFailure>();
-                builder.AddScoped(_ =>
-                {
-                    return new OnPublishBatchProviderFunding(_.GetService<ILogger>(),
-                        _.GetService<IPublishService>(),
-                        _.GetService<IMessengerService>(),
-                        _.GetService<IUserProfileProvider>(),
-                        true);
-                });
+                builder.AddScoped(_ => new OnPublishBatchProviderFunding(_.GetService<ILogger>(),
+                    _.GetService<IPublishService>(),
+                    _.GetService<IMessengerService>(),
+                    _.GetService<IUserProfileProvider>(),
+                    true));
                 builder.AddScoped<OnPublishBatchProviderFundingFailure>();
                 builder.AddScoped<OnPublishedFundingUndo>();
             }
@@ -418,12 +459,9 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddCalculationsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
             builder.AddPoliciesInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
 
-            builder.AddSingleton<ITransactionResiliencePolicies>((ctx) =>
+            builder.AddSingleton<ITransactionResiliencePolicies>((ctx) => new TransactionResiliencePolicies()
             {
-                return new TransactionResiliencePolicies()
-                {
-                    TransactionPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings)
-                };
+                TransactionPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings)
             });
 
             builder.AddSingleton<ITransactionFactory, TransactionFactory>();

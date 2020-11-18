@@ -36,6 +36,7 @@ namespace CalculateFunding.Api.Publishing.UnitTests
                 { "graphClient:ApiKey", "Local" },
                 { "calcsClient:ApiEndpoint", "https://localhost:7011/api/" },
                 { "calcsClient:ApiKey", "Local" },
+                { "saSql:ConnectionString", "Server=localhost;Initial Catalog=SqlExport;Trusted_Connection=True;" }
             };
         }
 

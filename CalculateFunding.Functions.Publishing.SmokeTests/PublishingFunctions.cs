@@ -13,6 +13,7 @@ using NSubstitute;
 using Serilog;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using CalculateFunding.Services.Publishing.SqlExport;
 
 namespace CalculateFunding.Functions.Publishing.SmokeTests
 {
@@ -27,6 +28,7 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
         private static IPublishedProviderReIndexerService _publishedProviderReIndexerService;
         private static IDeletePublishedProvidersService _deletePublishedProvidersService;
         private static IUserProfileProvider _userProfileProvider;
+        private static ISqlImportService _sqlImportService;
 
         [ClassInitialize]
         public static void SetupTests(TestContext tc)
@@ -40,6 +42,24 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
             _publishedProviderReIndexerService = CreatePublishedProviderReIndexerService();
             _deletePublishedProvidersService = CreateDeletePublishedProvidersService();
             _userProfileProvider = CreateUserProfileProvider();
+            _sqlImportService = Substitute.For<ISqlImportService>();
+        }
+        
+        [TestMethod]
+        public async Task OnRunSqlImport_SmokeTestSucceeds()
+        {
+            OnRunSqlImport onApproveSpecificationFunding = new OnRunSqlImport(_logger,
+                _sqlImportService,
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                _userProfileProvider,
+                IsDevelopment);
+
+            SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingRunSqlImport,
+                (Message smokeResponse) => onApproveSpecificationFunding.Run(smokeResponse), useSession: true);
+
+            response
+                .Should()
+                .NotBeNull();
         }
 
         [TestMethod]
