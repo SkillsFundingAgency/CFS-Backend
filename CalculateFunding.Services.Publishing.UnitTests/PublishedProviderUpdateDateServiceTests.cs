@@ -1,8 +1,8 @@
 using System;
 using System.Threading.Tasks;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Tests.Common.Helpers;
-using Castle.Core.Resource;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -45,7 +45,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             result?.Value
                 .Should()
-                .Be(expectedResult);
+                .BeEquivalentTo(new LatestPublishedDate
+                {
+                    Value = expectedResult
+                });
         }
         
         private static string NewRandomString() => new RandomString();

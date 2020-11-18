@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Models;
 using Microsoft.AspNetCore.Mvc;
 using Polly;
 
@@ -28,7 +29,10 @@ namespace CalculateFunding.Services.Publishing
             DateTime? latestPublishedDate = await _publishedFundingResilience.ExecuteAsync(() 
                 => _publishedFundingRepository.GetLatestPublishedDate(fundingStreamId, fundingPeriodId));
             
-            return new OkObjectResult(latestPublishedDate);
+            return new OkObjectResult(new LatestPublishedDate
+            {
+                Value = latestPublishedDate
+            });
         }
     }
 }
