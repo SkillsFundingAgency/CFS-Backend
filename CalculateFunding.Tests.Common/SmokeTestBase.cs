@@ -60,7 +60,7 @@ namespace CalculateFunding.Tests.Common
         }
 
         public async Task<SmokeResponse> RunSmokeTest(string queueName,
-            Action<Message> action,
+            Func<Message, Task> action,
             string topicName = null,
             bool useSession = false)
         {
@@ -92,7 +92,7 @@ namespace CalculateFunding.Tests.Common
 
         private async Task<SmokeResponse> RunSmokeTest(IMessengerService messengerService,
             string queueName,
-            Action<Message> action,
+            Func<Message, Task> action,
             string topicName,
             bool useSession)
         {
@@ -148,7 +148,7 @@ namespace CalculateFunding.Tests.Common
                         uniqueId,
                         properties);
                     }
-            }
+                }
 
                 if (IsDevelopment)
                 {
@@ -158,12 +158,13 @@ namespace CalculateFunding.Tests.Common
                     Message message = new Message();
                     message.UserProperties.Add("smoketest", smokeResponsesFromFunction?.FirstOrDefault(_ => _ == uniqueId));
 
-                    action = _useMocking ? (msg) => 
-                    { 
-                        msg.UserProperties["smoketest"].Equals(uniqueId); 
-                    } : action;
+                    action = _useMocking ? async(msg) =>
+                    {
+                        await Task.FromResult(msg.UserProperties["smoketest"].Equals(uniqueId));
+                    }
+                    : action;
 
-                    action(message);
+                    await action(message);
                 }
 
                 return await messengerService.ReceiveMessage<SmokeResponse>(entityPathBase,_ => _.InvocationId == uniqueId,

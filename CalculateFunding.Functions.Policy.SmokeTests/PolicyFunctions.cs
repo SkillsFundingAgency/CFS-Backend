@@ -42,7 +42,7 @@ namespace CalculateFunding.Functions.Policy.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.PolicyReIndexTemplates,
-                async (Message smokeResponse) => await onReIndexTemplates.Run(smokeResponse));
+                async(Message smokeResponse) => await onReIndexTemplates.Run(smokeResponse));
 
             response
                 .Should()

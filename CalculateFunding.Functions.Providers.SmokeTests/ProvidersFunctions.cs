@@ -44,7 +44,7 @@ namespace CalculateFunding.Functions.Providers.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.PopulateScopedProviders,
-                async (Message smokeResponse) => await onPopulateScopedProvidersEventTrigger.Run(smokeResponse));
+                async(Message smokeResponse) => await onPopulateScopedProvidersEventTrigger.Run(smokeResponse));
 
             response
                 .Should()
@@ -61,7 +61,7 @@ namespace CalculateFunding.Functions.Providers.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.ProviderSnapshotDataLoad,
-                async (Message smokeResponse) => await onProviderSnapshotDataLoadEventTrigger.Run(smokeResponse), useSession: true);
+                async(Message smokeResponse) => await onProviderSnapshotDataLoadEventTrigger.Run(smokeResponse), useSession: true);
 
             response
                 .Should()

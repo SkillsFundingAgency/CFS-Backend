@@ -45,7 +45,7 @@ namespace CalculateFunding.Functions.CalcEngine.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults, 
-                (Message smokeResponse) => onCalcsGenerateAllocationResults.Run(smokeResponse));
+                async(Message smokeResponse) => await onCalcsGenerateAllocationResults.Run(smokeResponse));
 
             response
                 .Should()

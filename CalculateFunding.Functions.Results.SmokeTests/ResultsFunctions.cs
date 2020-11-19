@@ -48,7 +48,7 @@ namespace CalculateFunding.Functions.Results.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.CalculationResultsCsvGeneration,
-                (Message smokeResponse) => onCalculationResultsCsvGeneration.Run(smokeResponse));
+                async(Message smokeResponse) => await onCalculationResultsCsvGeneration.Run(smokeResponse));
 
             response
                 .Should()
@@ -65,7 +65,7 @@ namespace CalculateFunding.Functions.Results.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.CleanupCalculationResultsForSpecificationProviders,
-                (Message smokeResponse) => onProviderResultsSpecificationCleanup.Run(smokeResponse),
+                async(Message smokeResponse) => await onProviderResultsSpecificationCleanup.Run(smokeResponse),
                 ServiceBusConstants.TopicNames.ProviderSourceDatasetCleanup);
 
             response
@@ -83,7 +83,7 @@ namespace CalculateFunding.Functions.Results.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.ReIndexCalculationResultsIndex,
-                (Message smokeResponse) => onReIndexCalculationResults.Run(smokeResponse));
+                async(Message smokeResponse) => await onReIndexCalculationResults.Run(smokeResponse));
 
             response
                 .Should()
@@ -100,7 +100,7 @@ namespace CalculateFunding.Functions.Results.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.MergeSpecificationInformationForProvider,
-                (Message smokeResponse) => onReIndexCalculationResults.Run(smokeResponse));
+                async(Message smokeResponse) => await onReIndexCalculationResults.Run(smokeResponse));
 
             response
                 .Should()
@@ -117,7 +117,7 @@ namespace CalculateFunding.Functions.Results.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.DeleteCalculationResults,
-                (Message smokeResponse) => onDeleteCalculationResults.Run(smokeResponse));
+                async(Message smokeResponse) => await onDeleteCalculationResults.Run(smokeResponse));
 
             response
                 .Should()

@@ -44,7 +44,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.ScaleUpCosmosdbCollection,
-                (Message smokeResponse) => onScaleUpCosmosDbCollection.Run(smokeResponse),
+                async(Message smokeResponse) => await onScaleUpCosmosDbCollection.Run(smokeResponse),
                 ServiceBusConstants.TopicNames.JobNotifications);
 
             response

@@ -44,7 +44,7 @@ namespace CalculateFunding.Functions.Scenarios.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.UpdateScenarioFieldDefinitionProperties,
-                (Message smokeResponse) => onDataDefinitionChanges.Run(smokeResponse),
+                async(Message smokeResponse) => await onDataDefinitionChanges.Run(smokeResponse),
                 ServiceBusConstants.TopicNames.DataDefinitionChanges);
 
             response
@@ -62,7 +62,7 @@ namespace CalculateFunding.Functions.Scenarios.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.DeleteTests,
-                (Message smokeResponse) => onDeleteTests.Run(smokeResponse));
+                async(Message smokeResponse) => await onDeleteTests.Run(smokeResponse));
 
             response
                 .Should()
@@ -79,7 +79,7 @@ namespace CalculateFunding.Functions.Scenarios.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.UpdateScenariosForEditCalculation,
-                (Message smokeResponse) => onEditCalculationEvent.Run(smokeResponse),
+                async(Message smokeResponse) => await onEditCalculationEvent.Run(smokeResponse),
                 ServiceBusConstants.TopicNames.EditCalculation);
 
             response
@@ -97,7 +97,7 @@ namespace CalculateFunding.Functions.Scenarios.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.UpdateScenariosForEditSpecification,
-                (Message smokeResponse) => onEditSpecificationEvent.Run(smokeResponse),
+                async(Message smokeResponse) => await onEditSpecificationEvent.Run(smokeResponse),
                 ServiceBusConstants.TopicNames.EditSpecification);
 
             response

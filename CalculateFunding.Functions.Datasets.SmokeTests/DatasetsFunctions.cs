@@ -47,7 +47,7 @@ namespace CalculateFunding.Functions.Datasets.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.UpdateDataDefinitionName,
-                (Message smokeResponse) => onDataDefinitionChanges.Run(smokeResponse),
+                async(Message smokeResponse) => await onDataDefinitionChanges.Run(smokeResponse),
                 ServiceBusConstants.TopicNames.DataDefinitionChanges);
 
             response
@@ -65,7 +65,7 @@ namespace CalculateFunding.Functions.Datasets.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.MapFdzDatasets,
-                (Message smokeResponse) => onMapFdzDatasetsEventFired.Run(smokeResponse), useSession: true);
+                async(Message smokeResponse) => await onMapFdzDatasetsEventFired.Run(smokeResponse), useSession: true);
 
             response
                 .Should()
@@ -82,7 +82,7 @@ namespace CalculateFunding.Functions.Datasets.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.ProcessDataset,
-                (Message smokeResponse) => onDatasetEvent.Run(smokeResponse), useSession: true);
+                async(Message smokeResponse) => await onDatasetEvent.Run(smokeResponse), useSession: true);
 
             response
                 .Should()
@@ -99,7 +99,7 @@ namespace CalculateFunding.Functions.Datasets.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.ValidateDataset,
-                (Message smokeResponse) => onDatasetValidationEvent.Run(smokeResponse));
+                async(Message smokeResponse) => await onDatasetValidationEvent.Run(smokeResponse));
 
             response
                 .Should()
@@ -116,7 +116,7 @@ namespace CalculateFunding.Functions.Datasets.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.DeleteDatasets,
-                (Message smokeResponse) => onDeleteDatasets.Run(smokeResponse));
+                async(Message smokeResponse) => await onDeleteDatasets.Run(smokeResponse));
 
             response
                 .Should()

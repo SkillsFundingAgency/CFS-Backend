@@ -42,7 +42,7 @@ namespace CalculateFunding.Functions.Users.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.UpdateUsersForEditSpecification,
-                (Message smokeResponse) => onEditSpecificationEvent.Run(smokeResponse),
+                async(Message smokeResponse) => await onEditSpecificationEvent.Run(smokeResponse),
                 ServiceBusConstants.TopicNames.EditSpecification);
 
             response

@@ -51,7 +51,7 @@ namespace CalculateFunding.Functions.Calcs.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.ApplyTemplateCalculations,
-                (Message smokeResponse) => onApplyTemplateCalculations.Run(smokeResponse), useSession: true);
+                async(Message smokeResponse) => await onApplyTemplateCalculations.Run(smokeResponse), useSession: true);
 
             response
                 .Should()
@@ -69,7 +69,7 @@ namespace CalculateFunding.Functions.Calcs.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.ApplyTemplateCalculations,
-                (Message smokeResponse) => onApplyTemplateCalculations.Run(smokeResponse), useSession: true);
+                async(Message smokeResponse) => await onApplyTemplateCalculations.Run(smokeResponse), useSession: true);
 
             response
                 .Should()
@@ -86,7 +86,7 @@ namespace CalculateFunding.Functions.Calcs.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.UpdateBuildProjectRelationships,
-                (Message smokeResponse) => calcsAddRelationshipToBuildProject.Run(smokeResponse));
+                async(Message smokeResponse) => await calcsAddRelationshipToBuildProject.Run(smokeResponse));
 
             response
                 .Should()
@@ -103,7 +103,7 @@ namespace CalculateFunding.Functions.Calcs.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.CalculationJobInitialiser, 
-                (Message smokeResponse) => onCalcsInstructAllocationResults.Run(smokeResponse));
+                async(Message smokeResponse) => await onCalcsInstructAllocationResults.Run(smokeResponse));
 
             response
                 .Should()
@@ -120,7 +120,7 @@ namespace CalculateFunding.Functions.Calcs.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.CreateInstructAllocationsJob,
-                (Message smokeResponse) => onCalculationAggregationsJobCompleted.Run(smokeResponse),
+                async(Message smokeResponse) => await onCalculationAggregationsJobCompleted.Run(smokeResponse),
                 ServiceBusConstants.TopicNames.JobNotifications);
 
             response
@@ -138,7 +138,7 @@ namespace CalculateFunding.Functions.Calcs.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.UpdateCalculationFieldDefinitionProperties,
-                (Message smokeResponse) => onDataDefinitionChanges.Run(smokeResponse),
+                async(Message smokeResponse) => await onDataDefinitionChanges.Run(smokeResponse),
                 ServiceBusConstants.TopicNames.DataDefinitionChanges);
 
             response
@@ -156,7 +156,7 @@ namespace CalculateFunding.Functions.Calcs.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.DeleteCalculations,
-                (Message smokeResponse) => onDeleteCalculations.Run(smokeResponse));
+                async(Message smokeResponse) => await onDeleteCalculations.Run(smokeResponse));
 
             response
                 .Should()

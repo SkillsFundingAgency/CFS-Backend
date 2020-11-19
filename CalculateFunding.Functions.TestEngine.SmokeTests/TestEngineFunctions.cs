@@ -44,7 +44,7 @@ namespace CalculateFunding.Functions.TestEngine.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.DeleteTestResults,
-                (Message smokeResponse) => onDeleteTestResults.Run(smokeResponse));
+                async(Message smokeResponse) => await onDeleteTestResults.Run(smokeResponse));
 
             response
                 .Should()
@@ -61,7 +61,7 @@ namespace CalculateFunding.Functions.TestEngine.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.UpdateScenarioResultsForEditSpecification,
-                (Message smokeResponse) => onEditSpecificationEvent.Run(smokeResponse),
+                async(Message smokeResponse) => await onEditSpecificationEvent.Run(smokeResponse),
                 ServiceBusConstants.TopicNames.EditSpecification);
 
             response
@@ -79,7 +79,7 @@ namespace CalculateFunding.Functions.TestEngine.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.TestEngineExecuteTests,
-                (Message smokeResponse) => onTestExecution.Run(smokeResponse));
+                async(Message smokeResponse) => await onTestExecution.Run(smokeResponse));
 
             response
                 .Should()
@@ -96,7 +96,7 @@ namespace CalculateFunding.Functions.TestEngine.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.CleanupTestResultsForSpecificationProviders,
-                (Message smokeResponse) => onTestSpecificationProviderResultsCleanup.Run(smokeResponse),
+                async(Message smokeResponse) => await onTestSpecificationProviderResultsCleanup.Run(smokeResponse),
                 ServiceBusConstants.TopicNames.ProviderSourceDatasetCleanup);
 
             response

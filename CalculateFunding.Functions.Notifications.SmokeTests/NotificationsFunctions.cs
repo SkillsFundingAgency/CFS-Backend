@@ -41,7 +41,7 @@ namespace CalculateFunding.Functions.Notifications.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.JobNotificationsToSignalR,
-                (Message smokeResponse) => onNotificationEventTrigger.Run(smokeResponse, null),
+                async(Message smokeResponse) => await onNotificationEventTrigger.Run(smokeResponse, null),
                 ServiceBusConstants.TopicNames.JobNotifications);
 
             response

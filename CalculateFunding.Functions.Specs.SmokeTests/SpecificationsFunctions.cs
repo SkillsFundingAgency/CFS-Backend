@@ -45,7 +45,7 @@ namespace CalculateFunding.Functions.Specs.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.AddDefinitionRelationshipToSpecification,
-                (Message smokeResponse) => onAddRelationshipEvent.Run(smokeResponse));
+                async(Message smokeResponse) => await onAddRelationshipEvent.Run(smokeResponse));
 
             response
                 .Should()
@@ -62,7 +62,7 @@ namespace CalculateFunding.Functions.Specs.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.DeleteSpecifications,
-                (Message smokeResponse) => onDeleteSpecifications.Run(smokeResponse));
+                async(Message smokeResponse) => await onDeleteSpecifications.Run(smokeResponse));
 
             response
                 .Should()
@@ -79,7 +79,7 @@ namespace CalculateFunding.Functions.Specs.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.ReIndexSingleSpecification,
-                (Message smokeResponse) => onReIndexSpecifications.Run(smokeResponse), useSession: true);
+                async(Message smokeResponse) => await onReIndexSpecifications.Run(smokeResponse), useSession: true);
 
             response
                 .Should()

@@ -48,14 +48,14 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
         [TestMethod]
         public async Task OnRunSqlImport_SmokeTestSucceeds()
         {
-            OnRunSqlImport onApproveSpecificationFunding = new OnRunSqlImport(_logger,
+            OnRunSqlImport onRunSqlImport = new OnRunSqlImport(_logger,
                 _sqlImportService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _userProfileProvider,
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingRunSqlImport,
-                (Message smokeResponse) => onApproveSpecificationFunding.Run(smokeResponse), useSession: true);
+                async(Message smokeResponse) => await onRunSqlImport.Run(smokeResponse), useSession: true);
 
             response
                 .Should()
@@ -72,7 +72,7 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingApproveAllProviderFunding,
-                (Message smokeResponse) => onApproveSpecificationFunding.Run(smokeResponse), useSession: true);
+                async(Message smokeResponse) => await onApproveSpecificationFunding.Run(smokeResponse), useSession: true);
 
             response
                 .Should()
@@ -89,7 +89,7 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingApproveBatchProviderFunding,
-                (Message smokeResponse) => onApproveProviderFunding.Run(smokeResponse), useSession: true);
+                async(Message smokeResponse) => await onApproveProviderFunding.Run(smokeResponse), useSession: true);
 
             response
                 .Should()
@@ -106,7 +106,7 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingPublishAllProviderFunding,
-                (Message smokeResponse) => onPublishFunding.Run(smokeResponse), useSession: true);
+                async(Message smokeResponse) => await onPublishFunding.Run(smokeResponse), useSession: true);
 
 
             response
@@ -124,7 +124,7 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingPublishBatchProviderFunding,
-                (Message smokeResponse) => onPublishFunding.Run(smokeResponse), useSession: true);
+                async(Message smokeResponse) => await onPublishFunding.Run(smokeResponse), useSession: true);
 
             response
                 .Should()
@@ -140,7 +140,7 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishIntegrityCheck,
-                (Message smokeResponse) => onPublishIntegrityCheck.Run(smokeResponse), useSession: true);
+                async(Message smokeResponse) => await onPublishIntegrityCheck.Run(smokeResponse), useSession: true);
 
             response
                 .Should()
@@ -157,7 +157,7 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingRefreshFunding,
-                (Message smokeResponse) => onRefreshFunding.Run(smokeResponse), useSession: true);
+                async(Message smokeResponse) => await onRefreshFunding.Run(smokeResponse), useSession: true);
 
             response
                 .Should()
@@ -174,7 +174,7 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingReIndexPublishedProviders,
-                (Message smokeResponse) => onReIndexPublishedProviders.Run(smokeResponse));
+                async(Message smokeResponse) => await onReIndexPublishedProviders.Run(smokeResponse));
 
             response
                 .Should()
@@ -191,7 +191,7 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.DeletePublishedProviders,
-                (Message smokeResponse) => onDeletePublishedProvider.Run(smokeResponse));
+                async(Message smokeResponse) => await onDeletePublishedProvider.Run(smokeResponse));
 
             response
                 .Should()

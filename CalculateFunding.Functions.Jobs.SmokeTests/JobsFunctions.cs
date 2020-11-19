@@ -42,7 +42,7 @@ namespace CalculateFunding.Functions.Jobs.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.UpdateJobsOnCompletion,
-                (Message smokeResponse) => onJobNotification.Run(smokeResponse),
+                async(Message smokeResponse) => await onJobNotification.Run(smokeResponse),
                 ServiceBusConstants.TopicNames.JobNotifications);
 
             response
