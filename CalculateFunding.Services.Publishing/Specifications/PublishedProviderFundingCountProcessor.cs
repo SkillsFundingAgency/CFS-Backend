@@ -24,14 +24,14 @@ namespace CalculateFunding.Services.Publishing.Specifications
 
         public PublishedProviderFundingCountProcessor(IProducerConsumerFactory producerConsumerFactory,
             IPublishedFundingRepository publishedFunding,
-            IPublishingResiliencePolicies  resiliencePolicies,
+            IPublishingResiliencePolicies resiliencePolicies,
             ILogger logger)
         {
             Guard.ArgumentNotNull(producerConsumerFactory, nameof(producerConsumerFactory));
             Guard.ArgumentNotNull(publishedFunding, nameof(publishedFunding));
             Guard.ArgumentNotNull(resiliencePolicies.PublishedFundingRepository, nameof(resiliencePolicies.PublishedFundingRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
-            
+
             _producerConsumerFactory = producerConsumerFactory;
             _publishedFunding = publishedFunding;
             _logger = logger;
@@ -45,9 +45,9 @@ namespace CalculateFunding.Services.Publishing.Specifications
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
             Guard.IsNotEmpty(publishedProviderIds, nameof(publishedProviderIds));
             Guard.IsNotEmpty(statuses, nameof(statuses));
-            
-            PublishedProviderFundingCountProcessorContext context = new PublishedProviderFundingCountProcessorContext(publishedProviderIds, 
-                statuses, 
+
+            PublishedProviderFundingCountProcessorContext context = new PublishedProviderFundingCountProcessorContext(publishedProviderIds,
+                statuses,
                 specificationId);
 
             IProducerConsumer producerConsumer = _producerConsumerFactory.CreateProducerConsumer(ProducePublishedProviderIds,
@@ -83,7 +83,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
             IEnumerable<PublishedProviderFunding> fundings = await _publishedFundingPolicy.ExecuteAsync(() => _publishedFunding.GetPublishedProvidersFunding(items,
                 countContext.SpecificationId,
                 countContext.Statuses));
-            
+
             countContext.AddFundings(fundings);
         }
 
@@ -116,12 +116,17 @@ namespace CalculateFunding.Services.Publishing.Specifications
                 => new PublishedProviderFundingCount
                 {
                     Count = _fundings.Count(),
-                    TotalFunding = _fundings.Sum(_ => _.TotalFunding.GetValueOrDefault(0)),
-                    ProviderTypes = _fundings.Select(_ => _.ProviderTypeSubType).Distinct().ToList(),
-                    FundingStreamsFundings = _fundings.GroupBy(x => x.FundingStreamId)
-                                                    .Select(g => new PublishedProivderFundingStreamFunding() { FundingStreamId = g.Key, TotalFunding = g.Sum(_ => _.TotalFunding.GetValueOrDefault(0))})
-                                                    .ToList(),
-                    LocalAuthorities = _fundings.Select(_ => _.LaCode).Distinct().ToList()
+                    TotalFunding = _fundings.Sum(_ => _.TotalFunding.GetValueOrDefault()),
+                    ProviderTypes = _fundings.Select(_ => _.ProviderTypeSubType).Distinct().ToArray(),
+                    FundingStreamsFundings = _fundings.GroupBy(fundingStream => fundingStream.FundingStreamId)
+                        .Select(fundingStream => new PublishedProivderFundingStreamFunding
+                        {
+                            FundingStreamId = fundingStream.Key,
+                            TotalFunding = fundingStream.Sum(_ =>
+                                _.TotalFunding.GetValueOrDefault())
+                        })
+                        .ToArray(),
+                    LocalAuthorities = _fundings.Select(_ => _.LaCode).Distinct().ToArray()
                 };
         }
     }

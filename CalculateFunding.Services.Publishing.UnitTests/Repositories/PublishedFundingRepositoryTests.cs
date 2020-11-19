@@ -704,13 +704,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                               FROM publishedProvider c
                               WHERE c.documentType = 'PublishedProvider'
                               AND c.deleted = false 
-                              AND c.content.current.specificationId = @specificationId AND c.content.current.publishedProviderId IN (@publishedProviderId_0,@publishedProviderId_1,@publishedProviderId_2) AND c.content.current.status IN (@status_0,@status_1)" &&
+                              AND c.content.current.specificationId = @specificationId
+                              AND ARRAY_CONTAINS(@publishedProviderIds, c.content.current.publishedProviderId) 
+                              AND ARRAY_CONTAINS(@statuses, c.content.current.status)
+                              AND c.deleted = false" &&
                      HasParameter(_, "@specificationId", s) &&
-                     HasParameter(_, "@publishedProviderId_0", publishedProviderId0) &&
-                     HasParameter(_, "@publishedProviderId_1", publishedProviderId1) &&
-                     HasParameter(_, "@publishedProviderId_2", publishedProviderId2) &&
-                     HasParameter(_, "@status_0", status0.ToString()) &&
-                     HasParameter(_, "@status_1", status1.ToString());
+                     HasArrayParameter(_, "@publishedProviderIds", publishedProviderIds) &&
+                     HasArrayParameter(_, "@statuses", statuses.Select(status => status.ToString()));
         }
         
         [TestMethod]

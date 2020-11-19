@@ -1054,8 +1054,10 @@ namespace CalculateFunding.Services.Publishing.Repositories
             Guard.IsNotEmpty(publishedProviderIds, nameof(publishedProviderIds));
             Guard.Ensure(publishedProviderIds.Count() <= 100, "You can only filter against 100 published provider ids at a time");
             Guard.IsNotEmpty(statuses, nameof(statuses));
-
-            StringBuilder queryTextBuilder = new StringBuilder(@"
+            
+            CosmosDbQuery query = new CosmosDbQuery
+            {
+                QueryText = @"
                               SELECT 
                                   c.content.current.specificationId,
                                   c.content.current.publishedProviderId,
@@ -1067,31 +1069,21 @@ namespace CalculateFunding.Services.Publishing.Repositories
                               FROM publishedProvider c
                               WHERE c.documentType = 'PublishedProvider'
                               AND c.deleted = false 
-                              AND c.content.current.specificationId = @specificationId");
-
-            List<CosmosDbQueryParameter> cosmosDbQueryParameters = new List<CosmosDbQueryParameter>{
-                new CosmosDbQueryParameter("@specificationId", specificationId)
-            };
-
-            string publishedProviderIdQueryText = string.Join(',', publishedProviderIds.Select((_, index) => $"@publishedProviderId_{index}"));
-            queryTextBuilder.Append($" AND c.content.current.publishedProviderId IN ({publishedProviderIdQueryText})");
-            
-            cosmosDbQueryParameters.AddRange(publishedProviderIds.Select((_, index) => new CosmosDbQueryParameter($"@publishedProviderId_{index}", _)));
-
-            string statusesQueryText = string.Join(',', statuses.Select((_, index) => $"@status_{index}"));
-            queryTextBuilder.Append($" AND c.content.current.status IN ({statusesQueryText})");
-
-            cosmosDbQueryParameters.AddRange(statuses.Select((_, index) => new CosmosDbQueryParameter($"@status_{index}", _.ToString())));
-
-            CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
-            {
-                QueryText = queryTextBuilder.ToString(),
-                Parameters = cosmosDbQueryParameters
+                              AND c.content.current.specificationId = @specificationId
+                              AND ARRAY_CONTAINS(@publishedProviderIds, c.content.current.publishedProviderId) 
+                              AND ARRAY_CONTAINS(@statuses, c.content.current.status)
+                              AND c.deleted = false",
+                Parameters = new[]
+                {
+                    new CosmosDbQueryParameter("@specificationId", specificationId), 
+                    new CosmosDbQueryParameter("@publishedProviderIds", publishedProviderIds.ToArray()), 
+                    new CosmosDbQueryParameter("@statuses", statuses?.Select(_ => _.ToString()).ToArray())
+                }
             };
             
-            IEnumerable<dynamic> results = await _repository.DynamicQuery(cosmosDbQuery);
+            IEnumerable<dynamic> results = await _repository.DynamicQuery(query);
 
-            return results.Select(_ => new PublishedProviderFunding()
+            return results.Select(_ => new PublishedProviderFunding
             {
                 SpecificationId = (string)_.specificationId,
                 PublishedProviderId = (string)_.publishedProviderId,
