@@ -361,6 +361,10 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Received(1)
                 .Map<Models.ProviderLegacy.ProviderSummary>(Arg.Any<Common.ApiClient.Providers.Models.Provider>());
 
+            await blob
+                .Received(1)
+                .UploadFromStreamAsync(Arg.Any<Stream>());
+
             await cacheProvider
                 .Received(1)
                 .SetAsync(Arg.Is($"{CacheKeys.DatasetValidationStatus}:{message.UserProperties["operation-id"].ToString()}"), Arg.Is<DatasetValidationStatusModel>(v =>
@@ -968,6 +972,10 @@ namespace CalculateFunding.Services.Datasets.Services
             test
                 .Should()
                 .Throw<NonRetriableException>();
+
+            await blob
+                .Received(1)
+                .UploadFromStreamAsync(Arg.Any<Stream>());
 
             await cacheProvider
                 .Received(1)

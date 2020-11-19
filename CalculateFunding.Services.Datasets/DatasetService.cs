@@ -1281,6 +1281,8 @@ namespace CalculateFunding.Services.Datasets
                             excelPackage.Stream.Position = 0;
                         }
 
+                        await blob.UploadFromStreamAsync(excelPackage.Stream);
+
                         string blobUrl = _blobClient.GetBlobSasUrl(blob.Name, DateTimeOffset.Now.AddDays(1), SharedAccessBlobPermissions.Read | SharedAccessBlobPermissions.Write);
 
                         validationFailures.Add("excel-validation-error", new string[] { string.Empty });
