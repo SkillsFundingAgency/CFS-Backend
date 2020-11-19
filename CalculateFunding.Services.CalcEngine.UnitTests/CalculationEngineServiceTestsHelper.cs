@@ -5,7 +5,6 @@ using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.ServiceBus.Interfaces;
-using CalculateFunding.Services.CalcEngine.Caching;
 using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Core.Interfaces.Logging;
@@ -50,13 +49,13 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
                     MockCalculationRepository,
                     MockEngineSettings,
                     MockCalculatorResiliencePolicies,
-                    DatasetAggregationsRepository,
                     MockJobManagement,
                     MockSpecificationsApiClient,
                     MockResultsApiClient,
                     MockCalculatorResiliencePoliciesValidator,
                     MockCalculationEngineServiceValidator,
-                    MockSpecificationAssemblyProvider
+                    MockCalculationAggregationService,
+                    MockAssemblyService
                     );
 
             return service;
@@ -73,14 +72,14 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
         public ICalculatorResiliencePolicies MockCalculatorResiliencePolicies { get; set; } = Substitute.For<ICalculatorResiliencePolicies>();
         public ICalculationEngine MockCalculationEngine { get; set; } = Substitute.For<ICalculationEngine>();
         public IValidator<ICalculatorResiliencePolicies> MockCalculatorResiliencePoliciesValidator { get; set; } = Substitute.For<IValidator<ICalculatorResiliencePolicies>>();
-        public IDatasetAggregationsRepository DatasetAggregationsRepository { get; set; } = Substitute.For<IDatasetAggregationsRepository>();
         public ICalculationEngineServiceValidator MockCalculationEngineServiceValidator { get; set; } = Substitute.For<ICalculationEngineServiceValidator>();
         public IFeatureToggle FeatureToggle { get; set; } = Substitute.For<IFeatureToggle>();
         public IJobManagement MockJobManagement { get; set; } = Substitute.For<IJobManagement>();
         public ISpecificationsApiClient MockSpecificationsApiClient { get; set; } = Substitute.For<ISpecificationsApiClient>();
         public IPoliciesApiClient MockPoliciesApiClient { get; set; } = Substitute.For<IPoliciesApiClient>();
         public IResultsApiClient MockResultsApiClient { get; set; } = Substitute.For<IResultsApiClient>();
-        public ISpecificationAssemblyProvider MockSpecificationAssemblyProvider { get; set; } = Substitute.For<ISpecificationAssemblyProvider>();
+        public ICalculationAggregationService MockCalculationAggregationService { get; set; } = Substitute.For<ICalculationAggregationService>();
+        public IAssemblyService MockAssemblyService { get; set; } = Substitute.For<IAssemblyService>();
         public AsyncPolicy MockCacheProviderPolicy { get; set; } = Policy.NoOpAsync();
         public AsyncPolicy MockMessengerPolicy { get; set; } = Policy.NoOpAsync();
         public AsyncPolicy MockProviderSourceDatasetsRepositoryPolicy { get; set; } = Policy.NoOpAsync();

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
@@ -21,12 +20,10 @@ using CalculateFunding.Services.CalcEngine.UnitTests;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
-using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Newtonsoft.Json;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using ApiClientSpecificationSummary = CalculateFunding.Common.ApiClient.Specifications.Models.SpecificationSummary;
@@ -112,8 +109,6 @@ namespace CalculateFunding.Services.Calculator
             const int partitionSize = 100;
             const int stop = partitionIndex + partitionSize - 1;
 
-            BuildProject buildProject = CreateBuildProject();
-
             IList<ProviderSummary> providerSummaries = MockData.GetDummyProviders(20);
 
             IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
@@ -125,11 +120,6 @@ namespace CalculateFunding.Services.Calculator
                 .MockCacheProvider
                 .ListRangeAsync<ProviderSummary>(cacheKey, partitionIndex, stop)
                 .Returns(providerSummaries);
-
-            _calculationEngineServiceTestsHelper
-                .MockCalculationRepository
-                .GetBuildProjectBySpecificationId(Arg.Any<string>())
-                .Returns(buildProject);
 
             IList<CalculationSummaryModel> calculationSummaryModelsReturn = CreateDummyCalculationSummaryModels();
             _calculationEngineServiceTestsHelper
@@ -182,8 +172,6 @@ namespace CalculateFunding.Services.Calculator
             const int stop = partitionIndex + partitionSize - 1;
             const string jobId = "jobId";
 
-            BuildProject buildProject = CreateBuildProject();
-
             IList<ProviderSummary> providerSummaries = MockData.GetDummyProviders(20);
 
             IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
@@ -192,19 +180,14 @@ namespace CalculateFunding.Services.Calculator
                 .Returns(new CalculationResultContainer());
 
             _calculationEngineServiceTestsHelper
+                .MockAssemblyService
+                .GetAssemblyForSpecification(specificationId, null)
+                .Returns(MockData.GetMockAssembly());
+
+            _calculationEngineServiceTestsHelper
                 .MockCacheProvider
                 .ListRangeAsync<ProviderSummary>(cacheKey, partitionIndex, stop)
                 .Returns(providerSummaries);
-
-            _calculationEngineServiceTestsHelper
-                .MockCalculationRepository
-                .GetBuildProjectBySpecificationId(Arg.Any<string>())
-                .Returns(buildProject);
-
-            _calculationEngineServiceTestsHelper
-               .MockCalculationRepository
-               .GetAssemblyBySpecificationId(Arg.Is(specificationId))
-               .Returns(MockData.GetMockAssembly());
 
             IList<CalculationSummaryModel> calculationSummaryModelsReturn = CreateDummyCalculationSummaryModels();
             _calculationEngineServiceTestsHelper
@@ -299,11 +282,7 @@ namespace CalculateFunding.Services.Calculator
             const int stop = partitionIndex + partitionSize - 1;
             const string jobId = "job1";
 
-            BuildProject buildProject = CreateBuildProject();
-
             IList<ProviderSummary> providerSummaries = MockData.GetDummyProviders(20);
-
-            Dictionary<string, List<decimal>> cachedCalculationAggregates = new Dictionary<string, List<decimal>>();
 
             IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
             mockAllocationModel
@@ -311,35 +290,25 @@ namespace CalculateFunding.Services.Calculator
                 .Returns(new CalculationResultContainer());
 
             _calculationEngineServiceTestsHelper
+                .MockAssemblyService
+                .GetAssemblyForSpecification(specificationId, null)
+                .Returns(MockData.GetMockAssembly());
+
+            _calculationEngineServiceTestsHelper
                 .MockCacheProvider
                 .ListRangeAsync<ProviderSummary>(cacheKey, partitionIndex, stop)
                 .Returns(providerSummaries);
 
-            _calculationEngineServiceTestsHelper
-              .MockCacheProvider
-              .GetAsync<Dictionary<string, List<decimal>>>($"{CacheKeys.CalculationAggregations}{specificationId}")
-              .Returns(cachedCalculationAggregates);
-
-            _calculationEngineServiceTestsHelper
-                .MockCalculationRepository
-                .GetBuildProjectBySpecificationId(Arg.Any<string>())
-                .Returns(buildProject);
-
-            _calculationEngineServiceTestsHelper
-              .MockCalculationRepository
-              .GetAssemblyBySpecificationId(Arg.Is(specificationId))
-              .Returns(MockData.GetMockAssembly());
-
-            IEnumerable<DatasetAggregation> datasetAggregations = new[]
+            IEnumerable<CalculationAggregation> calculationAggregations = new[]
             {
-                 new DatasetAggregation(),
-                 new DatasetAggregation()
+                 new CalculationAggregation(),
+                 new CalculationAggregation()
             };
 
             _calculationEngineServiceTestsHelper
-                .DatasetAggregationsRepository
-                .GetDatasetAggregationsForSpecificationId(Arg.Is(specificationId))
-                .Returns(datasetAggregations);
+                .MockCalculationAggregationService
+                .BuildAggregations(Arg.Is<BuildAggregationRequest>(_ => _.SpecificationId == specificationId))
+                .Returns(calculationAggregations);
 
             IList<CalculationSummaryModel> calculationSummaryModelsReturn = CreateDummyCalculationSummaryModels();
             _calculationEngineServiceTestsHelper
@@ -425,8 +394,6 @@ namespace CalculateFunding.Services.Calculator
             const int stop = partitionIndex + partitionSize - 1;
             const string jobId = "job1";
 
-            BuildProject buildProject = CreateBuildProject();
-
             IList<ProviderSummary> providerSummaries = MockData.GetDummyProviders(20);
 
             IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
@@ -435,19 +402,14 @@ namespace CalculateFunding.Services.Calculator
                 .Returns(new CalculationResultContainer());
 
             _calculationEngineServiceTestsHelper
+                .MockAssemblyService
+                .GetAssemblyForSpecification(specificationId, null)
+                .Returns(MockData.GetMockAssembly());
+
+            _calculationEngineServiceTestsHelper
                 .MockCacheProvider
                 .ListRangeAsync<ProviderSummary>(cacheKey, partitionIndex, stop)
                 .Returns(providerSummaries);
-
-            _calculationEngineServiceTestsHelper
-                .MockCalculationRepository
-                .GetBuildProjectBySpecificationId(Arg.Any<string>())
-                .Returns(buildProject);
-
-            _calculationEngineServiceTestsHelper
-                .MockCalculationRepository
-                .GetAssemblyBySpecificationId(Arg.Is(specificationId))
-                .Returns(MockData.GetMockAssembly());
 
             IList<CalculationSummaryModel> calculationSummaryModelsReturn = CreateDummyCalculationSummaryModels();
             _calculationEngineServiceTestsHelper
@@ -526,8 +488,6 @@ namespace CalculateFunding.Services.Calculator
             const int stop = partitionIndex + partitionSize - 1;
             const string jobId = "job-id-1";
 
-            BuildProject buildProject = CreateBuildProject();
-
             JobViewModel jobViewModel = new JobViewModel { Id = jobId };
 
             IList<ProviderSummary> providerSummaries = MockData.GetDummyProviders(20);
@@ -538,19 +498,14 @@ namespace CalculateFunding.Services.Calculator
                 .Returns(new CalculationResultContainer());
 
             _calculationEngineServiceTestsHelper
+                .MockAssemblyService
+                .GetAssemblyForSpecification(specificationId, null)
+                .Returns(MockData.GetMockAssembly());
+
+            _calculationEngineServiceTestsHelper
                 .MockCacheProvider
                 .ListRangeAsync<ProviderSummary>(cacheKey, partitionIndex, stop)
                 .Returns(providerSummaries);
-
-            _calculationEngineServiceTestsHelper
-                .MockCalculationRepository
-                .GetBuildProjectBySpecificationId(Arg.Any<string>())
-                .Returns(buildProject);
-
-            _calculationEngineServiceTestsHelper
-                .MockCalculationRepository
-                .GetAssemblyBySpecificationId(Arg.Is(specificationId))
-                .Returns(MockData.GetMockAssembly());
 
             _calculationEngineServiceTestsHelper
                 .MockJobManagement
@@ -636,8 +591,6 @@ namespace CalculateFunding.Services.Calculator
             const int stop = partitionIndex + partitionSize - 1;
             const string jobId = "job-id-1";
 
-            BuildProject buildProject = CreateBuildProject();
-
             JobViewModel jobViewModel = new JobViewModel { Id = jobId };
 
             IList<ProviderSummary> providerSummaries = MockData.GetDummyProviders(20);
@@ -648,19 +601,14 @@ namespace CalculateFunding.Services.Calculator
                 .Returns(new CalculationResultContainer());
 
             _calculationEngineServiceTestsHelper
+                .MockAssemblyService
+                .GetAssemblyForSpecification(specificationId, null)
+                .Returns(MockData.GetMockAssembly());
+
+            _calculationEngineServiceTestsHelper
                 .MockCacheProvider
                 .ListRangeAsync<ProviderSummary>(cacheKey, partitionIndex, stop)
                 .Returns(providerSummaries);
-
-            _calculationEngineServiceTestsHelper
-                .MockCalculationRepository
-                .GetBuildProjectBySpecificationId(Arg.Any<string>())
-                .Returns(buildProject);
-
-            _calculationEngineServiceTestsHelper
-                .MockCalculationRepository
-                .GetAssemblyBySpecificationId(Arg.Is(specificationId))
-                .Returns(MockData.GetMockAssembly());
 
             _calculationEngineServiceTestsHelper
                 .MockJobManagement
@@ -848,16 +796,7 @@ namespace CalculateFunding.Services.Calculator
             const int stop = partitionIndex + partitionSize - 1;
             const string jobId = "job-id-1";
 
-            BuildProject buildProject = CreateBuildProject();
-
             JobViewModel jobViewModel = new JobViewModel { Id = jobId, JobDefinitionId = JobConstants.DefinitionNames.GenerateCalculationAggregationsJob };
-
-            Dictionary<string, List<decimal>> cachedCalculationAggregates = new Dictionary<string, List<decimal>>(StringComparer.InvariantCultureIgnoreCase)
-            {
-                { "Calc1", new List<decimal>() },
-                { "Calc2", new List<decimal>() },
-                { "Calc3", new List<decimal>() }
-            };
 
             IList<ProviderSummary> providerSummaries = MockData.GetDummyProviders(20);
 
@@ -867,24 +806,14 @@ namespace CalculateFunding.Services.Calculator
                 .Returns(new CalculationResultContainer());
 
             _calculationEngineServiceTestsHelper
+                .MockAssemblyService
+                .GetAssemblyForSpecification(specificationId, null)
+                .Returns(MockData.GetMockAssembly());
+
+            _calculationEngineServiceTestsHelper
                 .MockCacheProvider
                 .ListRangeAsync<ProviderSummary>(cacheKey, partitionIndex, stop)
                 .Returns(providerSummaries);
-
-            _calculationEngineServiceTestsHelper
-               .MockCacheProvider
-               .GetAsync<Dictionary<string, List<decimal>>>($"{CacheKeys.CalculationAggregations}{specificationId}")
-               .Returns(cachedCalculationAggregates);
-
-            _calculationEngineServiceTestsHelper
-                .MockCalculationRepository
-                .GetBuildProjectBySpecificationId(Arg.Any<string>())
-                .Returns(buildProject);
-
-            _calculationEngineServiceTestsHelper
-                .MockCalculationRepository
-                .GetAssemblyBySpecificationId(Arg.Is(specificationId))
-                .Returns(MockData.GetMockAssembly());
 
             _calculationEngineServiceTestsHelper
                 .MockJobManagement
@@ -976,7 +905,8 @@ namespace CalculateFunding.Services.Calculator
         [DataRow("Calc1,Calc2,Calc3")]
         [DataRow("calc1,calc2,calc3")]
         [DataRow("cAlC1,calC2,CALC3")]
-        public async Task GenerateAllocations_GivenCachedAggregateValuesExistAndAggregationsToAggregateInMessageAreInAnyCase_EnsuresAllocationModelCalledWithCachedAggregates(string calculationsToAggregate)
+        public async Task GenerateAllocations_GivenCachedAggregateValuesExistAndAggregationsToAggregateInMessageAreInAnyCase_EnsuresAllocationModelCalledWithCachedAggregates(
+            string calculationsToAggregate)
         {
             //Arrange
             const string cacheKey = "Cache-key";
@@ -986,15 +916,6 @@ namespace CalculateFunding.Services.Calculator
             const int partitionSize = 100;
             const int stop = partitionIndex + partitionSize - 1;
             const string jobId = "job-id-1";
-
-            Dictionary<string, List<decimal>> cachedCalculationAggregates = new Dictionary<string, List<decimal>>(StringComparer.InvariantCultureIgnoreCase)
-            {
-                { "Calc1", new List<decimal>{ 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10 } },
-                { "Calc2", new List<decimal>{ 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20 } },
-                { "Calc3", new List<decimal>{ 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30 } }
-            };
-
-            BuildProject buildProject = CreateBuildProject();
 
             JobViewModel jobViewModel = new JobViewModel { Id = jobId };
 
@@ -1006,24 +927,25 @@ namespace CalculateFunding.Services.Calculator
                 .Returns(new CalculationResultContainer());
 
             _calculationEngineServiceTestsHelper
+                .MockAssemblyService
+                .GetAssemblyForSpecification(specificationId, null)
+                .Returns(MockData.GetMockAssembly());
+
+            _calculationEngineServiceTestsHelper
                 .MockCacheProvider
                 .ListRangeAsync<ProviderSummary>(cacheKey, partitionIndex, stop)
                 .Returns(providerSummaries);
 
-            _calculationEngineServiceTestsHelper
-                .MockCalculationRepository
-                .GetBuildProjectBySpecificationId(Arg.Any<string>())
-                .Returns(buildProject);
+            IEnumerable<CalculationAggregation> calculationAggregations = new List<CalculationAggregation>
+            { 
+                new CalculationAggregation(),
+                new CalculationAggregation()
+            };
 
             _calculationEngineServiceTestsHelper
-                .MockCalculationRepository
-                .GetAssemblyBySpecificationId(Arg.Is(specificationId))
-                .Returns(MockData.GetMockAssembly());
-
-            _calculationEngineServiceTestsHelper
-             .MockCacheProvider
-             .GetAsync<Dictionary<string, List<decimal>>>($"{CacheKeys.CalculationAggregations}{specificationId}_1")
-             .Returns(cachedCalculationAggregates);
+                .MockCalculationAggregationService
+                .BuildAggregations(Arg.Is<BuildAggregationRequest>(_ => _.SpecificationId == specificationId))
+                .Returns(calculationAggregations);
 
             _calculationEngineServiceTestsHelper
                 .MockJobManagement
@@ -1087,19 +1009,7 @@ namespace CalculateFunding.Services.Calculator
                     Arg.Any<ProviderSummary>(),
                     Arg.Any<IDictionary<string, ProviderSourceDataset>>(),
                     Arg.Is<IEnumerable<CalculationAggregation>>(m =>
-                        m.Count() == 3 &&
-                        m.ElementAt(0).Values.ElementAt(0).Value == 200 &&
-                        m.ElementAt(0).Values.ElementAt(1).Value == 10 &&
-                        m.ElementAt(0).Values.ElementAt(2).Value == 10 &&
-                        m.ElementAt(0).Values.ElementAt(3).Value == 10 &&
-                        m.ElementAt(1).Values.ElementAt(0).Value == 400 &&
-                        m.ElementAt(1).Values.ElementAt(1).Value == 20 &&
-                        m.ElementAt(1).Values.ElementAt(2).Value == 20 &&
-                        m.ElementAt(1).Values.ElementAt(3).Value == 20 &&
-                        m.ElementAt(2).Values.ElementAt(0).Value == 600 &&
-                        m.ElementAt(2).Values.ElementAt(1).Value == 30 &&
-                        m.ElementAt(2).Values.ElementAt(2).Value == 30 &&
-                        m.ElementAt(2).Values.ElementAt(3).Value == 30
+                    m.SequenceEqual(calculationAggregations)
                     ));
 
             //Assert
@@ -1128,8 +1038,6 @@ namespace CalculateFunding.Services.Calculator
             const int stop = partitionIndex + partitionSize - 1;
             const string jobId = "job-id-1";
 
-            BuildProject buildProject = CreateBuildProject();
-
             JobViewModel jobViewModel = new JobViewModel { Id = jobId };
 
             IList<ProviderSummary> providerSummaries = MockData.GetDummyProviders(20);
@@ -1140,26 +1048,14 @@ namespace CalculateFunding.Services.Calculator
                 .Returns(new CalculationResultContainer());
 
             _calculationEngineServiceTestsHelper
+                .MockAssemblyService
+                .GetAssemblyForSpecification(specificationId, null)
+                .Returns(MockData.GetMockAssembly());
+
+            _calculationEngineServiceTestsHelper
                 .MockCacheProvider
                 .ListRangeAsync<ProviderSummary>(cacheKey, partitionIndex, stop)
                 .Returns(providerSummaries);
-
-            _calculationEngineServiceTestsHelper
-                .MockCalculationRepository
-                .GetBuildProjectBySpecificationId(Arg.Any<string>())
-                .Returns(buildProject);
-
-            byte[] expectedAssembly = MockData.GetMockAssembly();
-
-            _calculationEngineServiceTestsHelper
-                .MockCalculationRepository
-                .GetAssemblyBySpecificationId(Arg.Is(specificationId))
-                .Returns(expectedAssembly);
-
-            _calculationEngineServiceTestsHelper
-                .MockCacheProvider
-                .GetAsync<Dictionary<string, List<decimal>>>($"{CacheKeys.CalculationAggregations}{specificationId}_1")
-                .Returns((Dictionary<string, List<decimal>>)null);
 
             _calculationEngineServiceTestsHelper
                 .MockJobManagement
@@ -1238,10 +1134,9 @@ namespace CalculateFunding.Services.Calculator
                     .UpdateJobStatus(Arg.Is(jobId), 20, 0, true, "20 provider results were generated successfully from 20 providers");
 
 
-            await _calculationEngineServiceTestsHelper.MockSpecificationAssemblyProvider
+            await _calculationEngineServiceTestsHelper.MockAssemblyService
                 .Received(1)
-                .SetAssembly(Arg.Is(specificationId),
-                    Arg.Is<Stream>(ass => ass.ReadAllBytes().SequenceEqual(expectedAssembly)));
+                .GetAssemblyForSpecification(Arg.Is(specificationId), Arg.Is<string>(_ => _  == null));
         }
 
         [TestMethod]
@@ -1256,8 +1151,6 @@ namespace CalculateFunding.Services.Calculator
             const int stop = partitionIndex + partitionSize - 1;
             const string jobId = "job1";
 
-            BuildProject buildProject = CreateBuildProject();
-
             IList<ProviderSummary> providerSummaries = MockData.GetDummyProviders(20);
 
             IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
@@ -1266,19 +1159,14 @@ namespace CalculateFunding.Services.Calculator
                 .Returns(new CalculationResultContainer());
 
             _calculationEngineServiceTestsHelper
+                .MockAssemblyService
+                .GetAssemblyForSpecification(specificationId, null)
+                .Throws(new RetriableException($"Failed to get assembly for specification Id '{specificationId}'"));
+
+            _calculationEngineServiceTestsHelper
                 .MockCacheProvider
                 .ListRangeAsync<ProviderSummary>(cacheKey, partitionIndex, stop)
                 .Returns(providerSummaries);
-
-            _calculationEngineServiceTestsHelper
-                .MockCalculationRepository
-                .GetBuildProjectBySpecificationId(Arg.Any<string>())
-                .Returns(buildProject);
-
-            _calculationEngineServiceTestsHelper
-               .MockCalculationRepository
-               .GetAssemblyBySpecificationId(Arg.Is(specificationId))
-               .Returns((byte[])null);
 
             IList<CalculationSummaryModel> calculationSummaryModelsReturn = CreateDummyCalculationSummaryModels();
             _calculationEngineServiceTestsHelper
@@ -1355,8 +1243,6 @@ namespace CalculateFunding.Services.Calculator
             const int stop = partitionIndex + partitionSize - 1;
             const string jobId = "job-id-1";
 
-            BuildProject buildProject = CreateBuildProject();
-
             JobViewModel jobViewModel = new JobViewModel { Id = jobId };
 
             IList<ProviderSummary> providerSummaries = MockData.GetDummyProviders(20);
@@ -1371,21 +1257,6 @@ namespace CalculateFunding.Services.Calculator
                 .MockCacheProvider
                 .ListRangeAsync<ProviderSummary>(cacheKey, partitionIndex, stop)
                 .Returns(providerSummaries);
-
-            _calculationEngineServiceTestsHelper
-                .MockCalculationRepository
-                .GetBuildProjectBySpecificationId(Arg.Any<string>())
-                .Returns(buildProject);
-
-            _calculationEngineServiceTestsHelper
-                .MockCalculationRepository
-                .GetAssemblyBySpecificationId(Arg.Is(specificationId))
-                .Returns(MockData.GetMockAssembly());
-
-            _calculationEngineServiceTestsHelper
-                .MockCacheProvider
-                .GetAsync<Dictionary<string, List<decimal>>>($"{CacheKeys.CalculationAggregations}{specificationId}_1")
-                .Returns((Dictionary<string, List<decimal>>)null);
 
             _calculationEngineServiceTestsHelper
                 .MockJobManagement
@@ -1438,11 +1309,11 @@ namespace CalculateFunding.Services.Calculator
             messageUserProperties.Add("batch-number", "1");
             messageUserProperties.Add("assembly-etag", etag);
 
-            ISpecificationAssemblyProvider assemblyProvider = _calculationEngineServiceTestsHelper.MockSpecificationAssemblyProvider;
+            IAssemblyService assemblyProvider = _calculationEngineServiceTestsHelper.MockAssemblyService;
 
             assemblyProvider
-                .GetAssembly(specificationId, etag)
-                .Returns(new MemoryStream(MockData.GetMockAssembly()));
+                .GetAssemblyForSpecification(specificationId, etag)
+                .Returns(MockData.GetMockAssembly());
 
             _calculationEngineServiceTestsHelper
                 .MockCalculationRepository
@@ -1465,13 +1336,6 @@ namespace CalculateFunding.Services.Calculator
                     Arg.Is<IEnumerable<CalculationAggregation>>(m =>
                         !m.Any()
                     ));
-        }
-
-        private static BuildProject CreateBuildProject()
-        {
-            BuildProject buildProject = JsonConvert.DeserializeObject<BuildProject>(MockData.SerializedBuildProject());
-
-            return buildProject;
         }
 
         private static IList<CalculationSummaryModel> CreateDummyCalculationSummaryModels()

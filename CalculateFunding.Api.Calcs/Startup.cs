@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using CalculateFunding.Common.Config.ApiClient.CalcEngine;
 using CalculateFunding.Common.Config.ApiClient.Dataset;
 using CalculateFunding.Common.Config.ApiClient.Graph;
 using CalculateFunding.Common.Config.ApiClient.Jobs;
@@ -38,7 +39,6 @@ using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
-using CalculateFunding.Services.DeadletterProcessor;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -269,6 +269,7 @@ namespace CalculateFunding.Api.Calcs
             builder.AddGraphInterServiceClient(Configuration);
             builder.AddPoliciesInterServiceClient(Configuration);
             builder.AddResultsInterServiceClient(Configuration);
+            builder.AddCalcEngineInterServiceClient(Configuration);
 
             builder.AddCaching(Configuration);
           
@@ -312,7 +313,6 @@ namespace CalculateFunding.Api.Calcs
         {
             return new ResiliencePolicies
             {
-
                 CalculationsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                 CalculationsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
                 CacheProviderPolicy = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy),
@@ -328,9 +328,8 @@ namespace CalculateFunding.Api.Calcs
                 SpecificationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 GraphApiClientPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 ResultsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                CalcEngineApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
             };
         }
-
-
     }
 }

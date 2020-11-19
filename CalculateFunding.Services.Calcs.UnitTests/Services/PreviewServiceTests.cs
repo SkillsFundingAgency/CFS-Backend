@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
+using CalculateFunding.Common.ApiClient.CalcEngine;
 using CalculateFunding.Common.ApiClient.DataSets;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Caching;
@@ -23,6 +24,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
 using Severity = CalculateFunding.Models.Calcs.Severity;
+using CalcEngineModels = CalculateFunding.Common.ApiClient.CalcEngine.Models;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -33,6 +35,8 @@ namespace CalculateFunding.Services.Calcs.Services
         const string CalculationId = "2d30bb44-0862-4524-a2f6-381c5534027a";
         const string BuildProjectId = "4d30bb44-0862-4524-a2f6-381c553402a7";
         const string SourceCode = "Dim i as int = 1 Return i";
+        const string ProviderId = "1EBC3317-97A3-4CB1-B0DF-894B8E448649";
+        const string ProviderName = "F79F5ABC-B120-45DA-B886-6CD0B92AEC06";
 
         [TestMethod]
         public async Task Compile_GivenNullPreviewRequest_ReturnsBadRequest()
@@ -766,6 +770,382 @@ End Class";
                 sourceCodeService
                     .Received(1)
                     .SaveSourceFiles(Arg.Is(sourceFiles), Arg.Is(SpecificationId), Arg.Is(SourceCodeType.Preview));
+        }
+
+        [TestMethod]
+        public async Task CompileAndPreviewProviderIdResult_GivenStringCompareInCode_CompilesCodeAndReturnsProviderPreviewOK()
+        {
+            //Arrange
+            const string stringCompareCode = @"Public Class AdditionalCalculations
+Public Property E1 As ExampleClass
+Public Function TestFunction As String
+If E1.ProviderType = ""goodbye"" Then
+Return ""worked""
+Else Return ""no""
+End If
+End Function
+End Class";
+
+            PreviewRequest model = new PreviewRequest
+            {
+                CalculationId = CalculationId,
+                SourceCode = stringCompareCode,
+                SpecificationId = SpecificationId,
+                ProviderId = ProviderId
+            };
+
+            Calculation calculation = new Calculation
+            {
+                Id = CalculationId,
+                Current = new CalculationVersion
+                {
+                    SourceCodeName = "Horace",
+                    Name = "Test Function"
+                },
+                SpecificationId = SpecificationId,
+            };
+
+            IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
+
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = SpecificationId
+            };
+
+            IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            calculationsRepository
+                .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
+                .Returns(calculations);
+
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(calculation.SpecificationId))
+                .Returns(buildProject);
+
+            List<SourceFile> sourceFiles = new List<SourceFile>
+            {
+                new SourceFile { FileName = "project.vbproj", SourceCode = "<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup><TargetFramework>netcoreapp2.0</TargetFramework></PropertyGroup></Project>" },
+                new SourceFile { FileName = "ExampleClass.vb", SourceCode = "Public Class ExampleClass\nPublic Property ProviderType() As String\nEnd Class" },
+                new SourceFile { FileName = "Calculation.vb", SourceCode = model.SourceCode }
+            };
+
+            Build build = new Build
+            {
+                Success = true,
+                SourceFiles = sourceFiles,
+                CompilerMessages = new List<CompilerMessage>(),
+                Assembly = MockData.GetMockAssembly()
+            };
+
+            Dictionary<string, string> sourceCodes = new Dictionary<string, string>()
+            {
+                { "Calculations.TestFunction", model.SourceCode },
+                { "Calculations.Calc1", "return 1" }
+            };
+
+            ISourceCodeService sourceCodeService = CreateSourceCodeService();
+            sourceCodeService
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
+                .Returns(build);
+
+            sourceCodeService
+                .GetCalculationFunctions(Arg.Any<IEnumerable<SourceFile>>())
+                .Returns(sourceCodes);
+
+            Build nonPreviewBuild = new Build
+            {
+                Success = true,
+                SourceFiles = sourceFiles
+            };
+
+            sourceCodeService
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Is<CompilerOptions>(
+                        m => m.OptionStrictEnabled == false
+                    )).Returns(nonPreviewBuild);
+
+            List<CalcEngineModels.CalculationResult> calculationResults = new List<CalcEngineModels.CalculationResult>
+            {
+                new CalcEngineModels.CalculationResult
+                {
+                    Calculation = new Reference
+                    {
+                        Id = CalculationId
+                    },
+                    Value = 5
+                }
+            };
+
+            CalcEngineModels.ProviderResult providerResult = new CalcEngineModels.ProviderResult
+            {
+                Provider = new CalcEngineModels.ProviderSummary
+                {
+                    Name = ProviderName
+                },
+                CalculationResults = calculationResults
+            };
+
+            ICalcEngineApiClient calcEngineApiClient = CreateCalcEngineApiClient();
+            calcEngineApiClient
+                .PreviewCalculationResults(Arg.Is(SpecificationId), Arg.Is(ProviderId), Arg.Any<byte[]>())
+                .Returns(new ApiResponse<CalcEngineModels.ProviderResult>(HttpStatusCode.OK, providerResult));
+
+            PreviewService service = CreateService(
+                logger: logger, 
+                previewRequestValidator: validator, 
+                calculationsRepository: calculationsRepository,
+                buildProjectsService: buildProjectsService, 
+                sourceCodeService: sourceCodeService,
+                calcEngineApiClient: calcEngineApiClient);
+
+            //Act
+            IActionResult result = await service.Compile(model);
+
+            //Assert
+            OkObjectResult okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+
+            PreviewResponse previewResponse = okResult.Value.Should().BeOfType<PreviewResponse>().Subject;
+
+            previewResponse
+                .Calculation
+                .SourceCode
+                .Should()
+                .Be(stringCompareCode);
+
+            previewResponse
+                .CompilerOutput
+                .Success
+                .Should()
+                .BeTrue();
+
+            logger
+                .Received(1)
+                .Information(Arg.Is($"Build compiled successfully for calculation id {calculation.Id}"));
+
+            await
+                sourceCodeService
+                    .Received(1)
+                    .SaveSourceFiles(Arg.Is(sourceFiles), Arg.Is(SpecificationId), Arg.Is(SourceCodeType.Preview));
+
+            previewResponse
+                .PreviewProviderCalculation
+                .Should()
+                .NotBeNull();
+
+            previewResponse
+                .PreviewProviderCalculation
+                .ProviderName
+                .Should()
+                .Be(ProviderName);
+
+            previewResponse
+                .PreviewProviderCalculation
+                .CalculationResult
+                .Should()
+                .NotBeNull();
+
+            previewResponse
+                .PreviewProviderCalculation
+                .CalculationResult
+                .Value
+                .Should()
+                .Be(5);
+        }
+
+        [TestMethod]
+        public async Task CompileAndPreviewProviderIdResult_GivenStringCompareInCode_CompilesCodeAndReturnsProviderPreviewError()
+        {
+            //Arrange
+            const string stringCompareCode = @"Public Class AdditionalCalculations
+Public Property E1 As ExampleClass
+Public Function TestFunction As String
+If E1.ProviderType = ""goodbye"" Then
+Return ""worked""
+Else Return ""no""
+End If
+End Function
+End Class";
+
+            const string previewCalculationErrorMessage = "Error divide by 0";
+
+            PreviewRequest model = new PreviewRequest
+            {
+                CalculationId = CalculationId,
+                SourceCode = stringCompareCode,
+                SpecificationId = SpecificationId,
+                ProviderId = ProviderId
+            };
+
+            Calculation calculation = new Calculation
+            {
+                Id = CalculationId,
+                Current = new CalculationVersion
+                {
+                    SourceCodeName = "Horace",
+                    Name = "Test Function"
+                },
+                SpecificationId = SpecificationId,
+            };
+
+            IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
+
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = SpecificationId
+            };
+
+            IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            calculationsRepository
+                .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
+                .Returns(calculations);
+
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(calculation.SpecificationId))
+                .Returns(buildProject);
+
+            List<SourceFile> sourceFiles = new List<SourceFile>
+            {
+                new SourceFile { FileName = "project.vbproj", SourceCode = "<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup><TargetFramework>netcoreapp2.0</TargetFramework></PropertyGroup></Project>" },
+                new SourceFile { FileName = "ExampleClass.vb", SourceCode = "Public Class ExampleClass\nPublic Property ProviderType() As String\nEnd Class" },
+                new SourceFile { FileName = "Calculation.vb", SourceCode = model.SourceCode }
+            };
+
+            Build build = new Build
+            {
+                Success = true,
+                SourceFiles = sourceFiles,
+                CompilerMessages = new List<CompilerMessage>(),
+                Assembly = MockData.GetMockAssembly()
+            };
+
+            Dictionary<string, string> sourceCodes = new Dictionary<string, string>()
+            {
+                { "Calculations.TestFunction", model.SourceCode },
+                { "Calculations.Calc1", "return 1" }
+            };
+
+            ISourceCodeService sourceCodeService = CreateSourceCodeService();
+            sourceCodeService
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
+                .Returns(build);
+
+            sourceCodeService
+                .GetCalculationFunctions(Arg.Any<IEnumerable<SourceFile>>())
+                .Returns(sourceCodes);
+
+            Build nonPreviewBuild = new Build
+            {
+                Success = true,
+                SourceFiles = sourceFiles
+            };
+
+            sourceCodeService
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Is<CompilerOptions>(
+                        m => m.OptionStrictEnabled == false
+                    )).Returns(nonPreviewBuild);
+
+            List<CalcEngineModels.CalculationResult> calculationResults = new List<CalcEngineModels.CalculationResult>
+            {
+                new CalcEngineModels.CalculationResult
+                {
+                    Calculation = new Reference
+                    {
+                        Id = CalculationId
+                    },
+                    ExceptionMessage = previewCalculationErrorMessage
+                }
+            };
+
+            CalcEngineModels.ProviderResult providerResult = new CalcEngineModels.ProviderResult
+            {
+                Provider = new CalcEngineModels.ProviderSummary
+                {
+                    Name = ProviderName
+                },
+                CalculationResults = calculationResults
+            };
+
+            ICalcEngineApiClient calcEngineApiClient = CreateCalcEngineApiClient();
+            calcEngineApiClient
+                .PreviewCalculationResults(Arg.Is(SpecificationId), Arg.Is(ProviderId), Arg.Any<byte[]>())
+                .Returns(new ApiResponse<CalcEngineModels.ProviderResult>(HttpStatusCode.OK, providerResult));
+
+            PreviewService service = CreateService(
+                logger: logger,
+                previewRequestValidator: validator,
+                calculationsRepository: calculationsRepository,
+                buildProjectsService: buildProjectsService,
+                sourceCodeService: sourceCodeService,
+                calcEngineApiClient: calcEngineApiClient);
+
+            //Act
+            IActionResult result = await service.Compile(model);
+
+            //Assert
+            OkObjectResult okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+
+            PreviewResponse previewResponse = okResult.Value.Should().BeOfType<PreviewResponse>().Subject;
+
+            previewResponse
+                .Calculation
+                .SourceCode
+                .Should()
+                .Be(stringCompareCode);
+
+            previewResponse
+                .CompilerOutput
+                .Success
+                .Should()
+                .BeTrue();
+
+            logger
+                .Received(1)
+                .Information(Arg.Is($"Build compiled successfully for calculation id {calculation.Id}"));
+
+            await
+                sourceCodeService
+                    .Received(1)
+                    .SaveSourceFiles(Arg.Is(sourceFiles), Arg.Is(SpecificationId), Arg.Is(SourceCodeType.Preview));
+
+            previewResponse
+                .PreviewProviderCalculation
+                .Should()
+                .NotBeNull();
+
+            previewResponse
+                .PreviewProviderCalculation
+                .ProviderName
+                .Should()
+                .Be(ProviderName);
+
+            previewResponse
+                .PreviewProviderCalculation
+                .CalculationResult
+                .Should()
+                .NotBeNull();
+
+            previewResponse
+                .PreviewProviderCalculation
+                .CalculationResult
+                .ExceptionMessage
+                .Should()
+                .Be(previewCalculationErrorMessage);
         }
 
 
@@ -2843,7 +3223,8 @@ Calculation Name: {{calculationName}}").ToArray()
             ICacheProvider cacheProvider = null,
             ISourceCodeService sourceCodeService = null,
             ITokenChecker tokenChecker = null,
-            IMapper mapper = null)
+            IMapper mapper = null,
+            ICalcEngineApiClient calcEngineApiClient = null)
         {
             return new PreviewService(
                 logger ?? CreateLogger(),
@@ -2855,7 +3236,8 @@ Calculation Name: {{calculationName}}").ToArray()
                 sourceCodeService ?? CreateSourceCodeService(),
                 tokenChecker ?? CreateTokenChecker(),
                 CalcsResilienceTestHelper.GenerateTestPolicies(),
-                mapper ?? CreateMapper());
+                mapper ?? CreateMapper(),
+                calcEngineApiClient ?? CreateCalcEngineApiClient());
         }
 
         static ISourceCodeService CreateSourceCodeService()
@@ -2904,6 +3286,11 @@ Calculation Name: {{calculationName}}").ToArray()
         static ICalculationsRepository CreateCalculationsRepository()
         {
             return Substitute.For<ICalculationsRepository>();
+        }
+
+        static ICalcEngineApiClient CreateCalcEngineApiClient()
+        {
+            return Substitute.For<ICalcEngineApiClient>();
         }
 
         static IDatasetsApiClient CreateDatasetsApiClient()

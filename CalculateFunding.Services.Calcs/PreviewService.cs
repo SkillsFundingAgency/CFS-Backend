@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using CalculateFunding.Common.ApiClient.CalcEngine;
 using CalculateFunding.Common.ApiClient.DataSets;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Caching;
@@ -21,6 +22,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
 using Severity = CalculateFunding.Models.Calcs.Severity;
+using CalcEngineProviderResult = CalculateFunding.Common.ApiClient.CalcEngine.Models.ProviderResult;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -42,6 +44,8 @@ namespace CalculateFunding.Services.Calcs
         private readonly ITokenChecker _tokenChecker;
         private readonly Polly.AsyncPolicy _datasetsApiClientPolicy;
         private readonly IMapper _mapper;
+        private readonly ICalcEngineApiClient _calcEngineApiClient;
+        private readonly Polly.AsyncPolicy _calcEngineApiClientPolicy;
 
         public PreviewService(
             ILogger logger,
@@ -53,7 +57,8 @@ namespace CalculateFunding.Services.Calcs
             ISourceCodeService sourceCodeService,
             ITokenChecker tokenChecker,
             ICalcsResiliencePolicies resiliencePolicies,
-            IMapper mapper)
+            IMapper mapper,
+            ICalcEngineApiClient calcEngineApiClient)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(buildProjectsService, nameof(buildProjectsService));
@@ -65,6 +70,9 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(tokenChecker, nameof(tokenChecker));
             Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
+            Guard.ArgumentNotNull(resiliencePolicies.DatasetsApiClient, nameof(resiliencePolicies.DatasetsApiClient));
+            Guard.ArgumentNotNull(resiliencePolicies.CalcEngineApiClient, nameof(resiliencePolicies.CalcEngineApiClient));
+            Guard.ArgumentNotNull(calcEngineApiClient, nameof(calcEngineApiClient));
 
             _logger = logger;
             _buildProjectsService = buildProjectsService;
@@ -76,6 +84,8 @@ namespace CalculateFunding.Services.Calcs
             _tokenChecker = tokenChecker;
             _datasetsApiClientPolicy = resiliencePolicies.DatasetsApiClient;
             _mapper = mapper;
+            _calcEngineApiClient = calcEngineApiClient;
+            _calcEngineApiClientPolicy = resiliencePolicies.CalcEngineApiClient;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -172,7 +182,9 @@ namespace CalculateFunding.Services.Calcs
 
             CompilerOptions compilerOptions = compilerOptionsTask.Result ?? new CompilerOptions { SpecificationId = buildProject.SpecificationId };
 
-            return await GenerateAndCompile(buildProject, calculation, calculations, compilerOptions, previewRequest);
+            IActionResult compileResult = await GenerateAndCompile(buildProject, calculation, calculations, compilerOptions, previewRequest);
+
+            return compileResult;
         }
 
         private async Task<IActionResult> GenerateAndCompile(BuildProject buildProject,
@@ -181,6 +193,8 @@ namespace CalculateFunding.Services.Calcs
             CompilerOptions compilerOptions,
             PreviewRequest previewRequest)
         {
+            PreviewProviderCalculationResponseModel previewProviderCalculation = null;
+
             Build compilerOutput = _sourceCodeService.Compile(buildProject, calculations, compilerOptions);
 
             compilerOutput = FilterDoubleToDecimalErrors(compilerOutput);
@@ -281,10 +295,33 @@ namespace CalculateFunding.Services.Calcs
 
             LogMessages(compilerOutput, buildProject, calculationToPreview);
 
+            if (!string.IsNullOrEmpty(previewRequest.ProviderId))
+            {
+                ApiResponse<CalcEngineProviderResult> previewCalcResultApiResponse = 
+                    await _calcEngineApiClientPolicy.ExecuteAsync(
+                        () => _calcEngineApiClient.PreviewCalculationResults(
+                            previewRequest.SpecificationId,
+                            previewRequest.ProviderId,
+                            compilerOutput.Assembly));
+
+                if (previewCalcResultApiResponse.StatusCode.IsSuccess())
+                {
+                    CalcEngineProviderResult calcEngineProviderResult = previewCalcResultApiResponse.Content;
+
+                    previewProviderCalculation = new PreviewProviderCalculationResponseModel
+                    {
+                        ProviderName = calcEngineProviderResult.Provider.Name,
+                        CalculationResult = _mapper.Map<CalculationResult>(
+                            calcEngineProviderResult.CalculationResults.SingleOrDefault(_ => _.Calculation?.Id == calculationToPreview.Id)),
+                    };
+                }
+            }
+
             return new OkObjectResult(new PreviewResponse
             {
                 Calculation = calculationToPreview.ToResponseModel(),
-                CompilerOutput = compilerOutput
+                CompilerOutput = compilerOutput,
+                PreviewProviderCalculation = previewProviderCalculation
             });
         }
 

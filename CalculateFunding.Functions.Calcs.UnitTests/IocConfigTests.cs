@@ -34,7 +34,9 @@ namespace CalculateFunding.Functions.Calcs.UnitTests
                 { "providersClient:ApiEndpoint", "https://localhost:7011/api/" },
                 { "providersClient:ApiKey", "Local" },
                 { "graphClient:ApiEndpoint", "https://localhost:7015/api/" },
-                { "graphClient:ApiKey", "Local" }
+                { "graphClient:ApiKey", "Local" },
+                { "calcEngineClient:ApiEndpoint", "https://localhost:7021/api" },
+                { "calcEngineClient:ApiKey", "Local" }
             };
 
             return configData;

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Net;
+using System;
 using System.Threading;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient;
@@ -8,6 +7,7 @@ using CalculateFunding.Common.Config.ApiClient.Calcs;
 using CalculateFunding.Common.Config.ApiClient.Dataset;
 using CalculateFunding.Common.Config.ApiClient.Jobs;
 using CalculateFunding.Common.Config.ApiClient.Policies;
+using CalculateFunding.Common.Config.ApiClient.Providers;
 using CalculateFunding.Common.Config.ApiClient.Results;
 using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
@@ -15,7 +15,8 @@ using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Storage;
-using CalculateFunding.Functions.CalcEngine.ServiceBus;
+using CalculateFunding.Common.WebApi.Extensions;
+using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.CalcEngine;
@@ -23,68 +24,85 @@ using CalculateFunding.Services.CalcEngine.Caching;
 using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Services.CalcEngine.MappingProfiles;
 using CalculateFunding.Services.CalcEngine.Validators;
-using CalculateFunding.Services.Calcs;
-using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs.MappingProfiles;
+using CalculateFunding.Services.Core.AspNet.Extensions;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Functions.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
-using CalculateFunding.Services.DeadletterProcessor;
-using CalculateFunding.Services.Processing.Interfaces;
 using FluentValidation;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Azure.Cosmos;
-using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Polly.Bulkhead;
 using Serilog;
 using ServiceCollectionExtensions = CalculateFunding.Services.Core.Extensions.ServiceCollectionExtensions;
 
-[assembly: FunctionsStartup(typeof(CalculateFunding.Functions.CalcEngine.Startup))]
-
-namespace CalculateFunding.Functions.CalcEngine
+namespace CalculateFunding.Api.CalcEngine
 {
-    public class Startup : FunctionsStartup
+    public class Startup
     {
-        public override void Configure(IFunctionsHostBuilder builder)
+        public Startup(IConfiguration configuration)
         {
-            RegisterComponents(builder.Services, builder.GetFunctionsConfigurationToIncludeHostJson());
+            Configuration = configuration;
         }
 
-        public static IServiceProvider RegisterComponents(IServiceCollection builder, IConfiguration azureFuncConfig = null)
-        {
-            IConfigurationRoot config = ConfigHelper.AddConfig(azureFuncConfig);
+        public IConfiguration Configuration { get; }
 
-            return RegisterComponents(builder, config);
+        // This method gets called by the runtime. Use this method to add services to the container.
+        public void ConfigureServices(IServiceCollection services)
+        {
+            services
+                .AddControllers()
+                .AddNewtonsoftJson();
+
+            RegisterComponents(services);
         }
 
-        public static IServiceProvider RegisterComponents(IServiceCollection builder, IConfigurationRoot config)
+        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            return Register(builder, config);
-        }
-
-        private static IServiceProvider Register(IServiceCollection builder, IConfigurationRoot config)
-        {
-            builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
-
-
-            builder.AddSingleton<IConfiguration>(config);
-            builder.AddCaching(config);
-
-            // These registrations of the functions themselves are just for the DebugQueue. Ideally we don't want these registered in production
-            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+            if (env.IsDevelopment())
             {
-                builder.AddScoped<OnCalcsGenerateAllocationResults>();
-                builder.AddScoped<OnCalculationGenerateFailure>();
+                app.UseDeveloperExceptionPage();
+            }
+            else
+            {
+                app.UseHsts();
             }
 
+            app.UseHttpsRedirection();
+
+            if (Configuration.IsSwaggerEnabled())
+            {
+                app.ConfigureSwagger(title: "Calc Engine Microservice API");
+            }
+
+            app.MapWhen(
+                    context => !context.Request.Path.Value.StartsWith("/swagger"),
+                    appBuilder => {
+                        appBuilder.UseMiddleware<ApiKeyMiddleware>();
+                        appBuilder.UseHealthCheckMiddleware();
+                        appBuilder.UseMiddleware<LoggedInUserMiddleware>();
+                        appBuilder.UseRouting();
+                        appBuilder.UseAuthentication();
+                        appBuilder.UseAuthorization();
+                        appBuilder.UseEndpoints(endpoints =>
+                        {
+                            endpoints.MapControllers();
+                        });
+                    });
+        }
+
+        public void RegisterComponents(IServiceCollection builder)
+        {
             builder.AddScoped<ICalculationEngineService, CalculationEngineService>();
             builder.AddScoped<ICalculationEngine, CalculationEngine>();
             builder.AddScoped<IAllocationFactory, AllocationFactory>();
-            builder.AddScoped<IDeadletterService, DeadletterService>();
             builder.AddScoped<IJobManagement, JobManagement>();
             builder.AddSingleton<IProviderSourceDatasetVersionKeyProvider, ProviderSourceDatasetVersionKeyProvider>();
             builder.AddSingleton<IFileSystemAccess, FileSystemAccess>();
@@ -100,7 +118,7 @@ namespace CalculateFunding.Functions.CalcEngine
             {
                 CosmosDbSettings providerSourceDatasetsCosmosSettings = new CosmosDbSettings();
 
-                config.Bind("CosmosDbSettings", providerSourceDatasetsCosmosSettings);
+                Configuration.Bind("CosmosDbSettings", providerSourceDatasetsCosmosSettings);
 
                 providerSourceDatasetsCosmosSettings.ContainerName = "providerdatasets";
 
@@ -112,8 +130,6 @@ namespace CalculateFunding.Functions.CalcEngine
                     MaxTcpConnectionsPerEndpoint = 4,
                     ConsistencyLevel = ConsistencyLevel.Eventual,
                     AllowBulkExecution = true,
-                    // MaxRetryAttemptsOnRateLimitedRequests = 1,
-                    // MaxRetryWaitTimeOnRateLimitedRequests = new TimeSpan(0, 0, 30),
                 });
 
                 ICalculatorResiliencePolicies calculatorResiliencePolicies = ctx.GetService<ICalculatorResiliencePolicies>();
@@ -127,7 +143,7 @@ namespace CalculateFunding.Functions.CalcEngine
             {
                 CosmosDbSettings calcResultsDbSettings = new CosmosDbSettings();
 
-                config.Bind("CosmosDbSettings", calcResultsDbSettings);
+                Configuration.Bind("CosmosDbSettings", calcResultsDbSettings);
 
                 calcResultsDbSettings.ContainerName = "calculationresults";
 
@@ -160,29 +176,17 @@ namespace CalculateFunding.Functions.CalcEngine
                     jobManagement);
             });
 
-            builder.AddSingleton<ISourceFileRepository, SourceFileRepository>((ctx) =>
-            {
-                BlobStorageOptions blobStorageOptions = new BlobStorageOptions();
-
-                config.Bind("AzureStorageSettings", blobStorageOptions);
-
-                blobStorageOptions.ContainerName = "source";
-
-                IBlobContainerRepository blobContainerRepository = new BlobContainerRepository(blobStorageOptions);
-                return new SourceFileRepository(blobContainerRepository);
-            });
+            builder
+                .AddSingleton<IBlobContainerRepository, BlobContainerRepository>();
 
             builder
-                .AddSingleton<Services.CalcEngine.Interfaces.ICalculationsRepository, Services.CalcEngine.CalculationsRepository>();
+                .AddSingleton<ICalculationsRepository, CalculationsRepository>();
 
             builder
                .AddSingleton<IDatasetAggregationsRepository, DatasetAggregationsRepository>();
 
             builder
                 .AddSingleton<ICancellationTokenProvider, InactiveCancellationTokenProvider>();
-
-            builder
-                .AddSingleton<ISourceCodeService, SourceCodeService>();
 
             MapperConfiguration calculationsConfig = new MapperConfiguration(c =>
             {
@@ -193,35 +197,36 @@ namespace CalculateFunding.Functions.CalcEngine
             builder
                 .AddSingleton(calculationsConfig.CreateMapper());
 
-            builder.AddScoped<IUserProfileProvider, UserProfileProvider>();
+            builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
 
-            builder.AddCalculationsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
-            builder.AddSpecificationsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
-            builder.AddJobsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
-            builder.AddPoliciesInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
-            builder.AddResultsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
-            builder.AddDatasetsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
+            builder.AddCalculationsInterServiceClient(Configuration, handlerLifetime: Timeout.InfiniteTimeSpan);
+            builder.AddSpecificationsInterServiceClient(Configuration, handlerLifetime: Timeout.InfiniteTimeSpan);
+            builder.AddJobsInterServiceClient(Configuration, handlerLifetime: Timeout.InfiniteTimeSpan);
+            builder.AddPoliciesInterServiceClient(Configuration, handlerLifetime: Timeout.InfiniteTimeSpan);
+            builder.AddResultsInterServiceClient(Configuration, handlerLifetime: Timeout.InfiniteTimeSpan);
+            builder.AddDatasetsInterServiceClient(Configuration, handlerLifetime: Timeout.InfiniteTimeSpan);
+            builder.AddProvidersInterServiceClient(Configuration, handlerLifetime: Timeout.InfiniteTimeSpan);
 
-            builder.AddEngineSettings(config);
+            builder.AddEngineSettings(Configuration);
 
-            builder.AddServiceBus(config, "calcengine");
+            builder.AddServiceBus(Configuration, "calcengine");
 
-            builder.AddCaching(config);
+            builder.AddCaching(Configuration);
 
-            builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.CalcEngine");
-            builder.AddApplicationInsightsServiceName(config, "CalculateFunding.Functions.CalcEngine");
+            builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.CalcEngine");
+            builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.CalcEngine");
 
-            builder.AddLogging("CalculateFunding.Functions.CalcEngine", config);
+            builder.AddLogging("CalculateFunding.Api.CalcEngine");
 
             builder.AddTelemetry();
 
-            builder.AddSearch(config);
+            builder.AddSearch(Configuration);
             builder
                .AddSingleton<ISearchRepository<ProviderCalculationResultsIndex>, SearchRepository<ProviderCalculationResultsIndex>>();
 
-            builder.AddFeatureToggling(config);
+            builder.AddFeatureToggling(Configuration);
 
-            PolicySettings policySettings = ServiceCollectionExtensions.GetPolicySettings(config);
+            PolicySettings policySettings = ServiceCollectionExtensions.GetPolicySettings(Configuration);
             CalculatorResiliencePolicies calcResiliencePolicies = CreateResiliencePolicies(policySettings);
 
             builder.AddSingleton<ICalculatorResiliencePolicies>(calcResiliencePolicies);
@@ -237,7 +242,7 @@ namespace CalculateFunding.Functions.CalcEngine
             {
                 BlobStorageOptions options = new BlobStorageOptions();
 
-                config.Bind("AzureStorageSettings", options);
+                Configuration.Bind("AzureStorageSettings", options);
 
                 options.ContainerName = "source";
 
@@ -245,9 +250,16 @@ namespace CalculateFunding.Functions.CalcEngine
                 return new BlobClient(blobContainerRepository);
             });
 
-            ServicePointManager.DefaultConnectionLimit = 200;
+            builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
 
-            return builder.BuildServiceProvider();
+            builder.AddHttpContextAccessor();
+
+            builder.AddHealthCheckMiddleware();
+
+            if (Configuration.IsSwaggerEnabled())
+            {
+                builder.ConfigureSwaggerServices(title: "CalcEngine Microservice API", version: "v1");
+            }
         }
 
         private static CalculatorResiliencePolicies CreateResiliencePolicies(PolicySettings policySettings)
@@ -271,5 +283,6 @@ namespace CalculateFunding.Functions.CalcEngine
 
             return resiliencePolicies;
         }
+
     }
 }

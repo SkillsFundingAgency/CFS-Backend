@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using System.Reflection;
-using CalculateFunding.Api.Calcs.Controllers;
+using CalculateFunding.Api.CalcEngine.Controllers;
 using CalculateFunding.Tests.Common;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 
-namespace CalculateFunding.Api.Calcs.UnitTests
+namespace CalculateFunding.Api.CalcEngine.UnitTests
 {
     [TestClass]
     public class StartupTests : ControllerIoCUnitTestBase
@@ -33,12 +33,12 @@ namespace CalculateFunding.Api.Calcs.UnitTests
                 { "providersClient:ApiKey", "Local" },
                 { "graphClient:ApiEndpoint", "https://localhost:7015/api" },
                 { "graphClient:ApiKey", "Local" },
-                { "calcEngineClient:ApiEndpoint", "https://localhost:7021/api" },
-                { "calcEngineClient:ApiKey", "Local" }
+                { "calcsClient:ApiEndpoint", "https://localhost:7011/api/" },
+                { "calcsClient:ApiKey", "Local" },
             };
         }
 
-        protected override Assembly EntryAssembly => typeof(CalculationsController).Assembly;
+        protected override Assembly EntryAssembly => typeof(CalculationResultsController).Assembly;
         
         protected override void RegisterDependencies()
         {

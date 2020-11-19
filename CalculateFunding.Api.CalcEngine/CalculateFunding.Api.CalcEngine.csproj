@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <UserSecretsId>df0d69d5-a6db-4598-909f-262fc39cb8c8</UserSecretsId>
+    <LangVersion>8</LangVersion>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Datasets" Version="5.4.1" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="4.0.1" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Providers" Version="4.2.1" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Results" Version="4.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CalculateFunding.Services.CalcEngine\CalculateFunding.Services.CalcEngine.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.Calcs\CalculateFunding.Services.Calcs.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.Core.AspNet\CalculateFunding.Services.Core.AspNet.csproj" />
+  </ItemGroup>
+
+
+</Project>

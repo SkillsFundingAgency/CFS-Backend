@@ -2,6 +2,7 @@
 using System.Threading;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient;
+using CalculateFunding.Common.Config.ApiClient.CalcEngine;
 using CalculateFunding.Common.Config.ApiClient.Dataset;
 using CalculateFunding.Common.Config.ApiClient.Graph;
 using CalculateFunding.Common.Config.ApiClient.Jobs;
@@ -227,6 +228,7 @@ namespace CalculateFunding.Functions.Calcs
             builder.AddGraphInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
             builder.AddPoliciesInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
             builder.AddResultsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
+            builder.AddCalcEngineInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
 
             builder.AddCaching(config);
 
@@ -273,6 +275,7 @@ namespace CalculateFunding.Functions.Calcs
                 PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 GraphApiClientPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 ResultsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                CalcEngineApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
             };
         }
     }

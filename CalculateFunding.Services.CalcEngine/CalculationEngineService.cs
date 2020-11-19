@@ -2,14 +2,12 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using AutoMapper;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Results;
 using CalculateFunding.Common.ApiClient.Specifications;
@@ -38,7 +36,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Polly;
 using Serilog;
-using AggregatedType = CalculateFunding.Models.Aggregations.AggregatedType;
 
 namespace CalculateFunding.Services.CalcEngine
 {
@@ -61,10 +58,10 @@ namespace CalculateFunding.Services.CalcEngine
         private readonly AsyncPolicy _calculationsApiClientPolicy;
         private readonly AsyncPolicy _specificationsApiPolicy;
         private readonly AsyncPolicy _resultsApiClientPolicy;
-        private readonly IDatasetAggregationsRepository _datasetAggregationsRepository;
         private readonly ICalculationEngineServiceValidator _calculationEngineServiceValidator;
         private readonly IResultsApiClient _resultsApiClient;
-        private readonly ISpecificationAssemblyProvider _specificationAssemblies;
+        private readonly ICalculationAggregationService _calculationAggregationService;
+        private readonly IAssemblyService _assemblyService;
 
         public CalculationEngineService(
             ILogger logger,
@@ -77,13 +74,13 @@ namespace CalculateFunding.Services.CalcEngine
             ICalculationsRepository calculationsRepository,
             EngineSettings engineSettings,
             ICalculatorResiliencePolicies resiliencePolicies,
-            IDatasetAggregationsRepository datasetAggregationsRepository,
             IJobManagement jobManagement,
             ISpecificationsApiClient specificationsApiClient,
             IResultsApiClient resultsApiClient,
             IValidator<ICalculatorResiliencePolicies> calculatorResiliencePoliciesValidator,
             ICalculationEngineServiceValidator calculationEngineServiceValidator,
-            ISpecificationAssemblyProvider specificationAssemblies) : base(jobManagement, logger)
+            ICalculationAggregationService calculationAggregationService,
+            IAssemblyService assemblyService) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(calculationEngine, nameof(calculationEngine));
@@ -101,12 +98,12 @@ namespace CalculateFunding.Services.CalcEngine
             Guard.ArgumentNotNull(resiliencePolicies?.CalculationResultsRepository, nameof(resiliencePolicies.CalculationResultsRepository));
             Guard.ArgumentNotNull(resiliencePolicies?.CalculationsApiClient, nameof(resiliencePolicies.CalculationsApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.ResultsApiClient, nameof(resiliencePolicies.ResultsApiClient));
-            Guard.ArgumentNotNull(datasetAggregationsRepository, nameof(datasetAggregationsRepository));
             Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
             Guard.ArgumentNotNull(calculatorResiliencePoliciesValidator, nameof(calculatorResiliencePoliciesValidator));
             Guard.ArgumentNotNull(calculationEngineServiceValidator, nameof(calculationEngineServiceValidator));
             Guard.ArgumentNotNull(resultsApiClient, nameof(resultsApiClient));
-            Guard.ArgumentNotNull(specificationAssemblies, nameof(specificationAssemblies));
+            Guard.ArgumentNotNull(calculationAggregationService, nameof(calculationAggregationService));
+            Guard.ArgumentNotNull(assemblyService, nameof(assemblyService));
 
             _calculationEngineServiceValidator = calculationEngineServiceValidator;
             _logger = logger;
@@ -123,12 +120,12 @@ namespace CalculateFunding.Services.CalcEngine
             _providerSourceDatasetsRepositoryPolicy = resiliencePolicies.ProviderSourceDatasetsRepository;
             _providerResultsRepositoryPolicy = resiliencePolicies.CalculationResultsRepository;
             _calculationsApiClientPolicy = resiliencePolicies.CalculationsApiClient;
-            _datasetAggregationsRepository = datasetAggregationsRepository;
             _specificationsApiClient = specificationsApiClient;
             _specificationsApiPolicy = resiliencePolicies.SpecificationsApiClient;
             _resultsApiClientPolicy = resiliencePolicies.ResultsApiClient;
             _resultsApiClient = resultsApiClient;
-            _specificationAssemblies = specificationAssemblies;
+            _calculationAggregationService = calculationAggregationService;
+            _assemblyService = assemblyService;
         }
 
         public async Task<IActionResult> GenerateAllocations(HttpRequest request)
@@ -395,30 +392,7 @@ namespace CalculateFunding.Services.CalcEngine
         {
             Stopwatch assemblyLookupStopwatch = Stopwatch.StartNew();
 
-            if (etag.IsNotNullOrWhitespace())
-            {
-                Stream cachedAssembly = await _specificationAssemblies.GetAssembly(specificationId, etag);
-
-                if (cachedAssembly != null)
-                {
-                    assemblyLookupStopwatch.Stop();
-
-                    return (cachedAssembly.ReadAllBytes(), assemblyLookupStopwatch.ElapsedMilliseconds);
-                }
-            }
-
-            byte[] assembly = await _calculationsApiClientPolicy.ExecuteAsync(() => _calculationsRepository.GetAssemblyBySpecificationId(specificationId));
-
-            if (assembly == null)
-            {
-                string error = $"Failed to get assembly for specification Id '{specificationId}'";
-
-                _logger.Error(error);
-
-                throw new RetriableException(error);
-            }
-
-            await _specificationAssemblies.SetAssembly(specificationId, new MemoryStream(assembly));
+            byte[] assembly = await _assemblyService.GetAssemblyForSpecification(specificationId, etag);
 
             assemblyLookupStopwatch.Stop();
 
@@ -601,88 +575,14 @@ namespace CalculateFunding.Services.CalcEngine
         private async Task<(IEnumerable<CalculationAggregation>, long)> BuildAggregations(GenerateAllocationMessageProperties messageProperties)
         {
             Stopwatch sw = Stopwatch.StartNew();
-            IEnumerable<CalculationAggregation> aggregations = Enumerable.Empty<CalculationAggregation>();
-
-            aggregations = await _cacheProvider.GetAsync<List<CalculationAggregation>>($"{ CacheKeys.DatasetAggregationsForSpecification}{messageProperties.SpecificationId}");
-
-            if (DoesNotExistInCache(aggregations))
+            BuildAggregationRequest aggreagationRequest = new BuildAggregationRequest
             {
-                aggregations = (await _datasetAggregationsRepository.GetDatasetAggregationsForSpecificationId(messageProperties.SpecificationId)).Select(m => new CalculationAggregation
-                {
-                    SpecificationId = m.SpecificationId,
-                    Values = m.Fields.IsNullOrEmpty() ? Enumerable.Empty<AggregateValue>() : m.Fields.Select(f => new AggregateValue
-                    {
-                        AggregatedType = f.FieldType,
-                        FieldDefinitionName = f.FieldDefinitionName,
-                        Value = f.Value
-                    })
-                });
+                BatchCount = messageProperties.BatchCount,
+                GenerateCalculationAggregationsOnly = messageProperties.GenerateCalculationAggregationsOnly,
+                SpecificationId = messageProperties.SpecificationId
+            };
 
-                await _cacheProvider.SetAsync($"{CacheKeys.DatasetAggregationsForSpecification}{messageProperties.SpecificationId}", aggregations.ToList());
-            }
-
-            if (!messageProperties.GenerateCalculationAggregationsOnly)
-            {
-                ConcurrentDictionary<string, List<decimal>> cachedCalculationAggregations = new ConcurrentDictionary<string, List<decimal>>(StringComparer.InvariantCultureIgnoreCase);
-
-                List<Task> allTasks = new List<Task>();
-                SemaphoreSlim throttler = new SemaphoreSlim(_engineSettings.CalculationAggregationRetreivalParallelism);
-
-                for (int i = 1; i <= messageProperties.BatchCount; i++)
-                {
-                    await throttler.WaitAsync();
-
-                    int currentBatchNumber = i;
-
-                    allTasks.Add(
-                        Task.Run(async () =>
-                        {
-                            try
-                            {
-                                string batchedCacheKey = $"{CacheKeys.CalculationAggregations}{messageProperties.SpecificationId}_{currentBatchNumber}";
-
-                                Dictionary<string, List<decimal>> cachedCalculationAggregationsPart = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.GetAsync<Dictionary<string, List<decimal>>>(batchedCacheKey));
-
-                                if (!cachedCalculationAggregationsPart.IsNullOrEmpty())
-                                {
-                                    foreach (KeyValuePair<string, List<decimal>> cachedAggregations in cachedCalculationAggregationsPart)
-                                    {
-                                        List<decimal> values = cachedCalculationAggregations.GetOrAdd(cachedAggregations.Key, new List<decimal>());
-
-                                        values.AddRange(cachedAggregations.Value);
-                                    }
-                                }
-                            }
-                            finally
-                            {
-                                throttler.Release();
-                            }
-                        }));
-                }
-
-                await TaskHelper.WhenAllAndThrow(allTasks.ToArray());
-
-                if (!cachedCalculationAggregations.IsNullOrEmpty())
-                {
-                    foreach (KeyValuePair<string, List<decimal>> cachedCalculationAggregation in cachedCalculationAggregations.OrderBy(o => o.Key))
-                    {
-                        aggregations = aggregations.Concat(new[]
-                        {
-                                new CalculationAggregation
-                                {
-                                    SpecificationId = messageProperties.SpecificationId,
-                                    Values = new []
-                                    {
-                                        new AggregateValue { FieldDefinitionName = cachedCalculationAggregation.Key, AggregatedType = AggregatedType.Sum, Value = cachedCalculationAggregation.Value.Sum()},
-                                        new AggregateValue { FieldDefinitionName = cachedCalculationAggregation.Key, AggregatedType = AggregatedType.Min, Value = cachedCalculationAggregation.Value.Min()},
-                                        new AggregateValue { FieldDefinitionName = cachedCalculationAggregation.Key, AggregatedType = AggregatedType.Max, Value = cachedCalculationAggregation.Value.Max()},
-                                        new AggregateValue { FieldDefinitionName = cachedCalculationAggregation.Key, AggregatedType = AggregatedType.Average, Value = cachedCalculationAggregation.Value.Average()},
-                                    }
-                                }
-                            });
-                    }
-                }
-            }
+            IEnumerable<CalculationAggregation> aggregations = await _calculationAggregationService.BuildAggregations(aggreagationRequest);
 
             return (aggregations, sw.ElapsedMilliseconds);
         }
