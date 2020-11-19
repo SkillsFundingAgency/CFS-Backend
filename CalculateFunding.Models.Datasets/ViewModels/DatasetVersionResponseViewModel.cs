@@ -26,6 +26,10 @@ namespace CalculateFunding.Models.Datasets.ViewModels
 
         public int PreviousDataSourceRows { get; set; }
 
+        public int NewRowCount { get; set; }
+
+        public int AmendedRowCount { get; set; }
+
         public Reference FundingStream { get; set; }
     }
 }

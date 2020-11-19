@@ -1333,7 +1333,9 @@ namespace CalculateFunding.Services.Datasets
                 Version = dataset.Content.Current.Version,
                 Comment = dataset.Content.Current.Comment,
                 CurrentDataSourceRows = dataset.Content.Current.RowCount,
-                FundingStream = dataset.Content.Current.FundingStream
+                FundingStream = dataset.Content.Current.FundingStream,
+                AmendedRowCount = dataset.Content.Current.AmendedRowCount,
+                NewRowCount = dataset.Content.Current.NewRowCount
             };
 
             int maxVersion = dataset.Content.History.Max(m => m.Version);
