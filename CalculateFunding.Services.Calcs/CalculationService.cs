@@ -1133,6 +1133,8 @@ namespace CalculateFunding.Services.Calcs
             ApiClientDatasetDefinition datasetDefinition = datasetDefinitionResponse.Content;
             ApiClientTableDefinition tableDefinition = datasetDefinition.TableDefinitions.First();
 
+            string datasetRelationshipVisualBasicVariableName = VisualBasicTypeGenerator.GenerateIdentifier(relationshipDatasourceModel.RelationshipName);
+
             foreach (Calculation templateCalculation in templateCalculations)
             {
                 ApiClientFieldDefinition fieldDefinition = tableDefinition.FieldDefinitions.FirstOrDefault(x => x.Name == templateCalculation.Name);
@@ -1141,7 +1143,12 @@ namespace CalculateFunding.Services.Calcs
                 {
                     CalculationVersion calculationVersion = templateCalculation.Current.Clone() as CalculationVersion;
 
-                    calculationVersion.SourceCode = $"Return Datasets.{VisualBasicTypeGenerator.GenerateIdentifier(relationshipDatasourceModel.RelationshipName)}.{VisualBasicTypeGenerator.GenerateIdentifier(fieldDefinition.Name)}";
+                    string fieldDefintionVisualBasicName = VisualBasicTypeGenerator.GenerateIdentifier(fieldDefinition.Name);
+
+                    calculationVersion.SourceCode = @$"If Datasets.{datasetRelationshipVisualBasicVariableName}.HasValue = False Then Return Nothing
+
+Return Datasets.{datasetRelationshipVisualBasicVariableName}.{fieldDefintionVisualBasicName}";
+
                     calculationVersion.PublishStatus = Models.Versioning.PublishStatus.Approved;
 
                     UpdateCalculationResult updateCalculationResult = await UpdateCalculation(templateCalculation, calculationVersion, user, updateBuildProject: false);

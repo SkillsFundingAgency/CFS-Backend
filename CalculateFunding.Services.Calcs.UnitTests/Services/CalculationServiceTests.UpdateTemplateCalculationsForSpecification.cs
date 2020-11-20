@@ -1,11 +1,15 @@
-﻿using CalculateFunding.Common.ApiClient.DataSets;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.DataSets;
 using CalculateFunding.Common.ApiClient.DataSets.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Versioning;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Core.Interfaces;
@@ -15,12 +19,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -191,7 +189,7 @@ namespace CalculateFunding.Services.Calcs.Services
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
             calculationsRepository.GetTemplateCalculationsBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(calcs);
-            
+
             IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
             datasetsApiClient.GetDataSourcesByRelationshipId(Arg.Is(datasetRelationshipId))
                 .Returns(new ApiResponse<SelectDatasourceModel>(HttpStatusCode.OK, datasetRelationship));
@@ -220,7 +218,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Value
                 .Should()
                 .Be($"No dataset definition found for dataset definition id '{datasetDefinitionId}'");
-         }
+        }
 
         [TestMethod]
         public async Task UpdateTemplateCalculationsForSpecification_GivenSpecificationAndRelationId_ShouldUpdateCalucationSourceCodeAndApprove()
@@ -233,14 +231,24 @@ namespace CalculateFunding.Services.Calcs.Services
 
             string calcName1 = NewRandomString();
             string calcName2 = NewRandomString();
+            string calculation1Id = NewRandomString();
+            string calculation2Id = NewRandomString();
 
-            string expectedSourceCode1 = $"Return Datasets.{VisualBasicTypeGenerator.GenerateIdentifier(datasetRelationshipName)}.{VisualBasicTypeGenerator.GenerateIdentifier(calcName1)}";
-            string expectedSourceCode2 = $"Return Datasets.{VisualBasicTypeGenerator.GenerateIdentifier(datasetRelationshipName)}.{VisualBasicTypeGenerator.GenerateIdentifier(calcName2)}";
+            string datasetRelationshipIdVisualBasicVariable = VisualBasicTypeGenerator.GenerateIdentifier(datasetRelationshipName);
+
+            string expectedCalc1Code = @$"If Datasets.{datasetRelationshipIdVisualBasicVariable}.HasValue = False Then Return Nothing
+
+Return Datasets.{datasetRelationshipIdVisualBasicVariable}.{VisualBasicTypeGenerator.GenerateIdentifier(calcName1)}";
+
+            string expectedCalc2Code = @$"If Datasets.{datasetRelationshipIdVisualBasicVariable}.HasValue = False Then Return Nothing
+
+Return Datasets.{datasetRelationshipIdVisualBasicVariable}.{VisualBasicTypeGenerator.GenerateIdentifier(calcName2)}";
+
 
             Calculation calculation1 = new Calculation
             {
                 SpecificationId = SpecificationId,
-                Id = NewRandomString(),
+                Id = calculation1Id,
                 Current = new CalculationVersion
                 {
                     Author = user,
@@ -250,12 +258,13 @@ namespace CalculateFunding.Services.Calcs.Services
                     Version = 1,
                     Name = calcName1,
                     CalculationType = CalculationType.Template,
+                    CalculationId = calculation1Id,
                 }
             };
             Calculation calculation2 = new Calculation
             {
                 SpecificationId = SpecificationId,
-                Id = NewRandomString(),
+                Id = calculation2Id,
                 Current = new CalculationVersion
                 {
                     Author = user,
@@ -265,16 +274,17 @@ namespace CalculateFunding.Services.Calcs.Services
                     Version = 1,
                     Name = calcName2,
                     CalculationType = CalculationType.Template,
+                    CalculationId = calculation2Id
                 }
             };
 
-            CalculationVersion expectedCalculationVersion1 = calculation1.Current.Clone() as CalculationVersion;
-            expectedCalculationVersion1.SourceCode = expectedSourceCode1;
-            expectedCalculationVersion1.PublishStatus = Models.Versioning.PublishStatus.Approved;
+            CalculationVersion existingCalculationVersion1 = calculation1.Current.Clone() as CalculationVersion;
+            existingCalculationVersion1.SourceCode = "Return Nothing";
+            existingCalculationVersion1.PublishStatus = Models.Versioning.PublishStatus.Approved;
 
-            CalculationVersion expectedCalculationVersion2 = calculation2.Current.Clone() as CalculationVersion;
-            expectedCalculationVersion2.SourceCode = expectedSourceCode2;
-            expectedCalculationVersion2.PublishStatus = Models.Versioning.PublishStatus.Approved;
+            CalculationVersion existingCalculationVersion2 = calculation2.Current.Clone() as CalculationVersion;
+            existingCalculationVersion2.SourceCode = "Return Nothing";
+            existingCalculationVersion2.PublishStatus = Models.Versioning.PublishStatus.Approved;
 
             IEnumerable<Calculation> calcs = new[] { calculation1, calculation2 };
 
@@ -324,11 +334,16 @@ namespace CalculateFunding.Services.Calcs.Services
             calculationsRepository.GetCompilerOptions(Arg.Is(SpecificationId)).Returns(new CompilerOptions());
 
             IVersionRepository<CalculationVersion> calculationVersionRepository = CreateCalculationVersionRepository();
-            calculationVersionRepository.CreateVersion(Arg.Is<CalculationVersion>(c => c.Name == calcName1), Arg.Is<CalculationVersion>(c => c.Name == calcName1), null, false)
-            .Returns(expectedCalculationVersion1);
 
-            calculationVersionRepository.CreateVersion(Arg.Is<CalculationVersion>(c => c.Name == calcName2), Arg.Is<CalculationVersion>(c => c.Name == calcName2), null, false)
-            .Returns(expectedCalculationVersion2);
+
+            // NOTE: This test is returning the existing version, rather than the new version of the calculation, which means the asserts aren't against the latest version / generated code
+            // The c.SourceCode check here ensures the expected source code is persisted. Non matching will be asserted below with an HTTP Status Code of 0 for not found
+
+            calculationVersionRepository.CreateVersion(Arg.Is<CalculationVersion>(c => c.Name == calcName1 && c.SourceCode == expectedCalc1Code), Arg.Is<CalculationVersion>(c => c.Name == calcName1), null, false)
+            .Returns(existingCalculationVersion1);
+
+            calculationVersionRepository.CreateVersion(Arg.Is<CalculationVersion>(c => c.Name == calcName2 && c.SourceCode == expectedCalc2Code), Arg.Is<CalculationVersion>(c => c.Name == calcName2), null, false)
+            .Returns(existingCalculationVersion2);
 
             calculationVersionRepository.SaveVersion(Arg.Is<CalculationVersion>(c => calculationNames.Any(x => x == c.Name)))
              .Returns(HttpStatusCode.OK);
@@ -370,10 +385,24 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Should()
                 .BeOfType<OkResult>();
 
+
+
             await calculationVersionRepository
-                .Received(2)
-                .SaveVersion(Arg.Is<CalculationVersion>(v => (v.Name == calcName1 && v.SourceCode == expectedSourceCode1 && v.PublishStatus == Models.Versioning.PublishStatus.Approved)
-                                                            || (v.Name == calcName2 && v.SourceCode == expectedSourceCode2 && v.PublishStatus == Models.Versioning.PublishStatus.Approved)));
+                .Received()
+                .SaveVersion(Arg.Is<CalculationVersion>(v => v.Name == calcName1 && v.PublishStatus == Models.Versioning.PublishStatus.Approved));
+
+            await calculationVersionRepository
+                .Received()
+                .SaveVersion(Arg.Is<CalculationVersion>(v => v.Name == calcName1 && v.PublishStatus == Models.Versioning.PublishStatus.Approved));
+
+            await calculationsRepository
+                .Received()
+                .UpdateCalculation(Arg.Is<Calculation>(c => c.Id == calculation1Id));
+
+            await calculationsRepository
+               .Received()
+               .UpdateCalculation(Arg.Is<Calculation>(c => c.Id == calculation2Id));
+
         }
 
         public string NewRandomString() => new RandomString();
