@@ -1143,11 +1143,11 @@ namespace CalculateFunding.Services.Calcs
                 {
                     CalculationVersion calculationVersion = templateCalculation.Current.Clone() as CalculationVersion;
 
-                    string fieldDefintionVisualBasicName = VisualBasicTypeGenerator.GenerateIdentifier(fieldDefinition.Name);
+                    string fieldDefinitionVisualBasicName = VisualBasicTypeGenerator.GenerateIdentifier(fieldDefinition.Name);
 
                     calculationVersion.SourceCode = @$"If Datasets.{datasetRelationshipVisualBasicVariableName}.HasValue = False Then Return Nothing
 
-Return Datasets.{datasetRelationshipVisualBasicVariableName}.{fieldDefintionVisualBasicName}";
+Return Datasets.{datasetRelationshipVisualBasicVariableName}.{fieldDefinitionVisualBasicName}";
 
                     calculationVersion.PublishStatus = Models.Versioning.PublishStatus.Approved;
 
