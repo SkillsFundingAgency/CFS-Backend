@@ -67,10 +67,16 @@ namespace CalculateFunding.Services.Publishing
 
             Guard.ArgumentNotNull(specification, nameof(specification));
 
-            if(specification.ApprovalStatus != Common.ApiClient.Models.PublishStatus.Approved)
+            if (specification.ApprovalStatus != Common.ApiClient.Models.PublishStatus.Approved)
             {
                 _logger.Error("Specification failed refresh prerequisite check. Reason: must be approved");
                 return new string[] { "Specification must be approved." };
+            }
+
+            if (providers.IsNullOrEmpty())
+            {
+                _logger.Error("Specification failed refresh prerequisite check. Reason: no scoped providers");
+                return new string[] { "Specification must have providers in scope." };
             }
 
             SpecificationFundingStatus specificationFundingStatus = await _specificationFundingStatusService.CheckChooseForFundingStatus(specification);

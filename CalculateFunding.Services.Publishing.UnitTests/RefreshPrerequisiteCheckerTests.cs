@@ -92,12 +92,40 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
         }
 
+
+        [TestMethod]
+        public void ReturnsErrorMessageWhenSpecificationHasNoScopedProviders()
+        {
+            // Arrange
+            string specificationId = "specId01";
+            SpecificationSummary specificationSummary = new SpecificationSummary { Id = specificationId, ApprovalStatus = PublishStatus.Approved };
+
+            string errorMessage = "Specification failed refresh prerequisite check. Reason: no scoped providers";
+
+            // Act
+            Func<Task> invocation
+                = () => WhenThePreRequisitesAreChecked(specificationSummary, Enumerable.Empty<PublishedProvider>(), Enumerable.Empty<Provider>());
+
+            // Assert
+            invocation
+                .Should()
+                .Throw<JobPrereqFailedException>()
+                .Where(_ =>
+                    _.Message == $"Specification with id: '{specificationSummary.Id} has prerequisites which aren't complete.");
+
+            _logger
+                .Received()
+                .Error(errorMessage);
+
+        }
+
         [TestMethod]
         public void ReturnsErrorMessageWhenSharesAlreadyChoseFundingStream()
         {
             // Arrange
             string specificationId = "specId01";
             SpecificationSummary specificationSummary = new SpecificationSummary { Id = specificationId, ApprovalStatus = PublishStatus.Approved };
+            IEnumerable<Provider> providers = new[] { new Provider { ProviderId = "ProviderId" } };
 
             string errorMessage = $"Specification with id: '{specificationId} already shares chosen funding streams";
             
@@ -105,7 +133,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             // Act
             Func<Task> invocation
-                = () => WhenThePreRequisitesAreChecked(specificationSummary, Enumerable.Empty<PublishedProvider>(), Enumerable.Empty<Provider>());
+                = () => WhenThePreRequisitesAreChecked(specificationSummary, Enumerable.Empty<PublishedProvider>(), providers);
 
             // Assert
             invocation
@@ -126,6 +154,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             // Arrange
             string specificationId = "specId01";
             SpecificationSummary specificationSummary = new SpecificationSummary { Id = specificationId, ApprovalStatus = PublishStatus.Approved };
+            IEnumerable<Provider> providers = new[] { new Provider { ProviderId = "ProviderId" } };
 
             string errorMessage = "Generic error message";
 
@@ -134,7 +163,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             // Act
             Func<Task> invocation
-                = () => WhenThePreRequisitesAreChecked(specificationSummary, Enumerable.Empty<PublishedProvider>(), Enumerable.Empty<Provider>());
+                = () => WhenThePreRequisitesAreChecked(specificationSummary, Enumerable.Empty<PublishedProvider>(), providers);
 
             // Assert
             invocation
@@ -183,6 +212,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             // Arrange
             string specificationId = "specId01";
             SpecificationSummary specificationSummary = new SpecificationSummary { Id = specificationId, ApprovalStatus = PublishStatus.Approved };
+            IEnumerable<Provider> providers = new[] { new Provider { ProviderId = "ProviderId" } };
 
             string errorMessage = "Error message";
 
@@ -192,7 +222,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             // Act
             Func<Task> invocation
-                = () => WhenThePreRequisitesAreChecked(specificationSummary, Enumerable.Empty<PublishedProvider>(), Enumerable.Empty<Provider>());
+                = () => WhenThePreRequisitesAreChecked(specificationSummary, Enumerable.Empty<PublishedProvider>(), providers);
 
             // Assert
             invocation

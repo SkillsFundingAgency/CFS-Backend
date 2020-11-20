@@ -149,7 +149,14 @@ namespace CalculateFunding.Services.Publishing
             // Get scoped providers for this specification
             IDictionary<string, Provider> scopedProviders = await _providerService.GetScopedProvidersForSpecification(specification.Id, specification.ProviderVersionId);
 
-            _logger.Information($"Found {scopedProviders.Count} scoped providers for refresh");
+            if (!scopedProviders.IsNullOrEmpty())
+            {
+                _logger.Information($"Found {scopedProviders.Count} scoped providers for refresh");
+            }
+            else
+            {
+                _logger.Information("No scoped providers found for refresh");
+            }
 
             // Get existing published providers for this specification
             _logger.Information("Looking up existing published providers from cosmos for refresh job");
@@ -170,7 +177,7 @@ namespace CalculateFunding.Services.Publishing
             IPrerequisiteChecker prerequisiteChecker = _prerequisiteCheckerLocator.GetPreReqChecker(PrerequisiteCheckerType.Refresh);
             try
             { 
-                await prerequisiteChecker.PerformChecks(specification, Job.Id, existingPublishedProvidersByFundingStream.SelectMany(x => x.Value), scopedProviders.Values);
+                await prerequisiteChecker.PerformChecks(specification, Job.Id, existingPublishedProvidersByFundingStream.SelectMany(x => x.Value), scopedProviders?.Values);
             }
             catch (JobPrereqFailedException ex)
             {

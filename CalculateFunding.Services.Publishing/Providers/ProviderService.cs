@@ -106,7 +106,10 @@ namespace CalculateFunding.Services.Publishing.Providers
             ApiResponse<IEnumerable<string>> scopedProviderIdResponse =
                  await _providersApiClientPolicy.ExecuteAsync(() => _providersApiClient.GetScopedProviderIds(specificationId));
 
-            Guard.ArgumentNotNull(scopedProviderIdResponse?.Content, nameof(scopedProviderIdResponse));
+            if (scopedProviderIdResponse?.Content == null)
+            {
+                return null;
+            }
 
             HashSet<string> scopedProviders = scopedProviderIdResponse?.Content.ToHashSet();
 

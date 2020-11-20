@@ -381,12 +381,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         {
             GivenJobCanBeProcessed();
             AndSpecification();
-            AndCalculationResultsBySpecificationId();
-            AndTemplateMetadataContents();
-            AndScopedProviders();
-            AndScopedProviderCalculationResults();
-            AndTemplateMapping();
-            AndPublishedProviders();
+            AndPublishedProviders(new PublishedProvider[0]);
             AndJobsRunning();
 
             Func<Task> invocation = WhenMessageReceivedWithJobIdAndCorrelationId;
@@ -399,11 +394,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Should()
                 .Be($"Specification with id: '{SpecificationId} has prerequisites which aren't complete.");
 
-            string[] prereqValidationErrors = new string[] { $"{JobConstants.DefinitionNames.CreateInstructAllocationJob} is still running" };
+            string[] prereqValidationErrors = new string[] { $"{JobConstants.DefinitionNames.CreateInstructAllocationJob} is still running", "Specification must have providers in scope." };
 
             _jobManagement
                 .Received(1)
                 .UpdateJobStatus(JobId, completedSuccessfully: false, outcome: string.Join(", ", prereqValidationErrors));
+
+            _logger
+                .Received(1)
+                .Information("No scoped providers found for refresh");
         }
 
         [TestMethod]
@@ -435,6 +434,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             GivenJobCanBeProcessed();
             AndSpecification();
             AndCalculationResultsBySpecificationId();
+            AndScopedProviders((_) =>
+            {
+                _.Name = "New name";
+            }, includeTemplateContents: false);
+            AndScopedProviderCalculationResults();
 
             await WhenMessageReceivedWithJobIdAndCorrelationId();
 
@@ -688,7 +692,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Throws(new Exception());
         }
 
-        private void AndScopedProviders(Action<Provider> variationAction = null, string profilePatternKeyPrefix = null)
+        private void AndScopedProviders(Action<Provider> variationAction = null, string profilePatternKeyPrefix = null, bool includeTemplateContents = true)
         {
             _scopedProviders = new[] { NewProvider(), NewProvider(), NewProvider() };
 
@@ -698,19 +702,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                             .WithFundingStreamId(FundingStreamId)
                             .WithProviderId(_.ProviderId)
                             .WithTotalFunding(9)
-                            .WithProfilePatternKeys(new ProfilePatternKey() { FundingLineCode = _fundingLines[0].FundingLineCode, Key = $"{profilePatternKeyPrefix}-{NewRandomString()}" })
-                            .WithFundingLines(new[] { new FundingLine { FundingLineCode = _fundingLines[0].FundingLineCode, TemplateLineId = _fundingLines[0].TemplateLineId, Value = 9 } })
-                            .WithFundingCalculations(new[] {new FundingCalculation { Value = _calculationResults[0].Value, TemplateCalculationId = _calculationTemplateIds[0].TemplateCalculationId },
+                            .WithProfilePatternKeys(includeTemplateContents ? new ProfilePatternKey() { FundingLineCode = _fundingLines[0].FundingLineCode, Key = $"{profilePatternKeyPrefix}-{NewRandomString()}" } : null)
+                            .WithFundingLines(includeTemplateContents ? new[] { new FundingLine { FundingLineCode = _fundingLines[0].FundingLineCode, TemplateLineId = _fundingLines[0].TemplateLineId, Value = 9 } } : null)
+                            .WithFundingCalculations(includeTemplateContents ? new[] {new FundingCalculation { Value = _calculationResults[0].Value, TemplateCalculationId = _calculationTemplateIds[0].TemplateCalculationId },
                                                             new FundingCalculation { Value = _calculationResults[1].Value, TemplateCalculationId = _calculationTemplateIds[1].TemplateCalculationId },
-                                                            new FundingCalculation { Value = _calculationResults[2].Value, TemplateCalculationId = _calculationTemplateIds[2].TemplateCalculationId } })))
+                                                            new FundingCalculation { Value = _calculationResults[2].Value, TemplateCalculationId = _calculationTemplateIds[2].TemplateCalculationId } } : null)))
                         .WithReleased(NewPublishedProviderVersion(ppv => ppv.WithProvider(_.DeepCopy())
                                 .WithFundingStreamId(FundingStreamId)
                                 .WithProviderId(_.ProviderId)
                                 .WithTotalFunding(9)
-                                .WithFundingLines(new[] { new FundingLine { FundingLineCode = _fundingLines[0].FundingLineCode, TemplateLineId = _fundingLines[0].TemplateLineId, Value = 9 } })
-                                .WithFundingCalculations(new[] {new FundingCalculation { Value = _calculationResults[0].Value, TemplateCalculationId = _calculationTemplateIds[0].TemplateCalculationId },
+                                .WithFundingLines(includeTemplateContents ? new[] { new FundingLine { FundingLineCode = _fundingLines[0].FundingLineCode, TemplateLineId = _fundingLines[0].TemplateLineId, Value = 9 } } : null)
+                                .WithFundingCalculations(includeTemplateContents ? new[] {new FundingCalculation { Value = _calculationResults[0].Value, TemplateCalculationId = _calculationTemplateIds[0].TemplateCalculationId },
                                     new FundingCalculation { Value = _calculationResults[1].Value, TemplateCalculationId = _calculationTemplateIds[1].TemplateCalculationId },
-                                    new FundingCalculation { Value = _calculationResults[2].Value, TemplateCalculationId = _calculationTemplateIds[2].TemplateCalculationId } }))))).ToList();
+                                    new FundingCalculation { Value = _calculationResults[2].Value, TemplateCalculationId = _calculationTemplateIds[2].TemplateCalculationId } } : null))))).ToList();
 
             Provider providerToVary = _scopedProviders.Last();
             _providerIdVaried = providerToVary.ProviderId;

@@ -241,7 +241,6 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddScoped<ICsvUtils, CsvUtils>();
             builder.AddSingleton<IFileSystemAccess, FileSystemAccess>();
             builder.AddSingleton<IFileSystemCacheSettings, FileSystemCacheSettings>();
-            builder.AddSingleton<IPublishedFundingOrganisationGroupingService, PublishedFundingOrganisationGroupingService>();
             builder.AddScoped<IReApplyCustomProfiles, ReApplyCustomProfiles>();
             builder.AddScoped<IPublishedProviderErrorDetection, PublishedProviderErrorDetection>();
             builder.AddScoped<IDetectPublishedProviderErrors, FundingLineValueProfileMismatchErrorDetector>();
