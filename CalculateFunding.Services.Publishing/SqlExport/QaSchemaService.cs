@@ -17,6 +17,7 @@ using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing.SqlExport;
 using CalculateFunding.Models.Scenarios;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Polly;
 
@@ -71,7 +72,13 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             ApiResponse<SpecificationSummary> specificationResponse = await _specificationResilience.ExecuteAsync(() 
                 => _specifications.GetSpecificationSummaryById(specificationId));
 
-            SpecificationSummary specification = specificationResponse.Content;
+            SpecificationSummary specification = specificationResponse?.Content;
+
+            if (specification == null)
+            {
+                throw new NonRetriableException(
+                    $"Did not locate a specification {specificationId}. Unable to complete Qa Schema Generation");
+            }
 
             await EnsureTablesForFundingStream(specification, fundingStreamId);    
         }
@@ -133,7 +140,13 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             ApiResponse<IEnumerable<FundingStreamPeriodProfilePattern>> profilePatternResults =
                 await _profilingClient.GetProfilePatternsForFundingStreamAndFundingPeriod(fundingStreamId, fundingPeriodId);
 
-            IEnumerable<FundingStreamPeriodProfilePattern> profilePatterns = profilePatternResults.Content;
+            IEnumerable<FundingStreamPeriodProfilePattern> profilePatterns = profilePatternResults?.Content;
+
+            if (profilePatterns == null)
+            {
+                throw new NonRetriableException(
+                    $"Did not locate any profile patterns for funding stream {fundingStreamId} and funding period {fundingPeriodId}. Unable to continue with Qa Schema Generation");
+            }
 
             ProfilePatternComparer profilePatternComparer = new ProfilePatternComparer();
 
@@ -231,8 +244,13 @@ REFERENCES [dbo].[{fundingStreamTablePrefix}_{fundingTableName}] ([PublishedProv
         {
             UniqueTemplateContents uniqueTemplateContents = new UniqueTemplateContents();
 
-
             TemplateMetadataContents templateMetadata = await GetTemplateMetadataContents(specification, fundingStreamId);
+
+            if (templateMetadata == null)
+            {
+                throw new NonRetriableException(
+                    $"Did not locate template information for specification {specification.Id} in {fundingStreamId}. Unable to complete Qa Schema Generation");
+            }
 
             IEnumerable<FundingLine> flattenedFundingLines = templateMetadata.RootFundingLines.Flatten(_ => _.FundingLines)
                                                              ?? new FundingLine[0];
@@ -492,6 +510,12 @@ REFERENCES [dbo].[{fundingStreamTablePrefix}_{fundingTableName}] ([PublishedProv
             string schemaVersion = fundingTemplateContents.SchemaVersion ?? fundingTemplateContents.Metadata?.SchemaVersion;
 
             ITemplateMetadataGenerator templateContents = _templateMetadataResolver.GetService(schemaVersion);
+
+            if (templateContents == null)
+            {
+                throw new NonRetriableException(
+                    $"Could not resolve template metadata generator for {schemaVersion}. Unable to complete Qa Schema Generation");
+            }
 
             return templateContents.GetMetadata(fundingTemplateContents.TemplateFileContents);
         }
