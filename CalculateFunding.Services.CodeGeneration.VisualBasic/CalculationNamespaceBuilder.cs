@@ -241,8 +241,8 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
         private string GetConditionalExistingCalculationResult(Calculation calculation)
         {
             return calculation.Current.DataType == CalculationDataType.Enum ?
-              $"        Return CType([Enum].Parse(GetType({GetEnumVariableName(calculation.Name)}), existingCalculationResult{GetVariableName(calculation.Current.DataType)}),{GetDataType(calculation.Current.DataType, calculation.Name)})"
-            : $"        Return existingCalculationResult{GetVariableName(calculation.Current.DataType)}";
+              $"    Return If(String.IsNullOrWhiteSpace(existingCalculationResult{GetVariableName(calculation.Current.DataType)}), Nothing, CType([Enum].Parse(GetType({GetEnumVariableName(calculation.Name)}), existingCalculationResult{GetVariableName(calculation.Current.DataType)}), {GetEnumVariableName(calculation.Name)}?))"
+            : $"    Return existingCalculationResult{GetVariableName(calculation.Current.DataType)}";
 
         }
 
