@@ -78,8 +78,7 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
             }
             else
             {
-                currentProviderVersion.RemoveCarryOver(fundingLineCode,
-                    ProfilingCarryOverType.CustomProfile);
+                currentProviderVersion.RemoveCarryOver(fundingLineCode);
             }
 
             currentProviderVersion.AddProfilingAudit(fundingLineCode, author);

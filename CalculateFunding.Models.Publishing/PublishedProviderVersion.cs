@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Services.Core.Extensions;
 using Newtonsoft.Json;
@@ -219,20 +220,9 @@ namespace CalculateFunding.Models.Publishing
             ProfilingCarryOverType type,
             decimal amount)
         {
-            if (type == ProfilingCarryOverType.Undefined)
-            {
-                throw new ArgumentOutOfRangeException(nameof(type), $"Unsupported {nameof(ProfilingCarryOverType)}");
-            }
-
-            if (string.IsNullOrWhiteSpace(fundingLineCode))
-            {
-                throw new ArgumentOutOfRangeException(nameof(fundingLineCode), fundingLineCode, "Funding Line Id cannot be missing");
-            }
-
-            if (amount <= 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(amount), amount, "Carry overs must be greater than zero");
-            }
+            Guard.IsNullOrWhiteSpace(fundingLineCode, nameof(fundingLineCode), "Funding Line Id cannot be missing");
+            Guard.Ensure(type != ProfilingCarryOverType.Undefined, $"Unsupported {nameof(ProfilingCarryOverType)}");
+            Guard.Ensure(amount > 0, "Carry overs must be greater than zero");
 
             CarryOvers ??= new List<ProfilingCarryOver>();
             CarryOvers.Add(new ProfilingCarryOver
@@ -243,84 +233,52 @@ namespace CalculateFunding.Models.Publishing
             });
         }
 
-        public void RemoveCarryOver(string fundingLineCode, ProfilingCarryOverType type)
+        public void RemoveCarryOver(string fundingLineCode)
         {
-            if (type == ProfilingCarryOverType.Undefined)
-            {
-                throw new ArgumentOutOfRangeException(nameof(type), $"Unsupported {nameof(ProfilingCarryOverType)}");
-            }
-
-            if (string.IsNullOrWhiteSpace(fundingLineCode))
-            {
-                throw new ArgumentOutOfRangeException(nameof(fundingLineCode), fundingLineCode, "Funding Line Id cannot be missing");
-            }
+            Guard.IsNullOrWhiteSpace(fundingLineCode, nameof(fundingLineCode), "Funding Line Id cannot be missing");
 
             CarryOvers ??= new List<ProfilingCarryOver>();
-
-            List<ProfilingCarryOver> carryOvers = CarryOvers.Where(s => s.FundingLineCode == fundingLineCode).ToList();
-
-            if (carryOvers.Any())
-            {
-                carryOvers.ForEach(_ => CarryOvers.Remove(_));
-            }
+            CarryOvers = CarryOvers.Except(CarryOvers.Where(_ =>
+                    _.FundingLineCode == fundingLineCode))
+                .ToList();
         }
 
-        public void AddProfilingAudit(string fundingLineCode, Reference user)
+        public void AddProfilingAudit(string fundingLineCode,
+            Reference user)
         {
-            if (string.IsNullOrWhiteSpace(fundingLineCode))
-            {
-                throw new ArgumentOutOfRangeException(nameof(fundingLineCode), fundingLineCode, "Funding Line Id cannot be null or empty");
-            }
+            Guard.IsNullOrWhiteSpace(fundingLineCode, nameof(fundingLineCode));
+            Guard.ArgumentNotNull(user, nameof(user));
 
-            if (user == null)
-            {
-                throw new ArgumentOutOfRangeException(nameof(user), user, "Audit user cannot be null");
-            }
+            ProfilingAudits ??= new List<ProfilingAudit>();
 
-            if (ProfilingAudits == null)
-            {
-                ProfilingAudits = new List<ProfilingAudit>();
-            }
-
-            ProfilingAudit profilingAudit = ProfilingAudits.SingleOrDefault(a => a.FundingLineCode == fundingLineCode);
+            ProfilingAudit profilingAudit = ProfilingAudits.SingleOrDefault(_ => _.FundingLineCode == fundingLineCode);
 
             if (profilingAudit == null)
             {
-                ProfilingAudits.Add(new ProfilingAudit() { FundingLineCode = fundingLineCode, User = user, Date = DateTime.Now.ToLocalTime() });
+                ProfilingAudits.Add(new ProfilingAudit
+                {
+                    FundingLineCode = fundingLineCode,
+                    User = user,
+                    Date = DateTime.UtcNow
+                });
             }
             else
             {
                 profilingAudit.User = user;
-                profilingAudit.Date = DateTime.Now.ToLocalTime();
+                profilingAudit.Date = DateTime.UtcNow;
             }
         }
 
-        public void AddOrUpdateCustomProfile(string fundingLineCode, decimal? carryOver, string distributionPeriodId)
+        public void AddOrUpdateCustomProfile(string fundingLineCode,
+            decimal? carryOver,
+            string distributionPeriodId)
         {
-            if (string.IsNullOrWhiteSpace(fundingLineCode))
-            {
-                throw new ArgumentOutOfRangeException(nameof(fundingLineCode), fundingLineCode, "Funding line code cannot be null or empty");
-            }
-
-            if (string.IsNullOrWhiteSpace(distributionPeriodId))
-            {
-                throw new ArgumentOutOfRangeException(nameof(distributionPeriodId), distributionPeriodId, "Distribution period cannot be null");
-            }
-
-            FundingLine fundingLine = FundingLines.Single(fl => fl.FundingLineCode == fundingLineCode);
-
-            DistributionPeriod distributionPeriod = fundingLine.DistributionPeriods?
-                .SingleOrDefault(d => d.DistributionPeriodId == distributionPeriodId);
-
-            if (distributionPeriod == null)
-            {
-                throw new ArgumentException($"Distribution period {distributionPeriodId} not found for funding line {fundingLineCode}.");
-            }
+            DistributionPeriod distributionPeriod = GetDistributionPeriod(fundingLineCode, distributionPeriodId);
 
             CustomProfiles ??= new List<FundingLineProfileOverrides>();
 
-            FundingLineProfileOverrides customProfile = CustomProfiles.SingleOrDefault(c =>
-                                                            c.FundingLineCode == fundingLineCode) ?? new FundingLineProfileOverrides();
+            FundingLineProfileOverrides customProfile = CustomProfiles.SingleOrDefault(_ =>
+                _.FundingLineCode == fundingLineCode) ?? new FundingLineProfileOverrides();
 
             customProfile.FundingLineCode = fundingLineCode;
             customProfile.CarryOver = carryOver;
@@ -331,8 +289,14 @@ namespace CalculateFunding.Models.Publishing
 
             if (existingDistributionPeriod == null)
             {
-                customProfile.DistributionPeriods = customProfile.DistributionPeriods.Concat(new[] { distributionPeriod });
-                CustomProfiles = CustomProfiles.Concat(new[] { customProfile });
+                customProfile.DistributionPeriods = customProfile.DistributionPeriods.Concat(new[]
+                {
+                    distributionPeriod
+                });
+                CustomProfiles = CustomProfiles.Concat(new[]
+                {
+                    customProfile
+                });
             }
             else
             {
@@ -341,32 +305,53 @@ namespace CalculateFunding.Models.Publishing
             }
         }
 
-        public void UpdateDistributionPeriodForFundingLine(string fundingLineCode, string distributionPeriodId, IEnumerable<ProfilePeriod> profilePeriods)
+        public void UpdateDistributionPeriodForFundingLine(string fundingLineCode,
+            string distributionPeriodId,
+            IEnumerable<ProfilePeriod> profilePeriods)
         {
-            if (string.IsNullOrWhiteSpace(fundingLineCode))
-            {
-                throw new ArgumentOutOfRangeException(nameof(fundingLineCode), fundingLineCode, "Funding line code cannot be null or empty");
-            }
+            DistributionPeriod distributionPeriod = GetDistributionPeriod(fundingLineCode, distributionPeriodId);
 
-            if (string.IsNullOrWhiteSpace(distributionPeriodId))
-            {
-                throw new ArgumentOutOfRangeException(nameof(distributionPeriodId), distributionPeriodId, "Distribution period id cannot be null or empty");
-            }
+            profilePeriods ??= ArraySegment<ProfilePeriod>.Empty;
 
-            FundingLine fundingLine = FundingLines.Single(fl => fl.FundingLineCode == fundingLineCode);
+            decimal sumTotalForDistributionPeriod = profilePeriods.Sum(_ => _.ProfiledValue);
+            distributionPeriod.Value = sumTotalForDistributionPeriod;
+            distributionPeriod.ProfilePeriods = profilePeriods.ToArray();
+        }
+
+        private DistributionPeriod GetDistributionPeriod(string fundingLineCode,
+            string distributionPeriodId)
+        {
+            Guard.IsNullOrWhiteSpace(fundingLineCode, nameof(fundingLineCode));
+            Guard.IsNullOrWhiteSpace(distributionPeriodId, nameof(distributionPeriodId));
+
+            FundingLine fundingLine = FundingLines.SingleOrDefault(fl => fl.FundingLineCode == fundingLineCode);
+
+            Guard.Ensure(fundingLine != null, $"Did not locate a funding line with code {fundingLineCode}");
 
             DistributionPeriod distributionPeriod = fundingLine.DistributionPeriods?
                 .SingleOrDefault(d => d.DistributionPeriodId == distributionPeriodId);
 
-            if (distributionPeriod == null)
+            Guard.Ensure(distributionPeriod != null, $"Distribution period {distributionPeriodId} not found for funding line {fundingLineCode}.");
+
+            return distributionPeriod;
+        }
+
+        public void SetProfilePatternKey(ProfilePatternKey profilePatternKey,
+            Reference author)
+        {
+            if (ProfilePatternKeys?.Any(_ => _.FundingLineCode == profilePatternKey.FundingLineCode) == true)
             {
-                throw new ArgumentException($"Distribution period {distributionPeriodId} not found for funding line {fundingLineCode}.");
+                ProfilePatternKeys
+                    .SingleOrDefault(_ => _.FundingLineCode == profilePatternKey.FundingLineCode)
+                    .Key = profilePatternKey.Key;
+            }
+            else
+            {
+                ProfilePatternKeys ??= new List<ProfilePatternKey>();
+                ProfilePatternKeys.Add(profilePatternKey);
             }
 
-            IEnumerable<ProfilePeriod> distributionPeriodProfilePeriods = profilePeriods as ProfilePeriod[] ?? profilePeriods.ToArray();
-            decimal sumTotalForDistributionPeriod = distributionPeriodProfilePeriods.Sum(p => p.ProfiledValue);
-            distributionPeriod.Value = sumTotalForDistributionPeriod;
-            distributionPeriod.ProfilePeriods = distributionPeriodProfilePeriods;
+            AddProfilingAudit(profilePatternKey.FundingLineCode, author);
         }
 
         [JsonIgnore]

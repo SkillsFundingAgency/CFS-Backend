@@ -16,14 +16,26 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
         {
             decimal carryOverAmount = AdjustForUnderOrOverPayment(context);
 
+            //TODO; put this change under test for the distribution periods stuff
             return new ReProfileStrategyResult
             {
-                DistributionPeriods = context.ProfileResult.DeliveryProfilePeriods.Select(_ => new DistributionPeriods()).ToArray(),
+                DistributionPeriods = MapIntoDistributionPeriods(context),
                 DeliveryProfilePeriods = context.ProfileResult.DeliveryProfilePeriods,
                 CarryOverAmount = carryOverAmount
             };
         }
-        
+
+        private static DistributionPeriods[] MapIntoDistributionPeriods(ReProfileContext context)
+        {
+            return context.ProfileResult.DeliveryProfilePeriods.GroupBy(_ => _.DistributionPeriod)
+                .Select(_ => new DistributionPeriods
+                {
+                    Value = _.Sum(dp => dp.ProfileValue),
+                    DistributionPeriodCode = _.Key
+                })
+                .ToArray();
+        }
+
         private decimal AdjustForUnderOrOverPayment(ReProfileContext context)
         {
             decimal carryOverAmount = 0;

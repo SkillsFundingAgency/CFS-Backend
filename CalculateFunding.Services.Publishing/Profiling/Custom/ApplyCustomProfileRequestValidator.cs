@@ -42,8 +42,6 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
             RuleFor(_ => _)
                 .CustomAsync(async (request, ctx, ct) =>
                 {
-                    PublishedProvider publishedProvider = null;
-
                     string providerId = request.ProviderId;
                     string fundingPeriodId = request.FundingPeriodId;
                     string fundingStreamId = request.FundingStreamId;
@@ -56,7 +54,7 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
                     {
                         string id = $"publishedprovider-{providerId}-{fundingPeriodId}-{fundingStreamId}";
 
-                        publishedProvider = await resiliencePolicies.PublishedFundingRepository.ExecuteAsync(() =>
+                        PublishedProvider publishedProvider = await resiliencePolicies.PublishedFundingRepository.ExecuteAsync(() =>
                             publishedFunding.GetPublishedProviderById(id, id));
 
                         if (publishedProvider == null)

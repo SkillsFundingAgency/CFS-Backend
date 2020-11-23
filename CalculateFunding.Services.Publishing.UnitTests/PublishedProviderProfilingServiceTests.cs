@@ -1,23 +1,27 @@
-﻿using CalculateFunding.Common.ApiClient.Models;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using AutoMapper.Mappers;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Profiling;
+using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Services.Publishing.UnitTests.Errors;
+using CalculateFunding.Services.Publishing.UnitTests.Profiling;
 using CalculateFunding.Services.Publishing.UnitTests.Variations.Changes;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
-using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
-using CalculateFunding.Services.Publishing.Models;
+using Moq;
+using Serilog.Core;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
 {
@@ -25,12 +29,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
     public class PublishedProviderProfilingServiceTests
     {
         private PublishedProviderProfilingService _service;
-        private IPublishedFundingRepository _publishedFundingRepository;
-        private ILogger _logger;
-        private IPublishedProviderErrorDetection _publishedProviderErrorDetection;
-        private IProfilingService _profilingService;
-        private IPublishedProviderVersioningService _publishedProviderVersioningService;
-        private ISpecificationsApiClient _specificationsApiClient;
+        private Mock<IPublishedFundingRepository> _publishedFundingRepository;
+        private Mock<IPublishedProviderErrorDetection> _publishedProviderErrorDetection;
+        private Mock<IProfilingService> _profilingService;
+        private Mock<IPublishedProviderVersioningService> _publishedProviderVersioningService;
+        private Mock<ISpecificationsApiClient> _specificationsApiClient;
+        private Mock<IReProfilingRequestBuilder> _reProfilingRequestBuilder;
+        private Mock<IProfilingApiClient> _profiling;
 
         private Reference _author;
 
@@ -55,14 +60,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         [TestInitialize]
         public void SetUp()
         {
-            _publishedFundingRepository = Substitute.For<IPublishedFundingRepository>();
-            _publishedProviderErrorDetection = Substitute.For<IPublishedProviderErrorDetection>();
-            _profilingService = Substitute.For<IProfilingService>();
-            _publishedProviderVersioningService = Substitute.For<IPublishedProviderVersioningService>();
-            _specificationsApiClient = Substitute.For<ISpecificationsApiClient>();
-            _logger = Substitute.For<ILogger>();
+            _publishedFundingRepository = new Mock<IPublishedFundingRepository>();
+            _publishedProviderErrorDetection = new Mock<IPublishedProviderErrorDetection>();
+            _profilingService = new Mock<IProfilingService>();
+            _publishedProviderVersioningService = new Mock<IPublishedProviderVersioningService>();
+            _specificationsApiClient = new Mock<ISpecificationsApiClient>();
+            _reProfilingRequestBuilder = new Mock<IReProfilingRequestBuilder>();
+            _profiling = new Mock<IProfilingApiClient>();
 
-            _author = NewReference(_ => _.WithId(NewRandomString()).WithName(NewRandomString()));
+            _author = NewReference();
 
             _fundingStreamId = NewRandomString();
             _fundingPeriodId = NewRandomString();
@@ -83,74 +89,76 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _profilePeriod2Occurence = NewRandomNumberBetween(1, 100);
 
             _service = new PublishedProviderProfilingService(
-                _publishedFundingRepository,
-                _publishedProviderErrorDetection,
-                _profilingService,
-                _publishedProviderVersioningService,
-                _specificationsApiClient,
-                _logger,
-                PublishingResilienceTestHelper.GenerateTestPolicies());
+                _publishedFundingRepository.Object,
+                _publishedProviderErrorDetection.Object,
+                _profilingService.Object,
+                _publishedProviderVersioningService.Object,
+                _specificationsApiClient.Object,
+                _reProfilingRequestBuilder.Object,
+                _profiling.Object,
+                PublishingResilienceTestHelper.GenerateTestPolicies(),
+                Logger.None);
         }
 
         [TestMethod]
         public void AssignProfilePatternKeyThrowsArgumentNullExceptionIfFundingStreamIdMissing()
         {
             Func<Task> invocation
-                = () => WhenAssigningProfilePatternKey(null, null, null, null);
+                = () => WhenProfilePatternKeyIsAssigned(null, null, null, null);
 
             invocation
                 .Should()
                 .Throw<ArgumentNullException>()
                 .Where(_ =>
-                    _.Message == $"Value cannot be null. (Parameter 'fundingStreamId')");
+                    _.Message == "Value cannot be null. (Parameter 'fundingStreamId')");
         }
 
         [TestMethod]
         public void AssignProfilePatternKeyThrowsArgumentNullExceptionIfFundingProfileIdMissing()
         {
             Func<Task> invocation
-                = () => WhenAssigningProfilePatternKey(_fundingStreamId, null, null, null);
+                = () => WhenProfilePatternKeyIsAssigned(_fundingStreamId, null, null, null);
 
             invocation
                 .Should()
                 .Throw<ArgumentNullException>()
                 .Where(_ =>
-                    _.Message == $"Value cannot be null. (Parameter 'fundingPeriodId')");
+                    _.Message == "Value cannot be null. (Parameter 'fundingPeriodId')");
         }
 
         [TestMethod]
         public void AssignProfilePatternKeyThrowsArgumentNullExceptionIfProviderIdMissing()
         {
             Func<Task> invocation
-                = () => WhenAssigningProfilePatternKey(_fundingStreamId, _fundingPeriodId, null, null);
+                = () => WhenProfilePatternKeyIsAssigned(_fundingStreamId, _fundingPeriodId, null, null);
 
             invocation
                 .Should()
                 .Throw<ArgumentNullException>()
                 .Where(_ =>
-                    _.Message == $"Value cannot be null. (Parameter 'providerId')");
+                    _.Message == "Value cannot be null. (Parameter 'providerId')");
         }
 
         [TestMethod]
         public void AssignProfilePatternKeyThrowsArgumentNullExceptionIfProfilePatternKeyMissing()
         {
             Func<Task> invocation
-                = () => WhenAssigningProfilePatternKey(_fundingStreamId, _fundingPeriodId, _providerId, null);
+                = () => WhenProfilePatternKeyIsAssigned(_fundingStreamId, _fundingPeriodId, _providerId, null);
 
             invocation
                 .Should()
                 .Throw<ArgumentNullException>()
                 .Where(_ =>
-                    _.Message == $"Value cannot be null. (Parameter 'profilePatternKey')");
+                    _.Message == "Value cannot be null. (Parameter 'profilePatternKey')");
         }
 
         [TestMethod]
         public async Task AssignProfilePatternKeyReturnsNotFoundIfPublishedProviderDoesNotExist()
         {
-            GivenGetPublishedProvider(null);
+            GivenThePublishedProvider(null);
 
             ProfilePatternKey profilePatternKey = NewProfilePatternKey();
-            StatusCodeResult result = await WhenAssigningProfilePatternKey(_fundingStreamId, _fundingPeriodId, _providerId, profilePatternKey) as StatusCodeResult;
+            StatusCodeResult result = await WhenProfilePatternKeyIsAssigned(_fundingStreamId, _fundingPeriodId, _providerId, profilePatternKey) as StatusCodeResult;
 
             result
                 .Should()
@@ -159,7 +167,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             result
                 .StatusCode
                 .Should()
-                .Be((int)HttpStatusCode.NotFound);
+                .Be((int) HttpStatusCode.NotFound);
         }
 
         [TestMethod]
@@ -173,9 +181,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             PublishedProvider publishedProvider = NewPublishedProvider(_ => _.WithCurrent(
                 NewPublishedProviderVersion(ppv => ppv.WithProfilePatternKeys(
                     NewProfilePatternKey(ppk => ppk.WithFundingLineCode(fundingLineCode).WithKey(key))))));
-            GivenGetPublishedProvider(publishedProvider);
+            GivenThePublishedProvider(publishedProvider);
 
-            StatusCodeResult result = await WhenAssigningProfilePatternKey(_fundingStreamId, _fundingPeriodId, _providerId, profilePatternKey) as StatusCodeResult;
+            StatusCodeResult result = await WhenProfilePatternKeyIsAssigned(_fundingStreamId, _fundingPeriodId, _providerId, profilePatternKey) as StatusCodeResult;
 
             result
                 .Should()
@@ -184,7 +192,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             result
                 .StatusCode
                 .Should()
-                .Be((int)HttpStatusCode.NotModified);
+                .Be((int) HttpStatusCode.NotModified);
         }
 
         [TestMethod]
@@ -203,16 +211,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     .WithFundingPeriodId(_fundingPeriodId)
                     .WithProfilePatternKeys(
                         NewProfilePatternKey(_ => _.WithFundingLineCode(fundingLineCode).WithKey(existingProfilePatternKey)))
-                    .WithFundingLines(new[] { fundingLine })
-            );
+                    .WithFundingLines(fundingLine)
+                );
 
             PublishedProvider publishedProvider = NewPublishedProvider(_ => _.WithCurrent(existingPublishedProviderVersion));
 
-            GivenGetPublishedProvider(publishedProvider);
+            GivenThePublishedProvider(publishedProvider);
 
-            IActionResult result = await WhenAssigningProfilePatternKey(_fundingStreamId, _fundingPeriodId, _providerId, profilePatternKey);
+            IActionResult result = await WhenProfilePatternKeyIsAssigned(_fundingStreamId, _fundingPeriodId, _providerId, profilePatternKey);
 
-            ThenResultReturnedAs(result, HttpStatusCode.BadRequest);
+            ThenResultShouldBe(result, HttpStatusCode.BadRequest);
         }
 
         [TestMethod]
@@ -233,8 +241,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     .WithFundingPeriodId(_fundingPeriodId)
                     .WithProfilePatternKeys(
                         NewProfilePatternKey(_ => _.WithFundingLineCode(fundingLineCode).WithKey(existingProfilePatternKey)))
-                    .WithFundingLines(new[] { fundingLine })
-            );
+                    .WithFundingLines(fundingLine)
+                );
 
             PublishedProvider publishedProvider = NewPublishedProvider(_ => _.WithCurrent(existingPublishedProviderVersion));
             PublishedProviderVersion newPublishedProviderVersion = existingPublishedProviderVersion;
@@ -243,24 +251,24 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     .WithPublishedProvider(publishedProvider)
                     .WithNewVersion(newPublishedProviderVersion));
 
-            GivenGetPublishedProvider(publishedProvider);
-            AndAssemblePublishedProviderCreateVersionRequests(publishedProvider, publishedProviderCreateVersionRequest);
-            AndCreateVersion(publishedProvider, publishedProviderCreateVersionRequest);
-            AndGetProfileVariationPointers(null, specificationId);
-            AndProfileFundingLines(profilePatternKey);
-            AndSaveVersion(HttpStatusCode.OK, existingPublishedProviderVersion);
-            AndUpsertPublishedProvider(HttpStatusCode.OK, publishedProvider);
+            GivenThePublishedProvider(publishedProvider);
+            AndThePublishedProviderCreateVersionRequest(publishedProvider, publishedProviderCreateVersionRequest);
+            AndTheNewCreatedPublishedProvider(publishedProvider, publishedProviderCreateVersionRequest);
+            AndTheProfileVariationPointers(null, specificationId);
+            AndTheProfileFundingLines(profilePatternKey);
+            AndTheSavePublishedProviderVersionResponse(HttpStatusCode.OK, existingPublishedProviderVersion);
+            AndTheUpsertPublishedProviderResponse(HttpStatusCode.OK, publishedProvider);
 
-            IActionResult result = await WhenAssigningProfilePatternKey(_fundingStreamId, _fundingPeriodId, _providerId, profilePatternKey);
+            IActionResult result = await WhenProfilePatternKeyIsAssigned(_fundingStreamId, _fundingPeriodId, _providerId, profilePatternKey);
 
-            ThenResultReturnedAs(result, HttpStatusCode.OK);
-            AndProfilePatternKeyUpdated(newPublishedProviderVersion, profilePatternKey);
-            AndPublishedProviderProcessed(publishedProvider);
-            AndProfilingAuditUpdatedForFundingLine(publishedProvider, profilePatternKey.FundingLineCode, _author);
+            ThenResultShouldBe(result, HttpStatusCode.OK);
+            AndProfilePatternKeyWasUpdated(newPublishedProviderVersion, profilePatternKey);
+            AndThePublishedProviderWasProcessed(publishedProvider);
+            AndTheProfilingAuditWasUpdatedForTheFundingLine(publishedProvider, profilePatternKey.FundingLineCode, _author);
         }
 
         [TestMethod]
-        public async Task AssignProfilePatternKeyForFundingLineWithAlreadyPaidProfilePeriodsOnlyUpdatesUnpaidProfilePeriods()
+        public async Task AssignProfilePatternKeyForFundingLineWithAlreadyPaidProfilePeriodsUsesReProfileResponseResultsFromApi()
         {
             string fundingLineCode = NewRandomString();
             string existingProfilePatternKey = NewRandomString();
@@ -272,14 +280,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             string typeValue = NewRandomString();
             int year = NewRandomNumberBetween(2019, 2021);
             string distributionPeriodId = NewRandomString();
+            decimal carryOverAmount = NewRandomNumberBetween(1, int.MaxValue);
 
             ProfilePatternKey profilePatternKey = NewProfilePatternKey(_ => _.WithFundingLineCode(fundingLineCode).WithKey(newProfilePatterFundingKey));
             ProfilePeriod paidProfilePeriod = NewProfilePeriod(pp => pp
-                                .WithDistributionPeriodId(distributionPeriodId)
-                                .WithType(profilePeriodType)
-                                .WithTypeValue(typeValue)
-                                .WithYear(year)
-                                .WithOccurence(occurence));
+                .WithDistributionPeriodId(distributionPeriodId)
+                .WithType(profilePeriodType)
+                .WithTypeValue(typeValue)
+                .WithYear(year)
+                .WithOccurence(occurence));
 
             FundingLine fundingLine = NewFundingLine(_ => _
                 .WithFundingLineCode(fundingLineCode)
@@ -287,143 +296,267 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     NewDistributionPeriod(dp => dp
                         .WithDistributionPeriodId(distributionPeriodId)
                         .WithProfilePeriods(paidProfilePeriod))
-                    ));
+                ));
             PublishedProviderVersion existingPublishedProviderVersion =
                 NewPublishedProviderVersion(ppv => ppv
                     .WithFundingStreamId(_fundingStreamId)
                     .WithFundingPeriodId(_fundingPeriodId)
                     .WithSpecificationId(specificationId)
                     .WithProfilePatternKeys(
-                        NewProfilePatternKey(_ => _.WithFundingLineCode(fundingLineCode).WithKey(existingProfilePatternKey)))
-                    .WithFundingLines(new[] { fundingLine })
-            );
+                        NewProfilePatternKey(_ => _.WithFundingLineCode(fundingLineCode)
+                            .WithKey(existingProfilePatternKey)))
+                    .WithFundingLines(fundingLine)
+                );
 
             PublishedProvider publishedProvider = NewPublishedProvider(_ => _.WithCurrent(existingPublishedProviderVersion));
-            PublishedProviderVersion newPublishedProviderVersion = existingPublishedProviderVersion;
             PublishedProviderCreateVersionRequest publishedProviderCreateVersionRequest = NewPublishedProviderCreateVersionRequest(_ =>
-                _.WithPublishedProvider(publishedProvider).WithNewVersion(newPublishedProviderVersion));
+                _.WithPublishedProvider(publishedProvider)
+                    .WithNewVersion(existingPublishedProviderVersion));
             IEnumerable<ProfileVariationPointer> profileVariationPointers =
                 NewProfileVariationPointers(_ => _
-                .WithFundingLineId(fundingLineCode)
-                .WithFundingStreamId(_fundingStreamId)
-                .WithOccurence(occurence)
-                .WithPeriodType(profilePeriodType.ToString())
-                .WithTypeValue(typeValue)
-                .WithYear(year));
+                    .WithFundingLineId(fundingLineCode)
+                    .WithFundingStreamId(_fundingStreamId)
+                    .WithOccurence(occurence)
+                    .WithPeriodType(profilePeriodType.ToString())
+                    .WithTypeValue(typeValue)
+                    .WithYear(year));
 
-            GivenGetPublishedProvider(publishedProvider);
-            AndAssemblePublishedProviderCreateVersionRequests(publishedProvider, publishedProviderCreateVersionRequest);
-            AndCreateVersion(publishedProvider, publishedProviderCreateVersionRequest);
-            AndGetProfileVariationPointers(profileVariationPointers, specificationId);
-            AndProfileFundingLines(profilePatternKey);
-            AndSaveVersion(HttpStatusCode.OK, existingPublishedProviderVersion);
-            AndUpsertPublishedProvider(HttpStatusCode.OK, publishedProvider);
+            ReProfileRequest reProfileRequest = NewReProfileRequest();
+            ReProfileResponse reProfileResponse = NewReProfileResponse(_ => _.WithCarryOverAmount(carryOverAmount)
+                .WithDeliveryProfilePeriods(NewDeliveryProfilePeriod(dpp => dpp.WithOccurrence(1)
+                    .WithValue(10)
+                    .WithYear(2021)
+                    .WithTypeValue("JANUARY")
+                    .WithPeriodType(PeriodType.CalendarMonth)
+                    .WithDistributionPeriod("dp1")),
+                    NewDeliveryProfilePeriod(dpp => dpp.WithOccurrence(1)
+                        .WithValue(20)
+                        .WithYear(2022)
+                        .WithTypeValue("JANUARY")
+                        .WithPeriodType(PeriodType.CalendarMonth)
+                        .WithDistributionPeriod("dp2"))));
+            
+            GivenThePublishedProvider(publishedProvider);
+            AndThePublishedProviderCreateVersionRequest(publishedProvider, publishedProviderCreateVersionRequest);
+            AndTheNewCreatedPublishedProvider(publishedProvider, publishedProviderCreateVersionRequest);
+            AndTheProfileVariationPointers(profileVariationPointers, specificationId);
+            AndTheReProfileRequest(existingPublishedProviderVersion.SpecificationId,
+                existingPublishedProviderVersion.FundingStreamId,
+                existingPublishedProviderVersion.FundingPeriodId,
+                existingPublishedProviderVersion.ProviderId,
+                profilePatternKey.FundingLineCode,
+                profilePatternKey.Key,
+                ProfileConfigurationType.Custom,
+                fundingLine.Value,
+                reProfileRequest);
+            AndTheReProfileResponse(reProfileRequest, reProfileResponse);
+            AndTheProfileFundingLines(profilePatternKey);
+            AndTheSavePublishedProviderVersionResponse(HttpStatusCode.OK, existingPublishedProviderVersion);
+            AndTheUpsertPublishedProviderResponse(HttpStatusCode.OK, publishedProvider);
 
-            IActionResult result = await WhenAssigningProfilePatternKey(_fundingStreamId, _fundingPeriodId, _providerId, profilePatternKey);
+            IActionResult result = await WhenProfilePatternKeyIsAssigned(_fundingStreamId, _fundingPeriodId, _providerId, profilePatternKey);
 
-            ThenResultReturnedAs(result, HttpStatusCode.OK);
-            AndProfilePatternKeyUpdated(newPublishedProviderVersion, profilePatternKey);
-            AndPaidProfilePeriodExists(distributionPeriodId, paidProfilePeriod, profilePatternKey);
-            AndPublishedProviderProcessed(publishedProvider);
-            AndProfilingAuditUpdatedForFundingLine(publishedProvider, profilePatternKey.FundingLineCode, _author);
+            ThenResultShouldBe(result, HttpStatusCode.OK);
+            AndProfilePatternKeyWasUpdated(existingPublishedProviderVersion, profilePatternKey);
+
+            fundingLine.DistributionPeriods
+                .Count()
+                .Should()
+                .Be(2);
+
+            DistributionPeriod firstDistributionPeriod = fundingLine.DistributionPeriods.SingleOrDefault(_ => _.DistributionPeriodId == "dp1");
+
+            firstDistributionPeriod.ProfilePeriods
+                .Should()
+                .BeEquivalentTo(NewProfilePeriod(_ => _.WithAmount(10)
+                        .WithTypeValue("JANUARY")
+                        .WithDistributionPeriodId("dp1")
+                        .WithType(ProfilePeriodType.CalendarMonth)
+                        .WithOccurence(1)
+                        .WithYear(2021)));
+            
+            DistributionPeriod secondDistributionPeriod = fundingLine.DistributionPeriods.SingleOrDefault(_ => _.DistributionPeriodId == "dp2");
+
+            secondDistributionPeriod.ProfilePeriods
+                .Should()
+                .BeEquivalentTo(NewProfilePeriod(_ => _.WithAmount(20)
+                    .WithTypeValue("JANUARY")
+                    .WithDistributionPeriodId("dp2")
+                    .WithType(ProfilePeriodType.CalendarMonth)
+                    .WithOccurence(1)
+                    .WithYear(2022)));
+
+            existingPublishedProviderVersion.CarryOvers
+                .Should()
+                .BeEquivalentTo(NewCarryOver(_ => _.WithAmount(carryOverAmount)
+                    .WithFundingLineCode(fundingLineCode)
+                    .WithType(ProfilingCarryOverType.CustomProfile)));
+            
+            AndThePublishedProviderWasProcessed(publishedProvider);
+            AndTheProfilingAuditWasUpdatedForTheFundingLine(publishedProvider, profilePatternKey.FundingLineCode, _author);
         }
 
-        private void GivenGetPublishedProvider(PublishedProvider publishedProvider)
+        private ProfilingCarryOver NewCarryOver(Action<ProfilingCarryOverBuilder> setUp = null)
         {
-            _publishedFundingRepository
-                .GetPublishedProvider(_fundingStreamId, _fundingPeriodId, _providerId)
-                .Returns(publishedProvider);
+            ProfilingCarryOverBuilder profilingCarryOverBuilder = new ProfilingCarryOverBuilder();
+
+            setUp?.Invoke(profilingCarryOverBuilder);
+            
+            return profilingCarryOverBuilder.Build();
         }
 
-        private void AndAssemblePublishedProviderCreateVersionRequests(PublishedProvider expectedPublishedProvider, PublishedProviderCreateVersionRequest publishedProviderCreateVersionRequest)
+        private void AndTheReProfileRequest(string specificationId,
+            string fundingStreamId,
+            string fundingPeriodId,
+            string providerId,
+            string fundingLineCode,
+            string profilePatternKey,
+            ProfileConfigurationType configurationType,
+            decimal? fundingLineTotal, 
+            ReProfileRequest profileRequest)
         {
-            _publishedProviderVersioningService
-                .AssemblePublishedProviderCreateVersionRequests(
-                    Arg.Is<IEnumerable<PublishedProvider>>(_ => PublishedProviderMatches(_, expectedPublishedProvider)),
-                    Arg.Is<Reference>(_ => _ != null && _author != null && _.ToString() == _author.ToString()),
-                    PublishedProviderStatus.Updated)
-                .Returns(new[] { publishedProviderCreateVersionRequest });
+            _reProfilingRequestBuilder.Setup(_ => _.BuildReProfileRequest(specificationId,
+                    fundingStreamId,
+                    fundingPeriodId,
+                    providerId,
+                    fundingLineCode,
+                    profilePatternKey,
+                    configurationType,
+                    fundingLineTotal))
+                .ReturnsAsync(profileRequest);
+        }
+        
+        private ReProfileRequest NewReProfileRequest() => new ReProfileRequestTestEntityBuilder().Build();
+
+        private ReProfileResponse NewReProfileResponse(Action<ReProfileResponseBuilder> setUp = null)
+        {
+            ReProfileResponseBuilder reProfileResponseBuilder = new ReProfileResponseBuilder();
+
+            setUp?.Invoke(reProfileResponseBuilder);
+            
+            return reProfileResponseBuilder.Build();
         }
 
-        private void AndCreateVersion(PublishedProvider publishedProvider, PublishedProviderCreateVersionRequest expectedPublishedProviderCreateVersionRequest)
+        private DeliveryProfilePeriod NewDeliveryProfilePeriod(Action<DeliveryProfilePeriodBuilder> setUp = null)
         {
-            _publishedProviderVersioningService
-                .CreateVersion(Arg.Is(expectedPublishedProviderCreateVersionRequest))
-                .Returns(Task.FromResult(publishedProvider));
+            DeliveryProfilePeriodBuilder deliveryProfilePeriodBuilder = new DeliveryProfilePeriodBuilder();
+
+            setUp?.Invoke(deliveryProfilePeriodBuilder);
+            
+            return deliveryProfilePeriodBuilder.Build();
+        }
+        
+        private void AndTheReProfileResponse(ReProfileRequest reProfileRequest,
+            ReProfileResponse reProfileResponse)
+            => _profiling.Setup(_ => _.ReProfile(reProfileRequest))
+                .ReturnsAsync(new ApiResponse<ReProfileResponse>(HttpStatusCode.OK, reProfileResponse));
+
+        private void GivenThePublishedProvider(PublishedProvider publishedProvider)
+        {
+            _publishedFundingRepository.Setup(_ =>
+                    _.GetPublishedProvider(_fundingStreamId, _fundingPeriodId, _providerId))
+                .ReturnsAsync(publishedProvider);
         }
 
-        private void AndGetProfileVariationPointers(IEnumerable<ProfileVariationPointer> profileVariationPointers, string expectedSpecificationId)
+        private void AndThePublishedProviderCreateVersionRequest(PublishedProvider expectedPublishedProvider,
+            PublishedProviderCreateVersionRequest publishedProviderCreateVersionRequest)
         {
-            _specificationsApiClient
-                .GetProfileVariationPointers(expectedSpecificationId)
-                .Returns(Task.FromResult(new ApiResponse<IEnumerable<ProfileVariationPointer>>(HttpStatusCode.OK, profileVariationPointers)));
+            _publishedProviderVersioningService.Setup(_ =>
+                    _.AssemblePublishedProviderCreateVersionRequests(
+                        It.Is<IEnumerable<PublishedProvider>>(pp => PublishedProviderMatches(pp, expectedPublishedProvider)),
+                        It.Is<Reference>(rf => rf != null && _author != null && rf.ToString() == _author.ToString()),
+                        PublishedProviderStatus.Updated,
+                        null,
+                        null,
+                        false))
+                .Returns(new[]
+                {
+                    publishedProviderCreateVersionRequest
+                });
         }
 
-        private void AndProfileFundingLines(ProfilePatternKey profilePatternKey)
+        private void AndTheNewCreatedPublishedProvider(PublishedProvider publishedProvider,
+            PublishedProviderCreateVersionRequest expectedPublishedProviderCreateVersionRequest)
         {
-            _profilingService
-               .ProfileFundingLines(
-                    Arg.Is<IEnumerable<FundingLine>>(_ =>
-                        FundingLinesMatches(_)),
-                        _fundingStreamId,
-                        _fundingPeriodId,
-                        Arg.Is<IEnumerable<ProfilePatternKey>>(_ => _.Any(k => k.FundingLineCode == profilePatternKey.FundingLineCode && k.Key == profilePatternKey.Key)))
-               .Returns(_ =>
-               {
-                   IEnumerable<FundingLine> fundingLines = _.Arg<IEnumerable<FundingLine>>();
-                   FundingLine fundingLine = fundingLines.FirstOrDefault();
+            _publishedProviderVersioningService.Setup(_ =>
+                    _.CreateVersion(expectedPublishedProviderCreateVersionRequest))
+                .ReturnsAsync(publishedProvider);
+        }
 
-                   if (fundingLine.DistributionPeriods == null)
-                   {
-                       fundingLine.DistributionPeriods = new List<DistributionPeriod>();
-                   }
+        private void AndTheProfileVariationPointers(IEnumerable<ProfileVariationPointer> profileVariationPointers,
+            string expectedSpecificationId)
+        {
+            _specificationsApiClient.Setup(_ =>
+                    _.GetProfileVariationPointers(expectedSpecificationId))
+                .ReturnsAsync(new ApiResponse<IEnumerable<ProfileVariationPointer>>(HttpStatusCode.OK, profileVariationPointers));
+        }
 
-                   fundingLine.DistributionPeriods = NewDistributionPeriods(
-                       dp => dp
+        private void AndTheProfileFundingLines(ProfilePatternKey profilePatternKey)
+        {
+            _profilingService.Setup(_ =>
+                _.ProfileFundingLines(
+                    It.Is<IEnumerable<FundingLine>>(fl =>
+                        FundingLinesMatches(fl)),
+                    It.Is<string>(fs => fs == _fundingStreamId),
+                   It.Is<string>(fp => fp == _fundingPeriodId),
+                    It.Is<IEnumerable<ProfilePatternKey>>(ppk =>
+                        ppk.Any(k => k.FundingLineCode == profilePatternKey.FundingLineCode &&
+                                     k.Key == profilePatternKey.Key)),
+                    null,
+                    null)
+            ).Returns<IEnumerable<FundingLine>, string, string, IEnumerable<ProfilePatternKey>, string, string>(
+                (fundingLines, fs, fp, keys, pt, pst) =>
+            {
+                FundingLine fundingLine = fundingLines.FirstOrDefault();
+                fundingLine.DistributionPeriods = NewDistributionPeriods(
+                    dp => dp
                         .WithDistributionPeriodId(_distributionPeriod1Id)
                         .WithProfilePeriods(NewProfilePeriods(
-                           pp => pp
-                           .WithAmount(_profilePeriod1ProfiledAmount)
-                           .WithOccurence(_profilePeriod1Occurence)
-                           .WithType(_profilePeriod1Type)
-                           .WithTypeValue(_profilePeriod1TypeValue)
-                           .WithYear(_profilePeriod1Year)
-                           ).ToArray()),
-                       dp => dp
+                            pp => pp
+                                .WithAmount(_profilePeriod1ProfiledAmount)
+                                .WithOccurence(_profilePeriod1Occurence)
+                                .WithType(_profilePeriod1Type)
+                                .WithTypeValue(_profilePeriod1TypeValue)
+                                .WithYear(_profilePeriod1Year)
+                        ).ToArray()),
+                    dp => dp
                         .WithDistributionPeriodId(_distributionPeriod2Id)
                         .WithProfilePeriods(NewProfilePeriods(
-                           pp => pp
-                           .WithAmount(_profilePeriod2ProfiledAmount)
-                           .WithOccurence(_profilePeriod2Occurence)
-                           .WithType(_profilePeriod2Type)
-                           .WithTypeValue(_profilePeriod2TypeValue)
-                           .WithYear(_profilePeriod2Year)
-                           ).ToArray())).ToList();
+                            pp => pp
+                                .WithAmount(_profilePeriod2ProfiledAmount)
+                                .WithOccurence(_profilePeriod2Occurence)
+                                .WithType(_profilePeriod2Type)
+                                .WithTypeValue(_profilePeriod2TypeValue)
+                                .WithYear(_profilePeriod2Year)
+                        ).ToArray())).ToList();
 
-                   return Task.CompletedTask;
-               });
+                return Task.FromResult(ArraySegment<ProfilePatternKey>.Empty.AsEnumerable());
+            });
         }
 
-        private void AndSaveVersion(HttpStatusCode httpStatusCode, PublishedProviderVersion expectedPublishedProviderVersion)
+        private void AndTheSavePublishedProviderVersionResponse(HttpStatusCode httpStatusCode,
+            PublishedProviderVersion expectedPublishedProviderVersion)
         {
-            _publishedProviderVersioningService
-                .SaveVersion(expectedPublishedProviderVersion)
-                .Returns(Task.FromResult(httpStatusCode));
+            _publishedProviderVersioningService.Setup(_ =>
+                    _.SaveVersion(expectedPublishedProviderVersion))
+                .ReturnsAsync(httpStatusCode);
         }
 
-        private void AndUpsertPublishedProvider(HttpStatusCode httpStatusCode, PublishedProvider expectedPublishedProvider)
+        private void AndTheUpsertPublishedProviderResponse(HttpStatusCode httpStatusCode,
+            PublishedProvider expectedPublishedProvider)
         {
-            _publishedFundingRepository
-                .UpsertPublishedProvider(expectedPublishedProvider)
-                .Returns(Task.FromResult(httpStatusCode));
+            _publishedFundingRepository.Setup(_ =>
+                    _.UpsertPublishedProvider(expectedPublishedProvider))
+                .ReturnsAsync(httpStatusCode);
         }
 
-        private async Task<IActionResult> WhenAssigningProfilePatternKey(string fundingStreamId, string fundingPeriodId, string providerId, ProfilePatternKey profilePatternKey)
-        {
-            return await _service.AssignProfilePatternKey(fundingStreamId, fundingPeriodId, providerId, profilePatternKey, _author);
-        }
+        private async Task<IActionResult> WhenProfilePatternKeyIsAssigned(string fundingStreamId,
+            string fundingPeriodId,
+            string providerId,
+            ProfilePatternKey profilePatternKey) => await _service.AssignProfilePatternKey(fundingStreamId, fundingPeriodId, providerId, profilePatternKey, _author);
 
-        private void ThenResultReturnedAs(IActionResult actionResult, HttpStatusCode httpStatusCode)
+        private void ThenResultShouldBe(IActionResult actionResult,
+            HttpStatusCode httpStatusCode)
         {
             actionResult
                 .Should()
@@ -436,36 +569,39 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             (actionResult as StatusCodeResult)
                 .StatusCode
                 .Should()
-                .Be((int)httpStatusCode);
+                .Be((int) httpStatusCode);
         }
 
-        private void AndProfilePatternKeyUpdated(PublishedProviderVersion publishedProviderVersion, ProfilePatternKey profilePatternKey)
+        private void AndProfilePatternKeyWasUpdated(PublishedProviderVersion publishedProviderVersion,
+            ProfilePatternKey profilePatternKey)
         {
             Assert.AreEqual(publishedProviderVersion.ProfilePatternKeys.SingleOrDefault(_ => _.FundingLineCode == profilePatternKey.FundingLineCode), profilePatternKey);
         }
 
-        private void AndPublishedProviderProcessed(PublishedProvider publishedProvider)
+        private void AndThePublishedProviderWasProcessed(PublishedProvider publishedProvider)
         {
-            _publishedProviderErrorDetection
-                .Received(1)
-                .ProcessPublishedProvider(publishedProvider, Arg.Any<Func<IDetectPublishedProviderErrors, bool>>(), Arg.Any<PublishedProvidersContext>());
+            _publishedProviderErrorDetection.Verify(_ =>
+                    _.ProcessPublishedProvider(publishedProvider, It.IsAny<Func<IDetectPublishedProviderErrors, bool>>(), It.IsAny<PublishedProvidersContext>()),
+                Times.Once);
         }
 
-        private void AndProfilingAuditUpdatedForFundingLine(PublishedProvider publishedProvider, string fundingLineCode, Reference author)
+        private void AndTheProfilingAuditWasUpdatedForTheFundingLine(PublishedProvider publishedProvider,
+            string fundingLineCode,
+            Reference author)
         {
             publishedProvider
                 .Current
                 .ProfilingAudits
                 .Should()
                 .Contain(a => a.FundingLineCode == fundingLineCode
-                            && a.User != null
-                            && a.User.Id == author.Id
-                            && a.User.Name == author.Name
-                            && a.Date.Date == DateTime.Today);
-
+                              && a.User != null
+                              && a.User.Id == author.Id
+                              && a.User.Name == author.Name
+                              && a.Date.Date == DateTime.Today);
         }
 
-        private bool PublishedProviderMatches(IEnumerable<PublishedProvider> publishedProviders, PublishedProvider expectedPublishedProvider)
+        private bool PublishedProviderMatches(IEnumerable<PublishedProvider> publishedProviders,
+            PublishedProvider expectedPublishedProvider)
         {
             PublishedProvider actualPublishedProvider = publishedProviders.FirstOrDefault();
 
@@ -481,8 +617,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 return false;
             }
 
-            ProfilePeriod firstProfilePeriod = fundingLine.DistributionPeriods.SingleOrDefault(_ => _.DistributionPeriodId == _distributionPeriod1Id)?.ProfilePeriods.FirstOrDefault();
-            ProfilePeriod lastProfilePeriod = fundingLine.DistributionPeriods.SingleOrDefault(_ => _.DistributionPeriodId == _distributionPeriod2Id)?.ProfilePeriods.FirstOrDefault();
+            ProfilePeriod firstProfilePeriod = fundingLine.DistributionPeriods?.SingleOrDefault(_ => _.DistributionPeriodId == _distributionPeriod1Id)?.ProfilePeriods.FirstOrDefault();
+            ProfilePeriod lastProfilePeriod = fundingLine.DistributionPeriods?.SingleOrDefault(_ => _.DistributionPeriodId == _distributionPeriod2Id)?.ProfilePeriods.FirstOrDefault();
 
             if (firstProfilePeriod == null || lastProfilePeriod == null)
             {
@@ -490,29 +626,36 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             }
 
             return firstProfilePeriod.ProfiledValue == _profilePeriod1ProfiledAmount &&
-                firstProfilePeriod.Occurrence == _profilePeriod1Occurence &&
-                firstProfilePeriod.Type == _profilePeriod1Type &&
-                firstProfilePeriod.TypeValue == _profilePeriod1TypeValue &&
-                firstProfilePeriod.Year == _profilePeriod1Year &&
-                lastProfilePeriod.ProfiledValue == _profilePeriod2ProfiledAmount &&
-                lastProfilePeriod.Occurrence == _profilePeriod2Occurence &&
-                lastProfilePeriod.Type == _profilePeriod2Type &&
-                lastProfilePeriod.TypeValue == _profilePeriod2TypeValue &&
-                lastProfilePeriod.Year == _profilePeriod2Year;
+                   firstProfilePeriod.Occurrence == _profilePeriod1Occurence &&
+                   firstProfilePeriod.Type == _profilePeriod1Type &&
+                   firstProfilePeriod.TypeValue == _profilePeriod1TypeValue &&
+                   firstProfilePeriod.Year == _profilePeriod1Year &&
+                   lastProfilePeriod.ProfiledValue == _profilePeriod2ProfiledAmount &&
+                   lastProfilePeriod.Occurrence == _profilePeriod2Occurence &&
+                   lastProfilePeriod.Type == _profilePeriod2Type &&
+                   lastProfilePeriod.TypeValue == _profilePeriod2TypeValue &&
+                   lastProfilePeriod.Year == _profilePeriod2Year;
         }
 
-        private void AndPaidProfilePeriodExists(string distributionId, ProfilePeriod profilePeriod, ProfilePatternKey profilePatternKey)
+        private void AndPaidProfilePeriodExists(string distributionId,
+            ProfilePeriod profilePeriod,
+            ProfilePatternKey profilePatternKey)
         {
-            _profilingService
-                .Received(1)
-                .ProfileFundingLines(Arg.Is<IEnumerable<FundingLine>>(_ =>
-                    PaidProfileFundingLinesMatches(_, distributionId, profilePeriod)),
-                    _fundingStreamId,
-                    _fundingPeriodId,
-                    Arg.Is<IEnumerable<ProfilePatternKey>>(_ => _.Any(k => k.FundingLineCode == profilePatternKey.FundingLineCode && k.Key == profilePatternKey.Key)));
+            _profilingService.Verify(_ =>
+                    _.ProfileFundingLines(It.Is<IEnumerable<FundingLine>>(fl => PaidProfileFundingLinesMatches(fl, distributionId, profilePeriod)),
+                        _fundingStreamId,
+                        _fundingPeriodId,
+                        It.Is<IEnumerable<ProfilePatternKey>>(ppk =>
+                            ppk.Any(k => k.FundingLineCode == profilePatternKey.FundingLineCode &&
+                                         k.Key == profilePatternKey.Key)),
+                        null,
+                        null),
+                Times.Once);
         }
 
-        private bool PaidProfileFundingLinesMatches(IEnumerable<FundingLine> fundingLines, string distributionId, ProfilePeriod profilePeriod)
+        private bool PaidProfileFundingLinesMatches(IEnumerable<FundingLine> fundingLines,
+            string distributionId,
+            ProfilePeriod profilePeriod)
         {
             FundingLine fundingLine = fundingLines.FirstOrDefault();
 
@@ -528,10 +671,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             }
 
             return paidProfilePeriod.ProfiledValue == profilePeriod.ProfiledValue &&
-                paidProfilePeriod.Occurrence == profilePeriod.Occurrence &&
-                paidProfilePeriod.Type == profilePeriod.Type &&
-                paidProfilePeriod.TypeValue == profilePeriod.TypeValue &&
-                paidProfilePeriod.Year == profilePeriod.Year;
+                   paidProfilePeriod.Occurrence == profilePeriod.Occurrence &&
+                   paidProfilePeriod.Type == profilePeriod.Type &&
+                   paidProfilePeriod.TypeValue == profilePeriod.TypeValue &&
+                   paidProfilePeriod.Year == profilePeriod.Year;
         }
 
         private Reference NewReference(Action<ReferenceBuilder> setUp = null)
@@ -579,10 +722,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return profilePeriodBuilder.Build();
         }
 
-        private static IEnumerable<ProfilePeriod> NewProfilePeriods(params Action<ProfilePeriodBuilder>[] setUps)
-        {
-            return setUps.Select(NewProfilePeriod);
-        }
+        private static IEnumerable<ProfilePeriod> NewProfilePeriods(params Action<ProfilePeriodBuilder>[] setUps) => setUps.Select(NewProfilePeriod);
 
         private static DistributionPeriod NewDistributionPeriod(Action<DistributionPeriodBuilder> setUp = null)
         {
@@ -593,10 +733,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return distributionPeriodBuilder.Build();
         }
 
-        private static IEnumerable<DistributionPeriod> NewDistributionPeriods(params Action<DistributionPeriodBuilder>[] setUps)
-        {
-            return setUps.Select(NewDistributionPeriod);
-        }
+        private static IEnumerable<DistributionPeriod> NewDistributionPeriods(params Action<DistributionPeriodBuilder>[] setUps) => setUps.Select(NewDistributionPeriod);
 
         private static FundingLine NewFundingLine(Action<FundingLineBuilder> setUp = null)
         {
@@ -626,13 +763,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return profileVariationPointerBuilder.Build();
         }
 
-        private static IEnumerable<ProfileVariationPointer> NewProfileVariationPointers(params Action<ProfileVariationPointerBuilder>[] setUps)
-        {
-            return setUps.Select(NewProfileVariationPointer);
-        }
+        private static IEnumerable<ProfileVariationPointer> NewProfileVariationPointers(params Action<ProfileVariationPointerBuilder>[] setUps) => setUps.Select(NewProfileVariationPointer);
 
         private string NewRandomString() => new RandomString();
-        private int NewRandomNumberBetween(int min, int max) => new RandomNumberBetween(min, max);
+
+        private int NewRandomNumberBetween(int min,
+            int max) => new RandomNumberBetween(min, max);
+
         private static TEnum NewRandomEnum<TEnum>() where TEnum : struct => new RandomEnum<TEnum>();
     }
 }

@@ -1,5 +1,5 @@
 using System;
-using System.Linq;
+using System.Collections.Generic;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
@@ -25,8 +25,8 @@ namespace CalculateFunding.Models.UnitTests.Publishing
 
             invocation
                 .Should()
-                .ThrowExactly<ArgumentOutOfRangeException>()
-                .WithMessage($"Unsupported {nameof(ProfilingCarryOverType)} (Parameter 'type')");
+                .ThrowExactly<InvalidOperationException>()
+                .WithMessage($"Unsupported {nameof(ProfilingCarryOverType)}");
         }
 
         [DataTestMethod]
@@ -38,7 +38,7 @@ namespace CalculateFunding.Models.UnitTests.Publishing
 
             invocation
                 .Should()
-                .ThrowExactly<ArgumentOutOfRangeException>()
+                .ThrowExactly<InvalidOperationException>()
                 .WithMessage("Carry overs must be greater than zero*");
         }
         
@@ -51,7 +51,7 @@ namespace CalculateFunding.Models.UnitTests.Publishing
 
             invocation
                 .Should()
-                .ThrowExactly<ArgumentOutOfRangeException>()
+                .ThrowExactly<ArgumentNullException>()
                 .WithMessage("Funding Line Id cannot be missing*");
         }
 
@@ -60,18 +60,11 @@ namespace CalculateFunding.Models.UnitTests.Publishing
         {
             string fundingLineId = NewRandomString();
             decimal overPayment = NewRandomNumber();
-            ProfilingCarryOverType type = new RandomEnum<ProfilingCarryOverType>(ProfilingCarryOverType.Undefined);
+            ProfilingCarryOverType type = NewRandomCarryOverType();
             
             WhenTheFundingLineCarryOverIsAdded(fundingLineId, overPayment, type);
 
-            _publishedProviderVersion
-                .CarryOvers
-                .Should()
-                .NotBeNull();
-
-            ProfilingCarryOver carryOver = _publishedProviderVersion.CarryOvers.FirstOrDefault(_ => _.FundingLineCode == fundingLineId);
-
-            carryOver
+            _publishedProviderVersion.CarryOvers
                 .Should()
                 .BeEquivalentTo(new ProfilingCarryOver
                 {
@@ -81,56 +74,68 @@ namespace CalculateFunding.Models.UnitTests.Publishing
                 });
         }
 
-        [TestMethod]
-        public void RemovesCarryOversGuardsAgainstUndefinedType()
-        {
-            Action invocation = () => WhenTheFundingLineCarryOverIsRemoved(NewRandomString(), ProfilingCarryOverType.Undefined);
-
-            invocation
-                .Should()
-                .ThrowExactly<ArgumentOutOfRangeException>()
-                .WithMessage($"Unsupported {nameof(ProfilingCarryOverType)} (Parameter 'type')");
-        }
-
         [DataTestMethod]
         [DataRow("")]
         [DataRow(null)]
         public void RemoveCarryOversGuardsAgainstMissingFundingLineIds(string fundingLineId)
         {
-            Action invocation = () => WhenTheFundingLineCarryOverIsRemoved(fundingLineId, ProfilingCarryOverType.DSGReProfiling);
+            Action invocation = () => WhenTheFundingLineCarryOverIsRemoved(fundingLineId);
 
             invocation
                 .Should()
-                .ThrowExactly<ArgumentOutOfRangeException>()
+                .ThrowExactly<ArgumentNullException>()
                 .WithMessage("Funding Line Id cannot be missing*");
         }
 
         [TestMethod]
-        public void RemoveCarryOversRemovesFromInternalCollection()
+        public void RemoveCarryOversRemovesFromInternalCollectionWhereFundingLineCodeMatches()
         {
-            string fundingLineId = NewRandomString();
-            ProfilingCarryOverType type = new RandomEnum<ProfilingCarryOverType>(ProfilingCarryOverType.Undefined);
+            string fundingLineCode = NewRandomString();
 
-            WhenTheFundingLineCarryOverIsAdded(fundingLineId, NewRandomNumber(), type);
-            WhenTheFundingLineCarryOverIsAdded(fundingLineId, NewRandomNumber(), type);
+            ProfilingCarryOver customCarryOver = NewCarryOver(_ => _.WithFundingLineCode(fundingLineCode));
+            ProfilingCarryOver differentFundingLineCarryOver = NewCarryOver();
 
-            WhenTheFundingLineCarryOverIsRemoved(fundingLineId, type);
+            GivenTheCarryOver(customCarryOver);
+            AndTheCarryOver(differentFundingLineCarryOver);
+
+            WhenTheFundingLineCarryOverIsRemoved(fundingLineCode);
 
             _publishedProviderVersion
                 .CarryOvers
                 .Should()
-                .BeEmpty();
+                .BeEquivalentTo(differentFundingLineCarryOver);
         }
+
+        private ProfilingCarryOver NewCarryOver(Action<ProfileCarryOverBuilder> setUp = null)
+        {
+            ProfileCarryOverBuilder profileCarryOverBuilder = new ProfileCarryOverBuilder();
+
+            setUp?.Invoke(profileCarryOverBuilder);
+            
+            return profileCarryOverBuilder.Build();
+        }
+
+        private void GivenTheCarryOver(ProfilingCarryOver carryOver)
+        {
+            _publishedProviderVersion.CarryOvers ??= new List<ProfilingCarryOver>();
+            _publishedProviderVersion.CarryOvers.Add(carryOver);
+        }
+
+        private void AndTheCarryOver(ProfilingCarryOver carryOver)
+            => GivenTheCarryOver(carryOver);
 
         private void WhenTheFundingLineCarryOverIsAdded(string fundingLineId, decimal overPayment, ProfilingCarryOverType type)
         {
             _publishedProviderVersion.AddCarryOver(fundingLineId, type, overPayment);
         }
 
-        private void WhenTheFundingLineCarryOverIsRemoved(string fundingLineId, ProfilingCarryOverType type)
+        private void WhenTheFundingLineCarryOverIsRemoved(string fundingLineId)
         {
-            _publishedProviderVersion.RemoveCarryOver(fundingLineId, type);
+            _publishedProviderVersion.RemoveCarryOver(fundingLineId);
         }
+
+        private static RandomEnum<ProfilingCarryOverType> NewRandomCarryOverType()
+            => new RandomEnum<ProfilingCarryOverType>(ProfilingCarryOverType.Undefined);
 
         private string NewRandomString() => new RandomString();
 
