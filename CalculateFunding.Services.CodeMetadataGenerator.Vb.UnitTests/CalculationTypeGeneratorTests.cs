@@ -258,6 +258,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
             results.First().SourceCode.Should().Contain("Public Enum MethodologyTypeOptions");
             results.First().SourceCode.Should().Contain("Public One As Func(Of MethodologyTypeOptions?) = Nothing");
             results.First().SourceCode.Should().Contain("Return If(String.IsNullOrWhiteSpace(existingCalculationResultString), Nothing, CType([Enum].Parse(GetType(MethodologyTypeOptions), existingCalculationResultString), MethodologyTypeOptions?))");
+            results.First().SourceCode.Should().Contain($"calculationContext.DictionaryStringValues.Add(\"{_1619.Id}\", executedUserCodeCalculationResult?.ToString())");
         }
 
         [TestMethod]

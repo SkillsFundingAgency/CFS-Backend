@@ -250,11 +250,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
         {
             if (calculation.Current.DataType == CalculationDataType.Enum)
             {
-                var sourceCode = new StringBuilder();
-                sourceCode.AppendLine($"If executedUserCodeCalculationResult.HasValue Then");
-                sourceCode.AppendLine($"    calculationContext.Dictionary{GetVariableName(calculation.Current.DataType)}Values.Add(\"{calculation.Id}\", executedUserCodeCalculationResult.ToString())");
-                sourceCode.AppendLine("End If");
-                return sourceCode.ToString();
+                return $"calculationContext.Dictionary{GetVariableName(calculation.Current.DataType)}Values.Add(\"{calculation.Id}\", executedUserCodeCalculationResult?.ToString())";
             }
             else
             {
