@@ -566,16 +566,23 @@ namespace CalculateFunding.Services.Datasets
             }
             catch (Exception exception)
             {
-                const string errorMessage = "The data source file type is invalid. Check that your file is an xls or xlsx file";
+                if (exception is NonRetriableException)
+                {
+                    throw;
+                }
+                else
+                {
+                    const string errorMessage = "The data source file type is invalid. Check that your file is an xls or xlsx file";
 
-                _logger.Error(exception, errorMessage);
+                    _logger.Error(exception, errorMessage);
 
-                validationResult = new ValidationResult();
-                validationResult.Errors.Add(new ValidationFailure("typical-model-validation-error", string.Empty));
-                validationResult.Errors.Add(new ValidationFailure(nameof(model.Filename), errorMessage));
+                    validationResult = new ValidationResult();
+                    validationResult.Errors.Add(new ValidationFailure("typical-model-validation-error", string.Empty));
+                    validationResult.Errors.Add(new ValidationFailure(nameof(model.Filename), errorMessage));
 
-                await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, null, ConvertToErrorDictionary(validationResult));
-                throw new NonRetriableException("Failed validation - the data source file type is invalid");
+                    await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, null, ConvertToErrorDictionary(validationResult));
+                    throw new NonRetriableException("Failed validation - the data source file type is invalid");
+                }
             }
             
             await SetValidationStatus(operationId, DatasetValidationStatus.ValidatingTableResults);
