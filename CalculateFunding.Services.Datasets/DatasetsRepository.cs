@@ -172,7 +172,7 @@ namespace CalculateFunding.Services.Datasets
 
         public async Task<DocumentEntity<Dataset>> GetDatasetDocumentByDatasetId(string datasetId)
         {
-            return (await _cosmosRepository.QueryDocuments<Dataset>(1)).Where(c => c.Id == datasetId && !c.Deleted).FirstOrDefault();
+            return await _cosmosRepository.ReadDocumentByIdAsync<Dataset>(datasetId);
         }
 
         public async Task<IEnumerable<DefinitionSpecificationRelationship>> GetAllDefinitionSpecificationsRelationships()
