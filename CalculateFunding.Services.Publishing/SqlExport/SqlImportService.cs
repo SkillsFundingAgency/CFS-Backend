@@ -40,7 +40,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
             Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
 
-            return new OkObjectResult(await QueueJob(new JobCreateModel
+            Job job = await QueueJob(new JobCreateModel
             {
                 JobDefinitionId = RunSqlImportJob,
                 SpecificationId = specificationId,
@@ -58,7 +58,12 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                     {SpecificationId, specificationId},
                     {FundingStreamId, fundingStreamId}
                 }
-            }));
+            });
+            
+            return new OkObjectResult(new
+            {
+                JobId = job.Id
+            });
         }
 
         public override async Task Process(Message message)

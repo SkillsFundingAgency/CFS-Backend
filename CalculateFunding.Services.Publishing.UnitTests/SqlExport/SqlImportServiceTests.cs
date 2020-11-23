@@ -77,7 +77,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             string specificationId = NewRandomString();
             string fundingStreamId = NewRandomString();
             
-            Job expectedJob = new Job();
+            Job expectedJob = new Job
+            {
+                Id = NewRandomString()
+            };
 
             GivenTheRunSqlImportJob(specificationId, fundingStreamId, expectedJob);
             
@@ -85,7 +88,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
 
             result?.Value
                 .Should()
-                .BeSameAs(expectedJob);
+                .BeEquivalentTo(new
+                {
+                    JobId = expectedJob.Id
+                });
         }
 
         [TestMethod]
