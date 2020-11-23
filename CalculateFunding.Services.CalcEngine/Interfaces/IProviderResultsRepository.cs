@@ -14,6 +14,7 @@ namespace CalculateFunding.Services.CalcEngine.Interfaces
             int partitionIndex,
             int partitionSize,
             Reference user,
-            string correlationId);
+            string correlationId,
+            string parentJobId);
     }
 }

@@ -660,7 +660,8 @@ namespace CalculateFunding.Services.CalcEngine
                     messageProperties.PartitionIndex,
                     messageProperties.PartitionSize,
                     messageProperties.User,
-                    messageProperties.CorrelationId));
+                    messageProperties.CorrelationId,
+                    messageProperties.JobId));
 
                 _logger.Information($"Saving results completeed for specification id {messageProperties.SpecificationId}");
             }

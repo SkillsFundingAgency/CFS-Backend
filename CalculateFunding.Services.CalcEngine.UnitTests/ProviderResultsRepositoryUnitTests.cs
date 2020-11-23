@@ -37,6 +37,7 @@ namespace CalculateFunding.Services.Calculator
         private IResultsApiClient _resultsApiClient;
         private Reference _user;
         private string _correlationId;
+        private string _jobId;
 
         [TestInitialize]
         public void SetUp()
@@ -44,6 +45,7 @@ namespace CalculateFunding.Services.Calculator
             _resultsApiClient = Substitute.For<IResultsApiClient>();
             _user = new Reference("test-user-id", "test-user-name");
             _correlationId = Guid.NewGuid().ToString();
+            _jobId = Guid.NewGuid().ToString();
         }
 
         [TestMethod]
@@ -101,7 +103,7 @@ namespace CalculateFunding.Services.Calculator
             };
 
             // Act
-            await repo.SaveProviderResults(results, specificationSummary, 1, 1, _user, _correlationId);
+            await repo.SaveProviderResults(results, specificationSummary, 1, 1, _user, _correlationId, _jobId);
 
             // Assert
             await cosmosRepository.Received(1).UpsertAsync<ProviderResult>(
@@ -170,7 +172,7 @@ namespace CalculateFunding.Services.Calculator
             };
 
             // Act
-            await repo.SaveProviderResults(results, specificationSummary, 1, 1, _user, _correlationId);
+            await repo.SaveProviderResults(results, specificationSummary, 1, 1, _user, _correlationId, _jobId);
 
             // Assert
             await cosmosRepository.Received(1).UpsertAsync<ProviderResult>(
@@ -232,7 +234,7 @@ namespace CalculateFunding.Services.Calculator
             };
 
             // Act
-            await repo.SaveProviderResults(results, specificationSummary, 1, 1, _user, _correlationId);
+            await repo.SaveProviderResults(results, specificationSummary, 1, 1, _user, _correlationId, _jobId);
 
             // Assert
             await cosmosRepository.Received(0).BulkUpsertAsync(Arg.Is<IEnumerable<KeyValuePair<string, ProviderResult>>>(r => r.Count() == 1),
@@ -321,7 +323,7 @@ namespace CalculateFunding.Services.Calculator
             };
 
             // Act
-            await repo.SaveProviderResults(results, specificationSummary, 1, 1, _user, _correlationId);
+            await repo.SaveProviderResults(results, specificationSummary, 1, 1, _user, _correlationId, _jobId);
 
             // Assert
             await jobManagement.Received(1).QueueJob(Arg.Is<JobCreateModel>(_ =>
@@ -329,6 +331,7 @@ namespace CalculateFunding.Services.Calculator
              _.Properties["specification-id"] == specificationSummary.GetSpecificationId() &&
              _.Properties["specification-name"] == specificationSummary.Name &&
              _.Properties["index-writer-type"] == SearchIndexWriterTypes.ProviderCalculationResultsIndexWriter &&
+             _.ParentJobId == _jobId &&
              _.MessageBody == JsonConvert.SerializeObject(results.Select(x => x.Provider.Id))));
 
             await _resultsApiClient.Received(1)
@@ -399,7 +402,7 @@ namespace CalculateFunding.Services.Calculator
             };
 
             // Act
-            await repo.SaveProviderResults(results, specificationSummary, 1, 1, _user, _correlationId);
+            await repo.SaveProviderResults(results, specificationSummary, 1, 1, _user, _correlationId, _jobId);
 
             // Assert
             await cosmosRepository.Received(1).UpsertAsync<ProviderResult>(
@@ -410,6 +413,7 @@ namespace CalculateFunding.Services.Calculator
 
             await jobManagement.Received(1).QueueJob(Arg.Is<JobCreateModel>(_ =>
             _.JobDefinitionId == JobConstants.DefinitionNames.SearchIndexWriterJob &&
+            _.ParentJobId == _jobId &&
             _.Properties["specification-id"] == specificationSummary.GetSpecificationId() &&
             _.Properties["specification-name"] == specificationSummary.Name &&
             _.Properties["index-writer-type"] == SearchIndexWriterTypes.ProviderCalculationResultsIndexWriter &&

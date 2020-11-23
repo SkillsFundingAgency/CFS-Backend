@@ -108,6 +108,7 @@ namespace CalculateFunding.Services.Calculator
             const int partitionIndex = 0;
             const int partitionSize = 100;
             const int stop = partitionIndex + partitionSize - 1;
+            const string jobId = "job1";
 
             IList<ProviderSummary> providerSummaries = MockData.GetDummyProviders(20);
 
@@ -151,13 +152,21 @@ namespace CalculateFunding.Services.Calculator
             messageUserProperties.Add("provider-summaries-partition-size", partitionSize);
             messageUserProperties.Add("provider-cache-key", cacheKey);
             messageUserProperties.Add("specification-id", specificationId);
+            messageUserProperties.Add("jobId", specificationId);
 
             await service.Run(message);
 
             await _calculationEngineServiceTestsHelper
                 .MockProviderResultRepo
                 .Received(0)
-                .SaveProviderResults(Arg.Any<IEnumerable<ProviderResult>>(), _specificationSummary, partitionIndex, partitionSize, Arg.Any<Reference>(), Arg.Any<string>());
+                .SaveProviderResults(
+                Arg.Any<IEnumerable<ProviderResult>>(), 
+                _specificationSummary, 
+                partitionIndex, 
+                partitionSize, 
+                Arg.Any<Reference>(), 
+                Arg.Any<string>(),
+                jobId);
         }
 
         [TestMethod]
@@ -267,7 +276,7 @@ namespace CalculateFunding.Services.Calculator
             _calculationEngineServiceTestsHelper
                 .MockProviderResultRepo
                 .Received(7)
-                .SaveProviderResults(Arg.Any<IEnumerable<ProviderResult>>(), Arg.Is(_specificationSummary), Arg.Is(partitionIndex), Arg.Is(partitionSize), Arg.Any<Reference>(), Arg.Any<string>());
+                .SaveProviderResults(Arg.Any<IEnumerable<ProviderResult>>(), Arg.Is(_specificationSummary), Arg.Is(partitionIndex), Arg.Is(partitionSize), Arg.Any<Reference>(), Arg.Any<string>(), Arg.Is(jobId));
         }
 
         [TestMethod]
@@ -373,13 +382,13 @@ namespace CalculateFunding.Services.Calculator
             _calculationEngineServiceTestsHelper
                 .MockProviderResultRepo
                 .Received(6)
-                .SaveProviderResults(Arg.Is<IEnumerable<ProviderResult>>(m => m.Count() == 3), Arg.Is(_specificationSummary), Arg.Is(partitionIndex), Arg.Is(partitionSize), Arg.Any<Reference>(), Arg.Any<string>());
+                .SaveProviderResults(Arg.Is<IEnumerable<ProviderResult>>(m => m.Count() == 3), Arg.Is(_specificationSummary), Arg.Is(partitionIndex), Arg.Is(partitionSize), Arg.Any<Reference>(), Arg.Any<string>(), Arg.Is(jobId));
 
             await
             _calculationEngineServiceTestsHelper
                 .MockProviderResultRepo
                 .Received(1)
-                .SaveProviderResults(Arg.Is<IEnumerable<ProviderResult>>(m => m.Count() == 2), Arg.Is(_specificationSummary), Arg.Is(partitionIndex), Arg.Is(partitionSize), Arg.Any<Reference>(), Arg.Any<string>());
+                .SaveProviderResults(Arg.Is<IEnumerable<ProviderResult>>(m => m.Count() == 2), Arg.Is(_specificationSummary), Arg.Is(partitionIndex), Arg.Is(partitionSize), Arg.Any<Reference>(), Arg.Any<string>(), Arg.Is(jobId));
         }
 
         [TestMethod]
@@ -473,7 +482,7 @@ namespace CalculateFunding.Services.Calculator
                 _calculationEngineServiceTestsHelper
                     .MockProviderResultRepo
                     .Received(0)
-                    .SaveProviderResults(Arg.Any<IEnumerable<ProviderResult>>(), Arg.Is(_specificationSummary), Arg.Is(partitionIndex), Arg.Is(partitionSize), Arg.Any<Reference>(), Arg.Any<string>());
+                    .SaveProviderResults(Arg.Any<IEnumerable<ProviderResult>>(), Arg.Is(_specificationSummary), Arg.Is(partitionIndex), Arg.Is(partitionSize), Arg.Any<Reference>(), Arg.Any<string>(), Arg.Is(jobId));
         }
 
         [TestMethod]

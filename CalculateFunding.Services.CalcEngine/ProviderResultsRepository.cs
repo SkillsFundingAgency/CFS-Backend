@@ -65,7 +65,8 @@ namespace CalculateFunding.Services.CalcEngine
             int partitionIndex,
             int partitionSize,
             Reference user,
-            string correlationId)
+            string correlationId,
+            string parentJobId)
         {
             if (providerResults == null || providerResults.Count() == 0)
             {
@@ -86,7 +87,7 @@ namespace CalculateFunding.Services.CalcEngine
             long cosmosSaveTime = await BulkSaveProviderResults(results);
 
             // Need to wait until the save provider results completed before triggering the search index writer jobs.
-            long queueSearchWriterJobTime = await QueueSearchIndexWriterJob(providerResults, specificationSummary, user, correlationId);
+            long queueSearchWriterJobTime = await QueueSearchIndexWriterJob(providerResults, specificationSummary, user, correlationId, parentJobId);
             
             // Only save batch to redis if it has been saved successfully. This enables the message to be requeued for throttled scenarios and will resave to cosmos/search
             _calculationsHashProvider.EndBatch(batchSpecificationId, partitionIndex, partitionSize);
@@ -96,7 +97,12 @@ namespace CalculateFunding.Services.CalcEngine
             return (cosmosSaveTime, queueSearchWriterJobTime, providerResults.Count());
         }
 
-        private async Task<long> QueueSearchIndexWriterJob(IEnumerable<ProviderResult> providerResults, SpecificationSummary specificationSummary, Reference user, string correlationId)
+        private async Task<long> QueueSearchIndexWriterJob(
+            IEnumerable<ProviderResult> providerResults, 
+            SpecificationSummary specificationSummary, 
+            Reference user, 
+            string correlationId,
+            string parentJobId)
         {
             Stopwatch stopwatch = Stopwatch.StartNew();
 
@@ -121,7 +127,7 @@ namespace CalculateFunding.Services.CalcEngine
                         InvokerUserId = user.Id,
                         InvokerUserDisplayName = user.Name,
                         JobDefinitionId = JobConstants.DefinitionNames.SearchIndexWriterJob,
-                        ParentJobId = null,
+                        ParentJobId = parentJobId,
                         SpecificationId = specificationId,
                         CorrelationId = correlationId,
                         Properties = new Dictionary<string, string>
