@@ -26,6 +26,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         private ValidationResult _validationResult;
 
         protected ISpecificationsApiClient Specifications { get; private set; }
+
+        protected IProviderService ProviderService { get; private set; }
+
         protected TJobCreation Jobs { get; private set; }
         protected IActionResult ActionResult { get; set; }
         protected string SpecificationId { get; private set; }
@@ -62,6 +65,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 .Returns(_validationResult);
 
             Specifications = Substitute.For<ISpecificationsApiClient>();
+            ProviderService = Substitute.For<IProviderService>();
 
             ResiliencePolicies = new ResiliencePolicies
             {
@@ -109,6 +113,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             Specifications.GetSpecificationSummaryById(SpecificationId)
                 .Returns(new ApiResponse<SpecificationSummary>(statusCode,
                     specificationSummary));
+        }
+
+        protected void GivenTheApiResponseProviderDetailsForSuppliedId(IEnumerable<string> providers)
+        {
+            ProviderService.GetScopedProviderIdsForSpecification(SpecificationId)
+                .Returns(providers);
         }
 
         protected void AndTheFundingConfigurationsForSpecificationSummary(FundingConfiguration fundingConfiguration)

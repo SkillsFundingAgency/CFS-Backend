@@ -30,9 +30,12 @@ namespace CalculateFunding.Services.Publishing.Specifications
         private readonly ICacheProvider _cacheProvider;
         private readonly ISpecificationFundingStatusService _specificationFundingStatusService;
         private readonly IPrerequisiteCheckerLocator _prerequisiteCheckerLocator;
+        private readonly IProviderService _providerService;
+
         public SpecificationPublishingService(
             ISpecificationIdServiceRequestValidator specificationIdValidator,
             IPublishedProviderIdsServiceRequestValidator publishedProviderIdsValidator,
+            IProviderService providerService,
             ISpecificationsApiClient specifications,
             IPublishingResiliencePolicies resiliencePolicies,
             ICacheProvider cacheProvider,
@@ -50,6 +53,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(specificationFundingStatusService, nameof(specificationFundingStatusService));
             Guard.ArgumentNotNull(prerequisiteCheckerLocator, nameof(prerequisiteCheckerLocator));
+            Guard.ArgumentNotNull(providerService, nameof(providerService));
 
             _refreshFundingJobs = refreshFundingJobs;
             _cacheProvider = cacheProvider;
@@ -57,6 +61,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
             _approveProviderFundingJobs = approveProviderFundingJobs;
             _specificationFundingStatusService = specificationFundingStatusService;
             _prerequisiteCheckerLocator = prerequisiteCheckerLocator;
+            _providerService = providerService;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -94,6 +99,8 @@ namespace CalculateFunding.Services.Publishing.Specifications
                 return new NotFoundResult();
             }
 
+            IDictionary<string, Provider> scopedProviders = await _providerService.GetScopedProvidersForSpecification(specificationSummary.Id, specificationSummary.ProviderVersionId);
+
             IPrerequisiteChecker prerequisiteChecker = _prerequisiteCheckerLocator.GetPreReqChecker(PrerequisiteCheckerType.Refresh);
             try
             {
@@ -101,7 +108,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
                         specificationSummary,
                         null,
                         Array.Empty<PublishedProvider>(),
-                        Array.Empty<Provider>());
+                        scopedProviders?.Values);
             }
             catch (JobPrereqFailedException ex)
             {

@@ -34,6 +34,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         private PublishedProviderIdsRequest _approveProvidersRequest;
         private IPrerequisiteCheckerLocator _prerequisiteCheckerLocator;
         private IPrerequisiteChecker _prerequisiteChecker;
+        private IProviderService _providerService;
 
         [TestInitialize]
         public void SetUp()
@@ -44,10 +45,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             _specificationFundingStatusService = Substitute.For<ISpecificationFundingStatusService>();
             _prerequisiteCheckerLocator = Substitute.For<IPrerequisiteCheckerLocator>();
             _prerequisiteChecker = Substitute.For<IPrerequisiteChecker>();
+            _providerService = Substitute.For<IProviderService>();
 
             _service = new SpecificationPublishingService(
                 SpecificationIdValidator,
                 ProviderIdsValidator,
+                _providerService,
                 Specifications,
                 ResiliencePolicies,
                 _cacheProvider,
@@ -84,7 +87,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         }
 
         [TestMethod]
-        public async Task Returns200IfPrereqChecksFailsForGetRefreshFundingJobPrereqErrors()
+        public async Task Returns400IfPrereqChecksFailsForGetRefreshFundingJobPrereqErrors()
         {
             string errorMessage = "calc error";
 
