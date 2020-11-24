@@ -146,6 +146,8 @@ namespace CalculateFunding.Services.Publishing.Specifications
                 return new ConflictResult();
             }
 
+            IDictionary<string, Provider> scopedProviders = await _providerService.GetScopedProvidersForSpecification(specificationSummary.Id, specificationSummary.ProviderVersionId);
+
             // Check prerequisites for this specification to be chosen/refreshed
             IPrerequisiteChecker prerequisiteChecker = _prerequisiteCheckerLocator.GetPreReqChecker(PrerequisiteCheckerType.Refresh);
             try
@@ -154,7 +156,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
                         specificationSummary,
                         null,
                         Array.Empty<PublishedProvider>(),
-                        Array.Empty<Provider>());
+                        scopedProviders?.Values);
             }
             catch (JobPrereqFailedException ex)
             {
