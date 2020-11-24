@@ -1953,6 +1953,25 @@ namespace CalculateFunding.Services.Calcs.Services
                             m.Count(p => p.Trigger.Message == $"Triggered by parent job with id: '{parentJob.Id}") == 10
                         ));
 
+            //uses session key being spec id suffixed with batch number
+            await jobsApiClient
+                .Received(1)
+                .CreateJobs(Arg.Is<IEnumerable<JobCreateModel>>(_ =>
+                    _.Select(job => job.Properties["session-id"])
+                        .SequenceEqual(new[]
+                        {
+                            $"{specificationId}-1",
+                            $"{specificationId}-2",
+                            $"{specificationId}-3",
+                            $"{specificationId}-4",
+                            $"{specificationId}-5",
+                            $"{specificationId}-6",
+                            $"{specificationId}-7",
+                            $"{specificationId}-8",
+                            $"{specificationId}-9",
+                            $"{specificationId}-10",
+                        })));
+
             logger
                 .Received(1)
                 .Information($"10 child jobs were created for parent id: '{parentJobId}'");

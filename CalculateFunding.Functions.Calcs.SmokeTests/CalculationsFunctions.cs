@@ -103,7 +103,7 @@ namespace CalculateFunding.Functions.Calcs.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.CalculationJobInitialiser, 
-                async(Message smokeResponse) => await onCalcsInstructAllocationResults.Run(smokeResponse));
+                async(Message smokeResponse) => await onCalcsInstructAllocationResults.Run(smokeResponse), useSession: true);
 
             response
                 .Should()

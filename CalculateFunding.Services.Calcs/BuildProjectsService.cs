@@ -344,7 +344,7 @@ namespace CalculateFunding.Services.Calcs
                     return;
                 }
 
-                IEnumerable<Job> newJobs = await CreateGenerateAllocationJobs(allJobProperties);
+                IEnumerable<Job> newJobs = await CreateGenerateAllocationJobs(allJobProperties, specificationId);
 
                 int newJobsCount = newJobs.Count();
                 int batchCount = allJobProperties.Count;
@@ -596,7 +596,7 @@ namespace CalculateFunding.Services.Calcs
             return new OkObjectResult(assembly);
         }
 
-        private async Task<IEnumerable<Job>> CreateGenerateAllocationJobs(IEnumerable<IDictionary<string, string>> jobProperties)
+        private async Task<IEnumerable<Job>> CreateGenerateAllocationJobs(IEnumerable<IDictionary<string, string>> jobProperties, string specificationId)
         {
             bool calculationEngineRunning = await _calculationEngineRunningChecker.IsCalculationEngineRunning(Job.SpecificationId, new string[] { DefinitionNames.RefreshFundingJob });
 
@@ -653,6 +653,7 @@ namespace CalculateFunding.Services.Calcs
                 properties.Add("batch-number", batchNumber.ToString());
                 properties.Add("batch-count", batchCount.ToString());
                 properties.Add("calculations-to-aggregate", calcsToAggregate);
+                properties.Add("session-id", $"{specificationId}-{batchNumber}");
 
                 JobCreateModel jobCreateModel = new JobCreateModel
                 {
