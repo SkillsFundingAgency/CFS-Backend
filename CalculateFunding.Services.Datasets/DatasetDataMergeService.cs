@@ -175,7 +175,7 @@ namespace CalculateFunding.Services.Datasets
                 double _ when value2 is double => (double)value1 == (double)value2,
                 string _ when value2 is string => (string)value1 == (string)value2,
                 DateTime _ when value2 is DateTime => (DateTime)value1 == (DateTime)value2,
-                _ => false
+                _ => value1 == value2
             };
         }
     }
