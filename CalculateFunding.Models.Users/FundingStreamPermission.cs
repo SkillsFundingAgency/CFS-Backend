@@ -95,6 +95,12 @@ namespace CalculateFunding.Models.Users
         [JsonProperty("canApproveAllCalculations")]
         public bool CanApproveAllCalculations { get; set; }
 
+        [JsonProperty("canRefreshPublishedQa")]
+        public bool CanRefreshPublishedQa { get; set; }
+
+        [JsonProperty("canUploadDataSourceFiles")]
+        public bool CanUploadDataSourceFiles { get; set; }
+
         public bool HasSamePermissions(FundingStreamPermission fundingStreamPermission)
         {
             return fundingStreamPermission.CanCreateSpecification == CanCreateSpecification &&
@@ -122,7 +128,9 @@ namespace CalculateFunding.Models.Users
                 fundingStreamPermission.CanApplyCustomProfilePattern == CanApplyCustomProfilePattern &&
                 fundingStreamPermission.CanApproveCalculations == CanApproveCalculations &&
                 fundingStreamPermission.CanApproveAnyCalculations == CanApproveAnyCalculations &&
-                fundingStreamPermission.CanApproveAllCalculations == CanApproveAllCalculations;
+                fundingStreamPermission.CanApproveAllCalculations == CanApproveAllCalculations &&
+                fundingStreamPermission.CanRefreshPublishedQa == CanRefreshPublishedQa &&
+                fundingStreamPermission.CanUploadDataSourceFiles == CanUploadDataSourceFiles;
         }
     }
 }
