@@ -101,11 +101,6 @@ namespace CalculateFunding.Services.Datasets
                     _logger.Error(ex, result.ErrorMessage);
                 }
             }
-            else
-            {
-                result.ErrorMessage = $"No new or updated records found in file '{latestBlobFileName}' to merge.";
-                _logger.Error(result.ErrorMessage);
-            }
 
             return result;
         }
