@@ -507,7 +507,12 @@ REFERENCES [dbo].[{fundingStreamTablePrefix}_{fundingTableName}] ([PublishedProv
 
             FundingTemplateContents fundingTemplateContents = templateContentsRequest.Content;
 
-            string schemaVersion = fundingTemplateContents.SchemaVersion ?? fundingTemplateContents.Metadata?.SchemaVersion;
+            string schemaVersion = fundingTemplateContents?.SchemaVersion ?? fundingTemplateContents?.Metadata?.SchemaVersion;
+
+            if (schemaVersion.IsNullOrWhitespace())
+            {
+                throw new NonRetriableException($"Did not locate a schema version for specification {specification.Id}");
+            }
 
             ITemplateMetadataGenerator templateContents = _templateMetadataResolver.GetService(schemaVersion);
 
