@@ -20,7 +20,6 @@ using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.FeatureToggles;
-using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Results.Interfaces;
 using FluentAssertions;
@@ -34,6 +33,10 @@ using Serilog;
 using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalcModel = CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Common.Storage;
+using Microsoft.Azure.Storage.Blob;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.Results.UnitTests
 {
@@ -43,6 +46,8 @@ namespace CalculateFunding.Services.Results.UnitTests
         const string providerId = "123456";
         const string specificationId = "888999";
         const string jobId = "job-id";
+        const string CalcsResultsContainerName = "calcresults";
+        const string CalculationResultsReportFilePrefix = "calculation-results";
 
         [TestMethod]
         public async Task GetProviderResults_GivenNullOrEmptyProviderId_ReturnsBadRequest()
@@ -1040,36 +1045,90 @@ namespace CalculateFunding.Services.Results.UnitTests
 
             ICalculationResultsRepository calculationResultsRepository = CreateResultsRepository();
             calculationResultsRepository
-                .CheckHasNewResultsForSpecificationIdAndTimePeriod(Arg.Any<string>(), Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>())
+                .CheckHasNewResultsForSpecificationIdAndTime(specificationId, Arg.Any<DateTimeOffset>())
                 .Returns(hasResults);
 
             ILogger logger = CreateLogger();
 
-            IMessengerService messengerService = CreateMessengerService();
+            IJobManagement jobManagement = CreateJobManagement();
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .DoesBlobExistAsync($"{CalculationResultsReportFilePrefix}-{specificationId}", CalcsResultsContainerName)
+                .Returns(true);
 
             ResultsService resultsService = CreateResultsService(logger: logger,
                 resultsRepository: calculationResultsRepository,
-                messengerService: messengerService);
+                jobManagement: jobManagement,
+                blobClient: blobClient);
 
             //Act
             await resultsService.QueueCsvGenerationMessageIfNewCalculationResults(specificationId, specificationName);
 
             //Assert
-            await calculationResultsRepository
-                .Received(1)
-                .CheckHasNewResultsForSpecificationIdAndTimePeriod(specificationId,
-                    Arg.Is<DateTimeOffset>(x => Math.Abs((DateTimeOffset.UtcNow.AddDays(-1) - x).TotalSeconds) < 3),
-                    Arg.Is<DateTimeOffset>(x => Math.Abs((DateTimeOffset.UtcNow.AddDays(1) - x).TotalSeconds) < 3));
 
             logger
                 .Received(expectedOperations)
                 .Information($"Found new calculation results for specification id '{specificationId}'");
 
-            await messengerService
+            await jobManagement
                 .Received(expectedOperations)
-                .SendToQueue(ServiceBusConstants.QueueNames.CalculationResultsCsvGeneration,
-                    string.Empty,
-                    Arg.Is<Dictionary<string, string>>(_ => _["specification-id"] == specificationId && _["specification-name"] == specificationName ));
+                .QueueJob(
+                    Arg.Is<JobCreateModel>(_ => 
+                    _.JobDefinitionId == JobConstants.DefinitionNames.GenerateCalcCsvResultsJob && 
+                    _.SpecificationId == specificationId && 
+                    _.Properties["specification-id"] == specificationId && _.Properties["specification-name"] == specificationName));
+        }
+
+        [TestMethod]
+        public async Task QueueCsvGeneration_RunsAsExpected()
+        {
+            //Arrange
+            string specificationId = "12345";
+            string specificationName = "67890";
+            string jobId = "12345678";
+
+            SpecificationSummary specificationSummary = new SpecificationSummary { Id = specificationId, Name = specificationName };
+
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
+                .GetSpecificationSummaryById(specificationId)
+                .Returns(new ApiResponse<SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
+
+            ICalculationResultsRepository calculationResultsRepository = CreateResultsRepository();
+            calculationResultsRepository
+                .CheckHasNewResultsForSpecificationIdAndTime(specificationId, Arg.Any<DateTimeOffset>())
+                .Returns(true);
+
+            ILogger logger = CreateLogger();
+
+            Job job = new Job { Id = jobId };
+
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .QueueJob(Arg.Is<JobCreateModel>(_ =>
+                    _.JobDefinitionId == JobConstants.DefinitionNames.GenerateCalcCsvResultsJob &&
+                    _.SpecificationId == specificationId &&
+                    _.Properties["specification-id"] == specificationId && _.Properties["specification-name"] == specificationName))
+                .Returns(job);
+
+            ResultsService resultsService = CreateResultsService(logger: logger,
+                resultsRepository: calculationResultsRepository,
+                jobManagement: jobManagement,
+                specificationsApiClient: specificationsApiClient);
+
+            //Act
+            IActionResult result = await resultsService.QueueCsvGeneration(specificationId);
+
+            //Assert
+            result.Should().NotBeNull();
+            result.Should().BeOfType<OkObjectResult>();
+            OkObjectResult okObjectResult = result as OkObjectResult;
+            okObjectResult.Should().NotBeNull();
+            okObjectResult.Value.Should().NotBeNull();
+            okObjectResult.Value.Should().BeOfType<Job>();
+            Job actualJob = okObjectResult.Value as Job;
+            actualJob.Id.Should().Be(jobId);
         }
 
         [TestMethod]
@@ -1103,8 +1162,9 @@ namespace CalculateFunding.Services.Results.UnitTests
             ISpecificationsApiClient specificationsApiClient = null,
             ICalculationsApiClient calculationsApiClient = null,
             IResultsResiliencePolicies resiliencePolicies = null,
-            IMessengerService messengerService = null,
-            ICalculationsRepository calculationsRepository = null)
+            ICalculationsRepository calculationsRepository = null,
+            IBlobClient blobClient = null,
+            IJobManagement jobManagement = null)
         {
             IFeatureToggle featureToggle = Substitute.For<IFeatureToggle>();
             featureToggle.IsExceptionMessagesEnabled().Returns(true);
@@ -1117,20 +1177,15 @@ namespace CalculateFunding.Services.Results.UnitTests
                 specificationsApiClient ?? CreateSpecificationsApiClient(),
                 calculationsApiClient ?? CreateCalculationsApiClient(),
                 resiliencePolicies ?? ResultsResilienceTestHelper.GenerateTestPolicies(),
-                messengerService ?? CreateMessengerService(),
                 calculationsRepository ?? CreateCalculationsRepository(),
                 CreateMapper(),
-                CreateJobManagement());
+                jobManagement ?? CreateJobManagement(),
+                blobClient ?? CreateBlobClient());
         }
 
         private static IJobManagement CreateJobManagement()
         {
             return Substitute.For<IJobManagement>();
-        }
-
-        private static IBlobClient CreateBlobClient()
-        {
-            return Substitute.For<IBlobClient>();
         }
 
         static ICacheProvider CreateCacheProvider()
@@ -1158,10 +1213,6 @@ namespace CalculateFunding.Services.Results.UnitTests
             return Substitute.For<IProviderSourceDatasetRepository>();
         }
 
-        static IMessengerService CreateMessengerService()
-        {
-            return Substitute.For<IMessengerService>();
-        }
 
         static ISearchRepository<ProviderCalculationResultsIndex> CreateCalculationProviderResultsSearchRepository()
         {
@@ -1181,6 +1232,11 @@ namespace CalculateFunding.Services.Results.UnitTests
         static ICalculationsRepository CreateCalculationsRepository()
         {
             return Substitute.For<ICalculationsRepository>();
+        }
+
+        static IBlobClient CreateBlobClient()
+        {
+            return Substitute.For<IBlobClient>();
         }
 
         static IMapper CreateMapper()

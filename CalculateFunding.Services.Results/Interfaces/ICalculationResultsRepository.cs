@@ -25,7 +25,7 @@ namespace CalculateFunding.Services.Results.Interfaces
         Task DeleteCurrentProviderResults(IEnumerable<ProviderResult> providerResults);
         Task<decimal> GetCalculationResultTotalForSpecificationId(string specificationId);
         Task<ProviderResult> GetSingleProviderResultBySpecificationId(string specificationId);
-        Task<bool> CheckHasNewResultsForSpecificationIdAndTimePeriod(string specificationId, DateTimeOffset dateFrom, DateTimeOffset dateTo);
+        Task<bool> CheckHasNewResultsForSpecificationIdAndTime(string specificationId, DateTimeOffset dateFrom);
         Task<bool> ProviderHasResultsBySpecificationId(string specificationId);
         Task<ProviderWithResultsForSpecifications> GetProviderWithResultsForSpecificationsByProviderId(string providerId);
         Task UpsertSpecificationWithProviderResults(params ProviderWithResultsForSpecifications[] providerWithResultsForSpecifications); 

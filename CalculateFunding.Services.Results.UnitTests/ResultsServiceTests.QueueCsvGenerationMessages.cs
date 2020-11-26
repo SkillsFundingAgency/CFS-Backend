@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.ServiceBus.Interfaces;
+using CalculateFunding.Common.Storage;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Results.Interfaces;
@@ -69,30 +72,29 @@ namespace CalculateFunding.Services.Results.UnitTests
 
             ICalculationResultsRepository calculationResultsRepository = CreateResultsRepository();
             calculationResultsRepository
-                .CheckHasNewResultsForSpecificationIdAndTimePeriod(
+                .CheckHasNewResultsForSpecificationIdAndTime(
                     Arg.Is("spec-1"),
-                    Arg.Any<DateTimeOffset>(),
                     Arg.Any<DateTimeOffset>())
                 .Returns(false);
 
             ILogger logger = CreateLogger();
 
-            IMessengerService messengerService = CreateMessengerService();
+            IJobManagement jobManagement = CreateJobManagement();
 
             ResultsService resultsService = CreateResultsService(
                 logger,
                 specificationsApiClient: specificationsApiClient,
                 resultsRepository: calculationResultsRepository,
-                messengerService: messengerService);
+                jobManagement: jobManagement);
 
             //Act
             await resultsService.QueueCsvGenerationMessages();
 
             //Assert
             await
-                messengerService
+                jobManagement
                     .DidNotReceive()
-                    .SendToQueue(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Dictionary<string, string>>(), Arg.Any<bool>());
+                    .QueueJob(Arg.Any<JobCreateModel>());
 
             logger
                 .DidNotReceive()
@@ -105,7 +107,7 @@ namespace CalculateFunding.Services.Results.UnitTests
             //Arrange
             IEnumerable<SpecModel.SpecificationSummary> specificationSummaries = new[]
             {
-                new SpecModel.SpecificationSummary { Id = "spec-1" }
+                new SpecModel.SpecificationSummary { Id = specificationId }
             };
 
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
@@ -115,47 +117,56 @@ namespace CalculateFunding.Services.Results.UnitTests
 
             ICalculationResultsRepository calculationResultsRepository = CreateResultsRepository();
             calculationResultsRepository
-                .CheckHasNewResultsForSpecificationIdAndTimePeriod(
-                    Arg.Is("spec-1"),
-                    Arg.Any<DateTimeOffset>(),
+                .CheckHasNewResultsForSpecificationIdAndTime(
+                    Arg.Is(specificationId),
                     Arg.Any<DateTimeOffset>())
                 .Returns(true);
 
             ILogger logger = CreateLogger();
 
-            IMessengerService messengerService = CreateMessengerService();
+            IJobManagement jobManagement = CreateJobManagement();
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .DoesBlobExistAsync($"{CalculationResultsReportFilePrefix}-{specificationId}", CalcsResultsContainerName)
+                .Returns(true);
 
             ResultsService resultsService = CreateResultsService(
                 logger,
                 specificationsApiClient: specificationsApiClient,
                 resultsRepository: calculationResultsRepository,
-                messengerService: messengerService);
+                jobManagement: jobManagement,
+                blobClient: blobClient);
 
             //Act
             await resultsService.QueueCsvGenerationMessages();
 
             //Assert
             await
-                messengerService
+                jobManagement
                     .Received(1)
-                    .SendToQueue(
-                        Arg.Is(ServiceBusConstants.QueueNames.CalculationResultsCsvGeneration),
-                        Arg.Is(string.Empty),
-                        Arg.Is<Dictionary<string, string>>(m => m["specification-id"] == "spec-1"), Arg.Is(false));
+                    .QueueJob(
+                    Arg.Is<JobCreateModel>(_ => 
+                        _.JobDefinitionId == JobConstants.DefinitionNames.GenerateCalcCsvResultsJob && 
+                        _.Properties["specification-id"] == specificationId));
 
             logger
                 .Received()
-                .Information($"Found new calculation results for specification id 'spec-1'");
+                .Information($"Found new calculation results for specification id '{specificationId}'");
         }
 
         [TestMethod]
         public async Task QueueCsvGenerationMessages_GivenSpecificationSummariesFoundAndHasNewResultsForTwoSpecifications_CreatesNewMessage()
         {
             //Arrange
+
+            const string SpecificationOneId = "spec-1";
+            const string SpecificationTwoId = "spec-2";
+
             IEnumerable<SpecModel.SpecificationSummary> specificationSummaries = new[]
             {
-                new SpecModel.SpecificationSummary { Id = "spec-1" },
-                new SpecModel.SpecificationSummary { Id = "spec-2" }
+                new SpecModel.SpecificationSummary { Id = SpecificationOneId },
+                new SpecModel.SpecificationSummary { Id = SpecificationTwoId }
             };
 
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
@@ -165,54 +176,61 @@ namespace CalculateFunding.Services.Results.UnitTests
 
             ICalculationResultsRepository calculationResultsRepository = CreateResultsRepository();
             calculationResultsRepository
-                .CheckHasNewResultsForSpecificationIdAndTimePeriod(
-                    Arg.Is("spec-1"),
-                    Arg.Any<DateTimeOffset>(),
+                .CheckHasNewResultsForSpecificationIdAndTime(
+                    Arg.Is(SpecificationOneId),
                     Arg.Any<DateTimeOffset>())
                 .Returns(true);
             calculationResultsRepository
-               .CheckHasNewResultsForSpecificationIdAndTimePeriod(
-                   Arg.Is("spec-2"),
-                   Arg.Any<DateTimeOffset>(),
+               .CheckHasNewResultsForSpecificationIdAndTime(
+                   Arg.Is(SpecificationTwoId),
                    Arg.Any<DateTimeOffset>())
                .Returns(true);
 
             ILogger logger = CreateLogger();
 
-            IMessengerService messengerService = CreateMessengerService();
+            IJobManagement jobManagement = CreateJobManagement();
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .DoesBlobExistAsync($"{CalculationResultsReportFilePrefix}-{SpecificationOneId}", CalcsResultsContainerName)
+                .Returns(true);
+            blobClient
+                .DoesBlobExistAsync($"{CalculationResultsReportFilePrefix}-{SpecificationTwoId}", CalcsResultsContainerName)
+                .Returns(true);
 
             ResultsService resultsService = CreateResultsService(
                 logger,
                 specificationsApiClient: specificationsApiClient,
                 resultsRepository: calculationResultsRepository,
-                messengerService: messengerService);
+                jobManagement: jobManagement,
+                blobClient: blobClient);
 
             //Act
             await resultsService.QueueCsvGenerationMessages();
 
             //Assert
             await
-                messengerService
+                jobManagement
                     .Received(1)
-                    .SendToQueue(
-                        Arg.Is(ServiceBusConstants.QueueNames.CalculationResultsCsvGeneration),
-                        Arg.Is(string.Empty),
-                        Arg.Is<Dictionary<string, string>>(m => m["specification-id"] == "spec-1"), Arg.Is(false));
+                    .QueueJob(
+                    Arg.Is<JobCreateModel>(_ =>
+                        _.JobDefinitionId == JobConstants.DefinitionNames.GenerateCalcCsvResultsJob &&
+                        _.Properties["specification-id"] == SpecificationOneId));
 
             await
-               messengerService
-                   .Received(1)
-                   .SendToQueue(
-                       Arg.Is(ServiceBusConstants.QueueNames.CalculationResultsCsvGeneration),
-                       Arg.Is(string.Empty),
-                       Arg.Is<Dictionary<string, string>>(m => m["specification-id"] == "spec-2"), Arg.Is(false));
+                jobManagement
+                    .Received(1)
+                    .QueueJob(
+                    Arg.Is<JobCreateModel>(_ =>
+                        _.JobDefinitionId == JobConstants.DefinitionNames.GenerateCalcCsvResultsJob &&
+                        _.Properties["specification-id"] == SpecificationTwoId));
             logger
                 .Received()
-                .Information($"Found new calculation results for specification id 'spec-1'");
+                .Information($"Found new calculation results for specification id '{SpecificationOneId}'");
 
             logger
                .Received()
-               .Information($"Found new calculation results for specification id 'spec-2'");
+               .Information($"Found new calculation results for specification id '{SpecificationTwoId}'");
         }
     }
 }

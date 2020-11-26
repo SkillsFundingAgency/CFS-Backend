@@ -23,6 +23,7 @@ namespace CalculateFunding.Services.Results.UnitTests
                 PoliciesApiClient = Policy.NoOpAsync(),
                 CalculationsApiClient = Policy.NoOpAsync(),
                 CacheProvider = Policy.NoOpAsync(),
+                BlobClient = Policy.NoOpAsync(),
             };
         }
     }

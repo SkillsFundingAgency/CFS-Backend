@@ -39,6 +39,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
 using AzureStorage = CalculateFunding.Services.Core.AzureStorage;
 using ServiceCollectionExtensions = CalculateFunding.Services.Core.Extensions.ServiceCollectionExtensions;
+using CommonStorage = CalculateFunding.Common.Storage;
 
 [assembly: FunctionsStartup(typeof(CalculateFunding.Functions.Results.Startup))]
 
@@ -105,6 +106,18 @@ namespace CalculateFunding.Functions.Results
                      IConfigurationSection setttingConfig = config.GetSection("searchIndexWriterSettings");
                      return new SearchIndexWriterSettings(setttingConfig);
                  });
+
+            builder.AddSingleton<CommonStorage.IBlobClient>(ctx =>
+            {
+                CommonStorage.BlobStorageOptions options = new CommonStorage.BlobStorageOptions();
+
+                config.Bind("AzureStorageSettings", options);
+
+                options.ContainerName = "calcresults";
+
+                CommonStorage.IBlobContainerRepository blobContainerRepository = new CommonStorage.BlobContainerRepository(options);
+                return new CommonStorage.BlobClient(blobContainerRepository);
+            });
 
             builder.AddScoped<ISearchIndexProcessorFactory, SearchIndexProcessorFactory>();
             builder.AddScoped<ISearchIndexDataReader<ProviderResultDataKey, ProviderResult>, ProviderCalculationResultsIndexDataReader>();

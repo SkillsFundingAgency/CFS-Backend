@@ -7,7 +7,6 @@ using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
-using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
@@ -30,11 +29,17 @@ using ApiModels = CalculateFunding.Common.ApiClient.Models;
 using AutoMapper;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Services.Processing;
+using CalculateFunding.Common.Storage;
+using Microsoft.Azure.Storage.Blob;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 
 namespace CalculateFunding.Services.Results
 {
     public class ResultsService : JobProcessingService, IResultsService, IHealthChecker
     {
+        private const string CalcsResultsContainerName = "calcresults";
+        private const string CalculationResultsReportFilePrefix = "calculation-results";
+
         private readonly ILogger _logger;
         private readonly ICalculationResultsRepository _resultsRepository;
         private readonly IProviderSourceDatasetRepository _providerSourceDatasetRepository;
@@ -43,13 +48,14 @@ namespace CalculateFunding.Services.Results
         private readonly ISpecificationsApiClient _specificationsApiClient;
         private readonly Polly.AsyncPolicy _resultsSearchRepositoryPolicy;
         private readonly Polly.AsyncPolicy _specificationsApiClientPolicy;
-        private readonly IMessengerService _messengerService;
         private readonly ICalculationsRepository _calculationRepository;
         private readonly Polly.AsyncPolicy _calculationsRepositoryPolicy;
         private readonly ICalculationsApiClient _calculationsApiClient;
         private readonly Polly.AsyncPolicy _calculationsApiClientPolicy;
+        private readonly Polly.AsyncPolicy _blobClientPolicy;
         private readonly IFeatureToggle _featureToggle;
         private readonly IMapper _mapper;
+        private readonly IBlobClient _blobClient;
 
         public ResultsService(ILogger logger,
             IFeatureToggle featureToggle,
@@ -59,10 +65,10 @@ namespace CalculateFunding.Services.Results
             ISpecificationsApiClient specificationsApiClient,
             ICalculationsApiClient calculationsApiClient,
             IResultsResiliencePolicies resiliencePolicies,
-            IMessengerService messengerService,
             ICalculationsRepository calculationRepository,
             IMapper mapper,
-            IJobManagement jobManagement) : base(jobManagement, logger)
+            IJobManagement jobManagement,
+            IBlobClient blobClient) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(resultsRepository, nameof(resultsRepository));
             Guard.ArgumentNotNull(providerSourceDatasetRepository, nameof(providerSourceDatasetRepository));
@@ -74,10 +80,11 @@ namespace CalculateFunding.Services.Results
             Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsApiClient, nameof(resiliencePolicies.SpecificationsApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.CalculationsApiClient, nameof(resiliencePolicies.CalculationsApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.CalculationsRepository, nameof(resiliencePolicies.CalculationsRepository));
-            Guard.ArgumentNotNull(messengerService, nameof(messengerService));
+            Guard.ArgumentNotNull(resiliencePolicies?.BlobClient, nameof(resiliencePolicies.BlobClient));
             Guard.ArgumentNotNull(calculationRepository, nameof(calculationRepository));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
+            Guard.ArgumentNotNull(blobClient, nameof(blobClient));
 
             _logger = logger;
             _mapper = mapper;
@@ -90,10 +97,11 @@ namespace CalculateFunding.Services.Results
             _resultsSearchRepositoryPolicy = resiliencePolicies.ResultsSearchRepository;
             _specificationsApiClientPolicy = resiliencePolicies.SpecificationsApiClient;
             _calculationsApiClientPolicy = resiliencePolicies.CalculationsApiClient;
-            _messengerService = messengerService;
+            _blobClientPolicy = resiliencePolicies.BlobClient;
             _calculationRepository = calculationRepository;
             _calculationsRepositoryPolicy = resiliencePolicies.CalculationsRepository;
             _featureToggle = featureToggle;
+            _blobClient = blobClient;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -559,30 +567,79 @@ namespace CalculateFunding.Services.Results
             await TaskHelper.WhenAllAndThrow(queueCsvJobTasks);
         }
 
-        public async Task QueueCsvGenerationMessageIfNewCalculationResults(string specificationId, string specificationName)
+        public async Task<IActionResult> QueueCsvGeneration(string specificationId)
         {
-            bool hasNewResults = await _resultsRepositoryPolicy.ExecuteAsync(
-                () => _resultsRepository.CheckHasNewResultsForSpecificationIdAndTimePeriod(specificationId, 
-                    DateTimeOffset.UtcNow.AddDays(-1), 
-                    DateTimeOffset.UtcNow.AddDays(1)));
+            Common.ApiClient.Models.ApiResponse<SpecModel.SpecificationSummary> specificationApiResponse =
+                await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId));
+
+            if (!specificationApiResponse.StatusCode.IsSuccess() || specificationApiResponse.Content == null)
+            {
+                string errorMessage = "No specification summaries found to generate calculation results csv.";
+
+                _logger.Error(errorMessage);
+
+                throw new RetriableException(errorMessage);
+            }
+
+            Job job = await QueueCsvGenerationMessage(specificationId, specificationApiResponse.Content.Name);
+
+            return new OkObjectResult(job);
+        }
+
+        public async Task<Job> QueueCsvGenerationMessageIfNewCalculationResults(string specificationId, string specificationName)
+        {
+            bool hasNewResults = false;
+
+            bool blobExists = await _blobClientPolicy.ExecuteAsync(() => 
+                _blobClient.DoesBlobExistAsync($"{CalculationResultsReportFilePrefix}-{specificationId}", CalcsResultsContainerName));
+
+            if (blobExists)
+            {
+                ICloudBlob cloudBlob = await _blobClientPolicy.ExecuteAsync(() => 
+                    _blobClient.GetBlobReferenceFromServerAsync(
+                        $"{CalculationResultsReportFilePrefix}-{specificationId}",
+                        CalcsResultsContainerName));
+
+                DateTimeOffset? lastModified = cloudBlob.Properties?.LastModified;
+
+                hasNewResults = await _resultsRepositoryPolicy.ExecuteAsync(
+                    () => _resultsRepository.CheckHasNewResultsForSpecificationIdAndTime(specificationId,
+                        lastModified.GetValueOrDefault()));
+            }
 
             if (!hasNewResults)
             {
                 _logger.Information(
                     $"No new calculation results for specification id '{specificationId}'. Not queueing report job");
                 
-                return;
+                return null;
             }
 
             _logger.Information($"Found new calculation results for specification id '{specificationId}'");
 
-            await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.CalculationResultsCsvGeneration,
-                string.Empty,
-                new Dictionary<string, string>
+            return await QueueCsvGenerationMessage(specificationId, specificationName);
+        }
+
+        private async Task<Job> QueueCsvGenerationMessage(string specificationId, string specificationName)
+        {
+            JobCreateModel jobCreateModel = new JobCreateModel
+            {
+                Trigger = new Trigger
+                {
+                    EntityId = specificationId,
+                    EntityType = "Specification",
+                    Message = "Generate Calc Csv Results Timer Job"
+                },
+                JobDefinitionId = JobConstants.DefinitionNames.GenerateCalcCsvResultsJob,
+                SpecificationId = specificationId,
+                Properties = new Dictionary<string, string>
                 {
                     { "specification-id", specificationId },
                     { "specification-name", specificationName }
-                });
+                }
+            };
+
+            return await QueueJob(jobCreateModel);
         }
     }
 }

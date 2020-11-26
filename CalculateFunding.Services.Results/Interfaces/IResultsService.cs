@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Processing.Interfaces;
@@ -32,5 +33,7 @@ namespace CalculateFunding.Services.Results.Interfaces
         Task<IActionResult> HasCalculationResults(string calculationId);
 
         Task QueueCsvGenerationMessages();
+
+        Task<IActionResult> QueueCsvGeneration(string specificationId);
     }
 }

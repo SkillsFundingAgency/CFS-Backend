@@ -78,6 +78,8 @@
             public const string ApproveAllCalculationsJob = nameof(ApproveAllCalculationsJob);
 
             public const string RunSqlImportJob = nameof(RunSqlImportJob);
+
+            public const string GenerateCalcCsvResultsJob = nameof(GenerateCalcCsvResultsJob);
         }
 
         public static class NotificationChannels

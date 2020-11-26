@@ -38,6 +38,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Polly.Bulkhead;
+using CommonStorage = CalculateFunding.Common.Storage;
 
 namespace CalculateFunding.Api.Results
 {
@@ -174,6 +175,18 @@ namespace CalculateFunding.Api.Results
                     return new BlobClient(storageSettings);
                 });
 
+            builder.AddSingleton<CommonStorage.IBlobClient>(ctx =>
+            {
+                CommonStorage.BlobStorageOptions options = new CommonStorage.BlobStorageOptions();
+
+                Configuration.Bind("AzureStorageSettings", options);
+
+                options.ContainerName = "calcresultexports";
+
+                CommonStorage.IBlobContainerRepository blobContainerRepository = new CommonStorage.BlobContainerRepository(options);
+                return new CommonStorage.BlobClient(blobContainerRepository);
+            });
+
 
             builder.AddSearch(Configuration);
             builder
@@ -227,7 +240,8 @@ namespace CalculateFunding.Api.Results
                     ProviderCalculationResultsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
                     PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     CalculationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    CacheProvider = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy)
+                    CacheProvider = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy),
+                    BlobClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
 

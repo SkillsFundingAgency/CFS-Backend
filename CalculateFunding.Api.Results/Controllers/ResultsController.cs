@@ -62,6 +62,14 @@ namespace CalculateFunding.Api.Results.Controllers
             return await _resultsService.GetProviderResults(providerId, specificationId);
         }
 
+        [Route("api/results/specifications/{specificationId}/generate-calculation-csv-results")]
+        [HttpPost]
+        [Produces(typeof(Job))]
+        public async Task<IActionResult> RunGenerateCalculationCsvResults([FromRoute] string specificationId)
+        {
+            return await _resultsService.QueueCsvGeneration(specificationId);
+        }
+
         [Route("api/results/specifications/{specificationId}/provider-result-by-calculationtype/{providerId}/template")]
         [HttpGet]
         [Produces(typeof(ProviderResult))]

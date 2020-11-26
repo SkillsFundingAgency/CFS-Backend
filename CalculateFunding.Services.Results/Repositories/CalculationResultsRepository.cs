@@ -301,7 +301,7 @@ namespace CalculateFunding.Services.Results.Repositories
             return result.First();
         }
 
-        public async Task<bool> CheckHasNewResultsForSpecificationIdAndTimePeriod(string specificationId, DateTimeOffset dateFrom, DateTimeOffset dateTo)
+        public async Task<bool> CheckHasNewResultsForSpecificationIdAndTime(string specificationId, DateTimeOffset dateFrom)
         {
             CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
             {
@@ -309,13 +309,12 @@ namespace CalculateFunding.Services.Results.Repositories
                             FROM calculationresults c
                             WHERE c.content.specificationId = @SpecificationId
                             AND c.documentType = 'ProviderResult'
-                            AND (c.createdAt >= @DateFrom AND c.createdAt < @DateTo)",
+                            AND c.updatedAt >= @DateFrom",
 
                 Parameters = new[]
                 {
                     new CosmosDbQueryParameter("@SpecificationId", specificationId),
                     new CosmosDbQueryParameter("@DateFrom", dateFrom),
-                    new CosmosDbQueryParameter("@DateTo", dateTo)
                 }
             };
 
