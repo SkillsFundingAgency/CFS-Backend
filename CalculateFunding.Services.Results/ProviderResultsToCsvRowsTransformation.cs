@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using CalculateFunding.Models.Calcs;
+using TemplateMappingItem = CalculateFunding.Common.ApiClient.Calcs.Models.TemplateMappingItem;
 using CalculateFunding.Models.ProviderLegacy;
 using CalculateFunding.Services.Results.Interfaces;
 
@@ -13,7 +14,7 @@ namespace CalculateFunding.Services.Results
         private readonly ArrayPool<ExpandoObject> _expandoObjectsPool 
             = ArrayPool<ExpandoObject>.Create(ProviderResultsCsvGeneratorService.BatchSize, 4);
         
-        public IEnumerable<ExpandoObject> TransformProviderResultsIntoCsvRows(IEnumerable<ProviderResult> providerResults)
+        public IEnumerable<ExpandoObject> TransformProviderResultsIntoCsvRows(IEnumerable<ProviderResult> providerResults, IDictionary<string, TemplateMappingItem> allTemplateMappings)
         {
             int resultsCount = providerResults.Count();
             
@@ -39,7 +40,7 @@ namespace CalculateFunding.Services.Results
                 {
                     foreach (FundingLineResult fundingLineResult in result.FundingLineResults)
                     {
-                        row[$"FL {fundingLineResult.FundingLine.Name}"] = fundingLineResult.Value?.ToString();
+                        row[$"FUN: {fundingLineResult.FundingLine.Name} ({fundingLineResult.FundingLine.Id})"] = fundingLineResult.Value?.ToString();
                     }
                 }
 
@@ -47,11 +48,19 @@ namespace CalculateFunding.Services.Results
                 //lists of template calculations so we don't really need to handle missing calc results
                 //from provider result to provider result
                 foreach (CalculationResult templateCalculationResult in result.CalculationResults.Where(_ => 
-                    _.Calculation != null)
+                    _.Calculation != null && _.CalculationType == CalculationType.Template)
                     .OrderBy(_ => _.Calculation.Name))
                 {
-                    row[templateCalculationResult.Calculation.Name] = templateCalculationResult.Value?.ToString();
+                    row[$"CAL: {templateCalculationResult.Calculation.Name} ({allTemplateMappings[templateCalculationResult.Calculation.Id].TemplateId})"] = templateCalculationResult.Value?.ToString();
                 }
+
+                foreach (CalculationResult templateCalculationResult in result.CalculationResults.Where(_ =>
+                    _.Calculation != null && _.CalculationType == CalculationType.Additional)
+                    .OrderBy(_ => _.Calculation.Name))
+                {
+                    row[$"ADD: {templateCalculationResult.Calculation.Name}"] = templateCalculationResult.Value?.ToString();
+                }
+
 
                 yield return (ExpandoObject) row;
             }

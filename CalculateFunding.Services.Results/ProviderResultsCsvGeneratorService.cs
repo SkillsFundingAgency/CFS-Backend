@@ -4,8 +4,14 @@ using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Calcs;
+using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core;
@@ -29,6 +35,8 @@ namespace CalculateFunding.Services.Results
         
         private readonly ILogger _logger;
         private readonly IBlobClient _blobClient;
+        private readonly ICalculationsApiClient _calculationsApiClient;
+        private readonly ISpecificationsApiClient _specificationsApiClient;
         private readonly ICalculationResultsRepository _resultsRepository;
         private readonly ICsvUtils _csvUtils;
         private readonly IProviderResultsToCsvRowsTransformation _resultsToCsvRowsTransformation;
@@ -36,10 +44,14 @@ namespace CalculateFunding.Services.Results
         private readonly IFileSystemCacheSettings _fileSystemCacheSettings;
         private readonly IJobManagement _jobManagement;
         private readonly AsyncPolicy _blobClientPolicy;
+        private readonly AsyncPolicy _calculationsApiClientPolicy;
+        private readonly AsyncPolicy _specificationsApiClientPolicy;
         private readonly AsyncPolicy _resultsRepositoryPolicy;
 
         public ProviderResultsCsvGeneratorService(ILogger logger,
             IBlobClient blobClient,
+            ICalculationsApiClient calculationsApiClient,
+            ISpecificationsApiClient specificationsApiClient,
             ICalculationResultsRepository resultsRepository,
             IResultsResiliencePolicies policies,
             ICsvUtils csvUtils,
@@ -50,18 +62,26 @@ namespace CalculateFunding.Services.Results
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(blobClient, nameof(blobClient));
+            Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
+            Guard.ArgumentNotNull(calculationsApiClient, nameof(calculationsApiClient));
             Guard.ArgumentNotNull(resultsRepository, nameof(resultsRepository));
             Guard.ArgumentNotNull(resultsToCsvRowsTransformation, nameof(resultsToCsvRowsTransformation));
             Guard.ArgumentNotNull(fileSystemAccess, nameof(fileSystemAccess));
             Guard.ArgumentNotNull(policies?.BlobClient, nameof(policies.BlobClient));
+            Guard.ArgumentNotNull(policies?.CalculationsApiClient, nameof(policies.CalculationsApiClient));
+            Guard.ArgumentNotNull(policies?.SpecificationsApiClient, nameof(policies.SpecificationsApiClient));
             Guard.ArgumentNotNull(policies?.ResultsRepository, nameof(policies.ResultsRepository));
             Guard.ArgumentNotNull(fileSystemCacheSettings, nameof(fileSystemCacheSettings));
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
 
             _logger = logger;
             _blobClient = blobClient;
+            _calculationsApiClient = calculationsApiClient;
+            _specificationsApiClient = specificationsApiClient;
             _resultsRepository = resultsRepository;
             _blobClientPolicy = policies.BlobClient;
+            _calculationsApiClientPolicy = policies.CalculationsApiClient;
+            _specificationsApiClientPolicy = policies.SpecificationsApiClient;
             _resultsRepositoryPolicy = policies.ResultsRepository;
             _csvUtils = csvUtils;
             _resultsToCsvRowsTransformation = resultsToCsvRowsTransformation;
@@ -104,11 +124,34 @@ namespace CalculateFunding.Services.Results
             EnsureFileIsNew(temporaryFilePath);
 
             bool outputHeaders = true;
-            
+
+            ApiResponse<SpecificationSummary> specificationSummaryResponse  = await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId));
+
+            if (specificationSummaryResponse?.Content == null)
+            {
+                throw new NonRetriableException("");
+            }
+
+            SpecificationSummary specificationSummary = specificationSummaryResponse.Content;
+
+            IEnumerable<TemplateMappingItem> allMappings = new TemplateMappingItem[0];
+
+            foreach (Reference reference in specificationSummary.FundingStreams)
+            {
+                ApiResponse<TemplateMapping> templateMapping = await _calculationsApiClientPolicy.ExecuteAsync(() => _calculationsApiClient.GetTemplateMapping(specificationId, reference.Id));
+
+                if (templateMapping?.Content == null)
+                {
+                    continue;
+                }
+
+                allMappings = allMappings.Concat(templateMapping.Content.TemplateMappingItems);
+            }
+
             await _resultsRepositoryPolicy.ExecuteAsync(() => _resultsRepository.ProviderResultsBatchProcessing(specificationId,
                 providerResults =>
                 {
-                    IEnumerable<ExpandoObject>csvRows = _resultsToCsvRowsTransformation.TransformProviderResultsIntoCsvRows(providerResults);
+                    IEnumerable<ExpandoObject>csvRows = _resultsToCsvRowsTransformation.TransformProviderResultsIntoCsvRows(providerResults, allMappings.ToDictionary(_ => _.CalculationId));
 
                     string csv = _csvUtils.AsCsv(csvRows, outputHeaders);
 

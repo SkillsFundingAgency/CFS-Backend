@@ -3,9 +3,15 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching.FileSystem;
@@ -21,6 +27,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Polly;
 using Serilog;
+using TemplateMappingItem = CalculateFunding.Common.ApiClient.Calcs.Models.TemplateMappingItem;
 
 namespace CalculateFunding.Services.Results.UnitTests
 {
@@ -30,6 +37,8 @@ namespace CalculateFunding.Services.Results.UnitTests
         private ProviderResultsCsvGeneratorService _service;
         private ICsvUtils _csvUtils;
         private IBlobClient _blobClient;
+        private ICalculationsApiClient _calcsApiClient;
+        private ISpecificationsApiClient _specsApiClient;
         private ICloudBlob _cloudBlob; 
         private IProviderResultsToCsvRowsTransformation _transformation;
         private ICalculationResultsRepository _calculationResultsRepository;
@@ -52,13 +61,19 @@ namespace CalculateFunding.Services.Results.UnitTests
             _fileSystemAccess = Substitute.For<IFileSystemAccess>();
             _fileSystemCacheSettings = Substitute.For<IFileSystemCacheSettings>();
             _jobManagement = Substitute.For<IJobManagement>();
+            _calcsApiClient = Substitute.For<ICalculationsApiClient>();
+            _specsApiClient = Substitute.For<ISpecificationsApiClient>();
 
             _service = new ProviderResultsCsvGeneratorService(Substitute.For<ILogger>(),
                 _blobClient,
+                _calcsApiClient,
+                _specsApiClient,
                 _calculationResultsRepository,
                 new ResiliencePolicies
                 {
                     BlobClient = Policy.NoOpAsync(),
+                    CalculationsApiClient = Policy.NoOpAsync(),
+                    SpecificationsApiClient = Policy.NoOpAsync(),
                     ResultsRepository =  Policy.NoOpAsync()
                 }, 
                 _csvUtils,
@@ -126,6 +141,7 @@ namespace CalculateFunding.Services.Results.UnitTests
         public async Task TransformsProviderResultsForSpecificationInBatchesAndCreatesCsvWithResults()
         {
             string specificationId = NewRandomString();
+            string fundingStream = NewRandomString();
             string specificationName = NewRandomString();
             string expectedInterimFilePath = Path.Combine(_rootPath, $"calculation-results-{specificationId}.csv");
             
@@ -153,6 +169,7 @@ namespace CalculateFunding.Services.Results.UnitTests
             
             MemoryStream incrementalFileStream = new MemoryStream();
 
+            GivenSpecification(specificationId, fundingStream);
             GivenTheCsvRowTransformation(providerResultsOne, transformedRowsOne, expectedCsvOne, true);
             AndTheCsvRowTransformation(providerResultsTwo, transformedRowsTwo, expectedCsvTwo,  false);
             AndTheMessageProperties(("specification-id", specificationId));
@@ -244,10 +261,12 @@ namespace CalculateFunding.Services.Results.UnitTests
                 .Returns(Task.FromResult(latestJobs));
         }
 
+        private void GivenSpecification(string specificationId, string fundingStream) => _specsApiClient.GetSpecificationSummaryById(Arg.Is(specificationId)).Returns(new ApiResponse<SpecificationSummary>(HttpStatusCode.OK, new SpecificationSummary { Id = specificationId, FundingStreams = new[] { new Reference { Id = fundingStream } } }));
+
         private void GivenTheCsvRowTransformation(List<ProviderResult> providerResult, ExpandoObject[] transformedRows, string csv, bool outputHeaders)
         {
             _transformation
-                .TransformProviderResultsIntoCsvRows(Arg.Is(providerResult))
+                .TransformProviderResultsIntoCsvRows(Arg.Is(providerResult), Arg.Any<IDictionary<string, TemplateMappingItem>>())
                 .Returns(transformedRows);
             
             _csvUtils.AsCsv(Arg.Is<IEnumerable<dynamic>>(_ => _.SequenceEqual(transformedRows)), Arg.Is(outputHeaders))

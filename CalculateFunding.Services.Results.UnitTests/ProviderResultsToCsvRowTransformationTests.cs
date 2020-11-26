@@ -8,6 +8,7 @@ using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.ProviderLegacy;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using TemplateMappingItem = CalculateFunding.Common.ApiClient.Calcs.Models.TemplateMappingItem;
 
 namespace CalculateFunding.Services.Results.UnitTests
 {
@@ -35,12 +36,14 @@ namespace CalculateFunding.Services.Results.UnitTests
                                 .WithUKPRN("ukprn1")
                                 .WithLocalProviderType("pt1")
                                 .WithLocalProviderSubType("pst1")))
-                    .WithCalculationResults(NewCalculationResult(cr => cr.WithCalculationType(CalculationType.Additional)),
+                    .WithCalculationResults(NewCalculationResult(cr => cr.WithCalculationType(CalculationType.Additional)
+                            .WithCalculation(NewReference(rf => rf.WithName("calc3").WithId("calc3")))
+                            .WithValue(555M)),
                         NewCalculationResult(cr => cr.WithCalculationType(CalculationType.Template)
-                            .WithCalculation(NewReference(rf => rf.WithName("calc1")))
+                            .WithCalculation(NewReference(rf => rf.WithName("calc1").WithId("calc1")))
                             .WithValue(999M)),
                         NewCalculationResult(cr => cr.WithCalculationType(CalculationType.Template)
-                            .WithCalculation(NewReference(rf => rf.WithName("calc2")))
+                            .WithCalculation(NewReference(rf => rf.WithName("calc2").WithId("calc2")))
                             .WithValue(666M))),
                 _ => _.WithProviderSummary(
                         NewProviderSummary(
@@ -54,18 +57,21 @@ namespace CalculateFunding.Services.Results.UnitTests
                                 .WithLocalProviderSubType("pst2")))
                     .WithCalculationResults(NewCalculationResult(cr => cr.WithCalculationType(CalculationType.Additional)),
                         NewCalculationResult(cr => cr.WithCalculationType(CalculationType.Template)
-                            .WithCalculation(NewReference(rf => rf.WithName("calc1")))
+                            .WithCalculation(NewReference(rf => rf.WithName("calc1").WithId("calc1")))
                             .WithValue(123M)),
                         NewCalculationResult(cr => cr.WithCalculationType(CalculationType.Template)
-                            .WithCalculation(NewReference(rf => rf.WithName("calc2")))
+                            .WithCalculation(NewReference(rf => rf.WithName("calc2").WithId("calc2")))
                             .WithValue(null)))
                     .WithFundingLineResults(
                         NewFundingLineResult(flr => flr
-                            .WithFundingLine(NewReference(rf => rf.WithName("fundingLine1")))
+                            .WithFundingLine(NewReference(rf => rf.WithName("fundingLine1").WithId("1")))
                             .WithValue(333M)),
                         NewFundingLineResult(flr => flr
-                            .WithFundingLine(NewReference(rf => rf.WithName("fundingLine2")))
+                            .WithFundingLine(NewReference(rf => rf.WithName("fundingLine2").WithId("2")))
                             .WithValue(555M))));
+
+            IEnumerable<TemplateMappingItem> templateMappings = new[] { new TemplateMappingItem { CalculationId = "calc1", TemplateId = 1 }, 
+                new TemplateMappingItem { CalculationId = "calc2", TemplateId = 2 } };
 
             dynamic[] expectedCsvRows = {
                 new Dictionary<string, object>
@@ -78,8 +84,9 @@ namespace CalculateFunding.Services.Results.UnitTests
                     {"LA Name", "laname1"},
                     {"Provider Type", "pt1"},
                     {"Provider SubType", "pst1"},
-                    {"calc1", 999M.ToString(CultureInfo.InvariantCulture)},
-                    {"calc2", 666M.ToString(CultureInfo.InvariantCulture)},
+                    {"CAL: calc1 (1)", 999M.ToString(CultureInfo.InvariantCulture)},
+                    {"CAL: calc2 (2)", 666M.ToString(CultureInfo.InvariantCulture)},
+                    {"ADD: calc3", 555M.ToString(CultureInfo.InvariantCulture)}
                 },
                 new Dictionary<string, object>
                 {
@@ -91,14 +98,14 @@ namespace CalculateFunding.Services.Results.UnitTests
                     {"LA Name", "laname2"},
                     {"Provider Type", "pt2"},
                     {"Provider SubType", "pst2"},
-                    {"FL fundingLine1", 333M.ToString(CultureInfo.InvariantCulture)},
-                    {"FL fundingLine2", 555M.ToString(CultureInfo.InvariantCulture)},
-                    {"calc1", 123M.ToString(CultureInfo.InvariantCulture)},
-                    {"calc2", null},
+                    {"FUN: fundingLine1 (1)", 333M.ToString(CultureInfo.InvariantCulture)},
+                    {"FUN: fundingLine2 (2)", 555M.ToString(CultureInfo.InvariantCulture)},
+                    {"CAL: calc1 (1)", 123M.ToString(CultureInfo.InvariantCulture)},
+                    {"CAL: calc2 (2)", null},
                 }
             };
 
-            ExpandoObject[] transformProviderResultsIntoCsvRows = _transformation.TransformProviderResultsIntoCsvRows(providerResults).ToArray();
+            ExpandoObject[] transformProviderResultsIntoCsvRows = _transformation.TransformProviderResultsIntoCsvRows(providerResults, templateMappings.ToDictionary(_ => _.CalculationId) ).ToArray();
 
             transformProviderResultsIntoCsvRows
                 .Should()
