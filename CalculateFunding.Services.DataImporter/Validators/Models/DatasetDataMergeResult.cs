@@ -19,6 +19,7 @@ namespace CalculateFunding.Services.DataImporter.Models
 
         public int TotalRowsCreated => TablesMergeResults.Sum(x => x.NewRowsCount);
         public int TotalRowsAmended => TablesMergeResults.Sum(x => x.UpdatedRowsCount);
+        public bool HasChanges => (TotalRowsCreated + TotalRowsAmended) > 0;
 
         public string GetMergeResultsMessage()
         {

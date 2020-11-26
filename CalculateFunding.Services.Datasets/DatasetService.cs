@@ -553,7 +553,30 @@ namespace CalculateFunding.Services.Datasets
 
                     mergeResult = await _datasetDataMergeService.Merge(datasetDefinition, dataset.Current.BlobName, fullBlobName);
 
-                    if(mergeResult.HasErrors)
+                    if (!mergeResult.HasChanges)
+                    {
+                        // no need to update index as we are just saving the merge results
+                        dataset.Current.NewRowCount = mergeResult.TotalRowsCreated;
+                        dataset.Current.AmendedRowCount = mergeResult.TotalRowsAmended;
+
+                        HttpStatusCode statusCode = await _datasetRepository.SaveDataset(dataset);
+
+                        if (!statusCode.IsSuccess())
+                        {
+                            _logger.Warning($"Failed to save dataset for id: {model.DatasetId} with status code {statusCode}");
+
+                            throw new InvalidOperationException($"Failed to save dataset for id: {model.DatasetId} with status code {statusCode}");
+                        }
+
+                        await SetValidationStatus(operationId, DatasetValidationStatus.Validated, datasetId: dataset.Id);
+
+                        // set the outcome of the job
+                        Outcome = "Merge completed but no changes detected.";
+
+                        return;
+                    }
+
+                    if (mergeResult.HasErrors)
                     {
                         await SetValidationStatus(operationId, DatasetValidationStatus.MergeFailed, mergeResult.ErrorMessage);
                         throw new NonRetriableException(mergeResult.ErrorMessage);
