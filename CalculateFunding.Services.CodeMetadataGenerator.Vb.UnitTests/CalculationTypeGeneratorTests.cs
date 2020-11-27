@@ -125,7 +125,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
             results.First()
                 .SourceCode
                 .Should().
-                Contain("Public MainCal As Func(Of Boolean, (CalculationResults As Dictionary(Of String, String()), FundingLineResults As Dictionary(Of String, String()))) = Function(allCalculations)");
+                Contain("Public MainCalc As Func(Of Boolean, (CalculationResults As Dictionary(Of String, String()), FundingLineResults As Dictionary(Of String, String()))) = Function(allCalculations)");
         }
 
         [TestMethod]
