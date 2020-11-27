@@ -31,6 +31,9 @@ namespace CalculateFunding.Models.Calcs
         [JsonProperty("valueType")]
         public CalculationValueType ValueType { get; set; }
 
+        [JsonProperty("dataType")]
+        public CalculationDataType DataType { get; set; }
+
         [JsonProperty("lastUpdated")]
         public DateTimeOffset? LastUpdated { get; set; }
 

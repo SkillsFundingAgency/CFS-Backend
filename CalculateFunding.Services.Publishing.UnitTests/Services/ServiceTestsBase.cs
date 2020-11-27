@@ -9,6 +9,7 @@ using Microsoft.Azure.ServiceBus;
 using System;
 using CalculateFunding.Tests.Common.Builders;
 using TemplateFundingLine = CalculateFunding.Common.TemplateMetadata.Models.FundingLine;
+using CalculationResult = CalculateFunding.Models.Publishing.CalculationResult;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Services
 {

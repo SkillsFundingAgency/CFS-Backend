@@ -11,6 +11,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
+using CalculationResult = CalculateFunding.Models.Publishing.CalculationResult;
 using GeneratorModels = CalculateFunding.Generators.Funding.Models;
 
 namespace CalculateFunding.Services.Publishing.UnitTests

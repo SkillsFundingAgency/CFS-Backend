@@ -14,6 +14,7 @@ using CalculateFunding.Services.Publishing.Models;
 using Microsoft.Azure.ServiceBus;
 using TechTalk.SpecFlow;
 using TechTalk.SpecFlow.Assist;
+using CalculationResult = CalculateFunding.Models.Publishing.CalculationResult;
 
 namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
 {

@@ -15,6 +15,7 @@ using CalculationCreateModel = CalculateFunding.Common.ApiClient.Calcs.Models.Ca
 using CalculationEditModel = CalculateFunding.Common.ApiClient.Calcs.Models.CalculationEditModel;
 using CalculationFundingLine = CalculateFunding.Common.ApiClient.Calcs.Models.CalculationFundingLine;
 using CalculationMetadata = CalculateFunding.Common.ApiClient.Calcs.Models.CalculationMetadata;
+using CalculationResult = CalculateFunding.Models.Calcs.CalculationResult;
 using CalculationVersion = CalculateFunding.Common.ApiClient.Calcs.Models.CalculationVersion;
 using DatasetRelationshipSummary = CalculateFunding.Common.ApiClient.Calcs.Models.DatasetRelationshipSummary;
 using PreviewRequest = CalculateFunding.Common.ApiClient.Calcs.Models.PreviewRequest;

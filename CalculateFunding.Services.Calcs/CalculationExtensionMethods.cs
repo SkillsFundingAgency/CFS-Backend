@@ -19,6 +19,7 @@ namespace CalculateFunding.Services.Calcs
                 SourceCode = calculation.Current?.SourceCode ?? CodeGenerationConstants.VisualBasicDefaultSourceCode,
                 Version = calculation.Current.Version,
                 CalculationType = calculation.Current.CalculationType,
+                DataType = calculation.Current.DataType,
                 Namespace = calculation.Current.Namespace,
                 ValueType = calculation.Current.ValueType,
                 WasTemplateCalculation = calculation.Current.WasTemplateCalculation,

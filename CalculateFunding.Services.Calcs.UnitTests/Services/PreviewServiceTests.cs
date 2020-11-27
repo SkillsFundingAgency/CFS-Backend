@@ -2113,7 +2113,8 @@ End Class";
             {
                 CalculationId = CalculationId,
                 SourceCode = stringCompareCode,
-                SpecificationId = SpecificationId
+                SpecificationId = SpecificationId,
+                DataType = calculationDataType
             };
 
             Calculation calculation = new Calculation

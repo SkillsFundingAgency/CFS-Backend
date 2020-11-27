@@ -37,6 +37,7 @@ using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Polly;
 using Serilog;
+using CalculationResult = CalculateFunding.Models.Publishing.CalculationResult;
 using FundingLine = CalculateFunding.Models.Publishing.FundingLine;
 using TemplateCalculation = CalculateFunding.Common.TemplateMetadata.Models.Calculation;
 using TemplateFundingLine = CalculateFunding.Common.TemplateMetadata.Models.FundingLine;

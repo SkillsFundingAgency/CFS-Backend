@@ -8,6 +8,7 @@ using CalculateFunding.Generators.Funding;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using ApiCalculationType = CalculateFunding.Common.TemplateMetadata.Enums.CalculationType;
+using CalculationResult = CalculateFunding.Models.Publishing.CalculationResult;
 using GeneratorModels = CalculateFunding.Generators.Funding.Models;
 using TemplateModels = CalculateFunding.Common.TemplateMetadata.Models;
 

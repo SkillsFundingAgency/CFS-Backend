@@ -7,6 +7,8 @@ namespace CalculateFunding.Models.Calcs
         public string SourceCode { get; set; }
         public string Name { get; set; }
         public string ProviderId { get; set; }
+
+        public CalculationDataType DataType {get; set;}
     }
 }
 

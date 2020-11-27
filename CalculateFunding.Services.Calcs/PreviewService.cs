@@ -166,6 +166,7 @@ namespace CalculateFunding.Services.Calcs
             }
 
             calculation.Current.SourceCode = previewRequest.SourceCode;
+            calculation.Current.DataType = previewRequest.DataType;
 
             Build build = await CheckDatasetValidAggregations(previewRequest);
 
