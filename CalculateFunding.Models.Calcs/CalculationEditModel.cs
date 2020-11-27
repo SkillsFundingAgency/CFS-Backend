@@ -12,6 +12,8 @@ namespace CalculateFunding.Models.Calcs
 
         public CalculationValueType? ValueType { get; set; }
 
+        public CalculationDataType DataType { get; set; }
+
         public string SourceCode { get; set; }
 
         public string Description { get; set; }

@@ -71,7 +71,8 @@ namespace CalculateFunding.Services.Calcs.Validators
                          SpecificationId = calculationEditModel.SpecificationId,
                          CalculationId = calculationEditModel.CalculationId,
                          Name = calculationEditModel.Name,
-                         SourceCode = calculationEditModel.SourceCode
+                         SourceCode = calculationEditModel.SourceCode,
+                         DataType = calculationEditModel.DataType
                      };
 
                      IActionResult result = _previewService.Compile(previewRequest).Result;
