@@ -12,6 +12,7 @@ namespace CalculateFunding.Models.Publishing
         public PublishedProviderFundingStructureItem(
             int level,
             string name,
+            string fundingLineCode,
             string calculationId,
             PublishedProviderFundingStructureType type,
             string value,
@@ -25,6 +26,7 @@ namespace CalculateFunding.Models.Publishing
             Value = value;
             CalculationType = calculationType;
             FundingStructureItems = fundingStructureItems;
+            FundingLineCode = fundingLineCode;
         }
         
         [JsonProperty("level")]
@@ -32,6 +34,9 @@ namespace CalculateFunding.Models.Publishing
         
         [JsonProperty("name")]
         public string Name { get; set; }
+        
+        [JsonProperty("fundingLineCode")]
+        public string FundingLineCode { get; set; }
         
         [JsonProperty("calculationId")]
         public string CalculationId { get; set; }

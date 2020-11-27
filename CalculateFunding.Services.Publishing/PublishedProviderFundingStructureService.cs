@@ -165,6 +165,7 @@ namespace CalculateFunding.Services.Publishing
             PublishedProviderFundingStructureItem fundingStructureItem = MapToFundingStructureItem(
                 level,
                 fundingLine.Name,
+                fundingLine.FundingLineCode,
                 PublishedProviderFundingStructureType.FundingLine,
                 null,
                 null,
@@ -174,7 +175,8 @@ namespace CalculateFunding.Services.Publishing
             return fundingStructureItem;
         }
 
-        private static PublishedProviderFundingStructureItem RecursivelyMapCalculationsToFundingStructureItem(Common.TemplateMetadata.Models.Calculation calculation,
+        private static PublishedProviderFundingStructureItem RecursivelyMapCalculationsToFundingStructureItem(
+            Common.TemplateMetadata.Models.Calculation calculation,
             int level,
             List<TemplateMappingItem> templateMappingItems,
             PublishedProviderVersion publishedProviderVersion)
@@ -209,6 +211,7 @@ namespace CalculateFunding.Services.Publishing
             return MapToFundingStructureItem(
                 level,
                 calculation.Name,
+                null,
                 PublishedProviderFundingStructureType.Calculation,
                 calculationType,
                 calculationId,
@@ -219,6 +222,7 @@ namespace CalculateFunding.Services.Publishing
         private static PublishedProviderFundingStructureItem MapToFundingStructureItem(
             int level,
             string name,
+            string fundingLineCode,
             PublishedProviderFundingStructureType type,
             string calculationType = null,
             string calculationId = null,
@@ -227,6 +231,7 @@ namespace CalculateFunding.Services.Publishing
             new PublishedProviderFundingStructureItem(
                 level,
                 name,
+                fundingLineCode,
                 calculationId,
                 type,
                 value,

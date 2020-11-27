@@ -8,6 +8,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
     {
         private int _level;
         private string _name;
+        private string _fundingLineCode;
         private string _calculationId;
         private PublishedProviderFundingStructureType _type;
         private string _value;
@@ -62,6 +63,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return new PublishedProviderFundingStructureItem(
                 _level, 
                 _name, 
+                _fundingLineCode,
                 _calculationId, 
                 _type, 
                 _value, 
