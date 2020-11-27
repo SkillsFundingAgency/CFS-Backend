@@ -103,6 +103,30 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
             results.Should().HaveCount(1);
             results.First().SourceCode.Should().StartWith("Option Strict Off");
         }
+        
+        [TestMethod]
+        public void GenerateCalcs_ThenEntryFunctionGenerated()
+        {
+            // Arrange
+            Dictionary<string, Funding> fundingLines = new Dictionary<string, Funding>();
+
+            CompilerOptions compilerOptions = new CompilerOptions
+            {
+                OptionStrictEnabled = false
+            };
+
+            CalculationTypeGenerator calculationTypeGenerator = new CalculationTypeGenerator(compilerOptions);
+
+            // Act
+            IEnumerable<SourceFile> results = calculationTypeGenerator.GenerateCalcs(new List<Calculation>(), fundingLines);
+
+            // Assert
+            results.Should().HaveCount(1);
+            results.First()
+                .SourceCode
+                .Should().
+                Contain("Public MainCal As Func(Of Boolean, (CalculationResults As Dictionary(Of String, String()), FundingLineResults As Dictionary(Of String, String()))) = Function(allCalculations)");
+        }
 
         [TestMethod]
         public void GenerateCalculations_GivenEnumCalculation_ThenEnumCreated()

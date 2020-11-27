@@ -130,7 +130,8 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
             builder.AppendLine();
             builder.AppendLine("<System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)>");
-            builder.AppendLine($"Public Function MainCalc(allCalculations As Boolean) As (CalculationResults As Dictionary(Of String, String()), FundingLineResults As Dictionary(Of String, String()))");
+            builder.AppendLine(
+                "Public MainCal As Func(Of Boolean, (CalculationResults As Dictionary(Of String, String()), FundingLineResults As Dictionary(Of String, String()))) = Function(allCalculations)");
             builder.AppendLine();
 
             if (_compilerOptions.UseDiagnosticsMode)

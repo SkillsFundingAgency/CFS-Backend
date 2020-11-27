@@ -168,7 +168,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
         {
             StringBuilder sourceCode = new StringBuilder();
 
-            sourceCode.AppendLine("Public Sub Initialise(calculationContext As CalculationContext)");
+            sourceCode.AppendLine("Public Initialise As Action(Of CalculationContext) = Sub(calculationContext)");
             sourceCode.AppendLine("Datasets = calculationContext.Datasets");
             sourceCode.AppendLine("Provider = calculationContext.Provider");
             sourceCode.AppendLine();

@@ -72,7 +72,7 @@ End Enum";
             const string one = "One";
 
             string[] expectedInitialiseMethod = {
-                @"Public Sub Initialise(calculationContext As CalculationContext)
+                @"Public Initialise As Action(Of CalculationContext) = Sub(calculationContext)
 Datasets = calculationContext.Datasets
 Provider = calculationContext.Provider
 

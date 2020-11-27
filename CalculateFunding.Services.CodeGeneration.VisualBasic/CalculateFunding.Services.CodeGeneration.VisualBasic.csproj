@@ -42,7 +42,6 @@
     <EmbeddedResource Include="CodeResources\Common\CalculationStackOverflowException.vb" />
     <EmbeddedResource Include="CodeResources\Common\ReferencedFundingLineFailedException.vb" />
     <EmbeddedResource Include="CodeResources\Common\ReferencedCalculationFailedException.vb" />
-    <EmbeddedResource Include="CodeResources\Common\LegacyBaseCalculation.vb" />
     <EmbeddedResource Include="CodeResources\Common\DatasetReferenceChangeException.vb" />
     <EmbeddedResource Include="CodeResources\Common\ProjectData.vb" />
     <EmbeddedResource Include="CodeResources\Common\Scenario.vb" />
