@@ -124,8 +124,8 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
             results.Should().HaveCount(1);
             results.First()
                 .SourceCode
-                .Should().
-                Contain("Public MainCalc As Func(Of Boolean, (CalculationResults As Dictionary(Of String, String()), FundingLineResults As Dictionary(Of String, String()))) = Function(allCalculations)");
+                .Should()
+                .Contain("Public Function MainCalc(allCalculations As Boolean) As(CalculationResults As Dictionary(Of String, String()), FundingLineResults As Dictionary(Of String, String()))");
         }
 
         [TestMethod]
