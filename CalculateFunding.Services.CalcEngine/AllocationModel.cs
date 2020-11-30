@@ -28,7 +28,6 @@ namespace CalculateFunding.Services.CalcEngine
         private readonly ILogger _logger;
         private readonly Activator _activator;
         private readonly Assembly _assembly;
-        private MethodInfo _mainMethod;
 
         private Dictionary<string, Type> _datasetTypes;
 
@@ -65,8 +64,6 @@ namespace CalculateFunding.Services.CalcEngine
                     _datasetSetters.Add(GetProperty(relationshipAttribute, "Name"), relationshipProperty);
                 }
             }
-
-            _mainMethod = _allocationType.GetMethods().FirstOrDefault(x => x.Name == "MainCalc");
 
             IEnumerable<PropertyInfo> allocationTypeCalculationProperties =
                 _allocationType.GetTypeInfo().DeclaredProperties.Where(m => m.PropertyType.BaseType.Name == "BaseCalculation");
@@ -189,10 +186,11 @@ namespace CalculateFunding.Services.CalcEngine
             SetMissingDatasetDefaultObjects(datasetNamesUsed, _datasetSetters, datasetsInstance);
 
             Stopwatch stopwatch = Stopwatch.StartNew();
+            
             // get all calculation results
+            dynamic calculations = instance;
             ValueTuple<Dictionary<string, string[]>, Dictionary<string, string[]>> results =
-                (ValueTuple<Dictionary<string, string[]>, Dictionary<string, string[]>>)
-                    _mainMethod.Invoke(instance, new object[] { true });
+                calculations.MainCalc(true);
 
             stopwatch.Stop();
 
