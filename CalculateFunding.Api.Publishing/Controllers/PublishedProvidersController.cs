@@ -77,11 +77,27 @@ namespace CalculateFunding.Api.Publishing.Controllers
                 .GetLatestPublishedProvidersForSpecificationId(specificationId);
 
         /// <summary>
+        /// Get published provider - latest, current version
+        /// </summary>
+        /// <param name="fundingStreamId">Funding stream Id</param>
+        /// <param name="providerId">Provider id</param>
+        /// <param name="specificationId">specification</param>
+        /// <returns>current provider version for this specification</returns>
+        [HttpGet("api/specifications/{specificationId}/publishedproviderversions/{providerId}/fundingStreams/{fundingStreamId}")]
+        [ProducesResponseType(200, Type = typeof(PublishedProviderVersion))]
+        public async Task<IActionResult> GetCurrentPublishedProviderVersion([FromRoute] string fundingStreamId,
+            [FromRoute] string providerId,
+            [FromRoute] string specificationId) => 
+            await _providerFundingPublishingService.GetCurrentPublishedProviderVersion(fundingStreamId,
+                providerId,
+                specificationId);
+
+        /// <summary>
         /// Get published provider - specific version
         /// </summary>
         /// <param name="fundingStreamId">Funding stream Id</param>
         /// <param name="fundingPeriodId">Funding period Id</param>
-        /// <param name="providerId">Provider version</param>
+        /// <param name="providerId">Provider Id</param>
         /// <param name="version">Physical version - integer</param>
         /// <returns></returns>
         [HttpGet("api/publishedproviderversions/{fundingStreamId}/{fundingPeriodId}/{providerId}/{version}")]
@@ -200,6 +216,23 @@ The publishedProviderVersionId will be in the context of funding stream ID, fund
 
             return Ok();
         }
+
+        /// <summary>
+        ///  Get the Published Provider Funding Structure for the current latest version of the published provider 
+        /// </summary>
+        /// <param name="specificationId">specification Id</param>
+        /// <param name="fundingStreamId">funding stream Id</param>
+        /// <param name="providerId">provider Id</param>
+        /// <returns>PublishedProviderFundingStructure</returns>
+        [HttpGet("api/specifications/{specificationId}/publishedproviders/{providerId}/fundingStreams/{fundingStreamId}/fundingStructure")]
+        [ProducesResponseType(200, Type = typeof(PublishedProviderFundingStructure))]
+        [ProducesResponseType(StatusCodes.Status304NotModified)]
+        [HttpCacheFactory(0, ViewModelType = typeof(PublishedProviderFundingStructure))]
+        public async Task<IActionResult> GetPublishedProviderFundingStructure(
+            [FromRoute]string specificationId,
+            [FromRoute]string fundingStreamId,
+            [FromRoute]string providerId) =>
+            await _publishedProviderFundingStructureService.GetCurrentPublishedProviderFundingStructure(specificationId, fundingStreamId, providerId);
 
         /// <summary>
         ///  Get the Published Provider Funding Structure by published provider version id

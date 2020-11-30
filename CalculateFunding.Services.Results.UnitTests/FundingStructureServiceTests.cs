@@ -57,7 +57,7 @@ namespace CalculateFunding.Services.Results.UnitTests
         private ICacheProvider _cacheProvider;
         private Common.ApiClient.Policies.IPoliciesApiClient _policiesApiClient;
         private IValidator<UpdateFundingStructureLastModifiedRequest> _validator;
-        
+
         private FundingStructureService _service;
 
         [TestInitialize]
@@ -103,7 +103,7 @@ namespace CalculateFunding.Services.Results.UnitTests
                 .Should()
                 .BeEquivalentTo("request");
         }
-        
+
         [TestMethod]
         public async Task UpdateFundingStructureLastModifiedGuardsAgainstInValidRequests()
         {
@@ -111,11 +111,11 @@ namespace CalculateFunding.Services.Results.UnitTests
             ValidationFailure failureOne = NewValidationFailure();
             ValidationFailure failureTwo = NewValidationFailure();
             ValidationResult validationResult = NewValidationResult(_ => _.WithValidationFailures(failureOne, failureTwo));
-            
+
             GivenTheValidationResult(request, validationResult);
-            
+
             BadRequestObjectResult actionResult = await WhenTheFundingStructureLastModifiedIsUpdated(request) as BadRequestObjectResult;
-            
+
             SerializableError serializableError = actionResult?.Value as SerializableError;
 
             serializableError
@@ -124,11 +124,11 @@ namespace CalculateFunding.Services.Results.UnitTests
 
             serializableError[failureOne.PropertyName]
                 .Should()
-                .BeEquivalentTo(new [] {  failureOne.ErrorMessage });
-            
+                .BeEquivalentTo(new[] {failureOne.ErrorMessage});
+
             serializableError[failureTwo.PropertyName]
                 .Should()
-                .BeEquivalentTo(new [] {  failureTwo.ErrorMessage });
+                .BeEquivalentTo(new[] {failureTwo.ErrorMessage});
 
             await AndTheCacheWasNotUpdated();
         }
@@ -138,15 +138,15 @@ namespace CalculateFunding.Services.Results.UnitTests
         {
             UpdateFundingStructureLastModifiedRequest request = NewUpdateFundingStructureLastModifiedRequest();
             GivenTheValidationResult(request, NewValidationResult());
-            
+
             OkResult actionResult = await WhenTheFundingStructureLastModifiedIsUpdated(request) as OkResult;
 
             actionResult
                 .Should()
                 .NotBeNull();
 
-           await  AndTheLastUpdatedCacheWasUpdated($"{CacheKeys.FundingLineStructureTimestamp}{request.SpecificationId}:{request.FundingStreamId}:{request.FundingPeriodId}",
-               request.LastModified);
+            await AndTheLastUpdatedCacheWasUpdated($"{CacheKeys.FundingLineStructureTimestamp}{request.SpecificationId}:{request.FundingStreamId}:{request.FundingPeriodId}",
+                request.LastModified);
         }
 
         [TestMethod]
@@ -155,9 +155,9 @@ namespace CalculateFunding.Services.Results.UnitTests
             string specificationId = NewRandomString();
             string fundingStreamId = NewRandomString();
             string fundingPeriodId = NewRandomString();
-            
+
             DateTimeOffset expectedLastModified = NewRandomDateTime();
-            
+
             GivenTheLastModifiedDateForTheFundingStructure(specificationId, fundingStreamId, fundingPeriodId, expectedLastModified);
 
             DateTimeOffset actualLastModified = await WhenTheLastModifiedDateIsQueried(specificationId, fundingStreamId, fundingPeriodId);
@@ -166,12 +166,12 @@ namespace CalculateFunding.Services.Results.UnitTests
                 .Should()
                 .Be(expectedLastModified);
         }
-        
+
         [TestMethod]
         public void GetFundingStructureTimeStampGuardsAgainstMissingFundingPeriodId()
         {
-            Func<Task<DateTimeOffset>> invocation = () => WhenTheLastModifiedDateIsQueried(NewRandomString(), 
-                NewRandomString(), 
+            Func<Task<DateTimeOffset>> invocation = () => WhenTheLastModifiedDateIsQueried(NewRandomString(),
+                NewRandomString(),
                 null);
 
             invocation
@@ -186,8 +186,8 @@ namespace CalculateFunding.Services.Results.UnitTests
         [TestMethod]
         public void GetFundingStructureTimeStampGuardsAgainstMissingFundingStreamId()
         {
-            Func<Task<DateTimeOffset>> invocation = () => WhenTheLastModifiedDateIsQueried(NewRandomString(), 
-                null, 
+            Func<Task<DateTimeOffset>> invocation = () => WhenTheLastModifiedDateIsQueried(NewRandomString(),
+                null,
                 NewRandomString());
 
             invocation
@@ -198,12 +198,12 @@ namespace CalculateFunding.Services.Results.UnitTests
                 .Should()
                 .Be("fundingStreamId");
         }
-        
+
         [TestMethod]
         public void GetFundingStructureTimeStampGuardsAgainstMissingSpecificationId()
         {
-            Func<Task<DateTimeOffset>> invocation = () => WhenTheLastModifiedDateIsQueried(null, 
-                NewRandomString(), 
+            Func<Task<DateTimeOffset>> invocation = () => WhenTheLastModifiedDateIsQueried(null,
+                NewRandomString(),
                 NewRandomString());
 
             invocation
@@ -214,7 +214,7 @@ namespace CalculateFunding.Services.Results.UnitTests
                 .Should()
                 .Be("specificationId");
         }
-        
+
 
         private void GivenTheLastModifiedDateForTheFundingStructure(string specificationId,
             string fundingStreamId,
@@ -227,53 +227,53 @@ namespace CalculateFunding.Services.Results.UnitTests
             string fundingStreamId,
             string fundingPeriodId)
             => await _service.GetFundingStructureTimeStamp(fundingStreamId, fundingPeriodId, specificationId);
-        
+
         private async Task AndTheLastUpdatedCacheWasUpdated(string key, DateTimeOffset value)
-        => await _cacheProvider.Received(1)
-            .SetAsync(Arg.Is(key), Arg.Is(value));
+            => await _cacheProvider.Received(1)
+                .SetAsync(Arg.Is(key), Arg.Is(value));
 
         private async Task AndTheCacheWasNotUpdated()
             => await _cacheProvider.Received(0)
                 .SetAsync(Arg.Any<string>(), Arg.Any<DateTimeOffset>());
-        
+
         private ValidationResult NewValidationResult(Action<ValidationResultBuilder> setUp = null)
         {
             ValidationResultBuilder validationResultBuilder = new ValidationResultBuilder();
-            
+
             setUp?.Invoke(validationResultBuilder);
-            
+
             return validationResultBuilder
                 .Build();
         }
-        
+
         private ValidationFailure NewValidationFailure(Action<ValidationFailureBuilder> setUp = null)
         {
             ValidationFailureBuilder validationFailureBuilder = new ValidationFailureBuilder();
 
             setUp?.Invoke(validationFailureBuilder);
-            
+
             return validationFailureBuilder.Build();
         }
-        
+
         private void GivenTheValidationResult(UpdateFundingStructureLastModifiedRequest request,
             ValidationResult validationResult)
         {
             _validator.Validate(request)
                 .Returns(validationResult);
         }
-        
+
         private UpdateFundingStructureLastModifiedRequest NewUpdateFundingStructureLastModifiedRequest()
-        => new UpdateFundingStructureLastModifiedRequestBuilder()
-            .WithLastModified(NewRandomDateTime())
-            .WithSpecificationId(NewRandomString())
-            .WithFundingPeriodId(NewRandomString())
-            .WithFundingStreamId(NewRandomString())
-            .Build();
+            => new UpdateFundingStructureLastModifiedRequestBuilder()
+                .WithLastModified(NewRandomDateTime())
+                .WithSpecificationId(NewRandomString())
+                .WithFundingPeriodId(NewRandomString())
+                .WithFundingStreamId(NewRandomString())
+                .Build();
 
         private DateTimeOffset NewRandomDateTime() => new RandomDateTime();
-        
+
         private string NewRandomString() => new RandomString();
-        
+
         private async Task<IActionResult> WhenTheFundingStructureLastModifiedIsUpdated(UpdateFundingStructureLastModifiedRequest request)
             => await _service.UpdateFundingStructureLastModified(request);
 
@@ -301,13 +301,13 @@ namespace CalculateFunding.Services.Results.UnitTests
 
             List<FundingStructureItem> expectedFundingStructureItems = GetValidMappedFundingStructureItems();
             expectedFundingStructureItems[0].Value = "Excluded";
-            expectedFundingStructureItems[2].FundingStructureItems.ToList()[0].Value = "£2.30";
+            expectedFundingStructureItems[2].FundingStructureItems.ToList()[0].Value = "Â£2.30";
             expectedFundingStructureItems[2].FundingStructureItems.ToList()[0].CalculationType = "Currency";
 
             expectedFundingStructureItems[2].FundingStructureItems.ToList()[2].Value = "333";
             expectedFundingStructureItems[2].FundingStructureItems.ToList()[2].CalculationType = "Number";
 
-            expectedFundingStructureItems[3].Value = "£9,999";
+            expectedFundingStructureItems[3].Value = "Â£9,999";
 
             apiResponseResult.Should().BeOfType<OkObjectResult>();
             OkObjectResult typedResult = apiResponseResult as OkObjectResult;
@@ -472,7 +472,6 @@ namespace CalculateFunding.Services.Results.UnitTests
                             CalculationId = aValidCalculationId3,
                             PublishStatus = CalculationExpectedPublishStatus
                         }
-
                     }));
 
             _resultsService.GetProviderResults(ProviderId, SpecificationId)
@@ -527,18 +526,20 @@ namespace CalculateFunding.Services.Results.UnitTests
         {
             List<FundingStructureItem> result = new List<FundingStructureItem>
             {
-                new FundingStructureItem(1, "FundingLine-1", null, null, FundingStructureType.FundingLine),
+                new FundingStructureItem(1, "FundingLine-1", null, null, null, FundingStructureType.FundingLine),
                 new FundingStructureItem(1,
                     "FundingLine-2-withFundingLines",
+                    null,
                     null,
                     null,
                     FundingStructureType.FundingLine,
                     null,
                     new List<FundingStructureItem>
                     {
-                        new FundingStructureItem(2, "FundingLine-2-fl-1", null, null, FundingStructureType.FundingLine),
+                        new FundingStructureItem(2, "FundingLine-2-fl-1", null, null, null, FundingStructureType.FundingLine),
                         new FundingStructureItem(2,
                             "FundingLine-2-fl-2",
+                            null,
                             null,
                             null,
                             FundingStructureType.FundingLine,
@@ -549,11 +550,13 @@ namespace CalculateFunding.Services.Results.UnitTests
                                     "FundingLine-2-fl-2-fl-1",
                                     null,
                                     null,
+                                    null,
                                     FundingStructureType.FundingLine)
                             })
                     }),
                 new FundingStructureItem(1,
                     "FundingLine-3-withCalculationsAndFundingLines",
+                    null,
                     null,
                     "Error",
                     FundingStructureType.FundingLine,
@@ -563,12 +566,14 @@ namespace CalculateFunding.Services.Results.UnitTests
                         new FundingStructureItem(
                             2,
                             "FundingLine-3-calc-1",
+                            null,
                             aValidCalculationId1,
                             CalculationExpectedPublishStatus.ToString(),
                             FundingStructureType.Calculation),
                         new FundingStructureItem(
                             2,
                             "FundingLine-3-calc-2",
+                            null,
                             aValidCalculationId2,
                             "Error",
                             FundingStructureType.Calculation,
@@ -578,6 +583,7 @@ namespace CalculateFunding.Services.Results.UnitTests
                                 new FundingStructureItem(
                                     3,
                                     "FundingLine-3-calc-2-calc-1",
+                                    null,
                                     "CalculationIdForTemplateCalculationId2",
                                     "Error",
                                     FundingStructureType.Calculation)
@@ -585,6 +591,7 @@ namespace CalculateFunding.Services.Results.UnitTests
                         new FundingStructureItem(
                             2,
                             "FundingLine-3-calc-3",
+                            null,
                             aValidCalculationId3,
                             CalculationExpectedPublishStatus.ToString(),
                             FundingStructureType.Calculation),
@@ -593,9 +600,10 @@ namespace CalculateFunding.Services.Results.UnitTests
                             "FundingLine-3-fl-1",
                             null,
                             null,
+                            null,
                             FundingStructureType.FundingLine)
                     }),
-                new FundingStructureItem(1, "FundingLine-4", null, null, FundingStructureType.FundingLine),
+                new FundingStructureItem(1, "FundingLine-4", null, null, null, FundingStructureType.FundingLine),
             };
 
             return result;

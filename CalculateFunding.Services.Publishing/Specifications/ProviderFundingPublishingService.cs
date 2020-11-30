@@ -181,6 +181,24 @@ namespace CalculateFunding.Services.Publishing.Specifications
             return new OkObjectResult(providerVersion);
         }
 
+        public async Task<IActionResult> GetCurrentPublishedProviderVersion(string fundingStreamId,
+            string providerId,
+            string specificationId)
+        {
+            Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
+            Guard.IsNullOrWhiteSpace(providerId, nameof(providerId));
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+
+            PublishedProviderVersion providerVersion = await ResiliencePolicy.ExecuteAsync(() =>
+                _publishedFundingRepository.GetLatestPublishedProviderVersionBySpecificationId(specificationId,
+                    fundingStreamId,
+                    providerId));
+
+            if (providerVersion == null) return new NotFoundResult();
+
+            return new OkObjectResult(providerVersion);
+        }
+
         public async Task<IActionResult> GetPublishedProviderErrorSummaries(string specificationId)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));

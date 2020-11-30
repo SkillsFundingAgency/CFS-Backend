@@ -46,16 +46,42 @@ namespace CalculateFunding.Services.Publishing
             _policiesService = policiesService;
             _calculationsService = calculationsService;
         }
+
+        public async Task<IActionResult> GetCurrentPublishedProviderFundingStructure(string specificationId,
+            string fundingStreamId,
+            string providerId)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+            Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
+            Guard.IsNullOrWhiteSpace(providerId, nameof(providerId));
+
+            PublishedProviderVersion publishedProviderVersion = await _publishedFundingRepository.GetLatestPublishedProviderVersionBySpecificationId(specificationId, fundingStreamId, providerId);
+
+            if (publishedProviderVersion == null)
+            {
+                return new NotFoundObjectResult($"Published provider version not found for the given specification {specificationId}, stream {fundingStreamId}, provider {providerId}");
+            }
+            
+            return await GetPublishedProviderFundingStructure(publishedProviderVersion);
+        }
+
         public async Task<IActionResult> GetPublishedProviderFundingStructure(string publishedProviderVersionId)
         {
             Guard.IsNullOrWhiteSpace(publishedProviderVersionId, nameof(publishedProviderVersionId));
 
             PublishedProviderVersion publishedProviderVersion = await _publishedFundingRepository.GetPublishedProviderVersionById(publishedProviderVersionId);
 
-            if(publishedProviderVersion == null)
+            if (publishedProviderVersion == null)
             {
                 return new NotFoundObjectResult($"Published provider version not found for the given PublishedProviderVersionId - {publishedProviderVersionId}");
             }
+
+            return await GetPublishedProviderFundingStructure(publishedProviderVersion);
+        }
+
+        private async Task<IActionResult> GetPublishedProviderFundingStructure(PublishedProviderVersion publishedProviderVersion)
+        {
+            Guard.ArgumentNotNull(publishedProviderVersion, nameof(publishedProviderVersion));
 
             string specificationId = publishedProviderVersion.SpecificationId;
             string fundingStreamId = publishedProviderVersion.FundingStreamId;

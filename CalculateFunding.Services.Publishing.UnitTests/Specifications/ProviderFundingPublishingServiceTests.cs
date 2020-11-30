@@ -259,6 +259,18 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         }
 
         [TestMethod]
+        public async Task GetsCurrentPublishedProviderVersionForSuppliedVersionMetadata()
+        {
+            PublishedProviderVersion publishedProviderVersion = NewPublishedProviderVersion();
+
+            AndTheApiResponseDetailsForCurrentPublishedVersionMetaSupplied(publishedProviderVersion);
+
+            await WhenGetCurrentPublishedProviderVersionIsCalled(publishedProviderVersion);
+
+            ThenTheResponseShouldBe<OkObjectResult>(_ => ReferenceEquals(_.Value, publishedProviderVersion));
+        }
+
+        [TestMethod]
         public async Task GetPublishedProviderErrorSummariesForSpecificationId()
         {
             string specificationId = NewRandomString();
@@ -347,6 +359,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 .Returns(publishedProviderVersion);
         }
 
+        private void AndTheApiResponseDetailsForCurrentPublishedVersionMetaSupplied(
+            PublishedProviderVersion publishedProviderVersion)
+        {
+            _publishedFundingRepository.GetLatestPublishedProviderVersionBySpecificationId(publishedProviderVersion?.SpecificationId,
+                    publishedProviderVersion?.FundingStreamId,
+                    publishedProviderVersion?.ProviderId)
+                .Returns(publishedProviderVersion);
+        }
+
         private void AndTheApiResponseDetailsForPublishedProviderErrorSummaries(
             string specificationId,
             IEnumerable<string> errorSummaries)
@@ -371,6 +392,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 publishedProviderVersion.FundingPeriodId,
                 publishedProviderVersion.ProviderId,
                 publishedProviderVersion.Version.ToString());
+        }
+
+        private async Task WhenGetCurrentPublishedProviderVersionIsCalled(PublishedProviderVersion publishedProviderVersion)
+        {
+            ActionResult = await _service.GetCurrentPublishedProviderVersion(publishedProviderVersion.FundingStreamId,
+                publishedProviderVersion.ProviderId,
+                publishedProviderVersion.SpecificationId);
         }
 
         private async Task WhenGetPublishedProviderErrorSummariesIsCalled(string specificationId)

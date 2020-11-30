@@ -420,6 +420,7 @@ namespace CalculateFunding.Services.Results
             FundingStructureItem fundingStructureItem = MapToFundingStructureItem(
                 level,
                 fundingLine.Name,
+                fundingLine.FundingLineCode,
                 FundingStructureType.FundingLine,
                 null,
                 null,
@@ -485,6 +486,7 @@ namespace CalculateFunding.Services.Results
             return MapToFundingStructureItem(
                 level,
                 calculation.Name,
+                null,
                 FundingStructureType.Calculation,
                 calculationType,
                 calculationId,
@@ -504,6 +506,7 @@ namespace CalculateFunding.Services.Results
 
         private static FundingStructureItem MapToFundingStructureItem(int level,
             string name,
+            string fundingLineCode,
             FundingStructureType type,
             string calculationType = null,
             string calculationId = null,
@@ -515,6 +518,7 @@ namespace CalculateFunding.Services.Results
             {
                 Level = level,
                 Name = name,
+                FundingLineCode = fundingLineCode,
                 CalculationId = calculationId,
                 CalculationPublishStatus = calculationPublishStatus,
                 Type = type,
