@@ -96,8 +96,16 @@ namespace CalculateFunding.Api.Graph
 
                     return settings;
                 });
+
             builder
-                .AddScoped<IGraphRepository, GraphRepository>();
+                .AddScoped<IGraphRepository>(ctx =>
+                {
+                    IGremlinClientFactory gremlinClientFactory = ctx.GetService<IGremlinClientFactory>();
+                    IPathResultsTransform pathResultsTransform = ctx.GetService<IPathResultsTransform>();
+                    ICosmosGraphDbSettings settings = ctx.GetService<ICosmosGraphDbSettings>();
+
+                    return new GraphRepository(gremlinClientFactory, pathResultsTransform, settings.DegreeOfParallelism == 0 ? 15 : settings.DegreeOfParallelism);
+                });
 
             builder
                 .AddScoped<ISpecificationRepository, SpecificationRepository>();
