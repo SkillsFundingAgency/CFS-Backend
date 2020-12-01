@@ -36,5 +36,8 @@ namespace CalculateFunding.Models.Policy.FundingPolicy
 
         [JsonProperty("paymentOrganisationSource")]
         public PaymentOrganisationSource PaymentOrganisationSource { get; set; }
+
+        [JsonProperty("updateCoreProviderVersion")]
+        public UpdateCoreProviderVersion UpdateCoreProviderVersion { get; set; }
     }
 }

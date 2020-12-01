@@ -32,5 +32,10 @@ namespace CalculateFunding.Models.Policy.FundingPolicy.ViewModels
         /// Payment Organisation Source
         /// </summary>
         public PaymentOrganisationSource PaymentOrganisationSource { get; set; }
+
+        /// <summary>
+        /// Update Core Provider Version to track latest provider version
+        /// </summary>
+        public UpdateCoreProviderVersion UpdateCoreProviderVersion { get; set; }
     }
 }

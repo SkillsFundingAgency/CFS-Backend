@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Policy.FundingPolicy;
 using CalculateFunding.Services.Policy.Interfaces;
@@ -73,7 +74,48 @@ namespace CalculateFunding.Services.Policy.Validators
             WhenTheFundingConfigurationIsValidated();
 
             ThenTheValidationResultShouldBe(expectedFlag);
-        }       
+        }
+
+        [TestMethod]
+        public void FailsValidationIfUpdateCoreProviderVersionIsNotManualForNonFDZProvicerSource()
+        {
+            string defaultTemplateVersion = NewRandomString();
+            string fundingStreamId = NewRandomString();
+            string fundingPeriodId = NewRandomString();
+
+            GivenTheFundingConfiguration(_ => _.WithApprovalMode(ApprovalMode.All)
+                .WithFundingStreamId(fundingStreamId)
+                .WithFundingPeriodId(fundingPeriodId)
+                .WithDefaultTemplateVersion(defaultTemplateVersion)
+                .WithUpdateCoreProviderVersion(UpdateCoreProviderVersion.ToLatest)
+                .WithProviderSource(CalculateFunding.Models.Providers.ProviderSource.CFS));
+            AndTheTemplateExistsCheck(fundingStreamId, fundingPeriodId, defaultTemplateVersion, true);
+
+            WhenTheFundingConfigurationIsValidated();
+
+            ThenTheValidationResultShouldBe(false);
+            AndTheValiationMessageShouldContain("UpdateCoreProviderVersion - ToLastet is not valid for provider source - CFS");
+        }
+
+        [TestMethod]
+        public void PassValidationIfFundingConfigurationDataIsValid()
+        {
+            string defaultTemplateVersion = NewRandomString();
+            string fundingStreamId = NewRandomString();
+            string fundingPeriodId = NewRandomString();
+
+            GivenTheFundingConfiguration(_ => _.WithApprovalMode(ApprovalMode.All)
+                .WithFundingStreamId(fundingStreamId)
+                .WithFundingPeriodId(fundingPeriodId)
+                .WithDefaultTemplateVersion(defaultTemplateVersion)
+                .WithUpdateCoreProviderVersion(UpdateCoreProviderVersion.ToLatest)
+                .WithProviderSource(CalculateFunding.Models.Providers.ProviderSource.FDZ));
+            AndTheTemplateExistsCheck(fundingStreamId, fundingPeriodId, defaultTemplateVersion, true);
+
+            WhenTheFundingConfigurationIsValidated();
+
+            ThenTheValidationResultShouldBe(true);
+        }
 
         public static IEnumerable<object[]> FlagExamples()
         {
@@ -89,6 +131,15 @@ namespace CalculateFunding.Services.Policy.Validators
                 .IsValid
                 .Should()
                 .Be(expectedIsValidFlag);
+        }
+
+        private void AndTheValiationMessageShouldContain(string message)
+        {
+            _validationResult
+                .Errors
+                .SelectMany(x => x.ErrorMessage)
+                .Should()
+                .Contain(message);
         }
 
         private void WhenTheFundingConfigurationIsValidated()

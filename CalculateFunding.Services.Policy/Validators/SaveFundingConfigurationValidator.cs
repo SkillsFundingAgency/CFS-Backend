@@ -61,8 +61,12 @@ namespace CalculateFunding.Services.Policy.Validators
                     if (!string.IsNullOrWhiteSpace(fundingStreamId) && !string.IsNullOrWhiteSpace(fundingPeriodId) && !string.IsNullOrWhiteSpace(defaultTemplateVersion))
                         if (!await fundingTemplateService.TemplateExists(fundingStreamId, fundingPeriodId, defaultTemplateVersion))
                             context.AddFailure("Default template not found");
-                });        
-          
+                });
+
+            RuleFor(_ => _.UpdateCoreProviderVersion)
+                .Must(v => v == UpdateCoreProviderVersion.Manual)
+                .When(_ => _.ProviderSource != CalculateFunding.Models.Providers.ProviderSource.FDZ, ApplyConditionTo.CurrentValidator)
+                .WithMessage(x => $"UpdateCoreProviderVersion - {x.UpdateCoreProviderVersion.ToString()} is not valid for provider source - {x.ProviderSource}");
         }
     }
 }

@@ -12,6 +12,7 @@ namespace CalculateFunding.Services.Policy.Validators
         private ApprovalMode? _approvalMode;
         private ProviderSource? _providerSource;
         private PaymentOrganisationSource? _paymentOrganisationSource;
+        private UpdateCoreProviderVersion? _updateCoreProviderVersion;
 
         public FundingConfigurationBuilder WithApprovalMode(ApprovalMode approvalMode)
         {
@@ -55,6 +56,13 @@ namespace CalculateFunding.Services.Policy.Validators
             return this;
         }
 
+        public FundingConfigurationBuilder WithUpdateCoreProviderVersion(UpdateCoreProviderVersion? updateCoreProviderVersion)
+        {
+            _updateCoreProviderVersion = updateCoreProviderVersion;
+
+            return this;
+        }
+
         public FundingConfiguration Build()
         {
             return new FundingConfiguration
@@ -64,7 +72,8 @@ namespace CalculateFunding.Services.Policy.Validators
                 DefaultTemplateVersion = _defaultTemplateVersion,
                 ApprovalMode = _approvalMode.GetValueOrDefault(NewRandomEnum(ApprovalMode.Undefined)),
                 ProviderSource = _providerSource.GetValueOrDefault(NewRandomEnum(ProviderSource.CFS)),
-                PaymentOrganisationSource = _paymentOrganisationSource.GetValueOrDefault(NewRandomEnum(PaymentOrganisationSource.PaymentOrganisationAsProvider))
+                PaymentOrganisationSource = _paymentOrganisationSource.GetValueOrDefault(NewRandomEnum(PaymentOrganisationSource.PaymentOrganisationAsProvider)),
+                UpdateCoreProviderVersion = _updateCoreProviderVersion.GetValueOrDefault(NewRandomEnum(UpdateCoreProviderVersion.Manual))
             };
         }
     }
