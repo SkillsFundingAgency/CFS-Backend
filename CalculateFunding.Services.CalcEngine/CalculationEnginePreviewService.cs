@@ -76,13 +76,13 @@ namespace CalculateFunding.Services.CalcEngine
         public async Task<IActionResult> PreviewCalculationResult(
             string specificationId, 
             string providerId,
-            byte[] assemblyContent)
+            PreviewCalculationRequest previewCalculationRequest)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
             Guard.IsNullOrWhiteSpace(providerId, nameof(providerId));
-            Guard.ArgumentNotNull(assemblyContent, nameof(assemblyContent));
+            Guard.ArgumentNotNull(previewCalculationRequest, nameof(previewCalculationRequest));
 
-            Assembly assembly = Assembly.Load(assemblyContent);
+            Assembly assembly = Assembly.Load(previewCalculationRequest.AssemblyContent);
             IAllocationModel allocationModel = _calculationEngine.GenerateAllocationModel(assembly);
 
             SpecificationSummary specificationSummary = await GetSpecificationSummary(specificationId);
@@ -100,8 +100,11 @@ namespace CalculateFunding.Services.CalcEngine
             
             ProviderSummary providerSummary = _mapper.Map<ProviderSummary>(providerVersionSearchResult);
 
-            IEnumerable<CalculationSummaryModel> calculationSummaries
-                = await GetCalculationSummaries(specificationId);
+            List<CalculationSummaryModel> calculationSummaries = new List<CalculationSummaryModel>();
+            IEnumerable<CalculationSummaryModel> specCalculationSummaries = await GetCalculationSummaries(specificationId);
+
+            calculationSummaries.AddRange(specCalculationSummaries);
+            calculationSummaries.Add(previewCalculationRequest.PreviewCalculationSummaryModel);
 
             Dictionary<string, Dictionary<string, ProviderSourceDataset>> providerSourceDatasets =
                 await _providerSourceDatasetsRepository.GetProviderSourceDatasetsByProviderIdsAndRelationshipIds(

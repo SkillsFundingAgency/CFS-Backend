@@ -1,10 +1,9 @@
-﻿using System;
-using AutoMapper;
+﻿using AutoMapper;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets.Schema;
-using Microsoft.AspNetCore.Routing.Constraints;
 using GraphCalculation = CalculateFunding.Models.Graph.Calculation;
 using GraphFundingLine = CalculateFunding.Models.Graph.FundingLine;
+using CalcEngineModels = CalculateFunding.Common.ApiClient.CalcEngine.Models;
 
 namespace CalculateFunding.Services.Calcs.MappingProfiles
 {
@@ -33,8 +32,8 @@ namespace CalculateFunding.Services.Calcs.MappingProfiles
             CreateMap<Common.ApiClient.Calcs.Models.Schema.FieldDefinition, FieldDefinition>();
             CreateMap<Common.ApiClient.Calcs.Models.Schema.FieldType, FieldType>();
             CreateMap<Common.ApiClient.Calcs.Models.Schema.IdentifierFieldType, IdentifierFieldType>();
-            CreateMap<Common.ApiClient.CalcEngine.Models.CalculationResult, CalculationResult>();
-
+            CreateMap<CalcEngineModels.CalculationResult, CalculationResult>();
+            CreateMap<CalculationSummaryModel, CalcEngineModels.CalculationSummaryModel>();
 
             CreateDatasetsMappingProfiles();
             CreateGraphMappingProfiles();

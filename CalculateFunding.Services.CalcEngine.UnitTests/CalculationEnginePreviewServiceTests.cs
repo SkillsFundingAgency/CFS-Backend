@@ -110,11 +110,16 @@ namespace CalculateFunding.Services.Calculator
                 .GetProviderByIdFromProviderVersion(Arg.Is(providerVersionId), Arg.Is(providerId))
                 .Returns(new ApiResponse<ProviderVersionSearchResult>(HttpStatusCode.OK, providerVersionSearchResult));
 
+            CalculationSummaryModel previewCalculationSummaryModel = new CalculationSummaryModel();
+
             IEnumerable<CalculationSummaryModel> calculationSummaryModels = new List<CalculationSummaryModel>
             {
                 new CalculationSummaryModel(),
                 new CalculationSummaryModel()
             };
+
+            List<CalculationSummaryModel> expectedCalculationSummaryModels = calculationSummaryModels.ToList();
+            expectedCalculationSummaryModels.Add(previewCalculationSummaryModel);
 
             _calculationsRepository
                 .GetCalculationSummariesForSpecification(Arg.Is(specificationId))
@@ -140,15 +145,21 @@ namespace CalculateFunding.Services.Calculator
                 .BuildAggregations(Arg.Is<BuildAggregationRequest>(_ => _ != null && _.SpecificationId == specificationId))
                 .Returns(calculationAggregations);
 
+            PreviewCalculationRequest previewCalculationRequest = new PreviewCalculationRequest
+            {
+                AssemblyContent = MockData.GetMockAssembly(),
+                PreviewCalculationSummaryModel = previewCalculationSummaryModel
+            };
+
             IActionResult actionResult = 
-                await _calculationEnginePreviewService.PreviewCalculationResult(specificationId, providerId, MockData.GetMockAssembly());
+                await _calculationEnginePreviewService.PreviewCalculationResult(specificationId, providerId, previewCalculationRequest);
 
             _calculationEngine
                 .Received(1)
                 .CalculateProviderResults(
                     Arg.Is(allocationModel),
                     specificationId,
-                    Arg.Is<IEnumerable<CalculationSummaryModel>>(_ => _.SequenceEqual(calculationSummaryModels)),
+                    Arg.Is<IEnumerable<CalculationSummaryModel>>(_ => _.SequenceEqual(expectedCalculationSummaryModels)),
                     Arg.Is<ProviderSummary>(_ => _.UKPRN == providerId),
                     Arg.Is<Dictionary<string, ProviderSourceDataset>>(_ => _.SequenceEqual(sourceDatasets)),
                     Arg.Is<IEnumerable<CalculationAggregation>>(_ => _.SequenceEqual(calculationAggregations)));
@@ -179,8 +190,13 @@ namespace CalculateFunding.Services.Calculator
                 .GetProviderByIdFromProviderVersion(Arg.Is(providerVersionId), Arg.Is(providerId))
                 .Returns(new ApiResponse<ProviderVersionSearchResult>(HttpStatusCode.OK, (ProviderVersionSearchResult)null));
 
+            PreviewCalculationRequest previewCalculationRequest = new PreviewCalculationRequest
+            {
+                AssemblyContent = MockData.GetMockAssembly()
+            };
+
             IActionResult actionResult =
-                await _calculationEnginePreviewService.PreviewCalculationResult(specificationId, providerId, MockData.GetMockAssembly());
+                await _calculationEnginePreviewService.PreviewCalculationResult(specificationId, providerId, previewCalculationRequest);
 
             actionResult
                 .Should()

@@ -7,7 +7,7 @@ namespace CalculateFunding.Services.CalcEngine.Interfaces
     {
         Task<IActionResult> PreviewCalculationResult(
             string specificationId, 
-            string providerId, 
-            byte[] assemblyContent);
+            string providerId,
+            PreviewCalculationRequest previewCalculationRequest);
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Services.CalcEngine;
 using CalculateFunding.Services.CalcEngine.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,7 +22,7 @@ namespace CalculateFunding.Api.CalcEngine.Controllers
         public async Task<IActionResult> PreviewCalculationResults(
             [FromRoute] string specificationId,
             [FromRoute] string providerId,
-            [FromBody] byte[] assemblyContent) =>
-                await _calculationEnginePreviewService.PreviewCalculationResult(specificationId, providerId, assemblyContent);
+            [FromBody] PreviewCalculationRequest previewCalculationRequest) =>
+                await _calculationEnginePreviewService.PreviewCalculationResult(specificationId, providerId, previewCalculationRequest);
     }
 }

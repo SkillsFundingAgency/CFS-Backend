@@ -894,7 +894,7 @@ End Class";
 
             ICalcEngineApiClient calcEngineApiClient = CreateCalcEngineApiClient();
             calcEngineApiClient
-                .PreviewCalculationResults(Arg.Is(SpecificationId), Arg.Is(ProviderId), Arg.Any<byte[]>())
+                .PreviewCalculationResults(Arg.Is(SpecificationId), Arg.Is(ProviderId), Arg.Any<CalcEngineModels.PreviewCalculationRequest>())
                 .Returns(new ApiResponse<CalcEngineModels.ProviderResult>(HttpStatusCode.OK, providerResult));
 
             PreviewService service = CreateService(
@@ -1083,7 +1083,7 @@ End Class";
 
             ICalcEngineApiClient calcEngineApiClient = CreateCalcEngineApiClient();
             calcEngineApiClient
-                .PreviewCalculationResults(Arg.Is(SpecificationId), Arg.Is(ProviderId), Arg.Any<byte[]>())
+                .PreviewCalculationResults(Arg.Is(SpecificationId), Arg.Is(ProviderId), Arg.Any<CalcEngineModels.PreviewCalculationRequest>())
                 .Returns(new ApiResponse<CalcEngineModels.ProviderResult>(HttpStatusCode.OK, providerResult));
 
             PreviewService service = CreateService(

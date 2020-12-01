@@ -23,6 +23,7 @@ using Microsoft.AspNetCore.Mvc;
 using Serilog;
 using Severity = CalculateFunding.Models.Calcs.Severity;
 using CalcEngineProviderResult = CalculateFunding.Common.ApiClient.CalcEngine.Models.ProviderResult;
+using CalcEngineModels = CalculateFunding.Common.ApiClient.CalcEngine.Models;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -298,12 +299,21 @@ namespace CalculateFunding.Services.Calcs
 
             if (!string.IsNullOrEmpty(previewRequest.ProviderId))
             {
+                CalculationSummaryModel calculationSummaryModel = calculationToPreview.ToSummaryModel();
+                CalcEngineModels.CalculationSummaryModel model = _mapper.Map<CalcEngineModels.CalculationSummaryModel>(calculationSummaryModel);
+
+                CalcEngineModels.PreviewCalculationRequest previewCalculationRequest = new CalcEngineModels.PreviewCalculationRequest
+                {
+                    AssemblyContent = compilerOutput.Assembly,
+                    PreviewCalculationSummaryModel = model
+                };
+
                 ApiResponse<CalcEngineProviderResult> previewCalcResultApiResponse = 
                     await _calcEngineApiClientPolicy.ExecuteAsync(
                         () => _calcEngineApiClient.PreviewCalculationResults(
                             previewRequest.SpecificationId,
                             previewRequest.ProviderId,
-                            compilerOutput.Assembly));
+                            previewCalculationRequest));
 
                 if (previewCalcResultApiResponse.StatusCode.IsSuccess())
                 {
