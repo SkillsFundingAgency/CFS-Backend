@@ -182,7 +182,7 @@ namespace CalculateFunding.Services.Providers
 
         public async Task<IActionResult> GetFacetValues(string facetName)
         {
-            if (!Facets.Any(x=>x.Name == facetName))
+            if (!Facets.Any(x => x.Name == facetName))
             {
                 return new NotFoundResult();
             }
@@ -209,9 +209,9 @@ namespace CalculateFunding.Services.Providers
             string authorityFacet = "authority";
             string providerVersionIdFacet = "providerVersionId";
 
-            SearchModel searchModel = new SearchModel() { Top = 0};
+            SearchModel searchModel = new SearchModel() { Top = 0 };
             searchModel.FacetCount = 1000;
-            searchModel.IncludeFacets = true;           
+            searchModel.IncludeFacets = true;
             searchModel.OverrideFacetFields = new[] { authorityFacet };
             searchModel.SearchMode = Models.Search.SearchMode.All;
             searchModel.Filters = new Dictionary<string, string[]>
@@ -225,7 +225,7 @@ namespace CalculateFunding.Services.Providers
                 IEnumerable<string> providerVersions = results.Facets.Single(x => x.Name == providerVersionIdFacet).FacetValues.Select(x => x.Name);
                 IEnumerable<string> authorities = results.Facets.Single(x => x.Name == authorityFacet).FacetValues.Select(x => x.Name);
 
-                if(!providerVersions.Any(x => x == providerVersionId))
+                if (!providerVersions.Any(x => x == providerVersionId))
                 {
                     return new NotFoundResult();
                 }
@@ -293,7 +293,8 @@ namespace CalculateFunding.Services.Providers
                                 SearchMode = (SearchMode)searchModel.SearchMode,
                                 IncludeTotalResultCount = true,
                                 Filter = string.Join(" and ", facetDictionary.Where(x => x.Key != filterPair.Key && !string.IsNullOrWhiteSpace(x.Value)).Select(x => x.Value)),
-                                QueryType = QueryType.Full
+                                QueryType = QueryType.Full,
+                                SearchFields = searchModel.SearchFields?.ToList(),
                             });
                         })
                     });
@@ -353,7 +354,8 @@ namespace CalculateFunding.Services.Providers
                 SearchMode = (SearchMode)searchModel.SearchMode,
                 IncludeTotalResultCount = true,
                 Filter = string.Join(" and ", facetDictionary.Values.Where(x => !string.IsNullOrWhiteSpace(x))),
-                QueryType = QueryType.Full
+                QueryType = QueryType.Full,
+                SearchFields = searchModel.SearchFields?.ToList(),
             }));
         }
 
