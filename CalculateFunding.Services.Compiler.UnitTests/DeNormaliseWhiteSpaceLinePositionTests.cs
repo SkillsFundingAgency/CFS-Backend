@@ -52,7 +52,7 @@ namespace CalculateFunding.Services.Compiler.UnitTests
              yield return new object []
              {
                  @"
-one two  three
+one two  threefour
 
 two",
                  @"all
@@ -61,7 +61,7 @@ two",
                          should be 
                              ignored
                  #ExternalSource(""4321|AnythingElse"", 1)
-   onetwo three
+   onetwo three four
    two
                  #End ExternalSource",
                  "4321",

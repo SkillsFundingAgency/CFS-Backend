@@ -73,20 +73,33 @@ namespace CalculateFunding.Services.Compiler
                 mappedCharacters = new Dictionary<int, int>();
 
                 int normalisedOffset = 0;
+                int originalOffset = 0;
 
                 normalisedLineOfCode = normalisedLineOfCode.Trim();
 
                 for (int character = 0; character < normalisedLineOfCode.Length; character++)
                 {
-                    char originalCharacter = originalLineOfCode[character + normalisedOffset];
-                    char normalisedCharacter = normalisedLineOfCode[character];
-
-                    while (originalCharacter != normalisedCharacter)
+                    // need to make sure we don't go beyond the end of the original code
+                    if ((character + normalisedOffset) < originalLineOfCode.Length)
                     {
-                        originalCharacter = originalLineOfCode[++normalisedOffset + character];
-                    }
+                        char originalCharacter = originalLineOfCode[character + normalisedOffset];
+                        char normalisedCharacter = normalisedLineOfCode[character + originalOffset];
 
-                    mappedCharacters.Add(character, normalisedOffset + character);
+                        while (originalCharacter != normalisedCharacter)
+                        {
+                            // if there is a whitespace in the normalised code then we need to go back by 1
+                            if (char.IsWhiteSpace(normalisedCharacter))
+                            {
+                                normalisedCharacter = normalisedLineOfCode[++originalOffset + character];
+                            }
+                            else
+                            {
+                                originalCharacter = originalLineOfCode[++normalisedOffset + character];
+                            }
+                        }
+
+                        mappedCharacters.Add(character, normalisedOffset + character);
+                    }
                 }
 
                 linesOfMappedCharacters.Add(linePosition.Line, mappedCharacters);
