@@ -76,6 +76,11 @@ namespace CalculateFunding.Services.Specs.Validators
                                     context.AddFailure($"Provider version id selected does not exist");
                                 }
 
+                                if(specModel.CoreProviderVersionUpdates != CoreProviderVersionUpdates.Manual)
+                                {
+                                    context.AddFailure($"CoreProviderVersionUpdates - {specModel.CoreProviderVersionUpdates} is not valid for provider source - {fundingConfigResponse.Content.ProviderSource}");
+                                }
+
                                 break;
                             }
                         case ProviderSource.FDZ:
@@ -114,7 +119,7 @@ namespace CalculateFunding.Services.Specs.Validators
                    if (specification != null)
                        context.AddFailure($"You must give a unique specification name");
                });
-            
-        }       
+
+      }       
     }
 }

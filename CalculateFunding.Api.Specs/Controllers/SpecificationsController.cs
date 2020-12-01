@@ -373,5 +373,13 @@ namespace CalculateFunding.Api.Specs.Controllers
             AssignSpecificationProviderVersionModel model = new AssignSpecificationProviderVersionModel(specificationId, providerVersionId);
             return await _specService.SetProviderVersion(model, user);
         }
+
+        [Route("api/specs/specifications-with-provider-version-updates-uselatest")]
+        [HttpGet]
+        [Produces(typeof(IEnumerable<SpecificationSummary>))]
+        public async Task<IActionResult> GetSpecificationsWithProviderVersionUpdatesAsUseLatest()
+        {
+            return await _specService.GetSpecificationsWithProviderVersionUpdatesAsUseLatest();
+        }
     }
 }

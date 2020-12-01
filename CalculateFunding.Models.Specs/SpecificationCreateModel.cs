@@ -17,5 +17,7 @@ namespace CalculateFunding.Models.Specs
         public string Name { get; set; }
 
         public IDictionary<string, string> AssignedTemplateIds { get; set; }
+
+        public CoreProviderVersionUpdates CoreProviderVersionUpdates { get; set; }
     }
 }

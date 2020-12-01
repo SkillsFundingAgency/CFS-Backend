@@ -310,6 +310,61 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
                 .BeTrue();
         }
 
+        [TestMethod]
+        public void Validate_GivenCoreProviderVersionUpdatesUseLatestForNonFDZProviderSource_ValidIsFalse()
+        {
+            //Arrange
+            SpecificationCreateModel model = CreateModel();
+            model.CoreProviderVersionUpdates = CoreProviderVersionUpdates.UseLatest;
+
+            ISpecificationsRepository repository = CreateSpecificationsRepository();
+            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient(ProviderSource.CFS);
+
+            SpecificationCreateModelValidator validator = CreateValidator(repository, policiesApiClient: policiesApiClient);
+
+            //Act
+            ValidationResult result = validator.Validate(model);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .BeFalse();
+
+            result
+                .Errors
+                .Count
+                .Should()
+                .Be(1);
+
+            result
+                .Errors.Select(x => x.ErrorMessage)
+                .Should()
+                .Contain("CoreProviderVersionUpdates - UseLatest is not valid for provider source - CFS");
+        }
+
+        [TestMethod]
+        public void Validate_GivenCoreProviderVersionUpdatesUseLatestForFDZProviderSource_ValidIsTrue()
+        {
+            //Arrange
+            SpecificationCreateModel model = CreateModel();
+            model.CoreProviderVersionUpdates = CoreProviderVersionUpdates.UseLatest;
+            model.ProviderSnapshotId = 1;
+
+            ISpecificationsRepository repository = CreateSpecificationsRepository();
+            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient(ProviderSource.FDZ);
+
+            SpecificationCreateModelValidator validator = CreateValidator(repository, policiesApiClient: policiesApiClient);
+
+            //Act
+            ValidationResult result = validator.Validate(model);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .BeTrue();
+        }
 
         private static SpecificationCreateModel CreateModel()
         {
@@ -356,7 +411,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
                 SpecificationsResilienceTestHelper.GenerateTestPolicies());
         }
 
-        private static IPoliciesApiClient CreatePoliciesApiClient()
+        private static IPoliciesApiClient CreatePoliciesApiClient(ProviderSource providerSource = ProviderSource.CFS)
         {
             IPoliciesApiClient policiesApiClient = Substitute.For<IPoliciesApiClient>(); 
 
@@ -366,7 +421,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
 
             policiesApiClient
             .GetFundingConfiguration(Arg.Any<string>(), Arg.Any<string>())
-            .Returns(new ApiResponse<PolicyModels.FundingConfig.FundingConfiguration>(HttpStatusCode.OK, new PolicyModels.FundingConfig.FundingConfiguration()));
+            .Returns(new ApiResponse<PolicyModels.FundingConfig.FundingConfiguration>(HttpStatusCode.OK, new PolicyModels.FundingConfig.FundingConfiguration() { ProviderSource = providerSource }));
 
             return policiesApiClient;
         }

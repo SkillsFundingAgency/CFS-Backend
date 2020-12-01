@@ -31,5 +31,8 @@ namespace CalculateFunding.Models.Specs
 
         [JsonProperty("name")]
         public string Name { get; set; }
+
+        [JsonProperty("coreProviderVersionUpdates")]
+        public CoreProviderVersionUpdates CoreProviderVersionUpdates { get; set; }
     }
 }

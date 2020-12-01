@@ -18,6 +18,7 @@ namespace CalculateFunding.Services.Specs.MappingProfiles
                 .ForMember(_ => _.ApprovalStatus, opt => opt.MapFrom(p => p.Current.PublishStatus))
                 .ForMember(_ => _.ProviderVersionId, opt => opt.MapFrom(p => p.Current.ProviderVersionId))
                 .ForMember(_ => _.ProviderSnapshotId, opt => opt.MapFrom(p => p.Current.ProviderSnapshotId))
+                .ForMember(_ => _.CoreProviderVersionUpdates, opt => opt.MapFrom(p => p.Current.CoreProviderVersionUpdates))
                 .ForMember(_ => _.TemplateIds, opt => opt.MapFrom(
                     p => p.Current.TemplateIds.ToDictionary(_ => _.Key, _ => _.Value)))
                 .ForMember(m => m.DataDefinitionRelationshipIds, opt => opt.MapFrom(

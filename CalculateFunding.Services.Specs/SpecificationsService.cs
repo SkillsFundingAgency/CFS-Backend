@@ -606,7 +606,8 @@ namespace CalculateFunding.Services.Specs
                 Author = user,
                 SpecificationId = specification.Id,               
                 Version = 1,
-                Date = DateTimeOffset.Now.ToLocalTime()
+                Date = DateTimeOffset.Now.ToLocalTime(),
+                CoreProviderVersionUpdates = createModel.CoreProviderVersionUpdates
             };
 
             List<Reference> fundingStreams = new List<Reference>();
@@ -831,7 +832,8 @@ namespace CalculateFunding.Services.Specs
             specificationVersion.Name = editModel.Name;
             specificationVersion.Description = editModel.Description;
             specificationVersion.Author = user;
-            specificationVersion.SpecificationId = specificationId;           
+            specificationVersion.SpecificationId = specificationId;
+            specificationVersion.CoreProviderVersionUpdates = editModel.CoreProviderVersionUpdates;
 
             specification.Name = editModel.Name;
 
@@ -1664,6 +1666,23 @@ WHERE   s.documentType = @DocumentType",
             HttpStatusCode statusCode = await UpdateSpecification(specification, specificationVersion, previousSpecificationVersion);
 
             return statusCode.IsSuccess() ? new OkResult() : new StatusCodeResult((int)statusCode);
+        }
+
+        public async Task<IActionResult> GetSpecificationsWithProviderVersionUpdatesAsUseLatest()
+        {
+            IEnumerable<SpecificationSummary> specifications = (
+                await _specificationsRepository.GetSpecificationsByQuery(c => c.Content.Current.CoreProviderVersionUpdates == CoreProviderVersionUpdates.UseLatest))
+                .Select(s => _mapper.Map<SpecificationSummary>(s));
+
+
+            if (!specifications.Any())
+            {
+                _logger.Information($"Specifications was not found with CoreProviderVersionUpdates as UseLatest");
+
+                return new NotFoundResult();
+            }
+
+            return new OkObjectResult(specifications);
         }
     }
 }

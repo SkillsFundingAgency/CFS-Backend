@@ -41,5 +41,8 @@ namespace CalculateFunding.Models.Specs
         
         [JsonProperty("dataDefinitionRelationshipIds")]
         public IEnumerable<string> DataDefinitionRelationshipIds { get; set; }
+
+        [JsonProperty("coreProviderVersionUpdates")]
+        public CoreProviderVersionUpdates CoreProviderVersionUpdates { get; set; }
     }
 }

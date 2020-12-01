@@ -19,7 +19,7 @@
     <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="6.1.0" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Providers" Version="4.2.1" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Results" Version="5.1.1" />
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="6.16.1" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="6.17.0" />
     <PackageReference Include="CalculateFunding.Common.JobManagement" Version="4.3.1" />
     <PackageReference Include="CalculateFunding.Common.Storage" Version="2.0.5" />
     <PackageReference Include="CalculateFunding.Generators.Funding" Version="3.0.5" />
