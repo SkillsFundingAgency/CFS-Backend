@@ -35,7 +35,7 @@ namespace CalculateFunding.Services.Publishing.Errors
                         SummaryErrorMessage = "A funding line profile doesn't match allocation value.",
                         DetailedErrorMessage = $"Funding line profile doesn't match allocation value. " +
                         $"The allocation value is £{fundingLineValue}, but the profile value is set to £{profiledValue}",
-                        FundingLine = fundingLine.FundingLineCode,
+                        FundingLineCode = fundingLine.FundingLineCode,
                         FundingStreamId = publishedProviderVersion.FundingStreamId
                     });
                 }

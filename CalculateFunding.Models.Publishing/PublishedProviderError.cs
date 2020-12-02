@@ -10,7 +10,7 @@ namespace CalculateFunding.Models.Publishing
 
         public string DetailedErrorMessage { get; set; }
 
-        public string FundingLine { get; set; }
+        public string FundingLineCode { get; set; }
 
         public string FundingStreamId { get; set; }
     }

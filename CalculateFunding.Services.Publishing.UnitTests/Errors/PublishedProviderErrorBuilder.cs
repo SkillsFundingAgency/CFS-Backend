@@ -63,7 +63,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
                 SummaryErrorMessage = _summaryErrorMessage ?? NewRandomString(),
                 DetailedErrorMessage = _detailedErrorMessage ?? NewRandomString(),
                 FundingStreamId = _fundingStreamId ?? NewRandomString(),
-                FundingLine = _fundingLineCode ?? NewRandomString()
+                FundingLineCode = _fundingLineCode ?? NewRandomString()
             };
         }    
     }

@@ -218,7 +218,7 @@ The publishedProviderVersionId will be in the context of funding stream ID, fund
         }
 
         /// <summary>
-        ///  Get the Published Provider Funding Structure for the current latest version of the published provider 
+        ///  Get the Published Provider Funding Structure for the current latest version of the published provider
         /// </summary>
         /// <param name="specificationId">specification Id</param>
         /// <param name="fundingStreamId">funding stream Id</param>
