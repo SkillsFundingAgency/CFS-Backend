@@ -256,14 +256,15 @@ namespace CalculateFunding.Services.Publishing
                 // if any error occurs while updating or indexing then we need to re-index all published providers and persist published funding for consistency
                 transaction.Enroll(async () =>
                 {
-                    await _publishedProviderVersionService.CreateReIndexJob(author, correlationId, specification.Id);
+                    await _publishedProviderVersionService.CreateReIndexJob(author, correlationId, specification.Id, jobId);
                     await _createPublishIntegrityJob.CreateJob(specification.Id, 
                         author, 
                         correlationId,
                         batchPublishedProviderIds.IsNullOrEmpty() ? null : new Dictionary<string, string>
                         {
                             { "providers-batch", JsonExtensions.AsJson(selectedPublishedProviders.Select(_ => _.PublishedProviderId)) }
-                        });
+                        },
+                        parentJobId: jobId);
                 });
 
                 await SavePublishedProvidersAsReleased(jobId, author, selectedPublishedProviders, correlationId);

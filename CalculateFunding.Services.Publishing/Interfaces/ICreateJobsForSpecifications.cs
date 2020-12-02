@@ -11,7 +11,8 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             Reference user,
             string correlationId,
             Dictionary<string, string> properties = null,
-            string messageBody = null);
+            string messageBody = null,
+            string parentJobId = null);
         
         string JobDefinitionId { get; }
         

@@ -195,7 +195,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             await _publishedProviderVersionService
                 .Received(1)
-                .CreateReIndexJob(Arg.Any<Reference>(), Arg.Any<string>(), Arg.Is(specificationId));
+                .CreateReIndexJob(Arg.Any<Reference>(), Arg.Any<string>(), Arg.Is(specificationId), Arg.Is(_jobId));
         }
 
         [TestMethod]
@@ -231,7 +231,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             await _publishedProviderVersionService
                 .Received(1)
-                .CreateReIndexJob(Arg.Any<Reference>(), Arg.Any<string>(), Arg.Is(specificationId));
+                .CreateReIndexJob(Arg.Any<Reference>(), Arg.Any<string>(), Arg.Is(specificationId), Arg.Is(_jobId));
         }
 
         [TestMethod]

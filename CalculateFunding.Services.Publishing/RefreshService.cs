@@ -464,7 +464,7 @@ namespace CalculateFunding.Services.Publishing
                             // if any error occurs while updating or indexing then we need to re-index all published providers for consistency
                             transaction.Enroll(async () =>
                             {
-                                await _publishedProviderVersionService.CreateReIndexJob(author, correlationId, specification.Id);
+                                await _publishedProviderVersionService.CreateReIndexJob(author, correlationId, specification.Id, jobId);
                             });
 
                             // Save updated PublishedProviders to cosmos and increment version status

@@ -5,11 +5,12 @@ using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Services.Publishing.Interfaces;
 using Serilog;
 
 namespace CalculateFunding.Services.Publishing.Specifications
 {
-    public abstract class JobCreationForSpecification
+    public abstract class JobCreationForSpecification : ICreatePublishIntegrityJob
     {
         private readonly IJobManagement _jobManagement;
         private readonly ILogger _logger;
@@ -37,7 +38,8 @@ namespace CalculateFunding.Services.Publishing.Specifications
             Reference user,
             string correlationId,
             Dictionary<string, string> properties = null,
-            string messageBody = null)
+            string messageBody = null,
+            string parentJobId = null)
         {
             Dictionary<string, string> messageProperties =
                 properties ?? new Dictionary<string, string>();
@@ -66,6 +68,11 @@ namespace CalculateFunding.Services.Publishing.Specifications
                     },
                     CorrelationId = correlationId
                 });
+
+                if (!string.IsNullOrWhiteSpace(parentJobId))
+                {
+                    job.ParentJobId = parentJobId;
+                }
 
                 if (job != null)
                 {

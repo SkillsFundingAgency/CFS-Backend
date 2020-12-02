@@ -131,6 +131,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         {
             CreateGeneratePublishedProviderEstateCsvJobs.Verify(_ => _.CreateJob(specificationId, user, correlationId,
                     It.IsAny<Dictionary<string, string>>(),
+                    null,
                     null),
                 Times.Once);
         }
@@ -141,6 +142,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         {
             CreateGeneratePublishedProviderEstateCsvJobs.Verify(_ => _.CreateJob(specificationId, user, correlationId,
                     It.IsAny<Dictionary<string, string>>(),
+                    null,
                     null),
                 Times.Never);
         }
@@ -160,6 +162,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                            props[FundingLineCode] == fundingLineCode &&
                            props.ContainsKey(FundingStreamId) &&
                            props[FundingStreamId] == fundingStreamId),
+                    null,
                     null),
                 Times.Once);
         }
