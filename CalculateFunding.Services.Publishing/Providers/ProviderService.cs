@@ -13,13 +13,12 @@ using Serilog;
 using Polly;
 using AutoMapper;
 using ApiProviderVersion = CalculateFunding.Common.ApiClient.Providers.Models.ProviderVersion;
-using ApiFundingPeriod = CalculateFunding.Common.ApiClient.Policies.Models.FundingPeriod;
 using PublishedProvider = CalculateFunding.Models.Publishing.PublishedProvider;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Common.ApiClient.Providers.Models.Search;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Common.ApiClient.Policies;
-using CalculateFunding.Models.Policy;
+using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Services.Core.Constants;
 
 namespace CalculateFunding.Services.Publishing.Providers
 {
@@ -31,18 +30,21 @@ namespace CalculateFunding.Services.Publishing.Providers
         private readonly ILogger _logger;
         private readonly IMapper _mapper;
         private readonly IPoliciesService _policiesService;
+        private readonly IJobManagement _jobManagement;
 
         public ProviderService(IProvidersApiClient providersApiClient,
             IPoliciesService policiesService,
             IPublishedFundingDataService publishedFundingDataService,
             IPublishingResiliencePolicies resiliencePolicies,
             IMapper mapper,
+            IJobManagement jobManagement,
             ILogger logger)
         {
             Guard.ArgumentNotNull(providersApiClient, nameof(providersApiClient));
             Guard.ArgumentNotNull(policiesService, nameof(policiesService));
             Guard.ArgumentNotNull(publishedFundingDataService, nameof(publishedFundingDataService));
             Guard.ArgumentNotNull(resiliencePolicies?.ProvidersApiClient, nameof(resiliencePolicies.ProvidersApiClient));
+            Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(logger, nameof(logger));
 
@@ -50,6 +52,7 @@ namespace CalculateFunding.Services.Publishing.Providers
             _policiesService = policiesService;
             _providersApiClientPolicy = resiliencePolicies.ProvidersApiClient;
             _publishedFundingDataService = publishedFundingDataService;
+            _jobManagement = jobManagement;
             _logger = logger;
             _mapper = mapper;
         }
@@ -106,9 +109,38 @@ namespace CalculateFunding.Services.Publishing.Providers
             ApiResponse<IEnumerable<string>> scopedProviderIdResponse =
                  await _providersApiClientPolicy.ExecuteAsync(() => _providersApiClient.GetScopedProviderIds(specificationId));
 
-            if (scopedProviderIdResponse?.Content == null)
+            // fallback if redis cache has been invalidated queue a new scoped provider job
+            if (scopedProviderIdResponse?.Content == null || scopedProviderIdResponse.Content.IsNullOrEmpty())
             {
-                return null;
+                string correlationId = Guid.NewGuid().ToString();
+
+                bool jobCompletedSuccessfully = await _jobManagement.QueueJobAndWait(async () =>
+                {
+                    ApiResponse<bool> refreshCacheFromApi = await _providersApiClientPolicy.ExecuteAsync(() =>
+                                    _providersApiClient.RegenerateProviderSummariesForSpecification(specificationId, true));
+
+                    if (!refreshCacheFromApi.StatusCode.IsSuccess())
+                    {
+                        string errorMessage = $"Unable to re-generate scoped providers doing refresh '{specificationId}' with status code: {refreshCacheFromApi.StatusCode}";
+                    }
+
+                    // returns true if job queued
+                    return refreshCacheFromApi.Content;
+                },
+                JobConstants.DefinitionNames.PopulateScopedProvidersJob,
+                specificationId,
+                correlationId,
+                ServiceBusConstants.TopicNames.JobNotifications);
+
+                if (jobCompletedSuccessfully)
+                {
+                    scopedProviderIdResponse = await _providersApiClientPolicy.ExecuteAsync(() => _providersApiClient.GetScopedProviderIds(specificationId));
+                };
+
+                if (scopedProviderIdResponse?.Content == null)
+                {
+                    return null;
+                }
             }
 
             HashSet<string> scopedProviders = scopedProviderIdResponse?.Content.ToHashSet();

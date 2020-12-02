@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Common.TemplateMetadata;
@@ -20,7 +21,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
     public class PublishedProviderDataGeneratorTests
     {
         [TestMethod]
-        public void GenerateTotals_GivenValidTemplateMetadataContentsCalculationsAndProviders_ReturnsFundingLines()
+        public async Task GenerateTotals_GivenValidTemplateMetadataContentsCalculationsAndProviders_ReturnsFundingLines()
         {
             //Arrange
             ILogger logger = CreateLogger();
@@ -115,7 +116,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         }
 
         [TestMethod]
-        public void GenerateTotals_GivenValidTemplateMetadataContentsAndProvidersButMissingCalculations_EmptyGeneratedProviderResultsReturned()
+        public async Task GenerateTotals_GivenValidTemplateMetadataContentsAndProvidersButMissingCalculations_EmptyGeneratedProviderResultsReturned()
         {
             //Arrange
             ILogger logger = CreateLogger();

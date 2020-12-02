@@ -1,16 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using AutoMapper;
-using CalculateFunding.Common.TemplateMetadata.Enums;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Generators.Funding;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using GeneratorModels = CalculateFunding.Generators.Funding.Models;
 using OrganisationGroupingReason = CalculateFunding.Models.Publishing.OrganisationGroupingReason;
 using FundingLine = CalculateFunding.Models.Publishing.FundingLine;
+using System.Threading.Tasks;
+using System.Collections.Concurrent;
+using CalculateFunding.Common.ApiClient.Calcs.Models;
 
 namespace CalculateFunding.Services.Publishing
 {
@@ -41,9 +41,9 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(templateMapping, nameof(templateMapping));
             Guard.ArgumentNotNull(calculationResults, nameof(calculationResults));
 
-            Dictionary<string, GeneratedProviderResult> results = new Dictionary<string, GeneratedProviderResult>();
+            ConcurrentDictionary<string, GeneratedProviderResult> results = new ConcurrentDictionary<string, GeneratedProviderResult>();
 
-            foreach (Provider provider in scopedProviders)
+            Parallel.ForEach (scopedProviders,(provider) => 
             {
                 GeneratedProviderResult generatedProviderResult = new GeneratedProviderResult();
 
@@ -55,31 +55,47 @@ namespace CalculateFunding.Services.Publishing
                     GeneratorModels.FundingValue fundingValue = _fundingLineTotalAggregator.GenerateTotals(templateMetadata, templateMapping, calculationResultsForProvider.Results);
 
                     // Get funding lines
-                    IEnumerable<GeneratorModels.FundingLine> fundingLines = fundingValue.FundingLines?.Flatten(_ => _.FundingLines).DistinctBy(_ => _.TemplateLineId) ?? new GeneratorModels.FundingLine[0];
+                    IEnumerable<GeneratorModels.FundingLine> fundingLines = fundingValue.FundingLines?.Flatten(_ => _.FundingLines) ?? new GeneratorModels.FundingLine[0];
 
-                    generatedProviderResult.FundingLines = _mapper.Map<IEnumerable<FundingLine>>(fundingLines);
+                    Dictionary<uint, GeneratorModels.FundingLine> uniqueFundingLine = new Dictionary<uint, GeneratorModels.FundingLine>();
+                    
+                    generatedProviderResult.FundingLines = fundingLines.Where(_ => uniqueFundingLine.TryAdd(_.TemplateLineId, _)).Select(_ =>
+                    {
+                        return _mapper.Map<FundingLine>(_);
+                    }).ToList();
 
                     // Set total funding
                     generatedProviderResult.TotalFunding = generatedProviderResult.FundingLines
-                        .Where(f => f.Type == OrganisationGroupingReason.Payment)
-                        .Sum(p => p.Value);
+                        .Sum(p => {
+                            return p.Type == OrganisationGroupingReason.Payment ? p.Value : 0;
+                        });
+
+                    Dictionary<uint, GeneratorModels.Calculation> uniqueCalculations = new Dictionary<uint, GeneratorModels.Calculation>();
 
                     // Get calculations
-                    IEnumerable<GeneratorModels.Calculation> fundingCalculations = fundingLines?.SelectMany(_ => _.Calculations.Flatten(calc => calc.Calculations)).DistinctBy(_ => _.TemplateCalculationId) ?? new GeneratorModels.Calculation[0];
+                    IEnumerable<GeneratorModels.Calculation> fundingCalculations = uniqueFundingLine.Values?.SelectMany(_ => _.Calculations.Flatten(calc => calc.Calculations)) ?? new GeneratorModels.Calculation[0];
 
-                    generatedProviderResult.Calculations = _mapper.Map<IEnumerable<FundingCalculation>>(fundingCalculations);
+                    generatedProviderResult.Calculations = fundingCalculations.Where(_ => uniqueCalculations.TryAdd(_.TemplateCalculationId, _)).Select(_ =>
+                    {
+                        return _mapper.Map<FundingCalculation>(_);
+                    }).ToList();
 
+                    Dictionary<uint, GeneratorModels.ReferenceData> uniqueReferenceData = new Dictionary<uint, GeneratorModels.ReferenceData>();
+                    
                     // Get reference data
-                    IEnumerable<GeneratorModels.ReferenceData> fundingReferenceData = fundingCalculations?.SelectMany(_ => _.ReferenceData).DistinctBy(_ => _.TemplateReferenceId);
+                    IEnumerable<GeneratorModels.ReferenceData> fundingReferenceData = uniqueCalculations.Values?.SelectMany(_ => _.ReferenceData);
 
-                    generatedProviderResult.ReferenceData = _mapper.Map<IEnumerable<FundingReferenceData>>(fundingReferenceData);
+                    generatedProviderResult.ReferenceData = fundingReferenceData.Where(_ => uniqueReferenceData.TryAdd(_.TemplateReferenceId, _)).Select(_ =>
+                    {
+                        return _mapper.Map<FundingReferenceData>(_);
+                    }).ToList();
 
                     // Set Provider information
                     generatedProviderResult.Provider = _mapper.Map<Provider>(provider);
 
-                    results.Add(provider.ProviderId, generatedProviderResult);
+                    results.TryAdd(provider.ProviderId, generatedProviderResult);
                 }
-            }
+            });
 
             return results;
         }

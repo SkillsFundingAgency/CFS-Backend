@@ -87,7 +87,7 @@ namespace CalculateFunding.Services.Compiler
 
                         while (originalCharacter != normalisedCharacter)
                         {
-                            // if there is a whitespace in the normalised code then we need to go back by 1
+                            // if there is a whitespace in the normalised code then skip it
                             if (char.IsWhiteSpace(normalisedCharacter))
                             {
                                 normalisedCharacter = normalisedLineOfCode[++originalOffset + character];

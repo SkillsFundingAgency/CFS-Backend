@@ -8,9 +8,11 @@ using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.ApiClient.Providers.Models;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Providers;
 using CalculateFunding.Tests.Common.Helpers;
@@ -30,6 +32,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
         private IProvidersApiClient _providers;
         private IProviderService _providerService;
         private IPoliciesService _policiesService;
+        private IJobManagement _jobManagement;
         private IPublishedFundingDataService _publishedFundingDataService;
         private ILogger _logger;
         private IMapper _mapper;
@@ -42,6 +45,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
             _providers = Substitute.For<IProvidersApiClient>();
             _policiesService = Substitute.For<IPoliciesService>();
             _publishedFundingDataService = Substitute.For<IPublishedFundingDataService>();
+            _jobManagement = Substitute.For<IJobManagement>();
             _logger = Substitute.For<ILogger>();
             _mapper = new MapperConfiguration(_ =>
             {
@@ -56,6 +60,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
                     ProvidersApiClient = Policy.NoOpAsync()
                 },
                 _mapper,
+                _jobManagement,
                 _logger);
         }
 
@@ -146,7 +151,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
 
             AndPublishedProvidersForFundingStreamAndFundingPeriod(publishedProviders);
 
-            AndTheApiResponseScopedProviderIdsContainsProviderIds(specificationId, apiproviders.Select(_ => _.ProviderId));
+            AndTheSecondApiResponseScopedProviderIdsContainsProviderIds(specificationId, apiproviders.Select(_ => _.ProviderId));
+
+            _jobManagement
+                .QueueJobAndWait(Arg.Any<Func<Task<bool>>>(), JobConstants.DefinitionNames.PopulateScopedProvidersJob, specificationId, Arg.Any<string>(), ServiceBusConstants.TopicNames.JobNotifications)
+                .Returns(true);
 
             (IDictionary<string, PublishedProvider> PublishedProvidersForFundingStream,
              IDictionary<string, PublishedProvider> ScopedPublishedProviders) = await WhenPublishedProvidersAreReturned(specification);
@@ -319,6 +328,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
                 .Returns(response);
         }
 
+        private void GivenTheApiResponse<T>(Func<Task<ApiResponse<T>>> action, params ApiResponse<T>[] response)
+        {
+            action()
+                .Returns(null, response);
+        }
+
         private void GivenTheApiResponseProviderVersionContainsTheProviders(string providerVersionId,
             params ApiProvider[] providers)
         {
@@ -335,12 +350,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
             GivenTheApiResponse(() => _providers.GetScopedProviderIds(specificationId), providerIds);
         }
 
-        private void AndTheApiResponseScopedProviderIdsContainsProviderIds(string specificationId,
+        private void AndTheSecondApiResponseScopedProviderIdsContainsProviderIds(string specificationId,
             IEnumerable<string> providerIds)
         {
-            GivenTheApiResponse(() => _providers.GetScopedProviderIds(specificationId), new ApiResponse<IEnumerable<string>>(HttpStatusCode.OK,
-                providerIds));
-
+            GivenTheApiResponse(() => _providers.GetScopedProviderIds(specificationId), new[] {new ApiResponse<IEnumerable<string>>(HttpStatusCode.OK,
+                providerIds) });
         }
 
         private PublishedProvider NewPublishedProvider(Action<PublishedProviderBuilder> setUp = null)
