@@ -10,6 +10,34 @@ namespace CalculateFunding.Functions.DebugQueue
 {
     public static class Publishing
     {
+        [FunctionName(FunctionConstants.BatchPublishedProviderValidation)]
+        public static async Task RunBatchPublishedProviderValidation([QueueTrigger(ServiceBusConstants.QueueNames.PublishingBatchPublishedProviderValidation, 
+            Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+            Message message = Helpers.ConvertToMessage<string>(item);
+
+            OnBatchPublishedProviderValidation function = scope.ServiceProvider.GetService<OnBatchPublishedProviderValidation>();
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
+        
+        [FunctionName(FunctionConstants.BatchPublishedProviderValidationPoisoned)]
+        public static async Task RunBatchPublishedProviderValidationFailure([QueueTrigger(ServiceBusConstants.QueueNames.PublishingBatchPublishedProviderValidationPoisonedLocal, 
+            Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+            Message message = Helpers.ConvertToMessage<string>(item);
+
+            OnBatchPublishedProviderValidationFailure function = scope.ServiceProvider.GetService<OnBatchPublishedProviderValidationFailure>();
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
+        
         [FunctionName("on-publishing-run-sql-import")]
         public static async Task RunSqlImport([QueueTrigger(ServiceBusConstants.QueueNames.PublishingRunSqlImport, 
             Connection = "AzureConnectionString")] string item, ILogger log)

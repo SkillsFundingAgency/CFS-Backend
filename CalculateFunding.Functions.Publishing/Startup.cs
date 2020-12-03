@@ -60,7 +60,9 @@ using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Common.Sql;
 using CalculateFunding.Common.Sql.Interfaces;
 using CalculateFunding.Common.TemplateMetadata;
+using CalculateFunding.Services.Publishing.Batches;
 using CalculateFunding.Services.Publishing.SqlExport;
+using FluentValidation;
 using TemplateMetadataSchema10 = CalculateFunding.Common.TemplateMetadata.Schema10;
 using TemplateMetadataSchema11 = CalculateFunding.Common.TemplateMetadata.Schema11;
 
@@ -90,7 +92,11 @@ namespace CalculateFunding.Functions.Publishing
 
         private static IServiceProvider Register(IServiceCollection builder,
             IConfigurationRoot config)
-        { 
+        {
+            builder.AddSingleton<IBatchUploadValidationService, BatchUploadValidationService>();
+            builder.AddSingleton<IBatchUploadReaderFactory, BatchUploadReaderFactory>();
+            builder.AddSingleton<IValidator<BatchUploadValidationRequest>, BatchUploadValidationRequestValidation>();
+            
             ISqlSettings sqlSettings = new SqlSettings();
 
             config.Bind("saSql", sqlSettings);
@@ -212,6 +218,8 @@ namespace CalculateFunding.Functions.Publishing
                     true));
                 builder.AddScoped<OnPublishBatchProviderFundingFailure>();
                 builder.AddScoped<OnPublishedFundingUndo>();
+                builder.AddScoped<OnBatchPublishedProviderValidation>();
+                builder.AddScoped<OnBatchPublishedProviderValidationFailure>();
             }
 
             builder.AddSingleton<ISpecificationService, SpecificationService>();

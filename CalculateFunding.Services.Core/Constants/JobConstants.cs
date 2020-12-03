@@ -80,6 +80,8 @@
             public const string RunSqlImportJob = nameof(RunSqlImportJob);
 
             public const string GenerateCalcCsvResultsJob = nameof(GenerateCalcCsvResultsJob);
+            
+            public const string BatchPublishedProviderValidationJob = nameof(BatchPublishedProviderValidationJob);
         }
 
         public static class NotificationChannels

@@ -31,6 +31,7 @@ using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Core.Threading;
 using CalculateFunding.Services.Publishing;
+using CalculateFunding.Services.Publishing.Batches;
 using CalculateFunding.Services.Publishing.Caching.Http;
 using CalculateFunding.Services.Publishing.Errors;
 using CalculateFunding.Services.Publishing.Helper;
@@ -125,6 +126,12 @@ namespace CalculateFunding.Api.Publishing
 
         private void RegisterComponents(IServiceCollection builder)
         {
+            builder.AddSingleton<IBatchUploadQueryService, BatchUploadQueryService>();
+            builder.AddSingleton<IUniqueIdentifierProvider, UniqueIdentifierProvider>();
+            builder.AddSingleton<IBatchUploadValidationService, BatchUploadValidationService>();
+            builder.AddSingleton<IBatchUploadReaderFactory, BatchUploadReaderFactory>();
+            builder.AddSingleton<IValidator<BatchUploadValidationRequest>, BatchUploadValidationRequestValidation>();
+            
             builder.AddSingleton<IPublishedProviderUpdateDateService, PublishedProviderUpdateDateService>();
             
             ISqlSettings sqlSettings = new SqlSettings();
@@ -133,6 +140,8 @@ namespace CalculateFunding.Api.Publishing
 
             builder.AddSingleton(sqlSettings);
 
+            builder.AddSingleton<IBatchUploadService, BatchUploadService>(); 
+                
             builder.AddScoped<IDataTableImporter, DataTableImporter>();
             builder.AddScoped<ISqlImportContextBuilder, SqlImportContextBuilder>();
             builder.AddSingleton<ISqlPolicyFactory, SqlPolicyFactory>();

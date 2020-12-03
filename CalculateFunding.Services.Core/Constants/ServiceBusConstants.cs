@@ -92,6 +92,12 @@
 
             public const string PublishingPublishBatchProviderFundingPoisonedLocal = "publishing-publish-batch-provider-funding-poison";
 
+            public const string PublishingBatchPublishedProviderValidation = "publishing-batch-published-provider-validation";
+            
+            public const string PublishingBatchPublishedProviderValidationPoisoned = "publishing-batch-published-provider-validation/$DeadLetterQueue";
+            
+            public const string PublishingBatchPublishedProviderValidationPoisonedLocal = "publishing-batch-published-provider-validation-poisoned";
+
             public const string ReIndexCalculationResultsIndex = "reindex-calculation-results-index";
 
             public const string CalculationResultsCsvGeneration = "calculation-results-csv-generation";

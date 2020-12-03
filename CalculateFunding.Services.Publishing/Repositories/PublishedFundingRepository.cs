@@ -357,6 +357,42 @@ namespace CalculateFunding.Services.Publishing.Repositories
             return (await _repository.ReadDocumentByIdPartitionedAsync<PublishedProvider>(cosmosId, partitionKey))?.Content;
         }
 
+        public async Task<IDictionary<string, string>> GetPublishedProviderIdsForUkprns(string fundingStreamId,
+            string fundingPeriodId,
+            string[] ukprns)
+        {
+            Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
+            Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
+            Guard.IsNotEmpty(ukprns, nameof(ukprns));
+            
+            CosmosDbQuery query = new CosmosDbQuery
+            {
+                QueryText = @"
+                              SELECT 
+                                  c.content.current.publishedProviderId as publishedProviderId,
+                                  c.content.current.provider.ukprn as ukprn
+                              FROM publishedProvider c
+                              WHERE c.documentType = 'PublishedProvider'
+                              AND c.deleted = false 
+                              AND c.content.current.fundingStreamId = @fundingStreamId
+                              AND c.content.current.fundingPeriodId = @fundingPeriodId
+                              AND ARRAY_CONTAINS(@ukprns, c.content.current.provider.ukprn) 
+                              AND c.deleted = false",
+                Parameters = new []
+                {
+                    new CosmosDbQueryParameter("@fundingStreamId", fundingStreamId), 
+                    new CosmosDbQueryParameter("@fundingPeriodId", fundingPeriodId), 
+                    new CosmosDbQueryParameter("@ukprns", ukprns), 
+                }
+            };
+            
+            IEnumerable<dynamic> results = await _repository.DynamicQuery(query);
+
+            return results
+                .Select(_ => ((string)_.publishedProviderId, (string)_.ukprn))
+                .ToDictionary(_ => _.Item2, _ => _.Item1);
+        }
+
         public async Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedProviderIds(string fundingStreamId, string fundingPeriodId, string[] providerIds = null)
         {
             Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));

@@ -144,5 +144,9 @@ namespace CalculateFunding.Services.Publishing.Interfaces
 
         Task<DateTime?> GetLatestPublishedDate(string fundingStreamId,
             string fundingPeriodId);
+
+        Task<IDictionary<string, string>> GetPublishedProviderIdsForUkprns(string fundingStreamId,
+            string fundingPeriodId,
+            string[] ukprns);
     }
 }

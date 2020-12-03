@@ -473,5 +473,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         public Task<DateTime?> GetLatestPublishedDate(string fundingStreamId,
             string fundingPeriodId) =>
             throw new NotImplementedException();
+
+        public Task<IDictionary<string, string>> GetPublishedProviderIdsForUkprns(string fundingStreamId,
+            string fundingPeriodId,
+            string[] ukprns) =>
+            throw new NotImplementedException();
     }
 }

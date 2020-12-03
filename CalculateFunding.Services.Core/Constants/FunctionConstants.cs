@@ -38,5 +38,8 @@
 
         public const string MapFdzDatasetsPoisoned = "on-map-fdz-datasets-poisoned";
 
+        public const string BatchPublishedProviderValidation = "on-batch-published-provider-validation";
+        
+        public const string BatchPublishedProviderValidationPoisoned = "on-batch-published-provider-validation-poisoned";
     }
 }
