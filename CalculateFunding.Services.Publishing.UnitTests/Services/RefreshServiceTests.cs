@@ -134,7 +134,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             MapperConfiguration mappingConfig = new MapperConfiguration(c => c.AddProfile<PublishingServiceMappingProfile>());
             _mapper = mappingConfig.CreateMapper();
             _logger = Substitute.For<ILogger>();
-            _publishedProviderDataGenerator = new PublishedProviderDataGenerator(new FundingLineTotalAggregator(), _mapper);
+            _publishedProviderDataGenerator = new PublishedProviderDataGenerator(_logger, new FundingLineTotalAggregator(), _mapper);
             _publishedProviderDataPopulator = new PublishedProviderDataPopulator(_mapper, _logger);
             _profilingService = Substitute.For<IProfilingService>();
             _calculationsApiClient = Substitute.For<ICalculationsApiClient>();

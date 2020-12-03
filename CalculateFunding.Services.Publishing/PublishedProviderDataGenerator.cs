@@ -11,6 +11,9 @@ using FundingLine = CalculateFunding.Models.Publishing.FundingLine;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
 using CalculateFunding.Common.ApiClient.Calcs.Models;
+using System;
+using System.Threading;
+using Serilog;
 
 namespace CalculateFunding.Services.Publishing
 {
@@ -18,13 +21,16 @@ namespace CalculateFunding.Services.Publishing
     {
         private readonly IFundingLineTotalAggregator _fundingLineTotalAggregator;
         private readonly IMapper _mapper;
+        private readonly ILogger _logger;
 
-        public PublishedProviderDataGenerator(IFundingLineTotalAggregator fundingLineTotalAggregator, IMapper mapper)
+        public PublishedProviderDataGenerator(ILogger logger, IFundingLineTotalAggregator fundingLineTotalAggregator, IMapper mapper)
         {
             Guard.ArgumentNotNull(fundingLineTotalAggregator, nameof(fundingLineTotalAggregator));
+            Guard.ArgumentNotNull(logger, nameof(logger));
 
             _fundingLineTotalAggregator = fundingLineTotalAggregator;
             _mapper = mapper;
+            _logger = logger;
         }
 
         /// <summary>
@@ -43,7 +49,13 @@ namespace CalculateFunding.Services.Publishing
 
             ConcurrentDictionary<string, GeneratedProviderResult> results = new ConcurrentDictionary<string, GeneratedProviderResult>();
 
-            Parallel.ForEach (scopedProviders,(provider) => 
+            TimeSpan loggingPeriod = TimeSpan.FromMinutes(5);
+
+            using (new Timer(
+                _ => _logger.Information("{0}: Published Providers processed.", DateTime.Now, results.Count),
+                null, loggingPeriod, loggingPeriod))
+            
+            Parallel.ForEach(scopedProviders, new ParallelOptions { MaxDegreeOfParallelism = 10 }, (provider) =>
             {
                 GeneratedProviderResult generatedProviderResult = new GeneratedProviderResult();
 
@@ -58,7 +70,7 @@ namespace CalculateFunding.Services.Publishing
                     IEnumerable<GeneratorModels.FundingLine> fundingLines = fundingValue.FundingLines?.Flatten(_ => _.FundingLines) ?? new GeneratorModels.FundingLine[0];
 
                     Dictionary<uint, GeneratorModels.FundingLine> uniqueFundingLine = new Dictionary<uint, GeneratorModels.FundingLine>();
-                    
+
                     generatedProviderResult.FundingLines = fundingLines.Where(_ => uniqueFundingLine.TryAdd(_.TemplateLineId, _)).Select(_ =>
                     {
                         return _mapper.Map<FundingLine>(_);
@@ -66,7 +78,8 @@ namespace CalculateFunding.Services.Publishing
 
                     // Set total funding
                     generatedProviderResult.TotalFunding = generatedProviderResult.FundingLines
-                        .Sum(p => {
+                        .Sum(p =>
+                        {
                             return p.Type == OrganisationGroupingReason.Payment ? p.Value : 0;
                         });
 
@@ -81,7 +94,7 @@ namespace CalculateFunding.Services.Publishing
                     }).ToList();
 
                     Dictionary<uint, GeneratorModels.ReferenceData> uniqueReferenceData = new Dictionary<uint, GeneratorModels.ReferenceData>();
-                    
+
                     // Get reference data
                     IEnumerable<GeneratorModels.ReferenceData> fundingReferenceData = uniqueCalculations.Values?.SelectMany(_ => _.ReferenceData);
 

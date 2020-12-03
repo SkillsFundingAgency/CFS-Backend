@@ -36,7 +36,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             TemplateMapping mapping = CreateTemplateMappings();
 
-            PublishedProviderDataGenerator publishedProviderDataGenerator = new PublishedProviderDataGenerator(fundingLineTotalAggregator, mapper);
+            PublishedProviderDataGenerator publishedProviderDataGenerator = new PublishedProviderDataGenerator(logger, fundingLineTotalAggregator, mapper);
 
             //Act
             IDictionary<string, GeneratedProviderResult> generatedProviderResult = publishedProviderDataGenerator.Generate(contents, mapping, GetProviders(), CreateCalculations(mapping));
@@ -131,7 +131,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             TemplateMapping mapping = CreateTemplateMappings();
 
-            PublishedProviderDataGenerator publishedProviderDataGenerator = new PublishedProviderDataGenerator(fundingLineTotalAggregator, mapper);
+            PublishedProviderDataGenerator publishedProviderDataGenerator = new PublishedProviderDataGenerator(logger, fundingLineTotalAggregator, mapper);
 
             //Act
             Dictionary<string, ProviderCalculationResult> providerCalculationResults = new Dictionary<string, ProviderCalculationResult>();
