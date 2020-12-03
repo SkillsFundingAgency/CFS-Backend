@@ -9,7 +9,6 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Providers.Interfaces;
-using Microsoft.ApplicationInsights.Common;
 
 namespace CalculateFunding.Services.Providers
 {
@@ -88,7 +87,12 @@ namespace CalculateFunding.Services.Providers
                 .Select(document => document.Content)
                 .SingleOrDefault();
         }
-        
+
+        public async Task<IEnumerable<CurrentProviderVersion>> GetAllCurrentProviderVersions()
+        {
+            return (await _cosmos.GetAllDocumentsAsync<CurrentProviderVersion>()).Select(document => document.Content);
+        }
+
         public async Task<HttpStatusCode> UpsertCurrentProviderVersion(CurrentProviderVersion currentProviderVersion)
         { 
             Guard.ArgumentNotNull(currentProviderVersion, nameof(currentProviderVersion));

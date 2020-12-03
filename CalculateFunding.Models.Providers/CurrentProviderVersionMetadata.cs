@@ -1,13 +1,12 @@
-using CalculateFunding.Common.Models;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Providers
 {
-    public class CurrentProviderVersion : IIdentifiable
+    public class CurrentProviderVersionMetadata
     {
-        [JsonProperty("id")]
-        public string Id { get; set; }
-        
+        [JsonProperty("fundingStreamId")]
+        public string FundingStreamId { get; set; }
+
         [JsonProperty("providerVersionId")]
         public string ProviderVersionId { get; set; }
 

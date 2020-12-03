@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
+using AutoMapper;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Providers.Requests;
 using CalculateFunding.Services.Providers.Interfaces;
+using CalculateFunding.Services.Providers.MappingProfiles;
 using CalculateFunding.Tests.Common.Builders;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
@@ -26,6 +29,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
         private Mock<IProviderVersionService> _providerVersionsService;
         private Mock<IProviderVersionSearchService> _providerVersionsSearch;
         private Mock<IValidator<SetFundingStreamCurrentProviderVersionRequest>> _setRequestValidation;
+        private IMapper _mapper;
 
         [TestInitialize]
         public void SetUp()
@@ -34,6 +38,8 @@ namespace CalculateFunding.Services.Providers.UnitTests
             _providerVersionsService = new Mock<IProviderVersionService>();
             _providerVersionsSearch = new Mock<IProviderVersionSearchService>();
             _setRequestValidation = new Mock<IValidator<SetFundingStreamCurrentProviderVersionRequest>>();
+            MapperConfiguration mappingConfig = new MapperConfiguration(c => { c.AddProfile<ProviderVersionsMappingProfile>(); });
+            _mapper = mappingConfig.CreateMapper();
 
             _service = new FundingStreamProviderVersionService(_providerVersionsMetadata.Object,
                 _providerVersionsService.Object,
@@ -45,7 +51,8 @@ namespace CalculateFunding.Services.Providers.UnitTests
                     ProviderVersionsSearchRepository = Policy.NoOpAsync(),
                     ProviderVersionMetadataRepository = Policy.NoOpAsync()
                 },
-                Logger.None);
+                Logger.None,
+                _mapper);
         }
 
         [TestMethod]
@@ -116,18 +123,19 @@ namespace CalculateFunding.Services.Providers.UnitTests
         {
             string fundingStreamId = NewRandomString();
             string providerVersionId = NewRandomString();
+            int? providerSnapshotId = NewRandomNumber();
 
             ValidationResult validationResult = NewValidationResult();
 
             GivenTheValidationResultForSetRequest(fundingStreamId, providerVersionId, validationResult);
 
-            IActionResult noContent = await WhenTheCurrentProviderVersionIsSetForFundingStream(fundingStreamId, providerVersionId);
+            IActionResult noContent = await WhenTheCurrentProviderVersionIsSetForFundingStream(fundingStreamId, providerVersionId, providerSnapshotId);
 
             noContent
                 .Should()
                 .BeOfType<NoContentResult>();
 
-            AndTheCurrentProviderVersionWasUpserted(fundingStreamId, providerVersionId);
+            AndTheCurrentProviderVersionWasUpserted(fundingStreamId, providerVersionId, providerSnapshotId);
         }
 
         [TestMethod]
@@ -251,6 +259,92 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 .BeSameAs(expectedSearchResult);
         }
 
+        [TestMethod]
+        public async Task GetCurrentProviderMetadataForFundingStream_GuardsAgainstNoMatchingCurrentProviderVersion()
+        {
+            IActionResult result = await WhenGetCurrentProviderMetadataForFundingStream(NewRandomString());
+
+            result
+                .Should()
+                .BeOfType<NotFoundResult>();
+        }
+
+
+        [TestMethod]
+        public async Task GetCurrentProviderMetadataForFundingStream_FetchesTheMetadataForCurrentProviderVersion()
+        {
+            string fundingStreamId = NewRandomString();
+            string providerVersionId = NewRandomString();
+            int? providerSnapshotId = NewRandomNumber();
+            CurrentProviderVersion currentProviderVersion = NewCurrentProviderVersion(_ => _.ForFundingStreamId(fundingStreamId)
+                                                                                            .WithProviderVersionId(providerVersionId)
+                                                                                            .WithProviderSnapshotId(providerSnapshotId));
+            GivenTheCurrentProviderVersionForFundingStream(fundingStreamId, currentProviderVersion);
+
+            IActionResult result = await WhenGetCurrentProviderMetadataForFundingStream(fundingStreamId);
+
+            CurrentProviderVersionMetadata actualMetadata = result
+                                                                .Should()
+                                                                .BeOfType<OkObjectResult>()
+                                                                .Which
+                                                                .Value.As<CurrentProviderVersionMetadata>();
+            actualMetadata.FundingStreamId.Should().Be(fundingStreamId);
+            actualMetadata.ProviderVersionId.Should().Be(providerVersionId);
+            actualMetadata.ProviderSnapshotId.Should().Be(providerSnapshotId);
+        }
+
+        [TestMethod]
+        public async Task GetCurrentProviderMetadataForAllFundingStreams_GuardsAgainstNoCurrentProviderVersions()
+        {
+            IActionResult result = await WhenGetCurrentProviderMetadataForFundingStream(NewRandomString());
+
+            result
+                .Should()
+                .BeOfType<NotFoundResult>();
+        }
+
+        [TestMethod]
+        public async Task GetCurrentProviderMetadataForAllFundingStreams_FetchesTheMetadataForAllCurrentProviderVersions()
+        {
+            string fundingStreamId1 = NewRandomString();
+            string providerVersionId1 = NewRandomString();
+            int? providerSnapshotId1 = NewRandomNumber();
+            CurrentProviderVersion currentProviderVersion1 = NewCurrentProviderVersion(_ => _.ForFundingStreamId(fundingStreamId1)
+                                                                                            .WithProviderVersionId(providerVersionId1)
+                                                                                            .WithProviderSnapshotId(providerSnapshotId1));
+            string fundingStreamId2 = NewRandomString();
+            string providerVersionId2 = NewRandomString();
+            int? providerSnapshotId2 = NewRandomNumber();
+            CurrentProviderVersion currentProviderVersion2 = NewCurrentProviderVersion(_ => _.ForFundingStreamId(fundingStreamId2)
+                                                                                            .WithProviderVersionId(providerVersionId2)
+                                                                                            .WithProviderSnapshotId(providerSnapshotId2));
+
+            CurrentProviderVersionMetadata expectedMetadata1 = _mapper.Map<CurrentProviderVersionMetadata>(currentProviderVersion1);
+            CurrentProviderVersionMetadata expectedMetadata2 = _mapper.Map<CurrentProviderVersionMetadata>(currentProviderVersion2);
+
+
+            GivenAllCurrentProviderVersions(currentProviderVersion1, currentProviderVersion2);
+
+            IActionResult result = await WhenGetCurrentProviderMetadataForAllFundingStreams();
+
+            IEnumerable<CurrentProviderVersionMetadata> actualMetadata = result
+                                                                .Should()
+                                                                .BeOfType<OkObjectResult>()
+                                                                .Which
+                                                                .Value.As<IEnumerable<CurrentProviderVersionMetadata>>();
+            actualMetadata.Count().Should().Be(2);
+            actualMetadata.Single(x => x.FundingStreamId == fundingStreamId1)
+                .Should().BeEquivalentTo(expectedMetadata1);
+            actualMetadata.Single(x => x.FundingStreamId == fundingStreamId2)
+                .Should().BeEquivalentTo(expectedMetadata2);
+        }
+
+        private async Task<IActionResult> WhenGetCurrentProviderMetadataForAllFundingStreams()
+           => await _service.GetCurrentProviderMetadataForAllFundingStreams();
+
+        private async Task<IActionResult> WhenGetCurrentProviderMetadataForFundingStream(string fundingStreamId)
+           => await _service.GetCurrentProviderMetadataForFundingStream(fundingStreamId);
+
         private async Task<IActionResult> WhenTheCurrentProviderVersionForFundingStreamIsSearched(string fundingStreamId,
             SearchModel search)
             => await _service.SearchCurrentProviderVersionsForFundingStream(fundingStreamId, search);
@@ -260,8 +354,8 @@ namespace CalculateFunding.Services.Providers.UnitTests
             => await _service.GetCurrentProviderForFundingStream(fundingStreamId, providerId);
 
         private async Task<IActionResult> WhenTheCurrentProviderVersionIsSetForFundingStream(string fundingStreamId,
-            string providerVersionId)
-            => await _service.SetCurrentProviderVersionForFundingStream(fundingStreamId, providerVersionId);
+            string providerVersionId, int? providerSnapshotId = null)
+            => await _service.SetCurrentProviderVersionForFundingStream(fundingStreamId, providerVersionId, providerSnapshotId);
 
         private async Task<IActionResult> WhenTheCurrentFundingStreamProvidersAreQueried(string fundingStreamId)
             => await _service.GetCurrentProvidersForFundingStream(fundingStreamId);
@@ -309,10 +403,11 @@ namespace CalculateFunding.Services.Providers.UnitTests
         }
 
         private void AndTheCurrentProviderVersionWasUpserted(string fundingStreamId,
-            string providerVersionId)
+            string providerVersionId, int? providerSnapshotId)
             => _providerVersionsMetadata.Verify(_ => _.UpsertCurrentProviderVersion(It.Is<CurrentProviderVersion>(cpv =>
                     cpv.Id == $"Current_{fundingStreamId}" &&
-                    cpv.ProviderVersionId == providerVersionId)),
+                    cpv.ProviderVersionId == providerVersionId &&
+                    cpv.ProviderSnapshotId == providerSnapshotId)),
                 Times.Once);
 
         private void AndNoCurrentProviderVersionWasUpserted()
@@ -324,6 +419,12 @@ namespace CalculateFunding.Services.Providers.UnitTests
         {
             _providerVersionsMetadata.Setup(_ => _.GetCurrentProviderVersion(fundingStreamId))
                 .ReturnsAsync(currentProviderVersion);
+        }
+
+        private void GivenAllCurrentProviderVersions(params CurrentProviderVersion[] currentProviderVersions)
+        {
+            _providerVersionsMetadata.Setup(_ => _.GetAllCurrentProviderVersions())
+                .ReturnsAsync(currentProviderVersions);
         }
 
         private void AndTheProvidersResponseForTheProviderVersion(string providerVersionId,
@@ -360,5 +461,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
         private IActionResult NewActionResult() => new Mock<IActionResult>().Object;
 
         private static string NewRandomString() => new RandomString();
+
+        private static int NewRandomNumber() => new RandomNumberBetween(0, int.MaxValue);
     }
 }

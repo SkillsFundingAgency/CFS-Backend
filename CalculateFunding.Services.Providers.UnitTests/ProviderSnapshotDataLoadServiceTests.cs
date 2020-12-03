@@ -14,6 +14,7 @@ using CalculateFunding.Models.Providers.ViewModels;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Providers.Interfaces;
+using CalculateFunding.Services.Providers.MappingProfiles;
 using CalculateFunding.Tests.Common.Builders;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;

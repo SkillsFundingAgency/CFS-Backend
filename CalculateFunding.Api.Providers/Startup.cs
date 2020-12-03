@@ -37,6 +37,7 @@ using ServiceCollectionExtensions = CalculateFunding.Services.Core.Extensions.Se
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Providers.Requests;
 using CalculateFunding.Services.Core.AspNet.Extensions;
+using CalculateFunding.Services.Providers.MappingProfiles;
 
 namespace CalculateFunding.Api.Providers
 {

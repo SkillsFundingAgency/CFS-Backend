@@ -7,6 +7,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
     {
         private string _id;
         private string _providerVersionId;
+        private int? _providerSnapshotId;
 
         public CurrentProviderVersionBuilder ForFundingStreamId(string fundingStreamId)
         {
@@ -21,13 +22,21 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
             return this;
         }
-        
+
+        public CurrentProviderVersionBuilder WithProviderSnapshotId(int? providerSnapshotId)
+        {
+            _providerSnapshotId = providerSnapshotId;
+
+            return this;
+        }
+
         public CurrentProviderVersion Build()
         {
             return new CurrentProviderVersion
             {
                 Id = _id ?? NewRandomString(),
-                ProviderVersionId = _providerVersionId ?? NewRandomString()
+                ProviderVersionId = _providerVersionId ?? NewRandomString(),
+                ProviderSnapshotId = _providerSnapshotId ?? NewRandomNumberBetween(0, int.MaxValue)
             };
         }
     }

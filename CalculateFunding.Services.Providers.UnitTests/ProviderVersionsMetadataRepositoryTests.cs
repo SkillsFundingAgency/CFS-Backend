@@ -49,10 +49,10 @@ namespace CalculateFunding.Services.Providers.UnitTests
             health
                 .Should()
                 .BeEquivalentTo(new DependencyHealth
-                    {
-                        HealthOk = expectedOk,
-                        Message = expectedMessage
-                    },
+                {
+                    HealthOk = expectedOk,
+                    Message = expectedMessage
+                },
                     opt
                         => opt.Excluding(_ => _.DependencyName));
         }
@@ -256,7 +256,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 .Should()
                 .Throw<ArgumentNullException>();
         }
-        
+
         [TestMethod]
         public async Task GetCurrentProviderVersionMatchesByTheFundingStreamId()
         {
@@ -266,12 +266,12 @@ namespace CalculateFunding.Services.Providers.UnitTests
             CurrentProviderVersion currentProviderVersionTwo = NewCurrentProviderVersion();
             CurrentProviderVersion currentProviderVersionThree = NewCurrentProviderVersion(_ => _.ForFundingStreamId(fundingStreamId));
             CurrentProviderVersion currentProviderVersionFour = NewCurrentProviderVersion();
-            
+
             GivenTheCosmosContents(currentProviderVersionOne,
                 currentProviderVersionTwo,
                 currentProviderVersionThree,
                 currentProviderVersionFour);
-            
+
             CurrentProviderVersion actualCurrentProviderVersion = await WhenTheCurrentProviderVersionIsQueried(fundingStreamId);
 
             actualCurrentProviderVersion
@@ -287,7 +287,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             invocation
                 .Should()
                 .Throw<ArgumentNullException>();
-            
+
             AndNothingWasUpsertedToCosmos<CurrentProviderVersion>();
         }
 
@@ -296,7 +296,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
         {
             CurrentProviderVersion currentProviderVersion = NewCurrentProviderVersion();
             HttpStatusCode expectedStatusCode = NewRandomStatusCode();
-            
+
             GivenTheCosmosStatusCodeForTheUpsert(currentProviderVersion, expectedStatusCode);
 
             HttpStatusCode actualStatusCode = await WhenTheCurrentProviderVersionIsUpserted(currentProviderVersion);
@@ -306,9 +306,29 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 .Be(expectedStatusCode);
         }
 
+        [TestMethod]
+        public async Task GetAllCurrentProviderVersionsReturnAllCurrentProviderVersions()
+        {
+            CurrentProviderVersion[] expectedCurrentProviderVersions = new[]
+            {
+                NewCurrentProviderVersion(),
+                NewCurrentProviderVersion()
+            };
+
+            GivenTheCosmosContents(expectedCurrentProviderVersions);
+            IEnumerable<CurrentProviderVersion> currentProviderVersions = await WhenGetAllCurrentProviderVersions();
+
+            currentProviderVersions
+                .Should()
+                .BeEquivalentTo(expectedCurrentProviderVersions);
+        }
+
+        private async Task<IEnumerable<CurrentProviderVersion>> WhenGetAllCurrentProviderVersions()
+            => await _repository.GetAllCurrentProviderVersions();
+
         private async Task<HttpStatusCode> WhenTheCurrentProviderVersionIsUpserted(CurrentProviderVersion currentProviderVersion)
             => await _repository.UpsertCurrentProviderVersion(currentProviderVersion);
-        
+
         private async Task<CurrentProviderVersion> WhenTheCurrentProviderVersionIsQueried(string fundingStreamId)
             => await _repository.GetCurrentProviderVersion(fundingStreamId);
 
@@ -372,9 +392,17 @@ namespace CalculateFunding.Services.Providers.UnitTests
                     query) =>
                 {
                     IEnumerable<DocumentEntity<TEntity>> documents = contents.Select(document => new DocumentEntity<TEntity>(document));
-                    Func<DocumentEntity<TEntity>, bool> filter = query.Compile();
 
-                    filteredResults.AddRange(documents.Where(document => filter(document)));
+                    if (query != null)
+                    {
+                        Func<DocumentEntity<TEntity>, bool> filter = query.Compile();
+
+                        filteredResults.AddRange(documents.Where(document => filter(document)));
+                    }
+                    else
+                    {
+                        filteredResults.AddRange(documents);
+                    }
                 })
                 .ReturnsAsync(filteredResults);
         }
@@ -437,7 +465,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             CurrentProviderVersionBuilder currentProviderVersionBuilder = new CurrentProviderVersionBuilder();
 
             setUp?.Invoke(currentProviderVersionBuilder);
-            
+
             return currentProviderVersionBuilder.Build();
         }
 
@@ -447,6 +475,6 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
         private DateTime NewRandomDate() => new RandomDateTime();
 
-        private HttpStatusCode NewRandomStatusCode() => (HttpStatusCode) (int) new RandomNumberBetween(200, 500);
+        private HttpStatusCode NewRandomStatusCode() => (HttpStatusCode)(int)new RandomNumberBetween(200, 500);
     }
 }

@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
@@ -21,6 +23,7 @@ namespace CalculateFunding.Services.Providers
     {
         private readonly IProviderVersionsMetadataRepository _providerVersionMetadata;
         private readonly IProviderVersionService _providerVersionService;
+        private readonly IMapper _mapper;
         private readonly IProviderVersionSearchService _providerVersionSearch;
         private readonly IValidator<SetFundingStreamCurrentProviderVersionRequest> _setCurrentRequestValidator;
         private readonly AsyncPolicy _providerVersionMetadataPolicy;
@@ -32,7 +35,8 @@ namespace CalculateFunding.Services.Providers
             IProviderVersionSearchService providerVersionSearch,
             IValidator<SetFundingStreamCurrentProviderVersionRequest> setCurrentRequestValidator,
             IProvidersResiliencePolicies resiliencePolicies,
-            ILogger logger)
+            ILogger logger,
+            IMapper mapper)
         {
             Guard.ArgumentNotNull(providerVersionMetadata, nameof(providerVersionMetadata));
             Guard.ArgumentNotNull(providerVersionService, nameof(providerVersionService));
@@ -40,6 +44,7 @@ namespace CalculateFunding.Services.Providers
             Guard.ArgumentNotNull(resiliencePolicies?.ProviderVersionMetadataRepository, nameof(resiliencePolicies.ProviderVersionMetadataRepository));
             Guard.ArgumentNotNull(resiliencePolicies?.ProviderVersionsSearchRepository, nameof(resiliencePolicies.ProviderVersionsSearchRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(mapper, nameof(mapper));
 
             _providerVersionMetadata = providerVersionMetadata;
             _providerVersionMetadataPolicy = resiliencePolicies.ProviderVersionMetadataRepository;
@@ -48,6 +53,7 @@ namespace CalculateFunding.Services.Providers
             _providerVersionSearch = providerVersionSearch;
             _setCurrentRequestValidator = setCurrentRequestValidator;
             _providerVersionService = providerVersionService;
+            _mapper = mapper;
         }
 
         public async Task<IActionResult> GetCurrentProvidersForFundingStream(string fundingStreamId)
@@ -68,7 +74,7 @@ namespace CalculateFunding.Services.Providers
         }
 
         public async Task<IActionResult> SetCurrentProviderVersionForFundingStream(string fundingStreamId,
-            string providerVersionId)
+            string providerVersionId, int? providerSnapshotId)
         {
             ValidationResult validationResult = await _setCurrentRequestValidator.ValidateAsync(new SetFundingStreamCurrentProviderVersionRequest
             {
@@ -87,7 +93,8 @@ namespace CalculateFunding.Services.Providers
             await _providerVersionMetadataPolicy.ExecuteAsync(() => _providerVersionMetadata.UpsertCurrentProviderVersion(new CurrentProviderVersion
             {
                 Id = $"Current_{fundingStreamId}",
-                ProviderVersionId = providerVersionId
+                ProviderVersionId = providerVersionId,
+                ProviderSnapshotId = providerSnapshotId
             }));
             
             return new NoContentResult();
@@ -154,6 +161,40 @@ namespace CalculateFunding.Services.Providers
             }
 
             return health;
+        }
+
+        public async Task<IActionResult> GetCurrentProviderMetadataForFundingStream(string fundingStreamId)
+        {
+            Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
+
+            CurrentProviderVersion currentProviderVersion = await GetCurrentProviderVersion(fundingStreamId);
+
+            if (currentProviderVersion == null)
+            {
+                LogError("Unable to get the current provider for funding stream. " +
+                         $"No current provider version information located for {fundingStreamId}");
+
+                return new NotFoundResult();
+            }
+
+            CurrentProviderVersionMetadata metadata = _mapper.Map<CurrentProviderVersionMetadata>(currentProviderVersion);
+
+            return new OkObjectResult(metadata);
+        }
+        
+        public async Task<IActionResult> GetCurrentProviderMetadataForAllFundingStreams()
+        {
+            IEnumerable<CurrentProviderVersion> currentProviderVersions = await _providerVersionMetadataPolicy.ExecuteAsync(() =>
+                _providerVersionMetadata.GetAllCurrentProviderVersions());
+
+            if(!currentProviderVersions.Any())
+            {
+                return new NotFoundResult();
+            }
+
+            IEnumerable<CurrentProviderVersionMetadata> metadataForAllFundingStreams = _mapper.Map<IEnumerable<CurrentProviderVersionMetadata>>(currentProviderVersions);
+
+            return new OkObjectResult(metadataForAllFundingStreams);
         }
 
         private async Task<CurrentProviderVersion> GetCurrentProviderVersion(string fundingStreamId) =>

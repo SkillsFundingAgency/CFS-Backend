@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
@@ -30,18 +31,37 @@ namespace CalculateFunding.Api.Providers.Controllers
         public async Task<IActionResult> GetCurrentProvidersForFundingStream([FromRoute] string fundingStreamId) =>
             await _fundingStreamProviderVersionService.GetCurrentProvidersForFundingStream(fundingStreamId);
 
+        /// <summary>
+        ///     Fetches latest version of provider metadata for funding stream
+        /// </summary>
+        /// <param name="fundingStreamId">the funding stream to get current provider metadata for</param>
+        /// <returns>ProviderVersion[]</returns>
+        [HttpGet("api/providers/fundingstreams/{fundingStreamId}/current/metadata")]
+        [ProducesResponseType(200, Type = typeof(CurrentProviderVersionMetadata))]
+        public async Task<IActionResult> GetCurrentProviderMetadataForFundingStream([FromRoute] string fundingStreamId) =>
+            await _fundingStreamProviderVersionService.GetCurrentProviderMetadataForFundingStream(fundingStreamId);
+
+        /// <summary>
+        ///     Fetches latest version of provider metadata for all funding streams
+        /// </summary>
+        /// <returns>CurrentProviderVersionMetadata[]</returns>
+        [HttpGet("api/providers/fundingstreams")]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<CurrentProviderVersionMetadata>))]
+        public async Task<IActionResult> GetCurrentProviderMetadataForAllFundingStreams() =>
+            await _fundingStreamProviderVersionService.GetCurrentProviderMetadataForAllFundingStreams();
 
         /// <summary>
         ///     Sets the current provider version id for the funding stream
         /// </summary>
         /// <param name="fundingStreamId">the funding stream to update</param>
         /// <param name="providerVersionId">the new Current provider version id</param>
+        /// <param name="providerSnapshotId">ProviderSnapshotId (optional)</param>
         [HttpPut("api/providers/fundingstreams/{fundingStreamId}/current/{providerVersionId}")]
         [ProducesResponseType(201)]
         public async Task<IActionResult> SetCurrentProviderVersion([FromRoute] string fundingStreamId,
-            [FromRoute] string providerVersionId) =>
+            [FromRoute] string providerVersionId, [FromQuery] int? providerSnapshotId) =>
             await _fundingStreamProviderVersionService.SetCurrentProviderVersionForFundingStream(fundingStreamId,
-                providerVersionId);
+                providerVersionId, providerSnapshotId);
 
         /// <summary>
         ///     Gets the version of the provider as at the Current

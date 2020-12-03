@@ -17,6 +17,7 @@ using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Providers.Caching;
 using CalculateFunding.Services.Providers.Interfaces;
+using CalculateFunding.Services.Providers.MappingProfiles;
 using CalculateFunding.Services.Providers.Validators;
 using FluentAssertions;
 using FluentValidation;

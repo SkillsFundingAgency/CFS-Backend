@@ -12,6 +12,7 @@ namespace CalculateFunding.Services.Providers.Interfaces
         Task<HttpStatusCode> UpsertMaster(MasterProviderVersion providerVersionMetadataViewModel);
         Task<MasterProviderVersion> GetMasterProviderVersion();
         Task<IEnumerable<ProviderVersionMetadata>> GetProviderVersions(string fundingStream);
+        Task<IEnumerable<CurrentProviderVersion>> GetAllCurrentProviderVersions();
         Task<ProviderVersionByDate> GetProviderVersionByDate(int year, int month, int day);
         Task<bool> Exists(string name, string providerVersionTypeString, int version, string fundingStream);
         Task<ProviderVersionMetadata> GetProviderVersionMetadata(string providerVersionId);

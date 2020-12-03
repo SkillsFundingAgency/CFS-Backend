@@ -25,6 +25,7 @@ using CalculateFunding.Services.DeadletterProcessor;
 using CalculateFunding.Services.Processing.Interfaces;
 using CalculateFunding.Services.Providers;
 using CalculateFunding.Services.Providers.Interfaces;
+using CalculateFunding.Services.Providers.MappingProfiles;
 using CalculateFunding.Services.Providers.Validators;
 using FluentValidation;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;

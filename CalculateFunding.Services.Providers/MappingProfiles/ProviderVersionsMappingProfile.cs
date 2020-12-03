@@ -2,7 +2,7 @@
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Providers.ViewModels;
 
-namespace CalculateFunding.Services.Providers
+namespace CalculateFunding.Services.Providers.MappingProfiles
 {
     public class ProviderVersionsMappingProfile : Profile
     {
@@ -39,6 +39,11 @@ namespace CalculateFunding.Services.Providers
                 .ForMember(c => c.ProviderVersionIdProviderId, opt => opt.Ignore())
                 .ForMember(c => c.ProviderVersionId, opt => opt.Ignore())
                 .ForMember(c => c.TrustStatusViewModelString, opt => opt.Ignore());
+
+            CreateMap<CurrentProviderVersion, CurrentProviderVersionMetadata>()
+                .ForMember(d => d.FundingStreamId, opt => opt.MapFrom(s => s.Id.Replace("Current_", string.Empty)))
+                .ForMember(d => d.ProviderVersionId, opt => opt.MapFrom(s => s.ProviderVersionId))
+                .ForMember(d => d.ProviderSnapshotId, opt => opt.MapFrom(s => s.ProviderSnapshotId));
         }
     }
 }

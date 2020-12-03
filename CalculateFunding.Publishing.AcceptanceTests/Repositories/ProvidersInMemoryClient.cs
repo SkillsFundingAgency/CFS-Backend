@@ -249,5 +249,20 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task<HttpStatusCode> SetCurrentProviderVersion(string fundingStreamId, string providerVersionId, int? providerSnapshotId = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ApiResponse<CurrentProviderVersionMetadata>> GetCurrentProviderMetadataForFundingStream(string fundingStreamId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ApiResponse<IEnumerable<CurrentProviderVersionMetadata>>> GetCurrentProviderMetadataForAllFundingStreams()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
