@@ -5,7 +5,6 @@ using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.TemplateMetadata.Schema10;
-using CalculateFunding.Models.Publishing;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -34,7 +33,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             TemplateMapping mapping = CreateTemplateMappings();
 
             //Act
-            GeneratorModels.FundingValue fundingValue = fundingLineTotalAggregator.GenerateTotals(contents, mapping, CreateCalculations(mapping));
+            GeneratorModels.FundingValue fundingValue = fundingLineTotalAggregator.GenerateTotals(contents, mapping.TemplateMappingItems.ToDictionary(_ => _.TemplateId), CreateCalculations(mapping).ToDictionary(_ => _.Id));
 
             IEnumerable<GeneratorModels.FundingLine> fundingLines = fundingValue.FundingLines.Flatten(_ => _.FundingLines);
 

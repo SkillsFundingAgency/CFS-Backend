@@ -109,10 +109,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             generatedProviderResult["1234"].Calculations.Single(_ => _.TemplateCalculationId == 10).Value
                 .Should()
                 .Be(1500M);
-
-            generatedProviderResult["1234"].ReferenceData.Single(_ => _.TemplateReferenceId == 1).Value
-                .Should()
-                .Be("1");
         }
 
         [TestMethod]

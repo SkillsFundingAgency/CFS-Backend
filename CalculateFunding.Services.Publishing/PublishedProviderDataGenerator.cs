@@ -52,10 +52,10 @@ namespace CalculateFunding.Services.Publishing
             TimeSpan loggingPeriod = TimeSpan.FromMinutes(5);
 
             using (new Timer(
-                _ => _logger.Information("{0}: Published Providers processed.", DateTime.Now, results.Count),
+                _ => _logger.Information($"{results.Count}: Published Providers processed."),
                 null, loggingPeriod, loggingPeriod))
-            
-            Parallel.ForEach(scopedProviders, new ParallelOptions { MaxDegreeOfParallelism = 10 }, (provider) =>
+
+            Parallel.ForEach(scopedProviders, new ParallelOptions { MaxDegreeOfParallelism = 15 }, (provider) =>
             {
                 GeneratedProviderResult generatedProviderResult = new GeneratedProviderResult();
 
@@ -64,7 +64,7 @@ namespace CalculateFunding.Services.Publishing
 
                 if (calculationResultsForProvider != null)
                 {
-                    GeneratorModels.FundingValue fundingValue = _fundingLineTotalAggregator.GenerateTotals(templateMetadata, templateMapping, calculationResultsForProvider.Results);
+                    GeneratorModels.FundingValue fundingValue = _fundingLineTotalAggregator.GenerateTotals(templateMetadata, templateMapping.TemplateMappingItems.ToDictionary(_ => _.TemplateId), calculationResultsForProvider.Results.ToDictionary(_ => _.Id));
 
                     // Get funding lines
                     IEnumerable<GeneratorModels.FundingLine> fundingLines = fundingValue.FundingLines?.Flatten(_ => _.FundingLines) ?? new GeneratorModels.FundingLine[0];
@@ -78,12 +78,12 @@ namespace CalculateFunding.Services.Publishing
 
                     // Set total funding
                     generatedProviderResult.TotalFunding = generatedProviderResult.FundingLines
-                        .Sum(p =>
-                        {
-                            return p.Type == OrganisationGroupingReason.Payment ? p.Value : 0;
-                        });
+                            .Sum(p =>
+                            {
+                                return p.Type == OrganisationGroupingReason.Payment ? p.Value : 0;
+                            });
 
-                    Dictionary<uint, GeneratorModels.Calculation> uniqueCalculations = new Dictionary<uint, GeneratorModels.Calculation>();
+                        Dictionary<uint, GeneratorModels.Calculation> uniqueCalculations = new Dictionary<uint, GeneratorModels.Calculation>();
 
                     // Get calculations
                     IEnumerable<GeneratorModels.Calculation> fundingCalculations = uniqueFundingLine.Values?.SelectMany(_ => _.Calculations.Flatten(calc => calc.Calculations)) ?? new GeneratorModels.Calculation[0];
@@ -91,16 +91,6 @@ namespace CalculateFunding.Services.Publishing
                     generatedProviderResult.Calculations = fundingCalculations.Where(_ => uniqueCalculations.TryAdd(_.TemplateCalculationId, _)).Select(_ =>
                     {
                         return _mapper.Map<FundingCalculation>(_);
-                    }).ToList();
-
-                    Dictionary<uint, GeneratorModels.ReferenceData> uniqueReferenceData = new Dictionary<uint, GeneratorModels.ReferenceData>();
-
-                    // Get reference data
-                    IEnumerable<GeneratorModels.ReferenceData> fundingReferenceData = uniqueCalculations.Values?.SelectMany(_ => _.ReferenceData);
-
-                    generatedProviderResult.ReferenceData = fundingReferenceData.Where(_ => uniqueReferenceData.TryAdd(_.TemplateReferenceId, _)).Select(_ =>
-                    {
-                        return _mapper.Map<FundingReferenceData>(_);
                     }).ToList();
 
                     // Set Provider information
