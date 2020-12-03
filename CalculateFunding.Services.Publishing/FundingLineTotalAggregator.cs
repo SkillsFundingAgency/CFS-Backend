@@ -52,7 +52,8 @@ namespace CalculateFunding.Services.Publishing
         {
             return calculations?.Select(calc =>
             {
-                CalculationResult calculationResult = calculationResults[GetCalculationId(mappingItems, calc.TemplateCalculationId)];
+                string calculationId = GetCalculationId(mappingItems, calc.TemplateCalculationId);
+                CalculationResult calculationResult = calculationResults.ContainsKey(calculationId) ? calculationResults[calculationId] : null;
                 decimal? calculationResultValue = calculationResult?.Value as decimal?;
 
                 return new GeneratorModels.Calculation
@@ -93,7 +94,7 @@ namespace CalculateFunding.Services.Publishing
 
         private string GetCalculationId(IDictionary<uint, TemplateMappingItem> mappingItems, uint templateId)
         {
-            string calculationId = mappingItems[templateId]?.CalculationId;
+            string calculationId = mappingItems.ContainsKey(templateId) ? mappingItems[templateId].CalculationId : null;
             if (string.IsNullOrWhiteSpace(calculationId))
             {
                 throw new InvalidOperationException($"Unable to find CalculationId for TemplateCalculationId '{templateId}' in template mapping");
