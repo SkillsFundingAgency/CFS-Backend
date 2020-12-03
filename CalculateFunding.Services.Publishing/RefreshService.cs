@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalculateFunding.Common.Helpers;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata.Models;
@@ -297,23 +299,9 @@ namespace CalculateFunding.Services.Publishing
 
             _logger.Information("Profiling providers for refresh");
 
-            try
-            {
-                foreach (KeyValuePair<string, PublishedProvider> publishedProvider in publishedProviders)
-                {
-                    bool isNewProvider = newProviders.ContainsKey(publishedProvider.Key);
-                    PublishedProviderVersion publishedProviderVersion = publishedProvider.Value.Current;
-                    if (generatedPublishedProviderData.ContainsKey(publishedProviderVersion.ProviderId))
-                    {
-                        publishedProviderVersion.ProfilePatternKeys = (await _profilingService.ProfileFundingLines(
-                                                                                        generatedPublishedProviderData[publishedProviderVersion.ProviderId].FundingLines.Where(f => f.Type == OrganisationGroupingReason.Payment),
-                                                                                        fundingStream.Id,
-                                                                                        fundingPeriodId,
-                                                                                        profilePatternKeys: isNewProvider ? null : publishedProviderVersion.ProfilePatternKeys,
-                                                                                        providerType: isNewProvider ? publishedProviderVersion.Provider.ProviderType : null,
-                                                                                        providerSubType: isNewProvider ? publishedProviderVersion.Provider.ProviderSubType : null)).ToList();
-                    }
-                }
+            try 
+            { 
+                await ProfileProviders(publishedProviders, newProviders, generatedPublishedProviderData, fundingStream.Id, fundingPeriodId);
             }
             catch (Exception ex)
             {
@@ -514,6 +502,54 @@ namespace CalculateFunding.Services.Publishing
                     await generateCsvJobs.CreateJobs(publishedFundingCsvJobsRequest);
                 }
             }
+        }
+
+        private async Task ProfileProviders(IDictionary<string, PublishedProvider> publishedProviders, IDictionary<string, PublishedProvider> newProviders, IDictionary<string, GeneratedProviderResult> generatedPublishedProviderData, string fundingStreamId, string fundingPeriodId)
+        {
+            SemaphoreSlim throttle = new SemaphoreSlim(10);
+            List<Task> profilingProviderTasks = new List<Task>();
+            
+            int items = 0;
+
+            TimeSpan loggingPeriod = TimeSpan.FromMinutes(5);
+
+            using (new Timer(
+                _ => _logger.Information($"{items}: Published Providers processed."),
+                null, loggingPeriod, loggingPeriod))
+
+
+                foreach (KeyValuePair<string, PublishedProvider> publishedProvider in publishedProviders)
+            {
+                await throttle.WaitAsync();
+
+                profilingProviderTasks.Add(Task.Run(async () =>
+                {
+                    try
+                    {
+                        Interlocked.Increment(ref items);
+
+                        bool isNewProvider = newProviders.ContainsKey(publishedProvider.Key);
+                        PublishedProviderVersion publishedProviderVersion = publishedProvider.Value.Current;
+                        
+                        if (generatedPublishedProviderData.ContainsKey(publishedProviderVersion.ProviderId))
+                        {
+                            publishedProviderVersion.ProfilePatternKeys = (await _profilingService.ProfileFundingLines(
+                                                                                            generatedPublishedProviderData[publishedProviderVersion.ProviderId].FundingLines.Where(f => f.Type == OrganisationGroupingReason.Payment),
+                                                                                            fundingStreamId,
+                                                                                            fundingPeriodId,
+                                                                                            profilePatternKeys: isNewProvider ? null : publishedProviderVersion.ProfilePatternKeys,
+                                                                                            providerType: isNewProvider ? publishedProviderVersion.Provider.ProviderType : null,
+                                                                                            providerSubType: isNewProvider ? publishedProviderVersion.Provider.ProviderSubType : null)).ToList();
+                        }
+                    }
+                    finally
+                    {
+                        throttle.Release();
+                    }
+                }));
+            }
+
+            await TaskHelper.WhenAllAndThrow(profilingProviderTasks.ToArray());
         }
 
         private void AddInitialPublishVariationReasons(IEnumerable<PublishedProvider> publishedProviders)
