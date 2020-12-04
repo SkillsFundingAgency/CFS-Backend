@@ -27,6 +27,12 @@ namespace CalculateFunding.Models.Jobs
 
         [JsonProperty("itemsFailed")]
         public int? ItemsFailed { get; set; }
+        
+        /// <summary>
+        /// Classification of the job outcome
+        /// </summary>
+        [JsonProperty("outcomeType")]
+        public OutcomeType? OutcomeType { get; set; }
 
         /// <summary>
         /// Summary string of job log outcome

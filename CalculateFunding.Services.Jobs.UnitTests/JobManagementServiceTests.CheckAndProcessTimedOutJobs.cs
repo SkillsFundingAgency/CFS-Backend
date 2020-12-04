@@ -82,7 +82,7 @@ namespace CalculateFunding.Services.Jobs.Services
         }
 
         [TestMethod]
-        public async Task CheckAndProcessTimedOutJobs_GivenNonCompletedJobsFoundButCouldntFiundJobDefinition_LogsError()
+        public async Task CheckAndProcessTimedOutJobs_GivenNonCompletedJobsFoundButCouldNotFindJobDefinition_LogsError()
         {
             //Arrange
             IEnumerable<Job> nonCompletedJobs = new[]
@@ -228,7 +228,7 @@ namespace CalculateFunding.Services.Jobs.Services
         }
 
         [TestMethod]
-        public async Task CheckAndProcessTimedOutJobs_GivenNonCompletedJobsAndHasTimeOutAndUpdatesSuccesully_SendsNotification()
+        public async Task CheckAndProcessTimedOutJobs_GivenNonCompletedJobsAndHasTimeOutAndUpdatesSuccessfully_SendsNotification()
         {
             //Arrange
             IEnumerable<Job> nonCompletedJobs = new[]
@@ -281,7 +281,8 @@ namespace CalculateFunding.Services.Jobs.Services
                     .UpdateJob(Arg.Is<Job>(
                         m => m.Id == "job-id-1" &&
                              m.CompletionStatus == CompletionStatus.TimedOut &&
-                             m.RunningStatus == RunningStatus.Completed
+                             m.RunningStatus == RunningStatus.Completed &&
+                             m.OutcomeType == OutcomeType.Inconclusive
                         ));
 
             await

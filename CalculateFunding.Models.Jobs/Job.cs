@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using CalculateFunding.Common.Models;
 using Newtonsoft.Json;
 
@@ -91,19 +92,41 @@ namespace CalculateFunding.Models.Jobs
         /// </summary>
         [JsonProperty("created")]
         public DateTimeOffset Created { get; set; }
-
-        /// <summary>
-        /// Date and time job finished (to be set when CompletionStatus is set)
-        /// </summary>
-        [JsonProperty("completed")]
-        public DateTimeOffset? Completed { get; set; }
-
+        
         /// <summary>
         /// Summary string of job outcome
         /// eg Calculation engine ran for 1000 providers and completed successfully
         /// </summary>
         [JsonProperty("outcome")]
         public string Outcome { get; set; }
+        
+        /// <summary>
+        /// Classification of the job outcome
+        /// </summary>
+        [JsonProperty("outcomeType")]
+        public OutcomeType? OutcomeType { get; set; }
+
+        /// <summary>
+        /// Date and time job finished (to be set when CompletionStatus is set)
+        /// </summary>
+        [JsonProperty("completed")]
+        public DateTimeOffset? Completed { get; set; }
+        
+        /// <summary>
+        /// Summary of outcomes and child job outcomes
+        /// determining the out come of this job
+        /// </summary>
+        public ICollection<Outcome> Outcomes { get; set; }
+
+        public void AddOutcome(Outcome outcome)
+        {
+            Outcomes ??= new List<Outcome>();
+
+            if (!Outcomes.Contains(outcome))
+            {
+                Outcomes.Add(outcome);
+            }    
+        }
 
         /// <summary>
         /// Date and time job was last updated

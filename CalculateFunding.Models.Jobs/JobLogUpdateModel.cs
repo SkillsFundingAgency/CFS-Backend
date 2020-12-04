@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace CalculateFunding.Models.Jobs
+﻿namespace CalculateFunding.Models.Jobs
 {
     public class JobLogUpdateModel
     {
@@ -9,6 +7,8 @@ namespace CalculateFunding.Models.Jobs
         public int? ItemsSucceeded { get; set; }
 
         public int? ItemsFailed { get; set; }
+        
+        public OutcomeType? OutcomeType { get; set; }
 
         /// <summary>
         /// Summary string of job log outcome

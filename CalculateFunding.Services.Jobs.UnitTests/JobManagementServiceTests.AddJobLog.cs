@@ -155,6 +155,64 @@ namespace CalculateFunding.Services.Jobs.Services
         }
 
         [TestMethod]
+        [DynamicData(nameof(JobLogOutcomeTypeExamples), DynamicDataSourceType.Method)]
+        public async Task AddJobLog_WhenNoOutcomeTypeIsSuppliedInTheViewModelItIsDeterminedByTheJobLogDetails(JobLogUpdateModel jobLogUpdateModel,
+            OutcomeType? expectedOutcomeType)
+        {
+            //Arrange
+            string jobId = "job-id-1";
+
+            Job job = new Job
+            {
+                Id = jobId,
+                RunningStatus = RunningStatus.InProgress
+            };
+
+            IJobRepository jobRepository = CreateJobRepository();
+            jobRepository
+                .GetJobById(Arg.Is(jobId))
+                .Returns(job);
+
+            jobRepository
+                .UpdateJob(Arg.Is(job))
+                .Returns(HttpStatusCode.OK);
+
+            jobRepository
+                .CreateJobLog(Arg.Any<JobLog>())
+                .Returns(HttpStatusCode.OK);
+
+            ILogger logger = CreateLogger();
+
+            JobManagementService jobManagementService = CreateJobManagementService(jobRepository: jobRepository, logger: logger);
+
+            //Act
+            IActionResult actionResult = await jobManagementService.AddJobLog(jobId, jobLogUpdateModel);
+
+            //Assert
+            actionResult
+                .Should()
+                .BeAssignableTo<OkObjectResult>();
+
+            job.RunningStatus.Should().Be(RunningStatus.Completed);
+            job.Completed.Should().NotBeNull();
+            job.OutcomeType.Should().Be(expectedOutcomeType);    
+        }
+
+        public static IEnumerable<object[]> JobLogOutcomeTypeExamples()
+        {
+            yield return new object[]
+            {
+                NewJobLogUpdateModel(_ => _.WithCompletedSuccessfully(true)),
+                OutcomeType.Succeeded
+            };
+            yield return new object[]
+            {
+                NewJobLogUpdateModel(_ => _.WithCompletedSuccessfully(false)),
+                OutcomeType.Failed
+            };
+        }
+
+        [TestMethod]
         public async Task AddJobLog_GivenJobFoundAndSetToCompletedAndIsFailed_EnsuresJobIsUpdatedWithCorrectValues()
         {
             //Arrange
@@ -163,7 +221,8 @@ namespace CalculateFunding.Services.Jobs.Services
             JobLogUpdateModel jobLogUpdateModel = new JobLogUpdateModel
             {
                 CompletedSuccessfully = false,
-                Outcome = "outcome"
+                Outcome = "outcome",
+                OutcomeType = NewRandomOutcomeType()
             };
 
             Job job = new Job
@@ -201,7 +260,10 @@ namespace CalculateFunding.Services.Jobs.Services
             job.Completed.Should().NotBeNull();
             job.CompletionStatus.Should().Be(CompletionStatus.Failed);
             job.Outcome.Should().Be("outcome");
+            job.OutcomeType.Should().Be(jobLogUpdateModel.OutcomeType);
         }
+        
+        
 
         [TestMethod]
         public async Task AddJobLog_GivenJobUpdated_EnsuresNewJobLogCreated()

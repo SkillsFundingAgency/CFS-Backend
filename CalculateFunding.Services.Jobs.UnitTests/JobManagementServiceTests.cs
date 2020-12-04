@@ -1,7 +1,9 @@
-﻿using CalculateFunding.Common.Caching;
+﻿using System;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Models.Jobs;
 using CalculateFunding.Services.Jobs.Interfaces;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -37,6 +39,26 @@ namespace CalculateFunding.Services.Jobs.Services
                     cacheProvider ?? CreateCacheProvider()
                 );
         }
+
+        private static Outcome NewOutcome(Action<OutcomeBuilder> setUp = null)
+        {
+            OutcomeBuilder outcomeBuilder = new OutcomeBuilder();
+
+            setUp?.Invoke(outcomeBuilder);
+            
+            return outcomeBuilder.Build();
+        }
+
+        private static JobLogUpdateModel NewJobLogUpdateModel(Action<JobLogUpdateModelBuilder> setUp = null)
+        {
+            JobLogUpdateModelBuilder jobLogUpdateModelBuilder = new JobLogUpdateModelBuilder();
+            
+            setUp?.Invoke(jobLogUpdateModelBuilder);
+            
+            return jobLogUpdateModelBuilder.Build();
+        }
+        
+        private static OutcomeType NewRandomOutcomeType() => new RandomEnum<OutcomeType>();
 
         private ICacheProvider CreateCacheProvider()
         {

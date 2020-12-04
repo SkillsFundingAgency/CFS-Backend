@@ -21,6 +21,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Polly;
 using Serilog;
+using OutcomeType = CalculateFunding.Models.Jobs.OutcomeType;
 
 namespace CalculateFunding.Services.Jobs
 {
@@ -316,17 +317,23 @@ namespace CalculateFunding.Services.Jobs
 
             if (job == null)
             {
-                _logger.Error($"A job could not be found for job id: '{jobId}'");
-                return new NotFoundObjectResult($"A job could not be found for job id: '{jobId}'");
+                string error = $"A job could not be found for job id: '{jobId}'";
+                
+                _logger.Error(error);
+                
+                return new NotFoundObjectResult(error);
             }
 
             bool needToSaveJob = false;
 
             if (jobLogUpdateModel.CompletedSuccessfully.HasValue)
             {
+                bool completedSuccessfully = jobLogUpdateModel.CompletedSuccessfully.Value;
+                
                 job.Completed = DateTimeOffset.UtcNow;
                 job.RunningStatus = RunningStatus.Completed;
-                job.CompletionStatus = jobLogUpdateModel.CompletedSuccessfully.Value ? CompletionStatus.Succeeded : CompletionStatus.Failed;
+                job.CompletionStatus = completedSuccessfully ? CompletionStatus.Succeeded : CompletionStatus.Failed;
+                job.OutcomeType = GetCompletedJobOutcomeType(jobLogUpdateModel);
                 job.Outcome = jobLogUpdateModel.Outcome;
                 needToSaveJob = true;
             }
@@ -345,8 +352,11 @@ namespace CalculateFunding.Services.Jobs
 
                 if (!statusCode.IsSuccess())
                 {
-                    _logger.Error($"Failed to update job id: '{jobId}' with status code '{(int)statusCode}'");
-                    return new InternalServerErrorResult($"Failed to update job id: '{jobId}' with status code '{(int)statusCode}'");
+                    string error = $"Failed to update job id: '{jobId}' with status code '{(int)statusCode}'";
+                    
+                    _logger.Error(error);
+                    
+                    return new InternalServerErrorResult(error);
                 }
             }
 
@@ -357,6 +367,7 @@ namespace CalculateFunding.Services.Jobs
                 ItemsProcessed = jobLogUpdateModel.ItemsProcessed,
                 ItemsSucceeded = jobLogUpdateModel.ItemsSucceeded,
                 ItemsFailed = jobLogUpdateModel.ItemsFailed,
+                OutcomeType = jobLogUpdateModel.OutcomeType,
                 Outcome = jobLogUpdateModel.Outcome,
                 CompletedSuccessfully = jobLogUpdateModel.CompletedSuccessfully,
                 Timestamp = DateTimeOffset.UtcNow
@@ -366,13 +377,51 @@ namespace CalculateFunding.Services.Jobs
 
             if (!createJobLogStatus.IsSuccess())
             {
-                _logger.Error($"Failed to create a job log for job id: '{jobId}'");
-                throw new Exception($"Failed to create a job log for job id: '{jobId}'");
+                string error = $"Failed to create a job log for job id: '{jobId}'";
+                
+                _logger.Error(error);
+                
+                throw new Exception(error);
             }
 
             await SendJobLogNotification(job, jobLog);
 
             return new OkObjectResult(jobLog);
+        }
+
+        private static OutcomeType GetCompletedJobOutcomeType(CompletionStatus completionStatus)
+        {
+            return completionStatus switch
+            {
+                CompletionStatus.Cancelled => OutcomeType.Inconclusive,
+                CompletionStatus.Superseded => OutcomeType.Inconclusive,
+                CompletionStatus.TimedOut => OutcomeType.Inconclusive,
+                CompletionStatus.Succeeded => OutcomeType.Succeeded,
+                CompletionStatus.Failed => OutcomeType.Failed,
+                _ => OutcomeType.Inconclusive
+            };
+        }
+
+        private static OutcomeType GetCompletedJobOutcomeType(JobLogUpdateModel jobLogUpdateModel)
+        {
+            if (jobLogUpdateModel.OutcomeType.HasValue)
+            {
+                return jobLogUpdateModel.OutcomeType.Value;
+            }
+
+            bool? completedSuccessfully = jobLogUpdateModel.CompletedSuccessfully;
+            
+            if (completedSuccessfully.GetValueOrDefault())
+            {
+                return OutcomeType.Succeeded;
+            }
+
+            if (completedSuccessfully.HasValue && !completedSuccessfully.Value)
+            {
+                return OutcomeType.Failed;
+            }
+
+            return OutcomeType.Inconclusive;
         }
 
         /// <summary>
@@ -398,6 +447,7 @@ namespace CalculateFunding.Services.Jobs
                 runningJob.CompletionStatus = CompletionStatus.Superseded;
                 runningJob.SupersededByJobId = replacementJob.Id;
                 runningJob.RunningStatus = RunningStatus.Completed;
+                runningJob.OutcomeType = OutcomeType.Inconclusive;
 
                 HttpStatusCode statusCode = await UpdateJob(runningJob);
 
@@ -428,6 +478,7 @@ namespace CalculateFunding.Services.Jobs
                 if (!message.UserProperties.ContainsKey("jobId"))
                 {
                     _logger.Error("Job Notification message has no JobId");
+                    
                     return;
                 }
 
@@ -438,6 +489,7 @@ namespace CalculateFunding.Services.Jobs
                 if (job == null)
                 {
                     _logger.Error("Could not find job with id {JobId}", jobId);
+                    
                     return;
                 }
 
@@ -532,6 +584,9 @@ namespace CalculateFunding.Services.Jobs
                 parentJob.RunningStatus = RunningStatus.Completed;
                 parentJob.CompletionStatus = DetermineCompletionStatus(childJobs);
                 parentJob.Outcome = "All child jobs completed";
+                parentJob.OutcomeType = GetCompletedJobOutcomeType(parentJob.CompletionStatus.GetValueOrDefault());
+                
+                RollupChildJobOutcomes(parentJob, childJobs.Concat(new [] { job }));
 
                 await UpdateJob(parentJob);
 
@@ -540,6 +595,28 @@ namespace CalculateFunding.Services.Jobs
                     job.ParentJobId, jobId);
 
                 await _notificationService.SendNotification(CreateJobNotificationFromJob(parentJob));
+            }
+        }
+
+        private void RollupChildJobOutcomes(Job parent,
+            IEnumerable<Job> children)
+        {
+            IEnumerable<Outcome> outcomes = children?.SelectMany(_ => _.Outcomes ?? ArraySegment<Outcome>.Empty);
+
+            foreach (Outcome outcome in outcomes ?? ArraySegment<Outcome>.Empty)
+            {
+                parent.AddOutcome(outcome);
+            }
+            
+            foreach (Job child in children ?? ArraySegment<Job>.Empty)
+            {
+                parent.AddOutcome(new Outcome
+                {
+                    Description = child.Outcome,
+                    JobDefinitionId = child.JobDefinitionId,
+                    Type = child.OutcomeType.GetValueOrDefault(),
+                    IsSuccessful = child.CompletionStatus.GetValueOrDefault() == CompletionStatus.Succeeded
+                });
             }
         }
 
@@ -622,6 +699,7 @@ namespace CalculateFunding.Services.Jobs
             runningJob.Completed = DateTimeOffset.UtcNow;
             runningJob.CompletionStatus = CompletionStatus.TimedOut;
             runningJob.RunningStatus = RunningStatus.Completed;
+            runningJob.OutcomeType = OutcomeType.Inconclusive;
 
             HttpStatusCode statusCode = await UpdateJob(runningJob);
 

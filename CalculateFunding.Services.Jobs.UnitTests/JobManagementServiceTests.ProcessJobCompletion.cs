@@ -471,18 +471,61 @@ namespace CalculateFunding.Services.Jobs.Services
                     .SendNotification(Arg.Is<JobNotification>(m => m.JobId == parentJobId));
         }
 
-        [TestMethod]
-        public async Task ProcessJobCompletion_JobHasParentTwoChildrenOnlyBothCompleted_ThenParentCompleted()
+        [DataTestMethod]
+        [DataRow(CompletionStatus.Cancelled, OutcomeType.Inconclusive)]
+        [DataRow(CompletionStatus.TimedOut, OutcomeType.Inconclusive)]
+        [DataRow(CompletionStatus.Superseded, OutcomeType.Inconclusive)]
+        [DataRow(CompletionStatus.Succeeded, OutcomeType.Succeeded)]
+        [DataRow(CompletionStatus.Failed, OutcomeType.Failed)]
+        public async Task ProcessJobCompletion_JobHasParentTwoChildrenOnlyBothCompleted_ThenParentCompleted(CompletionStatus childOneCompletionStatus,
+            OutcomeType expectedOutcomeType)
         {
             // Arrange
             string parentJobId = "parent123";
             string jobId = "child123";
 
-            Job job = new Job { Id = jobId, ParentJobId = parentJobId, CompletionStatus = CompletionStatus.Succeeded, RunningStatus = RunningStatus.Completed };
+            Outcome outcomeOne = NewOutcome();
+            Outcome outcomeTwo = NewOutcome();
+            Outcome outcomeThree = NewOutcome();
+            Outcome outcomeFour = NewOutcome();
 
-            Job job2 = new Job { Id = "child456", ParentJobId = parentJobId, CompletionStatus = CompletionStatus.Succeeded, RunningStatus = RunningStatus.Completed };
+            Job job = new Job
+            {
+                Id = jobId,
+                JobDefinitionId = NewRandomString(),
+                ParentJobId = parentJobId,
+                CompletionStatus = childOneCompletionStatus,
+                RunningStatus = RunningStatus.Completed,
+                OutcomeType = OutcomeType.Succeeded,
+                Outcome = NewRandomString(),
+                Outcomes = new List<Outcome>
+                {
+                    outcomeOne,
+                    outcomeTwo,
+                    outcomeThree
+                }
+            };
 
-            Job parentJob = new Job { Id = parentJobId, RunningStatus = RunningStatus.InProgress };
+            Job job2 = new Job
+            {
+                Id = "child456",
+                JobDefinitionId = NewRandomString(),
+                ParentJobId = parentJobId,
+                CompletionStatus = CompletionStatus.Succeeded,
+                RunningStatus = RunningStatus.Completed,
+                OutcomeType = OutcomeType.Succeeded,
+                Outcome = NewRandomString(),
+                Outcomes = new List<Outcome>
+                {
+                    outcomeFour
+                }
+            };
+
+            Job parentJob = new Job
+            {
+                Id = parentJobId,
+                RunningStatus = RunningStatus.InProgress
+            };
 
             ILogger logger = CreateLogger();
             IJobRepository jobRepository = CreateJobRepository();
@@ -512,11 +555,37 @@ namespace CalculateFunding.Services.Jobs.Services
             // Assert
             await jobRepository
                 .Received(1)
-                .UpdateJob(Arg.Is<Job>(j => j.Id == parentJobId && j.RunningStatus == RunningStatus.Completed && j.Completed.HasValue && j.Outcome == "All child jobs completed"));
+                .UpdateJob(Arg.Is<Job>(_ => _.Id == parentJobId && 
+                                            _.RunningStatus == RunningStatus.Completed &&
+                                            _.OutcomeType == expectedOutcomeType &&
+                                            _.Completed.HasValue && 
+                                            _.Outcome == "All child jobs completed"));
 
             logger
                 .Received(1)
                 .Information(Arg.Is("Parent Job {ParentJobId} of Completed Job {JobId} has been completed because all child jobs are now complete"), Arg.Is(job.ParentJobId), Arg.Is(jobId));
+
+            Outcome expectedChildJobOneOutcome = NewOutcome(_ => _.WithJobDefinitionId(job.JobDefinitionId)
+                .WithType(OutcomeType.Succeeded)
+                .WithDescription(job.Outcome)
+                .WithIsSuccessful(childOneCompletionStatus == CompletionStatus.Succeeded));
+            Outcome expectedChildJobTwoOutcome = NewOutcome(_ => _.WithJobDefinitionId(job2.JobDefinitionId)
+                .WithType(OutcomeType.Succeeded)
+                .WithDescription(job2.Outcome)
+                .WithIsSuccessful(true));
+            
+            //rolls up all outcomes to the parent job
+            parentJob.Outcomes
+                .Should()
+                .BeEquivalentTo(new object[]
+                {
+                    outcomeOne,
+                    outcomeTwo,
+                    outcomeThree,
+                    outcomeFour,
+                    expectedChildJobOneOutcome,
+                    expectedChildJobTwoOutcome
+                });
         }
 
         [TestMethod]

@@ -98,7 +98,11 @@ namespace CalculateFunding.Services.Jobs.Services
             // Assert
             await jobRepository
                  .Received(1)
-                 .UpdateJob(Arg.Is<Job>(j => j.CompletionStatus == CompletionStatus.Superseded && j.Completed.HasValue && j.RunningStatus == RunningStatus.Completed && j.SupersededByJobId == supersedeJobId));
+                 .UpdateJob(Arg.Is<Job>(_ => _.CompletionStatus == CompletionStatus.Superseded && 
+                                             _.Completed.HasValue && 
+                                             _.OutcomeType == OutcomeType.Inconclusive &&
+                                             _.RunningStatus == RunningStatus.Completed && 
+                                             _.SupersededByJobId == supersedeJobId));
         }
 
         [TestMethod]
@@ -130,7 +134,11 @@ namespace CalculateFunding.Services.Jobs.Services
             // Assert
             await jobRepository
                 .Received(1)
-                .UpdateJob(Arg.Is<Job>(j => j.CompletionStatus == CompletionStatus.Superseded && j.Completed.HasValue && j.RunningStatus == RunningStatus.Completed && j.SupersededByJobId == supersedeJobId));
+                .UpdateJob(Arg.Is<Job>(_ => _.CompletionStatus == CompletionStatus.Superseded && 
+                                            _.Completed.HasValue && 
+                                            _.OutcomeType == OutcomeType.Inconclusive &&
+                                            _.RunningStatus == RunningStatus.Completed && 
+                                            _.SupersededByJobId == supersedeJobId));
         }
 
         [TestMethod]
