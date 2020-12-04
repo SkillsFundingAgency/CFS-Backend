@@ -69,7 +69,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 
             ResiliencePolicies = new ResiliencePolicies
             {
-                SpecificationsRepositoryPolicy = Polly.Policy.NoOpAsync()
+                SpecificationsRepositoryPolicy = Polly.Policy.NoOpAsync(),
+                PublishedFundingRepository = Polly.Policy.NoOpAsync()
             };
 
             FundingConfigurationService = Substitute.For<IFundingConfigurationService>();

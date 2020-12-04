@@ -17,6 +17,7 @@ using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
+using Polly;
 using ApiJob = CalculateFunding.Common.ApiClient.Jobs.Models.Job;
 using ApiSpecificationSummary = CalculateFunding.Common.ApiClient.Specifications.Models.SpecificationSummary;
 
@@ -24,6 +25,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
 {
     public class SpecificationPublishingService : SpecificationPublishingBase, ISpecificationPublishingService, IHealthChecker
     {
+        private readonly IPublishedFundingRepository _publishedFundingRepository;
         private readonly ICreateRefreshFundingJobs _refreshFundingJobs;
         private readonly ICreateApproveAllFundingJobs _approveSpecificationFundingJobs;
         private readonly ICreateApproveBatchFundingJobs _approveProviderFundingJobs;
@@ -31,6 +33,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
         private readonly ISpecificationFundingStatusService _specificationFundingStatusService;
         private readonly IPrerequisiteCheckerLocator _prerequisiteCheckerLocator;
         private readonly IProviderService _providerService;
+        private readonly AsyncPolicy _publishedFundingResilience;
 
         public SpecificationPublishingService(
             ISpecificationIdServiceRequestValidator specificationIdValidator,
@@ -44,7 +47,8 @@ namespace CalculateFunding.Services.Publishing.Specifications
             ICreateApproveBatchFundingJobs approveProviderFundingJobs,
             ISpecificationFundingStatusService specificationFundingStatusService,
             IFundingConfigurationService fundingConfigurationService,
-            IPrerequisiteCheckerLocator prerequisiteCheckerLocator)
+            IPrerequisiteCheckerLocator prerequisiteCheckerLocator,
+            IPublishedFundingRepository publishedFundingRepository)
             : base(specificationIdValidator, publishedProviderIdsValidator, specifications, resiliencePolicies, fundingConfigurationService)
         {
             Guard.ArgumentNotNull(refreshFundingJobs, nameof(refreshFundingJobs));
@@ -54,6 +58,8 @@ namespace CalculateFunding.Services.Publishing.Specifications
             Guard.ArgumentNotNull(specificationFundingStatusService, nameof(specificationFundingStatusService));
             Guard.ArgumentNotNull(prerequisiteCheckerLocator, nameof(prerequisiteCheckerLocator));
             Guard.ArgumentNotNull(providerService, nameof(providerService));
+            Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
+            Guard.ArgumentNotNull(resiliencePolicies?.PublishedFundingRepository, "resiliencePolicies.PublishedFundingRepository");
 
             _refreshFundingJobs = refreshFundingJobs;
             _cacheProvider = cacheProvider;
@@ -61,6 +67,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
             _approveProviderFundingJobs = approveProviderFundingJobs;
             _specificationFundingStatusService = specificationFundingStatusService;
             _prerequisiteCheckerLocator = prerequisiteCheckerLocator;
+            _publishedFundingRepository = publishedFundingRepository;
             _providerService = providerService;
         }
 
@@ -217,6 +224,8 @@ namespace CalculateFunding.Services.Publishing.Specifications
                 return actionResult;
             }
 
+            await FilterOutPublishedProvidersInError(publishedProviderIdsRequest);
+
             Dictionary<string, string> messageProperties = new Dictionary<string, string>
             {
                 { JobConstants.MessagePropertyNames.PublishedProviderIdsRequest, JsonExtensions.AsJson(publishedProviderIdsRequest) }
@@ -224,6 +233,12 @@ namespace CalculateFunding.Services.Publishing.Specifications
 
             ApiJob job = await _approveProviderFundingJobs.CreateJob(specificationId, user, correlationId, messageProperties);
             return ProcessJobResponse(job, specificationId, JobConstants.DefinitionNames.ApproveBatchProviderFundingJob);
+        }
+        
+        private async Task FilterOutPublishedProvidersInError(PublishedProviderIdsRequest providerIdsRequest)
+        {
+            providerIdsRequest.PublishedProviderIds = await ResiliencePolicy.ExecuteAsync(() =>
+                _publishedFundingRepository.RemoveIdsInError(providerIdsRequest.PublishedProviderIds));
         }
 
         public async Task<IActionResult> CanChooseForFunding(string specificationId)

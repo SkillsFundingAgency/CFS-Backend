@@ -703,10 +703,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                                   c.content.current.provider.laCode
                               FROM publishedProvider c
                               WHERE c.documentType = 'PublishedProvider'
-                              AND c.deleted = false 
                               AND c.content.current.specificationId = @specificationId
                               AND ARRAY_CONTAINS(@publishedProviderIds, c.content.current.publishedProviderId) 
                               AND ARRAY_CONTAINS(@statuses, c.content.current.status)
+                              AND (IS_NULL(c.content.current.errors) OR ARRAY_LENGTH(c.content.current.errors) = 0)
                               AND c.deleted = false" &&
                      HasParameter(_, "@specificationId", s) &&
                      HasArrayParameter(_, "@publishedProviderIds", publishedProviderIds) &&
@@ -727,7 +727,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
 
             PublishedProviderStatus[] statuses = AsArray(status0, status1);
             string specificationId = NewRandomString();
-            string fundingStreamId = NewRandomString();
 
             List<dynamic> results = new List<dynamic>() {
                 CreatePublishedProviderFundingCsvData(specificationId, publishedProviderId0, status0.ToString()),
@@ -769,6 +768,56 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                      HasParameter(_, "@publishedProviderId_2", publishedProviderId2) &&
                      HasParameter(_, "@status_0", status0.ToString()) &&
                      HasParameter(_, "@status_1", status1.ToString());
+        }
+
+        [TestMethod]
+        public async Task RemoveIdsInErrorQueriesForMatchingPublishedProviderIdsWhereNotInError()
+        {
+            string idOne = NewRandomString();
+            string idTwo = NewRandomString();
+            string idThree = NewRandomString();
+            string idFour = NewRandomString();
+            string idFive = NewRandomString();
+
+            List<dynamic> results = new List<dynamic>()
+            {
+                NewPublishedProviderId(idOne),
+                NewPublishedProviderId(idFour),
+                NewPublishedProviderId(idFive),
+            };
+
+            string[] ids = AsArray(idOne, idTwo, idThree, idFour, idFive);
+            
+            GivenTheDynamicResultsForTheQuery(QueryMatch(
+                ids), 
+                results);
+
+            IEnumerable<string> filteredIds = await _repository.RemoveIdsInError(ids);
+
+            filteredIds
+                .Should()
+                .BeEquivalentTo(AsArray(idOne, idFour, idFive));
+
+            Func<CosmosDbQuery, bool> QueryMatch(string[] strings) =>
+                _ => _.QueryText == @"
+                              SELECT 
+                                  c.content.current.publishedProviderId
+                              FROM publishedProvider c
+                              WHERE c.documentType = 'PublishedProvider'
+                              AND ARRAY_CONTAINS(@publishedProviderIds, c.content.current.publishedProviderId) 
+                              AND (IS_NULL(c.content.current.errors) OR ARRAY_LENGTH(c.content.current.errors) = 0)" &&
+                     HasArrayParameter(_, "@publishedProviderIds", ids);
+        }
+
+        private ExpandoObject NewPublishedProviderId(string id)
+        {
+            ExpandoObject expando = new ExpandoObject();
+            
+            IDictionary<string, object> asDictionary = expando;
+
+            asDictionary["publishedProviderId"] = id;
+            
+            return expando;
         }
 
         private void GivenTheDynamicResultsForTheQuery(Func<CosmosDbQuery, bool> queryMatch, IEnumerable<object> expectedResults)

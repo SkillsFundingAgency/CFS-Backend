@@ -478,5 +478,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             string fundingPeriodId,
             string[] ukprns) =>
             throw new NotImplementedException();
+
+        public Task<IEnumerable<string>> RemoveIdsInError(IEnumerable<string> publishedProviderIds) => throw new NotImplementedException();
     }
 }

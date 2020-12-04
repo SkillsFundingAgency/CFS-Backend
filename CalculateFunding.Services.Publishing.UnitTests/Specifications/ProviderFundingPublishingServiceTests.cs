@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Policies.Models;
+using CalculateFunding.Common.Extensions;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Publishing;
@@ -209,13 +210,24 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             string publishFundingJobId = NewRandomString();
             ApiJob publishFundingJob = NewJob(_ => _.WithId(publishFundingJobId));
 
+            string filteredIdOne = NewRandomString();
+            string filteredIdTwo = NewRandomString();
+            
             GivenTheApiResponseDetailsForTheSuppliedId(NewApiSpecificationSummary(_ =>
                 _.WithIsSelectedForFunding(true)));
+            AndTheFilteredListOfPublishedProviderIds(filteredIdOne, filteredIdTwo);
 
             Dictionary<string, string> messageProperties = new Dictionary<string, string>
             {
                 {
-                    JobConstants.MessagePropertyNames.PublishedProviderIdsRequest, _publishProvidersRequest.AsJson()
+                    JobConstants.MessagePropertyNames.PublishedProviderIdsRequest, Core.Extensions.JsonExtensions.AsJson(new PublishedProviderIdsRequest
+                    {
+                        PublishedProviderIds = new []
+                        {
+                            filteredIdOne,
+                            filteredIdTwo
+                        }
+                    })
                 }
             };
 
@@ -233,6 +245,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 .Should()
                 .BeEquivalentTo(expectedJobCreationResponse);
         }
+
+        private void AndTheFilteredListOfPublishedProviderIds(params string[] filteredIds)
+            => _publishedFundingRepository.RemoveIdsInError(_publishProvidersRequest.PublishedProviderIds)
+                .Returns(filteredIds);
 
         [TestMethod]
         public async Task ReturnsNotFoundResultIfNoPublishedProviderVersionLocatedWithTheSuppliedMetadata()

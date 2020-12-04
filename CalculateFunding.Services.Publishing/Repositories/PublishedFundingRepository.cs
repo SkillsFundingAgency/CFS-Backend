@@ -11,6 +11,7 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Threading;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using Newtonsoft.Json.Linq;
@@ -1104,10 +1105,10 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                   c.content.current.provider.laCode
                               FROM publishedProvider c
                               WHERE c.documentType = 'PublishedProvider'
-                              AND c.deleted = false 
                               AND c.content.current.specificationId = @specificationId
                               AND ARRAY_CONTAINS(@publishedProviderIds, c.content.current.publishedProviderId) 
                               AND ARRAY_CONTAINS(@statuses, c.content.current.status)
+                              AND (IS_NULL(c.content.current.errors) OR ARRAY_LENGTH(c.content.current.errors) = 0)
                               AND c.deleted = false",
                 Parameters = new[]
                 {
@@ -1132,6 +1133,40 @@ namespace CalculateFunding.Services.Publishing.Repositories
                 },
                 LaCode = (string)_.laCode
             });
+        }
+
+        public async Task<IEnumerable<string>> RemoveIdsInError(IEnumerable<string> publishedProviderIds)
+        {
+            CosmosDbQueryParameter providerIdsParameter = new CosmosDbQueryParameter("@publishedProviderIds", null);
+            
+            CosmosDbQuery query = new CosmosDbQuery
+            {
+                QueryText = @"
+                              SELECT 
+                                  c.content.current.publishedProviderId
+                              FROM publishedProvider c
+                              WHERE c.documentType = 'PublishedProvider'
+                              AND ARRAY_CONTAINS(@publishedProviderIds, c.content.current.publishedProviderId) 
+                              AND (IS_NULL(c.content.current.errors) OR ARRAY_LENGTH(c.content.current.errors) = 0)",
+                Parameters = new []
+                {
+                    providerIdsParameter
+                }
+            };
+            
+            PagedContext<string> publishedProviderIdsPages = new PagedContext<string>(publishedProviderIds, 100); 
+            List<string> filteredPublishedProviderIds = new List<string>();
+
+            while (publishedProviderIdsPages.HasPages)
+            {
+                providerIdsParameter.Value = publishedProviderIdsPages.NextPage();
+                
+                IEnumerable<dynamic> results = await _repository.DynamicQuery(query);
+                
+                filteredPublishedProviderIds.AddRange(results.Select(_ => (string)_.publishedProviderId));
+            }
+
+            return filteredPublishedProviderIds;
         }
 
         public async Task<IEnumerable<string>> GetPublishedProviderErrorSummaries(string specificationId)

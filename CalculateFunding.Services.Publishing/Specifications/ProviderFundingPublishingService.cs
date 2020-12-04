@@ -17,6 +17,7 @@ using ApiSpecificationSummary = CalculateFunding.Common.ApiClient.Specifications
 using ApiJob = CalculateFunding.Common.ApiClient.Jobs.Models.Job;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Policies.Models;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace CalculateFunding.Services.Publishing.Specifications
 {
@@ -130,6 +131,8 @@ namespace CalculateFunding.Services.Publishing.Specifications
                 return actionResult;
             }
 
+            await FilterOutPublishedProvidersInError(publishedProviderIdsRequest);
+
             Dictionary<string, string> messageProperties = new Dictionary<string, string>
             {
                 { JobConstants.MessagePropertyNames.PublishedProviderIdsRequest, JsonExtensions.AsJson(publishedProviderIdsRequest) }
@@ -137,6 +140,12 @@ namespace CalculateFunding.Services.Publishing.Specifications
 
             ApiJob job = await _createBatchPublishProviderFundingJobs.CreateJob(specificationId, user, correlationId, messageProperties);
             return ProcessJobResponse(job, specificationId, JobConstants.DefinitionNames.PublishBatchProviderFundingJob);
+        }
+
+        private async Task FilterOutPublishedProvidersInError(PublishedProviderIdsRequest providerIdsRequest)
+        {
+            providerIdsRequest.PublishedProviderIds = await ResiliencePolicy.ExecuteAsync(() =>
+                _publishedFundingRepository.RemoveIdsInError(providerIdsRequest.PublishedProviderIds));
         }
 
         public async Task<IActionResult> GetPublishedProviderTransactions(string specificationId,

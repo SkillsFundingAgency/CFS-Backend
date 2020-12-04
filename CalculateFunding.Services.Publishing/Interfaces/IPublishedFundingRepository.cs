@@ -148,5 +148,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         Task<IDictionary<string, string>> GetPublishedProviderIdsForUkprns(string fundingStreamId,
             string fundingPeriodId,
             string[] ukprns);
+
+        Task<IEnumerable<string>> RemoveIdsInError(IEnumerable<string> publishedProviderIds);
     }
 }

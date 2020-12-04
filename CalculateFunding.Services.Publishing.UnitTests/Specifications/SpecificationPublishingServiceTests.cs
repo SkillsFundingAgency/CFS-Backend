@@ -14,7 +14,6 @@ using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Services.Publishing.Specifications;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -35,6 +34,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         private IPrerequisiteCheckerLocator _prerequisiteCheckerLocator;
         private IPrerequisiteChecker _prerequisiteChecker;
         private IProviderService _providerService;
+        private IPublishedFundingRepository _publishedFunding;
 
         [TestInitialize]
         public void SetUp()
@@ -46,6 +46,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             _prerequisiteCheckerLocator = Substitute.For<IPrerequisiteCheckerLocator>();
             _prerequisiteChecker = Substitute.For<IPrerequisiteChecker>();
             _providerService = Substitute.For<IProviderService>();
+            _publishedFunding = Substitute.For<IPublishedFundingRepository>();
 
             _service = new SpecificationPublishingService(
                 SpecificationIdValidator,
@@ -59,7 +60,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 _approveProviderFundingJobs,
                 _specificationFundingStatusService,
                 FundingConfigurationService,
-                _prerequisiteCheckerLocator);
+                _prerequisiteCheckerLocator,
+                _publishedFunding);
 
             _approveProvidersRequest = BuildApproveProvidersRequest(_ => _.WithProviders(ProviderIds));
         }
@@ -403,12 +405,23 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             string approveFundingJobId = NewRandomString();
             ApiJob approveFundingJob = NewJob(_ => _.WithId(approveFundingJobId));
 
+            string filterIdOne = NewRandomString();
+            string filterIdTwo = NewRandomString();
+
             Dictionary<string, string> messageProperties = new Dictionary<string, string>
             {
-                {JobConstants.MessagePropertyNames.PublishedProviderIdsRequest, JsonExtensions.AsJson(_approveProvidersRequest) }
+                {JobConstants.MessagePropertyNames.PublishedProviderIdsRequest, JsonExtensions.AsJson(new PublishedProviderIdsRequest
+                {
+                    PublishedProviderIds = new []
+                    {
+                        filterIdOne,
+                        filterIdTwo
+                    }
+                }) }
             };
 
             GivenTheApiResponseDetailsForTheSuppliedId(specificationSummary);
+            AndTheFilteredListOfPublishedProviderIds(filterIdOne, filterIdTwo);
             AndTheApiResponseDetailsForApproveProviderJob(approveFundingJob, messageProperties);
 
             await WhenBatchProvidersAreApproved();
@@ -423,6 +436,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 .Should()
                 .BeEquivalentTo(expectedJobCreationResponse);
         }
+        
+        private void AndTheFilteredListOfPublishedProviderIds(params string[] filteredIds)
+            => _publishedFunding.RemoveIdsInError(_approveProvidersRequest.PublishedProviderIds)
+                .Returns(filteredIds);
 
         [TestMethod]
         public async Task CanChooseForFunding_SpecificationSummaryIsNull_ReturnsNotFound()
