@@ -33,6 +33,7 @@ namespace CalculateFunding.Services.Publishing
         public int UpdatePublishedFundingStatusConcurrencyCount => GetPublishEngineOptionsConfigurationValue();
 
         public int IndexPublishedProvidersConcurrencyCount => GetPublishEngineOptionsConfigurationValue();
+        public int ProfilingPublishedProvidersConcurrencyCount => GetPublishEngineOptionsConfigurationValue();
 
         public int CreateLatestPublishedProviderVersionsConcurrencyCount => GetPublishEngineOptionsConfigurationValue();
         

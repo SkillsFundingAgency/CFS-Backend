@@ -180,9 +180,9 @@ namespace CalculateFunding.Services.CosmosDbScaling
         public async Task ScaleDownForJobConfiguration()
         {
             DateTimeOffset now = DateTimeOffset.UtcNow;
-            DateTimeOffset hourAgo = now.AddHours(-1);
+            DateTimeOffset windowOfTime = now.AddHours(-2);
 
-            IEnumerable<JobSummary> jobSummaries = await _jobManagement.GetNonCompletedJobsWithinTimeFrame(hourAgo, now);
+            IEnumerable<JobSummary> jobSummaries = await _jobManagement.GetNonCompletedJobsWithinTimeFrame(windowOfTime, now);
 
             if (jobSummaries == null)
             {

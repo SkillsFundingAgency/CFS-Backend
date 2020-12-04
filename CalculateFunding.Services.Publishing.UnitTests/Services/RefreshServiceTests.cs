@@ -31,6 +31,7 @@ using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using FluentAssertions.Common;
 using Microsoft.Azure.ServiceBus;
+using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using NSubstitute;
@@ -103,12 +104,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private string providerVersionId;
         private PublishedProvider _missingProvider;
         private ArraySegment<ProfileVariationPointer> _profileVariationPointers;
+        private PublishingEngineOptions _publishingEngineOptions;
 
         [TestInitialize]
         public void Setup()
         {
             providerVersionId = NewRandomString();
 
+            IConfiguration configuration = Substitute.For<IConfiguration>();
             _publishedProviderStatusUpdateService = Substitute.For<IPublishedProviderStatusUpdateService>();
             _publishedFundingDataService = Substitute.For<IPublishedFundingDataService>();
             _publishingResiliencePolicies = new ResiliencePolicies
@@ -122,7 +125,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             };
             _specificationsApiClient = Substitute.For<ISpecificationsApiClient>();
             _specificationService = new SpecificationService(_specificationsApiClient, _publishingResiliencePolicies);
-
+            
             _profileVariationPointers = ArraySegment<ProfileVariationPointer>.Empty;
             
             _specificationsApiClient
@@ -203,6 +206,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 _policiesService,
                 _generateCsvJobsLocator,
                 _reApplyCustomProfiles.Object,
+                new PublishingEngineOptions(configuration),
                 _detection);
         }
 

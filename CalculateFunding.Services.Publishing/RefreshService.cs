@@ -54,6 +54,7 @@ namespace CalculateFunding.Services.Publishing
         private readonly IPoliciesService _policiesService;
         private readonly IVariationService _variationService;
         private readonly IReApplyCustomProfiles _reApplyCustomProfiles;
+        private readonly IPublishingEngineOptions _publishingEngineOptions;
         private readonly IPublishedProviderErrorDetection _detection;
 
         public RefreshService(IPublishedProviderStatusUpdateService publishedProviderStatusUpdateService,
@@ -78,6 +79,7 @@ namespace CalculateFunding.Services.Publishing
             IPoliciesService policiesService,
             IGeneratePublishedFundingCsvJobsCreationLocator generateCsvJobsLocator,
             IReApplyCustomProfiles reApplyCustomProfiles,
+            IPublishingEngineOptions publishingEngineOptions,
             IPublishedProviderErrorDetection detection) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(generateCsvJobsLocator, nameof(generateCsvJobsLocator));
@@ -105,6 +107,7 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(detection, nameof(detection));
             Guard.ArgumentNotNull(publishingResiliencePolicies.CalculationsApiClient, nameof(publishingResiliencePolicies.CalculationsApiClient));
             Guard.ArgumentNotNull(publishingResiliencePolicies.PublishedFundingRepository, nameof(publishingResiliencePolicies.PublishedFundingRepository));
+            Guard.ArgumentNotNull(publishingEngineOptions, nameof(publishingEngineOptions));
 
             _publishedProviderStatusUpdateService = publishedProviderStatusUpdateService;
             _publishedFundingDataService = publishedFundingDataService;
@@ -131,6 +134,7 @@ namespace CalculateFunding.Services.Publishing
             _transactionFactory = transactionFactory;
             _publishedProviderVersionService = publishedProviderVersionService;
             _policiesService = policiesService;
+            _publishingEngineOptions = publishingEngineOptions;
         }
 
         public override async Task Process(Message message)
@@ -506,7 +510,7 @@ namespace CalculateFunding.Services.Publishing
 
         private async Task ProfileProviders(IDictionary<string, PublishedProvider> publishedProviders, IDictionary<string, PublishedProvider> newProviders, IDictionary<string, GeneratedProviderResult> generatedPublishedProviderData, string fundingStreamId, string fundingPeriodId)
         {
-            SemaphoreSlim throttle = new SemaphoreSlim(10);
+            SemaphoreSlim throttle = new SemaphoreSlim(_publishingEngineOptions.ProfilingPublishedProvidersConcurrencyCount);
             List<Task> profilingProviderTasks = new List<Task>();
             
             int items = 0;
@@ -514,7 +518,7 @@ namespace CalculateFunding.Services.Publishing
             TimeSpan loggingPeriod = TimeSpan.FromMinutes(5);
 
             using (new Timer(
-                _ => _logger.Information($"{items}: Published Providers processed."),
+                _ => _logger.Information($"{items}: Published Providers profiled."),
                 null, loggingPeriod, loggingPeriod))
 
 

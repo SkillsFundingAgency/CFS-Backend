@@ -17,7 +17,9 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         int UpdatePublishedFundingStatusConcurrencyCount { get; }
         
         int IndexPublishedProvidersConcurrencyCount { get; }
-        
+
+        int ProfilingPublishedProvidersConcurrencyCount { get; }
+
         int CreateLatestPublishedProviderVersionsConcurrencyCount { get; }
         
         int PublishedProviderCreateVersionsConcurrencyCount { get; }
