@@ -150,7 +150,7 @@ namespace CalculateFunding.Services.Publishing.Providers
             return scopedProvidersInVersion;
         }
 
-        public async Task<IDictionary<string, PublishedProvider>> GenerateMissingPublishedProviders(IEnumerable<Provider> scopedProviders,
+        public IDictionary<string, PublishedProvider> GenerateMissingPublishedProviders(IEnumerable<Provider> scopedProviders,
             SpecificationSummary specification,
             Reference fundingStream,
             IDictionary<string, PublishedProvider> publishedProviders)

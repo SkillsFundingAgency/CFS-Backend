@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Models.Publishing;
 
 namespace CalculateFunding.Services.Publishing
@@ -8,23 +7,16 @@ namespace CalculateFunding.Services.Publishing
     public class PublishedProviderExclusionCheck : IPublishProviderExclusionCheck
     {
         public PublishedProviderExclusionCheckResult ShouldBeExcluded(
-            ProviderCalculationResult providerCalculationResult,
-            TemplateMapping templateMapping,
-            Common.TemplateMetadata.Models.Calculation[] flattedCalculations)
+            GeneratedProviderResult generatedProviderResult, 
+            Common.TemplateMetadata.Models.FundingLine[] flattenedTemplateFundingLines)
         {
-            IEnumerable<uint> cashCalculationTemplateIds = flattedCalculations
-                .Where(c => c.Type == Common.TemplateMetadata.Enums.CalculationType.Cash)
-                .Select(f => f.TemplateCalculationId);
+            IEnumerable<FundingLine> paymentFundingLines = generatedProviderResult.FundingLines.Where(
+                x => x.Type == OrganisationGroupingReason.Payment
+                && flattenedTemplateFundingLines.Any(y => y.TemplateLineId == x.TemplateLineId && y.Type == Common.TemplateMetadata.Enums.FundingLineType.Payment));
 
-            IEnumerable<string> cashCalculationIds = templateMapping.TemplateMappingItems
-                .Where(c => c.EntityType == TemplateMappingEntityType.Calculation
-                            && cashCalculationTemplateIds.Contains(c.TemplateId))
-                .Select(f => f.CalculationId);
+            bool shouldBeExcluded = !paymentFundingLines.Any() || paymentFundingLines.All(c => c.Value == null);
 
-            bool shouldBeExcluded = providerCalculationResult.Results
-                .All(c => cashCalculationIds.Contains(c.Id) && c.Value == null);
-
-            return new PublishedProviderExclusionCheckResult(providerCalculationResult.ProviderId, shouldBeExcluded);
+            return new PublishedProviderExclusionCheckResult(generatedProviderResult.Provider.ProviderId, shouldBeExcluded);
         }
     }
 }

@@ -667,7 +667,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private void AndPublishedProviderExcluded()
         {
             string providerToExcludeId = _publishedProviders.First().Current.ProviderId;
-            _providerExclusionCheck.ShouldBeExcluded(Arg.Is<ProviderCalculationResult>(_ => _.ProviderId == providerToExcludeId), Arg.Any<TemplateMapping>(), Arg.Any<TemplateCalculation[]>())
+            _providerExclusionCheck.ShouldBeExcluded(Arg.Is<GeneratedProviderResult>(_ => _.Provider.ProviderId == providerToExcludeId), Arg.Any<TemplateFundingLine[]>())
                 .Returns(new PublishedProviderExclusionCheckResult(providerToExcludeId, true));
         }
 

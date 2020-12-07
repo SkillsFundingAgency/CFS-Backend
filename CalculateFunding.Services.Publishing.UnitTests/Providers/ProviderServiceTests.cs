@@ -218,7 +218,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
                     message = $"Specified argument was out of the range of valid values. (Parameter 'fundingStreamId')";
                 }
 
-                Func<Task> invocation = async() => await WhenGenerateMissingProviders(scopedProviders,
+                Action invocation = () => WhenGenerateMissingProviders(scopedProviders,
                 specification,
                 new Reference { Id = fundingStreamId },
                 publishedProviders.ToDictionary(_ => _.Current.ProviderId));
@@ -231,7 +231,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
                 return;
             }
 
-            IDictionary<string, PublishedProvider> missingPublishedProviders = await WhenGenerateMissingProviders(scopedProviders,
+            IDictionary<string, PublishedProvider> missingPublishedProviders = WhenGenerateMissingProviders(scopedProviders,
                 specification,
                 new Reference { Id = fundingStreamId },
                 publishedProviders.ToDictionary(_ => _.Current.ProviderId));
@@ -309,12 +309,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
             return await _providerService.GetScopedProviderIdsForSpecification(specification);
         }
 
-        private async Task<IDictionary<string, PublishedProvider>> WhenGenerateMissingProviders(IEnumerable<Provider> scopedProviders,
+        private IDictionary<string, PublishedProvider> WhenGenerateMissingProviders(IEnumerable<Provider> scopedProviders,
             SpecificationSummary specification,
             Reference fundingStream,
             IDictionary<string, PublishedProvider> publishedProviders)
         {
-            return await _providerService.GenerateMissingPublishedProviders(scopedProviders, specification, fundingStream, publishedProviders);
+            return _providerService.GenerateMissingPublishedProviders(scopedProviders, specification, fundingStream, publishedProviders);
         }
 
         private async Task<IEnumerable<Provider>> WhenTheProvidersAreQueriedByVersionId(string providerVersionId)

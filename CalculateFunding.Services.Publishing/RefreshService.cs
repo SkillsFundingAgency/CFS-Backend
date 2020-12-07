@@ -195,6 +195,7 @@ namespace CalculateFunding.Services.Publishing
             _logger.Information("Looking up calculation results");
 
             IDictionary<string, ProviderCalculationResult> allCalculationResults;
+
             try
             {
                 allCalculationResults = await _calculationResultsService.GetCalculationResultsBySpecificationId(specificationId, scopedProviders.Keys);
@@ -267,7 +268,7 @@ namespace CalculateFunding.Services.Publishing
             }
 
             // Create PublishedProvider for providers which don't already have a record (eg ProviderID-FundingStreamId-FundingPeriodId)
-            IDictionary<string, PublishedProvider> newProviders = await _providerService.GenerateMissingPublishedProviders(scopedProviders.Values, specification, fundingStream, publishedProviders);
+            IDictionary<string, PublishedProvider> newProviders = _providerService.GenerateMissingPublishedProviders(scopedProviders.Values, specification, fundingStream, publishedProviders);
             publishedProviders.AddRange(newProviders);
 
             // Get TemplateMapping for calcs from Calcs API client nuget
@@ -362,13 +363,14 @@ namespace CalculateFunding.Services.Publishing
                 GeneratedProviderResult generatedProviderResult = generatedPublishedProviderData[publishedProvider.Key];
 
                 PublishedProviderExclusionCheckResult exclusionCheckResult =
-                    _providerExclusionCheck.ShouldBeExcluded(allCalculationResults[providerId], templateMapping, flattedCalculations);
+                    _providerExclusionCheck.ShouldBeExcluded(generatedProviderResult, flattenedTemplateFundingLines);
 
                 if (exclusionCheckResult.ShouldBeExcluded)
                 {
                     if (newProviders.ContainsKey(publishedProvider.Key))
                     {
                         newProviders.Remove(publishedProvider.Key);
+                        continue;
                     }
 
                     if (!_fundingLineValueOverride.TryOverridePreviousFundingLineValues(publishedProviderVersion, generatedProviderResult))
@@ -441,7 +443,6 @@ namespace CalculateFunding.Services.Publishing
             }
 
             _logger.Information("Finished applying variations");
-
 
             _logger.Information($"Updating a total of {publishedProvidersToUpdate.Count} published providers");
 
