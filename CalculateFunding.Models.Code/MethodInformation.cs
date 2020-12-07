@@ -17,5 +17,9 @@ namespace CalculateFunding.Models.Code
         public string EntityId { get; set; }
 
         public bool IsCustom { get; set; }
+
+        public string ReturnTypeClass { get; set; }
+
+        public bool ReturnTypeIsNullable { get; set; }
     }
 }

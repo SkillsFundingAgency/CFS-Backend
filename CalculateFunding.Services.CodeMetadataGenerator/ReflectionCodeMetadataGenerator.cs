@@ -53,7 +53,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
             List<string> propertyNamesToFilterFromCalculationContexts = GeneratePropertyNameToFilterForCalculationContexts(assembly);
 
             TypeInfo[] assemblyDefinedTypes = assembly.DefinedTypes.ToArray();
-            
+
             foreach (TypeInfo typeInfo in assemblyDefinedTypes)
             {
                 if (typeInfo != null)
@@ -111,13 +111,17 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                             {
                                 List<ParameterInformation> parameters = new List<ParameterInformation>();
 
+
                                 foreach (ParameterInfo parameter in methodInfo.GetParameters())
                                 {
+                                    var parameterReturnDetails = ConvertTypeName(parameter.ParameterType);
+
                                     ParameterInformation parameterInformation = new ParameterInformation()
                                     {
                                         Name = parameter.Name,
                                         Description = parameter.Name,
-                                        Type = ConvertTypeName(parameter.ParameterType),
+                                        Type = parameterReturnDetails.fullReturnType,
+                                        TypeClass = parameterReturnDetails.directType,
                                     };
 
                                     parameters.Add(parameterInformation);
@@ -135,10 +139,14 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                                     isCustom = true;
                                 }
 
+                                var methodReturnDetails = ConvertTypeName(methodInfo.ReturnType);
+
                                 MethodInformation methodInformation = new MethodInformation()
                                 {
                                     Name = methodInfo.Name,
-                                    ReturnType = ConvertTypeName(methodInfo.ReturnType),
+                                    ReturnType = methodReturnDetails.fullReturnType,
+                                    ReturnTypeClass = methodReturnDetails.directType,
+                                    ReturnTypeIsNullable = methodReturnDetails.isNullable,
                                     Parameters = parameters,
                                     EntityId = entityId,
                                     IsCustom = isCustom
@@ -222,10 +230,14 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                         continue;
                     }
 
+                    (string fullReturnType, string directType, bool isNullable) returnDetails = ConvertTypeName(property.PropertyType);
+
                     PropertyInformation propertyInformation = new PropertyInformation()
                     {
                         Name = property.Name,
-                        Type = ConvertTypeName(property.PropertyType),
+                        Type = returnDetails.fullReturnType,
+                        TypeClass = returnDetails.directType,
+                        IsNullable = returnDetails.isNullable,
                     };
 
                     if (string.IsNullOrWhiteSpace(propertyInformation.FriendlyName))
@@ -282,10 +294,14 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                     ApplyCalculationMetadata(fieldInfo, ref entityId, ref isCustom);
                     ApplyFundingLineMetadata(fieldInfo, ref entityId, ref isCustom);
 
+                    (string fullReturnType, string directType, bool isNullable) returnDetails = ConvertTypeName(fieldInfo.FieldType);
+
                     MethodInformation methodInformation = new MethodInformation()
                     {
                         Name = fieldInfo.Name,
-                        ReturnType = ConvertTypeName(fieldInfo.FieldType),
+                        ReturnType = returnDetails.fullReturnType,
+                        ReturnTypeClass = returnDetails.directType,
+                        ReturnTypeIsNullable = returnDetails.isNullable,
                         EntityId = entityId,
                         IsCustom = isCustom
                     };
@@ -395,33 +411,55 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
             return null;
         }
 
-        private string ConvertTypeName(Type type)
+        private (string fullReturnType, string directType, bool isNullable) ConvertTypeName(Type type)
         {
             if (type.IsGenericType && type.GenericTypeArguments != null && type.GenericTypeArguments.Length > 0)
             {
-
-
-                if (regex.IsMatch(type.FullName))
-                {
-                    string[] split = regex.Split(type.FullName);
-
-                    return $"Nullable(Of {ConvertTypeName(split[1])})";
-                }
-
-                Type genericType = type.GenericTypeArguments.First();
-                string name = type.Name;
-                if (name.Contains("`1"))
-                {
-                    name = name.Substring(0, name.IndexOf("`1"));
-                }
-                return name + "(Of " + genericType.Name + ")";
+                return GenerateGenericReturnType(type);
             }
 
-            return ConvertTypeName(type.Name);
+            return GenerateNonGenericReturnType(type);
+        }
+
+        private (string fullReturnType, string directType, bool isNullable) GenerateGenericReturnType(Type type)
+        {
+            if (regex.IsMatch(type.FullName))
+            {
+                string[] split = regex.Split(type.FullName);
+
+                string directTypeReturn = ConvertTypeName(split[1]);
+
+                string fullReturnTypeResult = $"Nullable(Of {directTypeReturn})";
+
+                return (fullReturnTypeResult, directTypeReturn, true);
+            }
+
+            Type genericType = type.GenericTypeArguments.First();
+            string name = type.Name;
+            if (name.Contains("`1"))
+            {
+                name = name.Substring(0, name.IndexOf("`1"));
+            }
+
+            string fullReturnTypeReturn = name + "(Of " + genericType.Name + ")";
+
+            return (fullReturnTypeReturn, genericType.Name, false);
+        }
+
+        private (string fullReturnType, string directType, bool isNullable) GenerateNonGenericReturnType(Type type)
+        {
+            string typeName = ConvertTypeName(type.Name);
+
+            return (typeName, typeName, false);
         }
 
         private string ConvertTypeName(string typeFriendlyName)
         {
+            if (typeFriendlyName.StartsWith("CalculationContext+"))
+            {
+                typeFriendlyName = typeFriendlyName.Substring(19, typeFriendlyName.Length - 19);
+            }
+
             switch (typeFriendlyName)
             {
                 case "System.String":
@@ -429,6 +467,9 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
 
                 case "System.Integer":
                     return "Integer";
+
+                case "System.Decimal":
+                    return "Decimal";
 
                 case "Void":
                     return null;
@@ -465,10 +506,15 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                     throw new ArgumentException("Invalid aggregate function name was provided");
             }
 
+            (string fullReturnType, string directType, bool isNullable) returnDetails = ConvertTypeName(methodInfo.ReturnType);
+
             return new MethodInformation()
             {
+
                 Name = methodInfo.Name,
-                ReturnType = ConvertTypeName(methodInfo.ReturnType),
+                ReturnType = returnDetails.fullReturnType,
+                ReturnTypeClass = returnDetails.directType,
+                ReturnTypeIsNullable = returnDetails.isNullable,
                 Parameters = new[] { new ParameterInformation()
                     {
                         Name = "field",
