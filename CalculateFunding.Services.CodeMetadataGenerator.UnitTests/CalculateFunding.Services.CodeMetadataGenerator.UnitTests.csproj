@@ -52,4 +52,9 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="implementation.dll" />
+    <EmbeddedResource Include="implementation.dll" />
+  </ItemGroup>
+
 </Project>

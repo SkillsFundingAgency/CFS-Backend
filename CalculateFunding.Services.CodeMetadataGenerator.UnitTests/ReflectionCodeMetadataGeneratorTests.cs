@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using CalculateFunding.Models.Code;
 using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.FeatureToggles;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -14,15 +15,38 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.UnitTests
     [TestClass]
     public class ReflectionCodeMetadataGeneratorTests
     {
+        private ICodeMetadataGeneratorService generator;
+
+        [TestInitialize]
+        public void SetUp()
+        {
+            generator = GetCodeGenerator();
+        }
+
+        [TestMethod]
+        public void GetTypeInformation_SkipsCalculationsPropertyInFundingLinesClassInformation()
+        {
+            byte[] assemblyBytes = GetType()
+                .Assembly
+                .GetManifestResourceStream("CalculateFunding.Services.CodeMetadataGenerator.UnitTests.implementation.dll")
+                .ReadAllBytes();
+
+            TypeInformation[] codeContext = WhenTypeInformationForTheAssemblyIsCreated(assemblyBytes).ToArray();
+
+            TypeInformation fundingLinesClass = codeContext.SingleOrDefault(_ => _.Name.EndsWith("FundingLines"));
+
+            fundingLinesClass
+                .Properties
+                .Any(_ => _.Name.EndsWith("Calculations"))
+                .Should()
+                .BeFalse();
+        }
+        
         [TestMethod]
         public void GetTypeInformation_WhenAssemblyIsNullThenReturnsEmptyEnumerable()
         {
-            // Arrange
-            ICodeMetadataGeneratorService generator = GetCodeGenerator();
-            byte[] assembly = null;
-
             // Act
-            IEnumerable<TypeInformation> result = generator.GetTypeInformation(assembly);
+            IEnumerable<TypeInformation> result = WhenTypeInformationForTheAssemblyIsCreated(null);
 
             // Assert
             result.Should().NotBeNull("Result should not be null");
@@ -33,12 +57,8 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.UnitTests
         [TestMethod]
         public void GetTypeInformation_WhenAssemblyIsZeroByteslThenReturnsEmptyEnumerable()
         {
-            // Arrange
-            ICodeMetadataGeneratorService generator = GetCodeGenerator();
-            byte[] assembly = new byte[0];
-
             // Act
-            IEnumerable<TypeInformation> result = generator.GetTypeInformation(assembly);
+            IEnumerable<TypeInformation> result = WhenTypeInformationForTheAssemblyIsCreated(new byte[0]);
 
             // Assert
             result.Should().NotBeNull("Result should not be null");
@@ -50,12 +70,8 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.UnitTests
         [Ignore("This test relies on an old assumption - calculations class")]
         public void GetTypeInformation_ReturnsCalculationObjectWithValidProperties()
         {
-            // Arrange
-            ICodeMetadataGeneratorService generator = GetCodeGenerator();
-            byte[] assembly = GetEmptyDatasetExampleAssembly();
-
             // Act
-            IEnumerable<TypeInformation> result = generator.GetTypeInformation(assembly);
+            IEnumerable<TypeInformation> result = WhenTypeInformationForTheAssemblyIsCreated(GetEmptyDatasetExampleAssembly());
 
             // Assert
             result.Should().NotBeNull("Result should not be null");
@@ -72,12 +88,8 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.UnitTests
         [Ignore("This test relies on an old assumption - calculations class")]
         public void GetTypeInformation_ReturnsCalculationObjectWithValidMethodProperties()
         {
-            // Arrange
-            ICodeMetadataGeneratorService generator = GetCodeGenerator();
-            byte[] assembly = GetEmptyDatasetExampleAssembly();
-
             // Act
-            IEnumerable<TypeInformation> result = generator.GetTypeInformation(assembly);
+            IEnumerable<TypeInformation> result = WhenTypeInformationForTheAssemblyIsCreated(GetEmptyDatasetExampleAssembly());
 
             // Assert
             result.Should().NotBeNull("Result should not be null");
@@ -92,12 +104,8 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.UnitTests
         [Ignore("This test relies on an old assumption - calculations class")]
         public void GetTypeInformation_ReturnsCalculationObjectWithValidPrintMethod()
         {
-            // Arrange
-            ICodeMetadataGeneratorService generator = GetCodeGenerator();
-            byte[] assembly = GetEmptyDatasetExampleAssembly();
-
             // Act
-            IEnumerable<TypeInformation> result = generator.GetTypeInformation(assembly);
+            IEnumerable<TypeInformation> result = WhenTypeInformationForTheAssemblyIsCreated(GetEmptyDatasetExampleAssembly());
 
             // Assert
             result.Should().NotBeNull("Result should not be null");
@@ -131,12 +139,8 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.UnitTests
         [Ignore("This test relies on an old assumption - calculations class")]
         public void GetTypeInformation_ReturnsCalculationObjectWithValidIntellisenseMethod()
         {
-            // Arrange
-            ICodeMetadataGeneratorService generator = GetCodeGenerator();
-            byte[] assembly = GetEmptyDatasetExampleAssembly();
-
             // Act
-            IEnumerable<TypeInformation> result = generator.GetTypeInformation(assembly);
+            IEnumerable<TypeInformation> result = WhenTypeInformationForTheAssemblyIsCreated(GetEmptyDatasetExampleAssembly());
 
             // Assert
             result.Should().NotBeNull("Result should not be null");
@@ -158,12 +162,8 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.UnitTests
         [Ignore("This test relies on an old assumption - requires old Calculations class")]
         public void GetTypeInformation_WithListDatasetsReturnsCalculationObjectWithValidProperties()
         {
-            // Arrange
-            ICodeMetadataGeneratorService generator = GetCodeGenerator();
-            byte[] assembly = GetCalculationClassWithListDatasetsExampleAssembly();
-
             // Act
-            IEnumerable<TypeInformation> result = generator.GetTypeInformation(assembly);
+            IEnumerable<TypeInformation> result = WhenTypeInformationForTheAssemblyIsCreated(GetCalculationClassWithListDatasetsExampleAssembly());
 
             // Assert
             result.Should().NotBeNull("Result should not be null");
@@ -194,12 +194,8 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.UnitTests
         [Ignore("This test relies on an old assumption - requires old Calculation class")]
         public void GetTypeInformation_WhenListDatasetsThenPropertyDescriptionShouldBeReturned()
         {
-            // Arrange
-            ICodeMetadataGeneratorService generator = GetCodeGenerator();
-            byte[] assembly = GetCalculationClassWithListDescriptionsExampleAssembly();
-
             // Act
-            IEnumerable<TypeInformation> result = generator.GetTypeInformation(assembly);
+            IEnumerable<TypeInformation> result = WhenTypeInformationForTheAssemblyIsCreated(GetCalculationClassWithListDescriptionsExampleAssembly());
 
             // Assert
             result.Should().NotBeNull("Result should not be null");
@@ -238,12 +234,8 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.UnitTests
         [Ignore("This test relies on an old assumption - update assembly for test")]
         public void GetTypeInformation_WhenListDatasetsThenDatasetPropertyDescriptionsShouldBeReturned()
         {
-            // Arrange
-            ICodeMetadataGeneratorService generator = GetCodeGenerator();
-            byte[] assembly = GetCalculationClassWithListDescriptionsExampleAssembly();
-
             // Act
-            IEnumerable<TypeInformation> result = generator.GetTypeInformation(assembly);
+            IEnumerable<TypeInformation> result = WhenTypeInformationForTheAssemblyIsCreated(GetCalculationClassWithListDescriptionsExampleAssembly());
 
             // Assert
             result.Should().NotBeNull("Result should not be null");
@@ -277,13 +269,8 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.UnitTests
         [Ignore("This test relies on an old assumption - calculations class")]
         public void GetTypeInformation_WhenFeatureToggleIsOn_SetsIsCustomToTrue()
         {
-            // Arrange
-            ICodeMetadataGeneratorService generator = GetCodeGenerator();
-
-            byte[] assembly = GetCalculationClassWithListDescriptionsExampleAssembly();
-
             // Act
-            IEnumerable<TypeInformation> result = generator.GetTypeInformation(assembly);
+            IEnumerable<TypeInformation> result = WhenTypeInformationForTheAssemblyIsCreated(GetCalculationClassWithListDescriptionsExampleAssembly());
 
             // Assert
             result.Should().NotBeNull("Result should not be null");
@@ -311,12 +298,8 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.UnitTests
         [Ignore("This test relies on an old assumption - update assembly for test")]
         public void GetTypeInformation_WhenListDatasetsThenEnsureDefaultTypesShouldBeReturned()
         {
-            // Arrange
-            ICodeMetadataGeneratorService generator = GetCodeGenerator();
-            byte[] assembly = GetCalculationClassWithListDescriptionsExampleAssembly();
-
             // Act
-            IEnumerable<TypeInformation> result = generator.GetTypeInformation(assembly);
+            IEnumerable<TypeInformation> result = WhenTypeInformationForTheAssemblyIsCreated(GetCalculationClassWithListDescriptionsExampleAssembly());
 
             // Assert
             result.Should().NotBeNull("Result should not be null");
@@ -343,12 +326,8 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.UnitTests
         [Ignore("This test relies on an old assumption - update assembly for test")]
         public void GetTypeInformation_WhenListDatasetsThenEnsureKeywordsShouldBeReturned()
         {
-            // Arrange
-            ICodeMetadataGeneratorService generator = GetCodeGenerator();
-            byte[] assembly = GetCalculationClassWithListDescriptionsExampleAssembly();
-
             // Act
-            IEnumerable<TypeInformation> result = generator.GetTypeInformation(assembly);
+            IEnumerable<TypeInformation> result = WhenTypeInformationForTheAssemblyIsCreated(GetCalculationClassWithListDescriptionsExampleAssembly());
 
             // Assert
             result.Should().NotBeNull("Result should not be null");
@@ -365,10 +344,6 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.UnitTests
         [TestMethod]
         public void GetTypeInformation_WhenCompiledAssembly_EnsuresProviderPropertiesPresent()
         {
-            // Arrange
-            ICodeMetadataGeneratorService generator = GetCodeGenerator();
-            byte[] assembly = GetTestNewProviderPropertiesAssembly();
-
             IEnumerable<string> propertyNames = new[]
             {
                  "Name",  "DateOpened",  "ProviderType", "ProviderSubType",  "UKPRN", "URN", "UPIN", "DfeEstablishmentNumber", "EstablishmentNumber",
@@ -379,7 +354,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.UnitTests
             };
 
             // Act
-            IEnumerable<TypeInformation> result = generator.GetTypeInformation(assembly);
+            IEnumerable<TypeInformation> result = WhenTypeInformationForTheAssemblyIsCreated(GetTestNewProviderPropertiesAssembly());
 
             // Assert
             result.Should().NotBeNull("Result should not be null");
@@ -401,12 +376,10 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.UnitTests
         public void GetTypeInformation_WhenCompiledAssembly_EnsuresEnumsWithValuesPresent()
         {
             // Arrange
-            ICodeMetadataGeneratorService generator = GetCodeGenerator();
-            byte[] assembly = GetCalculationsWithEnumsExampleAssembly();
             string[] expectedEnumValues = new[] { "Type1", "Type2", "Type3" };
 
             // Act
-            IEnumerable<TypeInformation> result = generator.GetTypeInformation(assembly);
+            IEnumerable<TypeInformation> result = WhenTypeInformationForTheAssemblyIsCreated(GetCalculationsWithEnumsExampleAssembly());
 
             // Assert
             result.Should().NotBeNull("Result should not be null");
@@ -420,12 +393,8 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.UnitTests
         [TestMethod]
         public void GetTypeInformation_WhenCompiledAssembly_EnsuresBooleanValueReturnMethodsPresent()
         {
-            // Arrange
-            ICodeMetadataGeneratorService generator = GetCodeGenerator();
-            byte[] assembly = GetCalculationsWithEnumsExampleAssembly();
-
             // Act
-            IEnumerable<TypeInformation> result = generator.GetTypeInformation(assembly);
+            IEnumerable<TypeInformation> result = WhenTypeInformationForTheAssemblyIsCreated(GetCalculationsWithEnumsExampleAssembly());
 
             // Assert
             result.Should().NotBeNull("Result should not be null");
@@ -441,8 +410,6 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.UnitTests
         public void GetTypeInformation_WhenCompiledAssembly_EnsuresFilteredMethodsNotPresent()
         {
             // Arrange
-            ICodeMetadataGeneratorService generator = GetCodeGenerator();
-            byte[] assembly = GetCalculationsWithEnumsExampleAssembly();
             string[] filteredMethodNames = new[]{
                                                     "ToString",
                                                     "GetHashCode",
@@ -453,7 +420,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.UnitTests
                                                 };
 
             // Act
-            IEnumerable<TypeInformation> result = generator.GetTypeInformation(assembly);
+            IEnumerable<TypeInformation> result = WhenTypeInformationForTheAssemblyIsCreated(GetCalculationsWithEnumsExampleAssembly());
 
             // Assert
             result.Should().NotBeNull("Result should not be null");
@@ -466,8 +433,6 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.UnitTests
         public void GetTypeInformation_WhenCompiledAssembly_EnsuresFilteredPropertiesNotPresent()
         {
             // Arrange
-            ICodeMetadataGeneratorService generator = GetCodeGenerator();
-            byte[] assembly = GetCalculationsWithEnumsExampleAssembly();
             string[] filteredPropertyNames = new[]{
                                                     "Dictionary",
                                                     "DictionaryDecimalValues",
@@ -478,7 +443,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.UnitTests
                                                 };
 
             // Act
-            IEnumerable<TypeInformation> result = generator.GetTypeInformation(assembly);
+            IEnumerable<TypeInformation> result = WhenTypeInformationForTheAssemblyIsCreated(GetCalculationsWithEnumsExampleAssembly());
 
             // Assert
             result.Should().NotBeNull("Result should not be null");
@@ -486,6 +451,9 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.UnitTests
             List<string> propertyNames = result.SelectMany(x => (x.Properties ?? new List<PropertyInformation>()).Select(m => m.Name)).ToList();
             propertyNames.Should().NotContain(filteredPropertyNames);
         }
+
+        private IEnumerable<TypeInformation> WhenTypeInformationForTheAssemblyIsCreated(byte[] assembly)
+            => generator.GetTypeInformation(assembly);
 
         private static ICodeMetadataGeneratorService GetCodeGenerator()
         {

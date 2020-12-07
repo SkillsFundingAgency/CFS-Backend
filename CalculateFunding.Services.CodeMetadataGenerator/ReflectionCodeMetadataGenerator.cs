@@ -52,7 +52,9 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
             Assembly assembly = Assembly.Load(rawAssembly);
             List<string> propertyNamesToFilterFromCalculationContexts = GeneratePropertyNameToFilterForCalculationContexts(assembly);
 
-            foreach (TypeInfo typeInfo in assembly.DefinedTypes)
+            TypeInfo[] assemblyDefinedTypes = assembly.DefinedTypes.ToArray();
+            
+            foreach (TypeInfo typeInfo in assemblyDefinedTypes)
             {
                 if (typeInfo != null)
                 {
@@ -160,8 +162,6 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                         }
                     }
 
-                    List<MethodInformation> fields = new List<MethodInformation>();
-
                     FieldInfo[] fieldInfos = typeInfo.DeclaredFields.ToArray();
 
                     List<string> enumValues = new List<string>();
@@ -210,6 +210,15 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                     if ((isTemplateCalculationContainerClass || IsFundingLineClass(typeInfo))
                         && propertyNamesToFilterFromCalculationContexts.Contains(property.Name))
                     {
+                        //NB this continuation is never hit as the IsFundingLineClass evaluation is never true due
+                        //the && of the field attribute check into it
+                        continue;
+                    }
+
+                    if (typeInfo.Name.EndsWith("FundingLines") && property.PropertyType.Name.EndsWith("Calculations"))
+                    {
+                        //don't include the calculations property in the funding lines class as this causes
+                        //an infinite loop in the UI code
                         continue;
                     }
 
@@ -364,6 +373,8 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
 
         private bool IsFundingLineClass(TypeInfo typeInfo)
         {
+            //NB when debugging this expression never evaluates to true, should probably look into this as
+            //there's a whole continuation branch in the calling method that is never being hit
             return typeInfo.Name.EndsWith("FundingLines") && ContainsFieldWithAttribute(typeInfo, "FundingLine");
         }
 
