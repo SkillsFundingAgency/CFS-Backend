@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.ServiceBus.Interfaces;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Processing.Functions;
 using CalculateFunding.Services.Publishing.Interfaces;
@@ -12,6 +13,7 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
 {
     public class OnPublishBatchProviderFunding : Retriable
     {
+        private readonly IPublishService _publishService;
         public const string FunctionName = FunctionConstants.PublishingPublishBatchProviderFunding;
         public const string QueueName = ServiceBusConstants.QueueNames.PublishingPublishBatchProviderFunding;
 
@@ -22,6 +24,9 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
             IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
             : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, publishService)
         {
+            Guard.ArgumentNotNull(publishService, nameof(publishService));
+
+            _publishService = publishService;
         }
 
         [FunctionName(FunctionName)]
@@ -30,7 +35,10 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey,
             IsSessionsEnabled = true)] Message message)
         {
-            await base.Run(message);
+            await base.Run(message, async () =>
+            {
+                await _publishService.PublishProviderFundingResults(message, batched: true);
+            });
         }
     }
 }
