@@ -355,7 +355,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             IPublishedProviderVersioningService publishedProviderVersioningService = null,
             ILogger logger = null,
             IJobTracker jobTracker = null,
-            IPublishedFundingRepository publishedFundingRepository = null)
+            IPublishedFundingRepository publishedFundingRepository = null,
+            IPublishedFundingBulkRepository publishedFundingBulkRepository = null)
         {
             IConfiguration configuration = Mock.Of<IConfiguration>();
 
@@ -365,9 +366,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                     jobTracker ?? CreateJobTracker().Object,
                     logger ?? CreateLogger().Object,
                     new PublishedProviderStatusUpdateSettings(),
-                    new PublishingEngineOptions(configuration));
+                    publishedFundingBulkRepository ?? CreatePublishedFundingBulkRepository().Object);
         }
 
+        private static Mock<IPublishedFundingBulkRepository> CreatePublishedFundingBulkRepository()
+        {
+            return new Mock<IPublishedFundingBulkRepository>();
+        }
 
         private static Mock<IPublishedProviderVersioningService> CreateVersioningService()
         {

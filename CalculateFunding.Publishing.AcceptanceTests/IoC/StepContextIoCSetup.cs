@@ -23,6 +23,7 @@ using CalculateFunding.Publishing.AcceptanceTests.Contexts;
 using CalculateFunding.Publishing.AcceptanceTests.Repositories;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.Errors;
 using CalculateFunding.Services.Publishing.Interfaces;
@@ -125,6 +126,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<JobTracker, IJobTracker>();
             RegisterTypeAs<JobManagement, IJobManagement>();
             RegisterTypeAs<InMemoryPublishedFundingRepository, IPublishedFundingRepository>();
+            RegisterTypeAs<InMemoryPublishedFundingBulkRepository, IPublishedFundingBulkRepository>();
             RegisterTypeAs<PoliciesInMemoryRepository, IPoliciesApiClient>();
             RegisterTypeAs<InMemoryCacheProvider, ICacheProvider>();
             RegisterTypeAs<InMemoryMessengerService, IMessengerService>();
@@ -155,7 +157,9 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<CalculationResultsService, ICalculationResultsService>();
             RegisterTypeAs<PublishingEngineOptions, IPublishingEngineOptions>();
             RegisterTypeAs<PublishedProviderVersionInMemoryRepository, IVersionRepository<PublishedProviderVersion>>();
+            RegisterTypeAs<PublishedProviderVersionBulkInMemoryRepository, IVersionBulkRepository<PublishedProviderVersion>>();
             RegisterTypeAs<PublishedFundingVersionInMemoryRepository, IVersionRepository<PublishedFundingVersion>>();
+            RegisterTypeAs<PublishedFundingVersionBulkInMemoryRepository, IVersionBulkRepository<PublishedFundingVersion>>();
             RegisterTypeAs<PublishedProviderDataGenerator, IPublishedProviderDataGenerator>();
             RegisterTypeAs<PublishedFundingStatusUpdateService, IPublishedFundingStatusUpdateService>();
             RegisterTypeAs<SpecificationFundingStatusService, ISpecificationFundingStatusService>();

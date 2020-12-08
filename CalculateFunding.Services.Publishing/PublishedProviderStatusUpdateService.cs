@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
@@ -11,7 +10,6 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Serilog;
 
@@ -24,28 +22,29 @@ namespace CalculateFunding.Services.Publishing
         private readonly IPublishedProviderVersioningService _publishedProviderVersioningService;
         private readonly IPublishedFundingRepository _publishedFundingRepository;
         private readonly ILogger _logger;
-        private readonly IPublishingEngineOptions _publishingEngineOptions;
+        private readonly IPublishedFundingBulkRepository _publishedFundingBulkRepository;
 
-        public PublishedProviderStatusUpdateService(IPublishedProviderVersioningService publishedProviderVersioningService,
+        public PublishedProviderStatusUpdateService(
+            IPublishedProviderVersioningService publishedProviderVersioningService,
             IPublishedFundingRepository publishedFundingRepository,
             IJobTracker jobTracker,
             ILogger logger,
             IPublishedProviderStatusUpdateSettings settings, 
-            IPublishingEngineOptions publishingEngineOptions)
+            IPublishedFundingBulkRepository publishedFundingBulkRepository)
         {
             Guard.ArgumentNotNull(publishedProviderVersioningService, nameof(publishedProviderVersioningService));
             Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(jobTracker, nameof(jobTracker));
             Guard.ArgumentNotNull(settings, nameof(settings));
-            Guard.ArgumentNotNull(publishingEngineOptions, nameof(publishingEngineOptions));
+            Guard.ArgumentNotNull(publishedFundingBulkRepository, nameof(publishedFundingBulkRepository));
 
             _publishedProviderVersioningService = publishedProviderVersioningService;
             _publishedFundingRepository = publishedFundingRepository;
             _logger = logger;
             _settings = settings;
-            _publishingEngineOptions = publishingEngineOptions;
             _jobTracker = jobTracker;
+            _publishedFundingBulkRepository = publishedFundingBulkRepository;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -123,54 +122,37 @@ namespace CalculateFunding.Services.Publishing
         {
             IEnumerable<PublishedProvider> updatedPublishedProviders = await CreateVersions(publishedProviderCreateVersionRequests, publishedProviderStatus);
 
-            if (updatedPublishedProviders.Any())
+            if (!updatedPublishedProviders.Any())
+            {
+                return;
+            }
+
+            ConcurrentBag<HttpStatusCode> results = new ConcurrentBag<HttpStatusCode>();
+
+            try
+            {
+                await _publishedFundingBulkRepository.UpsertPublishedProviders(
+                    updatedPublishedProviders,
+                    (Task<HttpStatusCode> task) =>
+                    {
+                        HttpStatusCode httpStatusCode = task.Result;
+                        results.Add(httpStatusCode);
+                    });
+
+                if (results.Any(_ => !_.IsSuccess()))
+                {
+                    throw new Exception();
+                }
+
+                await SaveVersions(updatedPublishedProviders, publishedProviderStatus);
+            }
+            catch (Exception ex)
             {
                 string errorMessage = $"Failed to create published Providers when updating status:' {publishedProviderStatus}' on published providers.";
 
-                ConcurrentBag<HttpStatusCode> results = new ConcurrentBag<HttpStatusCode>();
+                _logger.Error(ex, errorMessage);
 
-                try
-                {
-                    List<Task> allTasks = new List<Task>();
-                    SemaphoreSlim throttler = new SemaphoreSlim(initialCount: _publishingEngineOptions.CreateLatestPublishedProviderVersionsConcurrencyCount);
-                    foreach (PublishedProvider publishedProvider in updatedPublishedProviders)
-                    {
-                        await throttler.WaitAsync();
-                        allTasks.Add(
-                            Task.Run(async () =>
-                            {
-                                try
-                                {
-                                    IEnumerable<PublishedProvider> publishedProviders = new[] { publishedProvider };
-                                    IEnumerable<HttpStatusCode> result = await _publishedFundingRepository.UpsertPublishedProviders(publishedProviders);
-                                    foreach (HttpStatusCode httpStatusCode in result)
-                                    {
-                                        results.Add(httpStatusCode);
-                                    }
-                                }
-                                finally
-                                {
-                                    throttler.Release();
-                                }
-                            }));
-                    }
-                    await TaskHelper.WhenAllAndThrow(allTasks.ToArray());
-
-                    if (results.All(_ => _.IsSuccess()))
-                    {
-                        await SaveVersions(updatedPublishedProviders, publishedProviderStatus);
-                    }
-                    else
-                    {
-                        throw new Exception();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.Error(ex, errorMessage);
-
-                    throw new RetriableException(errorMessage, ex);
-                }
+                throw new RetriableException(errorMessage, ex);
             }
         }
 

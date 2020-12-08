@@ -13,9 +13,17 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
         public IEnumerable<CalculationResult> Results { get; private set; } = new CalculationResult[0];
 
-        public Task<ProviderCalculationResult> GetCalculationResultsBySpecificationAndProvider(string specificationId, string providerId)
+        public Task<IEnumerable<ProviderCalculationResult>> GetCalculationResultsBySpecificationAndProvider(string specificationId, string providerId)
         {
-            return Task.FromResult( new ProviderCalculationResult { ProviderId = providerId,  Results = ProviderResults.ContainsKey(providerId) ? ProviderResults[providerId] : Results });
+            return Task.FromResult(
+                new List<ProviderCalculationResult> 
+                {
+                    new ProviderCalculationResult 
+                    { 
+                        ProviderId = providerId,  
+                        Results = ProviderResults.ContainsKey(providerId) ? ProviderResults[providerId] : Results 
+                    }
+                }.AsEnumerable());
         }
 
         public void SetCalculationResults(IEnumerable<CalculationResult> calculationResults)

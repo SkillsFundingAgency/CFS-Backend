@@ -31,9 +31,9 @@ namespace CalculateFunding.Services.Publishing.Repositories
             return Task.FromResult(health);
         }
 
-        public async Task<ProviderCalculationResult> GetCalculationResultsBySpecificationAndProvider(string specificationId, string providerId)
+        public async Task<IEnumerable<ProviderCalculationResult>> GetCalculationResultsBySpecificationAndProvider(string specificationId, string providerId)
         {
-            List<ProviderCalculationResult> providerResultSummaries = (await _cosmosRepository
+            return await _cosmosRepository
                 .DynamicQueryPartitionedEntity<ProviderCalculationResult>(new CosmosDbQuery
                 {
                     QueryText = @"SELECT
@@ -49,10 +49,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                              new CosmosDbQueryParameter("@specificationId", specificationId)
                          }
                 },
-                partitionEntityId: providerId))
-                .ToList();
-
-            return await Task.FromResult(providerResultSummaries.FirstOrDefault());
+                partitionEntityId: providerId);
         }
     }
 }

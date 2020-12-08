@@ -483,7 +483,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
 
             if (groupReason.HasValue)
             {
-                query.QueryText += " AND c.content.current.groupReason = @groupReason";
+                query.QueryText += " AND c.content.current.groupingReason = @groupReason";
                 query.Parameters = query.Parameters.Concat(new[]
                 {
                     new CosmosDbQueryParameter("@groupReason", groupReason.ToString())

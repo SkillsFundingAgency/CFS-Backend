@@ -77,14 +77,24 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
 
             GivenTheSqlQueryResultsForSpecificationResults(specificationId, resultOne, resultTwo, resultThree);
 
-            ProviderCalculationResult result = await WhenTheCalculationResultsAreQueriedBySpecificationIdAndProviderId(specificationId, providerId);
+            IEnumerable<ProviderCalculationResult> result = await WhenTheCalculationResultsAreQueriedBySpecificationIdAndProviderId(specificationId, providerId);
 
             result
+                .Should()
+                .BeOfType<IEnumerable<ProviderCalculationResult>>()
+                .And
+                .NotBeNull()
+                .And
+                .HaveCount(1);
+
+            ProviderCalculationResult providerCalculationResult = result.FirstOrDefault();
+
+            providerCalculationResult
                 .Should()
                 .BeEquivalentTo(resultOne);
         }
 
-        private async Task<ProviderCalculationResult> WhenTheCalculationResultsAreQueriedBySpecificationIdAndProviderId(string specificationId, string providerId)
+        private async Task<IEnumerable<ProviderCalculationResult>> WhenTheCalculationResultsAreQueriedBySpecificationIdAndProviderId(string specificationId, string providerId)
         {
             return await _repository.GetCalculationResultsBySpecificationAndProvider(specificationId, providerId);
         }

@@ -7,25 +7,22 @@ using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Services;
-using Gherkin.Stream;
 
 namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 {
     public class PublishedProviderVersionInMemoryRepository : IVersionRepository<PublishedProviderVersion>
     {
-        public Dictionary<string, PublishedProviderVersion> PublishedProviderVersions { get; } =
-            new Dictionary<string, PublishedProviderVersion>();
-
         public IEnumerable<PublishedProviderVersion> UpsertedPublishedProviderVersions =>
-            PublishedProviderVersions.Values.ToReadOnlyCollection();
-
-        private readonly InMemoryCosmosRepository _inMemoryCosmosRepository = new InMemoryCosmosRepository();
+            _cosmosRepository.PublishedProviderVersions.Values.SelectMany(_ => _.Values);
 
         private readonly VersionRepository<PublishedProviderVersion> _realImplementation;
+        private readonly InMemoryCosmosRepository _cosmosRepository;
 
-        public PublishedProviderVersionInMemoryRepository()
+        public PublishedProviderVersionInMemoryRepository(InMemoryCosmosRepository cosmosRepository)
         {
-            _realImplementation = new VersionRepository<PublishedProviderVersion>(_inMemoryCosmosRepository);
+            _cosmosRepository = cosmosRepository;
+
+            _realImplementation = new VersionRepository<PublishedProviderVersion>(_cosmosRepository);
         }
 
         public Task<PublishedProviderVersion> CreateVersion(PublishedProviderVersion newVersion, PublishedProviderVersion currentVersion = null, string partitionKey = null, bool incrementFromCurrentVersion = false)
@@ -48,28 +45,16 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<HttpStatusCode> SaveVersion(PublishedProviderVersion newVersion)
+        public async Task<HttpStatusCode> SaveVersion(PublishedProviderVersion newVersion)
         {
-            if (PublishedProviderVersions.ContainsKey(newVersion.Id))
-            {
-                throw new InvalidOperationException("Unable to save version, existing one already exists");
-            }         
+            await _cosmosRepository.UpsertAsync(newVersion);
 
-            PublishedProviderVersions[newVersion.Id] = newVersion;
-
-            return Task.FromResult(HttpStatusCode.OK);
+            return HttpStatusCode.OK;
         }
 
-        public Task SaveVersion(PublishedProviderVersion newVersion, string partitionKey)
+        public async Task SaveVersion(PublishedProviderVersion newVersion, string partitionKey)
         {
-            if (PublishedProviderVersions.ContainsKey(newVersion.Id))
-            {
-                throw new InvalidOperationException("Unable to save version, existing one already exists");
-            }
-
-            PublishedProviderVersions[newVersion.Id] = newVersion;
-
-            return Task.FromResult(newVersion);
+            await _cosmosRepository.UpsertAsync(newVersion, partitionKey);
         }
 
         public Task SaveVersions(IEnumerable<PublishedProviderVersion> newVersions, int maxDegreesOfParallelism = 30)
@@ -77,17 +62,15 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
-        public Task SaveVersions(IEnumerable<KeyValuePair<string, PublishedProviderVersion>> newVersions, int maxDegreesOfParallelism = 30)
+        public async Task SaveVersions(IEnumerable<KeyValuePair<string, PublishedProviderVersion>> newVersions, int maxDegreesOfParallelism = 30)
         {
             if (newVersions.AnyWithNullCheck())
             {
                 foreach (KeyValuePair<string, PublishedProviderVersion> version in newVersions)
                 {
-                    PublishedProviderVersions[version.Key] = version.Value;
+                    await _cosmosRepository.UpsertAsync(version.Value);
                 }
             }
-
-            return Task.CompletedTask;
         }
 
         public Task DeleteVersions(IEnumerable<KeyValuePair<string, PublishedProviderVersion>> newVersions, int maxDegreesOfParallelism = 30)

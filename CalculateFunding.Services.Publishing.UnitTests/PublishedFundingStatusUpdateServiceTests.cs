@@ -6,12 +6,14 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Generators.OrganisationGroup.Enums;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Publishing.Interfaces;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
+using System.Linq;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
 {
@@ -19,8 +21,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
     public class PublishedFundingStatusUpdateServiceTests
     {
         private PublishedFundingStatusUpdateService _publishedFundingStatusUpdateService;
-        private IPublishedFundingRepository _publishedFundingRepository;
+        private IPublishedFundingBulkRepository _publishedFundingBulkRepository;
         private IVersionRepository<PublishedFundingVersion> _publishedFundingVersionRepository;
+        private IVersionBulkRepository<PublishedFundingVersion> _publishedFundingVersionBulkRepository;
         private PublishedFundingVersion _publishedFundingVersion;
         private PublishedFunding _publishedFunding;
         private PublishedFundingPeriod _publishedFundingPeriod;
@@ -32,17 +35,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             ILogger logger = Substitute.For<ILogger>();
             IConfiguration configuration = Substitute.For<IConfiguration>();
-            _publishedFundingRepository = Substitute.For<IPublishedFundingRepository>();
+            _publishedFundingBulkRepository = Substitute.For<IPublishedFundingBulkRepository>();
             _publishedFundingVersionRepository = Substitute.For<IVersionRepository<PublishedFundingVersion>>();
+            _publishedFundingVersionBulkRepository = Substitute.For<IVersionBulkRepository<PublishedFundingVersion>>();
             _publishedFundingIdGeneratorResolver = Substitute.For<IPublishedFundingIdGeneratorResolver>();
             _author = new Reference { Id = "authorId", Name = "author" };
 
-            _publishedFundingStatusUpdateService = new PublishedFundingStatusUpdateService(_publishedFundingRepository,
-                                                                                           PublishingResilienceTestHelper.GenerateTestPolicies(),
+            _publishedFundingStatusUpdateService = new PublishedFundingStatusUpdateService(PublishingResilienceTestHelper.GenerateTestPolicies(),
                                                                                            _publishedFundingVersionRepository,
                                                                                            _publishedFundingIdGeneratorResolver,
                                                                                            logger,
-                                                                                           new PublishingEngineOptions(configuration));
+                                                                                           new PublishingEngineOptions(configuration),
+                                                                                           _publishedFundingVersionBulkRepository,
+                                                                                           _publishedFundingBulkRepository);
 
             _publishedFundingPeriod = new PublishedFundingPeriod { Type = PublishedFundingPeriodType.AY, Period = "123" };
         }
@@ -78,21 +83,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             await ThenNewVersionSavedWithJobIdAndCorrelationId(jobId, correlationId);
         }
 
-        [TestMethod]
-        public void UpdatePublishedFundingStatus_GivenExistingPublishedFundingAndNewPublishedFundingVersionAndSaveFails_ExceptionThrown()
-        {
-            // Arrange
-            GivenPublishedFunding();
-
-            GivenNewVersionCreated();
-
-            // Act
-            Func<Task> invocation = async () => await WhenStatusUpdated();
-
-            // Assert
-            ThenExceptionShouldBeThrown($"Failed to save published funding for id: {_publishedFunding.Id} with status code 0", invocation);
-        }
-
         private void GivenPublishedFunding()
         {
             _publishedFundingVersion = NewPublishedFundingVersion(_ => _.WithFundingId("funding1")
@@ -116,9 +106,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
         private void GivenPublishedFundingUpserted()
         {
+            IEnumerable<PublishedFunding> publishedFundings = new List<PublishedFunding> { _publishedFunding };
 
-            _publishedFundingRepository.UpsertPublishedFunding(Arg.Is(_publishedFunding))
-                .Returns(HttpStatusCode.OK);
+            _publishedFundingBulkRepository
+                .UpsertPublishedFundings(
+                    Arg.Is<IEnumerable<PublishedFunding>>(_ => _.SequenceEqual(publishedFundings)),
+                    Arg.Any<Action<Task<HttpStatusCode>, PublishedFunding>>())
+                .Returns(Task.FromResult(HttpStatusCode.OK));
         }
 
         private async Task WhenStatusUpdated(string jobId = null, string correlationId = null)
@@ -136,9 +130,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
         private async Task ThenNewVersionSaved()
         {
-            await _publishedFundingVersionRepository
+            await _publishedFundingVersionBulkRepository
                 .Received(1)
-                .SaveVersion(Arg.Is(_publishedFundingVersion), Arg.Is(_publishedFundingVersion.PartitionKey));
+                .SaveVersion(
+                    Arg.Is(_publishedFundingVersion),
+                    Arg.Is(_publishedFundingVersion.PartitionKey));
         }
 
         private async Task ThenNewVersionSavedWithJobIdAndCorrelationId(string expectedJobId, string expectedCorrelationId)

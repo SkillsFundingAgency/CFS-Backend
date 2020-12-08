@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Publishing;
@@ -13,11 +11,14 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 {
     public class PublishedFundingVersionInMemoryRepository : IVersionRepository<PublishedFundingVersion>
     {
-        private readonly ReaderWriterLockSlim lockVersionObject = new ReaderWriterLockSlim();
+        private readonly InMemoryCosmosRepository _cosmosRepository;
+        private readonly VersionRepository<PublishedFundingVersion> _realImplementation;
 
-        ConcurrentDictionary<string, PublishedFundingVersion> _publishedFundingVersions = new ConcurrentDictionary<string, PublishedFundingVersion>();
-
-        VersionRepository<PublishedFundingVersion> _realImplementation = new VersionRepository<PublishedFundingVersion>(new InMemoryCosmosRepository());
+        public PublishedFundingVersionInMemoryRepository(InMemoryCosmosRepository cosmosRepository)
+        {
+            _cosmosRepository = cosmosRepository;
+            _realImplementation = new VersionRepository<PublishedFundingVersion>(_cosmosRepository);
+        }
 
         public Task<PublishedFundingVersion> CreateVersion(PublishedFundingVersion newVersion, PublishedFundingVersion currentVersion = null, string partitionKey = null, bool incrementFromCurrentVersion = false)
         {
@@ -49,28 +50,16 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<HttpStatusCode> SaveVersion(PublishedFundingVersion newVersion)
+        public async Task<HttpStatusCode> SaveVersion(PublishedFundingVersion newVersion)
         {
-            if (_publishedFundingVersions.ContainsKey(newVersion.Id))
-            {
-                throw new InvalidOperationException("Unable to save version, existing one already exists");
-            }
+            await _cosmosRepository.UpsertAsync(newVersion);
 
-            _publishedFundingVersions[newVersion.Id] = newVersion;
-
-            return Task.FromResult(HttpStatusCode.OK);
+            return HttpStatusCode.OK;
         }
 
-        public Task SaveVersion(PublishedFundingVersion newVersion, string partitionKey)
+        public async Task SaveVersion(PublishedFundingVersion newVersion, string partitionKey)
         {
-            if (_publishedFundingVersions.ContainsKey(newVersion.Id))
-            {
-                throw new InvalidOperationException("Unable to save version, existing one already exists");
-            }
-
-            _publishedFundingVersions[newVersion.Id] = newVersion;
-
-            return Task.FromResult(newVersion);
+            await _cosmosRepository.UpsertAsync(newVersion, partitionKey);
         }
 
         public Task SaveVersions(IEnumerable<PublishedFundingVersion> newVersions, int maxDegreesOfParallelism = 30)

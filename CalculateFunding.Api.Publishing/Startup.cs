@@ -26,6 +26,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Helpers;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Interfaces.Threading;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
@@ -48,6 +49,7 @@ using CalculateFunding.Services.Publishing.Undo.Repositories;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -256,6 +258,18 @@ namespace CalculateFunding.Api.Publishing
 
                 return new VersionRepository<PublishedProviderVersion>(cosmos);
             });
+            builder.AddSingleton<IVersionBulkRepository<PublishedProviderVersion>, VersionBulkRepository<PublishedProviderVersion>>((ctx) =>
+            {
+                CosmosDbSettings settings = new CosmosDbSettings();
+
+                Configuration.Bind("CosmosDbSettings", settings);
+
+                settings.ContainerName = "publishedfunding";
+
+                CosmosRepository cosmos = new CosmosRepository(settings);
+
+                return new VersionBulkRepository<PublishedProviderVersion>(cosmos);
+            });
             builder
                 .AddSingleton<IPublishedProviderStatusUpdateSettings>(_ =>
                     {
@@ -305,6 +319,29 @@ namespace CalculateFunding.Api.Publishing
                 IPublishedFundingQueryBuilder publishedFundingQueryBuilder = ctx.GetService<IPublishedFundingQueryBuilder>();
 
                 return new PublishedFundingRepository(calcsCosmosRepository, publishedFundingQueryBuilder);
+            });
+
+            builder.AddSingleton<IPublishedFundingBulkRepository, PublishedFundingBulkRepository>((ctx) =>
+            {
+                CosmosDbSettings settings = new CosmosDbSettings();
+
+                Configuration.Bind("CosmosDbSettings", settings);
+
+                settings.ContainerName = "publishedfunding";
+
+                CosmosRepository calcsCosmosRepository = new CosmosRepository(settings, new CosmosClientOptions
+                {
+                    ConnectionMode = ConnectionMode.Direct,
+                    RequestTimeout = new TimeSpan(0, 0, 15),
+                    MaxRequestsPerTcpConnection = 8,
+                    MaxTcpConnectionsPerEndpoint = 4,
+                    ConsistencyLevel = ConsistencyLevel.Eventual,
+                    AllowBulkExecution = true
+                });
+
+                IPublishingResiliencePolicies publishingResiliencePolicies = ctx.GetService<IPublishingResiliencePolicies>();
+
+                return new PublishedFundingBulkRepository(publishingResiliencePolicies, calcsCosmosRepository);
             });
 
             builder
@@ -422,7 +459,7 @@ namespace CalculateFunding.Api.Publishing
                     ProvidersApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     CalculationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    PublishedFundingRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                    PublishedFundingRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(),
                     PublishedProviderVersionRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     BlobClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),

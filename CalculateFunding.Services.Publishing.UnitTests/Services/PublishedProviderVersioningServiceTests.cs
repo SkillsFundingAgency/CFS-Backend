@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
+using CalculateFunding.Services.Core.Interfaces.Services;
 
 namespace CalculateFunding.Services.Publishing.Services.UnitTests
 {
@@ -326,13 +327,15 @@ namespace CalculateFunding.Services.Publishing.Services.UnitTests
 
             ILogger logger = CreateLogger();
 
-            IVersionRepository<PublishedProviderVersion> versionRepository = CreateVersionRepository();
+            IVersionBulkRepository<PublishedProviderVersion> versionBulkRepository = CreateVersionBulkRepository();
 
-            versionRepository
-                .When(x => x.SaveVersions(Arg.Any<IEnumerable<KeyValuePair<string, PublishedProviderVersion>>>()))
+            versionBulkRepository
+                .When(x => x.SaveVersion(Arg.Any<PublishedProviderVersion>(), Arg.Any<string>()))
                 .Do(x => { throw new Exception("Failed to save versions"); });
 
-            PublishedProviderVersioningService service = CreateVersioningService(logger, versionRepository);
+            PublishedProviderVersioningService service = CreateVersioningService(
+                logger, 
+                versionBulkRepository: versionBulkRepository);
 
             //Act
             Func<Task> test = async () => await service.SaveVersions(publishedProviders);
@@ -345,10 +348,6 @@ namespace CalculateFunding.Services.Publishing.Services.UnitTests
                 .Message
                 .Should()
                 .Be("Failed to save versions");
-
-            logger
-                .Received(1)
-                .Error(Arg.Any<Exception>(), Arg.Is("Failed to save new published provider versions"));
         }
 
         [TestMethod]
@@ -376,21 +375,20 @@ namespace CalculateFunding.Services.Publishing.Services.UnitTests
 
             ILogger logger = CreateLogger();
 
-            IVersionRepository<PublishedProviderVersion> versionRepository = CreateVersionRepository();
+            IVersionBulkRepository<PublishedProviderVersion> versionBulkRepository = CreateVersionBulkRepository();
 
-            PublishedProviderVersioningService service = CreateVersioningService(logger, versionRepository);
+            PublishedProviderVersioningService service = CreateVersioningService(
+                logger,
+                versionBulkRepository: versionBulkRepository);
 
             //Act
             await service.SaveVersions(publishedProviders);
 
             //Assert
             await
-                versionRepository
+                versionBulkRepository
                     .Received(1)
-                    .SaveVersions(Arg.Is<IEnumerable<KeyValuePair<string, PublishedProviderVersion>>>(m =>
-                        m.First().Key == partitionKey &&
-                        m.First().Value == publishedProviders.First().Current
-                    ));
+                    .SaveVersion(Arg.Is(publishedProviders.First().Current), Arg.Is(partitionKey));
         }
 
         [TestMethod]
@@ -837,7 +835,8 @@ namespace CalculateFunding.Services.Publishing.Services.UnitTests
 
         private static PublishedProviderVersioningService CreateVersioningService(
          ILogger logger = null,
-         IVersionRepository<PublishedProviderVersion> versionRepository = null)
+         IVersionRepository<PublishedProviderVersion> versionRepository = null,
+         IVersionBulkRepository<PublishedProviderVersion> versionBulkRepository = null)
         {
             IConfiguration configuration = Substitute.For<IConfiguration>();
 
@@ -845,7 +844,8 @@ namespace CalculateFunding.Services.Publishing.Services.UnitTests
                 logger ?? CreateLogger(),
                 versionRepository ?? CreateVersionRepository(),
                 PublishingResilienceTestHelper.GenerateTestPolicies(),
-                new PublishingEngineOptions(configuration));
+                new PublishingEngineOptions(configuration),
+                versionBulkRepository ?? CreateVersionBulkRepository());
         }
 
         private static ILogger CreateLogger()
@@ -856,6 +856,11 @@ namespace CalculateFunding.Services.Publishing.Services.UnitTests
         private static IVersionRepository<PublishedProviderVersion> CreateVersionRepository()
         {
             return Substitute.For<IVersionRepository<PublishedProviderVersion>>();
+        }
+
+        private static IVersionBulkRepository<PublishedProviderVersion> CreateVersionBulkRepository()
+        {
+            return Substitute.For<IVersionBulkRepository<PublishedProviderVersion>>();
         }
     }
 }

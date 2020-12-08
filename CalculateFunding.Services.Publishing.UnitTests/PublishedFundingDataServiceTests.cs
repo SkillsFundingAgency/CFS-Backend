@@ -16,14 +16,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests
     public class PublishedFundingDataServiceTests
     {
         private Mock<IPublishedFundingRepository> _publishedFunding;
+        private Mock<IPublishedFundingBulkRepository> _publishedFundingBulk;
         private PublishedFundingDataService _dataService;
-        private Mock<IPublishingEngineOptions> _publishingEngineOptions;
 
         [TestInitialize]
         public void SetUp()
         {
             _publishedFunding = new Mock<IPublishedFundingRepository>();
-            _publishingEngineOptions = new Mock<IPublishingEngineOptions>();
+            _publishedFundingBulk = new Mock<IPublishedFundingBulkRepository>();
 
             _dataService = new PublishedFundingDataService(_publishedFunding.Object,
                 new Mock<ISpecificationService>().Object,
@@ -32,8 +32,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     SpecificationsRepositoryPolicy = Policy.NoOpAsync(),
                     PublishedFundingRepository = Policy.NoOpAsync()
                 },
-                _publishingEngineOptions.Object,
-                new Mock<IPoliciesService>().Object);
+                _publishedFundingBulk.Object);
         }
 
         [TestMethod]
@@ -79,17 +78,23 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             const string specificationId = "spec-1";
 
-            _publishedFunding.Setup(x => x.GetPublishedFundingIds(specificationId, GroupingReason.Payment))
-                .ReturnsAsync(new[] {
+            IEnumerable<KeyValuePair<string, string>> publishedFundingIds = new[] {
                     new KeyValuePair<string, string>("pf1", "p1"),
                     new KeyValuePair<string, string>("pf2", "p2")
-                })
+                };
+
+            _publishedFunding.Setup(x => x.GetPublishedFundingIds(specificationId, GroupingReason.Payment))
+                .ReturnsAsync(publishedFundingIds)
                 .Verifiable();
 
-            _publishedFunding.Setup(x => x.GetPublishedFundingById(It.IsAny<string>(), It.IsAny<string>()))
-                .ReturnsAsync(() => new PublishedFunding());
-            _publishingEngineOptions.SetupGet(x => x.GetCurrentPublishedFundingConcurrencyCount)
-                .Returns(2);
+            IEnumerable<PublishedFunding> expectedPublishedFundings = new List<PublishedFunding>
+            {
+                new PublishedFunding(),
+                new PublishedFunding()
+            };
+
+            _publishedFundingBulk.Setup(x => x.GetPublishedFundings(publishedFundingIds))
+                .ReturnsAsync(() => expectedPublishedFundings);
 
             IEnumerable<PublishedFunding> publishedFundings = await _dataService.GetCurrentPublishedFunding(specificationId, GroupingReason.Payment);
 

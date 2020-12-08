@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -13,6 +12,7 @@ using CalculateFunding.Models.Versioning;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Serilog;
 
@@ -22,6 +22,7 @@ namespace CalculateFunding.Services.Publishing
     {
         private readonly ILogger _logger;
         private readonly IVersionRepository<PublishedProviderVersion> _versionRepository;
+        private readonly IVersionBulkRepository<PublishedProviderVersion> _versionBulkRepository;
         private readonly Polly.AsyncPolicy _versionRepositoryPolicy;
         private readonly IPublishingEngineOptions _publishingEngineOptions;
 
@@ -29,22 +30,26 @@ namespace CalculateFunding.Services.Publishing
             ILogger logger,
             IVersionRepository<PublishedProviderVersion> versionRepository,
             IPublishingResiliencePolicies resiliencePolicies,
-            IPublishingEngineOptions publishingEngineOptions)
+            IPublishingEngineOptions publishingEngineOptions,
+            IVersionBulkRepository<PublishedProviderVersion> versionBulkRepository)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(versionRepository, nameof(versionRepository));
             Guard.ArgumentNotNull(resiliencePolicies?.PublishedProviderVersionRepository, nameof(resiliencePolicies.PublishedProviderVersionRepository));
             Guard.ArgumentNotNull(publishingEngineOptions, nameof(publishingEngineOptions));
+            Guard.ArgumentNotNull(versionBulkRepository, nameof(versionBulkRepository));
 
             _logger = logger;
             _versionRepository = versionRepository;
             _publishingEngineOptions = publishingEngineOptions;
             _versionRepositoryPolicy = resiliencePolicies.PublishedProviderVersionRepository;
+            _versionBulkRepository = versionBulkRepository;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            ServiceHealth versioningRepo = await ((IHealthChecker)_versionRepository).IsHealthOk();
+            ServiceHealth versioningRepo = await (_versionRepository).IsHealthOk();
+            ServiceHealth versioningBulkRepo = await (_versionBulkRepository).IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
@@ -52,6 +57,7 @@ namespace CalculateFunding.Services.Publishing
             };
 
             health.Dependencies.AddRange(versioningRepo.Dependencies);
+            health.Dependencies.AddRange(versioningBulkRepo.Dependencies);
 
             return health;
         }
@@ -205,37 +211,30 @@ namespace CalculateFunding.Services.Publishing
         {
             Guard.ArgumentNotNull(publishedProviders, nameof(publishedProviders));
 
-            IEnumerable<KeyValuePair<string, PublishedProviderVersion>> versionsToSave = publishedProviders.Select(m =>
-               new KeyValuePair<string, PublishedProviderVersion>(m.PartitionKey, m.Current));
+            IEnumerable<(PublishedProviderVersion newVersion, string partitionKey)> publishedProviderVersionsToSave =
+                publishedProviders.Select(_ => (newVersion: _.Current, partitionKey: _.PartitionKey));
 
-            List<Task> allTasks = new List<Task>();
-            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: _publishingEngineOptions.PublishedProviderSaveVersionsConcurrencyCount);
-            foreach (IEnumerable<KeyValuePair<string, PublishedProviderVersion>> versions in versionsToSave.ToBatches(10))
+            List<Task> requests = new List<Task>(publishedProviderVersionsToSave.Count());
+
+            foreach ((PublishedProviderVersion newVersion, string partitionKey) in publishedProviderVersionsToSave)
             {
-                await throttler.WaitAsync();
-                allTasks.Add(
-                    Task.Run(async () =>
-                    {
-                        try
-                        {
-                            try
-                            {
-                                await _versionRepositoryPolicy.ExecuteAsync(() => _versionRepository.SaveVersions(versions));
-                            }
-                            catch (Exception ex)
-                            {
-                                _logger.Error(ex, "Failed to save new published provider versions");
-
-                                throw;
-                            }
-                        }
-                        finally
-                        {
-                            throttler.Release();
-                        }
-                    }));
+                requests.Add(
+                    _versionRepositoryPolicy.ExecuteAsync(() => 
+                        _versionBulkRepository.SaveVersion(newVersion, partitionKey)));
             }
-            await TaskHelper.WhenAllAndThrow(allTasks.ToArray());
+
+            await TaskHelper.WhenAllAndThrow(requests.ToArray());
+
+            foreach (Task request in requests)
+            {
+                Exception ex = request.Exception;
+                if (ex != null && ex.InnerException != null)
+                {
+                    _logger.Error(ex, "Failed to save new published provider versions");
+
+                    throw ex;
+                }
+            }
         }
 
         public async Task DeleteVersions(IEnumerable<PublishedProvider> publishedProviders)
