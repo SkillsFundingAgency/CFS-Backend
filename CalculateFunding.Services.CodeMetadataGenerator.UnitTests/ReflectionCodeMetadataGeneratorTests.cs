@@ -388,7 +388,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.UnitTests
             TypeInformation enumTypeInformation = result.FirstOrDefault(t => t.Name == "TypeOfFundingOptions");
             enumTypeInformation.Should().NotBeNull();
             enumTypeInformation.EnumValues.Should().BeEquivalentTo(expectedEnumValues);
-            enumTypeInformation.Type.Should().Be("CalculationContext+DSGCalculations+TypeOfFundingOptions");
+            enumTypeInformation.Type.Should().Be("DSGCalculations+TypeOfFundingOptions");
         }
 
         [TestMethod]
