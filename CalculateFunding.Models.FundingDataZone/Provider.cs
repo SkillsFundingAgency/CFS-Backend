@@ -133,5 +133,31 @@ namespace CalculateFunding.Models.FundingDataZone
         public string PaymentOrganisationType { get; set; }
 
         public string PaymentOrganisationUkprn { get; set; }
+
+        public string ProviderTypeCode { get; set; }
+
+        public string ProviderSubTypeCode { get; set; }
+        
+        public string StatusCode { get; set; }
+        
+        public string ReasonEstablishmentOpenedCode { get; set; }
+        
+        public string ReasonEstablishmentClosedCode { get; set; }
+        
+        public string PhaseOfEducationCode { get; set; }
+        
+        public string StatutoryLowAge { get; set; }
+        
+        public string StatutoryHighAge { get; set; }
+        
+        public string OfficialSixthFormCode { get; set; }
+        
+        public string OfficialSixthFormName { get; set; }
+        
+        public string PreviousLaCode { get; set; }
+        
+        public string PreviousLaName { get; set; }
+        
+        public string PreviousEstablishmentNumber { get; set; }
     }
 }
