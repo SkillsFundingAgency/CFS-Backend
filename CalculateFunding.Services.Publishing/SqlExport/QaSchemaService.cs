@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Models;
@@ -9,6 +10,7 @@ using CalculateFunding.Common.ApiClient.Profiling;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalculateFunding.Common.Extensions;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Sql.Interfaces;
 using CalculateFunding.Common.TemplateMetadata;
@@ -140,7 +142,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             ApiResponse<IEnumerable<FundingStreamPeriodProfilePattern>> profilePatternResults =
                 await _profilingClient.GetProfilePatternsForFundingStreamAndFundingPeriod(fundingStreamId, fundingPeriodId);
 
-            IEnumerable<FundingStreamPeriodProfilePattern> profilePatterns = profilePatternResults?.Content;
+            IEnumerable<FundingStreamPeriodProfilePattern> profilePatterns = profilePatternResults?.Content?.ToArray();
 
             if (profilePatterns == null)
             {
@@ -148,17 +150,22 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                     $"Did not locate any profile patterns for funding stream {fundingStreamId} and funding period {fundingPeriodId}. Unable to continue with Qa Schema Generation");
             }
 
-            ProfilePatternComparer profilePatternComparer = new ProfilePatternComparer();
-
-
             Dictionary<string, IEnumerable<SqlColumnDefinition>> profiling = new Dictionary<string, IEnumerable<SqlColumnDefinition>>();
+            
             foreach (FundingLine fundingLine in templateMetadata.FundingLines.Where(f => f.Type == FundingLineType.Payment))
             {
                 IEnumerable<ProfilePeriodPattern> allPatterns = profilePatterns
                     .Where(p => p.FundingLineId == fundingLine.FundingLineCode)
-                    .SelectMany(p => p.ProfilePattern);
+                    .SelectMany(p => p.ProfilePattern)
+                    .ToArray();
 
-                IEnumerable<ProfilePeriodPattern> uniqueProfilePatterns = allPatterns.Distinct(profilePatternComparer);
+                IEnumerable<ProfilePeriodPattern> uniqueProfilePatterns = allPatterns.DistinctBy(_ => new
+                {
+                    _.Occurrence,
+                    _.Period,
+                    _.PeriodType,
+                    _.PeriodYear
+                });
 
                 List<SqlColumnDefinition> fundingSqlFields = new List<SqlColumnDefinition>();
 
@@ -431,13 +438,13 @@ REFERENCES [dbo].[{fundingStreamTablePrefix}_{fundingTableName}] ([PublishedProv
                 {
                     Name = "TrustCode",
                     Type = "[varchar](32)",
-                    AllowNulls = false
+                    AllowNulls = true
                 },
                 new SqlColumnDefinition
                 {
                     Name = "TrustName",
                     Type = "[nvarchar](128)",
-                    AllowNulls = false
+                    AllowNulls = true
                 },
                 new SqlColumnDefinition
                 {
@@ -492,7 +499,7 @@ REFERENCES [dbo].[{fundingStreamTablePrefix}_{fundingTableName}] ([PublishedProv
                                 format == CalculationValueFormat.Number || 
                                 format == CalculationValueFormat.Percentage 
                     => "[decimal](18, 0)",
-                CalculationValueFormat.Boolean => "[bool]",
+                CalculationValueFormat.Boolean => "[bit]",
                 CalculationValueFormat.String => "[varchar](128)",
                 _ => throw new InvalidOperationException("Unknown value format")
             };

@@ -53,8 +53,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                 NewDataColumn<string>("LaCode", 32),
                 NewDataColumn<string>("Status", 64, true),
                 NewDataColumn<string>("Successor", 32, true),
-                NewDataColumn<string>("TrustCode", 32),
-                NewDataColumn<string>("TrustName", 128),
+                NewDataColumn<string>("TrustCode", 32, allowNull: true),
+                NewDataColumn<string>("TrustName", 128, allowNull: true),
                 NewDataColumn<string>("PaymentOrganisationIdentifier", 32, true),
                 NewDataColumn<string>("PaymentOrganisationName", 256, true));
             
@@ -63,12 +63,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             
             AndTheDataTableHasRowsMatching(NewRow(rowOne.PublishedProviderId, rowOne.ProviderId, rowOneProvider.Name,
                     rowOneProvider.UKPRN, rowOneProvider.URN, rowOneProvider.Authority, rowOneProvider.ProviderType, rowOneProvider.ProviderSubType, DbNullSafe(rowOneProvider.DateOpened?.UtcDateTime),
-                    DbNullSafe(rowOneProvider.DateClosed?.UtcDateTime), rowOneProvider.LACode, DbNullSafe(rowOneProvider.Status), DbNullSafe(rowOneProvider.Successor), rowOneProvider.TrustCode,
-                    rowOneProvider.TrustName, DbNullSafe(rowOneProvider.PaymentOrganisationIdentifier), DbNullSafe(rowOneProvider.PaymentOrganisationName)),
+                    DbNullSafe(rowOneProvider.DateClosed?.UtcDateTime), rowOneProvider.LACode, DbNullSafe(rowOneProvider.Status), DbNullSafe(rowOneProvider.Successor), DbNullSafe(rowOneProvider.TrustCode),
+                    DbNullSafe(rowOneProvider.TrustName), DbNullSafe(rowOneProvider.PaymentOrganisationIdentifier), DbNullSafe(rowOneProvider.PaymentOrganisationName)),
                 NewRow(rowTwo.PublishedProviderId, rowTwo.ProviderId, rowTwoProvider.Name,
                     rowTwoProvider.UKPRN, rowTwoProvider.URN, rowTwoProvider.Authority, rowTwoProvider.ProviderType, rowTwoProvider.ProviderSubType, DbNullSafe(rowTwoProvider.DateOpened?.UtcDateTime),
-                    DbNullSafe(rowTwoProvider.DateClosed?.UtcDateTime), rowTwoProvider.LACode, DbNullSafe(rowTwoProvider.Status), DbNullSafe(rowTwoProvider.Successor), rowTwoProvider.TrustCode,
-                    rowTwoProvider.TrustName, DbNullSafe(rowTwoProvider.PaymentOrganisationIdentifier), DbNullSafe(rowTwoProvider.PaymentOrganisationName)));
+                    DbNullSafe(rowTwoProvider.DateClosed?.UtcDateTime), rowTwoProvider.LACode, DbNullSafe(rowTwoProvider.Status), DbNullSafe(rowTwoProvider.Successor), DbNullSafe(rowTwoProvider.TrustCode),
+                    DbNullSafe(rowTwoProvider.TrustName), DbNullSafe(rowTwoProvider.PaymentOrganisationIdentifier), DbNullSafe(rowTwoProvider.PaymentOrganisationName)));
             AndTheTableNameIs($"[dbo].[{FundingStreamId}_{FundingPeriodId}_Providers]");
         }
     }

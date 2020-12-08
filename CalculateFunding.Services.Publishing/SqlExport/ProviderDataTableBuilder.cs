@@ -22,8 +22,8 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                 NewDataColumn<string>("LaCode", 32),
                 NewDataColumn<string>("Status", 64, true),
                 NewDataColumn<string>("Successor", 32, true),
-                NewDataColumn<string>("TrustCode", 32),
-                NewDataColumn<string>("TrustName", 128),
+                NewDataColumn<string>("TrustCode", 32, allowNull: true),
+                NewDataColumn<string>("TrustName", 128, allowNull: true),
                 NewDataColumn<string>("PaymentOrganisationIdentifier", 32, true),
                 NewDataColumn<string>("PaymentOrganisationName", 256, true)
             };
@@ -45,8 +45,8 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                 provider.LACode,
                 DbNullSafe(provider.Status),
                 DbNullSafe(provider.Successor),
-                provider.TrustCode,
-                provider.TrustName,
+                DbNullSafe(provider.TrustCode),
+                DbNullSafe(provider.TrustName),
                 DbNullSafe(provider.PaymentOrganisationIdentifier),
                 DbNullSafe(provider.PaymentOrganisationName));
         }
