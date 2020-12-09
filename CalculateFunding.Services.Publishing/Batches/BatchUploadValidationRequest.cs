@@ -10,6 +10,9 @@ namespace CalculateFunding.Services.Publishing.Batches
         [JsonProperty("fundingPeriodId")]
         public string FundingPeriodId { get; set; }
         
+        [JsonProperty("specificationId")]
+        public string SpecificationId { get; set; }
+        
         [JsonProperty("batchId")]
         public string BatchId { get; set; }
     }

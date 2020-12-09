@@ -14,6 +14,8 @@ namespace CalculateFunding.Services.Publishing.Batches
                 .NotEmpty();
             RuleFor(_ => _.FundingStreamId)
                 .NotEmpty();
+            RuleFor(_ => _.SpecificationId)
+                .NotEmpty();
         }
     }
 }

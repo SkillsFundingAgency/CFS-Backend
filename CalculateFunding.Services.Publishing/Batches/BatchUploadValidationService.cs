@@ -83,6 +83,7 @@ namespace CalculateFunding.Services.Publishing.Batches
                 InvokerUserId = user?.Id,
                 InvokerUserDisplayName = user?.Name,
                 JobDefinitionId = BatchPublishedProviderValidationJob,
+                SpecificationId = batchUploadValidationRequest.SpecificationId,
                 Trigger = new Trigger(),
                 Properties = (Dictionary<string, string>) properties
             });
@@ -154,12 +155,15 @@ namespace CalculateFunding.Services.Publishing.Batches
             private const string BatchIdKey = "batch-id";
             private const string FundingStreamIdKey = "funding-stream-id";
             private const string FundingPeriodIdKey = "funding-period-id";
+            private const string SpecificationIdKey = "specification-id";
             
             public string BatchId { get; private set; }
             
             public string FundingStreamId {get; private set; }
             
             public string FundingPeriodId { get; private set; }
+            
+            public string SpecificationId { get; private set; }
 
             public static implicit operator Dictionary<string, string>(BatchUploadValidationProperties properties)
             {
@@ -169,7 +173,8 @@ namespace CalculateFunding.Services.Publishing.Batches
                 {
                     {BatchIdKey, properties.BatchId},   
                     {FundingStreamIdKey, properties.FundingStreamId},   
-                    {FundingPeriodIdKey, properties.FundingPeriodId}   
+                    {FundingPeriodIdKey, properties.FundingPeriodId},
+                    {SpecificationIdKey, properties.SpecificationId}
                 };
             }
             
@@ -181,7 +186,8 @@ namespace CalculateFunding.Services.Publishing.Batches
                 {
                     BatchId = request.BatchId,
                     FundingStreamId = request.FundingStreamId,
-                    FundingPeriodId = request.FundingPeriodId
+                    FundingPeriodId = request.FundingPeriodId,
+                    SpecificationId = request.SpecificationId
                 };
             }
 
@@ -193,7 +199,8 @@ namespace CalculateFunding.Services.Publishing.Batches
                 {
                     BatchId = message.GetUserProperty<string>(BatchIdKey) ?? throw new NonRetriableException($"No {BatchIdKey} property in message"),
                     FundingStreamId = message.GetUserProperty<string>(FundingStreamIdKey) ?? throw new NonRetriableException($"No {FundingStreamIdKey} property in message"),
-                    FundingPeriodId = message.GetUserProperty<string>(FundingPeriodIdKey) ?? throw new NonRetriableException($"No {FundingPeriodIdKey} property in message")
+                    FundingPeriodId = message.GetUserProperty<string>(FundingPeriodIdKey) ?? throw new NonRetriableException($"No {FundingPeriodIdKey} property in message"),
+                    SpecificationId = message.GetUserProperty<string>(SpecificationIdKey) ?? throw new NonRetriableException($"No {SpecificationIdKey} property in message"),
                 };
             }
         }

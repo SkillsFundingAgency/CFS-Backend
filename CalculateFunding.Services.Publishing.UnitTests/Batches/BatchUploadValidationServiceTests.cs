@@ -45,6 +45,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Batches
         private const string BatchId = "batch-id";
         private const string FundingStreamId = "funding-stream-id";
         private const string FundingPeriodId = "funding-period-id";
+        private const string SpecificationId = "specification-id";
 
         [TestInitialize]
         public void SetUp()
@@ -98,7 +99,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Batches
 
             BatchUploadValidationRequest request = NewBatchUploadValidationRequest(_ => _.WithBatchId(NewRandomString())
                 .WithFundingPeriodId(NewRandomString())
-                .WithFundingStreamId(NewRandomString()));
+                .WithFundingStreamId(NewRandomString())
+                .WithSpecificationId(NewRandomString()));
+            
             Job job = NewJob();
 
             GivenTheValidationResultForTheRequest(request, NewValidationResult());
@@ -209,7 +212,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Batches
 
             await WhenTheBatchUploadIsValidated(NewMessage(_ => _.WithUserProperty(BatchId, batchId)
                 .WithUserProperty(FundingStreamId, fundingStreamId)
-                .WithUserProperty(FundingPeriodId, fundingPeriodId)));
+                .WithUserProperty(FundingPeriodId, fundingPeriodId)
+                .WithUserProperty(SpecificationId, NewRandomString())));
 
             ThenThePublishedProviderIdsWereWrittenToBlobStorage(publishedProviderId1,
                 publishedProviderId2,
@@ -251,7 +255,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Batches
 
             Action invocation = () => WhenTheBatchUploadIsValidated(NewMessage(_ => _.WithUserProperty(BatchId, batchId)
                     .WithUserProperty(FundingStreamId, fundingStreamId)
-                    .WithUserProperty(FundingPeriodId, fundingPeriodId)))
+                    .WithUserProperty(FundingPeriodId, fundingPeriodId)
+                    .WithUserProperty(SpecificationId, NewRandomString())))
                 .GetAwaiter()
                 .GetResult();
 
@@ -332,12 +337,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Batches
             {
                 ("batch-id", request.BatchId),
                 ("funding-stream-id", request.FundingStreamId),
-                ("funding-period-id", request.FundingPeriodId)
+                ("funding-period-id", request.FundingPeriodId),
+                ("specification-id", request.SpecificationId)
             };
 
             _jobs.Setup(_ => _.QueueJob(It.Is<JobCreateModel>(jcm =>
                     jcm.CorrelationId == correlationId &&
                     jcm.InvokerUserId == user.Id &&
+                    jcm.SpecificationId == request.SpecificationId &&
                     jcm.InvokerUserDisplayName == user.Name &&
                     jcm.JobDefinitionId == JobConstants.DefinitionNames.BatchPublishedProviderValidationJob &&
                     HasTheProperties(jcm, expectedProperties)

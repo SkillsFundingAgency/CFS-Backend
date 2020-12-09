@@ -8,6 +8,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Batches
         private string _batchId;
         private string _fundingStreamId;
         private string _fundingPeriodId;
+        private string _specificationId;
+
+        public BatchUploadValidationRequestBuilder WithSpecificationId(string specificationId)
+        {
+            _specificationId = specificationId;
+
+            return this;
+        }
 
         public BatchUploadValidationRequestBuilder WithBatchId(string batchId)
         {
@@ -35,7 +43,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Batches
             {
                 BatchId = _batchId,
                 FundingPeriodId = _fundingPeriodId,
-                FundingStreamId = _fundingStreamId
+                FundingStreamId = _fundingStreamId,
+                SpecificationId = _specificationId
             };
     }
 }
