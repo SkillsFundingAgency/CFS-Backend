@@ -41,7 +41,7 @@ namespace CalculateFunding.Services.Publishing.Undo
             GuardAgainstNull(PublishedFundingDetails, nameof(PublishedFundingDetails), errors);
             GuardAgainstNull(PublishedFundingVersionDetails, nameof(PublishedFundingVersionDetails), errors);
             GuardAgainstNull(PublishedProviderDetails, nameof(PublishedProviderDetails), errors);
-            GuardAgainstNull(PublishedFundingVersionDetails, nameof(PublishedFundingVersionDetails), errors);
+            GuardAgainstNull(PublishedProviderVersionDetails, nameof(PublishedProviderVersionDetails), errors);
 
             return (!errors.Any(), errors);
         }

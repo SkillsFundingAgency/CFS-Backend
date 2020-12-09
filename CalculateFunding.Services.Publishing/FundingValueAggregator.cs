@@ -126,7 +126,7 @@ namespace CalculateFunding.Services.Publishing
         private void SetSecondPassAggregateCalculationsValue(Calculation templateCalculation,
             AggregateFundingCalculation[] aggregateFundingCalculations)
         {
-            decimal value = templateCalculation.AggregationType switch
+            decimal? value = templateCalculation.AggregationType switch
             {
                 AggregationType.PercentageChangeBetweenAandB => GetPercentageChangeBetweenAandB(templateCalculation),
                 AggregationType.GroupRate => GetGroupRate(templateCalculation),
@@ -139,7 +139,7 @@ namespace CalculateFunding.Services.Publishing
             }
         }
 
-        private decimal GetGroupRate(Calculation templateCalculation)
+        private decimal? GetGroupRate(Calculation templateCalculation)
         {
             GroupRate groupRate = templateCalculation.GroupRate;
 
@@ -151,14 +151,21 @@ namespace CalculateFunding.Services.Publishing
             EnsureGroupRateCalculationComponentIsSummed(numeratorCalculation);
             EnsureGroupRateCalculationComponentIsSummed(denominatorCalculation);
 
-            decimal numerator = CalculateAggregateValueFor(numeratorCalculation, sum);
-            decimal denominator = CalculateAggregateValueFor(denominatorCalculation, sum);
+            decimal? numerator = CalculateAggregateValueFor(numeratorCalculation, sum);
+            decimal? denominator = CalculateAggregateValueFor(denominatorCalculation, sum);
 
-            decimal rate = denominator == 0 ? 0: numerator / denominator;
+            if (numerator.HasValue && denominator.HasValue)
+            {
+                decimal? rate = denominator == 0 ? 0 : numerator / denominator;
 
-            UpdateRawCalculation(templateCalculation.TemplateCalculationId, new[] { rate });
-            
-            return rate;
+                UpdateRawCalculation(templateCalculation.TemplateCalculationId, new[] { rate.Value });
+
+                return rate;
+            }
+            else
+            {
+                return null;
+            }
         }
 
         private void EnsureGroupRateCalculationComponentIsSummed(uint numeratorCalculation)
@@ -170,7 +177,7 @@ namespace CalculateFunding.Services.Publishing
             }
         }
 
-        private decimal GetPercentageChangeBetweenAandB(Calculation templateCalculation)
+        private decimal? GetPercentageChangeBetweenAandB(Calculation templateCalculation)
         {
             PercentageChangeBetweenAandB percentageChangeBetweenAandB = templateCalculation.PercentageChangeBetweenAandB;
             
@@ -183,23 +190,29 @@ namespace CalculateFunding.Services.Publishing
 
             AggregationType aggregationType = GetAggregationType(calculationA);
 
-            decimal valueA = CalculateAggregateValueFor(calculationA, aggregationType);
-            decimal valueB = CalculateAggregateValueFor(calculationB, aggregationType);
+            decimal? valueA = CalculateAggregateValueFor(calculationA, aggregationType);
+            decimal? valueB = CalculateAggregateValueFor(calculationB, aggregationType);
 
-            return valueA == 0 ? 0 : (valueB - valueA) / valueA * 100;
+            if (valueA.HasValue && valueB.HasValue)
+            {
+                return valueA == 0 ? 0 : (valueB - valueA) / valueA * 100;
+            }
+            else
+            {
+                return null;
+            }
         }
 
         private bool AggregationTypeIs(uint templateCalculationId,
             params AggregationType[] permittedAggregationTypes)
             => permittedAggregationTypes.Contains(GetAggregationType(templateCalculationId));
 
-        private decimal CalculateAggregateValueFor(uint templateCalculationId,
+        private decimal? CalculateAggregateValueFor(uint templateCalculationId,
             AggregationType aggregationType)
         {
             if (!_rawCalculations.TryGetValue(templateCalculationId, out ICollection<decimal> providerValues))
             {
-                throw new ArgumentOutOfRangeException(nameof(templateCalculationId),
-                    $"Did not locate raw provider values for template calculation id {templateCalculationId}");
+                return null;
             }
 
             return aggregationType switch
@@ -370,12 +383,10 @@ namespace CalculateFunding.Services.Publishing
 
             if (IsSecondPassAggregation(calculation.AggregationType))
             {
-                //add an empty second pass aggregate calculation to the graph so that we
-                //can calculate its value in a second pass (once all of the other aggregations have been run) 
                 return GetAggregateCalculationForAggregatorType(calculation, 0);
             }
 
-            return null;
+            return GetAggregateCalculationForAggregatorType(calculation, null);
         }
 
         private bool IsSecondPassAggregation(AggregationType aggregationType)
@@ -387,7 +398,7 @@ namespace CalculateFunding.Services.Publishing
             _aggregatedCalculations.TryGetValue(templateCalculationId, out aggregate);
 
         private AggregateFundingCalculation GetAggregateCalculationForAggregatorType(Calculation calculation,
-            decimal aggregateValue)
+            object aggregateValue)
         {
             return new AggregateFundingCalculation
             {

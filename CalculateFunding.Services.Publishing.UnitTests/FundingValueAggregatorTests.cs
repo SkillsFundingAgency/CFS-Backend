@@ -106,7 +106,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Should()
                 .Be(4590000.975M);
 
-            fundingLines.First().Calculations.Where(x => x.TemplateCalculationId == 1).First().Calculations.Where(x => x.TemplateCalculationId == 156).First().Calculations.Where(x => x.TemplateCalculationId == 157).IsNullOrEmpty()
+            fundingLines.First().Calculations.Where(x => x.TemplateCalculationId == 1).First().Calculations.Where(x => x.TemplateCalculationId == 156).First().Calculations.Where(x => x.TemplateCalculationId == 157 && x.Value != null).IsNullOrEmpty()
                 .Should()
                 .BeTrue();
 

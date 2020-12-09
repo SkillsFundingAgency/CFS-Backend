@@ -15,6 +15,11 @@ namespace CalculateFunding.Models.Publishing
         AY,
 
         /// <summary>
+        /// An academy year.
+        /// </summary>
+        AC,
+
+        /// <summary>
         /// A financial year (1 April to 31 March).
         /// </summary>
         FY,

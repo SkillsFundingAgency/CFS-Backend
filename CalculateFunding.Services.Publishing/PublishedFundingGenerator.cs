@@ -141,7 +141,7 @@ namespace CalculateFunding.Services.Publishing
         {
             List<FundingCalculation> calculations = new List<FundingCalculation>();
 
-            foreach (AggregateFundingCalculation aggregateFundingCalculation in aggregateCalculations)
+            foreach (AggregateFundingCalculation aggregateFundingCalculation in aggregateCalculations.Where(_ => _.Value != null))
             {
                 calculations.Add(new FundingCalculation()
                 {
