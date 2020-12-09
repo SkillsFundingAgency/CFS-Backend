@@ -26,6 +26,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             FundingPeriodId = NewRandomStringWithMaxLength(32);
         }
 
+        protected T[] AsArray<T>(params T[] items) => items;
+
         protected void WhenTheRowsAreAdded(params PublishedProviderVersion[] rows)
             => DataTableBuilder.AddRows(rows);
 
@@ -137,6 +139,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
         protected static uint NewRandomUnsignedNumber() => (uint) NewRandomNumber();
 
         protected static int NewRandomNumber() => new RandomNumberBetween(1, int.MaxValue);
+        
+        protected static bool NewRandomFlag() => new RandomBoolean();
 
         protected static object[] NewRow(params object[] values) => values;
 

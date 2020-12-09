@@ -1,17 +1,20 @@
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using CalculateFunding.Common.TemplateMetadata.Enums;
+using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Models.Publishing;
 
 namespace CalculateFunding.Services.Publishing.SqlExport
 {
     public class CalculationDataTableBuilder : DataTableBuilder<PublishedProviderVersion>
     {
-        private readonly IDictionary<uint, string> _calculationNames;
+        private readonly IDictionary<uint, Calculation> _calculations;
 
-        public CalculationDataTableBuilder(IDictionary<uint, string> calculationNames)
+        public CalculationDataTableBuilder(IEnumerable<Calculation> calculations)
         {
-            _calculationNames = calculationNames;
+            _calculations = calculations.ToDictionary(_ => _.TemplateCalculationId);
         }
 
         protected override DataColumn[] GetDataColumns(PublishedProviderVersion dto)
@@ -24,9 +27,30 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                 {
                     NewDataColumn<string>("PublishedProviderId", 128)
                 }.Concat(calculations
-                    .Select(_ => NewDataColumn<decimal>($"Calc_{_.TemplateCalculationId}_{_calculationNames[_.TemplateCalculationId].Replace(" ", "")}", allowNull: true)))
+                    .Select(NewCalculationDataColumn))
                 .ToArray();
         }
+
+        private DataColumn NewCalculationDataColumn(FundingCalculation calculation)
+        {
+            Calculation templateCalculation = GetTemplateCalculation(calculation.TemplateCalculationId);
+
+            string columnName = $"Calc_{templateCalculation.TemplateCalculationId}_{templateCalculation.Name.Replace(" ", "")}";
+
+            return templateCalculation.ValueFormat switch
+            {
+                var format when format == CalculationValueFormat.Currency ||
+                                format == CalculationValueFormat.Number ||
+                                format == CalculationValueFormat.Percentage
+                    => NewDataColumn<decimal>(columnName, allowNull: true),
+                CalculationValueFormat.Boolean => NewDataColumn<bool>(columnName, allowNull: true),
+                CalculationValueFormat.String => NewDataColumn<string>(columnName, 128, true),
+                _ => throw new InvalidOperationException("Unknown value format")
+            };
+        }
+
+        private Calculation GetTemplateCalculation(uint templateCalculationId)
+            => _calculations.TryGetValue(templateCalculationId, out Calculation calculation) ? calculation : throw new ArgumentOutOfRangeException(nameof(templateCalculationId));
 
         protected override void AddDataRowToDataTable(PublishedProviderVersion dto)
         {

@@ -11,8 +11,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private uint? _templateCalculationId;
         private IEnumerable<Calculation> _calculations;
         private CalculationType? _type;
+        private CalculationValueFormat? _valueFormat;
         private string _name;
 
+        public TemplateCalculationBuilder WithValueFormat(CalculationValueFormat valueFormat)
+        {
+            _valueFormat = valueFormat;
+
+            return this;
+        }
+        
         public TemplateCalculationBuilder WithName(string name)
         {
             _name = name;
@@ -47,6 +55,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             {
                 Calculations = _calculations ?? new Calculation[0],
                 TemplateCalculationId = _templateCalculationId.GetValueOrDefault((uint)NewRandomNumberBetween(1, int.MaxValue)),
+                ValueFormat = _valueFormat.GetValueOrDefault(NewRandomEnum<CalculationValueFormat>()),
                 Type = _type.GetValueOrDefault(),
                 Name = _name
             };

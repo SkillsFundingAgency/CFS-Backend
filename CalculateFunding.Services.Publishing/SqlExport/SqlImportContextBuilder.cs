@@ -63,7 +63,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             {
                 Documents = publishedProviderFeed,
                 CalculationNames = calculationNames,
-                Calculations = new CalculationDataTableBuilder(calculationNames),
+                Calculations = new CalculationDataTableBuilder(uniqueCalculations),
                 Providers = new ProviderDataTableBuilder(),
                 Funding = new PublishedProviderVersionDataTableBuilder(),
                 InformationFundingLines = new InformationFundingLineDataTableBuilder(),
