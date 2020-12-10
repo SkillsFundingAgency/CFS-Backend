@@ -75,7 +75,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Batches
                 .Which
                 .Message
                 .Should()
-                .Be($"Did not locate a ukprn column in batch upload xlsx {new BatchUploadBlobName(batchId)}");
+                .Be("Did not locate a ukprn column in batch upload file");
         }
 
         private async Task WhenTheBatchUploadIsLoaded(string batchId)

@@ -43,16 +43,16 @@ namespace CalculateFunding.Services.Publishing.Batches
             
             using ExcelPackage batchXlsx = new ExcelPackage(batchStream);
             
-            LoadPublishedProviderIds(batchXlsx, blobName);
+            LoadPublishedProviderIds(batchXlsx);
         }
 
-        private void LoadPublishedProviderIds(ExcelPackage batchXlsx, string blobName)
+        private void LoadPublishedProviderIds(ExcelPackage batchXlsx)
         {
             ExcelWorksheet batchSheet = batchXlsx.Workbook.Worksheets.FirstOrDefault();
 
             if (batchSheet == null)
             {
-                throw new NonRetriableException($"The batch upload {blobName} must contain at least one worksheet");
+                throw new NonRetriableException("The batch upload must contain at least one worksheet");
             }
 
             ExcelAddressBase dimension = batchSheet.Dimension;
@@ -81,7 +81,7 @@ namespace CalculateFunding.Services.Publishing.Batches
                 }
             }
             
-            throw new NonRetriableException($"Did not locate a ukprn column in batch upload xlsx {blobName}");
+            throw new NonRetriableException("Did not locate a ukprn column in batch upload file");
            
         }
 
