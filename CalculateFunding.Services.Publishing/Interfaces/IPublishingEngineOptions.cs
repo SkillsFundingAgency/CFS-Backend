@@ -25,5 +25,11 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         int PublishedProviderCreateVersionsConcurrencyCount { get; }
         
         int PublishedProviderSaveVersionsConcurrencyCount { get; }
+
+        int MaxRequestsPerTcpConnectionPublishedFundingCosmosBulkOptions { get;  }
+
+        int MaxBatchSizePublishedFunding { get; }
+
+        int MaxRequestsPerTcpConnectionCalculationsCosmosBulkOptions { get; }
     }
 }

@@ -34,7 +34,7 @@ namespace CalculateFunding.Services.Core.Services
 
         public async Task<T> SaveVersion(T newVersion, string partitionKey)
         {
-            _cosmosRepository.UpsertAsync(newVersion, partitionKey);
+            await _cosmosRepository.UpsertAsync(newVersion, partitionKey);
             
             return newVersion;
         }

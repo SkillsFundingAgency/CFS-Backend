@@ -17,109 +17,141 @@ namespace CalculateFunding.Services.Publishing.Repositories
 
         private readonly ICosmosRepository _repository;
 
+        private readonly int _batchSize;
+
         public PublishedFundingBulkRepository(
             IPublishingResiliencePolicies resiliencePolicies,
+            IPublishingEngineOptions publishingEngineOptions,
             ICosmosRepository cosmosRepository)
         {
             Guard.ArgumentNotNull(cosmosRepository, nameof(cosmosRepository));
             Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
             Guard.ArgumentNotNull(resiliencePolicies.PublishedFundingRepository, nameof(resiliencePolicies.PublishedFundingRepository));
+            Guard.ArgumentNotNull(publishingEngineOptions, nameof(publishingEngineOptions));
 
             _repository = cosmosRepository;
+            _batchSize = publishingEngineOptions.MaxBatchSizePublishedFunding;
             _publishedFundingRepositoryPolicy = resiliencePolicies.PublishedFundingRepository;
         }
 
         public async Task<IEnumerable<PublishedFunding>> GetPublishedFundings(
             IEnumerable<KeyValuePair<string, string>> publishedFundingIds)
         {
-            List<Task<DocumentEntity<PublishedFunding>>> concurrentTasks = new List<Task<DocumentEntity<PublishedFunding>>>();
+            List<PublishedFunding> concurrentObjects = new List<PublishedFunding>();
 
-            foreach (KeyValuePair<string, string> publishedFundingIdPair in publishedFundingIds)
+            foreach (IEnumerable<KeyValuePair<string, string>> batchPublishedFundingIds in publishedFundingIds.ToBatches(_batchSize))
             {
-                concurrentTasks.Add(
-                    _publishedFundingRepositoryPolicy.ExecuteAsync(() =>
-                        _repository.ReadDocumentByIdPartitionedAsync<PublishedFunding>(
-                            publishedFundingIdPair.Key,
-                            publishedFundingIdPair.Value)));
+                List<Task<DocumentEntity<PublishedFunding>>> concurrentTasks = new List<Task<DocumentEntity<PublishedFunding>>>();
+
+                foreach (KeyValuePair<string, string> publishedFundingIdPair in batchPublishedFundingIds)
+                {
+                    concurrentTasks.Add(
+                        _publishedFundingRepositoryPolicy.ExecuteAsync(() =>
+                            _repository.ReadDocumentByIdPartitionedAsync<PublishedFunding>(
+                                publishedFundingIdPair.Key,
+                                publishedFundingIdPair.Value)));
+                }
+
+                await Task.WhenAll(concurrentTasks);
+
+                concurrentObjects.AddRange(concurrentTasks.Select(_ => _.Result.Content));
             }
 
-            await Task.WhenAll(concurrentTasks);
-
-            return concurrentTasks.Select(_ => _.Result.Content);
+            return concurrentObjects;
         }
 
         public async Task<IEnumerable<PublishedFundingVersion>> GetPublishedFundingVersions(
             IEnumerable<KeyValuePair<string, string>> publishedFundingVersionIds)
         {
-            List<Task<DocumentEntity<PublishedFundingVersion>>> concurrentTasks = new List<Task<DocumentEntity<PublishedFundingVersion>>>();
+            List<PublishedFundingVersion> concurrentObjects = new List<PublishedFundingVersion>();
 
-            foreach (KeyValuePair<string, string> publishedFundingVersionIdPair in publishedFundingVersionIds)
+            foreach (IEnumerable<KeyValuePair<string, string>> batchPublishedFundingVersionIds in publishedFundingVersionIds.ToBatches(_batchSize))
             {
-                concurrentTasks.Add(
-                    _publishedFundingRepositoryPolicy.ExecuteAsync(() =>
-                        _repository.ReadDocumentByIdPartitionedAsync<PublishedFundingVersion>(
-                            publishedFundingVersionIdPair.Key,
-                            publishedFundingVersionIdPair.Value)));
+                List<Task<DocumentEntity<PublishedFundingVersion>>> concurrentTasks = new List<Task<DocumentEntity<PublishedFundingVersion>>>();
+
+                foreach (KeyValuePair<string, string> publishedFundingVersionIdPair in batchPublishedFundingVersionIds)
+                {
+                    concurrentTasks.Add(
+                        _publishedFundingRepositoryPolicy.ExecuteAsync(() =>
+                            _repository.ReadDocumentByIdPartitionedAsync<PublishedFundingVersion>(
+                                publishedFundingVersionIdPair.Key,
+                                publishedFundingVersionIdPair.Value)));
+                }
+
+                await Task.WhenAll(concurrentTasks);
+
+                concurrentObjects.AddRange(concurrentTasks.Select(_ => _.Result.Content));
             }
 
-            await Task.WhenAll(concurrentTasks);
-
-            return concurrentTasks.Select(_ => _.Result.Content);
+            return concurrentObjects;
         }
 
         public async Task<IEnumerable<PublishedProvider>> GetPublishedProviders(
             IEnumerable<KeyValuePair<string, string>> publishedProviderIds)
         {
-            List<Task<DocumentEntity<PublishedProvider>>> concurrentTasks = new List<Task<DocumentEntity<PublishedProvider>>>();
+            List<PublishedProvider> concurrentObjects = new List<PublishedProvider>();
 
-            foreach (KeyValuePair<string, string> publishedFundingIdPair in publishedProviderIds)
+            foreach (IEnumerable<KeyValuePair<string, string>> batchPublishedProviderIds in publishedProviderIds.ToBatches(_batchSize))
             {
-                concurrentTasks.Add(
-                    _publishedFundingRepositoryPolicy.ExecuteAsync(() =>
-                        _repository.ReadDocumentByIdPartitionedAsync<PublishedProvider>(
-                            publishedFundingIdPair.Key,
-                            publishedFundingIdPair.Value)));
+                List<Task<DocumentEntity<PublishedProvider>>> concurrentTasks = new List<Task<DocumentEntity<PublishedProvider>>>();
+                
+                foreach (KeyValuePair<string, string> publishedFundingIdPair in batchPublishedProviderIds)
+                {
+                    concurrentTasks.Add(
+                        _publishedFundingRepositoryPolicy.ExecuteAsync(() =>
+                            _repository.ReadDocumentByIdPartitionedAsync<PublishedProvider>(
+                                publishedFundingIdPair.Key,
+                                publishedFundingIdPair.Value)));
+                }
+
+                await Task.WhenAll(concurrentTasks);
+
+                concurrentObjects.AddRange(concurrentTasks.Select(_ => _.Result.Content));
             }
 
-            await Task.WhenAll(concurrentTasks);
-
-            return concurrentTasks.Select(_ => _.Result.Content);
+            return concurrentObjects;
         }
 
         public async Task UpsertPublishedFundings(
             IEnumerable<PublishedFunding> publishedFundings,
             Action<Task<HttpStatusCode>, PublishedFunding> continueAction)
         {
-            List<Task> concurrentTasks = new List<Task>();
-
-            foreach (PublishedFunding publishedFunding in publishedFundings)
+            foreach (IEnumerable<IEnumerable<PublishedFunding>> batchPublishedFundings in publishedFundings.ToBatches(_batchSize))
             {
-                concurrentTasks.Add(
-                    _publishedFundingRepositoryPolicy.ExecuteAsync(() =>
-                    _repository.UpsertAsync(publishedFunding, publishedFunding.ParitionKey)
-                        .ContinueWith((task) => continueAction(task, publishedFunding))
-                    ));
-            }
+                List<Task> concurrentTasks = new List<Task>();
 
-            await Task.WhenAll(concurrentTasks);
+                foreach (PublishedFunding publishedFunding in batchPublishedFundings)
+                {
+                    concurrentTasks.Add(
+                        _publishedFundingRepositoryPolicy.ExecuteAsync(() =>
+                        _repository.UpsertAsync(publishedFunding, publishedFunding.ParitionKey)
+                            .ContinueWith((task) => continueAction(task, publishedFunding))
+                        ));
+                }
+
+                await Task.WhenAll(concurrentTasks);
+            }
         }
 
         public async Task UpsertPublishedProviders(
             IEnumerable<PublishedProvider> publishedProviders,
             Action<Task<HttpStatusCode>> continueAction)
         {
-            List<Task> concurrentTasks = new List<Task>();
-
-            foreach (PublishedProvider publishedProvider in publishedProviders)
+            foreach (IEnumerable<IEnumerable<PublishedProvider>> batchPublishedProviders in publishedProviders.ToBatches(_batchSize))
             {
-                concurrentTasks.Add(
-                    _publishedFundingRepositoryPolicy.ExecuteAsync(() =>
-                        _repository.UpsertAsync(publishedProvider, publishedProvider.PartitionKey)
-                            .ContinueWith((task) => continueAction(task))
-                    ));
-            }
+                List<Task> concurrentTasks = new List<Task>();
 
-            await Task.WhenAll(concurrentTasks);
+                foreach (PublishedProvider publishedProvider in batchPublishedProviders)
+                {
+                    concurrentTasks.Add(
+                        _publishedFundingRepositoryPolicy.ExecuteAsync(() =>
+                            _repository.UpsertAsync(publishedProvider, publishedProvider.PartitionKey)
+                                .ContinueWith((task) => continueAction(task))
+                        ));
+                }
+
+                await Task.WhenAll(concurrentTasks);
+            }
         }
     }
 }

@@ -321,6 +321,9 @@ namespace CalculateFunding.Api.Publishing
                 return new PublishedFundingRepository(calcsCosmosRepository, publishedFundingQueryBuilder);
             });
 
+            builder
+                .AddSingleton<IPublishingEngineOptions>(_ => new PublishingEngineOptions(Configuration));
+
             builder.AddSingleton<IPublishedFundingBulkRepository, PublishedFundingBulkRepository>((ctx) =>
             {
                 CosmosDbSettings settings = new CosmosDbSettings();
@@ -329,11 +332,13 @@ namespace CalculateFunding.Api.Publishing
 
                 settings.ContainerName = "publishedfunding";
 
+                IPublishingEngineOptions publishingEngineOptions = ctx.GetService<IPublishingEngineOptions>();
+
                 CosmosRepository calcsCosmosRepository = new CosmosRepository(settings, new CosmosClientOptions
                 {
                     ConnectionMode = ConnectionMode.Direct,
                     RequestTimeout = new TimeSpan(0, 0, 15),
-                    MaxRequestsPerTcpConnection = 8,
+                    MaxRequestsPerTcpConnection = publishingEngineOptions.MaxRequestsPerTcpConnectionPublishedFundingCosmosBulkOptions,
                     MaxTcpConnectionsPerEndpoint = 4,
                     ConsistencyLevel = ConsistencyLevel.Eventual,
                     AllowBulkExecution = true
@@ -341,11 +346,9 @@ namespace CalculateFunding.Api.Publishing
 
                 IPublishingResiliencePolicies publishingResiliencePolicies = ctx.GetService<IPublishingResiliencePolicies>();
 
-                return new PublishedFundingBulkRepository(publishingResiliencePolicies, calcsCosmosRepository);
+                return new PublishedFundingBulkRepository(publishingResiliencePolicies, publishingEngineOptions, calcsCosmosRepository);
             });
 
-            builder
-                .AddSingleton<IPublishingEngineOptions>(_ => new PublishingEngineOptions(Configuration));
             builder
                 .AddSingleton<IBlobClient, BlobClient>((ctx) =>
                 {

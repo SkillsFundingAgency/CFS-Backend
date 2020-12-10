@@ -7,8 +7,10 @@ namespace CalculateFunding.Services.Publishing
 {
     public class PublishingEngineOptions : IPublishingEngineOptions
     {
-        private const int DefaultConcurrencyCount = 15;
-        
+        private const int DefaultValue = 15;
+        private const int DefaultMaxRequestsPerTcpConnection = 8;
+        private const int DefaultMaxBatchSize = 80;
+
         private readonly IConfiguration _configuration;
 
         public PublishingEngineOptions(IConfiguration configuration)
@@ -41,10 +43,16 @@ namespace CalculateFunding.Services.Publishing
 
         public int PublishedProviderSaveVersionsConcurrencyCount => GetPublishEngineOptionsConfigurationValue();
 
+        public int MaxRequestsPerTcpConnectionPublishedFundingCosmosBulkOptions => GetPublishEngineOptionsConfigurationValue(overrideDefaultValue: DefaultMaxRequestsPerTcpConnection);
+
+        public int MaxRequestsPerTcpConnectionCalculationsCosmosBulkOptions => GetPublishEngineOptionsConfigurationValue(overrideDefaultValue: DefaultMaxRequestsPerTcpConnection);
+
+        public int MaxBatchSizePublishedFunding => GetPublishEngineOptionsConfigurationValue(overrideDefaultValue: DefaultMaxBatchSize);
+
         // ReSharper disable once StringLiteralTypo
-        private int GetPublishEngineOptionsConfigurationValue([CallerMemberName] string key = null) => int.TryParse(_configuration[$"publishingengineoptions:{key}"],
+        private int GetPublishEngineOptionsConfigurationValue([CallerMemberName] string key = null, int? overrideDefaultValue = null) => int.TryParse(_configuration[$"publishingengineoptions:{key}"],
             out var intValue)
             ? intValue
-            : DefaultConcurrencyCount;
+            : overrideDefaultValue ?? DefaultValue;
     }
 }
