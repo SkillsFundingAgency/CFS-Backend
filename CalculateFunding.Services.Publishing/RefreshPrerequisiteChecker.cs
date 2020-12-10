@@ -45,7 +45,6 @@ namespace CalculateFunding.Services.Publishing
 
             Guard.ArgumentNotNull(specification, nameof(specification));
             Guard.ArgumentNotNull(publishedProviders, nameof(publishedProviders));
-            Guard.ArgumentNotNull(providers, nameof(providers));
 
             await BasePerformChecks(specification, specification.Id, jobId, new string[]
             {

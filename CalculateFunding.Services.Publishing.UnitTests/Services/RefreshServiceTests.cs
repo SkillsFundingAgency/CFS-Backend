@@ -24,18 +24,16 @@ using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Errors;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Services.Publishing.Specifications;
 using CalculateFunding.Services.Publishing.Variations;
 using CalculateFunding.Services.Publishing.Variations.Strategies;
-using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using FluentAssertions.Common;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using NSubstitute;
-using NSubstitute.ExceptionExtensions;
 using Polly;
 using Serilog;
 using CalculationResult = CalculateFunding.Models.Publishing.CalculationResult;
@@ -48,30 +46,31 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
     [TestClass]
     public class RefreshServiceTests : ServiceTestsBase
     {
-        private IPublishedProviderStatusUpdateService _publishedProviderStatusUpdateService;
-        private IPublishedFundingDataService _publishedFundingDataService;
+        private Mock<IPublishedProviderStatusUpdateService> _publishedProviderStatusUpdateService;
+        private Mock<IPublishedFundingDataService> _publishedFundingDataService;
         private ISpecificationService _specificationService;
-        private IProviderService _providerService;
-        private ICalculationResultsService _calculationResultsService;
+        private Mock<IProviderService> _providerService;
+        private Mock<ICalculationResultsService> _calculationResultsService;
         private IPublishedProviderDataGenerator _publishedProviderDataGenerator;
         private IPublishedProviderDataPopulator _publishedProviderDataPopulator;
-        private IProfilingService _profilingService;
-        private ILogger _logger;
-        private ICalculationsApiClient _calculationsApiClient;
-        private IPrerequisiteCheckerLocator _prerequisiteCheckerLocator;
+        private Mock<IProfilingService> _profilingService;
+        private Mock<ILogger> _logger;
+        private Mock<ICalculationsApiClient> _calculationsApiClient;
+        private Mock<IPrerequisiteCheckerLocator> _prerequisiteCheckerLocator;
         private IPublishingResiliencePolicies _publishingResiliencePolicies;
-        private IPublishProviderExclusionCheck _providerExclusionCheck;
-        private IFundingLineValueOverride _fundingLineValueOverride;
-        private IPublishedProviderIndexerService _publishedProviderIndexerService;
-        private IJobManagement _jobManagement;
+        private Mock<IPublishProviderExclusionCheck> _providerExclusionCheck;
+        private Mock<IFundingLineValueOverride> _fundingLineValueOverride;
+        private Mock<IPublishedProviderIndexerService> _publishedProviderIndexerService;
+        private Mock<IJobManagement> _jobManagement;
         private ITransactionFactory _transactionFactory;
         private RefreshService _refreshService;
         private SpecificationSummary _specificationSummary;
         private IEnumerable<Provider> _scopedProviders;
-        private IPublishedProviderVersionService _publishedProviderVersionService;
-        private IPoliciesService _policiesService;
+        private Mock<IPublishedProviderVersionService> _publishedProviderVersionService;
+        private Mock<IPoliciesService> _policiesService;
         private IVariationService _variationService;
-        private IGeneratePublishedFundingCsvJobsCreationLocator _generateCsvJobsLocator;
+        private Mock<IGeneratePublishedFundingCsvJobsCreationLocator> _generateCsvJobsLocator;
+        private Mock<IGeneratePublishedFundingCsvJobsCreation> _generateCsvJobsCreation;
         private TemplateMetadataContents _templateMetadataContents;
         private TemplateMapping _templateMapping;
         private IEnumerable<ProviderCalculationResult> _providerCalculationResults;
@@ -79,18 +78,18 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private CalculationResult[] _calculationResults;
         private TemplateCalculation[] _calculationTemplateIds;
         private IEnumerable<PublishedProvider> _publishedProviders;
-        private ISpecificationsApiClient _specificationsApiClient;
+        private Mock<ISpecificationsApiClient> _specificationsApiClient;
         private IVariationStrategyServiceLocator _variationStrategyServiceLocator;
         private IPublishedProviderErrorDetection _detection;
         private IDetectProviderVariations _detectProviderVariation;
         private IApplyProviderVariations _applyProviderVariation;
-        private IRecordVariationErrors _recordVariationErrors;
+        private Mock<IRecordVariationErrors> _recordVariationErrors;
         private FundingConfiguration _fundingConfiguration;
-        private ISpecificationFundingStatusService _specificationFundingStatusService;
-        private IJobsRunning _jobsRunning;
-        private ICalculationPrerequisiteCheckerService _calculationApprovalCheckerService;
+        private Mock<ISpecificationFundingStatusService> _specificationFundingStatusService;
+        private Mock<IJobsRunning> _jobsRunning;
+        private Mock<ICalculationPrerequisiteCheckerService> _calculationApprovalCheckerService;
         private IMapper _mapper;
-        private IOrganisationGroupGenerator _organisationGroupGenerator;
+        private Mock<IOrganisationGroupGenerator> _organisationGroupGenerator;
         private string _providerIdVaried;
         private const string SpecificationId = "SpecificationId";
         private const string FundingPeriodId = "AY-2020";
@@ -111,9 +110,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         {
             providerVersionId = NewRandomString();
 
-            IConfiguration configuration = Substitute.For<IConfiguration>();
-            _publishedProviderStatusUpdateService = Substitute.For<IPublishedProviderStatusUpdateService>();
-            _publishedFundingDataService = Substitute.For<IPublishedFundingDataService>();
+            Mock<IConfiguration> configuration = new Mock<IConfiguration>();
+            _publishedProviderStatusUpdateService = new Mock<IPublishedProviderStatusUpdateService>();
+            _publishedFundingDataService = new Mock<IPublishedFundingDataService>();
             _publishingResiliencePolicies = new ResiliencePolicies
             {
                 PublishedFundingRepository = Policy.NoOpAsync(),
@@ -123,40 +122,41 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 CacheProvider = Policy.NoOpAsync(),
                 PoliciesApiClient = Policy.NoOpAsync()
             };
-            _specificationsApiClient = Substitute.For<ISpecificationsApiClient>();
-            _specificationService = new SpecificationService(_specificationsApiClient, _publishingResiliencePolicies);
+            _specificationsApiClient = new Mock<ISpecificationsApiClient>();
+            _specificationService = new SpecificationService(_specificationsApiClient.Object, _publishingResiliencePolicies);
             
             _profileVariationPointers = ArraySegment<ProfileVariationPointer>.Empty;
             
-            _specificationsApiClient
-                .GetProfileVariationPointers(Arg.Any<string>())
-                .Returns(new ApiResponse<IEnumerable<ProfileVariationPointer>>(HttpStatusCode.OK, _profileVariationPointers));
+            _specificationsApiClient.Setup(_ =>
+                _.GetProfileVariationPointers(It.IsAny<string>()))
+                .ReturnsAsync(new ApiResponse<IEnumerable<ProfileVariationPointer>>(HttpStatusCode.OK, _profileVariationPointers));
             
-            _providerService = Substitute.For<IProviderService>();
-            _calculationResultsService = Substitute.For<ICalculationResultsService>();
+            _providerService = new Mock<IProviderService>();
+            _calculationResultsService = new Mock<ICalculationResultsService>();
             MapperConfiguration mappingConfig = new MapperConfiguration(c => c.AddProfile<PublishingServiceMappingProfile>());
             _mapper = mappingConfig.CreateMapper();
-            _logger = Substitute.For<ILogger>();
-            _publishedProviderDataGenerator = new PublishedProviderDataGenerator(_logger, new FundingLineTotalAggregator(), _mapper);
-            _publishedProviderDataPopulator = new PublishedProviderDataPopulator(_mapper, _logger);
-            _profilingService = Substitute.For<IProfilingService>();
-            _calculationsApiClient = Substitute.For<ICalculationsApiClient>();
-            _specificationFundingStatusService = Substitute.For<ISpecificationFundingStatusService>();
-            _jobsRunning = Substitute.For<IJobsRunning>();
-            _calculationApprovalCheckerService = Substitute.For<ICalculationPrerequisiteCheckerService>();
-            _providerExclusionCheck = Substitute.For<IPublishProviderExclusionCheck>();
-            _fundingLineValueOverride = Substitute.For<IFundingLineValueOverride>();
-            _publishedProviderIndexerService = Substitute.For<IPublishedProviderIndexerService>();
-            _jobManagement = Substitute.For<IJobManagement>();
-            _prerequisiteCheckerLocator = Substitute.For<IPrerequisiteCheckerLocator>();
-            _policiesService = Substitute.For<IPoliciesService>();
-            _prerequisiteCheckerLocator.GetPreReqChecker(PrerequisiteCheckerType.Refresh)
-                .Returns(new RefreshPrerequisiteChecker(_specificationFundingStatusService,
-                _specificationService, _jobsRunning, _calculationApprovalCheckerService, _jobManagement, _logger));
-            _organisationGroupGenerator = Substitute.For<IOrganisationGroupGenerator>();
-            _transactionFactory = new TransactionFactory(_logger, new TransactionResiliencePolicies { TransactionPolicy = Policy.NoOpAsync() });
-            _publishedProviderVersionService = Substitute.For<IPublishedProviderVersionService>();
-            _generateCsvJobsLocator = Substitute.For<IGeneratePublishedFundingCsvJobsCreationLocator>();
+            _logger = new Mock<ILogger>();
+            _publishedProviderDataGenerator = new PublishedProviderDataGenerator(_logger.Object, new FundingLineTotalAggregator(), _mapper);
+            _publishedProviderDataPopulator = new PublishedProviderDataPopulator(_mapper, _logger.Object);
+            _profilingService = new Mock<IProfilingService>();
+            _calculationsApiClient = new Mock<ICalculationsApiClient>();
+            _specificationFundingStatusService = new Mock<ISpecificationFundingStatusService>();
+            _jobsRunning = new Mock<IJobsRunning>();
+            _calculationApprovalCheckerService = new Mock<ICalculationPrerequisiteCheckerService>();
+            _providerExclusionCheck = new Mock<IPublishProviderExclusionCheck>();
+            _fundingLineValueOverride = new Mock<IFundingLineValueOverride>();
+            _publishedProviderIndexerService = new Mock<IPublishedProviderIndexerService>();
+            _jobManagement =new Mock<IJobManagement>();
+            _prerequisiteCheckerLocator = new Mock<IPrerequisiteCheckerLocator>();
+            _policiesService = new Mock<IPoliciesService>();
+            _prerequisiteCheckerLocator.Setup(_ => _.GetPreReqChecker(PrerequisiteCheckerType.Refresh))
+                .Returns(new RefreshPrerequisiteChecker(_specificationFundingStatusService.Object,
+                _specificationService, _jobsRunning.Object, _calculationApprovalCheckerService.Object, _jobManagement.Object, _logger.Object));
+            _organisationGroupGenerator = new Mock<IOrganisationGroupGenerator>();
+            _transactionFactory = new TransactionFactory(_logger.Object, new TransactionResiliencePolicies { TransactionPolicy = Policy.NoOpAsync() });
+            _publishedProviderVersionService = new Mock<IPublishedProviderVersionService>();
+            _generateCsvJobsLocator = new Mock<IGeneratePublishedFundingCsvJobsCreationLocator>();
+            _generateCsvJobsCreation = new Mock<IGeneratePublishedFundingCsvJobsCreation>();
             _reApplyCustomProfiles = new Mock<IReApplyCustomProfiles>();
             IDetectPublishedProviderErrors[] detectPublishedProviderErrors = typeof(IDetectPublishedProviderErrors).Assembly.GetTypes()
                 .Where(_ => _.Implements(typeof(IDetectPublishedProviderErrors)) &&
@@ -164,7 +164,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                             _.GetConstructors().Any(ci => !ci.GetParameters().Any()))
                 .Select(_ => (IDetectPublishedProviderErrors)Activator.CreateInstance(_))
                 .ToArray();
-            detectPublishedProviderErrors = detectPublishedProviderErrors.Concat(new[] { new TrustIdMismatchErrorDetector(_organisationGroupGenerator, _mapper, _publishedFundingDataService, _publishingResiliencePolicies) }).ToArray();
+            detectPublishedProviderErrors = detectPublishedProviderErrors.Concat(new[] { new TrustIdMismatchErrorDetector(_organisationGroupGenerator.Object, _mapper, _publishedFundingDataService.Object, _publishingResiliencePolicies) }).ToArray();
             _detection = new PublishedProviderErrorDetection(detectPublishedProviderErrors);
             _policiesApiClient = new Mock<IPoliciesApiClient>();
             _cacheProvider = new Mock<ICacheProvider>();
@@ -177,36 +177,36 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Select(_ => (IVariationStrategy)Activator.CreateInstance(_))
                 .ToArray();
 
-            variationStrategies = variationStrategies.Concat(new[] { new ClosureWithSuccessorVariationStrategy(_providerService) }).ToArray();
+            variationStrategies = variationStrategies.Concat(new[] { new ClosureWithSuccessorVariationStrategy(_providerService.Object) }).ToArray();
 
             _variationStrategyServiceLocator = new VariationStrategyServiceLocator(variationStrategies);
             _detectProviderVariation = new ProviderVariationsDetection(_variationStrategyServiceLocator);
-            _applyProviderVariation = new ProviderVariationsApplication(_publishingResiliencePolicies, _specificationsApiClient, _policiesApiClient.Object, _cacheProvider.Object);
-            _recordVariationErrors = Substitute.For<IRecordVariationErrors>();
-            _variationService = new VariationService(_detectProviderVariation, _applyProviderVariation, _recordVariationErrors, _logger);
-            _refreshService = new RefreshService(_publishedProviderStatusUpdateService,
-                _publishedFundingDataService,
+            _applyProviderVariation = new ProviderVariationsApplication(_publishingResiliencePolicies, _specificationsApiClient.Object, _policiesApiClient.Object, _cacheProvider.Object);
+            _recordVariationErrors = new Mock<IRecordVariationErrors>();
+            _variationService = new VariationService(_detectProviderVariation, _applyProviderVariation, _recordVariationErrors.Object, _logger.Object);
+            _refreshService = new RefreshService(_publishedProviderStatusUpdateService.Object,
+                _publishedFundingDataService.Object,
                 _publishingResiliencePolicies,
                 _specificationService,
-                _providerService,
-                _calculationResultsService,
+                _providerService.Object,
+                _calculationResultsService.Object,
                 _publishedProviderDataGenerator,
-                _profilingService,
+                _profilingService.Object,
                 _publishedProviderDataPopulator,
-                _logger,
-                _calculationsApiClient,
-                _prerequisiteCheckerLocator,
-                _providerExclusionCheck,
-                _fundingLineValueOverride,
-                _jobManagement,
-                _publishedProviderIndexerService,
+                _logger.Object,
+                _calculationsApiClient.Object,
+                _prerequisiteCheckerLocator.Object,
+                _providerExclusionCheck.Object,
+                _fundingLineValueOverride.Object,
+                _jobManagement.Object,
+                _publishedProviderIndexerService.Object,
                 _variationService,
                 _transactionFactory,
-                _publishedProviderVersionService,
-                _policiesService,
-                _generateCsvJobsLocator,
+                _publishedProviderVersionService.Object,
+                _policiesService.Object,
+                _generateCsvJobsLocator.Object,
                 _reApplyCustomProfiles.Object,
-                new PublishingEngineOptions(configuration),
+                new PublishingEngineOptions(configuration.Object),
                 _detection);
         }
 
@@ -226,6 +226,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndScopedProviderCalculationResults();
             AndTemplateMapping();
             AndPublishedProviders();
+            AndNewMissingPublishedProviders();
             AndUpdateStatusThrowsAnError(error);
 
             Func<Task> invocation = WhenMessageReceivedWithJobIdAndCorrelationId;
@@ -238,9 +239,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Should()
                 .Be(error);
 
-            await _publishedProviderVersionService
-                .Received(1)
-                .CreateReIndexJob(Arg.Any<Reference>(), Arg.Any<string>(), Arg.Is(SpecificationId), Arg.Is(JobId));
+            _publishedProviderVersionService
+                .Verify(_ => _.CreateReIndexJob(It.IsAny<Reference>(), It.IsAny<string>(), SpecificationId, JobId));
         }
 
         [TestMethod]
@@ -257,16 +257,18 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndScopedProviderCalculationResults();
             AndTemplateMapping();
             AndPublishedProviders();
+            AndNewMissingPublishedProviders();
+            AndCsvJobService();
 
             await WhenMessageReceivedWithJobIdAndCorrelationId();
 
-            await _publishedProviderStatusUpdateService
-                .Received(1)
-                .UpdatePublishedProviderStatus(Arg.Is<IEnumerable<PublishedProvider>>(_ => _.Single().Current.ProviderId == _publishedProviders.Last().Current.ProviderId),
-                    Arg.Any<Reference>(),
-                    Arg.Is(PublishedProviderStatus.Updated),
-                    Arg.Is(JobId),
-                    Arg.Is(CorrelationId));
+            _publishedProviderStatusUpdateService
+                .Verify(_ => _.UpdatePublishedProviderStatus(It.Is<IEnumerable<PublishedProvider>>(_ => _.Single().Current.ProviderId == _publishedProviders.Last().Current.ProviderId),
+                    It.IsAny<Reference>(),
+                    PublishedProviderStatus.Updated,
+                    JobId,
+                    CorrelationId,
+                    It.IsAny<bool>()), Times.Once);
 
             AndTheCustomProfilesWereReApplied();
         }
@@ -285,17 +287,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndScopedProviderCalculationResults();
             AndTemplateMapping();
             AndPublishedProviders();
+            AndNewMissingPublishedProviders();
+            AndCsvJobService();
+
             GivenFundingConfiguration(new ProviderMetadataVariationStrategy());
 
             await WhenMessageReceivedWithJobIdAndCorrelationId();
 
-            await _publishedProviderStatusUpdateService
-                .Received(1)
-                .UpdatePublishedProviderStatus(Arg.Is<IEnumerable<PublishedProvider>>(_ => _.Single().Current.ProviderId == _publishedProviders.Last().Current.ProviderId && _.Single().Current.VariationReasons.Single().Equals(VariationReason.NameFieldUpdated)),
-                    Arg.Any<Reference>(),
-                    Arg.Is(PublishedProviderStatus.Updated),
-                    Arg.Is(JobId),
-                    Arg.Is(CorrelationId));
+            _publishedProviderStatusUpdateService
+                .Verify(_ => _.UpdatePublishedProviderStatus(It.Is<IEnumerable<PublishedProvider>>(_ => _.Single().Current.ProviderId == _publishedProviders.Last().Current.ProviderId && _.Single().Current.VariationReasons.Single().Equals(VariationReason.NameFieldUpdated)),
+                    It.IsAny<Reference>(),
+                    PublishedProviderStatus.Updated,
+                    JobId,
+                    CorrelationId,
+                    It.IsAny<bool>()), Times.Once);
 
             _missingProvider?.Current.VariationReasons
                 .Should()
@@ -356,8 +361,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Which;
 
             _logger
-                .Received(1)
-                .Error(Arg.Is(ex), "Exception during calculation result lookup");
+                .Verify(_ =>
+                _.Error(ex, "Exception during calculation result lookup"));
         }
 
         [TestMethod]
@@ -369,6 +374,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndTemplateMetadataContents();
             AndScopedProviders();
             AndScopedProviderCalculationResults();
+            AndNewMissingPublishedProviders();
 
             Func<Task> invocation = WhenMessageReceivedWithJobIdAndCorrelationId;
 
@@ -402,12 +408,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             string[] prereqValidationErrors = new string[] { $"{JobConstants.DefinitionNames.CreateInstructAllocationJob} is still running", "Specification must have providers in scope." };
 
             _jobManagement
-                .Received(1)
-                .UpdateJobStatus(JobId, completedSuccessfully: false, outcome: string.Join(", ", prereqValidationErrors));
+                .Verify(_ => _.UpdateJobStatus(JobId, It.IsAny<int>(), false, string.Join(", ", prereqValidationErrors)));
 
             _logger
-                .Received(1)
-                .Information("No scoped providers found for refresh");
+                .Verify(_ => _.Information("No scoped providers found for refresh"));
         }
 
         [TestMethod]
@@ -418,6 +422,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndCalculationResultsBySpecificationId();
             AndTemplateMetadataContents();
             AndScopedProviders();
+            AndNewMissingPublishedProviders();
             AndNoScopedProviderCalculationResults();
             AndTemplateMapping();
 
@@ -429,8 +434,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Which;
 
             _logger
-                .Received(1)
-                .Error(Arg.Is(ex), "Exception during generating provider data");
+                .Verify(_ => _.Error(ex, "Exception during generating provider data"));
         }
 
         [TestMethod]
@@ -448,8 +452,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             await WhenMessageReceivedWithJobIdAndCorrelationId();
 
             _logger
-                .Received(1)
-                .Information(Arg.Is("Unable to locate template meta data contents for funding stream:'PSG' and template id:'1.0'"));
+                .Verify(_ => _.Information("Unable to locate template meta data contents for funding stream:'PSG' and template id:'1.0'"));
         }
 
         [TestMethod]
@@ -463,6 +466,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndScopedProviderCalculationResults();
             AndTemplateMapping();
             AndPublishedProviders();
+            AndNewMissingPublishedProviders();
             AndProfilingThrowsExeption();
 
             Func<Task> invocation = WhenMessageReceivedWithJobIdAndCorrelationId;
@@ -473,8 +477,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Which;
 
             _logger
-                .Received(1)
-                .Error(Arg.Is(ex), "Exception during generating provider profiling");
+                .Verify(_ => _.Error(ex, "Exception during generating provider profiling"));
         }
 
         [TestMethod]
@@ -489,18 +492,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndScopedProviderCalculationResults();
             AndTemplateMapping();
             AndPublishedProviders();
+            AndNewMissingPublishedProviders();
 
             await WhenMessageReceivedWithJobIdAndCorrelationId();
 
-            await _profilingService
-                .Received(3)
-                .ProfileFundingLines(
-               Arg.Any<IEnumerable<FundingLine>>(),
+            _profilingService
+                .Verify(_ =>
+                _.ProfileFundingLines(
+               It.IsAny<IEnumerable<FundingLine>>(),
                FundingStreamId,
                _specificationSummary.FundingPeriod.Id,
-               Arg.Is<IEnumerable<ProfilePatternKey>>(x => x.All(pk => pk.Key.StartsWith(profilePatternKey))),
+               It.Is<IEnumerable<ProfilePatternKey>>(x => x.All(pk => pk.Key.StartsWith(profilePatternKey))),
                null,
-               null);
+               null), Times.Exactly(3));
         }
 
         [TestMethod]
@@ -520,26 +524,29 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndNewMissingPublishedProviders(new[] { newProvider });
             AndScopedProviderCalculationResultsWithModifiedCalculationResults();
             AndTemplateMapping();
+            AndCsvJobService();
 
             await WhenMessageReceivedWithJobIdAndCorrelationId();
 
-            await _publishedProviderStatusUpdateService
-                .Received(1)
-                .UpdatePublishedProviderStatus(
-                Arg.Is<IEnumerable<PublishedProvider>>(x => x.Count() == 2),
-                Arg.Any<Reference>(),
-                Arg.Is<PublishedProviderStatus>(x => x == PublishedProviderStatus.Updated),
-                Arg.Any<string>(),
-                Arg.Any<string>());
+            _publishedProviderStatusUpdateService
+                .Verify(_ => 
+                _.UpdatePublishedProviderStatus(
+                It.Is<IEnumerable<PublishedProvider>>(x => x.Count() == 2),
+                It.IsAny<Reference>(),
+                It.Is<PublishedProviderStatus>(x => x == PublishedProviderStatus.Updated),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<bool>()), Times.Once);
 
-            await _publishedProviderStatusUpdateService
-                .Received(1)
-                .UpdatePublishedProviderStatus(
-                Arg.Is<IEnumerable<PublishedProvider>>(x => x.Count() == 1),
-                Arg.Any<Reference>(),
-                Arg.Is<PublishedProviderStatus>(x => x == PublishedProviderStatus.Draft),
-                Arg.Any<string>(),
-                Arg.Any<string>());
+            _publishedProviderStatusUpdateService
+                .Verify(_ =>
+                _.UpdatePublishedProviderStatus(
+                It.Is<IEnumerable<PublishedProvider>>(x => x.Count() == 1),
+                It.IsAny<Reference>(),
+                It.Is<PublishedProviderStatus>(x => x == PublishedProviderStatus.Draft),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<bool>()), Times.Once);
         }
 
         [TestMethod]
@@ -553,13 +560,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndScopedProviderCalculationResults();
             AndTemplateMapping();
             AndPublishedProviders();
+            AndNewMissingPublishedProviders();
             AndPublishedProviderExcluded();
 
             await WhenMessageReceivedWithJobIdAndCorrelationId();
 
             _fundingLineValueOverride
-                .Received(1)
-                .TryOverridePreviousFundingLineValues(Arg.Any<PublishedProviderVersion>(), Arg.Any<GeneratedProviderResult>());
+                .Verify(_ =>
+                _.TryOverridePreviousFundingLineValues(It.IsAny<PublishedProviderVersion>(), It.IsAny<GeneratedProviderResult>()), Times.Once);
         }
 
         [TestMethod]
@@ -601,9 +609,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                     pcr.WithProviderId(_.ProviderId)
                     .WithResults(_calculationResults)));
 
-            _calculationResultsService.GetCalculationResultsBySpecificationId(_specificationSummary.Id,
-                Arg.Is<IEnumerable<string>>(_ => _scopedProviders.All(sp => _.Any(arg => arg == sp.ProviderId))))
-                .Returns(_providerCalculationResults.ToDictionary(_ => _.ProviderId));
+            _calculationResultsService.Setup(_ => _.GetCalculationResultsBySpecificationId(_specificationSummary.Id,
+                It.Is<IEnumerable<string>>(_ => _scopedProviders.All(sp => _.Any(arg => arg == sp.ProviderId)))))
+                .ReturnsAsync(_providerCalculationResults.ToDictionary(_ => _.ProviderId));
         }
 
         private void AndScopedProviderCalculationResultsWithModifiedCalculationResults()
@@ -618,16 +626,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                     pcr.WithProviderId(_.ProviderId)
                     .WithResults(crs)));
 
-            _calculationResultsService.GetCalculationResultsBySpecificationId(_specificationSummary.Id,
-                Arg.Is<IEnumerable<string>>(_ => _scopedProviders.All(sp => _.Any(arg => arg == sp.ProviderId))))
-                .Returns(_providerCalculationResults.ToDictionary(_ => _.ProviderId));
+            _calculationResultsService.Setup(_ => _.GetCalculationResultsBySpecificationId(_specificationSummary.Id,
+                It.Is<IEnumerable<string>>(_ => _scopedProviders.All(sp => _.Any(arg => arg == sp.ProviderId)))))
+                .ReturnsAsync(_providerCalculationResults.ToDictionary(_ => _.ProviderId));
         }
 
         private void AndNoScopedProviderCalculationResults()
         {
-            _calculationResultsService.GetCalculationResultsBySpecificationId(_specificationSummary.Id,
-                Arg.Is<IEnumerable<string>>(_ => _scopedProviders.All(sp => _.Any(arg => arg == sp.ProviderId))))
-                .Returns(default(Dictionary<string, ProviderCalculationResult>));
+            _calculationResultsService.Setup(_ => _.GetCalculationResultsBySpecificationId(_specificationSummary.Id,
+                It.Is<IEnumerable<string>>(_ => _scopedProviders.All(sp => _.Any(arg => arg == sp.ProviderId)))))
+                .ReturnsAsync(default(Dictionary<string, ProviderCalculationResult>));
         }
 
         private void AndTemplateMetadataContents()
@@ -637,16 +645,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _templateMetadataContents = NewTemplateMetadataContents(_ => _.WithFundingLines(_fundingLines));
 
             _policiesService
-                .GetTemplateMetadataContents(FundingStreamId, _specificationSummary.FundingPeriod.Id, _specificationSummary.TemplateIds[FundingStreamId])
-                .Returns(_templateMetadataContents);
+                .Setup(_ => _.GetTemplateMetadataContents(FundingStreamId, _specificationSummary.FundingPeriod.Id, _specificationSummary.TemplateIds[FundingStreamId]))
+                .ReturnsAsync(_templateMetadataContents);
         }
 
         private void GivenFundingConfiguration(params IVariationStrategy[] variations)
         {
             _fundingConfiguration = new FundingConfiguration { Variations = variations.Select(_ => new FundingVariation { Name = _.Name }) };
             _policiesService
-                .GetFundingConfiguration(FundingStreamId, _specificationSummary.FundingPeriod.Id)
-                .Returns(_fundingConfiguration);
+                .Setup(_ => _.GetFundingConfiguration(FundingStreamId, _specificationSummary.FundingPeriod.Id))
+                .ReturnsAsync(_fundingConfiguration);
         }
 
         private void AndTemplateMapping()
@@ -660,26 +668,27 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _templateMapping = NewTemplateMapping(_ => _.WithItems(templateMappingItems));
 
             _calculationsApiClient
-                .GetTemplateMapping(_specificationSummary.Id, FundingStreamId)
-                .Returns(new ApiResponse<TemplateMapping>(HttpStatusCode.OK, _templateMapping));
+                .Setup(_ => _.GetTemplateMapping(_specificationSummary.Id, FundingStreamId))
+                .ReturnsAsync(new ApiResponse<TemplateMapping>(HttpStatusCode.OK, _templateMapping));
         }
 
         private void AndPublishedProviderExcluded()
         {
             string providerToExcludeId = _publishedProviders.First().Current.ProviderId;
-            _providerExclusionCheck.ShouldBeExcluded(Arg.Is<GeneratedProviderResult>(_ => _.Provider.ProviderId == providerToExcludeId), Arg.Any<TemplateFundingLine[]>())
+            _providerExclusionCheck
+                .Setup(_ => _.ShouldBeExcluded(It.Is<GeneratedProviderResult>(_ => _.Provider.ProviderId == providerToExcludeId), It.IsAny<TemplateFundingLine[]>()))
                 .Returns(new PublishedProviderExclusionCheckResult(providerToExcludeId, true));
         }
 
         private void AndProfilingThrowsExeption()
         {
-            _profilingService.ProfileFundingLines(
-                Arg.Any<IEnumerable<FundingLine>>(),
+            _profilingService.Setup(_ => _.ProfileFundingLines(
+                It.IsAny<IEnumerable<FundingLine>>(),
                 FundingStreamId,
                 _specificationSummary.FundingPeriod.Id,
-                Arg.Any<IEnumerable<ProfilePatternKey>>(),
-                Arg.Any<string>(),
-                Arg.Any<string>())
+                It.IsAny<IEnumerable<ProfilePatternKey>>(),
+                It.IsAny<string>(),
+                It.IsAny<string>()))
                 .Throws(new Exception());
         }
 
@@ -692,8 +701,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
         private void GivenCalculationResultsBySpecificationIdThrowsException()
         {
-            _calculationResultsService.GetCalculationResultsBySpecificationId(_specificationSummary.Id,
-                Arg.Is<IEnumerable<string>>(_ => _scopedProviders.All(sp => _.Any(arg => arg == sp.ProviderId))))
+            _calculationResultsService.Setup(_ => _.GetCalculationResultsBySpecificationId(_specificationSummary.Id,
+                It.Is<IEnumerable<string>>(_ => _scopedProviders.All(sp => _.Any(arg => arg == sp.ProviderId)))))
                 .Throws(new Exception());
         }
 
@@ -726,37 +735,21 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             variationAction?.Invoke(providerToVary);
 
-            _providerService.GetScopedProvidersForSpecification(_specificationSummary.Id, _specificationSummary.ProviderVersionId)
-                .Returns(_scopedProviders.ToDictionary(_ => _.ProviderId));
-        }
-
-        private void GivenPublishedProviderClosedWithSuccessor()
-        {
-            PublishedProvider predecessor = _publishedProviders.Single(_ => _.Current.ProviderId == _providerIdVaried);
-
-            _missingProvider = predecessor.DeepCopy();
-            _missingProvider.Current.ProviderId = Successor;
-            _missingProvider.Current.Provider.ProviderId = Successor;
-            _missingProvider.Current.Provider.Status = "Open";
-
-            _providerService
-                .CreateMissingPublishedProviderForPredecessor(
-                    Arg.Is<PublishedProvider>(_ => _.Current.ProviderId == predecessor.Current.ProviderId),
-                    Arg.Is(Successor),
-                    Arg.Is(providerVersionId))
-                .Returns(_missingProvider);
+            _providerService.Setup(_ => _.GetScopedProvidersForSpecification(_specificationSummary.Id, _specificationSummary.ProviderVersionId))
+                .ReturnsAsync(_scopedProviders.ToDictionary(_ => _.ProviderId));
         }
 
         private void AndPublishedProviders(IEnumerable<PublishedProvider> publishedProviders = null)
         {
             _publishedFundingDataService
-                .GetCurrentPublishedProviders(FundingStreamId, _specificationSummary.FundingPeriod.Id)
-                .Returns(publishedProviders ?? _publishedProviders);
+                .Setup(_ => _.GetCurrentPublishedProviders(FundingStreamId, _specificationSummary.FundingPeriod.Id, It.IsAny<string[]>()))
+                .ReturnsAsync(publishedProviders ?? _publishedProviders);
         }
 
         private void AndNewMissingPublishedProviders(IEnumerable<PublishedProvider> publishedProviders = null)
         {
-            _providerService.GenerateMissingPublishedProviders(Arg.Any<IEnumerable<Provider>>(), Arg.Any<SpecificationSummary>(), Arg.Any<Reference>(), Arg.Any<IDictionary<string, PublishedProvider>>())
+            _providerService
+                .Setup(_ => _.GenerateMissingPublishedProviders(It.IsAny<IEnumerable<Provider>>(), It.IsAny<SpecificationSummary>(), It.IsAny<Reference>(), It.IsAny<IDictionary<string, PublishedProvider>>()))
                 .Returns((publishedProviders ?? new List<PublishedProvider>()).ToDictionary(x => x.Current.ProviderId));
         }
 
@@ -773,17 +766,18 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             };
 
             _jobsRunning
-                .GetJobTypes(Arg.Is(SpecificationId), Arg.Is<IEnumerable<string>>(_ => _.All(jt => jobTypes.Contains(jt))))
-                .Returns(new[] { JobConstants.DefinitionNames.CreateInstructAllocationJob });
+                .Setup(_ => _.GetJobTypes(SpecificationId, It.Is<IEnumerable<string>>(_ => _.All(jt => jobTypes.Contains(jt)))))
+                .ReturnsAsync(new[] { JobConstants.DefinitionNames.CreateInstructAllocationJob });
         }
 
         private void AndUpdateStatusThrowsAnError(string error)
         {
-            _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(Arg.Any<IEnumerable<PublishedProvider>>(),
-                    Arg.Any<Reference>(),
-                    Arg.Any<PublishedProviderStatus>(),
-                    Arg.Any<string>(),
-                    Arg.Any<string>())
+            _publishedProviderStatusUpdateService.Setup(_ => _.UpdatePublishedProviderStatus(It.IsAny<IEnumerable<PublishedProvider>>(),
+                    It.IsAny<Reference>(),
+                    It.IsAny<PublishedProviderStatus>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<bool>()))
                 .Throws(new Exception(error));
         }
 
@@ -791,14 +785,21 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         {
             JobViewModel jobViewModel = NewJobViewModel(_ => _.WithJobId(JobId));
 
-            _jobManagement.RetrieveJobAndCheckCanBeProcessed(JobId)
-                .Returns(jobViewModel);
+            _jobManagement.Setup(_ => _.RetrieveJobAndCheckCanBeProcessed(JobId))
+                .ReturnsAsync(jobViewModel);
+        }
+
+        private void AndCsvJobService()
+        {
+            _generateCsvJobsLocator
+                .Setup(_ => _.GetService(It.IsAny<GeneratePublishingCsvJobsCreationAction>()))
+                .Returns(_generateCsvJobsCreation.Object);
         }
 
         private void GivenJobNotFound()
         {
             _jobManagement
-                .RetrieveJobAndCheckCanBeProcessed(JobId)
+                .Setup(_ => _.RetrieveJobAndCheckCanBeProcessed(JobId))
                 .Throws(new JobNotFoundException($"Could not find the job with id: '{JobId}'", JobId));
         }
 
@@ -806,7 +807,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         {
             JobViewModel jobViewModel = NewJobViewModel(_ => _.WithCompletionStatus(CompletionStatus.Superseded));
 
-            _jobManagement.RetrieveJobAndCheckCanBeProcessed(JobId)
+            _jobManagement.Setup(_ => _.RetrieveJobAndCheckCanBeProcessed(JobId))
                 .Throws(
                 new JobAlreadyCompletedException(
                     $"Received job with id: 'JobId' is already in a completed state with status {jobViewModel.CompletionStatus}", jobViewModel));
@@ -822,8 +823,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .WithTemplateIds((FundingStreamId, "1.0"))
                 .WithProviderVersionId(providerVersionId));
 
-            _specificationsApiClient.GetSpecificationSummaryById(SpecificationId)
-                .Returns(new ApiResponse<SpecificationSummary>(HttpStatusCode.OK, _specificationSummary));
+            _specificationsApiClient.Setup(_ => _.GetSpecificationSummaryById(SpecificationId))
+                .ReturnsAsync(new ApiResponse<SpecificationSummary>(HttpStatusCode.OK, _specificationSummary));
         }
 
         private async Task WhenMessageReceivedWithJobIdAndCorrelationId()
