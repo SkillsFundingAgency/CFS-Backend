@@ -371,5 +371,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
         private string NewRandomString() => new RandomString();
 
+        private int NewRandomInt() => new RandomNumberBetween(0, int.MaxValue);
     }
 }

@@ -5,6 +5,7 @@ using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
+using CalculateFunding.Common.ApiClient.Providers.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Messages;
 using CalculateFunding.Models.Specs;
@@ -524,7 +525,143 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                         m => !string.IsNullOrWhiteSpace(m.EntityId)  &&
                              m.Name == specificationEditModel.Name),
                     Arg.Any<Reference>(),
-                    Arg.Any<string>());
+                    Arg.Any<string>(),
+                    Arg.Any<bool>());
+        }
+
+        [TestMethod]
+        public async Task EditSpecification_GivenSetLatestProviderVersionChangesFromManualToUseLatest_InstructToQueueProviderSnapshotDataLoadJob()
+        {
+            //Arrange
+            _specification.Current.CoreProviderVersionUpdates = CoreProviderVersionUpdates.Manual;
+            SpecificationEditModel specificationEditModel = new SpecificationEditModel
+            {
+                FundingPeriodId = "fp10",
+                Name = "new spec name",
+                ProviderVersionId = _specification.Current.ProviderVersionId,
+                AssignedTemplateIds = new Dictionary<string, string>(),
+                CoreProviderVersionUpdates = CoreProviderVersionUpdates.UseLatest
+            };
+            Reference user = new Reference();
+
+            SpecificationVersion newSpecVersion = _specification.Current.DeepCopy(useCamelCase: false);
+            newSpecVersion.Name = specificationEditModel.Name;
+            newSpecVersion.FundingPeriod.Id = specificationEditModel.FundingPeriodId;
+            newSpecVersion.FundingStreams = new[] { new Reference { Id = "fs11" } };
+            newSpecVersion.FundingPeriod.Name = "p10";
+            newSpecVersion.Author = user;
+            newSpecVersion.Description = specificationEditModel.Description;
+
+            string specFundingStreamId = _specification.Current.FundingStreams.FirstOrDefault().Id;
+
+            AndGetFundingConfiguration(
+                specFundingStreamId,
+                specificationEditModel.FundingPeriodId);
+
+            _providersApiClient.GetCurrentProviderMetadataForFundingStream(specFundingStreamId)
+                .Returns(new ApiResponse<CurrentProviderVersionMetadata>(HttpStatusCode.NotFound, null));
+
+            SpecificationsService service = CreateSpecificationsService(newSpecVersion);
+
+            string correlationId = NewRandomString();
+
+            //Act
+            IActionResult result = await service.EditSpecification(SpecificationId, specificationEditModel, user, correlationId);
+
+            result.Should()
+                .BeOfType<InternalServerErrorResult>()
+                .Which
+                .Value
+                .Should()
+                .Be($"No current provider metadata returned for funding stream id '{specFundingStreamId}'.");
+        }
+
+        [TestMethod]
+        public async Task EditSpecification_GivenChangesAndNoCurrentProviderVersionMetatdataForFundingStream_ReturnServerError()
+        {
+            //Arrange
+            _specification.Current.CoreProviderVersionUpdates = CoreProviderVersionUpdates.Manual;
+            SpecificationEditModel specificationEditModel = new SpecificationEditModel
+            {
+                FundingPeriodId = "fp10",
+                Name = "new spec name",
+                ProviderVersionId = _specification.Current.ProviderVersionId,
+                AssignedTemplateIds = new Dictionary<string, string>(),
+                CoreProviderVersionUpdates = CoreProviderVersionUpdates.UseLatest
+            };
+            Reference user = new Reference();
+
+            SpecificationVersion newSpecVersion = _specification.Current.DeepCopy(useCamelCase: false);
+            newSpecVersion.Name = specificationEditModel.Name;
+            newSpecVersion.FundingPeriod.Id = specificationEditModel.FundingPeriodId;
+            newSpecVersion.FundingStreams = new[] { new Reference { Id = "fs11" } };
+            newSpecVersion.FundingPeriod.Name = "p10";
+            newSpecVersion.Author = user;
+            newSpecVersion.Description = specificationEditModel.Description;
+
+            string specFundingStreamId = _specification.Current.FundingStreams.FirstOrDefault().Id;
+            int providerSnapshotId = NewRandomInt();
+
+            CurrentProviderVersionMetadata currentProviderVersionMetadata = new CurrentProviderVersionMetadata
+            {
+                FundingStreamId = specFundingStreamId,
+                ProviderSnapshotId = providerSnapshotId
+            };
+
+            AndGetFundingConfiguration(
+                specFundingStreamId,
+                specificationEditModel.FundingPeriodId);
+
+            _providersApiClient.GetCurrentProviderMetadataForFundingStream(specFundingStreamId)
+                .Returns(new ApiResponse<CurrentProviderVersionMetadata>(HttpStatusCode.OK, currentProviderVersionMetadata));
+
+            SpecificationsService service = CreateSpecificationsService(newSpecVersion);
+
+            string correlationId = NewRandomString();
+
+            SpecificationVersion previousSpecificationVersion = _specification.Current;
+
+            //Act
+            await service.EditSpecification(SpecificationId, specificationEditModel, user, correlationId);
+
+            await _specificationIndexer
+                .Received(1)
+                .Index(Arg.Is<Specification>(_ => ReferenceEquals(_.Current, newSpecVersion)));
+
+            await
+                _cacheProvider
+                    .Received(1)
+                    .RemoveAsync<SpecificationSummary>(Arg.Is($"{CacheKeys.SpecificationSummaryById}{_specification.Id}"));
+            await
+                _messengerService
+                    .Received(1)
+                    .SendToTopic(Arg.Is(ServiceBusConstants.TopicNames.EditSpecification),
+                                Arg.Is<SpecificationVersionComparisonModel>(
+                                    m => m.Id == SpecificationId &&
+                                    m.Current.Name == "new spec name" &&
+                                    m.Previous.Name == "Spec name"
+                                    ), Arg.Any<IDictionary<string, string>>(), Arg.Is(true));
+            await
+              _versionRepository
+               .Received(1)
+               .SaveVersion(Arg.Is(newSpecVersion));
+
+            await _templateVersionChangedHandler
+                .Received(1)
+                .HandleTemplateVersionChanged(Arg.Is(previousSpecificationVersion),
+                    Arg.Any<SpecificationVersion>(),
+                    Arg.Is(specificationEditModel.AssignedTemplateIds),
+                    Arg.Is(user),
+                     Arg.Is(correlationId));
+
+            await _editSpecificationJobActions
+                .Received(1)
+                .Run(Arg.Is<SpecificationVersion>(
+                        m => !string.IsNullOrWhiteSpace(m.EntityId) &&
+                             m.Name == specificationEditModel.Name),
+                    Arg.Any<Reference>(),
+                    Arg.Any<string>(),
+                    true);
         }
 
         private SpecificationsService CreateSpecificationsService(Models.Specs.SpecificationVersion newSpecVersion)

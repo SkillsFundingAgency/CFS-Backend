@@ -6,6 +6,6 @@ namespace CalculateFunding.Services.Specs
 {
     public interface IQueueEditSpecificationJobActions
     {
-        Task Run(SpecificationVersion specificationVersion, Reference user, string correlationId);
+        Task Run(SpecificationVersion specificationVersion, Reference user, string correlationId, bool triggerProviderSnapshotDataLoadJob);
     }
 }

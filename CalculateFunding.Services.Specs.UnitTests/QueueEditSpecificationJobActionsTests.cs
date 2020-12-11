@@ -64,7 +64,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
         }
 
         [TestMethod]
-        public async Task ShouldQueueProviderSnapshotDataLoadJobWhenSpecificationProviverSoruceIsFDZ()
+        public async Task ShouldQueueProviderSnapshotDataLoadJobWhenSpecificationProviderSoruceIsFDZ()
         {
             string fundingStreamId = NewRandomString();
             string specificationId = NewRandomString();
@@ -74,7 +74,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
                                                                                       .WithProviderSource(Models.Providers.ProviderSource.FDZ)
                                                                                       .WithProviderSnapshotId(providerSnapshotId));
 
-            await WhenTheQueueEditSpecificationJobActionsIsRun(specificationVersion, _user, _correlationId);
+            await WhenTheQueueEditSpecificationJobActionsIsRun(specificationVersion, _user, _correlationId, false);
 
             await ThenProviderSnapshotDataLoadJobWasCreated(
                 CreateJobModelMatching(_ => _.JobDefinitionId == JobConstants.DefinitionNames.ProviderSnapshotDataLoadJob &&
@@ -85,7 +85,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
         }
 
         [TestMethod]
-        public async Task ShouldNotQueueProviderSnapshotDataLoadJobWhenSpecificationProviverSoruceIsCFS()
+        public async Task ShouldQueueProviderSnapshotDataLoadJobWhenSpecificationSetLatestProviderVersionUpdatesChangeFromManualToUseLatest()
         {
             string fundingStreamId = NewRandomString();
             string specificationId = NewRandomString();
@@ -95,7 +95,28 @@ namespace CalculateFunding.Services.Specs.UnitTests
                                                                                       .WithProviderSource(Models.Providers.ProviderSource.CFS)
                                                                                       .WithProviderSnapshotId(providerSnapshotId));
 
-            await WhenTheQueueEditSpecificationJobActionsIsRun(specificationVersion, _user, _correlationId);
+            await WhenTheQueueEditSpecificationJobActionsIsRun(specificationVersion, _user, _correlationId, true);
+
+            await ThenProviderSnapshotDataLoadJobWasCreated(
+                CreateJobModelMatching(_ => _.JobDefinitionId == JobConstants.DefinitionNames.ProviderSnapshotDataLoadJob &&
+                                            HasProperty(_, SpecificationIdKey, specificationId) &&
+                                            HasProperty(_, FundingStreamIdKey, fundingStreamId) &&
+                                            HasProperty(_, ProviderSnapshotIdKey, providerSnapshotId.ToString()))
+                );
+        }
+
+        [TestMethod]
+        public async Task ShouldNotQueueProviderSnapshotDataLoadJobWhenSpecificationProviderSoruceIsCFS()
+        {
+            string fundingStreamId = NewRandomString();
+            string specificationId = NewRandomString();
+            int providerSnapshotId = NewRandomInt();
+            SpecificationVersion specificationVersion = NewSpecificationVersion(_ => _.WithFundingStreamsIds(fundingStreamId)
+                                                                                      .WithSpecificationId(specificationId)
+                                                                                      .WithProviderSource(Models.Providers.ProviderSource.CFS)
+                                                                                      .WithProviderSnapshotId(providerSnapshotId));
+
+            await WhenTheQueueEditSpecificationJobActionsIsRun(specificationVersion, _user, _correlationId, false);
 
             await ThenProviderSnapshotDataLoadJobWasNotCreated(
                 CreateJobModelMatching(_ => _.JobDefinitionId == JobConstants.DefinitionNames.ProviderSnapshotDataLoadJob &&
@@ -119,7 +140,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
 
             GivenTheDatasetSpecificationRelationship(specificationId, datasetId);
             AndTheDataset(datasetId);
-            await WhenTheQueueEditSpecificationJobActionsIsRun(specificationVersion, _user, _correlationId);
+            await WhenTheQueueEditSpecificationJobActionsIsRun(specificationVersion, _user, _correlationId, false);
 
             await ThenProviderSnapshotDataLoadJobWasCreated(
                 CreateJobModelMatching(_ => _.JobDefinitionId == JobConstants.DefinitionNames.MapScopedDatasetJob &&
@@ -179,9 +200,10 @@ namespace CalculateFunding.Services.Specs.UnitTests
 
         private async Task WhenTheQueueEditSpecificationJobActionsIsRun(SpecificationVersion specificationVersion,
             Reference user,
-            string correlationId)
+            string correlationId,
+            bool triggerProviderSnapshotDataLoadJob)
         {
-            await _action.Run(specificationVersion, user, correlationId);
+            await _action.Run(specificationVersion, user, correlationId, triggerProviderSnapshotDataLoadJob);
         }
 
         private string NewRandomString() => new RandomString();

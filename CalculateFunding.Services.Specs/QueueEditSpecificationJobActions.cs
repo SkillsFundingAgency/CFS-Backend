@@ -45,12 +45,12 @@ namespace CalculateFunding.Services.Specs
             _datasetsPolicy = resiliencePolicies.DatasetsApiClient;
         }
 
-        public async Task Run(SpecificationVersion specificationVersion, Reference user, string correlationId)
+        public async Task Run(SpecificationVersion specificationVersion, Reference user, string correlationId, bool triggerProviderSnapshotDataLoadJob)
         {
             string errorMessage = $"Unable to queue ProviderSnapshotDataLoadJob for specification - {specificationVersion.SpecificationId}";
             string triggerMessage = $"Assigning ProviderVersionId for specification: {specificationVersion.SpecificationId}";
             Reference fundingStream = specificationVersion.FundingStreams.FirstOrDefault();
-            if (fundingStream != null && specificationVersion.ProviderSource == Models.Providers.ProviderSource.FDZ)
+            if (fundingStream != null && (specificationVersion.ProviderSource == Models.Providers.ProviderSource.FDZ || triggerProviderSnapshotDataLoadJob))
             {
                 Job createProviderSnapshotDataLoadJob = await CreateJob(errorMessage,
                 NewJobCreateModel(specificationVersion.SpecificationId,
