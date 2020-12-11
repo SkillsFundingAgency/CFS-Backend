@@ -334,7 +334,7 @@ namespace CalculateFunding.Api.Publishing
 
                 IPublishingEngineOptions publishingEngineOptions = ctx.GetService<IPublishingEngineOptions>();
 
-                CosmosRepository calcsCosmosRepository = new CosmosRepository(settings, new CosmosClientOptions
+                CosmosRepository calcsCosmosRepository = new CosmosRepository(settings, publishingEngineOptions.AllowBatching ? new CosmosClientOptions
                 {
                     ConnectionMode = ConnectionMode.Direct,
                     RequestTimeout = new TimeSpan(0, 0, 15),
@@ -342,7 +342,7 @@ namespace CalculateFunding.Api.Publishing
                     MaxTcpConnectionsPerEndpoint = 4,
                     ConsistencyLevel = ConsistencyLevel.Eventual,
                     AllowBulkExecution = true
-                });
+                } : null);
 
                 IPublishingResiliencePolicies publishingResiliencePolicies = ctx.GetService<IPublishingResiliencePolicies>();
 

@@ -172,15 +172,15 @@ namespace CalculateFunding.Functions.Publishing
 
                 IPublishingEngineOptions publishingEngineOptions = ctx.GetService<IPublishingEngineOptions>();
 
-                CosmosRepository calcsCosmosRepository = new CosmosRepository(settings, new CosmosClientOptions
+                CosmosRepository calcsCosmosRepository = new CosmosRepository(settings, publishingEngineOptions.AllowBatching ? new CosmosClientOptions
                 {
                     ConnectionMode = ConnectionMode.Direct,
                     RequestTimeout = new TimeSpan(0, 0, 15),
                     MaxRequestsPerTcpConnection = publishingEngineOptions.MaxRequestsPerTcpConnectionPublishedFundingCosmosBulkOptions,
-                    MaxTcpConnectionsPerEndpoint = 4,
+                    MaxTcpConnectionsPerEndpoint = publishingEngineOptions.MaxTcpConnectionsPerEndpointPublishedFundingCosmosBulkOptions,
                     ConsistencyLevel = ConsistencyLevel.Eventual,
                     AllowBulkExecution = true
-                });
+                } : null);
 
                 IPublishingResiliencePolicies publishingResiliencePolicies = ctx.GetService<IPublishingResiliencePolicies>();
 
@@ -379,23 +379,23 @@ namespace CalculateFunding.Functions.Publishing
 
             builder.AddSingleton<IVersionBulkRepository<PublishedProviderVersion>, VersionBulkRepository<PublishedProviderVersion>>((ctx) =>
             {
-                CosmosDbSettings ProviderSourceDatasetVersioningDbSettings = new CosmosDbSettings();
+                CosmosDbSettings PublishedProviderVersioningDbSettings = new CosmosDbSettings();
 
-                config.Bind("CosmosDbSettings", ProviderSourceDatasetVersioningDbSettings);
+                config.Bind("CosmosDbSettings", PublishedProviderVersioningDbSettings);
 
-                ProviderSourceDatasetVersioningDbSettings.ContainerName = "publishedfunding";
+                PublishedProviderVersioningDbSettings.ContainerName = "publishedfunding";
 
                 IPublishingEngineOptions publishingEngineOptions = ctx.GetService<IPublishingEngineOptions>();
 
-                CosmosRepository cosmosRepository = new CosmosRepository(ProviderSourceDatasetVersioningDbSettings, new CosmosClientOptions
+                CosmosRepository cosmosRepository = new CosmosRepository(PublishedProviderVersioningDbSettings, publishingEngineOptions.AllowBatching ? new CosmosClientOptions
                 {
                     ConnectionMode = ConnectionMode.Direct,
                     RequestTimeout = new TimeSpan(0, 0, 15),
                     MaxRequestsPerTcpConnection = publishingEngineOptions.MaxRequestsPerTcpConnectionPublishedFundingCosmosBulkOptions,
-                    MaxTcpConnectionsPerEndpoint = 4,
+                    MaxTcpConnectionsPerEndpoint = publishingEngineOptions.MaxTcpConnectionsPerEndpointPublishedFundingCosmosBulkOptions,
                     ConsistencyLevel = ConsistencyLevel.Eventual,
                     AllowBulkExecution = true
-                });
+                } : null);
 
                 return new VersionBulkRepository<PublishedProviderVersion>(cosmosRepository);
             });
@@ -415,23 +415,23 @@ namespace CalculateFunding.Functions.Publishing
 
             builder.AddSingleton<IVersionBulkRepository<PublishedFundingVersion>, VersionBulkRepository<PublishedFundingVersion>>((ctx) =>
             {
-                CosmosDbSettings ProviderSourceDatasetVersioningDbSettings = new CosmosDbSettings();
+                CosmosDbSettings PublishedFundingVersioningDbSettings = new CosmosDbSettings();
 
-                config.Bind("CosmosDbSettings", ProviderSourceDatasetVersioningDbSettings);
+                config.Bind("CosmosDbSettings", PublishedFundingVersioningDbSettings);
 
-                ProviderSourceDatasetVersioningDbSettings.ContainerName = "publishedfunding";
+                PublishedFundingVersioningDbSettings.ContainerName = "publishedfunding";
 
                 IPublishingEngineOptions publishingEngineOptions = ctx.GetService<IPublishingEngineOptions>();
 
-                CosmosRepository cosmosRepository = new CosmosRepository(ProviderSourceDatasetVersioningDbSettings, new CosmosClientOptions
+                CosmosRepository cosmosRepository = new CosmosRepository(PublishedFundingVersioningDbSettings, publishingEngineOptions.AllowBatching ? new CosmosClientOptions
                 {
                     ConnectionMode = ConnectionMode.Direct,
                     RequestTimeout = new TimeSpan(0, 0, 15),
                     MaxRequestsPerTcpConnection = publishingEngineOptions.MaxRequestsPerTcpConnectionPublishedFundingCosmosBulkOptions,
-                    MaxTcpConnectionsPerEndpoint = 4,
+                    MaxTcpConnectionsPerEndpoint = publishingEngineOptions.MaxTcpConnectionsPerEndpointPublishedFundingCosmosBulkOptions,
                     ConsistencyLevel = ConsistencyLevel.Eventual,
                     AllowBulkExecution = true
-                });
+                } : null);
 
                 return new VersionBulkRepository<PublishedFundingVersion>(cosmosRepository);
             });
@@ -452,7 +452,7 @@ namespace CalculateFunding.Functions.Publishing
                     ConnectionMode = ConnectionMode.Direct,
                     RequestTimeout = new TimeSpan(0, 0, 15),
                     MaxRequestsPerTcpConnection = publishingEngineOptions.MaxRequestsPerTcpConnectionCalculationsCosmosBulkOptions,
-                    MaxTcpConnectionsPerEndpoint = 4,
+                    MaxTcpConnectionsPerEndpoint = publishingEngineOptions.MaxTcpConnectionsPerEndpointCalculationsCosmosBulkOptions,
                     ConsistencyLevel = ConsistencyLevel.Eventual,
                     AllowBulkExecution = true
                 });

@@ -7,9 +7,10 @@ namespace CalculateFunding.Services.Publishing
 {
     public class PublishingEngineOptions : IPublishingEngineOptions
     {
-        private const int DefaultValue = 15;
+        private const int DefaultInt = 15;
         private const int DefaultMaxRequestsPerTcpConnection = 8;
-        private const int DefaultMaxBatchSize = 80;
+        private const int DefaultMaxTcpConnectionsPerEndpoint = 4;
+        private const int DefaultMaxBatchSize = 10;
 
         private readonly IConfiguration _configuration;
 
@@ -20,39 +21,52 @@ namespace CalculateFunding.Services.Publishing
             _configuration = configuration;
         }
 
-        public int GetCalculationResultsConcurrencyCount => GetPublishEngineOptionsConfigurationValue();
+        public int GetCalculationResultsConcurrencyCount => GetPublishEngineOptionsConfigurationInteger();
 
-        public int SavePublishedProviderContentsConcurrencyCount => GetPublishEngineOptionsConfigurationValue();
+        public int SavePublishedProviderContentsConcurrencyCount => GetPublishEngineOptionsConfigurationInteger();
 
-        public int SavePublishedFundingContentsConcurrencyCount => GetPublishEngineOptionsConfigurationValue();
+        public int SavePublishedFundingContentsConcurrencyCount => GetPublishEngineOptionsConfigurationInteger();
 
-        public int GetPublishedProvidersForApprovalConcurrencyCount => GetPublishEngineOptionsConfigurationValue();
+        public int GetPublishedProvidersForApprovalConcurrencyCount => GetPublishEngineOptionsConfigurationInteger();
 
-        public int GetCurrentPublishedFundingConcurrencyCount => GetPublishEngineOptionsConfigurationValue();
+        public int GetCurrentPublishedFundingConcurrencyCount => GetPublishEngineOptionsConfigurationInteger();
 
-        public int GetCurrentPublishedProvidersConcurrencyCount => GetPublishEngineOptionsConfigurationValue();
+        public int GetCurrentPublishedProvidersConcurrencyCount => GetPublishEngineOptionsConfigurationInteger();
 
-        public int UpdatePublishedFundingStatusConcurrencyCount => GetPublishEngineOptionsConfigurationValue();
+        public int UpdatePublishedFundingStatusConcurrencyCount => GetPublishEngineOptionsConfigurationInteger();
 
-        public int IndexPublishedProvidersConcurrencyCount => GetPublishEngineOptionsConfigurationValue();
-        public int ProfilingPublishedProvidersConcurrencyCount => GetPublishEngineOptionsConfigurationValue();
+        public int IndexPublishedProvidersConcurrencyCount => GetPublishEngineOptionsConfigurationInteger();
+        public int ProfilingPublishedProvidersConcurrencyCount => GetPublishEngineOptionsConfigurationInteger();
 
-        public int CreateLatestPublishedProviderVersionsConcurrencyCount => GetPublishEngineOptionsConfigurationValue();
+        public int CreateLatestPublishedProviderVersionsConcurrencyCount => GetPublishEngineOptionsConfigurationInteger();
         
-        public int PublishedProviderCreateVersionsConcurrencyCount => GetPublishEngineOptionsConfigurationValue();
+        public int PublishedProviderCreateVersionsConcurrencyCount => GetPublishEngineOptionsConfigurationInteger();
 
-        public int PublishedProviderSaveVersionsConcurrencyCount => GetPublishEngineOptionsConfigurationValue();
+        public int PublishedProviderSaveVersionsConcurrencyCount => GetPublishEngineOptionsConfigurationInteger();
 
-        public int MaxRequestsPerTcpConnectionPublishedFundingCosmosBulkOptions => GetPublishEngineOptionsConfigurationValue(overrideDefaultValue: DefaultMaxRequestsPerTcpConnection);
+        public int PublishedFundingConcurrencyCount => GetPublishEngineOptionsConfigurationInteger();
 
-        public int MaxRequestsPerTcpConnectionCalculationsCosmosBulkOptions => GetPublishEngineOptionsConfigurationValue(overrideDefaultValue: DefaultMaxRequestsPerTcpConnection);
+        public int MaxRequestsPerTcpConnectionPublishedFundingCosmosBulkOptions => GetPublishEngineOptionsConfigurationInteger(overrideDefaultValue: DefaultMaxRequestsPerTcpConnection);
+        
+        public int MaxTcpConnectionsPerEndpointPublishedFundingCosmosBulkOptions => GetPublishEngineOptionsConfigurationInteger(overrideDefaultValue: DefaultMaxTcpConnectionsPerEndpoint);
 
-        public int MaxBatchSizePublishedFunding => GetPublishEngineOptionsConfigurationValue(overrideDefaultValue: DefaultMaxBatchSize);
+        public int MaxRequestsPerTcpConnectionCalculationsCosmosBulkOptions => GetPublishEngineOptionsConfigurationInteger(overrideDefaultValue: DefaultMaxRequestsPerTcpConnection);
+        
+        public int MaxTcpConnectionsPerEndpointCalculationsCosmosBulkOptions => GetPublishEngineOptionsConfigurationInteger(overrideDefaultValue: DefaultMaxTcpConnectionsPerEndpoint);
+
+        public int MaxBatchSizePublishedFunding => GetPublishEngineOptionsConfigurationInteger(overrideDefaultValue: DefaultMaxBatchSize);
+
+        public bool AllowBatching => GetPublishEngineOptionsConfigurationBool();
 
         // ReSharper disable once StringLiteralTypo
-        private int GetPublishEngineOptionsConfigurationValue([CallerMemberName] string key = null, int? overrideDefaultValue = null) => int.TryParse(_configuration[$"publishingengineoptions:{key}"],
-            out var intValue)
+        private int GetPublishEngineOptionsConfigurationInteger([CallerMemberName] string key = null, int? overrideDefaultValue = null) => int.TryParse(_configuration[$"publishingengineoptions:{key}"],
+            out int intValue)
             ? intValue
-            : overrideDefaultValue ?? DefaultValue;
+            : overrideDefaultValue ?? DefaultInt;
+
+        private bool GetPublishEngineOptionsConfigurationBool([CallerMemberName] string key = null, bool defaultValue = false) => bool.TryParse(_configuration[$"publishingengineoptions:{key}"],
+            out bool boolValue)
+            ? boolValue
+            : defaultValue;
     }
 }
