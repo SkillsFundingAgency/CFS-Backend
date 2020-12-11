@@ -36,7 +36,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
                             fl.Value = 0;
                         }
 
-                        if (fl.Type == OrganisationGroupingReason.Payment)
+                        if (fl.Type == FundingLineType.Payment)
                         {
                             if (fl.DistributionPeriods != null)
                             {

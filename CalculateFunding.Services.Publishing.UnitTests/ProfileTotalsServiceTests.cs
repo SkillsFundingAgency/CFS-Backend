@@ -263,7 +263,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                             .WithUser(profileAuditUser)).ToArray())
                     .WithFundingLines(
                         NewFundingLines(fl => fl
-                            .WithOrganisationGroupingReason(OrganisationGroupingReason.Payment)
+                            .WithFundingLineType(FundingLineType.Payment)
                             .WithFundingLineCode(fundingLineCode)
                             .WithValue(1500)
                             .WithDistributionPeriods(
@@ -412,7 +412,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         public async Task LocatesPublishedProviderVersionThenGroupsItsProfileValuesAndSumsThem()
         {
             PublishedProviderVersion publishedProviderVersion = NewPublishedProviderVersion(_ =>
-                _.WithFundingLines(NewFundingLine(fl => fl.WithOrganisationGroupingReason(OrganisationGroupingReason.Payment)
+                _.WithFundingLines(NewFundingLine(fl => fl.WithFundingLineType(FundingLineType.Payment)
                     .WithDistributionPeriods(NewDistributionPeriod(dp => dp.WithProfilePeriods(
                         NewProfilePeriod(pp => pp.WithAmount(123)
                             .WithTypeValue("January")
@@ -465,7 +465,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         public async Task LocatesAllPublishedProviderVersionsThenGroupsItsProfileValuesAndSumsThem()
         {
             PublishedProviderVersion publishedProviderVersion = NewPublishedProviderVersion(_ =>
-                _.WithFundingLines(NewFundingLine(fl => fl.WithOrganisationGroupingReason(OrganisationGroupingReason.Payment)
+                _.WithFundingLines(NewFundingLine(fl => fl.WithFundingLineType(FundingLineType.Payment)
                     .WithDistributionPeriods(NewDistributionPeriod(dp => dp.WithProfilePeriods(
                         NewProfilePeriod(pp => pp.WithAmount(123)
                             .WithTypeValue("January")
@@ -649,7 +649,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 NewPublishedProviderVersion(_ => _
                     .WithFundingLines(NewFundingLine(fl => fl
                         .WithValue(200)
-                        .WithOrganisationGroupingReason(OrganisationGroupingReason.Payment)
+                        .WithFundingLineType(FundingLineType.Payment)
                         .WithFundingLineCode(fundingLineCode)
                         .WithDistributionPeriods(NewDistributionPeriod(dp => dp.WithProfilePeriods(NewProfilePeriod(pp => pp
                             .WithOccurence(1)
@@ -861,7 +861,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                             .WithUser(profileAuditUser)).ToArray())
                     .WithFundingLines(
                         NewFundingLines(fl => fl
-                            .WithOrganisationGroupingReason(OrganisationGroupingReason.Payment)
+                            .WithFundingLineType(FundingLineType.Payment)
                             .WithFundingLineCode(fundingLineCode)
                             .WithValue(1500)
                             .WithDistributionPeriods(

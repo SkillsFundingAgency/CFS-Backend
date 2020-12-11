@@ -20,8 +20,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             uint templateLineId2 = NewRandomUint();
 
             GeneratedProviderResult generatedProviderResult = NewGeneratedProviderResult(_ =>
-            _.WithFundlines(NewFundingLine(f => f.WithOrganisationGroupingReason(OrganisationGroupingReason.Payment).WithTemplateLineId(templateLineId1)),
-                            NewFundingLine(f => f.WithOrganisationGroupingReason(OrganisationGroupingReason.Payment).WithTemplateLineId(templateLineId2)))
+            _.WithFundlines(NewFundingLine(f => f.WithFundingLineType(FundingLineType.Payment).WithTemplateLineId(templateLineId1)),
+                            NewFundingLine(f => f.WithFundingLineType(FundingLineType.Payment).WithTemplateLineId(templateLineId2)))
             .WithProvider(NewProvider(p => p.WithProviderId(providerId))));
 
             TemplateFundingLine[] templateFundingLines = new[] 
@@ -50,8 +50,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             uint templateLineId2 = NewRandomUint();
 
             GeneratedProviderResult generatedProviderResult = NewGeneratedProviderResult(_ =>
-            _.WithFundlines(NewFundingLine(f => f.WithOrganisationGroupingReason(OrganisationGroupingReason.Information).WithTemplateLineId(templateLineId1)),
-                            NewFundingLine(f => f.WithOrganisationGroupingReason(OrganisationGroupingReason.Information).WithTemplateLineId(templateLineId2)))
+            _.WithFundlines(NewFundingLine(f => f.WithFundingLineType(FundingLineType.Information).WithTemplateLineId(templateLineId1)),
+                            NewFundingLine(f => f.WithFundingLineType(FundingLineType.Information).WithTemplateLineId(templateLineId2)))
             .WithProvider(NewProvider(p => p.WithProviderId(providerId))));
 
             TemplateFundingLine[] templateFundingLines = new[]
@@ -80,8 +80,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             uint templateLineId2 = NewRandomUint();
 
             GeneratedProviderResult generatedProviderResult = NewGeneratedProviderResult(_ =>
-            _.WithFundlines(NewFundingLine(f => f.WithOrganisationGroupingReason(OrganisationGroupingReason.Payment).WithTemplateLineId(templateLineId1)),
-                            NewFundingLine(f => f.WithOrganisationGroupingReason(OrganisationGroupingReason.Payment).WithTemplateLineId(templateLineId2).WithValue(1m)))
+            _.WithFundlines(NewFundingLine(f => f.WithFundingLineType(FundingLineType.Payment).WithTemplateLineId(templateLineId1)),
+                            NewFundingLine(f => f.WithFundingLineType(FundingLineType.Payment).WithTemplateLineId(templateLineId2).WithValue(1m)))
             .WithProvider(NewProvider(p => p.WithProviderId(providerId))));
 
             TemplateFundingLine[] templateFundingLines = new[]

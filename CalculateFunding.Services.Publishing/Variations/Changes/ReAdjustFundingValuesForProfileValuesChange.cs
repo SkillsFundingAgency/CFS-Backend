@@ -46,6 +46,6 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
         protected virtual PublishedProviderVersion PublishedProviderToAdjust => RefreshState;
 
         protected IEnumerable<FundingLine> PaymentFundingLines =>
-            PublishedProviderToAdjust.FundingLines?.Where(_ => _.Type == OrganisationGroupingReason.Payment);
+            PublishedProviderToAdjust.FundingLines?.Where(_ => _.Type == FundingLineType.Payment);
     }
 }

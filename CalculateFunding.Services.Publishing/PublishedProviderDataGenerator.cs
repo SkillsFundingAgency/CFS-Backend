@@ -6,7 +6,7 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using GeneratorModels = CalculateFunding.Generators.Funding.Models;
-using OrganisationGroupingReason = CalculateFunding.Models.Publishing.OrganisationGroupingReason;
+using FundingLineType = CalculateFunding.Models.Publishing.FundingLineType;
 using FundingLine = CalculateFunding.Models.Publishing.FundingLine;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
@@ -80,7 +80,7 @@ namespace CalculateFunding.Services.Publishing
                     generatedProviderResult.TotalFunding = generatedProviderResult.FundingLines
                             .Sum(p =>
                             {
-                                return p.Type == OrganisationGroupingReason.Payment ? p.Value : 0;
+                                return p.Type == FundingLineType.Payment ? p.Value : 0;
                             });
 
                         Dictionary<uint, GeneratorModels.Calculation> uniqueCalculations = new Dictionary<uint, GeneratorModels.Calculation>();

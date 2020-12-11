@@ -55,11 +55,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
         [TestMethod]
         public void EnsuresThereIsADataTableBuilderForEachPaymentFundingLine()
         {
-            FundingLine fundingLineOne = NewFundingLine(fl => fl.WithOrganisationGroupingReason(OrganisationGroupingReason.Payment));
-            FundingLine fundingLineTwo = NewFundingLine(fl => fl.WithOrganisationGroupingReason(OrganisationGroupingReason.Payment));
+            FundingLine fundingLineOne = NewFundingLine(fl => fl.WithFundingLineType(FundingLineType.Payment));
+            FundingLine fundingLineTwo = NewFundingLine(fl => fl.WithFundingLineType(FundingLineType.Payment));
 
             PublishedProviderVersion one = NewPublishedProviderVersion(_ =>
-                _.WithFundingLines(NewFundingLine(fl => fl.WithOrganisationGroupingReason(OrganisationGroupingReason.Information)),
+                _.WithFundingLines(NewFundingLine(fl => fl.WithFundingLineType(FundingLineType.Information)),
                     fundingLineOne,
                     fundingLineTwo));
 

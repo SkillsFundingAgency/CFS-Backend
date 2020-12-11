@@ -25,12 +25,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             FundingLine generatedResultFundingLine = NewFundingLine(fl => fl
                 .WithTemplateLineId(templateLineId)
-                .WithOrganisationGroupingReason(OrganisationGroupingReason.Payment));
+                .WithFundingLineType(FundingLineType.Payment));
 
             GeneratedProviderResult generatedProviderResult = NewGeneratedProviderResult(_ =>
                 _.WithFundlines(NewFundingLine(fl => fl
                     .WithTemplateLineId(templateLineId)
-                    .WithOrganisationGroupingReason(OrganisationGroupingReason.Payment))));
+                    .WithFundingLineType(FundingLineType.Payment))));
             
             PublishedProviderVersion publishedProviderVersion = NewPublishedProviderVersion(_ =>
                 _.WithFundingLines(NewFundingLine(fl => fl.WithTemplateLineId(templateLineId)
@@ -57,7 +57,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             GeneratedProviderResult generatedProviderResult = NewGeneratedProviderResult(_ =>
                 _.WithFundlines(NewFundingLine(fl => fl
                     .WithTemplateLineId(templateLineId)
-                    .WithOrganisationGroupingReason(OrganisationGroupingReason.Payment))));
+                    .WithFundingLineType(FundingLineType.Payment))));
 
             PublishedProviderVersion publishedProviderVersion = NewPublishedProviderVersion(_ =>
                 _.WithFundingLines(NewFundingLine()));

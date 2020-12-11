@@ -182,7 +182,7 @@ namespace CalculateFunding.Services.Publishing
                     FundingLineCode = fundingLineDefinition.FundingLineCode,
                     Name = fundingLineDefinition.Name,
                     TemplateLineId = fundingLineDefinition.TemplateLineId,
-                    Type = fundingLineDefinition.Type.AsMatchingEnum<OrganisationGroupingReason>(),
+                    Type = fundingLineDefinition.Type.AsMatchingEnum<FundingLineType>(),
                     Value = aggregateFundingLine.Value ?? 0,
                 };
 

@@ -10,7 +10,7 @@ namespace CalculateFunding.Services.Publishing
         {
             var haveZeroedNullPaymentLine = false;
 
-            foreach (FundingLine fundingLine in generatedProviderResult.FundingLines?.Where(_ => _.Type == OrganisationGroupingReason.Payment)
+            foreach (FundingLine fundingLine in generatedProviderResult.FundingLines?.Where(_ => _.Type == FundingLineType.Payment)
                                                 ?? new FundingLine[0])
             {
                 FundingLine previousFundingLineVersion =

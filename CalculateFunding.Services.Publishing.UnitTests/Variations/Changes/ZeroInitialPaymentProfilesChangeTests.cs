@@ -74,7 +74,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
             ProfilePeriod periodFive = NewProfilePeriod(2, year, "January", 1290837M);
 
             AndTheFundingLines(NewFundingLine(_ => _.WithFundingLineCode(fundingLineOneId)
-            .WithOrganisationGroupingReason(OrganisationGroupingReason.Payment)
+            .WithFundingLineType(FundingLineType.Payment)
                 .WithDistributionPeriods(NewDistributionPeriod(dp => dp.WithProfilePeriods(periodOne, periodTwo, periodThree)),
                     NewDistributionPeriod(dp => dp.WithProfilePeriods(periodFour, periodFive)))));
 

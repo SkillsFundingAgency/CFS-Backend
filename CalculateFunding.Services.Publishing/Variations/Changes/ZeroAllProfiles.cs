@@ -15,7 +15,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 
         protected override Task ApplyChanges(IApplyProviderVariations variationsApplications)
         {
-            RefreshState.FundingLines.Where(_ => _.Type == OrganisationGroupingReason.Payment).ToList().ForEach(fl =>
+            RefreshState.FundingLines.Where(_ => _.Type == FundingLineType.Payment).ToList().ForEach(fl =>
             {
                 fl.Value = 0;
 

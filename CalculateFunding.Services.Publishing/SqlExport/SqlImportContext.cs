@@ -57,7 +57,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                     return;
                 }
 
-                Profiling = dto.FundingLines?.Where(_ => _.Type == OrganisationGroupingReason.Payment)
+                Profiling = dto.FundingLines?.Where(_ => _.Type == FundingLineType.Payment)
                     .ToDictionary(_ => _.TemplateLineId,
                         _ => (IDataTableBuilder<PublishedProviderVersion>)
                             new ProfilingDataTableBuilder(_.TemplateLineId, _.FundingLineCode)) ?? new Dictionary<uint, IDataTableBuilder<PublishedProviderVersion>>();

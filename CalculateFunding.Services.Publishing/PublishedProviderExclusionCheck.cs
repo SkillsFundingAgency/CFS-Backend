@@ -11,7 +11,7 @@ namespace CalculateFunding.Services.Publishing
             Common.TemplateMetadata.Models.FundingLine[] flattenedTemplateFundingLines)
         {
             IEnumerable<FundingLine> paymentFundingLines = generatedProviderResult.FundingLines.Where(
-                x => x.Type == OrganisationGroupingReason.Payment
+                x => x.Type == FundingLineType.Payment
                 && flattenedTemplateFundingLines.Any(y => y.TemplateLineId == x.TemplateLineId && y.Type == Common.TemplateMetadata.Enums.FundingLineType.Payment));
 
             bool shouldBeExcluded = !paymentFundingLines.Any() || paymentFundingLines.All(c => c.Value == null);

@@ -58,7 +58,7 @@ namespace CalculateFunding.Services.Publishing.Errors
                 .Union(publishedProviderVersion.CustomProfiles?.Select(_ => _.FundingLineCode) ?? ArraySegment<string>.Empty)
                 .ToHashSet();
 
-            return publishedProviderVersion.FundingLines.Where(_ => _.Type == OrganisationGroupingReason.Payment
+            return publishedProviderVersion.FundingLines.Where(_ => _.Type == FundingLineType.Payment
                                                                     && fundingLineCodes.Contains(_.FundingLineCode)); 
         }
 

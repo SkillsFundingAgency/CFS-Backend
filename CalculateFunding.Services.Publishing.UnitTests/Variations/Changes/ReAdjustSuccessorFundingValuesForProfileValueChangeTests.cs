@@ -22,7 +22,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
         [TestMethod]
         public async Task ReCalculatesTheFundingValuesAtEachLevelToAccountForProfileChangesFromVariations()
         {
-            GivenTheSuccessorFundingLines(NewFundingLine(_ => _.WithOrganisationGroupingReason(OrganisationGroupingReason.Payment)
+            GivenTheSuccessorFundingLines(NewFundingLine(_ => _.WithFundingLineType(FundingLineType.Payment)
                     .WithDistributionPeriods(NewDistributionPeriod(dp => dp.WithProfilePeriods(NewProfilePeriod(), 
                         NewProfilePeriod(), 
                         NewProfilePeriod())),

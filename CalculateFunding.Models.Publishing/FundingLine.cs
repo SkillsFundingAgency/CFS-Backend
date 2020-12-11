@@ -44,9 +44,9 @@ namespace CalculateFunding.Models.Publishing
         /// <summary>
         /// The type of the funding line (e.g. paid on this basis, or informational only).
         /// </summary>
-        [EnumDataType(typeof(OrganisationGroupingReason))]
+        [EnumDataType(typeof(FundingLineType))]
         [JsonProperty("type")]
-        public OrganisationGroupingReason Type { get; set; }
+        public FundingLineType Type { get; set; }
 
         /// <summary>
         /// Profile periods for this funding line

@@ -1,12 +1,12 @@
+using System.Collections.Generic;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Tests.Common.Helpers;
-using System.Collections.Generic;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
 {
     public class FundingLineBuilder : TestEntityBuilder
     {
-        private OrganisationGroupingReason? _organisationGroupingReason;
+        private FundingLineType? _fundingLineType;
         private uint? _templateLineId;
         private decimal? _value;
         private IEnumerable<DistributionPeriod> _distributionPeriods;
@@ -40,10 +40,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             return this;
         }
-        
-        public FundingLineBuilder WithOrganisationGroupingReason(OrganisationGroupingReason organisationGroupingReason)
+
+        public FundingLineBuilder WithFundingLineType(FundingLineType fundingLineType)
         {
-            _organisationGroupingReason = organisationGroupingReason;
+            _fundingLineType = fundingLineType;
 
             return this;
         }
@@ -62,7 +62,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 TemplateLineId = _templateLineId.GetValueOrDefault((uint)NewRandomNumberBetween(1, int.MaxValue)),
                 FundingLineCode = _fundingLineCode ?? NewRandomString(),
                 Name = _name ?? NewRandomString(),
-                Type = _organisationGroupingReason.GetValueOrDefault(NewRandomEnum<OrganisationGroupingReason>()),
+                Type = _fundingLineType.GetValueOrDefault(NewRandomEnum<FundingLineType>()),
                 Value = _value,
                 DistributionPeriods = _distributionPeriods
             };

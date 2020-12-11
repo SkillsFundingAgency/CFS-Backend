@@ -101,7 +101,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
 
             FundingLine fundingLine =
                 publishedProvider.Current.FundingLines.SingleOrDefault(f =>
-                    f.FundingLineCode == fundingLineCode && f.Type == OrganisationGroupingReason.Payment);
+                    f.FundingLineCode == fundingLineCode && f.Type == FundingLineType.Payment);
             fundingLine
                 .Should()
                 .NotBeNull($"funding line should exist with code '{fundingLineCode}'");
@@ -149,7 +149,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
 
             FundingLine fundingLine =
                 publishedProvider.Current.FundingLines.SingleOrDefault(f =>
-                    f.FundingLineCode == fundingLineCode && f.Type == OrganisationGroupingReason.Payment);
+                    f.FundingLineCode == fundingLineCode && f.Type == FundingLineType.Payment);
             fundingLine
                 .Should()
                 .NotBeNull($"funding line should exist with code '{fundingLineCode}'");

@@ -7,7 +7,7 @@ namespace CalculateFunding.Models.Publishing
     /// The funding line type (actual payment or informational only).
     /// </summary>
     [JsonConverter(typeof(StringEnumConverter))]
-    public enum OrganisationGroupingReason
+    public enum FundingLineType
     {
         /// <summary>
         /// An actual payment.

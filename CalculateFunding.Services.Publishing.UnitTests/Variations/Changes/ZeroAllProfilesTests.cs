@@ -28,15 +28,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
             ProfilePeriod[] fundingLineThreePeriods = GetProfilePeriods(2, 3, 2973864M);
 
             FundingLine fundingLineOne = NewFundingLine(_ => _.WithFundingLineCode(NewRandomString())
-                .WithOrganisationGroupingReason(OrganisationGroupingReason.Payment)
+                .WithFundingLineType(FundingLineType.Payment)
                 .WithDistributionPeriods(NewDistributionPeriod(dp => dp.WithProfilePeriods(fundingLineOnePeriods))));
 
             FundingLine fundingLineTwo = NewFundingLine(_ => _.WithFundingLineCode(NewRandomString())
-                .WithOrganisationGroupingReason(OrganisationGroupingReason.Payment)
+                .WithFundingLineType(FundingLineType.Payment)
                 .WithDistributionPeriods(NewDistributionPeriod(dp => dp.WithProfilePeriods(fundingLineTwoPeriods))));
 
             FundingLine fundingLineThree = NewFundingLine(_ => _.WithFundingLineCode(NewRandomString())
-                .WithOrganisationGroupingReason(OrganisationGroupingReason.Information)
+                .WithFundingLineType(FundingLineType.Information)
                 .WithDistributionPeriods(NewDistributionPeriod(dp => dp.WithProfilePeriods(fundingLineThreePeriods)))
                 .WithValue(decimal.Multiply(decimal.Multiply(2, 3), 2973864M)));
 

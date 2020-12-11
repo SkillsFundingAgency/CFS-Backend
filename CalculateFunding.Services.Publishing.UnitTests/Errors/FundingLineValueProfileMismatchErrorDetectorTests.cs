@@ -24,7 +24,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
         public async Task OnlyChecksProfiledValuesIfTheProviderHasAProfilePatternKey()
         {
             PublishedProvider publishedProvider = NewPublishedProvider(_ => _.WithCurrent(NewPublishedProviderVersion(ppv => ppv.WithFundingLines(
-                NewFundingLine(fl => fl.WithOrganisationGroupingReason(OrganisationGroupingReason.Payment)
+                NewFundingLine(fl => fl.WithFundingLineType(FundingLineType.Payment)
                     .WithValue(999)
                     .WithDistributionPeriods(NewDistributionPeriod(dp =>
                         dp.WithProfilePeriods(
@@ -50,7 +50,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
                     .WithFundingLineCode(fundingLineCode1)
                     .WithType(ProfilingCarryOverType.CustomProfile)))
                 .WithFundingLines(
-                NewFundingLine(fl => fl.WithOrganisationGroupingReason(OrganisationGroupingReason.Payment)
+                NewFundingLine(fl => fl.WithFundingLineType(FundingLineType.Payment)
                     .WithFundingLineCode(fundingLineCode1)
                     .WithValue(999)
                     .WithDistributionPeriods(NewDistributionPeriod(dp =>
@@ -76,7 +76,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
             PublishedProvider publishedProvider = NewPublishedProvider(_ => _.WithCurrent(NewPublishedProviderVersion(ppv => ppv.WithProfilePatternKeys(
                     NewProfilePatternKey(pk => pk.WithFundingLineCode(fundingLineCode1)))
             .WithFundingStreamId("fs1")
-                .WithFundingLines(NewFundingLine(fl => fl.WithOrganisationGroupingReason(OrganisationGroupingReason.Payment)
+                .WithFundingLines(NewFundingLine(fl => fl.WithFundingLineType(FundingLineType.Payment)
                     .WithName("fl1")
                     .WithFundingLineCode(fundingLineCode1)
                     .WithValue(999)
@@ -84,14 +84,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
                         dp.WithProfilePeriods(
                             NewProfilePeriod(pp =>
                                 pp.WithAmount(10)))))),
-                NewFundingLine(fl => fl.WithOrganisationGroupingReason(OrganisationGroupingReason.Payment)
+                NewFundingLine(fl => fl.WithFundingLineType(FundingLineType.Payment)
                     .WithFundingLineCode(fundingLineCode2)
                     .WithValue(999)
                     .WithDistributionPeriods(NewDistributionPeriod(dp =>
                         dp.WithProfilePeriods(
                             NewProfilePeriod(pp =>
                                 pp.WithAmount(999)))))),
-                NewFundingLine(fl => fl.WithOrganisationGroupingReason(OrganisationGroupingReason.Payment)
+                NewFundingLine(fl => fl.WithFundingLineType(FundingLineType.Payment)
                     .WithFundingLineCode(fundingLineCode3)
                     .WithValue(666)
                     .WithDistributionPeriods(NewDistributionPeriod(dp =>

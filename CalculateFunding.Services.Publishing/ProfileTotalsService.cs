@@ -77,15 +77,18 @@ namespace CalculateFunding.Services.Publishing
             IEnumerable<PublishedProviderVersion> publishedProviderVersions = await _resilience.ExecuteAsync(() =>
                 _publishedFunding.GetPublishedProviderVersions(fundingStreamId, fundingPeriodId, providerId, "Released"));
 
-            if(publishedProviderVersions == null || publishedProviderVersions.Any() == false)
+            if (publishedProviderVersions == null || publishedProviderVersions.Any() == false)
             {
                 return new NotFoundResult();
             }
 
-            return new OkObjectResult(publishedProviderVersions?.ToDictionary(_ => _.Version, 
-                _ => new ProfilingVersion { Date = _.Date, 
+            return new OkObjectResult(publishedProviderVersions?.ToDictionary(_ => _.Version,
+                _ => new ProfilingVersion
+                {
+                    Date = _.Date,
                     ProfileTotals = new PaymentFundingLineProfileTotals(_),
-                    Version = _.Version }));
+                    Version = _.Version
+                }));
         }
 
         public async Task<IActionResult> GetPublishedProviderProfileTotalsForSpecificationForProviderForFundingLine(
@@ -110,7 +113,7 @@ namespace CalculateFunding.Services.Publishing
                 return new NotFoundResult();
             }
 
-            IEnumerable<ProfileVariationPointer> profileVariationPointers 
+            IEnumerable<ProfileVariationPointer> profileVariationPointers
                 = await _specificationService.GetProfileVariationPointers(specificationId);
 
             TemplateMetadataDistinctFundingLinesContents templateMetadataDistinctFundingLinesContents =
@@ -133,7 +136,7 @@ namespace CalculateFunding.Services.Publishing
             };
 
             ProfileVariationPointer currentProfileVariationPointer
-                = profileVariationPointers?.SingleOrDefault(_ => 
+                = profileVariationPointers?.SingleOrDefault(_ =>
                     _.FundingStreamId == fundingStreamId && _.FundingLineId == fundingLineCode);
 
             ProfileTotal[] profileTotals = new PaymentFundingLineProfileTotals(latestPublishedProviderVersion, fundingLineCode)
@@ -141,24 +144,24 @@ namespace CalculateFunding.Services.Publishing
 
             fundingLineProfile.TotalAllocation = latestPublishedProviderVersion
                 .FundingLines
-                .Where(_ => _.Type == OrganisationGroupingReason.Payment)
+                .Where(_ => _.Type == FundingLineType.Payment)
                 .SingleOrDefault(_ => _.FundingLineCode == fundingLineCode)
                 ?.Value;
 
             fundingLineProfile.ProfileTotalAmount = profileTotals.Sum(_ => _.Value);
 
             FundingDate fundingDate = await _policiesService.GetFundingDate(
-                fundingStreamId, 
-                latestPublishedProviderVersion.FundingPeriodId, 
+                fundingStreamId,
+                latestPublishedProviderVersion.FundingPeriodId,
                 fundingLineCode);
 
             for (int index = 0; index < profileTotals.Count(); index++)
             {
                 ProfileTotal profileTotal = profileTotals[index];
                 profileTotal.InstallmentNumber = index + 1;
-                
+
                 profileTotal.IsPaid = IsProfileTotalPaid(currentProfileVariationPointer, profileTotal);
-                
+
                 profileTotal.ActualDate = fundingDate?.Patterns?.SingleOrDefault(_ =>
                     _.Occurrence == profileTotal.Occurrence &&
                     _.Period == profileTotal.TypeValue &&
@@ -196,7 +199,7 @@ namespace CalculateFunding.Services.Publishing
 
             PublishedProviderVersion latestPublishedProviderVersion = publishedProviderVersions.FirstOrDefault();
 
-            if(latestPublishedProviderVersion == null)
+            if (latestPublishedProviderVersion == null)
             {
                 return new NotFoundResult();
             }
@@ -244,14 +247,14 @@ namespace CalculateFunding.Services.Publishing
                 return new NotFoundResult();
             }
 
-            IEnumerable<PublishedProviderVersion> historyPublishedProviderVersions = 
+            IEnumerable<PublishedProviderVersion> historyPublishedProviderVersions =
                 publishedProviderVersions.Except(new[] { latestPublishedProviderVersion });
 
             IEnumerable<FundingStream> fundingStreams = await _policiesService.GetFundingStreams();
 
             foreach (PublishedProviderVersion publishedProviderVersion in historyPublishedProviderVersions)
             {
-                if(publishedProviderVersion.GetFundingLineTotal(fundingLineCode) 
+                if (publishedProviderVersion.GetFundingLineTotal(fundingLineCode)
                     != latestPublishedProviderVersion.GetFundingLineTotal(fundingLineCode) ||
                     publishedProviderVersion.GetCarryOverTotalForFundingLine(fundingLineCode)
                     != latestPublishedProviderVersion.GetCarryOverTotalForFundingLine(fundingLineCode))
@@ -315,7 +318,7 @@ namespace CalculateFunding.Services.Publishing
                     fundingStreamId,
                     providerId));
 
-            if(latestPublishedProviderVersion == null)
+            if (latestPublishedProviderVersion == null)
             {
                 return new NotFoundResult();
             }
@@ -328,19 +331,19 @@ namespace CalculateFunding.Services.Publishing
 
             List<FundingLineProfile> fundingLineProfiles = new List<FundingLineProfile>();
 
-            IEnumerable<FundingStreamPeriodProfilePattern> fundingStreamPeriodProfilePatterns = 
+            IEnumerable<FundingStreamPeriodProfilePattern> fundingStreamPeriodProfilePatterns =
                 await _profilingService.GetProfilePatternsForFundingStreamAndFundingPeriod(
-                    latestPublishedProviderVersion.FundingStreamId, 
+                    latestPublishedProviderVersion.FundingStreamId,
                     latestPublishedProviderVersion.FundingPeriodId);
 
-            foreach (FundingLine fundingLine in latestPublishedProviderVersion.FundingLines)
+            foreach (FundingLine fundingLine in latestPublishedProviderVersion.FundingLines.Where(f => f.Type == FundingLineType.Payment).DistinctBy(f => f.FundingLineCode).OrderBy(f => f.Name))
             {
                 string fundingLineCode = fundingLine.FundingLineCode;
 
                 string profilePatternKey = latestPublishedProviderVersion.ProfilePatternKeys?
                     .SingleOrDefault(_ => _.FundingLineCode == fundingLineCode)?.Key;
 
-                FundingStreamPeriodProfilePattern apiProfilePatternKey 
+                FundingStreamPeriodProfilePattern apiProfilePatternKey
                     = fundingStreamPeriodProfilePatterns.FirstOrDefault(_ => _.ProfilePatternKey == profilePatternKey);
 
                 ProfileTotal[] profileTotals = new PaymentFundingLineProfileTotals(latestPublishedProviderVersion, fundingLineCode).ToArray();
@@ -371,27 +374,27 @@ namespace CalculateFunding.Services.Publishing
             string fundingLineCode,
             decimal? latestFundingLineValue)
         {
-            return publishedProviderVersions.Any(_ =>_.GetFundingLineTotal(fundingLineCode) != latestFundingLineValue);
+            return publishedProviderVersions.Any(_ => _.GetFundingLineTotal(fundingLineCode) != latestFundingLineValue);
         }
 
         private bool CarryOverChanged(
-            IEnumerable<PublishedProviderVersion> publishedProviderVersions, 
+            IEnumerable<PublishedProviderVersion> publishedProviderVersions,
             string fundingLineCode,
             decimal? latestCarryOverAmount)
         {
-            return publishedProviderVersions.Any(_ =>_.GetCarryOverTotalForFundingLine(fundingLineCode) != latestCarryOverAmount);
+            return publishedProviderVersions.Any(_ => _.GetCarryOverTotalForFundingLine(fundingLineCode) != latestCarryOverAmount);
         }
 
         private bool IsProfileTotalPaid(
             ProfileVariationPointer profileVariationPointer,
             ProfileTotal profileTotal)
         {
-            if(profileVariationPointer == null)
+            if (profileVariationPointer == null)
             {
                 return false;
             }
 
-            if(profileTotal.Year > profileVariationPointer.Year || (profileTotal.Year == profileVariationPointer.Year &&
+            if (profileTotal.Year > profileVariationPointer.Year || (profileTotal.Year == profileVariationPointer.Year &&
                 MonthNumberFor(profileTotal.TypeValue) >= MonthNumberFor(profileVariationPointer.TypeValue)))
             {
                 return false;

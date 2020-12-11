@@ -193,7 +193,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             return new[]
             {
-                new FundingLine { Name="Abc",FundingLineCode = "FL1", Type = OrganisationGroupingReason.Payment,Value = 500, TemplateLineId = 123,
+                new FundingLine { Name="Abc",FundingLineCode = "FL1", Type = FundingLineType.Payment,Value = 500, TemplateLineId = 123,
                     DistributionPeriods = new[] { new DistributionPeriod
                     {
                         ProfilePeriods = new[]
@@ -205,7 +205,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                         Value = 300.0M
                     }
                 } },
-                new FundingLine { Name="Xyz",FundingLineCode = "AB1", Type = OrganisationGroupingReason.Payment,Value = 600, TemplateLineId = 123, DistributionPeriods = new[] { new DistributionPeriod
+                new FundingLine { Name="Xyz",FundingLineCode = "AB1", Type = FundingLineType.Payment,Value = 600, TemplateLineId = 123, DistributionPeriods = new[] { new DistributionPeriod
                 {
                     ProfilePeriods = new[]
                     {

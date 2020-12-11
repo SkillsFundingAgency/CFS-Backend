@@ -136,7 +136,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
         {
             GivenTheOtherwiseValidVariationContext(_ => _.UpdatedProvider.Status = NewRandomString());
             AndTheRefreshStateFundingLines(NewFundingLine(_ => _.WithFundingLineCode(_fundingLineCode)
-                .WithOrganisationGroupingReason(OrganisationGroupingReason.Payment)
+                .WithFundingLineType(FundingLineType.Payment)
                 .WithDistributionPeriods(NewDistributionPeriod(dp =>
                 dp.WithProfilePeriods(NewProfilePeriod())))));
 
@@ -166,7 +166,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             PublishedProviderVersion publishedProviderCurrent = publishedProvider.Current;
 
             publishedProviderCurrent.FundingLines = new[] {NewFundingLine(_ => _.WithFundingLineCode(_fundingLineCode)
-                .WithOrganisationGroupingReason(OrganisationGroupingReason.Payment)
+                .WithFundingLineType(FundingLineType.Payment)
                 .WithDistributionPeriods(NewDistributionPeriod(dp =>
                 dp.WithProfilePeriods(NewProfilePeriod()))))};
             publishedProviderCurrent.Provider = NewProvider();

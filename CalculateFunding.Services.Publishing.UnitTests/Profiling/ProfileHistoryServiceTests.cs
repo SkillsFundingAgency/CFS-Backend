@@ -110,7 +110,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             DateTimeOffset utcNow = DateTimeOffset.Parse("2020-03-20");
 
             PublishedProviderVersion publishedProviderVersion = NewPublishedProviderVersion(_ => _.WithFundingLines(NewFundingLine(
-                fl => fl.WithOrganisationGroupingReason(OrganisationGroupingReason.Payment)
+                fl => fl.WithFundingLineType(FundingLineType.Payment)
                     .WithDistributionPeriods(NewDistributionPeriod(dp =>
                     dp.WithProfilePeriods(NewProfilePeriod(pp => pp.WithTypeValue("January")
                         .WithYear(2020)

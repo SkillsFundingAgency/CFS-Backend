@@ -539,7 +539,7 @@ namespace CalculateFunding.Services.Publishing
                         if (generatedPublishedProviderData.ContainsKey(publishedProviderVersion.ProviderId))
                         {
                             publishedProviderVersion.ProfilePatternKeys = (await _profilingService.ProfileFundingLines(
-                                                                                            generatedPublishedProviderData[publishedProviderVersion.ProviderId].FundingLines.Where(f => f.Type == OrganisationGroupingReason.Payment),
+                                                                                            generatedPublishedProviderData[publishedProviderVersion.ProviderId].FundingLines.Where(f => f.Type == FundingLineType.Payment),
                                                                                             fundingStreamId,
                                                                                             fundingPeriodId,
                                                                                             profilePatternKeys: isNewProvider ? null : publishedProviderVersion.ProfilePatternKeys,

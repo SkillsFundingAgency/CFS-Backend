@@ -22,26 +22,26 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             string fundingLineOneName = NewRandomString();
             string fundingLineTwoName = NewRandomString();
             
-            FundingLine paymentFundingLineOne = NewFundingLine(_ => _.WithOrganisationGroupingReason(OrganisationGroupingReason.Payment)
+            FundingLine paymentFundingLineOne = NewFundingLine(_ => _.WithFundingLineType(FundingLineType.Payment)
                 .WithTemplateLineId(fundingLineTemplateIdOne)
                 .WithName(fundingLineOneName));
-            FundingLine paymentFundingLineTwo = NewFundingLine(_ => _.WithOrganisationGroupingReason(OrganisationGroupingReason.Payment)
+            FundingLine paymentFundingLineTwo = NewFundingLine(_ => _.WithFundingLineType(FundingLineType.Payment)
                 .WithTemplateLineId(fundingLineTemplateIdTwo)
                 .WithName(fundingLineOneName));
-            FundingLine paymentFundingLineThree = NewFundingLine(_ => _.WithOrganisationGroupingReason(OrganisationGroupingReason.Payment)
+            FundingLine paymentFundingLineThree = NewFundingLine(_ => _.WithFundingLineType(FundingLineType.Payment)
                 .WithTemplateLineId(fundingLineTemplateIdOne)
                 .WithName(fundingLineOneName));
-            FundingLine paymentFundingLineFour = NewFundingLine(_ => _.WithOrganisationGroupingReason(OrganisationGroupingReason.Payment)
+            FundingLine paymentFundingLineFour = NewFundingLine(_ => _.WithFundingLineType(FundingLineType.Payment)
                 .WithTemplateLineId(fundingLineTemplateIdTwo)
                 .WithName(fundingLineTwoName));
 
             PublishedProviderVersion rowOne = NewPublishedProviderVersion(_ => _.WithFundingLines(paymentFundingLineOne,
-                NewFundingLine(fundingLineBuilder => fundingLineBuilder.WithOrganisationGroupingReason(OrganisationGroupingReason.Information)),
+                NewFundingLine(fundingLineBuilder => fundingLineBuilder.WithFundingLineType(FundingLineType.Information)),
                 paymentFundingLineTwo)
                 .WithFundingStreamId(FundingStreamId)
                 .WithFundingPeriodId(FundingPeriodId));
             PublishedProviderVersion rowTwo = NewPublishedProviderVersion(_ => _.WithFundingLines(paymentFundingLineThree,
-                NewFundingLine(fundingLineBuilder => fundingLineBuilder.WithOrganisationGroupingReason(OrganisationGroupingReason.Information)),
+                NewFundingLine(fundingLineBuilder => fundingLineBuilder.WithFundingLineType(FundingLineType.Information)),
                 paymentFundingLineFour)
                 .WithFundingStreamId(FundingStreamId)
                 .WithFundingPeriodId(FundingPeriodId));

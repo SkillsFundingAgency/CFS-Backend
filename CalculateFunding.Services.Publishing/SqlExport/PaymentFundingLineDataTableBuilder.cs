@@ -9,7 +9,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
     {
         protected override DataColumn[] GetDataColumns(PublishedProviderVersion dto)
         {
-            FundingLine[] paymentFundingLines = dto.FundingLines.Where(_ => _.Type == OrganisationGroupingReason.Payment)
+            FundingLine[] paymentFundingLines = dto.FundingLines.Where(_ => _.Type == FundingLineType.Payment)
                 .OrderBy(_ => _.TemplateLineId)
                 .ToArray();
 
@@ -23,7 +23,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
 
         protected override void AddDataRowToDataTable(PublishedProviderVersion dto)
         {
-            IEnumerable<decimal?> fundingLineValues = dto.FundingLines.Where(_ => _.Type == OrganisationGroupingReason.Payment)
+            IEnumerable<decimal?> fundingLineValues = dto.FundingLines.Where(_ => _.Type == FundingLineType.Payment)
                 .OrderBy(_ => _.TemplateLineId)
                 .Select(_ => _.Value);
 

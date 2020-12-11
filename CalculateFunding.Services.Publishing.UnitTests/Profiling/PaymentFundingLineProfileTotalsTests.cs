@@ -44,7 +44,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             yield return new object[]
             {
                 NewPublishedProviderVersion(_ => _.WithFundingLines(NewFundingLine(fl =>
-                    fl.WithOrganisationGroupingReason(OrganisationGroupingReason.Information)
+                    fl.WithFundingLineType(FundingLineType.Information)
                         .WithDistributionPeriods(NewDistributionPeriod(dp =>
                             dp.WithProfilePeriods(NewProfilePeriod(pp => pp.WithAmount(123)
                                     .WithTypeValue("January")
@@ -68,7 +68,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             {
                 NewPublishedProviderVersion(_ => _.WithFundingLines(NewFundingLine(fl =>
                     fl.WithFundingLineCode(FundingLineCode)
-                        .WithOrganisationGroupingReason(OrganisationGroupingReason.Payment)
+                        .WithFundingLineType(FundingLineType.Payment)
                         .WithDistributionPeriods(NewDistributionPeriod(dp =>
                                 dp.WithProfilePeriods(
                                     NewProfilePeriod(pp => pp.WithAmount(999)
@@ -83,7 +83,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                                         .WithYear(2021)))))),
                 NewFundingLine(fl =>
                     fl.WithFundingLineCode("funding-line-2")
-                        .WithOrganisationGroupingReason(OrganisationGroupingReason.Payment)
+                        .WithFundingLineType(FundingLineType.Payment)
                         .WithDistributionPeriods(NewDistributionPeriod(dp =>
                                 dp.WithProfilePeriods(NewProfilePeriod(pp => pp.WithAmount(123)
                                         .WithTypeValue("January")
@@ -110,7 +110,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             yield return new object[]
             {
                 NewPublishedProviderVersion(_ => _.WithFundingLines(NewFundingLine(fl =>
-                    fl.WithOrganisationGroupingReason(OrganisationGroupingReason.Information)
+                    fl.WithFundingLineType(FundingLineType.Information)
                         .WithDistributionPeriods(NewDistributionPeriod(dp =>
                             dp.WithProfilePeriods(NewProfilePeriod(pp => pp.WithAmount(123)
                                     .WithTypeValue("January")
@@ -129,7 +129,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             yield return new object[]
             {
                 NewPublishedProviderVersion(_ => _.WithFundingLines(NewFundingLine(fl =>
-                    fl.WithOrganisationGroupingReason(OrganisationGroupingReason.Payment)
+                    fl.WithFundingLineType(FundingLineType.Payment)
                         .WithDistributionPeriods(NewDistributionPeriod(dp =>
                                 dp.WithProfilePeriods(NewProfilePeriod(pp => pp.WithAmount(123)
                                         .WithTypeValue("January")
@@ -162,7 +162,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             yield return new object[]
             {
                 NewPublishedProviderVersion(_ => _.WithFundingLines(NewFundingLine(fl =>
-                    fl.WithOrganisationGroupingReason(OrganisationGroupingReason.Information)
+                    fl.WithFundingLineType(FundingLineType.Information)
                         .WithDistributionPeriods(NewDistributionPeriod(dp =>
                             dp.WithProfilePeriods(NewProfilePeriod(pp => pp.WithAmount(123)
                                     .WithTypeValue("January")
@@ -177,7 +177,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                                     .WithOccurence(0)
                                     .WithYear(2021)))))),
                     NewFundingLine(fl =>
-                        fl.WithOrganisationGroupingReason(OrganisationGroupingReason.Payment)
+                        fl.WithFundingLineType(FundingLineType.Payment)
                             .WithDistributionPeriods(NewDistributionPeriod(dp =>
                                 dp.WithProfilePeriods(NewProfilePeriod(pp => pp.WithAmount(777)
                                         .WithTypeValue("January")
@@ -188,7 +188,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                                         .WithOccurence(0)
                                         .WithYear(2021)))))),
                         NewFundingLine(fl =>
-                            fl.WithOrganisationGroupingReason(OrganisationGroupingReason.Payment)
+                            fl.WithFundingLineType(FundingLineType.Payment)
                                 .WithDistributionPeriods(NewDistributionPeriod(dp =>
                                     dp.WithProfilePeriods(NewProfilePeriod(pp => pp.WithAmount(1001)
                                         .WithTypeValue("January")

@@ -39,10 +39,10 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
         private bool HasNoProfilingChanges(PublishedProviderVersion priorState, PublishedProviderVersion refreshState)
         {
             IDictionary<string, FundingLine> latestFundingLines =
-                refreshState.FundingLines.Where(_ => _.Type == OrganisationGroupingReason.Payment)
+                refreshState.FundingLines.Where(_ => _.Type == FundingLineType.Payment)
                     .ToDictionary(_ => _.FundingLineCode);
 
-            foreach (FundingLine previousFundingLine in priorState.FundingLines.Where(_ => _.Type == OrganisationGroupingReason.Payment))
+            foreach (FundingLine previousFundingLine in priorState.FundingLines.Where(_ => _.Type == FundingLineType.Payment))
             { 
                 if (!latestFundingLines.TryGetValue(previousFundingLine.FundingLineCode, out FundingLine latestFundingLine))
                 {

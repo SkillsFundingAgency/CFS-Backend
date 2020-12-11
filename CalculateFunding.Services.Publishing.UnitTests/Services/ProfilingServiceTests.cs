@@ -83,7 +83,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             //Arrange
             List<FundingLine> fundingLines = new List<FundingLine>
             {
-                new FundingLine { Name="Abc",FundingLineCode = "FL1", Type = OrganisationGroupingReason.Information,Value = 500, TemplateLineId = 123, DistributionPeriods = null}
+                new FundingLine { Name="Abc",FundingLineCode = "FL1", Type = FundingLineType.Information,Value = 500, TemplateLineId = 123, DistributionPeriods = null}
 
             };
 
@@ -153,7 +153,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             await serviceapi.ProfileFundingLines(fundingLines, "PSG", "AY-1819");
 
             //Assert 
-            fundingLines.Where(y => y.Type == OrganisationGroupingReason.Payment)
+            fundingLines.Where(y => y.Type == FundingLineType.Payment)
                 .Select(r => r.DistributionPeriods)
                 .Should()
                 .NotBeNullOrEmpty();
@@ -177,8 +177,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             //Arrange
             List<FundingLine> fundingLines = new List<FundingLine>
             {
-                new FundingLine { Name="Abc",FundingLineCode = "FL1", Type = OrganisationGroupingReason.Payment,Value = 500, TemplateLineId = 123, DistributionPeriods = null},
-                new FundingLine { Name="Xyz",FundingLineCode = "AB1", Type = OrganisationGroupingReason.Payment,Value = 600, TemplateLineId = 123, DistributionPeriods = null}
+                new FundingLine { Name="Abc",FundingLineCode = "FL1", Type = FundingLineType.Payment,Value = 500, TemplateLineId = 123, DistributionPeriods = null},
+                new FundingLine { Name="Xyz",FundingLineCode = "AB1", Type = FundingLineType.Payment,Value = 600, TemplateLineId = 123, DistributionPeriods = null}
             };
 
             ILogger logger = CreateLogger();
@@ -224,8 +224,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             //Arrange
             List<FundingLine> fundingLines = new List<FundingLine>
             {
-                new FundingLine { Name="Abc",FundingLineCode = "FL1", Type = OrganisationGroupingReason.Payment,Value = 500, TemplateLineId = 123, DistributionPeriods = null},
-                new FundingLine { Name="Abc",FundingLineCode = "FL1", Type = OrganisationGroupingReason.Payment,Value = 500, TemplateLineId = 123, DistributionPeriods = null}
+                new FundingLine { Name="Abc",FundingLineCode = "FL1", Type = FundingLineType.Payment,Value = 500, TemplateLineId = 123, DistributionPeriods = null},
+                new FundingLine { Name="Abc",FundingLineCode = "FL1", Type = FundingLineType.Payment,Value = 500, TemplateLineId = 123, DistributionPeriods = null}
             };
 
             ILogger logger = CreateLogger();
@@ -281,7 +281,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 profilePatternKeys, "productType", "productSubType");
 
             //Assert 
-            fundingLines.Where(y => y.Type == OrganisationGroupingReason.Payment)
+            fundingLines.Where(y => y.Type == FundingLineType.Payment)
                 .Select(r => r.DistributionPeriods)
                 .Should()
                 .NotBeNullOrEmpty();
@@ -307,7 +307,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         {
             List<FundingLine> fundingLines = new List<FundingLine>
             {
-                new FundingLine { Name="Abc",FundingLineCode = "FL1", Type = OrganisationGroupingReason.Payment,Value = 500, TemplateLineId = 123, DistributionPeriods = null}
+                new FundingLine { Name="Abc",FundingLineCode = "FL1", Type = FundingLineType.Payment,Value = 500, TemplateLineId = 123, DistributionPeriods = null}
             };
 
             return fundingLines;
@@ -342,7 +342,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             List<FundingLine> fundingLines = new List<FundingLine>
             {
-                new FundingLine { Name="Abc",FundingLineCode = "FL1", Type = OrganisationGroupingReason.Payment,Value = 500, TemplateLineId = 123,
+                new FundingLine { Name="Abc",FundingLineCode = "FL1", Type = FundingLineType.Payment,Value = 500, TemplateLineId = 123,
                     DistributionPeriods = distributionPeriod}
             };
 
