@@ -7,31 +7,35 @@ using Serilog;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.DataImporter.Models;
 using NSubstitute;
 using Newtonsoft.Json.Linq;
 using CalculateFunding.Services.Datasets.Interfaces;
 using FluentAssertions;
+using Moq;
 using OfficeOpenXml;
+using Serilog.Core;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
     [TestClass]
     public class DatasetDataMergeServiceTests
     {
-        private IDatasetDataMergeService _service;
-        private IBlobClient _blobClient;
-        private ILogger _logger;
-        private IExcelDatasetReader _excelDatasetReader;
+        private Mock<IBlobClient> _blobClient;
+        
+        private DatasetDataMergeService _service;
 
-        public DatasetDataMergeServiceTests()
+        [TestInitialize]
+        public void SetUp()
         {
-            _blobClient = Substitute.For<IBlobClient>();
-            _logger = Substitute.For<ILogger>();
-            _excelDatasetReader = new ExcelDatasetReader();
-            IExcelDatasetWriter excelDatasetWriter = new DataDefinitionExcelWriter();
-            IDatasetsResiliencePolicies datasetsResiliencePolicies = DatasetsResilienceTestHelper.GenerateTestPolicies();
+            _blobClient = new Mock<IBlobClient>();
 
-            _service = new DatasetDataMergeService(_blobClient, _logger, _excelDatasetReader, excelDatasetWriter, datasetsResiliencePolicies);
+            _service = new DatasetDataMergeService(_blobClient.Object, 
+                Logger.None, 
+                new ExcelDatasetReader(), 
+                new DataDefinitionExcelWriter(), 
+                DatasetsResilienceTestHelper.GenerateTestPolicies());
         }
 
         [DataTestMethod]
@@ -41,41 +45,46 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             DatasetDefinition datasetDefinition = GetDatasetDefinitionByName(definitionFileName);
 
-            using Stream latestDatasetStream = File.OpenRead($"TestItems{Path.DirectorySeparatorChar}{latestBlobFileName}");
+            await using Stream latestDatasetStream = File.OpenRead($"TestItems{Path.DirectorySeparatorChar}{latestBlobFileName}");
 
-            ICloudBlob latestFileBlob = Substitute.For<ICloudBlob>();
-            _blobClient.GetBlobReferenceFromServerAsync(latestBlobFileName)
-                .Returns(latestFileBlob);
-            _blobClient.DownloadToStreamAsync(Arg.Is(latestFileBlob))
-                .Returns(latestDatasetStream);
+            Mock<ICloudBlob> latestFileBlob = new Mock<ICloudBlob>();
+            
+            _blobClient.Setup(_ => _  
+                .GetBlobReferenceFromServerAsync(latestBlobFileName))
+                .ReturnsAsync(latestFileBlob.Object);
+            
+            _blobClient.Setup(_ => _
+                .DownloadToStreamAsync(latestFileBlob.Object))
+                .ReturnsAsync(latestDatasetStream);
 
-            using Stream fileToMergeDatasetStream = File.OpenRead($"TestItems{Path.DirectorySeparatorChar}{blobFileNameToMerge}");
+            await using Stream fileToMergeDatasetStream = File.OpenRead($"TestItems{Path.DirectorySeparatorChar}{blobFileNameToMerge}");
 
-            ICloudBlob fileToMergeBlob = Substitute.For<ICloudBlob>();
-            _blobClient.GetBlobReferenceFromServerAsync(blobFileNameToMerge)
-                .Returns(fileToMergeBlob);
-            _blobClient.DownloadToStreamAsync(Arg.Is(fileToMergeBlob))
-                .Returns(fileToMergeDatasetStream);
+            Mock<ICloudBlob> fileToMergeBlob = new Mock<ICloudBlob>();
+            _blobClient.Setup(_ => _
+                .GetBlobReferenceFromServerAsync(blobFileNameToMerge))
+                .ReturnsAsync(fileToMergeBlob.Object);
+            _blobClient.Setup(_ => _
+                .DownloadToStreamAsync(fileToMergeBlob.Object))
+                .ReturnsAsync(fileToMergeDatasetStream);
 
-            string actualResultFileName = Path.ChangeExtension(Path.GetTempFileName(), "xlsx");
-            await fileToMergeBlob.UploadFromStreamAsync(Arg.Do<Stream>(mergedExcelStream =>
-            {
-                mergedExcelStream.Should().NotBeNull();
+            await using MemoryStream uploadedStream = new MemoryStream();
 
-                using var fileStream = File.Create(actualResultFileName);
-                mergedExcelStream.Seek(0, SeekOrigin.Begin);
-                mergedExcelStream.CopyTo(fileStream);
-            }));
+            fileToMergeBlob.Setup(_ => _.UploadFromStreamAsync(It.IsAny<Stream>()))
+                .Callback<Stream>(_ =>
+                {
+                    _?.Seek(0, SeekOrigin.Begin);
+                    // ReSharper disable once AccessToDisposedClosure
+                    _?.CopyTo(uploadedStream);
+                });
 
-            var result = await _service.Merge(datasetDefinition, latestBlobFileName, blobFileNameToMerge);
+            DatasetDataMergeResult result = await _service.Merge(datasetDefinition, latestBlobFileName, blobFileNameToMerge);
 
             result.TablesMergeResults.Count().Should().Be(1);
 
-            using Stream expectedResultStream = File.OpenRead($"TestItems{Path.DirectorySeparatorChar}{resultsFile}");
-            using Stream actualResultStream = File.OpenRead(actualResultFileName);
+            await using Stream expectedResultStream = File.OpenRead($"TestItems{Path.DirectorySeparatorChar}{resultsFile}");
 
             using ExcelPackage expected = new ExcelPackage(expectedResultStream);
-            using ExcelPackage actual = new ExcelPackage(actualResultStream);
+            using ExcelPackage actual = new ExcelPackage(uploadedStream);
 
             ExcelWorksheet expectedWorksheet = expected.Workbook.Worksheets[1];
             ExcelWorksheet actualWorksheet = expected.Workbook.Worksheets[1];
@@ -90,17 +99,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         private static DatasetDefinition GetDatasetDefinitionByName(string datasetDefinitionName)
-        {
-            JObject datasetDefinitionJson = JObject.Parse(File.ReadAllText($"DatasetDefinitions{Path.DirectorySeparatorChar}{datasetDefinitionName}"));
-
-            DatasetDefinition datasetDefinition = datasetDefinitionJson.ToObject<DatasetDefinition>();
-
-            return datasetDefinition;
-        }
-
-        private static Stream GetDatasetData(string datasetSourceFileName)
-        {
-            return File.OpenRead($"TestItems{Path.DirectorySeparatorChar}{datasetSourceFileName}");
-        }
+            => File.ReadAllText($"DatasetDefinitions{Path.DirectorySeparatorChar}{datasetDefinitionName}")
+                .AsPoco<DatasetDefinition>();
     }
 }

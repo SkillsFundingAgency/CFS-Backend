@@ -1,4 +1,9 @@
-﻿using CalculateFunding.Common.Utility;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
@@ -8,11 +13,6 @@ using CalculateFunding.Services.Datasets.Interfaces;
 using Microsoft.Azure.Storage.Blob;
 using Polly;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -44,16 +44,19 @@ namespace CalculateFunding.Services.Datasets
             _blobClientPolicy = datasetsResiliencePolicies.BlobClient;
         }
 
-        public async Task<DatasetDataMergeResult> Merge(DatasetDefinition datasetDefinition, string latestBlobFileName, string blobFileNameToMerge)
+        public async Task<DatasetDataMergeResult> Merge(DatasetDefinition datasetDefinition,
+            string latestBlobFileName,
+            string blobFileNameToMerge)
         {
             DatasetDataMergeResult result = new DatasetDataMergeResult();
+            
             bool success;
             string errorMessage;
             List<TableLoadResult> latestTableLoadResults;
             List<TableLoadResult> tableLoadResultsToMerge;
 
             (success, errorMessage, latestTableLoadResults) = await ReadExcelDatasetData(datasetDefinition, latestBlobFileName);
-            if(!success)
+            if (!success)
             {
                 result.ErrorMessage = errorMessage;
                 _logger.Error(errorMessage);
@@ -74,7 +77,10 @@ namespace CalculateFunding.Services.Datasets
 
                 if (tableLoadResultToMerge == null || !tableLoadResultToMerge.Rows.Any())
                 {
-                    result.TablesMergeResults.Add(new DatasetDataTableMergeResult() { TableDefinitionName = latestTableLoadResult.TableDefinition.Name });
+                    result.TablesMergeResults.Add(new DatasetDataTableMergeResult
+                    {
+                        TableDefinitionName = latestTableLoadResult.TableDefinition.Name
+                    });
                 }
                 else
                 {
@@ -92,12 +98,12 @@ namespace CalculateFunding.Services.Datasets
 
                 try
                 {
-                    using MemoryStream memoryStream = new MemoryStream(excelAsBytes);
+                    await using MemoryStream memoryStream = new MemoryStream(excelAsBytes);
                     await _blobClientPolicy.ExecuteAsync(() => blob.UploadFromStreamAsync(memoryStream));
                 }
                 catch (Exception ex)
                 {
-                    result.ErrorMessage = $"Failed to upload { datasetDefinition.Name} to blob storage after merge.";
+                    result.ErrorMessage = $"Failed to upload {datasetDefinition.Name} to blob storage after merge.";
                     _logger.Error(ex, result.ErrorMessage);
                 }
             }
@@ -105,16 +111,19 @@ namespace CalculateFunding.Services.Datasets
             return result;
         }
 
-        private async Task<(bool success, string errorMessage, List<TableLoadResult> tableLoadResults)> ReadExcelDatasetData(DatasetDefinition datasetDefinition, string blobFileName)
+        private async Task<(bool success, string errorMessage, List<TableLoadResult> tableLoadResults)> ReadExcelDatasetData(DatasetDefinition datasetDefinition,
+            string blobFileName)
         {
             ICloudBlob blob = await _blobClient.GetBlobReferenceFromServerAsync(blobFileName);
+
             if (blob == null)
             {
                 return (false, $"Failed to find blob with path: {blobFileName}", new List<TableLoadResult>());
             }
 
-            using Stream datasetStream = await _blobClient.DownloadToStreamAsync(blob);
-            if(datasetStream == null || datasetStream.Length == 0)
+            await using Stream datasetStream = await _blobClient.DownloadToStreamAsync(blob);
+
+            if (datasetStream == null || datasetStream.Length == 0)
             {
                 return (false, $"Blob {blob.Name} contains no data", new List<TableLoadResult>());
             }
@@ -123,54 +132,20 @@ namespace CalculateFunding.Services.Datasets
             return (true, null, tableLoadResults);
         }
 
-        private DatasetDataTableMergeResult Merge(TableLoadResult latestTableLoadResult, TableLoadResult tableLoadResultToMerge)
+        private DatasetDataTableMergeResult Merge(TableLoadResult latestTableLoadResult,
+            TableLoadResult tableLoadResultToMerge)
         {
-            List<RowLoadResult> newRows = tableLoadResultToMerge.Rows
-                                                .Where(x => !latestTableLoadResult.Rows.Any(y => RowHaveSameIdentity(y, x)))
-                                                .ToList();
+            IEnumerable<RowLoadResult> newRows = tableLoadResultToMerge.GetRowsMissingFrom(latestTableLoadResult).ToArray();
+            IEnumerable<RowLoadResult> updatedRows = tableLoadResultToMerge.GetRowsWhereFieldsDifferFromMatchIn(latestTableLoadResult).ToArray();
 
-            List<RowLoadResult> updatedRows = tableLoadResultToMerge.Rows
-                                                .Where(x => latestTableLoadResult.Rows.Any(y => RowHaveSameIdentity(y, x) && HasDifferentFields(y.Fields, x.Fields)))
-                                                .ToList();
+            latestTableLoadResult.UpdateMatchingRowsWithFieldsValuesFrom(updatedRows);
+            latestTableLoadResult.AddRows(newRows);
 
-
-            foreach (RowLoadResult updatedRow in updatedRows)
-            {
-                RowLoadResult rowToUpdate = latestTableLoadResult.Rows.First(x => RowHaveSameIdentity(x, updatedRow));
-                rowToUpdate.Fields = updatedRow.Fields;
-            }
-
-            latestTableLoadResult.Rows.AddRange(newRows);
-
-            return new DatasetDataTableMergeResult()
+            return new DatasetDataTableMergeResult
             {
                 TableDefinitionName = latestTableLoadResult.TableDefinition.Name,
-                NewRowsCount = newRows.Count,
-                UpdatedRowsCount = updatedRows.Count
-            };
-        }
-
-        private bool HasDifferentFields(Dictionary<string, object> fields1, Dictionary<string, object> fields2)
-        {
-            return fields1.Any(x => fields2.Any(y => y.Key == x.Key && !AreValuesEqual(y.Value, x.Value)));
-        }
-
-        private bool RowHaveSameIdentity(RowLoadResult row1, RowLoadResult row2)
-        {
-            return row1.Identifier == row2.Identifier && row1.IdentifierFieldType == row2.IdentifierFieldType;
-        }
-
-        private bool AreValuesEqual(object value1, object value2)
-        {
-            return value1 switch
-            {
-                bool _ when value2 is bool => (bool)value1 == (bool)value2,
-                int _ when value2 is int => (int)value1 == (int)value2,
-                decimal _ when value2 is decimal => (decimal)value1 == (decimal)value2,
-                double _ when value2 is double => (double)value1 == (double)value2,
-                string _ when value2 is string => (string)value1 == (string)value2,
-                DateTime _ when value2 is DateTime => (DateTime)value1 == (DateTime)value2,
-                _ => value1 == value2
+                NewRowsCount = newRows.Count(),
+                UpdatedRowsCount = updatedRows.Count()
             };
         }
     }
