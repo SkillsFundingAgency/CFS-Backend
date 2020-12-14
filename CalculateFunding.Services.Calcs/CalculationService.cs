@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.DataSets;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
@@ -1137,21 +1138,64 @@ namespace CalculateFunding.Services.Calcs
 
             foreach (Calculation templateCalculation in templateCalculations)
             {
-                ApiClientFieldDefinition fieldDefinition = tableDefinition.FieldDefinitions.FirstOrDefault(x => x.Name == templateCalculation.Name);
-
-                if (fieldDefinition != null)
+                if (templateCalculation.Current.DataType != CalculationDataType.Enum)
                 {
-                    CalculationVersion calculationVersion = templateCalculation.Current.Clone() as CalculationVersion;
+                    ApiClientFieldDefinition fieldDefinition = tableDefinition.FieldDefinitions.FirstOrDefault(x => x.Name == templateCalculation.Name);
 
-                    string fieldDefinitionVisualBasicName = VisualBasicTypeGenerator.GenerateIdentifier(fieldDefinition.Name);
+                    if (fieldDefinition != null)
+                    {
+                        CalculationVersion calculationVersion = templateCalculation.Current.Clone() as CalculationVersion;
 
-                    calculationVersion.SourceCode = @$"If Datasets.{datasetRelationshipVisualBasicVariableName}.HasValue = False Then Return Nothing
+                        string fieldDefinitionVisualBasicName = VisualBasicTypeGenerator.GenerateIdentifier(fieldDefinition.Name);
+
+                        calculationVersion.SourceCode = @$"If Datasets.{datasetRelationshipVisualBasicVariableName}.HasValue = False Then Return Nothing
 
 Return Datasets.{datasetRelationshipVisualBasicVariableName}.{fieldDefinitionVisualBasicName}";
 
+                        calculationVersion.PublishStatus = Models.Versioning.PublishStatus.Approved;
+
+                        await UpdateCalculation(templateCalculation, calculationVersion, user, updateBuildProject: false);
+                    }
+                }
+                else if (templateCalculation.Current.DataType == CalculationDataType.Enum)
+                {
+                    CalculationVersion calculationVersion = templateCalculation.Current.Clone() as CalculationVersion;
+
+                    string calculationNameVisualBasicVariable = VisualBasicTypeGenerator.GenerateIdentifier(templateCalculation.Current.Name);
+
+                    StringBuilder stringBuilder = new StringBuilder();
+
+                    stringBuilder.Append(@$"If Datasets.{datasetRelationshipVisualBasicVariableName}.HasValue = False Then Return Nothing
+Dim stringValue As String = Nothing
+
+If (String.IsNullOrWhiteSpace(Datasets.{datasetRelationshipVisualBasicVariableName}.{calculationNameVisualBasicVariable}) <> False) Then
+    stringValue = Datasets.{datasetRelationshipVisualBasicVariableName}.{calculationNameVisualBasicVariable}.ToLowerInvariant()
+End If
+
+");
+
+                    stringBuilder.Append(@$"Select Case stringValue
+    Case Nothing
+        Return Nothing
+    Case """"
+        Return Nothing
+");
+                    foreach (string value in templateCalculation.Current.AllowedEnumTypeValues)
+                    {
+                        stringBuilder.Append(@$"    Case ""{value}""
+        Return {VisualBasicTypeGenerator.GenerateIdentifier(templateCalculation.Current.Name)}Options.{VisualBasicTypeGenerator.GenerateIdentifier(value)}
+");
+                    }
+
+                    stringBuilder.Append($@"    Case Else
+        Throw New InvalidOperationException(""Unable to find option "" + Datasets.{datasetRelationshipVisualBasicVariableName}.{calculationNameVisualBasicVariable})
+End Select");
+
+                    calculationVersion.SourceCode = stringBuilder.ToString();
+
                     calculationVersion.PublishStatus = Models.Versioning.PublishStatus.Approved;
 
-                    UpdateCalculationResult updateCalculationResult = await UpdateCalculation(templateCalculation, calculationVersion, user, updateBuildProject: false);
+                    await UpdateCalculation(templateCalculation, calculationVersion, user, updateBuildProject: false);
                 }
             }
 
@@ -1162,6 +1206,7 @@ Return Datasets.{datasetRelationshipVisualBasicVariableName}.{fieldDefinitionVis
 
             return new OkResult();
         }
+
         public async Task<IActionResult> QueueApproveAllSpecificationCalculations(
             string specificationId, Reference author, string correlationId)
         {
