@@ -265,7 +265,7 @@ namespace CalculateFunding.Services.Jobs
 
                             JobDefinition jobDefinition = jobDefinitionsToSupersede.First(m => m.Id == job.JobDefinitionId);
 
-                            await QueueNewJob(job, jobDefinition);
+                            await QueueNewJob(job, jobDefinition, jobCreateResult.CreateRequest.Compress);
 
                             JobNotification jobNotification = CreateJobNotificationFromJob(job);
 
@@ -856,7 +856,7 @@ namespace CalculateFunding.Services.Jobs
             await _notificationService.SendNotification(jobNotification);
         }
 
-        private async Task QueueNewJob(Job job, JobDefinition jobDefinition)
+        private async Task QueueNewJob(Job job, JobDefinition jobDefinition, bool compress = false)
         {
             string queueOrTopic = !string.IsNullOrWhiteSpace(jobDefinition.MessageBusQueue) ? jobDefinition.MessageBusQueue : jobDefinition.MessageBusTopic;
 
@@ -910,11 +910,11 @@ namespace CalculateFunding.Services.Jobs
             {
                 if (!string.IsNullOrWhiteSpace(jobDefinition.MessageBusQueue))
                 {
-                    await _messengerService.SendToQueueAsJson(jobDefinition.MessageBusQueue, data, messageProperties, sessionId: sessionId);
+                    await _messengerService.SendToQueueAsJson(jobDefinition.MessageBusQueue, data, messageProperties, sessionId: sessionId, compressData: compress);
                 }
                 else
                 {
-                    await _messengerService.SendToTopicAsJson(jobDefinition.MessageBusTopic, data, messageProperties);
+                    await _messengerService.SendToTopicAsJson(jobDefinition.MessageBusTopic, data, messageProperties, compressData: compress);
                 }
             }
             catch (Exception ex)

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using CalculateFunding.Publishing.AcceptanceTests.Contexts;
@@ -66,7 +67,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             message.UserProperties.Add("user-name", _currentUserStepContext.UserName);
             message.UserProperties.Add("specification-id", _currentSpecificationStepContext.SpecificationId);
             message.UserProperties.Add("jobId", _currentJobStepContext.JobId);
-            message.UserProperties.Add(JobConstants.MessagePropertyNames.PublishedProviderIdsRequest, approveProvidersRequestJson);
+            message.Body = Encoding.UTF8.GetBytes(approveProvidersRequestJson);
 
             await _approveService.Run(message, async () =>
             {

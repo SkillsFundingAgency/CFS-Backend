@@ -142,7 +142,9 @@ namespace CalculateFunding.Api.Results
 
                                CosmosRepository calcsCosmosRepostory = new CosmosRepository(calssDbSettings);
 
-                               return new CalculationResultsRepository(calcsCosmosRepostory);
+                               EngineSettings engineSettings = ctx.GetService<EngineSettings>();
+
+                               return new CalculationResultsRepository(calcsCosmosRepostory, engineSettings);
                            });
 
             builder.AddSingleton<IProviderSourceDatasetRepository, ProviderSourceDatasetRepository>((ctx) =>
@@ -201,6 +203,7 @@ namespace CalculateFunding.Api.Results
             builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.Results");
             builder.AddLogging("CalculateFunding.Api.Results");
             builder.AddTelemetry();
+            builder.AddEngineSettings(Configuration);
 
             builder.AddJobsInterServiceClient(Configuration);
             builder.AddPoliciesInterServiceClient(Configuration);

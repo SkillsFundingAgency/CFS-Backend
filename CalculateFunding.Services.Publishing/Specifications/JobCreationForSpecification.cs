@@ -39,7 +39,8 @@ namespace CalculateFunding.Services.Publishing.Specifications
             string correlationId,
             Dictionary<string, string> properties = null,
             string messageBody = null,
-            string parentJobId = null)
+            string parentJobId = null,
+            bool compress = false)
         {
             Dictionary<string, string> messageProperties =
                 properties ?? new Dictionary<string, string>();
@@ -66,7 +67,8 @@ namespace CalculateFunding.Services.Publishing.Specifications
                         EntityType = "Specification",
                         Message = TriggerMessage
                     },
-                    CorrelationId = correlationId
+                    CorrelationId = correlationId,
+                    Compress = compress
                 });
 
                 if (!string.IsNullOrWhiteSpace(parentJobId))

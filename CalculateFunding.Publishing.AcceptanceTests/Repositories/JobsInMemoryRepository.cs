@@ -165,6 +165,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             return Task.FromResult(new ApiResponse<IEnumerable<JobSummary>>(HttpStatusCode.OK, jobTypes.Select(x => new JobSummary())));
         }
 
+        public Task<ApiResponse<JobSummary>> GetLatestSuccessfulJobForSpecification(string specificationId, string jobDefinitionId)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<List<JobLog>> GetLatestJobForSpecification(string jobId)
         {
             var result = _jobLogs.Values;

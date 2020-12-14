@@ -408,21 +408,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             string filterIdOne = NewRandomString();
             string filterIdTwo = NewRandomString();
 
-            Dictionary<string, string> messageProperties = new Dictionary<string, string>
+            GivenTheApiResponseDetailsForTheSuppliedId(specificationSummary);
+            AndTheFilteredListOfPublishedProviderIds(filterIdOne, filterIdTwo);
+            AndTheApiResponseDetailsForApproveProviderJob(approveFundingJob, JsonExtensions.AsJson(new PublishedProviderIdsRequest
             {
-                {JobConstants.MessagePropertyNames.PublishedProviderIdsRequest, JsonExtensions.AsJson(new PublishedProviderIdsRequest
-                {
-                    PublishedProviderIds = new []
+                PublishedProviderIds = new[]
                     {
                         filterIdOne,
                         filterIdTwo
                     }
-                }) }
-            };
-
-            GivenTheApiResponseDetailsForTheSuppliedId(specificationSummary);
-            AndTheFilteredListOfPublishedProviderIds(filterIdOne, filterIdTwo);
-            AndTheApiResponseDetailsForApproveProviderJob(approveFundingJob, messageProperties);
+            }));
 
             await WhenBatchProvidersAreApproved();
 
@@ -530,9 +525,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 .Returns(job);
         }
 
-        private void AndTheApiResponseDetailsForApproveProviderJob(ApiJob job, Dictionary<string, string> messageProperties)
+        private void AndTheApiResponseDetailsForApproveProviderJob(ApiJob job, string body)
         {
-            _ = _approveProviderFundingJobs.CreateJob(SpecificationId, User, CorrelationId, Arg.Is<Dictionary<string, string>>(_ => _.SequenceEqual(messageProperties)), null)
+            _ = _approveProviderFundingJobs.CreateJob(SpecificationId, User, CorrelationId, null, body, null, true)
                 .Returns(job);
         }
 

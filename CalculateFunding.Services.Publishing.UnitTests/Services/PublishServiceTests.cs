@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 using CalculationResult = CalculateFunding.Models.Publishing.CalculationResult;
 using FundingLine = CalculateFunding.Models.Publishing.FundingLine;
@@ -783,8 +784,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .WithUserProperty("specification-id",SpecificationId)
                 .WithUserProperty("jobId",JobId)
                 .WithUserProperty("sfa-correlationId", CorrelationId)
-                .WithUserProperty(
-                    JobConstants.MessagePropertyNames.PublishedProviderIdsRequest, publishProvidersRequest.AsJson()));
+                .WithMessageBody(Encoding.UTF8.GetBytes(publishProvidersRequest.AsJson())));
 
             await _publishService.Run(message, async () =>
             {

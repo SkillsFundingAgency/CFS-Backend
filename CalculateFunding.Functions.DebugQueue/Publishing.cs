@@ -1,6 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using CalculateFunding.Functions.Publishing.ServiceBus;
 using CalculateFunding.Services.Core.Constants;
+using CalculateFunding.Services.Publishing.Models;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.DependencyInjection;
@@ -167,7 +169,7 @@ namespace CalculateFunding.Functions.DebugQueue
         public static async Task RunApproveBatchProviderFunding([QueueTrigger(ServiceBusConstants.QueueNames.PublishingApproveBatchProviderFunding, Connection = "AzureConnectionString")] string item, ILogger log)
         {
             using IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
-            Message message = Helpers.ConvertToMessage<string>(item);
+            Message message = Helpers.ConvertToMessage<PublishedProviderIdsRequest>(item);
 
             OnApproveBatchProviderFunding function = scope.ServiceProvider.GetService<OnApproveBatchProviderFunding>();
 
@@ -271,7 +273,7 @@ namespace CalculateFunding.Functions.DebugQueue
         public static async Task RunPublishBatchProviderFunding([QueueTrigger(ServiceBusConstants.QueueNames.PublishingPublishBatchProviderFunding, Connection = "AzureConnectionString")] string item, ILogger log)
         {
             using IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
-            Message message = Helpers.ConvertToMessage<string>(item);
+            Message message = Helpers.ConvertToMessage<PublishedProviderIdsRequest>(item);
 
             OnPublishBatchProviderFunding function = scope.ServiceProvider.GetService<OnPublishBatchProviderFunding>();
 

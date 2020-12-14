@@ -38,5 +38,10 @@ namespace CalculateFunding.Models.Jobs
         /// Optional message bus body
         /// </summary>
         public string MessageBody { get; set; }
+
+        /// <summary>
+        /// Whether to compress the job when posting onto service bus
+        /// </summary>
+        public bool Compress { get; set; }
     }
 }

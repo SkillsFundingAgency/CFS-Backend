@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
@@ -502,7 +503,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
         private void GivenTheMessageHasTheApproveProvidersRequest(PublishedProviderIdsRequest approveProvidersRequest)
         {
-            GivenTheUserProperty(JobConstants.MessagePropertyNames.PublishedProviderIdsRequest, JsonExtensions.AsJson(approveProvidersRequest));
+            _message.Body = Encoding.UTF8.GetBytes(JsonExtensions.AsJson(approveProvidersRequest));
         }
 
         private void GivenTheMessageHasTheFundingLineCode(string fundingLineCode)

@@ -12,7 +12,8 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             string correlationId,
             Dictionary<string, string> properties = null,
             string messageBody = null,
-            string parentJobId = null);
+            string parentJobId = null,
+            bool compress = false);
         
         string JobDefinitionId { get; }
         

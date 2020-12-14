@@ -11,6 +11,7 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Messages;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Results.Models;
 using Newtonsoft.Json;
@@ -20,10 +21,13 @@ namespace CalculateFunding.Services.Results.Repositories
     public class CalculationResultsRepository : ICalculationResultsRepository, IHealthChecker
     {
         private readonly ICosmosRepository _cosmosRepository;
+        private readonly EngineSettings _engineSettings;
 
-        public CalculationResultsRepository(ICosmosRepository cosmosRepository)
+        public CalculationResultsRepository(ICosmosRepository cosmosRepository, EngineSettings engineSettings)
         {
+            Guard.ArgumentNotNull(engineSettings, nameof(engineSettings));
             _cosmosRepository = cosmosRepository;
+            _engineSettings = engineSettings;
         }
 
         public Task<ServiceHealth> IsHealthOk()
@@ -183,7 +187,7 @@ namespace CalculateFunding.Services.Results.Repositories
 
             int completedCount = 0;
 
-            Parallel.ForEach(providerIds, async (providerId) =>
+            Parallel.ForEach(providerIds, new ParallelOptions() { MaxDegreeOfParallelism = _engineSettings.CalculateProviderResultsDegreeOfParallelism }, async (providerId) =>
             {
                 try
                 {

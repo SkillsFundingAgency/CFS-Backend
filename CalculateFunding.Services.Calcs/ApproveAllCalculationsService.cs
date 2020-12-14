@@ -108,16 +108,13 @@ namespace CalculateFunding.Services.Calcs
 
             await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.UpdateCalculations(calculations));
 
-            Reference fundingStream = specificationSummary.FundingStreams.SingleOrDefault(_ => _.Id == calculations.FirstOrDefault().FundingStreamId);
-
-            await UpdateSearch(calculations, specificationSummary.Name, fundingStream.Name);
+            await UpdateSearch(calculations, specificationSummary);
 
             IEnumerable<Task> tasks = calculations.Select(_ => UpdateCalculationInCache(_.ToResponseModel()));
 
             await TaskHelper.WhenAllAndThrow(tasks.ToArraySafe());
 
-            await UpdateCalculationsInCache(specificationId, specificationSummary.FundingPeriod?.Id, fundingStream.Id);
-
+            await UpdateCalculationsInCache(specificationSummary);
         }
 
         private async Task UpdateCalculationInCache(CalculationResponseModel currentVersion)
@@ -126,47 +123,46 @@ namespace CalculateFunding.Services.Calcs
             await _cachePolicy.ExecuteAsync(() => _cacheProvider.SetAsync($"{CacheKeys.CurrentCalculation}{currentVersion.Id}", currentVersion, TimeSpan.FromDays(7), true));
         }
 
-        private async Task UpdateCalculationsInCache(string specificationId,
-            string fundingPeriodId,
-            string fundingStreamId)
+        private async Task UpdateCalculationsInCache(SpecModel.SpecificationSummary specificationSummary)
         {
             // Invalidate cached calculations for this specification
-            await _cachePolicy.ExecuteAsync(() => _cacheProvider.KeyDeleteAsync<List<CalculationSummaryModel>>($"{CacheKeys.CalculationsSummariesForSpecification}{specificationId}"));
-            await _cachePolicy.ExecuteAsync(() => _cacheProvider.KeyDeleteAsync<List<CalculationResponseModel>>($"{CacheKeys.CurrentCalculationsForSpecification}{specificationId}"));
-            await _cachePolicy.ExecuteAsync(() => _cacheProvider.KeyDeleteAsync<List<CalculationResponseModel>>($"{CacheKeys.CalculationsMetadataForSpecification}{specificationId}"));
-            
+            await _cachePolicy.ExecuteAsync(() => _cacheProvider.KeyDeleteAsync<List<CalculationSummaryModel>>($"{CacheKeys.CalculationsSummariesForSpecification}{specificationSummary.Id}"));
+            await _cachePolicy.ExecuteAsync(() => _cacheProvider.KeyDeleteAsync<List<CalculationResponseModel>>($"{CacheKeys.CurrentCalculationsForSpecification}{specificationSummary.Id}"));
+            await _cachePolicy.ExecuteAsync(() => _cacheProvider.KeyDeleteAsync<List<CalculationResponseModel>>($"{CacheKeys.CalculationsMetadataForSpecification}{specificationSummary.Id}"));
+
             //invalidate funding structure lastModified for this calcs specification
-            await _resultsApiClientPolicy.ExecuteAsync(() => _resultsApiClient.UpdateFundingStructureLastModified(
-                new Common.ApiClient.Results.Models.UpdateFundingStructureLastModifiedRequest
-                {
-                    LastModified = DateTimeOffset.UtcNow,
-                    SpecificationId = specificationId,
-                    FundingPeriodId = fundingPeriodId,//add to call stack
-                    FundingStreamId = fundingStreamId
-                }));
+            foreach (Reference fundingStream in specificationSummary.FundingStreams)
+            {
+                await _resultsApiClientPolicy.ExecuteAsync(() => _resultsApiClient.UpdateFundingStructureLastModified(
+                    new Common.ApiClient.Results.Models.UpdateFundingStructureLastModifiedRequest
+                    {
+                        LastModified = DateTimeOffset.UtcNow,
+                        SpecificationId = specificationSummary.Id,
+                        FundingPeriodId = specificationSummary.FundingPeriod?.Id,
+                        FundingStreamId = fundingStream?.Id
+                    }));
+            }
         }
 
-        private async Task UpdateSearch(IEnumerable<Calculation> calculations, string specificationName, string fundingStreamName)
+        private async Task UpdateSearch(IEnumerable<Calculation> calculations, SpecModel.SpecificationSummary specificationSummary)
         {
             await _searchRepository.Index(calculations.Select(_ =>
             {
-                return CreateCalculationIndexItem(_, specificationName, fundingStreamName);
+                return CreateCalculationIndexItem(_, specificationSummary);
             }));
         }
 
-        private CalculationIndex CreateCalculationIndexItem(Calculation calculation,
-            string specificationName,
-            string fundingStreamName)
+        private CalculationIndex CreateCalculationIndexItem(Calculation calculation, SpecModel.SpecificationSummary specificationSummary)
         {
             return new CalculationIndex
             {
                 Id = calculation.Id,
                 SpecificationId = calculation.SpecificationId,
-                SpecificationName = specificationName,
+                SpecificationName = specificationSummary.Name,
                 Name = calculation.Current.Name,
                 ValueType = calculation.Current.ValueType.ToString(),
                 FundingStreamId = calculation.FundingStreamId ?? "N/A",
-                FundingStreamName = fundingStreamName ?? "N/A",
+                FundingStreamName = specificationSummary.FundingStreams.FirstOrDefault(_ => _.Id == calculation.FundingStreamId)?.Name ?? "N/A",
                 Namespace = calculation.Current.Namespace.ToString(),
                 CalculationType = calculation.Current.CalculationType.ToString(),
                 Description = calculation.Current.Description,

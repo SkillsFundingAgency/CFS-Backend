@@ -217,21 +217,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 _.WithIsSelectedForFunding(true)));
             AndTheFilteredListOfPublishedProviderIds(filteredIdOne, filteredIdTwo);
 
-            Dictionary<string, string> messageProperties = new Dictionary<string, string>
-            {
-                {
-                    JobConstants.MessagePropertyNames.PublishedProviderIdsRequest, Core.Extensions.JsonExtensions.AsJson(new PublishedProviderIdsRequest
+            AndTheApiResponseDetailsForSpecificationsBatchProvidersJob(publishFundingJob, Core.Extensions.JsonExtensions.AsJson(new PublishedProviderIdsRequest
                     {
                         PublishedProviderIds = new []
                         {
                             filteredIdOne,
                             filteredIdTwo
                         }
-                    })
-                }
-            };
-
-            AndTheApiResponseDetailsForSpecificationsBatchProvidersJob(publishFundingJob, messageProperties);
+                    }));
 
             await WhenBatchProvidersFundingIsPublished();
 
@@ -486,9 +479,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         }
 
         protected void AndTheApiResponseDetailsForSpecificationsBatchProvidersJob(ApiJob job,
-            Dictionary<string, string> messageProperties)
+            string body)
         {
-            _createBatchPublishProviderFundingJobs.CreateJob(SpecificationId, User, CorrelationId, Arg.Is<Dictionary<string, string>>(_ => _.SequenceEqual(messageProperties)))
+            _createBatchPublishProviderFundingJobs.CreateJob(SpecificationId, User, CorrelationId, null, body, null, true)
                 .Returns(job);
         }
     }

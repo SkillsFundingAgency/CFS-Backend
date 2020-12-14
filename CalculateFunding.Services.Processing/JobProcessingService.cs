@@ -44,7 +44,7 @@ namespace CalculateFunding.Services.Processing
         public override async Task Run(Message message, Func<Task> func = null)
         {
             Guard.ArgumentNotNull(message, nameof(message));
-            
+
             string jobId = message.GetUserProperty<string>(JobIdKey);
 
             // if the job id doesn't contain key then just execute

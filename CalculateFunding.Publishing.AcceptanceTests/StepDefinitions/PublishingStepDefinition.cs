@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Models.Publishing;
@@ -138,7 +139,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             message.UserProperties.Add("user-name", _currentUserStepContext.UserName);
             message.UserProperties.Add("specification-id", _currentSpecificationStepContext.SpecificationId);
             message.UserProperties.Add("jobId", _currentJobStepContext.JobId);
-            message.UserProperties.Add(JobConstants.MessagePropertyNames.PublishedProviderIdsRequest, publishProvidersRequestJson);
+            message.Body = Encoding.UTF8.GetBytes(publishProvidersRequestJson);
 
             await _publishService.Run(message, async () =>
             {

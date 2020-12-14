@@ -152,8 +152,7 @@ namespace CalculateFunding.Services.Publishing
 
             if (batched)
             {
-                string publishedProviderIdsRequestJson = message.GetUserProperty<string>(JobConstants.MessagePropertyNames.PublishedProviderIdsRequest);
-                publishedProviderIdsRequest = publishedProviderIdsRequestJson.AsPoco<PublishedProviderIdsRequest>();
+                publishedProviderIdsRequest = message.GetPayloadAsInstanceOf<PublishedProviderIdsRequest>();
             }
 
             foreach (Reference fundingStream in specification.FundingStreams)

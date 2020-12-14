@@ -93,11 +93,6 @@
             public const string ParentJobs = "parentjobs";
         }
 
-        public static class MessagePropertyNames
-        {
-            public const string PublishedProviderIdsRequest = "published-providerIds-request";
-        }
-
         public const string NotificationsHubName = "notifications";
 
         public const string NotificationsTargetFunction = "NotificationEvent";

@@ -79,9 +79,8 @@ namespace CalculateFunding.Services.Publishing
 
             if (batched)
             {
-                string publishedProviderIdsRequestJson = message.GetUserProperty<string>(JobConstants.MessagePropertyNames.PublishedProviderIdsRequest);
-                logApproveProcessingMessage += $" Request = {publishedProviderIdsRequestJson}.";
-                publishedProviderIdsRequest = JsonExtensions.AsPoco<PublishedProviderIdsRequest>(publishedProviderIdsRequestJson);
+                publishedProviderIdsRequest = message.GetPayloadAsInstanceOf<PublishedProviderIdsRequest>();
+                logApproveProcessingMessage += $" Request = {JsonExtensions.AsJson(publishedProviderIdsRequest)}.";
             }
 
             await PerformPrerequisiteChecks(specificationId, 

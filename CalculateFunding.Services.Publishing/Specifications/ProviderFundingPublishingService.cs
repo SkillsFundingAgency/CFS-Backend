@@ -133,12 +133,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
 
             await FilterOutPublishedProvidersInError(publishedProviderIdsRequest);
 
-            Dictionary<string, string> messageProperties = new Dictionary<string, string>
-            {
-                { JobConstants.MessagePropertyNames.PublishedProviderIdsRequest, JsonExtensions.AsJson(publishedProviderIdsRequest) }
-            };
-
-            ApiJob job = await _createBatchPublishProviderFundingJobs.CreateJob(specificationId, user, correlationId, messageProperties);
+            ApiJob job = await _createBatchPublishProviderFundingJobs.CreateJob(specificationId, user, correlationId, messageBody: JsonExtensions.AsJson(publishedProviderIdsRequest), compress: true);
             return ProcessJobResponse(job, specificationId, JobConstants.DefinitionNames.PublishBatchProviderFundingJob);
         }
 
