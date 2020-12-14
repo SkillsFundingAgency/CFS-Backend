@@ -119,8 +119,15 @@ namespace CalculateFunding.Services.Jobs.Repositories
                 m.Content.CompletionStatus != CompletionStatus.TimedOut));
         }
 
-        public async Task<Job> GetLatestJobBySpecificationIdAndDefinitionId(string specificationId, string jobDefinitionId)
+        public async Task<Job> GetLatestJobBySpecificationIdAndDefinitionId(string specificationId, string jobDefinitionId, CompletionStatus? completionStatusToFilter = null)
         {
+            List<CosmosDbQueryParameter> cosmosDbQueryParameters = new List<CosmosDbQueryParameter>
+            {
+                new CosmosDbQueryParameter("@SpecificationId", specificationId),
+                new CosmosDbQueryParameter("@JobDefinitionId", jobDefinitionId),
+                new CosmosDbQueryParameter("@Date", DateTimeOffset.UtcNow.AddDays(-1))
+            };
+
             string query = @"SELECT r.content.id AS id, 
                                     r.content.jobDefinitionId AS jobDefinitionId, 
                                     r.content.runningStatus AS runningStatus, 
@@ -145,16 +152,16 @@ namespace CalculateFunding.Services.Jobs.Repositories
                             WHERE   r.documentType = 'Job' 
                                     AND r.deleted = false 
                                     AND r.content.specificationId = @SpecificationId
-                                    AND r.content.jobDefinitionId = @JobDefinitionId
-                                    AND r.content.created > @Date
-                                    ORDER BY r.content.created DESC";
+                                    AND r.content.jobDefinitionId = @JobDefinitionId 
+                                    AND r.content.created > @Date ";
 
-            List<CosmosDbQueryParameter> cosmosDbQueryParameters = new List<CosmosDbQueryParameter>
+            if (completionStatusToFilter.HasValue)
             {
-                new CosmosDbQueryParameter("@SpecificationId", specificationId),
-                new CosmosDbQueryParameter("@JobDefinitionId", jobDefinitionId),
-                new CosmosDbQueryParameter("@Date", DateTimeOffset.UtcNow.AddDays(-1))
-            };
+                query += " AND r.content.completionStatus = @CompletionStatus ";
+                cosmosDbQueryParameters.Add(new CosmosDbQueryParameter("@CompletionStatus", completionStatusToFilter.Value.ToString()));
+            }
+
+            query += " ORDER BY r.content.created DESC";
 
             IEnumerable<dynamic> latestJobResults = await _cosmosRepository.DynamicQuery(new CosmosDbQuery(query, cosmosDbQueryParameters));
 

@@ -84,6 +84,8 @@
         public const string TemplateMapping  = "template-mapping:";
 
         public const string LatestJobs = "jobs-latest:";
+        
+        public const string LatestSuccessfulJobs = "jobs-latest-successful:";
 
         public const string CalculationFundingLines = "calculation-funding-lines:";
 

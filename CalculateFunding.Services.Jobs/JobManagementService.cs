@@ -220,7 +220,9 @@ namespace CalculateFunding.Services.Jobs
             }
 
             string cacheKey = $"{CacheKeys.LatestJobs}{job.SpecificationId}:{job.JobDefinitionId}";
+            string latestSuccessfulJobCacheKey = $"{CacheKeys.LatestSuccessfulJobs}{job.SpecificationId}:{job.JobDefinitionId}";
             await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, job));
+            await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.RemoveAsync<Job>(latestSuccessfulJobCacheKey));
         }
 
         private async Task UpdateJobCache(Job job)
@@ -236,6 +238,13 @@ namespace CalculateFunding.Services.Jobs
             {
                 string cacheKey = $"{CacheKeys.LatestJobs}{job.SpecificationId}:{job.JobDefinitionId}";
                 await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, latest));
+            }
+
+            Job latestSuccessfulJob = await _jobRepository.GetLatestJobBySpecificationIdAndDefinitionId(job.SpecificationId, job.JobDefinitionId, CompletionStatus.Succeeded);
+            if (latestSuccessfulJob != null)
+            {
+                string latestSuccessfulJobCacheKey = $"{CacheKeys.LatestSuccessfulJobs}{job.SpecificationId}:{job.JobDefinitionId}";
+                await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(latestSuccessfulJobCacheKey, latestSuccessfulJob));
             }
         }
 

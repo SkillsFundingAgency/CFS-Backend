@@ -225,6 +225,33 @@ namespace CalculateFunding.Services.Jobs
             return new OkObjectResult(results);
         }
 
+        public async Task<IActionResult> GetLatestSuccessfulJob(string specificationId, string jobDefinitionId)
+        {
+            Guard.ArgumentNotNull(specificationId, nameof(specificationId));
+            Guard.ArgumentNotNull(jobDefinitionId, nameof(jobDefinitionId));
+
+            string cacheKey = $"{CacheKeys.LatestSuccessfulJobs}{specificationId}:{jobDefinitionId}";
+            Job job = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.GetAsync<Job>(cacheKey));
+
+            if (job == null)
+            {
+                job = await _jobRepository.GetLatestJobBySpecificationIdAndDefinitionId(specificationId, jobDefinitionId, CompletionStatus.Succeeded);
+
+                if (job != null)
+                {
+                    await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, job));
+                }
+            }
+
+            if (job == null)
+            {
+                return new NotFoundObjectResult($"No successfully completed job found for specification '{specificationId}' and jobDefinitonId '{jobDefinitionId}'.");
+            }
+            
+            JobSummary jobSummary = _mapper.Map<JobSummary>(job);
+            return new OkObjectResult(jobSummary);
+        }
+
         public async Task<IActionResult> GetCreatedJobsWithinTimeFrame(DateTimeOffset dateTimeFrom, DateTimeOffset dateTimeTo)
         {
             Guard.ArgumentNotNull(dateTimeFrom, nameof(dateTimeFrom));

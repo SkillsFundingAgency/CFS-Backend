@@ -30,6 +30,6 @@ namespace CalculateFunding.Services.Jobs.Interfaces
 
         Task DeleteJobsBySpecificationId(string specificationId, DeletionType deletionType);
 
-        Task<Job> GetLatestJobBySpecificationIdAndDefinitionId(string specificationId, string jobDefinitionId);
+        Task<Job> GetLatestJobBySpecificationIdAndDefinitionId(string specificationId, string jobDefinitionId, CompletionStatus?  completionStatusToFilter = null);
     }
 }

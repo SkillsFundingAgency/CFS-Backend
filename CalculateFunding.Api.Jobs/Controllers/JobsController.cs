@@ -102,6 +102,13 @@ namespace CalculateFunding.Api.Jobs.Controllers
             return await _jobService.GetLatestJobs(specificationId, jobTypes);
         }
 
+        [HttpGet]
+        [Route("api/jobs/latest-success")]
+        [ProducesResponseType(200, Type = typeof(JobSummary))]
+        public async Task<IActionResult> GetLatestSuccessfulJob([FromQuery] string specificationId, [FromQuery] string jobDefinitionId)
+        {
+            return await _jobService.GetLatestSuccessfulJob(specificationId, jobDefinitionId);
+        }
 
         [HttpGet]
         [Route("api/jobs/{jobId}/logs")]

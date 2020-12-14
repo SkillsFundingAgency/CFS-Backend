@@ -18,5 +18,6 @@ namespace CalculateFunding.Services.Jobs.Interfaces
         Task<IActionResult> UpdateJob(string jobId, JobUpdateModel jobUpdate);
 
         Task<IActionResult> GetCreatedJobsWithinTimeFrame(DateTimeOffset dateTimeFrom, DateTimeOffset dateTimeTo);
+        Task<IActionResult> GetLatestSuccessfulJob(string specificationId, string jobDefinitionId);
     }
 }

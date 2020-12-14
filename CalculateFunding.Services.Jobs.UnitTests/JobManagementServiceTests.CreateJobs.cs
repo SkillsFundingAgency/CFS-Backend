@@ -522,6 +522,16 @@ namespace CalculateFunding.Services.Jobs.Services
                 .SetAsync(cacheKeyTwo, Arg.Is<Job>(_ => _.JobDefinitionId == jobDefinitionIdTwo))
                 .Returns(Task.CompletedTask);
 
+            string latestSuccessfulJobCacheKey = $"{CacheKeys.LatestSuccessfulJobs}{job.SpecificationId}:{job.JobDefinitionId}";
+            cacheProvider
+                .SetAsync(latestSuccessfulJobCacheKey, Arg.Is<Job>(_ => _.JobDefinitionId == jobDefinitionId))
+                .Returns(Task.CompletedTask);
+
+            string latestSuccessfulJobCacheKeyTwo = $"{CacheKeys.LatestSuccessfulJobs}{jobTwo.SpecificationId}:{jobTwo.JobDefinitionId}";
+            cacheProvider
+                .SetAsync(latestSuccessfulJobCacheKeyTwo, Arg.Is<Job>(_ => _.JobDefinitionId == jobDefinitionIdTwo))
+                .Returns(Task.CompletedTask);
+
             JobManagementService jobManagementService = CreateJobManagementService(
                 jobDefinitionsService: jobDefinitionsService,
                 jobRepository: jobRepository,
@@ -547,6 +557,14 @@ namespace CalculateFunding.Services.Jobs.Services
             await cacheProvider
                 .Received(1)
                 .SetAsync(cacheKeyTwo, Arg.Is<Job>(_ => _.JobDefinitionId == jobDefinitionIdTwo));
+
+            await cacheProvider
+                .Received(1)
+                .RemoveAsync<Job>(latestSuccessfulJobCacheKey);
+
+            await cacheProvider
+                .Received(1)
+                .RemoveAsync<Job>(latestSuccessfulJobCacheKeyTwo);
         }
 
         [TestMethod]
