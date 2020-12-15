@@ -72,15 +72,14 @@ namespace CalculateFunding.Services.Results.UnitTests
 
             ICalculationResultsRepository calculationResultsRepository = CreateResultsRepository();
             calculationResultsRepository
-                .CheckHasNewResultsForSpecificationIdAndTime(
-                    Arg.Is("spec-1"),
-                    Arg.Any<DateTimeOffset>())
+                .ProviderHasResultsBySpecificationId(
+                    Arg.Is("spec-1"))
                 .Returns(false);
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
                 .DoesBlobExistAsync($"{CalculationResultsReportFilePrefix}-spec-1", CalcsResultsContainerName)
-                .Returns(true);
+                .Returns(false);
 
             ILogger logger = CreateLogger();
 

@@ -606,8 +606,14 @@ namespace CalculateFunding.Services.Results
                     () => _resultsRepository.CheckHasNewResultsForSpecificationIdAndTime(specificationId,
                         lastModified.GetValueOrDefault()));
             }
+            else
+            {
+                // only queue the csv report job if there are calculation results for the specification
+                hasNewResults = await _resultsRepositoryPolicy.ExecuteAsync(
+                    () => _resultsRepository.ProviderHasResultsBySpecificationId(specificationId));
+            }
 
-            if (!hasNewResults && blobExists)
+            if (!hasNewResults)
             {
                 _logger.Information(
                     $"No new calculation results for specification id '{specificationId}'. Not queueing report job");
