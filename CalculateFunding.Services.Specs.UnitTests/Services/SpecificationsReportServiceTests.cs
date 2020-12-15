@@ -158,20 +158,10 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Should()
                 .NotBeNull();
 
-            if (string.IsNullOrWhiteSpace(targetFundingPeriodId))
-            {
-                reportMetadata
-                    .Count()
-                    .Should()
-                    .Be(2);
-            }
-            else
-            {
-                reportMetadata
-                    .Count()
-                    .Should()
-                    .Be(1);
-            }
+            reportMetadata
+                .Count()
+                .Should()
+                .Be(2);
 
             SpecificationReport metadata = reportMetadata
                 .ElementAt(0);

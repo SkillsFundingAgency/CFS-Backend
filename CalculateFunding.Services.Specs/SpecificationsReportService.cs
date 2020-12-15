@@ -110,7 +110,7 @@ namespace CalculateFunding.Services.Specs
                 
                 JobType jobType = metadataJobType.GetValueOrDefault();
 
-                if (!string.IsNullOrWhiteSpace(targetFundingPeriodId) && fundingPeriodId != targetFundingPeriodId)
+                if (!string.IsNullOrWhiteSpace(targetFundingPeriodId) && !string.IsNullOrWhiteSpace(fundingPeriodId) && fundingPeriodId != targetFundingPeriodId)
                 {
                     return null;
                 }
