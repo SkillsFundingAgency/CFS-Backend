@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Models;
@@ -10,9 +9,7 @@ using CalculateFunding.Common.ApiClient.Profiling;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
-using CalculateFunding.Common.Extensions;
 using CalculateFunding.Common.Models;
-using CalculateFunding.Common.Sql.Interfaces;
 using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Common.TemplateMetadata.Enums;
 using CalculateFunding.Common.TemplateMetadata.Models;
@@ -63,7 +60,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             _sqlNames = sqlNames;
             _specificationResilience = resiliencePolicies.SpecificationsApiClient;
             _policiesResilience = resiliencePolicies.PoliciesApiClient;
-            
+
             //TODO; extract all of the different table builders so that this can more easily tested
             //at the moment it needs a god test with too much setup to make much sense to anyone
         }
@@ -71,7 +68,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
         public async Task ReCreateTablesForSpecificationAndFundingStream(string specificationId,
             string fundingStreamId)
         {
-            ApiResponse<SpecificationSummary> specificationResponse = await _specificationResilience.ExecuteAsync(() 
+            ApiResponse<SpecificationSummary> specificationResponse = await _specificationResilience.ExecuteAsync(()
                 => _specifications.GetSpecificationSummaryById(specificationId));
 
             SpecificationSummary specification = specificationResponse?.Content;
@@ -82,12 +79,12 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                     $"Did not locate a specification {specificationId}. Unable to complete Qa Schema Generation");
             }
 
-            await EnsureTablesForFundingStream(specification, fundingStreamId);    
+            await EnsureTablesForFundingStream(specification, fundingStreamId);
         }
 
         public async Task EnsureSqlTablesForSpecification(string specificationId)
         {
-            ApiResponse<SpecificationSummary> specificationResponse = await _specificationResilience.ExecuteAsync(() 
+            ApiResponse<SpecificationSummary> specificationResponse = await _specificationResilience.ExecuteAsync(()
                 => _specifications.GetSpecificationSummaryById(specificationId));
 
             SpecificationSummary specification = specificationResponse.Content;
@@ -103,7 +100,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                 await GenerateProfiling(fundingStreamId, specification.FundingPeriod.Id, templateMetadata);
 
             string fundingStreamTablePrefix = $"{fundingStreamId}_{specification.FundingPeriod.Id}";
-            
+
             DropForeignKeys(fundingStreamTablePrefix, "Funding", "Providers");
             DropForeignKeys(fundingStreamTablePrefix, "Funding", "InformationFundingLines");
             DropForeignKeys(fundingStreamTablePrefix, "Funding", "PaymentFundingLines");
@@ -151,7 +148,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             }
 
             Dictionary<string, IEnumerable<SqlColumnDefinition>> profiling = new Dictionary<string, IEnumerable<SqlColumnDefinition>>();
-            
+
             foreach (FundingLine fundingLine in templateMetadata.FundingLines.Where(f => f.Type == FundingLineType.Payment))
             {
                 IEnumerable<ProfilePeriodPattern> allPatterns = profilePatterns
@@ -278,7 +275,7 @@ REFERENCES [dbo].[{fundingStreamTablePrefix}_{fundingTableName}] ([PublishedProv
             return uniqueTemplateContents;
         }
 
-        private (IEnumerable<SqlColumnDefinition> informationFundingLineFields, 
+        private (IEnumerable<SqlColumnDefinition> informationFundingLineFields,
             IEnumerable<SqlColumnDefinition> paymentFundingLineFields,
                 IEnumerable<SqlColumnDefinition> calculationFields) GetUniqueFundingLinesAndCalculationsForFundingStream(
                 UniqueTemplateContents templateContents)
@@ -384,13 +381,13 @@ REFERENCES [dbo].[{fundingStreamTablePrefix}_{fundingTableName}] ([PublishedProv
                 {
                     Name = "URN",
                     Type = "[varchar](32)",
-                    AllowNulls = false
+                    AllowNulls = true
                 },
                 new SqlColumnDefinition
                 {
                     Name = "Authority",
                     Type = "[nvarchar](256)",
-                    AllowNulls = false
+                    AllowNulls = true
                 },
                 new SqlColumnDefinition
                 {
@@ -420,7 +417,7 @@ REFERENCES [dbo].[{fundingStreamTablePrefix}_{fundingTableName}] ([PublishedProv
                 {
                     Name = "LaCode",
                     Type = "[varchar](32)",
-                    AllowNulls = false
+                    AllowNulls = true
                 },
                 new SqlColumnDefinition
                 {
@@ -495,9 +492,9 @@ REFERENCES [dbo].[{fundingStreamTablePrefix}_{fundingTableName}] ([PublishedProv
         {
             return valueFormat switch
             {
-                var format when format == CalculationValueFormat.Currency || 
-                                format == CalculationValueFormat.Number || 
-                                format == CalculationValueFormat.Percentage 
+                var format when format == CalculationValueFormat.Currency ||
+                                format == CalculationValueFormat.Number ||
+                                format == CalculationValueFormat.Percentage
                     => "[decimal](18, 0)",
                 CalculationValueFormat.Boolean => "[bit]",
                 CalculationValueFormat.String => "[varchar](128)",
