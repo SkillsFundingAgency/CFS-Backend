@@ -22,6 +22,7 @@ using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Interfaces.Helpers;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.DataImporter;
@@ -36,6 +37,7 @@ using CalculateFunding.Services.Processing.Interfaces;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Results.Repositories;
 using FluentValidation;
+using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -195,7 +197,7 @@ namespace CalculateFunding.Functions.Datasets
                 .AddSingleton(dataSetsConfig.CreateMapper());
 
             builder.AddSingleton<IVersionRepository<ProviderSourceDatasetVersion>, VersionRepository<ProviderSourceDatasetVersion>>(ctx =>
-                new VersionRepository<ProviderSourceDatasetVersion>(CreateCosmosDbSettings(config, "providerdatasets")));
+                new VersionRepository<ProviderSourceDatasetVersion>(CreateCosmosDbSettings(config, "providerdatasets"), new NewVersionBuilderFactory<ProviderSourceDatasetVersion>()));
 
             builder.AddSingleton<IDatasetsAggregationsRepository, DatasetsAggregationsRepository>(ctx =>
                 new DatasetsAggregationsRepository(CreateCosmosDbSettings(config, "datasetaggregations")));
@@ -242,6 +244,37 @@ namespace CalculateFunding.Functions.Datasets
                     JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
 
+            });
+            
+            builder.AddSingleton<IVersionBulkRepository<ProviderSourceDatasetVersion>, VersionBulkRepository<ProviderSourceDatasetVersion>>((ctx) =>
+            {
+                CosmosDbSettings settings = new CosmosDbSettings();
+
+                config.Bind("CosmosDbSettings", settings);
+
+                settings.ContainerName = "providerdatasets";
+
+                CosmosRepository cosmos = new CosmosRepository(settings, new CosmosClientOptions
+                {
+                    AllowBulkExecution = true
+                });
+
+                return new VersionBulkRepository<ProviderSourceDatasetVersion>(cosmos, new NewVersionBuilderFactory<ProviderSourceDatasetVersion>());
+            });
+            builder.AddSingleton<IProviderSourceDatasetBulkRepository, ProviderSourceDatasetBulkRepository>((ctx) =>
+            {
+                CosmosDbSettings settings = new CosmosDbSettings();
+
+                config.Bind("CosmosDbSettings", settings);
+
+                settings.ContainerName = "providerdatasets";
+
+                CosmosRepository cosmos = new CosmosRepository(settings, new CosmosClientOptions
+                {
+                    AllowBulkExecution = true
+                });
+
+                return new ProviderSourceDatasetBulkRepository(cosmos);
             });
 
             return builder.BuildServiceProvider();

@@ -12,7 +12,9 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
 {
     public class TemplateVersionRepository : VersionRepository<TemplateVersion>, ITemplateVersionRepository
     {
-        public TemplateVersionRepository(ICosmosRepository cosmosRepository) : base(cosmosRepository)
+        public TemplateVersionRepository(ICosmosRepository cosmosRepository, 
+            INewVersionBuilderFactory<TemplateVersion> newVersionBuilderFactory) 
+            : base(cosmosRepository, newVersionBuilderFactory)
         {
         }
 
@@ -20,7 +22,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
         {
             Guard.IsNullOrWhiteSpace(templateId, nameof(templateId));
 
-            IEnumerable<TemplateVersion> templateMatches = await _cosmosRepository.Query<TemplateVersion>(x =>
+            IEnumerable<TemplateVersion> templateMatches = await CosmosRepository.Query<TemplateVersion>(x =>
                 x.Content.TemplateId == templateId && x.Content.Version == versionNumber);
 
             if (templateMatches == null || !templateMatches.Any())
@@ -44,11 +46,11 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             List<TemplateStatus> templateStatuses = statuses.ToList();
             if (templateStatuses.Any())
             {
-                return await _cosmosRepository.Query<TemplateVersion>(x =>
+                return await CosmosRepository.Query<TemplateVersion>(x =>
                     x.Content.TemplateId == templateId && templateStatuses.Contains(x.Content.Status));
             }
 
-            IEnumerable<TemplateVersion> versions = await _cosmosRepository.Query<TemplateVersion>(x =>
+            IEnumerable<TemplateVersion> versions = await CosmosRepository.Query<TemplateVersion>(x =>
                 x.Content.TemplateId == templateId);
 
             return versions;
@@ -62,13 +64,13 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             query.Statuses ??= new List<TemplateStatus>();
             if (query.Statuses.Any())
             {
-                return await _cosmosRepository.Query<TemplateVersion>(x =>
+                return await CosmosRepository.Query<TemplateVersion>(x =>
                     x.Content.FundingStreamId == query.FundingStreamId 
                     && x.Content.FundingPeriodId == query.FundingPeriodId 
                     && query.Statuses.Contains(x.Content.Status));
             }
 
-            return await _cosmosRepository.Query<TemplateVersion>(x =>
+            return await CosmosRepository.Query<TemplateVersion>(x =>
                 x.Content.FundingStreamId == query.FundingStreamId 
                 && x.Content.FundingPeriodId == query.FundingPeriodId);
         }

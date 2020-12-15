@@ -47,6 +47,7 @@ using IBlobClient = CalculateFunding.Common.Storage.IBlobClient;
 using LocalBlobClient = CalculateFunding.Services.Core.AzureStorage.BlobClient;
 using LocalIBlobClient = CalculateFunding.Services.Core.Interfaces.AzureStorage.IBlobClient;
 using ServiceCollectionExtensions = CalculateFunding.Services.Core.Extensions.ServiceCollectionExtensions;
+using SpecificationVersion = CalculateFunding.Models.Specs.SpecificationVersion;
 
 namespace CalculateFunding.Api.Specs
 {
@@ -198,7 +199,7 @@ namespace CalculateFunding.Api.Specs
 
                 CosmosRepository resultsRepostory = new CosmosRepository(specsVersioningDbSettings);
 
-                return new VersionRepository<Models.Specs.SpecificationVersion>(resultsRepostory);
+                return new VersionRepository<Models.Specs.SpecificationVersion>(resultsRepostory, new NewVersionBuilderFactory<SpecificationVersion>());
             });
 
             MapperConfiguration mappingConfig = new MapperConfiguration(

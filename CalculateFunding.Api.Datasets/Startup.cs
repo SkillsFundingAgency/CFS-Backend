@@ -14,6 +14,7 @@ using CalculateFunding.Common.WebApi.Http;
 using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
+using CalculateFunding.Models.Publishing;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.AspNet.Extensions;
 using CalculateFunding.Services.Core.AspNet.HealthChecks;
@@ -24,6 +25,7 @@ using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Interfaces.Helpers;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.DataImporter;
@@ -39,6 +41,7 @@ using CalculateFunding.Services.Results.Repositories;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -191,7 +194,7 @@ namespace CalculateFunding.Api.Datasets
                 new DatasetsAggregationsRepository(CreateCosmosDbSettings("datasetaggregations")));
 
             builder.AddSingleton<IVersionRepository<ProviderSourceDatasetVersion>, VersionRepository<ProviderSourceDatasetVersion>>(ctx =>
-                new VersionRepository<ProviderSourceDatasetVersion>(CreateCosmosDbSettings("providerdatasets")));
+                new VersionRepository<ProviderSourceDatasetVersion>(CreateCosmosDbSettings("providerdatasets"), new NewVersionBuilderFactory<ProviderSourceDatasetVersion>()));
 
             builder.AddSingleton<IDatasetRepository, DataSetsRepository>(ctx =>
                 new DataSetsRepository(CreateCosmosDbSettings("datasets")));
@@ -285,6 +288,37 @@ namespace CalculateFunding.Api.Datasets
             {
                 builder.ConfigureSwaggerServices(title: "Datasets Microservice API");
             }
+            
+            builder.AddSingleton<IVersionBulkRepository<ProviderSourceDatasetVersion>, VersionBulkRepository<ProviderSourceDatasetVersion>>((ctx) =>
+            {
+                CosmosDbSettings settings = new CosmosDbSettings();
+
+                Configuration.Bind("CosmosDbSettings", settings);
+
+                settings.ContainerName = "providerdatasets";
+
+                CosmosRepository cosmos = new CosmosRepository(settings, new CosmosClientOptions
+                {
+                    AllowBulkExecution = true
+                });
+
+                return new VersionBulkRepository<ProviderSourceDatasetVersion>(cosmos, new NewVersionBuilderFactory<ProviderSourceDatasetVersion>());
+            });
+            builder.AddSingleton<IProviderSourceDatasetBulkRepository, ProviderSourceDatasetBulkRepository>((ctx) =>
+            {
+                CosmosDbSettings settings = new CosmosDbSettings();
+
+                Configuration.Bind("CosmosDbSettings", settings);
+
+                settings.ContainerName = "providerdatasets";
+
+                CosmosRepository cosmos = new CosmosRepository(settings, new CosmosClientOptions
+                {
+                    AllowBulkExecution = true
+                });
+
+                return new ProviderSourceDatasetBulkRepository(cosmos);
+            });
         }
 
         private CosmosRepository CreateCosmosDbSettings(string containerName)

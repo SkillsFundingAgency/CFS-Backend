@@ -3,6 +3,7 @@ using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using System;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
@@ -27,5 +28,13 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
             return newVersion;
         }
+
+        public Task<PublishedProviderVersion> CreateVersion(PublishedProviderVersion newVersion,
+            PublishedProviderVersion currentVersion = null,
+            string partitionKey = null,
+            bool incrementFromCurrentVersion = false) =>
+            throw new NotImplementedException();
+
+        public Task<HttpStatusCode> SaveVersion(PublishedProviderVersion newVersion) => throw new NotImplementedException();
     }
 }

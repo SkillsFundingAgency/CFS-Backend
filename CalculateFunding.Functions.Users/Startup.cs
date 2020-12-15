@@ -91,7 +91,7 @@ namespace CalculateFunding.Functions.Users
 
                 CosmosRepository versioningRepository = new CosmosRepository(versioningDbSettings);
 
-                return new VersionRepository<FundingStreamPermissionVersion>(versioningRepository);
+                return new VersionRepository<FundingStreamPermissionVersion>(versioningRepository, new NewVersionBuilderFactory<FundingStreamPermissionVersion>());
             });
 
             builder.AddPolicySettings(config);

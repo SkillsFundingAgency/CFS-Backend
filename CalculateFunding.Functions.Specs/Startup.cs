@@ -40,6 +40,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
 using Serilog;
 using ServiceCollectionExtensions = CalculateFunding.Services.Core.Extensions.ServiceCollectionExtensions;
+using SpecificationVersion = CalculateFunding.Models.Specs.SpecificationVersion;
 
 [assembly: FunctionsStartup(typeof(CalculateFunding.Functions.Specs.Startup))]
 
@@ -138,9 +139,9 @@ namespace CalculateFunding.Functions.Specs
 
                 specsVersioningDbSettings.ContainerName = "specs";
 
-                CosmosRepository resultsRepostory = new CosmosRepository(specsVersioningDbSettings);
+                CosmosRepository cosmosRepository = new CosmosRepository(specsVersioningDbSettings);
 
-                return new VersionRepository<Models.Specs.SpecificationVersion>(resultsRepostory);
+                return new VersionRepository<Models.Specs.SpecificationVersion>(cosmosRepository, new NewVersionBuilderFactory<SpecificationVersion>());
             });
 
             builder

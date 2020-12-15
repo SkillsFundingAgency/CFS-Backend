@@ -17,7 +17,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         public PublishedFundingVersionInMemoryRepository(InMemoryCosmosRepository cosmosRepository)
         {
             _cosmosRepository = cosmosRepository;
-            _realImplementation = new VersionRepository<PublishedFundingVersion>(_cosmosRepository);
+            _realImplementation = new VersionRepository<PublishedFundingVersion>(_cosmosRepository, new NewVersionBuilderFactory<PublishedFundingVersion>());
         }
 
         public Task<PublishedFundingVersion> CreateVersion(PublishedFundingVersion newVersion, PublishedFundingVersion currentVersion = null, string partitionKey = null, bool incrementFromCurrentVersion = false)

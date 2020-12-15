@@ -256,7 +256,7 @@ namespace CalculateFunding.Api.Publishing
 
                 CosmosRepository cosmos = new CosmosRepository(settings);
 
-                return new VersionRepository<PublishedProviderVersion>(cosmos);
+                return new VersionRepository<PublishedProviderVersion>(cosmos, new NewVersionBuilderFactory<PublishedProviderVersion>());
             });
             builder.AddSingleton<IVersionBulkRepository<PublishedProviderVersion>, VersionBulkRepository<PublishedProviderVersion>>((ctx) =>
             {
@@ -268,7 +268,7 @@ namespace CalculateFunding.Api.Publishing
 
                 CosmosRepository cosmos = new CosmosRepository(settings);
 
-                return new VersionBulkRepository<PublishedProviderVersion>(cosmos);
+                return new VersionBulkRepository<PublishedProviderVersion>(cosmos, new NewVersionBuilderFactory<PublishedProviderVersion>());
             });
             builder
                 .AddSingleton<IPublishedProviderStatusUpdateSettings>(_ =>

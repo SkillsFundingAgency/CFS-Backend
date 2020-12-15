@@ -22,7 +22,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             _cosmosRepository = cosmosRepository;
 
-            _realImplementation = new VersionRepository<PublishedProviderVersion>(_cosmosRepository);
+            _realImplementation = new VersionRepository<PublishedProviderVersion>(_cosmosRepository, new NewVersionBuilderFactory<PublishedProviderVersion>());
         }
 
         public Task<PublishedProviderVersion> CreateVersion(PublishedProviderVersion newVersion, PublishedProviderVersion currentVersion = null, string partitionKey = null, bool incrementFromCurrentVersion = false)

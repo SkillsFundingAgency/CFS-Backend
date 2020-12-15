@@ -40,7 +40,7 @@ namespace CalculateFunding.Services.Datasets.Services
         
         public ProviderSourceDataset Build()
         {
-            return new ProviderSourceDataset
+            return new ProviderSourceDataset()
             {
                 ProviderId = _providerId ?? NewRandomString(),
                 SpecificationId = _specificationId ?? NewRandomString(),

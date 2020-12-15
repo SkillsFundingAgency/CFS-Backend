@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.WebSockets;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Jobs;
@@ -13,9 +14,12 @@ using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Interfaces.Logging;
+using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.Datasets.Interfaces;
 using CalculateFunding.Services.Datasets.MappingProfiles;
+using Moq;
 using NSubstitute;
 using Polly.NoOp;
 using Serilog;
@@ -45,13 +49,14 @@ namespace CalculateFunding.Services.Datasets.Services
             IProviderSourceDatasetsRepository providerResultsRepository = null,
             ITelemetry telemetry = null,
             IDatasetsResiliencePolicies datasetsResiliencePolicies = null,
-            IVersionRepository<ProviderSourceDatasetVersion> versionRepository = null,
             IDatasetsAggregationsRepository datasetsAggregationsRepository = null,
             IFeatureToggle featureToggle = null,
             IMapper mapper = null,
             IJobManagement jobManagement = null,
             IProviderSourceDatasetVersionKeyProvider versionKeyProvider = null,
-            IJobsApiClient jobsApiClient = null)
+            IJobsApiClient jobsApiClient = null,
+            IVersionBulkRepository<ProviderSourceDatasetVersion> versionBulkRepository = null,
+            IProviderSourceDatasetBulkRepository providerSourceDatasetBulkRepository = null)
         {
 
             return new ProcessDatasetService(
@@ -64,16 +69,15 @@ namespace CalculateFunding.Services.Datasets.Services
                 providerResultsRepository ?? CreateProviderResultsRepository(),
                 providersApiClient ?? CreateProvidersApiClient(),
                 specificationsApiClient ?? CreateSpecificationsApiClient(),
-                versionRepository ?? CreateVersionRepository(),
                 logger ?? CreateLogger(),
-                telemetry ?? CreateTelemetry(),
                 datasetsResiliencePolicies ?? DatasetsResilienceTestHelper.GenerateTestPolicies(),
                 datasetsAggregationsRepository ?? CreateDatasetsAggregationsRepository(),
                 featureToggle ?? CreateFeatureToggle(),
                 mapper ?? CreateMapper(),
                 jobManagement ?? CreateJobManagement(),
-                versionKeyProvider ?? CreateDatasetVersionKeyProvider()
-                );
+                versionKeyProvider ?? CreateDatasetVersionKeyProvider(),
+                versionBulkRepository ?? new Mock<IVersionBulkRepository<ProviderSourceDatasetVersion>>().Object,
+                providerSourceDatasetBulkRepository ?? new Mock<IProviderSourceDatasetBulkRepository>().Object);
         }
 
         protected static IProviderSourceDatasetVersionKeyProvider CreateDatasetVersionKeyProvider()

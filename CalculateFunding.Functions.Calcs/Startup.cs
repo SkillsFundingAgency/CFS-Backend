@@ -204,7 +204,7 @@ namespace CalculateFunding.Functions.Calcs
 
                 CosmosRepository resultsRepostory = new CosmosRepository(calcsVersioningDbSettings);
 
-                return new VersionRepository<CalculationVersion>(resultsRepostory);
+                return new VersionRepository<CalculationVersion>(resultsRepostory, new NewVersionBuilderFactory<CalculationVersion>());
             });
 
             builder.AddFeatureToggling(config);

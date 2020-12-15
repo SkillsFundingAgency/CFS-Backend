@@ -4,10 +4,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
-using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Providers;
@@ -23,7 +21,6 @@ using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
-using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Models.Messages;
 using CalculateFunding.Models.ProviderLegacy;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
@@ -34,9 +31,8 @@ using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
-using CalculateFunding.Services.Core.Interfaces.Logging;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.Datasets.Interfaces;
 using CalculateFunding.Services.Processing;
@@ -65,9 +61,9 @@ namespace CalculateFunding.Services.Datasets
         private readonly IProviderSourceDatasetsRepository _providersResultsRepository;
         private readonly IProvidersApiClient _providersApiClient;
         private readonly ISpecificationsApiClient _specsApiClient;
-        private readonly IVersionRepository<ProviderSourceDatasetVersion> _sourceDatasetsVersionRepository;
+        private readonly IVersionBulkRepository<ProviderSourceDatasetVersion> _bulkSourceDatasetsVersionRepository;
+        private readonly IProviderSourceDatasetBulkRepository _bulkProviderSourceDatasetRepository;
         private readonly ILogger _logger;
-        private readonly ITelemetry _telemetry;
         private readonly AsyncPolicy _providerResultsRepositoryPolicy;
         private readonly IDatasetsAggregationsRepository _datasetsAggregationsRepository;
         private readonly AsyncPolicy _providersApiClientPolicy;
@@ -86,16 +82,15 @@ namespace CalculateFunding.Services.Datasets
             IProviderSourceDatasetsRepository providersResultsRepository,
             IProvidersApiClient providersApiClient,
             ISpecificationsApiClient specificationsApiClient,
-            IVersionRepository<ProviderSourceDatasetVersion> sourceDatasetsVersionRepository,
             ILogger logger,
-            ITelemetry telemetry,
             IDatasetsResiliencePolicies datasetsResiliencePolicies,
             IDatasetsAggregationsRepository datasetsAggregationsRepository,
             IFeatureToggle featureToggle,
             IMapper mapper,
             IJobManagement jobManagement,
-            IProviderSourceDatasetVersionKeyProvider datasetVersionKeyProvider
-            ) : base(jobManagement, logger)
+            IProviderSourceDatasetVersionKeyProvider datasetVersionKeyProvider,
+            IVersionBulkRepository<ProviderSourceDatasetVersion> bulkSourceDatasetsVersionRepository,
+            IProviderSourceDatasetBulkRepository bulkProviderSourceDatasetRepository) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
             Guard.ArgumentNotNull(excelDatasetReader, nameof(excelDatasetReader));
@@ -106,7 +101,6 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(providersApiClient, nameof(providersApiClient));
             Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(telemetry, nameof(telemetry));
             Guard.ArgumentNotNull(datasetsAggregationsRepository, nameof(datasetsAggregationsRepository));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
@@ -115,6 +109,8 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(datasetVersionKeyProvider, nameof(datasetVersionKeyProvider));
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(datasetsResiliencePolicies?.JobsApiClient, nameof(datasetsResiliencePolicies.JobsApiClient));
+            Guard.ArgumentNotNull(bulkSourceDatasetsVersionRepository, nameof(bulkSourceDatasetsVersionRepository));
+            Guard.ArgumentNotNull(bulkProviderSourceDatasetRepository, nameof(bulkProviderSourceDatasetRepository));
 
             _datasetRepository = datasetRepository;
             _excelDatasetReader = excelDatasetReader;
@@ -124,9 +120,7 @@ namespace CalculateFunding.Services.Datasets
             _providersResultsRepository = providersResultsRepository;
             _providersApiClient = providersApiClient;
             _specsApiClient = specificationsApiClient;
-            _sourceDatasetsVersionRepository = sourceDatasetsVersionRepository;
             _logger = logger;
-            _telemetry = telemetry;
             _providerResultsRepositoryPolicy = datasetsResiliencePolicies.ProviderResultsRepository;
             _datasetsAggregationsRepository = datasetsAggregationsRepository;
             _providersApiClientPolicy = datasetsResiliencePolicies.ProvidersApiClient;
@@ -134,7 +128,9 @@ namespace CalculateFunding.Services.Datasets
             _messengerService = messengerService;
             _mapper = mapper;
             _jobManagement = jobManagement;
-            _datasetVersionKeyProvider = datasetVersionKeyProvider;           
+            _datasetVersionKeyProvider = datasetVersionKeyProvider;
+            _bulkSourceDatasetsVersionRepository = bulkSourceDatasetsVersionRepository;
+            _bulkProviderSourceDatasetRepository = bulkProviderSourceDatasetRepository;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -372,7 +368,7 @@ namespace CalculateFunding.Services.Datasets
         }
 
         public async Task MapFdzDatasets(Message message)
-         {
+        {
             Guard.ArgumentNotNull(message, nameof(message));
             
             string specificationId = message.GetUserProperty<string>("specification-id");
@@ -389,7 +385,8 @@ namespace CalculateFunding.Services.Datasets
                     throw new NonRetriableException("Failed to Process - specification id not provided");
                 }
 
-                IEnumerable<DefinitionSpecificationRelationship> relationships = await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(r => r.Content.Specification.Id == specificationId);
+                IEnumerable<DefinitionSpecificationRelationship> relationships = await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(r 
+                    => r.Content.Specification.Id == specificationId);
 
                 Dictionary<string, Dataset> datasets = new Dictionary<string, Dataset>();
 
@@ -520,7 +517,8 @@ namespace CalculateFunding.Services.Datasets
         {
             string dataDefinitionId = dataset.Definition.Id;
 
-            DatasetVersion datasetVersion = dataset.History.Where(v => v.Version == version).SingleOrDefault();
+            DatasetVersion datasetVersion = dataset.History.SingleOrDefault(v => v.Version == version);
+            
             if (datasetVersion == null)
             {
                 _logger.Error("Dataset version not found for dataset '{name}' ({id}) version '{version}'", dataset.Id, dataset.Name, version);
@@ -530,7 +528,7 @@ namespace CalculateFunding.Services.Datasets
             string fullBlobName = datasetVersion.BlobName;
 
             DatasetDefinition datasetDefinition =
-                    (await _datasetRepository.GetDatasetDefinitionsByQuery(m => m.Id == dataDefinitionId))?.FirstOrDefault();
+                (await _datasetRepository.GetDatasetDefinitionsByQuery(m => m.Id == dataDefinitionId))?.FirstOrDefault();
 
             if (datasetDefinition == null)
             {
@@ -573,9 +571,9 @@ namespace CalculateFunding.Services.Datasets
 
         private async Task<TableLoadResult> GetTableResult(string fullBlobName, DatasetDefinition datasetDefinition)
         {
-            string dataset_cache_key = $"{CacheKeys.DatasetRows}:{datasetDefinition.Id}:{GetBlobNameCacheKey(fullBlobName)}".ToLowerInvariant();
+            string datasetCacheKey = $"{CacheKeys.DatasetRows}:{datasetDefinition.Id}:{GetBlobNameCacheKey(fullBlobName)}".ToLowerInvariant();
 
-            IEnumerable<TableLoadResult> tableLoadResults = await _cacheProvider.GetAsync<TableLoadResult[]>(dataset_cache_key);
+            IEnumerable<TableLoadResult> tableLoadResults = await _cacheProvider.GetAsync<TableLoadResult[]>(datasetCacheKey);
 
             if (tableLoadResults.IsNullOrEmpty())
             {
@@ -587,7 +585,7 @@ namespace CalculateFunding.Services.Datasets
                     throw new NonRetriableException($"Failed to find blob with path: {fullBlobName}");
                 }
 
-                using (Stream datasetStream = await _blobClient.DownloadToStreamAsync(blob))
+                await using (Stream datasetStream = await _blobClient.DownloadToStreamAsync(blob))
                 {
                     if (datasetStream == null || datasetStream.Length == 0)
                     {
@@ -598,7 +596,7 @@ namespace CalculateFunding.Services.Datasets
                     tableLoadResults = _excelDatasetReader.Read(datasetStream, datasetDefinition).ToList();
                 }
 
-                await _cacheProvider.SetAsync(dataset_cache_key, tableLoadResults.ToArraySafe(), TimeSpan.FromDays(7), true);
+                await _cacheProvider.SetAsync(datasetCacheKey, tableLoadResults.ToArraySafe(), TimeSpan.FromDays(7), true);
             }
 
             return tableLoadResults.FirstOrDefault();
@@ -616,8 +614,6 @@ namespace CalculateFunding.Services.Datasets
             string correlationId)
         {
             Guard.IsNullOrWhiteSpace(relationshipId, nameof(relationshipId));
-
-            IList<ProviderSourceDataset> providerSourceDatasets = new List<ProviderSourceDataset>();
 
             if (buildProject.DatasetRelationships == null)
             {
@@ -732,35 +728,31 @@ namespace CalculateFunding.Services.Datasets
             });
 
             ConcurrentBag<ProviderSourceDatasetVersion> historyToSave = new ConcurrentBag<ProviderSourceDatasetVersion>();
+            
+            Task[] createVersionTasks = new Task[resultsByProviderId.Count];
 
-            List<Task> historySaveTasks = new List<Task>(resultsByProviderId.Count);
-
-            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 15);
-            foreach (KeyValuePair<string, ProviderSourceDataset> providerSourceDataset in resultsByProviderId)
+            for (int resultByProviderId = 0; resultByProviderId < resultsByProviderId.Count; resultByProviderId++)
             {
-                await throttler.WaitAsync();
-                historySaveTasks.Add(
-                    Task.Run(async () =>
-                    {
-                        try
-                        {
-                            string providerId = providerSourceDataset.Key;
-                            ProviderSourceDataset sourceDataset = providerSourceDataset.Value;
+                KeyValuePair<string, ProviderSourceDataset> providerSourceDataset = resultsByProviderId.ElementAt(resultByProviderId);
 
-                            ProviderSourceDatasetVersion newVersion = null;
+                createVersionTasks[resultByProviderId] = Task.Run(async () =>
+                {
+                    string providerId = providerSourceDataset.Key;
+                            ProviderSourceDataset sourceDataset = providerSourceDataset.Value;
 
                             if (existingCurrent.ContainsKey(providerId))
                             {
-                                newVersion = existingCurrent[providerId].Current.Clone() as ProviderSourceDatasetVersion;
+                                ProviderSourceDatasetVersion newVersion = (ProviderSourceDatasetVersion)existingCurrent[providerId].Current.Clone();
 
                                 string existingDatasetJson = JsonConvert.SerializeObject(existingCurrent[providerId].Current.Rows);
                                 string latestDatasetJson = JsonConvert.SerializeObject(sourceDataset.Current.Rows);
 
                                 if (existingDatasetJson != latestDatasetJson)
                                 {
-                                    newVersion = await _providerResultsRepositoryPolicy.ExecuteAsync(() =>
-                                            _sourceDatasetsVersionRepository.CreateVersion(newVersion, existingCurrent[providerId].Current, providerId));
-
+                                     newVersion = await _bulkSourceDatasetsVersionRepository.CreateVersion(newVersion,
+                                        existingCurrent[providerId].Current,
+                                        providerId);
+                                    
                                     newVersion.Author = user;
                                     newVersion.Rows = sourceDataset.Current.Rows;
 
@@ -771,40 +763,31 @@ namespace CalculateFunding.Services.Datasets
                                     historyToSave.Add(newVersion);
                                 }
 
-                                existingCurrent.TryRemove(providerId, out ProviderSourceDataset existingProviderSourceDataset);
+                                existingCurrent.TryRemove(providerId, out ProviderSourceDataset _);
                             }
                             else
                             {
-                                newVersion = sourceDataset.Current;
-
                                 updateCurrentDatasets.TryAdd(providerId, sourceDataset);
 
-                                historyToSave.Add(newVersion);
+                                historyToSave.Add(sourceDataset.Current);
                             }
-                        }
-                        finally
-                        {
-                            throttler.Release();
-                        }
-                    }));
+                });
             }
 
-            await TaskHelper.WhenAllAndThrow(historySaveTasks.ToArray());
+            await TaskHelper.WhenAllAndThrow(createVersionTasks);
 
             if (updateCurrentDatasets.Count > 0)
             {
                 _logger.Information($"Saving {updateCurrentDatasets.Count()} updated source datasets");
 
-                await _providerResultsRepositoryPolicy.ExecuteAsync(() =>
-                _providersResultsRepository.UpdateCurrentProviderSourceDatasets(updateCurrentDatasets.Values));
+                await _bulkProviderSourceDatasetRepository.UpdateCurrentProviderSourceDatasets(updateCurrentDatasets.Values);
             }
 
             if (_featureToggle.IsProviderResultsSpecificationCleanupEnabled() && existingCurrent.Any())
             {
                 _logger.Information($"Removing {existingCurrent.Count()} missing source datasets");
 
-                await _providerResultsRepositoryPolicy.ExecuteAsync(() =>
-                _providersResultsRepository.DeleteCurrentProviderSourceDatasets(existingCurrent.Values));
+                await _bulkProviderSourceDatasetRepository.DeleteCurrentProviderSourceDatasets(existingCurrent.Values);
 
                 foreach (IEnumerable<ProviderSourceDataset> providerSourceDataSets in existingCurrent.Values.Partition<ProviderSourceDataset>(1000))
                 {
@@ -815,9 +798,17 @@ namespace CalculateFunding.Services.Datasets
             if (historyToSave.Any())
             {
                 _logger.Information($"Saving {historyToSave.Count()} items to history");
+                
+                Task<HttpStatusCode>[] saveHistoryTasks = new Task<HttpStatusCode>[historyToSave.Count];
 
-                await _providerResultsRepositoryPolicy.ExecuteAsync(() =>
-                        _sourceDatasetsVersionRepository.SaveVersions(historyToSave));
+                for (int history = 0; history < historyToSave.Count; history++)
+                {
+                    int versionIndex = history;
+
+                    saveHistoryTasks[history] = Task.Run(() => _bulkSourceDatasetsVersionRepository.SaveVersion(historyToSave.ElementAt(versionIndex)));
+                }
+
+                await TaskHelper.WhenAllAndThrow(saveHistoryTasks);
             }
 
             Reference relationshipReference = new Reference(relationshipSummary.Relationship.Id, relationshipSummary.Relationship.Name);
@@ -839,9 +830,9 @@ namespace CalculateFunding.Services.Datasets
                 bool jobCompletedSuccessfully = await _jobManagement.QueueJobAndWait(async () =>
                     {
                         ApiResponse<bool> refreshCacheFromApi = await _providersApiClientPolicy.ExecuteAsync(() =>
-                                        _providersApiClient.RegenerateProviderSummariesForSpecification(specification.Id, forceRefreshScopedProviders));
+                            _providersApiClient.RegenerateProviderSummariesForSpecification(specification.Id, forceRefreshScopedProviders));
 
-                        if (!refreshCacheFromApi.StatusCode.IsSuccess() || refreshCacheFromApi?.Content == null)
+                        if (refreshCacheFromApi?.StatusCode.IsSuccess() == false)
                         {
                             string errorMessage = $"Unable to re-generate providers while updating dataset '{relationshipId}' for specification '{specification.Id}' with status code: {refreshCacheFromApi.StatusCode}";
 
@@ -850,8 +841,8 @@ namespace CalculateFunding.Services.Datasets
                             throw new NonRetriableException(errorMessage);
                         }
 
-                    // returns true if job queued
-                    return Convert.ToBoolean(refreshCacheFromApi?.Content);
+                        // returns true if job queued
+                        return refreshCacheFromApi.Content;
                     },
                     DefinitionNames.PopulateScopedProvidersJob,
                     specification.Id,

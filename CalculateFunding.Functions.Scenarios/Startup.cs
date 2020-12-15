@@ -108,9 +108,9 @@ namespace CalculateFunding.Functions.Scenarios
 
                 scenariosVersioningDbSettings.ContainerName = "tests";
 
-                CosmosRepository resultsRepostory = new CosmosRepository(scenariosVersioningDbSettings);
+                CosmosRepository cosmosRepository = new CosmosRepository(scenariosVersioningDbSettings);
 
-                return new VersionRepository<TestScenarioVersion>(resultsRepostory);
+                return new VersionRepository<TestScenarioVersion>(cosmosRepository, new NewVersionBuilderFactory<TestScenarioVersion>());
             });
 
             MapperConfiguration scenariosConfig = new MapperConfiguration(c =>

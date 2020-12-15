@@ -36,6 +36,7 @@ using CalculateFunding.Services.Policy.TemplateBuilder;
 using TemplateMetadataSchema10 = CalculateFunding.Common.TemplateMetadata.Schema10;
 using TemplateMetadataSchema11 = CalculateFunding.Common.TemplateMetadata.Schema11;
 using CalculateFunding.Services.Core.AspNet.Extensions;
+using CalculateFunding.Services.Core.Services;
 
 namespace CalculateFunding.Api.Policy
 {
@@ -262,7 +263,7 @@ namespace CalculateFunding.Api.Policy
                 .AddSingleton<AbstractValidator<Reference>, AuthorValidator>()
                 .AddSingleton<AbstractValidator<FindTemplateVersionQuery>, FindTemplateVersionQueryValidator>()
                 .AddSingleton<ITemplateRepository, TemplateRepository>(ctx => new TemplateRepository(cosmos))
-                .AddSingleton<ITemplateVersionRepository, TemplateVersionRepository>(ctx => new TemplateVersionRepository(cosmos))
+                .AddSingleton<ITemplateVersionRepository, TemplateVersionRepository>(ctx => new TemplateVersionRepository(cosmos, new NewVersionBuilderFactory<TemplateVersion>()))
                 .AddSingleton<ITemplateMetadataResolver>(ctx =>
                 {
                     TemplateMetadataResolver resolver = new TemplateMetadataResolver();

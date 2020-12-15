@@ -374,7 +374,7 @@ namespace CalculateFunding.Functions.Publishing
 
                 CosmosRepository resultsRepostory = new CosmosRepository(publishedProviderVersioningDbSettings);
 
-                return new VersionRepository<PublishedProviderVersion>(resultsRepostory);
+                return new VersionRepository<PublishedProviderVersion>(resultsRepostory, new NewVersionBuilderFactory<PublishedProviderVersion>());
             });
 
             builder.AddSingleton<IVersionBulkRepository<PublishedProviderVersion>, VersionBulkRepository<PublishedProviderVersion>>((ctx) =>
@@ -397,7 +397,7 @@ namespace CalculateFunding.Functions.Publishing
                     AllowBulkExecution = true
                 } : null);
 
-                return new VersionBulkRepository<PublishedProviderVersion>(cosmosRepository);
+                return new VersionBulkRepository<PublishedProviderVersion>(cosmosRepository, new NewVersionBuilderFactory<PublishedProviderVersion>());
             });
 
             builder.AddSingleton<IVersionRepository<PublishedFundingVersion>, VersionRepository<PublishedFundingVersion>>((ctx) =>
@@ -410,7 +410,7 @@ namespace CalculateFunding.Functions.Publishing
 
                 CosmosRepository cosmosRepository = new CosmosRepository(ProviderSourceDatasetVersioningDbSettings);
 
-                return new VersionRepository<PublishedFundingVersion>(cosmosRepository);
+                return new VersionRepository<PublishedFundingVersion>(cosmosRepository, new NewVersionBuilderFactory<PublishedFundingVersion>());
             });
 
             builder.AddSingleton<IVersionBulkRepository<PublishedFundingVersion>, VersionBulkRepository<PublishedFundingVersion>>((ctx) =>
@@ -433,7 +433,7 @@ namespace CalculateFunding.Functions.Publishing
                     AllowBulkExecution = true
                 } : null);
 
-                return new VersionBulkRepository<PublishedFundingVersion>(cosmosRepository);
+                return new VersionBulkRepository<PublishedFundingVersion>(cosmosRepository, new NewVersionBuilderFactory<PublishedFundingVersion>());
             });
 
 

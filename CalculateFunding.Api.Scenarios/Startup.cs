@@ -134,7 +134,7 @@ namespace CalculateFunding.Api.Scenarios
 
                 CosmosRepository resultsRepostory = new CosmosRepository(scenariosVersioningDbSettings);
 
-                return new VersionRepository<TestScenarioVersion>(resultsRepostory);
+                return new VersionRepository<TestScenarioVersion>(resultsRepostory, new NewVersionBuilderFactory<TestScenarioVersion>());
             });
 
             builder

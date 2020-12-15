@@ -26,7 +26,7 @@ namespace CalculateFunding.Services.Core.Services
 
             ICosmosRepository cosmosRepository = CreateCosmosRepository();
 
-            VersionRepository<TestVersionItem> versionRepository = new VersionRepository<TestVersionItem>(cosmosRepository);
+            VersionRepository<TestVersionItem> versionRepository = new VersionRepository<TestVersionItem>(cosmosRepository, new NewVersionBuilderFactory<TestVersionItem>());
 
             //Act
             await versionRepository.SaveVersion(testVersion);
@@ -49,7 +49,7 @@ namespace CalculateFunding.Services.Core.Services
 
             ICosmosRepository cosmosRepository = CreateCosmosRepository();
 
-            VersionRepository<TestVersionItem> versionRepository = new VersionRepository<TestVersionItem>(cosmosRepository);
+            VersionRepository<TestVersionItem> versionRepository = new VersionRepository<TestVersionItem>(cosmosRepository, new NewVersionBuilderFactory<TestVersionItem>());
 
             //Act
             newVersion = await versionRepository.CreateVersion(newVersion);
@@ -94,7 +94,7 @@ namespace CalculateFunding.Services.Core.Services
                 .Query<TestVersionItem>()
                 .Returns(versions);
 
-            VersionRepository<TestVersionItem> versionRepository = new VersionRepository<TestVersionItem>(cosmosRepository);
+            VersionRepository<TestVersionItem> versionRepository = new VersionRepository<TestVersionItem>(cosmosRepository, new NewVersionBuilderFactory<TestVersionItem>());
 
             //Act
             newVersion = await versionRepository.CreateVersion(newVersion, currentVersion);
@@ -141,7 +141,7 @@ namespace CalculateFunding.Services.Core.Services
                 .Query<TestVersionItem>()
                 .Returns(versions);
 
-            VersionRepository<TestVersionItem> versionRepository = new VersionRepository<TestVersionItem>(cosmosRepository);
+            VersionRepository<TestVersionItem> versionRepository = new VersionRepository<TestVersionItem>(cosmosRepository, new NewVersionBuilderFactory<TestVersionItem>());
 
             //Act
             newVersion = await versionRepository.CreateVersion(newVersion, currentVersion);
@@ -188,7 +188,7 @@ namespace CalculateFunding.Services.Core.Services
                 .DynamicQuery(Arg.Any<CosmosDbQuery>())
                 .Returns(maxNumber.AsQueryable());
 
-            VersionRepository<TestVersionItem> versionRepository = new VersionRepository<TestVersionItem>(cosmosRepository);
+            VersionRepository<TestVersionItem> versionRepository = new VersionRepository<TestVersionItem>(cosmosRepository, new NewVersionBuilderFactory<TestVersionItem>());
 
             //Act
             newVersion = await versionRepository.CreateVersion(newVersion, currentVersion);
