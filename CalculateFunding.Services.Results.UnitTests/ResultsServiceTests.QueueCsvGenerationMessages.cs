@@ -77,6 +77,11 @@ namespace CalculateFunding.Services.Results.UnitTests
                     Arg.Any<DateTimeOffset>())
                 .Returns(false);
 
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .DoesBlobExistAsync($"{CalculationResultsReportFilePrefix}-spec-1", CalcsResultsContainerName)
+                .Returns(true);
+
             ILogger logger = CreateLogger();
 
             IJobManagement jobManagement = CreateJobManagement();
@@ -85,7 +90,8 @@ namespace CalculateFunding.Services.Results.UnitTests
                 logger,
                 specificationsApiClient: specificationsApiClient,
                 resultsRepository: calculationResultsRepository,
-                jobManagement: jobManagement);
+                jobManagement: jobManagement,
+                blobClient: blobClient);
 
             //Act
             await resultsService.QueueCsvGenerationMessages();

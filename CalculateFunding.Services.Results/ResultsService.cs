@@ -607,7 +607,7 @@ namespace CalculateFunding.Services.Results
                         lastModified.GetValueOrDefault()));
             }
 
-            if (!hasNewResults)
+            if (!hasNewResults && blobExists)
             {
                 _logger.Information(
                     $"No new calculation results for specification id '{specificationId}'. Not queueing report job");
