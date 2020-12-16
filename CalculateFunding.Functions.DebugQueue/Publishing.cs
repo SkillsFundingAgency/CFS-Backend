@@ -54,6 +54,20 @@ namespace CalculateFunding.Functions.DebugQueue
             log.LogInformation($"C# Queue trigger function processed: {item}");
         }
         
+        [FunctionName("on-publishing-run-sql-import-failure")]
+        public static async Task RunSqlImportFailure([QueueTrigger(ServiceBusConstants.QueueNames.PublishingRunSqlImportPoisonedLocal, 
+            Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+            Message message = Helpers.ConvertToMessage<string>(item);
+
+            OnRunSqlImportFailureFailure function = scope.ServiceProvider.GetService<OnRunSqlImportFailureFailure>();
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
+        
         [FunctionName("on-published-funding-undo")]
         public static async Task RunUndoPublishedFunding([QueueTrigger(ServiceBusConstants.QueueNames.PublishedFundingUndo, 
             Connection = "AzureConnectionString")] string item, ILogger log)
