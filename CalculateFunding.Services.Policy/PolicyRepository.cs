@@ -115,7 +115,7 @@ namespace CalculateFunding.Services.Policy
         {
             Guard.IsNullOrWhiteSpace(fundingDateId, nameof(fundingDateId));
 
-            return (await _cosmosRepository.ReadDocumentByIdPartitionedAsync<FundingDate>(fundingDateId, fundingDateId))?.Content;
+            return (await _cosmosRepository.TryReadDocumentByIdPartitionedAsync<FundingDate>(fundingDateId, fundingDateId))?.Content;
         }
 
         public async Task<HttpStatusCode> SaveFundingDate(FundingDate fundingDate)
