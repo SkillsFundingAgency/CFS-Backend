@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Common.ApiClient.Calcs.Models;
@@ -167,7 +166,7 @@ namespace CalculateFunding.Generators.Schema11
             otherIdentifiers.AddIfIdentifierHasValue(provider.UPIN,
                 nameof(provider.UPIN));
             otherIdentifiers.AddIfIdentifierHasValue(provider.DfeEstablishmentNumber,
-                nameof(provider.DfeEstablishmentNumber));
+                "DfeNumber"); // NOTE: the CFS provider property name is not the same as the funding data model
 
             return otherIdentifiers;
         }
@@ -199,7 +198,7 @@ namespace CalculateFunding.Generators.Schema11
 
             if (publishedFundingCalculation == null)
             {
-                return null;    
+                return null;
             }
 
             ICalculationMapper mapper = templateCalculation.AggregationType switch
@@ -292,7 +291,7 @@ namespace CalculateFunding.Generators.Schema11
         }
 
         private static bool IsAggregationOrHasChildCalculations(Calculation fundingCalculation) =>
-            fundingCalculation.AggregationType != (AggregationType) None
+            fundingCalculation.AggregationType != (AggregationType)None
             || fundingCalculation.Calculations?.Any() == true;
     }
 }

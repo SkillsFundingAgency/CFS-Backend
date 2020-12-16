@@ -13,6 +13,10 @@
       {
         "type": "UKPRN",
         "value": "188396"
+      },
+      {
+        "type": "DfeNumber",
+        "value": "DFE establishment number"
       }
     ],
     "providerVersionId": null,

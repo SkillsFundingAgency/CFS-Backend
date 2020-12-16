@@ -1224,7 +1224,7 @@
 		"ukprn": "188396",
 		"upin": null,
 		"establishmentNumber": null,
-		"dfeEstablishmentNumber": null,
+		"dfeEstablishmentNumber": "DFE establishment number",
 		"authority": "London",
 		"providerType": null,
 		"providerSubType": null,
