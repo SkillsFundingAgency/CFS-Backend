@@ -97,13 +97,13 @@ namespace CalculateFunding.Services.Publishing.Interfaces
 
         Task<IEnumerable<string>> GetPublishedProviderFundingLines(string specificationId, GroupingReason fundingLineType);
 
-        Task<IEnumerable<PublishedFundingIndex>> QueryPublishedFunding(
-            IEnumerable<string> fundingStreamIds,
+        Task<IEnumerable<PublishedFundingIndex>> QueryPublishedFunding(IEnumerable<string> fundingStreamIds,
             IEnumerable<string> fundingPeriodIds,
             IEnumerable<string> groupingReasons,
             IEnumerable<string> variationReasons,
             int top,
-            int? pageRef);
+            int? pageRef,
+            int totalCount);
 
         Task<int> QueryPublishedFundingCount(IEnumerable<string> fundingStreamIds,
             IEnumerable<string> fundingPeriodIds,

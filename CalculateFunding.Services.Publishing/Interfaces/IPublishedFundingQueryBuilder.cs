@@ -5,13 +5,13 @@ namespace CalculateFunding.Services.Publishing.Interfaces
 {
     public interface IPublishedFundingQueryBuilder
     {
-        CosmosDbQuery BuildQuery(
-            IEnumerable<string> fundingStreamIds,
+        CosmosDbQuery BuildQuery(IEnumerable<string> fundingStreamIds,
             IEnumerable<string> fundingPeriodIds,
             IEnumerable<string> groupingReasons,
             IEnumerable<string> variationReasons,
             int top,
-            int? pageRef);
+            int? pageRef,
+            int totalCount);
 
         CosmosDbQuery BuildCountQuery(IEnumerable<string> fundingStreamIds,
             IEnumerable<string> fundingPeriodIds,

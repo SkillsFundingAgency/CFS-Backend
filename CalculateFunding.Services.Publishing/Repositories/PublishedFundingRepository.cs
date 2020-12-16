@@ -1355,14 +1355,16 @@ namespace CalculateFunding.Services.Publishing.Repositories
             IEnumerable<string> groupingReasons,
             IEnumerable<string> variationReasons,
             int top,
-            int? pageRef)
+            int? pageRef,
+            int totalCount)
         {
             CosmosDbQuery query = _publishedFundingQueryBuilder.BuildQuery(fundingStreamIds,
                 fundingPeriodIds,
                 groupingReasons,
                 variationReasons,
                 top,
-                pageRef);
+                pageRef,
+                totalCount);
 
             return (await _repository.DynamicQuery(query))
                 .Select(_ => new PublishedFundingIndex

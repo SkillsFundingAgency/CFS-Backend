@@ -59,7 +59,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             int totalCount = 257;
             int top = 50;
-            int expectedLastPage = 6;
 
             IEnumerable<PublishedFundingIndex> sourceResults = NewResults(
                 NewPublishedFundingIndex(), 
@@ -67,7 +66,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 NewPublishedFundingIndex());
             
             GivenTheTotalCount(totalCount);
-            AndTheFundingFeedResults(top, expectedLastPage, sourceResults);
+            AndTheFundingFeedResults(top, null,  totalCount, sourceResults);
 
             SearchFeedV3<PublishedFundingIndex> fundingFeedResults = await WhenTheFeedIsRequested(null, top);
 
@@ -105,7 +104,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 NewPublishedFundingIndex());
             
             GivenTheTotalCount(totalCount);
-            AndTheFundingFeedResults(top, pageRef, sourceResults);
+            AndTheFundingFeedResults(top, pageRef, totalCount,  sourceResults);
 
             SearchFeedV3<PublishedFundingIndex> fundingFeedResults = await WhenTheFeedIsRequested(pageRef, top);
 
@@ -147,6 +146,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private void AndTheFundingFeedResults(
             int top,
             int? pageRef,
+            int totalCount,
             IEnumerable<PublishedFundingIndex> fundingFeedResults)
         {
             _publishedFundingRepository.Setup(_ => _.QueryPublishedFunding(_fundingStreamIds,
@@ -154,7 +154,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     _groupingReasons,
                     _variationReasons,
                     top,
-                    pageRef))
+                    pageRef,
+                    totalCount))
                 .ReturnsAsync(fundingFeedResults);
         }
 

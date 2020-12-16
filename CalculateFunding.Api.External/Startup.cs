@@ -98,11 +98,7 @@ namespace CalculateFunding.Api.External
                 });
 
             RegisterComponents(services);
-
-            if (Configuration.IsSwaggerEnabled())
-            {
-                SwaggerSetup.ConfigureSwaggerServices(services);
-            }
+            SwaggerSetup.ConfigureSwaggerServices(services);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

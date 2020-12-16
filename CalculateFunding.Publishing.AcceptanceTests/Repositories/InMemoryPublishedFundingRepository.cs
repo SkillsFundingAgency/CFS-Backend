@@ -371,7 +371,13 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             return Task.FromResult(publishedProvider);
         }
 
-        public Task<IEnumerable<PublishedFundingIndex>> QueryPublishedFunding(IEnumerable<string> fundingStreamIds, IEnumerable<string> fundingPeriodIds, IEnumerable<string> groupingReasons, IEnumerable<string> variationReasons, int top, int? pageRef)
+        public Task<IEnumerable<PublishedFundingIndex>> QueryPublishedFunding(IEnumerable<string> fundingStreamIds,
+            IEnumerable<string> fundingPeriodIds,
+            IEnumerable<string> groupingReasons,
+            IEnumerable<string> variationReasons,
+            int top,
+            int? pageRef,
+            int totalCount)
         {
             throw new NotImplementedException();
         }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Common.CosmosDb;
@@ -21,13 +22,13 @@ namespace CalculateFunding.Services.Publishing
             };
         }
 
-        public CosmosDbQuery BuildQuery(
-            IEnumerable<string> fundingStreamIds,
+        public CosmosDbQuery BuildQuery(IEnumerable<string> fundingStreamIds,
             IEnumerable<string> fundingPeriodIds,
             IEnumerable<string> groupingReasons,
             IEnumerable<string> variationReasons,
             int top,
-            int? pageRef)
+            int? pageRef,
+            int totalCount)
         {
             return new CosmosDbQuery
             {
@@ -58,7 +59,7 @@ namespace CalculateFunding.Services.Publishing
 				p.content.fundingPeriod.id,
 				p.content.groupingReason,
 				p.deleted
-                {PagingSkipLimit(pageRef, top)}"
+                {PagingSkipLimit(pageRef, top, totalCount)}"
             };
         }
 
@@ -106,11 +107,11 @@ namespace CalculateFunding.Services.Publishing
                 null;
         }
 
-        private string PagingSkipLimit(int? pageRef, int top)
+        private string PagingSkipLimit(int? pageRef, int top, int totalCount)
         {
             return pageRef.HasValue ?
                 $"OFFSET {(pageRef - 1) * top} LIMIT {top}" :
-                $"LIMIT {top}";
+                $"OFFSET {Math.Max(0, totalCount - top)} LIMIT {top}";
         }
     }
 }

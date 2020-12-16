@@ -67,13 +67,7 @@ namespace CalculateFunding.Services.Publishing
                 groupingReasons,
                 variationReasons));
 
-            bool pageRefRequested = true;
-
-            if (!pageRef.HasValue)
-            {
-                pageRef = new LastPage(totalCount, top);
-                pageRefRequested = false;
-            }
+            bool pageRefRequested = pageRef.HasValue;
 
             IEnumerable<PublishedFundingIndex> results = await _publishedFundingRepositoryPolicy.ExecuteAsync(() =>
                 _publishedFundingRepository.QueryPublishedFunding(fundingStreamIds,
@@ -81,7 +75,10 @@ namespace CalculateFunding.Services.Publishing
                     groupingReasons,
                     variationReasons,
                     top,
-                    pageRef));
+                    pageRef,
+                    totalCount));
+
+            pageRef ??= new LastPage(totalCount, top);
 
             return CreateSearchFeedResult(pageRef.Value, top, totalCount, pageRefRequested, results);
         }

@@ -128,7 +128,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                 groupingReasons,
                 variationReasons,
                 top,
-                pageRef);
+                pageRef,
+                0);
 
             actualResults
                 .Should()
@@ -179,7 +180,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                     groupingReasons,
                     variationReasons,
                     top,
-                    pageRef))
+                    pageRef,
+                    0))
                 .Returns(expectedQuery);
         }
 
