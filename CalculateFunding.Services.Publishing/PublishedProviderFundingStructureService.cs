@@ -184,7 +184,7 @@ namespace CalculateFunding.Services.Publishing
             string calculationValue = null;
             if (publishedProviderFundingLine != null)
             {
-                calculationValue = publishedProviderFundingLine.Value.AsFormatCalculationType(CalculationValueFormat.Number);
+                calculationValue = publishedProviderFundingLine.Value.AsFormatCalculationType(CalculationValueFormat.Currency);
             }
 
             // Add FundingStructureItem
