@@ -121,7 +121,6 @@ namespace CalculateFunding.Functions.Calcs
             builder.AddSingleton<ICalculationNameInUseCheck, CalculationNameInUseCheck>();
             builder.AddSingleton<ICalculationsSearchService, CalculationSearchService>();
             builder.AddSingleton<ICalculationCodeReferenceUpdate, CalculationCodeReferenceUpdate>();
-            builder.AddSingleton<ITokenChecker, TokenChecker>();
             builder.AddSingleton<IValidator<Calculation>, CalculationModelValidator>();
             builder.AddScoped<IPreviewService, PreviewService>();
             builder.AddSingleton<ICompilerFactory, CompilerFactory>();

@@ -1,46 +1,64 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Text.RegularExpressions;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Calcs.Interfaces;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.VisualBasic;
+using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 
 namespace CalculateFunding.Services.Calcs
 {
     public class CalculationCodeReferenceUpdate : ICalculationCodeReferenceUpdate
     {
-        private readonly ITokenChecker _tokenChecker;
-
-        public CalculationCodeReferenceUpdate(ITokenChecker tokenChecker)
-        {
-            Guard.ArgumentNotNull(tokenChecker, nameof(tokenChecker));
-
-            _tokenChecker = tokenChecker;
-        }
-
         public string ReplaceSourceCodeReferences(Calculation calculation, string oldCalcSourceCodeName, string newCalcSourceCodeName)
         {
             Guard.ArgumentNotNull(calculation, nameof(calculation));
-            Guard.IsNullOrWhiteSpace(oldCalcSourceCodeName, nameof(oldCalcSourceCodeName));
+            Guard.ArgumentNotNull(calculation.Current, nameof(calculation.Current));
+            Guard.IsNullOrWhiteSpace (oldCalcSourceCodeName, nameof(oldCalcSourceCodeName));
             Guard.IsNullOrWhiteSpace(newCalcSourceCodeName, nameof(newCalcSourceCodeName));
 
             string sourceCode = calculation.Current.SourceCode;
             string calculationNamespace = calculation.Namespace;
 
-            int position = -1;
-            while (sourceCode.Substring(++position).Contains(oldCalcSourceCodeName, StringComparison.CurrentCultureIgnoreCase))
+            SyntaxTree calculationSyntaxTree = VisualBasicSyntaxTree.ParseText(sourceCode);
+            SyntaxNode root = calculationSyntaxTree.GetRoot();
+            
+            MemberAccessExpressionSyntax[] invocationsToReplace = root
+                .DescendantNodes()
+                .OfType<MemberAccessExpressionSyntax>()
+                .Where(_ => IsForOldCalculationName(_, calculationNamespace, oldCalcSourceCodeName))
+                .ToArray();
+
+            foreach (MemberAccessExpressionSyntax invocation in invocationsToReplace)
             {
-                position = sourceCode.IndexOf(oldCalcSourceCodeName, position, StringComparison.CurrentCultureIgnoreCase);
-
-                int? tokenLength = _tokenChecker.CheckIsToken(sourceCode, calculationNamespace, oldCalcSourceCodeName, position);
-
-                if (tokenLength != null)
-                {
-                    string before = sourceCode.Substring(0, position);
-                    string after = sourceCode.Substring(position + (int)tokenLength);
-                    sourceCode = $"{before}{calculationNamespace}.{newCalcSourceCodeName}{after}";
-                }
+                string originalSpan = invocation.GetText().ToString();
+                string replacementSpan = originalSpan.Replace(oldCalcSourceCodeName, newCalcSourceCodeName, StringComparison.InvariantCultureIgnoreCase);
+                
+                SyntaxTree replacementNodeTree = VisualBasicSyntaxTree.ParseText(replacementSpan);
+                MemberAccessExpressionSyntax replacementInvocation = replacementNodeTree
+                    .GetRoot()
+                    .DescendantNodes()
+                    .OfType<MemberAccessExpressionSyntax>()
+                    .Single();
+                
+                root = root.ReplaceNode(invocation, replacementInvocation);
             }
 
-            return sourceCode;
+            return root.ToString();
+        }
+
+        private bool IsForOldCalculationName(MemberAccessExpressionSyntax statementSyntax,
+            string calculationNamespace,
+            string calculationName)
+        {
+            string text = statementSyntax.GetText().ToString();
+
+            return text.Contains(calculationNamespace, StringComparison.CurrentCultureIgnoreCase) &&
+                   text.Contains(calculationName, StringComparison.CurrentCultureIgnoreCase);
         }
     }
 }

@@ -3044,17 +3044,16 @@ End Class";
                     Arg.Any<CompilerOptions>())
                 .Returns(nonPreviewBuild);
 
-            ITokenChecker tokenChecker = CreateTokenChecker();
-            tokenChecker
-                .CheckIsToken(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<int>())
-                .Returns(isToken);
+            // ITokenChecker tokenChecker = CreateTokenChecker();
+            // tokenChecker
+            //     .CheckIsToken(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<int>())
+            //     .Returns(isToken);
 
             PreviewService service = CreateService(logger: logger,
                 previewRequestValidator: validator,
                 calculationsRepository: calculationsRepository,
                 buildProjectsService: buildProjectsService,
-                sourceCodeService: sourceCodeService,
-                tokenChecker: tokenChecker);
+                sourceCodeService: sourceCodeService);
 
             //Act
             IActionResult result = await service.Compile(model);
@@ -3074,12 +3073,12 @@ End Class";
                 .CompilerOutput.Success
                 .Should().Be(!(isToken != null && codeContainsName));
 
-            if (codeContainsName)
-            {
-                tokenChecker
-                    .Received(1)
-                    .CheckIsToken(sourceCode, calcNamespace.ToString(), calculationName, sourceCode.IndexOf(calculationName));
-            }
+            // if (codeContainsName)
+            // {
+            //     tokenChecker
+            //         .Received(1)
+            //         .CheckIsToken(sourceCode, calcNamespace.ToString(), calculationName, sourceCode.IndexOf(calculationName));
+            // }
 
             if (codeContainsName && isToken != null)
             {
@@ -3223,7 +3222,6 @@ Calculation Name: {{calculationName}}").ToArray()
             IDatasetsApiClient datasetsApiClient = null,
             ICacheProvider cacheProvider = null,
             ISourceCodeService sourceCodeService = null,
-            ITokenChecker tokenChecker = null,
             IMapper mapper = null,
             ICalcEngineApiClient calcEngineApiClient = null)
         {
@@ -3235,7 +3233,6 @@ Calculation Name: {{calculationName}}").ToArray()
                 datasetsApiClient ?? CreateDatasetsApiClient(),
                 cacheProvider ?? CreateCacheProvider(),
                 sourceCodeService ?? CreateSourceCodeService(),
-                tokenChecker ?? CreateTokenChecker(),
                 CalcsResilienceTestHelper.GenerateTestPolicies(),
                 mapper ?? CreateMapper(),
                 calcEngineApiClient ?? CreateCalcEngineApiClient());
@@ -3297,11 +3294,6 @@ Calculation Name: {{calculationName}}").ToArray()
         static IDatasetsApiClient CreateDatasetsApiClient()
         {
             return Substitute.For<IDatasetsApiClient>();
-        }
-
-        static ITokenChecker CreateTokenChecker()
-        {
-            return Substitute.For<ITokenChecker>();
         }
 
         private static IMapper CreateMapper()

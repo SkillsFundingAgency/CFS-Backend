@@ -145,8 +145,7 @@ namespace CalculateFunding.Api.Calcs
                 .AddScoped<IQueueReIndexSpecificationCalculationRelationships, QueueReIndexSpecificationCalculationRelationships>();
 
             builder
-                .AddSingleton<ICalculationCodeReferenceUpdate, CalculationCodeReferenceUpdate>()
-                .AddSingleton<ITokenChecker, TokenChecker>();
+                .AddSingleton<ICalculationCodeReferenceUpdate, CalculationCodeReferenceUpdate>();
 
             builder
                 .AddSingleton<ICalculationsSearchService, CalculationSearchService>()

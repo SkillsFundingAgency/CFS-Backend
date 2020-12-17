@@ -42,7 +42,6 @@ namespace CalculateFunding.Services.Calcs
         private readonly IDatasetsApiClient _datasetsApiClient;
         private readonly ICacheProvider _cacheProvider;
         private readonly ISourceCodeService _sourceCodeService;
-        private readonly ITokenChecker _tokenChecker;
         private readonly Polly.AsyncPolicy _datasetsApiClientPolicy;
         private readonly IMapper _mapper;
         private readonly ICalcEngineApiClient _calcEngineApiClient;
@@ -56,7 +55,6 @@ namespace CalculateFunding.Services.Calcs
             IDatasetsApiClient datasetsApiClient,
             ICacheProvider cacheProvider,
             ISourceCodeService sourceCodeService,
-            ITokenChecker tokenChecker,
             ICalcsResiliencePolicies resiliencePolicies,
             IMapper mapper,
             ICalcEngineApiClient calcEngineApiClient)
@@ -68,7 +66,6 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(datasetsApiClient, nameof(datasetsApiClient));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(sourceCodeService, nameof(sourceCodeService));
-            Guard.ArgumentNotNull(tokenChecker, nameof(tokenChecker));
             Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(resiliencePolicies.DatasetsApiClient, nameof(resiliencePolicies.DatasetsApiClient));
@@ -82,7 +79,6 @@ namespace CalculateFunding.Services.Calcs
             _datasetsApiClient = datasetsApiClient;
             _cacheProvider = cacheProvider;
             _sourceCodeService = sourceCodeService;
-            _tokenChecker = tokenChecker;
             _datasetsApiClientPolicy = resiliencePolicies.DatasetsApiClient;
             _mapper = mapper;
             _calcEngineApiClient = calcEngineApiClient;

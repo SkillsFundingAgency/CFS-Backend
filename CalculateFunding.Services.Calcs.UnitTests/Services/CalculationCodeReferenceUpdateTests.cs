@@ -1,161 +1,111 @@
 using System.Collections.Generic;
-using System.Linq;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Services.Calcs.Interfaces;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
 
-namespace CalculateFunding.Services.Calcs.Services
+namespace CalculateFunding.Services.Calcs.UnitTests.Services
 {
     [TestClass]
     public class CalculationCodeReferenceUpdateTests
     {
-        public struct TokenCheckerCall
-        {
-            public string SourceCode;
-            public int Position;
-        }
-
-#if NCRUNCH
-        [Ignore]
-#endif
         [TestMethod]
-        [DynamicData(nameof(CodeTestCases), DynamicDataSourceType.Method)]
-        public void ReplaceSourceCodeReferences_RunsAsExpected(Calculation input,
-            string oldName,
+        [DynamicData(nameof(CalculationNameChangeExamples), DynamicDataSourceType.Method)]
+        public void RenameCalculation(string oldName, 
             string newName,
-            string expectedOutput,
-            IEnumerable<TokenCheckerCall> tokenCheckerCalls)
+            string fundingStreamId,
+            CalculationNamespace calculationNamespace,
+            string originalSource,
+            string expectedSource)
         {
-            //Arrange
-            ITokenChecker tokenChecker = Substitute.For<ITokenChecker>();
-            tokenChecker
-                .CheckIsToken(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<int>())
-                .Returns(x => x.ArgAt<int>(3) % 2 == 0
-                    ? x.ArgAt<string>(2).Length
-                    : (int?)null);
-
-            CalculationCodeReferenceUpdate calculationCodeReferenceUpdate = new CalculationCodeReferenceUpdate(tokenChecker);
-
-            //Act
-            string result = calculationCodeReferenceUpdate.ReplaceSourceCodeReferences(input, oldName, newName);
-
-            //Assert
-            Assert.AreEqual(expectedOutput, result);
-
-            tokenChecker
-                .Received(tokenCheckerCalls.Count())
-                .CheckIsToken(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<int>());
-
-            foreach (TokenCheckerCall call in tokenCheckerCalls)
+            Calculation calculation = new Calculation
             {
-                tokenChecker
-                    .Received(1)
-                    .CheckIsToken(call.SourceCode, input.Namespace, oldName, call.Position);
-            }
+                FundingStreamId = fundingStreamId,
+                Current = new CalculationVersion
+                {
+                    SourceCode = originalSource,
+                    Namespace = calculationNamespace
+                }
+            };
+
+            string actualSource = new CalculationCodeReferenceUpdate()
+                .ReplaceSourceCodeReferences(calculation, oldName, newName);
+
+            actualSource
+                .Should()
+                .Be(expectedSource);
         }
 
-        private static IEnumerable<object[]> CodeTestCases()
+        private static IEnumerable<object[]> CalculationNameChangeExamples()
         {
             yield return new object[]
             {
-                new Calculation
-                {
-                    Current = new CalculationVersion
-                    {
-                        SourceCode = "Hello, world!", Namespace = CalculationNamespace.Additional
-                    },
-                },
-                "X", "Y", "Hello, world!", new TokenCheckerCall[] { }
+                "MSSFinancialDisadvantageFunding",
+                "MSSFinancialDisadvantageFundingNew",
+                "PSG",
+                CalculationNamespace.Additional,
+                @"Dim ProvTypeMSS? As Decimal = Calculations.FundingFlagLAForHighNeeds()
+Dim FD? As Decimal = PSG.mssFinancialDisadvantageFunding ()
+Dim Travel? As Decimal = Calculations.mssFinancialDisadvantageFunding() + PSG.mssFinancialDisadvantageFunding()
+If ProvTypeMSS.HasValue AndAlso FD.HasValue AndAlso Travel.HasValue Then Return FD + Travel
+Return Exclude()",
+                @"Dim ProvTypeMSS? As Decimal = Calculations.FundingFlagLAForHighNeeds()
+Dim FD? As Decimal = PSG.mssFinancialDisadvantageFunding ()
+Dim Travel? As Decimal = Calculations.MSSFinancialDisadvantageFundingNew() + PSG.mssFinancialDisadvantageFunding()
+If ProvTypeMSS.HasValue AndAlso FD.HasValue AndAlso Travel.HasValue Then Return FD + Travel
+Return Exclude()"
             };
-
-            Calculation original = new Calculation
+            yield return new object[]
             {
-                Current = new CalculationVersion
-                {
-                    SourceCode = @"The Dairymaid she curtsied,
-            And went and told
-            The Alderney:
-            Don’t forget the butter for
-            The Royal slice of bread",
-                    Namespace = CalculationNamespace.Additional
-                }
+                "MSSFinancialDisadvantageFunding",
+                "MSSFinancialDisadvantageFundingNew",
+                "PSG",
+                CalculationNamespace.Additional,
+                @"Dim ProvTypeMSS? As Decimal = Calculations.FundingFlagLAForHighNeeds()
+Dim FD? As Decimal = PSG.mssFinancialDisadvantageFunding ()
+Dim Travel? As Decimal = Calculations.mssFinancialDisadvantageFunding()
+If ProvTypeMSS.HasValue AndAlso FD.HasValue AndAlso Travel.HasValue Then Return FD + Travel
+Return Exclude()",
+                @"Dim ProvTypeMSS? As Decimal = Calculations.FundingFlagLAForHighNeeds()
+Dim FD? As Decimal = PSG.mssFinancialDisadvantageFunding ()
+Dim Travel? As Decimal = Calculations.MSSFinancialDisadvantageFundingNew()
+If ProvTypeMSS.HasValue AndAlso FD.HasValue AndAlso Travel.HasValue Then Return FD + Travel
+Return Exclude()"
             };
-            yield return new object[] {
-                original,
-                "The",
-                "A",
-                @"Calculations.A Dairymaid she curtsied,
-            And went and told
-            The Alderney:
-            Don’t forget the butter for
-            The Royal slice of bread",
-                new[] {
-                    new TokenCheckerCall{ SourceCode = original.Current.SourceCode, Position = 0},
-                    new TokenCheckerCall{ SourceCode = @"Calculations.A Dairymaid she curtsied,
-            And went and told
-            The Alderney:
-            Don’t forget the butter for
-            The Royal slice of bread",
-                        Position = 83},
-                    new TokenCheckerCall{ SourceCode = @"Calculations.A Dairymaid she curtsied,
-            And went and told
-            The Alderney:
-            Don’t forget the butter for
-            The Royal slice of bread",
-                        Position = 123},
-                    new TokenCheckerCall{ SourceCode = @"Calculations.A Dairymaid she curtsied,
-            And went and told
-            The Alderney:
-            Don’t forget the butter for
-            The Royal slice of bread",
-                        Position = 151},
-                }
-            };
-
-            original = new Calculation
+            yield return new object[]
             {
-                Current = new CalculationVersion
-                {
-                    SourceCode = @"The Dairymaid she curtsied,
-            And went and told
-            The Alderney:
-            Don’t forget the butter for
-            The Royal slice of bread",
-                    Namespace = CalculationNamespace.Template
-                },
-                FundingStreamId = "Cromulent"
+                "MSSFinancialDisadvantageFunding",
+                "MSSFinancialDisadvantageFundingNew",
+                "PSG",
+                CalculationNamespace.Additional,
+                @"Dim ProvTypeMSS? As Decimal = Calculations.FundingFlagLAForHighNeeds()
+Dim FD? As Decimal = Calculations.mssFinancialDisadvantageFunding ()
+Dim Travel? As Decimal = Calculations.MSSStudentCostsTravelFunding()
+If ProvTypeMSS.HasValue AndAlso FD.HasValue AndAlso Travel.HasValue Then Return FD + Travel
+Return Exclude()",
+                @"Dim ProvTypeMSS? As Decimal = Calculations.FundingFlagLAForHighNeeds()
+Dim FD? As Decimal = Calculations.MSSFinancialDisadvantageFundingNew ()
+Dim Travel? As Decimal = Calculations.MSSStudentCostsTravelFunding()
+If ProvTypeMSS.HasValue AndAlso FD.HasValue AndAlso Travel.HasValue Then Return FD + Travel
+Return Exclude()"
             };
-            yield return new object[] {
-                original,
-                "The",
-                "A",
-                @"Cromulent.A Dairymaid she curtsied,
-            And went and told
-            Cromulent.A Alderney:
-            Don’t forget Cromulent.A butter for
-            Cromulent.A Royal slice of bread",
-                new[] {
-                    new TokenCheckerCall{ SourceCode = original.Current.SourceCode, Position = 0},
-                    new TokenCheckerCall{ SourceCode = @"Cromulent.A Dairymaid she curtsied,
-            And went and told
-            The Alderney:
-            Don’t forget the butter for
-            The Royal slice of bread",
-                        Position = 80},
-                    new TokenCheckerCall{ SourceCode = @"Cromulent.A Dairymaid she curtsied,
-            And went and told
-            Cromulent.A Alderney:
-            Don’t forget the butter for
-            The Royal slice of bread",
-                        Position = 128},
-                    new TokenCheckerCall{ SourceCode = @"Cromulent.A Dairymaid she curtsied,
-            And went and told
-            Cromulent.A Alderney:
-            Don’t forget Cromulent.A butter for
-            The Royal slice of bread",
-                        Position = 164},
-                }
+            yield return new object[]
+            {
+                "MSSFinancialDisadvantageFunding",
+                "MSSFinancialDisadvantageFundingNew",
+                "PSG",
+                CalculationNamespace.Template,
+                @"Dim ProvTypeMSS? As Decimal = PSG.FundingFlagLAForHighNeeds()
+Dim FD? As Decimal = psg. _
+MSsfinancialdisadvantageFunding ()
+Dim Travel? As Decimal = PSG.MSSStudentCostsTravelFunding()
+If ProvTypeMSS.HasValue AndAlso FD.HasValue AndAlso Travel.HasValue Then Return FD + Travel
+Return Exclude()",
+                @"Dim ProvTypeMSS? As Decimal = PSG.FundingFlagLAForHighNeeds()
+Dim FD? As Decimal = psg. _
+MSSFinancialDisadvantageFundingNew ()
+Dim Travel? As Decimal = PSG.MSSStudentCostsTravelFunding()
+If ProvTypeMSS.HasValue AndAlso FD.HasValue AndAlso Travel.HasValue Then Return FD + Travel
+Return Exclude()"
             };
         }
     }
