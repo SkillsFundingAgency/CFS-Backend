@@ -372,7 +372,7 @@ namespace CalculateFunding.Services.Scenarios
         {
             CalculationVersionComparisonModel comparison = message.GetPayloadAsInstanceOf<CalculationVersionComparisonModel>();
 
-            if (comparison == null || comparison.Current == null || comparison.Previous == null)
+            if (comparison == null || string.IsNullOrWhiteSpace(comparison.CurrentName) || string.IsNullOrWhiteSpace(comparison.PreviousName))
             {
                 _logger.Error("A null CalculationVersionComparisonModel was provided to UpdateScenarioForCalculation");
 
@@ -401,7 +401,7 @@ namespace CalculateFunding.Services.Scenarios
         {
             Guard.ArgumentNotNull(comparison, nameof(comparison));
 
-            if (comparison.Current.Name == comparison.Previous.Name)
+            if (comparison.CurrentName == comparison.PreviousName)
             {
                 return 0;
             }
@@ -411,8 +411,8 @@ namespace CalculateFunding.Services.Scenarios
             IEnumerable<TestScenario> testScenarios = await _scenariosRepository.GetTestScenariosBySpecificationId(comparison.SpecificationId);
             foreach (TestScenario testScenario in testScenarios)
             {
-                string sourceString = $" the result for '{comparison.Previous.Name}'";
-                string replacementString = $" the result for '{comparison.Current.Name}'";
+                string sourceString = $" the result for '{comparison.PreviousName}'";
+                string replacementString = $" the result for '{comparison.CurrentName}'";
 
                 string result = Regex.Replace(testScenario.Current.Gherkin, sourceString, replacementString, RegexOptions.IgnoreCase);
                 if (result != testScenario.Current.Gherkin)

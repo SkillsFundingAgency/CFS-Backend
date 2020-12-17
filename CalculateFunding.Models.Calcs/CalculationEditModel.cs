@@ -16,6 +16,8 @@ namespace CalculateFunding.Models.Calcs
 
         public string SourceCode { get; set; }
 
+        public IEnumerable<string> AllowedEnumTypeValues { get; set; }
+
         public string Description { get; set; }
     }
 }

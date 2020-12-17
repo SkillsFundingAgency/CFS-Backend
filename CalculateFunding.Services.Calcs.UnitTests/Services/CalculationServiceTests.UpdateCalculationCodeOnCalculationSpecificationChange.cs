@@ -17,22 +17,6 @@ namespace CalculateFunding.Services.Calcs.Services
 {
     public partial class CalculationServiceTests
     {
-        private ICalculationCodeReferenceUpdate FakeCalculationCodeReferenceUpdate()
-        {
-            ICalculationCodeReferenceUpdate calculationCodeReferenceUpdate = CreateCalculationCodeReferenceUpdate();
-            calculationCodeReferenceUpdate
-                .ReplaceSourceCodeReferences(Arg.Any<Calculation>(), Arg.Any<string>(), Arg.Any<string>())
-                .Returns(x =>
-                {
-                    string source = x.ArgAt<Calculation>(0).Current.SourceCode;
-                    string oldName = x.ArgAt<string>(1);
-                    string newName = x.ArgAt<string>(2);
-
-                    return source.Replace(oldName, newName);
-                });
-            return calculationCodeReferenceUpdate;
-        }
-
         [TestMethod]
         public async Task UpdateCalculationCodeOnCalculationChange_WhenCalculationsFoundReferencingCalculationToBeUpdated_ThenSourceCodeUpdated()
         {
@@ -41,42 +25,31 @@ namespace CalculateFunding.Services.Calcs.Services
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
             IVersionRepository<CalculationVersion> versionRepository = CreateCalculationVersionRepository();
             IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
-            ICalculationCodeReferenceUpdate calculationCodeReferenceUpdate = FakeCalculationCodeReferenceUpdate();
 
             CalculationService service = CreateCalculationService(calculationsRepository: calculationsRepository,
                 specificationsApiClient: specificationsApiClient,
                 calculationVersionRepository: versionRepository,
-                buildProjectsService: buildProjectsService,
-                calculationCodeReferenceUpdate: calculationCodeReferenceUpdate);
+                buildProjectsService: buildProjectsService);
 
             const string specificationId = "specId";
             const string calculationId = "updatedCalc";
-            const string originalCodeUpdate = "Return OriginalName()";
+            const string originalCodeUpdate = @"Dim test as OriginalNameOptions? 
+                                                OriginalNameOptions.enumName 
+                                                Return Calculations.OriginalName()";
+            const string newCodeUpdated = @"Dim test as CalculationToUpdateOptions? 
+                                                CalculationToUpdateOptions.enumName 
+                                                Return Calculations.CalculationToUpdate()";
             const string originalCodeIgnore = "Return 10";
             const string fundingStreamId = "fundingstreamid";
 
             CalculationVersionComparisonModel comparison = new CalculationVersionComparisonModel()
             {
                 CalculationId = calculationId,
-                Current = new Calculation
-                {
-                    Id = "calcSpec1",
-                    FundingStreamId = fundingStreamId,
-                    Current = new CalculationVersion
-                    {
-                        Name = "Calculation To Update"
-                    }
-                },
-                Previous = new Calculation
-                {
-                    Id = "calcSpec1",
-                    FundingStreamId = fundingStreamId,
-                    Current = new CalculationVersion
-                    {
-                        Name = "Original Name"
-                    }
-                },
+                CurrentName = "Calculation To Update",
+                PreviousName = "Original Name",
                 SpecificationId = specificationId,
+                CalculationDataType = CalculationDataType.Enum,
+                Namespace = "Calculations"
             };
 
             Reference user = new Reference("userId", "User Name");
@@ -93,7 +66,8 @@ namespace CalculateFunding.Services.Calcs.Services
                         SourceCode = originalCodeIgnore,
                         Name = "Calculation to Update",
                         CalculationType = CalculationType.Template,
-                        Description = "Calculation Description"
+                        Description = "Calculation Description",
+                        DataType = CalculationDataType.Enum
                     }
                 },
                 new Calculation
@@ -136,12 +110,12 @@ namespace CalculateFunding.Services.Calcs.Services
 
             CalculationVersion calculationVersion = new CalculationVersion
             {
-                SourceCode = "Return CalculationToUpdate()",
+                SourceCode = newCodeUpdated,
                 Version = 2
             };
 
             versionRepository
-                .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
+                .CreateVersion(Arg.Is<CalculationVersion>(_ => _.SourceCode == newCodeUpdated), Arg.Any<CalculationVersion>())
                 .Returns(calculationVersion);
 
             // Act
@@ -156,7 +130,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             calculation.Current.SourceCode
                 .Should()
-                .Be("Return CalculationToUpdate()");
+                .Be(newCodeUpdated);
 
 
             calculation.Current.Version
@@ -170,20 +144,6 @@ namespace CalculateFunding.Services.Calcs.Services
             await buildProjectsService
                 .DidNotReceive()
                 .GetBuildProjectForSpecificationId(Arg.Any<string>());
-
-            calculationCodeReferenceUpdate
-                .Received(calculations.Count)
-                .ReplaceSourceCodeReferences(Arg.Any<Calculation>(),
-                    VisualBasicTypeGenerator.GenerateIdentifier(comparison.Previous.Name),
-                    VisualBasicTypeGenerator.GenerateIdentifier(comparison.Current.Name));
-
-            calculationCodeReferenceUpdate
-                .Received(1)
-                .ReplaceSourceCodeReferences(Arg.Is<Calculation>(c => c.Current.SourceCode == originalCodeIgnore), Arg.Any<string>(), Arg.Any<string>());
-
-            calculationCodeReferenceUpdate
-                .Received(1)
-                .ReplaceSourceCodeReferences(Arg.Is<Calculation>(c => c.Current.SourceCode == originalCodeIgnore), Arg.Any<string>(), Arg.Any<string>());
         }
 
         [TestMethod]
@@ -194,13 +154,11 @@ namespace CalculateFunding.Services.Calcs.Services
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
             IVersionRepository<CalculationVersion> versionRepository = CreateCalculationVersionRepository();
             IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
-            ICalculationCodeReferenceUpdate calculationCodeReferenceUpdate = FakeCalculationCodeReferenceUpdate();
 
             CalculationService service = CreateCalculationService(calculationsRepository: calculationsRepository,
                 specificationsApiClient: specificationsApiClient,
                 calculationVersionRepository: versionRepository,
-                buildProjectsService: buildProjectsService,
-                calculationCodeReferenceUpdate: calculationCodeReferenceUpdate);
+                buildProjectsService: buildProjectsService);
 
             const string specificationId = "specId";
             const string calculationId = "updatedCalc";
@@ -209,31 +167,15 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationVersionComparisonModel comparison = new CalculationVersionComparisonModel()
             {
                 CalculationId = calculationId,
-                Current = new Calculation
-                {
-                    Id = "calcSpec1",
-                    FundingStreamId = fundingStreamId,
-                    Current = new CalculationVersion
-                    {
-                        Name = "Calculation To Update"
-                    }
-                },
-                Previous = new Calculation
-                {
-                    Id = "calcSpec1",
-                    FundingStreamId = fundingStreamId,
-                    Current = new CalculationVersion
-                    {
-                        Name = "Original Name"
-                    }
-                },
+                CurrentName = "Calculation To Update",
+                PreviousName = "Original Name",
                 SpecificationId = specificationId,
             };
 
             Reference user = new Reference("userId", "User Name");
 
             const string originalCodeIgnore = "Return 10";
-            const string originalCodeUpdate = "Return OriginalName()";
+            const string originalCodeUpdate = "Return Calculations.OriginalName()";
 
             List<Calculation> calculations = new List<Calculation>
             {
@@ -327,20 +269,6 @@ namespace CalculateFunding.Services.Calcs.Services
             await buildProjectsService
                 .DidNotReceive()
                 .GetBuildProjectForSpecificationId(Arg.Any<string>());
-
-            calculationCodeReferenceUpdate
-                .Received(calculations.Count)
-                .ReplaceSourceCodeReferences(Arg.Any<Calculation>(),
-                    VisualBasicTypeGenerator.GenerateIdentifier(comparison.Previous.Name),
-                    VisualBasicTypeGenerator.GenerateIdentifier(comparison.Current.Name));
-
-            calculationCodeReferenceUpdate
-                .Received(1)
-                .ReplaceSourceCodeReferences(Arg.Is<Calculation>(c => c.Current.SourceCode == originalCodeIgnore), Arg.Any<string>(), Arg.Any<string>());
-
-            calculationCodeReferenceUpdate
-                .Received(1)
-                .ReplaceSourceCodeReferences(Arg.Is<Calculation>(c => c.Current.SourceCode == originalCodeIgnore), Arg.Any<string>(), Arg.Any<string>());
         }
 
         [TestMethod]
@@ -350,12 +278,10 @@ namespace CalculateFunding.Services.Calcs.Services
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
             IVersionRepository<CalculationVersion> versionRepository = CreateCalculationVersionRepository();
-            ICalculationCodeReferenceUpdate calculationCodeReferenceUpdate = FakeCalculationCodeReferenceUpdate();
 
             CalculationService service = CreateCalculationService(calculationsRepository: calculationsRepository,
                 specificationsApiClient: specificationsApiClient,
-                calculationVersionRepository: versionRepository,
-                calculationCodeReferenceUpdate: calculationCodeReferenceUpdate);
+                calculationVersionRepository: versionRepository);
 
             const string specificationId = "specId";
             const string calculationId = "updatedCalc";
@@ -363,22 +289,8 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationVersionComparisonModel comparison = new CalculationVersionComparisonModel()
             {
                 CalculationId = calculationId,
-                Current = new Calculation
-                {
-                    Id = "calcSpec1",
-                    Current = new CalculationVersion
-                    {
-                        Name = "Calculation To Update"
-                    }
-                },
-                Previous = new Calculation
-                {
-                    Id = "calcSpec1",
-                    Current = new CalculationVersion
-                    {
-                        Name = "Original Name"
-                    }
-                },
+                CurrentName = "Calculation To Update",
+                PreviousName = "Original Name",
                 SpecificationId = specificationId,
             };
 
@@ -451,21 +363,6 @@ namespace CalculateFunding.Services.Calcs.Services
             updatedCalculations
                 .Should()
                 .HaveCount(0);
-
-            calculationCodeReferenceUpdate
-                .Received(calculations.Count)
-                .ReplaceSourceCodeReferences(Arg.Any<Calculation>(),
-                    VisualBasicTypeGenerator.GenerateIdentifier(comparison.Previous.Name),
-                    VisualBasicTypeGenerator.GenerateIdentifier(comparison.Current.Name));
-
-            foreach (Calculation calculation in calculations)
-            {
-                calculationCodeReferenceUpdate
-                    .Received(1)
-                    .ReplaceSourceCodeReferences(calculation,
-                        VisualBasicTypeGenerator.GenerateIdentifier(comparison.Previous.Name),
-                        VisualBasicTypeGenerator.GenerateIdentifier(comparison.Current.Name));
-            }
         }
     }
 }

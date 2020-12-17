@@ -454,19 +454,22 @@ namespace CalculateFunding.Services.CalcEngine
                                 throw new Exception("Provider summary is null");
                             }
 
-                            if (!providerSourceDatasetResult.TryGetValue(provider.Id, out Dictionary<string, ProviderSourceDataset> providerDatasets))
+                            if (providerSourceDatasetResult.AnyWithNullCheck())
                             {
-                                throw new Exception($"Provider source dataset not found for {provider.Id}.");
+                                if (!providerSourceDatasetResult.TryGetValue(provider.Id, out Dictionary<string, ProviderSourceDataset> providerDatasets))
+                                {
+                                    throw new Exception($"Provider source dataset not found for {provider.Id}.");
+                                }
+
+                                ProviderResult result = _calculationEngine.CalculateProviderResults(allocationModel, specificationId, calculations, provider, providerDatasets, aggregations);
+
+                                if (result == null)
+                                {
+                                    throw new InvalidOperationException("Null result from Calc Engine CalculateProviderResults");
+                                }
+
+                                providerResults.Add(result);
                             }
-
-                            ProviderResult result = _calculationEngine.CalculateProviderResults(allocationModel, specificationId, calculations, provider, providerDatasets, aggregations);
-
-                            if (result == null)
-                            {
-                                throw new InvalidOperationException("Null result from Calc Engine CalculateProviderResults");
-                            }
-
-                            providerResults.Add(result);
                         }
                         finally
                         {

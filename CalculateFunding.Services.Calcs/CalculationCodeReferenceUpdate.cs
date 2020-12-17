@@ -14,50 +14,56 @@ namespace CalculateFunding.Services.Calcs
 {
     public class CalculationCodeReferenceUpdate : ICalculationCodeReferenceUpdate
     {
-        public string ReplaceSourceCodeReferences(Calculation calculation, string oldCalcSourceCodeName, string newCalcSourceCodeName)
+        public string ReplaceSourceCodeReferences(string sourceCode, string oldCalcSourceCodeName, string newCalcSourceCodeName, string calculationNamespace = null)
         {
-            Guard.ArgumentNotNull(calculation, nameof(calculation));
-            Guard.ArgumentNotNull(calculation.Current, nameof(calculation.Current));
+            Guard.IsNullOrWhiteSpace(sourceCode, nameof(sourceCode));
             Guard.IsNullOrWhiteSpace (oldCalcSourceCodeName, nameof(oldCalcSourceCodeName));
             Guard.IsNullOrWhiteSpace(newCalcSourceCodeName, nameof(newCalcSourceCodeName));
 
-            string sourceCode = calculation.Current.SourceCode;
-            string calculationNamespace = calculation.Namespace;
-
             SyntaxTree calculationSyntaxTree = VisualBasicSyntaxTree.ParseText(sourceCode);
             SyntaxNode root = calculationSyntaxTree.GetRoot();
-            
-            MemberAccessExpressionSyntax[] invocationsToReplace = root
+
+            SyntaxNode[] invocationsToReplace = root
                 .DescendantNodes()
-                .OfType<MemberAccessExpressionSyntax>()
-                .Where(_ => IsForOldCalculationName(_, calculationNamespace, oldCalcSourceCodeName))
+                .Where(_ => (_ is MemberAccessExpressionSyntax || _ is SimpleAsClauseSyntax) && IsForOldCalculationName(_, calculationNamespace, oldCalcSourceCodeName))
                 .ToArray();
 
-            foreach (MemberAccessExpressionSyntax invocation in invocationsToReplace)
+            Dictionary<SyntaxNode, SyntaxNode> replacementNodes = new Dictionary<SyntaxNode, SyntaxNode>();
+
+            foreach (SyntaxNode invocation in invocationsToReplace)
             {
                 string originalSpan = invocation.GetText().ToString();
                 string replacementSpan = originalSpan.Replace(oldCalcSourceCodeName, newCalcSourceCodeName, StringComparison.InvariantCultureIgnoreCase);
-                
-                SyntaxTree replacementNodeTree = VisualBasicSyntaxTree.ParseText(replacementSpan);
-                MemberAccessExpressionSyntax replacementInvocation = replacementNodeTree
-                    .GetRoot()
-                    .DescendantNodes()
-                    .OfType<MemberAccessExpressionSyntax>()
-                    .Single();
-                
-                root = root.ReplaceNode(invocation, replacementInvocation);
+
+                SyntaxNode replacementInvocation;
+
+                if (invocation is SimpleAsClauseSyntax)
+                {
+                    replacementInvocation = ((SimpleAsClauseSyntax)invocation).WithType(SyntaxFactory.ParseTypeName(replacementSpan, 3));
+                }
+                else
+                {
+                    SyntaxTree replacementNodeTree = VisualBasicSyntaxTree.ParseText(replacementSpan);
+                    replacementInvocation = replacementNodeTree
+                        .GetRoot()
+                        .DescendantNodes()
+                        .OfType<MemberAccessExpressionSyntax>()
+                        .Single();
+                }
+
+                replacementNodes.Add(invocation, replacementInvocation);
             }
 
-            return root.ToString();
+            return root.ReplaceNodes(replacementNodes.Keys, (x, y) => replacementNodes[x]).ToString();
         }
 
-        private bool IsForOldCalculationName(MemberAccessExpressionSyntax statementSyntax,
+        private bool IsForOldCalculationName(SyntaxNode statementSyntax,
             string calculationNamespace,
             string calculationName)
         {
             string text = statementSyntax.GetText().ToString();
 
-            return text.Contains(calculationNamespace, StringComparison.CurrentCultureIgnoreCase) &&
+            return text.Contains(calculationNamespace ?? string.Empty, StringComparison.CurrentCultureIgnoreCase) &&
                    text.Contains(calculationName, StringComparison.CurrentCultureIgnoreCase);
         }
     }

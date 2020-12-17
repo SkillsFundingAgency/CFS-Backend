@@ -129,9 +129,16 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 StringBuilder sourceCode = new StringBuilder();
 
                 sourceCode.AppendLine($"Public Enum {GetEnumVariableName(calculation.Name)}");
-                foreach (string value in calculation.Current.AllowedEnumTypeValues)
+                if (calculation.Current.AllowedEnumTypeValues.AnyWithNullCheck())
                 {
-                    sourceCode.AppendLine($"    {VisualBasicTypeGenerator.GenerateIdentifier(value)}");
+                    foreach (string value in calculation.Current.AllowedEnumTypeValues)
+                    {
+                        sourceCode.AppendLine($"    {VisualBasicTypeGenerator.GenerateIdentifier(value)}");
+                    }
+                }
+                else
+                {
+                    sourceCode.AppendLine($"    None");
                 }
                 sourceCode.AppendLine("End Enum");
                 sourceCode.AppendLine();

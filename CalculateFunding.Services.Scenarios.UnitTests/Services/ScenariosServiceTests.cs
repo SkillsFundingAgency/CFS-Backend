@@ -1307,26 +1307,8 @@ namespace CalculateFunding.Services.Scenarios.Services
             {
                 CalculationId = "calcId",
                 SpecificationId = "specId",
-                Previous = new Models.Calcs.Calculation()
-                {
-                    Id = "calc1",
-                    Current = new CalculationVersion
-                    {
-                        CalculationType = CalculationType.Template,
-                        Description = "Test",
-                        Name = "Calc Name"
-                    }
-                },
-                Current = new Models.Calcs.Calculation()
-                {
-                    Id = "calc1",
-                    Current = new CalculationVersion
-                    {
-                        CalculationType = CalculationType.Template,
-                        Description = "Test",
-                        Name = "Calc Name Updated"
-                    }
-                }
+                PreviousName = "Calc Name",
+                CurrentName = "Calc Name Updated",
             };
 
             List<TestScenario> testScenarios = new List<TestScenario>()
@@ -1411,26 +1393,8 @@ namespace CalculateFunding.Services.Scenarios.Services
             {
                 CalculationId = "calcId",
                 SpecificationId = "specId",
-                Previous = new Models.Calcs.Calculation()
-                {
-                    Id = "calc1",
-                    Current = new CalculationVersion
-                    {
-                        CalculationType = CalculationType.Template,
-                        Description = "Test",
-                        Name = "Calc Name"
-                    }
-                },
-                Current = new Models.Calcs.Calculation()
-                {
-                    Id = "calc1",
-                    Current = new CalculationVersion
-                    {
-                        CalculationType = CalculationType.Template,
-                        Description = "Test",
-                        Name = "Calc Name Updated"
-                    }
-                }
+                PreviousName = "Calc Name",
+                CurrentName = "Calc Name Updated",
             };
 
             List<TestScenario> testScenarios = new List<TestScenario>()
@@ -1535,26 +1499,8 @@ namespace CalculateFunding.Services.Scenarios.Services
             {
                 CalculationId = "calcId",
                 SpecificationId = "specId",
-                Previous = new Models.Calcs.Calculation()
-                {
-                    Id = "calc1",
-                    Current = new CalculationVersion
-                    {
-                        CalculationType = CalculationType.Template,
-                        Description = "Test",
-                        Name = "Calc Name"
-                    }
-                },
-                Current = new Models.Calcs.Calculation()
-                {
-                    Id = "calc1",
-                    Current = new CalculationVersion
-                    {
-                        CalculationType = CalculationType.Template,
-                        Description = "Test",
-                        Name = "Calc Name Updated"
-                    }
-                }
+                PreviousName = "Calc Name",
+                CurrentName = "Calc Name Updated",
             };
 
             List<TestScenario> testScenarios = new List<TestScenario>()
@@ -1634,26 +1580,8 @@ namespace CalculateFunding.Services.Scenarios.Services
             {
                 CalculationId = "calcId",
                 SpecificationId = "specId",
-                Previous = new Models.Calcs.Calculation()
-                {
-                    Id = "calc1",
-                    Current = new CalculationVersion
-                    {
-                        CalculationType = CalculationType.Template,
-                        Description = "Test",
-                        Name = "Calc Name"
-                    }
-                },
-                Current = new Models.Calcs.Calculation()
-                {
-                    Id = "calc1",
-                    Current = new CalculationVersion
-                    {
-                        CalculationType = CalculationType.Template,
-                        Description = "Test",
-                        Name = "Calc Name Updated"
-                    }
-                }
+                PreviousName = "Calc Name",
+                CurrentName = "Calc Name Updated"
             };
 
             List<TestScenario> testScenarios = new List<TestScenario>()
@@ -1723,26 +1651,8 @@ namespace CalculateFunding.Services.Scenarios.Services
             {
                 CalculationId = "calcId",
                 SpecificationId = "specId",
-                Previous = new Models.Calcs.Calculation()
-                {
-                    Id = "calc1",
-                    Current = new CalculationVersion
-                    {
-                        CalculationType = CalculationType.Template,
-                        Description = "Test",
-                        Name = "Calc Name"
-                    }
-                },
-                Current = new Models.Calcs.Calculation()
-                {
-                    Id = "calc1",
-                    Current = new CalculationVersion
-                    {
-                        CalculationType = CalculationType.Template,
-                        Description = "Test",
-                        Name = "Calc Name"
-                    }
-                }
+                PreviousName = "Calc Name",
+                CurrentName = "Calc Name"
             };
 
             // Act
@@ -1785,26 +1695,8 @@ namespace CalculateFunding.Services.Scenarios.Services
             {
                 CalculationId = "calcId",
                 SpecificationId = "specId",
-                Previous = new Models.Calcs.Calculation()
-                {
-                    Id = "calc1",
-                    Current = new CalculationVersion
-                    {
-                        CalculationType = CalculationType.Template,
-                        Description = "Test",
-                        Name = "Calc Name"
-                    }
-                },
-                Current = new Models.Calcs.Calculation()
-                {
-                    Id = "calc1",
-                    Current = new CalculationVersion
-                    {
-                        CalculationType = CalculationType.Template,
-                        Description = "Test",
-                        Name = "Calc Name"
-                    }
-                }
+                PreviousName = "Calc Name",
+                CurrentName = "Calc Name"
             };
 
             string json = JsonConvert.SerializeObject(comparison);
@@ -1871,10 +1763,10 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             CalculationVersionComparisonModel comparison = new CalculationVersionComparisonModel()
             {
-                Current = new Models.Calcs.Calculation(),
+                CurrentName = "current",
                 SpecificationId = "specId",
                 CalculationId = null,
-                Previous = new Models.Calcs.Calculation(),
+                PreviousName = "previous",
             };
 
             string json = JsonConvert.SerializeObject(comparison);
@@ -1909,10 +1801,10 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             CalculationVersionComparisonModel comparison = new CalculationVersionComparisonModel()
             {
-                Current = new Models.Calcs.Calculation(),
+                CurrentName = "current",
                 SpecificationId = null,
                 CalculationId = "calcId",
-                Previous = new Models.Calcs.Calculation(),
+                PreviousName = "previous"
             };
 
             string json = JsonConvert.SerializeObject(comparison);

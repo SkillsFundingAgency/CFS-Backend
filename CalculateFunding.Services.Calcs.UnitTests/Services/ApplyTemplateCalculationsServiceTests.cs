@@ -293,19 +293,19 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
             uint templateCalculationId1 = (uint)new RandomNumberBetween(1, int.MaxValue);
             uint templateCalculationId2 = (uint)new RandomNumberBetween(1, int.MaxValue);
 
-            string calculationId1 = NewRandomString();
-            string calculationId2 = NewRandomString();
-            string calculationId3 = NewRandomString();
+            string calculationId1 = "calculationId1";
+            string calculationId2 = "calculationId2";
+            string calculationId3 = "calculationId3";
 
-            string calculationName1 = NewRandomString();
-            string calculationName2 = NewRandomString();
-            string calculationName3 = NewRandomString();
+            string calculationName1 = "calculationName1";
+            string calculationName2 = "calculationName2";
+            string calculationName3 = "calculationName3";
 
-            string newCalculationName1 = NewRandomString();
-            string newCalculationName2 = NewRandomString();
+            string newCalculationName1 = "newCalculationName1";
+            string newCalculationName2 = "newCalculationName2";
 
-            string newCalculationId1 = NewRandomString();
-            string newCalculationId2 = NewRandomString();
+            string newCalculationId4 = "newCalculationId4";
+            string newCalculationId5 = "newCalculationId5";
 
             CalculationValueFormat calculationValueFormat1 = CalculationValueFormat.Currency;
             CalculationValueFormat calculationValueFormat2 = CalculationValueFormat.Number;
@@ -328,8 +328,8 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
                 fl.WithCalculations(
                     NewTemplateMappingCalculation(),
                     NewTemplateMappingCalculation(),
-                    NewTemplateMappingCalculation(x => x.WithTemplateCalculationId(templateCalculationId1).WithName(calculationName1).WithValueFormat(calculationValueFormat1)),
-                    NewTemplateMappingCalculation(x => x.WithTemplateCalculationId(templateCalculationId2).WithName(calculationName2).WithValueFormat(calculationValueFormat2))))));
+                    NewTemplateMappingCalculation(x => x.WithTemplateCalculationId(templateCalculationId1).WithName(newCalculationName1).WithValueFormat(calculationValueFormat1)),
+                    NewTemplateMappingCalculation(x => x.WithTemplateCalculationId(templateCalculationId2).WithName(newCalculationName2).WithValueFormat(calculationValueFormat2))))));
             TemplateCalculation templateCalculationOne = NewTemplateMappingCalculation(_ => _.WithName("template calculation 1"));
             TemplateCalculation templateCalculationTwo = NewTemplateMappingCalculation(_ => _.WithName("template calculation 2"));
 
@@ -337,10 +337,10 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
             {
                 NewCalculation(_ => _.WithId(calculationId1)
                                     .WithCurrentVersion(
-                                        NewCalculationVersion(x=>x.WithCalculationId(calculationId1).WithName(newCalculationName1)))),
+                                        NewCalculationVersion(x=>x.WithCalculationId(calculationId1).WithName(calculationName1)))),
                 NewCalculation(_ => _.WithId(calculationId2)
                                     .WithCurrentVersion(
-                                        NewCalculationVersion(x=>x.WithCalculationId(calculationId2).WithName(newCalculationName2)))),
+                                        NewCalculationVersion(x=>x.WithCalculationId(calculationId2).WithName(calculationName2)))),
             };
 
             Calculation missingCalculation = NewCalculation(_ => _.WithId(calculationId3)
@@ -364,8 +364,8 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
                                                               _.SpecificationId == _specificationId &&
                                                               _.FundingStreamId == _fundingStreamId &&
                                                               _.ValueType.GetValueOrDefault() == calculationValueTypeOne,
-                NewCalculation(_ => _.WithId(newCalculationId1)));
-            AndTheCalculationIsEditedForRequestMatching(_ => _.Name == calculationName1 &&
+                NewCalculation(_ => _.WithId(newCalculationId4)));
+            AndTheCalculationIsEditedForRequestMatching(_ => _.Name == newCalculationName1 &&
                                                             _.ValueType.GetValueOrDefault() == calculationValueFormat1.AsMatchingEnum<CalculationValueType>() &&
                                                             _.Description == null &&
                                                             _.SourceCode == null,
@@ -375,8 +375,8 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
                                                               _.SpecificationId == _specificationId &&
                                                               _.FundingStreamId == _fundingStreamId &&
                                                               _.ValueType.GetValueOrDefault() == calculationValueTypeTwo,
-                NewCalculation(_ => _.WithId(newCalculationId2)));
-            AndTheCalculationIsEditedForRequestMatching(_ => _.Name == calculationName2 &&
+                NewCalculation(_ => _.WithId(newCalculationId5)));
+            AndTheCalculationIsEditedForRequestMatching(_ => _.Name == newCalculationName2 &&
                                                 _.ValueType.GetValueOrDefault() == calculationValueFormat2.AsMatchingEnum<CalculationValueType>() &&
                                                 _.Description == null &&
                                                 _.SourceCode == null,
@@ -393,12 +393,14 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
 
             mappingWithMissingCalculation1
                 .CalculationId
-                .Should().Be(newCalculationId1);
+                .Should().Be(newCalculationId4);
 
             mappingWithMissingCalculation2
                 .CalculationId
-                .Should().Be(newCalculationId2);
+                .Should().Be(newCalculationId5);
 
+            AndTheCalculationCodeOnCalculationChangeUpdated(calculationId1, newCalculationName1, calculationName1, _specificationId, 1, false);
+            AndTheCalculationCodeOnCalculationChangeUpdated(calculationId2, newCalculationName2, calculationName2, _specificationId, 1, true);
             AndTheTemplateMappingWasUpdated(templateMapping, 1);
             AndTheJobsStartWasLogged();
             AndTheJobCompletionWasLogged();
@@ -643,6 +645,18 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
         {
             _calculationsRepository.GetCalculationById(calculationId)
                 .Returns(calculation);
+        }
+
+        private void AndTheCalculationCodeOnCalculationChangeUpdated(string calculationId, string currentName, string previousName, string specificationId, int numberOfCalls, bool updateBuildProject)
+        {
+            _calculationService.Received(numberOfCalls)
+                .UpdateCalculationCodeOnCalculationChange(Arg.Is<CalculationVersionComparisonModel>(_ => _.CalculationId == calculationId &&
+                    _.CurrentName == currentName &&
+                    _.PreviousName == previousName &&
+                    _.SpecificationId == specificationId
+                ),
+                Arg.Any<Reference>(),
+                updateBuildProject);
         }
 
         private void AndTheTemplateMappingWasUpdated(TemplateMapping templateMapping, int numberOfCalls)

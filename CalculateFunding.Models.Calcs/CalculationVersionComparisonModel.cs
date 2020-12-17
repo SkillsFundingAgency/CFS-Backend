@@ -8,13 +8,12 @@ namespace CalculateFunding.Models.Calcs
 
         public string SpecificationId { get; set; }
 
-        public Calculation Current { get; set; }
+        public string CurrentName { get; set; }
 
-        public Calculation Previous { get; set; }
+        public string PreviousName { get; set; }
 
-        [JsonIgnore]
-        public bool HasChanges =>
-            (Current.Name != Previous.Name)
-            || (Current.Current.Description != Previous.Current.Description);
+        public string Namespace { get; set; }
+
+        public CalculationDataType CalculationDataType { get; set; }
     }
 }

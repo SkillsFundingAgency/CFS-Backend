@@ -4,6 +4,6 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 {
     public interface ICalculationCodeReferenceUpdate
     {
-        string ReplaceSourceCodeReferences(Calculation calculation, string oldCalcSourceCodeName, string newCalcSourceCodeName);
+        string ReplaceSourceCodeReferences(string sourceCode, string oldCalcSourceCodeName, string newCalcSourceCodeName, string calculationNamespace = null);
     }
 }

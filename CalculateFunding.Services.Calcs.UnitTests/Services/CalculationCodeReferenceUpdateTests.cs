@@ -28,7 +28,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
             };
 
             string actualSource = new CalculationCodeReferenceUpdate()
-                .ReplaceSourceCodeReferences(calculation, oldName, newName);
+                .ReplaceSourceCodeReferences(calculation.Current.SourceCode, oldName, newName, calculation.Namespace);
 
             actualSource
                 .Should()

@@ -62,6 +62,8 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 
         Task DeleteCalculations(Message message);
 
+        Task<IEnumerable<Calculation>> UpdateCalculationCodeOnCalculationChange(CalculationVersionComparisonModel comparison, Reference user, bool updateBuildProject = false);
+
         Task<IActionResult> UpdateTemplateCalculationsForSpecification(string specificationId, string datasetDefinitionId, Reference user);
 
         Task<IActionResult> QueueApproveAllSpecificationCalculations(string specificationId, Reference author, string correlationId);

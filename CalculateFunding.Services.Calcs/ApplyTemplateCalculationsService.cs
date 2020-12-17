@@ -141,27 +141,32 @@ namespace CalculateFunding.Services.Calcs
             TemplateMappingItem[] mappingsWithCalculations = templateMapping.TemplateMappingItems.Where(_ => !_.CalculationId.IsNullOrWhitespace())
                 .ToArray();
 
-            int itemCount = uniqueTemplateCalculations.Count;
+            int startingItemCount = 1;
 
-            int startingItemCount = itemCount - mappingsWithoutCalculations.Length - mappingsWithCalculations.Length;
-
-            await NotifyProgress(startingItemCount + 1);
-
-            mappingsWithCalculations = await EnsureAllRequiredCalculationsExist(mappingsWithoutCalculations,
-                mappingsWithCalculations,
-                fundingStreamId,
-                specificationSummary,
-                author,
-                correlationId,
-                startingItemCount,
-                uniqueTemplateCalculations);
+            await NotifyProgress(startingItemCount);
 
             await EnsureAllExistingCalculationsModified(mappingsWithCalculations,
                 specificationSummary,
                 correlationId,
                 author,
                 uniqueTemplateCalculations,
-                startingItemCount + mappingsWithoutCalculations.Length);
+                startingItemCount);
+
+            TemplateMappingItem[] newMappingsWithCalculations = await EnsureAllRequiredCalculationsExist(mappingsWithoutCalculations,
+                mappingsWithCalculations,
+                fundingStreamId,
+                specificationSummary,
+                author,
+                correlationId,
+                startingItemCount += mappingsWithCalculations.Length,
+                uniqueTemplateCalculations);
+
+            await EnsureAllExistingCalculationsModified(newMappingsWithCalculations,
+                specificationSummary,
+                correlationId,
+                author,
+                uniqueTemplateCalculations,
+                startingItemCount += mappingsWithoutCalculations.Length);
 
             // refresh template mapping
             await RefreshTemplateMapping(specificationId, fundingStreamId, templateMapping);
@@ -190,6 +195,7 @@ namespace CalculateFunding.Services.Calcs
 
             // filter out unchanged calculations
             (Calculation TemplateCalculation, Models.Calcs.Calculation Calculation)[] AllCalculation = GetAllCalculations(mappingsWithCalculations, uniqueTemplateCalculations, existingCalculationsById).ToArray();
+            List<CalculationVersionComparisonModel> calcNameChanges = new List<CalculationVersionComparisonModel>();
 
             for (int calculationCount = 0; calculationCount < AllCalculation.Count(); calculationCount++)
             {
@@ -198,12 +204,26 @@ namespace CalculateFunding.Services.Calcs
 
                 if ((calculationCount + 1) % 10 == 0) await NotifyProgress(startingItemCount + calculationCount + 1);
 
+                if (existingCalculation.Current.Name != templateCalculation.Name)
+                {
+                    calcNameChanges.Add(new CalculationVersionComparisonModel
+                    {
+                        CalculationId = existingCalculation.Id,
+                        CurrentName = templateCalculation.Name,
+                        PreviousName = existingCalculation.Current.Name,
+                        SpecificationId = specification.Id,
+                        CalculationDataType = existingCalculation.Current.DataType,
+                        Namespace = existingCalculation.Namespace
+                    });
+                }
+
                 CalculationEditModel calculationEditModel = new CalculationEditModel
                 {
                     Description = existingCalculation.Current.Description,
                     SourceCode = existingCalculation.Current.SourceCode,
                     Name = templateCalculation.Name,
-                    ValueType = templateCalculation.ValueFormat.AsMatchingEnum<CalculationValueType>()
+                    ValueType = templateCalculation.ValueFormat.AsMatchingEnum<CalculationValueType>(),
+                    AllowedEnumTypeValues = templateCalculation.AllowedEnumTypeValues
                 };
 
                 IActionResult editCalculationResult = await _calculationService.EditCalculation(specification.Id,
@@ -214,7 +234,7 @@ namespace CalculateFunding.Services.Calcs
                     false,
                     true,
                     true,
-                    (calculationCount == mappingsWithCalculations.Length - 1),
+                    (calculationCount == AllCalculation.Count() - 1) && !calcNameChanges.AnyWithNullCheck(),
                     true,
                     existingCalculation);
 
@@ -222,6 +242,16 @@ namespace CalculateFunding.Services.Calcs
                 {
                     LogAndThrowException("Unable to edit template calculation for template mapping");
                 }
+            }
+
+            // now all the calc names have been updated we need to update all the references in the calc source
+            int calcChangeCount = 0;
+
+            foreach (CalculationVersionComparisonModel calculationVersionComparisonModel in calcNameChanges)
+            {
+                calcChangeCount++;
+                await _calculationService.UpdateCalculationCodeOnCalculationChange(calculationVersionComparisonModel,
+                author, calcChangeCount == calcNameChanges.Count);
             }
         }
 
@@ -244,7 +274,15 @@ namespace CalculateFunding.Services.Calcs
                 
                 if (existingCalculation.Current.CalculationType != CalculationType.Additional && templateCalculation.Name == existingCalculation.Current.Name && templateCalculation.ValueFormat.AsMatchingEnum<CalculationValueType>() == existingCalculation.Current.ValueType)
                 {
-                    continue;
+                    if (existingCalculation.Current.DataType != CalculationDataType.Enum)
+                    {
+                        continue;
+                    }
+                     
+                    if (existingCalculation.Current.AllowedEnumTypeValues.All(_ => templateCalculation.AllowedEnumTypeValues.Contains(_) && existingCalculation.Current.AllowedEnumTypeValues.Count() == templateCalculation.AllowedEnumTypeValues.Count()))
+                    {
+                        continue;
+                    }
                 }
 
                 yield return (templateCalculation, existingCalculation);
@@ -262,21 +300,23 @@ namespace CalculateFunding.Services.Calcs
         {
             if (!mappingsWithoutCalculations.Any()) return mappingsWithCalculations;
 
+            TemplateMappingItem[] newMappingsWithCalculations = new TemplateMappingItem[0];
+
             for (int calculationCount = 0; calculationCount < mappingsWithoutCalculations.Length; calculationCount++)
             {
-                TemplateMappingItem mappingWithCalculation = mappingsWithoutCalculations[calculationCount];
+                TemplateMappingItem newMappingWithCalculation = mappingsWithoutCalculations[calculationCount];
 
-                Models.Calcs.Calculation calculation = await _calculationsRepository.GetCalculationsBySpecificationIdAndCalculationName(specification.Id, mappingWithCalculation.Name);
+                Models.Calcs.Calculation calculation = await _calculationsRepository.GetCalculationsBySpecificationIdAndCalculationName(specification.Id, newMappingWithCalculation.Name);
 
                 // if this was originally a template calculation then we need to resurrect it
-                if (calculation != null && calculation.Current.WasTemplateCalculation)
+                if (calculation != null && (calculation.Current.WasTemplateCalculation || calculation.Current.CalculationType == CalculationType.Template))
                 {
-                    mappingWithCalculation.CalculationId = calculation.Id;
-                    mappingsWithCalculations = mappingsWithCalculations.Concat(new[] { mappingWithCalculation }).ToArray();
+                    newMappingWithCalculation.CalculationId = calculation.Id;
+                    newMappingsWithCalculations = newMappingsWithCalculations.Concat(new[] { newMappingWithCalculation }).ToArray();
                 }
                 else
                 {
-                    await CreateDefaultCalculationForTemplateItem(mappingWithCalculation,
+                    await CreateDefaultCalculationForTemplateItem(newMappingWithCalculation,
                         fundingStreamId,
                         specification.Id,
                         author,
@@ -287,7 +327,7 @@ namespace CalculateFunding.Services.Calcs
                 if ((calculationCount + 1) % 10 == 0) await NotifyProgress(startingItemCount + calculationCount + 1);
             }
 
-            return mappingsWithCalculations;
+            return newMappingsWithCalculations;
         }
 
         private async Task InitiateCalculationRun(string specificationId, Reference user, string correlationId)

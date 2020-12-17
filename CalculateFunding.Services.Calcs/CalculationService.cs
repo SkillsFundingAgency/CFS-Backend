@@ -516,12 +516,13 @@ namespace CalculateFunding.Services.Calcs
             _logger.Information($"New job of type '{job.JobDefinitionId}' created with id: '{job.Id}'");
         }
 
-        public async Task<IEnumerable<Calculation>> UpdateCalculationCodeOnCalculationChange(CalculationVersionComparisonModel comparison, Reference user)
+        public async Task<IEnumerable<Calculation>> UpdateCalculationCodeOnCalculationChange(CalculationVersionComparisonModel comparison, Reference user, bool updateBuildProject = false)
         {
-            string oldCalcSourceCodeName = VisualBasicTypeGenerator.GenerateIdentifier(comparison.Previous.Name);
-            string newCalcSourceCodeName = VisualBasicTypeGenerator.GenerateIdentifier(comparison.Current.Name);
+            string oldCalcSourceCodeName = VisualBasicTypeGenerator.GenerateIdentifier(comparison.PreviousName);
+            string newCalcSourceCodeName = VisualBasicTypeGenerator.GenerateIdentifier(comparison.CurrentName);
+            string @namespace = VisualBasicTypeGenerator.GenerateIdentifier(comparison.Namespace);
 
-            return await UpdateCalculationCodeOnCalculationChange(oldCalcSourceCodeName, newCalcSourceCodeName, comparison.SpecificationId, user);
+            return await UpdateCalculationCodeOnCalculationChange(oldCalcSourceCodeName, newCalcSourceCodeName, comparison.SpecificationId, @namespace, user, comparison.CalculationDataType == CalculationDataType.Enum, updateBuildProject);
         }
 
         public async Task<IActionResult> EditCalculation(string specificationId,
@@ -581,7 +582,7 @@ namespace CalculateFunding.Services.Calcs
                 calculationVersion.ValueType = calculationEditModel.ValueType.GetValueOrDefault();
                 calculationVersion.SourceCodeName = VisualBasicTypeGenerator.GenerateIdentifier(calculationEditModel.Name);
                 calculationVersion.Description = calculationEditModel.Description;
-
+                calculationVersion.AllowedEnumTypeValues = calculationEditModel.AllowedEnumTypeValues;
 
                 UpdateCalculationResult result = await UpdateCalculation(calculation, calculationVersion, author, updateBuildProject);
 
@@ -1269,7 +1270,7 @@ End Select");
             };
         }
 
-        private async Task<IEnumerable<Calculation>> UpdateCalculationCodeOnCalculationChange(string oldCalcSourceCodeName, string newCalcSourceCodeName, string specificationId, Reference user)
+        private async Task<IEnumerable<Calculation>> UpdateCalculationCodeOnCalculationChange(string oldCalcSourceCodeName, string newCalcSourceCodeName, string specificationId, string @namespace, Reference user, bool isEnum, bool updateBuildProject = false)
         {
             List<Calculation> updatedCalculations = new List<Calculation>();
 
@@ -1281,16 +1282,24 @@ End Select");
                 {
                     string sourceCode = calculation.Current.SourceCode;
 
-                    string result = _calculationCodeReferenceUpdate.ReplaceSourceCodeReferences(calculation,
+                    string result = _calculationCodeReferenceUpdate.ReplaceSourceCodeReferences(sourceCode,
                         oldCalcSourceCodeName,
-                        newCalcSourceCodeName);
+                        newCalcSourceCodeName,
+                        @namespace);
+
+                    if (isEnum)
+                    {
+                        result = _calculationCodeReferenceUpdate.ReplaceSourceCodeReferences(result,
+                            $"{oldCalcSourceCodeName}Options",
+                            $"{newCalcSourceCodeName}Options");
+                    }
 
                     if (result != sourceCode)
                     {
                         CalculationVersion calculationVersion = calculation.Current.Clone() as CalculationVersion;
                         calculationVersion.SourceCode = result;
 
-                        UpdateCalculationResult updateCalculationResult = await UpdateCalculation(calculation, calculationVersion, user, updateBuildProject: false);
+                        UpdateCalculationResult updateCalculationResult = await UpdateCalculation(calculation, calculationVersion, user, updateBuildProject: updateBuildProject);
 
                         updatedCalculations.Add(updateCalculationResult.Calculation);
                     }

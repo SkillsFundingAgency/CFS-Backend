@@ -117,7 +117,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
         private static ICalculationCodeReferenceUpdate CreateCalculationCodeReferenceUpdate()
         {
-            return Substitute.For<ICalculationCodeReferenceUpdate>();
+            return new CalculationCodeReferenceUpdate();
         }
 
         private static IFeatureToggle CreateFeatureToggle()
