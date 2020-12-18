@@ -402,7 +402,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
 
             AndTheCalculationCodeOnCalculationChangeUpdated(calculationId1, newCalculationName1, calculationName1, _specificationId, 1);
             AndTheCalculationCodeOnCalculationChangeUpdated(calculationId2, newCalculationName2, calculationName2, _specificationId, 1);
-            AndUpdateBuildProjectCalled(_specificationId);
+            AndUpdateBuildProjectCalled(_specificationId, 2);
             AndTheTemplateMappingWasUpdated(templateMapping, 1);
             AndTheJobsStartWasLogged();
             AndTheJobCompletionWasLogged();
@@ -672,9 +672,9 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
                 Arg.Any<Reference>());
         }
 
-        private void AndUpdateBuildProjectCalled(string specificationId)
+        private void AndUpdateBuildProjectCalled(string specificationId, int numberOfCalls)
         {
-            _calculationService.Received(1)
+            _calculationService.Received(numberOfCalls)
                 .UpdateBuildProject(Arg.Is<SpecificationSummary>(_ => _.Id == specificationId));
         }
 

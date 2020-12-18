@@ -301,6 +301,8 @@ namespace CalculateFunding.Services.Calcs
         {
             if (!mappingsWithoutCalculations.Any()) return mappingsWithCalculations;
 
+            bool createdNewCalculations = false;
+
             TemplateMappingItem[] newMappingsWithCalculations = new TemplateMappingItem[0];
 
             for (int calculationCount = 0; calculationCount < mappingsWithoutCalculations.Length; calculationCount++)
@@ -323,9 +325,16 @@ namespace CalculateFunding.Services.Calcs
                         author,
                         correlationId,
                         uniqueTemplateCalculations);
+
+                    createdNewCalculations = true;
                 }
 
                 if ((calculationCount + 1) % 10 == 0) await NotifyProgress(startingItemCount + calculationCount + 1);
+            }
+
+            if (createdNewCalculations)
+            {
+                await _calculationService.UpdateBuildProject(specification);
             }
 
             return newMappingsWithCalculations;
