@@ -78,11 +78,40 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Batches
                 .Be("Did not locate a ukprn column in batch upload file");
         }
 
+        [TestMethod]
+        public void GuardsAgainstInvalidFileFormatInSuppliedStream()
+        {
+            string batchId = NewRandomString();
+            
+            GivenTheUploadedExcelFile(batchId, new MemoryStream(new RandomBytes()));
+
+            Action invocation = () => WhenTheBatchUploadIsLoaded(batchId)
+                .GetAwaiter()
+                .GetResult();
+
+            invocation
+                .Should()
+                .Throw<NonRetriableException>()
+                .Which
+                .Message
+                .Should()
+                .Be("Unable to open batch upload file. It must be a valid xlsx file.");   
+        }
+
         private async Task WhenTheBatchUploadIsLoaded(string batchId)
             => await _reader.LoadBatchUpload(new BatchUploadBlobName(batchId));
 
         private void GivenTheUploadedExcelFile(string batchId,
             string resourcePath)
+        {
+            GivenTheUploadedExcelFile(batchId, 
+                GetType()
+                    .Assembly
+                    .GetManifestResourceStream($"CalculateFunding.Services.Publishing.UnitTests.Batches.Resources.{resourcePath}"));
+        }
+        
+        private void GivenTheUploadedExcelFile(string batchId,
+            Stream stream)
         {
             BatchUploadBlobName blobName = new BatchUploadBlobName(batchId);
             
@@ -90,8 +119,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Batches
 
             _blobClient.Setup(_ => _.GetBlobReferenceFromServerAsync(blobName, "batchuploads"))
                 .ReturnsAsync(blob.Object);
-
-            Stream stream = GetType().Assembly.GetManifestResourceStream($"CalculateFunding.Services.Publishing.UnitTests.Batches.Resources.{resourcePath}");
 
             _blobClient.Setup(_ => _.DownloadToStreamAsync(blob.Object))
                 .ReturnsAsync(stream);

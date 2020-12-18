@@ -41,9 +41,21 @@ namespace CalculateFunding.Services.Publishing.Batches
             
             batchStream.Position = 0;
             
-            using ExcelPackage batchXlsx = new ExcelPackage(batchStream);
+            using ExcelPackage batchXlsx = ReadStreamIntoExcelPackage(batchStream);
             
             LoadPublishedProviderIds(batchXlsx);
+        }
+
+        private static ExcelPackage ReadStreamIntoExcelPackage(Stream batchStream)
+        {
+            try
+            {
+                return new ExcelPackage(batchStream);
+            }
+            catch
+            {
+                throw new NonRetriableException("Unable to open batch upload file. It must be a valid xlsx file.");
+            }
         }
 
         private void LoadPublishedProviderIds(ExcelPackage batchXlsx)
