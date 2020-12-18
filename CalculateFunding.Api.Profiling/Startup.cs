@@ -105,6 +105,7 @@ namespace CalculateFunding.Api.Profiling
                 .AddSingleton<IHealthChecker, CalculateProfileService>();
             builder.AddSingleton<ICosmosRepository, CosmosRepository>();
 
+            builder.AddApplicationInsightsTelemetry();
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Profiling");
             builder.AddLogging("CalculateFunding.Api.Profiling");
             builder.AddAuthenticatedHealthCheckMiddleware();

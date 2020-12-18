@@ -146,6 +146,7 @@ namespace CalculateFunding.API.CosmosDbScaling
 
             });
 
+            builder.AddApplicationInsightsTelemetry();
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Apis.CosmosDbScaling");
             builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.CosmosDbScaling");
             builder.AddLogging("CalculateFunding.Apis.CosmosDbScaling");

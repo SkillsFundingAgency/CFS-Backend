@@ -7,7 +7,6 @@ using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Users;
-using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.AspNet.Extensions;
 using CalculateFunding.Services.Core.AspNet.HealthChecks;
 using CalculateFunding.Services.Core.Extensions;
@@ -21,11 +20,9 @@ using CalculateFunding.Services.Users.Validators;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.OpenApi.Models;
 using Polly.Bulkhead;
 
 namespace CalculateFunding.Api.Users
@@ -69,7 +66,8 @@ namespace CalculateFunding.Api.Users
 
             app.MapWhen(
                     context => !context.Request.Path.Value.StartsWith("/swagger"),
-                    appBuilder => {
+                    appBuilder =>
+                    {
                         appBuilder.UseMiddleware<ApiKeyMiddleware>();
                         appBuilder.UseHealthCheckMiddleware();
                         appBuilder.UseMiddleware<LoggedInUserMiddleware>();
@@ -151,7 +149,7 @@ namespace CalculateFunding.Api.Users
 
             builder.AddCaching(Configuration);
 
-           
+            builder.AddApplicationInsightsTelemetry();
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Users");
             builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.Users");
             builder.AddLogging("CalculateFunding.Api.Users");
@@ -160,7 +158,7 @@ namespace CalculateFunding.Api.Users
             builder.AddHttpContextAccessor();
 
             builder.AddHealthCheckMiddleware();
-           
+
             builder.AddSpecificationsInterServiceClient(Configuration);
 
             if (Configuration.IsSwaggerEnabled())

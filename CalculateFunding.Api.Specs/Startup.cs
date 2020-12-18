@@ -37,9 +37,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.OpenApi.Models;
-using Newtonsoft.Json.Converters;
-using Newtonsoft.Json.Serialization;
 using Polly.Bulkhead;
 using Serilog;
 using BlobClient = CalculateFunding.Common.Storage.BlobClient;
@@ -90,7 +87,8 @@ namespace CalculateFunding.Api.Specs
 
             app.MapWhen(
                     context => !context.Request.Path.Value.StartsWith("/swagger"),
-                    appBuilder => {
+                    appBuilder =>
+                    {
                         appBuilder.UseMiddleware<ApiKeyMiddleware>();
                         appBuilder.UseHealthCheckMiddleware();
                         appBuilder.UseMiddleware<LoggedInUserMiddleware>();
@@ -205,13 +203,13 @@ namespace CalculateFunding.Api.Specs
             MapperConfiguration mappingConfig = new MapperConfiguration(
                 c =>
                 {
-                    c.AddProfile<SpecificationsMappingProfile>();                  
+                    c.AddProfile<SpecificationsMappingProfile>();
                 }
             );
 
             builder.AddFeatureToggling(Configuration);
 
-            builder.AddSingleton(mappingConfig.CreateMapper());          
+            builder.AddSingleton(mappingConfig.CreateMapper());
 
             builder.AddServiceBus(Configuration);
 
@@ -260,7 +258,7 @@ namespace CalculateFunding.Api.Specs
 
             });
 
-
+            builder.AddApplicationInsightsTelemetry();
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Apis.Specs");
             builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.Specs");
             builder.AddLogging("CalculateFunding.Apis.Specs");

@@ -112,7 +112,8 @@ namespace CalculateFunding.Api.Publishing
 
             app.MapWhen(
                     context => !context.Request.Path.Value.StartsWith("/swagger"),
-                    appBuilder => {
+                    appBuilder =>
+                    {
                         appBuilder.UseMiddleware<ApiKeyMiddleware>();
                         appBuilder.UseHealthCheckMiddleware();
                         appBuilder.UseMiddleware<LoggedInUserMiddleware>();
@@ -133,17 +134,17 @@ namespace CalculateFunding.Api.Publishing
             builder.AddSingleton<IBatchUploadValidationService, BatchUploadValidationService>();
             builder.AddSingleton<IBatchUploadReaderFactory, BatchUploadReaderFactory>();
             builder.AddSingleton<IValidator<BatchUploadValidationRequest>, BatchUploadValidationRequestValidation>();
-            
+
             builder.AddSingleton<IPublishedProviderUpdateDateService, PublishedProviderUpdateDateService>();
-            
+
             ISqlSettings sqlSettings = new SqlSettings();
 
             Configuration.Bind("saSql", sqlSettings);
 
             builder.AddSingleton(sqlSettings);
 
-            builder.AddSingleton<IBatchUploadService, BatchUploadService>(); 
-                
+            builder.AddSingleton<IBatchUploadService, BatchUploadService>();
+
             builder.AddScoped<IDataTableImporter, DataTableImporter>();
             builder.AddScoped<ISqlImportContextBuilder, SqlImportContextBuilder>();
             builder.AddSingleton<ISqlPolicyFactory, SqlPolicyFactory>();
@@ -155,21 +156,21 @@ namespace CalculateFunding.Api.Publishing
             builder.AddScoped<ISqlSchemaGenerator, SqlSchemaGenerator>();
             builder.AddScoped<IQaSchemaService, QaSchemaService>();
             builder.AddScoped<IQaRepository, QaRepository>();
-            builder .AddSingleton<ITemplateMetadataResolver>(ctx =>
-            {
-                TemplateMetadataResolver resolver = new TemplateMetadataResolver();
-                ILogger logger = ctx.GetService<ILogger>();
-                    
-                TemplateMetadataSchema10.TemplateMetadataGenerator schema10Generator = new TemplateMetadataSchema10.TemplateMetadataGenerator(logger);
-                resolver.Register("1.0", schema10Generator);
+            builder.AddSingleton<ITemplateMetadataResolver>(ctx =>
+           {
+               TemplateMetadataResolver resolver = new TemplateMetadataResolver();
+               ILogger logger = ctx.GetService<ILogger>();
 
-                TemplateMetadataSchema11.TemplateMetadataGenerator schema11Generator = new TemplateMetadataSchema11.TemplateMetadataGenerator(logger);
-                resolver.Register("1.1", schema11Generator);
+               TemplateMetadataSchema10.TemplateMetadataGenerator schema10Generator = new TemplateMetadataSchema10.TemplateMetadataGenerator(logger);
+               resolver.Register("1.0", schema10Generator);
 
-                return resolver;
-            });
+               TemplateMetadataSchema11.TemplateMetadataGenerator schema11Generator = new TemplateMetadataSchema11.TemplateMetadataGenerator(logger);
+               resolver.Register("1.1", schema11Generator);
+
+               return resolver;
+           });
             builder.AddSingleton<ICosmosRepository, CosmosRepository>();
-            
+
             CosmosDbSettings settings = new CosmosDbSettings();
 
             Configuration.Bind("CosmosDbSettings", settings);
@@ -181,7 +182,7 @@ namespace CalculateFunding.Api.Publishing
             builder.AddSingleton<IPublishedFundingContentsGeneratorResolver>(ctx =>
             {
                 PublishedFundingContentsGeneratorResolver resolver = new PublishedFundingContentsGeneratorResolver();
-                
+
                 resolver.Register("1.0", new Generators.Schema10.PublishedFundingContentsGenerator());
                 resolver.Register("1.1", new Generators.Schema11.PublishedFundingContentsGenerator());
 
@@ -199,7 +200,7 @@ namespace CalculateFunding.Api.Publishing
 
                 return resolver;
             });
-            
+
             builder.AddSingleton<IProfilePatternPreview, ProfilePatternPreview>();
             builder.AddSingleton<IReProfilingRequestBuilder, ReProfilingRequestBuilder>();
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
@@ -218,7 +219,7 @@ namespace CalculateFunding.Api.Publishing
                 .AddSingleton<IHealthChecker, PublishedSearchService>();
 
             builder.AddSingleton<IPoliciesService, PoliciesService>();
-            builder.AddSingleton<IPublishedProviderStatusService>((ctx) => 
+            builder.AddSingleton<IPublishedProviderStatusService>((ctx) =>
             {
                 AzureStorageSettings storageSettings = new AzureStorageSettings();
                 Configuration.Bind("AzureStorageSettings", storageSettings);
@@ -377,16 +378,19 @@ namespace CalculateFunding.Api.Publishing
                 .AddSingleton<IHealthChecker, ProfilingService>()
                 .AddSingleton<IPublishedProviderVersioningService, PublishedProviderVersioningService>();
 
+            builder.AddApplicationInsightsTelemetry();
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Publishing");
             builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.Publishing");
             builder.AddLogging("CalculateFunding.Api.Publishing");
-            builder.AddServiceBus(Configuration, "publishing");
             builder.AddTelemetry();
+
+            builder.AddServiceBus(Configuration, "publishing");
+
             builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
             builder.AddPolicySettings(Configuration);
-            builder.AddHttpContextAccessor();           
+            builder.AddHttpContextAccessor();
             builder.AddHealthCheckMiddleware();
-            
+
             builder.AddHttpCachingMvc();
             builder.AddQueryProviderAndExtractorForViewModelMvc<PublishedProviderFundingStructure, PublishedProviderFundingStructureTimedEtagProvider, PublishedProviderFundingStructureTimedEtagExtractor>(false);
 
@@ -398,7 +402,7 @@ namespace CalculateFunding.Api.Publishing
             builder.AddJobsInterServiceClient(Configuration);
             builder.AddPoliciesInterServiceClient(Configuration);
             builder.AddFeatureToggling(Configuration);
-            
+
             builder.AddScoped<IPublishedFundingUndoJobService, PublishedFundingUndoJobService>();
             builder.AddScoped<IPublishedFundingUndoJobCreation, PublishedFundingUndoJobCreation>();
             builder.AddScoped<IPublishedFundingUndoTaskFactoryLocator, PublishedFundingUndoTaskFactoryLocator>();
@@ -428,7 +432,7 @@ namespace CalculateFunding.Api.Publishing
                     ctx.GetService<IPublishingResiliencePolicies>(),
                     ctx.GetService<ILogger>());
             });
-            
+
             builder.AddSingleton<IProducerConsumerFactory, ProducerConsumerFactory>();
 
             builder

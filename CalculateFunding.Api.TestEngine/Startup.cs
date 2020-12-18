@@ -31,7 +31,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.OpenApi.Models;
 using Polly;
 using Polly.Bulkhead;
 using Serilog;
@@ -77,7 +76,8 @@ namespace CalculateFunding.Api.TestRunner
 
             app.MapWhen(
                     context => !context.Request.Path.Value.StartsWith("/swagger"),
-                    appBuilder => {
+                    appBuilder =>
+                    {
                         appBuilder.UseMiddleware<ApiKeyMiddleware>();
                         appBuilder.UseHealthCheckMiddleware();
                         appBuilder.UseMiddleware<LoggedInUserMiddleware>();
@@ -121,7 +121,7 @@ namespace CalculateFunding.Api.TestRunner
                 providersDbSettings.ContainerName = "testresults";
 
                 CosmosRepository providersCosmosRepostory = new CosmosRepository(providersDbSettings);
-                
+
                 ILogger logger = ctx.GetService<ILogger>();
 
                 EngineSettings engineSettings = ctx.GetService<EngineSettings>();
@@ -185,7 +185,7 @@ namespace CalculateFunding.Api.TestRunner
 
             MapperConfiguration mapperConfig = new MapperConfiguration(c =>
             {
-                c.AddProfile<TestEngineMappingProfile>();               
+                c.AddProfile<TestEngineMappingProfile>();
             });
 
 
@@ -196,7 +196,7 @@ namespace CalculateFunding.Api.TestRunner
 
             builder
                 .AddScoped<ITestResultsService, TestResultsService>()
-                .AddScoped<IHealthChecker, TestResultsService>();          
+                .AddScoped<IHealthChecker, TestResultsService>();
 
             builder.AddSearch(Configuration);
             builder
@@ -212,7 +212,7 @@ namespace CalculateFunding.Api.TestRunner
 
             builder.AddCaching(Configuration);
 
-          
+            builder.AddApplicationInsightsTelemetry();
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.TestEngine");
             builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.TestEngine");
             builder.AddLogging("CalculateFunding.Api.TestEngine");

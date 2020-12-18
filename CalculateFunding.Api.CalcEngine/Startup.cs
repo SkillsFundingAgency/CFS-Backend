@@ -213,6 +213,7 @@ namespace CalculateFunding.Api.CalcEngine
 
             builder.AddCaching(Configuration);
 
+            builder.AddApplicationInsightsTelemetry();
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.CalcEngine");
             builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.CalcEngine");
 

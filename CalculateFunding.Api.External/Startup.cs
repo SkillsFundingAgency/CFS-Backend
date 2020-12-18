@@ -234,7 +234,8 @@ namespace CalculateFunding.Api.External
             builder.AddSearch(Configuration);
             builder
                .AddSingleton<ISearchRepository<PublishedFundingIndex>, SearchRepository<PublishedFundingIndex>>();
-           
+
+            builder.AddApplicationInsightsTelemetry();
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.External");
             builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.External");
             builder.AddLogging("CalculateFunding.Api.External");

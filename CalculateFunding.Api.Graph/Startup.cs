@@ -127,7 +127,8 @@ namespace CalculateFunding.Api.Graph
             builder.AddHttpContextAccessor();
            
             builder.AddHealthCheckMiddleware();
-            
+
+            builder.AddApplicationInsightsTelemetry();
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Graph");
             builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.Graph");
             builder.AddLogging("CalculateFunding.Api.Graph");

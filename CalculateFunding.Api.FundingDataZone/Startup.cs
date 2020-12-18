@@ -79,6 +79,7 @@ namespace CalculateFunding.Api.FundingDataZone
 
             builder.AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
 
+            builder.AddApplicationInsightsTelemetry();
             builder.AddApplicationInsightsTelemetryClient(Configuration, FundingDataZone);
             builder.AddApplicationInsightsServiceName(Configuration, FundingDataZone);
             builder.AddLogging(FundingDataZone);

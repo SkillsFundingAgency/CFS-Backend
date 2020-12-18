@@ -198,11 +198,12 @@ namespace CalculateFunding.Api.Results
 
             builder.AddCaching(Configuration);
 
-
+            builder.AddApplicationInsightsTelemetry();
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Results");
             builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.Results");
             builder.AddLogging("CalculateFunding.Api.Results");
             builder.AddTelemetry();
+
             builder.AddEngineSettings(Configuration);
 
             builder.AddJobsInterServiceClient(Configuration);

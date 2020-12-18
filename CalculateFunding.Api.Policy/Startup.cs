@@ -228,7 +228,8 @@ namespace CalculateFunding.Api.Policy
                 .AddSingleton<ISearchRepository<TemplateIndex>, SearchRepository<TemplateIndex>>();
 
             builder.AddCaching(Configuration);
-           
+
+            builder.AddApplicationInsightsTelemetry();
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Policy");
             builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.Policy");
             builder.AddLogging("CalculateFunding.Api.Policy");

@@ -172,6 +172,8 @@ namespace CalculateFunding.Api.Providers
             builder.AddResultsInterServiceClient(Configuration);
             builder.AddSpecificationsInterServiceClient(Configuration);
             builder.AddJobsInterServiceClient(Configuration);
+
+            builder.AddApplicationInsightsTelemetry();
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Providers");
             builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.Providers");
             builder.AddLogging("CalculateFunding.Api.Providers");
