@@ -388,6 +388,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
             AndMissingCalculation(calculationId3, missingCalculation);
             AndTheCalculations(calculations);
             AndTheSpecificationIsReturned();
+            AndTheCalculationCodeOnCalculationChangeReturned(calculationId1, newCalculationName1, calculationName1, _specificationId, calculations.Where(_ => _.Id == calculationId1));
 
             await WhenTheTemplateCalculationsAreApplied();
 
@@ -399,8 +400,9 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
                 .CalculationId
                 .Should().Be(newCalculationId5);
 
-            AndTheCalculationCodeOnCalculationChangeUpdated(calculationId1, newCalculationName1, calculationName1, _specificationId, 1, false);
-            AndTheCalculationCodeOnCalculationChangeUpdated(calculationId2, newCalculationName2, calculationName2, _specificationId, 1, true);
+            AndTheCalculationCodeOnCalculationChangeUpdated(calculationId1, newCalculationName1, calculationName1, _specificationId, 1);
+            AndTheCalculationCodeOnCalculationChangeUpdated(calculationId2, newCalculationName2, calculationName2, _specificationId, 1);
+            AndUpdateBuildProjectCalled(_specificationId);
             AndTheTemplateMappingWasUpdated(templateMapping, 1);
             AndTheJobsStartWasLogged();
             AndTheJobCompletionWasLogged();
@@ -647,7 +649,19 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
                 .Returns(calculation);
         }
 
-        private void AndTheCalculationCodeOnCalculationChangeUpdated(string calculationId, string currentName, string previousName, string specificationId, int numberOfCalls, bool updateBuildProject)
+        private void AndTheCalculationCodeOnCalculationChangeReturned(string calculationId, string currentName, string previousName, string specificationId, IEnumerable<Calculation> updatedCalculations)
+        {
+            _calculationService
+                .UpdateCalculationCodeOnCalculationChange(Arg.Is<CalculationVersionComparisonModel>(_ => _.CalculationId == calculationId &&
+                    _.CurrentName == currentName &&
+                    _.PreviousName == previousName &&
+                    _.SpecificationId == specificationId
+                ),
+                Arg.Any<Reference>())
+                .Returns(updatedCalculations);
+        }
+
+        private void AndTheCalculationCodeOnCalculationChangeUpdated(string calculationId, string currentName, string previousName, string specificationId, int numberOfCalls)
         {
             _calculationService.Received(numberOfCalls)
                 .UpdateCalculationCodeOnCalculationChange(Arg.Is<CalculationVersionComparisonModel>(_ => _.CalculationId == calculationId &&
@@ -655,8 +669,13 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
                     _.PreviousName == previousName &&
                     _.SpecificationId == specificationId
                 ),
-                Arg.Any<Reference>(),
-                updateBuildProject);
+                Arg.Any<Reference>());
+        }
+
+        private void AndUpdateBuildProjectCalled(string specificationId)
+        {
+            _calculationService.Received(1)
+                .UpdateBuildProject(Arg.Is<SpecificationSummary>(_ => _.Id == specificationId));
         }
 
         private void AndTheTemplateMappingWasUpdated(TemplateMapping templateMapping, int numberOfCalls)

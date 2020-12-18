@@ -9,6 +9,7 @@ using CalculateFunding.Models.Versioning;
 using CalculateFunding.Services.Processing.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
+using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.Calcs.Interfaces
 {
@@ -62,9 +63,11 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 
         Task DeleteCalculations(Message message);
 
-        Task<IEnumerable<Calculation>> UpdateCalculationCodeOnCalculationChange(CalculationVersionComparisonModel comparison, Reference user, bool updateBuildProject = false);
+        Task<IEnumerable<Calculation>> UpdateCalculationCodeOnCalculationChange(CalculationVersionComparisonModel comparison, Reference user);
 
         Task<IActionResult> UpdateTemplateCalculationsForSpecification(string specificationId, string datasetDefinitionId, Reference user);
+
+        Task<BuildProject> UpdateBuildProject(SpecModel.SpecificationSummary specificationSummary);
 
         Task<IActionResult> QueueApproveAllSpecificationCalculations(string specificationId, Reference author, string correlationId);
     }

@@ -516,13 +516,13 @@ namespace CalculateFunding.Services.Calcs
             _logger.Information($"New job of type '{job.JobDefinitionId}' created with id: '{job.Id}'");
         }
 
-        public async Task<IEnumerable<Calculation>> UpdateCalculationCodeOnCalculationChange(CalculationVersionComparisonModel comparison, Reference user, bool updateBuildProject = false)
+        public async Task<IEnumerable<Calculation>> UpdateCalculationCodeOnCalculationChange(CalculationVersionComparisonModel comparison, Reference user)
         {
             string oldCalcSourceCodeName = VisualBasicTypeGenerator.GenerateIdentifier(comparison.PreviousName);
             string newCalcSourceCodeName = VisualBasicTypeGenerator.GenerateIdentifier(comparison.CurrentName);
             string @namespace = VisualBasicTypeGenerator.GenerateIdentifier(comparison.Namespace);
 
-            return await UpdateCalculationCodeOnCalculationChange(oldCalcSourceCodeName, newCalcSourceCodeName, comparison.SpecificationId, @namespace, user, comparison.CalculationDataType == CalculationDataType.Enum, updateBuildProject);
+            return await UpdateCalculationCodeOnCalculationChange(oldCalcSourceCodeName, newCalcSourceCodeName, comparison.SpecificationId, @namespace, user, comparison.CalculationDataType == CalculationDataType.Enum);
         }
 
         public async Task<IActionResult> EditCalculation(string specificationId,
@@ -1270,7 +1270,7 @@ End Select");
             };
         }
 
-        private async Task<IEnumerable<Calculation>> UpdateCalculationCodeOnCalculationChange(string oldCalcSourceCodeName, string newCalcSourceCodeName, string specificationId, string @namespace, Reference user, bool isEnum, bool updateBuildProject = false)
+        private async Task<IEnumerable<Calculation>> UpdateCalculationCodeOnCalculationChange(string oldCalcSourceCodeName, string newCalcSourceCodeName, string specificationId, string @namespace, Reference user, bool isEnum)
         {
             List<Calculation> updatedCalculations = new List<Calculation>();
 
@@ -1299,7 +1299,7 @@ End Select");
                         CalculationVersion calculationVersion = calculation.Current.Clone() as CalculationVersion;
                         calculationVersion.SourceCode = result;
 
-                        UpdateCalculationResult updateCalculationResult = await UpdateCalculation(calculation, calculationVersion, user, updateBuildProject: updateBuildProject);
+                        UpdateCalculationResult updateCalculationResult = await UpdateCalculation(calculation, calculationVersion, user, updateBuildProject: false);
 
                         updatedCalculations.Add(updateCalculationResult.Calculation);
                     }
@@ -1367,7 +1367,7 @@ End Select");
             };
         }
 
-        private async Task<BuildProject> UpdateBuildProject(SpecModel.SpecificationSummary specificationSummary)
+        public async Task<BuildProject> UpdateBuildProject(SpecModel.SpecificationSummary specificationSummary)
         {
             Task<IEnumerable<Calculation>> calculationsRequest = _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specificationSummary.Id));
             Task<BuildProject> buildProjectRequest = _buildProjectsService.GetBuildProjectForSpecificationId(specificationSummary.Id);

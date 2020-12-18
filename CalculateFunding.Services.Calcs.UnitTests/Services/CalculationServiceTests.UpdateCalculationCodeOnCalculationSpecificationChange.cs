@@ -25,11 +25,13 @@ namespace CalculateFunding.Services.Calcs.Services
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
             IVersionRepository<CalculationVersion> versionRepository = CreateCalculationVersionRepository();
             IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            ISourceCodeService sourceCodeService = CreateSourceCodeService();
 
             CalculationService service = CreateCalculationService(calculationsRepository: calculationsRepository,
                 specificationsApiClient: specificationsApiClient,
                 calculationVersionRepository: versionRepository,
-                buildProjectsService: buildProjectsService);
+                buildProjectsService: buildProjectsService,
+                sourceCodeService: sourceCodeService);
 
             const string specificationId = "specId";
             const string calculationId = "updatedCalc";
@@ -118,6 +120,14 @@ namespace CalculateFunding.Services.Calcs.Services
                 .CreateVersion(Arg.Is<CalculationVersion>(_ => _.SourceCode == newCodeUpdated), Arg.Any<CalculationVersion>())
                 .Returns(calculationVersion);
 
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(specificationId)
+                .Returns(new BuildProject());
+
+            sourceCodeService
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
+                .Returns(new Build());
+
             // Act
             IEnumerable<Calculation> updatedCalculations = await service.UpdateCalculationCodeOnCalculationChange(comparison, user);
 
@@ -140,10 +150,6 @@ namespace CalculateFunding.Services.Calcs.Services
             calculation.Id
                 .Should()
                 .Be("referenceCalc");
-
-            await buildProjectsService
-                .DidNotReceive()
-                .GetBuildProjectForSpecificationId(Arg.Any<string>());
         }
 
         [TestMethod]
@@ -154,11 +160,13 @@ namespace CalculateFunding.Services.Calcs.Services
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
             IVersionRepository<CalculationVersion> versionRepository = CreateCalculationVersionRepository();
             IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            ISourceCodeService sourceCodeService = CreateSourceCodeService();
 
             CalculationService service = CreateCalculationService(calculationsRepository: calculationsRepository,
                 specificationsApiClient: specificationsApiClient,
                 calculationVersionRepository: versionRepository,
-                buildProjectsService: buildProjectsService);
+                buildProjectsService: buildProjectsService,
+                sourceCodeService: sourceCodeService);
 
             const string specificationId = "specId";
             const string calculationId = "updatedCalc";
@@ -240,6 +248,14 @@ namespace CalculateFunding.Services.Calcs.Services
                 .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
                 .Returns(calculationVersion);
 
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(specificationId)
+                .Returns(new BuildProject());
+
+            sourceCodeService
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>()) 
+                .Returns(new Build());
+
             // Act
             IEnumerable<Calculation> updatedCalculations = await service.UpdateCalculationCodeOnCalculationChange(comparison, user);
 
@@ -265,10 +281,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Id
                 .Should()
                 .Be("referenceCalc");
-
-            await buildProjectsService
-                .DidNotReceive()
-                .GetBuildProjectForSpecificationId(Arg.Any<string>());
         }
 
         [TestMethod]

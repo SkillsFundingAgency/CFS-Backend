@@ -161,13 +161,6 @@ namespace CalculateFunding.Services.Calcs
                 startingItemCount += mappingsWithCalculations.Length,
                 uniqueTemplateCalculations);
 
-            await EnsureAllExistingCalculationsModified(newMappingsWithCalculations,
-                specificationSummary,
-                correlationId,
-                author,
-                uniqueTemplateCalculations,
-                startingItemCount += mappingsWithoutCalculations.Length);
-
             // refresh template mapping
             await RefreshTemplateMapping(specificationId, fundingStreamId, templateMapping);
 
@@ -189,6 +182,8 @@ namespace CalculateFunding.Services.Calcs
             int startingItemCount)
         {
             if (!mappingsWithCalculations.Any()) return;
+
+            bool madeChanges = false;
 
             IEnumerable<Models.Calcs.Calculation> existingCalculations = await _calculationsRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specification.Id));
             IDictionary<string, Models.Calcs.Calculation> existingCalculationsById = existingCalculations.ToDictionary(_ => _.Id);
@@ -234,9 +229,11 @@ namespace CalculateFunding.Services.Calcs
                     false,
                     true,
                     true,
-                    (calculationCount == AllCalculation.Count() - 1) && !calcNameChanges.AnyWithNullCheck(),
+                    false,
                     true,
                     existingCalculation);
+
+                madeChanges = true;
 
                 if (!(editCalculationResult is OkObjectResult))
                 {
@@ -244,14 +241,18 @@ namespace CalculateFunding.Services.Calcs
                 }
             }
 
-            // now all the calc names have been updated we need to update all the references in the calc source
-            int calcChangeCount = 0;
+            List<Models.Calcs.Calculation> updatedCalculations = new List<Models.Calcs.Calculation>();
 
+            // now all the calc names have been updated we need to update all the references in the calc source
             foreach (CalculationVersionComparisonModel calculationVersionComparisonModel in calcNameChanges)
             {
-                calcChangeCount++;
-                await _calculationService.UpdateCalculationCodeOnCalculationChange(calculationVersionComparisonModel,
-                author, calcChangeCount == calcNameChanges.Count);
+                updatedCalculations.AddRange(await _calculationService.UpdateCalculationCodeOnCalculationChange(calculationVersionComparisonModel,
+                author));
+            }
+
+            if (madeChanges || updatedCalculations.Any())
+            {
+                await _calculationService.UpdateBuildProject(specification);
             }
         }
 
