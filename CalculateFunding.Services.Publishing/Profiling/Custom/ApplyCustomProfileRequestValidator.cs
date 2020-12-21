@@ -9,11 +9,14 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
 {
     public class ApplyCustomProfileRequestValidator : AbstractValidator<ApplyCustomProfileRequest>
     {
-        public ApplyCustomProfileRequestValidator(IPublishedFundingRepository publishedFunding,
-            IPublishingResiliencePolicies resiliencePolicies)
+        public ApplyCustomProfileRequestValidator(
+            IPublishedFundingRepository publishedFunding,
+            IPublishingResiliencePolicies resiliencePolicies,
+            IPoliciesService policiesService)
         {
             Guard.ArgumentNotNull(publishedFunding, nameof(publishedFunding));
             Guard.ArgumentNotNull(resiliencePolicies?.PublishedFundingRepository, nameof(resiliencePolicies.PublishedFundingRepository));
+            Guard.ArgumentNotNull(policiesService, nameof(policiesService));
 
             RuleFor(_ => _.FundingStreamId)
                 .NotEmpty()
@@ -96,6 +99,24 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
                     {
                         ctx.AddFailure(nameof(DistributionPeriod.ProfilePeriods),
                             "The distribution id must be supplied for all profile periods");
+                    }
+                });
+
+            RuleFor(_ => _)
+                .CustomAsync(async (request, ctx, ct) =>
+                {
+                    string fundingPeriodId = request.FundingPeriodId;
+                    string fundingStreamId = request.FundingStreamId;
+                    string fundingLineCode = request.FundingLineCode;
+
+                    if (fundingStreamId.IsNotNullOrWhitespace() &&
+                        fundingPeriodId.IsNotNullOrWhitespace())
+                    {
+                        var fundingConfiguration = await policiesService.GetFundingConfiguration(fundingStreamId, fundingPeriodId);
+                        if(fundingConfiguration == null || !fundingConfiguration.EnableUserEditableCustomProfiles)
+                        {
+                            ctx.AddFailure("Request", $"User not allowed to edit custom profiles for funding stream - '{fundingStreamId}' and funding period - '{fundingPeriodId}'");
+                        }
                     }
                 });
         }

@@ -39,5 +39,11 @@ namespace CalculateFunding.Models.Policy.FundingPolicy
 
         [JsonProperty("updateCoreProviderVersion")]
         public UpdateCoreProviderVersion UpdateCoreProviderVersion { get; set; }
+
+        [JsonProperty("enableUserEditableCustomProfiles")]
+        public bool EnableUserEditableCustomProfiles { get; set; }
+
+        [JsonProperty("enableUserEditableRuleBasedProfiles")]
+        public bool EnableUserEditableRuleBasedProfiles { get; set; }
     }
 }

@@ -5,6 +5,7 @@ using System.Net;
 using System.Threading.Tasks;
 using AutoMapper.Mappers;
 using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Profiling;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
@@ -36,6 +37,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private Mock<ISpecificationsApiClient> _specificationsApiClient;
         private Mock<IReProfilingRequestBuilder> _reProfilingRequestBuilder;
         private Mock<IProfilingApiClient> _profiling;
+        private Mock<IPoliciesService> _policiesService;
 
         private Reference _author;
 
@@ -67,6 +69,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _specificationsApiClient = new Mock<ISpecificationsApiClient>();
             _reProfilingRequestBuilder = new Mock<IReProfilingRequestBuilder>();
             _profiling = new Mock<IProfilingApiClient>();
+            _policiesService = new Mock<IPoliciesService>();
 
             _author = NewReference();
 
@@ -97,7 +100,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _reProfilingRequestBuilder.Object,
                 _profiling.Object,
                 PublishingResilienceTestHelper.GenerateTestPolicies(),
-                Logger.None);
+                Logger.None,
+                _policiesService.Object);
         }
 
         [TestMethod]
@@ -142,6 +146,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         [TestMethod]
         public void AssignProfilePatternKeyThrowsArgumentNullExceptionIfProfilePatternKeyMissing()
         {
+            GivenTheFundingConfiguration(true);
             Func<Task> invocation
                 = () => WhenProfilePatternKeyIsAssigned(_fundingStreamId, _fundingPeriodId, _providerId, null);
 
@@ -153,9 +158,36 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         }
 
         [TestMethod]
+        public async Task AssignProfilePatternKeyReturnsBadRequestIfFundingConfigurationIsNotEnableedUserEditableRuleBasedProfiles()
+        {
+            string fundingLineCode = NewRandomString();
+            string key = NewRandomString();
+
+            PublishedProvider publishedProvider = NewPublishedProvider(_ => _.WithCurrent(
+                NewPublishedProviderVersion(ppv => ppv.WithProfilePatternKeys(
+                    NewProfilePatternKey(ppk => ppk.WithFundingLineCode(fundingLineCode).WithKey(key))))));
+            GivenThePublishedProvider(publishedProvider);
+
+            GivenTheFundingConfiguration(false);
+            ProfilePatternKey profilePatternKey = NewProfilePatternKey();
+            BadRequestObjectResult result = await WhenProfilePatternKeyIsAssigned(_fundingStreamId, _fundingPeriodId, _providerId, profilePatternKey) as BadRequestObjectResult;
+
+            result
+                .Should()
+                .NotBeNull();
+
+            result
+                .Value
+                .Should()
+                .Be($"User not allowed to edit rule based profiles for funding stream - '{_fundingStreamId}' and funding period - '{_fundingPeriodId}'");
+        }
+
+
+        [TestMethod]
         public async Task AssignProfilePatternKeyReturnsNotFoundIfPublishedProviderDoesNotExist()
         {
             GivenThePublishedProvider(null);
+            GivenTheFundingConfiguration(true);
 
             ProfilePatternKey profilePatternKey = NewProfilePatternKey();
             StatusCodeResult result = await WhenProfilePatternKeyIsAssigned(_fundingStreamId, _fundingPeriodId, _providerId, profilePatternKey) as StatusCodeResult;
@@ -176,6 +208,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             string fundingLineCode = NewRandomString();
             string key = NewRandomString();
 
+            GivenTheFundingConfiguration(true);
             ProfilePatternKey profilePatternKey = NewProfilePatternKey(_ => _.WithFundingLineCode(fundingLineCode).WithKey(key));
 
             PublishedProvider publishedProvider = NewPublishedProvider(_ => _.WithCurrent(
@@ -202,6 +235,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             string existingProfilePatternKey = NewRandomString();
             string newProfilePatterFundingKey = NewRandomString();
 
+            GivenTheFundingConfiguration(true);
             ProfilePatternKey profilePatternKey = NewProfilePatternKey(_ => _.WithFundingLineCode(fundingLineCode).WithKey(newProfilePatterFundingKey));
 
             FundingLine fundingLine = NewFundingLine(_ => _.WithFundingLineCode(fundingLineCode));
@@ -231,6 +265,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             string newProfilePatterFundingKey = NewRandomString();
             string specificationId = NewRandomString();
 
+            GivenTheFundingConfiguration(true);
             ProfilePatternKey profilePatternKey = NewProfilePatternKey(_ => _.WithFundingLineCode(fundingLineCode).WithKey(newProfilePatterFundingKey));
 
             FundingLine fundingLine = NewFundingLine(_ => _.WithFundingLineCode(fundingLineCode));
@@ -282,6 +317,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             string distributionPeriodId = NewRandomString();
             decimal carryOverAmount = NewRandomNumberBetween(1, int.MaxValue);
 
+            GivenTheFundingConfiguration(true);
             ProfilePatternKey profilePatternKey = NewProfilePatternKey(_ => _.WithFundingLineCode(fundingLineCode).WithKey(newProfilePatterFundingKey));
             ProfilePeriod paidProfilePeriod = NewProfilePeriod(pp => pp
                 .WithDistributionPeriodId(distributionPeriodId)
@@ -677,6 +713,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                    paidProfilePeriod.Year == profilePeriod.Year;
         }
 
+        private void GivenTheFundingConfiguration(bool enableUserEditableRuleBasedProfiles)
+        {
+            _policiesService.Setup(_ => _.GetFundingConfiguration(_fundingStreamId, _fundingPeriodId))
+                .ReturnsAsync(NewFundingConfiguration(_ =>
+                _.WithFundingStreamId(_fundingStreamId)
+                .WithFundingPeriodId(_fundingPeriodId)
+                .WithEnableUserEditableRuleBasedProfiles(enableUserEditableRuleBasedProfiles)));
+        }
+
         private Reference NewReference(Action<ReferenceBuilder> setUp = null)
         {
             ReferenceBuilder referenceBuilder = new ReferenceBuilder();
@@ -761,6 +806,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             setUp?.Invoke(profileVariationPointerBuilder);
 
             return profileVariationPointerBuilder.Build();
+        }
+
+        protected FundingConfiguration NewFundingConfiguration(Action<FundingConfigurationBuilder> setUp = null)
+        {
+            FundingConfigurationBuilder fundingConfigurationBuilder = new FundingConfigurationBuilder();
+
+            setUp?.Invoke(fundingConfigurationBuilder);
+
+            return fundingConfigurationBuilder.Build();
         }
 
         private static IEnumerable<ProfileVariationPointer> NewProfileVariationPointers(params Action<ProfileVariationPointerBuilder>[] setUps) => setUps.Select(NewProfileVariationPointer);

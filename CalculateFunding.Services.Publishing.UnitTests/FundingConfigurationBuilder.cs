@@ -11,6 +11,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private string _fundingPeriodId;
         private string _id;
         private ApprovalMode? _approvalMode;
+        private bool? _enableUserEditableRuleBasedProfiles;
+        private bool? _enableUserEditableCustomProfiles;
 
         public FundingConfigurationBuilder WithId(string id)
         {
@@ -47,6 +49,21 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return this;
         }
 
+        public FundingConfigurationBuilder WithEnableUserEditableCustomProfiles(bool? enableUserEditableCustomProfiles)
+        {
+            _enableUserEditableCustomProfiles = enableUserEditableCustomProfiles;
+
+            return this;
+        }
+
+        public FundingConfigurationBuilder WithEnableUserEditableRuleBasedProfiles(bool? enableUserEditableRuleBasedProfiles)
+        {
+            _enableUserEditableRuleBasedProfiles = enableUserEditableRuleBasedProfiles;
+
+            return this;
+        }
+
+
         public FundingConfiguration Build()
         {
             return new FundingConfiguration
@@ -55,7 +72,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 FundingPeriodId = _fundingPeriodId ?? NewRandomString(),
                 FundingStreamId = _fundingStreamId ?? NewRandomString(),
                 ApprovalMode = _approvalMode ?? NewRandomEnum<ApprovalMode>(),
-                DefaultTemplateVersion = _defaultTemplateVersion
+                DefaultTemplateVersion = _defaultTemplateVersion,
+                EnableUserEditableCustomProfiles = _enableUserEditableCustomProfiles ?? NewRandomFlag(),
+                EnableUserEditableRuleBasedProfiles = _enableUserEditableRuleBasedProfiles ?? NewRandomFlag()
             };
         }
     }

@@ -18,6 +18,7 @@ using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Profiling;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
+using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 
 namespace CalculateFunding.Services.Publishing
 {
@@ -25,6 +26,7 @@ namespace CalculateFunding.Services.Publishing
     {
         private readonly IPublishedFundingRepository _publishedFundingRepository;
         private readonly ILogger _logger;
+        private readonly IPoliciesService _policiesService;
         private readonly AsyncPolicy _publishingResiliencePolicy;
         private readonly AsyncPolicy _specificationResiliencePolicy;
         private readonly AsyncPolicy _profilingPolicy;
@@ -43,7 +45,8 @@ namespace CalculateFunding.Services.Publishing
             IReProfilingRequestBuilder profilingRequestBuilder,
             IProfilingApiClient profiling,
             IPublishingResiliencePolicies publishingResiliencePolicies,
-            ILogger logger)
+            ILogger logger,
+            IPoliciesService policiesService)
         {
             Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
             Guard.ArgumentNotNull(publishedProviderErrorDetection, nameof(publishedProviderErrorDetection));
@@ -56,6 +59,7 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(publishingResiliencePolicies?.SpecificationsApiClient, nameof(publishingResiliencePolicies.SpecificationsApiClient));
             Guard.ArgumentNotNull(publishingResiliencePolicies?.ProfilingApiClient, nameof(publishingResiliencePolicies.ProfilingApiClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(policiesService, nameof(policiesService));
 
             _publishedFundingRepository = publishedFundingRepository;
             _publishedProviderErrorDetection = publishedProviderErrorDetection;
@@ -68,6 +72,7 @@ namespace CalculateFunding.Services.Publishing
             _specificationResiliencePolicy = publishingResiliencePolicies.SpecificationsApiClient;
             _profilingPolicy = publishingResiliencePolicies.ProfilingApiClient;
             _logger = logger;
+            _policiesService = policiesService;
         }
 
         public async Task<IActionResult> AssignProfilePatternKey(
@@ -88,6 +93,12 @@ namespace CalculateFunding.Services.Publishing
             if (publishedProvider == null)
             {
                 return new StatusCodeResult((int)HttpStatusCode.NotFound);
+            }
+
+            FundingConfiguration fundingConfiguration = await _policiesService.GetFundingConfiguration(fundingStreamId, fundingPeriodId);
+            if(fundingConfiguration == null || !fundingConfiguration.EnableUserEditableRuleBasedProfiles)
+            {
+                return new BadRequestObjectResult($"User not allowed to edit rule based profiles for funding stream - '{fundingStreamId}' and funding period - '{fundingPeriodId}'");
             }
 
             if (MatchingProfilePatternKeyExists(publishedProvider.Current, profilePatternKey))

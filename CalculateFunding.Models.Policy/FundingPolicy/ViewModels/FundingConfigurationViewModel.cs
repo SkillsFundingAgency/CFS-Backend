@@ -37,5 +37,15 @@ namespace CalculateFunding.Models.Policy.FundingPolicy.ViewModels
         /// Update Core Provider Version to track latest provider version
         /// </summary>
         public UpdateCoreProviderVersion UpdateCoreProviderVersion { get; set; }
+
+        /// <summary>
+        /// Indicates whether custom profiling changes are enabled for the fundingstream or not
+        /// </summary>
+        public bool EnableUserEditableCustomProfiles { get; set; }
+
+        /// <summary>
+        /// Indicates whether rule based profiling changes are enabled for the fundingstream or not
+        /// </summary>
+        public bool EnableUserEditableRuleBasedProfiles { get; set; }
     }
 }

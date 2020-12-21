@@ -16,6 +16,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
     public class ApplyCustomProfileRequestValidatorTests : CustomProfileRequestTestBase
     {
         private Mock<IPublishedFundingRepository> _publishedFunding;
+        private Mock<IPoliciesService> _policiesService;
         private string _fundingLineCode;
         private string _providerId;
         private string _fundingStreamId;
@@ -29,12 +30,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
         public void SetUp()
         {
             _publishedFunding = new Mock<IPublishedFundingRepository>();
+            _policiesService = new Mock<IPoliciesService>();
 
             _validator = new ApplyCustomProfileRequestValidator(_publishedFunding.Object,
                 new ResiliencePolicies
                 {
                     PublishedFundingRepository = Policy.NoOpAsync()
-                });
+                },
+                _policiesService.Object);
 
             _fundingLineCode = NewRandomString();
             _fundingPeriodId = NewRandomString();
@@ -46,6 +49,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
         public async Task FailsValidationIfNoProviderIdOnRequest()
         {
             GivenThePublishedProvider(NewOtherwiseValidPublishedProvider());
+            GivenTheFundingConfiguration(true);
 
             await WhenTheRequestIsValidated(NewOtherwiseValidRequest(_ => _.ProviderId = null));
 
@@ -56,6 +60,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
         public async Task FailsValidationIfNoFundingStreamIdOnRequest()
         {
             GivenThePublishedProvider(NewOtherwiseValidPublishedProvider());
+            GivenTheFundingConfiguration(true);
 
             await WhenTheRequestIsValidated(NewOtherwiseValidRequest(_ => _.FundingStreamId = null));
 
@@ -66,6 +71,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
         public async Task FailsValidationIfNoFundingPeriodIdOnRequest()
         {
             GivenThePublishedProvider(NewOtherwiseValidPublishedProvider());
+            GivenTheFundingConfiguration(true);
 
             await WhenTheRequestIsValidated(NewOtherwiseValidRequest(_ => _.FundingPeriodId = null));
 
@@ -76,6 +82,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
         public async Task FailsValidationIfNoFundingLineCodeOnRequest()
         {
             GivenThePublishedProvider(NewOtherwiseValidPublishedProvider());
+            GivenTheFundingConfiguration(true);
 
             await WhenTheRequestIsValidated(NewOtherwiseValidRequest(_ => _.FundingLineCode = null));
 
@@ -86,6 +93,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
         public async Task FailsValidationIfNoCustomProfileNameOnRequest()
         {
             GivenThePublishedProvider(NewOtherwiseValidPublishedProvider());
+            GivenTheFundingConfiguration(true);
 
             await WhenTheRequestIsValidated(NewOtherwiseValidRequest(_ => _.CustomProfileName = null));
 
@@ -96,6 +104,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
         public async Task FailsValidationIfNoProfilePeriodsOnRequest()
         {
             GivenThePublishedProvider(NewOtherwiseValidPublishedProvider());
+            GivenTheFundingConfiguration(true);
 
             await WhenTheRequestIsValidated(NewOtherwiseValidRequest(_ => _.ProfilePeriods = null));
 
@@ -106,6 +115,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
         public async Task FailsValidationIfNoPublishedProviderMatchingTheRequest()
         {
             GivenThePublishedProvider(NewOtherwiseValidPublishedProvider());
+            GivenTheFundingConfiguration(true);
 
             await WhenTheRequestIsValidated(NewOtherwiseValidRequest(_ => _.ProviderId = NewRandomString()));
 
@@ -113,9 +123,21 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
         }
 
         [TestMethod]
+        public async Task FailsValidationIfEnableUserEditableCustomProfilesSetToFalseForFundingConfiguration()
+        {
+            GivenThePublishedProvider(NewOtherwiseValidPublishedProvider());
+            GivenTheFundingConfiguration(false);
+
+            await WhenTheRequestIsValidated(NewOtherwiseValidRequest());
+
+            ThenTheValidationResultsContainsTheErrors(("Request", $"User not allowed to edit custom profiles for funding stream - '{_fundingStreamId}' and funding period - '{_fundingPeriodId}'"));
+        }
+
+        [TestMethod]
         public async Task FailsValidationIfTheProfilePeriodsHaveDuplicateOccurrencesInAFundingLine()
         {
             GivenThePublishedProvider(NewOtherwiseValidPublishedProvider());
+            GivenTheFundingConfiguration(true);
 
             await WhenTheRequestIsValidated(NewOtherwiseValidRequest(_ => _.ProfilePeriods =
                 NewProfilePeriods(
@@ -139,6 +161,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
         public async Task FailsValidationIfTheProfilePeriodsHaveMoreThanOneDistinctDistributionPeriodInRequest()
         {
             GivenThePublishedProvider(NewOtherwiseValidPublishedProvider());
+            GivenTheFundingConfiguration(true);
 
             await WhenTheRequestIsValidated(NewOtherwiseValidRequest(_ => _.ProfilePeriods =
                 NewProfilePeriods(
@@ -164,6 +187,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
         public async Task FailsValidationIfDistributionIdIsNotSet(string distributionId)
         {
             GivenThePublishedProvider(NewOtherwiseValidPublishedProvider());
+            GivenTheFundingConfiguration(true);
 
             ApplyCustomProfileRequest request = NewOtherwiseValidRequest(_ => _.ProfilePeriods =
                 NewProfilePeriods(
@@ -189,6 +213,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
         public async Task OtherwisePassesValidation()
         {
             GivenThePublishedProvider(NewOtherwiseValidPublishedProvider());
+            GivenTheFundingConfiguration(true);
 
             await WhenTheRequestIsValidated(NewOtherwiseValidRequest());
 
@@ -201,6 +226,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
 
             _publishedFunding.Setup(_ => _.GetPublishedProviderById(key, key))
                 .ReturnsAsync(publishedProvider);
+        }
+
+        private void GivenTheFundingConfiguration(bool enableUserEditableCustomProfiles)
+        {
+            _policiesService.Setup(_ => _.GetFundingConfiguration(_fundingStreamId, _fundingPeriodId))
+                .ReturnsAsync(NewFundingConfiguration(_ => 
+                _.WithFundingStreamId(_fundingStreamId)
+                .WithFundingPeriodId(_fundingPeriodId)
+                .WithEnableUserEditableCustomProfiles(enableUserEditableCustomProfiles)));
         }
 
         private async Task WhenTheRequestIsValidated(ApplyCustomProfileRequest request)

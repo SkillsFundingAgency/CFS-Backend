@@ -1,4 +1,5 @@
 using System;
+using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Profiling.Custom;
 using CalculateFunding.Tests.Common.Helpers;
@@ -61,6 +62,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
             setUp?.Invoke(providerVersionBuilder);
 
             return providerVersionBuilder.Build();
+        }
+
+        protected FundingConfiguration NewFundingConfiguration(Action<FundingConfigurationBuilder> setUp = null)
+        {
+            FundingConfigurationBuilder fundingConfigurationBuilder = new FundingConfigurationBuilder();
+
+            setUp?.Invoke(fundingConfigurationBuilder);
+
+            return fundingConfigurationBuilder.Build();
         }
 
         protected static string NewRandomString()
