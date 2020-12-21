@@ -214,12 +214,12 @@ namespace CalculateFunding.Services.Publishing
             string calculationId = GetCalculationId(calculation, templateMappingItems);
             FundingCalculation fundingCalculation = publishedProviderVersion.Calculations.FirstOrDefault(_ => _.TemplateCalculationId == calculation.TemplateCalculationId);
 
-            string calculationType = null;
+            string calculationType = calculation.Type.ToString();
             string calculationValue = null;
 
             if (fundingCalculation != null)
             {
-                calculationType = calculation.Type.ToString();
+                calculationType = calculation.ValueFormat.ToString();
                 calculationValue = fundingCalculation.Value.AsFormatCalculationType(calculation.ValueFormat);
             }
 
