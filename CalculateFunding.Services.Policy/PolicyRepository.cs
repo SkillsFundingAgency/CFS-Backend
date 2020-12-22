@@ -72,7 +72,7 @@ namespace CalculateFunding.Services.Policy
         {
             Guard.IsNullOrWhiteSpace(configId, nameof(configId));
 
-            return (await _cosmosRepository.ReadDocumentByIdPartitionedAsync<FundingConfiguration>(configId, configId))?.Content;
+            return (await _cosmosRepository.TryReadDocumentByIdPartitionedAsync<FundingConfiguration>(configId, configId))?.Content;
         }
 
         public async Task<IEnumerable<FundingConfiguration>> GetFundingConfigurationsByFundingStreamId(string fundingStreamId)

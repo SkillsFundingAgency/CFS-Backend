@@ -75,8 +75,24 @@ namespace CalculateFunding.Models.Policy.FundingPolicy
         Country,
 
         /// <summary>
-        /// 
+        /// Local Government Group
         /// </summary>
         LocalGovernmentGroup,
+
+        /// <summary>
+        /// Local Authority - School Six Forms
+        /// </summary>
+        LocalAuthoritySsf,
+
+        /// <summary>
+        /// Local Authority - Maintained Special Schools
+        /// </summary>
+
+        LocalAuthorityMss,
+
+        /// <summary>
+        /// Local Authority - Maintained Schools
+        /// </summary>
+        LocalAuthorityMaintained,
     }
 }
