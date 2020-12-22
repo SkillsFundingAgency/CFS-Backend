@@ -1,4 +1,11 @@
-﻿using CalculateFunding.Models.Jobs;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using CalculateFunding.Common.Caching;
+using CalculateFunding.Models.Jobs;
+using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Jobs.Interfaces;
 using CalculateFunding.Tests.Common.Helpers;
@@ -7,11 +14,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Jobs.Services
 {
@@ -193,7 +195,7 @@ namespace CalculateFunding.Services.Jobs.Services
 
             job.RunningStatus.Should().Be(RunningStatus.Completed);
             job.Completed.Should().NotBeNull();
-            job.OutcomeType.Should().Be(expectedOutcomeType);    
+            job.OutcomeType.Should().Be(expectedOutcomeType);
         }
 
         public static IEnumerable<object[]> JobLogOutcomeTypeExamples()
@@ -260,8 +262,8 @@ namespace CalculateFunding.Services.Jobs.Services
             job.Outcome.Should().Be("outcome");
             job.OutcomeType.Should().Be(jobLogUpdateModel.OutcomeType);
         }
-        
-        
+
+
 
         [TestMethod]
         public async Task AddJobLog_GivenJobUpdated_EnsuresNewJobLogCreated()
@@ -319,7 +321,7 @@ namespace CalculateFunding.Services.Jobs.Services
                     m.ItemsFailed == 40 &&
                     m.ItemsSucceeded == 60 &&
                     m.CompletedSuccessfully == false));
-           
+
         }
 
         [TestMethod]
@@ -361,7 +363,7 @@ namespace CalculateFunding.Services.Jobs.Services
             JobManagementService jobManagementService = CreateJobManagementService(jobRepository: jobRepository, notificationService: notificationService);
 
             //Act
-            Func<Task> test = async() => await jobManagementService.AddJobLog(jobId, jobLogUpdateModel);
+            Func<Task> test = async () => await jobManagementService.AddJobLog(jobId, jobLogUpdateModel);
 
             //Assert
             test
@@ -472,6 +474,244 @@ namespace CalculateFunding.Services.Jobs.Services
                     m.OutcomeType == OutcomeType.Failed
                 ));
 
+        }
+
+
+        [TestMethod]
+        public async Task AddJobLog_GivenJobUpdatedAndCompletedSuccessfully_EnsuresLatestCacheIsUpdated()
+        {
+            //Arrange
+            string jobId = "job-id-1";
+            DateTimeOffset lastUpdated = new RandomDateTime();
+            List<Outcome> outcomes = new List<Outcome>
+            {
+                new Outcome
+                {
+                    Description = "outcome-1"
+                }
+            };
+
+            string specificationId = "spec-id-1";
+            string jobDefinitionId = "job-definition-id";
+
+            JobLogUpdateModel jobLogUpdateModel = new JobLogUpdateModel
+            {
+                CompletedSuccessfully = true,
+                Outcome = "outcome",
+                ItemsFailed = 40,
+                ItemsProcessed = 100,
+                ItemsSucceeded = 60
+            };
+
+            Job job = new Job
+            {
+                Id = jobId,
+                RunningStatus = RunningStatus.InProgress,
+                JobDefinitionId = jobDefinitionId,
+                InvokerUserDisplayName = "authorName",
+                InvokerUserId = "authorId",
+                LastUpdated = lastUpdated,
+                ItemCount = 100,
+                SpecificationId = specificationId,
+                Trigger = new Trigger
+                {
+                    EntityId = "spec-id-1",
+                    EntityType = "Specification",
+                    Message = "allocating"
+                },
+                Outcomes = outcomes
+            };
+
+            IJobRepository jobRepository = CreateJobRepository();
+            jobRepository
+                .GetJobById(Arg.Is(jobId))
+                .Returns(job);
+
+            jobRepository
+                .UpdateJob(Arg.Is(job))
+                .Returns(HttpStatusCode.OK);
+
+            jobRepository
+               .CreateJobLog(Arg.Any<JobLog>())
+               .Returns(HttpStatusCode.OK);
+
+            jobRepository
+                .GetLatestJobBySpecificationIdAndDefinitionId(Arg.Is(specificationId), Arg.Is(jobDefinitionId))
+                .Returns(job);
+
+            ILogger logger = CreateLogger();
+
+            INotificationService notificationService = CreateNotificationsService();
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
+            JobManagementService jobManagementService = CreateJobManagementService(
+                jobRepository: jobRepository,
+                logger: logger,
+                notificationService: notificationService,
+                cacheProvider: cacheProvider);
+
+            //Act
+            IActionResult actionResult = await jobManagementService.AddJobLog(jobId, jobLogUpdateModel);
+
+            //Assert
+            actionResult
+                .Should()
+                .BeAssignableTo<OkObjectResult>();
+
+            await
+                notificationService
+                .Received(1)
+                .SendNotification(Arg.Is<JobSummary>(m =>
+                    m.JobId == jobId &&
+                    m.JobType == "job-definition-id" &&
+                    m.CompletionStatus == CompletionStatus.Succeeded &&
+                    m.InvokerUserDisplayName == "authorName" &&
+                    m.InvokerUserId == "authorId" &&
+                    m.ItemCount == 100 &&
+                    m.Outcome == "outcome" &&
+                    m.OverallItemsFailed == 40 &&
+                    m.OverallItemsProcessed == 100 &&
+                    m.OverallItemsSucceeded == 60 &&
+                    m.ParentJobId == null &&
+                    m.SpecificationId == "spec-id-1" &&
+                    string.IsNullOrWhiteSpace(m.SupersededByJobId) &&
+                    m.Trigger.EntityId == "spec-id-1" &&
+                    m.Trigger.EntityType == "Specification" &&
+                    m.Trigger.Message == "allocating" &&
+                    m.RunningStatus == RunningStatus.Completed &&
+                    m.LastUpdated == lastUpdated &&
+                    m.Outcomes.SequenceEqual(outcomes) &&
+                    m.OutcomeType == OutcomeType.Succeeded
+                ));
+
+            string cacheKey = $"{CacheKeys.LatestJobs}{job.SpecificationId}:{job.JobDefinitionId}";
+            string latestSuccessfulJobCacheKey = $"{CacheKeys.LatestSuccessfulJobs}{job.SpecificationId}:{job.JobDefinitionId}";
+
+
+            await cacheProvider
+                .Received(1)
+                .SetAsync(cacheKey, Arg.Is<Job>(_ => _.Id == jobId));
+
+            await cacheProvider
+                .Received(1)
+                .SetAsync(latestSuccessfulJobCacheKey, Arg.Is<Job>(_ => _.Id == jobId));
+        }
+
+        [DataTestMethod]
+        [DataRow(CompletionStatus.Cancelled)]
+        [DataRow(CompletionStatus.Failed)]
+        [DataRow(CompletionStatus.Superseded)]
+        [DataRow(CompletionStatus.TimedOut)]
+        public async Task AddJobLog_GivenJobUpdatedAndCompletedUnsuccesfully_EnsuresLatestCacheIsNotUpdated(CompletionStatus completionStatus)
+        {
+            //Arrange
+            string jobId = "job-id-1";
+            DateTimeOffset lastUpdated = new RandomDateTime();
+            List<Outcome> outcomes = new List<Outcome>
+            {
+                new Outcome
+                {
+                    Description = "outcome-1"
+                }
+            };
+
+            string specificationId = "spec-id-1";
+            string jobDefinitionId = "job-definition-id";
+
+            JobLogUpdateModel jobLogUpdateModel = new JobLogUpdateModel
+            {
+                CompletedSuccessfully = false,
+                Outcome = "outcome",
+                ItemsFailed = 40,
+                ItemsProcessed = 100,
+                ItemsSucceeded = 60
+            };
+
+            Job job = new Job
+            {
+                Id = jobId,
+                RunningStatus = RunningStatus.InProgress,
+                JobDefinitionId = jobDefinitionId,
+                InvokerUserDisplayName = "authorName",
+                InvokerUserId = "authorId",
+                LastUpdated = lastUpdated,
+                ItemCount = 100,
+                SpecificationId = specificationId,
+                Trigger = new Trigger
+                {
+                    EntityId = "spec-id-1",
+                    EntityType = "Specification",
+                    Message = "allocating"
+                },
+                Outcomes = outcomes
+            };
+
+            Job completedJob = new Job
+            {
+                Id = jobId,
+                RunningStatus = RunningStatus.Completed,
+                JobDefinitionId = jobDefinitionId,
+                InvokerUserDisplayName = "authorName",
+                InvokerUserId = "authorId",
+                LastUpdated = lastUpdated,
+                ItemCount = 100,
+                SpecificationId = specificationId,
+                Trigger = new Trigger
+                {
+                    EntityId = "spec-id-1",
+                    EntityType = "Specification",
+                    Message = "allocating"
+                },
+                Outcomes = outcomes,
+                CompletionStatus = completionStatus,
+            };
+
+            IJobRepository jobRepository = CreateJobRepository();
+            jobRepository
+                .GetJobById(Arg.Is(jobId))
+                .Returns(job);
+
+            jobRepository
+                .UpdateJob(Arg.Is(job))
+                .Returns(HttpStatusCode.OK);
+
+            jobRepository
+               .CreateJobLog(Arg.Any<JobLog>())
+               .Returns(HttpStatusCode.OK);
+
+            jobRepository
+                .GetLatestJobBySpecificationIdAndDefinitionId(Arg.Is(specificationId), Arg.Is(jobDefinitionId))
+                .Returns(completedJob);
+
+            ILogger logger = CreateLogger();
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
+            JobManagementService jobManagementService = CreateJobManagementService(
+                jobRepository: jobRepository,
+                logger: logger,
+                cacheProvider: cacheProvider);
+
+            //Act
+            IActionResult actionResult = await jobManagementService.AddJobLog(jobId, jobLogUpdateModel);
+
+            //Assert
+            actionResult
+                .Should()
+                .BeAssignableTo<OkObjectResult>();
+
+            string cacheKey = $"{CacheKeys.LatestJobs}{job.SpecificationId}:{job.JobDefinitionId}";
+            string latestSuccessfulJobCacheKey = $"{CacheKeys.LatestSuccessfulJobs}{job.SpecificationId}:{job.JobDefinitionId}";
+
+
+            await cacheProvider
+                .Received(1)
+                .SetAsync(cacheKey, Arg.Is<Job>(_ => _.Id == jobId));
+
+            await cacheProvider
+                .Received(0)
+                .SetAsync(latestSuccessfulJobCacheKey, Arg.Is<Job>(_ => _.Id == jobId));
         }
     }
 }

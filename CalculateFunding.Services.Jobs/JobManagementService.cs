@@ -220,9 +220,7 @@ namespace CalculateFunding.Services.Jobs
             }
 
             string cacheKey = $"{CacheKeys.LatestJobs}{job.SpecificationId}:{job.JobDefinitionId}";
-            string latestSuccessfulJobCacheKey = $"{CacheKeys.LatestSuccessfulJobs}{job.SpecificationId}:{job.JobDefinitionId}";
             await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, job));
-            await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.RemoveAsync<Job>(latestSuccessfulJobCacheKey));
         }
 
         private async Task UpdateJobCache(Job job)
@@ -238,13 +236,12 @@ namespace CalculateFunding.Services.Jobs
             {
                 string cacheKey = $"{CacheKeys.LatestJobs}{job.SpecificationId}:{job.JobDefinitionId}";
                 await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, latest));
-            }
 
-            Job latestSuccessfulJob = await _jobRepository.GetLatestJobBySpecificationIdAndDefinitionId(job.SpecificationId, job.JobDefinitionId, CompletionStatus.Succeeded);
-            if (latestSuccessfulJob != null)
-            {
-                string latestSuccessfulJobCacheKey = $"{CacheKeys.LatestSuccessfulJobs}{job.SpecificationId}:{job.JobDefinitionId}";
-                await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(latestSuccessfulJobCacheKey, latestSuccessfulJob));
+                if (latest.CompletionStatus == CompletionStatus.Succeeded)
+                {
+                    string latestSuccessfulJobCacheKey = $"{CacheKeys.LatestSuccessfulJobs}{job.SpecificationId}:{job.JobDefinitionId}";
+                    await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(latestSuccessfulJobCacheKey, latest));
+                }
             }
         }
 
@@ -327,9 +324,9 @@ namespace CalculateFunding.Services.Jobs
             if (job == null)
             {
                 string error = $"A job could not be found for job id: '{jobId}'";
-                
+
                 _logger.Error(error);
-                
+
                 return new NotFoundObjectResult(error);
             }
 
@@ -338,7 +335,7 @@ namespace CalculateFunding.Services.Jobs
             if (jobLogUpdateModel.CompletedSuccessfully.HasValue)
             {
                 bool completedSuccessfully = jobLogUpdateModel.CompletedSuccessfully.Value;
-                
+
                 job.Completed = DateTimeOffset.UtcNow;
                 job.RunningStatus = RunningStatus.Completed;
                 job.CompletionStatus = completedSuccessfully ? CompletionStatus.Succeeded : CompletionStatus.Failed;
@@ -362,9 +359,9 @@ namespace CalculateFunding.Services.Jobs
                 if (!statusCode.IsSuccess())
                 {
                     string error = $"Failed to update job id: '{jobId}' with status code '{(int)statusCode}'";
-                    
+
                     _logger.Error(error);
-                    
+
                     return new InternalServerErrorResult(error);
                 }
             }
@@ -387,9 +384,9 @@ namespace CalculateFunding.Services.Jobs
             if (!createJobLogStatus.IsSuccess())
             {
                 string error = $"Failed to create a job log for job id: '{jobId}'";
-                
+
                 _logger.Error(error);
-                
+
                 throw new Exception(error);
             }
 
@@ -419,7 +416,7 @@ namespace CalculateFunding.Services.Jobs
             }
 
             bool? completedSuccessfully = jobLogUpdateModel.CompletedSuccessfully;
-            
+
             if (completedSuccessfully.GetValueOrDefault())
             {
                 return OutcomeType.Succeeded;
@@ -487,7 +484,7 @@ namespace CalculateFunding.Services.Jobs
                 if (!message.UserProperties.ContainsKey("jobId"))
                 {
                     _logger.Error("Job Notification message has no JobId");
-                    
+
                     return;
                 }
 
@@ -498,7 +495,7 @@ namespace CalculateFunding.Services.Jobs
                 if (job == null)
                 {
                     _logger.Error("Could not find job with id {JobId}", jobId);
-                    
+
                     return;
                 }
 
@@ -594,8 +591,8 @@ namespace CalculateFunding.Services.Jobs
                 parentJob.CompletionStatus = DetermineCompletionStatus(childJobs);
                 parentJob.Outcome = "All child jobs completed";
                 parentJob.OutcomeType = GetCompletedJobOutcomeType(parentJob.CompletionStatus.GetValueOrDefault());
-                
-                RollupChildJobOutcomes(parentJob, childJobs.Concat(new [] { job }));
+
+                RollupChildJobOutcomes(parentJob, childJobs.Concat(new[] { job }));
 
                 await UpdateJob(parentJob);
 
@@ -616,7 +613,7 @@ namespace CalculateFunding.Services.Jobs
             {
                 parent.AddOutcome(outcome);
             }
-            
+
             foreach (Job child in children ?? ArraySegment<Job>.Empty)
             {
                 parent.AddOutcome(new Outcome

@@ -557,14 +557,6 @@ namespace CalculateFunding.Services.Jobs.Services
             await cacheProvider
                 .Received(1)
                 .SetAsync(cacheKeyTwo, Arg.Is<Job>(_ => _.JobDefinitionId == jobDefinitionIdTwo));
-
-            await cacheProvider
-                .Received(1)
-                .RemoveAsync<Job>(latestSuccessfulJobCacheKey);
-
-            await cacheProvider
-                .Received(1)
-                .RemoveAsync<Job>(latestSuccessfulJobCacheKeyTwo);
         }
 
         [TestMethod]
