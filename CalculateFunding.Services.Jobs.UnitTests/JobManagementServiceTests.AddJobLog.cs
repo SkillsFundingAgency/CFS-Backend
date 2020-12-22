@@ -1,9 +1,8 @@
 ﻿using CalculateFunding.Models.Jobs;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Jobs;
 using CalculateFunding.Services.Jobs.Interfaces;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -12,7 +11,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Jobs.Services
@@ -376,7 +374,7 @@ namespace CalculateFunding.Services.Jobs.Services
             await
                 notificationService
                     .DidNotReceive()
-                    .SendNotification(Arg.Any<JobNotification>());
+                    .SendNotification(Arg.Any<JobSummary>());
         }
 
         [TestMethod]
@@ -384,6 +382,14 @@ namespace CalculateFunding.Services.Jobs.Services
         {
             //Arrange
             string jobId = "job-id-1";
+            DateTimeOffset lastUpdated = new RandomDateTime();
+            List<Outcome> outcomes = new List<Outcome>
+            {
+                new Outcome
+                {
+                    Description = "outcome-1"
+                }
+            };
 
             JobLogUpdateModel jobLogUpdateModel = new JobLogUpdateModel
             {
@@ -401,6 +407,7 @@ namespace CalculateFunding.Services.Jobs.Services
                 JobDefinitionId = "job-definition-id",
                 InvokerUserDisplayName = "authorName",
                 InvokerUserId = "authorId",
+                LastUpdated = lastUpdated,
                 ItemCount = 100,
                 SpecificationId = "spec-id-1",
                 Trigger = new Trigger
@@ -408,7 +415,8 @@ namespace CalculateFunding.Services.Jobs.Services
                     EntityId = "spec-id-1",
                     EntityType = "Specification",
                     Message = "allocating"
-                }
+                },
+                Outcomes = outcomes
             };
 
             IJobRepository jobRepository = CreateJobRepository();
@@ -441,7 +449,7 @@ namespace CalculateFunding.Services.Jobs.Services
             await
                 notificationService
                 .Received(1)
-                .SendNotification(Arg.Is<JobNotification>(m =>
+                .SendNotification(Arg.Is<JobSummary>(m =>
                     m.JobId == jobId &&
                     m.JobType == "job-definition-id" &&
                     m.CompletionStatus == CompletionStatus.Failed &&
@@ -458,7 +466,10 @@ namespace CalculateFunding.Services.Jobs.Services
                     m.Trigger.EntityId == "spec-id-1" &&
                     m.Trigger.EntityType == "Specification" &&
                     m.Trigger.Message == "allocating" &&
-                    m.RunningStatus == RunningStatus.Completed
+                    m.RunningStatus == RunningStatus.Completed &&
+                    m.LastUpdated == lastUpdated &&
+                    m.Outcomes.SequenceEqual(outcomes) &&
+                    m.OutcomeType == OutcomeType.Failed
                 ));
 
         }

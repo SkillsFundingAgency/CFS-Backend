@@ -276,7 +276,7 @@ namespace CalculateFunding.Services.Jobs
 
                             await QueueNewJob(job, jobDefinition, jobCreateResult.CreateRequest.Compress);
 
-                            JobNotification jobNotification = CreateJobNotificationFromJob(job);
+                            JobSummary jobNotification = CreateJobNotificationFromJob(job);
 
                             jobCreateResult.WasQueued = true;
 
@@ -443,7 +443,7 @@ namespace CalculateFunding.Services.Jobs
             // Set running status to Cancelled and CompletionStatus to Fail
 
             // Send notification after status logged
-            await _notificationService.SendNotification(new JobNotification());
+            await _notificationService.SendNotification(new JobSummary());
 
             throw new NotImplementedException();
         }
@@ -462,7 +462,7 @@ namespace CalculateFunding.Services.Jobs
 
                 if (statusCode.IsSuccess())
                 {
-                    JobNotification jobNotification = CreateJobNotificationFromJob(runningJob);
+                    JobSummary jobNotification = CreateJobNotificationFromJob(runningJob);
 
                     await _notificationService.SendNotification(jobNotification);
                 }
@@ -478,7 +478,7 @@ namespace CalculateFunding.Services.Jobs
             Guard.ArgumentNotNull(message, nameof(message));
 
             // When a job completes see if the parent job can be completed
-            JobNotification jobNotification = message.GetPayloadAsInstanceOf<JobNotification>();
+            JobSummary jobNotification = message.GetPayloadAsInstanceOf<JobSummary>();
 
             Guard.ArgumentNotNull(jobNotification, "message payload");
 
@@ -714,7 +714,7 @@ namespace CalculateFunding.Services.Jobs
 
             if (statusCode.IsSuccess())
             {
-                JobNotification jobNotification = CreateJobNotificationFromJob(runningJob);
+                JobSummary jobNotification = CreateJobNotificationFromJob(runningJob);
 
                 await _notificationService.SendNotification(jobNotification);
             }
@@ -760,9 +760,9 @@ namespace CalculateFunding.Services.Jobs
             return CompletionStatus.Succeeded;
         }
 
-        private JobNotification CreateJobNotificationFromJob(Job job)
+        private JobSummary CreateJobNotificationFromJob(Job job)
         {
-            return new JobNotification
+            return new JobSummary
             {
                 CompletionStatus = job.CompletionStatus,
                 InvokerUserDisplayName = job.InvokerUserDisplayName,
@@ -777,7 +777,10 @@ namespace CalculateFunding.Services.Jobs
                 StatusDateTime = DateTimeOffset.UtcNow,
                 SupersededByJobId = job.SupersededByJobId,
                 Trigger = job.Trigger,
-                JobCreatedDateTime = job.Created
+                Created = job.Created,
+                Outcomes = job.Outcomes,
+                LastUpdated = job.LastUpdated,
+                OutcomeType = job.OutcomeType
             };
         }
 
@@ -841,7 +844,7 @@ namespace CalculateFunding.Services.Jobs
 
         private async Task SendJobLogNotification(Job job, JobLog jobLog)
         {
-            JobNotification jobNotification = new JobNotification
+            JobSummary jobNotification = new JobSummary
             {
                 JobId = job.Id,
                 JobType = job.JobDefinitionId,
@@ -859,7 +862,10 @@ namespace CalculateFunding.Services.Jobs
                 OverallItemsFailed = jobLog.ItemsFailed,
                 OverallItemsProcessed = jobLog.ItemsProcessed,
                 OverallItemsSucceeded = jobLog.ItemsSucceeded,
-                JobCreatedDateTime = job.Created
+                Created = job.Created,
+                LastUpdated = job.LastUpdated,
+                Outcomes = job.Outcomes,
+                OutcomeType = job.OutcomeType
             };
 
             await _notificationService.SendNotification(jobNotification);

@@ -5,6 +5,6 @@ namespace CalculateFunding.Services.Jobs.Interfaces
 {
     public interface INotificationService
     {
-        Task SendNotification(JobNotification jobNotification);
+        Task SendNotification(JobSummary jobNotification);
     }
 }

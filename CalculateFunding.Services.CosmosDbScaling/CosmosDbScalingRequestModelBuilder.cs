@@ -7,14 +7,14 @@ namespace CalculateFunding.Services.CosmosDbScaling
 {
     public class CosmosDbScalingRequestModelBuilder : ICosmosDbScalingRequestModelBuilder
     {
-        public CosmosDbScalingRequestModel BuildRequestModel(JobNotification jobNotification)
+        public CosmosDbScalingRequestModel BuildRequestModel(JobSummary jobSummary)
         {
             CosmosDbScalingRequestModel cosmosDbScalingRequestModel = new CosmosDbScalingRequestModel
             {
-                JobDefinitionId = jobNotification.JobType
+                JobDefinitionId = jobSummary.JobType
             };
 
-            cosmosDbScalingRequestModel.RepositoryTypes = jobNotification.JobType switch
+            cosmosDbScalingRequestModel.RepositoryTypes = jobSummary.JobType switch
             {
                 JobDefinitions.CreateInstructAllocationJob => new[]
                 {

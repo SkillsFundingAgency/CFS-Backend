@@ -150,9 +150,9 @@ namespace CalculateFunding.Functions.DebugQueue
             [SignalR(HubName = JobConstants.NotificationsHubName)] IAsyncCollector<SignalRMessage> signalRMessages,
             ILogger logger)
         {
-            Message message = Helpers.ConvertToMessage<JobNotification>(item);
+            Message message = Helpers.ConvertToMessage<JobSummary>(item);
 
-            JobNotification jobNotification = message.GetPayloadAsInstanceOf<JobNotification>();
+            JobSummary jobNotification = message.GetPayloadAsInstanceOf<JobSummary>();
            
                 try
                 {

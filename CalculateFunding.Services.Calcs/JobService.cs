@@ -28,22 +28,22 @@ namespace CalculateFunding.Services.Calcs
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
-            JobNotification jobNotification = message.GetPayloadAsInstanceOf<JobNotification>();
+            JobSummary jobSummary = message.GetPayloadAsInstanceOf<JobSummary>();
 
-            if (jobNotification.CompletionStatus == CompletionStatus.Succeeded && jobNotification.JobType == JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob)
+            if (jobSummary.CompletionStatus == CompletionStatus.Succeeded && jobSummary.JobType == JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob)
             {
                 JobCreateModel jobCreateModel = new JobCreateModel
                 {
                     JobDefinitionId = JobConstants.DefinitionNames.CreateInstructAllocationJob,
-                    InvokerUserDisplayName = jobNotification.InvokerUserDisplayName,
-                    InvokerUserId = jobNotification.InvokerUserId,
+                    InvokerUserDisplayName = jobSummary.InvokerUserDisplayName,
+                    InvokerUserId = jobSummary.InvokerUserId,
                     CorrelationId = message.GetCorrelationId(),
-                    SpecificationId = jobNotification.SpecificationId,
+                    SpecificationId = jobSummary.SpecificationId,
                     Properties = new Dictionary<string, string>
                                 {
-                                    { "specification-id", jobNotification.SpecificationId }
+                                    { "specification-id", jobSummary.SpecificationId }
                                 },
-                    Trigger = jobNotification.Trigger
+                    Trigger = jobSummary.Trigger
                 };
 
                 Job newJob = await _jobManagement.QueueJob(jobCreateModel);

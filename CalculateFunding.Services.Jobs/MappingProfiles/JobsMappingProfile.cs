@@ -13,7 +13,11 @@ namespace CalculateFunding.Models.MappingProfiles
             CreateMap<Job, JobSummary>()
                 .ForMember(m => m.EntityId, opt => opt.MapFrom(j => j.Trigger.EntityId))
                 .ForMember(m => m.JobId, opt => opt.MapFrom(j => j.Id))
-                .ForMember(m => m.JobType, opt => opt.MapFrom(j => j.JobDefinitionId));
+                .ForMember(m => m.JobType, opt => opt.MapFrom(j => j.JobDefinitionId))
+                .ForMember(m => m.OverallItemsProcessed, opt => opt.Ignore())
+                .ForMember(m => m.OverallItemsSucceeded, opt => opt.Ignore())
+                .ForMember(m => m.OverallItemsFailed, opt => opt.Ignore())
+                .ForMember(m => m.StatusDateTime, opt => opt.Ignore());
         }
     }
 }

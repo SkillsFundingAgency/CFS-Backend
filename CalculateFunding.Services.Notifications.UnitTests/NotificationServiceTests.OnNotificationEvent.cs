@@ -23,7 +23,7 @@ namespace CalculateFunding.Services.Notifications.UnitTests
             // Arrange
             NotificationService service = CreateService();
 
-            JobNotification jobNotification = new JobNotification()
+            JobSummary jobNotification = new JobSummary()
             {
                 CompletionStatus = null,
                 JobId = JobId,
@@ -70,7 +70,7 @@ namespace CalculateFunding.Services.Notifications.UnitTests
             // Arrange
             NotificationService service = CreateService();
 
-            JobNotification jobNotification = new JobNotification()
+            JobSummary jobNotification = new JobSummary()
             {
                 CompletionStatus = null,
                 JobId = JobId,
@@ -127,7 +127,7 @@ namespace CalculateFunding.Services.Notifications.UnitTests
             // Arrange
             NotificationService service = CreateService();
 
-            JobNotification jobNotification = new JobNotification()
+            JobSummary jobNotification = new JobSummary()
             {
                 CompletionStatus = null,
                 JobId = JobId,
@@ -184,7 +184,7 @@ namespace CalculateFunding.Services.Notifications.UnitTests
             // Arrange
             NotificationService service = CreateService();
 
-            JobNotification jobNotification = new JobNotification()
+            JobSummary jobNotification = new JobSummary()
             {
                 CompletionStatus = CompletionStatus.Succeeded,
                 JobId = JobId,
@@ -207,7 +207,7 @@ namespace CalculateFunding.Services.Notifications.UnitTests
                     EntityType = "triggerEntityType",
                     Message = "message"
                 },
-                JobCreatedDateTime = new DateTimeOffset(new DateTime(2020, 1, 1))
+                Created = new DateTimeOffset(new DateTime(2020, 1, 1))
             };
 
 
@@ -229,21 +229,21 @@ namespace CalculateFunding.Services.Notifications.UnitTests
                     c.Arguments.Length == 1 &&
                     c.Arguments.First() != null &&
                     c.GroupName == JobConstants.NotificationChannels.All &&
-                  ((JobNotification)c.Arguments.First()).CompletionStatus == CompletionStatus.Succeeded &&
-                  ((JobNotification)c.Arguments.First()).InvokerUserDisplayName == "invokerDisplayName" &&
-                  ((JobNotification)c.Arguments.First()).InvokerUserId == "InvokerUserId" &&
-                  ((JobNotification)c.Arguments.First()).ItemCount == 52 &&
-                  ((JobNotification)c.Arguments.First()).Outcome == "Outcome text" &&
-                  ((JobNotification)c.Arguments.First()).OverallItemsFailed == 2 &&
-                  ((JobNotification)c.Arguments.First()).OverallItemsProcessed == 23 &&
-                  ((JobNotification)c.Arguments.First()).OverallItemsSucceeded == 21 &&
-                  ((JobNotification)c.Arguments.First()).RunningStatus == RunningStatus.InProgress &&
-                  ((JobNotification)c.Arguments.First()).StatusDateTime == new DateTimeOffset(2018, 12, 2, 5, 6, 7, 8, TimeSpan.Zero) &&
-                  ((JobNotification)c.Arguments.First()).SupersededByJobId == "jobId" &&
-                  ((JobNotification)c.Arguments.First()).Trigger.EntityId == "triggerEntity" &&
-                  ((JobNotification)c.Arguments.First()).Trigger.EntityType == "triggerEntityType" &&
-                  ((JobNotification)c.Arguments.First()).Trigger.Message == "message" &&
-                  ((JobNotification)c.Arguments.First()).JobCreatedDateTime == new DateTimeOffset(new DateTime(2020, 1, 1))
+                  ((JobSummary)c.Arguments.First()).CompletionStatus == CompletionStatus.Succeeded &&
+                  ((JobSummary)c.Arguments.First()).InvokerUserDisplayName == "invokerDisplayName" &&
+                  ((JobSummary)c.Arguments.First()).InvokerUserId == "InvokerUserId" &&
+                  ((JobSummary)c.Arguments.First()).ItemCount == 52 &&
+                  ((JobSummary)c.Arguments.First()).Outcome == "Outcome text" &&
+                  ((JobSummary)c.Arguments.First()).OverallItemsFailed == 2 &&
+                  ((JobSummary)c.Arguments.First()).OverallItemsProcessed == 23 &&
+                  ((JobSummary)c.Arguments.First()).OverallItemsSucceeded == 21 &&
+                  ((JobSummary)c.Arguments.First()).RunningStatus == RunningStatus.InProgress &&
+                  ((JobSummary)c.Arguments.First()).StatusDateTime == new DateTimeOffset(2018, 12, 2, 5, 6, 7, 8, TimeSpan.Zero) &&
+                  ((JobSummary)c.Arguments.First()).SupersededByJobId == "jobId" &&
+                  ((JobSummary)c.Arguments.First()).Trigger.EntityId == "triggerEntity" &&
+                  ((JobSummary)c.Arguments.First()).Trigger.EntityType == "triggerEntityType" &&
+                  ((JobSummary)c.Arguments.First()).Trigger.Message == "message" &&
+                  ((JobSummary)c.Arguments.First()).Created == new DateTimeOffset(new DateTime(2020, 1, 1))
                   ));
         }
 
@@ -253,7 +253,7 @@ namespace CalculateFunding.Services.Notifications.UnitTests
             // Arrange
             NotificationService service = CreateService();
 
-            JobNotification jobNotification = null;
+            JobSummary jobNotification = null;
 
             string json = JsonConvert.SerializeObject(jobNotification);
 

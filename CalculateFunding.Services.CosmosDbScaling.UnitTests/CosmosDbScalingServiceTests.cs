@@ -52,7 +52,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
         public void ScaleUp_GivenMessageWithOneRepositoryTypeButNoConfigReturned_ThrowsRetriableexception()
         {
             //Arrange
-            JobNotification jobNotification = new JobNotification
+            JobSummary jobNotification = new JobSummary
             {
                 JobType = "job-def-1",
                 RunningStatus = RunningStatus.Queued
@@ -69,7 +69,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             ICosmosDbScalingRequestModelBuilder modelBuilder = CreateReqestModelBuilder();
             modelBuilder
-                .BuildRequestModel(Arg.Any<JobNotification>())
+                .BuildRequestModel(Arg.Any<JobSummary>())
                 .Returns(requestModel);
 
             string json = JsonConvert.SerializeObject(jobNotification);
@@ -95,7 +95,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
         public async Task ScaleUp_WhenNotificationIsInProgress_DoesNotBuildRequestModel()
         {
             //Arrange
-            JobNotification jobNotification = new JobNotification
+            JobSummary jobNotification = new JobSummary
             {
                 JobType = "job-def-1",
                 RunningStatus = RunningStatus.InProgress
@@ -116,14 +116,14 @@ namespace CalculateFunding.Services.CosmosDbScaling
             //Assert
             modelBuilder
                 .DidNotReceive()
-                .BuildRequestModel(Arg.Any<JobNotification>());
+                .BuildRequestModel(Arg.Any<JobSummary>());
         }
 
         [TestMethod]
         public void ScaleUp_GivenMessageWithOneRepositoryTypeButFailedToSetThroughPut_ThrowsRetriableException()
         {
             //Arrange
-            JobNotification jobNotification = new JobNotification
+            JobSummary jobNotification = new JobSummary
             {
                 JobType = "job-def-1",
                 RunningStatus = RunningStatus.Queued
@@ -140,7 +140,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             ICosmosDbScalingRequestModelBuilder modelBuilder = CreateReqestModelBuilder();
             modelBuilder
-                .BuildRequestModel(Arg.Any<JobNotification>())
+                .BuildRequestModel(Arg.Any<JobSummary>())
                 .Returns(requestModel);
 
             string json = JsonConvert.SerializeObject(jobNotification);
@@ -199,7 +199,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
         public void ScaleUp_GivenMessageWithOneRepositoryTypeButfailedToSaveCurrentRequestUnits_ThrowsRetriableException()
         {
             //Arrange
-            JobNotification jobNotification = new JobNotification
+            JobSummary jobNotification = new JobSummary
             {
                 JobType = "job-def-1",
                 RunningStatus = RunningStatus.Queued
@@ -218,7 +218,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             ICosmosDbScalingRequestModelBuilder modelBuilder = CreateReqestModelBuilder();
             modelBuilder
-                .BuildRequestModel(Arg.Any<JobNotification>())
+                .BuildRequestModel(Arg.Any<JobSummary>())
                 .Returns(requestModel);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
@@ -274,7 +274,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
         public async Task ScaleUp_WhenSuccessfullySetsThroughputAndUpdatesConfig_InvalidatesCache()
         {
             //Arrange
-            JobNotification jobNotification = new JobNotification
+            JobSummary jobNotification = new JobSummary
             {
                 JobType = "job-def-1",
                 RunningStatus = RunningStatus.Queued
@@ -293,7 +293,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             ICosmosDbScalingRequestModelBuilder modelBuilder = CreateReqestModelBuilder();
             modelBuilder
-                .BuildRequestModel(Arg.Any<JobNotification>())
+                .BuildRequestModel(Arg.Any<JobSummary>())
                 .Returns(requestModel);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
@@ -344,7 +344,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
         public async Task ScaleUp_WhenCurrentRequestUnitsNotAtBaseLine_EnsuresAddsToCurrentRequestUnits()
         {
             //Arrange
-            JobNotification jobNotification = new JobNotification
+            JobSummary jobNotification = new JobSummary
             {
                 JobType = "job-def-1",
                 RunningStatus = RunningStatus.Queued
@@ -363,7 +363,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             ICosmosDbScalingRequestModelBuilder modelBuilder = CreateReqestModelBuilder();
             modelBuilder
-                .BuildRequestModel(Arg.Any<JobNotification>())
+                .BuildRequestModel(Arg.Any<JobSummary>())
                 .Returns(requestModel);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
@@ -418,7 +418,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
         public async Task ScaleUp_WhenCurrentRequestUnitsAreAt180000_EnsuresDoesntExceedMaximum()
         {
             //Arrange
-            JobNotification jobNotification = new JobNotification
+            JobSummary jobNotification = new JobSummary
             {
                 JobType = "job-def-1",
                 RunningStatus = RunningStatus.Queued
@@ -458,7 +458,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             ICosmosDbScalingRequestModelBuilder modelBuilder = CreateReqestModelBuilder();
             modelBuilder
-                .BuildRequestModel(Arg.Any<JobNotification>())
+                .BuildRequestModel(Arg.Any<JobSummary>())
                 .Returns(requestModel);
 
             ICosmosDbScalingRepositoryProvider cosmosDbScalingRepositoryProvider = CreateCosmosDbScalingRepositoryProvider();
@@ -494,7 +494,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
         public async Task ScaleUp_WhenCurrentRequestUnitsAreAtMaxium_EnsuresDoesntExceedMaximum()
         {
             //Arrange
-            JobNotification jobNotification = new JobNotification
+            JobSummary jobNotification = new JobSummary
             {
                 JobType = "job-def-1",
                 RunningStatus = RunningStatus.Queued
@@ -538,7 +538,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             ICosmosDbScalingRequestModelBuilder modelBuilder = CreateReqestModelBuilder();
             modelBuilder
-                .BuildRequestModel(Arg.Any<JobNotification>())
+                .BuildRequestModel(Arg.Any<JobSummary>())
                 .Returns(requestModel);
 
             ILogger logger = CreateLogger();
@@ -650,7 +650,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
         public async Task ScaleUp_WhenCurrentRequestUnitsNotAtBaseLine_EnsuresCorrectScalingRequestUnitIsIncremented()
         {
             //Arrange
-            JobNotification jobNotification = new JobNotification
+            JobSummary jobNotification = new JobSummary
             {
                 JobType = "job-def-1",
                 RunningStatus = RunningStatus.Queued
@@ -669,7 +669,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             ICosmosDbScalingRequestModelBuilder modelBuilder = CreateReqestModelBuilder();
             modelBuilder
-                .BuildRequestModel(Arg.Any<JobNotification>())
+                .BuildRequestModel(Arg.Any<JobSummary>())
                 .Returns(requestModel);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));

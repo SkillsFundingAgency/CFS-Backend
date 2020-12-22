@@ -80,16 +80,16 @@ namespace CalculateFunding.Services.CosmosDbScaling
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
-            JobNotification jobNotification = message.GetPayloadAsInstanceOf<JobNotification>();
+            JobSummary jobSummary = message.GetPayloadAsInstanceOf<JobSummary>();
 
-            Guard.ArgumentNotNull(jobNotification, "Null message payload provided");
+            Guard.ArgumentNotNull(jobSummary, "Null message payload provided");
 
-            if (jobNotification.RunningStatus == RunningStatus.Completed || jobNotification.RunningStatus == RunningStatus.InProgress)
+            if (jobSummary.RunningStatus == RunningStatus.Completed || jobSummary.RunningStatus == RunningStatus.InProgress)
             {
                 return;
             }
 
-            CosmosDbScalingRequestModel requestModel = _cosmosDbScalingRequestModelBuilder.BuildRequestModel(jobNotification);
+            CosmosDbScalingRequestModel requestModel = _cosmosDbScalingRequestModelBuilder.BuildRequestModel(jobSummary);
 
             if (requestModel.RepositoryTypes.IsNullOrEmpty())
             {

@@ -27,7 +27,7 @@ namespace CalculateFunding.Services.Jobs
             _logger = logger;
         }
 
-        public async Task SendNotification(JobNotification jobNotification)
+        public async Task SendNotification(JobSummary jobNotification)
         {
             Guard.ArgumentNotNull(jobNotification, nameof(jobNotification));
             Guard.ArgumentNotNull(jobNotification.Trigger, nameof(jobNotification.Trigger));

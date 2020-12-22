@@ -820,7 +820,7 @@ namespace CalculateFunding.Services.Jobs.Services
             await
                 notificationService
                     .Received(3)
-                    .SendNotification(Arg.Any<JobNotification>());
+                    .SendNotification(Arg.Any<JobSummary>());
         }
 
         [TestMethod]
@@ -947,7 +947,7 @@ namespace CalculateFunding.Services.Jobs.Services
             await
                 notificationService
                     .Received(1)
-                    .SendNotification(Arg.Is<JobNotification>(
+                    .SendNotification(Arg.Is<JobSummary>(
                         m => m.JobId == jobId &&
                             m.JobType == jobDefinitionId &&
                             m.RunningStatus == RunningStatus.Queued &&
@@ -964,7 +964,7 @@ namespace CalculateFunding.Services.Jobs.Services
             await
                 notificationService
                     .Received(1)
-                    .SendNotification(Arg.Is<JobNotification>(
+                    .SendNotification(Arg.Is<JobSummary>(
                         m => m.JobId == "current-job-1" &&
                             m.JobType == jobDefinitionId &&
                             m.RunningStatus == RunningStatus.Completed &&
@@ -984,7 +984,7 @@ namespace CalculateFunding.Services.Jobs.Services
             await
                notificationService
                    .Received(1)
-                   .SendNotification(Arg.Is<JobNotification>(
+                   .SendNotification(Arg.Is<JobSummary>(
                        m => m.JobId == "current-job-2" &&
                            m.JobType == jobDefinitionId &&
                            m.RunningStatus == RunningStatus.Completed &&
@@ -1127,7 +1127,7 @@ namespace CalculateFunding.Services.Jobs.Services
             await
                 notificationService
                     .Received(1)
-                    .SendNotification(Arg.Is<JobNotification>(
+                    .SendNotification(Arg.Is<JobSummary>(
                         m => m.JobId == jobId &&
                             m.JobType == jobDefinitionId &&
                             m.RunningStatus == RunningStatus.Queued &&
@@ -1144,13 +1144,13 @@ namespace CalculateFunding.Services.Jobs.Services
             await
                 notificationService
                     .DidNotReceive()
-                    .SendNotification(Arg.Is<JobNotification>(
+                    .SendNotification(Arg.Is<JobSummary>(
                         m => m.JobId == "current-job-1"));
 
             await
                notificationService
                    .DidNotReceive()
-                   .SendNotification(Arg.Is<JobNotification>(
+                   .SendNotification(Arg.Is<JobSummary>(
                        m => m.JobId == "current-job-2"));
 
             logger
@@ -1253,7 +1253,7 @@ namespace CalculateFunding.Services.Jobs.Services
             await
                 notificationService
                     .Received(2)
-                    .SendNotification(Arg.Any<JobNotification>());
+                    .SendNotification(Arg.Any<JobSummary>());
         }
 
         [TestMethod]
@@ -1379,7 +1379,7 @@ namespace CalculateFunding.Services.Jobs.Services
             await
                 notificationService
                     .Received(3)
-                    .SendNotification(Arg.Any<JobNotification>());
+                    .SendNotification(Arg.Any<JobSummary>());
         }
 
         [TestMethod]

@@ -288,7 +288,7 @@ namespace CalculateFunding.Services.Jobs.Services
             await
                 notificationService
                     .Received(1)
-                    .SendNotification(Arg.Is<JobNotification>(
+                    .SendNotification(Arg.Is<JobSummary>(
                             m => m.JobId == "job-id-1" &&
                             m.CompletionStatus == CompletionStatus.TimedOut &&
                             m.RunningStatus == RunningStatus.Completed
@@ -299,10 +299,31 @@ namespace CalculateFunding.Services.Jobs.Services
         public async Task CheckAndProcessTimedOutJobs_GivenTwoNonCompletedJobsAndHasTimeOutButOnlyoneUpdatesSuccessfully_SendsOneNotification()
         {
             //Arrange
+            string outcome = "outcome-1";
+            List<Outcome> outcomes = new List<Outcome>
+            {
+                new Outcome
+                {
+                    Description = outcome
+                }
+            };
+
             IEnumerable<Job> nonCompletedJobs = new[]
             {
-                new Job {Id = "job-id-1", JobDefinitionId = "job-def-2", Created = DateTimeOffset.Now.AddHours(-13)},
-                new Job {Id = "job-id-2", JobDefinitionId = "job-def-1", Created = DateTimeOffset.Now.AddHours(-13)},
+                new Job
+                { 
+                    Id = "job-id-1", 
+                    JobDefinitionId = "job-def-2", 
+                    Created = DateTimeOffset.Now.AddHours(-13), 
+                    Outcomes = outcomes,
+                    Outcome = outcome
+                },
+                new Job
+                { 
+                    Id = "job-id-2", 
+                    JobDefinitionId = "job-def-1", 
+                    Created = DateTimeOffset.Now.AddHours(-13)
+                },
             };
 
             IJobRepository jobRepository = CreateJobRepository();
@@ -352,13 +373,16 @@ namespace CalculateFunding.Services.Jobs.Services
                     .UpdateJob(Arg.Is<Job>(
                         m => m.Id == "job-id-1" &&
                              m.CompletionStatus == CompletionStatus.TimedOut &&
-                             m.RunningStatus == RunningStatus.Completed
+                             m.RunningStatus == RunningStatus.Completed &&
+                             m.Outcomes.SequenceEqual(outcomes) &&
+                             m.Outcome == outcome &&
+                             m.OutcomeType == OutcomeType.Inconclusive
                         ));
 
             await
                 notificationService
                     .Received(1)
-                    .SendNotification(Arg.Is<JobNotification>(
+                    .SendNotification(Arg.Is<JobSummary>(
                             m => m.JobId == "job-id-1" &&
                             m.CompletionStatus == CompletionStatus.TimedOut &&
                             m.RunningStatus == RunningStatus.Completed

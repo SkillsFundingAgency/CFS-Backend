@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
@@ -68,13 +69,13 @@ namespace CalculateFunding.Services.Jobs.Services
 
             string jobId = "abc123";
 
-            JobNotification jobNotification = new JobNotification
+            JobSummary JobSummary = new JobSummary
             {
                 JobId = jobId,
                 RunningStatus = RunningStatus.InProgress
             };
 
-            string json = JsonConvert.SerializeObject(jobNotification);
+            string json = JsonConvert.SerializeObject(JobSummary);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message.UserProperties["jobId"] = jobId;
@@ -97,9 +98,9 @@ namespace CalculateFunding.Services.Jobs.Services
 
             JobManagementService jobManagementService = CreateJobManagementService(jobRepository, logger: logger);
 
-            JobNotification jobNotification = new JobNotification { RunningStatus = RunningStatus.Completed };
+            JobSummary JobSummary = new JobSummary { RunningStatus = RunningStatus.Completed };
 
-            string json = JsonConvert.SerializeObject(jobNotification);
+            string json = JsonConvert.SerializeObject(JobSummary);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
 
@@ -131,9 +132,9 @@ namespace CalculateFunding.Services.Jobs.Services
 
             JobManagementService jobManagementService = CreateJobManagementService(jobRepository, logger: logger);
 
-            JobNotification jobNotification = new JobNotification { RunningStatus = RunningStatus.Completed };
+            JobSummary JobSummary = new JobSummary { RunningStatus = RunningStatus.Completed };
 
-            string json = JsonConvert.SerializeObject(jobNotification);
+            string json = JsonConvert.SerializeObject(JobSummary);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message.UserProperties["jobId"] = jobId;
@@ -163,13 +164,13 @@ namespace CalculateFunding.Services.Jobs.Services
 
             JobManagementService jobManagementService = CreateJobManagementService(jobRepository, logger: logger);
 
-            JobNotification jobNotification = new JobNotification
+            JobSummary JobSummary = new JobSummary
             {
                 JobId = jobId,
                 RunningStatus = RunningStatus.Completed
             };
 
-            string json = JsonConvert.SerializeObject(jobNotification);
+            string json = JsonConvert.SerializeObject(JobSummary);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message.UserProperties["jobId"] = jobId;
@@ -214,9 +215,9 @@ namespace CalculateFunding.Services.Jobs.Services
 
             JobManagementService jobManagementService = CreateJobManagementService(jobRepository, logger: logger);
 
-            JobNotification jobNotification = new JobNotification { JobId = jobId, RunningStatus = RunningStatus.Completed };
+            JobSummary JobSummary = new JobSummary { JobId = jobId, RunningStatus = RunningStatus.Completed };
 
-            string json = JsonConvert.SerializeObject(jobNotification);
+            string json = JsonConvert.SerializeObject(JobSummary);
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message.UserProperties["jobId"] = jobId;
 
@@ -271,9 +272,9 @@ namespace CalculateFunding.Services.Jobs.Services
                 logger: logger,
                 cacheProvider: cacheProvider);
 
-            JobNotification jobNotification = new JobNotification { JobId = jobId, RunningStatus = RunningStatus.Completed };
+            JobSummary JobSummary = new JobSummary { JobId = jobId, RunningStatus = RunningStatus.Completed };
 
-            string json = JsonConvert.SerializeObject(jobNotification);
+            string json = JsonConvert.SerializeObject(JobSummary);
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message.UserProperties["jobId"] = jobId;
 
@@ -339,9 +340,9 @@ namespace CalculateFunding.Services.Jobs.Services
                 logger: logger,
                 cacheProvider: cacheProvider);
 
-            JobNotification jobNotification = new JobNotification { JobId = jobId, RunningStatus = RunningStatus.Completed };
+            JobSummary JobSummary = new JobSummary { JobId = jobId, RunningStatus = RunningStatus.Completed };
 
-            string json = JsonConvert.SerializeObject(jobNotification);
+            string json = JsonConvert.SerializeObject(JobSummary);
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message.UserProperties["jobId"] = jobId;
 
@@ -392,9 +393,9 @@ namespace CalculateFunding.Services.Jobs.Services
 
             JobManagementService jobManagementService = CreateJobManagementService(jobRepository, logger: logger);
 
-            JobNotification jobNotification = new JobNotification { JobId = jobId, RunningStatus = RunningStatus.Completed };
+            JobSummary JobSummary = new JobSummary { JobId = jobId, RunningStatus = RunningStatus.Completed };
 
-            string json = JsonConvert.SerializeObject(jobNotification);
+            string json = JsonConvert.SerializeObject(JobSummary);
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message.UserProperties["jobId"] = jobId;
 
@@ -446,9 +447,9 @@ namespace CalculateFunding.Services.Jobs.Services
 
             JobManagementService jobManagementService = CreateJobManagementService(jobRepository, logger: logger, notificationService: notificationService);
 
-            JobNotification jobNotification = new JobNotification { JobId = jobId1, RunningStatus = RunningStatus.Completed };
+            JobSummary JobSummary = new JobSummary { JobId = jobId1, RunningStatus = RunningStatus.Completed };
 
-            string json = JsonConvert.SerializeObject(jobNotification);
+            string json = JsonConvert.SerializeObject(JobSummary);
 
             Message message1 = new Message(Encoding.UTF8.GetBytes(json));
             message1.UserProperties["jobId"] = jobId1;
@@ -468,7 +469,7 @@ namespace CalculateFunding.Services.Jobs.Services
             await
                 notificationService
                     .Received(1)
-                    .SendNotification(Arg.Is<JobNotification>(m => m.JobId == parentJobId));
+                    .SendNotification(Arg.Is<JobSummary>(m => m.JobId == parentJobId));
         }
 
         [DataTestMethod]
@@ -543,9 +544,9 @@ namespace CalculateFunding.Services.Jobs.Services
 
             JobManagementService jobManagementService = CreateJobManagementService(jobRepository, logger: logger);
 
-            JobNotification jobNotification = new JobNotification { JobId = jobId, RunningStatus = RunningStatus.Completed };
+            JobSummary JobSummary = new JobSummary { JobId = jobId, RunningStatus = RunningStatus.Completed };
 
-            string json = JsonConvert.SerializeObject(jobNotification);
+            string json = JsonConvert.SerializeObject(JobSummary);
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message.UserProperties["jobId"] = jobId;
 
@@ -617,9 +618,9 @@ namespace CalculateFunding.Services.Jobs.Services
 
             JobManagementService jobManagementService = CreateJobManagementService(jobRepository, logger: logger);
 
-            JobNotification jobNotification = new JobNotification { JobId = jobId, RunningStatus = RunningStatus.Completed };
+            JobSummary JobSummary = new JobSummary { JobId = jobId, RunningStatus = RunningStatus.Completed };
 
-            string json = JsonConvert.SerializeObject(jobNotification);
+            string json = JsonConvert.SerializeObject(JobSummary);
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message.UserProperties["jobId"] = jobId;
 
@@ -661,9 +662,9 @@ namespace CalculateFunding.Services.Jobs.Services
 
             JobManagementService jobManagementService = CreateJobManagementService(jobRepository, logger: logger);
 
-            JobNotification jobNotification = new JobNotification { JobId = jobId, RunningStatus = RunningStatus.Completed };
+            JobSummary JobSummary = new JobSummary { JobId = jobId, RunningStatus = RunningStatus.Completed };
 
-            string json = JsonConvert.SerializeObject(jobNotification);
+            string json = JsonConvert.SerializeObject(JobSummary);
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message.UserProperties["jobId"] = jobId;
 
@@ -705,9 +706,9 @@ namespace CalculateFunding.Services.Jobs.Services
 
             JobManagementService jobManagementService = CreateJobManagementService(jobRepository, logger: logger);
 
-            JobNotification jobNotification = new JobNotification { JobId = jobId, RunningStatus = RunningStatus.Completed };
+            JobSummary JobSummary = new JobSummary { JobId = jobId, RunningStatus = RunningStatus.Completed };
 
-            string json = JsonConvert.SerializeObject(jobNotification);
+            string json = JsonConvert.SerializeObject(JobSummary);
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message.UserProperties["jobId"] = jobId;
 
@@ -749,9 +750,9 @@ namespace CalculateFunding.Services.Jobs.Services
 
             JobManagementService jobManagementService = CreateJobManagementService(jobRepository, logger: logger);
 
-            JobNotification jobNotification = new JobNotification { JobId = jobId, RunningStatus = RunningStatus.Completed };
+            JobSummary JobSummary = new JobSummary { JobId = jobId, RunningStatus = RunningStatus.Completed };
 
-            string json = JsonConvert.SerializeObject(jobNotification);
+            string json = JsonConvert.SerializeObject(JobSummary);
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message.UserProperties["jobId"] = jobId;
 
@@ -795,9 +796,9 @@ namespace CalculateFunding.Services.Jobs.Services
 
             JobManagementService jobManagementService = CreateJobManagementService(jobRepository, logger: logger);
 
-            JobNotification jobNotification = new JobNotification { JobId = jobId, RunningStatus = RunningStatus.Completed };
+            JobSummary JobSummary = new JobSummary { JobId = jobId, RunningStatus = RunningStatus.Completed };
 
-            string json = JsonConvert.SerializeObject(jobNotification);
+            string json = JsonConvert.SerializeObject(JobSummary);
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message.UserProperties["jobId"] = jobId;
 
@@ -869,9 +870,9 @@ namespace CalculateFunding.Services.Jobs.Services
                 logger: logger,
                 jobDefinitionsService: jobDefinitionsService);
 
-            JobNotification jobNotification = new JobNotification { JobId = jobId, RunningStatus = RunningStatus.Completed };
+            JobSummary JobSummary = new JobSummary { JobId = jobId, RunningStatus = RunningStatus.Completed };
 
-            string json = JsonConvert.SerializeObject(jobNotification);
+            string json = JsonConvert.SerializeObject(JobSummary);
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message.UserProperties["jobId"] = jobId;
 
@@ -891,9 +892,29 @@ namespace CalculateFunding.Services.Jobs.Services
             string parentJobId = "parent123";
             string jobId = "child123";
 
-            Job job = new Job { Id = jobId, ParentJobId = parentJobId, CompletionStatus = CompletionStatus.Succeeded, RunningStatus = RunningStatus.Completed };
+            List<Outcome> outcomes = new List<Outcome>
+            {
+                new Outcome
+                {
+                    Description = "outcome-1"
+                }
+            };
 
-            Job parentJob = new Job { Id = parentJobId, RunningStatus = RunningStatus.InProgress };
+            Job job = new Job 
+            { 
+                Id = jobId, 
+                ParentJobId = parentJobId, 
+                CompletionStatus = CompletionStatus.Succeeded, 
+                RunningStatus = RunningStatus.Completed
+            };
+
+            Job parentJob = new Job 
+            { 
+                Id = parentJobId, 
+                RunningStatus = RunningStatus.InProgress,
+                Outcomes = outcomes,
+                OutcomeType = OutcomeType.Succeeded
+            };
 
             ILogger logger = CreateLogger();
             IJobRepository jobRepository = CreateJobRepository();
@@ -913,9 +934,9 @@ namespace CalculateFunding.Services.Jobs.Services
 
             JobManagementService jobManagementService = CreateJobManagementService(jobRepository, logger: logger, notificationService: notificationService);
 
-            JobNotification jobNotification = new JobNotification { JobId = jobId, RunningStatus = RunningStatus.Completed };
+            JobSummary JobSummary = new JobSummary { JobId = jobId, RunningStatus = RunningStatus.Completed };
 
-            string json = JsonConvert.SerializeObject(jobNotification);
+            string json = JsonConvert.SerializeObject(JobSummary);
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message.UserProperties["jobId"] = jobId;
 
@@ -925,7 +946,12 @@ namespace CalculateFunding.Services.Jobs.Services
             // Assert
             await notificationService
                 .Received(1)
-                .SendNotification(Arg.Is<JobNotification>(n => n.JobId == parentJobId && n.RunningStatus == RunningStatus.Completed));
+                .SendNotification(Arg.Is<JobSummary>(n => 
+                    n.JobId == parentJobId && 
+                    n.RunningStatus == RunningStatus.Completed &&
+                    n.Outcomes.SequenceEqual(outcomes) && 
+                    n.Outcome == "All child jobs completed" &&
+                    n.OutcomeType == OutcomeType.Succeeded));
 
             logger
                 .Received(1)

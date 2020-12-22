@@ -5,6 +5,6 @@ namespace CalculateFunding.Services.CosmosDbScaling.Interfaces
 {
     public interface ICosmosDbScalingRequestModelBuilder
     {
-        CosmosDbScalingRequestModel BuildRequestModel(JobNotification jobNotification);
+        CosmosDbScalingRequestModel BuildRequestModel(JobSummary jobSummary);
     }
 }

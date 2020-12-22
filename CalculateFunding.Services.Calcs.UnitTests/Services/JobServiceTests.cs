@@ -21,7 +21,7 @@ namespace CalculateFunding.Services.Calcs.Services
         public async Task CreateInstructGenerateAggregationsAllocationJob_GivenJobNotSucceeeded_DoesNotCreateNewJob()
         {
             //Arrange
-            JobNotification jobNotification = CreateJobNotification();
+            JobSummary jobNotification = CreateJobSummary();
             jobNotification.CompletionStatus = CompletionStatus.Cancelled;
 
             string json = JsonConvert.SerializeObject(jobNotification);
@@ -46,7 +46,7 @@ namespace CalculateFunding.Services.Calcs.Services
         public async Task CreateInstructGenerateAggregationsAllocationJob_GivenNotCorrectJobType_DoesNotCreateNewJob()
         {
             //Arrange
-            JobNotification jobNotification = CreateJobNotification();
+            JobSummary jobNotification = CreateJobSummary();
             jobNotification.JobType = JobConstants.DefinitionNames.GenerateCalculationAggregationsJob;
 
             string json = JsonConvert.SerializeObject(jobNotification);
@@ -71,7 +71,7 @@ namespace CalculateFunding.Services.Calcs.Services
         public void CreateInstructGenerateAggregationsAllocationJob_GivenCreatingJobReturnsNull_ThrowsException()
         {
             //Arrange
-            JobNotification jobNotification = CreateJobNotification();
+            JobSummary jobNotification = CreateJobSummary();
             
             string json = JsonConvert.SerializeObject(jobNotification);
 
@@ -107,7 +107,7 @@ namespace CalculateFunding.Services.Calcs.Services
         public async Task CreateInstructGenerateAggregationsAllocationJob_GivenJobCreated_LogsInformation()
         {
             //Arrange
-            JobNotification jobNotification = CreateJobNotification();
+            JobSummary jobNotification = CreateJobSummary();
 
             string json = JsonConvert.SerializeObject(jobNotification);
 
@@ -152,9 +152,9 @@ namespace CalculateFunding.Services.Calcs.Services
             return Substitute.For<ILogger>();
         }
 
-        private static JobNotification CreateJobNotification()
+        private static JobSummary CreateJobSummary()
         {
-            return new JobNotification
+            return new JobSummary
             {
                 CompletionStatus = CompletionStatus.Succeeded,
                 JobType = JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob,

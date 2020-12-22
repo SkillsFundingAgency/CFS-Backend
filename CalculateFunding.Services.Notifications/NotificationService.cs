@@ -26,7 +26,7 @@ namespace CalculateFunding.Services.Notifications
             Guard.ArgumentNotNull(message, nameof(message));
             Guard.ArgumentNotNull(signalRMessages, nameof(signalRMessages));
 
-            JobNotification jobNotification = message.GetPayloadAsInstanceOf<JobNotification>();
+            JobSummary jobNotification = message.GetPayloadAsInstanceOf<JobSummary>();
 
             if (jobNotification == null)
             {

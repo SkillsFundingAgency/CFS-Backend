@@ -14,7 +14,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
         public void BuildRequestModel_GivenJobNotificationWithDefinitionNotConfiguredForScaling_ContainsNoRepositoryTypes()
         {
             //Arrange
-            JobNotification jobNotification = new JobNotification
+            JobSummary jobNotification = new JobSummary
             {
                 JobType = "any-job-def-id"
             };
@@ -73,7 +73,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
             CosmosCollectionType[] cosmosRepositoryTypes)
         {
             //Arrange
-            JobNotification jobNotification = new JobNotification
+            JobSummary jobNotification = new JobSummary
             {
                 JobType = jobDefinitionId
             };

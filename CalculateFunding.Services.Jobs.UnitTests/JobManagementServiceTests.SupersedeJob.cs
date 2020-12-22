@@ -1,4 +1,6 @@
-﻿using System.Net;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Jobs;
 using CalculateFunding.Services.Jobs.Interfaces;
@@ -147,9 +149,21 @@ namespace CalculateFunding.Services.Jobs.Services
             // Arrange
             string jobId = "job-id-1";
             string supersedeJobId = "job-id-2";
+
+            string outcome = "outcome-1";
+            List<Outcome> outcomes = new List<Outcome>
+            {
+                new Outcome
+                {
+                    Description = "outcome-1"
+                }
+            };
+
             Job runningJob = new Job
             {
-                Id = jobId
+                Id = jobId,
+                Outcomes = outcomes,
+                Outcome = outcome
             };
 
             Job replacementJob = new Job
@@ -172,7 +186,10 @@ namespace CalculateFunding.Services.Jobs.Services
             // Assert
             await notificationService
                 .Received(1)
-                .SendNotification(Arg.Is<JobNotification>(n => n.JobId == jobId));
+                .SendNotification(Arg.Is<JobSummary>(n => 
+                    n.JobId == jobId &&
+                    n.Outcomes.SequenceEqual(outcomes) &&
+                    n.Outcome == outcome));
         }
     }
 }

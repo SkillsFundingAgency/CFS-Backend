@@ -69,6 +69,15 @@ namespace CalculateFunding.Services.Jobs
             DateTimeOffset now = DateTimeOffset.UtcNow;
             DateTimeOffset hourAgo = now.AddHours(-1);
 
+            string outcome = "outcome-1";
+            List<Outcome> outcomes = new List<Outcome>
+            {
+                new Outcome
+                {
+                    Description = outcome
+                }
+            };
+
             string dateFromString = hourAgo.ToString("yyyy-MM-ddThh:mm:ss.sssZ");
             string dateToString = now.ToString("yyyy-MM-ddThh:mm:ss.sssZ");
 
@@ -86,7 +95,15 @@ namespace CalculateFunding.Services.Jobs
                         LastUpdated = DateTimeOffset.UtcNow.AddHours(-1),
                         RunningStatus = RunningStatus.InProgress,
                         SpecificationId = specificationId,
-                        Trigger = new Trigger { EntityId = "calc1", EntityType = "Calculation", Message = "Calc run started" }
+                        Trigger = new Trigger
+                        { 
+                            EntityId = "calc1", 
+                            EntityType = "Calculation", 
+                            Message = "Calc run started" 
+                        },
+                        Outcomes = outcomes,
+                        Outcome = outcome,
+                        OutcomeType = OutcomeType.Succeeded
                     } });
 
             IJobService service = CreateJobService(jobRepository: jobRepository);
@@ -104,7 +121,11 @@ namespace CalculateFunding.Services.Jobs
 
             jobs
                 .Should()
-                .ContainSingle(_ => _.JobId == "job1");
+                .ContainSingle(_ => 
+                    _.JobId == "job1" &&
+                    _.Outcomes.SequenceEqual(outcomes) &&
+                    _.Outcome == outcome && 
+                    _.OutcomeType == OutcomeType.Succeeded);
         }
 
         [TestMethod]
@@ -425,6 +446,15 @@ namespace CalculateFunding.Services.Jobs
             // Arrange
             string specificationId = "spec123";
 
+            string outcome = "outcome-1";
+            List<Outcome> outcomes = new List<Outcome>
+            {
+                new Outcome
+                {
+                    Description = outcome
+                }
+            };
+
             IJobRepository jobRepository = CreateJobRepository();
             jobRepository
                 .GetLatestJobBySpecificationIdAndDefinitionId(Arg.Is(specificationId), Arg.Is<string>(_ => _ == "jobType1"))
@@ -439,7 +469,16 @@ namespace CalculateFunding.Services.Jobs
                         LastUpdated = DateTimeOffset.UtcNow.AddHours(-1),
                         RunningStatus = RunningStatus.InProgress,
                         SpecificationId = specificationId,
-                        Trigger = new Trigger { EntityId = "calc1", EntityType = "Calculation", Message = "Calc run started" }
+                        Trigger = new Trigger 
+                        { 
+                            EntityId = "calc1", 
+                            EntityType = "Calculation", 
+                            Message = "Calc run started" 
+                        },
+                        Outcome = outcome,
+                        Outcomes = outcomes,
+                        ItemCount = 1,
+                        OutcomeType = OutcomeType.Succeeded
                     });
 
             jobRepository
@@ -474,7 +513,13 @@ namespace CalculateFunding.Services.Jobs
                 .BeAssignableTo<IEnumerable<JobSummary>>()
                 .Subject;
 
-            jobSummaries.Should().Contain(x => x.JobId == "job2");
+            jobSummaries.Should().Contain(x => 
+                x.JobId == "job2" &&
+                x.Outcome == outcome &&
+                x.Outcomes.SequenceEqual(outcomes) &&
+                x.ItemCount == 1 &&
+                x.OutcomeType == OutcomeType.Succeeded);
+
             jobSummaries.Should().Contain(x => x.JobId == "job10");
         }
     }

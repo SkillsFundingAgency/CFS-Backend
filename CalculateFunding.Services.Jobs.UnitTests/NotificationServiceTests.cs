@@ -39,10 +39,10 @@ namespace CalculateFunding.Services.Jobs.Services
             // Arrange
             INotificationService notificationService = CreateNotificationService();
 
-            JobNotification jobNotification = CreateJobNotification();
-            jobNotification.Trigger = null;
+            JobSummary jobSummary = CreateJobSummary();
+            jobSummary.Trigger = null;
 
-            Func<Task> action = async () => await notificationService.SendNotification(jobNotification);
+            Func<Task> action = async () => await notificationService.SendNotification(jobSummary);
 
             // Act and Assert
             action
@@ -60,10 +60,10 @@ namespace CalculateFunding.Services.Jobs.Services
             // Arrange
             INotificationService notificationService = CreateNotificationService();
 
-            JobNotification jobNotification = CreateJobNotification();
-            jobNotification.JobType = string.Empty;
+            JobSummary jobSummary = CreateJobSummary();
+            jobSummary.JobType = string.Empty;
 
-            Func<Task> action = async () => await notificationService.SendNotification(jobNotification);
+            Func<Task> action = async () => await notificationService.SendNotification(jobSummary);
 
             // Act and Assert
             action
@@ -81,10 +81,10 @@ namespace CalculateFunding.Services.Jobs.Services
             // Arrange
             INotificationService notificationService = CreateNotificationService();
 
-            JobNotification jobNotification = CreateJobNotification();
-            jobNotification.JobId = string.Empty;
+            JobSummary jobSummary = CreateJobSummary();
+            jobSummary.JobId = string.Empty;
 
-            Func<Task> action = async () => await notificationService.SendNotification(jobNotification);
+            Func<Task> action = async () => await notificationService.SendNotification(jobSummary);
 
             // Act and Assert
             action
@@ -103,37 +103,43 @@ namespace CalculateFunding.Services.Jobs.Services
             IDictionary<string, string> topicMessageProperties = null;
 
             IMessengerService messengerService = CreateMessengerService();
-            await messengerService.SendToTopic(Arg.Any<string>(), Arg.Any<JobNotification>(), Arg.Do<IDictionary<string, string>>(p => topicMessageProperties = p));
+            await messengerService.SendToTopic(Arg.Any<string>(), Arg.Any<JobSummary>(), Arg.Do<IDictionary<string, string>>(p => topicMessageProperties = p));
 
             ILogger logger = CreateLogger();
 
             INotificationService notificationService = CreateNotificationService(messengerService, logger);
 
-            JobNotification jobNotification = CreateJobNotification();
+            JobSummary jobSummary = CreateJobSummary();
 
             // Act
-            await notificationService.SendNotification(jobNotification);
+            await notificationService.SendNotification(jobSummary);
 
             // Assert
             await messengerService
                 .Received(1)
-                .SendToTopic(Arg.Is(ServiceBusConstants.TopicNames.JobNotifications), Arg.Is(jobNotification), Arg.Any<IDictionary<string, string>>());
+                .SendToTopic(Arg.Is(ServiceBusConstants.TopicNames.JobNotifications), Arg.Is(jobSummary), Arg.Any<IDictionary<string, string>>());
 
             topicMessageProperties.Should().NotBeNull();
-            topicMessageProperties["jobId"].Should().Be(jobNotification.JobId, "JobId");
-            topicMessageProperties["jobType"].Should().Be(jobNotification.JobType, "JobType");
-            topicMessageProperties["entityId"].Should().Be(jobNotification.Trigger.EntityId, "EntityId");
-            topicMessageProperties["specificationId"].Should().Be(jobNotification.SpecificationId, "SpecficationId");
-            topicMessageProperties["parentJobId"].Should().Be(jobNotification.ParentJobId, "ParentJobId");
+            topicMessageProperties["jobId"].Should().Be(jobSummary.JobId, "JobId");
+            topicMessageProperties["jobType"].Should().Be(jobSummary.JobType, "JobType");
+            topicMessageProperties["entityId"].Should().Be(jobSummary.Trigger.EntityId, "EntityId");
+            topicMessageProperties["specificationId"].Should().Be(jobSummary.SpecificationId, "SpecficationId");
+            topicMessageProperties["parentJobId"].Should().Be(jobSummary.ParentJobId, "ParentJobId");
 
             logger
                 .Received(1)
-                .Information(Arg.Is("Sent notification for job with id '{JobId}' of type '{JobType}' for entity '{EntityType}' with id '{EntityId} and status '{CompletionStatus}"), Arg.Is(jobNotification.JobId), Arg.Is(jobNotification.JobType), Arg.Is(jobNotification.Trigger.EntityType), Arg.Is(jobNotification.Trigger.EntityId), Arg.Is(jobNotification.CompletionStatus));
+                .Information(
+                Arg.Is("Sent notification for job with id '{JobId}' of type '{JobType}' for entity '{EntityType}' with id '{EntityId} and status '{CompletionStatus}"), 
+                Arg.Is(jobSummary.JobId), 
+                Arg.Is(jobSummary.JobType), 
+                Arg.Is(jobSummary.Trigger.EntityType), 
+                Arg.Is(jobSummary.Trigger.EntityId), 
+                Arg.Is(jobSummary.CompletionStatus));
         }
 
-        private JobNotification CreateJobNotification()
+        private JobSummary CreateJobSummary()
         {
-            return new JobNotification
+            return new JobSummary
             {
                 InvokerUserDisplayName = "Test User",
                 InvokerUserId = "testUser1",
@@ -149,7 +155,7 @@ namespace CalculateFunding.Services.Jobs.Services
                     EntityType = "Calculation",
                     Message = "Calculation Run requested"
                 },
-                JobCreatedDateTime = new DateTimeOffset(new DateTime(2020, 1, 1))
+                Created = new DateTimeOffset(new DateTime(2020, 1, 1))
             };
         }
 

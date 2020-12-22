@@ -2103,8 +2103,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Returns(new ApiResponse<bool>(HttpStatusCode.OK, regenerated));
 
             _messengerService
-                .ReceiveMessage(Arg.Any<string>(), Arg.Any<Predicate<JobNotification>>(), Arg.Any<TimeSpan>())
-                .Returns(new JobNotification { CompletionStatus = CompletionStatus.Failed });
+                .ReceiveMessage(Arg.Any<string>(), Arg.Any<Predicate<JobSummary>>(), Arg.Any<TimeSpan>())
+                .Returns(new JobSummary { CompletionStatus = CompletionStatus.Failed });
         }
 
         private void AndThePopulationOfProviderSummariesForSpecificationFails(bool setCachedProviders)
