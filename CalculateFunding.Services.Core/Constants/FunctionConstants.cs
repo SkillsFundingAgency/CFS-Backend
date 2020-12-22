@@ -43,5 +43,7 @@
         public const string BatchPublishedProviderValidation = "on-batch-published-provider-validation";
         
         public const string BatchPublishedProviderValidationPoisoned = "on-batch-published-provider-validation-poisoned";
+
+        public const string NewProviderVersionCheck = "on-new-provider-version-check";
     }
 }

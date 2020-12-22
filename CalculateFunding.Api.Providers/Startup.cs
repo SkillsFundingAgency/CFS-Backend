@@ -126,6 +126,9 @@ namespace CalculateFunding.Api.Providers
                 .AddSingleton<IScopedProvidersService, ScopedProvidersService>()
                 .AddSingleton<IHealthChecker, ScopedProvidersService>();
 
+            builder
+                .AddSingleton<IProviderVersionUpdateCheckService, ProviderVersionUpdateCheckService>();
+
             builder.AddSingleton<IValidator<ProviderVersionViewModel>, UploadProviderVersionValidator>();
 
             builder.AddSearch(this.Configuration);

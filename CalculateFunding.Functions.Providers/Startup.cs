@@ -4,6 +4,7 @@ using AutoMapper;
 using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.Config.ApiClient.FundingDataZone;
 using CalculateFunding.Common.Config.ApiClient.Jobs;
+using CalculateFunding.Common.Config.ApiClient.Policies;
 using CalculateFunding.Common.Config.ApiClient.Results;
 using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
@@ -11,6 +12,7 @@ using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Functions.Providers.ServiceBus;
+using CalculateFunding.Functions.Providers.Timer;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Providers.ViewModels;
 using CalculateFunding.Repositories.Common.Search;
@@ -66,6 +68,7 @@ namespace CalculateFunding.Functions.Providers
                 builder.AddScoped<OnPopulateScopedProvidersEventTriggerFailure>();
                 builder.AddScoped<OnProviderSnapshotDataLoadEventTrigger>();
                 builder.AddScoped<OnProviderSnapshotDataLoadEventTriggerFailure>();
+                builder.AddScoped<OnNewProviderVersionCheck>();
             }
 
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
@@ -85,6 +88,9 @@ namespace CalculateFunding.Functions.Providers
                 .AddSingleton<IHealthChecker, ScopedProvidersService>();
 
             builder
+                .AddSingleton<IProviderVersionUpdateCheckService, ProviderVersionUpdateCheckService>();
+
+            builder
                 .AddSingleton<IProvidersApiClient, ProvidersApiClient>();
 
             builder
@@ -94,6 +100,8 @@ namespace CalculateFunding.Functions.Providers
             builder.AddSpecificationsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
             builder.AddResultsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
             builder.AddFundingDataServiceInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
+            builder.AddPoliciesInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
+
             builder.AddSingleton<IDeadletterService, DeadletterService>();
 
             builder.AddCaching(config);
@@ -196,7 +204,8 @@ namespace CalculateFunding.Functions.Providers
                 SpecificationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 ResultsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 CacheProvider = ResiliencePolicyHelpers.GenerateRedisPolicy(),
-                FundingDataZoneApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                FundingDataZoneApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
             };
         }
     }
