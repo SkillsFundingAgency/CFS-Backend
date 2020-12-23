@@ -281,7 +281,16 @@ namespace CalculateFunding.Services.Calcs
                         continue;
                     }
 
-                    if (existingCalculation.Current.AllowedEnumTypeValues.All(_ => templateCalculation.AllowedEnumTypeValues.Contains(_) && existingCalculation.Current.AllowedEnumTypeValues.Count() == templateCalculation.AllowedEnumTypeValues.Count()))
+                    if (existingCalculation.Current.AllowedEnumTypeValues == null && templateCalculation.AllowedEnumTypeValues == null)
+                    {
+                        continue;
+                    }
+
+                    IEnumerable<string> existingEnumValues = existingCalculation.Current.AllowedEnumTypeValues ?? new string[0];
+                    IEnumerable<string> targetEnumValues = templateCalculation.AllowedEnumTypeValues ?? new string[0];
+
+                    if (existingEnumValues.All(_ => targetEnumValues.Contains(_))
+                       && existingEnumValues.Count() == targetEnumValues.Count())
                     {
                         continue;
                     }
