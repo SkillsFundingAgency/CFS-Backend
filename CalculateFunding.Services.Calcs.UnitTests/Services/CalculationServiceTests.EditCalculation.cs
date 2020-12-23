@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Policies;
+using CalculateFunding.Common.ApiClient.Results;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Versioning;
@@ -25,12 +26,10 @@ using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using NSubstitute;
 using Serilog;
 using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
-using DatasetReference = CalculateFunding.Models.Graph.DatasetReference;
-using CalculateFunding.Common.JobManagement;
-using CalculateFunding.Common.ApiClient.Results;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -101,7 +100,7 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 Id = calculation.SpecificationId,
                 Name = "Test Spec Name",
-                FundingStreams = new []
+                FundingStreams = new[]
                 {
                     new Reference(calculation.FundingStreamId, "funding stream name")
                 }
@@ -232,7 +231,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 {
                     Id = new RandomString()
                 },
-                FundingStreams = new []
+                FundingStreams = new[]
                 {
                     new Reference(calculation.FundingStreamId, "funding stream name")
                 }
@@ -310,7 +309,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 cacheProvider
                     .Received(1)
                     .RemoveAsync<List<CalculationMetadata>>(Arg.Is(cacheKey));
-            
+
             await resultsApiClient
                 .Received(1)
                 .UpdateFundingStructureLastModified(Arg.Is<Common.ApiClient.Results.Models.UpdateFundingStructureLastModifiedRequest>(req =>
@@ -361,7 +360,7 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 Id = calculation.SpecificationId,
                 Name = "Test Spec Name",
-                FundingStreams = new []
+                FundingStreams = new[]
                 {
                     new Reference(calculation.FundingStreamId, "funding stream name")
                 }
@@ -475,7 +474,7 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 Id = calculation.SpecificationId,
                 Name = "Test Spec Name",
-                FundingStreams = new []
+                FundingStreams = new[]
                 {
                     new Reference(calculation.FundingStreamId, "funding stream name")
                 }
@@ -612,7 +611,7 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 Id = calculation.SpecificationId,
                 Name = "Test Spec Name",
-                FundingStreams = new []
+                FundingStreams = new[]
                 {
                     new Reference(calculation.FundingStreamId, "funding stream name")
                 }
@@ -723,7 +722,7 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 Id = calculation.SpecificationId,
                 Name = "Test Spec Name",
-                FundingStreams = new []
+                FundingStreams = new[]
                 {
                     new Reference(calculation.FundingStreamId, "funding stream name")
                 }
@@ -837,7 +836,7 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 Id = calculation.SpecificationId,
                 Name = "Test Spec Name",
-                FundingStreams = new []
+                FundingStreams = new[]
                 {
                     new Reference(calculation.FundingStreamId, "funding stream name")
                 }
@@ -941,7 +940,7 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 Id = calculation.SpecificationId,
                 Name = "Test Spec Name",
-                FundingStreams = new []
+                FundingStreams = new[]
                 {
                     new Reference(calculation.FundingStreamId, "funding stream name")
                 }
@@ -1056,7 +1055,7 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 Id = calculation.SpecificationId,
                 Name = "Test Spec Name",
-                FundingStreams = new []
+                FundingStreams = new[]
                 {
                     new Reference(calculation.FundingStreamId, "funding stream name")
                 }
@@ -1172,7 +1171,7 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 Id = calculation.SpecificationId,
                 Name = "Test Spec Name",
-                FundingStreams = new []
+                FundingStreams = new[]
                 {
                     new Reference(calculation.FundingStreamId, "funding stream name")
                 }
@@ -1301,7 +1300,7 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 Id = calculation.SpecificationId,
                 Name = "Test Spec Name",
-                FundingStreams = new []
+                FundingStreams = new[]
                 {
                     new Reference(calculation.FundingStreamId, "funding stream name")
                 }
@@ -1512,7 +1511,7 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 Id = calculation.SpecificationId,
                 Name = "Test Spec Name",
-                FundingStreams = new []
+                FundingStreams = new[]
                 {
                     new Reference(calculation.FundingStreamId, "funding stream name")
                 }
@@ -1789,7 +1788,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 specificationsApiClient: specificationsApiClient);
 
             //Act          
-            
+
             IActionResult result = await service.EditCalculation(SpecificationId, CalculationId, calculationEditModel, author, CorrelationId);
 
             //Assert
@@ -1799,6 +1798,565 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Value
                 .Should()
                 .Be($"No specification with id {calculation.SpecificationId}. Unable to get Specification Summary for calculation");
+        }
+
+        [TestMethod]
+        public async Task EditCalculation_GivenCalculationHasExistingEnumValuesAndUserIsUpdatingSourceCodeForCalc_ThenExistingEnumValuesAreKept()
+        {
+            //Arrange
+            CalculationEditModel calculationEditModel = new CalculationEditModel
+            {
+                Name = CalculationName,
+                ValueType = CalculationValueType.String,
+                SourceCode = DefaultSourceCode,
+                Description = Description,
+                DataType = CalculationDataType.Enum,
+                AllowedEnumTypeValues = null, // Assumed client will not pass these as they can't override them
+                CalculationId = CalculationId,
+                SpecificationId = SpecificationId,
+            };
+
+            Reference author = new Reference();
+
+            string buildProjectId = Guid.NewGuid().ToString();
+
+            BuildProject buildProject = new BuildProject
+            {
+                Id = buildProjectId,
+            };
+
+            Calculation calculation = CreateCalculation();
+            calculation.Current.CalculationType = CalculationType.Template;
+            calculation.Current.DataType = CalculationDataType.Enum;
+            calculation.Current.ValueType = CalculationValueType.String;
+            calculation.Current.AllowedEnumTypeValues = new[] { "One", "Two", "Three" };
+            calculation.Current.Namespace = CalculationNamespace.Template;
+
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            calculationsRepository
+                .UpdateCalculation(Arg.Any<Calculation>())
+                .Returns(HttpStatusCode.OK);
+
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(calculation.SpecificationId))
+                .Returns(buildProject);
+
+            CalculationIndex calcIndex = new CalculationIndex();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .SearchById(Arg.Is(CalculationId))
+                .Returns(calcIndex);
+
+            SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary()
+            {
+                Id = calculation.SpecificationId,
+                Name = "Test Spec Name",
+                FundingStreams = new[]
+                {
+                    new Reference(calculation.FundingStreamId, "funding stream name")
+                }
+            };
+
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
+                .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
+                .Returns(new Common.ApiClient.Models.ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
+
+            CalculationVersion calculationVersion = calculation.Current as CalculationVersion;
+            calculationVersion.PublishStatus = PublishStatus.Updated;
+
+            Mock<IVersionRepository<CalculationVersion>> versionRepository = new Mock<IVersionRepository<CalculationVersion>>();
+
+            CalculationVersion createdCalculationVersion = null;
+
+            versionRepository
+                .Setup(m => m.CreateVersion(It.IsAny<CalculationVersion>(), It.IsAny<CalculationVersion>(), It.IsAny<string>(), It.IsAny<bool>()))
+                .Callback((CalculationVersion newVersion, CalculationVersion currentVersion, string partitionKey, bool incrementFromCurrentVersion) =>
+                {
+                    createdCalculationVersion = newVersion;
+                })
+                .ReturnsAsync(calculationVersion);
+
+
+            Build build = new Build();
+
+            ISourceCodeService sourceCodeService = CreateSourceCodeService();
+            sourceCodeService
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
+                .Returns(build);
+
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .QueueJob(Arg.Any<JobCreateModel>())
+                .Returns(new Job { Id = "job-id-1" });
+
+            CalculationService service = CreateCalculationService(
+                calculationsRepository: calculationsRepository,
+                buildProjectsService: buildProjectsService,
+                searchRepository: searchRepository,
+                specificationsApiClient: specificationsApiClient,
+                calculationVersionRepository: versionRepository.Object,
+                sourceCodeService: sourceCodeService,
+                jobManagement: jobManagement);
+
+            //Act
+            IActionResult result = await service.EditCalculation(
+                SpecificationId,
+                CalculationId,
+                calculationEditModel,
+                author,
+                CorrelationId,
+                setAdditional: false,
+               calculationEditMode: CalculationEditMode.User);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            createdCalculationVersion
+                .AllowedEnumTypeValues
+                .Should()
+                .BeEquivalentTo(new string[] { "One", "Two", "Three" });
+
+            createdCalculationVersion
+                .DataType
+                .Should()
+                .Be(CalculationDataType.Enum);
+
+            createdCalculationVersion
+                .Should()
+                .BeEquivalentTo(new CalculationVersion()
+                {
+                    AllowedEnumTypeValues = new string[] { "One", "Two", "Three" },
+                    Author = author,
+                    CalculationId = CalculationId,
+                    CalculationType = CalculationType.Template,
+                    Comment = null,
+                    DataType = CalculationDataType.Enum,
+                    Description = null, // Value not stored in cosmos
+                    Name = "Test Calc Name",
+                    Namespace = CalculationNamespace.Template,
+                    PublishStatus = PublishStatus.Updated,
+                    SourceCode = DefaultSourceCode,
+                    SourceCodeName = "TestCalcName",
+                    ValueType = CalculationValueType.String,
+                    Version = 1,
+                    WasTemplateCalculation = false,
+                });
+        }
+
+        [TestMethod]
+        public async Task EditCalculation_GivenUserEditsAdditionalCalculation_ThenRestrictedFieldsAreNotUpdatedFromRequest()
+        {
+            //Arrange
+            CalculationEditModel calculationEditModel = CreateCalculationEditModel();
+            calculationEditModel.DataType = CalculationDataType.String; // Try changing the data type to string
+
+            Reference author = new Reference();
+
+            string buildProjectId = Guid.NewGuid().ToString();
+
+            BuildProject buildProject = new BuildProject
+            {
+                Id = buildProjectId,
+            };
+
+            Calculation calculation = CreateCalculation();
+            calculation.Current.CalculationType = CalculationType.Additional;
+            calculation.Current.DataType = CalculationDataType.Decimal;
+            calculation.Current.ValueType = CalculationValueType.Number;
+            calculation.Current.AllowedEnumTypeValues = null;
+            calculation.Current.Namespace = CalculationNamespace.Additional;
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            calculationsRepository
+                .UpdateCalculation(Arg.Any<Calculation>())
+                .Returns(HttpStatusCode.OK);
+
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(calculation.SpecificationId))
+                .Returns(buildProject);
+
+            CalculationIndex calcIndex = new CalculationIndex();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .SearchById(Arg.Is(CalculationId))
+                .Returns(calcIndex);
+
+            SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary()
+            {
+                Id = calculation.SpecificationId,
+                Name = "Test Spec Name",
+                FundingStreams = new[]
+                {
+                    new Reference(calculation.FundingStreamId, "funding stream name")
+                }
+            };
+
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
+                .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
+                .Returns(new Common.ApiClient.Models.ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
+
+            CalculationVersion calculationVersion = calculation.Current as CalculationVersion;
+            calculationVersion.PublishStatus = PublishStatus.Updated;
+
+            Mock<IVersionRepository<CalculationVersion>> versionRepository = new Mock<IVersionRepository<CalculationVersion>>();
+
+            CalculationVersion createdCalculationVersion = null;
+
+            versionRepository
+                .Setup(m => m.CreateVersion(It.IsAny<CalculationVersion>(), It.IsAny<CalculationVersion>(), It.IsAny<string>(), It.IsAny<bool>()))
+                .Callback((CalculationVersion newVersion, CalculationVersion currentVersion, string partitionKey, bool incrementFromCurrentVersion) =>
+                {
+                    createdCalculationVersion = newVersion;
+                })
+                .ReturnsAsync(calculationVersion);
+
+
+            Build build = new Build();
+
+            ISourceCodeService sourceCodeService = CreateSourceCodeService();
+            sourceCodeService
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
+                .Returns(build);
+
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .QueueJob(Arg.Any<JobCreateModel>())
+                .Returns(new Job { Id = "job-id-1" });
+
+            CalculationService service = CreateCalculationService(
+                calculationsRepository: calculationsRepository,
+                buildProjectsService: buildProjectsService,
+                searchRepository: searchRepository,
+                specificationsApiClient: specificationsApiClient,
+                calculationVersionRepository: versionRepository.Object,
+                sourceCodeService: sourceCodeService,
+                jobManagement: jobManagement);
+
+            //Act
+            IActionResult result = await service.EditCalculation(
+                SpecificationId,
+                CalculationId,
+                calculationEditModel,
+                author,
+                CorrelationId,
+                setAdditional: false,
+                calculationEditMode: CalculationEditMode.User,
+                existingCalculation: calculation);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            createdCalculationVersion
+                .Should()
+                .BeEquivalentTo(new CalculationVersion()
+                {
+                    AllowedEnumTypeValues = null,
+                    Author = author,
+                    CalculationId = CalculationId,
+                    CalculationType = CalculationType.Additional,
+                    Comment = null,
+                    DataType = CalculationDataType.Decimal,
+                    Description = "test description",
+                    Name = CalculationName,
+                    Namespace = CalculationNamespace.Additional,
+                    PublishStatus = PublishStatus.Updated,
+                    SourceCode = DefaultSourceCode,
+                    SourceCodeName = "CalcName1",
+                    ValueType = CalculationValueType.Currency,
+                    Version = 1,
+                    WasTemplateCalculation = false,
+                });
+        }
+
+        [TestMethod]
+        public async Task EditCalculation_GivenUserEditsTemplateCalculation_ThenRestrictedFieldsAreNotUpdatedFromRequest()
+        {
+            //Arrange
+            CalculationEditModel calculationEditModel = CreateCalculationEditModel();
+            calculationEditModel.DataType = CalculationDataType.String; // Try changing the data type to string
+            calculationEditModel.Name = "Attempted name change"; // Try changing the name of the calculation
+            calculationEditModel.Description = "Attempted description change";
+
+            Reference author = new Reference();
+
+            string buildProjectId = Guid.NewGuid().ToString();
+
+            BuildProject buildProject = new BuildProject
+            {
+                Id = buildProjectId,
+            };
+
+            Calculation calculation = CreateCalculation();
+            calculation.Current.CalculationType = CalculationType.Template;
+            calculation.Current.DataType = CalculationDataType.Decimal;
+            calculation.Current.ValueType = CalculationValueType.Number;
+            calculation.Current.AllowedEnumTypeValues = null;
+            calculation.Current.Namespace = CalculationNamespace.Template;
+            calculation.Current.Description = "test description";
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            calculationsRepository
+                .UpdateCalculation(Arg.Any<Calculation>())
+                .Returns(HttpStatusCode.OK);
+
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(calculation.SpecificationId))
+                .Returns(buildProject);
+
+            CalculationIndex calcIndex = new CalculationIndex();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .SearchById(Arg.Is(CalculationId))
+                .Returns(calcIndex);
+
+            SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary()
+            {
+                Id = calculation.SpecificationId,
+                Name = "Test Spec Name",
+                FundingStreams = new[]
+                {
+                    new Reference(calculation.FundingStreamId, "funding stream name")
+                }
+            };
+
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
+                .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
+                .Returns(new Common.ApiClient.Models.ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
+
+            CalculationVersion calculationVersion = calculation.Current as CalculationVersion;
+            calculationVersion.PublishStatus = PublishStatus.Updated;
+
+            Mock<IVersionRepository<CalculationVersion>> versionRepository = new Mock<IVersionRepository<CalculationVersion>>();
+
+            CalculationVersion createdCalculationVersion = null;
+
+            versionRepository
+                .Setup(m => m.CreateVersion(It.IsAny<CalculationVersion>(), It.IsAny<CalculationVersion>(), It.IsAny<string>(), It.IsAny<bool>()))
+                .Callback((CalculationVersion newVersion, CalculationVersion currentVersion, string partitionKey, bool incrementFromCurrentVersion) =>
+                {
+                    createdCalculationVersion = newVersion;
+                })
+                .ReturnsAsync(calculationVersion);
+
+
+            Build build = new Build();
+
+            ISourceCodeService sourceCodeService = CreateSourceCodeService();
+            sourceCodeService
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
+                .Returns(build);
+
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .QueueJob(Arg.Any<JobCreateModel>())
+                .Returns(new Job { Id = "job-id-1" });
+
+            CalculationService service = CreateCalculationService(
+                calculationsRepository: calculationsRepository,
+                buildProjectsService: buildProjectsService,
+                searchRepository: searchRepository,
+                specificationsApiClient: specificationsApiClient,
+                calculationVersionRepository: versionRepository.Object,
+                sourceCodeService: sourceCodeService,
+                jobManagement: jobManagement);
+
+            //Act
+            IActionResult result = await service.EditCalculation(
+                SpecificationId,
+                CalculationId,
+                calculationEditModel,
+                author,
+                CorrelationId,
+                setAdditional: false,
+                calculationEditMode: CalculationEditMode.User,
+                existingCalculation: calculation);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            createdCalculationVersion
+                .Should()
+                .BeEquivalentTo(new CalculationVersion()
+                {
+                    AllowedEnumTypeValues = null,
+                    Author = author,
+                    CalculationId = CalculationId,
+                    CalculationType = CalculationType.Template,
+                    Comment = null,
+                    DataType = CalculationDataType.Decimal,
+                    Description = null, // This field is not stored in cosmos
+                    Name = "Test Calc Name",
+                    Namespace = CalculationNamespace.Template,
+                    PublishStatus = PublishStatus.Updated,
+                    SourceCode = DefaultSourceCode,
+                    SourceCodeName = "TestCalcName",
+                    ValueType = CalculationValueType.Currency,
+                    Version = 1,
+                    WasTemplateCalculation = false,
+                });
+        }
+
+        [TestMethod]
+        public async Task EditCalculation_GivenSystemEditsTemplateCalculation_ThenAbleToEditRestrictedFields()
+        {
+            //Arrange
+            CalculationEditModel calculationEditModel = CreateCalculationEditModel();
+            calculationEditModel.DataType = CalculationDataType.Enum; // Try changing the data type to string
+            calculationEditModel.ValueType = CalculationValueType.String; // Try changing the data type to string
+
+            Reference author = new Reference();
+
+            string buildProjectId = Guid.NewGuid().ToString();
+
+            BuildProject buildProject = new BuildProject
+            {
+                Id = buildProjectId,
+            };
+
+            Calculation calculation = CreateCalculation();
+            calculation.Current.CalculationType = CalculationType.Template;
+            calculation.Current.DataType = CalculationDataType.Decimal;
+            calculation.Current.ValueType = CalculationValueType.Number;
+            calculation.Current.AllowedEnumTypeValues = null;
+            calculation.Current.Namespace = CalculationNamespace.Template;
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            calculationsRepository
+                .UpdateCalculation(Arg.Any<Calculation>())
+                .Returns(HttpStatusCode.OK);
+
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(calculation.SpecificationId))
+                .Returns(buildProject);
+
+            CalculationIndex calcIndex = new CalculationIndex();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .SearchById(Arg.Is(CalculationId))
+                .Returns(calcIndex);
+
+            SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary()
+            {
+                Id = calculation.SpecificationId,
+                Name = "Test Spec Name",
+                FundingStreams = new[]
+                {
+                    new Reference(calculation.FundingStreamId, "funding stream name")
+                }
+            };
+
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
+                .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
+                .Returns(new Common.ApiClient.Models.ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
+
+            CalculationVersion calculationVersion = calculation.Current as CalculationVersion;
+            calculationVersion.PublishStatus = PublishStatus.Updated;
+
+            Mock<IVersionRepository<CalculationVersion>> versionRepository = new Mock<IVersionRepository<CalculationVersion>>();
+
+            CalculationVersion createdCalculationVersion = null;
+
+            versionRepository
+                .Setup(m => m.CreateVersion(It.IsAny<CalculationVersion>(), It.IsAny<CalculationVersion>(), It.IsAny<string>(), It.IsAny<bool>()))
+                .Callback((CalculationVersion newVersion, CalculationVersion currentVersion, string partitionKey, bool incrementFromCurrentVersion) =>
+                {
+                    createdCalculationVersion = newVersion;
+                })
+                .ReturnsAsync(calculationVersion);
+
+
+            Build build = new Build();
+
+            ISourceCodeService sourceCodeService = CreateSourceCodeService();
+            sourceCodeService
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
+                .Returns(build);
+
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .QueueJob(Arg.Any<JobCreateModel>())
+                .Returns(new Job { Id = "job-id-1" });
+
+            CalculationService service = CreateCalculationService(
+                calculationsRepository: calculationsRepository,
+                buildProjectsService: buildProjectsService,
+                searchRepository: searchRepository,
+                specificationsApiClient: specificationsApiClient,
+                calculationVersionRepository: versionRepository.Object,
+                sourceCodeService: sourceCodeService,
+                jobManagement: jobManagement);
+
+            //Act
+            IActionResult result = await service.EditCalculation(
+                SpecificationId,
+                CalculationId,
+                calculationEditModel,
+                author,
+                CorrelationId,
+                setAdditional: false,
+                calculationEditMode: CalculationEditMode.System,
+                existingCalculation: calculation);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            createdCalculationVersion
+                .Should()
+                .BeEquivalentTo(new CalculationVersion()
+                {
+                    AllowedEnumTypeValues = null,
+                    Author = author,
+                    CalculationId = CalculationId,
+                    CalculationType = CalculationType.Template,
+                    Comment = null,
+                    DataType = CalculationDataType.Enum,
+                    Description = "test description",
+                    Name = CalculationName,
+                    Namespace = CalculationNamespace.Template,
+                    PublishStatus = PublishStatus.Updated,
+                    SourceCode = DefaultSourceCode,
+                    SourceCodeName = "CalcName1",
+                    ValueType = CalculationValueType.String,
+                    Version = 1,
+                    WasTemplateCalculation = false,
+                });
         }
     }
 }

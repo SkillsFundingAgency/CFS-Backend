@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System.Collections.Generic;
+using AutoMapper;
 using CalculateFunding.Common.ApiClient.DataSets;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Results;
@@ -18,7 +19,6 @@ using FluentValidation.Results;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
-using System.Collections.Generic;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -66,7 +66,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 specificationsApiClient ?? CreateSpecificationsApiClient(),
                 resiliencePolicies ?? CalcsResilienceTestHelper.GenerateTestPolicies());
 
-            InstructionAllocationJobCreation instructionAllocationJobCreation = 
+            InstructionAllocationJobCreation instructionAllocationJobCreation =
                 new InstructionAllocationJobCreation(
                     calculationsRepository ?? CreateCalculationsRepository(),
                     resiliencePolicies ?? CalcsResilienceTestHelper.GenerateTestPolicies(),
@@ -102,7 +102,7 @@ namespace CalculateFunding.Services.Calcs.Services
                     searchRepository ?? CreateSearchRepository(),
                     logger ?? CreateLogger(),
                     instructionAllocationJobCreation),
-                graphRepository?? CreateGraphRepository(),
+                graphRepository ?? CreateGraphRepository(),
                 CreateJobManagement(),
                 codeContextCache ?? Substitute.For<ICodeContextCache>(),
                 resultsApiClient ?? Substitute.For<IResultsApiClient>(),
@@ -158,7 +158,7 @@ namespace CalculateFunding.Services.Calcs.Services
         private static IMapper CreateMapper()
         {
             MapperConfiguration resultsConfig = new MapperConfiguration(c =>
-            {               
+            {
             });
 
             return resultsConfig.CreateMapper();
@@ -270,13 +270,15 @@ namespace CalculateFunding.Services.Calcs.Services
                 Id = CalculationId,
 
                 SpecificationId = "any-spec-id",
-
                 Current = new CalculationVersion
                 {
                     SourceCode = "source code",
                     PublishStatus = PublishStatus.Draft,
                     Description = "description",
-                    Name = "Test Calc Name"
+                    Name = "Test Calc Name",
+                    SourceCodeName = "TestCalcName",
+                    CalculationId = CalculationId,
+                    Version = 1,
                 },
                 FundingStreamId = "funding stream-id"
             };
@@ -289,7 +291,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 SpecificationId = SpecificationId,
                 SpecificationName = $"{SpecificationId}_specificationName",
                 FundingStreamId = FundingStreamId,
-                FundingStreamName = $"{FundingStreamId}_fundingStreamName", 
+                FundingStreamName = $"{FundingStreamId}_fundingStreamName",
                 Name = CalculationName,
                 ValueType = CalculationValueType.Currency,
                 SourceCode = DefaultSourceCode,

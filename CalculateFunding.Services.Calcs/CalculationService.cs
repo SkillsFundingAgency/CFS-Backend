@@ -535,7 +535,9 @@ namespace CalculateFunding.Services.Calcs
             bool skipValidation = false,
             bool updateBuildProject = true,
             bool setTemplate = false,
-            Calculation existingCalculation = null)
+            CalculationEditMode calculationEditMode = CalculationEditMode.User,
+            Calculation existingCalculation = null
+            )
         {
             Guard.ArgumentNotNull(calculationEditModel, nameof(calculationEditModel));
             Guard.ArgumentNotNull(author, nameof(author));
@@ -578,11 +580,22 @@ namespace CalculateFunding.Services.Calcs
                 }
 
                 calculationVersion.SourceCode = calculationEditModel.SourceCode;
-                calculationVersion.Name = calculationEditModel.Name;
                 calculationVersion.ValueType = calculationEditModel.ValueType.GetValueOrDefault();
-                calculationVersion.SourceCodeName = VisualBasicTypeGenerator.GenerateIdentifier(calculationEditModel.Name);
-                calculationVersion.Description = calculationEditModel.Description;
-                calculationVersion.AllowedEnumTypeValues = calculationEditModel.AllowedEnumTypeValues;
+
+                bool isUserEditingTemplateCalculation = calculationEditMode == CalculationEditMode.User
+                     && calculation.Current.CalculationType == CalculationType.Template;
+
+                if (!isUserEditingTemplateCalculation)
+                {
+                    calculationVersion.Name = calculationEditModel.Name;
+                    calculationVersion.SourceCodeName = VisualBasicTypeGenerator.GenerateIdentifier(calculationEditModel.Name);
+                    calculationVersion.Description = calculationEditModel.Description;
+                }
+
+                if (calculationEditMode == CalculationEditMode.System)
+                {
+                    ApplySystemAllowedEditsToCalculation(calculationEditModel, calculationVersion);
+                }
 
                 UpdateCalculationResult result = await UpdateCalculation(calculation, calculationVersion, author, updateBuildProject);
 
@@ -622,6 +635,12 @@ namespace CalculateFunding.Services.Calcs
                 _logger.Error(ex.Message, ex);
                 return new InternalServerErrorResult(ex.Message);
             }
+        }
+
+        private static void ApplySystemAllowedEditsToCalculation(CalculationEditModel calculationEditModel, CalculationVersion calculationVersion)
+        {
+            calculationVersion.AllowedEnumTypeValues = calculationEditModel.AllowedEnumTypeValues;
+            calculationVersion.DataType = calculationEditModel.DataType;
         }
 
         public async Task<IActionResult> UpdateCalculationStatus(string calculationId, EditStatusModel editStatusModel)
@@ -1501,16 +1520,17 @@ End Select");
                                 };
 
                                 IActionResult editCalculationResult = await EditCalculation(existingCalculation.SpecificationId,
-                                    mapping.CalculationId,
-                                    calculationEditModel,
-                                    existingCalculation.Current.Author,
-                                    Guid.NewGuid().ToString(),
-                                    true,
-                                    true,
-                                    true,
-                                    false,
-                                    false,
-                                    existingCalculation);
+                                                    mapping.CalculationId,
+                                                    calculationEditModel,
+                                                    existingCalculation.Current.Author,
+                                                    Guid.NewGuid().ToString(),
+                                                    setAdditional: true,
+                                                    skipInstruct: true,
+                                                    skipValidation: true,
+                                                    updateBuildProject: false,
+                                                    setTemplate: false,
+                                                    calculationEditMode: CalculationEditMode.System,
+                                                    existingCalculation: existingCalculation);
 
                                 if (!(editCalculationResult is OkObjectResult))
                                 {

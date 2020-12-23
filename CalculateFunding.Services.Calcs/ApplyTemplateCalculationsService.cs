@@ -55,7 +55,7 @@ namespace CalculateFunding.Services.Calcs
             ICacheProvider cacheProvider,
             ISpecificationsApiClient specificationsApiClient,
             IGraphRepository graphRepository,
-            ICodeContextCache codeContextCache) : base (jobManagement, logger)
+            ICodeContextCache codeContextCache) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(instructionAllocationJobCreation, nameof(instructionAllocationJobCreation));
             Guard.ArgumentNotNull(createCalculationService, nameof(createCalculationService));
@@ -226,12 +226,13 @@ namespace CalculateFunding.Services.Calcs
                     calculationEditModel,
                     author,
                     correlationId,
-                    false,
-                    true,
-                    true,
-                    false,
-                    true,
-                    existingCalculation);
+                    setAdditional: false,
+                    skipInstruct: true,
+                    skipValidation: true,
+                    updateBuildProject: false,
+                    setTemplate: true,
+                    calculationEditMode: CalculationEditMode.System,
+                    existingCalculation: existingCalculation);
 
                 madeChanges = true;
 
@@ -260,8 +261,8 @@ namespace CalculateFunding.Services.Calcs
             IDictionary<uint, Calculation> uniqueTemplateCalculations,
             IDictionary<string, Models.Calcs.Calculation> existingCalculationsById)
         {
-            
-            foreach(TemplateMappingItem templateMapping in templateMappings)
+
+            foreach (TemplateMappingItem templateMapping in templateMappings)
             {
                 if (!uniqueTemplateCalculations.TryGetValue(templateMapping.TemplateId, out Calculation templateCalculation))
                 {
@@ -272,14 +273,14 @@ namespace CalculateFunding.Services.Calcs
                 {
                     continue;
                 }
-                
+
                 if (existingCalculation.Current.CalculationType != CalculationType.Additional && templateCalculation.Name == existingCalculation.Current.Name && templateCalculation.ValueFormat.AsMatchingEnum<CalculationValueType>() == existingCalculation.Current.ValueType)
                 {
                     if (existingCalculation.Current.DataType != CalculationDataType.Enum)
                     {
                         continue;
                     }
-                     
+
                     if (existingCalculation.Current.AllowedEnumTypeValues.All(_ => templateCalculation.AllowedEnumTypeValues.Contains(_) && existingCalculation.Current.AllowedEnumTypeValues.Count() == templateCalculation.AllowedEnumTypeValues.Count()))
                     {
                         continue;
@@ -365,7 +366,7 @@ namespace CalculateFunding.Services.Calcs
                 LogAndThrowException($"Unable to locate template contents for template calculation id {templateMapping.TemplateId}");
 
             CalculationValueType calculationValueType = templateCalculation.ValueFormat.AsMatchingEnum<CalculationValueType>();
-            TemplateCalculationType templateCalculationType = templateCalculation.Type.AsMatchingEnum <TemplateCalculationType>();
+            TemplateCalculationType templateCalculationType = templateCalculation.Type.AsMatchingEnum<TemplateCalculationType>();
 
             CalculationCreateModel calculationCreateModel = new CalculationCreateModel
             {
@@ -387,7 +388,7 @@ namespace CalculateFunding.Services.Calcs
                 templateCalculation.AllowedEnumTypeValues);
 
             if (!(createCalculationResponse?.Succeeded).GetValueOrDefault())
-                 LogAndThrowException("Unable to create new default template calculation for template mapping");
+                LogAndThrowException("Unable to create new default template calculation for template mapping");
 
             templateMapping.CalculationId = createCalculationResponse.Calculation.Id;
         }

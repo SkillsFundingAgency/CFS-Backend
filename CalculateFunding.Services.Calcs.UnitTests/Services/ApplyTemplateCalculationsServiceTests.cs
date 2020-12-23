@@ -202,15 +202,16 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
 
             TemplateMetadataContents templateMetadataContents = NewTemplateMetadataContents(_ => _.WithFundingLines(NewFundingLine(fl =>
                 fl.WithCalculations(
-                    NewTemplateMappingCalculation(c1 => {
-                        c1.WithCalculations(NewTemplateMappingCalculation(c4 =>c4.WithTemplateCalculationId(4)));
+                    NewTemplateMappingCalculation(c1 =>
+                    {
+                        c1.WithCalculations(NewTemplateMappingCalculation(c4 => c4.WithTemplateCalculationId(4)));
                         c1.WithTemplateCalculationId(1);
                     }),
                     NewTemplateMappingCalculation(c2 => c2.WithTemplateCalculationId(2)),
                     NewTemplateMappingCalculation(c3 => c3.WithTemplateCalculationId(3)),
                     NewTemplateMappingCalculation(c4 => c4.WithTemplateCalculationId(4)
                           .WithType(Common.TemplateMetadata.Enums.CalculationType.Enum)
-                          .WithAllowedEnumTypeValues(new List<string>() { "Type1", "Type2", "Type3"})
+                          .WithAllowedEnumTypeValues(new List<string>() { "Type1", "Type2", "Type3" })
                           .WithValueFormat(CalculationValueFormat.String))
                     ))));
             TemplateCalculation templateCalculationOne = NewTemplateMappingCalculation(_ => _.WithName("template calculation 1"));
@@ -313,7 +314,8 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
 
             TemplateMappingItem mappingWithMissingCalculation1 = NewTemplateMappingItem();
             TemplateMappingItem mappingWithMissingCalculation2 = NewTemplateMappingItem();
-            TemplateMappingItem mappingWithMissingCalculation3 = NewTemplateMappingItem(_ => {
+            TemplateMappingItem mappingWithMissingCalculation3 = NewTemplateMappingItem(_ =>
+            {
                 _.WithCalculationId(calculationId3);
                 _.WithName(calculationName3);
             });
@@ -449,7 +451,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
             {
                 NewCalculation(_ => _.WithId(calculationId1)
                                     .WithCurrentVersion(
-                                        NewCalculationVersion(x => 
+                                        NewCalculationVersion(x =>
                                             x.WithCalculationId(calculationId1).WithName(calculationName1).WithValueType(calculationValueFormat1.AsMatchingEnum<CalculationValueType>())))),
                 NewCalculation(_ => _.WithId(calculationId2)
                                     .WithCurrentVersion(
@@ -556,6 +558,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
                 Arg.Is(true),
                 Arg.Any<bool>(),
                 Arg.Is(true),
+                Arg.Is(CalculationEditMode.System),
                 Arg.Any<Calculation>())
                 .Returns(new OkObjectResult(null));
         }
@@ -628,7 +631,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
             TemplateCalculation calculation)
         {
             calculation.TemplateCalculationId = mappingItem.TemplateId;
-            
+
             FundingLine fundingLine = templateMetadataContents.RootFundingLines.First();
 
             fundingLine.Calculations = fundingLine.Calculations.Concat(new[]

@@ -97,7 +97,13 @@ namespace CalculateFunding.Api.Calcs.Controllers
         {
             HttpRequest httpRequest = ControllerContext.HttpContext.Request;
 
-            return _calcsService.EditCalculation(specificationId, calculationId, model, httpRequest.GetUser(), httpRequest.GetCorrelationId());
+            return _calcsService.EditCalculation(
+                specificationId,
+                calculationId,
+                model,
+                httpRequest.GetUser(),
+                httpRequest.GetCorrelationId(),
+                calculationEditMode: CalculationEditMode.User);
         }
 
         [Route("api/calcs/specifications/{specificationId}/calculations/{calculationId}/{skipInstruct}")]
@@ -110,7 +116,14 @@ namespace CalculateFunding.Api.Calcs.Controllers
         {
             HttpRequest httpRequest = ControllerContext.HttpContext.Request;
 
-            return _calcsService.EditCalculation(specificationId, calculationId, model, httpRequest.GetUser(), httpRequest.GetCorrelationId(), skipInstruct: skipInstruct);
+            return _calcsService.EditCalculation(
+                specificationId,
+                calculationId,
+                model,
+                httpRequest.GetUser(),
+                httpRequest.GetCorrelationId(),
+                skipInstruct: skipInstruct,
+                calculationEditMode: CalculationEditMode.User);
         }
 
         [Route("api/calcs/calculation-version-history")]
