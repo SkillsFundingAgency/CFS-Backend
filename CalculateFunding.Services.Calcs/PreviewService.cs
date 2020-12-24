@@ -21,9 +21,9 @@ using CalculateFunding.Services.Core.Helpers;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
-using Severity = CalculateFunding.Models.Calcs.Severity;
-using CalcEngineProviderResult = CalculateFunding.Common.ApiClient.CalcEngine.Models.ProviderResult;
 using CalcEngineModels = CalculateFunding.Common.ApiClient.CalcEngine.Models;
+using CalcEngineProviderResult = CalculateFunding.Common.ApiClient.CalcEngine.Models.ProviderResult;
+using Severity = CalculateFunding.Models.Calcs.Severity;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -107,24 +107,6 @@ namespace CalculateFunding.Services.Calcs
                 return new BadRequestObjectResult("A null preview request was provided");
             }
 
-            if (string.IsNullOrWhiteSpace(previewRequest.CalculationId))
-            {
-                previewRequest.CalculationId = TempCalculationId;
-            }
-
-            Calculation tempCalculation = new Calculation
-            {
-                Id = TempCalculationId,
-                SpecificationId = previewRequest.SpecificationId,
-                Current = new CalculationVersion
-                {
-                    Name = !string.IsNullOrWhiteSpace(previewRequest.Name) ? previewRequest.Name : TempCalculationName,
-                    CalculationId = TempCalculationId,
-                    SourceCodeName = VisualBasicTypeGenerator.GenerateIdentifier(!string.IsNullOrWhiteSpace(previewRequest.Name) ? previewRequest.Name : TempCalculationName),
-                    SourceCode = previewRequest.SourceCode,
-                }
-            };
-
             FluentValidation.Results.ValidationResult validationResult = await _previewRequestValidator.ValidateAsync(previewRequest);
 
             if (!validationResult.IsValid)
@@ -151,28 +133,29 @@ namespace CalculateFunding.Services.Calcs
                 return new PreconditionFailedResult($"Build project for specification '{previewRequest.SpecificationId}' could not be found");
             }
 
-            List<Calculation> calculations = new List<Calculation>(calculationsTask.Result);
+            List<Calculation> allSpecCalculations = new List<Calculation>(calculationsTask.Result);
 
-            Calculation calculation = calculations.FirstOrDefault(m => m.Id == previewRequest.CalculationId);
+            Calculation calculationToPreview = allSpecCalculations.SingleOrDefault(m => m.Id == previewRequest.CalculationId);
 
-            if (calculation == null)
+            if (calculationToPreview == null)
             {
-                calculation = tempCalculation;
-                calculation.Current.Namespace = CalculationNamespace.Additional;
-                calculations.Add(tempCalculation);
+                calculationToPreview = GenerateTemporaryCalculationForPreview(previewRequest);
+
+                allSpecCalculations.Add(calculationToPreview);
+            }
+            else
+            {
+                ApplyChangesToCurrentCalculationForPreview(previewRequest, calculationToPreview);
             }
 
-            calculation.Current.SourceCode = previewRequest.SourceCode;
-            calculation.Current.DataType = previewRequest.DataType;
+            Build buildForDatasetAggregationCheck = await CheckDatasetValidAggregations(previewRequest);
 
-            Build build = await CheckDatasetValidAggregations(previewRequest);
-
-            if (build != null && build.CompilerMessages.Any(m => m.Severity == Severity.Error))
+            if (buildForDatasetAggregationCheck != null && buildForDatasetAggregationCheck.CompilerMessages.Any(m => m.Severity == Severity.Error))
             {
                 PreviewResponse response = new PreviewResponse
                 {
-                    Calculation = calculation.ToResponseModel(),
-                    CompilerOutput = build
+                    Calculation = calculationToPreview.ToResponseModel(),
+                    CompilerOutput = buildForDatasetAggregationCheck
                 };
 
                 return new OkObjectResult(response);
@@ -180,9 +163,33 @@ namespace CalculateFunding.Services.Calcs
 
             CompilerOptions compilerOptions = compilerOptionsTask.Result ?? new CompilerOptions { SpecificationId = buildProject.SpecificationId };
 
-            IActionResult compileResult = await GenerateAndCompile(buildProject, calculation, calculations, compilerOptions, previewRequest);
+            return await GenerateAndCompile(buildProject, calculationToPreview, allSpecCalculations, compilerOptions, previewRequest);
+        }
 
-            return compileResult;
+        private static void ApplyChangesToCurrentCalculationForPreview(PreviewRequest previewRequest, Calculation calculationToPreview)
+        {
+            calculationToPreview.Current.SourceCode = previewRequest.SourceCode;
+        }
+
+        private static Calculation GenerateTemporaryCalculationForPreview(PreviewRequest previewRequest)
+        {
+            return new Calculation
+            {
+                Id = TempCalculationId,
+                SpecificationId = previewRequest.SpecificationId,
+                Current = new CalculationVersion
+                {
+                    Name = !string.IsNullOrWhiteSpace(previewRequest.Name) ? previewRequest.Name : TempCalculationName,
+                    CalculationId = TempCalculationId,
+                    SourceCodeName = VisualBasicTypeGenerator.GenerateIdentifier(!string.IsNullOrWhiteSpace(previewRequest.Name) ? previewRequest.Name : TempCalculationName),
+                    SourceCode = previewRequest.SourceCode,
+                    Namespace = CalculationNamespace.Additional,
+                    CalculationType = CalculationType.Additional,
+                    DataType = CalculationDataType.Decimal,
+                    ValueType = CalculationValueType.Number,
+                    WasTemplateCalculation = false,
+                }
+            };
         }
 
         private async Task<IActionResult> GenerateAndCompile(BuildProject buildProject,
@@ -304,7 +311,7 @@ namespace CalculateFunding.Services.Calcs
                     PreviewCalculationSummaryModel = model
                 };
 
-                ApiResponse<CalcEngineProviderResult> previewCalcResultApiResponse = 
+                ApiResponse<CalcEngineProviderResult> previewCalcResultApiResponse =
                     await _calcEngineApiClientPolicy.ExecuteAsync(
                         () => _calcEngineApiClient.PreviewCalculationResults(
                             previewRequest.SpecificationId,

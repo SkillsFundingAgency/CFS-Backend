@@ -12,9 +12,9 @@ namespace CalculateFunding.Services.Calcs
             CalculationNamespace calculationNamespace,
             CalculationType calculationType,
             Reference author,
-            string correlationId, 
+            string correlationId,
+            CalculationDataType calculationDataType,
             bool initiateCalcRun = true,
-            TemplateCalculationType? templateCalculationType = null,
             IEnumerable<string> allowedEnumTypeValues = null);
     }
 }

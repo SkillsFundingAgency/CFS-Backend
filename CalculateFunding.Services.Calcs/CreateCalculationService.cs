@@ -37,14 +37,14 @@ namespace CalculateFunding.Services.Calcs
         private readonly ILogger _logger;
         private readonly IInstructionAllocationJobCreation _instructionAllocationJobCreation;
 
-        public CreateCalculationService(ICalculationNameInUseCheck calculationNameInUseCheck, 
-            ICalculationsRepository calculationsRepository, 
-            IVersionRepository<CalculationVersion> calculationVersionRepository, 
-            ICalcsResiliencePolicies calculationsResiliencePolicies, 
+        public CreateCalculationService(ICalculationNameInUseCheck calculationNameInUseCheck,
+            ICalculationsRepository calculationsRepository,
+            IVersionRepository<CalculationVersion> calculationVersionRepository,
+            ICalcsResiliencePolicies calculationsResiliencePolicies,
             IValidator<CalculationCreateModel> calculationCreateModelValidator,
             ICacheProvider cacheProvider,
             ISearchRepository<CalculationIndex> searchRepository,
-            ILogger logger, 
+            ILogger logger,
             IInstructionAllocationJobCreation instructionAllocationJobCreation)
         {
             Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
@@ -55,7 +55,7 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(calculationsResiliencePolicies?.CacheProviderPolicy, nameof(calculationsResiliencePolicies.CacheProviderPolicy));
             Guard.ArgumentNotNull(calculationsResiliencePolicies?.CalculationsRepository, nameof(calculationsResiliencePolicies.CalculationsRepository));
             Guard.ArgumentNotNull(calculationsResiliencePolicies?.CalculationsVersionsRepositoryPolicy, nameof(calculationsResiliencePolicies.CalculationsVersionsRepositoryPolicy));
-            
+
             _calculationNameInUseCheck = calculationNameInUseCheck;
             _calculationsRepository = calculationsRepository;
             _calculationVersionRepository = calculationVersionRepository;
@@ -75,8 +75,8 @@ namespace CalculateFunding.Services.Calcs
             CalculationType calculationType,
             Reference author,
             string correlationId,
+            CalculationDataType calculationDataType = CalculationDataType.Decimal,
             bool initiateCalcRun = true,
-            TemplateCalculationType? templateCalculationType = null,
             IEnumerable<string> allowedEnumTypeValues = null)
         {
             Guard.ArgumentNotNull(model, nameof(model));
@@ -122,7 +122,7 @@ namespace CalculateFunding.Services.Calcs
                 WasTemplateCalculation = false,
                 Namespace = calculationNamespace,
                 Name = model.Name,
-                DataType = model.ValueType.Value.ToCalculationDataType(templateCalculationType),
+                DataType = calculationDataType,
                 AllowedEnumTypeValues = allowedEnumTypeValues != null ? new List<string>(allowedEnumTypeValues) : Enumerable.Empty<string>()
             };
 
@@ -134,9 +134,9 @@ namespace CalculateFunding.Services.Calcs
             {
                 string error =
                     $"Calculation with the same generated source code name already exists in this specification. Calculation Name {calculation.Name} and Specification {calculation.SpecificationId}";
-                
+
                 _logger.Error(error);
-               
+
                 return new CreateCalculationResponse
                 {
                     ErrorMessage = error,
@@ -213,20 +213,20 @@ namespace CalculateFunding.Services.Calcs
                 string errorMessage = $"There was problem creating a new calculation with name {calculation.Name} in Cosmos Db with status code {(int)result}";
 
                 _logger.Error(errorMessage);
-                
+
                 return new CreateCalculationResponse
                 {
-                    ErrorMessage   = errorMessage,
+                    ErrorMessage = errorMessage,
                     ErrorType = CreateCalculationErrorType.Exception
                 };
             }
         }
-        
-        private async Task UpdateSearch(Calculation calculation, 
-            string specificationName, 
+
+        private async Task UpdateSearch(Calculation calculation,
+            string specificationName,
             string fundingStreamName)
         {
-            await _searchRepository.Index(new []
+            await _searchRepository.Index(new[]
             {
                 new CalculationIndex
                 {
@@ -246,7 +246,7 @@ namespace CalculateFunding.Services.Calcs
                 }
             });
         }
-        
+
         private async Task<Job> SendInstructAllocationsToJobService(string specificationId, string userId, string userName, Trigger trigger, string correlationId)
         {
             return await _instructionAllocationJobCreation.SendInstructAllocationsToJobService(specificationId, userId, userName, trigger, correlationId);

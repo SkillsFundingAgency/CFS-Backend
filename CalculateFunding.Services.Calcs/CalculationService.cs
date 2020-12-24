@@ -421,7 +421,8 @@ namespace CalculateFunding.Services.Calcs
                 CalculationNamespace.Additional,
                 CalculationType.Additional,
                 author,
-                correlationId);
+                correlationId,
+                CalculationDataType.Decimal);
 
             if (createCalculationResponse.Succeeded)
             {

@@ -10,6 +10,7 @@ using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Common.TemplateMetadata.Enums;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
@@ -218,7 +219,8 @@ namespace CalculateFunding.Services.Calcs
                     SourceCode = existingCalculation.Current.SourceCode,
                     Name = templateCalculation.Name,
                     ValueType = templateCalculation.ValueFormat.AsMatchingEnum<CalculationValueType>(),
-                    AllowedEnumTypeValues = templateCalculation.AllowedEnumTypeValues
+                    AllowedEnumTypeValues = templateCalculation.AllowedEnumTypeValues,
+                    DataType = templateCalculation.Type.ToCalculationDataType(),
                 };
 
                 IActionResult editCalculationResult = await _calculationService.EditCalculation(specification.Id,
@@ -274,7 +276,10 @@ namespace CalculateFunding.Services.Calcs
                     continue;
                 }
 
-                if (existingCalculation.Current.CalculationType != CalculationType.Additional && templateCalculation.Name == existingCalculation.Current.Name && templateCalculation.ValueFormat.AsMatchingEnum<CalculationValueType>() == existingCalculation.Current.ValueType)
+                if (existingCalculation.Current.CalculationType != CalculationType.Additional
+                    && templateCalculation.Name == existingCalculation.Current.Name
+                    && templateCalculation.ValueFormat.AsMatchingEnum<CalculationValueType>() == existingCalculation.Current.ValueType
+                    && templateCalculation.Type.ToCalculationDataType() == existingCalculation.Current.DataType)
                 {
                     if (existingCalculation.Current.DataType != CalculationDataType.Enum)
                     {
@@ -375,7 +380,6 @@ namespace CalculateFunding.Services.Calcs
                 LogAndThrowException($"Unable to locate template contents for template calculation id {templateMapping.TemplateId}");
 
             CalculationValueType calculationValueType = templateCalculation.ValueFormat.AsMatchingEnum<CalculationValueType>();
-            TemplateCalculationType templateCalculationType = templateCalculation.Type.AsMatchingEnum<TemplateCalculationType>();
 
             CalculationCreateModel calculationCreateModel = new CalculationCreateModel
             {
@@ -392,8 +396,8 @@ namespace CalculateFunding.Services.Calcs
                 CalculationType.Template,
                 author,
                 correlationId,
+                templateCalculation.Type.ToCalculationDataType(),
                 initiateCalcRun: false,
-                templateCalculationType,
                 templateCalculation.AllowedEnumTypeValues);
 
             if (!(createCalculationResponse?.Succeeded).GetValueOrDefault())

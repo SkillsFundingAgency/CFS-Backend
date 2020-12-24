@@ -521,8 +521,8 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
                     Arg.Is<Reference>(_ => _.Id == _userId &&
                                            _.Name == _userName),
                     Arg.Is(_correlationId),
+                    Arg.Any<CalculationDataType>(),
                     Arg.Is(false),
-                    Arg.Any<TemplateCalculationType?>(),
                     Arg.Any<IEnumerable<string>>())
                 .Returns(new CreateCalculationResponse
                 {
