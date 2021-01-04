@@ -115,7 +115,7 @@ namespace CalculateFunding.Services.CalcEngine
 
             try
             {
-                Job searchIndexWriterJob = await _jobManagement.QueueJob(
+                Common.ApiClient.Jobs.Models.Job searchIndexWriterJob = await _jobManagement.QueueJob(
                     new JobCreateModel()
                     {
                         Trigger = new Trigger

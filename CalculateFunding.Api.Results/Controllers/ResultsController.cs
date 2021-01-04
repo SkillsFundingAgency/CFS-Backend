@@ -64,7 +64,7 @@ namespace CalculateFunding.Api.Results.Controllers
 
         [Route("api/results/specifications/{specificationId}/generate-calculation-csv-results")]
         [HttpPost]
-        [Produces(typeof(Job))]
+        [Produces(typeof(Common.ApiClient.Jobs.Models.Job))]
         public async Task<IActionResult> RunGenerateCalculationCsvResults([FromRoute] string specificationId)
         {
             return await _resultsService.QueueCsvGeneration(specificationId);
@@ -174,7 +174,7 @@ namespace CalculateFunding.Api.Results.Controllers
         }
         
         [HttpPut("api/results/providers/specifications")]
-        [Produces(typeof(Job))]
+        [Produces(typeof(Common.ApiClient.Jobs.Models.Job))]
         public async Task<IActionResult> QueueMergeSpecificationInformationJob(
             [FromBody] MergeSpecificationInformationRequest mergeRequest)
         {

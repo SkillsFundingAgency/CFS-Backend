@@ -1,5 +1,6 @@
 ﻿using System;
 using AutoMapper;
+using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
@@ -120,7 +121,7 @@ namespace CalculateFunding.Functions.Users
             builder.AddServiceBus(config, "users");
             builder.AddTelemetry();
 
-            Common.Config.ApiClient.Specifications.ServiceCollectionExtensions.AddSpecificationsInterServiceClient(builder, config);
+            builder.AddSpecificationsInterServiceClient(config);
 
             builder.AddScoped<IUserProfileProvider, UserProfileProvider>();
 

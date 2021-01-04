@@ -4,6 +4,7 @@ using CalculateFunding.Common.Config.ApiClient.Calcs;
 using CalculateFunding.Common.Config.ApiClient.Jobs;
 using CalculateFunding.Common.Config.ApiClient.Policies;
 using CalculateFunding.Common.Config.ApiClient.Providers;
+using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Common.JobManagement;
@@ -279,8 +280,7 @@ namespace CalculateFunding.Api.Datasets
             });
 
             builder.AddTransient<IValidator<DatasetUploadValidationModel>, DatasetUploadValidationModelValidator>();
-            //builder.AddSpecificationsInterServiceClient(Configuration);
-            Common.Config.ApiClient.Specifications.ServiceCollectionExtensions.AddSpecificationsInterServiceClient(builder, Configuration);
+            builder.AddSpecificationsInterServiceClient(Configuration);
 
             builder.AddHealthCheckMiddleware();
 
