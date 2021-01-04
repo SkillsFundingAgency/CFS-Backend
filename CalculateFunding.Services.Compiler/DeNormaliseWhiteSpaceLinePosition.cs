@@ -94,7 +94,14 @@ namespace CalculateFunding.Services.Compiler
                             }
                             else
                             {
-                                originalCharacter = originalLineOfCode[++normalisedOffset + character];
+                                int accessIndex = ++normalisedOffset + character;
+
+                                if (accessIndex >= originalLineOfCode.Length)
+                                {
+                                    break;
+                                }
+
+                                originalCharacter = originalLineOfCode[accessIndex];
                             }
                         }
 
