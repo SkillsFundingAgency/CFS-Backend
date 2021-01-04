@@ -20,8 +20,6 @@ namespace CalculateFunding.Services.Profiling.Models
             string fundingLineId,
             DateTime fundingStreamPeriodStartDate,
             DateTime fundingStreamPeriodEndDate,
-            bool reProfilePastPeriods, 
-            bool calculateBalancingPayment,
             bool allowUserToEditProfilePattern,
             ProfilePeriodPattern[] profilePattern,
             string profilePatternDisplayName,
@@ -33,8 +31,6 @@ namespace CalculateFunding.Services.Profiling.Models
             FundingLineId = fundingLineId;
             FundingStreamPeriodStartDate = fundingStreamPeriodStartDate;
             FundingStreamPeriodEndDate = fundingStreamPeriodEndDate;
-            ReProfilePastPeriods = reProfilePastPeriods;
-            CalculateBalancingPayment = calculateBalancingPayment;
             AllowUserToEditProfilePattern = allowUserToEditProfilePattern;
             ProfilePattern = profilePattern;
             ProfilePatternDisplayName = profilePatternDisplayName;
@@ -62,12 +58,6 @@ namespace CalculateFunding.Services.Profiling.Models
 
         [JsonProperty("fundingStreamPeriodEndDate")]
         public DateTime FundingStreamPeriodEndDate { get; set; }
-        
-        [JsonProperty("reProfilePastPeriods")]
-        public bool ReProfilePastPeriods { get; set; }
-
-        [JsonProperty("calculateBalancingPayment")]
-        public bool CalculateBalancingPayment { get; set; }
 
         [JsonProperty("allowUserToEditProfilePattern")]
         public bool AllowUserToEditProfilePattern { get; set; }

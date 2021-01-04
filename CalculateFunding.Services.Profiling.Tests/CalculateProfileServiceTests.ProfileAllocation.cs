@@ -37,7 +37,6 @@ namespace CalculateFunding.Services.Profiling.Tests
                 FundingLineId = "TestFLC",
                 FundingPeriodId = "AY-1920",
                 FundingStreamId = "PSG",
-                CalculateBalancingPayment = false,
                 FundingStreamPeriodEndDate = DateTime.Parse("2020-08-31T23:59:59"),
                 FundingStreamPeriodStartDate = DateTime.Parse("2019-09-01T00:00:00"),
                 ProfilePattern = new ProfilePeriodPattern[]
@@ -45,7 +44,6 @@ namespace CalculateFunding.Services.Profiling.Tests
                  new ProfilePeriodPattern(PeriodType.CalendarMonth, "October", DateTime.Parse("2019-09-01T00:00:00"), DateTime.Parse("2020-03-31T23:59:59"), 1920, 1, "FY-1920", 58.33333333M),
                  new ProfilePeriodPattern(PeriodType.CalendarMonth, "April", DateTime.Parse("2020-04-01T00:00:00"), DateTime.Parse("2020-08-31T23:59:59"), 2021, 1, "FY-2021", 41.6666667M),
               },
-                ReProfilePastPeriods = false,
             };
 
             // Act
@@ -111,7 +109,6 @@ namespace CalculateFunding.Services.Profiling.Tests
                 FundingLineId = "TestFLC",
                 FundingPeriodId = "AY-1920",
                 FundingStreamId = "PSG",
-                CalculateBalancingPayment = false,
                 FundingStreamPeriodEndDate = DateTime.Parse("2020-08-31T23:59:59"),
                 FundingStreamPeriodStartDate = DateTime.Parse("2019-09-01T00:00:00"),
                 ProfilePattern = new ProfilePeriodPattern[]
@@ -119,8 +116,7 @@ namespace CalculateFunding.Services.Profiling.Tests
                  new ProfilePeriodPattern(PeriodType.CalendarMonth, "October", DateTime.Parse("2019-09-01T00:00:00"), DateTime.Parse("2020-03-31T23:59:59"), 1920, 1, "FY-1920", 38.33333333M),
                  new ProfilePeriodPattern(PeriodType.CalendarMonth, "November", DateTime.Parse("2019-09-01T00:00:00"), DateTime.Parse("2020-03-31T23:59:59"), 1920, 1, "FY-1920", 20M),
                  new ProfilePeriodPattern(PeriodType.CalendarMonth, "April", DateTime.Parse("2020-04-01T00:00:00"), DateTime.Parse("2020-08-31T23:59:59"), 1920, 1, "FY-2021", 58.33333333M),
-              },
-                ReProfilePastPeriods = false,
+              }
             };
 
             // Act

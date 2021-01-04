@@ -2,8 +2,6 @@
   "FundingStreamPeriodCode": "PSG1819",
   "FundingStreamPeriodStartDate": "2018-09-01T00:00:00",
   "FundingStreamPeriodEndDate": "2019-08-31T23:59:59",
-  "ReProfilePastPeriods": false,
-  "CalculateBalancingPayment": false,
   "AllowUserToEditProfilePattern": false,
   "ProfilePattern": [
     {

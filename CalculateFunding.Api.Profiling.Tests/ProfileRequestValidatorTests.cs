@@ -22,8 +22,6 @@ namespace CalculateFunding.Api.Profiling.Tests
                 new DateTime(2018, 1, 1),
                 new DateTime(2019, 1, 1),
                 false,
-                false,
-                false,
                 new[]
                 {
                     new ProfilePeriodPattern(
@@ -67,8 +65,6 @@ namespace CalculateFunding.Api.Profiling.Tests
                 "FL1",
                 new DateTime(2019, 8, 1),
                 new DateTime(2020, 7, 31),
-                false,
-                false,
                 false,
                 new[]
                 {
