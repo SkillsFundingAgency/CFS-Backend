@@ -176,7 +176,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
         }
 
         [TestMethod]
-        public async Task CheckProviderVersionUpdate_GivenGetSpecificationsWithProviderVersionUpdatesAsUseLatestNotFound_ThrowsError()
+        public async Task CheckProviderVersionUpdate_GivenGetSpecificationsWithProviderVersionUpdatesAsUseLatestReturnsBadRequest_ThrowsError()
         {
             GivenGetFundingStreams();
             AndGetAllCurrentProviderVersions();
@@ -209,9 +209,27 @@ namespace CalculateFunding.Services.Providers.UnitTests
             ThenUpdatesSpecification();
         }
 
+        [TestMethod]
+        public async Task CheckProviderVersionUpdate_GivenGetSpecificationsWithProviderVersionUpdatesAsUseLatestNotFound_ThenDoesNotUpdatesSpecification()
+        {
+            GivenGetFundingStreams();
+            AndGetAllCurrentProviderVersions();
+            AndGetFundingConfigurationsByFundingStreamId();
+            AndGetProviderSnapshotsForFundingStream();
+            AndNotFoundGetSpecificationsWithProviderVersionUpdatesAsUseLatest();
+
+            await WhenCheckProviderVersionUpdate();
+
+            ThenDoesNotUpdatesSpecification();
+        }
+
         private void ThenUpdatesSpecification() =>
             _specificationsApiClient
-                .Verify(_ => _.UpdateSpecification(_specificationId, It.IsAny<EditSpecificationModel>()), Times.Once); 
+                .Verify(_ => _.UpdateSpecification(_specificationId, It.IsAny<EditSpecificationModel>()), Times.Once);
+
+        private void ThenDoesNotUpdatesSpecification() =>
+            _specificationsApiClient
+                .Verify(_ => _.UpdateSpecification(_specificationId, It.IsAny<EditSpecificationModel>()), Times.Never);
 
         private void GivenErrorGetFundingStreams() =>
             _policiesApiClient
@@ -257,6 +275,11 @@ namespace CalculateFunding.Services.Providers.UnitTests
             _specificationsApiClient
                 .Setup(_ => _.GetSpecificationsWithProviderVersionUpdatesAsUseLatest())
                 .ReturnsAsync(new ApiResponse<IEnumerable<SpecificationSummary>>(System.Net.HttpStatusCode.BadRequest));
+
+        private void AndNotFoundGetSpecificationsWithProviderVersionUpdatesAsUseLatest() =>
+            _specificationsApiClient
+                .Setup(_ => _.GetSpecificationsWithProviderVersionUpdatesAsUseLatest())
+                .ReturnsAsync(new ApiResponse<IEnumerable<SpecificationSummary>>(System.Net.HttpStatusCode.NotFound));
 
         private async Task WhenCheckProviderVersionUpdate() =>
             await _service.CheckProviderVersionUpdate();

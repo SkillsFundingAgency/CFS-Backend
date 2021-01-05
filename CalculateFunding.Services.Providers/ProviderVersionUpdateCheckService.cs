@@ -190,6 +190,13 @@ namespace CalculateFunding.Services.Providers
                 await _specificationsApiClientPolicy.ExecuteAsync(() =>
                     _specificationsApiClient.GetSpecificationsWithProviderVersionUpdatesAsUseLatest());
 
+            if(specificationsWithProviderVersionUpdateResponse.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                string errorMessage = "No specification with provider version updates as use latest";
+                _logger.Information(errorMessage);
+                return Enumerable.Empty<SpecificationSummary>();
+            }
+
             if (!specificationsWithProviderVersionUpdateResponse.StatusCode.IsSuccess())
             {
                 string errorMessage = "Unable to retrieve specification with provider version updates as use latest";
