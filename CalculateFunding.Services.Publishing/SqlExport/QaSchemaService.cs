@@ -298,7 +298,7 @@ REFERENCES [dbo].[{fundingStreamTablePrefix}_{fundingTableName}] ([PublishedProv
                 new SqlColumnDefinition
                 {
                     Name = "TotalFunding",
-                    Type = "[decimal](18, 0)",
+                    Type = "[decimal](30, 18)",
                     AllowNulls = false
                 },
                 new SqlColumnDefinition
@@ -466,7 +466,7 @@ REFERENCES [dbo].[{fundingStreamTablePrefix}_{fundingTableName}] ([PublishedProv
                 fundingSqlFields.Add(new SqlColumnDefinition
                 {
                     Name = $"Fl_{fundingLine.TemplateLineId}_{_sqlNames.GenerateIdentifier(fundingLine.Name)}",
-                    Type = "[decimal](18, 0)",
+                    Type = "[decimal](30, 18)",
                     AllowNulls = true
                 });
 
