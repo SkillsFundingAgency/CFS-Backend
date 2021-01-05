@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CacheCow.Server.Core.Mvc" Version="2.7.4" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Graph" Version="4.3.1" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="6.2.0" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Calcs" Version="4.5.6" />  

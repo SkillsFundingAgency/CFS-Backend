@@ -1,6 +1,8 @@
 ﻿using System.Threading;
 using AutoMapper;
+using CacheCow.Server.Core.Mvc;
 using CalculateFunding.Common.Config.ApiClient.Calcs;
+using CalculateFunding.Common.Config.ApiClient.Graph;
 using CalculateFunding.Common.Config.ApiClient.Jobs;
 using CalculateFunding.Common.Config.ApiClient.Policies;
 using CalculateFunding.Common.Config.ApiClient.Specifications;
@@ -12,6 +14,7 @@ using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.MappingProfiles;
+using CalculateFunding.Models.Result;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.AspNet.Extensions;
 using CalculateFunding.Services.Core.AspNet.HealthChecks;
@@ -23,9 +26,9 @@ using CalculateFunding.Services.Core.Interfaces.Threading;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Threading;
 using CalculateFunding.Services.Results;
+using CalculateFunding.Services.Results.Caching.Http;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Results.Repositories;
-using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -115,6 +118,18 @@ namespace CalculateFunding.Api.Results
                 .AddSingleton<IProviderCalculationResultsSearchService, ProviderCalculationResultsSearchService>()
                 .AddSingleton<IHealthChecker, ProviderCalculationResultsSearchService>();
 
+            builder.AddHttpCachingMvc();
+
+            builder.AddQueryProviderAndExtractorForViewModelMvc<
+                FundingStructure,
+                TemplateMetadataContentsTimedETagProvider,
+                TemplateMatadataContentsTimedETagExtractor>(false);
+
+            string key = Configuration.GetValue<string>("specificationsClient:ApiKey");
+
+            builder.AddSingleton<IFundingStructureService, FundingStructureService>();
+
+            builder.AddGraphInterServiceClient(Configuration);
 
             builder.AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>((ctx) =>
                            {
