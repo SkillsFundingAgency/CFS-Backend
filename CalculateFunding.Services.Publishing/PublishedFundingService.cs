@@ -60,7 +60,8 @@ namespace CalculateFunding.Services.Publishing
         public async Task<PublishedFundingInput> GeneratePublishedFundingInput(IDictionary<string, PublishedProvider> publishedProvidersForFundingStream,
             IEnumerable<Provider> scopedProviders,
             Reference fundingStream,
-            SpecificationSummary specification)
+            SpecificationSummary specification,
+            IEnumerable<PublishedProvider> publishedProvidersInScope)
         {
             Guard.ArgumentNotNull(publishedProvidersForFundingStream, nameof(publishedProvidersForFundingStream));
             Guard.ArgumentNotNull(scopedProviders, nameof(scopedProviders));
@@ -84,6 +85,13 @@ namespace CalculateFunding.Services.Publishing
             // Foreach group, determine the provider versions required to be latest
             IEnumerable<OrganisationGroupResult> organisationGroups =
                 await _organisationGroupGenerator.GenerateOrganisationGroup(fundingConfiguration, _mapper.Map<IEnumerable<ApiProvider>>(scopedProviders), specification.ProviderVersionId);
+
+            // filter out organisation groups which don't contain a provider which is in scope
+            if (!publishedProvidersInScope.IsNullOrEmpty())
+            {
+                HashSet<string> publishedProviderIdsInScope = new HashSet<string>(publishedProvidersInScope.DistinctBy(_ => _.Current.ProviderId).Select(_ => _.Current.ProviderId));
+                organisationGroups = organisationGroups.Where(_ => _.Providers.Any(provider => publishedProviderIdsInScope.Contains(provider.ProviderId)));
+            }
 
             _logger.Information($"A total of {organisationGroups.Count()} were generated");
 

@@ -13,6 +13,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         Task<PublishedFundingInput> GeneratePublishedFundingInput(IDictionary<string, PublishedProvider> publishedProvidersForFundingStream,
             IEnumerable<Provider> scopedProviders,
             Reference fundingStream,
-            SpecificationSummary specification);
+            SpecificationSummary specification,
+            IEnumerable<PublishedProvider> publishedProvidersInScope);
     }
 }

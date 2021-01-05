@@ -244,10 +244,11 @@ namespace CalculateFunding.Services.Publishing
 
             TemplateMapping templateMapping = await GetTemplateMapping(fundingStream, specification.Id);
 
-            PublishedFundingInput publishedFundingInput = await _publishedFundingService.GeneratePublishedFundingInput(publishedProvidersForFundingStream, 
-                scopedPublishedProviders?.Values.Select(_ => _.Current.Provider), 
-                fundingStream, 
-                specification);
+            PublishedFundingInput publishedFundingInput = await _publishedFundingService.GeneratePublishedFundingInput(publishedProvidersForFundingStream,
+                scopedPublishedProviders?.Values.Select(_ => _.Current.Provider),
+                fundingStream,
+                specification,
+                batchPublishedProviderIds.IsNullOrEmpty() ? null : selectedPublishedProviders);
 
             using Transaction transaction = _transactionFactory.NewTransaction<PublishService>();
             try
