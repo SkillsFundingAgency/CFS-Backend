@@ -8,17 +8,13 @@ using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Common.ApiClient.Graph;
 using CalculateFunding.Common.ApiClient.Graph.Models;
 using CalculateFunding.Common.ApiClient.Models;
-using CalculateFunding.Common.ApiClient.Specifications;
-using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata.Models;
-using CalculateFunding.Models.Result;
-using CalculateFunding.Models.Result.ViewModels;
+using CalculateFunding.Models.Specifications;
+using CalculateFunding.Models.Specifications.ViewModels;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Results.Interfaces;
-using CalculateFunding.Services.Results.UnitTests.Validators;
 using CalculateFunding.Tests.Common.Builders;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
@@ -28,10 +24,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Calculation = CalculateFunding.Common.TemplateMetadata.Models.Calculation;
-using CalcModels = CalculateFunding.Models.Calcs;
 using FundingLine = CalculateFunding.Common.TemplateMetadata.Models.FundingLine;
+using CalculateFunding.Services.Specifications;
+using CalculateFunding.Services.Specs.Interfaces;
+using CalculateFunding.Services.Specs;
+using CalculateFunding.Models.Specs;
+using CalculateFunding.Services.Specifications.UnitTests.Validators;
 
-namespace CalculateFunding.Services.Results.UnitTests
+namespace CalculateFunding.Services.Specifictions.UnitTests
 {
     [TestClass]
     public class FundingStructureServiceTests
@@ -49,11 +49,9 @@ namespace CalculateFunding.Services.Results.UnitTests
 
         private const PublishStatus CalculationExpectedPublishStatus = PublishStatus.Approved;
 
-        private ISpecificationsApiClient _specificationsApiClient;
+        private ISpecificationsService _specificationsService;
         private ICalculationsApiClient _calculationsApiClient;
         private IGraphApiClient _graphApiClient;
-        private IProviderCalculationResultsSearchService _providerCalculationResultsSearchService;
-        private IResultsService _resultsService;
         private ICacheProvider _cacheProvider;
         private Common.ApiClient.Policies.IPoliciesApiClient _policiesApiClient;
         private IValidator<UpdateFundingStructureLastModifiedRequest> _validator;
@@ -63,29 +61,24 @@ namespace CalculateFunding.Services.Results.UnitTests
         [TestInitialize]
         public void SetUp()
         {
-            _specificationsApiClient = Substitute.For<ISpecificationsApiClient>();
+            _specificationsService = Substitute.For<ISpecificationsService>();
             _calculationsApiClient = Substitute.For<ICalculationsApiClient>();
             _graphApiClient = Substitute.For<IGraphApiClient>();
-            _providerCalculationResultsSearchService = Substitute.For<IProviderCalculationResultsSearchService>();
-            _resultsService = Substitute.For<IResultsService>();
             _cacheProvider = Substitute.For<ICacheProvider>();
             _policiesApiClient = Substitute.For<Common.ApiClient.Policies.IPoliciesApiClient>();
             _validator = Substitute.For<IValidator<UpdateFundingStructureLastModifiedRequest>>();
 
             _service = new FundingStructureService(
                 _cacheProvider,
-                _specificationsApiClient,
+                _specificationsService,
                 _calculationsApiClient,
                 _graphApiClient,
-                _providerCalculationResultsSearchService,
-                _resultsService,
                 _policiesApiClient,
                 _validator,
-                new ResiliencePolicies
+                new SpecificationsResiliencePolicies
                 {
                     CacheProvider = Polly.Policy.NoOpAsync(),
-                    SpecificationsApiClient = Polly.Policy.NoOpAsync(),
-                    CalculationsApiClient = Polly.Policy.NoOpAsync(),
+                    CalcsApiClient = Polly.Policy.NoOpAsync(),
                     PoliciesApiClient = Polly.Policy.NoOpAsync()
                 });
         }
@@ -293,30 +286,6 @@ namespace CalculateFunding.Services.Results.UnitTests
         }
 
         [TestMethod]
-        public async Task GetFundingStructureWithCalculationResults_ReturnsFundingLineStructureWithCorrectValueAndTypes()
-        {
-            ValidScenarioSetup(FundingStreamId);
-
-            IActionResult apiResponseResult = await _service.GetFundingStructureWithCalculationResults(FundingStreamId, FundingPeriodId, SpecificationId, ProviderId);
-
-            List<FundingStructureItem> expectedFundingStructureItems = GetValidMappedFundingStructureItems();
-            expectedFundingStructureItems[0].Value = "Excluded";
-            expectedFundingStructureItems[2].FundingStructureItems.ToList()[0].Value = "£2.30";
-            expectedFundingStructureItems[2].FundingStructureItems.ToList()[0].CalculationType = "Currency";
-
-            expectedFundingStructureItems[2].FundingStructureItems.ToList()[2].Value = "333";
-            expectedFundingStructureItems[2].FundingStructureItems.ToList()[2].CalculationType = "Number";
-
-            expectedFundingStructureItems[3].Value = "£9,999";
-
-            apiResponseResult.Should().BeOfType<OkObjectResult>();
-            OkObjectResult typedResult = apiResponseResult as OkObjectResult;
-            FundingStructure fundingStructureItems = typedResult?.Value as FundingStructure;
-            fundingStructureItems?.Items.Count().Should().Be(4);
-            fundingStructureItems?.Items.Should().BeEquivalentTo(expectedFundingStructureItems);
-        }
-
-        [TestMethod]
         public async Task GetFundingStructures_ThrowsInternalErrorIfTemplateIdNotSet()
         {
             ValidScenarioSetup(FundingStreamId.ToLowerInvariant());
@@ -413,8 +382,8 @@ namespace CalculateFunding.Services.Results.UnitTests
                 }
             };
 
-            _specificationsApiClient.GetSpecificationSummaryById(SpecificationId)
-                .Returns(new ApiResponse<SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
+            _specificationsService.GetSpecificationSummaryById(SpecificationId)
+                .Returns(new OkObjectResult(specificationSummary));
 
             _policiesApiClient.GetFundingTemplateContents(FundingStreamId, FundingPeriodId, TemplateVersion)
                 .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK, templateMetadataContents));
@@ -471,39 +440,6 @@ namespace CalculateFunding.Services.Results.UnitTests
                             SpecificationId = SpecificationId,
                             CalculationId = aValidCalculationId3,
                             PublishStatus = CalculationExpectedPublishStatus
-                        }
-                    }));
-
-            _resultsService.GetProviderResults(ProviderId, SpecificationId)
-                .Returns(new OkObjectResult(
-                    new CalcModels.ProviderResultResponse()
-                    {
-                        FundingLineResults = new List<CalcModels.FundingLineResult>
-                        {
-                            new CalcModels.FundingLineResult
-                            {
-                                FundingLine = new Reference {Id = "123", Name = "FundingLine-1"}
-                            },
-                            new CalcModels.FundingLineResult
-                            {
-                                FundingLine = new Reference {Id = "456", Name = "FundingLine-4"},
-                                Value = 9999
-                            }
-                        },
-                        CalculationResults = new List<CalcModels.CalculationResultResponse>
-                        {
-                            new CalcModels.CalculationResultResponse
-                            {
-                                Calculation = new Reference(aValidCalculationId1, "FundingLine-3-calc-1"),
-                                CalculationValueType = CalcModels.CalculationValueType.Currency,
-                                Value = 2.3m
-                            },
-                            new CalcModels.CalculationResultResponse
-                            {
-                                Calculation = new Reference(aValidCalculationId3, "FundingLine-3-calc-3"),
-                                CalculationValueType = CalcModels.CalculationValueType.Number,
-                                Value = 333m
-                            }
                         }
                     }));
 

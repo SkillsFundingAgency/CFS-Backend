@@ -18,7 +18,9 @@ namespace CalculateFunding.Services.Specs
         public AsyncPolicy SpecificationsSearchRepository { get; set; }
         
         public AsyncPolicy SpecificationsRepository { get; set; }
-        
+
         public AsyncPolicy ResultsApiClient { get; set; }
+
+        public AsyncPolicy CacheProvider { get; set; }
     }
 }

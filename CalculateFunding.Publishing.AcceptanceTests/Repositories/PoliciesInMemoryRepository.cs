@@ -12,8 +12,8 @@ using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Policies.Models.ViewModels;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Models.Result;
-using CalculateFunding.Models.Result.ViewModels;
+using CalculateFunding.Models.Specifications;
+using CalculateFunding.Models.Specifications.ViewModels;
 using CalculateFunding.Services.Core.Extensions;
 using Serilog;
 

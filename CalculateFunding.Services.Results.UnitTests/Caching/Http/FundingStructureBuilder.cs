@@ -1,5 +1,5 @@
 using System;
-using CalculateFunding.Models.Result;
+using CalculateFunding.Models.Specifications;
 using CalculateFunding.Tests.Common.Helpers;
 
 namespace CalculateFunding.Services.Results.UnitTests.Caching.Http

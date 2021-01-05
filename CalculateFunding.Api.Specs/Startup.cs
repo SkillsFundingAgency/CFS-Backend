@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
+using CacheCow.Server.Core.Mvc;
 using CalculateFunding.Common.Config.ApiClient.Calcs;
 using CalculateFunding.Common.Config.ApiClient.Dataset;
 using CalculateFunding.Common.Config.ApiClient.Jobs;
 using CalculateFunding.Common.Config.ApiClient.Policies;
 using CalculateFunding.Common.Config.ApiClient.Providers;
 using CalculateFunding.Common.Config.ApiClient.Results;
+using CalculateFunding.Common.Config.ApiClient.Graph;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
@@ -15,6 +17,8 @@ using CalculateFunding.Common.TemplateMetadata.Schema10;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.Messages;
+using CalculateFunding.Models.Specifications;
+using CalculateFunding.Models.Specifications.ViewModels;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.AspNet.Extensions;
@@ -26,6 +30,10 @@ using CalculateFunding.Services.Core.Interfaces.Threading;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Core.Threading;
+using CalculateFunding.Services.Specifications;
+using CalculateFunding.Services.Specifications.Caching.Http;
+using CalculateFunding.Services.Specifications.Interfaces;
+using CalculateFunding.Services.Specifications.Validators;
 using CalculateFunding.Services.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
 using CalculateFunding.Services.Specs.MappingProfiles;
@@ -104,6 +112,16 @@ namespace CalculateFunding.Api.Specs
 
         public void RegisterComponents(IServiceCollection builder)
         {
+            builder.AddHttpCachingMvc();
+
+            builder.AddQueryProviderAndExtractorForViewModelMvc<
+                FundingStructure,
+                TemplateMetadataContentsTimedETagProvider,
+                TemplateMatadataContentsTimedETagExtractor>(false);
+
+            builder.AddSingleton<IFundingStructureService, FundingStructureService>()
+                .AddSingleton<IValidator<UpdateFundingStructureLastModifiedRequest>, UpdateFundingStructureLastModifiedRequestValidator>();
+
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
 
             builder
@@ -221,6 +239,7 @@ namespace CalculateFunding.Api.Specs
 
             builder.AddResultsInterServiceClient(Configuration);
             builder.AddJobsInterServiceClient(Configuration);
+            builder.AddGraphInterServiceClient(Configuration);
             builder.AddCalculationsInterServiceClient(Configuration);
             builder.AddProvidersInterServiceClient(Configuration);
             builder.AddPoliciesInterServiceClient(Configuration);
@@ -245,7 +264,8 @@ namespace CalculateFunding.Api.Specs
                     DatasetsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     SpecificationsSearchRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     SpecificationsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    ResultsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                    ResultsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    CacheProvider = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy)
                 };
             });
 

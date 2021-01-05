@@ -1,7 +1,7 @@
 using System;
 using CacheCow.Server;
-using CalculateFunding.Models.Result;
-using CalculateFunding.Services.Results.Caching.Http;
+using CalculateFunding.Models.Specifications;
+using CalculateFunding.Services.Specifications.Caching.Http;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 

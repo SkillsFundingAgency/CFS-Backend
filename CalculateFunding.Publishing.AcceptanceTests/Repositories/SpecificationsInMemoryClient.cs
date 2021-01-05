@@ -220,5 +220,15 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task<NoValidatedContentApiResponse> UpdateFundingStructureLastModified(UpdateFundingStructureLastModifiedRequest request)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ApiResponse<FundingStructure>> GetFundingStructure(string fundingStreamId, string fundingPeriodId, string specificationId, string etag = null)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

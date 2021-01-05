@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Results;
 using CalculateFunding.Common.ApiClient.Results.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Versioning;
@@ -339,10 +340,6 @@ namespace CalculateFunding.Services.Calcs.Services
             IActionResult result = await service.UpdateCalculationStatus(CalculationId, CalculationEditStatusModel);
 
             //Arrange
-            await resultsApiClient
-                .Received(1)
-                .UpdateFundingStructureLastModified(Arg.Any<UpdateFundingStructureLastModifiedRequest>());
-
             result
                 .Should()
                 .BeOfType<OkObjectResult>()

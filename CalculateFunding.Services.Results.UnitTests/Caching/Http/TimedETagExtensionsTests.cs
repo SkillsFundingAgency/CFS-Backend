@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using CalculateFunding.Services.Results.Caching.Http;
+using CalculateFunding.Services.Specifications.Caching.Http;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 

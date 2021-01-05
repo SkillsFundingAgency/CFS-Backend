@@ -328,7 +328,7 @@ namespace CalculateFunding.Services.CalcEngine
             }
             else
             {
-                await CompleteBatch(specificationSummary, messageProperties, cachedCalculationAggregationsBatch, summaries.Count(), totalProviderResults);
+                await CompleteBatch(specificationSummary, messageProperties, cachedCalculationAggregationsBatch);
             }
         }
 
@@ -592,9 +592,7 @@ namespace CalculateFunding.Services.CalcEngine
 
         private async Task CompleteBatch(SpecificationSummary specificationSummary,
             GenerateAllocationMessageProperties messageProperties,
-            Dictionary<string, List<object>> cachedCalculationAggregationsBatch,
-            int itemsProcessed,
-            int totalProviderResults)
+            Dictionary<string, List<object>> cachedCalculationAggregationsBatch)
         {
             Outcome = $"{ItemsSucceeded} provider results were generated successfully from {ItemsProcessed} providers";
 
@@ -604,15 +602,6 @@ namespace CalculateFunding.Services.CalcEngine
 
                 Outcome = $"{ItemsSucceeded} provider result calculation aggregations were generated successfully from {ItemsProcessed} providers";
             }
-
-            await _resultsApiClientPolicy.ExecuteAsync(() => _resultsApiClient.UpdateFundingStructureLastModified(
-                new Common.ApiClient.Results.Models.UpdateFundingStructureLastModifiedRequest
-                {
-                    LastModified = DateTimeOffset.UtcNow,
-                    SpecificationId = messageProperties.SpecificationId,
-                    FundingPeriodId = specificationSummary.FundingPeriod?.Id,
-                    FundingStreamId = specificationSummary.FundingStreams?.FirstOrDefault().Id
-                }));
         }
 
         private void PopulateCachedCalculationAggregationsBatch(IEnumerable<ProviderResult> providerResults, Dictionary<string, List<object>> cachedCalculationAggregationsBatch, GenerateAllocationMessageProperties messageProperties)

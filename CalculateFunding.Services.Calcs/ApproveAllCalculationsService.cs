@@ -129,19 +129,6 @@ namespace CalculateFunding.Services.Calcs
             await _cachePolicy.ExecuteAsync(() => _cacheProvider.KeyDeleteAsync<List<CalculationSummaryModel>>($"{CacheKeys.CalculationsSummariesForSpecification}{specificationSummary.Id}"));
             await _cachePolicy.ExecuteAsync(() => _cacheProvider.KeyDeleteAsync<List<CalculationResponseModel>>($"{CacheKeys.CurrentCalculationsForSpecification}{specificationSummary.Id}"));
             await _cachePolicy.ExecuteAsync(() => _cacheProvider.KeyDeleteAsync<List<CalculationResponseModel>>($"{CacheKeys.CalculationsMetadataForSpecification}{specificationSummary.Id}"));
-
-            //invalidate funding structure lastModified for this calcs specification
-            foreach (Reference fundingStream in specificationSummary.FundingStreams)
-            {
-                await _resultsApiClientPolicy.ExecuteAsync(() => _resultsApiClient.UpdateFundingStructureLastModified(
-                    new Common.ApiClient.Results.Models.UpdateFundingStructureLastModifiedRequest
-                    {
-                        LastModified = DateTimeOffset.UtcNow,
-                        SpecificationId = specificationSummary.Id,
-                        FundingPeriodId = specificationSummary.FundingPeriod?.Id,
-                        FundingStreamId = fundingStream?.Id
-                    }));
-            }
         }
 
         private async Task UpdateSearch(IEnumerable<Calculation> calculations, SpecModel.SpecificationSummary specificationSummary)

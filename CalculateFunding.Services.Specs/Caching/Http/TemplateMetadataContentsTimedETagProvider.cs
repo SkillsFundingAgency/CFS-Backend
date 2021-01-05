@@ -3,12 +3,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using CacheCow.Server;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Models.Result;
-using CalculateFunding.Services.Results.Interfaces;
+using CalculateFunding.Models.Specifications;
+using CalculateFunding.Services.Specifications.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
 
-namespace CalculateFunding.Services.Results.Caching.Http
+namespace CalculateFunding.Services.Specifications.Caching.Http
 {
     public class TemplateMetadataContentsTimedETagProvider : ITimedETagQueryProvider<FundingStructure>
     {

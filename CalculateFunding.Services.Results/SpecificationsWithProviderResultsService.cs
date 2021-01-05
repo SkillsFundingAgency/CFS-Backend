@@ -20,7 +20,6 @@ using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Results.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
-using Microsoft.CodeAnalysis.CSharp;
 using Polly;
 using Serilog;
 

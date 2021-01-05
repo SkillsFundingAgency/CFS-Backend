@@ -245,9 +245,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Received(1)
                 .RemoveAsync<TemplateMapping>(cacheKey);
             
-            await resultsApiClient
+            await specificationsApiClient
                 .Received(1)
-                .UpdateFundingStructureLastModified(Arg.Is<Common.ApiClient.Results.Models.UpdateFundingStructureLastModifiedRequest>(req =>
+                .UpdateFundingStructureLastModified(Arg.Is<Common.ApiClient.Specifications.Models.UpdateFundingStructureLastModifiedRequest>(req =>
                     req.LastModified <= DateTimeOffset.UtcNow &&
                     req.SpecificationId == specificationId &&
                     req.FundingStreamId == fundingStreamId &&

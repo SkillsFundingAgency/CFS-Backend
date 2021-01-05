@@ -124,13 +124,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             };
             _specificationsApiClient = new Mock<ISpecificationsApiClient>();
             _specificationService = new SpecificationService(_specificationsApiClient.Object, _publishingResiliencePolicies);
-            
+
             _profileVariationPointers = ArraySegment<ProfileVariationPointer>.Empty;
-            
+
             _specificationsApiClient.Setup(_ =>
                 _.GetProfileVariationPointers(It.IsAny<string>()))
                 .ReturnsAsync(new ApiResponse<IEnumerable<ProfileVariationPointer>>(HttpStatusCode.OK, _profileVariationPointers));
-            
+
             _providerService = new Mock<IProviderService>();
             _calculationResultsService = new Mock<ICalculationResultsService>();
             MapperConfiguration mappingConfig = new MapperConfiguration(c => c.AddProfile<PublishingServiceMappingProfile>());
@@ -146,7 +146,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _providerExclusionCheck = new Mock<IPublishProviderExclusionCheck>();
             _fundingLineValueOverride = new Mock<IFundingLineValueOverride>();
             _publishedProviderIndexerService = new Mock<IPublishedProviderIndexerService>();
-            _jobManagement =new Mock<IJobManagement>();
+            _jobManagement = new Mock<IJobManagement>();
             _prerequisiteCheckerLocator = new Mock<IPrerequisiteCheckerLocator>();
             _policiesService = new Mock<IPoliciesService>();
             _prerequisiteCheckerLocator.Setup(_ => _.GetPreReqChecker(PrerequisiteCheckerType.Refresh))
@@ -529,7 +529,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             await WhenMessageReceivedWithJobIdAndCorrelationId();
 
             _publishedProviderStatusUpdateService
-                .Verify(_ => 
+                .Verify(_ =>
                 _.UpdatePublishedProviderStatus(
                 It.Is<IEnumerable<PublishedProvider>>(x => x.Count() == 2),
                 It.IsAny<Reference>(),

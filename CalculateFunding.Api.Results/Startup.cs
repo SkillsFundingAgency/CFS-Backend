@@ -1,8 +1,6 @@
 ﻿using System.Threading;
 using AutoMapper;
-using CacheCow.Server.Core.Mvc;
 using CalculateFunding.Common.Config.ApiClient.Calcs;
-using CalculateFunding.Common.Config.ApiClient.Graph;
 using CalculateFunding.Common.Config.ApiClient.Jobs;
 using CalculateFunding.Common.Config.ApiClient.Policies;
 using CalculateFunding.Common.Config.ApiClient.Specifications;
@@ -14,8 +12,6 @@ using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.MappingProfiles;
-using CalculateFunding.Models.Result;
-using CalculateFunding.Models.Result.ViewModels;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.AspNet.Extensions;
 using CalculateFunding.Services.Core.AspNet.HealthChecks;
@@ -27,10 +23,8 @@ using CalculateFunding.Services.Core.Interfaces.Threading;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Threading;
 using CalculateFunding.Services.Results;
-using CalculateFunding.Services.Results.Caching.Http;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Results.Repositories;
-using CalculateFunding.Services.Results.Validators;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -98,17 +92,7 @@ namespace CalculateFunding.Api.Results
 
         private void RegisterComponents(IServiceCollection builder)
         {
-
-            builder.AddHttpCachingMvc();
-
-            builder.AddQueryProviderAndExtractorForViewModelMvc<
-                FundingStructure,
-                TemplateMetadataContentsTimedETagProvider,
-                TemplateMatadataContentsTimedETagExtractor>(false);
-
-            builder.AddSingleton<IFundingStructureService, FundingStructureService>()
-                .AddSingleton<IValidator<UpdateFundingStructureLastModifiedRequest>, UpdateFundingStructureLastModifiedRequestValidator>()
-                .AddSpecificationsInterServiceClient(Configuration, handlerLifetime: Timeout.InfiniteTimeSpan)
+            builder.AddSpecificationsInterServiceClient(Configuration, handlerLifetime: Timeout.InfiniteTimeSpan)
                 .AddCalculationsInterServiceClient(Configuration, handlerLifetime: Timeout.InfiniteTimeSpan);
 
             builder.AddScoped<ISpecificationsWithProviderResultsService, SpecificationsWithProviderResultsService>();
@@ -208,7 +192,6 @@ namespace CalculateFunding.Api.Results
 
             builder.AddJobsInterServiceClient(Configuration);
             builder.AddPoliciesInterServiceClient(Configuration);
-            builder.AddGraphInterServiceClient(Configuration);
 
             MapperConfiguration resultsConfig = new MapperConfiguration(c =>
             {

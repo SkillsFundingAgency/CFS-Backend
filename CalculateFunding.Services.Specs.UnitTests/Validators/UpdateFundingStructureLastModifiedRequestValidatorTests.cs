@@ -1,12 +1,12 @@
 using System;
-using CalculateFunding.Models.Result.ViewModels;
-using CalculateFunding.Services.Results.Validators;
+using CalculateFunding.Models.Specifications.ViewModels;
+using CalculateFunding.Services.Specifications.Validators;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using FluentValidation.Results;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CalculateFunding.Services.Results.UnitTests.Validators
+namespace CalculateFunding.Services.Specifications.UnitTests.Validators
 {
     [TestClass]
     public class UpdateFundingStructureLastModifiedRequestValidatorTests

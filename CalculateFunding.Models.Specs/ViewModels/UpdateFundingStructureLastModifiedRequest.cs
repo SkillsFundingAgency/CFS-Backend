@@ -1,7 +1,7 @@
 using System;
 using Newtonsoft.Json;
 
-namespace CalculateFunding.Models.Result.ViewModels
+namespace CalculateFunding.Models.Specifications.ViewModels
 {
     public class UpdateFundingStructureLastModifiedRequest
     {

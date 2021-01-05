@@ -1,8 +1,8 @@
 using System;
 using CacheCow.Server;
-using CalculateFunding.Models.Result;
+using CalculateFunding.Models.Specifications;
 
-namespace CalculateFunding.Services.Results.Caching.Http
+namespace CalculateFunding.Services.Specifications.Caching.Http
 {
     public class TemplateMatadataContentsTimedETagExtractor : ITimedETagExtractor<FundingStructure>
     {

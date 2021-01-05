@@ -1,8 +1,8 @@
 using System;
-using CalculateFunding.Models.Result.ViewModels;
+using CalculateFunding.Models.Specifications.ViewModels;
 using CalculateFunding.Tests.Common.Helpers;
 
-namespace CalculateFunding.Services.Results.UnitTests.Validators
+namespace CalculateFunding.Services.Specifications.UnitTests.Validators
 {
     public class UpdateFundingStructureLastModifiedRequestBuilder : TestEntityBuilder
     {

@@ -25,6 +25,8 @@ namespace CalculateFunding.Api.Specs.UnitTests
                 { "calcsClient:ApiKey", "Local" },
                 { "jobsClient:ApiEndpoint", "https://localhost:7010/api/"},
                 { "jobsClient:ApiKey", "Local"},
+                { "graphClient:ApiEndpoint", "https://localhost:7020/api/" },
+                { "graphClient:ApiKey", "Local"},
                 { "providersClient:ApiEndpoint", "https://localhost:7011/api/" },
                 { "providersClient:ApiKey", "Local" },
                 { "datasetsClient:ApiEndpoint", "https://localhost:7011/api/" },

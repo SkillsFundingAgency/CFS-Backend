@@ -1,8 +1,8 @@
 using System;
-using CalculateFunding.Models.Result.ViewModels;
+using CalculateFunding.Models.Specifications.ViewModels;
 using FluentValidation;
 
-namespace CalculateFunding.Services.Results.Validators
+namespace CalculateFunding.Services.Specifications.Validators
 {
     public class UpdateFundingStructureLastModifiedRequestValidator 
         : AbstractValidator<UpdateFundingStructureLastModifiedRequest>

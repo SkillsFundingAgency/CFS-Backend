@@ -22,6 +22,7 @@ using CalculateFunding.Common.Models;
 using System.Net;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Common.ApiClient.Results.Models;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.Calcs.UnitTests.Services
 {
@@ -125,8 +126,6 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
 
             _cacheProviderMock.Verify(_ => _.SetAsync($"{CacheKeys.CurrentCalculation}calc_2", It.IsAny<CalculationResponseModel>(), TimeSpan.FromDays(7), true, null)
                 , Times.Once);
-
-            _resultsApiClientMock.Verify(_ => _.UpdateFundingStructureLastModified(It.IsAny<UpdateFundingStructureLastModifiedRequest>()));
 
             _searchRepositoryMock.Verify(_ => _.Index(It.Is<IEnumerable<CalculationIndex>>(c =>
                 c.FirstOrDefault() != null && c.FirstOrDefault().Status == PublishStatus.Approved.ToString() &&

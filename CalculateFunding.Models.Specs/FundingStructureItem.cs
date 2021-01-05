@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace CalculateFunding.Models.Result
+namespace CalculateFunding.Models.Specifications
 {
     public class FundingStructureItem
     {
@@ -29,7 +29,6 @@ namespace CalculateFunding.Models.Result
             Type = type;
             CalculationPublishStatus = calculationPublishStatus;
             FundingStructureItems = fundingStructureItems;
-            Value = value;
             CalculationType = calculationType;
             LastUpdatedDate = lastUpdatedDate;
         }
@@ -51,9 +50,6 @@ namespace CalculateFunding.Models.Result
         
         [JsonProperty("type")]
         public FundingStructureType Type { get; set; }
-        
-        [JsonProperty("value")]
-        public string Value { get; set; }
         
         [JsonProperty("calculationType")]
         public string CalculationType { get; set; }

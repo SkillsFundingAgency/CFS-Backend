@@ -309,14 +309,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 cacheProvider
                     .Received(1)
                     .RemoveAsync<List<CalculationMetadata>>(Arg.Is(cacheKey));
-
-            await resultsApiClient
-                .Received(1)
-                .UpdateFundingStructureLastModified(Arg.Is<Common.ApiClient.Results.Models.UpdateFundingStructureLastModifiedRequest>(req =>
-                    req.LastModified.Date == DateTimeOffset.UtcNow.Date &&
-                    req.SpecificationId == calculation.SpecificationId &&
-                    req.FundingStreamId == calculation.FundingStreamId &&
-                    req.FundingPeriodId == specificationSummary.FundingPeriod.Id));
         }
 
         [TestMethod]

@@ -185,14 +185,6 @@ namespace CalculateFunding.Services.Calcs.Services
             IActionResult result = await calculationService.CreateAdditionalCalculation(SpecificationId, model, author, CorrelationId);
 
             //Assert
-            await resultsApiClient
-                .Received(1)
-                .UpdateFundingStructureLastModified(Arg.Is<Common.ApiClient.Results.Models.UpdateFundingStructureLastModifiedRequest>(req =>
-                    req.LastModified.Date == DateTimeOffset.UtcNow.Date &&
-                    req.SpecificationId == model.SpecificationId &&
-                    req.FundingStreamId == model.FundingStreamId &&
-                    req.FundingPeriodId == FundingPeriodId));
-
             result
                 .Should()
                 .BeAssignableTo<OkObjectResult>();

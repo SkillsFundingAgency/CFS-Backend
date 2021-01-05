@@ -428,7 +428,7 @@ namespace CalculateFunding.Services.Calcs
             {
                 Calculation calculation = createCalculationResponse.Calculation;
 
-                await UpdateCalculationInCache(calculation.ToResponseModel(), specificationSummary.FundingPeriod?.Id);
+                await UpdateCalculationInCache(calculation.ToResponseModel());
 
                 await _codeContextCache.QueueCodeContextCacheUpdate(specificationId);
 
@@ -721,7 +721,7 @@ namespace CalculateFunding.Services.Calcs
 
             CalculationResponseModel currentVersion = calculation.ToResponseModel();
 
-            await UpdateCalculationInCache(currentVersion, specificationSummary.FundingPeriod?.Id);
+            await UpdateCalculationInCache(currentVersion);
 
             return new OkObjectResult(result);
         }
@@ -1012,8 +1012,8 @@ namespace CalculateFunding.Services.Calcs
 
                 string cacheKey = $"{CacheKeys.TemplateMapping}{specificationId}-{fundingStreamId}";
                 await _cachePolicy.ExecuteAsync(() => _cacheProvider.RemoveAsync<TemplateMapping>(cacheKey));
-                await _resultsApiClientPolicy.ExecuteAsync(() => _resultsApiClient.UpdateFundingStructureLastModified(
-                    new Common.ApiClient.Results.Models.UpdateFundingStructureLastModifiedRequest
+                await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.UpdateFundingStructureLastModified(
+                    new Common.ApiClient.Specifications.Models.UpdateFundingStructureLastModifiedRequest
                     {
                         LastModified = DateTimeOffset.UtcNow,
                         FundingPeriodId = specificationSummary.FundingPeriod?.Id,
@@ -1377,7 +1377,7 @@ End Select");
 
             CalculationResponseModel currentVersion = calculation.ToResponseModel();
 
-            await UpdateCalculationInCache(currentVersion, specificationSummary.FundingPeriod?.Id);
+            await UpdateCalculationInCache(currentVersion);
 
             return new UpdateCalculationResult()
             {
@@ -1434,8 +1434,7 @@ End Select");
             return await _instructionAllocationJobCreation.SendInstructAllocationsToJobService(specificationId, userId, userName, trigger, correlationId);
         }
 
-        private async Task UpdateCalculationInCache(CalculationResponseModel currentVersion,
-            string fundingPeriodId)
+        private async Task UpdateCalculationInCache(CalculationResponseModel currentVersion)
         {
             // Invalidate cached calculations for this specification
             await _cachePolicy.ExecuteAsync(() => _cacheProvider.KeyDeleteAsync<List<CalculationSummaryModel>>($"{CacheKeys.CalculationsSummariesForSpecification}{currentVersion.SpecificationId}"));
@@ -1445,16 +1444,6 @@ End Select");
 
             // Set current version in cache
             await _cachePolicy.ExecuteAsync(() => _cacheProvider.SetAsync($"{CacheKeys.CurrentCalculation}{currentVersion.Id}", currentVersion, TimeSpan.FromDays(7), true));
-
-            //invalidate funding structure lastModified for this calcs specification
-            await _policiesApiClientPolicy.ExecuteAsync(() => _resultsApiClient.UpdateFundingStructureLastModified(
-                new Common.ApiClient.Results.Models.UpdateFundingStructureLastModifiedRequest
-                {
-                    LastModified = DateTimeOffset.UtcNow,
-                    SpecificationId = currentVersion.SpecificationId,
-                    FundingPeriodId = fundingPeriodId,//add to call stack
-                    FundingStreamId = currentVersion.FundingStreamId
-                }));
         }
 
         private async Task<HttpStatusCode> UpdateCalculation(Calculation calculation, CalculationVersion calculationVersion, CalculationVersion previousVersion)
