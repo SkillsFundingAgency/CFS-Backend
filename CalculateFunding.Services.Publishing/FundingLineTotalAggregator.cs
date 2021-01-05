@@ -43,8 +43,7 @@ namespace CalculateFunding.Services.Publishing
                 FundingLines = GetFundingLines(funding.FundingLines, mappingItems, calculationResults),
                 Name = funding.Name,
                 TemplateLineId = funding.TemplateLineId,
-                Type = funding.Type.AsMatchingEnum<Generators.Funding.Enums.FundingLineType>(),
-                Value = funding.Value
+                Type = funding.Type.AsMatchingEnum<Generators.Funding.Enums.FundingLineType>()
             }) ?? new GeneratorModels.FundingLine[0]).ToList();
         }
 

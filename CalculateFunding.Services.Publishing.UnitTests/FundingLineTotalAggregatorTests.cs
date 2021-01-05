@@ -56,7 +56,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             fundingLines.Single(_ => _.TemplateLineId == 5).Value
                 .Should()
-                .Be(0M);
+                .Be(null);
 
             fundingLines.Single(_ => _.TemplateLineId == 6).Value
                 .Should()

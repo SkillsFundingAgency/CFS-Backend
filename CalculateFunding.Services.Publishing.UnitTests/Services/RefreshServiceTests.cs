@@ -59,7 +59,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private Mock<ICalculationsApiClient> _calculationsApiClient;
         private Mock<IPrerequisiteCheckerLocator> _prerequisiteCheckerLocator;
         private IPublishingResiliencePolicies _publishingResiliencePolicies;
-        private Mock<IPublishProviderExclusionCheck> _providerExclusionCheck;
+        private IPublishProviderExclusionCheck _providerExclusionCheck;
         private Mock<IFundingLineValueOverride> _fundingLineValueOverride;
         private Mock<IPublishedProviderIndexerService> _publishedProviderIndexerService;
         private Mock<IJobManagement> _jobManagement;
@@ -144,7 +144,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _specificationFundingStatusService = new Mock<ISpecificationFundingStatusService>();
             _jobsRunning = new Mock<IJobsRunning>();
             _calculationApprovalCheckerService = new Mock<ICalculationPrerequisiteCheckerService>();
-            _providerExclusionCheck = new Mock<IPublishProviderExclusionCheck>();
+            _providerExclusionCheck = new PublishedProviderExclusionCheck();
             _fundingLineValueOverride = new Mock<IFundingLineValueOverride>();
             _publishedProviderIndexerService = new Mock<IPublishedProviderIndexerService>();
             _jobManagement = new Mock<IJobManagement>();
@@ -203,7 +203,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 _logger.Object,
                 _calculationsApiClient.Object,
                 _prerequisiteCheckerLocator.Object,
-                _providerExclusionCheck.Object,
+                _providerExclusionCheck,
                 _fundingLineValueOverride.Object,
                 _jobManagement.Object,
                 _publishedProviderIndexerService.Object,
@@ -561,20 +561,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         {
             GivenJobCanBeProcessed();
             AndSpecification();
-            AndCalculationResultsBySpecificationId();
+            AndCalculationResultsBySpecificationId(new decimal?[] { null, null, null });
             AndTemplateMetadataContents();
             AndScopedProviders();
             AndScopedProviderCalculationResults();
             AndTemplateMapping();
             AndPublishedProviders();
             AndNewMissingPublishedProviders();
-            AndPublishedProviderExcluded();
 
             await WhenMessageReceivedWithJobIdAndCorrelationId();
 
             _fundingLineValueOverride
                 .Verify(_ =>
-                _.TryOverridePreviousFundingLineValues(It.IsAny<PublishedProviderVersion>(), It.IsAny<GeneratedProviderResult>()), Times.Once);
+                _.TryOverridePreviousFundingLineValues(It.IsAny<PublishedProviderVersion>(), It.IsAny<GeneratedProviderResult>()), Times.Exactly(3));
         }
 
         [TestMethod]
@@ -679,14 +678,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .ReturnsAsync(new ApiResponse<TemplateMapping>(HttpStatusCode.OK, _templateMapping));
         }
 
-        private void AndPublishedProviderExcluded()
-        {
-            string providerToExcludeId = _publishedProviders.First().Current.ProviderId;
-            _providerExclusionCheck
-                .Setup(_ => _.ShouldBeExcluded(It.Is<GeneratedProviderResult>(_ => _.Provider.ProviderId == providerToExcludeId), It.IsAny<TemplateFundingLine[]>()))
-                .Returns(new PublishedProviderExclusionCheckResult(providerToExcludeId, true));
-        }
-
         private void AndProfilingThrowsExeption()
         {
             _profilingService.Setup(_ => _.ProfileFundingLines(
@@ -699,9 +690,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Throws(new Exception());
         }
 
-        private void AndCalculationResultsBySpecificationId()
+        private void AndCalculationResultsBySpecificationId(decimal?[] resultsIn = null)
         {
-            decimal[] results = new[] { 2M, 3M, 4M };
+            decimal?[] results = resultsIn ?? new decimal?[] { 2M, 3M, 4M };
 
             _calculationResults = results.Select(res => NewCalculationResult(cr => cr.WithValue(res))).ToArray();
         }

@@ -72,7 +72,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             generatedProviderResult["1234"].FundingLines.Single(_ => _.TemplateLineId == 5).Value
                 .Should()
-                .Be(0M);
+                .Be(null);
 
             generatedProviderResult["1234"].Calculations.Single(_ => _.TemplateCalculationId == 5).Value
                 .Should()
