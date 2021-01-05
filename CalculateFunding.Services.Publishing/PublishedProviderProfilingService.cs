@@ -36,7 +36,8 @@ namespace CalculateFunding.Services.Publishing
         private readonly IPublishedProviderVersioningService _publishedProviderVersioningService;
         private readonly ISpecificationsApiClient _specificationsApiClient;
         private readonly IReProfilingRequestBuilder _profilingRequestBuilder;
-        
+        private readonly IReProfilingResponseMapper _reProfilingResponseMapper;
+
         public PublishedProviderProfilingService(IPublishedFundingRepository publishedFundingRepository,
             IPublishedProviderErrorDetection publishedProviderErrorDetection,
             IProfilingService profilingService,
@@ -44,9 +45,10 @@ namespace CalculateFunding.Services.Publishing
             ISpecificationsApiClient specificationsApiClient,
             IReProfilingRequestBuilder profilingRequestBuilder,
             IProfilingApiClient profiling,
-            IPublishingResiliencePolicies publishingResiliencePolicies,
+            IPoliciesService policiesService,
+            IReProfilingResponseMapper reProfilingResponseMapper,
             ILogger logger,
-            IPoliciesService policiesService)
+            IPublishingResiliencePolicies publishingResiliencePolicies)
         {
             Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
             Guard.ArgumentNotNull(publishedProviderErrorDetection, nameof(publishedProviderErrorDetection));
@@ -60,6 +62,7 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(publishingResiliencePolicies?.ProfilingApiClient, nameof(publishingResiliencePolicies.ProfilingApiClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(policiesService, nameof(policiesService));
+            Guard.ArgumentNotNull(reProfilingResponseMapper, nameof(reProfilingResponseMapper));
 
             _publishedFundingRepository = publishedFundingRepository;
             _publishedProviderErrorDetection = publishedProviderErrorDetection;
@@ -73,6 +76,7 @@ namespace CalculateFunding.Services.Publishing
             _profilingPolicy = publishingResiliencePolicies.ProfilingApiClient;
             _logger = logger;
             _policiesService = policiesService;
+            _reProfilingResponseMapper = reProfilingResponseMapper;
         }
 
         public async Task<IActionResult> AssignProfilePatternKey(
@@ -203,7 +207,7 @@ namespace CalculateFunding.Services.Publishing
                 throw new InvalidOperationException(error);
             }
 
-            fundingLine.DistributionPeriods = MapReProfileResponseIntoDistributionPeriods(reProfileResponse);
+            fundingLine.DistributionPeriods = _reProfilingResponseMapper.MapReProfileResponseIntoDistributionPeriods(reProfileResponse);
 
             newPublishedProviderVersion.RemoveCarryOver(fundingLineCode);
 
@@ -213,25 +217,6 @@ namespace CalculateFunding.Services.Publishing
                     ProfilingCarryOverType.CustomProfile,
                     reProfileResponse.CarryOverAmount);
             }
-        }
-
-        private static IEnumerable<DistributionPeriod> MapReProfileResponseIntoDistributionPeriods(ReProfileResponse reProfileResponse)
-        {
-            return reProfileResponse.DeliveryProfilePeriods.GroupBy(_ => _.DistributionPeriod)
-                .Select(_ => new DistributionPeriod
-                {
-                    Value = _.Sum(profilePeriod => profilePeriod.ProfileValue),
-                    DistributionPeriodId = _.Key,
-                    ProfilePeriods = _.Select(profilePeriod => new ProfilePeriod
-                    {
-                        DistributionPeriodId = _.Key,
-                        Occurrence = profilePeriod.Occurrence,
-                        Type = profilePeriod.Type.AsMatchingEnum<ProfilePeriodType>(),
-                        Year = profilePeriod.Year,
-                        ProfiledValue = profilePeriod.ProfileValue,
-                        TypeValue = profilePeriod.TypeValue
-                    })
-                });
         }
 
         private static bool ThereArePaidProfilePeriodsOnTheFundingLine(IEnumerable<ProfileVariationPointer> profileVariationPointers) => profileVariationPointers != null && profileVariationPointers.Any();

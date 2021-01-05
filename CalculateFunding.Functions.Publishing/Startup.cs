@@ -65,6 +65,7 @@ using TemplateMetadataSchema10 = CalculateFunding.Common.TemplateMetadata.Schema
 using TemplateMetadataSchema11 = CalculateFunding.Common.TemplateMetadata.Schema11;
 using Microsoft.Azure.Cosmos;
 using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Services.Publishing.Profiling;
 
 [assembly: FunctionsStartup(typeof(Startup))]
 
@@ -93,6 +94,9 @@ namespace CalculateFunding.Functions.Publishing
         private static IServiceProvider Register(IServiceCollection builder,
             IConfigurationRoot config)
         {
+            builder.AddSingleton<IReProfilingResponseMapper, ReProfilingResponseMapper>();
+            builder.AddSingleton<IReProfilingRequestBuilder, ReProfilingRequestBuilder>();
+            
             builder.AddSingleton<IBatchUploadValidationService, BatchUploadValidationService>();
             builder.AddSingleton<IBatchUploadReaderFactory, BatchUploadReaderFactory>();
             builder.AddSingleton<IValidator<BatchUploadValidationRequest>, BatchUploadValidationRequestValidation>();
@@ -269,6 +273,8 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddTransient<IVariationStrategy, FundingUpdatedVariationStrategy>();
             builder.AddTransient<IVariationStrategy, ProfilingUpdatedVariationStrategy>();
             builder.AddTransient<IVariationStrategy, DsgTotalAllocationChangeVariationStrategy>();
+            builder.AddTransient<IVariationStrategy, ReProfilingVariationStrategy>();
+            builder.AddSingleton<IReProfilingResponseMapper, ReProfilingResponseMapper>();
             builder.AddScoped<IApproveService, ApproveService>();
             builder.AddSingleton<IJobTracker, JobTracker>();
             builder.AddScoped<IPublishService, PublishService>();

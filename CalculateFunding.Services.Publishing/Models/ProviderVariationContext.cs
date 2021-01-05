@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
@@ -24,6 +25,15 @@ namespace CalculateFunding.Services.Publishing.Models
         public decimal? UpdatedTotalFunding { get; set; }
         
         public IEnumerable<ProfileVariationPointer> VariationPointers { get; set; }
+
+        public ICollection<string> AffectedFundingLineCodes { get; set; }
+
+        public void AddAffectedFundingLineCode(string fundingLineCode)
+        {
+            AffectedFundingLineCodes ??= new List<string>();
+            
+            AffectedFundingLineCodes.Add(fundingLineCode);
+        }
         
         public ICollection<PublishedProvider> NewProvidersToAdd { get; } = new List<PublishedProvider>(); 
 
@@ -161,5 +171,10 @@ namespace CalculateFunding.Services.Publishing.Models
         /// Provider version ID of the existing specificaton which will be used to search provider from core provider data
         /// </summary>
         public string ProviderVersionId { get; set; }
+        
+        /// <summary>
+        /// The funding configuration for this spec-funding stream-provider combination
+        /// </summary>
+        public FundingConfiguration FundingConfiguration { get; set; }
     }
 }

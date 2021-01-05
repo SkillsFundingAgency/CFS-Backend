@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Policies;
+using CalculateFunding.Common.ApiClient.Profiling;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Services.Publishing.Interfaces;
@@ -9,6 +10,7 @@ using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Services.Publishing.Variations;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using NSubstitute;
 using Polly;
 
@@ -30,7 +32,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
                 }, 
                 Substitute.For<ISpecificationsApiClient>(),
                 Substitute.For<IPoliciesApiClient>(),
-                Substitute.For<ICacheProvider>());
+                Substitute.For<ICacheProvider>(),
+                new Mock<IProfilingApiClient>().Object,
+                new Mock<IReProfilingRequestBuilder>().Object,
+                new Mock<IReProfilingResponseMapper>().Object);
         }
 
         [TestMethod]

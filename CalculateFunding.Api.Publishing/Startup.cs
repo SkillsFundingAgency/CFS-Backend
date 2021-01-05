@@ -129,6 +129,8 @@ namespace CalculateFunding.Api.Publishing
 
         private void RegisterComponents(IServiceCollection builder)
         {
+            builder.AddSingleton<IReProfilingResponseMapper, ReProfilingResponseMapper>();
+            
             builder.AddSingleton<IBatchUploadQueryService, BatchUploadQueryService>();
             builder.AddSingleton<IUniqueIdentifierProvider, UniqueIdentifierProvider>();
             builder.AddSingleton<IBatchUploadValidationService, BatchUploadValidationService>();

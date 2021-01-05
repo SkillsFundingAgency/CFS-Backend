@@ -8,7 +8,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests
     {
         private IEnumerable<ProfilePeriod> _profilePeriods;
         private string _distributionPeriodId;
+        private decimal? _value;
 
+        public DistributionPeriodBuilder WithValue(decimal value)
+        {
+            _value = value;
+
+            return this;
+        }
+        
         public DistributionPeriodBuilder WithProfilePeriods(params ProfilePeriod[] profilePeriods)
         {
             _profilePeriods = profilePeriods;
@@ -29,6 +37,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             {
                 DistributionPeriodId = _distributionPeriodId ?? NewRandomString(),
                 ProfilePeriods = _profilePeriods,
+                Value = _value.GetValueOrDefault(NewRandomNumberBetween(1, int.MaxValue))
             };
         }
     }

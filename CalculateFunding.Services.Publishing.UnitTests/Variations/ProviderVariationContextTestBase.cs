@@ -78,6 +78,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
             ThenTheVariationChangeWasQueued<TChange>();
         }
 
+        protected void ThenNoVariationChangesWereQueued()
+            => AndNoVariationChangesWereQueued();
+
         protected void AndNoVariationChangesWereQueued()
         {
             VariationContext

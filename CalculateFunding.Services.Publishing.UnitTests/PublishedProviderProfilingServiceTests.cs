@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using AutoMapper.Mappers;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Profiling;
@@ -99,9 +98,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _specificationsApiClient.Object,
                 _reProfilingRequestBuilder.Object,
                 _profiling.Object,
-                PublishingResilienceTestHelper.GenerateTestPolicies(),
+                _policiesService.Object,
+               new ReProfilingResponseMapper(),
                 Logger.None,
-                _policiesService.Object);
+             
+                PublishingResilienceTestHelper.GenerateTestPolicies());
         }
 
         [TestMethod]

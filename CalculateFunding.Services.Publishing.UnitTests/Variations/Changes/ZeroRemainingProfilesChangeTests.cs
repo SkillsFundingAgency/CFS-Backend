@@ -19,7 +19,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
         {
             await WhenTheChangeIsApplied();
 
-            AndNoVariationChangesWereQueued();
+            ThenNoVariationChangesWereQueued();
         }
 
         [TestMethod]
@@ -58,11 +58,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
             AndTheProfilePeriodAmountShouldBe(periodOne, periodOneAmount);
         }
 
-        private void ThenProfilePeriodsShouldBeZeroAmount(params ProfilePeriod[] profilePeriods)
-        {
-            AndTheProfilePeriodsAmountShouldBe(profilePeriods, 0);
-        }
-
         [TestMethod]
         public async Task RecordsErrorIfNoMatchingProfilePeriodForAVariationPointer()
         {
@@ -75,6 +70,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
 
             ThenTheErrorWasRecorded($"Did not locate profile period corresponding to variation pointer for funding line id {fundingLineId}");
             AndNoVariationChangesWereQueued();
+        }
+
+        private void ThenProfilePeriodsShouldBeZeroAmount(params ProfilePeriod[] profilePeriods)
+        {
+            AndTheProfilePeriodsAmountShouldBe(profilePeriods, 0);
         }
     }
 }

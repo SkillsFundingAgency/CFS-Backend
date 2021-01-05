@@ -20,6 +20,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
     {
         protected IVariationChange Change;
         protected IApplyProviderVariations VariationsApplication;
+        
         private ISpecificationsApiClient _specificationsApiClient;
 
         [TestInitialize]
@@ -37,7 +38,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
                 SpecificationsApiClient = Policy.NoOpAsync(),
                 CacheProvider = Policy.NoOpAsync(),
                 PoliciesApiClient = Policy.NoOpAsync(),
-                CalculationsApiClient = Policy.NoOpAsync()
+                CalculationsApiClient = Policy.NoOpAsync(),
+                ProfilingApiClient = Policy.NoOpAsync()
             });
         }
 
@@ -80,10 +82,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
 
         protected void AndTheProfilePeriodsAmountShouldBe(ProfilePeriod[] profilePeriods, decimal expectedAmount)
         {
-            profilePeriods.ToList().ForEach(_ =>
+            foreach (ProfilePeriod profilePeriod in profilePeriods)
             {
-                AndTheProfilePeriodAmountShouldBe(_, expectedAmount);
-            });
+                AndTheProfilePeriodAmountShouldBe(profilePeriod, expectedAmount);
+            }
         }
+
+        protected PublishedProviderVersion RefreshState => VariationContext.RefreshState;
     }
 }

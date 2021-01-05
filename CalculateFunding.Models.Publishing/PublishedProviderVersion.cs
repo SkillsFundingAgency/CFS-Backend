@@ -5,6 +5,7 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Services.Core.Extensions;
+using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Publishing
@@ -215,6 +216,9 @@ namespace CalculateFunding.Models.Publishing
 
         public DateTimeOffset GetLatestFundingLineDate(string fundingLineCode)
          => GetLatestFundingLineAudit(fundingLineCode)?.Date ?? Date;
+
+        public bool FundingLineHasCustomProfile(string fundingLineCode)
+            => CustomProfiles?.Any(_ => _.FundingLineCode == fundingLineCode) == true;
 
         public void AddCarryOver(string fundingLineCode,
             ProfilingCarryOverType type,

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Policies;
+using CalculateFunding.Common.ApiClient.Profiling;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Utility;
@@ -23,7 +24,10 @@ namespace CalculateFunding.Services.Publishing.Variations
         public ProviderVariationsApplication(IPublishingResiliencePolicies resiliencePolicies,
             ISpecificationsApiClient specificationsApiClient,
             IPoliciesApiClient policiesApiClient,
-            ICacheProvider cacheProvider)
+            ICacheProvider cacheProvider,
+            IProfilingApiClient profilingApiClient,
+            IReProfilingRequestBuilder reProfilingRequestBuilder,
+            IReProfilingResponseMapper reProfilingResponseMapper)
         {
             Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
             Guard.ArgumentNotNull(resiliencePolicies.SpecificationsApiClient, "resiliencePolicies.SpecificationsApiClient");
@@ -32,11 +36,17 @@ namespace CalculateFunding.Services.Publishing.Variations
             Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
             Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
+            Guard.ArgumentNotNull(profilingApiClient, nameof(profilingApiClient));
+            Guard.ArgumentNotNull(reProfilingRequestBuilder, nameof(reProfilingRequestBuilder));
+            Guard.ArgumentNotNull(reProfilingResponseMapper, nameof(reProfilingResponseMapper));
             
             SpecificationsApiClient = specificationsApiClient;
             ResiliencePolicies = resiliencePolicies;
             PoliciesApiClient = policiesApiClient;
             CacheProvider = cacheProvider;
+            ProfilingApiClient = profilingApiClient;
+            ReProfilingRequestBuilder = reProfilingRequestBuilder;
+            ReProfilingResponseMapper = reProfilingResponseMapper;
         }
 
         public bool HasVariations => _variationContexts.AnyWithNullCheck();
@@ -46,8 +56,14 @@ namespace CalculateFunding.Services.Publishing.Variations
         public ISpecificationsApiClient SpecificationsApiClient { get; }
         
         public IPoliciesApiClient PoliciesApiClient { get; }
+        
+        public IProfilingApiClient ProfilingApiClient { get; }
 
         public ICacheProvider CacheProvider { get; }
+        
+        public IReProfilingRequestBuilder ReProfilingRequestBuilder { get; }
+        
+        public IReProfilingResponseMapper ReProfilingResponseMapper { get; }
 
         public void AddVariationContext(ProviderVariationContext variationContext)
         {

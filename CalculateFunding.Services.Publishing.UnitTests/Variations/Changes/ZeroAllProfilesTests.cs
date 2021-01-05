@@ -1,5 +1,4 @@
-﻿using CalculateFunding.Services.Publishing.Models;
-using CalculateFunding.Services.Publishing.Variations.Changes;
+﻿using CalculateFunding.Services.Publishing.Variations.Changes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using CalculateFunding.Models.Publishing;
 using System.Threading.Tasks;
@@ -7,7 +6,6 @@ using FluentAssertions;
 using System.Globalization;
 using System.Collections.Generic;
 using System.Linq;
-using System;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
 {
@@ -23,9 +21,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
         [TestMethod]
         public async Task ZerosAllProfiles()
         {
-            ProfilePeriod[] fundingLineOnePeriods = GetProfilePeriods(2,2, 2973864M);
-            ProfilePeriod[] fundingLineTwoPeriods = GetProfilePeriods(1, 2, 2973864M);
-            ProfilePeriod[] fundingLineThreePeriods = GetProfilePeriods(2, 3, 2973864M);
+            ProfilePeriod[] fundingLineOnePeriods = CreateProfilePeriods(2,2, 2973864M).ToArray();
+            ProfilePeriod[] fundingLineTwoPeriods = CreateProfilePeriods(1, 2, 2973864M).ToArray();
+            ProfilePeriod[] fundingLineThreePeriods = CreateProfilePeriods(2, 3, 2973864M).ToArray();
 
             FundingLine fundingLineOne = NewFundingLine(_ => _.WithFundingLineCode(NewRandomString())
                 .WithFundingLineType(FundingLineType.Payment)
@@ -40,54 +38,49 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
                 .WithDistributionPeriods(NewDistributionPeriod(dp => dp.WithProfilePeriods(fundingLineThreePeriods)))
                 .WithValue(decimal.Multiply(decimal.Multiply(2, 3), 2973864M)));
 
-            AndTheFundingLines(new[] { fundingLineOne,
+            AndTheFundingLines(fundingLineOne,
                 fundingLineTwo,
-                fundingLineThree});
+                fundingLineThree);
 
             await Change.Apply(VariationsApplication);
 
-            ThenProfilePeriodsShouldBeZeroAmount(fundingLineOnePeriods.Concat(fundingLineTwoPeriods).ToArray());
-
-            ThenFundingLineValueShouldBeZeroAmount(fundingLineOne, fundingLineTwo);
-
-            fundingLineThreePeriods.ToList().ForEach(_ =>
-            {
-                AndTheProfilePeriodAmountShouldBe(_, 2973864M);
-            });
+            ThenProfilePeriodsShouldBeZeroAmount(fundingLineOnePeriods);
+            AndTheProfilePeriodsShouldBeZeroAmount(fundingLineTwoPeriods);
+            AndFundingLinesValuesShouldBeZeroAmount(fundingLineOne, fundingLineTwo);
+            AndTheProfilePeriodsAmountShouldBe(fundingLineThreePeriods, 2973864M);            
 
             fundingLineThree.Value
                 .Should()
                 .Be(17843184M);
         }
 
-        private ProfilePeriod[] GetProfilePeriods(int numberOfPeriods, int numberOfOccurences, decimal? value)
+        private IEnumerable<ProfilePeriod> CreateProfilePeriods(int numberOfPeriods, int numberOfOccurrences, decimal? value)
         {
-            List<ProfilePeriod> profilePeriods = new List<ProfilePeriod>();
-
             for (int i = 1; i < numberOfPeriods; i++)
             {
-                for(int j = 0; j < numberOfOccurences; j++)
+                for(int j = 0; j < numberOfOccurrences; j++)
                 {
-                    profilePeriods.Add(NewProfilePeriod(j, 2020, CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(i), value));
+                    yield return NewProfilePeriod(j, 2020, CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(i), value);
                 }
             }
-
-            return profilePeriods.ToArray();
         }
 
-        private void ThenFundingLineValueShouldBeZeroAmount(params FundingLine[] fundingLines)
+        private void AndFundingLinesValuesShouldBeZeroAmount(params FundingLine[] fundingLines)
         {
-            fundingLines.ToList().ForEach(_ =>
+            foreach (FundingLine fundingLine in fundingLines)
             {
-                _.Value
-                .Should()
-                .Be(0);
-            });
+                fundingLine.Value
+                    .Should()
+                    .Be(0);
+            }
         }
 
         private void ThenProfilePeriodsShouldBeZeroAmount(params ProfilePeriod[] profilePeriods)
         {
             AndTheProfilePeriodsAmountShouldBe(profilePeriods, 0);
         }
+
+        private void AndTheProfilePeriodsShouldBeZeroAmount(params ProfilePeriod[] profilePeriods)
+            => ThenProfilePeriodsShouldBeZeroAmount(profilePeriods);
     }
 }

@@ -27,6 +27,7 @@ using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.Errors;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Profiling;
 using CalculateFunding.Services.Publishing.Providers;
 using CalculateFunding.Services.Publishing.Reporting;
 using CalculateFunding.Services.Publishing.Reporting.PublishedProviderEstate;
@@ -108,6 +109,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<InMemoryFeatureManagerSnapshot, IFeatureManagerSnapshot>();
             RegisterTypeAs<PublishedProviderInMemorySearchRepository, ISearchRepository<PublishedProviderIndex>>();
             RegisterTypeAs<ReApplyCustomProfiles, IReApplyCustomProfiles>();
+            RegisterTypeAs<ReProfilingResponseMapper, IReProfilingResponseMapper>();
+            RegisterTypeAs<ReProfilingRequestBuilder, IReProfilingRequestBuilder>();
             RegisterInstanceAs<IPublishedProviderErrorDetection>(new PublishedProviderErrorDetection(ArraySegment<IDetectPublishedProviderErrors>.Empty));
 
             IMapper mapper = new MapperConfiguration(c =>

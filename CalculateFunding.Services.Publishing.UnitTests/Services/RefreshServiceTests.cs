@@ -11,6 +11,7 @@ using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
+using CalculateFunding.Common.ApiClient.Profiling;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Caching;
@@ -181,7 +182,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             _variationStrategyServiceLocator = new VariationStrategyServiceLocator(variationStrategies);
             _detectProviderVariation = new ProviderVariationsDetection(_variationStrategyServiceLocator);
-            _applyProviderVariation = new ProviderVariationsApplication(_publishingResiliencePolicies, _specificationsApiClient.Object, _policiesApiClient.Object, _cacheProvider.Object);
+            _applyProviderVariation = new ProviderVariationsApplication(_publishingResiliencePolicies,
+                _specificationsApiClient.Object,
+                _policiesApiClient.Object,
+                _cacheProvider.Object,
+                new Mock<IProfilingApiClient>().Object,
+                new Mock<IReProfilingRequestBuilder>().Object,
+                new Mock<IReProfilingResponseMapper>().Object);
             _recordVariationErrors = new Mock<IRecordVariationErrors>();
             _variationService = new VariationService(_detectProviderVariation, _applyProviderVariation, _recordVariationErrors.Object, _logger.Object);
             _refreshService = new RefreshService(_publishedProviderStatusUpdateService.Object,
