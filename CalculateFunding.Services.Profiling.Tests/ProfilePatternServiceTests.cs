@@ -108,7 +108,8 @@ namespace CalculateFunding.Services.Profiling.Tests
             
             AndTheProfilePatternsWereCached(fundingStreamId, fundingPeriodId, expectedPatterns);
         }
-        
+
+       
         [TestMethod]
         public async Task GetPatternsReturns404IfNotCachedAndNotInCosmos()
         {
@@ -160,6 +161,34 @@ namespace CalculateFunding.Services.Profiling.Tests
             
             AndTheProfilePatternWasCached(expectedPattern);
         }
+        
+        [TestMethod]
+        [DataRow("fp", "fs", "fl", null)]
+        [DataRow("fp", "fs", "fl", "pp")]
+        public async Task GetPatternsBuildsKeyQueriesCosmosAndCachesResultIfNotCached(string fundingPeriodId,
+            string fundingStreamId,
+            string fundingLineCode,
+            string profilePatternKey)
+        {
+            FundingStreamPeriodProfilePattern expectedPattern = NewProfilePattern(_ => _.WithProfilePatternKey(profilePatternKey)
+                .WithFundingLineId(fundingLineCode)
+                .WithFundingPeriodId(fundingPeriodId)
+                .WithFundingStreamId(fundingStreamId));
+            
+            GivenTheProfilePattern(expectedPattern);
+
+            FundingStreamPeriodProfilePattern result = await WhenTheProfilePatternIsQueried(fundingStreamId,
+                fundingPeriodId,
+                fundingLineCode,
+                profilePatternKey);
+
+            result
+                .Should()
+                .BeSameAs(expectedPattern);
+            
+            AndTheProfilePatternWasCached(expectedPattern);
+        }
+
         
         [TestMethod]
         public async Task GetReturns404IfNotCachedAndNotInCosmos()
@@ -399,6 +428,17 @@ namespace CalculateFunding.Services.Profiling.Tests
         {
             return await _service.GetProfilePattern(id);
         }
+        
+        private async Task<FundingStreamPeriodProfilePattern> WhenTheProfilePatternIsQueried(string fundingStreamId,
+            string fundingPeriodId,
+            string fundingLineCode,
+            string profilePatternKey)
+        {
+            return await _service.GetProfilePattern(fundingStreamId,
+                fundingPeriodId,
+                fundingLineCode,
+                profilePatternKey);
+        }
 
         private async Task<IActionResult> WhenTheProfilePatternsAreQueried(string fundingStreamId, string fundingPeriodId)
         {
@@ -416,9 +456,13 @@ namespace CalculateFunding.Services.Profiling.Tests
                 .ReturnsAsync(statusCode);
         }
 
-        private FundingStreamPeriodProfilePattern NewProfilePattern()
+        private FundingStreamPeriodProfilePattern NewProfilePattern(Action<FundingStreamPeriodProfilePatternBuilder> setUp = null)
         {
-            return new FundingStreamPeriodProfilePatternBuilder()
+            FundingStreamPeriodProfilePatternBuilder fundingStreamPeriodProfilePatternBuilder = new FundingStreamPeriodProfilePatternBuilder(); 
+            
+            setUp?.Invoke(fundingStreamPeriodProfilePatternBuilder);
+            
+            return fundingStreamPeriodProfilePatternBuilder
                 .Build();
         }
 

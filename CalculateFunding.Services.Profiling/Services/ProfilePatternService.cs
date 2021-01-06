@@ -105,11 +105,11 @@ namespace CalculateFunding.Services.Profiling.Services
         
         public async Task<FundingStreamPeriodProfilePattern> GetProfilePattern(string fundingStreamId, string fundingPeriodId, string fundingLineCode, string profilePatternKey)
         {
-            string streamId = $"{fundingStreamId}-{fundingPeriodId}-{fundingLineCode}{(string.IsNullOrWhiteSpace(profilePatternKey) ? "" : $"-{profilePatternKey}")}";
+            string streamId = $"{fundingPeriodId}-{fundingStreamId}-{fundingLineCode}{(string.IsNullOrWhiteSpace(profilePatternKey) ? "" : $"-{profilePatternKey}")}";
             
-            ActionResult<FundingStreamPeriodProfilePattern> getProfilePattern = await GetProfilePattern(streamId) as OkObjectResult;
+            OkObjectResult result = await GetProfilePattern(streamId) as OkObjectResult;
 
-            return getProfilePattern?.Value;
+            return (FundingStreamPeriodProfilePattern)result?.Value;
         }
 
         public async Task<IActionResult> CreateProfilePattern(CreateProfilePatternRequest createProfilePatternRequest)
