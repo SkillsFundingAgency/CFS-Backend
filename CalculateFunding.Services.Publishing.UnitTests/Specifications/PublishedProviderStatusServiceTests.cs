@@ -15,15 +15,17 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using Microsoft.Azure.Storage.Blob;
 using System.IO;
+using CalculateFunding.Common.Storage;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 {
     [TestClass]
     public class PublishedProviderStatusServiceTests
     {
+        private const string BlobContainerName = "publishingconfirmation";
+
         private PublishedProviderStatusService _service;
 
         private ISpecificationIdServiceRequestValidator _validator;
@@ -191,7 +193,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         }
 
         [TestMethod]
-        public async Task GetProviderDataForApprovalAsCsv_ShouldSaveCsvFileInStorageConstinerAndReturnsBlobUrl()
+        public async Task GetProviderDataForBatchApprovalAsCsv_ShouldSaveCsvFileInStorageConstinerAndReturnsBlobUrl()
         {
             IEnumerable<string> publishedProviderIds = new[] { NewRandomString(), NewRandomString() };
             string specificationId = NewRandomString();
@@ -235,7 +237,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             GivenBolbReference(blobNamePrefix, blob);
             GivenBlobUrl(blobNamePrefix, expectedUrl);
 
-            OkObjectResult result = await WhenTheGetProviderDataForApprovalAsCsvExecuted(publishedProviderIds, specificationId) as OkObjectResult;
+            OkObjectResult result = await WhenTheGetProviderDataForBatchApprovalAsCsvExecuted(publishedProviderIds, specificationId) as OkObjectResult;
 
             result
                 .Should()
@@ -258,7 +260,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 
             _blobClient
                 .Received(1)
-                .GetBlockBlobReference(Arg.Is<string>(x => x.StartsWith(blobNamePrefix)));
+                .GetBlockBlobReference(Arg.Is<string>(x => x.StartsWith(blobNamePrefix)), Arg.Is(BlobContainerName));
             await blob
                 .Received(1)
                 .UploadFromStreamAsync(Arg.Any<Stream>());
@@ -267,11 +269,93 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 .Received(1)
                 .GetBlobSasUrl(Arg.Is<string>(x => x.StartsWith(blobNamePrefix)),
                 Arg.Any<DateTimeOffset>(),
-                Arg.Is(SharedAccessBlobPermissions.Read));
+                Arg.Is(SharedAccessBlobPermissions.Read),
+                Arg.Is(BlobContainerName));
         }
 
         [TestMethod]
-        public async Task GetProviderDataForReleaseAsCsv_ShouldSaveCsvFileInStorageConstinerAndReturnsBlobUrl()
+        public async Task GetProviderDataForAllApprovalAsCsv_ShouldSaveCsvFileInStorageConstinerAndReturnsBlobUrl()
+        {
+            IEnumerable<string> publishedProviderIds = new[] { NewRandomString(), NewRandomString() };
+            string fundingPeriodId = NewRandomString();
+            string fundingStreamId = NewRandomString();
+            string providerName1 = NewRandomString();
+            string providerName2 = NewRandomString();
+            _validator.Validate(Arg.Is(_specificationId))
+                .Returns(new ValidationResult());
+
+            IEnumerable<PublishedProviderFundingCsvData> expectedCsvData = new[]
+            {
+                new PublishedProviderFundingCsvData()
+                {
+                    FundingStreamId = fundingStreamId,
+                    FundingPeriodId = fundingPeriodId,
+                    SpecificationId = _specificationId,
+                    ProviderName = providerName1,
+                    TotalFunding = 123
+                },
+                new PublishedProviderFundingCsvData()
+                {
+                    FundingStreamId = fundingStreamId,
+                    FundingPeriodId = fundingPeriodId,
+                    SpecificationId = _specificationId,
+                    ProviderName = providerName2,
+                    TotalFunding = 4567
+                }
+            };
+
+            ICloudBlob blob = Substitute.For<ICloudBlob>();
+            blob.Properties.Returns(new BlobProperties());
+            blob.Metadata.Returns(new Dictionary<string, string>());
+
+            string expectedUrl = "https://blob.test.com/tst";
+
+            PublishedProviderStatus[] statuses = new[] { PublishedProviderStatus.Draft, PublishedProviderStatus.Updated };
+            string blobNamePrefix = $"{fundingStreamId}-{fundingPeriodId}";
+
+            GivenTheFundingDataForCsv(expectedCsvData, publishedProviderIds, _specificationId, statuses);
+            GivenBolbReference(blobNamePrefix, blob);
+            GivenBlobUrl(blobNamePrefix, expectedUrl);
+            GivenThePublishedProviderIdsForTheSpecificationId(publishedProviderIds);
+
+            OkObjectResult result = await WhenTheGetProviderDataForAllApprovalAsCsvExecuted(_specificationId) as OkObjectResult;
+
+            result
+                .Should()
+                .NotBeNull();
+
+            result.Value
+                .Should()
+                .BeOfType<PublishedProviderDataDownload>()
+                .Which
+                .Url
+                .Should()
+                .Be(expectedUrl);
+
+            await _fundingCsvDataProcessor
+                .Received(1)
+                .GetFundingData(
+                Arg.Is<IEnumerable<string>>(ids => ids.SequenceEqual(publishedProviderIds)),
+                Arg.Is(_specificationId),
+                Arg.Is<PublishedProviderStatus[]>(s => s.SequenceEqual(statuses)));
+
+            _blobClient
+                .Received(1)
+                .GetBlockBlobReference(Arg.Is<string>(x => x.StartsWith(blobNamePrefix)), Arg.Is(BlobContainerName));
+            await blob
+                .Received(1)
+                .UploadFromStreamAsync(Arg.Any<Stream>());
+
+            _blobClient
+                .Received(1)
+                .GetBlobSasUrl(Arg.Is<string>(x => x.StartsWith(blobNamePrefix)),
+                Arg.Any<DateTimeOffset>(),
+                Arg.Is(SharedAccessBlobPermissions.Read),
+                Arg.Is(BlobContainerName));
+        }
+
+        [TestMethod]
+        public async Task GetProviderDataForBatchReleaseAsCsv_ShouldSaveCsvFileInStorageConstinerAndReturnsBlobUrl()
         {
             IEnumerable<string> publishedProviderIds = new[] { NewRandomString(), NewRandomString() };
             string specificationId = NewRandomString();
@@ -315,7 +399,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             GivenBolbReference(blobNamePrefix, blob);
             GivenBlobUrl(blobNamePrefix, expectedUrl);
 
-            OkObjectResult result = await WhenTheGetProviderDataForReleaseAsCsvExecuted(publishedProviderIds, specificationId) as OkObjectResult;
+            OkObjectResult result = await WhenTheGetProviderDataForBatchReleaseAsCsvExecuted(publishedProviderIds, specificationId) as OkObjectResult;
 
             result
                 .Should()
@@ -338,7 +422,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 
             _blobClient
                 .Received(1)
-                .GetBlockBlobReference(Arg.Is<string>(x => x.StartsWith(blobNamePrefix)));
+                .GetBlockBlobReference(Arg.Is<string>(x => x.StartsWith(blobNamePrefix)), Arg.Is(BlobContainerName));
             await blob
                 .Received(1)
                 .UploadFromStreamAsync(Arg.Any<Stream>());
@@ -347,7 +431,89 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 .Received(1)
                 .GetBlobSasUrl(Arg.Is<string>(x => x.StartsWith(blobNamePrefix)),
                 Arg.Any<DateTimeOffset>(),
-                Arg.Is(SharedAccessBlobPermissions.Read));
+                Arg.Is(SharedAccessBlobPermissions.Read),
+                Arg.Is(BlobContainerName));
+        }
+
+        [TestMethod]
+        public async Task GetProviderDataForAllReleaseAsCsv_ShouldSaveCsvFileInStorageConstinerAndReturnsBlobUrl()
+        {
+            IEnumerable<string> publishedProviderIds = new[] { NewRandomString(), NewRandomString() };
+            string fundingPeriodId = NewRandomString();
+            string fundingStreamId = NewRandomString();
+            string providerName1 = NewRandomString();
+            string providerName2 = NewRandomString();
+            _validator.Validate(Arg.Is(_specificationId))
+                .Returns(new ValidationResult());
+
+            IEnumerable<PublishedProviderFundingCsvData> expectedCsvData = new[]
+            {
+                new PublishedProviderFundingCsvData()
+                {
+                    FundingStreamId = fundingStreamId,
+                    FundingPeriodId = fundingPeriodId,
+                    SpecificationId = _specificationId,
+                    ProviderName = providerName1,
+                    TotalFunding = 123
+                },
+                new PublishedProviderFundingCsvData()
+                {
+                    FundingStreamId = fundingStreamId,
+                    FundingPeriodId = fundingPeriodId,
+                    SpecificationId = _specificationId,
+                    ProviderName = providerName2,
+                    TotalFunding = 4567
+                }
+            };
+
+            ICloudBlob blob = Substitute.For<ICloudBlob>();
+            blob.Properties.Returns(new BlobProperties());
+            blob.Metadata.Returns(new Dictionary<string, string>());
+
+            string expectedUrl = "https://blob.test.com/tst";
+
+            PublishedProviderStatus[] statuses = new[] { PublishedProviderStatus.Approved };
+            string blobNamePrefix = $"{fundingStreamId}-{fundingPeriodId}";
+
+            GivenTheFundingDataForCsv(expectedCsvData, publishedProviderIds, _specificationId, statuses);
+            GivenBolbReference(blobNamePrefix, blob);
+            GivenBlobUrl(blobNamePrefix, expectedUrl);
+            GivenThePublishedProviderIdsForTheSpecificationId(publishedProviderIds);
+
+            OkObjectResult result = await WhenTheGetProviderDataForAllReleaseAsCsvExecuted(_specificationId) as OkObjectResult;
+
+            result
+                .Should()
+                .NotBeNull();
+
+            result.Value
+                .Should()
+                .BeOfType<PublishedProviderDataDownload>()
+                .Which
+                .Url
+                .Should()
+                .Be(expectedUrl);
+
+            await _fundingCsvDataProcessor
+                .Received(1)
+                .GetFundingData(
+                Arg.Is<IEnumerable<string>>(ids => ids.SequenceEqual(publishedProviderIds)),
+                Arg.Is(_specificationId),
+                Arg.Is<PublishedProviderStatus[]>(s => s.SequenceEqual(statuses)));
+
+            _blobClient
+                .Received(1)
+                .GetBlockBlobReference(Arg.Is<string>(x => x.StartsWith(blobNamePrefix)), Arg.Is(BlobContainerName));
+            await blob
+                .Received(1)
+                .UploadFromStreamAsync(Arg.Any<Stream>());
+
+            _blobClient
+                .Received(1)
+                .GetBlobSasUrl(Arg.Is<string>(x => x.StartsWith(blobNamePrefix)),
+                Arg.Any<DateTimeOffset>(),
+                Arg.Is(SharedAccessBlobPermissions.Read),
+                Arg.Is(BlobContainerName));
         }
 
         [TestMethod]
@@ -362,7 +528,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 
             GivenTheFundingDataForCsv(Enumerable.Empty<PublishedProviderFundingCsvData>(), publishedProviderIds, specificationId, statuses);
 
-            NotFoundObjectResult result = await WhenTheGetProviderDataForReleaseAsCsvExecuted(publishedProviderIds, specificationId) as NotFoundObjectResult;
+            NotFoundObjectResult result = await WhenTheGetProviderDataForBatchReleaseAsCsvExecuted(publishedProviderIds, specificationId) as NotFoundObjectResult;
 
             result
                 .Should()
@@ -378,13 +544,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 
         public void GivenBlobUrl(string blobNamePrefix, string expectedUrl)
         {
-            _blobClient.GetBlobSasUrl(Arg.Is<string>(x => x.StartsWith(blobNamePrefix)), Arg.Any<DateTimeOffset>(), Arg.Is(SharedAccessBlobPermissions.Read))
+            _blobClient.GetBlobSasUrl(Arg.Is<string>(x => x.StartsWith(blobNamePrefix)), Arg.Any<DateTimeOffset>(), Arg.Is(SharedAccessBlobPermissions.Read), Arg.Is(BlobContainerName))
                 .Returns(expectedUrl);
         }
 
         public void GivenBolbReference(string blobNamePrefix, ICloudBlob cloudBlob)
         {
-            _blobClient.GetBlockBlobReference(Arg.Is<string>(x => x.StartsWith(blobNamePrefix)))
+            _blobClient.GetBlockBlobReference(Arg.Is<string>(x => x.StartsWith(blobNamePrefix)), Arg.Is(BlobContainerName))
                 .Returns(cloudBlob);
         }
 
@@ -410,15 +576,21 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             => await _service.GetProviderBatchCountForRelease(NewPublishedProviderIdsRequest(_ => _.WithProviders(publishedProviderIds.ToArray())),
                 specificationId);
 
-        private async Task<IActionResult> WhenTheGetProviderDataForApprovalAsCsvExecuted(IEnumerable<string> publishedProviderIds,
+        private async Task<IActionResult> WhenTheGetProviderDataForBatchApprovalAsCsvExecuted(IEnumerable<string> publishedProviderIds,
             string specificationId)
-            => await _service.GetProviderDataForApprovalAsCsv(NewPublishedProviderIdsRequest(_ => _.WithProviders(publishedProviderIds.ToArray())),
+            => await _service.GetProviderDataForBatchApprovalAsCsv(NewPublishedProviderIdsRequest(_ => _.WithProviders(publishedProviderIds.ToArray())),
                 specificationId);
 
-        private async Task<IActionResult> WhenTheGetProviderDataForReleaseAsCsvExecuted(IEnumerable<string> publishedProviderIds,
+        private async Task<IActionResult> WhenTheGetProviderDataForAllApprovalAsCsvExecuted(string specificationId)
+            => await _service.GetProviderDataForAllApprovalAsCsv(specificationId);
+
+        private async Task<IActionResult> WhenTheGetProviderDataForBatchReleaseAsCsvExecuted(IEnumerable<string> publishedProviderIds,
             string specificationId)
-            => await _service.GetProviderDataForReleaseAsCsv(NewPublishedProviderIdsRequest(_ => _.WithProviders(publishedProviderIds.ToArray())),
+            => await _service.GetProviderDataForBatchReleaseAsCsv(NewPublishedProviderIdsRequest(_ => _.WithProviders(publishedProviderIds.ToArray())),
                 specificationId);
+
+        private async Task<IActionResult> WhenTheGetProviderDataForAllReleaseAsCsvExecuted(string specificationId)
+            => await _service.GetProviderDataForAllReleaseAsCsv(specificationId);
 
         private void GivenTheFundingCount(PublishedProviderFundingCount fundingCount,
             IEnumerable<string> publishedProviderIds,
@@ -473,6 +645,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         {
             _publishedFundingRepository.GetPublishedProviderStatusCounts(_specificationId, string.Empty, string.Empty, string.Empty)
                 .Returns(publishedProviderFundingStreamStatuses);
+        }
+
+        private void GivenThePublishedProviderIdsForTheSpecificationId(IEnumerable<string> publishedProviderIds)
+        {
+            _publishedFundingRepository.GetPublishedProviderIds(_specificationId)
+                .Returns(publishedProviderIds);
         }
 
         private async Task WhenThePublishedProvidersStatusAreQueried()

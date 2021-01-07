@@ -12,14 +12,16 @@ using System.Threading.Tasks;
 using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Services.Core.Interfaces;
 using System;
-using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using Microsoft.Azure.Storage.Blob;
 using System.IO;
+using CalculateFunding.Common.Storage;
 
 namespace CalculateFunding.Services.Publishing.Specifications
 {
     public class PublishedProviderStatusService : IPublishedProviderStatusService
     {
+        private const string BlobContainerName = "publishingconfirmation";
+
         private readonly IPublishedProviderFundingCountProcessor _fundingCountProcessor;
         private readonly ISpecificationIdServiceRequestValidator _validator;
         private readonly ISpecificationService _specificationService;
@@ -126,14 +128,48 @@ namespace CalculateFunding.Services.Publishing.Specifications
             return publishedProviderFundingStreamStatus == null ? default : publishedProviderFundingStreamStatus.Count;
         }
 
-        public async Task<IActionResult> GetProviderDataForApprovalAsCsv(PublishedProviderIdsRequest providerIds, string specificationId)
+        public async Task<IActionResult> GetProviderDataForBatchApprovalAsCsv(PublishedProviderIdsRequest providerIds, string specificationId)
         {
-            return await GetProviderDataAsCsv(providerIds, specificationId, $"ProvidersToApprove-{DateTime.UtcNow:yyyyMMdd-HHmmssffff}", PublishedProviderStatus.Draft, PublishedProviderStatus.Updated);
+            return await GetProviderDataAsCsv(
+                providerIds, 
+                specificationId, 
+                $"ProvidersToApprove-{DateTime.UtcNow:yyyyMMdd-HHmmssffff}", 
+                PublishedProviderStatus.Draft, 
+                PublishedProviderStatus.Updated);
         }
 
-        public async Task<IActionResult> GetProviderDataForReleaseAsCsv(PublishedProviderIdsRequest providerIds, string specificationId)
+        public async Task<IActionResult> GetProviderDataForBatchReleaseAsCsv(PublishedProviderIdsRequest providerIds, string specificationId)
         {
-            return await GetProviderDataAsCsv(providerIds, specificationId, $"ProvidersToRelease-{DateTime.UtcNow:yyyyMMdd-HHmmssffff}", PublishedProviderStatus.Approved);
+            return await GetProviderDataAsCsv(
+                providerIds, 
+                specificationId, 
+                $"ProvidersToRelease-{DateTime.UtcNow:yyyyMMdd-HHmmssffff}", 
+                PublishedProviderStatus.Approved);
+        }
+
+        public async Task<IActionResult> GetProviderDataForAllApprovalAsCsv(string specificationId)
+        {
+            IEnumerable<string> publishedProviderIds = await _publishedFundingRepositoryResilience.ExecuteAsync(() => _publishedFundingRepository.GetPublishedProviderIds(specificationId));
+            PublishedProviderIdsRequest publishedProviderIdsRequest = new PublishedProviderIdsRequest { PublishedProviderIds = publishedProviderIds };
+
+            return await GetProviderDataAsCsv(
+                publishedProviderIdsRequest, 
+                specificationId, 
+                $"ProvidersToApprove-{DateTime.UtcNow:yyyyMMdd-HHmmssffff}", 
+                PublishedProviderStatus.Draft, 
+                PublishedProviderStatus.Updated);
+        }
+
+        public async Task<IActionResult> GetProviderDataForAllReleaseAsCsv(string specificationId)
+        {
+            IEnumerable<string> publishedProviderIds = await _publishedFundingRepositoryResilience.ExecuteAsync(() => _publishedFundingRepository.GetPublishedProviderIds(specificationId));
+            PublishedProviderIdsRequest publishedProviderIdsRequest = new PublishedProviderIdsRequest { PublishedProviderIds = publishedProviderIds };
+
+            return await GetProviderDataAsCsv(
+                publishedProviderIdsRequest, 
+                specificationId, 
+                $"ProvidersToRelease-{DateTime.UtcNow:yyyyMMdd-HHmmssffff}", 
+                PublishedProviderStatus.Approved);
         }
 
         private async Task<IActionResult> GetProviderDataAsCsv(PublishedProviderIdsRequest providerIds, string specificationId, string csvFileSuffix, params PublishedProviderStatus[] statuses)
@@ -176,7 +212,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
 
             await _blobClientPolicy.ExecuteAsync(async () =>
             {
-                ICloudBlob blob = _blobClient.GetBlockBlobReference(blobName);
+                ICloudBlob blob = _blobClient.GetBlockBlobReference(blobName, BlobContainerName);
                 blob.Properties.ContentDisposition = $"attachment; filename={csvFileName}";
 
                 using (MemoryStream stream = new MemoryStream(csvFileData.AsUTF8Bytes()))
@@ -190,7 +226,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
                 blob.Metadata["fileName"] = Path.GetFileNameWithoutExtension(csvFileName);
                 blob.SetMetadata();
 
-                blobUrl = _blobClient.GetBlobSasUrl(blobName, DateTimeOffset.Now.AddDays(1), SharedAccessBlobPermissions.Read);
+                blobUrl = _blobClient.GetBlobSasUrl(blobName, DateTimeOffset.Now.AddDays(1), SharedAccessBlobPermissions.Read, BlobContainerName);
             });
 
             return new OkObjectResult(new PublishedProviderDataDownload() { Url = blobUrl });

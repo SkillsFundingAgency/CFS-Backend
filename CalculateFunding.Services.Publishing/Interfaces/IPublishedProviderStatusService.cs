@@ -12,7 +12,12 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         
         Task<IActionResult> GetProviderBatchCountForRelease(PublishedProviderIdsRequest providerIds, string specificationId);
 
-        Task<IActionResult> GetProviderDataForApprovalAsCsv(PublishedProviderIdsRequest providerIds, string specificationId);
-        Task<IActionResult> GetProviderDataForReleaseAsCsv(PublishedProviderIdsRequest providerIds, string specificationId);
+        Task<IActionResult> GetProviderDataForBatchApprovalAsCsv(PublishedProviderIdsRequest providerIds, string specificationId);
+
+        Task<IActionResult> GetProviderDataForBatchReleaseAsCsv(PublishedProviderIdsRequest providerIds, string specificationId);
+
+        Task<IActionResult> GetProviderDataForAllApprovalAsCsv(string specificationId);
+
+        Task<IActionResult> GetProviderDataForAllReleaseAsCsv(string specificationId);
     }
 }
