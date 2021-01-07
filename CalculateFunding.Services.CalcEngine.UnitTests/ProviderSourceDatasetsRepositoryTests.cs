@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
@@ -12,12 +10,10 @@ using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Services.CalcEngine.UnitTests;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Caching.FileSystem;
-using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using NSubstitute.ReceivedExtensions;
 
 namespace CalculateFunding.Services.Calculator
 {
@@ -29,6 +25,8 @@ namespace CalculateFunding.Services.Calculator
         private ICosmosRepository _cosmosRepository;
         private ICalculatorResiliencePolicies _resiliencePolicies;
         private ProviderSourceDatasetsRepository _repository;
+
+        private static readonly List<string> _emptyListOfIds = new List<string>();
 
         private string _specificationId;
 
@@ -44,15 +42,10 @@ namespace CalculateFunding.Services.Calculator
 
             _specificationId = "specId";
         }
-        [Ignore("Filesystem caching has been removed, but the test suite needs updating for cosmos.")]
-        [TestMethod]
-        public async Task UsesFileSystemCaching()
-        {
-            string providerIdOne = NewRandomString();
-            string providerIdTwo = NewRandomString();
-            string providerIdThree = NewRandomString();
-            string providerIdFour = NewRandomString();
 
+        [TestMethod]
+        public async Task ReturnsCorrectDatasets_GivenValidSetOfProviders()
+        {
             string relationshipIdOne = NewRandomString();
             string relationshipIdTwo = NewRandomString();
 
@@ -68,25 +61,34 @@ namespace CalculateFunding.Services.Calculator
             ProviderSourceDataset dataSetEight = NewProviderSourceDataset();
 
             GivenTheDatasetVersionKey(relationshipIdOne, relationshipOneVersionKey);
-            AndTheProviderSourceDataset(_specificationId, providerIdOne, relationshipIdTwo, dataSetFive);
-            AndTheProviderSourceDataset(_specificationId, providerIdTwo, relationshipIdTwo, dataSetSix);
-            AndTheProviderSourceDataset(_specificationId, providerIdThree, relationshipIdTwo, dataSetSeven);
-            AndTheProviderSourceDataset(_specificationId, providerIdFour, relationshipIdTwo, dataSetEight);
+            AndTheProviderSourceDataset(_specificationId, dataSetOne.ProviderId, relationshipIdTwo, dataSetOne);
+            AndTheProviderSourceDataset(_specificationId, dataSetTwo.ProviderId, relationshipIdTwo, dataSetTwo);
+            AndTheProviderSourceDataset(_specificationId, dataSetThree.ProviderId, relationshipIdTwo, dataSetThree);
+            AndTheProviderSourceDataset(_specificationId, dataSetFour.ProviderId, relationshipIdTwo, dataSetFour);
+            AndTheProviderSourceDataset(_specificationId, dataSetFive.ProviderId, relationshipIdTwo, dataSetFive);
+            AndTheProviderSourceDataset(_specificationId, dataSetSix.ProviderId, relationshipIdTwo, dataSetSix);
+            AndTheProviderSourceDataset(_specificationId, dataSetSeven.ProviderId, relationshipIdTwo, dataSetSeven);
+            AndTheProviderSourceDataset(_specificationId, dataSetEight.ProviderId, relationshipIdTwo, dataSetEight);
 
-            Dictionary<string, Dictionary<string, ProviderSourceDataset>> datasets = await _repository.GetProviderSourceDatasetsByProviderIdsAndRelationshipIds(
-               _specificationId,
-                new[]
-                {
-                    providerIdOne,
-                    providerIdTwo,
-                    providerIdThree,
-                    providerIdFour
-                },
-                new[]
-                {
-                    relationshipIdOne,
-                    relationshipIdTwo
-                });
+            Dictionary<string, Dictionary<string, ProviderSourceDataset>> datasets =
+                await _repository.GetProviderSourceDatasetsByProviderIdsAndRelationshipIds(
+                    _specificationId,
+                    new[]
+                    {
+                        dataSetOne.ProviderId,
+                        dataSetTwo.ProviderId,
+                        dataSetThree.ProviderId,
+                        dataSetFour.ProviderId,
+                        dataSetFive.ProviderId,
+                        dataSetSix.ProviderId,
+                        dataSetSeven.ProviderId,
+                        dataSetEight.ProviderId
+                    },
+                    new[]
+                    {
+                        relationshipIdOne,
+                        relationshipIdTwo
+                    });
 
             datasets.Values.SelectMany(x => x.Values).Count()
                 .Should()
@@ -105,20 +107,22 @@ namespace CalculateFunding.Services.Calculator
                     dataSetSeven,
                     dataSetEight
                 }.Select(_ => _.Id));
-
-            ThenTheProviderSourceDatasetWasCachedToTheFileSystem(dataSetFive);
-            AndTheProviderSourceDatasetWasCachedToTheFileSystem(dataSetSix);
-            AndTheProviderSourceDatasetWasCachedToTheFileSystem(dataSetSeven);
-            AndTheProviderSourceDatasetWasCachedToTheFileSystem(dataSetEight);
-            await AndTheANewVersionKeyWasCachedForTheRelationshipId(relationshipIdTwo);
         }
 
-        private async Task AndTheANewVersionKeyWasCachedForTheRelationshipId(string relationshipId)
+        [DataTestMethod]
+        [DataRow(null, null)]
+        [DataRow("",  null)]
+        [DataRow(null,  "")]
+        [DataRow("",  "")]
+        public async Task ReturnsEmptyDatasets_GivenEmptyProvidersOrDataRelationshipIds(string providerIds, string dataRelationshipIds)
         {
-            await _versionKeyProvider
-                 .Received(1)
-                 .AddOrUpdateProviderSourceDatasetVersionKey(Arg.Is(relationshipId),
-                     Arg.Is<Guid>(_ => _ != Guid.Empty));
+            Dictionary<string, Dictionary<string, ProviderSourceDataset>> datasets =
+                await _repository.GetProviderSourceDatasetsByProviderIdsAndRelationshipIds(
+                    _specificationId,
+                    providerIds == null? null : new List<string>(),
+                    dataRelationshipIds == null? null : new List<string>());
+
+            datasets.Should().BeEmpty();
         }
 
         private void GivenTheDatasetVersionKey(string relationshipId, Guid versionKey)
@@ -144,42 +148,10 @@ namespace CalculateFunding.Services.Calculator
                 });
         }
 
+        private string NewRandomString() => new RandomString();
 
-        private void AndTheProviderSourceDatasetWasCachedToTheFileSystem(ProviderSourceDataset providerSourceDataset)
-        {
-            ThenTheProviderSourceDatasetWasCachedToTheFileSystem(providerSourceDataset);
-        }
-
-        private void ThenTheProviderSourceDatasetWasCachedToTheFileSystem(ProviderSourceDataset providerSourceDataset)
-        {
-            _fileSystemCache
-                .Received(1)
-                .Add(Arg.Any<ProviderSourceDatasetFileSystemCacheKey>(),
-                    Arg.Is<MemoryStream>(stream => StreamMatchesDataset(stream, providerSourceDataset)),
-                    Arg.Any<CancellationToken>(),
-                    Arg.Is(true));
-        }
-
-        private bool StreamMatchesDataset(MemoryStream stream, ProviderSourceDataset dataset)
-        {
-            using (MemoryStream copy = new MemoryStream(stream.GetBuffer()))
-            {
-                string actualJson = copy.AsPoco<ProviderSourceDataset>().AsJson();
-                string expectedJson = dataset.AsJson();
-
-                return actualJson.Equals(expectedJson);
-            }
-        }
-
-        private string NewRandomString()
-        {
-            return new RandomString();
-        }
-
-        public ProviderSourceDataset NewProviderSourceDataset()
-        {
-            return new ProviderSourceDatasetBuilder()
+        public ProviderSourceDataset NewProviderSourceDataset() =>
+            new ProviderSourceDatasetBuilder()
                 .Build();
-        }
     }
 }
