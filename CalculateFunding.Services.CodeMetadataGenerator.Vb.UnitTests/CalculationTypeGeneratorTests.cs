@@ -160,7 +160,9 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
                 .Should()
                 .Contain(
 @$"Enum EnumNameOptions
+        <Description(Description:=""Option1"")>
         Option1
+        <Description(Description:=""Option2"")>
         Option2
     End Enum");
         }

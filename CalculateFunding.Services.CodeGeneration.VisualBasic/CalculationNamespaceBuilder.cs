@@ -133,11 +133,13 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 {
                     foreach (string value in calculation.Current.AllowedEnumTypeValues)
                     {
+                        sourceCode.AppendLine($"    <Description(Description:=\"{value}\")>");
                         sourceCode.AppendLine($"    {VisualBasicTypeGenerator.GenerateIdentifier(value)}");
                     }
                 }
                 else
                 {
+                    sourceCode.AppendLine($"    <Description(Description:=\"None\")>");
                     sourceCode.AppendLine($"    None");
                 }
                 sourceCode.AppendLine("End Enum");
@@ -311,7 +313,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             CalculationDataType.Decimal => $"{{If(executedUserCodeCalculationResult.HasValue, executedUserCodeCalculationResult.ToString(), \"\")}}",
             CalculationDataType.String => $"{{executedUserCodeCalculationResult}}",
             CalculationDataType.Boolean => $"{{If(executedUserCodeCalculationResult.HasValue, executedUserCodeCalculationResult.ToString(), \"\")}}",
-            CalculationDataType.Enum => $"{{If(executedUserCodeCalculationResult.HasValue, executedUserCodeCalculationResult.ToString(), \"\")}}",
+            CalculationDataType.Enum => $"{{If(executedUserCodeCalculationResult.HasValue, DescriptionAttribute.GetEnumDescription(executedUserCodeCalculationResult), \"\")}}",
             _ => throw new ArgumentOutOfRangeException(),
         };
 
