@@ -65,6 +65,7 @@ namespace CalculateFunding.Services.Publishing
 
             //Change the key to FundingLineCode + ProfilePatternKey + ProviderType + ProviderSubType
             var fundingValues = fundingLines
+                .Where(_ => _.Value != null)
                 .Select(k => new { k.FundingLineCode, k.Value })
                 .Distinct()
                 .ToList();
