@@ -285,8 +285,9 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddSingleton<IFileSystemCacheSettings, FileSystemCacheSettings>();
             builder.AddScoped<IReApplyCustomProfiles, ReApplyCustomProfiles>();
             builder.AddScoped<IPublishedProviderErrorDetection, PublishedProviderErrorDetection>();
-            builder.AddScoped<IDetectPublishedProviderErrors, FundingLineValueProfileMismatchErrorDetector>();
-            //builder.AddScoped<IDetectPublishedProviderErrors, TrustIdMismatchErrorDetector>();
+            builder.AddTransient<IErrorDetectionStrategyLocator, ErrorDetectionStrategyLocator>();
+            builder.AddTransient<IDetectPublishedProviderErrors, FundingLineValueProfileMismatchErrorDetector>();
+            builder.AddTransient<IDetectPublishedProviderErrors, TrustIdMismatchErrorDetector>();
 
             builder.AddScoped<IGeneratePublishedFundingCsvJobsCreationLocator, GeneratePublishedFundingCsvJobsCreationLocator>();
             builder.AddScoped<IGeneratePublishedFundingCsvJobsCreation, GenerateRefreshPublishedFundingCsvJobsCreation>();

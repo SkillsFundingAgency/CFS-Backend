@@ -1,6 +1,7 @@
 using CalculateFunding.Models.Policy.FundingPolicy;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Tests.Common.Helpers;
+using System.Collections.Generic;
 
 namespace CalculateFunding.Services.Policy.Validators
 {
@@ -13,10 +14,18 @@ namespace CalculateFunding.Services.Policy.Validators
         private ProviderSource? _providerSource;
         private PaymentOrganisationSource? _paymentOrganisationSource;
         private UpdateCoreProviderVersion? _updateCoreProviderVersion;
+        private IEnumerable<string> _errorDetectors;
 
         public FundingConfigurationBuilder WithApprovalMode(ApprovalMode approvalMode)
         {
             _approvalMode = approvalMode;
+
+            return this;
+        }
+
+        public FundingConfigurationBuilder WithErrorDetectors(params string[] errorDetectors)
+        {
+            _errorDetectors = errorDetectors;
 
             return this;
         }
@@ -71,6 +80,7 @@ namespace CalculateFunding.Services.Policy.Validators
                 FundingStreamId = _fundingStreamId ?? NewRandomString(),
                 DefaultTemplateVersion = _defaultTemplateVersion,
                 ApprovalMode = _approvalMode.GetValueOrDefault(NewRandomEnum(ApprovalMode.Undefined)),
+                ErrorDetectors = _errorDetectors,
                 ProviderSource = _providerSource.GetValueOrDefault(NewRandomEnum(ProviderSource.CFS)),
                 PaymentOrganisationSource = _paymentOrganisationSource.GetValueOrDefault(NewRandomEnum(PaymentOrganisationSource.PaymentOrganisationAsProvider)),
                 UpdateCoreProviderVersion = _updateCoreProviderVersion.GetValueOrDefault(NewRandomEnum(UpdateCoreProviderVersion.Manual))

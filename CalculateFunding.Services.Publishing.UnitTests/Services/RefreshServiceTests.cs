@@ -166,7 +166,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Select(_ => (IDetectPublishedProviderErrors)Activator.CreateInstance(_))
                 .ToArray();
             detectPublishedProviderErrors = detectPublishedProviderErrors.Concat(new[] { new TrustIdMismatchErrorDetector(_organisationGroupGenerator.Object, _mapper, _publishedFundingDataService.Object, _publishingResiliencePolicies) }).ToArray();
-            _detection = new PublishedProviderErrorDetection(detectPublishedProviderErrors);
+            IErrorDetectionStrategyLocator errorDetectionStrategyLocator = new ErrorDetectionStrategyLocator(detectPublishedProviderErrors);
+            _detection = new PublishedProviderErrorDetection(errorDetectionStrategyLocator);
             _policiesApiClient = new Mock<IPoliciesApiClient>();
             _cacheProvider = new Mock<ICacheProvider>();
 

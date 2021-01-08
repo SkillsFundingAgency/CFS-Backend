@@ -20,6 +20,8 @@ namespace CalculateFunding.Services.Publishing.Errors
         private readonly IPublishedFundingDataService _publishedFundingDataService;
         private readonly AsyncPolicy _publishingResiliencePolicy;
 
+        public override string Name => nameof(TrustIdMismatchErrorDetector);
+
         public TrustIdMismatchErrorDetector(IOrganisationGroupGenerator organisationGroupGenerator,
             IMapper mapper,
             IPublishedFundingDataService publishedFundingDataService,
@@ -77,28 +79,24 @@ namespace CalculateFunding.Services.Publishing.Errors
                 publishedProvidersContext.OrganisationGroupResultsData.Add(keyForOrganisationGroups, organisationGroups);
             }
 
-            IEnumerable<PublishedFunding> unmatchedPublishedFundings 
-                = publishedProvidersContext.CurrentPublishedFunding
-                    .Where(x => organisationGroups.Any(t =>
-                        t.Identifiers.Any(i => 
-                            x.Current.OrganisationGroupIdentifierValue == i.Value && 
-                            x.Current.OrganisationGroupTypeIdentifier == i.Type.ToString()))
-                        && !x.Current.ProviderFundings.Any(pv => pv == publishedProvider.Released.FundingId))
-                    .ToList();
-
-            if (unmatchedPublishedFundings.Any())
-            {
-                unmatchedPublishedFundings.ForEach(x => {
-                    errorCheck.AddError(new PublishedProviderError
-                    {
-                        Type = PublishedProviderErrorType.TrustIdMismatch,
-                        Identifier = $"{x.Current.OrganisationGroupTypeIdentifier}-{x.Current.OrganisationGroupIdentifierValue}",
-                        DetailedErrorMessage = $"TrustId {x.Current.OrganisationGroupTypeIdentifier}-{x.Current.OrganisationGroupIdentifierValue} not matched.",
-                        SummaryErrorMessage = "TrustId  not matched",
-                        FundingStreamId = publishedProvider.Current.FundingStreamId
+            publishedProvidersContext.CurrentPublishedFunding
+                    .ForEach(x => {
+                        if (organisationGroups.Any(t =>
+                            t.Identifiers.Any(i =>
+                                x.Current.OrganisationGroupIdentifierValue == i.Value &&
+                                x.Current.OrganisationGroupTypeIdentifier == i.Type.ToString()))
+                            && !x.Current.ProviderFundings.Any(pv => pv == publishedProvider.Released.FundingId))
+                        {
+                            errorCheck.AddError(new PublishedProviderError
+                            {
+                                Type = PublishedProviderErrorType.TrustIdMismatch,
+                                Identifier = $"{x.Current.OrganisationGroupTypeIdentifier}-{x.Current.OrganisationGroupIdentifierValue}",
+                                DetailedErrorMessage = $"TrustId {x.Current.OrganisationGroupTypeIdentifier}-{x.Current.OrganisationGroupIdentifierValue} not matched.",
+                                SummaryErrorMessage = "TrustId  not matched",
+                                FundingStreamId = publishedProvider.Current.FundingStreamId
+                            });
+                        }
                     });
-                });
-            }
 
             return errorCheck;
         }

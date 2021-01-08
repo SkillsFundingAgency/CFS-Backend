@@ -10,6 +10,8 @@ namespace CalculateFunding.Services.Publishing.Errors
 {
     public class FundingLineValueProfileMismatchErrorDetector : PublishedProviderErrorDetector
     {
+        public override string Name => nameof(FundingLineValueProfileMismatchErrorDetector);
+
         protected override void ClearErrors(PublishedProviderVersion publishedProviderVersion)
         {
             publishedProviderVersion.Errors?.RemoveAll(_ => _.Type == PublishedProviderErrorType.FundingLineValueProfileMismatch);

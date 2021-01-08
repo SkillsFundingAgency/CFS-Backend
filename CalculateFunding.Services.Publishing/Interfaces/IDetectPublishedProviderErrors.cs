@@ -6,6 +6,8 @@ namespace CalculateFunding.Services.Publishing.Interfaces
 {
     public interface IDetectPublishedProviderErrors
     {
+        string Name { get; }
+
         Task DetectErrors(PublishedProvider publishedProvider, PublishedProvidersContext publishedProvidersContext);
     }
 }

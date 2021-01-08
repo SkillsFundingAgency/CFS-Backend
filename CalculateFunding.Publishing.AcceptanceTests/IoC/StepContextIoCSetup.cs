@@ -27,6 +27,7 @@ using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.Errors;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Services.Publishing.Profiling;
 using CalculateFunding.Services.Publishing.Providers;
 using CalculateFunding.Services.Publishing.Reporting;
@@ -111,8 +112,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<ReApplyCustomProfiles, IReApplyCustomProfiles>();
             RegisterTypeAs<ReProfilingResponseMapper, IReProfilingResponseMapper>();
             RegisterTypeAs<ReProfilingRequestBuilder, IReProfilingRequestBuilder>();
-            RegisterInstanceAs<IPublishedProviderErrorDetection>(new PublishedProviderErrorDetection(ArraySegment<IDetectPublishedProviderErrors>.Empty));
-
+            
             IMapper mapper = new MapperConfiguration(c =>
             {
                 c.AddProfile<PublishingServiceMappingProfile>();
@@ -195,6 +195,13 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
 
             RegisterTypeAs<OrganisationGroupTargetProviderLookup, IOrganisationGroupTargetProviderLookup>();
 
+            IDetectPublishedProviderErrors[] detectorStrategies = typeof(PublishedProviderErrorDetector).Assembly.GetTypes()
+                .Where(_ => _.Implements(typeof(PublishedProviderErrorDetector)))
+                .Select(_ => (PublishedProviderErrorDetector)_objectContainer.Resolve(_))
+                .ToArray();
+
+            RegisterInstanceAs<IErrorDetectionStrategyLocator>(new ErrorDetectionStrategyLocator(detectorStrategies));
+            RegisterTypeAs<PublishedProviderErrorDetection, IPublishedProviderErrorDetection>();
 
             PublishedProviderContentsGeneratorResolver providerContentsGeneratorResolver = new PublishedProviderContentsGeneratorResolver();
             providerContentsGeneratorResolver.Register("1.0", new PublishedProviderContentsGenerator());

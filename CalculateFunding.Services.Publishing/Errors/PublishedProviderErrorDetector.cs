@@ -24,6 +24,8 @@ namespace CalculateFunding.Services.Publishing.Errors
             }
         }
 
+        public abstract string Name { get; }
+
         protected abstract void ClearErrors(PublishedProviderVersion publishedProviderVersion);
 
         protected abstract Task<ErrorCheck> HasErrors(PublishedProvider publishedProvider, PublishedProvidersContext publishedProvidersContext);

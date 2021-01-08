@@ -360,6 +360,7 @@ namespace CalculateFunding.Api.Publishing
             builder
                 .AddSingleton<IPublishedProviderProfilingService, PublishedProviderProfilingService>()
                 .AddSingleton<IPublishedProviderErrorDetection, PublishedProviderErrorDetection>()
+                .AddSingleton<IErrorDetectionStrategyLocator, ErrorDetectionStrategyLocator>()
                 .AddSingleton<IDetectPublishedProviderErrors, FundingLineValueProfileMismatchErrorDetector>()
                 .AddSingleton<IProfilingService, ProfilingService>()
                 .AddSingleton<IHealthChecker, ProfilingService>()

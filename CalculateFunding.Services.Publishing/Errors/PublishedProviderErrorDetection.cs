@@ -11,13 +11,13 @@ namespace CalculateFunding.Services.Publishing.Errors
 {
     public class PublishedProviderErrorDetection : IPublishedProviderErrorDetection
     {
-        private readonly IEnumerable<IDetectPublishedProviderErrors> _errorDetectors;
+        private readonly IErrorDetectionStrategyLocator _errorDetectorLocator;
 
-        public PublishedProviderErrorDetection(IEnumerable<IDetectPublishedProviderErrors> errorDetectors)
+        public PublishedProviderErrorDetection(IErrorDetectionStrategyLocator errorDetectorLocator)
         {
-            Guard.ArgumentNotNull(errorDetectors, nameof(errorDetectors));
-            
-            _errorDetectors = errorDetectors;
+            Guard.ArgumentNotNull(errorDetectorLocator, nameof(errorDetectorLocator));
+
+            _errorDetectorLocator = errorDetectorLocator;
         }
 
         public async Task ProcessPublishedProvider(PublishedProvider publishedProvider,
@@ -30,9 +30,14 @@ namespace CalculateFunding.Services.Publishing.Errors
             Func<IDetectPublishedProviderErrors, bool> predicate,
             PublishedProvidersContext context)
         {
-            foreach (IDetectPublishedProviderErrors errorDetector in _errorDetectors.Where(predicate))
+            IEnumerable<IDetectPublishedProviderErrors> errorDetectors = context.FundingConfiguration?.ErrorDetectors?.Select(_ => _errorDetectorLocator.GetDetector(_));
+
+            if (errorDetectors.AnyWithNullCheck())
             {
-                await errorDetector.DetectErrors(publishedProvider, context);
+                foreach (IDetectPublishedProviderErrors errorDetector in errorDetectors.Where(predicate))
+                {
+                    await errorDetector.DetectErrors(publishedProvider, context);
+                }
             }
         }
     }

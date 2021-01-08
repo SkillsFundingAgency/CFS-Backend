@@ -27,6 +27,9 @@ namespace CalculateFunding.Models.Policy.FundingPolicy
         
         [JsonProperty("variations")]
         public IEnumerable<VariationType> Variations { get; set; }
+
+        [JsonProperty("errorDetectors")]
+        public IEnumerable<string> ErrorDetectors { get; set; }
         
         [JsonProperty("approvalMode")]
         public ApprovalMode ApprovalMode { get; set; }

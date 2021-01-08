@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Errors;
@@ -17,6 +18,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
         private Mock<IDetectPublishedProviderErrors> _detectorThree;
 
         private PublishedProviderErrorDetection _errorDetection;
+        private IErrorDetectionStrategyLocator _errorDetectionStrategyLocator;
+        private PublishedProvidersContext _publishedProvidersContext;
 
         [TestInitialize]
         public void SetUp()
@@ -25,12 +28,29 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
             _detectorTwo = NewDetectorMock();
             _detectorThree = NewDetectorMock();
 
-            _errorDetection = new PublishedProviderErrorDetection(new[]
+            _detectorOne.Setup(_ => _.Name).Returns(Guid.NewGuid().ToString());
+            _detectorTwo.Setup(_ => _.Name).Returns(Guid.NewGuid().ToString());
+            _detectorThree.Setup(_ => _.Name).Returns(Guid.NewGuid().ToString());
+
+            _publishedProvidersContext = new PublishedProvidersContext();
+            _publishedProvidersContext.FundingConfiguration = new Common.ApiClient.Policies.Models.FundingConfig.FundingConfiguration
+            {
+                ErrorDetectors = new[]
+                {
+                    _detectorOne.Object.Name,
+                    _detectorTwo.Object.Name,
+                    _detectorThree.Object.Name
+                }
+            };
+
+            _errorDetectionStrategyLocator = new ErrorDetectionStrategyLocator(new[]
             {
                 _detectorOne.Object,
                 _detectorTwo.Object,
                 _detectorThree.Object
             });
+
+            _errorDetection = new PublishedProviderErrorDetection(_errorDetectionStrategyLocator);
         }
 
         [TestMethod]
@@ -46,17 +66,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
                 new PublishedProviderError()
             });
 
-            PublishedProvidersContext publishedProvidersContext = new PublishedProvidersContext();
             
-            await _errorDetection.ProcessPublishedProvider(publishedProvider, publishedProvidersContext);
+            await _errorDetection.ProcessPublishedProvider(publishedProvider, _publishedProvidersContext);
 
-            _detectorOne.Verify(_ => _.DetectErrors(publishedProvider, publishedProvidersContext), Times.Once);
-            _detectorTwo.Verify(_ => _.DetectErrors(publishedProvider, publishedProvidersContext), Times.Once);
-            _detectorThree.Verify(_ => _.DetectErrors(publishedProvider, publishedProvidersContext), Times.Once);
+            _detectorOne.Verify(_ => _.DetectErrors(publishedProvider, _publishedProvidersContext), Times.Once);
+            _detectorTwo.Verify(_ => _.DetectErrors(publishedProvider, _publishedProvidersContext), Times.Once);
+            _detectorThree.Verify(_ => _.DetectErrors(publishedProvider, _publishedProvidersContext), Times.Once);
         }
 
         private PublishedProvider NewPublishedProvider() => new PublishedProviderBuilder()
             .Build();
+
         private Mock<IDetectPublishedProviderErrors> NewDetectorMock() => new Mock<IDetectPublishedProviderErrors>();
     }
 }
