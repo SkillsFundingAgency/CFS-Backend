@@ -8,13 +8,11 @@ using CalculateFunding.Common.ApiClient.Graph;
 using CalculateFunding.Common.ApiClient.Graph.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Caching;
-using CalculateFunding.Common.TemplateMetadata.Enums;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Specifications;
 using CalculateFunding.Models.Specifications.ViewModels;
 using CalculateFunding.Models.Specs;
-using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Specifications.Interfaces;
@@ -118,7 +116,7 @@ namespace CalculateFunding.Services.Specifications
 
             SpecificationSummary specificationSummary = (specificationSummaryResult as OkObjectResult).Value
                 as SpecificationSummary;
-           
+
             string templateVersion = specificationSummary.TemplateIds.ContainsKey(fundingStreamId)
                 ? specificationSummary.TemplateIds[fundingStreamId]
                 : null;
@@ -278,14 +276,14 @@ namespace CalculateFunding.Services.Specifications
         {
             level++;
 
-            string calculationType = null;
+            string calculationType = calculation.Type.ToString();
             List<FundingStructureItem> innerFundingStructureItems = null;
 
             string calculationId = GetCalculationId(calculation, templateMappingItems);
 
             string calculationPublishStatus = GetCalculationPublishStatus(calculationMetadata, calculationIdsWithError, calculationId);
 
-            
+
             if (calculation.Calculations != null && calculation.Calculations.Any())
             {
                 innerFundingStructureItems = calculation.Calculations.Select(innerCalculation =>

@@ -117,11 +117,11 @@ namespace CalculateFunding.Services.Specifictions.UnitTests
 
             serializableError[failureOne.PropertyName]
                 .Should()
-                .BeEquivalentTo(new[] {failureOne.ErrorMessage});
+                .BeEquivalentTo(new[] { failureOne.ErrorMessage });
 
             serializableError[failureTwo.PropertyName]
                 .Should()
-                .BeEquivalentTo(new[] {failureTwo.ErrorMessage});
+                .BeEquivalentTo(new[] { failureTwo.ErrorMessage });
 
             await AndTheCacheWasNotUpdated();
         }
@@ -352,7 +352,8 @@ namespace CalculateFunding.Services.Specifictions.UnitTests
                             new Calculation
                             {
                                 Name = "FundingLine-3-calc-1",
-                                TemplateCalculationId = 1
+                                TemplateCalculationId = 1,
+                                Type = Common.TemplateMetadata.Enums.CalculationType.Cash
                             },
                             new Calculation
                             {
@@ -363,14 +364,16 @@ namespace CalculateFunding.Services.Specifictions.UnitTests
                                     new Calculation
                                     {
                                         Name = "FundingLine-3-calc-2-calc-1",
-                                        TemplateCalculationId = 2
+                                        TemplateCalculationId = 2,
+                                        Type = Common.TemplateMetadata.Enums.CalculationType.Cash
                                     }
                                 }
                             },
                             new Calculation
                             {
                                 Name = "FundingLine-3-calc-3",
-                                TemplateCalculationId = 3
+                                TemplateCalculationId = 3,
+                                Type = Common.TemplateMetadata.Enums.CalculationType.Cash
                             }
                         }
                     },
@@ -505,7 +508,8 @@ namespace CalculateFunding.Services.Specifictions.UnitTests
                             null,
                             aValidCalculationId1,
                             CalculationExpectedPublishStatus.ToString(),
-                            FundingStructureType.Calculation),
+                            FundingStructureType.Calculation,
+                            "Cash"),
                         new FundingStructureItem(
                             2,
                             "FundingLine-3-calc-2",
@@ -513,7 +517,7 @@ namespace CalculateFunding.Services.Specifictions.UnitTests
                             aValidCalculationId2,
                             "Error",
                             FundingStructureType.Calculation,
-                            null,
+                            "Cash",
                             new List<FundingStructureItem>
                             {
                                 new FundingStructureItem(
@@ -522,7 +526,8 @@ namespace CalculateFunding.Services.Specifictions.UnitTests
                                     null,
                                     "CalculationIdForTemplateCalculationId2",
                                     "Error",
-                                    FundingStructureType.Calculation)
+                                    FundingStructureType.Calculation,
+                                    "Cash")
                             }),
                         new FundingStructureItem(
                             2,
@@ -530,7 +535,8 @@ namespace CalculateFunding.Services.Specifictions.UnitTests
                             null,
                             aValidCalculationId3,
                             CalculationExpectedPublishStatus.ToString(),
-                            FundingStructureType.Calculation),
+                            FundingStructureType.Calculation,
+                            "Cash"),
                         new FundingStructureItem(
                             2,
                             "FundingLine-3-fl-1",
