@@ -171,34 +171,35 @@ namespace CalculateFunding.Services.Publishing
             {
                 foreach (var paymentFundingLine in fundingLineTotals)
                 {
-                    
-                    List<DistributionPeriod> distributionPeriod = new List<DistributionPeriod>();
-                    var rt = profilingResponses[paymentFundingLine.FundingLineCode][paymentFundingLine.Value];
+                    if (profilingResponses.ContainsKey(paymentFundingLine.FundingLineCode))
+                    {
+                        List<DistributionPeriod> distributionPeriod = new List<DistributionPeriod>();
+                        var rt = profilingResponses[paymentFundingLine.FundingLineCode][paymentFundingLine.Value];
 
 
-                    foreach (var periods in rt.DistributionPeriods)
-                    {                         
-                        List<ProfilePeriod> profiles = (from profile in rt.DeliveryProfilePeriods.Where(r => r.DistributionPeriod == periods.DistributionPeriodCode)
-                                                        select new ProfilePeriod()
-                                                        {
-                                                            Type = ProfilePeriodType.CalendarMonth,
-                                                            TypeValue = profile.Period,
-                                                            Year = profile.Year,
-                                                            Occurrence = profile.Occurrence,
-                                                            ProfiledValue = profile.Value,
-                                                            DistributionPeriodId = profile.DistributionPeriod
-                                                        }).ToList();
-
-                        distributionPeriod.Add(new DistributionPeriod()
+                        foreach (var periods in rt.DistributionPeriods)
                         {
-                            ProfilePeriods = profiles,
-                            DistributionPeriodId = periods.DistributionPeriodCode,
-                            Value = periods.Value
-                        });
+                            List<ProfilePeriod> profiles = (from profile in rt.DeliveryProfilePeriods.Where(r => r.DistributionPeriod == periods.DistributionPeriodCode)
+                                                            select new ProfilePeriod()
+                                                            {
+                                                                Type = ProfilePeriodType.CalendarMonth,
+                                                                TypeValue = profile.Period,
+                                                                Year = profile.Year,
+                                                                Occurrence = profile.Occurrence,
+                                                                ProfiledValue = profile.Value,
+                                                                DistributionPeriodId = profile.DistributionPeriod
+                                                            }).ToList();
 
+                            distributionPeriod.Add(new DistributionPeriod()
+                            {
+                                ProfilePeriods = profiles,
+                                DistributionPeriodId = periods.DistributionPeriodCode,
+                                Value = periods.Value
+                            });
+
+                        }
+                        paymentFundingLine.DistributionPeriods = distributionPeriod;
                     }
-                    paymentFundingLine.DistributionPeriods = distributionPeriod;
-
                 }
             }
             catch (Exception ex)
