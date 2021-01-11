@@ -102,6 +102,10 @@
 
             public const string CalculationResultsCsvGeneration = "calculation-results-csv-generation";
 
+            public const string CalculationResultsCsvGenerationPoisoned = "calculation-results-csv-generation/$DeadLetterQueue";
+            
+            public const string CalculationResultsCsvGenerationPoisonedLocal = "calculation-results-csv-generation-poisoned";
+
             //For debug queue only as its on a timer
             public const string ScaleDownCosmosdbCollection = "scale-down-cosmosdb-collection";
 

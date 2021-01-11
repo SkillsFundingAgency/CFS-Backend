@@ -51,7 +51,15 @@ namespace CalculateFunding.Services.Results
                     _.Calculation != null && _.CalculationType == CalculationType.Template)
                     .OrderBy(_ => _.Calculation.Name))
                 {
-                    row[$"CAL: {templateCalculationResult.Calculation.Name} ({allTemplateMappings[templateCalculationResult.Calculation.Id].TemplateId})"] = templateCalculationResult.Value?.ToString();
+                    if (allTemplateMappings.ContainsKey(templateCalculationResult.Calculation.Id))
+                    {
+                        row[$"CAL: {templateCalculationResult.Calculation.Name} ({allTemplateMappings[templateCalculationResult.Calculation.Id].TemplateId})"] = templateCalculationResult.Value?.ToString();
+                    }
+                    else
+                    {
+                        // this calc has changed from a template calculation to an additional calculation so it won't be part of the template calculations collection
+                        row[$"ADD: {templateCalculationResult.Calculation.Name}"] = templateCalculationResult.Value?.ToString();
+                    }
                 }
 
                 foreach (CalculationResult templateCalculationResult in result.CalculationResults.Where(_ =>

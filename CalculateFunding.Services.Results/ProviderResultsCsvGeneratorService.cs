@@ -29,7 +29,7 @@ using Serilog;
 
 namespace CalculateFunding.Services.Results
 {
-    public class ProviderResultsCsvGeneratorService : ProcessingService, IProviderResultsCsvGeneratorService, IHealthChecker
+    public class ProviderResultsCsvGeneratorService : JobProcessingService, IProviderResultsCsvGeneratorService, IHealthChecker
     {
         public const int BatchSize = 100;
         
@@ -58,7 +58,7 @@ namespace CalculateFunding.Services.Results
             IProviderResultsToCsvRowsTransformation resultsToCsvRowsTransformation,
             IFileSystemAccess fileSystemAccess,
             IFileSystemCacheSettings fileSystemCacheSettings,
-            IJobManagement jobManagement)
+            IJobManagement jobManagement) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(blobClient, nameof(blobClient));
