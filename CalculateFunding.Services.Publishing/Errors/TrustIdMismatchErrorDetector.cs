@@ -64,11 +64,12 @@ namespace CalculateFunding.Services.Publishing.Errors
                 $"{fundingStreamId}:{fundingPeriodId}";
             
             IEnumerable<OrganisationGroupResult> organisationGroups;
+            HashSet<string> organisationGroupsHashSet;
             string keyForOrganisationGroups = OrganisationGroupsKey(publishedProvider.Current.FundingStreamId, publishedProvider.Current.FundingPeriodId);
 
             if (publishedProvidersContext.OrganisationGroupResultsData.ContainsKey(keyForOrganisationGroups))
             {
-                organisationGroups = publishedProvidersContext.OrganisationGroupResultsData[keyForOrganisationGroups];
+                organisationGroupsHashSet = publishedProvidersContext.OrganisationGroupResultsData[keyForOrganisationGroups];
             }
             else
             {
@@ -76,15 +77,13 @@ namespace CalculateFunding.Services.Publishing.Errors
                     publishedProvidersContext.FundingConfiguration, 
                     apiClientProviders, 
                     publishedProvidersContext.ProviderVersionId);
-                publishedProvidersContext.OrganisationGroupResultsData.Add(keyForOrganisationGroups, organisationGroups);
+                organisationGroupsHashSet = organisationGroups.SelectMany(_ => _.Identifiers.Select(_ => $"{_.Type}-{_.Value}")).Distinct().ToHashSet();
+                publishedProvidersContext.OrganisationGroupResultsData.Add(keyForOrganisationGroups, organisationGroupsHashSet);
             }
 
             publishedProvidersContext.CurrentPublishedFunding
                     .ForEach(x => {
-                        if (organisationGroups.Any(t =>
-                            t.Identifiers.Any(i =>
-                                x.Current.OrganisationGroupIdentifierValue == i.Value &&
-                                x.Current.OrganisationGroupTypeIdentifier == i.Type.ToString()))
+                        if (organisationGroupsHashSet.Contains($"{x.Current.OrganisationGroupTypeIdentifier}-{x.Current.OrganisationGroupIdentifierValue}")
                             && !x.Current.ProviderFundings.Any(pv => pv == publishedProvider.Released.FundingId))
                         {
                             errorCheck.AddError(new PublishedProviderError

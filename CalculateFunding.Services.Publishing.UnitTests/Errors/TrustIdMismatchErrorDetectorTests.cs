@@ -164,7 +164,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
                 SpecificationId = specificationId,
                 ProviderVersionId = providerVersionId,
                 CurrentPublishedFunding = publishedFundings,
-                OrganisationGroupResultsData = new Dictionary<string, IEnumerable<OrganisationGroupResult>>(),
+                OrganisationGroupResultsData = new Dictionary<string, HashSet<string>>(),
                 FundingConfiguration = fundingConfiguration
             };
 

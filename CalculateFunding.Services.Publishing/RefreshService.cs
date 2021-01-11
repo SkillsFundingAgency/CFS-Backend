@@ -342,7 +342,7 @@ namespace CalculateFunding.Services.Publishing
                 ProviderVersionId = specification.ProviderVersionId,
                 CurrentPublishedFunding = (await _publishingResiliencePolicy.ExecuteAsync(() => _publishedFundingDataService.GetCurrentPublishedFunding(specification.Id, GroupingReason.Payment)))
                     .Where(x => x.Current.GroupingReason == CalculateFunding.Models.Publishing.GroupingReason.Payment),
-                OrganisationGroupResultsData = new Dictionary<string, IEnumerable<OrganisationGroupResult>>(),
+                OrganisationGroupResultsData = new Dictionary<string, HashSet<string>>(),
                 FundingConfiguration = fundingConfiguration
             };
 
