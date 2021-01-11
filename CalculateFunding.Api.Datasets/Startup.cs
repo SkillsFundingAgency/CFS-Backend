@@ -15,16 +15,13 @@ using CalculateFunding.Common.WebApi.Http;
 using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
-using CalculateFunding.Models.Publishing;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.AspNet.Extensions;
 using CalculateFunding.Services.Core.AspNet.HealthChecks;
-using CalculateFunding.Services.Core.AzureStorage;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Interfaces.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
@@ -36,7 +33,6 @@ using CalculateFunding.Services.Datasets;
 using CalculateFunding.Services.Datasets.Interfaces;
 using CalculateFunding.Services.Datasets.MappingProfiles;
 using CalculateFunding.Services.Datasets.Validators;
-using CalculateFunding.Services.DeadletterProcessor;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Results.Repositories;
 using FluentValidation;
@@ -46,10 +42,14 @@ using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.OpenApi.Models;
 using OfficeOpenXml;
 using Polly.Bulkhead;
 using ServiceCollectionExtensions = CalculateFunding.Services.Core.Extensions.ServiceCollectionExtensions;
+using BlobClient = CalculateFunding.Common.Storage.BlobClient;
+using IBlobClient = CalculateFunding.Common.Storage.IBlobClient;
+using LocalBlobClient = CalculateFunding.Services.Core.AzureStorage.BlobClient;
+using LocalIBlobClient = CalculateFunding.Services.Core.Interfaces.AzureStorage.IBlobClient;
+using CalculateFunding.Common.Storage;
 
 namespace CalculateFunding.Api.Datasets
 {
@@ -179,13 +179,26 @@ namespace CalculateFunding.Api.Datasets
             builder
                 .AddSingleton<IBlobClient, BlobClient>((ctx) =>
                 {
+                    BlobStorageOptions storageSettings = new BlobStorageOptions();
+
+                    Configuration.Bind("AzureStorageSettings", storageSettings);
+
+                    storageSettings.ContainerName = "datasets";
+
+                    IBlobContainerRepository blobContainerRepository = new BlobContainerRepository(storageSettings);
+                    return new BlobClient(blobContainerRepository);
+                });
+
+            builder
+                .AddSingleton<LocalIBlobClient, LocalBlobClient>((ctx) =>
+                {
                     AzureStorageSettings storageSettings = new AzureStorageSettings();
 
                     Configuration.Bind("AzureStorageSettings", storageSettings);
 
                     storageSettings.ContainerName = "datasets";
 
-                    return new BlobClient(storageSettings);
+                    return new LocalBlobClient(storageSettings);
                 });
 
             builder.AddSingleton<IProviderSourceDatasetsRepository, ProviderSourceDatasetsRepository>(ctx =>

@@ -6,7 +6,6 @@ using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.DataImporter.Validators.Models;
@@ -23,6 +22,7 @@ using PoliciesApiModels = CalculateFunding.Common.ApiClient.Policies.Models;
 using System;
 using System.Collections.Generic;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.Storage;
 
 namespace CalculateFunding.Services.Datasets.Services
 {

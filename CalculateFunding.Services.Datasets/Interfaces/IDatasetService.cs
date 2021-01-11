@@ -40,5 +40,7 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         Task UpdateDatasetAndVersionDefinitionName(Reference datsetDefinitionReference);
 
         Task DeleteDatasets(Message message);
+        
+        IActionResult GetValidateDatasetValidationErrorSasUrl(DatasetValidationErrorRequestModel requestModel);
     }
 }

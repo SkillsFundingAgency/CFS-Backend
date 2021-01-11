@@ -14,13 +14,11 @@ using CalculateFunding.Functions.Datasets.ServiceBus;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Services.Core.AzureStorage;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Functions.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Interfaces.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
@@ -44,6 +42,11 @@ using Microsoft.Extensions.DependencyInjection;
 using OfficeOpenXml;
 using Polly.Bulkhead;
 using ServiceCollectionExtensions = CalculateFunding.Services.Core.Extensions.ServiceCollectionExtensions;
+using BlobClient = CalculateFunding.Common.Storage.BlobClient;
+using IBlobClient = CalculateFunding.Common.Storage.IBlobClient;
+using LocalBlobClient = CalculateFunding.Services.Core.AzureStorage.BlobClient;
+using LocalIBlobClient = CalculateFunding.Services.Core.Interfaces.AzureStorage.IBlobClient;
+using CalculateFunding.Common.Storage;
 
 [assembly: FunctionsStartup(typeof(CalculateFunding.Functions.Datasets.Startup))]
 
@@ -151,15 +154,27 @@ namespace CalculateFunding.Functions.Datasets
             builder
                 .AddSingleton<IBlobClient, BlobClient>((ctx) =>
                 {
+                    BlobStorageOptions storageSettings = new BlobStorageOptions();
+
+                    config.Bind("AzureStorageSettings", storageSettings);
+
+                    storageSettings.ContainerName = "datasets";
+
+                    IBlobContainerRepository blobContainerRepository = new BlobContainerRepository(storageSettings);
+                    return new BlobClient(blobContainerRepository);
+                });
+
+            builder
+                .AddSingleton<LocalIBlobClient, LocalBlobClient>((ctx) =>
+                {
                     AzureStorageSettings storageSettings = new AzureStorageSettings();
 
                     config.Bind("AzureStorageSettings", storageSettings);
 
                     storageSettings.ContainerName = "datasets";
 
-                    return new BlobClient(storageSettings);
+                    return new LocalBlobClient(storageSettings);
                 });
-
 
             builder.AddSingleton<IProviderSourceDatasetsRepository, ProviderSourceDatasetsRepository>(ctx =>
                 new ProviderSourceDatasetsRepository(CreateCosmosDbSettings(config, "providerdatasets")));

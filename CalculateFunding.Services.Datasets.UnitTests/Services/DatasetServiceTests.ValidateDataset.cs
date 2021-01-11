@@ -7,7 +7,6 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
-using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Providers;
@@ -15,6 +14,7 @@ using CalculateFunding.Common.ApiClient.Providers.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Common.Storage;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Repositories.Common.Search;
@@ -22,7 +22,6 @@ using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.DataImporter.Models;
 using CalculateFunding.Services.DataImporter.Validators.Models;
@@ -30,7 +29,6 @@ using CalculateFunding.Services.Datasets.Interfaces;
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.Storage.Blob;
@@ -41,6 +39,7 @@ using OfficeOpenXml;
 using Serilog;
 using BadRequestObjectResult = Microsoft.AspNetCore.Mvc.BadRequestObjectResult;
 using ValidationResult = FluentValidation.Results.ValidationResult;
+using ProvidersApiClientModels = CalculateFunding.Common.ApiClient.Providers.Models;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
@@ -350,26 +349,28 @@ namespace CalculateFunding.Services.Datasets.Services
                 policyRepository: policyRepository);
 
             // Act
-            Func<Task> invocation = async() => await service.Run(message);
-
-            invocation
-                .Should()
-                .Throw<NonRetriableException>();
+            await service.Run(message);
 
             // Assert     
+            service.Outcome.Should().Be("ValidationFailed");
+            service.Job.CompletionStatus.Should().Be(CompletionStatus.Succeeded);
+
+            string validationErrorBlobName = $"validation-errors/{JobId}.json";
+            await blobClient
+                .Received(1)
+                .UploadFileAsync(Arg.Is(validationErrorBlobName), Arg.Any<Stream>());
+
             mapper
                 .Received(1)
                 .Map<Models.ProviderLegacy.ProviderSummary>(Arg.Any<Common.ApiClient.Providers.Models.Provider>());
 
-            await blob
-                .Received(1)
-                .UploadFromStreamAsync(Arg.Any<Stream>());
-
             await cacheProvider
                 .Received(1)
-                .SetAsync(Arg.Is($"{CacheKeys.DatasetValidationStatus}:{message.UserProperties["operation-id"].ToString()}"), Arg.Is<DatasetValidationStatusModel>(v =>
-                v.OperationId == message.UserProperties["operation-id"].ToString() &&
-                v.ValidationFailures.Count == 3));
+                .SetAsync(
+                    Arg.Is($"{CacheKeys.DatasetValidationStatus}:{message.UserProperties["operation-id"]}"), 
+                    Arg.Is<DatasetValidationStatusModel>(v =>
+                        v.OperationId == message.UserProperties["operation-id"].ToString() &&
+                        v.ValidationFailures.Count == 2));
         }
 
         [TestMethod]
@@ -544,11 +545,27 @@ namespace CalculateFunding.Services.Datasets.Services
             };
 
             IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            ProviderVersion providerVersion = new ProviderVersion
+            {
+                Providers = new List<ProvidersApiClientModels.Provider>
+                {
+                    new ProvidersApiClientModels.Provider
+                    {
+
+                    }
+                }
+            };
             providersApiClient
                 .GetCurrentProvidersForFundingStream(FundingStreamId)
-                .Returns(new ApiResponse<ProviderVersion>(HttpStatusCode.OK));
+                .Returns(new ApiResponse<ProviderVersion>(HttpStatusCode.OK, providerVersion));
 
             IMapper mapper = CreateMapper();
+
+            JobViewModel job = new JobViewModel { Id = JobId};
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(JobId)
+                .Returns(job);
 
             DatasetService service = CreateDatasetService(
                 logger: logger,
@@ -557,19 +574,20 @@ namespace CalculateFunding.Services.Datasets.Services
                 datasetUploadValidator: datasetUploadValidator,
                 providersApiClient: providersApiClient,
                 mapper: mapper,
-                policyRepository: policyRepository);
+                policyRepository: policyRepository,
+                jobManagement: jobManagement);
 
             // Act
-           Func<Task> invocation = async() => await service.Run(message);
+            await service.Run(message);
 
             // Assert
-            invocation
-                .Should()
-                .Throw<NonRetriableException>();
+            service.Outcome.Should().Be("ValidationFailed");
+            service.Job.CompletionStatus.Should().Be(CompletionStatus.Succeeded);
 
-            logger
+            string validationErrorBlobName = $"validation-errors/{JobId}.json";
+            await blobClient
                 .Received(1)
-                .Error(Arg.Is($"No provider version for the funding stream {datasetDefinition.FundingStreamId}"));
+                .UploadFileAsync(Arg.Is(validationErrorBlobName), Arg.Any<Stream>());
         }
 
         [TestMethod]
@@ -618,6 +636,12 @@ namespace CalculateFunding.Services.Datasets.Services
             ICacheProvider cacheProvider = CreateCacheProvider();
 
             IJobManagement jobManagement = CreateJobManagement();
+            Job job = new Job { Id = JobId };
+            jobManagement
+                .QueueJob(Arg.Is<JobCreateModel>(j =>
+                    j.JobDefinitionId == JobConstants.DefinitionNames.ValidateDatasetJob &&
+                    !string.IsNullOrWhiteSpace(j.Properties["operation-id"])))
+                .Returns(Task.FromResult(job));
 
             DatasetService service = CreateDatasetService(
                 logger: logger,
@@ -639,6 +663,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 .BeOfType<DatasetValidationStatusModel>()
                 .Should()
                 .NotBeNull();
+
+            DatasetValidationStatusModel datasetValidationStatusModel = (result as OkObjectResult).Value as DatasetValidationStatusModel;
+            datasetValidationStatusModel.ValidateDatasetJobId.Should().Be(JobId);
 
             await cacheProvider
                 .Received(1)
@@ -701,6 +728,12 @@ namespace CalculateFunding.Services.Datasets.Services
             ICacheProvider cacheProvider = CreateCacheProvider();
 
             IJobManagement jobManagement = CreateJobManagement();
+            Job job = new Job { Id = JobId };
+            jobManagement
+                .QueueJob(Arg.Is<JobCreateModel>(j =>
+                    j.JobDefinitionId == JobConstants.DefinitionNames.ValidateDatasetJob &&
+                    !string.IsNullOrWhiteSpace(j.Properties["operation-id"])))
+                .Returns(Task.FromResult(job));
 
             DatasetService service = CreateDatasetService(
                 logger: logger,
@@ -722,6 +755,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 .BeOfType<DatasetValidationStatusModel>()
                 .Should()
                 .NotBeNull();
+
+            DatasetValidationStatusModel datasetValidationStatusModel = (result as OkObjectResult).Value as DatasetValidationStatusModel;
+            datasetValidationStatusModel.ValidateDatasetJobId.Should().Be(JobId);
 
             await cacheProvider
                 .Received(1)
@@ -966,22 +1002,22 @@ namespace CalculateFunding.Services.Datasets.Services
                 policyRepository: policyRepository);
 
             // Act
-            Func<Task> test = async () => { await service.Run(message); };
+            await service.Run(message);
 
             // Assert
-            test
-                .Should()
-                .Throw<NonRetriableException>();
+            service.Outcome.Should().Be("ValidationFailed");
+            service.Job.CompletionStatus.Should().Be(CompletionStatus.Succeeded);
 
-            await blob
+            string validationErrorBlobName = $"validation-errors/{JobId}.json";
+            await blobClient
                 .Received(1)
-                .UploadFromStreamAsync(Arg.Any<Stream>());
+                .UploadFileAsync(Arg.Is(validationErrorBlobName), Arg.Any<Stream>());
 
             await cacheProvider
                 .Received(1)
                 .SetAsync(Arg.Is($"{CacheKeys.DatasetValidationStatus}:{message.UserProperties["operation-id"].ToString()}"), Arg.Is<DatasetValidationStatusModel>(v =>
                 v.OperationId == message.UserProperties["operation-id"].ToString() &&
-                v.ValidationFailures.Count == 3));
+                v.ValidationFailures.Count == 2));
         }
 
         [TestMethod]

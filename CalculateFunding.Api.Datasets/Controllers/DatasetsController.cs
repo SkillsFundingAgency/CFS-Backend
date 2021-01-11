@@ -359,5 +359,18 @@ namespace CalculateFunding.Api.Datasets.Controllers
             
             return await _definitionService.CreateOrUpdateDatasetDefinition(createDatasetDefinitionModel, Request.GetCorrelationId(), Request.GetUserOrDefault());
         }
+
+        [Route("api/datasets/get-validate-dataset-error-url")]
+        [HttpPost]
+        [Produces(typeof(DatasetValidationErrorSasUrlResponseModel))]
+        public IActionResult GetValidateDatasetValidationErrorUrl([FromBody] DatasetValidationErrorRequestModel requestModel)
+        {
+            if (string.IsNullOrWhiteSpace(requestModel?.JobId))
+            {
+                return new BadRequestObjectResult($"Missing {nameof(requestModel.JobId)} details");
+            }
+
+            return _datasetService.GetValidateDatasetValidationErrorSasUrl(requestModel);
+        }
     }
 }

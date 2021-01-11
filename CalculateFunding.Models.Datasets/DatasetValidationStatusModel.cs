@@ -16,5 +16,7 @@ namespace CalculateFunding.Models.Datasets
         public string DatasetId { get; set; }
 
         public IDictionary<string, IEnumerable<string>> ValidationFailures { get; set; }
+
+        public string ValidateDatasetJobId { get; set; }
     }
 }

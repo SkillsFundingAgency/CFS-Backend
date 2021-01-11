@@ -16,7 +16,6 @@ using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Datasets.Interfaces;
 using CalculateFunding.Services.Results.Interfaces;
 using FluentAssertions;
@@ -33,6 +32,7 @@ using Serilog;
 using BadRequestObjectResult = Microsoft.AspNetCore.Mvc.BadRequestObjectResult;
 using ValidationResult = FluentValidation.Results.ValidationResult;
 using CalculateFunding.Models.Messages;
+using CalculateFunding.Common.Storage;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
