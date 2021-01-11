@@ -14,6 +14,7 @@ namespace CalculateFunding.Models.Specifications
             int level,
             string name,
             string fundingLineCode,
+            uint templateId,
             string calculationId,
             string calculationPublishStatus, 
             FundingStructureType type, 
@@ -25,6 +26,7 @@ namespace CalculateFunding.Models.Specifications
             Level = level;
             Name = name;
             FundingLineCode = fundingLineCode;
+            TemplateId = templateId;
             CalculationId = calculationId;
             Type = type;
             CalculationPublishStatus = calculationPublishStatus;
@@ -44,7 +46,10 @@ namespace CalculateFunding.Models.Specifications
         
         [JsonProperty("calculationId")]
         public string CalculationId { get; set; }
-        
+
+        [JsonProperty("templateId")]
+        public uint TemplateId { get; set; }
+
         [JsonProperty("calculationPublishStatus")]
         public string CalculationPublishStatus { get; set; }
         

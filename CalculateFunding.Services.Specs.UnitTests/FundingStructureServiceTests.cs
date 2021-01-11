@@ -9,7 +9,6 @@ using CalculateFunding.Common.ApiClient.Graph;
 using CalculateFunding.Common.ApiClient.Graph.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Caching;
-using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Models.Specifications;
 using CalculateFunding.Models.Specifications.ViewModels;
@@ -317,20 +316,24 @@ namespace CalculateFunding.Services.Specifictions.UnitTests
                     },
                     new FundingLine
                     {
+                        TemplateLineId = 234,
                         Name = "FundingLine-2-withFundingLines",
                         FundingLines = new List<FundingLine>
                         {
                             new FundingLine
                             {
+                                TemplateLineId = 345,
                                 Name = "FundingLine-2-fl-1"
                             },
                             new FundingLine
                             {
+                                TemplateLineId = 456,
                                 Name = "FundingLine-2-fl-2",
                                 FundingLines = new List<FundingLine>
                                 {
                                     new FundingLine
                                     {
+                                        TemplateLineId = 890,
                                         Name = "FundingLine-2-fl-2-fl-1"
                                     }
                                 }
@@ -339,11 +342,13 @@ namespace CalculateFunding.Services.Specifictions.UnitTests
                     },
                     new FundingLine
                     {
+                        TemplateLineId = 567,
                         Name = "FundingLine-3-withCalculationsAndFundingLines",
                         FundingLines = new List<FundingLine>
                         {
                             new FundingLine
                             {
+                                TemplateLineId = 678,
                                 Name = "FundingLine-3-fl-1"
                             }
                         },
@@ -352,7 +357,7 @@ namespace CalculateFunding.Services.Specifictions.UnitTests
                             new Calculation
                             {
                                 Name = "FundingLine-3-calc-1",
-                                TemplateCalculationId = 1,
+                                TemplateCalculationId = 7,
                                 Type = Common.TemplateMetadata.Enums.CalculationType.Cash
                             },
                             new Calculation
@@ -364,7 +369,7 @@ namespace CalculateFunding.Services.Specifictions.UnitTests
                                     new Calculation
                                     {
                                         Name = "FundingLine-3-calc-2-calc-1",
-                                        TemplateCalculationId = 2,
+                                        TemplateCalculationId = 8,
                                         Type = Common.TemplateMetadata.Enums.CalculationType.Cash
                                     }
                                 }
@@ -372,14 +377,14 @@ namespace CalculateFunding.Services.Specifictions.UnitTests
                             new Calculation
                             {
                                 Name = "FundingLine-3-calc-3",
-                                TemplateCalculationId = 3,
+                                TemplateCalculationId = 10,
                                 Type = Common.TemplateMetadata.Enums.CalculationType.Cash
                             }
                         }
                     },
                     new FundingLine
                     {
-                        TemplateLineId = 456,
+                        TemplateLineId = 789,
                         Name = "FundingLine-4"
                     },
                 }
@@ -401,7 +406,7 @@ namespace CalculateFunding.Services.Specifictions.UnitTests
                         {
                             new TemplateMappingItem
                             {
-                                TemplateId = 1,
+                                TemplateId = 7,
                                 CalculationId = aValidCalculationId1
                             },
                             new TemplateMappingItem
@@ -411,12 +416,12 @@ namespace CalculateFunding.Services.Specifictions.UnitTests
                             },
                             new TemplateMappingItem
                             {
-                                TemplateId = 2,
+                                TemplateId = 8,
                                 CalculationId = "CalculationIdForTemplateCalculationId2"
                             },
                             new TemplateMappingItem
                             {
-                                TemplateId = 3,
+                                TemplateId = 10,
                                 CalculationId = aValidCalculationId3
                             }
                         }
@@ -465,20 +470,22 @@ namespace CalculateFunding.Services.Specifictions.UnitTests
         {
             List<FundingStructureItem> result = new List<FundingStructureItem>
             {
-                new FundingStructureItem(1, "FundingLine-1", null, null, null, FundingStructureType.FundingLine),
+                new FundingStructureItem(1, "FundingLine-1", null, 123, null, null, FundingStructureType.FundingLine),
                 new FundingStructureItem(1,
                     "FundingLine-2-withFundingLines",
                     null,
+                    234,
                     null,
                     null,
                     FundingStructureType.FundingLine,
                     null,
                     new List<FundingStructureItem>
                     {
-                        new FundingStructureItem(2, "FundingLine-2-fl-1", null, null, null, FundingStructureType.FundingLine),
+                        new FundingStructureItem(2, "FundingLine-2-fl-1", null, 345, null, null, FundingStructureType.FundingLine),
                         new FundingStructureItem(2,
                             "FundingLine-2-fl-2",
                             null,
+                            456,
                             null,
                             null,
                             FundingStructureType.FundingLine,
@@ -488,6 +495,7 @@ namespace CalculateFunding.Services.Specifictions.UnitTests
                                 new FundingStructureItem(3,
                                     "FundingLine-2-fl-2-fl-1",
                                     null,
+                                    890,
                                     null,
                                     null,
                                     FundingStructureType.FundingLine)
@@ -496,6 +504,7 @@ namespace CalculateFunding.Services.Specifictions.UnitTests
                 new FundingStructureItem(1,
                     "FundingLine-3-withCalculationsAndFundingLines",
                     null,
+                    567,
                     null,
                     "Error",
                     FundingStructureType.FundingLine,
@@ -506,6 +515,7 @@ namespace CalculateFunding.Services.Specifictions.UnitTests
                             2,
                             "FundingLine-3-calc-1",
                             null,
+                            7,
                             aValidCalculationId1,
                             CalculationExpectedPublishStatus.ToString(),
                             FundingStructureType.Calculation,
@@ -514,6 +524,7 @@ namespace CalculateFunding.Services.Specifictions.UnitTests
                             2,
                             "FundingLine-3-calc-2",
                             null,
+                            11,
                             aValidCalculationId2,
                             "Error",
                             FundingStructureType.Calculation,
@@ -524,6 +535,7 @@ namespace CalculateFunding.Services.Specifictions.UnitTests
                                     3,
                                     "FundingLine-3-calc-2-calc-1",
                                     null,
+                                    8,
                                     "CalculationIdForTemplateCalculationId2",
                                     "Error",
                                     FundingStructureType.Calculation,
@@ -533,6 +545,7 @@ namespace CalculateFunding.Services.Specifictions.UnitTests
                             2,
                             "FundingLine-3-calc-3",
                             null,
+                            10,
                             aValidCalculationId3,
                             CalculationExpectedPublishStatus.ToString(),
                             FundingStructureType.Calculation,
@@ -541,11 +554,12 @@ namespace CalculateFunding.Services.Specifictions.UnitTests
                             2,
                             "FundingLine-3-fl-1",
                             null,
+                            678,
                             null,
                             null,
                             FundingStructureType.FundingLine)
                     }),
-                new FundingStructureItem(1, "FundingLine-4", null, null, null, FundingStructureType.FundingLine),
+                new FundingStructureItem(1, "FundingLine-4", null, 789, null, null, FundingStructureType.FundingLine),
             };
 
             return result;
