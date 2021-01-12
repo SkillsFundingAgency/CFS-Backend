@@ -202,8 +202,6 @@ namespace CalculateFunding.Services.Calcs
 
             Build compilerOutput = _sourceCodeService.Compile(buildProject, calculations, compilerOptions);
 
-            compilerOutput = FilterDoubleToDecimalErrors(compilerOutput);
-
             if (compilerOutput.SourceFiles != null)
             {
                 await _sourceCodeService.SaveSourceFiles(compilerOutput.SourceFiles, buildProject.SpecificationId, SourceCodeType.Preview);
@@ -440,24 +438,6 @@ Calculation Name: {{calculationName}}";
             }
 
             return build;
-        }
-
-        private Build FilterDoubleToDecimalErrors(Build compilerOutput)
-        {
-            if (compilerOutput.CompilerMessages.IsNullOrEmpty())
-            {
-                return compilerOutput;
-            }
-
-            compilerOutput.CompilerMessages = compilerOutput.CompilerMessages
-                .Where(m => m.Message != DoubleToNullableDecimalErrorMessage &&
-                        m.Message != NullableDoubleToDecimalErrorMessage &&
-                        m.Message != DoubleToDecimalErrorMessage)
-                .ToList();
-
-            compilerOutput.Success = !compilerOutput.CompilerMessages.AnyWithNullCheck(m => m.Severity == Severity.Error);
-
-            return compilerOutput;
         }
     }
 }

@@ -2758,7 +2758,7 @@ End Class";
 
             Build build = new Build
             {
-                Success = true,
+                Success = false,
                 SourceFiles = sourceFiles,
                 CompilerMessages = new List<CompilerMessage>
                 {
@@ -2878,7 +2878,7 @@ End Class";
 
             Build build = new Build
             {
-                Success = true,
+                Success = false,
                 SourceFiles = sourceFiles,
                 CompilerMessages = new List<CompilerMessage>
                 {
@@ -2937,7 +2937,7 @@ End Class";
                .CompilerOutput
                .CompilerMessages
                .Should()
-               .HaveCount(1);
+               .HaveCount(3);
         }
 
         [TestMethod]

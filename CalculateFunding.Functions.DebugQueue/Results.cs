@@ -106,6 +106,20 @@ namespace CalculateFunding.Functions.DebugQueue
             log.LogInformation($"C# Queue trigger function processed: {item}");
         }
 
+        [FunctionName("on-calculation-results-csv-generation-failure")]
+        public static async Task RunCalculationResultsCsvGenerationFailure([QueueTrigger(ServiceBusConstants.QueueNames.CalculationResultsCsvGenerationPoisonedLocal, Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using IServiceScope scope = Functions.Results.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+
+            Message message = Helpers.ConvertToMessage<string>(item);
+
+            OnCalculationResultsCsvGenerationFailure function = scope.ServiceProvider.GetService<OnCalculationResultsCsvGenerationFailure>();
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
+
         [FunctionName("on-calculation-results-csv-generation-timer")]
         public static async Task RunCalculationResultsCsvGenerationTimer([QueueTrigger(ServiceBusConstants.QueueNames.CalculationResultsCsvGenerationTimer, Connection = "AzureConnectionString")] string item, ILogger log)
         {
