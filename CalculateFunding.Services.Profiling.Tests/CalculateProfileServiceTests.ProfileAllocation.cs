@@ -1,11 +1,13 @@
 using System;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Services.Core.Interfaces.Threading;
 using CalculateFunding.Services.Profiling.Models;
 using CalculateFunding.Services.Profiling.Repositories;
 using CalculateFunding.Services.Profiling.Services;
 using FluentAssertions;
 using FluentValidation;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using NSubstitute;
 using Polly;
 using Serilog;
@@ -47,7 +49,7 @@ namespace CalculateFunding.Services.Profiling.Tests
             };
 
             // Act
-            AllocationProfileResponse result = _service.ProfileAllocation(profileRequest, fundingStreamPeriodProfilePattern);
+            AllocationProfileResponse result = _service.ProfileAllocation(profileRequest, fundingStreamPeriodProfilePattern, profileRequest.FundingValue);
 
             // Assert
             result
@@ -120,7 +122,7 @@ namespace CalculateFunding.Services.Profiling.Tests
             };
 
             // Act
-            AllocationProfileResponse result = _service.ProfileAllocation(profileRequest, fundingStreamPeriodProfilePattern);
+            AllocationProfileResponse result = _service.ProfileAllocation(profileRequest, fundingStreamPeriodProfilePattern, profileRequest.FundingValue);
 
             // Assert
             result
@@ -186,12 +188,15 @@ namespace CalculateFunding.Services.Profiling.Tests
             _service = new CalculateProfileService(
                 _repo,
                 _cacheProvider,
+                new Mock<IValidator<ProfileBatchRequest>>().Object,
                 _logger,
                 new ProfilingResiliencePolicies
                 {
                     Caching = Policy.NoOpAsync(),
                     ProfilePatternRepository = Policy.NoOpAsync()
-                });
+                },
+                new Mock<IProducerConsumerFactory>().Object,
+                new FundingValueProfiler());
         }
     }
 }

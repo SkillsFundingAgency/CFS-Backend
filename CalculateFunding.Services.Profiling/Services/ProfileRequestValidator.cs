@@ -1,4 +1,6 @@
-﻿namespace CalculateFunding.Services.Profiling.Services
+﻿using FluentValidation;
+
+namespace CalculateFunding.Services.Profiling.Services
 {
 	using System.Collections.Generic;
 	using System.Linq;
@@ -23,4 +25,9 @@
 
 	    
     }
+
+	public class ProfileBatchRequestValidator : AbstractValidator<ProfileBatchRequest>
+	{
+			//TODO; rules for request validation
+	}
 }

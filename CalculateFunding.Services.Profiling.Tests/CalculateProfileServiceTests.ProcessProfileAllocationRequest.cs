@@ -1,3 +1,5 @@
+using CalculateFunding.Services.Core.Interfaces.Threading;
+using Moq;
 using Polly;
 
 namespace CalculateFunding.Services.Profiling.Tests
@@ -504,12 +506,15 @@ namespace CalculateFunding.Services.Profiling.Tests
             return new CalculateProfileService(
                 profilePatternRepository ?? Substitute.For<IProfilePatternRepository>(),
                 cacheProvider ?? Substitute.For<ICacheProvider>(),
+                new Mock<IValidator<ProfileBatchRequest>>().Object,
                 logger ?? Substitute.For<ILogger>(),
                 new ProfilingResiliencePolicies
                 {
                     Caching = Policy.NoOpAsync(),
                     ProfilePatternRepository = Policy.NoOpAsync()
-                });
+                },
+                new Mock<IProducerConsumerFactory>().Object,
+                new FundingValueProfiler());
         }
     }
 }

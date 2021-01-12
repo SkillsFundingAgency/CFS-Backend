@@ -87,6 +87,8 @@ namespace CalculateFunding.Api.Profiling
             ConfigureSwaggerServices(builder, "Calculate Funding Profiling", "v1");
 
             builder.AddSingleton<IProfilePatternRepository, ProfilePatternRepository>();
+            builder.AddSingleton<IFundingValueProfiler, FundingValueProfiler>();
+            builder.AddSingleton<IValidator<ProfileBatchRequest>, ProfileBatchRequestValidator>();
 
             builder.AddSingleton<IProfilePatternRepository, ProfilePatternRepository>(ctx =>
             {

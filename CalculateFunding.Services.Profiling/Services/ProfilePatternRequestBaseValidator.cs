@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using CalculateFunding.Common.Extensions;
 using CalculateFunding.Services.Profiling.Models;
 using FluentValidation;
 

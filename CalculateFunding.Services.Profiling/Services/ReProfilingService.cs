@@ -79,7 +79,8 @@ namespace CalculateFunding.Services.Profiling.Services
                     FundingValue = reProfileRequest.FundingLineTotal,
                     ProfilePatternKey = reProfileRequest.ProfilePatternKey
                 },
-                profilePattern);
+                profilePattern,
+                reProfileRequest.FundingLineTotal);
 
             return new ReProfileContext
             {

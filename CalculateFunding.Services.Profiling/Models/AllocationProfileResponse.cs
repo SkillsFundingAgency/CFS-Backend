@@ -4,16 +4,17 @@
     {
         public AllocationProfileResponse()
         {
-
         }
 
-        public AllocationProfileResponse(DeliveryProfilePeriod[] deliveryProfilePeriods, DistributionPeriods[] distributionPeriods)
+        public AllocationProfileResponse(DeliveryProfilePeriod[] deliveryProfilePeriods,
+            DistributionPeriods[] distributionPeriods)
         {
-
             DeliveryProfilePeriods = deliveryProfilePeriods;
             DistributionPeriods = distributionPeriods;
         }
+
         public DeliveryProfilePeriod[] DeliveryProfilePeriods { get; set; }
+
         public DistributionPeriods[] DistributionPeriods { get; set; }
 
         public string ProfilePatternKey { get; set; }

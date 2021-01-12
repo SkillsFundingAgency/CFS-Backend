@@ -1,14 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
-using CalculateFunding.Common.Extensions;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Profiling.Models;
+using static CalculateFunding.Common.Extensions.TypeExtensions;
 
 namespace CalculateFunding.Services.Profiling.Repositories
 {

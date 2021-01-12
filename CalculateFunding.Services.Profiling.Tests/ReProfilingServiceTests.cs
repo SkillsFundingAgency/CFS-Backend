@@ -308,7 +308,8 @@ namespace CalculateFunding.Services.Profiling.Tests
                         req.FundingLineCode == request.FundingLineCode &&
                         req.FundingValue == request.FundingLineTotal &&
                         req.ProfilePatternKey == request.ProfilePatternKey),
-                    profilePattern))
+                    profilePattern,
+                    request.FundingLineTotal))
                 .Returns(response);
 
         private FundingStreamPeriodProfilePattern NewFundingStreamPeriodProfilePattern(Action<FundingStreamPeriodProfilePatternBuilder> setUp = null)

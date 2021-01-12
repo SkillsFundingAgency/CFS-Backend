@@ -9,6 +9,8 @@ namespace CalculateFunding.Services.Profiling.Services
 		Task<IActionResult> ProcessProfileAllocationRequest(ProfileRequest profileRequest);
 		
 		AllocationProfileResponse ProfileAllocation(
-			ProfileRequest request, FundingStreamPeriodProfilePattern profilePattern);
+			ProfileRequestBase request, FundingStreamPeriodProfilePattern profilePattern, decimal fundingValue);
+
+		Task<IActionResult> ProcessProfileAllocationBatchRequest(ProfileBatchRequest profileBatchRequest);
 	}
 }

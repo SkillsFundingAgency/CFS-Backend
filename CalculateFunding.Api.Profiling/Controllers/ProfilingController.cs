@@ -25,7 +25,7 @@ namespace CalculateFunding.Api.Profiling.Controllers
         [Route("api/profiling")]
         [HttpPost]
         [Produces(typeof(AllocationProfileResponse))]
-        public async Task<IActionResult> Post([FromBody]ProfileRequest request)
+        public async Task<IActionResult> Profile([FromBody]ProfileRequest request)
         {
             if (!ModelState.IsValid)
             {
@@ -33,6 +33,24 @@ namespace CalculateFunding.Api.Profiling.Controllers
             }
 
             return await _calculateProfileService.ProcessProfileAllocationRequest(request);
+        }
+        
+        /// <summary>
+        /// Profile an allocation amount based on a profile pattern for funding stream and period
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        [Route("api/profiling/batch")]
+        [HttpPost]
+        [Produces(typeof(AllocationProfileResponse))]
+        public async Task<IActionResult> ProfileBatch([FromBody]ProfileBatchRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return new BadRequestObjectResult(ModelState);
+            }
+
+            return await _calculateProfileService.ProcessProfileAllocationBatchRequest(request);
         }
     }
 }
