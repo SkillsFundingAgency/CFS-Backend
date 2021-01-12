@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Api.External.V3.Interfaces;
+using CalculateFunding.Api.External.V3.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.External;
 using CalculateFunding.Models.External.V3.AtomItems;
@@ -23,14 +24,20 @@ namespace CalculateFunding.Api.External.V3.Services
 
         private readonly IFundingFeedSearchService _feedService;
         private readonly IPublishedFundingRetrievalService _publishedFundingRetrievalService;
+        private readonly IExternalEngineOptions _externalEngineOptions;
 
-        public FundingFeedService(IFundingFeedSearchService feedService, IPublishedFundingRetrievalService publishedFundingRetrievalService)
+        public FundingFeedService(
+            IFundingFeedSearchService feedService, 
+            IPublishedFundingRetrievalService publishedFundingRetrievalService,
+            IExternalEngineOptions externalEngineOptions)
         {
             Guard.ArgumentNotNull(feedService, nameof(feedService));
             Guard.ArgumentNotNull(publishedFundingRetrievalService, nameof(publishedFundingRetrievalService));
+            Guard.ArgumentNotNull(externalEngineOptions, nameof(externalEngineOptions));
 
             _feedService = feedService;
             _publishedFundingRetrievalService = publishedFundingRetrievalService;
+            _externalEngineOptions = externalEngineOptions;
         }
 
         public async Task<IActionResult> GetFunding(HttpRequest request,
@@ -74,7 +81,7 @@ namespace CalculateFunding.Api.External.V3.Services
             ConcurrentDictionary<string, object> feedContentResults = new ConcurrentDictionary<string, object>();
 
             List<Task> allTasks = new List<Task>();
-            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 10);
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: _externalEngineOptions.BlobLookupConcurrencyCount);
             foreach (PublishedFundingIndex feedIndex in searchFeed.Entries)
             {
                 await throttler.WaitAsync();

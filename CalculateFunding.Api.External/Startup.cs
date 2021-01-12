@@ -4,6 +4,7 @@ using AutoMapper;
 using CalculateFunding.Api.External.Middleware;
 using CalculateFunding.Api.External.V3.Interfaces;
 using CalculateFunding.Api.External.V3.MappingProfiles;
+using CalculateFunding.Api.External.V3.Models;
 using CalculateFunding.Api.External.V3.Services;
 using CalculateFunding.Common.Config.ApiClient.Policies;
 using CalculateFunding.Common.Config.ApiClient.Providers;
@@ -234,6 +235,8 @@ namespace CalculateFunding.Api.External
             builder.AddSearch(Configuration);
             builder
                .AddSingleton<ISearchRepository<PublishedFundingIndex>, SearchRepository<PublishedFundingIndex>>();
+
+            builder.AddSingleton<IExternalEngineOptions>(_ => new ExternalEngineOptions(Configuration));
 
             builder.AddApplicationInsightsTelemetry();
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.External");

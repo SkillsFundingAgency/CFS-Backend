@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Api.External.V3.Interfaces;
+using CalculateFunding.Api.External.V3.Models;
 using CalculateFunding.Api.External.V3.Services;
 using CalculateFunding.Models.External;
 using CalculateFunding.Models.External.V3.AtomItems;
@@ -117,7 +118,13 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
                 .GetFeedsV3(Arg.Is(3), Arg.Is(500))
                 .Returns(feeds);
 
-            FundingFeedService service = CreateService(feedsSearchService);
+            Mock<IExternalEngineOptions> externalEngineOptions = new Mock<IExternalEngineOptions>();
+            externalEngineOptions
+                .Setup(_ => _.BlobLookupConcurrencyCount)
+                .Returns(10);
+
+            FundingFeedService service = CreateService(feedsSearchService,
+                externalEngineOptions: externalEngineOptions.Object);
 
             HttpRequest request = Substitute.For<HttpRequest>();
 
@@ -145,7 +152,13 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
                 .GetFeedsV3(Arg.Is(3), Arg.Is(500))
                 .Returns(feeds);
 
-            FundingFeedService service = CreateService(feedsSearchService);
+            Mock<IExternalEngineOptions> externalEngineOptions = new Mock<IExternalEngineOptions>();
+            externalEngineOptions
+                .Setup(_ => _.BlobLookupConcurrencyCount)
+                .Returns(10);
+
+            FundingFeedService service = CreateService(feedsSearchService,
+                externalEngineOptions: externalEngineOptions.Object);
 
             HttpRequest request = Substitute.For<HttpRequest>();
 
@@ -190,9 +203,15 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
                 .GetFundingFeedDocument(Arg.Any<string>())
                 .Returns(fundingFeedDocument);
 
+            Mock<IExternalEngineOptions> externalEngineOptions = new Mock<IExternalEngineOptions>();
+            externalEngineOptions
+                .Setup(_ => _.BlobLookupConcurrencyCount)
+                .Returns(10);
+
             FundingFeedService service = CreateService(
                 searchService: feedsSearchService,
-                publishedFundingRetrievalService: publishedFundingRetrievalService);
+                publishedFundingRetrievalService: publishedFundingRetrievalService,
+                externalEngineOptions.Object);
 
             IHeaderDictionary headerDictionary = new HeaderDictionary
             {
@@ -301,8 +320,13 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
             fundingRetrievalService.Setup(_ => _.GetFundingFeedDocument(It.IsAny<string>(), false))
                 .ReturnsAsync(string.Empty);
             
+            Mock<IExternalEngineOptions> externalEngineOptions = new Mock<IExternalEngineOptions>();
+            externalEngineOptions
+                .Setup(_ => _.BlobLookupConcurrencyCount)
+                .Returns(10);
+
             FundingFeedService service = CreateService(feedsSearchService.Object,
-                fundingRetrievalService.Object);
+                fundingRetrievalService.Object, externalEngineOptions.Object);
 
             IHeaderDictionary headerDictionary = new HeaderDictionary
             {
@@ -345,7 +369,13 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
             //Arrange
             IFundingFeedSearchService feedsSearchService = CreateSearchService();
 
-            FundingFeedService service = CreateService(feedsSearchService);
+            Mock<IExternalEngineOptions> externalEngineOptions = new Mock<IExternalEngineOptions>();
+            externalEngineOptions
+                .Setup(_ => _.BlobLookupConcurrencyCount)
+                .Returns(10);
+
+            FundingFeedService service = CreateService(feedsSearchService, 
+                externalEngineOptions: externalEngineOptions.Object);
 
             IHeaderDictionary headerDictionary = new HeaderDictionary
             {
@@ -381,12 +411,19 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
 
         private static FundingFeedService CreateService(
             IFundingFeedSearchService searchService = null,
-            IPublishedFundingRetrievalService publishedFundingRetrievalService = null)
+            IPublishedFundingRetrievalService publishedFundingRetrievalService = null,
+            IExternalEngineOptions externalEngineOptions = null)
         {
             return new FundingFeedService(
                 searchService ?? CreateSearchService(),
-                publishedFundingRetrievalService ?? CreatePublishedFundingRetrievalService()
+                publishedFundingRetrievalService ?? CreatePublishedFundingRetrievalService(),
+                externalEngineOptions ?? CreateExternalEngineOptions()
                 );
+        }
+
+        private static IExternalEngineOptions CreateExternalEngineOptions()
+        {
+            return Substitute.For<IExternalEngineOptions>();
         }
 
         private static IFundingFeedSearchService CreateSearchService()
