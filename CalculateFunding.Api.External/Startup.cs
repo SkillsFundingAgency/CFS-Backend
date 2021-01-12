@@ -189,6 +189,15 @@ namespace CalculateFunding.Api.External
                 return settings;
             });
 
+            builder.AddSingleton<IExternalEngineOptions>(ctx =>
+            {
+                ExternalEngineOptions settings = new ExternalEngineOptions();
+
+                Configuration.Bind("externalengineoptions", settings);
+
+                return settings;
+            });
+
             builder.AddSingleton<IPublishedFundingRetrievalService>((ctx) =>
             {
                 BlobStorageOptions storageSettings = new BlobStorageOptions();
@@ -235,8 +244,6 @@ namespace CalculateFunding.Api.External
             builder.AddSearch(Configuration);
             builder
                .AddSingleton<ISearchRepository<PublishedFundingIndex>, SearchRepository<PublishedFundingIndex>>();
-
-            builder.AddSingleton<IExternalEngineOptions>(_ => new ExternalEngineOptions(Configuration));
 
             builder.AddApplicationInsightsTelemetry();
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.External");

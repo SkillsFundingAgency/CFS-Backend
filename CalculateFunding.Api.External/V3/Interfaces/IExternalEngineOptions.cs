@@ -1,4 +1,4 @@
-﻿namespace CalculateFunding.Api.External.V3.Models
+﻿namespace CalculateFunding.Api.External.V3.Interfaces
 {
     public interface IExternalEngineOptions
     {

@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Api.External.V3.Interfaces;
-using CalculateFunding.Api.External.V3.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.External;
 using CalculateFunding.Models.External.V3.AtomItems;
