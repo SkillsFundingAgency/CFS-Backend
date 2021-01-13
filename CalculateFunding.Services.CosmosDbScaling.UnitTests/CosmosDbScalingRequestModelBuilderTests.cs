@@ -69,6 +69,8 @@ namespace CalculateFunding.Services.CosmosDbScaling
             new[] { CosmosCollectionType.TestResults })]
         [DataRow(JobConstants.DefinitionNames.DeleteTestsJob,
             new[] { CosmosCollectionType.Tests })]
+        [DataRow(JobConstants.DefinitionNames.ApproveAllCalculationsJob,
+            new[] { CosmosCollectionType.Calculations })]
         public void BuildRequestModel_GivenJobWithDefinitions_EnsuresCorrectRepositoryTypes(string jobDefinitionId,
             CosmosCollectionType[] cosmosRepositoryTypes)
         {

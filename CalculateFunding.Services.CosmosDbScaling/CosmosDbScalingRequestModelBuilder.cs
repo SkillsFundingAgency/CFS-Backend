@@ -88,6 +88,10 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 {
                     CosmosCollectionType.Tests
                 },
+                JobDefinitions.ApproveAllCalculationsJob => new []
+                {
+                    CosmosCollectionType.Calculations
+                },
                 _ => cosmosDbScalingRequestModel.RepositoryTypes
             };
 
