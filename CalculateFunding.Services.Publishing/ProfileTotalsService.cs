@@ -173,8 +173,8 @@ namespace CalculateFunding.Services.Publishing
 
             foreach (ProfileTotal profileTotal in profileTotals.Where(_ => !_.IsPaid))
             {
-                profileTotal.ProfileRemainingPercentage =
-                    profileTotal.Value / (fundingLineProfile.TotalAllocation - fundingLineProfile.AmountAlreadyPaid) * 100;
+                profileTotal.ProfileRemainingPercentage = fundingLineProfile.TotalAllocation.HasValue && fundingLineProfile.TotalAllocation > 0 ?
+                        profileTotal.Value / (fundingLineProfile.TotalAllocation - fundingLineProfile.AmountAlreadyPaid) * 100 : 0;
             }
 
             fundingLineProfile.ProfileTotals = profileTotals;
