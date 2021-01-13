@@ -158,30 +158,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
         }
 
         [TestMethod]
-        public async Task FailsValidationIfTheProfilePeriodsHaveMoreThanOneDistinctDistributionPeriodInRequest()
-        {
-            GivenThePublishedProvider(NewOtherwiseValidPublishedProvider());
-            GivenTheFundingConfiguration(true);
-
-            await WhenTheRequestIsValidated(NewOtherwiseValidRequest(_ => _.ProfilePeriods =
-                NewProfilePeriods(
-                    NewProfilePeriod(pp =>
-                        pp.WithOccurence(1)
-                            .WithYear(2020)
-                            .WithTypeValue("January")
-                            .WithDistributionPeriodId("FY-2021")
-                            .WithType(ProfilePeriodType.CalendarMonth)),
-                    NewProfilePeriod(pp =>
-                        pp.WithOccurence(1)
-                            .WithYear(2020)
-                            .WithTypeValue("January")
-                            .WithDistributionPeriodId("FY-2022")
-                            .WithType(ProfilePeriodType.CalendarMonth)))));
-
-            ThenTheValidationResultsContainsTheErrors(("ProfilePeriods", "The profile periods must be specified for one distribution period only"));
-        }
-
-        [TestMethod]
         [DataRow(null)]
         [DataRow("")]
         public async Task FailsValidationIfDistributionIdIsNotSet(string distributionId)

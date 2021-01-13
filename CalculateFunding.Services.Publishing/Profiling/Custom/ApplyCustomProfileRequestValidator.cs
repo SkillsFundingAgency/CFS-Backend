@@ -81,18 +81,10 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
                         _.Type,
                         _.TypeValue,
                         _.Occurrence,
-                        _.DistributionPeriodId,
                     }).Any(_ => _.Count() > 1))
                     {
                         ctx.AddFailure(nameof(DistributionPeriod.ProfilePeriods),
                             "The profile periods must be for unique occurrences in a funding line");
-                    }
-
-                    if (profilePeriods.Where(_ => _.DistributionPeriodId != null && _.DistributionPeriodId.Trim().Length > 0)
-                            .GroupBy(_ => _.DistributionPeriodId).Count() > 1)
-                    {
-                        ctx.AddFailure(nameof(DistributionPeriod.ProfilePeriods),
-                            "The profile periods must be specified for one distribution period only");
                     }
 
                     if (profilePeriods.Any(_ => _.DistributionPeriodId == null || _.DistributionPeriodId.Trim().Length == 0))

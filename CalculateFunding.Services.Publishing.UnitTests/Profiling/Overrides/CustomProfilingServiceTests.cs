@@ -72,7 +72,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
         {
             string fundingLineOne = NewRandomString();
             ProfilePeriod profilePeriod1 = NewProfilePeriod(_ => _.WithDistributionPeriodId("FY-2021"));
-            ProfilePeriod profilePeriod2 = NewProfilePeriod(_ => _.WithDistributionPeriodId("FY-2021"));
+            ProfilePeriod profilePeriod2 = NewProfilePeriod(_ => _.WithDistributionPeriodId("FY-2022"));
 
             ApplyCustomProfileRequest request = NewApplyCustomProfileRequest(_ => _
                 .WithFundingLineCode(fundingLineOne)
@@ -85,7 +85,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
                         fl.WithFundingLineCode(fundingLineOne)
                             .WithDistributionPeriods(NewDistributionPeriod(dp =>
                                 dp.WithDistributionPeriodId("FY-2021")
-                                    .WithProfilePeriods(profilePeriod1, profilePeriod2))))
+                                    .WithProfilePeriods(profilePeriod1)),
+                                    NewDistributionPeriod(dp =>
+                                dp.WithDistributionPeriodId("FY-2022")
+                                    .WithProfilePeriods(profilePeriod2))))
                         ))));
 
             Reference author = NewAuthor();

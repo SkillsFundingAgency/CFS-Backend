@@ -60,15 +60,23 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
 
             string publishedProviderId = request.PublishedProviderId;
             string fundingLineCode = request.FundingLineCode;
-            string distributionPeriodId = request.ProfilePeriods.First()?.DistributionPeriodId;
 
             PublishedProvider publishedProvider = await _publishedFundingResilience.ExecuteAsync(() =>
                 _publishedFundingRepository.GetPublishedProviderById(publishedProviderId, publishedProviderId));
 
             PublishedProviderVersion currentProviderVersion = publishedProvider.Current;
 
-            currentProviderVersion.UpdateDistributionPeriodForFundingLine(fundingLineCode, distributionPeriodId, request.ProfilePeriods);
-            currentProviderVersion.AddOrUpdateCustomProfile(fundingLineCode, request.CarryOver, distributionPeriodId);
+            foreach (IGrouping<string, ProfilePeriod> profilePeriods in request.ProfilePeriods.GroupBy(_ => _.DistributionPeriodId))
+            {
+                string distributionPeriodId = profilePeriods.Key;
+
+                currentProviderVersion.UpdateDistributionPeriodForFundingLine(
+                    fundingLineCode,
+                    distributionPeriodId,
+                    profilePeriods);
+
+                currentProviderVersion.AddOrUpdateCustomProfile(fundingLineCode, request.CarryOver, distributionPeriodId);
+            }
 
             if (request.HasCarryOver)
             {
