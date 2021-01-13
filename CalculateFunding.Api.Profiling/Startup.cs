@@ -20,6 +20,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using Polly.Bulkhead;
 using Swashbuckle.AspNetCore.Filters;
+using CalculateFunding.Services.Core.Interfaces.Threading;
+using CalculateFunding.Services.Core.Threading;
 
 namespace CalculateFunding.Api.Profiling
 {
@@ -104,6 +106,7 @@ namespace CalculateFunding.Api.Profiling
             });
 
             builder.AddSingleton<ICalculateProfileService, CalculateProfileService>()
+                .AddSingleton<IProducerConsumerFactory, ProducerConsumerFactory>()
                 .AddSingleton<IHealthChecker, CalculateProfileService>();
             builder.AddSingleton<ICosmosRepository, CosmosRepository>();
 
