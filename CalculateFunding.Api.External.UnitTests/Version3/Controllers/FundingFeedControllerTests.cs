@@ -12,7 +12,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Controllers
     public class FundingFeedControllerTests
     {
         [TestMethod]
-        public async Task GetFunding_CallsCorrectly()
+        public async Task GetFunding_CallsCorrectlyForPayment()
         {
             IFundingFeedService fundingFeedService = Substitute.For<IFundingFeedService>();
 
@@ -28,7 +28,47 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Controllers
 
             await fundingFeedService
                 .Received(1)
-                .GetFunding(Arg.Any<HttpRequest>(),  null, Arg.Is(fundingStreamIds), Arg.Is(fundingPeriodIds), Arg.Is(groupReasons), Arg.Is(variationReasons), Arg.Is(5));
+                .GetFunding(Arg.Any<HttpRequest>(), null, Arg.Is(fundingStreamIds), Arg.Is(fundingPeriodIds), Arg.Is(groupReasons), Arg.Is(variationReasons), Arg.Is(5));
+        }
+
+        [TestMethod]
+        public async Task GetFunding_CallsCorrectlyForInformation()
+        {
+            IFundingFeedService fundingFeedService = Substitute.For<IFundingFeedService>();
+
+            FundingFeedController controller = new FundingFeedController(
+                fundingFeedService);
+
+            string[] fundingStreamIds = new string[] { "1234" };
+            string[] fundingPeriodIds = new string[] { "1234" };
+            GroupingReason[] groupReasons = new GroupingReason[] { GroupingReason.Information };
+            VariationReason[] variationReasons = new VariationReason[] { VariationReason.AuthorityFieldUpdated };
+
+            await controller.GetFunding(fundingStreamIds, fundingPeriodIds, groupReasons, variationReasons, 5);
+
+            await fundingFeedService
+                .Received(1)
+                .GetFunding(Arg.Any<HttpRequest>(), null, Arg.Is(fundingStreamIds), Arg.Is(fundingPeriodIds), Arg.Is(groupReasons), Arg.Is(variationReasons), Arg.Is(5));
+        }
+
+        [TestMethod]
+        public async Task GetFunding_CallsCorrectlyForContracting()
+        {
+            IFundingFeedService fundingFeedService = Substitute.For<IFundingFeedService>();
+
+            FundingFeedController controller = new FundingFeedController(
+                fundingFeedService);
+
+            string[] fundingStreamIds = new string[] { "1234" };
+            string[] fundingPeriodIds = new string[] { "1234" };
+            GroupingReason[] groupReasons = new GroupingReason[] { GroupingReason.Contracting };
+            VariationReason[] variationReasons = new VariationReason[] { VariationReason.AuthorityFieldUpdated };
+
+            await controller.GetFunding(fundingStreamIds, fundingPeriodIds, groupReasons, variationReasons, 5);
+
+            await fundingFeedService
+                .Received(1)
+                .GetFunding(Arg.Any<HttpRequest>(), null, Arg.Is(fundingStreamIds), Arg.Is(fundingPeriodIds), Arg.Is(groupReasons), Arg.Is(variationReasons), Arg.Is(5));
         }
 
         [TestMethod]

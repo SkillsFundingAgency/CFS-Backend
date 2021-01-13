@@ -18,5 +18,10 @@ namespace CalculateFunding.Api.External.V3.Models
         /// Informational only.
         /// </summary>
         Information,
+
+        /// <summary>
+        /// Contracting
+        /// </summary>
+        Contracting,
     }
 }
