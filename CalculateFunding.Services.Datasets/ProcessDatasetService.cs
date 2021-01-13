@@ -825,6 +825,9 @@ namespace CalculateFunding.Services.Datasets
             // need to remove all calculation result batches so that all calcs are created on calc run
             await _cacheProvider.RemoveByPatternAsync($"{CacheKeys.CalculationResults}{specification.Id}");
 
+            // need to remove code context as the datasets have changed
+            await _cacheProvider.RemoveByPatternAsync($"{CacheKeys.CodeContext}{specification.Id}");
+
             if (specification.ProviderSource != ProviderSource.FDZ)
             {
                 bool jobCompletedSuccessfully = await _jobManagement.QueueJobAndWait(async () =>

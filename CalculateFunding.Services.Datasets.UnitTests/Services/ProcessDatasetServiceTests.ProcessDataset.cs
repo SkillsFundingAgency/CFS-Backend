@@ -76,6 +76,7 @@ namespace CalculateFunding.Services.Datasets.Services
         private readonly string _datasetCacheKey = $"ds-table-rows:{ProcessDatasetService.GetBlobNameCacheKey(BlobPath)}:{DataDefintionId}";
         private readonly string _datasetAggregationsCacheKey = $"{CacheKeys.DatasetAggregationsForSpecification}{SpecificationId}";
         private readonly string _calculationResultsCacheKey = $"{CacheKeys.CalculationResults}{SpecificationId}";
+        private readonly string _codeContextCaheKey = $"{CacheKeys.CodeContext}{SpecificationId}";
 
         private string _relationshipId;
         private string _relationshipName;
@@ -557,6 +558,7 @@ namespace CalculateFunding.Services.Datasets.Services
             await AndNoAggregationsWereCreated();
             await AndTheCachedAggregationsWereInvalidated();
             await AndTheCachedCalculationResultsWereInvalidated();
+            await AndTheCachedCodeContextIsInvalidated();
             await AndTheScopedProvidersWereUpdated();
         }
 
@@ -613,6 +615,7 @@ namespace CalculateFunding.Services.Datasets.Services
             await AndNoAggregationsWereCreated();
             await AndTheCachedAggregationsWereInvalidated();
             await AndTheCachedCalculationResultsWereInvalidated();
+            await AndTheCachedCodeContextIsInvalidated();
             await AndTheScopedProvidersWereNotUpdated();
         }
 
@@ -808,6 +811,7 @@ namespace CalculateFunding.Services.Datasets.Services
                     agg.Fields.ElementAt(3).FieldType == AggregatedType.Max &&
                     agg.Fields.ElementAt(3).FieldReference == $"Datasets.{cleanRelationshipName}.{cleanFieldName}_Max");
             await AndTheCachedAggregationsWereInvalidated();
+            await AndTheCachedCodeContextIsInvalidated();
             await AndTheCachedCalculationResultsWereInvalidated();
         }
 
@@ -888,6 +892,7 @@ namespace CalculateFunding.Services.Datasets.Services
                     agg.Fields.ElementAt(3).FieldType == AggregatedType.Max &&
                     agg.Fields.ElementAt(3).FieldReference == $"Datasets.{cleanRelationshipName}.{cleanFieldName}_Max");
             await AndTheCachedAggregationsWereInvalidated();
+            await AndTheCachedCodeContextIsInvalidated();
             await AndTheCachedCalculationResultsWereInvalidated();
         }
 
@@ -2247,6 +2252,14 @@ namespace CalculateFunding.Services.Datasets.Services
                 _cacheProvider
                     .Received(1)
                     .RemoveByPatternAsync(Arg.Is(_calculationResultsCacheKey));
+        }
+
+        private async Task AndTheCachedCodeContextIsInvalidated()
+        {
+            await
+                _cacheProvider
+                    .Received(1)
+                    .RemoveByPatternAsync(Arg.Is(_codeContextCaheKey));
         }
 
         private async Task ThenTheDatasetAggregationsWereSaved(string expectedRelationshipId = null,
