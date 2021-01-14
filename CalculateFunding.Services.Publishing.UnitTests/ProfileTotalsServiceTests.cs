@@ -959,6 +959,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .WithProfilePatternName(profilePatternDisplayName)
                 .WithProfilePatternDescription(profilePatternDisplayDescription)
                 .WithProfileTotalAmount(1500)
+                .WithTotalAllocation(1600)
                 .WithProfileTotals(new[]
                 {
                     NewProfileTotal(pt => pt

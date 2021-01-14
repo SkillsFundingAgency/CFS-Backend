@@ -20,7 +20,7 @@ namespace CalculateFunding.Services.Publishing.Profiling
         public string ProfilePatternDescription { get; set; }
         public Reference LastUpdatedUser { get; set; }
         public DateTimeOffset? LastUpdatedDate { get; set; }
-        public decimal ProfileTotalAmount { get; set; }
+        public decimal? ProfileTotalAmount { get; set; }
         public IEnumerable<ProfileTotal> ProfileTotals { get; set; }
 
         public override bool Equals(object obj)

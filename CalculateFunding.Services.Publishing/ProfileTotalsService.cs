@@ -359,9 +359,14 @@ namespace CalculateFunding.Services.Publishing
                     ProfilePatternKey = profilePatternKey,
                     ProfilePatternName = apiProfilePatternKey?.ProfilePatternDisplayName,
                     ProfilePatternDescription = apiProfilePatternKey?.ProfilePatternDescription,
-                    ProfileTotalAmount = profileTotals.Sum(_ => _.Value),
+                    ProfileTotalAmount = profileTotals.Any() ? profileTotals.Sum(_ => _.Value) : (decimal?) null,
                     ProfileTotals = profileTotals
                 };
+                
+                if (fundingLineProfile.ProfileTotalAmount != null || fundingLineProfile.CarryOverAmount != null)
+                {
+                    fundingLineProfile.TotalAllocation = (fundingLineProfile.ProfileTotalAmount ?? 0) + (fundingLineProfile.CarryOverAmount ?? 0);
+                }
 
                 fundingLineProfiles.Add(fundingLineProfile);
             }
