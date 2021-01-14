@@ -66,6 +66,7 @@ using TemplateMetadataSchema11 = CalculateFunding.Common.TemplateMetadata.Schema
 using Microsoft.Azure.Cosmos;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Publishing.Profiling;
+using CalculateFunding.Common.Config.ApiClient.FundingDataZone;
 
 [assembly: FunctionsStartup(typeof(Startup))]
 
@@ -553,6 +554,7 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddJobsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
             builder.AddCalculationsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
             builder.AddPoliciesInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
+            builder.AddFundingDataServiceInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
 
             builder.AddSingleton<ITransactionResiliencePolicies>((ctx) => new TransactionResiliencePolicies()
             {

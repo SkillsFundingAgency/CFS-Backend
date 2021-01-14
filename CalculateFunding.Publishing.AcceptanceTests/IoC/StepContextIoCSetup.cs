@@ -4,6 +4,7 @@ using System.Reflection;
 using AutoMapper;
 using BoDi;
 using CalculateFunding.Common.ApiClient.Calcs;
+using CalculateFunding.Common.ApiClient.FundingDataZone;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Profiling;
@@ -155,6 +156,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<PublishedProviderStepContext, IPublishedProviderStepContext>();
             RegisterTypeAs<ProfilingService, IProfilingService>();
             RegisterTypeAs<ProfilingInMemoryClient, IProfilingApiClient>();
+            RegisterTypeAs<FDZInMemoryClient, IFundingDataZoneApiClient>();
             RegisterTypeAs<PublishedFundingDataService, IPublishedFundingDataService>();
             RegisterTypeAs<PublishedFundingVersionDataService, IPublishedFundingVersionDataService>();
             RegisterTypeAs<CalculationResultsService, ICalculationResultsService>();

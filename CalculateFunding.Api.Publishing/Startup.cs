@@ -3,6 +3,7 @@ using AutoMapper;
 using CacheCow.Server.Core.Mvc;
 using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.Config.ApiClient.Calcs;
+using CalculateFunding.Common.Config.ApiClient.FundingDataZone;
 using CalculateFunding.Common.Config.ApiClient.Jobs;
 using CalculateFunding.Common.Config.ApiClient.Policies;
 using CalculateFunding.Common.Config.ApiClient.Profiling;
@@ -389,6 +390,7 @@ namespace CalculateFunding.Api.Publishing
             builder.AddProfilingInterServiceClient(Configuration);
             builder.AddJobsInterServiceClient(Configuration);
             builder.AddPoliciesInterServiceClient(Configuration);
+            builder.AddFundingDataServiceInterServiceClient(Configuration);
             builder.AddFeatureToggling(Configuration);
 
             builder.AddScoped<IPublishedFundingUndoJobService, PublishedFundingUndoJobService>();
