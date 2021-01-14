@@ -313,7 +313,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             CalculationDataType.Decimal => $"{{If(executedUserCodeCalculationResult.HasValue, executedUserCodeCalculationResult.ToString(), \"\")}}",
             CalculationDataType.String => $"{{executedUserCodeCalculationResult}}",
             CalculationDataType.Boolean => $"{{If(executedUserCodeCalculationResult.HasValue, executedUserCodeCalculationResult.ToString(), \"\")}}",
-            CalculationDataType.Enum => $"{{If(executedUserCodeCalculationResult.HasValue, DescriptionAttribute.GetEnumDescription(executedUserCodeCalculationResult), \"\")}}",
+            CalculationDataType.Enum => $"{{If(executedUserCodeCalculationResult.HasValue, DescriptionAttribute.GetEnumDescription(executedUserCodeCalculationResult), Nothing)}}",
             _ => throw new ArgumentOutOfRangeException(),
         };
 
