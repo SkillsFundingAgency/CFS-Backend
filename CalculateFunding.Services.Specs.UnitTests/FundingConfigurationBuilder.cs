@@ -10,6 +10,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
         private string _fundingStreamId;
         private string _fundingPeriodId;
         private ProviderSource _providerSource;
+        private bool _runCalculationEngineAfterCoreProviderUpdate;
 
         public FundingConfigurationBuilder WithFundingPeriodId(string fundingPeriodId)
         {
@@ -39,6 +40,13 @@ namespace CalculateFunding.Services.Specs.UnitTests
             return this;
         }
 
+        public FundingConfigurationBuilder WithRunCalculationEngineAfterCoreProviderUpdate(bool runCalculationEngineAfterCoreProviderUpdate)
+        {
+            _runCalculationEngineAfterCoreProviderUpdate = runCalculationEngineAfterCoreProviderUpdate;
+
+            return this;
+        }
+
         public FundingConfiguration Build()
         {
             return new FundingConfiguration
@@ -46,7 +54,8 @@ namespace CalculateFunding.Services.Specs.UnitTests
                 FundingPeriodId = _fundingPeriodId ?? NewRandomString(),
                 FundingStreamId = _fundingStreamId ?? NewRandomString(),
                 DefaultTemplateVersion = _defaultTemplateVersion,
-                ProviderSource = _providerSource
+                ProviderSource = _providerSource,
+                RunCalculationEngineAfterCoreProviderUpdate = _runCalculationEngineAfterCoreProviderUpdate
             };
         }
     }

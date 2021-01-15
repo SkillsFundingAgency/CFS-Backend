@@ -48,5 +48,8 @@ namespace CalculateFunding.Models.Policy.FundingPolicy
 
         [JsonProperty("enableUserEditableRuleBasedProfiles")]
         public bool EnableUserEditableRuleBasedProfiles { get; set; }
+
+        [JsonProperty("runCalculationEngineAfterCoreProviderUpdate")]
+        public bool RunCalculationEngineAfterCoreProviderUpdate { get; set; }
     }
 }

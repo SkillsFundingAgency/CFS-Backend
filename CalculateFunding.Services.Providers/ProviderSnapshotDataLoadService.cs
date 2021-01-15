@@ -32,6 +32,7 @@ namespace CalculateFunding.Services.Providers
         private const string SpecificationIdKey = "specification-id";
         private const string FundingStreamIdKey = "fundingstream-id";
         private const string ProviderSnapshotIdKey = "providerSanpshot-id";
+        private const string DisableQueueCalculationJobKey = "disableQueueCalculationJob";
         private const string JobIdKey = "jobId";
         private readonly ILogger _logger;
         private readonly ISpecificationsApiClient _specificationsApiClient;
@@ -89,6 +90,8 @@ namespace CalculateFunding.Services.Providers
             string specificationId = message.GetUserProperty<string>(SpecificationIdKey);
             string fundingStreamId = message.GetUserProperty<string>(FundingStreamIdKey);
             string providerSnapshotIdValue = message.GetUserProperty<string>(ProviderSnapshotIdKey);
+            string disableQueueCalculationJob = message.GetUserProperty<string>(DisableQueueCalculationJobKey);
+
             Reference user = message.GetUserDetails();
             string correlationId = message.GetCorrelationId();
 
@@ -145,9 +148,10 @@ namespace CalculateFunding.Services.Providers
                 SpecificationId = specificationId,
                 CorrelationId = correlationId,
                 Properties = new Dictionary<string, string>
-            {
-                {"specification-id", specificationId}
-            }
+                {
+                    { "specification-id", specificationId },
+                    { "disableQueueCalculationJob", disableQueueCalculationJob },
+                }
             };
 
             try

@@ -33,6 +33,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             Period = "p10"
         };
         private readonly ApiResponse<PolicyModels.FundingPeriod> _fundingPeriodResponse;
+
         IQueueEditSpecificationJobActions _editSpecificationJobActions;
 
         public SpecificationsServiceTests()
@@ -459,6 +460,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         public async Task EditSpecification_GivenChanges_QueueEditSpecificationJobActions()
         {
             //Arrange
+            bool withRunCalculationEngineAfterCoreProviderUpdate = true;
+
             SpecificationEditModel specificationEditModel = new SpecificationEditModel
             {
                 FundingPeriodId = "fp10",
@@ -478,7 +481,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             AndGetFundingConfiguration(
                 _specification.Current.FundingStreams.FirstOrDefault().Id,
-                specificationEditModel.FundingPeriodId);
+                specificationEditModel.FundingPeriodId,
+                withRunCalculationEngineAfterCoreProviderUpdate: withRunCalculationEngineAfterCoreProviderUpdate);
 
             SpecificationsService service = CreateSpecificationsService(newSpecVersion);
           
@@ -526,7 +530,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                              m.Name == specificationEditModel.Name),
                     Arg.Any<Reference>(),
                     Arg.Any<string>(),
-                    Arg.Any<bool>());
+                    Arg.Any<bool>(),
+                    withRunCalculationEngineAfterCoreProviderUpdate);
         }
 
         [TestMethod]
@@ -580,6 +585,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         public async Task EditSpecification_GivenChangesAndNoCurrentProviderVersionMetatdataForFundingStream_ReturnServerError()
         {
             //Arrange
+            bool withRunCalculationEngineAfterCoreProviderUpdate = true;
             _specification.Current.CoreProviderVersionUpdates = CoreProviderVersionUpdates.Manual;
             SpecificationEditModel specificationEditModel = new SpecificationEditModel
             {
@@ -610,7 +616,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             AndGetFundingConfiguration(
                 specFundingStreamId,
-                specificationEditModel.FundingPeriodId);
+                specificationEditModel.FundingPeriodId,
+                withRunCalculationEngineAfterCoreProviderUpdate: withRunCalculationEngineAfterCoreProviderUpdate);
 
             _providersApiClient.GetCurrentProviderMetadataForFundingStream(specFundingStreamId)
                 .Returns(new ApiResponse<CurrentProviderVersionMetadata>(HttpStatusCode.OK, currentProviderVersionMetadata));
@@ -661,7 +668,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                              m.Name == specificationEditModel.Name),
                     Arg.Any<Reference>(),
                     Arg.Any<string>(),
-                    true);
+                    true,
+                    withRunCalculationEngineAfterCoreProviderUpdate);
         }
 
         private SpecificationsService CreateSpecificationsService(Models.Specs.SpecificationVersion newSpecVersion)
@@ -799,11 +807,13 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         private void AndGetFundingConfiguration(
             string fundingStreamId,
             string fundingPeriodId,
-            ProviderSource providerSource = ProviderSource.CFS)
+            ProviderSource providerSource = ProviderSource.CFS,
+            bool withRunCalculationEngineAfterCoreProviderUpdate = false)
         {
             FundingConfiguration fundingConfiguration = NewFundingConfiguration(_ => _
                 .WithDefaultTemplateVersion(NewRandomString())
-                .WithProviderSource(providerSource));
+                .WithProviderSource(providerSource)
+                .WithRunCalculationEngineAfterCoreProviderUpdate(withRunCalculationEngineAfterCoreProviderUpdate));
 
             ApiResponse<FundingConfiguration> fundingConfigResponse =
                 new ApiResponse<FundingConfiguration>(HttpStatusCode.OK, fundingConfiguration);

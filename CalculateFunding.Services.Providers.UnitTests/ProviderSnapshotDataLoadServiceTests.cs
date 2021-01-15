@@ -35,6 +35,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
         private const string SpecificationId = "specification-id";
         private const string FundingStreamId = "fundingstream-id";
         private const string ProviderSnapshotId = "providerSanpshot-id"; //TODO; check this spelling
+        private const string DisableQueueCalculationJobKey = "disableQueueCalculationJob";
 
         private Mock<ISpecificationsApiClient> _specifications;
         private Mock<IProviderVersionService> _providerVersionService;
@@ -46,6 +47,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
         private string _fundingStreamId;
         private string _jobId;
         private int _providerSnapshotId;
+        private string _disableQueueCalculationJobKey;
 
         [TestInitialize]
         public void Setup()
@@ -72,6 +74,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             _fundingStreamId = NewRandomString();
             _jobId = NewRandomString();
             _providerSnapshotId = NewRandomInt();
+            _disableQueueCalculationJobKey = NewRandomString();
         }
 
         [TestMethod]
@@ -306,7 +309,8 @@ namespace CalculateFunding.Services.Providers.UnitTests
             => _jobs.Verify(_ => _.QueueJob(It.Is<JobCreateModel>(job => job.JobDefinitionId == JobConstants.DefinitionNames.MapFdzDatasetsJob
                                                                          && job.SpecificationId == _specificationId
                                                                          && job.Properties.ContainsKey(SpecificationId)
-                                                                         && job.Properties[SpecificationId] == _specificationId)),
+                                                                         && job.Properties[SpecificationId] == _specificationId
+                                                                         && job.Properties[DisableQueueCalculationJobKey] == _disableQueueCalculationJobKey)),
                 Times.Once);
 
         private static string GetProviderVersionIdFromSnapshot(ProviderSnapshot providerSnapshot) =>
@@ -318,7 +322,8 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 .WithUserProperty(JobId, _jobId)
                 .WithUserProperty(SpecificationId, _specificationId)
                 .WithUserProperty(FundingStreamId, _fundingStreamId)
-                .WithUserProperty(ProviderSnapshotId, _providerSnapshotId.ToString());
+                .WithUserProperty(ProviderSnapshotId, _providerSnapshotId.ToString())
+                .WithUserProperty(DisableQueueCalculationJobKey, _disableQueueCalculationJobKey);
 
             overrides?.Invoke(messageBuilder);
 

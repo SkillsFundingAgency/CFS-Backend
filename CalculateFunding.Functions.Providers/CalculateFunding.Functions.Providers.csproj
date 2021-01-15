@@ -8,7 +8,7 @@
 
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.FundingDataZone" Version="1.4.1" />  
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="4.1.1" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="4.2.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="4.3.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="3.16.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Results" Version="4.3.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />

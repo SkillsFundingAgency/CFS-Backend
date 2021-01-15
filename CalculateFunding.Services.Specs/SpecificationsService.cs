@@ -940,7 +940,14 @@ namespace CalculateFunding.Services.Specs
                 ServiceBusConstants.TopicNames.EditSpecification, specification.Current, previousSpecificationVersion,
                 user, correlationId);
 
-            await _queueEditSpecificationJobActions.Run(specificationVersion, user, correlationId, triggerProviderSnapshotDataLoadJob);
+            bool triggerCalculationEngineRunJob = fundingConfiguration.RunCalculationEngineAfterCoreProviderUpdate;
+
+            await _queueEditSpecificationJobActions.Run(
+                specificationVersion, 
+                user, 
+                correlationId, 
+                triggerProviderSnapshotDataLoadJob, 
+                triggerCalculationEngineRunJob);
 
             return new OkObjectResult(specification);
         }

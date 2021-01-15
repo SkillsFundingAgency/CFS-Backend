@@ -6,7 +6,6 @@ using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Specs;
-using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
@@ -45,7 +44,12 @@ namespace CalculateFunding.Services.Specs
             _datasetsPolicy = resiliencePolicies.DatasetsApiClient;
         }
 
-        public async Task Run(SpecificationVersion specificationVersion, Reference user, string correlationId, bool triggerProviderSnapshotDataLoadJob)
+        public async Task Run(
+            SpecificationVersion specificationVersion, 
+            Reference user, 
+            string correlationId, 
+            bool triggerProviderSnapshotDataLoadJob,
+            bool triggerCalculationEngineRunJob)
         {
             string errorMessage = $"Unable to queue ProviderSnapshotDataLoadJob for specification - {specificationVersion.SpecificationId}";
             string triggerMessage = $"Assigning ProviderVersionId for specification: {specificationVersion.SpecificationId}";
@@ -60,9 +64,10 @@ namespace CalculateFunding.Services.Specs
                     user,
                     new Dictionary<string, string>
                     {
-                        {"specification-id", specificationVersion.SpecificationId},
-                        {"fundingstream-id", fundingStream.Id},
-                        {"providerSanpshot-id", specificationVersion.ProviderSnapshotId?.ToString() }
+                        { "specification-id", specificationVersion.SpecificationId},
+                        { "fundingstream-id", fundingStream.Id},
+                        { "providerSanpshot-id", specificationVersion.ProviderSnapshotId?.ToString() },
+                        { "disableQueueCalculationJob", (!triggerCalculationEngineRunJob).ToString()}
                     }));
 
                 GuardAgainstNullJob(createProviderSnapshotDataLoadJob, errorMessage);
@@ -96,9 +101,10 @@ namespace CalculateFunding.Services.Specs
                         user,
                         new Dictionary<string, string>
                         {
-                        {"specification-id", specificationVersion.SpecificationId},
-                        {"provider-cache-key", $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationVersion.SpecificationId}"},
-                        { "specification-summary-cache-key", $"{CacheKeys.SpecificationSummaryById}{specificationVersion.SpecificationId}"}
+                            { "specification-id", specificationVersion.SpecificationId},
+                            { "provider-cache-key", $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationVersion.SpecificationId}"},
+                            { "specification-summary-cache-key", $"{CacheKeys.SpecificationSummaryById}{specificationVersion.SpecificationId}"},
+                            { "disableQueueCalculationJob", (!triggerCalculationEngineRunJob).ToString()},
                         }));
 
                     GuardAgainstNullJob(mapScopedDatasetJob, errorMessage);
@@ -115,7 +121,8 @@ namespace CalculateFunding.Services.Specs
                             { "relationship-id", providerRelationship.Id },
                             { "user-id", user?.Id},
                             { "user-name", user?.Name},
-                            { "parentJobId", mapScopedDatasetJob.Id }
+                            { "parentJobId", mapScopedDatasetJob.Id },
+                            { "disableQueueCalculationJob", (!triggerCalculationEngineRunJob).ToString()},
                         },
                         mapScopedDatasetJob.Id,
                         messageBody:JsonConvert.SerializeObject(datasetResponse.Content)));

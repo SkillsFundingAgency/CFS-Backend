@@ -29,6 +29,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
         private const string ProviderSnapshotIdKey = "providerSanpshot-id";
         private const string ProviderCacheKeyKey = "provider-cache-key";
         private const string SpecificationSummaryCacheKeyKey = "specification-summary-cache-key";
+        private const string DisableQueueCalculationJobKey = "disableQueueCalculationJob";
 
         private QueueEditSpecificationJobActions _action;
         private IJobManagement _jobManagement;
@@ -69,18 +70,21 @@ namespace CalculateFunding.Services.Specs.UnitTests
             string fundingStreamId = NewRandomString();
             string specificationId = NewRandomString();
             int providerSnapshotId = NewRandomInt();
+            bool disableQueueCalculationJob = NewRandomBoolean();
+
             SpecificationVersion specificationVersion = NewSpecificationVersion(_ => _.WithFundingStreamsIds(fundingStreamId)
                                                                                       .WithSpecificationId(specificationId)
                                                                                       .WithProviderSource(Models.Providers.ProviderSource.FDZ)
                                                                                       .WithProviderSnapshotId(providerSnapshotId));
 
-            await WhenTheQueueEditSpecificationJobActionsIsRun(specificationVersion, _user, _correlationId, false);
+            await WhenTheQueueEditSpecificationJobActionsIsRun(specificationVersion, _user, _correlationId, false, !disableQueueCalculationJob);
 
             await ThenProviderSnapshotDataLoadJobWasCreated(
                 CreateJobModelMatching(_ => _.JobDefinitionId == JobConstants.DefinitionNames.ProviderSnapshotDataLoadJob &&
                                             HasProperty(_, SpecificationIdKey, specificationId) &&
                                             HasProperty(_, FundingStreamIdKey, fundingStreamId) &&
-                                            HasProperty(_, ProviderSnapshotIdKey, providerSnapshotId.ToString()))
+                                            HasProperty(_, ProviderSnapshotIdKey, providerSnapshotId.ToString()) &&
+                                            HasProperty(_, DisableQueueCalculationJobKey, disableQueueCalculationJob.ToString()))
                 );
         }
 
@@ -90,18 +94,21 @@ namespace CalculateFunding.Services.Specs.UnitTests
             string fundingStreamId = NewRandomString();
             string specificationId = NewRandomString();
             int providerSnapshotId = NewRandomInt();
+            bool disableQueueCalculationJob = NewRandomBoolean();
+
             SpecificationVersion specificationVersion = NewSpecificationVersion(_ => _.WithFundingStreamsIds(fundingStreamId)
                                                                                       .WithSpecificationId(specificationId)
                                                                                       .WithProviderSource(Models.Providers.ProviderSource.CFS)
                                                                                       .WithProviderSnapshotId(providerSnapshotId));
 
-            await WhenTheQueueEditSpecificationJobActionsIsRun(specificationVersion, _user, _correlationId, true);
+            await WhenTheQueueEditSpecificationJobActionsIsRun(specificationVersion, _user, _correlationId, true, !disableQueueCalculationJob);
 
             await ThenProviderSnapshotDataLoadJobWasCreated(
                 CreateJobModelMatching(_ => _.JobDefinitionId == JobConstants.DefinitionNames.ProviderSnapshotDataLoadJob &&
                                             HasProperty(_, SpecificationIdKey, specificationId) &&
                                             HasProperty(_, FundingStreamIdKey, fundingStreamId) &&
-                                            HasProperty(_, ProviderSnapshotIdKey, providerSnapshotId.ToString()))
+                                            HasProperty(_, ProviderSnapshotIdKey, providerSnapshotId.ToString()) &&
+                                            HasProperty(_, DisableQueueCalculationJobKey, disableQueueCalculationJob.ToString()))
                 );
         }
 
@@ -111,18 +118,21 @@ namespace CalculateFunding.Services.Specs.UnitTests
             string fundingStreamId = NewRandomString();
             string specificationId = NewRandomString();
             int providerSnapshotId = NewRandomInt();
+            bool disableQueueCalculationJob = NewRandomBoolean();
+
             SpecificationVersion specificationVersion = NewSpecificationVersion(_ => _.WithFundingStreamsIds(fundingStreamId)
                                                                                       .WithSpecificationId(specificationId)
                                                                                       .WithProviderSource(Models.Providers.ProviderSource.CFS)
                                                                                       .WithProviderSnapshotId(providerSnapshotId));
 
-            await WhenTheQueueEditSpecificationJobActionsIsRun(specificationVersion, _user, _correlationId, false);
+            await WhenTheQueueEditSpecificationJobActionsIsRun(specificationVersion, _user, _correlationId, false, !disableQueueCalculationJob);
 
             await ThenProviderSnapshotDataLoadJobWasNotCreated(
                 CreateJobModelMatching(_ => _.JobDefinitionId == JobConstants.DefinitionNames.ProviderSnapshotDataLoadJob &&
                                             HasProperty(_, SpecificationIdKey, specificationId) &&
                                             HasProperty(_, FundingStreamIdKey, fundingStreamId) &&
-                                            HasProperty(_, ProviderSnapshotIdKey, providerSnapshotId.ToString()))
+                                            HasProperty(_, ProviderSnapshotIdKey, providerSnapshotId.ToString()) &&
+                                            HasProperty(_, DisableQueueCalculationJobKey, disableQueueCalculationJob.ToString()))
                 );
         }
 
@@ -133,6 +143,8 @@ namespace CalculateFunding.Services.Specs.UnitTests
             string specificationId = NewRandomString();
             string providerVersionId = NewRandomString();
             string datasetId = NewRandomString();
+            bool disableQueueCalculationJob = NewRandomBoolean();
+
             SpecificationVersion specificationVersion = NewSpecificationVersion(_ => _.WithFundingStreamsIds(fundingStreamId)
                                                                                       .WithSpecificationId(specificationId)
                                                                                       .WithProviderSource(Models.Providers.ProviderSource.CFS)
@@ -140,13 +152,14 @@ namespace CalculateFunding.Services.Specs.UnitTests
 
             GivenTheDatasetSpecificationRelationship(specificationId, datasetId);
             AndTheDataset(datasetId);
-            await WhenTheQueueEditSpecificationJobActionsIsRun(specificationVersion, _user, _correlationId, false);
+            await WhenTheQueueEditSpecificationJobActionsIsRun(specificationVersion, _user, _correlationId, false, !disableQueueCalculationJob);
 
             await ThenProviderSnapshotDataLoadJobWasCreated(
                 CreateJobModelMatching(_ => _.JobDefinitionId == JobConstants.DefinitionNames.MapScopedDatasetJob &&
                                             HasProperty(_, SpecificationIdKey, specificationId) &&
                                             HasProperty(_, ProviderCacheKeyKey, $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}") &&
-                                            HasProperty(_, SpecificationSummaryCacheKeyKey, $"{CacheKeys.SpecificationSummaryById}{specificationId}"))
+                                            HasProperty(_, SpecificationSummaryCacheKeyKey, $"{CacheKeys.SpecificationSummaryById}{specificationId}") &&
+                                            HasProperty(_, DisableQueueCalculationJobKey, disableQueueCalculationJob.ToString()))
                 );
         }
 
@@ -201,13 +214,15 @@ namespace CalculateFunding.Services.Specs.UnitTests
         private async Task WhenTheQueueEditSpecificationJobActionsIsRun(SpecificationVersion specificationVersion,
             Reference user,
             string correlationId,
-            bool triggerProviderSnapshotDataLoadJob)
+            bool triggerProviderSnapshotDataLoadJob,
+            bool triggerCalculationEngineRunJob)
         {
-            await _action.Run(specificationVersion, user, correlationId, triggerProviderSnapshotDataLoadJob);
+            await _action.Run(specificationVersion, user, correlationId, triggerProviderSnapshotDataLoadJob, triggerCalculationEngineRunJob);
         }
 
         private string NewRandomString() => new RandomString();
         private int NewRandomInt() => new RandomNumberBetween(1, 10000);
+        protected bool NewRandomBoolean() => new RandomBoolean();
 
         private Reference NewReference(Action<ReferenceBuilder> setUp = null)
         {
