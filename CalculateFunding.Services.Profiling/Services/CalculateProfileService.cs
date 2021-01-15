@@ -162,9 +162,10 @@ namespace CalculateFunding.Services.Profiling.Services
 
                 if (profilePattern == null)
                 {
-                    _logger.Error("Unable to find profile pattern for FundingStream = {fundingStreamId}, FundingPeriodId={FundingPeriodId}, ProfilePatternKey={ProfilePatternKey}, ProviderType={ProviderType}, ProviderSubType={ProviderSubType}",
+                    _logger.Error("Unable to find profile pattern for FundingStream = {fundingStreamId}, FundingPeriodId={FundingPeriodId}, FundingLineCode={FundingLineCode}, ProfilePatternKey={ProfilePatternKey}, ProviderType={ProviderType}, ProviderSubType={ProviderSubType}",
                         profileRequest.FundingStreamId,
                         profileRequest.FundingPeriodId,
+                        profileRequest.FundingLineCode,
                         profileRequest.ProfilePatternKey,
                         profileRequest.ProviderType,
                         profileRequest.ProviderSubType);
