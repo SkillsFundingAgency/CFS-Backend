@@ -98,7 +98,7 @@ namespace CalculateFunding.Services.Profiling.Services
         private Task<(bool isComplete, IEnumerable<decimal>)> ProduceProviderFundingValues(CancellationToken token,
             dynamic context)
         {
-            BatchProfileRequestContext batchProfileRequestContext = (BatchProfileRequestContext) context;
+            BatchProfileRequestContext batchProfileRequestContext = (BatchProfileRequestContext)context;
 
             while (batchProfileRequestContext.HasPages)
             {
@@ -112,7 +112,7 @@ namespace CalculateFunding.Services.Profiling.Services
             dynamic context,
             IEnumerable<decimal> providerFundingValues)
         {
-            BatchProfileRequestContext batchProfileRequestContext = (BatchProfileRequestContext) context;
+            BatchProfileRequestContext batchProfileRequestContext = (BatchProfileRequestContext)context;
 
             foreach (decimal providerFundingValue in providerFundingValues)
             {
@@ -160,6 +160,16 @@ namespace CalculateFunding.Services.Profiling.Services
             {
                 FundingStreamPeriodProfilePattern profilePattern = await GetProfilePattern(profileRequest);
 
+                if (profilePattern == null)
+                {
+                    _logger.Error("Unable to find profile pattern for FundingStream = {fundingStreamId}, FundingPeriodId={FundingPeriodId}, ProfilePatternKey={ProfilePatternKey}, ProviderType={ProviderType}, ProviderSubType={ProviderSubType}",
+                        profileRequest.FundingStreamId,
+                        profileRequest.FundingPeriodId,
+                        profileRequest.ProfilePatternKey,
+                        profileRequest.ProviderType,
+                        profileRequest.ProviderSubType);
+                }
+
                 ProfileValidationResult validationResult =
                     ProfileRequestValidator.ValidateRequestAgainstPattern(profileRequest, profilePattern);
 
@@ -167,7 +177,7 @@ namespace CalculateFunding.Services.Profiling.Services
                 {
                     _logger.Information($"Returned status code of {validationResult.Code} for {profileRequest}");
 
-                    return new StatusCodeResult((int) validationResult.Code);
+                    return new StatusCodeResult((int)validationResult.Code);
                 }
 
                 AllocationProfileResponse profilingResult = ProfileAllocation(profileRequest, profilePattern, profileRequest.FundingValue);
@@ -274,7 +284,7 @@ namespace CalculateFunding.Services.Profiling.Services
                 Name = nameof(CalculateProfileService)
             };
 
-            ServiceHealth profilePatternRepositoryHealthStatus = await ((IHealthChecker) _profilePatternRepository).IsHealthOk();
+            ServiceHealth profilePatternRepositoryHealthStatus = await ((IHealthChecker)_profilePatternRepository).IsHealthOk();
 
             health.Dependencies.AddRange(profilePatternRepositoryHealthStatus.Dependencies);
 
