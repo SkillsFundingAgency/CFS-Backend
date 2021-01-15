@@ -94,16 +94,18 @@ namespace CalculateFunding.Services.Providers
                 IEnumerable<FundingConfiguration> fundingStreamConfigurations = await GetFundingConfigurationsByFundingStreamId(fundingStream.Id);
                 fundingConfigurations.AddRange(fundingStreamConfigurations);
 
-                IEnumerable<ProviderSnapshot> providerSnapshots = await GetProviderSnapshots(fundingStream.Id);
+                IEnumerable<ProviderSnapshot> providerSnapshots = await GetLatestProviderSnapshots();
                 if (providerSnapshots.IsNullOrEmpty())
                 {
                     continue;
                 }
 
-                ProviderSnapshot latestProviderSnapshot = providerSnapshots
-                    .OrderByDescending(_ => _.TargetDate)
-                    .ThenByDescending(_ => _.Version)
-                    .FirstOrDefault();
+                ProviderSnapshot latestProviderSnapshot = providerSnapshots.FirstOrDefault(x => x.FundingStreamCode == fundingStream.Id);
+
+                if(latestProviderSnapshot == null)
+                {
+                    continue;
+                }
 
                 int latestProviderSnapshotId = latestProviderSnapshot.ProviderSnapshotId;
                 int? currentProviderSnapshotId = currentProviderVersionMetadata.ProviderSnapshotId;
@@ -137,15 +139,15 @@ namespace CalculateFunding.Services.Providers
             return _mapper.Map<IEnumerable<CurrentProviderVersionMetadata>>(currentProviderVersions);
         }
 
-        private async Task<IEnumerable<ProviderSnapshot>> GetProviderSnapshots(string fundingStreamId)
+        private async Task<IEnumerable<ProviderSnapshot>> GetLatestProviderSnapshots()
         {
             ApiResponse<IEnumerable<ProviderSnapshot>> providerSnapshotResponse
                     = await _fundingDataZoneApiClientPolicy.ExecuteAsync(() =>
-                        _fundingDataZoneApiClient.GetProviderSnapshotsForFundingStream(fundingStreamId));
+                        _fundingDataZoneApiClient.GetLatestProviderSnapshotsForAllFundingStreams());
 
             if (!providerSnapshotResponse.StatusCode.IsSuccess())
             {
-                string errorMessage = $"Unable to retrieve provider snapshots for funding stream with ID: {fundingStreamId}";
+                string errorMessage = $"Unable to retrieve latest provider snapshots for funding streams";
                 _logger.Error(errorMessage);
                 return Enumerable.Empty<ProviderSnapshot>();
             }

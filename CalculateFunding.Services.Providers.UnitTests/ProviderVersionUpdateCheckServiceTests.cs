@@ -120,19 +120,22 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 {
                     TargetDate = DateTime.UtcNow.AddDays(1),
                     Version = 1,
-                    ProviderSnapshotId = _previousProviderSnapshotId
+                    ProviderSnapshotId = _previousProviderSnapshotId,
+                    FundingStreamCode = _fundingStreamOneId
                 },
                 new ProviderSnapshot
                 {
                     TargetDate = DateTime.UtcNow.AddDays(2),
                     Version = 2,
-                    ProviderSnapshotId = _previousProviderSnapshotId
+                    ProviderSnapshotId = _previousProviderSnapshotId,
+                    FundingStreamCode = NewRandomString()
                 },
                 new ProviderSnapshot
                 {
                     TargetDate = DateTime.UtcNow.AddDays(2),
                     Version = 3,
-                    ProviderSnapshotId = _latestProviderSnapshotId
+                    ProviderSnapshotId = _latestProviderSnapshotId,
+                    FundingStreamCode = NewRandomString()
                 }
             };
 
@@ -258,12 +261,12 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
         private void AndGetProviderSnapshotsForFundingStream() =>
             _fundingDataZoneApiClient
-                .Setup(_ => _.GetProviderSnapshotsForFundingStream(_fundingStreamOneId))
+                .Setup(_ => _.GetLatestProviderSnapshotsForAllFundingStreams())
                 .ReturnsAsync(new ApiResponse<IEnumerable<ProviderSnapshot>>(System.Net.HttpStatusCode.OK, _providerSnapshots));
 
         private void AndErrorGetProviderSnapshotsForFundingStream() =>
             _fundingDataZoneApiClient
-                .Setup(_ => _.GetProviderSnapshotsForFundingStream(_fundingStreamOneId))
+                .Setup(_ => _.GetLatestProviderSnapshotsForAllFundingStreams())
                 .ReturnsAsync(new ApiResponse<IEnumerable<ProviderSnapshot>>(System.Net.HttpStatusCode.BadRequest));
 
         private void AndGetSpecificationsWithProviderVersionUpdatesAsUseLatest() =>

@@ -33,15 +33,31 @@ namespace CalculateFunding.Services.FundingDataZone.UnitTests
         [TestMethod]
         public async Task GetProviderSnapshotsForFundingStream()
         {
-            string snapShotId = NewRandomString();
+            string fundingStreamId = NewRandomString();
             
             IEnumerable<PublishingAreaProviderSnapshot> publishingAreaProviderSnapShots = ArraySegment<PublishingAreaProviderSnapshot>.Empty;
             IEnumerable<ProviderSnapshot> expectedProviderSnapShots = ArraySegment<ProviderSnapshot>.Empty;
             
-            GivenThePublishingAreaProviderSnapShots(snapShotId, publishingAreaProviderSnapShots);
+            GivenThePublishingAreaProviderSnapShots(fundingStreamId, publishingAreaProviderSnapShots);
             AndTheMappedProviderSnapShots(publishingAreaProviderSnapShots, expectedProviderSnapShots);
 
-            IEnumerable<ProviderSnapshot> actualProviderSnapShots = await WhenTheProvidersSnapShotsAreQueried(snapShotId);
+            IEnumerable<ProviderSnapshot> actualProviderSnapShots = await WhenTheProvidersSnapShotsAreQueried(fundingStreamId);
+
+            actualProviderSnapShots
+                .Should()
+                .BeSameAs(expectedProviderSnapShots);
+        }
+
+        [TestMethod]
+        public async Task GetLatestProviderSnapshotsForAllFundingStreams()
+        {
+            IEnumerable<PublishingAreaProviderSnapshot> publishingAreaProviderSnapShots = ArraySegment<PublishingAreaProviderSnapshot>.Empty;
+            IEnumerable<ProviderSnapshot> expectedProviderSnapShots = ArraySegment<ProviderSnapshot>.Empty;
+
+            GivenTheLatestPublishingAreaProviderSnapShotsForFundingStreams(publishingAreaProviderSnapShots);
+            AndTheMappedProviderSnapShots(publishingAreaProviderSnapShots, expectedProviderSnapShots);
+
+            IEnumerable<ProviderSnapshot> actualProviderSnapShots = await WhenTheLatestProvidersSnapShotsAreQueried();
 
             actualProviderSnapShots
                 .Should()
@@ -51,10 +67,19 @@ namespace CalculateFunding.Services.FundingDataZone.UnitTests
         private async Task<IEnumerable<ProviderSnapshot>> WhenTheProvidersSnapShotsAreQueried(string fundingStreamId)
             => await _service.GetProviderSnapshotsForFundingStream(fundingStreamId);
 
+        private async Task<IEnumerable<ProviderSnapshot>> WhenTheLatestProvidersSnapShotsAreQueried()
+           => await _service.GetLatestProviderSnapshotsForAllFundingStreams();
+
         private void GivenThePublishingAreaProviderSnapShots(string fundingStreamId,
             IEnumerable<PublishingAreaProviderSnapshot> publishingAreaProviderSnapShots)
         {
             _publishingArea.Setup(_ => _.GetProviderSnapshots(fundingStreamId))
+                .ReturnsAsync(publishingAreaProviderSnapShots);
+        }
+
+        private void GivenTheLatestPublishingAreaProviderSnapShotsForFundingStreams(IEnumerable<PublishingAreaProviderSnapshot> publishingAreaProviderSnapShots)
+        {
+            _publishingArea.Setup(_ => _.GetLatestProviderSnapshotsForAllFundingStreams())
                 .ReturnsAsync(publishingAreaProviderSnapShots);
         }
 

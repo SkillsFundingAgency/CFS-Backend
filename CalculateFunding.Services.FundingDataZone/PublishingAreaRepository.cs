@@ -44,6 +44,11 @@ namespace CalculateFunding.Services.FundingDataZone
 
         public async Task<IEnumerable<string>> GetFundingStreamsWithProviderSnapshots() => await Query<string>("sp_getFundingStreamsWithProviderSnapshots");
 
+        public async Task<IEnumerable<PublishingAreaProviderSnapshot>> GetLatestProviderSnapshotsForAllFundingStreams()
+        {
+            return await Query<PublishingAreaProviderSnapshot>("sp_getLatestProviderSnapshotsForAllFundingStreams");
+        }
+
         public async Task<IEnumerable<PublishingAreaOrganisation>> GetLocalAuthorities(int providerSnapshotId)
             => await Query<PublishingAreaOrganisation>("sp_GetPaymentOrganisationDetailsBySnapshotId",
                 new

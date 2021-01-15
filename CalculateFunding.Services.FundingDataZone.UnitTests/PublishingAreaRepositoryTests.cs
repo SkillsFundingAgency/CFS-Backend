@@ -203,13 +203,32 @@ namespace CalculateFunding.Services.FundingDataZone.UnitTests
                 expectedPublishAreaProviders,
                 CommandType.StoredProcedure);
 
-            IEnumerable<PublishingAreaProviderSnapshot> actualPublishAreaProviders = await WhenThenSnapshotsAreQueried(fundingStreamId);
+            IEnumerable<PublishingAreaProviderSnapshot> actualPublishAreaProviders = await WhenTheSnapshotsAreQueried(fundingStreamId);
 
             actualPublishAreaProviders
                 .Should()
                 .BeEquivalentTo<PublishingAreaProviderSnapshot>(expectedPublishAreaProviders);
         }
-        
+
+        [TestMethod]
+        public async Task GetLatestProviderSnapshotsForAllFundingStreams()
+        {
+            PublishingAreaProviderSnapshot[] expectedPublishAreaProviders =
+            {
+                NewPublishingAreaProviderSnapshot(), NewPublishingAreaProviderSnapshot(), NewPublishingAreaProviderSnapshot()
+            };
+
+            GivenTheDapperReturnFor("sp_getLatestProviderSnapshotsForAllFundingStreams",
+                expectedPublishAreaProviders,
+                CommandType.StoredProcedure);
+
+            IEnumerable<PublishingAreaProviderSnapshot> actualPublishAreaProviders = await WhenTheLatestSnapshotsAreQueried();
+
+            actualPublishAreaProviders
+                .Should()
+                .BeEquivalentTo<PublishingAreaProviderSnapshot>(expectedPublishAreaProviders);
+        }
+
         [TestMethod]
         public async Task GetProviderInSnapshot()
         {
@@ -289,9 +308,12 @@ namespace CalculateFunding.Services.FundingDataZone.UnitTests
         private async Task<IEnumerable<PublishingAreaProvider>> WhenTheProvidersInSnapshotAreQueried(int snapshotId)
             => await _repository.GetProvidersInSnapshot(snapshotId);
         
-        private async Task<IEnumerable<PublishingAreaProviderSnapshot>> WhenThenSnapshotsAreQueried(string fundingStreamId)
+        private async Task<IEnumerable<PublishingAreaProviderSnapshot>> WhenTheSnapshotsAreQueried(string fundingStreamId)
             => await _repository.GetProviderSnapshots(fundingStreamId);
-        
+
+        private async Task<IEnumerable<PublishingAreaProviderSnapshot>> WhenTheLatestSnapshotsAreQueried()
+           => await _repository.GetLatestProviderSnapshotsForAllFundingStreams();
+
         private async Task<PublishingAreaProviderSnapshot> WhenThenSnapshotMetadataIsQueried(int providerSnapshotId)
             => await _repository.GetProviderSnapshotMetadata(providerSnapshotId);
         

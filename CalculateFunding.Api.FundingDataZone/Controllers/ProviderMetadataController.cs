@@ -81,6 +81,28 @@ Used as input for:
             return new OkObjectResult(providerSnapshots);
         }
 
+        private const string GetLatestProviderSnapshotsForFundingStreamsDescription = @"
+        Given I am CFS user
+        When I browse latest provider snapshots for funding streams
+        Then I am able to see all latest provider snapshots for all funding streams
+        And I am able to see the snapshot display names
+        And I am able to see the description for those snapshots
+        And I am able to determine which date the snapshot data was targeted at
+        And I am able to see the version of the snapshot based on the target date";
+        /// <summary>
+        ///  Get latest provider snapshots for all funding streams
+        /// </summary>
+        /// <returns>Returns ProviderSnapshots</returns>
+        [SwaggerOperation(Summary = "List all provider snapshots for all funding streams", Description = GetLatestProviderSnapshotsForFundingStreamsDescription)]
+        [HttpGet("api/providers/fundingStreams/snapshots/latest")]
+        [Produces(typeof(IEnumerable<ProviderSnapshot>))]
+        public async Task<ActionResult<IEnumerable<ProviderSnapshot>>> GetLatestProviderSnapshotsForAllFundingStreams()
+        {
+            IEnumerable<ProviderSnapshot> providerSnapshots =
+                await _providerSnapshotForFundingStreamService.GetLatestProviderSnapshotsForAllFundingStreams();
+            return new OkObjectResult(providerSnapshots);
+        }
+
         private const string GetProviderSnapshotMetadataDescription = @"
 ```
 Given I am CFS user

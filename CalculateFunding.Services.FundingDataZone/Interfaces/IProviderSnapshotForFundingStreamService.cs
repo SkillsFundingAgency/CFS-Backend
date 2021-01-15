@@ -7,5 +7,6 @@ namespace CalculateFunding.Services.FundingDataZone.Interfaces
     public interface IProviderSnapshotForFundingStreamService
     {
         Task<IEnumerable<ProviderSnapshot>> GetProviderSnapshotsForFundingStream(string fundingStreamId);
+        Task<IEnumerable<ProviderSnapshot>> GetLatestProviderSnapshotsForAllFundingStreams();
     }
 }
