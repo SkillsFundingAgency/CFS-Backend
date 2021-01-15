@@ -55,7 +55,7 @@ namespace CalculateFunding.Services.Profiling.Tests
             DeliveryProfilePeriod deliveryProfilePeriodReturnedForOct = response.DeliveryProfilePeriods.ToArray().FirstOrDefault(q => q.TypeValue == "October");
             DeliveryProfilePeriod deliveryProfilePeriodReturnedForApr = response.DeliveryProfilePeriods.ToArray().FirstOrDefault(q => q.TypeValue == "April");
 
-            response.DeliveryProfilePeriods.Length.Should().Be(2);
+            response.DeliveryProfilePeriods.Length.Should().Be(3);
 
             deliveryProfilePeriodReturnedForOct
              .Should().NotBeNull();
@@ -104,7 +104,8 @@ namespace CalculateFunding.Services.Profiling.Tests
             // assert
             response.DeliveryProfilePeriods.ToArray().FirstOrDefault(q => q.TypeValue == "October").ProfileValue.Should().Be(117M);
             response.DeliveryProfilePeriods.ToArray().FirstOrDefault(q => q.TypeValue == "April").ProfileValue.Should().Be(83M);
-            response.DeliveryProfilePeriods.Length.Should().Be(2);
+            response.DeliveryProfilePeriods.ToArray().LastOrDefault(q => q.TypeValue == "April").ProfileValue.Should().Be(0M);
+            response.DeliveryProfilePeriods.Length.Should().Be(3);
         }
 
         [TestMethod, TestCategory("UnitTest")]
@@ -164,15 +165,18 @@ namespace CalculateFunding.Services.Profiling.Tests
 
             response1.DeliveryProfilePeriods.ToArray().FirstOrDefault(q => q.TypeValue == "October").ProfileValue.Should().Be(117M);
             response1.DeliveryProfilePeriods.ToArray().FirstOrDefault(q => q.TypeValue == "April").ProfileValue.Should().Be(83M);
-            response1.DeliveryProfilePeriods.Length.Should().Be(2);
+            response1.DeliveryProfilePeriods.ToArray().LastOrDefault(q => q.TypeValue == "April").ProfileValue.Should().Be(0M);
+            response1.DeliveryProfilePeriods.Length.Should().Be(3);
 
             response2.DeliveryProfilePeriods.ToArray().FirstOrDefault(q => q.TypeValue == "October").ProfileValue.Should().Be(292M);
             response2.DeliveryProfilePeriods.ToArray().FirstOrDefault(q => q.TypeValue == "April").ProfileValue.Should().Be(208M);
-            response2.DeliveryProfilePeriods.Length.Should().Be(2);
+            response2.DeliveryProfilePeriods.ToArray().LastOrDefault(q => q.TypeValue == "April").ProfileValue.Should().Be(0M);
+            response2.DeliveryProfilePeriods.Length.Should().Be(3);
 
             response3.DeliveryProfilePeriods.ToArray().FirstOrDefault(q => q.TypeValue == "October").ProfileValue.Should().Be(1252698794M);
             response3.DeliveryProfilePeriods.ToArray().FirstOrDefault(q => q.TypeValue == "April").ProfileValue.Should().Be(894784853M);
-            response3.DeliveryProfilePeriods.Length.Should().Be(2);
+            response3.DeliveryProfilePeriods.ToArray().LastOrDefault(q => q.TypeValue == "April").ProfileValue.Should().Be(0M);
+            response3.DeliveryProfilePeriods.Length.Should().Be(3);
         }
 
         [TestMethod, TestCategory("UnitTest")]
@@ -208,7 +212,8 @@ namespace CalculateFunding.Services.Profiling.Tests
 
             response1.DeliveryProfilePeriods.ToArray().FirstOrDefault(q => q.TypeValue == "October").ProfileValue.Should().Be(11M);
             response1.DeliveryProfilePeriods.ToArray().FirstOrDefault(q => q.TypeValue == "April").ProfileValue.Should().Be(7M);
-            response1.DeliveryProfilePeriods.Length.Should().Be(2);
+            response1.DeliveryProfilePeriods.ToArray().LastOrDefault(q => q.TypeValue == "April").ProfileValue.Should().Be(0M);
+            response1.DeliveryProfilePeriods.Length.Should().Be(3);
         }
 
         [TestMethod, TestCategory("UnitTest")]
@@ -244,7 +249,8 @@ namespace CalculateFunding.Services.Profiling.Tests
 
             response.DeliveryProfilePeriods.ToArray().FirstOrDefault(q => q.TypeValue == "October").ProfileValue.Should().Be(5833333M);
             response.DeliveryProfilePeriods.ToArray().FirstOrDefault(q => q.TypeValue == "April").ProfileValue.Should().Be(4166667M);
-            response.DeliveryProfilePeriods.Length.Should().Be(2);
+            response.DeliveryProfilePeriods.ToArray().LastOrDefault(q => q.TypeValue == "April").ProfileValue.Should().Be(0M);
+            response.DeliveryProfilePeriods.Length.Should().Be(3);
         }
 
         [TestMethod, TestCategory("UnitTest")]
@@ -315,7 +321,7 @@ namespace CalculateFunding.Services.Profiling.Tests
             AllocationProfileResponse response = responseAsOkObjectResult.Value as AllocationProfileResponse;
 
             response.DeliveryProfilePeriods.ToArray().FirstOrDefault(q => q.TypeValue == "April").ProfileValue.Should().Be(417M);
-            response.DeliveryProfilePeriods.Length.Should().Be(2);
+            response.DeliveryProfilePeriods.Length.Should().Be(3);
         }
 
         [TestMethod, TestCategory("UnitTest")]
@@ -352,7 +358,7 @@ namespace CalculateFunding.Services.Profiling.Tests
 
             response.DeliveryProfilePeriods.ToArray().FirstOrDefault(q => q.TypeValue == "October").ProfileValue.Should().Be(1M);
             response.DeliveryProfilePeriods.ToArray().FirstOrDefault(q => q.TypeValue == "April").ProfileValue.Should().Be(0M);
-            response.DeliveryProfilePeriods.Length.Should().Be(2);
+            response.DeliveryProfilePeriods.Length.Should().Be(3);
         }
 
         //     // parked until we have confirmation of expected behaviour
@@ -414,7 +420,7 @@ namespace CalculateFunding.Services.Profiling.Tests
 
             response.DeliveryProfilePeriods.ToArray().FirstOrDefault(q => q.TypeValue == "October").ProfileValue.Should().Be(583.00M);
             response.DeliveryProfilePeriods.ToArray().FirstOrDefault(q => q.TypeValue == "April").ProfileValue.Should().Be(417.00M);
-            response.DeliveryProfilePeriods.Length.Should().Be(2);
+            response.DeliveryProfilePeriods.Length.Should().Be(3);
         }
 
         [TestMethod, TestCategory("UnitTest")]
@@ -429,7 +435,7 @@ namespace CalculateFunding.Services.Profiling.Tests
                 fundingStreamId: "PSG",
                 fundingPeriodId: "AY-1819",
                 fundingLineCode: "FL1",
-                fundingValue: 6);
+                fundingValue: 16);
 
             IProfilePatternRepository mockProfilePatternRepository = Substitute.For<IProfilePatternRepository>();
             mockProfilePatternRepository
@@ -448,9 +454,10 @@ namespace CalculateFunding.Services.Profiling.Tests
             OkObjectResult responseAsOkObjectResult = responseResult as OkObjectResult;
             AllocationProfileResponse response = responseAsOkObjectResult.Value as AllocationProfileResponse;
 
-            response.DeliveryProfilePeriods.ToArray().FirstOrDefault(q => q.TypeValue == "October").ProfileValue.Should().Be(4M);
-            response.DeliveryProfilePeriods.ToArray().FirstOrDefault(q => q.TypeValue == "April").ProfileValue.Should().Be(2M);
-            response.DeliveryProfilePeriods.Length.Should().Be(2);
+            response.DeliveryProfilePeriods.ToArray().FirstOrDefault(q => q.TypeValue == "October").ProfileValue.Should().Be(9M);
+            response.DeliveryProfilePeriods.ToArray().FirstOrDefault(q => q.TypeValue == "April").ProfileValue.Should().Be(7M);
+            response.DeliveryProfilePeriods.ToArray().LastOrDefault(q => q.TypeValue == "April").ProfileValue.Should().Be(0M);
+            response.DeliveryProfilePeriods.Length.Should().Be(3);
         }
 
         [TestMethod, TestCategory("UnitTest")]
@@ -493,7 +500,7 @@ namespace CalculateFunding.Services.Profiling.Tests
             response
                .DeliveryProfilePeriods
                .Should()
-               .HaveCount(2);
+               .HaveCount(3);
 
         }
 

@@ -124,12 +124,14 @@ namespace CalculateFunding.Services.Profiling.Services
             if (profilePeriods.Any())
             {
                 decimal allocationValueToBeProfiled = Convert.ToDecimal(fundingValue);
+                decimal runningTotal = 0;
 
                 List<DeliveryProfilePeriod> profiledValues = profilePeriods.Select(pp =>
                 {
                     ProfilePeriodPattern profilePeriodPattern = profilePattern.Single(
                         pattern => string.Equals(pattern.Period, pp.TypeValue)
                                    && string.Equals(pattern.DistributionPeriod, pp.DistributionPeriod)
+                                   && pattern.PeriodYear == pp.Year
                                    && pattern.Occurrence == pp.Occurrence);
 
                     decimal profilePercentage = profilePeriodPattern
@@ -154,6 +156,13 @@ namespace CalculateFunding.Services.Profiling.Services
                     {
                         roundedValue = (int) profiledValue;
                     }
+
+                    if (runningTotal + roundedValue > allocationValueToBeProfiled)
+                    {
+                        roundedValue = allocationValueToBeProfiled - runningTotal;
+                    }
+
+                    runningTotal += roundedValue;
 
                     return pp.WithValue(roundedValue);
                 }).ToList();
