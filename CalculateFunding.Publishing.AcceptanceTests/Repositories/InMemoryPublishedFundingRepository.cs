@@ -218,6 +218,17 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             return Task.FromResult(results);
         }
 
+        public Task<IEnumerable<string>> GetPublishedProviderPublishedProviderIds(string specificationId)
+        {
+            IEnumerable<PublishedProvider> publishedProviders = _repo.PublishedProviders
+                .SelectMany(c => c.Value)
+                .Where(p => p.Current.SpecificationId == specificationId);
+
+            IEnumerable<string> results = publishedProviders.Select(r => r.Current.PublishedProviderId);
+
+            return Task.FromResult(results);
+        }
+
         public Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedFundingIds(string fundingStreamId, string fundingPeriodId)
         {
             IEnumerable<KeyValuePair<string, string>> results = _repo.PublishedFunding

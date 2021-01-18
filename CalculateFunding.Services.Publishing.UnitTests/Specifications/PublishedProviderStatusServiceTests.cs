@@ -649,7 +649,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 
         private void GivenThePublishedProviderIdsForTheSpecificationId(IEnumerable<string> publishedProviderIds)
         {
-            _publishedFundingRepository.GetPublishedProviderIds(_specificationId)
+            _publishedFundingRepository.GetPublishedProviderPublishedProviderIds(_specificationId)
                 .Returns(publishedProviderIds);
         }
 

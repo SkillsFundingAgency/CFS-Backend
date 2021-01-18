@@ -149,7 +149,9 @@ namespace CalculateFunding.Services.Publishing.Specifications
 
         public async Task<IActionResult> GetProviderDataForAllApprovalAsCsv(string specificationId)
         {
-            IEnumerable<string> publishedProviderIds = await _publishedFundingRepositoryResilience.ExecuteAsync(() => _publishedFundingRepository.GetPublishedProviderIds(specificationId));
+            IEnumerable<string> publishedProviderIds = 
+                await _publishedFundingRepositoryResilience.ExecuteAsync(() => 
+                    _publishedFundingRepository.GetPublishedProviderPublishedProviderIds(specificationId));
             PublishedProviderIdsRequest publishedProviderIdsRequest = new PublishedProviderIdsRequest { PublishedProviderIds = publishedProviderIds };
 
             return await GetProviderDataAsCsv(
@@ -162,7 +164,9 @@ namespace CalculateFunding.Services.Publishing.Specifications
 
         public async Task<IActionResult> GetProviderDataForAllReleaseAsCsv(string specificationId)
         {
-            IEnumerable<string> publishedProviderIds = await _publishedFundingRepositoryResilience.ExecuteAsync(() => _publishedFundingRepository.GetPublishedProviderIds(specificationId));
+            IEnumerable<string> publishedProviderIds = 
+                await _publishedFundingRepositoryResilience.ExecuteAsync(() => 
+                    _publishedFundingRepository.GetPublishedProviderPublishedProviderIds(specificationId));
             PublishedProviderIdsRequest publishedProviderIdsRequest = new PublishedProviderIdsRequest { PublishedProviderIds = publishedProviderIds };
 
             return await GetProviderDataAsCsv(

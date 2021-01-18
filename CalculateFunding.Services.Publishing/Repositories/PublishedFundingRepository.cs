@@ -465,6 +465,32 @@ namespace CalculateFunding.Services.Publishing.Repositories
             return results;
         }
 
+        public async Task<IEnumerable<string>> GetPublishedProviderPublishedProviderIds(string specificationId)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+
+            CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
+            {
+                QueryText = @"SELECT c.content.current.publishedProviderId as id FROM c
+                                WHERE c.documentType = 'PublishedProvider'
+                                AND c.content.current.specificationId = @specificationId",
+                Parameters = new[]
+                {
+                    new CosmosDbQueryParameter("@specificationId", specificationId),
+                }
+            };
+
+            List<string> results = new List<string>();
+            IEnumerable<dynamic> queryResults = await _repository.DynamicQuery(cosmosDbQuery);
+
+            foreach (dynamic item in queryResults)
+            {
+                results.Add((string)item.id);
+            }
+
+            return results;
+        }
+
         public async Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedFundingIds(string fundingStreamId, string fundingPeriodId)
         {
             Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
