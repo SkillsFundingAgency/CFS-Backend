@@ -85,8 +85,8 @@ namespace CalculateFunding.Services.Profiling.Tests
             string fundingPeriodId = NewRandomString();
             string fundingStreamId = NewRandomString();
             string fundingLineCode = NewRandomString();
-            string providerType = NewRandomString();
-            string providerSubType = NewRandomString();
+            string providerType = "Acade";
+            string providerSubType = "11ACA";
 
             string queryText = null;
             IEnumerable<CosmosDbQueryParameter> parameters = Enumerable.Empty<CosmosDbQueryParameter>();

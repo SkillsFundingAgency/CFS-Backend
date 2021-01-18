@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -107,9 +108,7 @@ namespace CalculateFunding.Services.Profiling.Repositories
                 return null;
             }
 
-            patterns = patterns.Where(x => (!x.ProviderTypeSubTypes.IsNullOrEmpty() && x.ProviderTypeSubTypes.Any(p => p.ProviderType.ToLower() == providerType && p.ProviderSubType.ToLower() == providerSubType)));
-
-            return patterns.FirstOrDefault();
+            return patterns.FirstOrDefault(x => (!x.ProviderTypeSubTypes.IsNullOrEmpty() && x.ProviderTypeSubTypes.Any(p => string.Equals(p.ProviderType, providerType, StringComparison.InvariantCultureIgnoreCase) && string.Equals(p.ProviderSubType, providerSubType, StringComparison.InvariantCultureIgnoreCase))));
         }
 
         public async Task<HttpStatusCode> DeleteProfilePattern(string id)
