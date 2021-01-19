@@ -8,7 +8,7 @@
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="9.0.0" />
 
-    <PackageReference Include="CalculateFunding.Common.ApiClient.FundingDataZone" Version="1.5.0" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.FundingDataZone" Version="1.5.1" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="6.4.0" />
 
     <PackageReference Include="CalculateFunding.Common.ApiClient.Results" Version="5.3.1" />

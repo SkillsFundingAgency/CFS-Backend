@@ -1,4 +1,6 @@
-﻿namespace CalculateFunding.Services.FundingDataZone.SqlModels
+﻿using System;
+
+namespace CalculateFunding.Services.FundingDataZone.SqlModels
 {
     public class PublishingAreaProvider
     {
@@ -26,9 +28,9 @@
 
         public string ProviderSubType { get; set; }
 
-        public string DateOpened { get; set; }
+        public DateTimeOffset? DateOpened { get; set; }
 
-        public string DateClosed { get; set; }
+        public DateTimeOffset? DateClosed { get; set; }
 
         public string LACode { get; set; }
 
