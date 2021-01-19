@@ -26,7 +26,6 @@ using CalculateFunding.Services.Core.Interfaces.Threading;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Threading;
 using CalculateFunding.Services.Results;
-using CalculateFunding.Services.Results.Caching.Http;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Results.Repositories;
 using Microsoft.AspNetCore.Builder;
@@ -120,14 +119,7 @@ namespace CalculateFunding.Api.Results
 
             builder.AddHttpCachingMvc();
 
-            builder.AddQueryProviderAndExtractorForViewModelMvc<
-                FundingStructure,
-                TemplateMetadataContentsTimedETagProvider,
-                TemplateMatadataContentsTimedETagExtractor>(false);
-
             string key = Configuration.GetValue<string>("specificationsClient:ApiKey");
-
-            builder.AddSingleton<IFundingStructureService, FundingStructureService>();
 
             builder.AddGraphInterServiceClient(Configuration);
 
