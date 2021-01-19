@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using NSubstitute;
 
 namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 {
@@ -30,7 +31,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
         public async Task<ValidatedApiResponse<ProviderProfilingResponseModel>> GetProviderProfilePeriods(ProviderProfilingRequestModel requestModel)
         {
-            (decimal? Value, string FundingStreamId, string FundingPeriodId, string FundingLineCode, IEnumerable<ProfilingPeriod> ProfilingPeriods, IEnumerable<DistributionPeriods> DistributionPeriods) fundingValueProfileSplit = FundingValueProfileSplits.FirstOrDefault(_ => _.Value == requestModel.FundingValue && _.FundingStreamId == requestModel.FundingStreamId && _.FundingPeriodId == requestModel.FundingPeriodId && _.FundingLineCode == requestModel.FundingLineCode);
+            (decimal? Value, string FundingStreamId, string FundingPeriodId, string FundingLineCode, IEnumerable<ProfilingPeriod> ProfilingPeriods, IEnumerable<DistributionPeriods> DistributionPeriods) fundingValueProfileSplit 
+                = FundingValueProfileSplits.FirstOrDefault(_ => _.Value == requestModel.FundingValue && _.FundingStreamId == requestModel.FundingStreamId && _.FundingPeriodId == requestModel.FundingPeriodId && _.FundingLineCode == requestModel.FundingLineCode);
             
             return await Task.FromResult(new ValidatedApiResponse<ProviderProfilingResponseModel>(HttpStatusCode.OK, new ProviderProfilingResponseModel()
             {
@@ -88,5 +90,33 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         
 
         public Task<ApiResponse<IEnumerable<ReProfilingStrategyResponse>>> GetAllReProfilingStrategies() => throw new NotImplementedException();
+
+        public Task<ValidatedApiResponse<IEnumerable<BatchProfilingResponseModel>>> GetBatchProfilePeriods(BatchProfilingRequestModel requestModel)
+        {
+            IEnumerable<(decimal fundingValue, Task<ValidatedApiResponse<ProviderProfilingResponseModel>> response)> profilingResponses =
+                requestModel.FundingValues.Select(fundingValue => (fundingValue, GetProviderProfilePeriods(new ProviderProfilingRequestModel
+            {
+                FundingStreamId = requestModel.FundingStreamId,
+                FundingPeriodId = requestModel.FundingPeriodId,
+                FundingValue = fundingValue,
+                ProviderType = requestModel.ProviderType,
+                ProviderSubType = requestModel.ProviderSubType,
+                FundingLineCode = requestModel.FundingLineCode,
+                ProfilePatternKey = requestModel.ProfilePatternKey
+            })));
+
+            ValidatedApiResponse<IEnumerable<BatchProfilingResponseModel>> batchResponses = new ValidatedApiResponse<IEnumerable<BatchProfilingResponseModel>>(HttpStatusCode.OK,
+                profilingResponses.Select(_ => new BatchProfilingResponseModel
+                {
+                    Key = $"{requestModel.FundingPeriodId}-{requestModel.FundingStreamId}-{requestModel.ProfilePatternKey ?? "?"}-{requestModel.ProviderType ?? "?"}-{requestModel.ProviderSubType ?? "?"}-{requestModel.FundingLineCode}-{_.fundingValue:N4}",
+                    DistributionPeriods = _.response.Result.Content.DistributionPeriods,
+                    DeliveryProfilePeriods = _.response.Result.Content.DeliveryProfilePeriods,
+                    FundingValue = _.fundingValue,
+                    ProfilePatternKey = _.response.Result.Content.ProfilePatternKey,
+                    ProfilePatternDisplayName = _.response.Result.Content.ProfilePatternDisplayName
+                }));
+
+            return Task.FromResult(batchResponses);
+        }
     }
 }

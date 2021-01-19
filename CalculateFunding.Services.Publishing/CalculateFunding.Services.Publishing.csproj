@@ -18,7 +18,7 @@
 
 	  <PackageReference Include="CalculateFunding.Common.ApiClient.Calcs" Version="4.5.6" />
 
-	  <PackageReference Include="CalculateFunding.Common.ApiClient.Profiling" Version="3.9.1" />
+	  <PackageReference Include="CalculateFunding.Common.ApiClient.Profiling" Version="4.0.0" />
 
 	  <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="6.18.0" />
 

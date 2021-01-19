@@ -5,6 +5,8 @@ using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces.Threading;
+using CalculateFunding.Services.Core.Threading;
 using CalculateFunding.Services.Profiling.Models;
 using CalculateFunding.Services.Profiling.Repositories;
 using CalculateFunding.Services.Profiling.ResiliencePolicies;
@@ -88,6 +90,7 @@ namespace CalculateFunding.Api.Profiling
         {
             ConfigureSwaggerServices(builder, "Calculate Funding Profiling", "v1");
 
+            builder.AddSingleton<IProducerConsumerFactory, ProducerConsumerFactory>();
             builder.AddSingleton<IProfilePatternRepository, ProfilePatternRepository>();
             builder.AddSingleton<IFundingValueProfiler, FundingValueProfiler>();
             builder.AddSingleton<IValidator<ProfileBatchRequest>, ProfileBatchRequestValidator>();

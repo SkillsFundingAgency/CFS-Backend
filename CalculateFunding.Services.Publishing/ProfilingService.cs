@@ -18,7 +18,7 @@ namespace CalculateFunding.Services.Publishing
 {
     public class ProfilingService : IProfilingService, IHealthChecker
     {
-        protected readonly IProfilingApiClient _profilingApiClient;
+        private readonly IProfilingApiClient _profilingApiClient;
         private readonly ILogger _logger;
         private readonly AsyncPolicy _profilingApiClientPolicy;
 
@@ -37,14 +37,12 @@ namespace CalculateFunding.Services.Publishing
             _profilingApiClientPolicy = publishingResiliencePolicies.ProfilingApiClient;
         }
 
-        /// <summary>
-        /// Profile funding lines
-        /// </summary>
-        /// <param name="fundingLineTotals">Funding lines for a specification</param>
-        /// <param name="fundingStreamId">Funding Stream ID</param>
-        /// <param name="fundingPeriodId">Funding Period ID</param>
-        /// <returns></returns>
-        public async Task<IEnumerable<ProfilePatternKey>> ProfileFundingLines(IEnumerable<FundingLine> fundingLines, string fundingStreamId, string fundingPeriodId, IEnumerable<ProfilePatternKey> profilePatternKeys = null, string providerType = null, string providerSubType = null)
+        public async Task<IEnumerable<ProfilePatternKey>> ProfileFundingLines(IEnumerable<FundingLine> fundingLines, 
+            string fundingStreamId, 
+            string fundingPeriodId, 
+            IEnumerable<ProfilePatternKey> profilePatternKeys = null, 
+            string providerType = null, 
+            string providerSubType = null)
         {
             Guard.ArgumentNotNull(fundingLines, nameof(fundingLines));
             Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
@@ -100,7 +98,7 @@ namespace CalculateFunding.Services.Publishing
                     throw new NonRetriableException(errorMessage);
                 }
 
-                if(!profilePatternKeysToReturn.Any(x => x.FundingLineCode == value.FundingLineCode))
+                if(profilePatternKeysToReturn.All(x => x.FundingLineCode != value.FundingLineCode))
                 {
                     profilePatternKeysToReturn.Add(new ProfilePatternKey() { FundingLineCode = value.FundingLineCode, Key = providerProfilingResponse.Content.ProfilePatternKey });
                 }
@@ -221,7 +219,13 @@ namespace CalculateFunding.Services.Publishing
             return addedOrUpdated;
         }
 
-        private ProviderProfilingRequestModel ConstructProfilingRequest(string fundingPeriodId,string fundingStreamId, string fundingLineCodes, decimal? fundingValue, string profilePatternKey = null, string providerType = null, string providerSubType = null)
+        private ProviderProfilingRequestModel ConstructProfilingRequest(string fundingPeriodId,
+            string fundingStreamId, 
+            string fundingLineCodes, 
+            decimal? fundingValue, 
+            string profilePatternKey = null, 
+            string providerType = null, 
+            string providerSubType = null)
         {
             ProviderProfilingRequestModel requestModel = new ProviderProfilingRequestModel
             {
@@ -254,7 +258,5 @@ namespace CalculateFunding.Services.Publishing
 
             return health;
         }
-
-       
     }
 }

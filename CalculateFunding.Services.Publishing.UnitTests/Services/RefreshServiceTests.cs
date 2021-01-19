@@ -105,6 +105,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private PublishedProvider _missingProvider;
         private ArraySegment<ProfileVariationPointer> _profileVariationPointers;
         private PublishingEngineOptions _publishingEngineOptions;
+        private Mock<IBatchProfilingService> _batchProfilingService;
 
         [TestInitialize]
         public void Setup()
@@ -181,6 +182,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             variationStrategies = variationStrategies.Concat(new[] { new ClosureWithSuccessorVariationStrategy(_providerService.Object) }).ToArray();
 
+            _batchProfilingService = new Mock<IBatchProfilingService>();
+
             _variationStrategyServiceLocator = new VariationStrategyServiceLocator(variationStrategies);
             _detectProviderVariation = new ProviderVariationsDetection(_variationStrategyServiceLocator);
             _applyProviderVariation = new ProviderVariationsApplication(_publishingResiliencePolicies,
@@ -199,7 +202,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 _providerService.Object,
                 _calculationResultsService.Object,
                 _publishedProviderDataGenerator,
-                _profilingService.Object,
                 _publishedProviderDataPopulator,
                 _logger.Object,
                 _calculationsApiClient.Object,
@@ -215,11 +217,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 _generateCsvJobsLocator.Object,
                 _reApplyCustomProfiles.Object,
                 new PublishingEngineOptions(configuration.Object),
-                _detection);
+                _detection,
+                _batchProfilingService.Object);
         }
 
         [TestMethod]
-        public async Task RefreshResults_WhenAnUpdatePublishStatusThrowsException_TransactionCompensates()
+        public void RefreshResults_WhenAnUpdatePublishStatusThrowsException_TransactionCompensates()
         {
             string error = "Unable to update status.";
 
@@ -492,6 +495,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         public async Task RefreshResults_WhenProfilingExistingProvider_ShouldUseProfilePatternKeySavedInTheProvider()
         {
             string profilePatternKey = NewRandomString();
+            
             GivenJobCanBeProcessed();
             AndSpecification();
             AndCalculationResultsBySpecificationId();
@@ -504,15 +508,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             await WhenMessageReceivedWithJobIdAndCorrelationId();
 
-            _profilingService
-                .Verify(_ =>
-                _.ProfileFundingLines(
-               It.IsAny<IEnumerable<FundingLine>>(),
-               FundingStreamId,
-               _specificationSummary.FundingPeriod.Id,
-               It.Is<IEnumerable<ProfilePatternKey>>(x => x.All(pk => pk.Key.StartsWith(profilePatternKey))),
-               null,
-               null), Times.Exactly(3));
+            _batchProfilingService.Verify(_ => _.ProfileBatches(
+                    It.Is<BatchProfilingContext>(context =>
+                        context.ProfilingRequests != null &&
+                        context.ProfilingRequests.Count == 3 &&
+                        context.ProfilingRequests.All(request => request.ProfilePatternKeys != null &&
+                                                                 request.ProfilePatternKeys.Values.All(key =>
+                                                                     key.StartsWith(profilePatternKey))))),
+                Times.Once);
         }
 
         [TestMethod]
@@ -681,13 +684,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
         private void AndProfilingThrowsExeption()
         {
-            _profilingService.Setup(_ => _.ProfileFundingLines(
-                It.IsAny<IEnumerable<FundingLine>>(),
-                FundingStreamId,
-                _specificationSummary.FundingPeriod.Id,
-                It.IsAny<IEnumerable<ProfilePatternKey>>(),
-                It.IsAny<string>(),
-                It.IsAny<string>()))
+            _batchProfilingService.Setup(_ => _.ProfileBatches(It.IsAny<BatchProfilingContext>()))
                 .Throws(new Exception());
         }
 

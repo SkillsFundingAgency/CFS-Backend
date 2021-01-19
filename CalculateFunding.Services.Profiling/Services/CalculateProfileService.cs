@@ -116,12 +116,16 @@ namespace CalculateFunding.Services.Profiling.Services
 
             foreach (decimal providerFundingValue in providerFundingValues)
             {
-                AllocationProfileResponse allocationProfileResponse = ProfileAllocation(batchProfileRequestContext.Request,
+                ProfileBatchRequest request = batchProfileRequestContext.Request;
+
+                AllocationProfileResponse allocationProfileResponse = ProfileAllocation(request,
                     batchProfileRequestContext.ProfilePattern,
                     providerFundingValue);
 
                 batchProfileRequestContext.AddResponse(
-                    new BatchAllocationProfileResponse(providerFundingValue, allocationProfileResponse));
+                    new BatchAllocationProfileResponse(request.GetFundingValueKey(providerFundingValue),
+                        providerFundingValue,
+                        allocationProfileResponse));
             }
 
             return Task.CompletedTask;

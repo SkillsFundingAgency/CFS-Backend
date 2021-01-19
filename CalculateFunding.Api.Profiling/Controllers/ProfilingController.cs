@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using CalculateFunding.Services.Profiling.Models;
 using CalculateFunding.Services.Profiling.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -42,7 +43,7 @@ namespace CalculateFunding.Api.Profiling.Controllers
         /// <returns></returns>
         [Route("api/profiling/batch")]
         [HttpPost]
-        [Produces(typeof(AllocationProfileResponse))]
+        [Produces(typeof(IEnumerable<BatchAllocationProfileResponse>))]
         public async Task<IActionResult> ProfileBatch([FromBody]ProfileBatchRequest request)
         {
             if (!ModelState.IsValid)

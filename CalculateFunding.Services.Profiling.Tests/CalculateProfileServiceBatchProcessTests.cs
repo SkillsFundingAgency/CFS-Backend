@@ -120,9 +120,9 @@ namespace CalculateFunding.Services.Profiling.Tests
                 .Should()
                 .BeEquivalentTo(new[]
                 {
-                    new BatchAllocationProfileResponse(fundingValueOne, allocationProfileResponseOne),
-                    new BatchAllocationProfileResponse(fundingValueTwo, allocationProfileResponseTwo),
-                    new BatchAllocationProfileResponse(fundingValueThree, allocationProfileResponseThree)
+                    new BatchAllocationProfileResponse(request.GetFundingValueKey(fundingValueOne),  fundingValueOne, allocationProfileResponseOne),
+                    new BatchAllocationProfileResponse(request.GetFundingValueKey(fundingValueTwo), fundingValueTwo, allocationProfileResponseTwo),
+                    new BatchAllocationProfileResponse(request.GetFundingValueKey(fundingValueThree), fundingValueThree, allocationProfileResponseThree)
                 });
         }
 

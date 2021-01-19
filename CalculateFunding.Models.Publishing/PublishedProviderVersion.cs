@@ -343,6 +343,12 @@ namespace CalculateFunding.Models.Publishing
         public void SetProfilePatternKey(ProfilePatternKey profilePatternKey,
             Reference author)
         {
+            SetProfilePatternKey(profilePatternKey);
+            AddProfilingAudit(profilePatternKey.FundingLineCode, author);
+        }
+
+        public void SetProfilePatternKey(ProfilePatternKey profilePatternKey)
+        {
             if (ProfilePatternKeys?.Any(_ => _.FundingLineCode == profilePatternKey.FundingLineCode) == true)
             {
                 ProfilePatternKeys
@@ -354,8 +360,6 @@ namespace CalculateFunding.Models.Publishing
                 ProfilePatternKeys ??= new List<ProfilePatternKey>();
                 ProfilePatternKeys.Add(profilePatternKey);
             }
-
-            AddProfilingAudit(profilePatternKey.FundingLineCode, author);
         }
 
         [JsonIgnore]

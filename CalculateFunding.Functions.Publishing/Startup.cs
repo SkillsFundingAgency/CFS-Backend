@@ -2,6 +2,7 @@
 using System.Threading;
 using AutoMapper;
 using CalculateFunding.Common.Config.ApiClient.Calcs;
+using CalculateFunding.Common.Config.ApiClient.FundingDataZone;
 using CalculateFunding.Common.Config.ApiClient.Jobs;
 using CalculateFunding.Common.Config.ApiClient.Policies;
 using CalculateFunding.Common.Config.ApiClient.Profiling;
@@ -95,6 +96,12 @@ namespace CalculateFunding.Functions.Publishing
         private static IServiceProvider Register(IServiceCollection builder,
             IConfigurationRoot config)
         {
+            builder.AddFundingDataServiceInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
+            
+            builder.AddSingleton<IBatchProfilingOptions, BatchProfilingOptions>();
+            builder.AddSingleton<IBatchProfilingService, BatchProfilingService>();
+            builder.AddSingleton<IProducerConsumerFactory, ProducerConsumerFactory>();
+            
             builder.AddSingleton<IReProfilingResponseMapper, ReProfilingResponseMapper>();
             builder.AddSingleton<IReProfilingRequestBuilder, ReProfilingRequestBuilder>();
             

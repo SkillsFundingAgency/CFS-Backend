@@ -7,5 +7,8 @@ namespace CalculateFunding.Services.Profiling.Models
     {
         [Required]
         public IEnumerable<decimal> FundingValues { get; set; }
+
+        public string GetFundingValueKey(decimal fundingValue)
+            => $"{FundingPeriodId}-{FundingStreamId}-{ProfilePatternKey ?? "?"}-{ProviderType ?? "?"}-{ProviderSubType ?? "?"}-{FundingLineCode}-{fundingValue:N4}";
     }
 }

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Drawing.Text;
 using System.Linq;
 using System.Reflection;
 using AutoMapper;
@@ -25,6 +27,8 @@ using CalculateFunding.Publishing.AcceptanceTests.Repositories;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Services.Core.Interfaces.Threading;
+using CalculateFunding.Services.Core.Threading;
 using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.Errors;
 using CalculateFunding.Services.Publishing.Interfaces;
@@ -37,8 +41,11 @@ using CalculateFunding.Services.Publishing.Specifications;
 using CalculateFunding.Services.Publishing.Variations;
 using CalculateFunding.Services.Publishing.Variations.Errors;
 using CalculateFunding.Services.Publishing.Variations.Strategies;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions.Common;
+using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Primitives;
 using Microsoft.FeatureManagement;
 using Polly;
 using Serilog;
@@ -284,6 +291,26 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<ApproveService, IApproveService>();
 
             RegisterTypeAs<PublishService, IPublishService>();
+            
+            RegisterInstanceAs<IBatchProfilingOptions>(new BatchProfilingOptions(new ConfigurationStub()));
+            RegisterTypeAs<BatchProfilingService, IBatchProfilingService>();
+            RegisterTypeAs<ProducerConsumerFactory, IProducerConsumerFactory>();
         }
+
+        private class ConfigurationStub : IConfiguration
+        {
+            public IConfigurationSection GetSection(string key) => null;
+
+            public IEnumerable<IConfigurationSection> GetChildren() => ArraySegment<IConfigurationSection>.Empty;
+
+            public IChangeToken GetReloadToken() => null;
+
+            public string this[string key]
+            {
+                get => null;
+                set{}
+            }
+        }
+        
     }
 }

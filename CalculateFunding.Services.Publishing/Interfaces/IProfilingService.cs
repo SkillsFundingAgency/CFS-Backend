@@ -18,5 +18,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         Task<IEnumerable<FundingStreamPeriodProfilePattern>> GetProfilePatternsForFundingStreamAndFundingPeriod(
             string fundingStreamId,
             string fundingPeriodId);
+
+        // Task ProfileBatches(IEnumerable<ProfilingBatch> profileBatches);
     }
 }

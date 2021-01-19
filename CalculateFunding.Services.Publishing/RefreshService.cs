@@ -1,19 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
-using CalculateFunding.Common.Helpers;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
@@ -38,7 +34,7 @@ namespace CalculateFunding.Services.Publishing
         private readonly ICalculationResultsService _calculationResultsService;
         private readonly IPublishedProviderDataGenerator _publishedProviderDataGenerator;
         private readonly IPublishedProviderDataPopulator _publishedProviderDataPopulator;
-        private readonly IProfilingService _profilingService;
+        private readonly IBatchProfilingService _batchProfilingService;
         private readonly ILogger _logger;
         private readonly ICalculationsApiClient _calculationsApiClient;
         private readonly IPrerequisiteCheckerLocator _prerequisiteCheckerLocator;
@@ -64,7 +60,6 @@ namespace CalculateFunding.Services.Publishing
             IProviderService providerService,
             ICalculationResultsService calculationResultsService,
             IPublishedProviderDataGenerator publishedProviderDataGenerator,
-            IProfilingService profilingService,
             IPublishedProviderDataPopulator publishedProviderDataPopulator,
             ILogger logger,
             ICalculationsApiClient calculationsApiClient,
@@ -80,7 +75,8 @@ namespace CalculateFunding.Services.Publishing
             IGeneratePublishedFundingCsvJobsCreationLocator generateCsvJobsLocator,
             IReApplyCustomProfiles reApplyCustomProfiles,
             IPublishingEngineOptions publishingEngineOptions,
-            IPublishedProviderErrorDetection detection) : base(jobManagement, logger)
+            IPublishedProviderErrorDetection detection,
+            IBatchProfilingService batchProfilingService) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(generateCsvJobsLocator, nameof(generateCsvJobsLocator));
             Guard.ArgumentNotNull(publishedProviderStatusUpdateService, nameof(publishedProviderStatusUpdateService));
@@ -91,7 +87,6 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(calculationResultsService, nameof(calculationResultsService));
             Guard.ArgumentNotNull(publishedProviderDataGenerator, nameof(publishedProviderDataGenerator));
             Guard.ArgumentNotNull(publishedProviderDataPopulator, nameof(publishedProviderDataPopulator));
-            Guard.ArgumentNotNull(profilingService, nameof(profilingService));
             Guard.ArgumentNotNull(calculationsApiClient, nameof(calculationsApiClient));
             Guard.ArgumentNotNull(providerExclusionCheck, nameof(providerExclusionCheck));
             Guard.ArgumentNotNull(fundingLineValueOverride, nameof(fundingLineValueOverride));
@@ -108,6 +103,7 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(publishingResiliencePolicies.CalculationsApiClient, nameof(publishingResiliencePolicies.CalculationsApiClient));
             Guard.ArgumentNotNull(publishingResiliencePolicies.PublishedFundingRepository, nameof(publishingResiliencePolicies.PublishedFundingRepository));
             Guard.ArgumentNotNull(publishingEngineOptions, nameof(publishingEngineOptions));
+            Guard.ArgumentNotNull(batchProfilingService, nameof(batchProfilingService));
 
             _publishedProviderStatusUpdateService = publishedProviderStatusUpdateService;
             _publishedFundingDataService = publishedFundingDataService;
@@ -116,7 +112,6 @@ namespace CalculateFunding.Services.Publishing
             _calculationResultsService = calculationResultsService;
             _publishedProviderDataGenerator = publishedProviderDataGenerator;
             _publishedProviderDataPopulator = publishedProviderDataPopulator;
-            _profilingService = profilingService;
             _logger = logger;
             _calculationsApiClient = calculationsApiClient;
             _prerequisiteCheckerLocator = prerequisiteCheckerLocator;
@@ -126,6 +121,7 @@ namespace CalculateFunding.Services.Publishing
             _generateCsvJobsLocator = generateCsvJobsLocator;
             _reApplyCustomProfiles = reApplyCustomProfiles;
             _detection = detection;
+            _batchProfilingService = batchProfilingService;
             _publishedProviderIndexerService = publishedProviderIndexerService;
 
             _publishingResiliencePolicy = publishingResiliencePolicies.PublishedFundingRepository;
@@ -300,13 +296,12 @@ namespace CalculateFunding.Services.Publishing
             Dictionary<string, PublishedProvider> existingPublishedProvidersToUpdate = new Dictionary<string, PublishedProvider>();
 
             FundingLine[] flattenedTemplateFundingLines = templateMetadataContents.RootFundingLines.Flatten(_ => _.FundingLines).ToArray();
-            Calculation[] flattedCalculations = flattenedTemplateFundingLines.SelectMany(_ => _.Calculations.Flatten(c => c.Calculations)).ToArray();
 
             _logger.Information("Profiling providers for refresh");
 
             try 
             { 
-                await ProfileProviders(publishedProviders, newProviders, generatedPublishedProviderData, fundingStream.Id, fundingPeriodId);
+                await ProfileProviders(publishedProviders, newProviders, generatedPublishedProviderData);
             }
             catch (Exception ex)
             {
@@ -509,52 +504,29 @@ namespace CalculateFunding.Services.Publishing
             }
         }
 
-        private async Task ProfileProviders(IDictionary<string, PublishedProvider> publishedProviders, IDictionary<string, PublishedProvider> newProviders, IDictionary<string, GeneratedProviderResult> generatedPublishedProviderData, string fundingStreamId, string fundingPeriodId)
+        private async Task ProfileProviders(IDictionary<string, PublishedProvider> publishedProviders, 
+            IDictionary<string, PublishedProvider> newProviders, 
+            IDictionary<string, GeneratedProviderResult> generatedPublishedProviderData)
         {
-            SemaphoreSlim throttle = new SemaphoreSlim(_publishingEngineOptions.ProfilingPublishedProvidersConcurrencyCount);
-            List<Task> profilingProviderTasks = new List<Task>();
+            BatchProfilingContext batchProfilingContext = new BatchProfilingContext();
             
-            int items = 0;
-
-            TimeSpan loggingPeriod = TimeSpan.FromMinutes(5);
-
-            using (new Timer(
-                _ => _logger.Information($"{items}: Published Providers profiled."),
-                null, loggingPeriod, loggingPeriod))
-
-
-                foreach (KeyValuePair<string, PublishedProvider> publishedProvider in publishedProviders)
+            foreach (KeyValuePair<string, PublishedProvider> publishedProvider in publishedProviders)
             {
-                await throttle.WaitAsync();
+                bool isNewProvider = newProviders.ContainsKey(publishedProvider.Key);
+                
+                PublishedProviderVersion publishedProviderVersion = publishedProvider.Value.Current;
 
-                profilingProviderTasks.Add(Task.Run(async () =>
+                if (!generatedPublishedProviderData.ContainsKey(publishedProviderVersion.ProviderId))
                 {
-                    try
-                    {
-                        Interlocked.Increment(ref items);
-
-                        bool isNewProvider = newProviders.ContainsKey(publishedProvider.Key);
-                        PublishedProviderVersion publishedProviderVersion = publishedProvider.Value.Current;
-                        
-                        if (generatedPublishedProviderData.ContainsKey(publishedProviderVersion.ProviderId))
-                        {
-                            publishedProviderVersion.ProfilePatternKeys = (await _profilingService.ProfileFundingLines(
-                                                                                            generatedPublishedProviderData[publishedProviderVersion.ProviderId].FundingLines.Where(f => f.Type == FundingLineType.Payment),
-                                                                                            fundingStreamId,
-                                                                                            fundingPeriodId,
-                                                                                            profilePatternKeys: isNewProvider ? null : publishedProviderVersion.ProfilePatternKeys,
-                                                                                            providerType: isNewProvider ? publishedProviderVersion.Provider.ProviderType : null,
-                                                                                            providerSubType: isNewProvider ? publishedProviderVersion.Provider.ProviderSubType : null)).ToList();
-                        }
-                    }
-                    finally
-                    {
-                        throttle.Release();
-                    }
-                }));
+                    continue;
+                }
+                
+                batchProfilingContext.AddProviderProfilingRequestData(publishedProviderVersion, 
+                    generatedPublishedProviderData,
+                    isNewProvider);
             }
 
-            await TaskHelper.WhenAllAndThrow(profilingProviderTasks.ToArray());
+            await _batchProfilingService.ProfileBatches(batchProfilingContext);
         }
 
         private void AddInitialPublishVariationReasons(IEnumerable<PublishedProvider> publishedProviders)
