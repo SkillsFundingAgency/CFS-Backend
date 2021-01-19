@@ -13,7 +13,10 @@ using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.ServiceBus.Interfaces;
+using CalculateFunding.Common.Sql;
+using CalculateFunding.Common.Sql.Interfaces;
 using CalculateFunding.Common.Storage;
+using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Functions.Publishing;
 using CalculateFunding.Functions.Publishing.ServiceBus;
 using CalculateFunding.Models.Publishing;
@@ -23,6 +26,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Functions.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Interfaces.Threading;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
@@ -30,22 +34,27 @@ using CalculateFunding.Services.Core.Threading;
 using CalculateFunding.Services.DeadletterProcessor;
 using CalculateFunding.Services.Processing.Interfaces;
 using CalculateFunding.Services.Publishing;
+using CalculateFunding.Services.Publishing.Batches;
 using CalculateFunding.Services.Publishing.Errors;
 using CalculateFunding.Services.Publishing.Helper;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Interfaces.Undo;
 using CalculateFunding.Services.Publishing.IoC;
+using CalculateFunding.Services.Publishing.Profiling;
 using CalculateFunding.Services.Publishing.Providers;
 using CalculateFunding.Services.Publishing.Reporting;
 using CalculateFunding.Services.Publishing.Reporting.FundingLines;
 using CalculateFunding.Services.Publishing.Reporting.PublishedProviderEstate;
 using CalculateFunding.Services.Publishing.Repositories;
 using CalculateFunding.Services.Publishing.Specifications;
+using CalculateFunding.Services.Publishing.SqlExport;
 using CalculateFunding.Services.Publishing.Undo;
 using CalculateFunding.Services.Publishing.Undo.Repositories;
 using CalculateFunding.Services.Publishing.Variations;
 using CalculateFunding.Services.Publishing.Variations.Errors;
 using CalculateFunding.Services.Publishing.Variations.Strategies;
+using FluentValidation;
+using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -56,18 +65,8 @@ using BlobClient = CalculateFunding.Services.Core.AzureStorage.BlobClient;
 using CommonBlobClient = CalculateFunding.Common.Storage.BlobClient;
 using IBlobClient = CalculateFunding.Services.Core.Interfaces.AzureStorage.IBlobClient;
 using ServiceCollectionExtensions = CalculateFunding.Services.Core.Extensions.ServiceCollectionExtensions;
-using CalculateFunding.Common.Sql;
-using CalculateFunding.Common.Sql.Interfaces;
-using CalculateFunding.Common.TemplateMetadata;
-using CalculateFunding.Services.Publishing.Batches;
-using CalculateFunding.Services.Publishing.SqlExport;
-using FluentValidation;
 using TemplateMetadataSchema10 = CalculateFunding.Common.TemplateMetadata.Schema10;
 using TemplateMetadataSchema11 = CalculateFunding.Common.TemplateMetadata.Schema11;
-using Microsoft.Azure.Cosmos;
-using CalculateFunding.Services.Core.Interfaces.Services;
-using CalculateFunding.Services.Publishing.Profiling;
-using CalculateFunding.Common.Config.ApiClient.FundingDataZone;
 
 [assembly: FunctionsStartup(typeof(Startup))]
 
@@ -97,26 +96,24 @@ namespace CalculateFunding.Functions.Publishing
             IConfigurationRoot config)
         {
             builder.AddSingleton<IFundingLineRoundingSettings, FundingLineRoundingSettings>();
-            
-            builder.AddFundingDataServiceInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
-            
+
             builder.AddSingleton<IBatchProfilingOptions, BatchProfilingOptions>();
             builder.AddSingleton<IBatchProfilingService, BatchProfilingService>();
             builder.AddSingleton<IProducerConsumerFactory, ProducerConsumerFactory>();
-            
+
             builder.AddSingleton<IReProfilingResponseMapper, ReProfilingResponseMapper>();
             builder.AddSingleton<IReProfilingRequestBuilder, ReProfilingRequestBuilder>();
-            
+
             builder.AddSingleton<IBatchUploadValidationService, BatchUploadValidationService>();
             builder.AddSingleton<IBatchUploadReaderFactory, BatchUploadReaderFactory>();
             builder.AddSingleton<IValidator<BatchUploadValidationRequest>, BatchUploadValidationRequestValidation>();
-            
+
             ISqlSettings sqlSettings = new SqlSettings();
 
             config.Bind("saSql", sqlSettings);
 
             builder.AddSingleton(sqlSettings);
-            
+
             builder.AddSingleton<ISqlPolicyFactory, SqlPolicyFactory>();
             builder.AddScoped<ISqlConnectionFactory, SqlConnectionFactory>();
 
@@ -128,21 +125,21 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddScoped<ISqlSchemaGenerator, SqlSchemaGenerator>();
             builder.AddScoped<IQaSchemaService, QaSchemaService>();
             builder.AddScoped<IQaRepository, QaRepository>();
-            builder .AddSingleton<ITemplateMetadataResolver>(ctx =>
-            {
-                TemplateMetadataResolver resolver = new TemplateMetadataResolver();
-                ILogger logger = ctx.GetService<ILogger>();
-                    
-                TemplateMetadataSchema10.TemplateMetadataGenerator schema10Generator = new TemplateMetadataSchema10.TemplateMetadataGenerator(logger);
-                resolver.Register("1.0", schema10Generator);
+            builder.AddSingleton<ITemplateMetadataResolver>(ctx =>
+           {
+               TemplateMetadataResolver resolver = new TemplateMetadataResolver();
+               ILogger logger = ctx.GetService<ILogger>();
 
-                TemplateMetadataSchema11.TemplateMetadataGenerator schema11Generator = new TemplateMetadataSchema11.TemplateMetadataGenerator(logger);
-                resolver.Register("1.1", schema11Generator);
+               TemplateMetadataSchema10.TemplateMetadataGenerator schema10Generator = new TemplateMetadataSchema10.TemplateMetadataGenerator(logger);
+               resolver.Register("1.0", schema10Generator);
 
-                return resolver;
-            });
+               TemplateMetadataSchema11.TemplateMetadataGenerator schema11Generator = new TemplateMetadataSchema11.TemplateMetadataGenerator(logger);
+               resolver.Register("1.1", schema11Generator);
+
+               return resolver;
+           });
             builder.AddSingleton<ICosmosRepository, CosmosRepository>();
-            
+
             CosmosDbSettings settings = new CosmosDbSettings();
 
             config.Bind("CosmosDbSettings", settings);
@@ -150,7 +147,7 @@ namespace CalculateFunding.Functions.Publishing
             settings.ContainerName = "publishedfunding";
 
             builder.AddSingleton(settings);
-            
+
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
 
             builder.AddFeatureManagement();
