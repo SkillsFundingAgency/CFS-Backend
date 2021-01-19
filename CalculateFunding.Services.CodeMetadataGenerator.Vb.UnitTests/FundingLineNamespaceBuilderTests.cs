@@ -104,7 +104,7 @@ One = Function() As Decimal?"
             string expectedFundingLineLambda = @$"Dim userCalculationCodeImplementation As Func(Of Decimal?) = Function() As Decimal?
 Dim sum As Decimal? = Nothing
 AddToNullable(sum, Template.CalcOne())
-Return If(sum, Math.Round(sum.Value, {decimalPlaces}, MidpointRounding.AwayFromZero), sum)
+Return If(sum.HasValue(), Math.Round(sum.Value, {decimalPlaces}, MidpointRounding.AwayFromZero), sum)
 End Function";
 
             GivenTheFundingLine(psg,

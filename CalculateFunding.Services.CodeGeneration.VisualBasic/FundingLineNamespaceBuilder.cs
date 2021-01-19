@@ -121,7 +121,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                     sourceCode.AppendLine($"AddToNullable(sum, {GenerateIdentifier(calculation.Namespace)}.{calculation.SourceCodeName}())");
                 }
                 
-                sourceCode.AppendLine($"Return If(sum, Math.Round(sum.Value, {decimalPlaces}, MidpointRounding.AwayFromZero), sum)");
+                sourceCode.AppendLine($"Return If(sum.HasValue(), Math.Round(sum.Value, {decimalPlaces}, MidpointRounding.AwayFromZero), sum)");
                 sourceCode.AppendLine("End Function");
 
                 sourceCode.AppendLine("Try");
