@@ -11,7 +11,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
         private IEnumerable<FundingLine> _fundingLines;
         private IDictionary<uint, string> _mappings;
 
-        public FundingBuilder WithFundingLines(IEnumerable<FundingLine> fundingLines)
+        public FundingBuilder WithFundingLines(params FundingLine[] fundingLines)
         {
             _fundingLines = fundingLines;
 

@@ -96,6 +96,8 @@ namespace CalculateFunding.Functions.Publishing
         private static IServiceProvider Register(IServiceCollection builder,
             IConfigurationRoot config)
         {
+            builder.AddSingleton<IFundingLineRoundingSettings, FundingLineRoundingSettings>();
+            
             builder.AddFundingDataServiceInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
             
             builder.AddSingleton<IBatchProfilingOptions, BatchProfilingOptions>();

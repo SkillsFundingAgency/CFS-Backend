@@ -11,6 +11,7 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using NSubstitute;
 using Serilog;
 using CalculationResult = CalculateFunding.Models.Publishing.CalculationResult;
@@ -32,7 +33,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             IMapper mapper = CreateMapper();
 
-            FundingLineTotalAggregator fundingLineTotalAggregator = new FundingLineTotalAggregator();
+            Mock<IFundingLineRoundingSettings> rounding = new Mock<IFundingLineRoundingSettings>();
+
+            rounding.Setup(_ => _.DecimalPlaces)
+                .Returns(2);
+            
+            FundingLineTotalAggregator fundingLineTotalAggregator = new FundingLineTotalAggregator(rounding.Object);
 
             TemplateMapping mapping = CreateTemplateMappings();
 
@@ -123,7 +129,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             IMapper mapper = CreateMapper();
 
-            FundingLineTotalAggregator fundingLineTotalAggregator = new FundingLineTotalAggregator();
+            FundingLineTotalAggregator fundingLineTotalAggregator = new FundingLineTotalAggregator(new Mock<IFundingLineRoundingSettings>().Object);
 
             TemplateMapping mapping = CreateTemplateMappings();
 

@@ -295,7 +295,15 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterInstanceAs<IBatchProfilingOptions>(new BatchProfilingOptions(new ConfigurationStub()));
             RegisterTypeAs<BatchProfilingService, IBatchProfilingService>();
             RegisterTypeAs<ProducerConsumerFactory, IProducerConsumerFactory>();
+            
+            RegisterInstanceAs<IFundingLineRoundingSettings>(new RoundingSettingsStub());
         }
+
+        public class RoundingSettingsStub : IFundingLineRoundingSettings
+        {
+            public int DecimalPlaces => 2;
+        }
+        
 
         private class ConfigurationStub : IConfiguration
         {

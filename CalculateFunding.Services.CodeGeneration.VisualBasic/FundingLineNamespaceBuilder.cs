@@ -6,12 +6,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.IdentityModel.Tokens;
 
 namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 {
     public class FundingLineNamespaceBuilder : VisualBasicTypeGenerator
     {
-        public NamespaceBuilderResult BuildNamespacesForFundingLines(IDictionary<string, Funding> funding)
+        public NamespaceBuilderResult BuildNamespacesForFundingLines(IDictionary<string, Funding> funding,
+            int decimalPlaces = 2)
         {
             NamespaceBuilderResult result = new NamespaceBuilderResult
             {
@@ -30,7 +32,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                                                 SyntaxFactory.Token(SyntaxKind.PublicKeyword))),
                                     new SyntaxList<InheritsStatementSyntax>(),
                                     new SyntaxList<ImplementsStatementSyntax>(),
-                                    SyntaxFactory.List(CreateFundingLineClass(funding[@namespace].FundingLines.DistinctBy(_ => _.Id), @namespace)),
+                                    SyntaxFactory.List(CreateFundingLineClass(funding[@namespace].FundingLines.DistinctBy(_ => _.Id), @namespace, decimalPlaces)),
                                     SyntaxFactory.EndClassStatement()
                                 );
 
@@ -41,7 +43,9 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
         }
 
 
-        private IEnumerable<StatementSyntax> CreateFundingLineClass(IEnumerable<FundingLine> fundingLines, string @namespace)
+        private IEnumerable<StatementSyntax> CreateFundingLineClass(IEnumerable<FundingLine> fundingLines, 
+            string @namespace, 
+            int decimalPlaces)
         {
             if (fundingLines == null) yield break;
 
@@ -59,7 +63,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
             // create funding line initialise method
             yield return CreateAddToNullableMethod();
-            yield return CreateInitialiseMethod(fundingLines.Where(_ => _.Namespace == @namespace), @namespace);
+            yield return CreateInitialiseMethod(fundingLines.Where(_ => _.Namespace == @namespace), @namespace, decimalPlaces);
         }
 
         private StatementSyntax CreateAddToNullableMethod()
@@ -78,7 +82,9 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             return ParseSourceCodeToStatementSyntax(sourceCode.ToString());
         }
 
-        private StatementSyntax CreateInitialiseMethod(IEnumerable<FundingLine> fundingLines, string @namespace)
+        private StatementSyntax CreateInitialiseMethod(IEnumerable<FundingLine> fundingLines,
+            string @namespace,
+            int decimalPlaces)
         {
             StringBuilder sourceCode = new StringBuilder();
             sourceCode.AppendLine("Public Sub Initialise(calculationContext As CalculationContext)");
@@ -114,8 +120,8 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 {
                     sourceCode.AppendLine($"AddToNullable(sum, {GenerateIdentifier(calculation.Namespace)}.{calculation.SourceCodeName}())");
                 }
-
-                sourceCode.AppendLine("Return sum");
+                
+                sourceCode.AppendLine($"Return If(sum, Math.Round(sum.Value, {decimalPlaces}, MidpointRounding.AwayFromZero), sum)");
                 sourceCode.AppendLine("End Function");
 
                 sourceCode.AppendLine("Try");

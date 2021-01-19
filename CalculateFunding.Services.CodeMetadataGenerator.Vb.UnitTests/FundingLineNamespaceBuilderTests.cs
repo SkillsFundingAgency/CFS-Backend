@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
-using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.VisualBasic;
@@ -35,19 +34,21 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
             string psg = "PSG";
             string dsg = "DSG";
 
-            GivenTheFundingLine(psg, NewFunding(_ => _.WithFundingLines(new[] { NewFundingLine(fl => fl.WithCalculations(new[] { NewFundingLineCalculation(_ => _.WithId(1)
-                .WithCalculationNamespaceType(CalculationNamespace.Template))})
-                .WithId(1)
-                .WithName("One")
-                .WithSourceCodeName("One")
-                .WithNamespace(psg)) })));
+            GivenTheFundingLine(psg,
+                NewFunding(_ => _.WithFundingLines(NewFundingLine(fl => fl.WithCalculations(NewFundingLineCalculation(_ => _.WithId(1)
+                        .WithCalculationNamespaceType(CalculationNamespace.Template)))
+                    .WithId(1)
+                    .WithName("One")
+                    .WithSourceCodeName("One")
+                    .WithNamespace(psg)))));
 
-            AndTheFundingLine(dsg, NewFunding(_ => _.WithFundingLines(new[] { NewFundingLine(fl => fl.WithCalculations(new[] { NewFundingLineCalculation(_ => _.WithId(1)
-                .WithCalculationNamespaceType(CalculationNamespace.Template))})
-                .WithId(2)
-                .WithName("Two")
-                .WithSourceCodeName("Two")
-                .WithNamespace(dsg)) })));
+            AndTheFundingLine(dsg,
+                NewFunding(_ => _.WithFundingLines(NewFundingLine(fl => fl.WithCalculations(NewFundingLineCalculation(_ => _.WithId(1)
+                        .WithCalculationNamespaceType(CalculationNamespace.Template)))
+                    .WithId(2)
+                    .WithName("Two")
+                    .WithSourceCodeName("Two")
+                    .WithNamespace(dsg)))));
 
             WhenTheFundingLineNamespacesAreBuilt();
 
@@ -59,7 +60,8 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
         {
             string psg = "PSG";
 
-            string[] expectedInitialiseMethod = {
+            string[] expectedInitialiseMethod =
+            {
                 @"PSGFundingLines<FundingLine(FundingStream := ""PSG"", Id := ""1"", Name := ""One"")>
 Public One As Func(Of decimal?) = Nothing
 Public Property PSG As PSGCalculations
@@ -73,14 +75,18 @@ End Sub
 Public Sub Initialise(calculationContext As CalculationContext)
 PSG = calculationContext.PSG
 
-One = Function() As Decimal?"};
+One = Function() As Decimal?"
+            };
 
-            GivenTheFundingLine(psg, NewFunding(_ => _.WithFundingLines(new[] { NewFundingLine(fl => fl.WithCalculations(new[] { NewFundingLineCalculation(_ => _.WithId(1)
-                .WithCalculationNamespaceType(CalculationNamespace.Template))})
-                .WithId(1)
-                .WithName("One")
-                .WithSourceCodeName("One")
-                .WithNamespace(psg)) })));
+            GivenTheFundingLine(psg,
+                NewFunding(_ => _
+                    .WithFundingLines(NewFundingLine(fl => fl
+                        .WithCalculations(NewFundingLineCalculation(cal => cal.WithId(1)
+                            .WithCalculationNamespaceType(CalculationNamespace.Template)))
+                        .WithId(1)
+                        .WithName("One")
+                        .WithSourceCodeName("One")
+                        .WithNamespace(psg)))));
 
             WhenTheFundingLineNamespacesAreBuilt();
 
@@ -89,28 +95,66 @@ One = Function() As Decimal?"};
         }
 
         [TestMethod]
+        public void EachFundingLineFunctionRoundsTheSumToTheSuppliedDecimalPlaces()
+        {
+            int decimalPlaces = new RandomNumberBetween(2, 99);
+
+            string psg = "PSG";
+
+            string expectedFundingLineLambda = @$"Dim userCalculationCodeImplementation As Func(Of Decimal?) = Function() As Decimal?
+Dim sum As Decimal? = Nothing
+AddToNullable(sum, Template.CalcOne())
+Return If(sum, Math.Round(sum.Value, {decimalPlaces}, MidpointRounding.AwayFromZero), sum)
+End Function";
+
+            GivenTheFundingLine(psg,
+                NewFunding(_ => _
+                    .WithFundingLines(NewFundingLine(fl => fl
+                        .WithCalculations(NewFundingLineCalculation(cal => cal
+                            .WithId(1)
+                            .WithName("CalcOne")
+                            .WithSourceCodeName("CalcOne")
+                            .WithCalculationNamespaceType(CalculationNamespace.Template)))
+                        .WithId(1)
+                        .WithNamespace(psg)))));
+
+            WhenTheFundingLineNamespacesAreBuilt(decimalPlaces);
+
+            AndTheNamespaceDefinition(psg, expectedFundingLineLambda);
+        }
+
+        [TestMethod]
         public void EachNamespaceClassContainsPublicFieldsToAccessItsFundingLineResultsAsFunctionPointers()
         {
             string psg = "PSG";
             string dsg = "DSG";
 
-            string[] expectedFunctionPointers = {
+            string[] expectedFunctionPointers =
+            {
                 "Public One As Func(Of decimal?) = Nothing"
             };
 
-            GivenTheFundingLine(psg, NewFunding(_ => _.WithFundingLines(new[] { NewFundingLine(fl => fl.WithCalculations(new[] { NewFundingLineCalculation(_ => _.WithId(1)
-                .WithCalculationNamespaceType(CalculationNamespace.Template))})
-                .WithId(1)
-                .WithName("One")
-                .WithSourceCodeName("One")
-                .WithNamespace(psg)) })));
+            GivenTheFundingLine(psg,
+                NewFunding(_ => _
+                    .WithFundingLines(NewFundingLine(fl => fl
+                        .WithCalculations(NewFundingLineCalculation(cal => cal
+                            .WithId(1)
+                            .WithCalculationNamespaceType(CalculationNamespace.Template)))
+                        .WithId(1)
+                        .WithName("One")
+                        .WithSourceCodeName("One")
+                        .WithNamespace(psg)))));
 
-            GivenTheFundingLine(dsg, NewFunding(_ => _.WithFundingLines(new[] { NewFundingLine(fl => fl.WithCalculations(new[] { NewFundingLineCalculation(_ => _.WithId(1)
-                .WithCalculationNamespaceType(CalculationNamespace.Template))})
-                .WithId(2)
-                .WithName("Two")
-                .WithSourceCodeName("Two")
-                .WithNamespace(dsg)) })));
+            GivenTheFundingLine(dsg,
+                NewFunding(_ => _
+                    .WithFundingLines(NewFundingLine(fl => fl
+                        .WithCalculations(NewFundingLineCalculation(cal => cal
+                            .WithId(1)
+                            .WithCalculationNamespaceType(CalculationNamespace.Template)))
+                        .WithId(2)
+                        .WithName("Two")
+                        .WithSourceCodeName("Two")
+                        .WithNamespace(dsg)))));
 
             WhenTheFundingLineNamespacesAreBuilt();
 
@@ -118,19 +162,21 @@ One = Function() As Decimal?"};
             AndTheNamespaceDefinition(psg, expectedFunctionPointers);
         }
 
-        private void GivenTheFundingLine(string fundingStream, Funding funding)
+        private void GivenTheFundingLine(string fundingStream,
+            Funding funding)
         {
             _fundingLines.Add(fundingStream, funding);
         }
 
-        private void AndTheFundingLine(string fundingStream, Funding funding)
+        private void AndTheFundingLine(string fundingStream,
+            Funding funding)
         {
             GivenTheFundingLine(fundingStream, funding);
         }
 
-        private void WhenTheFundingLineNamespacesAreBuilt()
+        private void WhenTheFundingLineNamespacesAreBuilt(int decimalPlaces = 2)
         {
-            _result = _builder.BuildNamespacesForFundingLines(_fundingLines);
+            _result = _builder.BuildNamespacesForFundingLines(_fundingLines, decimalPlaces);
         }
 
         private void ThenResultContainsNamespaceDefinitionsFor(params string[] expectedNamespaces)
@@ -141,7 +187,8 @@ One = Function() As Decimal?"};
                 .BeEquivalentTo(expectedNamespaces);
         }
 
-        private void AndTheNamespaceDefinition(string @namespace, params string[] expectedSource)
+        private void AndTheNamespaceDefinition(string @namespace,
+            params string[] expectedSource)
         {
             NamespaceClassDefinition namespaceDefinition = _result.InnerClasses.FirstOrDefault(_ => _.Namespace == @namespace);
 
@@ -160,11 +207,11 @@ One = Function() As Decimal?"};
 
         private FundingLineCalculation NewFundingLineCalculation(Action<FundingLineCalculationBuilder> setUp = null)
         {
-            FundingLineCalculationBuilder calculationBundingLineBuilder = new FundingLineCalculationBuilder();
+            FundingLineCalculationBuilder fundingLineCalculationBuilder = new FundingLineCalculationBuilder();
 
-            setUp?.Invoke(calculationBundingLineBuilder);
+            setUp?.Invoke(fundingLineCalculationBuilder);
 
-            return calculationBundingLineBuilder.Build();
+            return fundingLineCalculationBuilder.Build();
         }
 
         private Funding NewFunding(Action<FundingBuilder> setUp = null)
@@ -185,28 +232,13 @@ One = Function() As Decimal?"};
             return fundingLineBuilder.Build();
         }
 
-        private Reference NewReference(Action<ReferenceBuilder> setUp = null)
-        {
-            ReferenceBuilder referenceBuilder = new ReferenceBuilder();
-
-            setUp?.Invoke(referenceBuilder);
-
-            return referenceBuilder.Build();
-        }
-
         private bool HasSourceCodeContaining(NamespaceClassDefinition namespaceClassDefinition,
             params string[] expectedSourceCode)
         {
-            var classSourceCode = GetSourceForClassBlock(namespaceClassDefinition.ClassBlockSyntax);
+            string classSourceCode = GetSourceForClassBlock(namespaceClassDefinition.ClassBlockSyntax);
 
             return expectedSourceCode.All(expectedSourceCodeSnippet
                 => classSourceCode.Contains(expectedSourceCodeSnippet));
-        }
-
-        private bool HasSourceCodeNotContaining(NamespaceClassDefinition namespaceClassDefinition,
-            params string[] expectedSourceCode)
-        {
-            return !HasSourceCodeContaining(namespaceClassDefinition, expectedSourceCode);
         }
 
         private string GetSourceForClassBlock(ClassBlockSyntax classBlockSyntax)

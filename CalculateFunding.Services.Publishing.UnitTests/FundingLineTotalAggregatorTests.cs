@@ -5,9 +5,11 @@ using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.TemplateMetadata.Schema10;
+using CalculateFunding.Models.Publishing;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using NSubstitute;
 using Serilog;
 using CalculationResult = CalculateFunding.Models.Publishing.CalculationResult;
@@ -28,7 +30,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             TemplateMetadataContents contents = templateMetaDataGenerator.GetMetadata(GetResourceString("CalculateFunding.Services.Publishing.UnitTests.Resources.exampleFundingLineTemplate1.json"));
 
-            FundingLineTotalAggregator fundingLineTotalAggregator = new FundingLineTotalAggregator();
+            Mock<IFundingLineRoundingSettings> rounding = new Mock<IFundingLineRoundingSettings>();
+
+            rounding.Setup(_ => _.DecimalPlaces)
+                .Returns(2);
+            
+            FundingLineTotalAggregator fundingLineTotalAggregator = new FundingLineTotalAggregator(rounding.Object);
 
             TemplateMapping mapping = CreateTemplateMappings();
 

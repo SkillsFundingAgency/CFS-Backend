@@ -17,6 +17,7 @@ using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Http;
 using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Publishing;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs;
 using CalculateFunding.Services.Calcs.Analysis;
@@ -109,6 +110,8 @@ namespace CalculateFunding.Api.Calcs
 
         public void RegisterComponents(IServiceCollection builder)
         {
+            builder.AddSingleton<IFundingLineRoundingSettings, FundingLineRoundingSettings>();
+            
             builder.AddScoped<ICodeContextCache, CodeContextCache>()
                 .AddScoped<ICodeContextBuilder, CodeContextBuilder>();
             

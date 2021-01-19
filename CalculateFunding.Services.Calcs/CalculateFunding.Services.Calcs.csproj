@@ -18,7 +18,7 @@
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Results" Version="4.3.0" />
     <PackageReference Include="CalculateFunding.Common.JobManagement" Version="5.1.1" />
     <PackageReference Include="CalculateFunding.Common.Storage" Version="2.0.5" />
-    <PackageReference Include="CalculateFunding.Generators.Funding" Version="3.0.5" />
+    <PackageReference Include="CalculateFunding.Generators.Funding" Version="4.0.0" />
     <PackageReference Include="FluentValidation" Version="8.6.0" />
     <PackageReference Include="Microsoft.Azure.Storage.Blob" Version="11.2.2" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="3.6.0" />

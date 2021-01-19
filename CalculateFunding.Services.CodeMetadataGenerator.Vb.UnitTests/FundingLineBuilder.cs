@@ -42,7 +42,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
             return this;
         }
 
-        public FundingLineBuilder WithCalculations(IEnumerable<FundingLineCalculation> calculations)
+        public FundingLineBuilder WithCalculations(params FundingLineCalculation[] calculations)
         {
             _calculations = calculations;
 

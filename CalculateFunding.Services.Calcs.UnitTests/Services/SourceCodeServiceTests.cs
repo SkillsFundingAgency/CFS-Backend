@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
 using CalculateFunding.Services.CodeGeneration;
@@ -15,6 +16,7 @@ using CalculateFunding.Services.Compiler.Languages;
 using CalculateFunding.Services.Core.FeatureToggles;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Serilog;
@@ -534,7 +536,7 @@ namespace CalculateFunding.Services.Calcs.Services
             ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider();
             sourceFileGeneratorProvider
                 .CreateSourceFileGenerator(Arg.Is(TargetLanguage.VisualBasic))
-                .Returns(new VisualBasicSourceFileGenerator(logger));
+                .Returns(new VisualBasicSourceFileGenerator(logger, new Mock<IFundingLineRoundingSettings>().Object));
 
             VisualBasicCompiler vbCompiler = new VisualBasicCompiler(logger);
             CompilerFactory compilerFactory = new CompilerFactory(null, vbCompiler);

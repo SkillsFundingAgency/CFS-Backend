@@ -4,22 +4,28 @@ using System.Linq;
 using System.Text;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Publishing;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using Calculation = CalculateFunding.Models.Calcs.Calculation;
+using FundingLine = CalculateFunding.Models.Calcs.FundingLine;
 
 namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 {
     public class CalculationTypeGenerator : VisualBasicTypeGenerator
     {
         private readonly CompilerOptions _compilerOptions;
+        private readonly IFundingLineRoundingSettings _fundingLineRoundingSettings;
 
-        public CalculationTypeGenerator(CompilerOptions compilerOptions)
+        public CalculationTypeGenerator(CompilerOptions compilerOptions,
+            IFundingLineRoundingSettings fundingLineRoundingSettings)
         {
             Guard.ArgumentNotNull(compilerOptions, nameof(compilerOptions));
+            Guard.ArgumentNotNull(fundingLineRoundingSettings, nameof(fundingLineRoundingSettings));
 
             _compilerOptions = compilerOptions;
+            _fundingLineRoundingSettings = fundingLineRoundingSettings;
         }
 
         public IEnumerable<SourceFile> GenerateCalcs(IEnumerable<Calculation> calculations, IDictionary<string, Funding> funding)
@@ -98,7 +104,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
             IEnumerable<NamespaceBuilderResult> namespaceBuilderResults = new[] {
                 new CalculationNamespaceBuilder(_compilerOptions).BuildNamespacesForCalculations(calculations),
-                new FundingLineNamespaceBuilder().BuildNamespacesForFundingLines(funding)
+                new FundingLineNamespaceBuilder().BuildNamespacesForFundingLines(funding, _fundingLineRoundingSettings.DecimalPlaces)
             };
 
             foreach (NamespaceBuilderResult namespaceBuilderResult in namespaceBuilderResults)

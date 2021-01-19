@@ -5,10 +5,15 @@ using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Common.Extensions;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Generators.Funding;
+using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
+using OfficeOpenXml.FormulaParsing.Excel.Functions.Information;
 using ApiCalculationType = CalculateFunding.Common.TemplateMetadata.Enums.CalculationType;
 using CalculationResult = CalculateFunding.Models.Publishing.CalculationResult;
+using CalculationType = CalculateFunding.Generators.Funding.Enums.CalculationType;
+using FundingLineType = CalculateFunding.Generators.Funding.Enums.FundingLineType;
 using GeneratorModels = CalculateFunding.Generators.Funding.Models;
+using ProfilePeriodType = CalculateFunding.Generators.Funding.Enums.ProfilePeriodType;
 using TemplateModels = CalculateFunding.Common.TemplateMetadata.Models;
 
 namespace CalculateFunding.Services.Publishing
@@ -16,13 +21,19 @@ namespace CalculateFunding.Services.Publishing
     public class FundingLineTotalAggregator : IFundingLineTotalAggregator
     {
         private readonly FundingGenerator _fundingGenerator;
+        private readonly IFundingLineRoundingSettings _fundingLineRoundingSettings;
 
-        public FundingLineTotalAggregator()
+        public FundingLineTotalAggregator(IFundingLineRoundingSettings fundingLineRoundingSettings)
         {
+            Guard.ArgumentNotNull(fundingLineRoundingSettings, nameof(fundingLineRoundingSettings));
+
             _fundingGenerator = new FundingGenerator();
+            _fundingLineRoundingSettings = fundingLineRoundingSettings;
         }
 
-        public GeneratorModels.FundingValue GenerateTotals(TemplateModels.TemplateMetadataContents templateMetadataContents, IDictionary<uint, TemplateMappingItem> mappingItems, IDictionary<string, CalculationResult> calculationResults)
+        public GeneratorModels.FundingValue GenerateTotals(TemplateModels.TemplateMetadataContents templateMetadataContents,
+            IDictionary<uint, TemplateMappingItem> mappingItems,
+            IDictionary<string, CalculationResult> calculationResults)
         {
             Guard.ArgumentNotNull(templateMetadataContents, nameof(templateMetadataContents));
             Guard.ArgumentNotNull(mappingItems, nameof(mappingItems));
@@ -30,10 +41,12 @@ namespace CalculateFunding.Services.Publishing
 
             IEnumerable<GeneratorModels.FundingLine> fundingLines = GetFundingLines(templateMetadataContents.RootFundingLines, mappingItems, calculationResults);
 
-            return _fundingGenerator.GenerateFundingValue(fundingLines);
+            return _fundingGenerator.GenerateFundingValue(fundingLines, _fundingLineRoundingSettings.DecimalPlaces);
         }
 
-        private IEnumerable<GeneratorModels.FundingLine> GetFundingLines(IEnumerable<TemplateModels.FundingLine> fundingLines, IDictionary<uint, TemplateMappingItem> mappingItems, IDictionary<string, CalculationResult> calculationResults)
+        private IEnumerable<GeneratorModels.FundingLine> GetFundingLines(IEnumerable<TemplateModels.FundingLine> fundingLines,
+            IDictionary<uint, TemplateMappingItem> mappingItems,
+            IDictionary<string, CalculationResult> calculationResults)
         {
             return (fundingLines?.Select(funding => new GeneratorModels.FundingLine
             {
@@ -43,11 +56,13 @@ namespace CalculateFunding.Services.Publishing
                 FundingLines = GetFundingLines(funding.FundingLines, mappingItems, calculationResults),
                 Name = funding.Name,
                 TemplateLineId = funding.TemplateLineId,
-                Type = funding.Type.AsMatchingEnum<Generators.Funding.Enums.FundingLineType>()
+                Type = funding.Type.AsMatchingEnum<FundingLineType>()
             }) ?? new GeneratorModels.FundingLine[0]).ToList();
         }
 
-        private IEnumerable<GeneratorModels.Calculation> GetCalculations(IEnumerable<TemplateModels.Calculation> calculations, IDictionary<uint, TemplateMappingItem> mappingItems, IDictionary<string, CalculationResult> calculationResults)
+        private IEnumerable<GeneratorModels.Calculation> GetCalculations(IEnumerable<TemplateModels.Calculation> calculations,
+            IDictionary<uint, TemplateMappingItem> mappingItems,
+            IDictionary<string, CalculationResult> calculationResults)
         {
             return calculations?.Select(calc =>
             {
@@ -60,10 +75,10 @@ namespace CalculateFunding.Services.Publishing
                     Calculations = GetCalculations(calc.Calculations, mappingItems, calculationResults),
                     Name = calc.Name,
                     TemplateCalculationId = calc.TemplateCalculationId,
-                    Type = calc.Type.AsMatchingEnum<Generators.Funding.Enums.CalculationType>(),
+                    Type = calc.Type.AsMatchingEnum<CalculationType>(),
                     Value = calc.Type == ApiCalculationType.Cash && calculationResultValue.HasValue
-                    ? Math.Round(calculationResultValue.Value, 2, MidpointRounding.AwayFromZero)
-                    : calculationResult?.Value
+                        ? Math.Round(calculationResultValue.Value, 2, MidpointRounding.AwayFromZero)
+                        : calculationResult?.Value
                 };
             }) ?? new GeneratorModels.Calculation[0];
         }
@@ -85,13 +100,14 @@ namespace CalculateFunding.Services.Publishing
                 DistributionPeriodId = profilePeriod.DistributionPeriodId,
                 Occurrence = profilePeriod.Occurrence,
                 ProfiledValue = profilePeriod.ProfiledValue,
-                Type = profilePeriod.Type.AsMatchingEnum<Generators.Funding.Enums.ProfilePeriodType>(),
+                Type = profilePeriod.Type.AsMatchingEnum<ProfilePeriodType>(),
                 TypeValue = profilePeriod.TypeValue,
                 Year = profilePeriod.Year
             }) ?? new GeneratorModels.ProfilePeriod[0];
         }
 
-        private string GetCalculationId(IDictionary<uint, TemplateMappingItem> mappingItems, uint templateId)
+        private string GetCalculationId(IDictionary<uint, TemplateMappingItem> mappingItems,
+            uint templateId)
         {
             string calculationId = mappingItems.ContainsKey(templateId) ? mappingItems[templateId].CalculationId : null;
             if (string.IsNullOrWhiteSpace(calculationId))

@@ -17,6 +17,7 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Functions.Calcs.ServiceBus;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Publishing;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs;
 using CalculateFunding.Services.Calcs.Analysis;
@@ -101,6 +102,7 @@ namespace CalculateFunding.Functions.Calcs
                 builder.AddScoped<OnApproveAllCalculationsFailure>();
             }
 
+            builder.AddSingleton<IFundingLineRoundingSettings, FundingLineRoundingSettings>();
             builder.AddScoped<IApplyTemplateCalculationsService, ApplyTemplateCalculationsService>();
             builder.AddSingleton<ICalculationsRepository, CalculationsRepository>((ctx) =>
             {
