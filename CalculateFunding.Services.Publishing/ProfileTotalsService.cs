@@ -344,7 +344,8 @@ namespace CalculateFunding.Services.Publishing
                     .SingleOrDefault(_ => _.FundingLineCode == fundingLineCode)?.Key;
 
                 FundingStreamPeriodProfilePattern apiProfilePatternKey
-                    = fundingStreamPeriodProfilePatterns.FirstOrDefault(_ => _.ProfilePatternKey == profilePatternKey);
+                    = fundingStreamPeriodProfilePatterns.FirstOrDefault(_ => _.ProfilePatternKey == profilePatternKey
+                    && _.FundingLineId == fundingLineCode);
 
                 ProfileTotal[] profileTotals = new PaymentFundingLineProfileTotals(latestPublishedProviderVersion, fundingLineCode).ToArray();
 
@@ -359,10 +360,10 @@ namespace CalculateFunding.Services.Publishing
                     ProfilePatternKey = profilePatternKey,
                     ProfilePatternName = apiProfilePatternKey?.ProfilePatternDisplayName,
                     ProfilePatternDescription = apiProfilePatternKey?.ProfilePatternDescription,
-                    ProfileTotalAmount = profileTotals.Any() ? profileTotals.Sum(_ => _.Value) : (decimal?) null,
+                    ProfileTotalAmount = profileTotals.Any() ? profileTotals.Sum(_ => _.Value) : (decimal?)null,
                     ProfileTotals = profileTotals
                 };
-                
+
                 if (fundingLineProfile.ProfileTotalAmount != null || fundingLineProfile.CarryOverAmount != null)
                 {
                     fundingLineProfile.TotalAllocation = (fundingLineProfile.ProfileTotalAmount ?? 0) + (fundingLineProfile.CarryOverAmount ?? 0);
