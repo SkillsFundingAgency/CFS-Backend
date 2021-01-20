@@ -18,7 +18,7 @@ namespace CalculateFunding.Services.Publishing
                 return;
             }
 
-            Dictionary<string, FundingLine> fundingLines = publishedProviderVersion.FundingLines?.ToDictionary(_ => _.FundingLineCode) 
+            Dictionary<string, FundingLine> fundingLines = publishedProviderVersion.FundingLines?.Where(_ => _.Type == FundingLineType.Payment)?.ToDictionary(_ => _.FundingLineCode) 
                                                            ?? new Dictionary<string, FundingLine>();
 
             foreach (FundingLineProfileOverrides customProfile in publishedProviderVersion.CustomProfiles)

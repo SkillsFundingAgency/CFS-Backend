@@ -65,10 +65,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 dp.WithProfilePeriods(NewProfilePeriod()));
 
             FundingLine fundingLineForCustomProfile = NewFundingLine(fl => fl.WithFundingLineCode(fundingLineWithCustomProfile)
+                .WithFundingLineType(FundingLineType.Payment)
                 .WithDistributionPeriods(NewDistributionPeriod(dp =>
                     dp.WithProfilePeriods(NewProfilePeriod()))));
             FundingLine fundingLineWithProfiling = NewFundingLine(fl => fl.WithFundingLineCode(fundingLineCodeTwo)
-                .WithDistributionPeriods(profiledDistributionPeriod));
+                .WithDistributionPeriods(profiledDistributionPeriod)
+                .WithFundingLineType(FundingLineType.Payment));
 
             PublishedProviderVersion publishedProviderVersion = NewPublishedProviderVersion(_ =>
                 _.WithCustomProfiles(NewFundingLineOverrides(fl =>
