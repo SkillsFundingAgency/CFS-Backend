@@ -209,7 +209,16 @@ namespace CalculateFunding.Services.Publishing.Providers
             {
                 if (!scopedPublishedProviders.ContainsKey(predessor.Successor))
                 {
-                    scopedPublishedProviders.Add(predessor.Successor, publishedProviders[predessor.Successor]);
+                    if (publishedProviders.ContainsKey(predessor.Successor))
+                    {
+                        scopedPublishedProviders.Add(predessor.Successor, publishedProviders[predessor.Successor]);
+                    }
+                    else
+                    {
+                        string error = $"Could not locate the successor provider:{predessor.Successor}";
+                        _logger.Error(error);
+                        throw new ArgumentOutOfRangeException("Successor");
+                    }
                 }
             }
 
