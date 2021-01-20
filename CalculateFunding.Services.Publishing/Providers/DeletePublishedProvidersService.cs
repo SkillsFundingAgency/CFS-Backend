@@ -73,14 +73,14 @@ namespace CalculateFunding.Services.Publishing.Providers
             
             _logger.Information($"Started delete published providers job for {fundingStreamId} {fundingPeriodId}");
 
-            await TaskHelper.WhenAllAndThrow(DeletePublishedProviders(fundingStreamId, fundingPeriodId),
-            DeletePublishedProviderVersions(fundingStreamId, fundingPeriodId),
-            DeletePublishedFunding(fundingStreamId, fundingPeriodId),
-            DeletePublishedFundingVersions(fundingStreamId, fundingPeriodId),
-            DeletePublishedProviderSearchDocuments(fundingStreamId, fundingPeriodId),
-            DeletePublishedFundingBlobDocuments(fundingStreamId, fundingPeriodId, "publishedproviderversions"),
-            DeletePublishedFundingBlobDocuments(fundingStreamId, fundingPeriodId, "publishedfunding"),
-            DeletePublishedProviderFundingSearchDocuments(fundingStreamId, fundingPeriodId));
+            await DeletePublishedProviders(fundingStreamId, fundingPeriodId);
+            await DeletePublishedProviderVersions(fundingStreamId, fundingPeriodId);
+            await DeletePublishedFunding(fundingStreamId, fundingPeriodId);
+            await DeletePublishedFundingVersions(fundingStreamId, fundingPeriodId);
+            await DeletePublishedProviderSearchDocuments(fundingStreamId, fundingPeriodId);
+            await DeletePublishedFundingBlobDocuments(fundingStreamId, fundingPeriodId, "publishedproviderversions");
+            await DeletePublishedFundingBlobDocuments(fundingStreamId, fundingPeriodId, "publishedfunding");
+            await DeletePublishedProviderFundingSearchDocuments(fundingStreamId, fundingPeriodId);
 
             await DeselectSpecificationForFunding(fundingStreamId, fundingPeriodId);
         }
