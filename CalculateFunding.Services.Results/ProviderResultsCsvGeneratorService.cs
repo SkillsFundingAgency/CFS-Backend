@@ -129,7 +129,10 @@ namespace CalculateFunding.Services.Results
 
             if (specificationSummaryResponse?.Content == null)
             {
-                throw new NonRetriableException("");
+                string errorMessage = $"Specification: {specificationId} not found";
+                _logger.Error(errorMessage);
+                
+                throw new NonRetriableException(errorMessage);
             }
 
             SpecificationSummary specificationSummary = specificationSummaryResponse.Content;
@@ -146,6 +149,14 @@ namespace CalculateFunding.Services.Results
                 }
 
                 allMappings = allMappings.Concat(templateMapping.Content.TemplateMappingItems);
+            }
+
+            if (allMappings.Any(_ => _.CalculationId == null))
+            {
+                string errorMessage = $"Specification: {specificationId} has missing calculations in template mapping";
+                _logger.Error(errorMessage);
+
+                throw new NonRetriableException(errorMessage);
             }
 
             await _resultsRepositoryPolicy.ExecuteAsync(() => _resultsRepository.ProviderResultsBatchProcessing(specificationId,
