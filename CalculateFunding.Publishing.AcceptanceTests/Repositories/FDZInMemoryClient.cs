@@ -45,6 +45,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
+        public Task<ApiResponse<IEnumerable<ProviderSnapshot>>> GetLatestProviderSnapshotsForAllFundingStreams()
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<ApiResponse<IEnumerable<PaymentOrganisation>>> GetLocalAuthorities(int providerSnapshotId)
         {
             throw new NotImplementedException();
