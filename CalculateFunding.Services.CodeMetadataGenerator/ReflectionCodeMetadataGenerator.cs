@@ -70,8 +70,6 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                         Type = ConvertTypeName(typeInfo.FullName),
                     };
 
-
-
                     if (typeInfo.Name.EndsWith("Exception", StringComparison.InvariantCultureIgnoreCase))
                     {
                         continue;
@@ -111,7 +109,6 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                             {
                                 List<ParameterInformation> parameters = new List<ParameterInformation>();
 
-
                                 foreach (ParameterInfo parameter in methodInfo.GetParameters())
                                 {
                                     var parameterReturnDetails = ConvertTypeName(parameter.ParameterType);
@@ -139,14 +136,14 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                                     isCustom = true;
                                 }
 
-                                var methodReturnDetails = ConvertTypeName(methodInfo.ReturnType);
+                                var (fullReturnType, directType, isNullable) = ConvertTypeName(methodInfo.ReturnType);
 
                                 MethodInformation methodInformation = new MethodInformation()
                                 {
                                     Name = methodInfo.Name,
-                                    ReturnType = methodReturnDetails.fullReturnType,
-                                    ReturnTypeClass = methodReturnDetails.directType,
-                                    ReturnTypeIsNullable = methodReturnDetails.isNullable,
+                                    ReturnType = fullReturnType,
+                                    ReturnTypeClass = directType,
+                                    ReturnTypeIsNullable = isNullable,
                                     Parameters = parameters,
                                     EntityId = entityId,
                                     IsCustom = isCustom

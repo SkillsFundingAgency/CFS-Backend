@@ -405,6 +405,9 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.UnitTests
             MethodInformation booleanValueMethodInfo = dsgCalcTypeInformation.Methods.FirstOrDefault(x => x.Name == "Eligibilty");
             booleanValueMethodInfo.Should().NotBeNull();
             booleanValueMethodInfo.ReturnType.Should().Be("Nullable(Of System.Boolean)");
+            booleanValueMethodInfo.ReturnType.Should().Be("Nullable(Of System.Boolean)");
+            booleanValueMethodInfo.ReturnTypeClass.Should().Be("System.Boolean");
+            booleanValueMethodInfo.ReturnTypeIsNullable.Should().Be(true);
         }
 
         [TestMethod]
@@ -428,6 +431,28 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.UnitTests
 
             List<string> methodNames = result.SelectMany(x => (x.Methods ?? new List<MethodInformation>()).Select(m => m.Name)).ToList();
             methodNames.Should().NotContain(filteredMethodNames);
+        }
+
+        [TestMethod]
+        public void GetTypeInformation_WhenCompiledAssembly_EnsuresCalculationContextPlusTextNotPresent()
+        {
+            // Arrange
+            string[] filteredMethodNames = new[]{
+                                                    "ToString",
+                                                    "GetHashCode",
+                                                    "Equals",
+                                                    "GetType",
+                                                    "Initialise",
+                                                    "GetTypeCode"
+                                                };
+
+            // Act
+            IEnumerable<TypeInformation> result = WhenTypeInformationForTheAssemblyIsCreated(GetCalculationsWithEnumsExampleAssembly());
+
+            // Assert
+            result.Should().NotBeNull("Result should not be null");
+
+            result.Any(_ => _.Name.StartsWith("CalculationContext+")).Should().BeFalse();
         }
 
         [TestMethod]
@@ -459,11 +484,6 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.UnitTests
         private static ICodeMetadataGeneratorService GetCodeGenerator()
         {
             return new ReflectionCodeMetadataGenerator();
-        }
-
-        private static IFeatureToggle CreateFeatureToggle()
-        {
-            return Substitute.For<IFeatureToggle>();
         }
 
         private byte[] GetEmptyDatasetExampleAssembly()
