@@ -682,8 +682,7 @@ namespace CalculateFunding.Services.Datasets
             Job.CompletionStatus = CompletionStatus.Succeeded;
             Outcome = "ValidationFailed";
 
-            string blobName = $"validation-errors/{Job.Id}.json";
-            fileStream.Position = 0;
+            string blobName = $"validation-errors/{Job.Id}.xlsx";
             await _blobClient.UploadFileAsync(blobName, fileStream);
         }
 
@@ -1418,7 +1417,7 @@ namespace CalculateFunding.Services.Datasets
                 return new BadRequestObjectResult("No job id was provided");
             }
 
-            string blobName = $"validation-errors/{requestModel.JobId}.json";
+            string blobName = $"validation-errors/{requestModel.JobId}.xlsx";
 
             string blobUrl = _blobClient.GetBlobSasUrl(blobName, DateTimeOffset.UtcNow.AddDays(1), SharedAccessBlobPermissions.Read);
 

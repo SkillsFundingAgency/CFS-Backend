@@ -17,7 +17,12 @@ namespace CalculateFunding.Models.Policy.FundingPolicy.ViewModels
         /// Variation strategies
         /// </summary>
         public IEnumerable<VariationType> Variations { get; set; }
-        
+
+        /// <summary>
+        /// Error detectors
+        /// </summary>
+        public IEnumerable<string> ErrorDetectors { get; set; }
+
         /// <summary>
         /// The mode this funding configuration will operate under during approve and refresh
         /// </summary>

@@ -355,7 +355,7 @@ namespace CalculateFunding.Services.Datasets.Services
             service.Outcome.Should().Be("ValidationFailed");
             service.Job.CompletionStatus.Should().Be(CompletionStatus.Succeeded);
 
-            string validationErrorBlobName = $"validation-errors/{JobId}.json";
+            string validationErrorBlobName = $"validation-errors/{JobId}.xlsx";
             await blobClient
                 .Received(1)
                 .UploadFileAsync(Arg.Is(validationErrorBlobName), Arg.Any<Stream>());
@@ -584,7 +584,7 @@ namespace CalculateFunding.Services.Datasets.Services
             service.Outcome.Should().Be("ValidationFailed");
             service.Job.CompletionStatus.Should().Be(CompletionStatus.Succeeded);
 
-            string validationErrorBlobName = $"validation-errors/{JobId}.json";
+            string validationErrorBlobName = $"validation-errors/{JobId}.xlsx";
             await blobClient
                 .Received(1)
                 .UploadFileAsync(Arg.Is(validationErrorBlobName), Arg.Any<Stream>());
@@ -1008,7 +1008,7 @@ namespace CalculateFunding.Services.Datasets.Services
             service.Outcome.Should().Be("ValidationFailed");
             service.Job.CompletionStatus.Should().Be(CompletionStatus.Succeeded);
 
-            string validationErrorBlobName = $"validation-errors/{JobId}.json";
+            string validationErrorBlobName = $"validation-errors/{JobId}.xlsx";
             await blobClient
                 .Received(1)
                 .UploadFileAsync(Arg.Is(validationErrorBlobName), Arg.Any<Stream>());
