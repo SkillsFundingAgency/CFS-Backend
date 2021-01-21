@@ -683,7 +683,10 @@ namespace CalculateFunding.Services.Datasets
             Outcome = "ValidationFailed";
 
             string blobName = $"validation-errors/{Job.Id}.xlsx";
-            await _blobClient.UploadFileAsync(blobName, fileStream);
+
+            ICloudBlob blob = await _blobClient.GetBlobReferenceFromServerAsync(blobName);
+
+            await blob.UploadFromStreamAsync(fileStream);
         }
 
         private IDictionary<string, IEnumerable<string>> ConvertToErrorDictionary(ValidationResult validationResult)
