@@ -826,7 +826,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             string providerId = NewRandomString();
             string fundingStreamId = NewRandomString();
             string fundingLineCode = NewRandomString();
+            string customProfileFundingLineCode = NewRandomString();
             string fundingLineName = NewRandomString();
+            string customProfileFundingLineName = NewRandomString();
             string fundingPeriodId = NewRandomString();
             string profilePatternKey = NewRandomString();
             DateTime profileAuditDate = NewRandomDateTime();
@@ -849,6 +851,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                                 .WithFundingLineCode(fundingLineCode)
                                 .WithKey(profilePatternKey))
                             .ToArray())
+                    .WithCustomProfiles(NewFundingLineOverrides(cp => cp.WithFundingLineCode(customProfileFundingLineCode)))
                     .WithCarryOvers(
                         NewProfilingCarryOvers(pco => pco
                                 .WithFundingLineCode(fundingLineCode)
@@ -863,6 +866,29 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                         NewFundingLines(fl => fl
                             .WithFundingLineType(FundingLineType.Payment)
                             .WithFundingLineCode(fundingLineCode)
+                            .WithValue(1500)
+                            .WithDistributionPeriods(
+                                NewDistributionPeriod(dp => dp
+                                    .WithProfilePeriods(
+                                        NewProfilePeriod(pp => pp
+                                            .WithType(ProfilePeriodType.CalendarMonth)
+                                            .WithYear(2020)
+                                            .WithTypeValue("May")
+                                            .WithOccurence(1)
+                                            .WithAmount(500)
+                                            .WithType(ProfilePeriodType.CalendarMonth)))),
+                                NewDistributionPeriod(dp => dp
+                                    .WithProfilePeriods(
+                                        NewProfilePeriod(pp => pp
+                                            .WithType(ProfilePeriodType.CalendarMonth)
+                                            .WithYear(2020)
+                                            .WithTypeValue("June")
+                                            .WithOccurence(1)
+                                            .WithAmount(1000)
+                                            .WithType(ProfilePeriodType.CalendarMonth))))),
+                            f2 => f2
+                            .WithFundingLineType(FundingLineType.Payment)
+                            .WithFundingLineCode(customProfileFundingLineCode)
                             .WithValue(1500)
                             .WithDistributionPeriods(
                                 NewDistributionPeriod(dp => dp
@@ -897,6 +923,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                         {
                             FundingLineCode = fundingLineCode,
                             Name = fundingLineName
+                        },
+                         new TemplateMetadataFundingLine
+                        {
+                            FundingLineCode = customProfileFundingLineCode,
+                            Name = customProfileFundingLineName
                         }
                     }
                 });
@@ -908,8 +939,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 {
                     new FundingStreamPeriodProfilePattern
                     {
+                        FundingLineId = fundingLineCode,
                         ProfilePatternKey = profilePatternKey,
-                        ProfilePatternDisplayName = profilePatternDisplayName
+                        ProfilePatternDisplayName = profilePatternDisplayName,
+                        ProfilePatternDescription = profilePatternDisplayDescription
+                    },
+                    new FundingStreamPeriodProfilePattern
+                    {
+                        FundingLineId = customProfileFundingLineCode,
+                        ProfilePatternKey = null
                     }
                 }
             );
@@ -940,10 +978,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             actualFundingLineProfiles
                 .Count()
                 .Should()
-                .Be(1);
+                .Be(2);
 
             FundingLineProfile actualFundingLineProfile = 
-                actualFundingLineProfiles.FirstOrDefault();
+                actualFundingLineProfiles.FirstOrDefault(x => x.FundingLineCode == fundingLineCode);
 
             actualFundingLineProfile
                 .Should()
@@ -991,6 +1029,21 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .LastOrDefault()
                 .Should()
                 .BeEquivalentTo(expectedFundingLineProfile.ProfileTotals.LastOrDefault());
+
+            FundingLineProfile actualFundingLineCustomProfile =
+               actualFundingLineProfiles.FirstOrDefault(x => x.FundingLineCode == customProfileFundingLineCode);
+
+            actualFundingLineCustomProfile
+                .Should()
+                .NotBeNull();
+
+            actualFundingLineCustomProfile.ProfilePatternName
+                .Should()
+                .Be("Custom Profile");
+
+            actualFundingLineCustomProfile.ProfilePatternDescription
+                .Should()
+                .Be("Custom Profile");
 
             _publishedFunding.VerifyAll();
             _specificationService.VerifyAll();

@@ -8,6 +8,7 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Profiling;
 using CalculateFunding.Services.Publishing.UnitTests.Errors;
+using CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides;
 using CalculateFunding.Services.Publishing.UnitTests.Variations.Changes;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
@@ -118,6 +119,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
         protected static IEnumerable<ProfilingCarryOver> NewProfilingCarryOvers(params Action<ProfilingCarryOverBuilder>[] setUp)
         {
             return setUp.Select(NewProfilingCarryOver);
+        }
+
+        protected FundingLineProfileOverrides NewFundingLineOverrides(Action<FundingLineProfileOverridesBuilder> setUp = null)
+        {
+            FundingLineProfileOverridesBuilder profileOverridesBuilder = new FundingLineProfileOverridesBuilder();
+
+            setUp?.Invoke(profileOverridesBuilder);
+
+            return profileOverridesBuilder.Build();
         }
 
         protected static ProfilingAudit NewProfilingAudit(Action<ProfilingAuditBuilder> setUp = null)

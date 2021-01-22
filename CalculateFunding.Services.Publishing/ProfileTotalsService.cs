@@ -343,11 +343,26 @@ namespace CalculateFunding.Services.Publishing
                 string profilePatternKey = latestPublishedProviderVersion.ProfilePatternKeys?
                     .SingleOrDefault(_ => _.FundingLineCode == fundingLineCode)?.Key;
 
-                FundingStreamPeriodProfilePattern apiProfilePatternKey
-                    = fundingStreamPeriodProfilePatterns.FirstOrDefault(_ => _.ProfilePatternKey == profilePatternKey
-                    && _.FundingLineId == fundingLineCode);
+                bool hasCustomProfileForFundingLine = latestPublishedProviderVersion.FundingLineHasCustomProfile(fundingLineCode);
+
+                FundingStreamPeriodProfilePattern apiProfilePatternKey =
+                    fundingStreamPeriodProfilePatterns.FirstOrDefault(_ => _.ProfilePatternKey == profilePatternKey && _.FundingLineId == fundingLineCode);
 
                 ProfileTotal[] profileTotals = new PaymentFundingLineProfileTotals(latestPublishedProviderVersion, fundingLineCode).ToArray();
+
+                string profilePatternName;
+                string profilePatternDescription;
+
+                if (hasCustomProfileForFundingLine)
+                {
+                    profilePatternName = "Custom Profile";
+                    profilePatternDescription = "Custom Profile";
+                }
+                else
+                {
+                    profilePatternName = apiProfilePatternKey?.ProfilePatternDisplayName;
+                    profilePatternDescription = apiProfilePatternKey?.ProfilePatternDescription;
+                }
 
                 FundingLineProfile fundingLineProfile = new FundingLineProfile
                 {
@@ -358,8 +373,8 @@ namespace CalculateFunding.Services.Publishing
                     LastUpdatedUser = latestPublishedProviderVersion.GetLatestFundingLineUser(fundingLineCode),
                     LastUpdatedDate = latestPublishedProviderVersion.GetLatestFundingLineDate(fundingLineCode),
                     ProfilePatternKey = profilePatternKey,
-                    ProfilePatternName = apiProfilePatternKey?.ProfilePatternDisplayName,
-                    ProfilePatternDescription = apiProfilePatternKey?.ProfilePatternDescription,
+                    ProfilePatternName = profilePatternName,
+                    ProfilePatternDescription = profilePatternDescription,
                     ProfileTotalAmount = profileTotals.Any() ? profileTotals.Sum(_ => _.Value) : (decimal?)null,
                     ProfileTotals = profileTotals
                 };

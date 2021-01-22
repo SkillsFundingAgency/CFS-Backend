@@ -22,7 +22,11 @@ namespace CalculateFunding.Services.Profiling.Services
 
             return new AllocationProfileResponse(
                 profilePeriods.ToArray(),
-                distributionPeriods.ToArray());
+                distributionPeriods.ToArray())
+            { 
+                ProfilePatternKey = profilePattern.ProfilePatternKey, 
+                ProfilePatternDisplayName = profilePattern.ProfilePatternDisplayName 
+            };
         }
 
         private IReadOnlyCollection<DistributionPeriods> GetDistributionPeriodWithPatternApplied(
