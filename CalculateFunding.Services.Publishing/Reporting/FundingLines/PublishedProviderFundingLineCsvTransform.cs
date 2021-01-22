@@ -6,6 +6,8 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
 {
     public class PublishedProviderFundingLineCsvTransform : FundingLineCsvTransformBase
     {
+        public override string FundingLineCode { set => throw new System.NotImplementedException(); }
+
         protected override PublishedProviderVersion GetPublishedProviderVersion(IEnumerable<dynamic> documents, int resultCount)
         {
             return documents.ElementAt(resultCount).Current;

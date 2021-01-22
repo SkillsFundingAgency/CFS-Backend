@@ -135,6 +135,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             GivenTheMessageProperties(("specification-id", specificationId), ("job-type", jobType.ToString()), ("jobId", jobId), ("funding-line-code", fundingLineCode));
             AndTheFileExists(expectedInterimFilePath);
             AndTheJobExists(jobId);
+            AndTheTransformForJobType(jobType);
             AndTheBatchProcessorForJobType(jobType);
 
             await WhenTheCsvIsGenerated();

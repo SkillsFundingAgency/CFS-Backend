@@ -13,7 +13,9 @@ namespace CalculateFunding.Services.Publishing.Reporting
     {
         private readonly ArrayPool<ExpandoObject> _expandoObjectsPool 
             = ArrayPool<ExpandoObject>.Create(CsvBatchProcessBase.BatchSize, 4);
-        
+
+        public string FundingLineCode { set => throw new System.NotImplementedException(); }
+
         public abstract bool IsForJobType(FundingLineCsvGeneratorJobType jobType);
 
         public IEnumerable<ExpandoObject> Transform(IEnumerable<dynamic> documents)

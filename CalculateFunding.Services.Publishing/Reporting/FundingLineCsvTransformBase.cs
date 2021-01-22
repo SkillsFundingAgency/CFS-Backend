@@ -15,6 +15,8 @@ namespace CalculateFunding.Services.Publishing.Reporting
 
         public abstract bool IsForJobType(FundingLineCsvGeneratorJobType jobType);
 
+        public abstract string FundingLineCode { set; }
+
         public virtual IEnumerable<ExpandoObject> Transform(IEnumerable<dynamic> documents)
         {
             int resultsCount = documents.Count();

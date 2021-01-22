@@ -15,6 +15,8 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
         private readonly ArrayPool<ExpandoObject> _expandoObjectsPool
             = ArrayPool<ExpandoObject>.Create(CsvBatchProcessBase.BatchSize, 4);
 
+        public string FundingLineCode { set => throw new NotImplementedException(); }
+
         public bool IsForJobType(FundingLineCsvGeneratorJobType jobType)
         {
             return jobType == FundingLineCsvGeneratorJobType.PublishedGroups;
