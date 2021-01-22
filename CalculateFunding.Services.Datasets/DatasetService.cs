@@ -684,7 +684,7 @@ namespace CalculateFunding.Services.Datasets
 
             string blobName = $"validation-errors/{Job.Id}.xlsx";
 
-            ICloudBlob blob = await _blobClient.GetBlobReferenceFromServerAsync(blobName);
+            ICloudBlob blob = _blobClient.GetBlockBlobReference(blobName);
 
             await blob.UploadFromStreamAsync(fileStream);
         }

@@ -356,9 +356,9 @@ namespace CalculateFunding.Services.Datasets.Services
             service.Job.CompletionStatus.Should().Be(CompletionStatus.Succeeded);
 
             string validationErrorBlobName = $"validation-errors/{JobId}.xlsx";
-            await blobClient
+            blobClient
                 .Received(1)
-                .GetBlobReferenceFromServerAsync(Arg.Is(validationErrorBlobName));
+                .GetBlockBlobReference(Arg.Is(validationErrorBlobName));
 
             mapper
                 .Received(1)
@@ -585,9 +585,9 @@ namespace CalculateFunding.Services.Datasets.Services
             service.Job.CompletionStatus.Should().Be(CompletionStatus.Succeeded);
 
             string validationErrorBlobName = $"validation-errors/{JobId}.xlsx";
-            await blobClient
+            blobClient
                 .Received(1)
-                .GetBlobReferenceFromServerAsync(Arg.Is(validationErrorBlobName));
+                .GetBlockBlobReference(Arg.Is(validationErrorBlobName));
         }
 
         [TestMethod]
@@ -1010,9 +1010,9 @@ namespace CalculateFunding.Services.Datasets.Services
 
             string validationErrorBlobName = $"validation-errors/{JobId}.xlsx";
             
-            await blobClient
+            blobClient
                 .Received(1)
-                .GetBlobReferenceFromServerAsync(Arg.Is(validationErrorBlobName));
+                .GetBlockBlobReference(Arg.Is(validationErrorBlobName));
 
             await cacheProvider
                 .Received(1)
