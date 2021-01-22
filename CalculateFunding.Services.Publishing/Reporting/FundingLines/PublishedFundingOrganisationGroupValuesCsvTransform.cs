@@ -12,7 +12,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
         private readonly ArrayPool<ExpandoObject> _expandoObjectsPool = ArrayPool<ExpandoObject>
             .Create(CsvBatchProcessBase.BatchSize, 4);
 
-        public override string FundingLineCode { set => throw new System.NotImplementedException(); }
+        public override string FundingLineCode { set => _ = value; }
 
         public override bool IsForJobType(FundingLineCsvGeneratorJobType jobType)
         {

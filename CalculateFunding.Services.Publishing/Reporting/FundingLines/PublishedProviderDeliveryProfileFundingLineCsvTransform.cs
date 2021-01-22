@@ -12,12 +12,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
     {
         private string _fundingLineCode;
 
-        public override string FundingLineCode {
-            set
-            {
-                _fundingLineCode = value;
-            }
-        }
+        public override string FundingLineCode { set => _fundingLineCode = value; }
 
         public override bool IsForJobType(FundingLineCsvGeneratorJobType jobType)
         {
