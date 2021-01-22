@@ -712,8 +712,6 @@ namespace CalculateFunding.Services.Calcs
                 return new StatusCodeResult((int)statusCode);
             }
 
-            await UpdateBuildProject(specificationSummary);
-
             string fundingStreamName = specificationSummary.FundingStreams.FirstOrDefault(_ => _.Id == calculation.FundingStreamId)?.Name;
 
             await UpdateSearch(calculation, specificationSummary.Name, fundingStreamName);

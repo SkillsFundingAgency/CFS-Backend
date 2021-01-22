@@ -45,7 +45,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task EditCalculationStatus_GivenNullEditModeldWasProvided_ReturnsBadRequest()
+        public async Task EditCalculationStatus_GivenNullEditModelWasProvided_ReturnsBadRequest()
         {
             //Arrange
             ILogger logger = CreateLogger();
@@ -139,7 +139,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task EditCalculationStatus_GivenStatusHasntChanges_DoesNotUpdateReturnsOkResult()
+        public async Task EditCalculationStatus_GivenStatusHasNoChanges_DoesNotUpdateReturnsOkResult()
         {
             //Arrange
             EditStatusModel CalculationEditStatusModel = new EditStatusModel
@@ -289,6 +289,8 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationsRepository
                 .UpdateCalculation(Arg.Any<Calculation>())
                 .Returns(HttpStatusCode.OK);
+            
+            
 
             SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary()
             {
@@ -319,6 +321,8 @@ namespace CalculateFunding.Services.Calcs.Services
 
             BuildProject buildProject = new BuildProject();
 
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+
             IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
             buildProjectsService
                 .GetBuildProjectForSpecificationId(Arg.Is(calculation.SpecificationId))
@@ -334,7 +338,8 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService service = CreateCalculationService(
                 logger: logger, calculationsRepository: CalculationsRepository, searchRepository: searchRepository,
                 specificationsApiClient: specificationsApiClient, calculationVersionRepository: versionRepository,
-                sourceCodeService: sourceCodeService, buildProjectsService: buildProjectsService, resultsApiClient: resultsApiClient);
+                sourceCodeService: sourceCodeService, buildProjectsService: buildProjectsService, resultsApiClient: resultsApiClient,
+                buildProjectsRepository: buildProjectsRepository);
 
             //Act
             IActionResult result = await service.UpdateCalculationStatus(CalculationId, CalculationEditStatusModel);
@@ -357,6 +362,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .PublishStatus
                 .Should()
                 .Be(PublishStatus.Approved);
+
+            await buildProjectsRepository
+                .Received(0)
+                .UpdateBuildProject(Arg.Any<BuildProject>());
         }
 
         [TestMethod]
