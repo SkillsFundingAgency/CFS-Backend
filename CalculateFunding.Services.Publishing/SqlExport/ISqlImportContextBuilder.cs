@@ -5,6 +5,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
     public interface ISqlImportContextBuilder
     {
         Task<ISqlImportContext> CreateImportContext(string specificationId,
-            string fundingStreamId);
+            string fundingStreamId,
+            SchemaContext schemaContext);
     }
 }

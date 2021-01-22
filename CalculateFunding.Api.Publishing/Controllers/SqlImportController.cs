@@ -20,15 +20,6 @@ namespace CalculateFunding.Api.Publishing.Controllers
             _importer = importer;
             _importService = importService;
         }
-        
-        [HttpGet("api/sqlqa/specifications/{specificationId}/funding-streams/{fundingStreamId}/import")]
-        public async Task<IActionResult> ImportData([FromRoute] string specificationId, 
-            [FromRoute] string fundingStreamId)
-        {
-            await _importer.ImportData(specificationId, fundingStreamId);
-
-            return NoContent();
-        }
 
         [HttpGet("api/sqlqa/specifications/{specificationId}/funding-streams/{fundingStreamId}/import/queue")]
         public async Task<IActionResult> QueueImportDataJob([FromRoute] string specificationId,

@@ -48,7 +48,8 @@ namespace CalculateFunding.Services.Publishing.SqlExport
         }
 
         public async Task<ISqlImportContext> CreateImportContext(string specificationId,
-            string fundingStreamId)
+            string fundingStreamId,
+            SchemaContext schemaContext)
         {
             ICosmosDbFeedIterator<PublishedProvider> publishedProviderFeed = GetPublishedProviderFeed(specificationId, fundingStreamId);
 
@@ -67,7 +68,8 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                 Providers = new ProviderDataTableBuilder(),
                 Funding = new PublishedProviderVersionDataTableBuilder(),
                 InformationFundingLines = new InformationFundingLineDataTableBuilder(),
-                PaymentFundingLines = new PaymentFundingLineDataTableBuilder()
+                PaymentFundingLines = new PaymentFundingLineDataTableBuilder(),
+                SchemaContext = schemaContext
             };
         }
 

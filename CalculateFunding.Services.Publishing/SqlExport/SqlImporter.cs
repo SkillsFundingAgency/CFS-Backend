@@ -35,9 +35,10 @@ namespace CalculateFunding.Services.Publishing.SqlExport
         }
 
         public async Task ImportData(string specificationId,
-            string fundingStreamId)
+            string fundingStreamId,
+            SchemaContext schemaContext)
         {
-            ISqlImportContext importContext = await _sqlImportContextBuilder.CreateImportContext(specificationId, fundingStreamId);
+            ISqlImportContext importContext = await _sqlImportContextBuilder.CreateImportContext(specificationId, fundingStreamId, schemaContext);
 
             IProducerConsumer producerConsumer = _producerConsumerFactory.CreateProducerConsumer(ProducePublishedProviders,
                 PopulateDataTables,

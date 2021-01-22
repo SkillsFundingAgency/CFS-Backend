@@ -115,7 +115,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
 
         private void GivenTheImportContextIsCreatedForTheFundingInformation(string specificationId,
             string fundingStreamId)
-            => _importContextBuilder.Setup(_ => _.CreateImportContext(specificationId, fundingStreamId))
+            => _importContextBuilder.Setup(_ => _.CreateImportContext(specificationId, fundingStreamId, null))
                 .ReturnsAsync(_importContext.Object);
         
         private void AndTheImportContextWasBulkInsertedIntoSqlServer()
@@ -143,7 +143,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
         
         private async Task WhenTheSqlImportRuns(string specificationId,
             string fundingStreamId)
-            => await _sqlImporter.ImportData(specificationId, fundingStreamId);
+            => await _sqlImporter.ImportData(specificationId, fundingStreamId, null);
 
         private void AndThePagesOfPublishedProviders(params IEnumerable<PublishedProvider>[] pages)
         {

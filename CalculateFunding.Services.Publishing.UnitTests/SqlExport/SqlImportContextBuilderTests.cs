@@ -55,6 +55,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             Calculation calculationFour = NewCalculation(_ => _.WithCalculations(calculationOne));
             Calculation calculationFive = NewCalculation(_ => _.WithCalculations(calculationTwo));
 
+            SchemaContext schemaContext = new SchemaContext();
+
             SpecificationSummary specificationSummary = NewSpecificationSummary(_ => _.WithId(specificationId)
                 .WithFundingStreamIds(fundingStreamId)
                 .WithFundingPeriodId(fundingPeriodId)
@@ -72,11 +74,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             AndTheTemplateMetadataContents(schemaVersion, fundingTemplateContents, templateMetadataContents);
             AndTheCosmosDocumentFeed(specificationId, fundingStreamId);
 
-            ISqlImportContext importContext = await WhenTheImportContextIsBuilt(specificationId, fundingStreamId);
+            ISqlImportContext importContext = await WhenTheImportContextIsBuilt(specificationId, fundingStreamId, schemaContext);
 
             importContext
                 .Should()
                 .BeOfType<SqlImportContext>();
+
+            importContext
+                .SchemaContext
+                .Should()
+                .BeSameAs(schemaContext);
 
             importContext
                 .Calculations
@@ -135,8 +142,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
         }
 
         private async Task<ISqlImportContext> WhenTheImportContextIsBuilt(string specificationId,
-            string fundingStreamId)
-            => await _contextBuilder.CreateImportContext(specificationId, fundingStreamId);
+            string fundingStreamId,
+            SchemaContext schemaContext)
+            => await _contextBuilder.CreateImportContext(specificationId, fundingStreamId, schemaContext);
 
         private void AndTheCosmosDocumentFeed(string specificationId,
             string fundingStreamId)

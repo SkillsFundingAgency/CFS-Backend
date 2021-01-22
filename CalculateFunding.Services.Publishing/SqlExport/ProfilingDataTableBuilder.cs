@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Publishing.Profiling;
 
 namespace CalculateFunding.Services.Publishing.SqlExport
@@ -10,31 +12,30 @@ namespace CalculateFunding.Services.Publishing.SqlExport
     {
         private readonly uint _templateId;
         private readonly string _fundingLineCode;
+        private readonly ProfilePeriodPattern[] _profilePeriodPatterns;
+        private readonly ProfilePeriodsMap _profilePeriodsMap;
 
         public ProfilingDataTableBuilder(uint templateId,
-            string fundingLineCode)
+            string fundingLineCode,
+            params ProfilePeriodPattern[] profilePeriodPatterns)
         {
             _templateId = templateId;
             _fundingLineCode = fundingLineCode;
+            _profilePeriodPatterns = profilePeriodPatterns;
+            _profilePeriodsMap = new ProfilePeriodsMap(profilePeriodPatterns);
         }
 
-        protected override DataColumn[] GetDataColumns(PublishedProviderVersion dto)
-        {
-            FundingLine fundingLine = dto.FundingLines.Single(_ => _.TemplateLineId == _templateId);
-            ProfileTotal[] profiling = new PaymentFundingLineProfileTotals(dto, fundingLine.FundingLineCode)
-                .ToArray();
-
-            return new[]
+        protected override DataColumn[] GetDataColumns(PublishedProviderVersion dto) =>
+            new[]
                 {
                     NewDataColumn<string>("PublishedProviderId", 128)
-                }.Concat(profiling
+                }.Concat(_profilePeriodPatterns
                     .SelectMany(ProfilePeriodColumns))
                 .ToArray();
-        }
 
-        private IEnumerable<DataColumn> ProfilePeriodColumns(ProfileTotal profile)
+        private IEnumerable<DataColumn> ProfilePeriodColumns(ProfilePeriodPattern profile)
         {
-            string profilePrefix = $"{profile.TypeValue}_{profile.PeriodType}_{profile.Year}_{profile.Occurrence}";
+            string profilePrefix = $"{profile.Period}_{profile.PeriodType}_{profile.PeriodYear}_{profile.Occurrence}";
 
             return new[]
             {
@@ -47,16 +48,10 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             };
         }
 
-        private IEnumerable<object> ProfilePeriodRows(ProfileTotal profile)
-            => new object[]
-            {
-                profile.TypeValue,
-                profile.PeriodType,
-                profile.Year,
-                profile.Occurrence,
-                profile.DistributionPeriod,
-                profile.Value
-            };
+        private IEnumerable<object> ProfilePeriodColumnValues(ProfileTotal[] profiles)
+            => _profilePeriodsMap.GetProfilePeriodValues(profiles)
+                .SelectMany(_ => _)
+                .ToArray();
 
         protected override void AddDataRowToDataTable(PublishedProviderVersion dto)
         {
@@ -64,10 +59,20 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             ProfileTotal[] profiling = new PaymentFundingLineProfileTotals(dto, fundingLine.FundingLineCode)
                 .ToArray();
 
+            object[] profilePeriods = ProfilePeriodColumnValues(profiling).ToArray();
+
+            int templatePeriodCount = DataTable.Columns.Count - 1;
+
+            if (templatePeriodCount != profilePeriods.Length)
+            {
+                throw new NonRetriableException($"Unable to import data into table {TableName} for funding line code {fundingLine.FundingLineCode}.\n Funding" +
+                                                $" line for provider {dto.ProviderId} has {profilePeriods.Length/6} profile periods but the template expected {templatePeriodCount/6}");
+            }
+            
             DataTable.Rows.Add(new[]
             {
                 dto.PublishedProviderId
-            }.Concat(profiling.SelectMany(ProfilePeriodRows)).ToArray());
+            }.Concat(profilePeriods).ToArray());
         }
 
         protected override void EnsureTableNameIsSet(PublishedProviderVersion dto)

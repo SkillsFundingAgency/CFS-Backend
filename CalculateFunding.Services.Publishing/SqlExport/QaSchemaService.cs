@@ -22,6 +22,19 @@ using Polly;
 
 namespace CalculateFunding.Services.Publishing.SqlExport
 {
+    public class SchemaContext
+    {
+        public IDictionary<string, ProfilePeriodPattern[]> FundingLineProfilePatterns { get; private set; }
+
+        public void AddFundingLineProfilePatterns(string fundingLineCode,
+            ProfilePeriodPattern[] profilePeriodPatterns)
+        {
+            FundingLineProfilePatterns ??= new Dictionary<string, ProfilePeriodPattern[]>();
+
+            FundingLineProfilePatterns[fundingLineCode] = profilePeriodPatterns;
+        }
+    }
+    
     public class QaSchemaService : IQaSchemaService
     {
         private readonly IPoliciesApiClient _policies;
@@ -65,7 +78,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             //at the moment it needs a god test with too much setup to make much sense to anyone
         }
 
-        public async Task ReCreateTablesForSpecificationAndFundingStream(string specificationId,
+        public async Task<SchemaContext> ReCreateTablesForSpecificationAndFundingStream(string specificationId,
             string fundingStreamId)
         {
             ApiResponse<SpecificationSummary> specificationResponse = await _specificationResilience.ExecuteAsync(()
@@ -79,25 +92,33 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                     $"Did not locate a specification {specificationId}. Unable to complete Qa Schema Generation");
             }
 
-            await EnsureTablesForFundingStream(specification, fundingStreamId);
+            SchemaContext schemaContext = new SchemaContext();
+
+            await EnsureTablesForFundingStream(specification, fundingStreamId, schemaContext);
+
+            return schemaContext;
         }
 
-        public async Task EnsureSqlTablesForSpecification(string specificationId)
+        public async Task<SchemaContext> EnsureSqlTablesForSpecification(string specificationId)
         {
             ApiResponse<SpecificationSummary> specificationResponse = await _specificationResilience.ExecuteAsync(()
                 => _specifications.GetSpecificationSummaryById(specificationId));
 
             SpecificationSummary specification = specificationResponse.Content;
 
-            foreach (Reference fundingStream in specification.FundingStreams) await EnsureTablesForFundingStream(specification, fundingStream.Id);
+            SchemaContext schemaContext = new SchemaContext();
+
+            foreach (Reference fundingStream in specification.FundingStreams) await EnsureTablesForFundingStream(specification, fundingStream.Id, schemaContext);
+
+            return schemaContext;
         }
 
-        private async Task EnsureTablesForFundingStream(SpecificationSummary specification, string fundingStreamId)
+        private async Task EnsureTablesForFundingStream(SpecificationSummary specification, string fundingStreamId, SchemaContext schemaContext)
         {
             // TODO: handle multiple version of the template for fields....
             UniqueTemplateContents templateMetadata = await GetTemplateData(specification, fundingStreamId);
             Dictionary<string, IEnumerable<SqlColumnDefinition>> profilingTables =
-                await GenerateProfiling(fundingStreamId, specification.FundingPeriod.Id, templateMetadata);
+                await GenerateProfiling(fundingStreamId, specification.FundingPeriod.Id, templateMetadata, schemaContext);
 
             string fundingStreamTablePrefix = $"{fundingStreamId}_{specification.FundingPeriod.Id}";
 
@@ -134,7 +155,9 @@ namespace CalculateFunding.Services.Publishing.SqlExport
         }
 
         private async Task<Dictionary<string, IEnumerable<SqlColumnDefinition>>> GenerateProfiling(string fundingStreamId,
-            string fundingPeriodId, UniqueTemplateContents templateMetadata)
+            string fundingPeriodId, 
+            UniqueTemplateContents templateMetadata,
+            SchemaContext schemaContext)
         {
             ApiResponse<IEnumerable<FundingStreamPeriodProfilePattern>> profilePatternResults =
                 await _profilingClient.GetProfilePatternsForFundingStreamAndFundingPeriod(fundingStreamId, fundingPeriodId);
@@ -151,8 +174,10 @@ namespace CalculateFunding.Services.Publishing.SqlExport
 
             foreach (FundingLine fundingLine in templateMetadata.FundingLines.Where(f => f.Type == FundingLineType.Payment))
             {
+                string fundingLineCode = fundingLine.FundingLineCode;
+                
                 IEnumerable<ProfilePeriodPattern> allPatterns = profilePatterns
-                    .Where(p => p.FundingLineId == fundingLine.FundingLineCode)
+                    .Where(p => p.FundingLineId == fundingLineCode)
                     .SelectMany(p => p.ProfilePattern)
                     .ToArray();
 
@@ -163,6 +188,8 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                     _.PeriodType,
                     _.PeriodYear
                 });
+                
+                schemaContext.AddFundingLineProfilePatterns(fundingLineCode, uniqueProfilePatterns.ToArray());
 
                 List<SqlColumnDefinition> fundingSqlFields = new List<SqlColumnDefinition>();
 
@@ -207,7 +234,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                     });
                 }
 
-                profiling.Add(fundingLine.FundingLineCode, fundingSqlFields);
+                profiling.Add(fundingLineCode, fundingSqlFields);
             }
 
             return profiling;

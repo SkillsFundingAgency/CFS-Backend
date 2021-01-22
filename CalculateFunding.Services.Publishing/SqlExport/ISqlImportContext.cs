@@ -6,6 +6,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
 {
     public interface ISqlImportContext
     {
+        SchemaContext SchemaContext { get; set; }
         ICosmosDbFeedIterator<PublishedProvider> Documents { get; set; }
         IDataTableBuilder<PublishedProviderVersion> Providers { get; set; }
         IDataTableBuilder<PublishedProviderVersion> Funding { get; set; }

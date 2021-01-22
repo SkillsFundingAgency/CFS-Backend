@@ -24,6 +24,8 @@ namespace CalculateFunding.Services.Publishing.SqlExport
 
         public IDictionary<uint, string> CalculationNames { get; set; }
 
+        public SchemaContext SchemaContext { get; set; }
+
         public void AddRows(PublishedProviderVersion dto)
         {
             Providers.AddRows(dto);
@@ -58,9 +60,13 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                 }
 
                 Profiling = dto.FundingLines?.Where(_ => _.Type == FundingLineType.Payment)
-                    .ToDictionary(_ => _.TemplateLineId,
-                        _ => (IDataTableBuilder<PublishedProviderVersion>)
-                            new ProfilingDataTableBuilder(_.TemplateLineId, _.FundingLineCode)) ?? new Dictionary<uint, IDataTableBuilder<PublishedProviderVersion>>();
+                                .ToDictionary(_ => _.TemplateLineId,
+                                    _ => (IDataTableBuilder<PublishedProviderVersion>)
+                                        new ProfilingDataTableBuilder(_.TemplateLineId,
+                                            _.FundingLineCode,
+                                            SchemaContext
+                                                .FundingLineProfilePatterns[_.FundingLineCode]))
+                            ?? new Dictionary<uint, IDataTableBuilder<PublishedProviderVersion>>();
             }
         }
     }

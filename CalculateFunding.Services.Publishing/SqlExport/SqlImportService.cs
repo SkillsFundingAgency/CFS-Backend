@@ -74,8 +74,9 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
             Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
 
-            await _schema.ReCreateTablesForSpecificationAndFundingStream(specificationId, fundingStreamId);
-            await _import.ImportData(specificationId, fundingStreamId);
+            SchemaContext schemaContext = await _schema.ReCreateTablesForSpecificationAndFundingStream(specificationId, fundingStreamId);
+            
+            await _import.ImportData(specificationId, fundingStreamId, schemaContext);
         }
     }
 }

@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.SqlExport;
 using CalculateFunding.Tests.Common.Helpers;
@@ -14,7 +16,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
     {
         private Mock<IDataTableBuilder<PublishedProviderVersion>> _providers;
         private Mock<IDataTableBuilder<PublishedProviderVersion>> _funding;
-        private Mock<IDictionary<uint, IDataTableBuilder<PublishedProviderVersion>>> _profiling;
         private Mock<IDataTableBuilder<PublishedProviderVersion>> _paymentFundingLines;
         private Mock<IDataTableBuilder<PublishedProviderVersion>> _informationFundingLines;
         private Mock<IDataTableBuilder<PublishedProviderVersion>> _calculations;
@@ -36,7 +37,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                 Providers = _providers.Object,
                 InformationFundingLines = _informationFundingLines.Object,
                 PaymentFundingLines = _paymentFundingLines.Object,
-                Calculations = _calculations.Object
+                Calculations = _calculations.Object,
+                SchemaContext = new SchemaContext()
             };
         }
 
@@ -62,6 +64,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                 _.WithFundingLines(NewFundingLine(fl => fl.WithFundingLineType(FundingLineType.Information)),
                     fundingLineOne,
                     fundingLineTwo));
+            
+            GivenTheFundingLineProfilePatterns((fundingLineOne.FundingLineCode, ArraySegment<ProfilePeriodPattern>.Empty),
+                (fundingLineTwo.FundingLineCode, ArraySegment<ProfilePeriodPattern>.Empty));
 
             WhenTheRowsAreAdded(one);
             
@@ -134,6 +139,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
 
             return fundingLineBuilder
                 .Build();
+        }
+
+        private void GivenTheFundingLineProfilePatterns(params (string fundingLineCode, IEnumerable<ProfilePeriodPattern> patterns)[] fundingLinePatterns)
+        {
+            foreach ((string fundingLineCode, IEnumerable<ProfilePeriodPattern> patterns) fundingLinePattern in fundingLinePatterns)
+            {
+                _importContext.SchemaContext.AddFundingLineProfilePatterns(fundingLinePattern.fundingLineCode, fundingLinePattern.patterns.ToArray());
+            }
         }
         
         private static string NewRandomString() => new RandomString();

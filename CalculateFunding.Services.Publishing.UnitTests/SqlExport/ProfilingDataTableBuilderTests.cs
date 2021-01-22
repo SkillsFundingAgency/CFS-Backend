@@ -1,5 +1,8 @@
+using System;
+using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.SqlExport;
+using CalculateFunding.Tests.Common.Helpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
@@ -15,8 +18,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
         {
             _templateLineId = NewRandomUnsignedNumber();
             _fundingLineCode = NewRandomString();
-
-            DataTableBuilder = new ProfilingDataTableBuilder(_templateLineId, _fundingLineCode);
         }
 
         [TestMethod]
@@ -81,6 +82,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                 .WithFundingStreamId(FundingStreamId)
                 .WithFundingPeriodId(FundingPeriodId));
 
+            GivenTheDataTableBuilder(new ProfilingDataTableBuilder(_templateLineId, _fundingLineCode,
+                NewProfilePeriodPattern(_ => _.WithPeriod(periodOne)
+                    .WithOccurrence(occurrenceOne)
+                    .WithYear(year)),
+                NewProfilePeriodPattern(_ => _.WithPeriod(periodTwo)
+                    .WithOccurrence(occurrenceTwo)
+                    .WithYear(year))));
+
             WhenTheRowsAreAdded(rowOne, rowTwo);
 
             string profilePeriodOnePrefix = $"{periodOne}_{ProfilePeriodType.CalendarMonth}_{year}_{occurrenceOne}";
@@ -104,6 +113,58 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
                 NewRow(rowOne.PublishedProviderId, periodOne, ProfilePeriodType.CalendarMonth.ToString(), year, occurrenceOne, distributionPeriodId, valueThree,
                     periodTwo, ProfilePeriodType.CalendarMonth.ToString(), year, occurrenceTwo, distributionPeriodId, valueFour ));
             AndTheTableNameIs($"[dbo].[{FundingStreamId}_{FundingPeriodId}_Profiles_{_fundingLineCode}]");
+        }
+
+        private void GivenTheDataTableBuilder(ProfilingDataTableBuilder dataTableBuilder)
+        {
+            DataTableBuilder = dataTableBuilder;
+        }
+
+        private ProfilePeriodPattern NewProfilePeriodPattern(Action<ProfilePeriodPatternBuilder> setUp = null)
+        {
+            ProfilePeriodPatternBuilder profilePeriodPatternBuilder = new ProfilePeriodPatternBuilder();
+
+            setUp?.Invoke(profilePeriodPatternBuilder);
+            
+            return profilePeriodPatternBuilder.Build();
+        }
+    }
+
+    public class ProfilePeriodPatternBuilder : TestEntityBuilder
+    {
+        private int _year;
+        private int _occurrence;
+        private string _period;
+
+        public ProfilePeriodPatternBuilder WithYear(int year)
+        {
+            _year = year;
+
+            return this;
+        }
+
+        public ProfilePeriodPatternBuilder WithOccurrence(int occurrence)
+        {
+            _occurrence = occurrence;
+
+            return this;
+        }
+
+        public ProfilePeriodPatternBuilder WithPeriod(string period)
+        {
+            _period = period;
+
+            return this;
+        } 
+        
+        public ProfilePeriodPattern Build()
+        {
+            return new ProfilePeriodPattern
+            {
+                Occurrence = _occurrence,
+                PeriodYear = _year,
+                Period = _period
+            };
         }
     }
 }

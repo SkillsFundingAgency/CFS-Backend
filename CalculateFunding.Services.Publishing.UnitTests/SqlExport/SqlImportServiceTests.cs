@@ -123,7 +123,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
 
         private void AndTheImportWasRun(string specificationId,
             string fundingStreamId)
-            => _import.Verify(_ => _.ImportData(specificationId, fundingStreamId),
+            => _import.Verify(_ => _.ImportData(specificationId, fundingStreamId, null),
                 Times.Once);
         private void GivenTheRunSqlImportJob(string specificationId,
             string fundingStreamId,

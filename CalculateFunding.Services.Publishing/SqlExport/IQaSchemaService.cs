@@ -4,9 +4,9 @@ namespace CalculateFunding.Services.Publishing.SqlExport
 {
     public interface IQaSchemaService
     {
-        Task EnsureSqlTablesForSpecification(string specificationId);
+        Task<SchemaContext> EnsureSqlTablesForSpecification(string specificationId);
 
-        Task ReCreateTablesForSpecificationAndFundingStream(string specificationId,
+        Task<SchemaContext> ReCreateTablesForSpecificationAndFundingStream(string specificationId,
             string fundingStreamId);
     }
 }
