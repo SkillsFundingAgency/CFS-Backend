@@ -229,7 +229,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                     fundingSqlFields.Add(new SqlColumnDefinition
                     {
                         Name = $"{patternPrefix}_Value",
-                        Type = "[decimal](18, 0)",
+                        Type = "[decimal](30, 2)",
                         AllowNulls = true
                     });
                 }
@@ -522,7 +522,7 @@ REFERENCES [dbo].[{fundingStreamTablePrefix}_{fundingTableName}] ([PublishedProv
                 var format when format == CalculationValueFormat.Currency ||
                                 format == CalculationValueFormat.Number ||
                                 format == CalculationValueFormat.Percentage
-                    => "[decimal](18, 0)",
+                    => "[decimal](30, 18)",
                 CalculationValueFormat.Boolean => "[bit]",
                 CalculationValueFormat.String => "[varchar](128)",
                 _ => throw new InvalidOperationException("Unknown value format")
