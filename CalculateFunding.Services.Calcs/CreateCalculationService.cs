@@ -11,7 +11,8 @@ using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs.Interfaces;
-using CalculateFunding.Services.CodeGeneration.VisualBasic;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type.Interfaces;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
@@ -36,6 +37,7 @@ namespace CalculateFunding.Services.Calcs
         private readonly ISearchRepository<CalculationIndex> _searchRepository;
         private readonly ILogger _logger;
         private readonly IInstructionAllocationJobCreation _instructionAllocationJobCreation;
+        private readonly ITypeIdentifierGenerator _typeIdentifierGenerator;
 
         public CreateCalculationService(ICalculationNameInUseCheck calculationNameInUseCheck,
             ICalculationsRepository calculationsRepository,
@@ -67,6 +69,8 @@ namespace CalculateFunding.Services.Calcs
             _calculationVersionsRepositoryPolicy = calculationsResiliencePolicies.CalculationsVersionsRepositoryPolicy;
             _calculationRepositoryPolicy = calculationsResiliencePolicies.CalculationsRepository;
             _cachePolicy = calculationsResiliencePolicies.CacheProviderPolicy;
+
+            _typeIdentifierGenerator = new VisualBasicTypeIdentifierGenerator();
         }
 
         public async Task<CreateCalculationResponse> CreateCalculation(string specificationId,
@@ -144,7 +148,7 @@ namespace CalculateFunding.Services.Calcs
                 };
             }
 
-            calculation.Current.SourceCodeName = VisualBasicTypeGenerator.GenerateIdentifier(calculation.Name);
+            calculation.Current.SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(calculation.Name);
 
             HttpStatusCode result = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.CreateDraftCalculation(calculation));
 

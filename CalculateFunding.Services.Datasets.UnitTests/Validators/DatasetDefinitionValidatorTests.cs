@@ -8,6 +8,7 @@ using PoliciesApiModels = CalculateFunding.Common.ApiClient.Policies.Models;
 using System.Collections.Generic;
 using System;
 using CalculateFunding.Services.Datasets.Services;
+using Polly;
 
 namespace CalculateFunding.Services.Datasets.Validators
 {
@@ -16,6 +17,9 @@ namespace CalculateFunding.Services.Datasets.Validators
     {
         private const string FundingStreamId = "funding-stream-id";
         private const string FundingStreamName = "funding-stream-name";
+        private const string DatasetDefinitionName = "dataset-definition-name";
+        private const string DatasetDefinitionId = "dataset-definition-id";
+
 
         [TestMethod]
         public void Validate_GivenEmptyFundingStreamId_ValidIsFalse()
@@ -67,6 +71,72 @@ namespace CalculateFunding.Services.Datasets.Validators
                 .Be(1);
         }
 
+        [TestMethod]
+        public void Validate_GivenDuplicateDatasetDefinitionName_ValidIsFalse()
+        {
+            //Arrange
+            DatasetDefinition model = CreateModel();
+            model.Name = DatasetDefinitionName;
+            model.Id = DatasetDefinitionId;
+
+            DatasetDefinitionValidator validator = CreateValidator();
+
+            //Act
+            ValidationResult result = validator.Validate(model);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .BeFalse();
+
+            result
+                .Errors
+                .Count
+                .Should()
+                .Be(1);
+        }
+
+        [TestMethod]
+        public void Validate_GivenDuplicateFieldDefinitionName_ValidIsFalse()
+        {
+            //Arrange
+            DatasetDefinition model = CreateModel();
+            model.TableDefinitions = new List<TableDefinition> {
+                new TableDefinition
+                {
+                    FieldDefinitions = new List<FieldDefinition>
+                    {
+                        new FieldDefinition
+                        {
+                            Name = "my function name"
+                        },
+                        new FieldDefinition
+                        {
+                            Name = "My Function Name"
+                        }
+                    }
+                }
+            };
+
+            DatasetDefinitionValidator validator = CreateValidator();
+
+            //Act
+            ValidationResult result = validator.Validate(model);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .BeFalse();
+
+            result
+                .Errors
+                .Count
+                .Should()
+                .Be(1);
+        }
+
         static DatasetDefinition CreateModel()
         {
             return new DatasetDefinition
@@ -76,10 +146,16 @@ namespace CalculateFunding.Services.Datasets.Validators
         }
 
         static DatasetDefinitionValidator CreateValidator(
-    IPolicyRepository policyRepository = null)
+    IPolicyRepository policyRepository = null,
+    IDatasetRepository datasetRepository = null)
         {
             return new DatasetDefinitionValidator(
-                policyRepository ?? CreatePolicyRepository());
+                policyRepository ?? CreatePolicyRepository(),
+                datasetRepository ?? CreateDatasetRepository(),
+                new DatasetsResiliencePolicies
+                {
+                    DatasetRepository = Policy.NoOpAsync()
+                });
         }
 
         static IPolicyRepository CreatePolicyRepository()
@@ -89,6 +165,17 @@ namespace CalculateFunding.Services.Datasets.Validators
             repository
                 .GetFundingStreams()
                 .Returns(NewFundingStreams());
+
+            return repository;
+        }
+
+        static IDatasetRepository CreateDatasetRepository()
+        {
+            IDatasetRepository repository = Substitute.For<IDatasetRepository>();
+
+            repository
+                .DatasetExistsWithGivenName(DatasetDefinitionName, DatasetDefinitionId)
+                .Returns(true);
 
             return repository;
         }

@@ -24,27 +24,6 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
         }
         
         [TestMethod]
-        [DataRow("Range 3", "Range3")]
-        [DataRow("Range < 3", "RangeLessThan3")]
-        [DataRow("Range > 3", "RangeGreaterThan3")]
-        [DataRow("Range £ 3", "RangePound3")]
-        [DataRow("Range % 3", "RangePercent3")]
-        [DataRow("Range = 3", "RangeEquals3")]
-        [DataRow("Range + 3", "RangePlus3")]
-        [DataRow("Nullable(Of Decimal)", "Nullable(Of Decimal)")]
-        [DataRow("Nullable(Of Integer)", "Nullable(Of Integer)")]
-        public void GenerateIdentifier_IdentifiersSubstituted(string input, string expected)
-        {
-            // Act
-            string result = CalculationTypeGenerator.GenerateIdentifier(input);
-
-            // Assert
-            result
-                .Should()
-                .Be(expected);
-        }
-
-        [TestMethod]
         [DataRow("return calc1()", "return calc1()")]
         [DataRow("return AvgTest()", "return AvgTest()")]
         [DataRow("return SumTest()", "return SumTest()")]

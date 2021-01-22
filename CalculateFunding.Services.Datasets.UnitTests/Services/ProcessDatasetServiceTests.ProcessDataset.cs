@@ -20,7 +20,7 @@ using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Messages;
-using CalculateFunding.Services.CodeGeneration.VisualBasic;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
@@ -2386,7 +2386,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
         private string GenerateIdentifier(string rawValue)
         {
-            return DatasetTypeGenerator.GenerateIdentifier(rawValue);
+            return new VisualBasicTypeIdentifierGenerator().GenerateIdentifier(rawValue);
         }
     }
 }

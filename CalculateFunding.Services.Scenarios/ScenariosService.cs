@@ -4,7 +4,6 @@ using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
@@ -17,7 +16,6 @@ using CalculateFunding.Models.Messages;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
@@ -34,7 +32,9 @@ using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 using JobsModels = CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
 using CalculateFunding.Services.Processing;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type.Interfaces;
 
 namespace CalculateFunding.Services.Scenarios
 {
@@ -52,6 +52,7 @@ namespace CalculateFunding.Services.Scenarios
         private readonly Polly.AsyncPolicy _calcsRepositoryPolicy;
         private readonly Polly.AsyncPolicy _scenariosRepositoryPolicy;
         private readonly Polly.AsyncPolicy _specificationsApiClientPolicy;
+        private readonly ITypeIdentifierGenerator _typeIdentifierGenerator;
 
         public ScenariosService(
             ILogger logger,
@@ -91,6 +92,8 @@ namespace CalculateFunding.Services.Scenarios
             _calcsRepositoryPolicy = scenariosResiliencePolicies.CalcsRepository;
             _scenariosRepositoryPolicy = scenariosResiliencePolicies.ScenariosRepository;
             _specificationsApiClientPolicy = scenariosResiliencePolicies.SpecificationsApiClient;
+
+            _typeIdentifierGenerator = new VisualBasicTypeIdentifierGenerator();
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -449,7 +452,7 @@ namespace CalculateFunding.Services.Scenarios
 
             foreach (DatasetSpecificationRelationshipViewModel datasetSpecificationRelationshipViewModel in relationships)
             {
-                fieldIdentifiers.AddRange(currentFieldDefinitionNames.Select(m => $"dataset {datasetSpecificationRelationshipViewModel.Name} field {VisualBasicTypeGenerator.GenerateIdentifier(m)}"));
+                fieldIdentifiers.AddRange(currentFieldDefinitionNames.Select(m => $"dataset {datasetSpecificationRelationshipViewModel.Name} field {_typeIdentifierGenerator.GenerateIdentifier(m)}"));
             }
 
             IEnumerable<TestScenario> scenariosToUpdate = scenarios.Where(m => SourceCodeHelpers.CodeContainsFullyQualifiedDatasetFieldIdentifier(m.Current.Gherkin.RemoveAllQuotes(), fieldIdentifiers));

@@ -9,7 +9,8 @@ using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Services.Calcs.Interfaces;
-using CalculateFunding.Services.CodeGeneration.VisualBasic;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type.Interfaces;
 using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
@@ -30,6 +31,7 @@ namespace CalculateFunding.Services.Calcs
         private readonly ICalculationService _calculationService;
         private readonly ICalculationsRepository _calculationsRepository;
         private readonly IMapper _mapper;
+        private readonly ITypeIdentifierGenerator _typeIdentifierGenerator;
 
         public DatasetDefinitionFieldChangesProcessor(
             IFeatureToggle featureToggle,
@@ -58,6 +60,8 @@ namespace CalculateFunding.Services.Calcs
             _calculationsRepository = calculationsRepository;
             _calculationsRepositoryPolicy = resiliencePolicies.CalculationsRepository;
             _mapper = mapper;
+
+            _typeIdentifierGenerator = new VisualBasicTypeIdentifierGenerator();
         }
 
         public override async Task Process(Message message)
@@ -171,7 +175,7 @@ namespace CalculateFunding.Services.Calcs
                     {
                         foreach (DatasetSpecificationRelationshipViewModel datasetSpecificationRelationshipViewModel in relationships)
                         {
-                            if (aggregateParameters.Contains($"Datasets.{VisualBasicTypeGenerator.GenerateIdentifier(datasetSpecificationRelationshipViewModel.Name)}.{VisualBasicTypeGenerator.GenerateIdentifier(changes.ExistingFieldDefinition.Name)}"))
+                            if (aggregateParameters.Contains($"Datasets.{_typeIdentifierGenerator.GenerateIdentifier(datasetSpecificationRelationshipViewModel.Name)}.{_typeIdentifierGenerator.GenerateIdentifier(changes.ExistingFieldDefinition.Name)}"))
                             {
                                 fieldNames.Add(changes.ExistingFieldDefinition.Name);
                             }

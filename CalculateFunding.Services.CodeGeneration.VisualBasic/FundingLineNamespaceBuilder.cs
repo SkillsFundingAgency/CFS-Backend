@@ -6,12 +6,20 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Microsoft.IdentityModel.Tokens;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type.Interfaces;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
 
 namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 {
     public class FundingLineNamespaceBuilder : VisualBasicTypeGenerator
     {
+        private readonly ITypeIdentifierGenerator _typeIdentifierGenerator;
+
+        public FundingLineNamespaceBuilder()
+        {
+            _typeIdentifierGenerator = new VisualBasicTypeIdentifierGenerator();
+        }
+
         public NamespaceBuilderResult BuildNamespacesForFundingLines(IDictionary<string, Funding> funding,
             int decimalPlaces = 2)
         {
@@ -25,7 +33,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             {
                 ClassBlockSyntax @class = SyntaxFactory.ClassBlock(
                                     SyntaxFactory.ClassStatement(
-                                            GenerateIdentifier($"{@namespace}FundingLines")
+                                            _typeIdentifierGenerator.GenerateIdentifier($"{@namespace}FundingLines")
                                         )
                                         .WithModifiers(
                                             SyntaxFactory.TokenList(
@@ -36,7 +44,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                                     SyntaxFactory.EndClassStatement()
                                 );
 
-                result.InnerClasses.Add(new NamespaceClassDefinition(GenerateIdentifier(@namespace), @class, "FundingLines", "FundingLines"));
+                result.InnerClasses.Add(new NamespaceClassDefinition(_typeIdentifierGenerator.GenerateIdentifier(@namespace), @class, "FundingLines", "FundingLines"));
             }
 
             return result;
@@ -52,14 +60,14 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             foreach (FundingLine fundingLine in fundingLines)
             {
                 StringBuilder sourceCode = new StringBuilder();
-                fundingLine.SourceCodeName ??= GenerateIdentifier(fundingLine.Name);
+                fundingLine.SourceCodeName ??= _typeIdentifierGenerator.GenerateIdentifier(fundingLine.Name);
                 sourceCode.AppendLine($"<FundingLine(FundingStream := \"{@namespace}\", Id := \"{fundingLine.Id}\", Name := \"{fundingLine.SourceCodeName}\")>");
                 sourceCode.AppendLine($"Public {fundingLine.SourceCodeName} As Func(Of decimal?) = Nothing");
                 sourceCode.AppendLine();
                 yield return ParseSourceCodeToStatementSyntax(sourceCode);
             }
 
-            yield return ParseSourceCodeToStatementSyntax($"Public Property {GenerateIdentifier(@namespace)} As {GenerateIdentifier(@namespace)}Calculations");
+            yield return ParseSourceCodeToStatementSyntax($"Public Property {_typeIdentifierGenerator.GenerateIdentifier(@namespace)} As {_typeIdentifierGenerator.GenerateIdentifier(@namespace)}Calculations");
 
             // create funding line initialise method
             yield return CreateAddToNullableMethod();
@@ -88,12 +96,12 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
         {
             StringBuilder sourceCode = new StringBuilder();
             sourceCode.AppendLine("Public Sub Initialise(calculationContext As CalculationContext)");
-            sourceCode.AppendLine($"{GenerateIdentifier(@namespace)} = calculationContext.{GenerateIdentifier(@namespace)}");
+            sourceCode.AppendLine($"{_typeIdentifierGenerator.GenerateIdentifier(@namespace)} = calculationContext.{_typeIdentifierGenerator.GenerateIdentifier(@namespace)}");
             sourceCode.AppendLine();
 
             foreach (FundingLine fundingLine in fundingLines.Where(_ => !_.Calculations.IsNullOrEmpty()))
             {
-                fundingLine.SourceCodeName ??= GenerateIdentifier(fundingLine.Name);
+                fundingLine.SourceCodeName ??= _typeIdentifierGenerator.GenerateIdentifier(fundingLine.Name);
 
                 sourceCode.AppendLine($"{fundingLine.SourceCodeName} = Function() As Decimal?");
                 sourceCode.AppendLine();
@@ -118,7 +126,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
                 foreach (FundingLineCalculation calculation in fundingLine.Calculations)
                 {
-                    sourceCode.AppendLine($"AddToNullable(sum, {GenerateIdentifier(calculation.Namespace)}.{calculation.SourceCodeName}())");
+                    sourceCode.AppendLine($"AddToNullable(sum, {_typeIdentifierGenerator.GenerateIdentifier(calculation.Namespace)}.{calculation.SourceCodeName}())");
                 }
                 
                 sourceCode.AppendLine($"Return If(sum.HasValue(), Math.Round(sum.Value, {decimalPlaces}, MidpointRounding.AwayFromZero), sum)");

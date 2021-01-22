@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using DatasetReference = CalculateFunding.Models.Graph.DatasetReference;
 using Calculation = CalculateFunding.Models.Calcs.Calculation;
 using DatasetRelationshipSummary = CalculateFunding.Models.Calcs.DatasetRelationshipSummary;
@@ -11,18 +10,23 @@ using System.Text.RegularExpressions;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Common.Utility;
 using Serilog;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type.Interfaces;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
 
 namespace CalculateFunding.Services.Calcs
 {
     public class DatasetReferenceService : IDatasetReferenceService
     {
         private readonly ILogger _logger;
+        private readonly ITypeIdentifierGenerator _typeIdentifierGenerator;
 
         public DatasetReferenceService(
             ILogger logger)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             _logger = logger;
+
+            _typeIdentifierGenerator = new VisualBasicTypeIdentifierGenerator();
         }
 
         public IEnumerable<DatasetReference> GetDatasetRelationShips(IEnumerable<Calculation> calculations, List<DatasetRelationshipSummary> datasetRelationShipSummaries)
@@ -66,14 +70,14 @@ namespace CalculateFunding.Services.Calcs
 
                 if (datasetRelationShipSummaries != null)
                 {
-                    DatasetRelationshipSummary datasetRelationship = datasetRelationShipSummaries.FirstOrDefault(x => VisualBasicTypeGenerator.GenerateIdentifier(x.Name).ToLowerInvariant() == datasetRelationshipName ||
-                            VisualBasicTypeGenerator.GenerateIdentifier(x.Name).Replace("_", string.Empty).ToLowerInvariant() == datasetRelationshipName.Replace("_", string.Empty)); // vb line continuation or names have underscore 
+                    DatasetRelationshipSummary datasetRelationship = datasetRelationShipSummaries.FirstOrDefault(x => _typeIdentifierGenerator.GenerateIdentifier(x.Name).ToLowerInvariant() == datasetRelationshipName ||
+                            _typeIdentifierGenerator.GenerateIdentifier(x.Name).Replace("_", string.Empty).ToLowerInvariant() == datasetRelationshipName.Replace("_", string.Empty)); // vb line continuation or names have underscore 
 
                     if (datasetRelationship != null)
                     {
                         FieldDefinition dataField = datasetRelationship.DatasetDefinition.TableDefinitions.FirstOrDefault()?.
-                            FieldDefinitions.FirstOrDefault(x => VisualBasicTypeGenerator.GenerateIdentifier(x.Name).ToLowerInvariant() == fieldName ||
-                            VisualBasicTypeGenerator.GenerateIdentifier(x.Name).ToLowerInvariant().Replace("_", string.Empty) == fieldName.Replace("_", string.Empty));
+                            FieldDefinitions.FirstOrDefault(x => _typeIdentifierGenerator.GenerateIdentifier(x.Name).ToLowerInvariant() == fieldName ||
+                            _typeIdentifierGenerator.GenerateIdentifier(x.Name).ToLowerInvariant().Replace("_", string.Empty) == fieldName.Replace("_", string.Empty));
 
                         if (dataField == null)
                         {

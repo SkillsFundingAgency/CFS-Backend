@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models;
@@ -13,10 +12,9 @@ using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs.Interfaces;
-using CalculateFunding.Services.CodeGeneration.VisualBasic;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
@@ -223,7 +221,7 @@ namespace CalculateFunding.Services.Calcs.Services
                         m.WasTemplateCalculation == false &&
                         m.Namespace == CalculationNamespace.Additional &&
                         m.Name == model.Name &&
-                        m.SourceCodeName == VisualBasicTypeGenerator.GenerateIdentifier(model.Name) &&
+                        m.SourceCodeName == new VisualBasicTypeIdentifierGenerator().GenerateIdentifier(model.Name) &&
                         m.DataType == CalculationDataType.Decimal
                     ));
 

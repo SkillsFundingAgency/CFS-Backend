@@ -12,7 +12,8 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Services.Calcs.Interfaces;
-using CalculateFunding.Services.CodeGeneration.VisualBasic;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type.Interfaces;
 using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
@@ -46,6 +47,7 @@ namespace CalculateFunding.Services.Calcs
         private readonly IMapper _mapper;
         private readonly ICalcEngineApiClient _calcEngineApiClient;
         private readonly Polly.AsyncPolicy _calcEngineApiClientPolicy;
+        private readonly ITypeIdentifierGenerator _typeIdentifierGenerator;
 
         public PreviewService(
             ILogger logger,
@@ -83,6 +85,8 @@ namespace CalculateFunding.Services.Calcs
             _mapper = mapper;
             _calcEngineApiClient = calcEngineApiClient;
             _calcEngineApiClientPolicy = resiliencePolicies.CalcEngineApiClient;
+
+            _typeIdentifierGenerator = new VisualBasicTypeIdentifierGenerator();
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -171,7 +175,7 @@ namespace CalculateFunding.Services.Calcs
             calculationToPreview.Current.SourceCode = previewRequest.SourceCode;
         }
 
-        private static Calculation GenerateTemporaryCalculationForPreview(PreviewRequest previewRequest)
+        private Calculation GenerateTemporaryCalculationForPreview(PreviewRequest previewRequest)
         {
             return new Calculation
             {
@@ -181,7 +185,7 @@ namespace CalculateFunding.Services.Calcs
                 {
                     Name = !string.IsNullOrWhiteSpace(previewRequest.Name) ? previewRequest.Name : TempCalculationName,
                     CalculationId = TempCalculationId,
-                    SourceCodeName = VisualBasicTypeGenerator.GenerateIdentifier(!string.IsNullOrWhiteSpace(previewRequest.Name) ? previewRequest.Name : TempCalculationName),
+                    SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(!string.IsNullOrWhiteSpace(previewRequest.Name) ? previewRequest.Name : TempCalculationName),
                     SourceCode = previewRequest.SourceCode,
                     Namespace = CalculationNamespace.Additional,
                     CalculationType = CalculationType.Additional,
@@ -211,13 +215,13 @@ namespace CalculateFunding.Services.Calcs
             {
                 _logger.Information($"Build compiled successfully for calculation id {calculationToPreview.Id}");
 
-                string calculationIdentifier = $"{VisualBasicTypeGenerator.GenerateIdentifier(calculationToPreview.Namespace)}.{VisualBasicTypeGenerator.GenerateIdentifier(calculationToPreview.Name)}";
+                string calculationIdentifier = $"{_typeIdentifierGenerator.GenerateIdentifier(calculationToPreview.Namespace)}.{_typeIdentifierGenerator.GenerateIdentifier(calculationToPreview.Name)}";
 
                 IDictionary<string, string> functions = _sourceCodeService.GetCalculationFunctions(compilerOutput.SourceFiles);
                 IDictionary<string, string> calculationIdentifierMap = calculations
                     .Select(_ => new
                     {
-                        Identifier = $"{VisualBasicTypeGenerator.GenerateIdentifier(_.Namespace)}.{VisualBasicTypeGenerator.GenerateIdentifier(_.Name)}",
+                        Identifier = $"{_typeIdentifierGenerator.GenerateIdentifier(_.Namespace)}.{_typeIdentifierGenerator.GenerateIdentifier(_.Name)}",
                         CalcName = _.Name
                     })
                     .ToDictionary(d => d.Identifier, d => d.CalcName);

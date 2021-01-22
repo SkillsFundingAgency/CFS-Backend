@@ -22,7 +22,8 @@ using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Models.ProviderLegacy;
 using CalculateFunding.Services.Calcs.Interfaces;
-using CalculateFunding.Services.CodeGeneration.VisualBasic;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type.Interfaces;
 using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
@@ -73,6 +74,7 @@ namespace CalculateFunding.Services.Calcs
         private readonly AsyncPolicy _specificationsApiClientPolicy;
         private readonly IPoliciesApiClient _policiesApiClient;
         private readonly AsyncPolicy _policiesApiClientPolicy;
+        private readonly ITypeIdentifierGenerator _typeIdentifierGenerator;
 
         public BuildProjectsService(
             ILogger logger,
@@ -142,6 +144,8 @@ namespace CalculateFunding.Services.Calcs
             _policiesApiClient = policiesApiClient;
             _policiesApiClientPolicy = resiliencePolicies.PoliciesApiClient;
             _sourceFileRepository = sourceFileRepository;
+
+            _typeIdentifierGenerator = new VisualBasicTypeIdentifierGenerator();
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -625,7 +629,7 @@ namespace CalculateFunding.Services.Calcs
 
                     foreach (string aggregateParameter in aggregateParameters)
                     {
-                        Models.Calcs.Calculation referencedCalculation = calculations.FirstOrDefault(m => string.Equals(VisualBasicTypeGenerator.GenerateIdentifier(m.Name.Trim()), aggregateParameter.Trim(), StringComparison.InvariantCultureIgnoreCase));
+                        Models.Calcs.Calculation referencedCalculation = calculations.FirstOrDefault(m => string.Equals(_typeIdentifierGenerator.GenerateIdentifier(m.Name.Trim()), aggregateParameter.Trim(), StringComparison.InvariantCultureIgnoreCase));
 
                         if (referencedCalculation != null)
                         {
@@ -696,7 +700,7 @@ namespace CalculateFunding.Services.Calcs
             });
         }
 
-        private static IEnumerable<FundingLine> GetFundingLines(TemplateMetadataContents templateMetadataContents, string fundingStreamId)
+        private IEnumerable<FundingLine> GetFundingLines(TemplateMetadataContents templateMetadataContents, string fundingStreamId)
         {
             IEnumerable<FundingLine> flattenedFundingLines = templateMetadataContents.RootFundingLines?.Flatten(_ =>
             {
@@ -719,13 +723,13 @@ namespace CalculateFunding.Services.Calcs
                     Id = _.TemplateLineId,
                     Name = _.Name,
                     Namespace = fundingStreamId,
-                    SourceCodeName = VisualBasicTypeGenerator.GenerateIdentifier(_.Name),
+                    SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(_.Name),
                     Calculations = _.Calculations?.DistinctBy(_ => _.TemplateCalculationId).Select(calc => new FundingLineCalculation
                     {
                         Id = calc.TemplateCalculationId,
                         Name = calc.Name,
                         Namespace = fundingStreamId,
-                        SourceCodeName = VisualBasicTypeGenerator.GenerateIdentifier(calc.Name)
+                        SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(calc.Name)
                     }).ToList()
                 };
             }).ToList();

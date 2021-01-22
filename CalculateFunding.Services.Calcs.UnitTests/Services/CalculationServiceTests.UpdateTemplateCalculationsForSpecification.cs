@@ -11,7 +11,7 @@ using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Calcs.Interfaces;
-using CalculateFunding.Services.CodeGeneration.VisualBasic;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
@@ -234,15 +234,15 @@ namespace CalculateFunding.Services.Calcs.Services
             string calculation1Id = NewRandomString();
             string calculation2Id = NewRandomString();
 
-            string datasetRelationshipIdVisualBasicVariable = VisualBasicTypeGenerator.GenerateIdentifier(datasetRelationshipName);
+            string datasetRelationshipIdVisualBasicVariable = new VisualBasicTypeIdentifierGenerator().GenerateIdentifier(datasetRelationshipName);
 
             string expectedCalc1Code = @$"If Datasets.{datasetRelationshipIdVisualBasicVariable}.HasValue = False Then Return Nothing
 
-Return Datasets.{datasetRelationshipIdVisualBasicVariable}.{VisualBasicTypeGenerator.GenerateIdentifier(calcName1)}";
+Return Datasets.{datasetRelationshipIdVisualBasicVariable}.{new VisualBasicTypeIdentifierGenerator().GenerateIdentifier(calcName1)}";
 
             string expectedCalc2Code = @$"If Datasets.{datasetRelationshipIdVisualBasicVariable}.HasValue = False Then Return Nothing
 
-Return Datasets.{datasetRelationshipIdVisualBasicVariable}.{VisualBasicTypeGenerator.GenerateIdentifier(calcName2)}";
+Return Datasets.{datasetRelationshipIdVisualBasicVariable}.{new VisualBasicTypeIdentifierGenerator().GenerateIdentifier(calcName2)}";
 
 
             Calculation calculation1 = new Calculation
@@ -419,8 +419,8 @@ Return Datasets.{datasetRelationshipIdVisualBasicVariable}.{VisualBasicTypeGener
             string calculation1Id = NewRandomString();
             string calculation2Id = NewRandomString();
 
-            string datasetRelationshipIdVisualBasicVariable = VisualBasicTypeGenerator.GenerateIdentifier(datasetRelationshipName);
-            string calcNameVisualBasicVariable = VisualBasicTypeGenerator.GenerateIdentifier(calcName1);
+            string datasetRelationshipIdVisualBasicVariable = new VisualBasicTypeIdentifierGenerator().GenerateIdentifier(datasetRelationshipName);
+            string calcNameVisualBasicVariable = new VisualBasicTypeIdentifierGenerator().GenerateIdentifier(calcName1);
 
             string expectedCalc1Code = @$"If Datasets.{datasetRelationshipIdVisualBasicVariable}.HasValue = False Then Return Nothing
 Dim stringValue As String = Nothing
@@ -446,7 +446,7 @@ End Select";
 
             string expectedCalc2Code = @$"If Datasets.{datasetRelationshipIdVisualBasicVariable}.HasValue = False Then Return Nothing
 
-Return Datasets.{datasetRelationshipIdVisualBasicVariable}.{VisualBasicTypeGenerator.GenerateIdentifier(calcName2)}";
+Return Datasets.{datasetRelationshipIdVisualBasicVariable}.{new VisualBasicTypeIdentifierGenerator().GenerateIdentifier(calcName2)}";
 
             Calculation calculation1 = new Calculation
             {

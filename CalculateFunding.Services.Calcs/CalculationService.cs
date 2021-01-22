@@ -28,7 +28,6 @@ using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs.ResultModels;
-using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
@@ -54,6 +53,8 @@ using CalculationType = CalculateFunding.Models.Calcs.CalculationType;
 using Job = CalculateFunding.Common.ApiClient.Jobs.Models.Job;
 using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 using Trigger = CalculateFunding.Common.ApiClient.Jobs.Models.Trigger;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type.Interfaces;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -95,6 +96,7 @@ namespace CalculateFunding.Services.Calcs
         private readonly IGraphRepository _graphRepository;
         private readonly IJobManagement _jobManagement;
         private readonly ICodeContextCache _codeContextCache;
+        private readonly ITypeIdentifierGenerator _typeIdentifierGenerator;
 
         public CalculationService(
             ICalculationsRepository calculationsRepository,
@@ -188,6 +190,8 @@ namespace CalculateFunding.Services.Calcs
             _resultsApiClientPolicy = resiliencePolicies?.ResultsApiClient;
             _datasetsApiClient = datasetsApiClient;
             _datasetsApiClientPolicy = resiliencePolicies?.DatasetsApiClient;
+
+            _typeIdentifierGenerator = new VisualBasicTypeIdentifierGenerator();
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -519,9 +523,9 @@ namespace CalculateFunding.Services.Calcs
 
         public async Task<IEnumerable<Calculation>> UpdateCalculationCodeOnCalculationChange(CalculationVersionComparisonModel comparison, Reference user)
         {
-            string oldCalcSourceCodeName = VisualBasicTypeGenerator.GenerateIdentifier(comparison.PreviousName);
-            string newCalcSourceCodeName = VisualBasicTypeGenerator.GenerateIdentifier(comparison.CurrentName);
-            string @namespace = VisualBasicTypeGenerator.GenerateIdentifier(comparison.Namespace);
+            string oldCalcSourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(comparison.PreviousName);
+            string newCalcSourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(comparison.CurrentName);
+            string @namespace = _typeIdentifierGenerator.GenerateIdentifier(comparison.Namespace);
 
             return await UpdateCalculationCodeOnCalculationChange(oldCalcSourceCodeName, newCalcSourceCodeName, comparison.SpecificationId, @namespace, user, comparison.CalculationDataType == CalculationDataType.Enum);
         }
@@ -589,7 +593,7 @@ namespace CalculateFunding.Services.Calcs
                 if (!isUserEditingTemplateCalculation)
                 {
                     calculationVersion.Name = calculationEditModel.Name;
-                    calculationVersion.SourceCodeName = VisualBasicTypeGenerator.GenerateIdentifier(calculationEditModel.Name);
+                    calculationVersion.SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(calculationEditModel.Name);
                     calculationVersion.Description = calculationEditModel.Description;
                 }
 
@@ -909,7 +913,9 @@ namespace CalculateFunding.Services.Calcs
 
             foreach (DatasetSpecificationRelationshipViewModel datasetSpecificationRelationshipViewModel in relationships)
             {
-                fieldIdentifiers.AddRange(currentFieldDefinitionNames.Select(m => $"Datasets.{VisualBasicTypeGenerator.GenerateIdentifier(datasetSpecificationRelationshipViewModel.Name)}.{VisualBasicTypeGenerator.GenerateIdentifier(m)}"));
+                fieldIdentifiers.AddRange(
+                    currentFieldDefinitionNames.Select(m => 
+                        $"Datasets.{_typeIdentifierGenerator.GenerateIdentifier(datasetSpecificationRelationshipViewModel.Name)}.{_typeIdentifierGenerator.GenerateIdentifier(m)}"));
             }
 
             await _cacheProvider.RemoveAsync<List<DatasetSchemaRelationshipModel>>($"{CacheKeys.DatasetRelationshipFieldsForSpecification}{specificationId}");
@@ -1155,7 +1161,7 @@ namespace CalculateFunding.Services.Calcs
             ApiClientDatasetDefinition datasetDefinition = datasetDefinitionResponse.Content;
             ApiClientTableDefinition tableDefinition = datasetDefinition.TableDefinitions.First();
 
-            string datasetRelationshipVisualBasicVariableName = VisualBasicTypeGenerator.GenerateIdentifier(relationshipDatasourceModel.RelationshipName);
+            string datasetRelationshipVisualBasicVariableName = _typeIdentifierGenerator.GenerateIdentifier(relationshipDatasourceModel.RelationshipName);
 
             foreach (Calculation templateCalculation in templateCalculations)
             {
@@ -1167,7 +1173,7 @@ namespace CalculateFunding.Services.Calcs
                     {
                         CalculationVersion calculationVersion = templateCalculation.Current.Clone() as CalculationVersion;
 
-                        string fieldDefinitionVisualBasicName = VisualBasicTypeGenerator.GenerateIdentifier(fieldDefinition.Name);
+                        string fieldDefinitionVisualBasicName = _typeIdentifierGenerator.GenerateIdentifier(fieldDefinition.Name);
 
                         calculationVersion.SourceCode = @$"If Datasets.{datasetRelationshipVisualBasicVariableName}.HasValue = False Then Return Nothing
 
@@ -1182,7 +1188,7 @@ Return Datasets.{datasetRelationshipVisualBasicVariableName}.{fieldDefinitionVis
                 {
                     CalculationVersion calculationVersion = templateCalculation.Current.Clone() as CalculationVersion;
 
-                    string calculationNameVisualBasicVariable = VisualBasicTypeGenerator.GenerateIdentifier(templateCalculation.Current.Name);
+                    string calculationNameVisualBasicVariable = _typeIdentifierGenerator.GenerateIdentifier(templateCalculation.Current.Name);
 
                     StringBuilder stringBuilder = new StringBuilder();
 
@@ -1204,7 +1210,7 @@ End If
                     foreach (string value in templateCalculation.Current.AllowedEnumTypeValues)
                     {
                         stringBuilder.Append(@$"    Case ""{value}""
-        Return {VisualBasicTypeGenerator.GenerateIdentifier(templateCalculation.Current.Name)}Options.{VisualBasicTypeGenerator.GenerateIdentifier(value)}
+        Return {_typeIdentifierGenerator.GenerateIdentifier(templateCalculation.Current.Name)}Options.{_typeIdentifierGenerator.GenerateIdentifier(value)}
 ");
                     }
 

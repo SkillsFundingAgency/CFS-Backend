@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using CalculateFunding.Models.Datasets.Schema;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type.Interfaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.Syntax;
@@ -14,59 +16,10 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
     {
         private static readonly IEnumerable<string> exemptValues = new[] { "Nullable(Of Decimal)", "Nullable(Of Integer)" };
 
-        public static string GenerateIdentifier(string value)
+        private readonly ITypeIdentifierGenerator _typeIdentifierGenerator;
+        public VisualBasicTypeGenerator()
         {
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                return null;
-            }
-
-            if (exemptValues.Contains(value, StringComparer.InvariantCultureIgnoreCase))
-            {
-                return value;
-            }
-
-            string className = value;
-
-            className = className.Replace("<", "LessThan");
-            className = className.Replace(">", "GreaterThan");
-            className = className.Replace("%", "Percent");
-            className = className.Replace("£", "Pound");
-            className = className.Replace("=", "Equals");
-            className = className.Replace("+", "Plus");
-
-            bool isValid = SyntaxFacts.IsValidIdentifier(className);
-
-            List<string> chars = new List<string>();
-            for (int i = 0; i < className.Length; i++)
-            {
-                chars.Add(className.Substring(i, 1));
-            }
-
-            // Convert "my function name" to "My Function Name"
-            Regex convertToSentenceCase = new Regex("\\b[a-z]");
-            MatchCollection matches = convertToSentenceCase.Matches(className);
-            for (int i = 0; i < matches.Count; i++)
-            {
-                chars[matches[i].Index] = chars[matches[i].Index].ToString().ToUpperInvariant();
-            }
-
-            className = string.Join(string.Empty, chars);
-
-            if (!isValid)
-            {
-                // File name contains invalid chars, remove them
-                Regex regex = new Regex(@"[^\p{Ll}\p{Lu}\p{Lt}\p{Lo}\p{Nd}\p{Nl}\p{Mn}\p{Mc}\p{Cf}\p{Pc}\p{Lm}]");
-                className = regex.Replace(className, string.Empty);
-
-                // Class name doesn't begin with a letter, insert an underscore
-                if (!Char.IsLetter(className, 0))
-                {
-                    className = className.Insert(0, "_");
-                }
-            }
-
-            return className.Replace(" ", String.Empty);
+            _typeIdentifierGenerator = new VisualBasicTypeIdentifierGenerator();
         }
 
         public static TypeSyntax GetType(FieldType type)
@@ -161,13 +114,13 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             return sourceCode;
         }
 
-        protected static StatementSyntax CreateProperty(string name, string type = null, SyntaxList<AttributeListSyntax> attributes = new SyntaxList<AttributeListSyntax>())
+        protected StatementSyntax CreateProperty(string name, string type = null, SyntaxList<AttributeListSyntax> attributes = new SyntaxList<AttributeListSyntax>())
         {
-            return SyntaxFactory.PropertyStatement(GenerateIdentifier(name))
+            return SyntaxFactory.PropertyStatement(_typeIdentifierGenerator.GenerateIdentifier(name))
                 .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
                 .WithAttributeLists(attributes)
                 .WithAsClause(
-                    SyntaxFactory.SimpleAsClause(SyntaxFactory.IdentifierName(GenerateIdentifier(type ?? name))));
+                    SyntaxFactory.SimpleAsClause(SyntaxFactory.IdentifierName(_typeIdentifierGenerator.GenerateIdentifier(type ?? name))));
         }
     }
 }

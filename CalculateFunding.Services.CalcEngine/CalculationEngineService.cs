@@ -21,7 +21,8 @@ using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.ProviderLegacy;
 using CalculateFunding.Services.CalcEngine.Interfaces;
-using CalculateFunding.Services.CodeGeneration.VisualBasic;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type.Interfaces;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
@@ -62,6 +63,7 @@ namespace CalculateFunding.Services.CalcEngine
         private readonly IResultsApiClient _resultsApiClient;
         private readonly ICalculationAggregationService _calculationAggregationService;
         private readonly IAssemblyService _assemblyService;
+        private readonly ITypeIdentifierGenerator _typeIdentifierGenerator;
 
         public CalculationEngineService(
             ILogger logger,
@@ -126,6 +128,8 @@ namespace CalculateFunding.Services.CalcEngine
             _resultsApiClient = resultsApiClient;
             _calculationAggregationService = calculationAggregationService;
             _assemblyService = assemblyService;
+
+            _typeIdentifierGenerator = new VisualBasicTypeIdentifierGenerator();
         }
 
         public async Task<IActionResult> GenerateAllocations(HttpRequest request)
@@ -618,11 +622,11 @@ namespace CalculateFunding.Services.CalcEngine
             foreach (ProviderResult providerResult in providerResults)
             {
                 IEnumerable<CalculationResult> calculationResultsForAggregation = providerResult.CalculationResults.Where(m =>
-                    calculationsToAggregate.Contains(VisualBasicTypeGenerator.GenerateIdentifier(m.Calculation.Name), StringComparer.InvariantCultureIgnoreCase));
+                    calculationsToAggregate.Contains(_typeIdentifierGenerator.GenerateIdentifier(m.Calculation.Name), StringComparer.InvariantCultureIgnoreCase));
 
                 foreach (CalculationResult calculationResult in calculationResultsForAggregation)
                 {
-                    string calculationReferenceName = CalculationTypeGenerator.GenerateIdentifier(calculationResult.Calculation.Name.Trim());
+                    string calculationReferenceName = _typeIdentifierGenerator.GenerateIdentifier(calculationResult.Calculation.Name.Trim());
 
                     string calcNameFromCalcsToAggregate = messageProperties.CalculationsToAggregate.FirstOrDefault(m => string.Equals(m, calculationReferenceName, StringComparison.InvariantCultureIgnoreCase));
 

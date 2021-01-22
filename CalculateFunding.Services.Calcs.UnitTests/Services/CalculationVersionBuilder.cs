@@ -1,6 +1,6 @@
 ﻿using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Versioning;
-using CalculateFunding.Services.CodeGeneration.VisualBasic;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
 using CalculateFunding.Tests.Common.Helpers;
 
 namespace CalculateFunding.Services.Calcs.Services
@@ -66,7 +66,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 Name = name,
                 Namespace = CalculationNamespace.Additional,
                 SourceCode = _sourceCode,
-                SourceCodeName = VisualBasicTypeGenerator.GenerateIdentifier(name),
+                SourceCodeName = new VisualBasicTypeIdentifierGenerator().GenerateIdentifier(name),
                 ValueType = _calculationValueType,
                 PublishStatus = _publishStatus
             };

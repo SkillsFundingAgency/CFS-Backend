@@ -17,7 +17,8 @@ using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Models.Messages;
-using CalculateFunding.Services.CodeGeneration.VisualBasic;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type.Interfaces;
 using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
@@ -46,6 +47,7 @@ namespace CalculateFunding.Services.Datasets
         private readonly IJobManagement _jobManagement;
         private readonly IDateTimeProvider _dateTimeProvider;
         private readonly Polly.AsyncPolicy _specificationsApiClientPolicy;
+        private readonly ITypeIdentifierGenerator _typeIdentifierGenerator;
 
         public DefinitionSpecificationRelationshipService(IDatasetRepository datasetRepository,
             ILogger logger,
@@ -79,6 +81,8 @@ namespace CalculateFunding.Services.Datasets
             _jobManagement = jobManagement;
             _dateTimeProvider = dateTimeProvider;
             _specificationsApiClientPolicy = datasetsResiliencePolicies.SpecificationsApiClient;
+
+            _typeIdentifierGenerator = new VisualBasicTypeIdentifierGenerator();
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -543,7 +547,7 @@ namespace CalculateFunding.Services.Datasets
             foreach (DefinitionSpecificationRelationship definitionSpecificationRelationship in relationships)
             {
                 string relationshipName = definitionSpecificationRelationship.Name;
-                string datasetName = VisualBasicTypeGenerator.GenerateIdentifier(relationshipName);
+                string datasetName = _typeIdentifierGenerator.GenerateIdentifier(relationshipName);
                 DatasetDefinition datasetDefinition = definitions.FirstOrDefault(m => m.Id == definitionSpecificationRelationship.DatasetDefinition.Id);
 
                 schemaRelationshipModels.Add(new DatasetSchemaRelationshipModel
@@ -554,7 +558,7 @@ namespace CalculateFunding.Services.Datasets
                     Fields = datasetDefinition.TableDefinitions.SelectMany(m => m.FieldDefinitions.Select(f => new DatasetSchemaRelationshipField
                     {
                         Name = f.Name,
-                        SourceName = VisualBasicTypeGenerator.GenerateIdentifier(f.Name),
+                        SourceName = _typeIdentifierGenerator.GenerateIdentifier(f.Name),
                         SourceRelationshipName = datasetName,
                         IsAggregable = f.IsAggregable
                     }))

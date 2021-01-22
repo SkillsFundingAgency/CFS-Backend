@@ -5,6 +5,8 @@ using System.Text;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type.Interfaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.Syntax;
@@ -17,6 +19,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
     {
         private readonly CompilerOptions _compilerOptions;
         private readonly IFundingLineRoundingSettings _fundingLineRoundingSettings;
+        private readonly ITypeIdentifierGenerator _typeIdentifierGenerator;
 
         public CalculationTypeGenerator(CompilerOptions compilerOptions,
             IFundingLineRoundingSettings fundingLineRoundingSettings)
@@ -26,6 +29,8 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
             _compilerOptions = compilerOptions;
             _fundingLineRoundingSettings = fundingLineRoundingSettings;
+
+            _typeIdentifierGenerator = new VisualBasicTypeIdentifierGenerator();
         }
 
         public IEnumerable<SourceFile> GenerateCalcs(IEnumerable<Calculation> calculations, IDictionary<string, Funding> funding)
@@ -38,7 +43,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
             SyntaxList<ImportsStatementSyntax> standardImports = StandardImports();
 
-            string identifier = GenerateIdentifier("CalculationContext");
+            string identifier = _typeIdentifierGenerator.GenerateIdentifier("CalculationContext");
 
             SyntaxTokenList modifiers = SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword));
 
@@ -165,7 +170,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                     // Reset baseline stack frame count before executing calc
                     builder.AppendLine("StackFrameStartingCount = New System.Diagnostics.StackTrace().FrameCount");
 
-                    builder.AppendLine($"{GenerateIdentifier(@namespace)}.FundingLines.{fundingline.SourceCodeName}()");
+                    builder.AppendLine($"{_typeIdentifierGenerator.GenerateIdentifier(@namespace)}.FundingLines.{fundingline.SourceCodeName}()");
 
                     builder.AppendLine();
 
@@ -193,7 +198,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 // Reset baseline stack frame count before executing calc
                 builder.AppendLine("StackFrameStartingCount = New System.Diagnostics.StackTrace().FrameCount");
 
-                builder.AppendLine($"{GenerateIdentifier(calc.Namespace)}.{calc.Current.SourceCodeName}()");
+                builder.AppendLine($"{_typeIdentifierGenerator.GenerateIdentifier(calc.Namespace)}.{calc.Current.SourceCodeName}()");
 
                 builder.AppendLine();
 

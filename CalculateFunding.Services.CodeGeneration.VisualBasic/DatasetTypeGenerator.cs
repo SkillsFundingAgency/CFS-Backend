@@ -3,15 +3,23 @@ using System.Linq;
 using System.Text;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets.Schema;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type.Interfaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 
 namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 {
-
     public class DatasetTypeGenerator : VisualBasicTypeGenerator
     {
+        private readonly ITypeIdentifierGenerator _typeIdentifierGenerator;
+
+        public DatasetTypeGenerator()
+        {
+            _typeIdentifierGenerator = new VisualBasicTypeIdentifierGenerator();
+        }
+
         public IEnumerable<SourceFile> GenerateDatasets(BuildProject buildProject)
         {
 
@@ -27,7 +35,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 				    {
                         ClassBlockSyntax @class = SyntaxFactory.ClassBlock(
 				            SyntaxFactory.ClassStatement(
-				                    $"{GenerateIdentifier(dataset.DatasetDefinition.Name)}Dataset"
+				                    $"{_typeIdentifierGenerator.GenerateIdentifier(dataset.DatasetDefinition.Name)}Dataset"
 				                )
 				                .WithModifiers(
 				                    SyntaxFactory.TokenList(
@@ -43,7 +51,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 				            .WithMembers(
 				                SyntaxFactory.SingletonList<StatementSyntax>(@class))
 				            .NormalizeWhitespace();
-				        yield return new SourceFile { FileName = $"Datasets/{GenerateIdentifier(dataset.DatasetDefinition.Name)}.vb", SourceCode = syntaxTree.ToFullString() };
+				        yield return new SourceFile { FileName = $"Datasets/{_typeIdentifierGenerator.GenerateIdentifier(dataset.DatasetDefinition.Name)}.vb", SourceCode = syntaxTree.ToFullString() };
 				        typesCreated.Add(dataset.DatasetDefinition.Name);
 				    }
 
@@ -55,7 +63,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             yield return new SourceFile { FileName = $"Datasets/Datasets.vb", SourceCode = wrapperSyntaxTree.NormalizeWhitespace().ToFullString() };
         }
 
-        private static IEnumerable<StatementSyntax> GetMembers(DatasetDefinition datasetDefinition)
+        private IEnumerable<StatementSyntax> GetMembers(DatasetDefinition datasetDefinition)
         {
             IList<StatementSyntax> members = new List<StatementSyntax>
             {
@@ -111,14 +119,14 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 SyntaxFactory.SingletonSeparatedList(variable));
         }
 
-        private static StatementSyntax GetMember(FieldDefinition fieldDefinition)
+        private StatementSyntax GetMember(FieldDefinition fieldDefinition)
         {
             TypeSyntax propertyType = GetType(fieldDefinition.Type);
             StringBuilder builder = new StringBuilder();
             builder.AppendLine($"<Field(Id := \"{fieldDefinition.Id}\", Name := \"{fieldDefinition.Name}\")>");
             builder.AppendLine($"<IsAggregable(IsAggregable := \"{fieldDefinition.IsAggregable.ToString()}\")>");
             builder.AppendLine($"<Description(Description := \"{fieldDefinition.Description?.Replace("\"", "\"\"")}\")>");
-            builder.AppendLine($"Public Property {GenerateIdentifier(fieldDefinition.Name)}() As {GenerateIdentifier($"{propertyType}")}");
+            builder.AppendLine($"Public Property {_typeIdentifierGenerator.GenerateIdentifier(fieldDefinition.Name)}() As {_typeIdentifierGenerator.GenerateIdentifier($"{propertyType}")}");
             SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(builder.ToString());
             return tree.GetRoot().DescendantNodes().OfType<StatementSyntax>()
                 .FirstOrDefault();
@@ -135,7 +143,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 .FirstOrDefault();
         }
 
-        private static StatementSyntax GetDatasetProperties(DatasetRelationshipSummary datasetRelationship)
+        private StatementSyntax GetDatasetProperties(DatasetRelationshipSummary datasetRelationship)
         {
             StringBuilder builder = new StringBuilder();
             builder.AppendLine($"<DatasetRelationship(Id := \"{datasetRelationship.Id}\", Name := \"{datasetRelationship.Name}\")>");
@@ -146,8 +154,8 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             }
 
             builder.AppendLine(datasetRelationship.DataGranularity == DataGranularity.SingleRowPerProvider
-                ? $"Public Property {GenerateIdentifier(datasetRelationship.Name)}() As {GenerateIdentifier($"{datasetRelationship.DatasetDefinition.Name}Dataset")}"
-                : $"Public Property {GenerateIdentifier(datasetRelationship.Name)}() As System.Collections.Generic.List(Of {GenerateIdentifier($"{datasetRelationship.DatasetDefinition.Name}Dataset")})");
+                ? $"Public Property {_typeIdentifierGenerator.GenerateIdentifier(datasetRelationship.Name)}() As {_typeIdentifierGenerator.GenerateIdentifier($"{datasetRelationship.DatasetDefinition.Name}Dataset")}"
+                : $"Public Property {_typeIdentifierGenerator.GenerateIdentifier(datasetRelationship.Name)}() As System.Collections.Generic.List(Of {_typeIdentifierGenerator.GenerateIdentifier($"{datasetRelationship.DatasetDefinition.Name}Dataset")})");
 
             SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(builder.ToString());
             return tree.GetRoot().DescendantNodes().OfType<StatementSyntax>()

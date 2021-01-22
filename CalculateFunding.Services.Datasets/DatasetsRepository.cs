@@ -13,7 +13,6 @@ using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Messages;
 using CalculateFunding.Services.Datasets.Interfaces;
-using Microsoft.Azure.Cosmos;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -98,6 +97,35 @@ namespace CalculateFunding.Services.Datasets
             }
 
             return datasetDefinitions;
+        }
+
+        public async Task<bool> DatasetExistsWithGivenName(string datasetName, string datasetId)
+        {
+            CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
+            {
+                QueryText = @"SELECT VALUE COUNT(1)
+                            FROM    datasets d
+                            WHERE   d.deleted = false 
+                                    AND d.documentType = ""DatasetDefinition""
+                                    AND d.id != @DatasetId
+                                    AND LOWER(d.content.name) = @DatasetName",
+                Parameters = new[]
+                {
+                    new CosmosDbQueryParameter("@DatasetName", datasetName.ToLowerInvariant()),
+                    new CosmosDbQueryParameter("@DatasetId", datasetId)
+                }
+            };
+
+            IEnumerable<dynamic> results = await _cosmosRepository.DynamicQuery(cosmosDbQuery, 10);
+
+            if (results.IsNullOrEmpty())
+            {
+                return false;
+            }
+
+            dynamic item = results.FirstOrDefault();
+
+            return (long)item > 0;
         }
 
         public async Task<Dataset> GetDatasetByDatasetId(string datasetId)

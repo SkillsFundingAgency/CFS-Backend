@@ -6,16 +6,20 @@ using CalculateFunding.Models.Calcs;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.Syntax;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type.Interfaces;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
 
 namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 {
     public class CalculationNamespaceBuilder : VisualBasicTypeGenerator
     {
         private readonly CompilerOptions _compilerOptions;
+        private readonly ITypeIdentifierGenerator _typeIdentifierGenerator;
 
         public CalculationNamespaceBuilder(CompilerOptions compilerOptions)
         {
             _compilerOptions = compilerOptions;
+            _typeIdentifierGenerator = new VisualBasicTypeIdentifierGenerator();
         }
 
         public NamespaceBuilderResult BuildNamespacesForCalculations(IEnumerable<Calculation> calculations)
@@ -38,7 +42,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             result.EnumsDefinitions = CreateEnums(calculations);
 
             foreach (IGrouping<string, Calculation> fundingStreamCalculationGroup in fundingStreamCalculationGroups)
-                result.InnerClasses.Add(CreateNamespaceDefinition(GenerateIdentifier(fundingStreamCalculationGroup.Key),
+                result.InnerClasses.Add(CreateNamespaceDefinition(_typeIdentifierGenerator.GenerateIdentifier(fundingStreamCalculationGroup.Key),
                     fundingStreamCalculationGroup,
                     propertyDefinitions.Where(_ => _.Namespace == fundingStreamCalculationGroup.Key || string.IsNullOrWhiteSpace(_.Namespace)).Select(_ => _.Syntax),
                     propertyAssignments));
@@ -85,9 +89,9 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             return new NamespaceClassDefinition(@namespace, classBlock);
         }
 
-        private static IEnumerable<string> CreatePropertyAssignments(IEnumerable<string> namespaces)
+        private IEnumerable<string> CreatePropertyAssignments(IEnumerable<string> namespaces)
         {
-            return namespaces.Select(@namespace => string.Format("{0} = calculationContext.{0}", GenerateIdentifier(@namespace)))
+            return namespaces.Select(@namespace => string.Format("{0} = calculationContext.{0}", _typeIdentifierGenerator.GenerateIdentifier(@namespace)))
                 .Concat(new[]
                 {
                     "Calculations = calculationContext.Calculations"
@@ -95,7 +99,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 .ToArray();
         }
 
-        private static IEnumerable<(StatementSyntax Syntax, bool IsFundingLines, string @namespace)> CreateProperties(IEnumerable<string> namespaces)
+        private IEnumerable<(StatementSyntax Syntax, bool IsFundingLines, string @namespace)> CreateProperties(IEnumerable<string> namespaces)
         {
             yield return (CreateProperty("Provider"), false, null);
             yield return (CreateProperty("Datasets"), false, null);
@@ -122,7 +126,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             }
         }
 
-        private static IEnumerable<StatementSyntax> CreateEnums(IEnumerable<Calculation> calculations)
+        private IEnumerable<StatementSyntax> CreateEnums(IEnumerable<Calculation> calculations)
         {
             foreach (Calculation calculation in calculations.Where(c => c.Current.DataType == CalculationDataType.Enum))
             {
@@ -134,7 +138,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                     foreach (string value in calculation.Current.AllowedEnumTypeValues)
                     {
                         sourceCode.AppendLine($"    <Description(Description:=\"{value}\")>");
-                        sourceCode.AppendLine($"    {VisualBasicTypeGenerator.GenerateIdentifier(value)}");
+                        sourceCode.AppendLine($"    {_typeIdentifierGenerator.GenerateIdentifier(value)}");
                     }
                 }
                 else
@@ -149,7 +153,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             }
         }
 
-        private static IEnumerable<StatementSyntax> CreateNamespaceFunctionPointers(IEnumerable<Calculation> calculations)
+        private IEnumerable<StatementSyntax> CreateNamespaceFunctionPointers(IEnumerable<Calculation> calculations)
         {
             foreach (Calculation calculation in calculations)
             {
@@ -281,7 +285,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             }
         }
 
-        private static string GetDataType(CalculationDataType calculationDataType, string calculationName) => calculationDataType switch
+        private string GetDataType(CalculationDataType calculationDataType, string calculationName) => calculationDataType switch
         {
             CalculationDataType.Decimal => "Decimal?",
             CalculationDataType.String => "String",
@@ -317,6 +321,6 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             _ => throw new ArgumentOutOfRangeException(),
         };
 
-        private static string GetEnumVariableName(string calculationName) => $"{GenerateIdentifier(calculationName)}Options";
+        private string GetEnumVariableName(string calculationName) => $"{_typeIdentifierGenerator.GenerateIdentifier(calculationName)}Options";
     }
 }

@@ -23,7 +23,8 @@ using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Messages;
 using CalculateFunding.Models.ProviderLegacy;
-using CalculateFunding.Services.CodeGeneration.VisualBasic;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type.Interfaces;
 using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
@@ -70,7 +71,7 @@ namespace CalculateFunding.Services.Datasets
         private readonly IFeatureToggle _featureToggle;
         private readonly IMapper _mapper;
         private readonly IProviderSourceDatasetVersionKeyProvider _datasetVersionKeyProvider;
-     
+        private readonly ITypeIdentifierGenerator _typeIdentifierGenerator;
 
         public ProcessDatasetService(
             IDatasetRepository datasetRepository,
@@ -131,6 +132,8 @@ namespace CalculateFunding.Services.Datasets
             _datasetVersionKeyProvider = datasetVersionKeyProvider;
             _bulkSourceDatasetsVersionRepository = bulkSourceDatasetsVersionRepository;
             _bulkProviderSourceDatasetRepository = bulkProviderSourceDatasetRepository;
+
+            _typeIdentifierGenerator = new VisualBasicTypeIdentifierGenerator();
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -444,7 +447,7 @@ namespace CalculateFunding.Services.Datasets
                 Fields = new List<AggregatedField>()
             };
 
-            string identifierPrefix = $"Datasets.{DatasetTypeGenerator.GenerateIdentifier(datasetRelationship.Name)}";
+            string identifierPrefix = $"Datasets.{_typeIdentifierGenerator.GenerateIdentifier(datasetRelationship.Name)}";
 
             IEnumerable<FieldDefinition> fieldDefinitions = datasetDefinition.TableDefinitions.SelectMany(m => m.FieldDefinitions);
 
@@ -460,7 +463,7 @@ namespace CalculateFunding.Services.Datasets
 
                     if (fieldDefinition.IsAggregable && fieldDefinition.IsNumeric)
                     {
-                        string identifierName = $"{identifierPrefix}.{DatasetTypeGenerator.GenerateIdentifier(fieldName)}";
+                        string identifierName = $"{identifierPrefix}.{_typeIdentifierGenerator.GenerateIdentifier(fieldName)}";
 
                         decimal sum = tableLoadResult.Rows.SelectMany(m => m.Fields.Where(f => f.Key == fieldName)).Sum(s => s.Value != null ? Convert.ToDecimal(s.Value) : 0);
                         decimal average = tableLoadResult.Rows.SelectMany(m => m.Fields.Where(f => f.Key == fieldName)).Average(s => s.Value != null ? Convert.ToDecimal(s.Value) : 0);

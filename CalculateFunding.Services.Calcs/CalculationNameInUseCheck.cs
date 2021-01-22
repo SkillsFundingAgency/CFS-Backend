@@ -6,7 +6,8 @@ using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Calcs.Interfaces;
-using CalculateFunding.Services.CodeGeneration.VisualBasic;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
 using Polly;
 using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
@@ -19,6 +20,7 @@ namespace CalculateFunding.Services.Calcs
         private readonly ISpecificationsApiClient _specificationsApiClient;
         private readonly AsyncPolicy _specificationsApiClientPolicy;
         private readonly AsyncPolicy _calculationRepositoryPolicy;
+        private readonly ITypeIdentifierGenerator _typeIdentifierGenerator;
 
         public CalculationNameInUseCheck(ICalculationsRepository calculationsRepository,
             ISpecificationsApiClient specificationsApiClient,
@@ -33,6 +35,8 @@ namespace CalculateFunding.Services.Calcs
             _specificationsApiClient = specificationsApiClient;
             _specificationsApiClientPolicy = resiliencePolicies.SpecificationsRepositoryPolicy;
             _calculationRepositoryPolicy = resiliencePolicies.CalculationsRepository;
+
+            _typeIdentifierGenerator = new VisualBasicTypeIdentifierGenerator();
         }
 
         public async Task<bool?> IsCalculationNameInUse(string specificationId, string calculationName, string existingCalculationId)
@@ -53,7 +57,7 @@ namespace CalculateFunding.Services.Calcs
 
             if (!existingCalculations.IsNullOrEmpty())
             {
-                string calcSourceName = VisualBasicTypeGenerator.GenerateIdentifier(calculationName);
+                string calcSourceName = _typeIdentifierGenerator.GenerateIdentifier(calculationName);
 
                 foreach (Calculation calculation in existingCalculations)
                 {

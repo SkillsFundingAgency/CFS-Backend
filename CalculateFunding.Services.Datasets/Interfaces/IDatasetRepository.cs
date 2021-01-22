@@ -55,5 +55,7 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         Task DeleteDatasetsBySpecificationId(string specificationId, DeletionType deletionType);
 
         Task DeleteDefinitionSpecificationRelationshipBySpecificationId(string specificationId, DeletionType deletionType);
+
+        Task<bool> DatasetExistsWithGivenName(string datasetName, string datasetId);
     }
 }
