@@ -3,8 +3,10 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Helpers;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
@@ -183,44 +185,49 @@ namespace CalculateFunding.Services.Results.Repositories
                 return Enumerable.Empty<ProviderResult>();
             }
 
+            List<Task> allTasks = new List<Task>(providerIds.Count());
+
             ConcurrentBag<ProviderResult> results = new ConcurrentBag<ProviderResult>();
 
-            int completedCount = 0;
+            SemaphoreSlim throttler = new SemaphoreSlim(_engineSettings.CalculateProviderResultsDegreeOfParallelism);
 
-            Parallel.ForEach(providerIds, new ParallelOptions() { MaxDegreeOfParallelism = _engineSettings.CalculateProviderResultsDegreeOfParallelism }, async (providerId) =>
+            foreach (string providerId in providerIds)
             {
-                try
-                {
-                    CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
+                await throttler.WaitAsync();
+
+                allTasks.Add(
+                    Task.Run(async () =>
                     {
-                        QueryText = @"SELECT * 
+                        try
+                        {
+                            CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
+                            {
+                                QueryText = @"SELECT * 
                                 FROM    Root r 
                                 WHERE   r.documentType = @DocumentType 
                                         AND r.content.specificationId = @SpecificationId
                                         AND r.deleted = false",
-                        Parameters = new[]
-                   {
-                       new CosmosDbQueryParameter("@DocumentType", nameof(ProviderResult)),
-                       new CosmosDbQueryParameter("@SpecificationId", specificationId)
-                   }
-                    };
+                                Parameters = new[]
+                               {
+                                   new CosmosDbQueryParameter("@DocumentType", nameof(ProviderResult)),
+                                   new CosmosDbQueryParameter("@SpecificationId", specificationId)
+                               }
+                            };
 
-                    IEnumerable<ProviderResult> providerResults = await _cosmosRepository.QueryPartitionedEntity<ProviderResult>(cosmosDbQuery, partitionKey: providerId);
-                    foreach (ProviderResult providerResult in providerResults)
-                    {
-                        results.Add(providerResult);
-                    }
-                }
-                finally
-                {
-                    completedCount++;
-                }
-            });
-
-            while (completedCount < providerIds.Count())
-            {
-                await Task.Delay(20);
+                            IEnumerable<ProviderResult> providerResults = await _cosmosRepository.QueryPartitionedEntity<ProviderResult>(cosmosDbQuery, partitionKey: providerId);
+                            foreach (ProviderResult providerResult in providerResults)
+                            {
+                                results.Add(providerResult);
+                            }
+                        }
+                        finally
+                        {
+                            throttler.Release();
+                        }
+                    }));
             }
+
+            await TaskHelper.WhenAllAndThrow(allTasks.ToArray());
 
             return results.AsEnumerable();
         }
