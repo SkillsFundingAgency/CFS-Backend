@@ -232,6 +232,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             string templateVersion = NewRandomString();
             string fundingLineName = NewRandomString();
             string profilePatternKey = NewRandomString();
+            string profilePatternDisplayName = NewRandomString();
+            string profilePatternDescription = NewRandomString();
             DateTime profileAuditDate = NewRandomDateTime();
             string userId = NewRandomString();
             Reference profileAuditUser = NewReference(u => u.WithId(userId));
@@ -329,6 +331,21 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     }
                 });
 
+            GivenGetProfilePatternsForFundingStreamAndFundingPeriod(
+                fundingStreamId,
+                fundingPeriodId,
+                new List<FundingStreamPeriodProfilePattern>
+                {
+                    new FundingStreamPeriodProfilePattern
+                    {
+                        FundingLineId = fundingLineCode,
+                        ProfilePatternKey = profilePatternKey,
+                        ProfilePatternDisplayName = profilePatternDisplayName,
+                        ProfilePatternDescription = profilePatternDescription
+                    }
+                }
+            );
+
             IActionResult result = await WhenGetPublishedProviderProfileTotalsForSpecificationForProviderForFundingLine(
                 specificationId,
                 providerId,
@@ -359,6 +376,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .WithLastUpdatedDate(profileAuditDate)
                 .WithLastUpdatedUser(profileAuditUser)
                 .WithProfilePatternKey(profilePatternKey)
+                .WithProfilePatternName(profilePatternDisplayName)
+                .WithProfilePatternDescription(profilePatternDescription)
                 .WithRemainingAmount(1000)
                 .WithTotalAllocation(1500)
                 .WithProfileTotalAmount(1500)

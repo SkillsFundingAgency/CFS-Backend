@@ -122,13 +122,22 @@ namespace CalculateFunding.Services.Publishing
                             latestPublishedProviderVersion.FundingPeriodId,
                             latestPublishedProviderVersion.TemplateVersion);
 
+            IEnumerable<FundingStreamPeriodProfilePattern> fundingStreamPeriodProfilePatterns =
+                await _profilingService.GetProfilePatternsForFundingStreamAndFundingPeriod(
+                    latestPublishedProviderVersion.FundingStreamId,
+                    latestPublishedProviderVersion.FundingPeriodId);
+
+            (string profilePatternKey, string profilePatternName, string profilePatternDescription) =
+            GetProfilePatternDetails(fundingLineCode, latestPublishedProviderVersion, fundingStreamPeriodProfilePatterns);
+
             FundingLineProfile fundingLineProfile = new FundingLineProfile
             {
                 FundingLineCode = fundingLineCode,
                 FundingLineName = templateMetadataDistinctFundingLinesContents?.FundingLines?
                             .FirstOrDefault(_ => _.FundingLineCode == fundingLineCode)?.Name,
-                ProfilePatternKey = latestPublishedProviderVersion.ProfilePatternKeys?
-                    .SingleOrDefault(_ => _.FundingLineCode == fundingLineCode)?.Key,
+                ProfilePatternKey = profilePatternKey,
+                ProfilePatternName = profilePatternName,
+                ProfilePatternDescription = profilePatternDescription,
                 ProviderId = latestPublishedProviderVersion.ProviderId,
                 UKPRN = latestPublishedProviderVersion.Provider.UKPRN,
                 ProviderName = latestPublishedProviderVersion.Provider.Name,
@@ -340,29 +349,10 @@ namespace CalculateFunding.Services.Publishing
             {
                 string fundingLineCode = fundingLine.FundingLineCode;
 
-                string profilePatternKey = latestPublishedProviderVersion.ProfilePatternKeys?
-                    .SingleOrDefault(_ => _.FundingLineCode == fundingLineCode)?.Key;
-
-                bool hasCustomProfileForFundingLine = latestPublishedProviderVersion.FundingLineHasCustomProfile(fundingLineCode);
-
-                FundingStreamPeriodProfilePattern apiProfilePatternKey =
-                    fundingStreamPeriodProfilePatterns.FirstOrDefault(_ => _.ProfilePatternKey == profilePatternKey && _.FundingLineId == fundingLineCode);
+                (string profilePatternKey, string profilePatternName, string profilePatternDescription) =
+                    GetProfilePatternDetails(fundingLineCode, latestPublishedProviderVersion, fundingStreamPeriodProfilePatterns);
 
                 ProfileTotal[] profileTotals = new PaymentFundingLineProfileTotals(latestPublishedProviderVersion, fundingLineCode).ToArray();
-
-                string profilePatternName;
-                string profilePatternDescription;
-
-                if (hasCustomProfileForFundingLine)
-                {
-                    profilePatternName = "Custom Profile";
-                    profilePatternDescription = "Custom Profile";
-                }
-                else
-                {
-                    profilePatternName = apiProfilePatternKey?.ProfilePatternDisplayName;
-                    profilePatternDescription = apiProfilePatternKey?.ProfilePatternDescription;
-                }
 
                 FundingLineProfile fundingLineProfile = new FundingLineProfile
                 {
@@ -388,6 +378,33 @@ namespace CalculateFunding.Services.Publishing
             }
 
             return new OkObjectResult(fundingLineProfiles);
+        }
+
+        private static (string key, string name, string description) GetProfilePatternDetails(string fundingLineCode, PublishedProviderVersion latestPublishedProviderVersion, IEnumerable<FundingStreamPeriodProfilePattern> fundingStreamPeriodProfilePatterns)
+        {
+            string profilePatternKey = latestPublishedProviderVersion.ProfilePatternKeys?
+                               .SingleOrDefault(_ => _.FundingLineCode == fundingLineCode)?.Key;
+
+            bool hasCustomProfileForFundingLine = latestPublishedProviderVersion.FundingLineHasCustomProfile(fundingLineCode);
+
+            FundingStreamPeriodProfilePattern apiProfilePatternKey =
+                fundingStreamPeriodProfilePatterns.FirstOrDefault(_ => _.ProfilePatternKey == profilePatternKey && _.FundingLineId == fundingLineCode);
+
+            string profilePatternName;
+            string profilePatternDescription;
+
+            if (hasCustomProfileForFundingLine)
+            {
+                profilePatternName = "Custom Profile";
+                profilePatternDescription = "Custom Profile";
+            }
+            else
+            {
+                profilePatternName = apiProfilePatternKey?.ProfilePatternDisplayName;
+                profilePatternDescription = apiProfilePatternKey?.ProfilePatternDescription;
+            }
+
+            return (profilePatternKey, profilePatternName, profilePatternDescription);
         }
 
         private bool FundingLineValueChanged(
