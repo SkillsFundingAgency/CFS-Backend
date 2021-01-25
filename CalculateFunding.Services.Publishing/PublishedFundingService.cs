@@ -84,7 +84,7 @@ namespace CalculateFunding.Services.Publishing
 
             // Foreach group, determine the provider versions required to be latest
             IEnumerable<OrganisationGroupResult> organisationGroups =
-                await _organisationGroupGenerator.GenerateOrganisationGroup(fundingConfiguration, _mapper.Map<IEnumerable<ApiProvider>>(scopedProviders), specification.ProviderVersionId);
+                await _organisationGroupGenerator.GenerateOrganisationGroup(fundingConfiguration, _mapper.Map<IEnumerable<ApiProvider>>(scopedProviders), specification.ProviderVersionId, specification.ProviderSnapshotId);
 
             // filter out organisation groups which don't contain a provider which is in scope
             if (!publishedProvidersInScope.IsNullOrEmpty())

@@ -9,7 +9,7 @@
   <ItemGroup>
     <PackageReference Include="CacheCow.Server.Core.Mvc" Version="2.7.4" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Graph" Version="4.3.1" />
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="6.4.0" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="6.4.1" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Calcs" Version="4.5.6" />  
     <PackageReference Include="CalculateFunding.Common.ApiClient.Results" Version="6.0.0" />  
     <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="6.18.0" />
