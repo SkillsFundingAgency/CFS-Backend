@@ -48,7 +48,7 @@ namespace CalculateFunding.Functions.Results.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.CalculationResultsCsvGeneration,
-                async(Message smokeResponse) => await onCalculationResultsCsvGeneration.Run(smokeResponse));
+                async(Message smokeResponse) => await onCalculationResultsCsvGeneration.Run(smokeResponse), useSession:true);
 
             response
                 .Should()
