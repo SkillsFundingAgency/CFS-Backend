@@ -28,18 +28,21 @@ namespace CalculateFunding.Services.Publishing
             
             FundingLine[] fundingLines = generatedProviderResults[provider.ProviderId]
                 .FundingLines?
-                .Where(_ => _.Type == FundingLineType.Payment)
+                .Where(_ => _.Type == FundingLineType.Payment && _.Value.HasValue)
                 .ToArray() ;
-            
-            ProfilingRequests.Add(new ProviderProfilingRequestData
+
+            if (fundingLines != null)
             {
-                FundingLinesToProfile = fundingLines ?? ArraySegment<FundingLine>.Empty,
-                PublishedProvider = providerVersion,
-                ProviderType = isNewProvider ? provider.ProviderType : null,
-                ProviderSubType = isNewProvider ? provider.ProviderSubType : null,
-                ProfilePatternKeys = isNewProvider ? null : providerVersion.ProfilePatternKeys?
-                    .ToDictionary(_ => _.FundingLineCode, _ => _.Key) ?? new Dictionary<string, string>(),
-            });
+                ProfilingRequests.Add(new ProviderProfilingRequestData
+                {
+                    FundingLinesToProfile = fundingLines,
+                    PublishedProvider = providerVersion,
+                    ProviderType = isNewProvider ? provider.ProviderType : null,
+                    ProviderSubType = isNewProvider ? provider.ProviderSubType : null,
+                    ProfilePatternKeys = isNewProvider ? null : providerVersion.ProfilePatternKeys?
+                        .ToDictionary(_ => _.FundingLineCode, _ => _.Key) ?? new Dictionary<string, string>(),
+                });
+            }
         }
 
         public void InitialiseItems(int pageSize,

@@ -676,8 +676,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             string fundingLineCodeOne = NewRandomString();
 
             FundingLine paymentFundingLineOne = NewFundingLine(_ => _.WithFundingLineType(FundingLineType.Payment)
-                .WithFundingLineCode(fundingLineCodeOne));
-            FundingLine paymentFundingLineTwo = NewFundingLine(_ => _.WithFundingLineType(FundingLineType.Payment));
+                .WithFundingLineCode(fundingLineCodeOne)
+                .WithValue(0));
+            FundingLine paymentFundingLineTwo = NewFundingLine(_ => _.WithFundingLineType(FundingLineType.Payment)
+                .WithValue(0));
 
             ProfilePatternKey fundingLinePatternKey = NewProfilePatternKey(ppk =>
                 ppk.WithKey(profilePatternKey)
