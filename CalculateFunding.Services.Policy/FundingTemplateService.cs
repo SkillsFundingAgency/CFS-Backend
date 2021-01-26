@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.Caching;
@@ -153,7 +152,7 @@ namespace CalculateFunding.Services.Policy
             }
         }
 
-        public async Task<IActionResult> GetFundingTemplateSourceFile(string fundingStreamId, string fundingPeriodId, string templateVersion)
+        public async Task<ActionResult<string>> GetFundingTemplateSourceFile(string fundingStreamId, string fundingPeriodId, string templateVersion)
         {
             Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
             Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
@@ -165,7 +164,7 @@ namespace CalculateFunding.Services.Policy
 
             if (!string.IsNullOrWhiteSpace(template))
             {
-                return new OkObjectResult(template);
+                return template;
             }
 
             string blobName = GetBlobNameFor(fundingStreamId, fundingPeriodId, templateVersion);
@@ -189,7 +188,7 @@ namespace CalculateFunding.Services.Policy
 
                 await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, template));
 
-                return new OkObjectResult(template);
+                return template;
             }
             catch (Exception ex)
             {
@@ -252,28 +251,14 @@ namespace CalculateFunding.Services.Policy
             }
         }
 
-        public async Task<IActionResult> GetFundingTemplateContents(string fundingStreamId, string fundingPeriodId, string templateVersion)
+        public async Task<ActionResult<TemplateMetadataContents>> GetFundingTemplateContents(string fundingStreamId, string fundingPeriodId, string templateVersion)
         {
-            IActionResult getFundingTemplateMetadataResult = await GetFundingTemplateContentMetadata(fundingStreamId, fundingPeriodId, templateVersion);
-            if (!(getFundingTemplateMetadataResult is OkObjectResult))
-            {
-                return getFundingTemplateMetadataResult;
-            }
-            TemplateMetadataContents fundingTemplateContents = (getFundingTemplateMetadataResult as OkObjectResult).Value as TemplateMetadataContents;
-
-            return new OkObjectResult(fundingTemplateContents);
+            return await GetFundingTemplateContentMetadata(fundingStreamId, fundingPeriodId, templateVersion);
         }
 
-        public async Task<IActionResult> GetFundingTemplate(string fundingStreamId, string fundingPeriodId, string templateVersion)
+        public async Task<ActionResult<FundingTemplateContents>> GetFundingTemplate(string fundingStreamId, string fundingPeriodId, string templateVersion)
         {
-            IActionResult getFundingTemplateContentResult = await GetFundingTemplateContentsInner(fundingStreamId, fundingPeriodId, templateVersion);
-            if (!(getFundingTemplateContentResult is OkObjectResult))
-            {
-                return getFundingTemplateContentResult;
-            }
-            FundingTemplateContents fundingTemplateContents = (getFundingTemplateContentResult as OkObjectResult).Value as FundingTemplateContents;
-
-            return new OkObjectResult(fundingTemplateContents);
+            return await GetFundingTemplateContentsInner(fundingStreamId, fundingPeriodId, templateVersion);
         }
 
         public async Task<bool> TemplateExists(string fundingStreamId, string fundingPeriodId, string templateVersion)
@@ -281,7 +266,7 @@ namespace CalculateFunding.Services.Policy
             return await CheckIfFundingTemplateVersionExists(GetBlobNameFor(fundingStreamId, fundingPeriodId, templateVersion));
         }
 
-        public async Task<IActionResult> GetFundingTemplates(string fundingStreamId, string fundingPeriodId)
+        public async Task<ActionResult<IEnumerable<PublishedFundingTemplate>>> GetFundingTemplates(string fundingStreamId, string fundingPeriodId)
         {
             IEnumerable<PublishedFundingTemplate> publishFundingTemplates = await SearchTemplates($"{fundingStreamId}/{fundingPeriodId}/");
             IEnumerable<TemplateSummaryResponse> templateResponses = await _templateBuilderService.FindVersionsByFundingStreamAndPeriod(new FindTemplateVersionQuery()
@@ -291,9 +276,9 @@ namespace CalculateFunding.Services.Policy
                 Statuses = new List<TemplateStatus>() { TemplateStatus.Published }
             });
 
-            foreach (var publishedFundingTemplate in publishFundingTemplates)
+            foreach (PublishedFundingTemplate publishedFundingTemplate in publishFundingTemplates)
             {
-                var versionParts = publishedFundingTemplate.TemplateVersion.Split(".");
+                string[] versionParts = publishedFundingTemplate.TemplateVersion.Split(".");
                 if (versionParts.Length >= 2)
                 {
                     TemplateSummaryResponse templateResponse = templateResponses.FirstOrDefault(x => x.MajorVersion.ToString() == versionParts[0] && x.MinorVersion.ToString() == versionParts[1]);
@@ -307,20 +292,22 @@ namespace CalculateFunding.Services.Policy
                 }
             }
 
-            return publishFundingTemplates.Any() ? (IActionResult)new OkObjectResult(publishFundingTemplates) : new NotFoundResult();
+            if (!publishFundingTemplates.Any()) { return new NotFoundResult(); }
+
+            return publishFundingTemplates.ToList();
         }
 
-        public async Task<IActionResult> GetDistinctFundingTemplateMetadataFundingLinesContents(string fundingStreamId, string fundingPeriodId, string templateVersion)
+        public async Task<ActionResult<TemplateMetadataDistinctFundingLinesContents>> GetDistinctFundingTemplateMetadataFundingLinesContents(string fundingStreamId, string fundingPeriodId, string templateVersion)
         {
-            IActionResult templateMetadataDistinctContentsResult = await GetDistinctFundingTemplateMetadataContents(fundingStreamId, fundingPeriodId, templateVersion);
-            if (!(templateMetadataDistinctContentsResult is OkObjectResult))
+            ActionResult<TemplateMetadataDistinctContents> templateMetadataDistinctContentsResult = await GetDistinctFundingTemplateMetadataContents(fundingStreamId, fundingPeriodId, templateVersion);
+            if (templateMetadataDistinctContentsResult == null || templateMetadataDistinctContentsResult.Value == null)
             {
-                return templateMetadataDistinctContentsResult;
+                return templateMetadataDistinctContentsResult.Result;
             }
 
-            TemplateMetadataDistinctContents templateMetadataDistinctContents = (templateMetadataDistinctContentsResult as OkObjectResult).Value as TemplateMetadataDistinctContents;
+            TemplateMetadataDistinctContents templateMetadataDistinctContents = templateMetadataDistinctContentsResult.Value;
 
-            TemplateMetadataDistinctFundingLinesContents templateMetadataDistinctFundingLinesContents = new TemplateMetadataDistinctFundingLinesContents()
+            return new TemplateMetadataDistinctFundingLinesContents()
             {
                 FundingStreamId = templateMetadataDistinctContents.FundingStreamId,
                 FundingPeriodId = templateMetadataDistinctContents.FundingPeriodId,
@@ -328,21 +315,19 @@ namespace CalculateFunding.Services.Policy
                 FundingLines = templateMetadataDistinctContents.FundingLines,
                 SchemaVersion = templateMetadataDistinctContents.SchemaVersion
             };
-
-            return new OkObjectResult(templateMetadataDistinctFundingLinesContents);
         }
 
-        public async Task<IActionResult> GetDistinctFundingTemplateMetadataCalculationsContents(string fundingStreamId, string fundingPeriodId, string templateVersion)
+        public async Task<ActionResult<TemplateMetadataDistinctCalculationsContents>> GetDistinctFundingTemplateMetadataCalculationsContents(string fundingStreamId, string fundingPeriodId, string templateVersion)
         {
-            IActionResult templateMetadataDistinctContentsResult = await GetDistinctFundingTemplateMetadataContents(fundingStreamId, fundingPeriodId, templateVersion);
-            if (!(templateMetadataDistinctContentsResult is OkObjectResult))
+            ActionResult<TemplateMetadataDistinctContents> templateMetadataDistinctContentsResult = await GetDistinctFundingTemplateMetadataContents(fundingStreamId, fundingPeriodId, templateVersion);
+            if (templateMetadataDistinctContentsResult == null || templateMetadataDistinctContentsResult.Value == null)
             {
-                return templateMetadataDistinctContentsResult;
+                return templateMetadataDistinctContentsResult.Result;
             }
 
-            TemplateMetadataDistinctContents templateMetadataDistinctContents = (templateMetadataDistinctContentsResult as OkObjectResult).Value as TemplateMetadataDistinctContents;
+            TemplateMetadataDistinctContents templateMetadataDistinctContents = templateMetadataDistinctContentsResult.Value;
 
-            TemplateMetadataDistinctCalculationsContents templateMetadataDistinctCalculationsContents = new TemplateMetadataDistinctCalculationsContents()
+            return new TemplateMetadataDistinctCalculationsContents()
             {
                 FundingStreamId = templateMetadataDistinctContents.FundingStreamId,
                 FundingPeriodId = templateMetadataDistinctContents.FundingPeriodId,
@@ -350,24 +335,22 @@ namespace CalculateFunding.Services.Policy
                 Calculations = templateMetadataDistinctContents.Calculations,
                 SchemaVersion = templateMetadataDistinctContents.SchemaVersion
             };
-
-            return new OkObjectResult(templateMetadataDistinctCalculationsContents);
         }
 
-        public async Task<IActionResult> GetDistinctFundingTemplateMetadataContents(string fundingStreamId, string fundingPeriodId, string templateVersion)
+        public async Task<ActionResult<TemplateMetadataDistinctContents>> GetDistinctFundingTemplateMetadataContents(string fundingStreamId, string fundingPeriodId, string templateVersion)
         {
             string cacheKey = $"{CacheKeys.FundingTemplateContentMetadataDistinct}{fundingStreamId}:{fundingPeriodId}:{templateVersion}".ToLowerInvariant();
             TemplateMetadataDistinctContents templateMetadataDistinctContents = await _cacheProvider.GetAsync<TemplateMetadataDistinctContents>(cacheKey);
 
             if (templateMetadataDistinctContents == null)
             {
-                IActionResult fundingTemplateContentMetadataResult = await GetFundingTemplateContentMetadata(fundingStreamId, fundingPeriodId, templateVersion);
-                if (!(fundingTemplateContentMetadataResult is OkObjectResult))
+                ActionResult<TemplateMetadataContents> fundingTemplateContentMetadataResult = await GetFundingTemplateContentMetadata(fundingStreamId, fundingPeriodId, templateVersion);
+                if (fundingTemplateContentMetadataResult.Result != null)
                 {
-                    return fundingTemplateContentMetadataResult;
+                    return fundingTemplateContentMetadataResult.Result;
                 }
 
-                TemplateMetadataContents templateMetadataContents = (fundingTemplateContentMetadataResult as OkObjectResult).Value as TemplateMetadataContents;
+                TemplateMetadataContents templateMetadataContents = fundingTemplateContentMetadataResult.Value;
                 IEnumerable<TemplateMetadataCalculation> calculations = null;
                 IEnumerable<TemplateMetadataFundingLine> fundingLines = null;
                 if (templateMetadataContents.RootFundingLines != null)
@@ -396,28 +379,125 @@ namespace CalculateFunding.Services.Policy
                 await _cacheProvider.SetAsync(cacheKey, templateMetadataDistinctContents, TimeSpan.FromDays(365), true);
             }
 
-            return new OkObjectResult(templateMetadataDistinctContents);
+            return templateMetadataDistinctContents;
         }
 
-        private async Task<IActionResult> GetFundingTemplateContentMetadata(string fundingStreamId, string fundingPeriodId, string templateVersion)
+        public async Task<ActionResult<TemplateMetadataFundingLineCashCalculationsContents>> GetCashCalcsForTemplateVersion(string fundingStreamId, string fundingPeriodId, string templateVersion)
+        {
+            ActionResult<TemplateMetadataContents> templateMetadata = await GetFundingTemplateContentMetadata(fundingStreamId, fundingPeriodId, templateVersion);
+
+            if (templateMetadata.Result != null)
+            {
+                return templateMetadata.Result;
+            }
+
+            TemplateMetadataContents templateMetadataContents = templateMetadata.Value;
+
+            IEnumerable<FundingLine> flattenedFundingLines = templateMetadataContents.RootFundingLines.Flatten(x => x.FundingLines);
+            IEnumerable<Calculation> flatternedCalculations = flattenedFundingLines.SelectMany(fl => fl.Calculations.Flatten(cal => cal.Calculations));
+
+            IEnumerable<FundingLine> uniqueFundingLines = flattenedFundingLines.DistinctBy(f => f.TemplateLineId);
+
+            IOrderedEnumerable<FundingLine> paymentFundingLine = uniqueFundingLines.Where(f => f.Type == Common.TemplateMetadata.Enums.FundingLineType.Payment).OrderBy(f => f.FundingLineCode);
+
+            Dictionary<string, IEnumerable<TemplateMetadataCalculation>> cashCalculations = new Dictionary<string, IEnumerable<TemplateMetadataCalculation>>();
+
+            List<TemplateMetadataFundingLine> fundingLineResults = new List<TemplateMetadataFundingLine>(paymentFundingLine.Count());
+            foreach (FundingLine fundingLine in paymentFundingLine)
+            {
+                fundingLineResults.Add(new TemplateMetadataFundingLine()
+                {
+                    FundingLineCode = fundingLine.FundingLineCode,
+                    Name = fundingLine.Name,
+                    TemplateLineId = fundingLine.TemplateLineId,
+                    Type = Common.TemplateMetadata.Enums.FundingLineType.Payment,
+                });
+
+                List<TemplateMetadataCalculation> cashCalculationsForFundingLines = FindCashCalculations(fundingLine);
+
+                cashCalculations.Add(fundingLine.FundingLineCode, cashCalculationsForFundingLines.OrderBy(_ => _.Name));
+            }
+
+            return new TemplateMetadataFundingLineCashCalculationsContents()
+            {
+                FundingPeriodId = fundingPeriodId,
+                FundingStreamId = fundingStreamId,
+                SchemaVersion = templateMetadata.Value.SchemaVersion,
+                TemplateVersion = templateMetadata.Value.TemplateVersion,
+                FundingLines = fundingLineResults,
+                CashCalculations = cashCalculations,
+            };
+        }
+
+        private List<TemplateMetadataCalculation> FindCashCalculations(FundingLine fundingLine)
+        {
+            List<TemplateMetadataCalculation> calculations = new List<TemplateMetadataCalculation>();
+
+            List<TemplateMetadataCalculation> childCalcCashCalculations = FindCashCalculations(fundingLine.Calculations);
+            if (childCalcCashCalculations.Count > 0)
+            {
+                calculations.AddRange(childCalcCashCalculations);
+            }
+
+            foreach (FundingLine childFundingLine in fundingLine.FundingLines)
+            {
+                List<TemplateMetadataCalculation> fundingLineCalculations = FindCashCalculations(childFundingLine);
+                if (fundingLineCalculations.Count > 0)
+                {
+                    calculations.AddRange(fundingLineCalculations);
+                }
+            }
+
+            return calculations;
+        }
+
+        private List<TemplateMetadataCalculation> FindCashCalculations(IEnumerable<Calculation> calculations)
+        {
+            List<TemplateMetadataCalculation> calculationsResult = new List<TemplateMetadataCalculation>();
+
+            if (calculations != null)
+            {
+                foreach (Calculation calculation in calculations)
+                {
+                    if (calculation.Type == Common.TemplateMetadata.Enums.CalculationType.Cash)
+                    {
+                        calculationsResult.Add(_mapper.Map<TemplateMetadataCalculation>(calculation));
+                    }
+                    else
+                    {
+                        List<TemplateMetadataCalculation> childCalculations = FindCashCalculations(calculation.Calculations);
+                        if (childCalculations.Count > 0)
+                        {
+                            calculationsResult.AddRange(childCalculations);
+                        }
+                    }
+                }
+            }
+
+            return calculationsResult;
+        }
+
+        private async Task<ActionResult<TemplateMetadataContents>> GetFundingTemplateContentMetadata(string fundingStreamId, string fundingPeriodId, string templateVersion)
         {
             TemplateMetadataContents fundingTemplateContentMetadata = await _cacheProvider.GetAsync<TemplateMetadataContents>($"{CacheKeys.FundingTemplateContentMetadata}{fundingStreamId}:{fundingPeriodId}:{templateVersion}");
             if (fundingTemplateContentMetadata == null)
             {
-                IActionResult fundingTemplateContentSourceFileResult = await GetFundingTemplateSourceFile(fundingStreamId, fundingPeriodId, templateVersion);
+                ActionResult<string> fundingTemplateContentSourceFileResult = await GetFundingTemplateSourceFile(fundingStreamId, fundingPeriodId, templateVersion);
 
-                if (!(fundingTemplateContentSourceFileResult is OkObjectResult))
+                if (fundingTemplateContentSourceFileResult.Result != null)
                 {
-                    return fundingTemplateContentSourceFileResult;
+                    return fundingTemplateContentSourceFileResult.Result;
                 }
-                string fundingTemplateContentSourceFile = (fundingTemplateContentSourceFileResult as OkObjectResult).Value as string;
 
-                IActionResult fundingTemplateValidationResult = GetFundingTemplateSchemaVersion(fundingTemplateContentSourceFile);
-                if (!(fundingTemplateValidationResult is OkObjectResult))
+                string fundingTemplateContentSourceFile = fundingTemplateContentSourceFileResult.Value;
+
+                ActionResult<string> fundingTemplateValidationResult = GetFundingTemplateSchemaVersion(fundingTemplateContentSourceFile);
+                if (fundingTemplateValidationResult.Result != null)
                 {
-                    return fundingTemplateValidationResult;
+                    return fundingTemplateValidationResult.Result;
                 }
-                string fundingTemplateSchemaVersion = (fundingTemplateValidationResult as OkObjectResult).Value as string;
+
+                string fundingTemplateSchemaVersion = fundingTemplateValidationResult.Value;
 
                 bool templateMetadataGeneratorRetrieved = _templateMetadataResolver.TryGetService(fundingTemplateSchemaVersion, out ITemplateMetadataGenerator templateMetadataGenerator);
                 if (!templateMetadataGeneratorRetrieved)
@@ -440,35 +520,33 @@ namespace CalculateFunding.Services.Policy
                 await _cacheProvider.SetAsync($"{CacheKeys.FundingTemplateContentMetadata}{fundingStreamId}:{fundingPeriodId}:{templateVersion}", fundingTemplateContentMetadata);
             }
 
-            return new OkObjectResult(fundingTemplateContentMetadata);
+            return fundingTemplateContentMetadata;
         }
 
-        private async Task<IActionResult> GetFundingTemplateContentsInner(string fundingStreamId, string fundingPeriodId, string templateVersion)
+        private async Task<ActionResult<FundingTemplateContents>> GetFundingTemplateContentsInner(string fundingStreamId, string fundingPeriodId, string templateVersion)
         {
-            IActionResult fundingTemplateContentSourceFileResult = await GetFundingTemplateSourceFile(fundingStreamId, fundingPeriodId, templateVersion);
-            if (!(fundingTemplateContentSourceFileResult is OkObjectResult))
+            ActionResult<string> fundingTemplateContentSourceFileResult = await GetFundingTemplateSourceFile(fundingStreamId, fundingPeriodId, templateVersion);
+            if (fundingTemplateContentSourceFileResult.Result != null)
             {
-                return fundingTemplateContentSourceFileResult;
+                return fundingTemplateContentSourceFileResult.Result;
             }
-            string fundingTemplateContentSourceFile = (fundingTemplateContentSourceFileResult as OkObjectResult).Value as string;
+            string fundingTemplateContentSourceFile = fundingTemplateContentSourceFileResult.Value;
 
-            IActionResult fundingTemplateContentMetadataResult = await GetFundingTemplateContentMetadata(fundingStreamId, fundingPeriodId, templateVersion);
-            if (!(fundingTemplateContentMetadataResult is OkObjectResult))
+            ActionResult<TemplateMetadataContents> fundingTemplateContentMetadataResult = await GetFundingTemplateContentMetadata(fundingStreamId, fundingPeriodId, templateVersion);
+            if (fundingTemplateContentMetadataResult.Result != null)
             {
-                return fundingTemplateContentMetadataResult;
+                return fundingTemplateContentMetadataResult.Result;
             }
-            TemplateMetadataContents fundingTemplateContentMetadata = (fundingTemplateContentMetadataResult as OkObjectResult).Value as TemplateMetadataContents;
+            TemplateMetadataContents fundingTemplateContentMetadata = fundingTemplateContentMetadataResult.Value;
 
-            FundingTemplateContents fundingTemplateContents = new FundingTemplateContents
+            return new FundingTemplateContents
             {
                 TemplateFileContents = fundingTemplateContentSourceFile,
                 Metadata = fundingTemplateContentMetadata
             };
-
-            return new OkObjectResult(fundingTemplateContents);
         }
 
-        private IActionResult GetFundingTemplateSchemaVersion(string fundingTemplateContent)
+        private ActionResult<string> GetFundingTemplateSchemaVersion(string fundingTemplateContent)
         {
             Guard.IsNullOrWhiteSpace(fundingTemplateContent, nameof(fundingTemplateContent));
 
@@ -489,7 +567,7 @@ namespace CalculateFunding.Services.Policy
                 return new PreconditionFailedResult("Missing schema version from funding template.");
             }
 
-            return new OkObjectResult(parsedFundingTemplate["schemaVersion"].Value<string>());
+            return parsedFundingTemplate["schemaVersion"].Value<string>();
         }
     }
 }

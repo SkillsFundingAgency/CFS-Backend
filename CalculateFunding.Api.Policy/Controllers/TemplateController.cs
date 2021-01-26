@@ -31,8 +31,7 @@ namespace CalculateFunding.Api.Policy.Controllers
         /// <param name="templateVersion">Template Version</param>
         /// <returns></returns>
         [HttpGet("api/templates/{fundingStreamId}/{fundingPeriodId}/{templateVersion}")]
-        [Produces(typeof(FundingTemplateContents))]
-        public async Task<IActionResult> GetFundingTemplate([FromRoute] string fundingStreamId, [FromRoute] string fundingPeriodId, [FromRoute] string templateVersion)
+        public async Task<ActionResult<FundingTemplateContents>> GetFundingTemplate([FromRoute] string fundingStreamId, [FromRoute] string fundingPeriodId, [FromRoute] string templateVersion)
         {
             return await _fundingTemplateService.GetFundingTemplate(fundingStreamId, fundingPeriodId, templateVersion);
         }
@@ -46,7 +45,7 @@ namespace CalculateFunding.Api.Policy.Controllers
         /// <returns></returns>
         [HttpGet("api/templates/{fundingStreamId}/{fundingPeriodId}/{templateVersion}/sourcefile")]
         [Produces("application/json")]
-        public async Task<IActionResult> GetFundingTemplateSourceFile([FromRoute] string fundingStreamId, [FromRoute] string fundingPeriodId, [FromRoute] string templateVersion)
+        public async Task<ActionResult<string>> GetFundingTemplateSourceFile([FromRoute] string fundingStreamId, [FromRoute] string fundingPeriodId, [FromRoute] string templateVersion)
         {
             return await _fundingTemplateService.GetFundingTemplateSourceFile(fundingStreamId, fundingPeriodId, templateVersion);
         }
@@ -60,7 +59,7 @@ namespace CalculateFunding.Api.Policy.Controllers
         /// <returns></returns>
         [HttpGet("api/templates/{fundingStreamId}/{fundingPeriodId}/{templateVersion}/metadata")]
         [ProducesResponseType(200, Type = typeof(TemplateMetadataContents))]
-        public async Task<IActionResult> GetFundingTemplateContents([FromRoute] string fundingStreamId, [FromRoute] string fundingPeriodId, [FromRoute] string templateVersion)
+        public async Task<ActionResult<TemplateMetadataContents>> GetFundingTemplateContents([FromRoute] string fundingStreamId, [FromRoute] string fundingPeriodId, [FromRoute] string templateVersion)
         {
             return await _fundingTemplateService.GetFundingTemplateContents(fundingStreamId, fundingPeriodId, templateVersion);
         }
@@ -109,7 +108,7 @@ The template is validated against the schema and associated rules.";
         /// <returns></returns>
         [HttpGet("api/templates/{fundingStreamId}/{fundingPeriodId}")]
         [Produces(typeof(IEnumerable<PublishedFundingTemplate>))]
-        public async Task<IActionResult> GetFundingTemplates([FromRoute] string fundingStreamId, [FromRoute] string fundingPeriodId)
+        public async Task<ActionResult<IEnumerable<PublishedFundingTemplate>>> GetFundingTemplates([FromRoute] string fundingStreamId, [FromRoute] string fundingPeriodId)
         {
             return await _fundingTemplateService.GetFundingTemplates(fundingStreamId, fundingPeriodId);
         }
@@ -123,7 +122,7 @@ The template is validated against the schema and associated rules.";
         /// <returns></returns>
         [HttpGet("api/templates/{fundingStreamId}/{fundingPeriodId}/{templateVersion}/metadata/distinct")]
         [ProducesResponseType(200, Type = typeof(TemplateMetadataDistinctContents))]
-        public async Task<IActionResult> GetDistinctTemplateMetadataContents([FromRoute] string fundingStreamId, [FromRoute] string fundingPeriodId, [FromRoute] string templateVersion)
+        public async Task<ActionResult<TemplateMetadataDistinctContents>> GetDistinctTemplateMetadataContents([FromRoute] string fundingStreamId, [FromRoute] string fundingPeriodId, [FromRoute] string templateVersion)
         {
             return await _fundingTemplateService.GetDistinctFundingTemplateMetadataContents(fundingStreamId, fundingPeriodId, templateVersion);
         }
@@ -137,7 +136,7 @@ The template is validated against the schema and associated rules.";
         /// <returns></returns>
         [HttpGet("api/templates/{fundingStreamId}/{fundingPeriodId}/{templateVersion}/metadata/distinct/funding-lines")]
         [ProducesResponseType(200, Type = typeof(TemplateMetadataDistinctFundingLinesContents))]
-        public async Task<IActionResult> GetDistinctTemplateMetadataFundingLinesContents([FromRoute] string fundingStreamId, [FromRoute] string fundingPeriodId, [FromRoute] string templateVersion)
+        public async Task<ActionResult<TemplateMetadataDistinctFundingLinesContents>> GetDistinctTemplateMetadataFundingLinesContents([FromRoute] string fundingStreamId, [FromRoute] string fundingPeriodId, [FromRoute] string templateVersion)
         {
             return await _fundingTemplateService.GetDistinctFundingTemplateMetadataFundingLinesContents(fundingStreamId, fundingPeriodId, templateVersion);
         }
@@ -151,9 +150,23 @@ The template is validated against the schema and associated rules.";
         /// <returns></returns>
         [HttpGet("api/templates/{fundingStreamId}/{fundingPeriodId}/{templateVersion}/metadata/distinct/calculations")]
         [ProducesResponseType(200, Type = typeof(TemplateMetadataDistinctCalculationsContents))]
-        public async Task<IActionResult> GetDistinctTemplateMetadataCalculationsContents([FromRoute] string fundingStreamId, [FromRoute] string fundingPeriodId, [FromRoute] string templateVersion)
+        public async Task<ActionResult<TemplateMetadataDistinctCalculationsContents>> GetDistinctTemplateMetadataCalculationsContents([FromRoute] string fundingStreamId, [FromRoute] string fundingPeriodId, [FromRoute] string templateVersion)
         {
             return await _fundingTemplateService.GetDistinctFundingTemplateMetadataCalculationsContents(fundingStreamId, fundingPeriodId, templateVersion);
+        }
+
+        /// <summary>
+        /// Gets cash calculations and payment fundings for a template in the common metadata output
+        /// </summary>
+        /// <param name="fundingStreamId">Funding stream ID</param>
+        /// <param name="fundingPeriodId">Funding Period ID</param>
+        /// <param name="templateVersion">Template Version</param>
+        /// <returns></returns>
+        [HttpGet("api/templates/{fundingStreamId}/{fundingPeriodId}/{templateVersion}/metadata/cash-calculations")]
+        [ProducesResponseType(200, Type = typeof(TemplateMetadataFundingLineCashCalculationsContents))]
+        public async Task<ActionResult<TemplateMetadataFundingLineCashCalculationsContents>> GetCashCalcsForFundingLines([FromRoute] string fundingStreamId, [FromRoute] string fundingPeriodId, [FromRoute] string templateVersion)
+        {
+            return await _fundingTemplateService.GetCashCalcsForTemplateVersion(fundingStreamId, fundingPeriodId, templateVersion);
         }
     }
 }

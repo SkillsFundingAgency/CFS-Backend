@@ -1,18 +1,22 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using CalculateFunding.Common.TemplateMetadata.Models;
+using CalculateFunding.Models.Policy;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CalculateFunding.Services.Policy.Interfaces
 {
     public interface IFundingTemplateService
     {
         Task<IActionResult> SaveFundingTemplate(string actionName, string controllerName, string template, string fundingStreamId, string fundingPeriodId, string templateVersion);
-        Task<IActionResult> GetFundingTemplateSourceFile(string fundingStreamId, string fundingPeriodId, string templateVersion);
-        Task<IActionResult> GetFundingTemplateContents(string fundingStreamId, string fundingPeriodId, string templateVersion);
-        Task<IActionResult> GetFundingTemplate(string fundingStreamId, string fundingPeriodId, string templateVersion);
+        Task<ActionResult<string>> GetFundingTemplateSourceFile(string fundingStreamId, string fundingPeriodId, string templateVersion);
+        Task<ActionResult<TemplateMetadataContents>> GetFundingTemplateContents(string fundingStreamId, string fundingPeriodId, string templateVersion);
+        Task<ActionResult<FundingTemplateContents>> GetFundingTemplate(string fundingStreamId, string fundingPeriodId, string templateVersion);
         Task<bool> TemplateExists(string fundingStreamId, string fundingPeriodId, string templateVersion);
-        Task<IActionResult> GetFundingTemplates(string fundingStreamId, string fundingPeriodId);
-        Task<IActionResult> GetDistinctFundingTemplateMetadataContents(string fundingStreamId, string fundingPeriodId, string templateVersion);
-        Task<IActionResult> GetDistinctFundingTemplateMetadataFundingLinesContents(string fundingStreamId, string fundingPeriodId, string templateVersion);
-        Task<IActionResult> GetDistinctFundingTemplateMetadataCalculationsContents(string fundingStreamId, string fundingPeriodId, string templateVersion);
+        Task<ActionResult<IEnumerable<PublishedFundingTemplate>>> GetFundingTemplates(string fundingStreamId, string fundingPeriodId);
+        Task<ActionResult<TemplateMetadataDistinctContents>> GetDistinctFundingTemplateMetadataContents(string fundingStreamId, string fundingPeriodId, string templateVersion);
+        Task<ActionResult<TemplateMetadataDistinctFundingLinesContents>> GetDistinctFundingTemplateMetadataFundingLinesContents(string fundingStreamId, string fundingPeriodId, string templateVersion);
+        Task<ActionResult<TemplateMetadataDistinctCalculationsContents>> GetDistinctFundingTemplateMetadataCalculationsContents(string fundingStreamId, string fundingPeriodId, string templateVersion);
+        Task<ActionResult<TemplateMetadataFundingLineCashCalculationsContents>> GetCashCalcsForTemplateVersion(string fundingStreamId, string fundingPeriodId, string templateVersion);
     }
 }

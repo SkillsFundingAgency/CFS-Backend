@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.Caching;
@@ -21,9 +20,7 @@ using CalculateFunding.Services.Policy.UnitTests;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using FluentValidation.Results;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
@@ -363,13 +360,10 @@ namespace CalculateFunding.Services.Policy
             FundingTemplateService fundingTemplateService = CreateFundingTemplateService(cacheProvider: cacheProvider);
 
             //Act
-            IActionResult result = await fundingTemplateService.GetFundingTemplateSourceFile(fundingStreamId, fundingPeriodId, templateVersion);
+            ActionResult<string> result = await fundingTemplateService.GetFundingTemplateSourceFile(fundingStreamId, fundingPeriodId, templateVersion);
 
             //Assert
             result
-                .Should()
-                .BeAssignableTo<OkObjectResult>()
-                .Which
                 .Value
                 .Should()
                 .Be(template);
@@ -402,10 +396,11 @@ namespace CalculateFunding.Services.Policy
                 fundingTemplateRepository: fundingTemplateRepository);
 
             //Act
-            IActionResult result = await fundingTemplateService.GetFundingTemplateSourceFile(fundingStreamId, fundingPeriodId, templateVersion);
+            ActionResult<string> result = await fundingTemplateService.GetFundingTemplateSourceFile(fundingStreamId, fundingPeriodId, templateVersion);
 
             //Assert
             result
+                .Result
                 .Should()
                 .BeAssignableTo<NotFoundResult>();
         }
@@ -447,10 +442,11 @@ namespace CalculateFunding.Services.Policy
                 fundingTemplateRepository: fundingTemplateRepository);
 
             //Act
-            IActionResult result = await fundingTemplateService.GetFundingTemplateSourceFile(fundingStreamId, fundingPeriodId, templateVersion);
+            ActionResult<string> result = await fundingTemplateService.GetFundingTemplateSourceFile(fundingStreamId, fundingPeriodId, templateVersion);
 
             //Assert
             result
+                .Result
                 .Should()
                 .BeAssignableTo<InternalServerErrorResult>()
                 .Which
@@ -496,10 +492,11 @@ namespace CalculateFunding.Services.Policy
                 fundingTemplateRepository: fundingTemplateRepository);
 
             //Act
-            IActionResult result = await fundingTemplateService.GetFundingTemplateSourceFile(fundingStreamId, fundingPeriodId, templateVersion);
+            ActionResult<string> result = await fundingTemplateService.GetFundingTemplateSourceFile(fundingStreamId, fundingPeriodId, templateVersion);
 
             //Assert
             result
+                .Result
                 .Should()
                 .BeAssignableTo<InternalServerErrorResult>()
                 .Which
@@ -549,10 +546,11 @@ namespace CalculateFunding.Services.Policy
                 fundingTemplateRepository: fundingTemplateRepository);
 
             //Act
-            IActionResult result = await fundingTemplateService.GetFundingTemplateSourceFile(fundingStreamId, fundingPeriodId, templateVersion);
+            ActionResult<string> result = await fundingTemplateService.GetFundingTemplateSourceFile(fundingStreamId, fundingPeriodId, templateVersion);
 
             //Assert
             result
+                .Result
                 .Should()
                 .BeAssignableTo<InternalServerErrorResult>()
                 .Which
@@ -602,13 +600,10 @@ namespace CalculateFunding.Services.Policy
                 fundingTemplateRepository: fundingTemplateRepository);
 
             //Act
-            IActionResult result = await fundingTemplateService.GetFundingTemplateSourceFile(fundingStreamId, fundingPeriodId, templateVersion);
+            ActionResult<string> result = await fundingTemplateService.GetFundingTemplateSourceFile(fundingStreamId, fundingPeriodId, templateVersion);
 
             //Assert
             result
-                .Should()
-                .BeAssignableTo<OkObjectResult>()
-                .Which
                 .Value
                 .Should()
                 .Be(template);
@@ -639,7 +634,7 @@ namespace CalculateFunding.Services.Policy
                     Status = TemplateStatus.Published
                 }
             };
-            IEnumerable<PublishedFundingTemplate> pubblishedFundingTempalte = new[]
+            IEnumerable<PublishedFundingTemplate> publishedFundingTemplate = new[]
             {
                 new PublishedFundingTemplate()
                 {
@@ -652,7 +647,7 @@ namespace CalculateFunding.Services.Policy
 
             fundingTemplateRepository
                 .SearchTemplates(Arg.Is(blobNamePrefix))
-                .Returns(pubblishedFundingTempalte);
+                .Returns(publishedFundingTemplate);
 
             ITemplateBuilderService templateBuilderService = CreateTemplateBuilderService();
             templateBuilderService.FindVersionsByFundingStreamAndPeriod(Arg.Is<FindTemplateVersionQuery>(x => x.FundingStreamId == fundingStreamId && x.FundingPeriodId == fundingPeriodId))
@@ -667,16 +662,13 @@ namespace CalculateFunding.Services.Policy
                 templateBuilderService: templateBuilderService);
 
             //Act
-            IActionResult result = await fundingTemplateService.GetFundingTemplates(fundingStreamId, fundingPeriodId);
+            ActionResult<IEnumerable<PublishedFundingTemplate>> result = await fundingTemplateService.GetFundingTemplates(fundingStreamId, fundingPeriodId);
 
             //Assert
             result
-                .Should()
-                .BeAssignableTo<OkObjectResult>()
-                .Which
                 .Value
                 .Should()
-                .Be(pubblishedFundingTempalte);
+                .BeEquivalentTo(publishedFundingTemplate);
         }
 
         [TestMethod]
@@ -745,13 +737,10 @@ namespace CalculateFunding.Services.Policy
                 templateBuilderService: templateBuilderService);
 
             //Act
-            IActionResult result = await fundingTemplateService.GetFundingTemplates(fundingStreamId, fundingPeriodId);
+            ActionResult<IEnumerable<PublishedFundingTemplate>> result = await fundingTemplateService.GetFundingTemplates(fundingStreamId, fundingPeriodId);
 
             //Assert
-            result
-                .Should()
-                .BeAssignableTo<OkObjectResult>();
-            PublishedFundingTemplate resultTemplate = ((OkObjectResult)result).Value.As<IEnumerable<PublishedFundingTemplate>>().FirstOrDefault();
+            PublishedFundingTemplate resultTemplate = result.Value.FirstOrDefault();
             TemplateSummaryResponse templateResponse = templateVersions.First(x => x.MajorVersion == 1 && x.MinorVersion == 0);
 
             resultTemplate.TemplateVersion.Should().Be(pubblishedFundingTempaltes.First().TemplateVersion);
@@ -803,10 +792,11 @@ namespace CalculateFunding.Services.Policy
                 templateBuilderService: templateBuilderService);
 
             //Act
-            IActionResult result = await fundingTemplateService.GetFundingTemplates(fundingStreamId, fundingPeriodId);
+            ActionResult<IEnumerable<PublishedFundingTemplate>> result = await fundingTemplateService.GetFundingTemplates(fundingStreamId, fundingPeriodId);
 
             //Assert
             result
+                .Result
                 .Should()
                 .BeAssignableTo<NotFoundResult>();
         }
@@ -839,14 +829,10 @@ namespace CalculateFunding.Services.Policy
                cacheProvider: cacheProvider);
 
             //Act
-            IActionResult result = await fundingTemplateService.GetDistinctFundingTemplateMetadataContents(fundingStreamId, fundingPeriodId, templateVersion);
+            ActionResult<TemplateMetadataDistinctContents> result = await fundingTemplateService.GetDistinctFundingTemplateMetadataContents(fundingStreamId, fundingPeriodId, templateVersion);
 
             //Assert
-            result
-                .Should()
-                .BeAssignableTo<OkObjectResult>();
-
-            TemplateMetadataDistinctContents contents = ((OkObjectResult)result).Value.As<TemplateMetadataDistinctContents>();
+            TemplateMetadataDistinctContents contents = result.Value;
             contents.Should().NotBeNull();
             contents.FundingLines.Count().Should().Be(2);
             contents.Calculations.Count().Should().Be(2);
@@ -886,10 +872,12 @@ namespace CalculateFunding.Services.Policy
             ICacheProvider cacheProvider = CreateCacheProvider();
 
             cacheProvider.GetAsync<TemplateMetadataDistinctContents>(cacheKey)
-                .Returns(new TemplateMetadataDistinctContents() { 
-                    FundingStreamId = fundingStreamId, 
-                    FundingPeriodId = fundingPeriodId, 
-                    TemplateVersion = templateVersion});
+                .Returns(new TemplateMetadataDistinctContents()
+                {
+                    FundingStreamId = fundingStreamId,
+                    FundingPeriodId = fundingPeriodId,
+                    TemplateVersion = templateVersion
+                });
 
             FundingTemplateService fundingTemplateService = CreateFundingTemplateService(
                logger,
@@ -897,14 +885,11 @@ namespace CalculateFunding.Services.Policy
                cacheProvider: cacheProvider);
 
             //Act
-            IActionResult result = await fundingTemplateService.GetDistinctFundingTemplateMetadataContents(fundingStreamId, fundingPeriodId, templateVersion);
+            ActionResult<TemplateMetadataDistinctContents> result = await fundingTemplateService.GetDistinctFundingTemplateMetadataContents(fundingStreamId, fundingPeriodId, templateVersion);
 
             //Assert
-            result
-                .Should()
-                .BeAssignableTo<OkObjectResult>();
 
-            TemplateMetadataDistinctContents contents = ((OkObjectResult)result).Value.As<TemplateMetadataDistinctContents>();
+            TemplateMetadataDistinctContents contents = result.Value;
             contents.Should().NotBeNull();
             contents.FundingStreamId.Should().Be(fundingStreamId);
             contents.FundingPeriodId.Should().Be(fundingPeriodId);
@@ -934,7 +919,7 @@ namespace CalculateFunding.Services.Policy
             ITemplateBuilderService templateBuilderService = null,
             IMapper mapper = null)
         {
-            if(mapper == null)
+            if (mapper == null)
             {
                 MapperConfiguration fundingConfMappingConfig = new MapperConfiguration(c =>
                 {
