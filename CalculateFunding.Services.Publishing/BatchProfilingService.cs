@@ -34,18 +34,18 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(options, nameof(options));
             Guard.ArgumentNotNull(resiliencePolicies?.ProfilingApiClient, nameof(resiliencePolicies.ProfilingApiClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
-            
+
             _profiling = profiling;
             _producerConsumerFactory = producerConsumerFactory;
             _options = options;
             _logger = logger;
             _profilingResilience = resiliencePolicies.ProfilingApiClient;
         }
-        
+
         public async Task ProfileBatches(IBatchProfilingContext batchProfilingContext)
         {
             Guard.ArgumentNotNull(batchProfilingContext, nameof(batchProfilingContext));
-            
+
             batchProfilingContext.InitialiseItems(1, _options.BatchSize);
 
             IProducerConsumer producerConsumer = _producerConsumerFactory.CreateProducerConsumer(ProduceBatchProfileRequests,
@@ -56,11 +56,11 @@ namespace CalculateFunding.Services.Publishing
 
             await producerConsumer.Run(batchProfilingContext);
         }
-        
+
         private Task<(bool isComplete, IEnumerable<BatchProfilingRequestModel>)> ProduceBatchProfileRequests(CancellationToken token,
             dynamic context)
         {
-            IBatchProfilingContext batchProfileRequestContext = (IBatchProfilingContext) context;
+            IBatchProfilingContext batchProfileRequestContext = (IBatchProfilingContext)context;
 
             while (batchProfileRequestContext.HasPages)
             {
@@ -74,7 +74,7 @@ namespace CalculateFunding.Services.Publishing
             dynamic context,
             IEnumerable<BatchProfilingRequestModel> batchProfilingRequests)
         {
-            IBatchProfilingContext batchProfileRequestContext = (IBatchProfilingContext) context;
+            IBatchProfilingContext batchProfileRequestContext = (IBatchProfilingContext)context;
 
             foreach (BatchProfilingRequestModel request in batchProfilingRequests)
             {
@@ -82,18 +82,18 @@ namespace CalculateFunding.Services.Publishing
                     => _profiling.GetBatchProfilePeriods(request));
 
                 IEnumerable<BatchProfilingResponseModel> batchProfilingResponseModels = response?.Content;
-                
+
                 if (batchProfilingResponseModels == null)
                 {
                     throw new NonRetriableException(
-                        $"Unable to complete batch profiling. No response for request {request.FundingStreamId} {request.FundingPeriodId} {request.FundingLineCode}");
+                        $"Unable to complete batch profiling. Missing results from profiling service for {request.FundingStreamId} {request.FundingPeriodId} {request.FundingLineCode} Provider Type={request.ProviderType}, Provider Sub Type={request.ProviderSubType}");
                 }
 
                 foreach (BatchProfilingResponseModel batchProfilingResponse in batchProfilingResponseModels)
                 {
-                    batchProfileRequestContext.ReconcileBatchProfilingResponse(batchProfilingResponse);  
+                    batchProfileRequestContext.ReconcileBatchProfilingResponse(batchProfilingResponse);
                 }
             }
-        } 
+        }
     }
 }
