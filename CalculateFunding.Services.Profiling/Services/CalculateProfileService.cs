@@ -73,6 +73,17 @@ namespace CalculateFunding.Services.Profiling.Services
             {
                 FundingStreamPeriodProfilePattern profilePattern = await GetProfilePattern(profileBatchRequest);
 
+                if (profilePattern == null)
+                {
+                    _logger.Error("Unable to find profile pattern for FundingStream = {fundingStreamId}, FundingPeriodId={FundingPeriodId}, FundingLineCode={FundingLineCode}, ProfilePatternKey={ProfilePatternKey}, ProviderType={ProviderType}, ProviderSubType={ProviderSubType}",
+                        profileBatchRequest.FundingStreamId,
+                        profileBatchRequest.FundingPeriodId,
+                        profileBatchRequest.FundingLineCode,
+                        profileBatchRequest.ProfilePatternKey,
+                        profileBatchRequest.ProviderType,
+                        profileBatchRequest.ProviderSubType);
+                }
+
                 BatchProfileRequestContext batchProfileRequestContext = new BatchProfileRequestContext(profilePattern,
                     profileBatchRequest,
                     5);

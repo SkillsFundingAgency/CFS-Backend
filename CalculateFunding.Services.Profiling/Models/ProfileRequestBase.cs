@@ -14,14 +14,14 @@ namespace CalculateFunding.Services.Profiling.Models
         public string FundingLineCode { get; set; }
 
         public string ProfilePatternKey { get; set; }
-        
+
         public string ProviderType { get; set; }
-        
+
         public string ProviderSubType { get; set; }
-        
+
         public override string ToString()
         {
-            return $"{nameof(FundingStreamId)}: {FundingStreamId}, {nameof(FundingPeriodId)}: {FundingPeriodId},{nameof(FundingLineCode)}: {FundingLineCode}, {nameof(ProfilePatternKey)}: {ProfilePatternKey}";
-        }   
+            return $"{nameof(FundingStreamId)}: {FundingStreamId}, {nameof(FundingPeriodId)}: {FundingPeriodId},{nameof(FundingLineCode)}: {FundingLineCode}, {nameof(ProfilePatternKey)}: {ProfilePatternKey}, {nameof(ProviderType)}: {ProviderType}, {nameof(ProviderSubType)}: {ProviderSubType}";
+        }
     }
 }

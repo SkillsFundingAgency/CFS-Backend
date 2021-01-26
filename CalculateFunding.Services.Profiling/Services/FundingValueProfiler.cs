@@ -13,6 +13,11 @@ namespace CalculateFunding.Services.Profiling.Services
             FundingStreamPeriodProfilePattern profilePattern,
             decimal fundingValue)
         {
+            if (profilePattern == null)
+            {
+                throw new InvalidOperationException($"Profile pattern is null, {request}");
+            }
+
             IReadOnlyCollection<DeliveryProfilePeriod> profilePeriods = GetProfiledAllocationPeriodsWithPatternApplied(fundingValue,
                 profilePattern.ProfilePattern,
                 profilePattern.RoundingStrategy);
@@ -23,9 +28,9 @@ namespace CalculateFunding.Services.Profiling.Services
             return new AllocationProfileResponse(
                 profilePeriods.ToArray(),
                 distributionPeriods.ToArray())
-            { 
-                ProfilePatternKey = profilePattern.ProfilePatternKey, 
-                ProfilePatternDisplayName = profilePattern.ProfilePatternDisplayName 
+            {
+                ProfilePatternKey = profilePattern.ProfilePatternKey,
+                ProfilePatternDisplayName = profilePattern.ProfilePatternDisplayName
             };
         }
 
@@ -158,7 +163,7 @@ namespace CalculateFunding.Services.Profiling.Services
                     }
                     else
                     {
-                        roundedValue = (int) profiledValue;
+                        roundedValue = (int)profiledValue;
                     }
 
                     if (runningTotal + roundedValue > allocationValueToBeProfiled)
