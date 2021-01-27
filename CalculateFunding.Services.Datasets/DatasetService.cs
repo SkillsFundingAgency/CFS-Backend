@@ -47,6 +47,7 @@ using CalculateFunding.Services.Processing;
 using CalculateFunding.Services.DataImporter.Models;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.Storage;
+using Microsoft.Azure.Cosmos.Linq;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -1404,6 +1405,26 @@ namespace CalculateFunding.Services.Datasets
             }
 
             return new OkObjectResult(result);
+        }
+
+        public async Task<IActionResult> FixupDatasetsFundingStream()
+        {
+            int totalUpdatedDatasets = 0;
+            IEnumerable<Dataset> datasetDocuments = await _datasetRepository.GetDatasetsByQuery(_ => !_.Content.Current.FundingStream.IsDefined());
+            
+            if (datasetDocuments.AnyWithNullCheck())
+            {
+                foreach (Dataset dataset in datasetDocuments)
+                {
+                    DatasetDefinition definition = await _datasetRepository.GetDatasetDefinition(dataset.Definition.Id);
+                    dataset.Current.FundingStream = new Reference { Id = definition.FundingStreamId, Name = definition.FundingStreamId };
+                    totalUpdatedDatasets++;
+                }
+
+                await _datasetRepository.SaveDatasets(datasetDocuments);
+            }
+
+            return new OkObjectResult($"Migrated total of {totalUpdatedDatasets} Datasets");
         }
 
         public IActionResult GetValidateDatasetValidationErrorSasUrl(DatasetValidationErrorRequestModel requestModel)

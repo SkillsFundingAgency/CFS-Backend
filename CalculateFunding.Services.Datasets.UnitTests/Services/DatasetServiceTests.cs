@@ -12,6 +12,7 @@ using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core;
@@ -1018,6 +1019,60 @@ namespace CalculateFunding.Services.Datasets.Services
                     Description = "Description",
                     Version = 1,
                 });
+        }
+
+        [TestMethod]
+        public async Task FixupDatasetsFundingStream_FixupAllDatasetsThatDontHaveFundingStreamSet()
+        {
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+
+            DatasetService datasetService = CreateDatasetService(
+                datasetRepository: datasetRepository
+                );
+
+            const string datasetId = "ds1";
+
+            DatasetVersion datasetVersion1 = new DatasetVersion()
+            {
+                Version = 1,
+                Author = new Reference("authorId", "Author Name"),
+                BlobName = "file/name.xlsx",
+                Comment = "My update comment",
+                Date = new DateTime(2018, 12, 1, 3, 4, 5),
+                PublishStatus = Models.Versioning.PublishStatus.Draft,
+            };
+
+            Dataset dataset = new Dataset()
+            {
+                Id = datasetId,
+                Current = datasetVersion1,
+                History = new List<DatasetVersion>() { datasetVersion1},
+                Definition = new Reference("defId", "definitionName"),
+                Description = "Description",
+                Name = "Dataset Name",
+                Published = null,
+            };
+
+            DatasetDefinition datasetDefinition = new DatasetDefinition()
+            { 
+                FundingStreamId = "fs1"
+            };
+
+
+            datasetRepository
+                .GetDatasetsByQuery(Arg.Any<Expression<Func<DocumentEntity<Dataset>, bool>>>())
+                .Returns(new[] { dataset });
+
+            datasetRepository
+                .GetDatasetDefinition(Arg.Is("defId"))
+                .Returns(datasetDefinition);
+
+            // Act
+            IActionResult result = await datasetService.FixupDatasetsFundingStream();
+
+            await datasetRepository
+                .Received(1)
+                .SaveDatasets(Arg.Is<IEnumerable<Dataset>>(_ => _.Single().Current.FundingStream.Id == "fs1"));
         }
 
         [TestMethod]

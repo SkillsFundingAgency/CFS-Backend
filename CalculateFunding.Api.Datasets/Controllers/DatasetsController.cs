@@ -372,5 +372,14 @@ namespace CalculateFunding.Api.Datasets.Controllers
 
             return _datasetService.GetValidateDatasetValidationErrorSasUrl(requestModel);
         }
+
+
+        [Route("api/datasets/fixup-datasets-fundingstream")]
+        [HttpGet]
+        [Produces(typeof(string))]
+        public Task<IActionResult> FixupDatasetsFundingStream()
+        {
+            return _datasetService.FixupDatasetsFundingStream();
+        }
     }
 }

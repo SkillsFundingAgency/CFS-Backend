@@ -42,5 +42,7 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         Task DeleteDatasets(Message message);
         
         IActionResult GetValidateDatasetValidationErrorSasUrl(DatasetValidationErrorRequestModel requestModel);
+
+        Task<IActionResult> FixupDatasetsFundingStream();
     }
 }
