@@ -12,7 +12,6 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core;
-using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Processing;
 using CalculateFunding.Services.Publishing.Interfaces;
@@ -26,7 +25,7 @@ namespace CalculateFunding.Services.Publishing
     public class PublishService : JobProcessingService, IPublishService
     {
         private const string SfaCorrelationId = "sfa-correlationId";
-        
+
         private readonly IPublishedFundingStatusUpdateService _publishedFundingStatusUpdateService;
         private readonly ISpecificationService _specificationService;
 
@@ -138,7 +137,7 @@ namespace CalculateFunding.Services.Publishing
             Reference author = message.GetUserDetails();
 
             string specificationId = message.UserProperties["specification-id"] as string;
-            
+
             SpecificationSummary specification = await _specificationService.GetSpecificationSummaryById(specificationId);
 
             if (specification == null)
@@ -157,10 +156,10 @@ namespace CalculateFunding.Services.Publishing
 
             foreach (Reference fundingStream in specification.FundingStreams)
             {
-                await PublishFundingStream(fundingStream, 
-                    specification, 
-                    Job.Id, 
-                    author, 
+                await PublishFundingStream(fundingStream,
+                    specification,
+                    Job.Id,
+                    author,
                     correlationId,
                     batched ? PrerequisiteCheckerType.ReleaseBatchProviders : PrerequisiteCheckerType.ReleaseAllProviders,
                     publishedProviderIdsRequest?.PublishedProviderIds?.ToArray());
@@ -180,7 +179,7 @@ namespace CalculateFunding.Services.Publishing
                 .GetService(GeneratePublishingCsvJobsCreationAction.Release);
             IEnumerable<string> fundingLineCodes = await _publishedFundingDataService.GetPublishedProviderFundingLines(specificationId);
             IEnumerable<string> fundingStreamIds = specification.FundingStreams.Select(fs => fs.Id); //this will only ever be a single I think
-            
+
             PublishedFundingCsvJobsRequest publishedFundingCsvJobsRequest = new PublishedFundingCsvJobsRequest
             {
                 SpecificationId = specificationId,
@@ -214,7 +213,7 @@ namespace CalculateFunding.Services.Publishing
 
             // we always need to get every provider in scope whether it is released or otherwise so that we always genarate the contents
             // this is just in case an error has occurred during a release so we never get a case where we don't get blobs generated for the published providers
-            (IDictionary<string, PublishedProvider> publishedProvidersForFundingStream, 
+            (IDictionary<string, PublishedProvider> publishedProvidersForFundingStream,
                 IDictionary<string, PublishedProvider> scopedPublishedProviders) = await _providerService.GetPublishedProviders(fundingStream,
                         specification);
 
@@ -224,7 +223,23 @@ namespace CalculateFunding.Services.Publishing
                 batchPublishedProviderIds.IsNullOrEmpty() ?
                 publishedProvidersForFundingStream.Values :
                 batchPublishedProviderIds.Where(_ => publishedProvidersByPublishedProviderId.ContainsKey(_)).Select(_ => publishedProvidersByPublishedProviderId[_]);
-            
+
+
+            Dictionary<string, PublishedProvider> endStateReleasedProviders = publishedProvidersForFundingStream.Values.Where(_ => _.Released != null).ToDictionary(_ => _.Current.ProviderId);
+
+            foreach (PublishedProvider publishedProvider in selectedPublishedProviders)
+            {
+                if (!endStateReleasedProviders.ContainsKey(publishedProvider.Current.ProviderId))
+                {
+                    if (!publishedProvidersForFundingStream.ContainsKey(publishedProvider.Current.ProviderId))
+                    {
+                        throw new InvalidOperationException($"Unable to find published provider with key '{publishedProvider.Current.ProviderId}'");
+                    }
+
+                    endStateReleasedProviders.Add(publishedProvider.Current.ProviderId, publishedProvider);
+                }
+            }
+
             AddInitialPublishVariationReasons(selectedPublishedProviders);
 
             _logger.Information($"Verifying prerequisites for funding publish");
@@ -245,7 +260,7 @@ namespace CalculateFunding.Services.Publishing
             TemplateMapping templateMapping = await GetTemplateMapping(fundingStream, specification.Id);
 
             PublishedFundingInput publishedFundingInput = await _publishedFundingService.GeneratePublishedFundingInput(publishedProvidersForFundingStream,
-                scopedPublishedProviders?.Values.Select(_ => _.Current.Provider),
+                endStateReleasedProviders?.Values.Select(_ => _.Current.Provider),
                 fundingStream,
                 specification,
                 batchPublishedProviderIds.IsNullOrEmpty() ? null : selectedPublishedProviders);
@@ -257,8 +272,8 @@ namespace CalculateFunding.Services.Publishing
                 transaction.Enroll(async () =>
                 {
                     await _publishedProviderVersionService.CreateReIndexJob(author, correlationId, specification.Id, jobId);
-                    await _createPublishIntegrityJob.CreateJob(specification.Id, 
-                        author, 
+                    await _createPublishIntegrityJob.CreateJob(specification.Id,
+                        author,
                         correlationId,
                         batchPublishedProviderIds.IsNullOrEmpty() ? null : new Dictionary<string, string>
                         {
@@ -289,7 +304,7 @@ namespace CalculateFunding.Services.Publishing
 
                 // Save a version of published funding and set this version to current
                 _logger.Information($"Saving published funding");
-                await _publishedFundingStatusUpdateService.UpdatePublishedFundingStatus(publishedFundingToSave, author, PublishedFundingStatus.Released, jobId,correlationId);
+                await _publishedFundingStatusUpdateService.UpdatePublishedFundingStatus(publishedFundingToSave, author, PublishedFundingStatus.Released, jobId, correlationId);
                 _logger.Information($"Finished saving published funding");
 
                 // Save contents to blob storage and search for the feed
@@ -332,12 +347,12 @@ namespace CalculateFunding.Services.Publishing
 
                 if (publishedProvider.Released == null || current.MajorVersion == 1 && current.MinorVersion == 0)
                 {
-                    current.AddVariationReasons(VariationReason.FundingUpdated, VariationReason.ProfilingUpdated);    
+                    current.AddVariationReasons(VariationReason.FundingUpdated, VariationReason.ProfilingUpdated);
                 }
             }
         }
 
-        private async Task SavePublishedProvidersAsReleased(string jobId, Reference author, IEnumerable<PublishedProvider> publishedProviders,string correlationId)
+        private async Task SavePublishedProvidersAsReleased(string jobId, Reference author, IEnumerable<PublishedProvider> publishedProviders, string correlationId)
         {
             IEnumerable<PublishedProvider> publishedProvidersToSaveAsReleased = publishedProviders.Where(p => p.Current.Status != PublishedProviderStatus.Released);
 

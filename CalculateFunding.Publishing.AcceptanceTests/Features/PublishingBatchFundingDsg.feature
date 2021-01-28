@@ -510,10 +510,10 @@ Scenario Outline: Successful publishing of funding
 		| FundingStreamId | <FundingStreamId> |
 		| FundingPeriodId | <FundingPeriodId> |
 		| TemplateVersion | <TemplateVersion> |
-		| Status          | Approved          |
+		| Status          | Released          |
 		| TotalFunding    | 12000             |
-		| MajorVersion    | 0                 |
-		| MinorVersion    | 1                 |
+		| MajorVersion    | 1                 |
+		| MinorVersion    | 0                 |
 	And the Published Provider has the following funding lines
 		| Name                                                 | FundingLineCode | Value | TemplateLineId | Type        |
 		| Pupil Led Factors                                    | DSG-004         | 640   | 5              | Information |
@@ -949,7 +949,7 @@ Scenario Outline: Successful publishing of funding
 	And the total funding is '24000'
 	And the published funding contains the following published provider ids
 		| FundingIds                                      |
-		| <FundingStreamId>-<FundingPeriodId>-1000002-0_1 |
+		| <FundingStreamId>-<FundingPeriodId>-1000002-1_0 |
 		| <FundingStreamId>-<FundingPeriodId>-1000000-1_0 |
 	And the published funding contains a distribution period in funding line 'DSG-002' with id of 'FY-1920' has the value of '14000'
 	And the published funding contains a distribution period in funding line 'DSG-002' with id of 'FY-2021' has the value of '10000'
@@ -1097,7 +1097,7 @@ Scenario Outline: Successful publishing of funding
 	And the following released published provider ids are upserted
 		| PublishedProviderId                                           | Status   |
 		| publishedprovider-1000000-<FundingPeriodId>-<FundingStreamId> | Released |
-		| publishedprovider-1000002-<FundingPeriodId>-<FundingStreamId> | Approved |
+		| publishedprovider-1000002-<FundingPeriodId>-<FundingStreamId> | Released |
 
 	Examples:
 		| FundingStreamId | FundingPeriodId | FundingPeriodName      | TemplateVersion | ProviderVersionId |
