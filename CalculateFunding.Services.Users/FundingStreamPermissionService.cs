@@ -364,7 +364,8 @@ namespace CalculateFunding.Services.Users
                 CanAssignProfilePattern = permissionsForUser.All(p => p.CanAssignProfilePattern),
                 CanApproveCalculations = permissionsForUser.All(p => p.CanApproveCalculations),
                 CanApproveAnyCalculations = permissionsForUser.All(p => p.CanApproveAnyCalculations),
-                CanApproveAllCalculations = permissionsForUser.All(p => p.CanApproveAllCalculations)
+                CanApproveAllCalculations = permissionsForUser.All(p => p.CanApproveAllCalculations),
+                CanRefreshPublishedQa = permissionsForUser.All(p => p.CanRefreshPublishedQa),
             };
         }
 
