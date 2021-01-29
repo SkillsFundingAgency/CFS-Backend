@@ -155,8 +155,6 @@ namespace CalculateFunding.Migrations.Calculations.Etl.Migrations
             Dictionary<string, Calculation> destinationTemplateCalculations = destinationCalculationsResponse.Content.Where(
                 _ => _.CalculationType == template).ToDictionary(_ => _.Id, _ => _);
 
-
-
             TemplateMappingItem[] sourceTemplateMappings = sourceTemplateMappingsQueryTask.Result.Where(
                     _ => _.EntityType == TemplateMappingEntityType.Calculation)
                 .ToArray();

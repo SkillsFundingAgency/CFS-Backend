@@ -77,13 +77,17 @@ namespace CalculateFunding.Services.Publishing
                     }).ToList();
 
                     // Set total funding
-                    generatedProviderResult.TotalFunding = generatedProviderResult.FundingLines
+
+                    IEnumerable<FundingLine> allFundingLinesWithValues = generatedProviderResult.FundingLines
+                            .Where(_ => _.Value.HasValue);
+
+                    generatedProviderResult.TotalFunding = allFundingLinesWithValues.AnyWithNullCheck() ? allFundingLinesWithValues
                             .Sum(p =>
                             {
-                                return p.Type == FundingLineType.Payment ? p.Value : 0;
-                            });
+                                return p.Value;
+                            }) : null;
 
-                        Dictionary<uint, GeneratorModels.Calculation> uniqueCalculations = new Dictionary<uint, GeneratorModels.Calculation>();
+                    Dictionary<uint, GeneratorModels.Calculation> uniqueCalculations = new Dictionary<uint, GeneratorModels.Calculation>();
 
                     // Get calculations
                     IEnumerable<GeneratorModels.Calculation> fundingCalculations = uniqueFundingLine.Values?.SelectMany(_ => _.Calculations.Flatten(calc => calc.Calculations)) ?? new GeneratorModels.Calculation[0];
