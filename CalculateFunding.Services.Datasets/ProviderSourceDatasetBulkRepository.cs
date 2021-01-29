@@ -17,14 +17,14 @@ namespace CalculateFunding.Services.Datasets
         public ProviderSourceDatasetBulkRepository(ICosmosRepository cosmosRepository)
         {
             Guard.ArgumentNotNull(cosmosRepository, nameof(cosmosRepository));
-            
+
             _cosmosRepository = cosmosRepository;
         }
 
         public async Task DeleteCurrentProviderSourceDatasets(IEnumerable<ProviderSourceDataset> providerSourceDatasets)
         {
             Guard.ArgumentNotNull(providerSourceDatasets, nameof(providerSourceDatasets));
-            
+
             //keep getting a bad request when I use this delete path with allow bulk set to true so reverted to existing bulk delete method for now
 
             // Task<HttpStatusCode>[] deleteTasks = providerSourceDatasets
@@ -41,7 +41,7 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(providerSourceDatasets, nameof(providerSourceDatasets));
 
             Task<HttpStatusCode>[] upsertTasks = providerSourceDatasets
-                .Select(providerSourceDataset => _cosmosRepository.UpsertAsync(providerSourceDataset, providerSourceDataset.ProviderId))
+                .Select(providerSourceDataset => _cosmosRepository.UpsertAsync(providerSourceDataset, providerSourceDataset.ProviderId, undelete: true))
                 .ToArray();
 
             await TaskHelper.WhenAllAndThrow(upsertTasks);
@@ -52,7 +52,7 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(providerSourceDatasets, nameof(providerSourceDatasets));
 
             await _cosmosRepository.BulkCreateAsync(providerSourceDatasets.Select(_ => new KeyValuePair<string, ProviderSourceDatasetHistory>(_.ProviderId, _)));
-            
+
             //got a stack overflow when I used the allow bulk option with this call so walked it back to the original bulk create call
 
             // Task<HttpStatusCode>[] createTasks = providerSourceDatasets
@@ -61,6 +61,6 @@ namespace CalculateFunding.Services.Datasets
             //     .ToArray();
             //
             // await TaskHelper.WhenAllAndThrow(createTasks);
-        }   
+        }
     }
 }

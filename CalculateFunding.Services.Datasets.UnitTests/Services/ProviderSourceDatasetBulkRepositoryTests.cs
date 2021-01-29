@@ -140,7 +140,7 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             foreach (ProviderSourceDataset providerSourceDataset in providerSourceDatasets)
             {
-                _cosmos.Verify(_ => _.UpsertAsync(providerSourceDataset, providerSourceDataset.ProviderId, false, true),
+                _cosmos.Verify(_ => _.UpsertAsync(providerSourceDataset, providerSourceDataset.ProviderId, true, true),
                     Times.Once);
             }
         }
