@@ -728,7 +728,8 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 CurrentMinorVersion = template.Current.MinorVersion,
                 PublishedMajorVersion = template.Released?.MajorVersion ?? 0,
                 PublishedMinorVersion = template.Released?.MinorVersion ?? 0,
-                HasReleasedVersion = template.Released != null ? "Yes" : "No"
+                HasReleasedVersion = template.Released != null ? "Yes" : "No",
+                Status = template.Current.Status.ToString()
             };
 
             await _searchRepository.Index(new List<TemplateIndex>
