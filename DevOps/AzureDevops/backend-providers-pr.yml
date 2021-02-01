@@ -39,8 +39,8 @@ steps:
       **/*.Generators.*Tests/*.csproj
 
  - task: DotNetCoreCLI@2
-  displayName: 'dotnet publish'
-  inputs:
+   displayName: 'dotnet publish'
+   inputs:
     command: publish
     publishWebProjects: false
     zipAfterPublish: false
