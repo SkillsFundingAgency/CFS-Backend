@@ -18,9 +18,9 @@ variables:
 
 steps:
  - task: UseDotNet@2
-   displayName: 'Use .NET Core sdk ${{ parameters.DotnetCoreSdkVersion }}'
+   displayName: 'Use .NET Core sdk $(DotnetCoreSdkVersion)'
    inputs:
-     version: ${{ parameters.DotnetCoreSdkVersion }}
+     version: '$(DotnetCoreSdkVersion)'
 
  - task: DotNetCoreCLI@2
    displayName: 'dotnet restore'
