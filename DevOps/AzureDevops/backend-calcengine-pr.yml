@@ -24,5 +24,4 @@ variables:
 steps:
   - template: azure-pipelines-templates/cfs/standard-service-pr-build.yml@funding-blocks
     parameters:
-      DotNetCoreVersion: ${{ variables.DotnetCoreSdkVersion }}
       ProjectName: CalcEngine
