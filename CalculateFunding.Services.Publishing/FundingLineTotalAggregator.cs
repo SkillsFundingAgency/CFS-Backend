@@ -7,8 +7,6 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Generators.Funding;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
-using OfficeOpenXml.FormulaParsing.Excel.Functions.Information;
-using ApiCalculationType = CalculateFunding.Common.TemplateMetadata.Enums.CalculationType;
 using CalculationResult = CalculateFunding.Models.Publishing.CalculationResult;
 using CalculationType = CalculateFunding.Generators.Funding.Enums.CalculationType;
 using FundingLineType = CalculateFunding.Generators.Funding.Enums.FundingLineType;
@@ -76,9 +74,7 @@ namespace CalculateFunding.Services.Publishing
                     Name = calc.Name,
                     TemplateCalculationId = calc.TemplateCalculationId,
                     Type = calc.Type.AsMatchingEnum<CalculationType>(),
-                    Value = calc.Type == ApiCalculationType.Cash && calculationResultValue.HasValue
-                        ? Math.Round(calculationResultValue.Value, 2, MidpointRounding.AwayFromZero)
-                        : calculationResult?.Value
+                    Value = calculationResult?.Value,
                 };
             }) ?? new GeneratorModels.Calculation[0];
         }

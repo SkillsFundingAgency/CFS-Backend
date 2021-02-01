@@ -37,7 +37,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             rounding.Setup(_ => _.DecimalPlaces)
                 .Returns(2);
-            
+
             FundingLineTotalAggregator fundingLineTotalAggregator = new FundingLineTotalAggregator(rounding.Object);
 
             TemplateMapping mapping = CreateTemplateMappings();
@@ -82,7 +82,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             generatedProviderResult["1234"].Calculations.Single(_ => _.TemplateCalculationId == 5).Value
                 .Should()
-                .Be(5000.64M);//mid point rounded away from zero to next pence
+                .Be(5000.635M);
 
             generatedProviderResult["1234"].FundingLines.Single(_ => _.TemplateLineId == 6).Value
                 .Should()
