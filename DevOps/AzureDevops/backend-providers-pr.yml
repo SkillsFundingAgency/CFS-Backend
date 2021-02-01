@@ -8,15 +8,19 @@ resources:
   - repository: self
 
 variables:
-  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
-  DOTNET_CLI_TELEMETRY_OPTOUT: 1
-  system.debug: false
+ - name: BuildConfiguration
+   value: 'release'
+ - name: DOTNET_SKIP_FIRST_TIME_EXPERIENCE
+   value: true
+ - name: DOTNET_CLI_TELEMETRY_OPTOUT 
+   value: true
+ - group: 'Dotnet Core SDK Version'
 
 steps:
  - task: UseDotNet@2
-   displayName: 'Use .NET Core sdk ${{ parameters.DotnetCoreSdkVersion }}'
+   displayName: 'Use .NET Core sdk $(DotnetCoreSdkVersion)'
    inputs:
-     version: ${{ parameters.DotnetCoreSdkVersion }}
+     version: '$(DotnetCoreSdkVersion)'
 
  - task: DotNetCoreCLI@2
    displayName: 'dotnet restore'
