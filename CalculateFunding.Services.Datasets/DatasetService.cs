@@ -544,7 +544,8 @@ namespace CalculateFunding.Services.Datasets
 
             PoliciesApiModels.FundingStream fundingStream = fundingStreams.SingleOrDefault(_ => _.Id == fundingStreamId);
             DatasetDataMergeResult mergeResult = new DatasetDataMergeResult();
-
+            IDictionary<string, IEnumerable<string>> validationFailures = new Dictionary<string, IEnumerable<string>>();
+            int validationRowCount = 0;
             try
             {
                 await SetValidationStatus(operationId, DatasetValidationStatus.ValidatingExcelWorkbook);
@@ -561,6 +562,12 @@ namespace CalculateFunding.Services.Datasets
                 }
                 else if(model.MergeExistingVersion && dataset != null)
                 {
+                    (validationFailures, _) = await ValidateTableResults(datasetDefinition, datasetStream);
+                    if (validationFailures.Count > 0)
+                    {
+                        return;
+                    }
+
                     await NotifyPercentComplete(35);
                     await SetValidationStatus(operationId, DatasetValidationStatus.MergeInprogress);
 
@@ -620,61 +627,66 @@ namespace CalculateFunding.Services.Datasets
                     throw new NonRetriableException("Failed validation - the data source file type is invalid");
                 }
             }
-            
-            await SetValidationStatus(operationId, DatasetValidationStatus.ValidatingTableResults);
-            await NotifyPercentComplete(50);
 
-            (IDictionary<string, IEnumerable<string>> validationFailures, int rowCount) = await ValidateTableResults(datasetDefinition, blob);
+            await NotifyPercentComplete(50);
+            await SetValidationStatus(operationId, DatasetValidationStatus.ValidatingTableResults);
+
+            (validationFailures, validationRowCount) = await ValidateTableResults(datasetDefinition, datasetStream);
 
             if (validationFailures.Count == 0)
             {
-                try
-                {
-                    DatasetCreateUpdateResponseModel datasetCreateUpdateResponseModel = new DatasetCreateUpdateResponseModel
-                    {
-                        CurrentRowCount = rowCount
-                    };
-
-                    await SetValidationStatus(operationId, DatasetValidationStatus.SavingResults);
-                    await NotifyPercentComplete(75);
-
-                    if (model.Version == 1)
-                    {
-                        dataset = await SaveNewDatasetAndVersion(blob, datasetDefinition, rowCount, fundingStream);
-                    }
-                    else
-                    {
-                        Reference user = new Reference();
-
-                        if (!string.IsNullOrWhiteSpace(model.LastUpdatedById) && !string.IsNullOrWhiteSpace(model.LastUpdatedByName))
-                        {
-                            user = new Reference(model.LastUpdatedById, model.LastUpdatedByName);
-                        }
-                        else
-                        {
-                            user = message.GetUserDetails();
-                        }
-
-                        dataset = await UpdateExistingDatasetAndAddVersion(blob, model, user, rowCount, fundingStream, mergeResult);
-                    }
-
-                    await SetValidationStatus(operationId, DatasetValidationStatus.Validated, datasetId: dataset.Id);
-
-                    // set the outcome of the job
-                    Outcome = "Dataset passed validation";
-                }
-                catch (Exception exception)
-                {
-                    _logger.Error(exception, "Failed to save the dataset or dataset version during validation");
-
-                    await SetValidationStatus(operationId, DatasetValidationStatus.ExceptionThrown, exception.Message);
-                    throw;
-                }
+                await onValidatedTableResults(message, operationId, datasetDefinition, blob, model, fundingStream,
+                    mergeResult, validationRowCount);
             }
             else
             {
-                await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, validationFailures: validationFailures);
-                return;
+                await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation,
+                    validationFailures: validationFailures);
+            }
+        }
+
+        private async Task onValidatedTableResults(Message message, string operationId, DatasetDefinition datasetDefinition,
+            ICloudBlob blob, GetDatasetBlobModel model, PoliciesApiModels.FundingStream fundingStream, DatasetDataMergeResult mergeResult, int rowCount)
+        {
+            Dataset dataset;
+            try
+            {
+                await SetValidationStatus(operationId, DatasetValidationStatus.SavingResults);
+                await NotifyPercentComplete(75);
+
+                if (model.Version == 1)
+                {
+                    dataset = await SaveNewDatasetAndVersion(blob, datasetDefinition, rowCount, fundingStream);
+                }
+                else
+                {
+                    Reference user = new Reference();
+
+                    if (!string.IsNullOrWhiteSpace(model.LastUpdatedById) &&
+                        !string.IsNullOrWhiteSpace(model.LastUpdatedByName))
+                    {
+                        user = new Reference(model.LastUpdatedById, model.LastUpdatedByName);
+                    }
+                    else
+                    {
+                        user = message.GetUserDetails();
+                    }
+
+                    dataset = await UpdateExistingDatasetAndAddVersion(blob, model, user, rowCount, fundingStream,
+                        mergeResult);
+                }
+
+                await SetValidationStatus(operationId, DatasetValidationStatus.Validated, datasetId: dataset.Id);
+
+                // set the outcome of the job
+                Outcome = "Dataset passed validation";
+            }
+            catch (Exception exception)
+            {
+                _logger.Error(exception, "Failed to save the dataset or dataset version during validation");
+
+                await SetValidationStatus(operationId, DatasetValidationStatus.ExceptionThrown, exception.Message);
+                throw;
             }
         }
 
@@ -1286,8 +1298,7 @@ namespace CalculateFunding.Services.Datasets
         }
 
         private async Task<(IDictionary<string, IEnumerable<string>> validationFailures, int providersProcessed)> ValidateTableResults(
-            DatasetDefinition datasetDefinition,
-            ICloudBlob blob)
+            DatasetDefinition datasetDefinition, Stream datasetStream)
         {
             int rowCount = 0;
             Dictionary<string, IEnumerable<string>> validationFailures = new Dictionary<string, IEnumerable<string>>();
@@ -1320,36 +1331,26 @@ namespace CalculateFunding.Services.Datasets
                 summaries.Add(_mapper.Map<ProviderSummary>(provider));
             });
 
-            using Stream datasetStream = await _blobClient.DownloadToStreamAsync(blob);
-
-            if (datasetStream.Length == 0)
+            using ExcelPackage excelPackage = new ExcelPackage(datasetStream);
+            DatasetUploadValidationModel uploadModel = new DatasetUploadValidationModel(excelPackage, () => summaries, datasetDefinition);
+            ValidationResult validationResult = _datasetUploadValidator.Validate(uploadModel);
+            if (uploadModel.Data != null)
             {
-                _logger.Error($"Blob {blob.Name} contains no data");
-                validationFailures.Add(nameof(GetDatasetBlobModel.Filename), new string[] { $"Blob {blob.Name} contains no data" });
+                rowCount = uploadModel.Data.TableLoadResult.Rows.Count;
             }
-            else
+            if (!validationResult.IsValid)
             {
-                using ExcelPackage excelPackage = new ExcelPackage(datasetStream);
-                DatasetUploadValidationModel uploadModel = new DatasetUploadValidationModel(excelPackage, () => summaries, datasetDefinition);
-                ValidationResult validationResult = _datasetUploadValidator.Validate(uploadModel);
-                if (uploadModel.Data != null)
+                excelPackage.Save();
+
+                if (excelPackage.Stream.CanSeek)
                 {
-                    rowCount = uploadModel.Data.TableLoadResult.Rows.Count;
+                    excelPackage.Stream.Position = 0;
                 }
-                if (!validationResult.IsValid)
-                {
-                    excelPackage.Save();
 
-                    if (excelPackage.Stream.CanSeek)
-                    {
-                        excelPackage.Stream.Position = 0;
-                    }
+                await FailValidation(excelPackage.Stream);
 
-                    await FailValidation(excelPackage.Stream);
-
-                    validationFailures.Add("excel-validation-error", new string[] { string.Empty });
-                    validationFailures.Add("error-message", new string[] { "The data source file does not match the schema rules" });
-                }
+                validationFailures.Add("excel-validation-error", new string[] { string.Empty });
+                validationFailures.Add("error-message", new string[] { "The data source file does not match the schema rules" });
             }
 
             return (validationFailures, rowCount);
