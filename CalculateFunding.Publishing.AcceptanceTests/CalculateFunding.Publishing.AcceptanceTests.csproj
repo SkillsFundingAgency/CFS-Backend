@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
@@ -64,9 +64,9 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.4.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="2.1.1" />
     <PackageReference Include="MSTest.TestFramework" Version="2.1.1" />
-    <PackageReference Include="SpecFlow" Version="3.1.86" />
-    <PackageReference Include="SpecFlow.MsTest" Version="3.1.86" />
-    <PackageReference Include="SpecFlow.Tools.MsBuild.Generation" Version="3.1.86" />
+    <PackageReference Include="SpecFlow" Version="3.6.23" />
+    <PackageReference Include="SpecFlow.MsTest" Version="3.6.23" />
+    <PackageReference Include="SpecFlow.Tools.MsBuild.Generation" Version="3.6.23" />
   </ItemGroup>
 
   <ItemGroup>
@@ -146,6 +146,6 @@
     </SpecFlowFeatureFiles>
   </ItemGroup>
 
-  <ProjectExtensions><VisualStudio><UserProperties resources_4publishedfunding_4psg-ay-1920-payment-localauthority-9000000-1_30_1json__JsonSchema="" /></VisualStudio></ProjectExtensions>
+  <ProjectExtensions><VisualStudio><UserProperties /></VisualStudio></ProjectExtensions>
 
 </Project>

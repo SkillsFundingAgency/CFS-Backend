@@ -77,9 +77,8 @@ namespace CalculateFunding.Services.Publishing
                     }).ToList();
 
                     // Set total funding
-
                     IEnumerable<FundingLine> allFundingLinesWithValues = generatedProviderResult.FundingLines
-                            .Where(_ => _.Value.HasValue);
+                            .Where(_ => _.Type == FundingLineType.Payment && _.Value.HasValue);
 
                     generatedProviderResult.TotalFunding = allFundingLinesWithValues.AnyWithNullCheck() ? allFundingLinesWithValues
                             .Sum(p =>

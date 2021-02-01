@@ -17,7 +17,7 @@
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="3.16.0" />
     <PackageReference Include="CalculateFunding.Common.Storage" Version="2.0.5" />
     <PackageReference Include="CalculateFunding.Common.TemplateMetadata" Version="2.2.1" />
-    <PackageReference Include="CalculateFunding.Generators.Funding" Version="4.0.0" />
+    <PackageReference Include="CalculateFunding.Generators.Funding" Version="4.0.1" />
   </ItemGroup>
 
   <ItemGroup>

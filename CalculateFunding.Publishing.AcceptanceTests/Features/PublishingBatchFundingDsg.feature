@@ -1,7 +1,7 @@
 ﻿Feature: PublishingBatchFundingDsg
 	In order to publish funding for Dedicated Schools Grant
 	As a funding approvder
-	I want to publish funding for given approved providers within a specification
+	I want to publish funding for given approved published providers within a specification
 
 Scenario Outline: Successful publishing of funding
 	Given a funding configuration exists for funding stream '<FundingStreamId>' in funding period '<FundingPeriodId>'
