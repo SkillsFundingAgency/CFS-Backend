@@ -31,12 +31,12 @@ steps:
      command: test
      arguments: '--configuration Release /p:AssemblyVersion=$(Build.BuildNumber) --collect "Code coverage"'
      projects: |
-     **/*.Functions.*UnitTests/*.csproj
-     **/*.Services.*Tests/*.csproj
-     **/*.Models.*Tests/*.csproj
-     **/*.*AcceptanceTests/*.csproj
-     **/*.Api.*Tests/*.csproj
-     **/*.Generators.*Tests/*.csproj
+      **/*.Functions.*UnitTests/*.csproj
+      **/*.Services.*Tests/*.csproj
+      **/*.Models.*Tests/*.csproj
+      **/*.*AcceptanceTests/*.csproj
+      **/*.Api.*Tests/*.csproj
+      **/*.Generators.*Tests/*.csproj
 
  - task: DotNetCoreCLI@2
   displayName: 'dotnet publish'
