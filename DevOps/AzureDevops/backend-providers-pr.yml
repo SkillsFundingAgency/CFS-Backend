@@ -1,10 +1,6 @@
 pool:
   vmImage: windows-2019
   
-trigger:
-  branches:
-    include:
-    - providers
 
 steps:
 - task: UseDotNet@2
