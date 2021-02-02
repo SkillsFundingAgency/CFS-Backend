@@ -302,7 +302,7 @@ namespace CalculateFunding.Services.Calcs
 
             LogMessages(compilerOutput, buildProject, calculationToPreview);
 
-            if (!string.IsNullOrEmpty(previewRequest.ProviderId))
+            if (!string.IsNullOrEmpty(previewRequest.ProviderId) && compilerOutput.Success)
             {
                 CalculationSummaryModel calculationSummaryModel = calculationToPreview.ToSummaryModel();
                 CalcEngineModels.CalculationSummaryModel model = _mapper.Map<CalcEngineModels.CalculationSummaryModel>(calculationSummaryModel);

@@ -2713,7 +2713,8 @@ End Class";
             {
                 CalculationId = CalculationId,
                 SourceCode = SourceCode,
-                SpecificationId = SpecificationId
+                SpecificationId = SpecificationId,
+                ProviderId = ProviderId
             };
 
             Calculation calculation = new Calculation
