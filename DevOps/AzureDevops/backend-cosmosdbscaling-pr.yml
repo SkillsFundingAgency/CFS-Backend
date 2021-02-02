@@ -27,3 +27,4 @@ steps:
   - template: azure-pipelines-templates/cfs/standard-service-pr-build.yml@funding-blocks
     parameters:
       ProjectName: CosmosDbScaling
+      DotnetCoreSdkVersion: $(DotnetCoreSdkVersion)

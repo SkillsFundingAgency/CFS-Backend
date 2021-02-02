@@ -31,3 +31,4 @@ steps:
   - template: azure-pipelines-templates/cfs/standard-service-function-pr-build.yml@funding-blocks
     parameters:
       ProjectName: Notifications
+      DotnetCoreSdkVersion: $(DotnetCoreSdkVersion)
