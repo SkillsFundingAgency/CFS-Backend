@@ -4,8 +4,6 @@ Public Class BaseCalculation
     <System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)>
     Public Property Aggregations As Dictionary(Of String, Decimal)
 
-    Public Property rid As String
-
     Public Function Exclude() As System.Nullable(Of Decimal)
         Return Nothing
     End Function

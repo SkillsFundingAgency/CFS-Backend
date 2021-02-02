@@ -1,14 +1,14 @@
-﻿using CalculateFunding.Common.Models;
-using CalculateFunding.Models.Calcs;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Emit;
-using Serilog;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using CalculateFunding.Common.Extensions;
+using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Calcs;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Emit;
+using Serilog;
 
 namespace CalculateFunding.Services.Compiler
 {
@@ -21,7 +21,7 @@ namespace CalculateFunding.Services.Compiler
             Logger = logger;
         }
 
-        
+
         public Build GenerateCode(List<SourceFile> sourcefiles,
             IEnumerable<Calculation> calculations)
         {
@@ -34,9 +34,9 @@ namespace CalculateFunding.Services.Compiler
             }).ToArray();
 
             Dictionary<string, Calculation> calculationsLookup = calculations.ToDictionary(_ => _.Id);
-            
+
             using MemoryStream stream = new MemoryStream();
-            
+
             Build build = GenerateCode(sourcefiles, references, stream, calculationsLookup);
 
             if (build.Success)
@@ -47,13 +47,23 @@ namespace CalculateFunding.Services.Compiler
                 stream.Read(data, 0, data.Length);
 
                 build.Assembly = data;
+
+                if (build.Assembly == null)
+                {
+                    build.Success = false;
+                }
+
+                if (stream.Length == 0)
+                {
+                    build.Success = false;
+                }
             }
 
             return build;
         }
 
-        private Build GenerateCode(List<SourceFile> sourceFiles, 
-            MetadataReference[] references, 
+        private Build GenerateCode(List<SourceFile> sourceFiles,
+            MetadataReference[] references,
             MemoryStream stream,
             IDictionary<string, Calculation> calculations)
         {
@@ -86,7 +96,7 @@ namespace CalculateFunding.Services.Compiler
             return compilerOutput;
         }
 
-        private SourceLocation GetLocation(Diagnostic diagnostic, 
+        private SourceLocation GetLocation(Diagnostic diagnostic,
             IDictionary<string, Calculation> calculations,
             string normalisedCalculationsSourceCode)
         {
@@ -95,21 +105,21 @@ namespace CalculateFunding.Services.Compiler
             Reference owner = null;
 
             string[] split = span.Path.Split('|');
-            
+
             if (split.Length == 2)
             {
                 owner = new Reference(split.First(), split.Last());
 
                 string calculationId = owner.Id;
-                
+
                 if (calculations.TryGetValue(calculationId, out Calculation externalSource))
                 {
-                    DeNormaliseWhiteSpaceLinePosition originalSourceCodeLinePosition 
-                        = new DeNormaliseWhiteSpaceLinePosition(span, 
-                            externalSource.Current.SourceCode, 
-                            normalisedCalculationsSourceCode, 
+                    DeNormaliseWhiteSpaceLinePosition originalSourceCodeLinePosition
+                        = new DeNormaliseWhiteSpaceLinePosition(span,
+                            externalSource.Current.SourceCode,
+                            normalisedCalculationsSourceCode,
                             calculationId);
-                    
+
                     return new SourceLocation
                     {
                         Owner = owner,

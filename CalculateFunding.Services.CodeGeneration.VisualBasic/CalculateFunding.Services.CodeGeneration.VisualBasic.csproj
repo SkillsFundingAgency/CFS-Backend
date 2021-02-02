@@ -23,11 +23,9 @@
     <None Remove="CodeResources\Common\CalculationStackOverflowException.vb" />
     <None Remove="CodeResources\Common\DatasetReferenceChangeException.vb" />
     <None Remove="CodeResources\Common\LegacyBaseCalculation.vb" />
-    <None Remove="CodeResources\Common\ProjectData.vb" />
     <None Remove="CodeResources\Common\Provider.vb" />
     <None Remove="CodeResources\Common\ReferencedCalculationFailedException.vb" />
     <None Remove="CodeResources\Common\ReferencedFundingLineFailedException.vb" />
-    <None Remove="CodeResources\Common\Scenario.vb" />
     <None Remove="CodeResources\PolicySpecificationAttribute.vb" />
     <None Remove="CodeResources\ProjectData.vb" />
   </ItemGroup>
@@ -43,8 +41,6 @@
     <EmbeddedResource Include="CodeResources\Common\ReferencedFundingLineFailedException.vb" />
     <EmbeddedResource Include="CodeResources\Common\ReferencedCalculationFailedException.vb" />
     <EmbeddedResource Include="CodeResources\Common\DatasetReferenceChangeException.vb" />
-    <EmbeddedResource Include="CodeResources\Common\ProjectData.vb" />
-    <EmbeddedResource Include="CodeResources\Common\Scenario.vb" />
     <EmbeddedResource Include="CodeResources\Common\Provider.vb" />
     <EmbeddedResource Include="CodeResources\Common\BaseCalculation.vb" />
     <EmbeddedResource Include="CodeResources\Common\Attributes\CalculationAttribute.vb" />
