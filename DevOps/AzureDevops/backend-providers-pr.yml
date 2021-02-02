@@ -12,6 +12,8 @@ resources:
     ref: refs/heads/master
     endpoint: 'Github (ESFA)'
 
+trigger: none
+
 variables:
  - name: releaseconfiguration
    value: 'release'
