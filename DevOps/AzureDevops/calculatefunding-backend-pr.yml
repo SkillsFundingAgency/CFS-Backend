@@ -20,6 +20,7 @@ steps:
   displayName: 'dotnet restore'
   inputs:
     command: restore
+    projects: 'CalculateFunding-Backend.sln'
     vstsFeed: 'ecf37bc0-472b-47bf-91e3-6774809fd194'
 
 - task: DotNetCoreCLI@2
