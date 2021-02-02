@@ -1,7 +1,14 @@
 pool:
   vmImage: windows-2019
   
+resources:
+  repositories:
+  - repository: self
 
+variables:
+ - name: DOTNET_SKIP_FIRST_TIME_EXPERIENCE
+   value: '1'
+   
 steps:
 - task: UseDotNet@2
   displayName: 'Use .NET Core sdk $(DotnetCoreSdkVersion)'
