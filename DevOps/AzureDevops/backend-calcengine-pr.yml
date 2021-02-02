@@ -1,0 +1,30 @@
+name: $(Rev:r)
+
+pool:
+  vmImage: windows-2019
+
+resources:
+  repositories:
+  - repository: self
+  - repository: funding-blocks
+    type: github
+    name: SkillsFundingAgency/funding-platform-building-blocks
+    ref: refs/heads/master
+    endpoint: 'Github (ESFA)'
+
+trigger: none
+
+variables:
+ - name: releaseconfiguration
+   value: 'release'
+ - name: DOTNET_SKIP_FIRST_TIME_EXPERIENCE
+   value: true
+ - name: DOTNET_CLI_TELEMETRY_OPTOUT 
+   value: true
+ - group: 'Dotnet Core SDK Version'
+
+steps:
+  - template: azure-pipelines-templates/cfs/standard-service-function-pr-build.yml@funding-blocks
+    parameters:
+      ProjectName: CalcEngine
+      DotnetCoreSdkVersion: $(DotnetCoreSdkVersion)

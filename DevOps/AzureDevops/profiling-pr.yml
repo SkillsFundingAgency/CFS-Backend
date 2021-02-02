@@ -1,0 +1,68 @@
+name: $(Rev:r)
+
+pool:
+  vmImage: windows-2019
+
+resources:
+  repositories:
+  - repository: self
+
+trigger: none
+
+variables:
+ - name: DOTNET_SKIP_FIRST_TIME_EXPERIENCE
+   value: '1'
+ - name: DOTNET_CLI_TELEMETRY_OPTOUT
+   value: '1'
+ - group: 'Dotnet Core SDK Version'
+
+steps:
+ - task: UseDotNet@2
+   displayName: 'Use .NET Core sdk $(DotnetCoreSdkVersion)'
+   inputs:
+     version: '$(DotnetCoreSdkVersion)'
+     performMultiLevelLookup: true 
+
+ - task: DotNetCoreCLI@2
+   displayName: 'dotnet restore'
+   inputs:
+     command: restore
+     projects: |
+      **/*.Profiling.*Tests/*.csproj
+      CalculateFunding.Profiling.ConsoleConfig/CalculateFunding.Profiling.ConsoleConfig.csproj
+      CalculateFunding.Api.Profiling/CalculateFunding.Api.Profiling.csproj
+     vstsFeed: 'ecf37bc0-472b-47bf-91e3-6774809fd194'
+     noCache: true
+
+ - task: DotNetCoreCLI@2
+   displayName: 'dotnet test for APIs'
+   inputs:
+     command: test
+     projects: |
+      **/CalculateFunding.Api.Profiling.*Tests/*.csproj
+      **/CalculateFunding.Services.Profiling.*Tests/*.csproj     
+     arguments: '--configuration Release /p:AssemblyVersion=$(Build.BuildNumber)'
+  
+ - task: DotNetCoreCLI@2
+   displayName: 'dotnet publish API'
+   inputs:
+    command: publish
+    publishWebProjects: false
+    projects: |
+     CalculateFunding.Api.Profiling/CalculateFunding.Api.Profiling.csproj     
+    arguments: '--configuration Release /p:AssemblyVersion=$(Build.BuildNumber)'
+    zipAfterPublish: false
+    modifyOutputPath: false
+    workingDirectory: CalculateFunding.Api.Profiling
+
+ - task: DotNetCoreCLI@2
+   displayName: 'dotnet publish Console App'
+   inputs:
+     command: publish
+     publishWebProjects: false
+     projects: |
+      CalculateFunding.Profiling.ConsoleConfig/CalculateFunding.Profiling.ConsoleConfig.csproj   
+     arguments: '--configuration Release /p:AssemblyVersion=$(Build.BuildNumber)'
+     zipAfterPublish: false
+     modifyOutputPath: false
+     workingDirectory: CalculateFunding.Profiling.ConsoleConfig

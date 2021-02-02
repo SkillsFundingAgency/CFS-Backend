@@ -1,0 +1,51 @@
+pool:
+  vmImage: windows-2019
+  
+resources:
+  repositories:
+  - repository: self
+
+trigger: none
+
+variables:
+ - name: DOTNET_SKIP_FIRST_TIME_EXPERIENCE
+   value: '1'
+ - group: 'Dotnet Core SDK Version'
+   
+steps:
+- task: DotNetCoreInstaller@0
+  displayName: 'Use .NET Core sdk $(DotnetCoreSdkVersion)'
+  inputs:
+    version: '$(DotnetCoreSdkVersion)'
+
+- task: DotNetCoreCLI@2
+  displayName: 'dotnet restore'
+  inputs:
+    command: restore
+    projects: 'CalculateFunding-Backend.sln'
+    vstsFeed: 'ecf37bc0-472b-47bf-91e3-6774809fd194'
+
+- task: DotNetCoreCLI@2
+  displayName: 'dotnet test for Services and Functions'
+  inputs:
+    command: test
+    projects: |
+     **/*.Functions.*UnitTests/*.csproj
+     **/*.Services.*Tests/*.csproj
+     **/*.Models.*Tests/*.csproj
+    arguments: '--configuration Release /p:AssemblyVersion=$(Build.BuildNumber) --collect "Code coverage"'
+
+- task: DotNetCoreCLI@2
+  displayName: 'dotnet test for APIs'
+  inputs:
+    command: test
+    projects: '**/*.Api.*Tests/*.csproj'
+    arguments: '--configuration Release /p:AssemblyVersion=$(Build.BuildNumber)'
+
+- task: DotNetCoreCLI@2
+  displayName: 'dotnet publish'
+  inputs:
+    command: publish
+    publishWebProjects: false
+    arguments: '--configuration Release /p:AssemblyVersion=$(Build.BuildNumber)'
+    zipAfterPublish: false
