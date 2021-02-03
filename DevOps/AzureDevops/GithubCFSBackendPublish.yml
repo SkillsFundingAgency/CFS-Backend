@@ -36,5 +36,5 @@ steps:
    git remote add github git@github.com:SkillsFundingAgency/CFS-Backend.git
    
    echo  "Pushing changes to github"
-   git push --force github HEAD:providers
+   git push --force github HEAD:master
   displayName: 'Publish source code to GitHub (Backend Repo)'
