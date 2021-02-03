@@ -50,9 +50,11 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
                 async publishedFundings =>
                 {
                     List<PublishedFundingWithProvider> publishedfundingsWithProviders = new List<PublishedFundingWithProvider>();
-                    foreach (var publishedFunding in publishedFundings)
+                    
+                    foreach (PublishedFunding publishedFunding in publishedFundings)
                     {
                         IEnumerable<PublishedProvider> providers = Enumerable.Empty<PublishedProvider>();
+                        
                         if (publishedFunding.Current.ProviderFundings.Any())
                         {
                             providers = await _publishedFundingRepository.QueryPublishedProvider(specificationId, publishedFunding.Current.ProviderFundings);

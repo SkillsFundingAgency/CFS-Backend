@@ -7,8 +7,6 @@ namespace CalculateFunding.Services.Publishing.Interfaces
     public interface IFundingLineCsvTransform
     {
         bool IsForJobType(FundingLineCsvGeneratorJobType jobType);
-
-        string FundingLineCode {set;}
         
         IEnumerable<ExpandoObject> Transform(IEnumerable<dynamic> documents);
     }

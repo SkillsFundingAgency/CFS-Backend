@@ -15,8 +15,6 @@ namespace CalculateFunding.Services.Publishing.Reporting
 
         public abstract bool IsForJobType(FundingLineCsvGeneratorJobType jobType);
 
-        public abstract string FundingLineCode { set; }
-
         public virtual IEnumerable<ExpandoObject> Transform(IEnumerable<dynamic> documents)
         {
             int resultsCount = documents.Count();
@@ -54,7 +52,8 @@ namespace CalculateFunding.Services.Publishing.Reporting
             _expandoObjectsPool.Return(resultsBatch);
         }
 
-        protected virtual void TransformFundingLine(IDictionary<string, object> row, PublishedProviderVersion publishedProviderVersion)
+        protected virtual void TransformFundingLine(IDictionary<string, object> row,
+            PublishedProviderVersion publishedProviderVersion)
         {
             foreach (FundingLine fundingLine in publishedProviderVersion.FundingLines.OrderBy(_ => _.Name))
             {

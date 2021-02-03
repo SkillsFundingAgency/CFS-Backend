@@ -4,7 +4,6 @@ using System.Dynamic;
 using System.Linq;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Reporting.FundingLines;
-using CalculateFunding.Services.Publishing.UnitTests.Variations.Changes;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -39,9 +38,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         [TestMethod]
         public void FlattensTemplateCalculationsAndProviderMetaDataIntoRows()
         {
-            string fundingLineCode1 = "fundingLineCode1";
-            string fundingLineCode2 = "fundingLineCode2";
-
             IEnumerable<PublishedProviderVersion> publishedProviders = NewPublishedProviderVersions(
                     NewPublishedProviderVersion(ppv => ppv.WithProvider(
                             NewProvider(pr => pr.WithEstablishmentNumber("en1")
@@ -53,7 +49,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                                 .WithProviderType("pt1")
                                 .WithProviderSubType("pst1")))
                         .WithFundingLines(NewFundingLine(fl => fl.WithValue(999M)
-                                .WithFundingLineCode(fundingLineCode1)
                                 .WithDistributionPeriods(NewDistributionPeriod(dp => dp.WithProfilePeriods(
                                     NewProfilePeriod(pp => pp.WithAmount(123)
                                         .WithOccurence(1)
@@ -90,61 +85,34 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                                 .WithUKPRN("ukprn2")
                                 .WithProviderType("pt2")
                                 .WithProviderSubType("pst2")))
-                        .WithFundingLines(
-                            NewFundingLine(fl => fl.WithValue(666M)
-                                .WithFundingLineCode(fundingLineCode2)
-                                .WithDistributionPeriods(NewDistributionPeriod(dp => dp.WithProfilePeriods(
-                                        NewProfilePeriod(pp => pp.WithAmount(234)
-                                            .WithOccurence(1)
-                                            .WithType(ProfilePeriodType.CalendarMonth)
-                                            .WithTypeValue("January")
-                                            .WithYear(2020)),
-                                        NewProfilePeriod(pp => pp.WithAmount(568)
-                                            .WithOccurence(2)
-                                            .WithType(ProfilePeriodType.CalendarMonth)
-                                            .WithTypeValue("January")
-                                            .WithYear(2020)))),
-                                    NewDistributionPeriod(dp => dp.WithProfilePeriods(
-                                        NewProfilePeriod(pp => pp.WithAmount(8915)
-                                            .WithOccurence(1)
-                                            .WithType(ProfilePeriodType.CalendarMonth)
-                                            .WithTypeValue("January")
-                                            .WithYear(2021)),
-                                        NewProfilePeriod(pp => pp.WithAmount(111218)
-                                            .WithOccurence(1)
-                                            .WithType(ProfilePeriodType.CalendarMonth)
-                                            .WithTypeValue("February")
-                                            .WithYear(2021)))))),
-                            NewFundingLine(fl => fl.WithValue(666M)
-                                .WithFundingLineCode(fundingLineCode1)
-                                .WithDistributionPeriods(NewDistributionPeriod(dp => dp.WithProfilePeriods(
-                                        NewProfilePeriod(pp => pp.WithAmount(234)
-                                            .WithOccurence(1)
-                                            .WithType(ProfilePeriodType.CalendarMonth)
-                                            .WithTypeValue("January")
-                                            .WithYear(2020)),
-                                        NewProfilePeriod(pp => pp.WithAmount(567)
-                                            .WithOccurence(2)
-                                            .WithType(ProfilePeriodType.CalendarMonth)
-                                            .WithTypeValue("January")
-                                            .WithYear(2020)))),
-                                    NewDistributionPeriod(dp => dp.WithProfilePeriods(
-                                        NewProfilePeriod(pp => pp.WithAmount(8910)
-                                            .WithOccurence(1)
-                                            .WithType(ProfilePeriodType.CalendarMonth)
-                                            .WithTypeValue("January")
-                                            .WithYear(2021)),
-                                        NewProfilePeriod(pp => pp.WithAmount(111213)
-                                            .WithOccurence(1)
-                                            .WithType(ProfilePeriodType.CalendarMonth)
-                                            .WithTypeValue("February")
-                                            .WithYear(2021)))))))
+                        .WithFundingLines(NewFundingLine(fl => fl.WithValue(666M)
+                            .WithDistributionPeriods(NewDistributionPeriod(dp => dp.WithProfilePeriods(
+                                    NewProfilePeriod(pp => pp.WithAmount(234)
+                                        .WithOccurence(1)
+                                        .WithType(ProfilePeriodType.CalendarMonth)
+                                        .WithTypeValue("January")
+                                        .WithYear(2020)),
+                                    NewProfilePeriod(pp => pp.WithAmount(567)
+                                        .WithOccurence(2)
+                                        .WithType(ProfilePeriodType.CalendarMonth)
+                                        .WithTypeValue("January")
+                                        .WithYear(2020)))),
+                                NewDistributionPeriod(dp => dp.WithProfilePeriods(
+                                    NewProfilePeriod(pp => pp.WithAmount(8910)
+                                        .WithOccurence(1)
+                                        .WithType(ProfilePeriodType.CalendarMonth)
+                                        .WithTypeValue("January")
+                                        .WithYear(2021)),
+                                    NewProfilePeriod(pp => pp.WithAmount(111213)
+                                        .WithOccurence(1)
+                                        .WithType(ProfilePeriodType.CalendarMonth)
+                                        .WithTypeValue("February")
+                                        .WithYear(2021)))))))
                         .WithAuthor(NewReference(auth => auth.WithName("author2")))
                         .WithMajorVersion(2)
                         .WithMinorVersion(21)
                         .WithPublishedProviderStatus(PublishedProviderStatus.Approved)
                         .WithDate("2020-02-05T20:03:55")));
-
             dynamic[] expectedCsvRows =
             {
                 new Dictionary<string, object>
@@ -190,8 +158,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                     {"2021 February 1", 111213M}
                 }
             };
-
-            _transformation.FundingLineCode = fundingLineCode1;
 
             ExpandoObject[] transformProviderResultsIntoCsvRows = _transformation.Transform(publishedProviders).ToArray();
 

@@ -10,10 +10,6 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
     //TODO; change this name to something meaningful (probably PublishedProviderFundingLineProfileValuesCsvTransform)
     public class PublishedProviderDeliveryProfileFundingLineCsvTransform : FundingLineCsvTransformBase
     {
-        private string _fundingLineCode;
-
-        public override string FundingLineCode { set => _fundingLineCode = value; }
-
         public override bool IsForJobType(FundingLineCsvGeneratorJobType jobType)
         {
             return jobType == FundingLineCsvGeneratorJobType.CurrentProfileValues;
@@ -24,9 +20,10 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
             return documents.ElementAt(resultCount).Current;
         }
 
-        protected override void TransformFundingLine(IDictionary<string, object> row, PublishedProviderVersion publishedProviderVersion)
+        protected override void TransformFundingLine(IDictionary<string, object> row,
+            PublishedProviderVersion publishedProviderVersion)
         {
-            FundingLine fundingLine = publishedProviderVersion.FundingLines.SingleOrDefault(_ => _.FundingLineCode == _fundingLineCode);
+            FundingLine fundingLine = publishedProviderVersion.FundingLines.SingleOrDefault();
 
             if (fundingLine == null)
             {

@@ -4,8 +4,7 @@ using CalculateFunding.Models.Publishing;
 
 namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
 {
-    public class PublishedProviderVersionFundingLineProfileValuesCsvTransform :
-        PublishedProviderDeliveryProfileFundingLineCsvTransform
+    public class PublishedProviderVersionFundingLineProfileValuesCsvTransform : PublishedProviderDeliveryProfileFundingLineCsvTransform
     {
         public override bool IsForJobType(FundingLineCsvGeneratorJobType jobType)
         {
