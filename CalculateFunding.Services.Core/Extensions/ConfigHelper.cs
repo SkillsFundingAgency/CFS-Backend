@@ -60,7 +60,7 @@ namespace CalculateFunding.Services.Core.Extensions
                         .UseFeatureFlags()
                         .ConfigureRefresh(refresh =>
                         {
-                            refresh.Register("publishingengineoptions:GetCalculationResultsConcurrencyCount", refreshAll: true)
+                            refresh.Register("calculateFundingAppOptions:Sentinel", refreshAll: true)
                                 .Register($"{FileSystemCacheSettings.SectionName}:{nameof(IFileSystemCacheSettings.Prefix)}", true)
                                 .SetCacheExpiration(TimeSpan.FromSeconds(1));
                         });
