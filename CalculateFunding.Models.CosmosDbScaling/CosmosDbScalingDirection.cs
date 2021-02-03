@@ -5,4 +5,10 @@
         Up,
         Down
     }
+
+    public enum CosmosDbScalingType
+    {
+        Job,
+        Incremental
+    }
 }

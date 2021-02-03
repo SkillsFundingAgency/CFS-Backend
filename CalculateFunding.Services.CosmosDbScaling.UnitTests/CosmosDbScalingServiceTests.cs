@@ -11,6 +11,7 @@ using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Models.CosmosDbScaling;
 using CalculateFunding.Services.Core;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.CosmosDbScaling.Interfaces;
 using FluentAssertions;
@@ -627,12 +628,14 @@ namespace CalculateFunding.Services.CosmosDbScaling
             await cosmosDbScalingService.ScaleUp(Enumerable.Empty<EventData>());
 
             //Assert
+            DateTime dateTime = DateTimeOffset.Now.Date;
+
             await
              cosmosDbScalingConfigRepository
              .Received(1)
              .UpdateCollectionSettings(Arg.Is<CosmosDbScalingCollectionSettings>(m =>
                   m.LastScalingIncrementValue == 10000 &&
-                  m.LastScalingIncrementDateTime.Value.Date == DateTimeOffset.Now.Date &&
+                  m.LastScalingIncrementDateTime.Value.Date == dateTime &&
                   m.CurrentRequestUnits == 11000));
 
             await
@@ -718,6 +721,10 @@ namespace CalculateFunding.Services.CosmosDbScaling
                  cosmosDbScalingConfigRepository
                  .Received(1)
                  .UpdateCollectionSettings(Arg.Is<CosmosDbScalingCollectionSettings>(m => m.CurrentRequestUnits == 150000));
+
+            logger
+                .Received(1)
+                .Information("Current settings: {\"id\":\"CalculationProviderResults\",\"cosmosCollectionType\":\"CalculationProviderResults\",\"lastScalingIncrementValue\":0,\"lastScalingDecrementValue\":0,\"lastScalingIncrementDateTime\":null,\"lastScalingDeccrementDateTime\":null,\"currentRequestUnits\":100000,\"maxRequestUnits\":200000,\"minRequestUnits\":10000} has been scaled with settings: {\"id\":\"CalculationProviderResults\",\"cosmosCollectionType\":\"CalculationProviderResults\",\"lastScalingIncrementValue\":0,\"lastScalingDecrementValue\":0,\"lastScalingIncrementDateTime\":null,\"lastScalingDeccrementDateTime\":null,\"currentRequestUnits\":150000,\"maxRequestUnits\":200000,\"minRequestUnits\":10000} scaling direction: Up and type: Job");
         }
 
         [TestMethod]
@@ -1351,6 +1358,10 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 scalingRepository
                 .Received(1)
                 .SetThroughput(Arg.Any<int>());
+
+            logger
+                .Received(1)
+                .Information("Current settings: {\"id\":\"CalculationProviderResults\",\"cosmosCollectionType\":\"CalculationProviderResults\",\"lastScalingIncrementValue\":0,\"lastScalingDecrementValue\":0,\"lastScalingIncrementDateTime\":null,\"lastScalingDeccrementDateTime\":null,\"currentRequestUnits\":100000,\"maxRequestUnits\":200000,\"minRequestUnits\":10000} has been scaled with settings: {\"id\":\"CalculationProviderResults\",\"cosmosCollectionType\":\"CalculationProviderResults\",\"lastScalingIncrementValue\":0,\"lastScalingDecrementValue\":0,\"lastScalingIncrementDateTime\":null,\"lastScalingDeccrementDateTime\":null,\"currentRequestUnits\":10000,\"maxRequestUnits\":200000,\"minRequestUnits\":10000} scaling direction: Down and type: Job");
         }
 
         [TestMethod]
@@ -1541,6 +1552,10 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 jobManagement
                 .Received(1)
                 .GetNonCompletedJobsWithinTimeFrame(Arg.Is<DateTimeOffset>(x => x.AddHours(-1) < DateTimeOffset.Now), Arg.Any<DateTimeOffset>());
+
+            logger
+                .Received(1)
+                .Information("Current settings: {\"id\":\"CalculationProviderResults\",\"cosmosCollectionType\":\"CalculationProviderResults\",\"lastScalingIncrementValue\":0,\"lastScalingDecrementValue\":0,\"lastScalingIncrementDateTime\":null,\"lastScalingDeccrementDateTime\":null,\"currentRequestUnits\":100000,\"maxRequestUnits\":200000,\"minRequestUnits\":10000} has been scaled with settings: {\"id\":\"CalculationProviderResults\",\"cosmosCollectionType\":\"CalculationProviderResults\",\"lastScalingIncrementValue\":0,\"lastScalingDecrementValue\":0,\"lastScalingIncrementDateTime\":null,\"lastScalingDeccrementDateTime\":null,\"currentRequestUnits\":10000,\"maxRequestUnits\":200000,\"minRequestUnits\":10000} scaling direction: Down and type: Job");
         }
 
         [TestMethod]

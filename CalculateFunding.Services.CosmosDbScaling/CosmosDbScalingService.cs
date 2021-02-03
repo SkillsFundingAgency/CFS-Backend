@@ -138,6 +138,8 @@ namespace CalculateFunding.Services.CosmosDbScaling
                     CosmosDbScalingCollectionSettings settings = await _scalingConfigRepositoryPolicy.ExecuteAsync(() =>
                         _cosmosDbScalingConfigRepository.GetCollectionSettingsByRepositoryType(cosmosRepositoryType));
 
+                    CosmosDbScalingCollectionSettings currentSettings = settings.DeepCopy();
+
                     int currentThroughput = settings.CurrentRequestUnits;
 
                     if (settings.AvailableRequestUnits == 0)
@@ -160,7 +162,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
                     settings.CurrentRequestUnits = await ScaleCollection(cosmosRepositoryType, increasedRequestUnits, settings.MaxRequestUnits);
 
-                    await UpdateCollectionSettings(settings, CosmosDbScalingDirection.Up, incrementalRequestUnitsValue);
+                    await UpdateCollectionSettings(currentSettings, settings, CosmosDbScalingDirection.Up, incrementalRequestUnitsValue);
                 }
                 catch (NonRetriableException)
                 {
@@ -223,6 +225,8 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 {
                     try
                     {
+                        CosmosDbScalingCollectionSettings currentSettings = settings.DeepCopy();
+
                         int? minimumRequestUnitsAllowed = await GetMinimumThroughput(settings.CosmosCollectionType);
 
                         if (minimumRequestUnitsAllowed.HasValue && settings.MinRequestUnits < minimumRequestUnitsAllowed.Value)
@@ -232,7 +236,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
                         settings.CurrentRequestUnits = await ScaleCollection(settings.CosmosCollectionType, settings.MinRequestUnits, settings.MaxRequestUnits);
 
-                        await UpdateCollectionSettings(settings);
+                        await UpdateCollectionSettings(currentSettings, settings, CosmosDbScalingDirection.Down, CosmosDbScalingType.Job);
                     }
                     catch (Exception ex)
                     {
@@ -261,6 +265,8 @@ namespace CalculateFunding.Services.CosmosDbScaling
             {
                 try
                 {
+                    CosmosDbScalingCollectionSettings currentSettings = settings.DeepCopy();
+
                     int previousCurrentRequestUnits = settings.CurrentRequestUnits;
 
                     settings.CurrentRequestUnits = Math.Max(previousCurrentRequestUnits - settings.LastScalingIncrementValue, settings.MinRequestUnits);
@@ -281,7 +287,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
                     settings.CurrentRequestUnits = await ScaleCollection(settings.CosmosCollectionType, settings.CurrentRequestUnits, settings.MaxRequestUnits);
 
-                    await UpdateCollectionSettings(settings, CosmosDbScalingDirection.Down, requestUnitsToDecrement);
+                    await UpdateCollectionSettings(currentSettings, settings, CosmosDbScalingDirection.Down, requestUnitsToDecrement);
                 }
                 catch (Exception ex)
                 {
@@ -313,6 +319,8 @@ namespace CalculateFunding.Services.CosmosDbScaling
             CosmosDbScalingCollectionSettings settings = await _scalingConfigRepositoryPolicy.ExecuteAsync(() =>
                 _cosmosDbScalingConfigRepository.GetCollectionSettingsByRepositoryType(cosmosDbScalingConfig.RepositoryType));
 
+            CosmosDbScalingCollectionSettings currentSettings = settings.DeepCopy();
+
             if (settings == null)
             {
                 string errorMessage = $"A collections settings file does not exist for settings collection type: '{cosmosDbScalingConfig.RepositoryType}'";
@@ -328,10 +336,10 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             settings.CurrentRequestUnits = await ScaleCollection(cosmosDbScalingConfig.RepositoryType, settings.CurrentRequestUnits, settings.MaxRequestUnits);
 
-            await UpdateCollectionSettings(settings);
+            await UpdateCollectionSettings(currentSettings, settings, CosmosDbScalingDirection.Up, CosmosDbScalingType.Job);
         }
 
-        private async Task UpdateCollectionSettings(CosmosDbScalingCollectionSettings settings, CosmosDbScalingDirection direction, int requestUnits)
+        private async Task UpdateCollectionSettings(CosmosDbScalingCollectionSettings currentSettings, CosmosDbScalingCollectionSettings settings, CosmosDbScalingDirection direction, int requestUnits)
         {
             if (direction == CosmosDbScalingDirection.Up)
             {
@@ -343,12 +351,14 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 settings.LastScalingDecrementDateTime = DateTimeOffset.Now;
                 settings.LastScalingDecrementValue = requestUnits;
             }
-
-            await UpdateCollectionSettings(settings);
+            
+            await UpdateCollectionSettings(currentSettings, settings, direction, CosmosDbScalingType.Incremental);
         }
 
-        private async Task UpdateCollectionSettings(CosmosDbScalingCollectionSettings settings)
+        private async Task UpdateCollectionSettings(CosmosDbScalingCollectionSettings currentSettings, CosmosDbScalingCollectionSettings settings, CosmosDbScalingDirection direction, CosmosDbScalingType type)
         {
+            _logger.Information($"Current settings: {currentSettings.AsJson()} has been scaled with settings: {settings.AsJson()} scaling direction: {direction} and type: {type}");
+            
             HttpStatusCode statusCode = await _scalingConfigRepositoryPolicy.ExecuteAsync(
                () => _cosmosDbScalingConfigRepository.UpdateCollectionSettings(settings));
 
