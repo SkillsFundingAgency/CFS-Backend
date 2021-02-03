@@ -233,7 +233,7 @@ namespace CalculateFunding.Services.Jobs.Repositories
                             FROM    r 
                             WHERE   r.documentType = 'Job' 
                                     AND r.deleted = false 
-                                    AND (r.content.lastUpdated >= @dateTimeFrom and r.content.lastUpdated <= @dateTimeTo) and r.content.runningStatus != 'Completed'";
+                                    AND (r.content.created >= @dateTimeFrom and r.content.created <= @dateTimeTo) and r.content.runningStatus != 'Completed'";
 
             List<CosmosDbQueryParameter> sqlParameters = new List<CosmosDbQueryParameter>
             {
