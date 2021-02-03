@@ -1,8 +1,8 @@
 pool:
   name: Hosted Ubuntu 1604
-#Your build pipeline references an undefined variable named ‘ssh-agent -s’. Create or edit the build pipeline for this YAML file, define the variable on the Variables tab. See https://go.microsoft.com/fwlink/?linkid=865972
 
-trigger: none
+trigger:
+- providers
 
 steps:
 - bash: |
@@ -37,4 +37,4 @@ steps:
    
    echo  "Pushing changes to github"
    git push --force github HEAD:providers
-  displayName: 'Publish source code to github'
+  displayName: 'Publish source code to GitHub (Backend Repo)'
