@@ -68,8 +68,9 @@ namespace CalculateFunding.Functions.CalcEngine
 
         private static IServiceProvider Register(IServiceCollection builder, IConfigurationRoot config)
         {
-            builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
+            builder.AddAppConfiguration();
 
+            builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
 
             builder.AddSingleton<IConfiguration>(config);
             builder.AddCaching(config);

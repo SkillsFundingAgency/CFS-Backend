@@ -1,13 +1,10 @@
-﻿using System;
-using System.Threading.Tasks;
-using CalculateFunding.Common.Utility;
+﻿using System.Threading.Tasks;
 using CalculateFunding.Services.Core.Constants;
-using CalculateFunding.Services.Core.Functions;
-using CalculateFunding.Services.DeadletterProcessor;
 using CalculateFunding.Services.Processing.Functions;
 using CalculateFunding.Services.Processing.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Extensions.Configuration.AzureAppConfiguration;
 using Serilog;
 
 namespace CalculateFunding.Functions.Providers.ServiceBus
@@ -19,7 +16,8 @@ namespace CalculateFunding.Functions.Providers.ServiceBus
 
         public OnPopulateScopedProvidersEventTriggerFailure(
             ILogger logger,
-            IDeadletterService jobHelperService) : base(logger, jobHelperService, QueueName)
+            IDeadletterService jobHelperService,
+            IConfigurationRefresherProvider refresherProvider) : base(logger, jobHelperService, QueueName, refresherProvider)
         {
         }
 

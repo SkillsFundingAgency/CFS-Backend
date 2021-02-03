@@ -57,6 +57,8 @@ namespace CalculateFunding.Functions.Scenarios
 
         private static IServiceProvider Register(IServiceCollection builder, IConfigurationRoot config)
         {
+            builder.AddAppConfiguration();
+
             // These registrations of the functions themselves are just for the DebugQueue. Ideally we don't want these registered in production
             if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
             {

@@ -11,7 +11,6 @@ using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Providers.ViewModels;
 using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.AspNet.HealthChecks;
 using CalculateFunding.Services.Core.AzureStorage;
 using CalculateFunding.Services.Core.Caching.FileSystem;
@@ -25,14 +24,11 @@ using CalculateFunding.Services.Providers.Validators;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.OpenApi.Models;
 using Polly.Bulkhead;
 using CalculateFunding.Common.JobManagement;
-using CalculateFunding.Services.DeadletterProcessor;
 using ServiceCollectionExtensions = CalculateFunding.Services.Core.Extensions.ServiceCollectionExtensions;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Providers.Requests;
@@ -43,6 +39,8 @@ namespace CalculateFunding.Api.Providers
 {
     public class Startup
     {
+        private static readonly string AppConfigConnectionString = Environment.GetEnvironmentVariable("AzureConfiguration:ConnectionString");
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -66,6 +64,11 @@ namespace CalculateFunding.Api.Providers
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            if (!string.IsNullOrEmpty(AppConfigConnectionString))
+            {
+                app.UseAzureAppConfiguration();
+            }
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

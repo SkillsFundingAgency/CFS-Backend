@@ -5,6 +5,7 @@ using CalculateFunding.Functions.Policy.ServiceBus;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Policy.Interfaces;
 using CalculateFunding.Tests.Common;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.DependencyInjection;
@@ -39,6 +40,7 @@ namespace CalculateFunding.Functions.Policy.SmokeTests
                 _templatesReIndexerService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _userProfileProvider,
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.PolicyReIndexTemplates,

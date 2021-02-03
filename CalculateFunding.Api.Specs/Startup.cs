@@ -53,11 +53,14 @@ using LocalBlobClient = CalculateFunding.Services.Core.AzureStorage.BlobClient;
 using LocalIBlobClient = CalculateFunding.Services.Core.Interfaces.AzureStorage.IBlobClient;
 using ServiceCollectionExtensions = CalculateFunding.Services.Core.Extensions.ServiceCollectionExtensions;
 using SpecificationVersion = CalculateFunding.Models.Specs.SpecificationVersion;
+using System;
 
 namespace CalculateFunding.Api.Specs
 {
     public class Startup
     {
+        private static readonly string AppConfigConnectionString = Environment.GetEnvironmentVariable("AzureConfiguration:ConnectionString");
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -77,6 +80,11 @@ namespace CalculateFunding.Api.Specs
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            if (!string.IsNullOrEmpty(AppConfigConnectionString))
+            {
+                app.UseAzureAppConfiguration();
+            }
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

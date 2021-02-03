@@ -4,8 +4,10 @@ using CalculateFunding.Functions.Jobs.ServiceBus;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Jobs.Interfaces;
 using CalculateFunding.Tests.Common;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.Azure.ServiceBus;
+using Microsoft.Extensions.Configuration.AzureAppConfiguration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -39,6 +41,7 @@ namespace CalculateFunding.Functions.Jobs.SmokeTests
                 _jobManagementService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                  _userProfileProvider,
+                 AppConfigurationHelper.CreateConfigurationRefresherProvider(),
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.UpdateJobsOnCompletion,

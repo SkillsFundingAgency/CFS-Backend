@@ -1,8 +1,10 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Extensions.Configuration.AzureAppConfiguration;
 using Serilog;
 
 namespace CalculateFunding.Functions.Results.Timer
@@ -13,16 +15,21 @@ namespace CalculateFunding.Functions.Results.Timer
 
         private readonly ILogger _logger;
         private readonly IResultsService _resultsService;
+        private readonly IConfigurationRefresher _configurationRefresher;
 
         public OnCalculationResultsCsvGenerationTimer(
             ILogger logger,
-            IResultsService resultsService)
+            IResultsService resultsService,
+            IConfigurationRefresherProvider refresherProvider)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(resultsService, nameof(resultsService));
+            Guard.ArgumentNotNull(refresherProvider, nameof(refresherProvider));
 
             _logger = logger;
             _resultsService = resultsService;
+
+            _configurationRefresher = refresherProvider.Refreshers.First();
         }
 
         [FunctionName("on-calculation-results-csv-generation-timer")]
@@ -30,6 +37,8 @@ namespace CalculateFunding.Functions.Results.Timer
         {
             try
             {
+                await _configurationRefresher.TryRefreshAsync();
+
                 await _resultsService.QueueCsvGenerationMessages();
             }
             catch (Exception exception)

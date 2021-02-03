@@ -9,6 +9,7 @@ using CalculateFunding.Services.Processing.Functions;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.SignalRService;
+using Microsoft.Extensions.Configuration.AzureAppConfiguration;
 using Serilog;
 
 namespace CalculateFunding.Functions.Notifications
@@ -22,8 +23,10 @@ namespace CalculateFunding.Functions.Notifications
             ILogger logger,
             INotificationService notificationService,
             IMessengerService messengerService,
-            IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, $"{ServiceBusConstants.TopicNames.JobNotifications}/{ServiceBusConstants.TopicSubscribers.JobNotificationsToSignalR}", useAzureStorage, userProfileProvider, notificationService)
+            IUserProfileProvider userProfileProvider,
+            IConfigurationRefresherProvider refresherProvider,
+            bool useAzureStorage = false) 
+            : base(logger, messengerService, FunctionName, $"{ServiceBusConstants.TopicNames.JobNotifications}/{ServiceBusConstants.TopicSubscribers.JobNotificationsToSignalR}", useAzureStorage, userProfileProvider, notificationService, refresherProvider)
         {
             Guard.ArgumentNotNull(notificationService, nameof(notificationService));
 

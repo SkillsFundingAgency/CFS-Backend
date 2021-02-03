@@ -6,6 +6,7 @@ using CalculateFunding.Services.Datasets.Interfaces;
 using CalculateFunding.Services.Processing.Functions;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Extensions.Configuration.AzureAppConfiguration;
 using Serilog;
 
 namespace CalculateFunding.Functions.Datasets.ServiceBus
@@ -18,8 +19,10 @@ namespace CalculateFunding.Functions.Datasets.ServiceBus
             ILogger logger,
             IDatasetDefinitionNameChangeProcessor datasetDefinitionChangesProcessor,
             IMessengerService messengerService,
-            IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, $"{ServiceBusConstants.TopicNames.DataDefinitionChanges}/{ServiceBusConstants.TopicSubscribers.UpdateDataDefinitionName}", useAzureStorage, userProfileProvider, datasetDefinitionChangesProcessor)
+            IUserProfileProvider userProfileProvider,
+            IConfigurationRefresherProvider refresherProvider,
+            bool useAzureStorage = false) 
+            : base(logger, messengerService, FunctionName, $"{ServiceBusConstants.TopicNames.DataDefinitionChanges}/{ServiceBusConstants.TopicSubscribers.UpdateDataDefinitionName}", useAzureStorage, userProfileProvider, datasetDefinitionChangesProcessor, refresherProvider)
         {
         }
 

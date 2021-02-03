@@ -3,6 +3,7 @@ using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Notifications.Interfaces;
 using CalculateFunding.Tests.Common;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.DependencyInjection;
@@ -37,7 +38,8 @@ namespace CalculateFunding.Functions.Notifications.SmokeTests
             OnNotificationEventTrigger onNotificationEventTrigger = new OnNotificationEventTrigger(_logger,
                 _notificationService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
-                 _userProfileProvider,
+                _userProfileProvider,
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.JobNotificationsToSignalR,

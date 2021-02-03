@@ -4,6 +4,7 @@ using CalculateFunding.Functions.Specs.ServiceBus;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Specs.Interfaces;
 using CalculateFunding.Tests.Common;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.DependencyInjection;
@@ -42,7 +43,8 @@ namespace CalculateFunding.Functions.Specs.SmokeTests
                 _specificationsService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                  _userProfileProvider,
-                IsDevelopment);
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
+                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.AddDefinitionRelationshipToSpecification,
                 async(Message smokeResponse) => await onAddRelationshipEvent.Run(smokeResponse));
@@ -59,7 +61,8 @@ namespace CalculateFunding.Functions.Specs.SmokeTests
                 _specificationsService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                  _userProfileProvider,
-                IsDevelopment);
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
+                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.DeleteSpecifications,
                 async(Message smokeResponse) => await onDeleteSpecifications.Run(smokeResponse));
@@ -76,6 +79,7 @@ namespace CalculateFunding.Functions.Specs.SmokeTests
                 _specificationIndexerService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _userProfileProvider,
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.ReIndexSingleSpecification,

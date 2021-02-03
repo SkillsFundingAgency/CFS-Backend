@@ -6,6 +6,7 @@ using CalculateFunding.Services.CosmosDbScaling.Interfaces;
 using CalculateFunding.Services.Processing.Functions;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Extensions.Configuration.AzureAppConfiguration;
 using Serilog;
 
 namespace CalculateFunding.Functions.CosmosDbScaling.ServiceBus
@@ -18,8 +19,10 @@ namespace CalculateFunding.Functions.CosmosDbScaling.ServiceBus
            ILogger logger,
            ICosmosDbScalingService scalingService,
            IMessengerService messengerService,
-           IUserProfileProvider userProfileProvider, bool useAzureStorage = false)
-            : base(logger, messengerService, FunctionName, $"{ServiceBusConstants.TopicNames.JobNotifications}/{ServiceBusConstants.TopicSubscribers.ScaleUpCosmosdbCollection}", useAzureStorage, userProfileProvider, scalingService)
+           IUserProfileProvider userProfileProvider,
+           IConfigurationRefresherProvider refresherProvider,
+           bool useAzureStorage = false)
+            : base(logger, messengerService, FunctionName, $"{ServiceBusConstants.TopicNames.JobNotifications}/{ServiceBusConstants.TopicSubscribers.ScaleUpCosmosdbCollection}", useAzureStorage, userProfileProvider, scalingService, refresherProvider)
         {
         }
 

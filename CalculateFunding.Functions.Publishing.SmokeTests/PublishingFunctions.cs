@@ -14,6 +14,7 @@ using Serilog;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Services.Publishing.SqlExport;
+using CalculateFunding.Tests.Common.Helpers;
 
 namespace CalculateFunding.Functions.Publishing.SmokeTests
 {
@@ -52,6 +53,7 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
                 _sqlImportService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _userProfileProvider,
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingRunSqlImport,
@@ -69,6 +71,7 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
                 _approveService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _userProfileProvider,
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingApproveAllProviderFunding,
@@ -86,6 +89,7 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
                 _approveService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _userProfileProvider,
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingApproveBatchProviderFunding,
@@ -103,6 +107,7 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
                 _publishService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _userProfileProvider,
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingPublishAllProviderFunding,
@@ -121,6 +126,7 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
                 _publishService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _userProfileProvider,
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingPublishBatchProviderFunding,
@@ -137,6 +143,7 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
                 _publishIntegrityCheckService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _userProfileProvider,
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishIntegrityCheck,
@@ -154,6 +161,7 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
                 _refreshService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _userProfileProvider,
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingRefreshFunding,
@@ -171,6 +179,7 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
                 _publishedProviderReIndexerService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _userProfileProvider,
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingReIndexPublishedProviders,
@@ -188,6 +197,7 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
                 _deletePublishedProvidersService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _userProfileProvider,
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.DeletePublishedProviders,

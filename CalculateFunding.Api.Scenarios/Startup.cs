@@ -32,11 +32,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Polly;
 using Polly.Bulkhead;
+using System;
 
 namespace CalculateFunding.Api.Scenarios
 {
     public class Startup
     {
+        private static readonly string AppConfigConnectionString = Environment.GetEnvironmentVariable("AzureConfiguration:ConnectionString");
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -56,6 +59,11 @@ namespace CalculateFunding.Api.Scenarios
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            if (!string.IsNullOrEmpty(AppConfigConnectionString))
+            {
+                app.UseAzureAppConfiguration();
+            }
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

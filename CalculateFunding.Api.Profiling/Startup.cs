@@ -22,13 +22,13 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using Polly.Bulkhead;
 using Swashbuckle.AspNetCore.Filters;
-using CalculateFunding.Services.Core.Interfaces.Threading;
-using CalculateFunding.Services.Core.Threading;
 
 namespace CalculateFunding.Api.Profiling
 {
     public class Startup
     {
+        private static readonly string AppConfigConnectionString = Environment.GetEnvironmentVariable("AzureConfiguration:ConnectionString");
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -57,6 +57,11 @@ namespace CalculateFunding.Api.Profiling
         public void Configure(IApplicationBuilder app,
             IWebHostEnvironment env)
         {
+            if (!string.IsNullOrEmpty(AppConfigConnectionString))
+            {
+                app.UseAzureAppConfiguration();
+            }
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

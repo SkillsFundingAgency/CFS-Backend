@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.ServiceBus.Interfaces;
@@ -7,15 +8,15 @@ using CalculateFunding.Services.Processing.Functions;
 using CalculateFunding.Services.Specs.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Extensions.Configuration.AzureAppConfiguration;
 using Serilog;
 
 namespace CalculateFunding.Functions.Specs.ServiceBus
 {
     public class OnReIndexSpecification : SmokeTest
     {
-        private readonly ILogger _logger;
-        private readonly ISpecificationIndexingService _specificationIndexing;
-        
+        private readonly IConfigurationRefresher _configurationRefresher;
+
         public const string FunctionName = "on-reindex-specification";
         private const string ReIndexSingleSpecification = ServiceBusConstants.QueueNames.ReIndexSingleSpecification;
 
@@ -23,14 +24,16 @@ namespace CalculateFunding.Functions.Specs.ServiceBus
             ILogger logger,
             ISpecificationIndexingService specificationIndexing,
             IMessengerService messengerService,
-            IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
+            IUserProfileProvider userProfileProvider,
+            IConfigurationRefresherProvider refresherProvider,
+            bool useAzureStorage = false) 
             : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider, specificationIndexing)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(specificationIndexing, nameof(specificationIndexing));
+            Guard.ArgumentNotNull(refresherProvider, nameof(refresherProvider));
 
-            _logger = logger;
-            _specificationIndexing = specificationIndexing;
+            _configurationRefresher = refresherProvider.Refreshers.First();
         }
 
         [FunctionName(FunctionName)]
@@ -38,6 +41,8 @@ namespace CalculateFunding.Functions.Specs.ServiceBus
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey,
             IsSessionsEnabled = true)] Message message)
         {
+            await _configurationRefresher.TryRefreshAsync();
+
             await base.Run(message);
         }
     }

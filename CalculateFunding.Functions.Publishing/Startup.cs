@@ -57,6 +57,7 @@ using FluentValidation;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.AzureAppConfiguration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.FeatureManagement;
 using Polly.Bulkhead;
@@ -95,6 +96,8 @@ namespace CalculateFunding.Functions.Publishing
         private static IServiceProvider Register(IServiceCollection builder,
             IConfigurationRoot config)
         {
+            builder.AddAppConfiguration();
+
             builder.AddSingleton<IFundingLineRoundingSettings, FundingLineRoundingSettings>();
 
             builder.AddSingleton<IBatchProfilingOptions, BatchProfilingOptions>();
@@ -220,16 +223,19 @@ namespace CalculateFunding.Functions.Publishing
                     _.GetService<IRefreshService>(),
                     _.GetService<IMessengerService>(),
                     _.GetService<IUserProfileProvider>(),
+                    _.GetService<IConfigurationRefresherProvider>(),
                     true));
                 builder.AddScoped(_ => new OnApproveAllProviderFunding(_.GetService<ILogger>(),
                     _.GetService<IApproveService>(),
                     _.GetService<IMessengerService>(),
                     _.GetService<IUserProfileProvider>(),
+                    _.GetService<IConfigurationRefresherProvider>(),
                     true));
                 builder.AddScoped(_ => new OnPublishAllProviderFunding(_.GetService<ILogger>(),
                     _.GetService<IPublishService>(),
                     _.GetService<IMessengerService>(),
                     _.GetService<IUserProfileProvider>(),
+                    _.GetService<IConfigurationRefresherProvider>(),
                     true));
                 builder.AddScoped<OnRunSqlImport>();
                 builder.AddScoped<OnRefreshFundingFailure>();
@@ -248,12 +254,14 @@ namespace CalculateFunding.Functions.Publishing
                     _.GetService<IApproveService>(),
                     _.GetService<IMessengerService>(),
                     _.GetService<IUserProfileProvider>(),
+                    _.GetService<IConfigurationRefresherProvider>(),
                     true));
                 builder.AddScoped<OnApproveBatchProviderFundingFailure>();
                 builder.AddScoped(_ => new OnPublishBatchProviderFunding(_.GetService<ILogger>(),
                     _.GetService<IPublishService>(),
                     _.GetService<IMessengerService>(),
                     _.GetService<IUserProfileProvider>(),
+                    _.GetService<IConfigurationRefresherProvider>(),
                     true));
                 builder.AddScoped<OnPublishBatchProviderFundingFailure>();
                 builder.AddScoped<OnPublishedFundingUndo>();

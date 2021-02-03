@@ -4,6 +4,7 @@ using CalculateFunding.Functions.Scenarios.ServiceBus;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Scenarios.Interfaces;
 using CalculateFunding.Tests.Common;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.DependencyInjection;
@@ -41,7 +42,8 @@ namespace CalculateFunding.Functions.Scenarios.SmokeTests
                 _datasetDefinitionFieldChangesProcessor,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                  _userProfileProvider,
-                IsDevelopment);
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
+                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.UpdateScenarioFieldDefinitionProperties,
                 async(Message smokeResponse) => await onDataDefinitionChanges.Run(smokeResponse),
@@ -59,7 +61,8 @@ namespace CalculateFunding.Functions.Scenarios.SmokeTests
                 _scenariosService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                  _userProfileProvider,
-                IsDevelopment);
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
+                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.DeleteTests,
                 async(Message smokeResponse) => await onDeleteTests.Run(smokeResponse));
@@ -76,7 +79,8 @@ namespace CalculateFunding.Functions.Scenarios.SmokeTests
                 _scenariosService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                  _userProfileProvider,
-                IsDevelopment);
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
+                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.UpdateScenariosForEditCalculation,
                 async(Message smokeResponse) => await onEditCalculationEvent.Run(smokeResponse),
@@ -94,7 +98,8 @@ namespace CalculateFunding.Functions.Scenarios.SmokeTests
                 _scenariosService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                  _userProfileProvider,
-                IsDevelopment);
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
+                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.UpdateScenariosForEditSpecification,
                 async(Message smokeResponse) => await onEditSpecificationEvent.Run(smokeResponse),

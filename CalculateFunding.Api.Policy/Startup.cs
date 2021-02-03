@@ -37,11 +37,13 @@ using TemplateMetadataSchema10 = CalculateFunding.Common.TemplateMetadata.Schema
 using TemplateMetadataSchema11 = CalculateFunding.Common.TemplateMetadata.Schema11;
 using CalculateFunding.Services.Core.AspNet.Extensions;
 using CalculateFunding.Services.Core.Services;
+using System;
 
 namespace CalculateFunding.Api.Policy
 {
     public class Startup
     {
+        private static readonly string AppConfigConnectionString = Environment.GetEnvironmentVariable("AzureConfiguration:ConnectionString");
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -61,6 +63,11 @@ namespace CalculateFunding.Api.Policy
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            if (!string.IsNullOrEmpty(AppConfigConnectionString))
+            {
+                app.UseAzureAppConfiguration();
+            }
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

@@ -7,6 +7,7 @@ using CalculateFunding.Services.Processing.Functions;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Extensions.Configuration.AzureAppConfiguration;
 using Serilog;
 
 namespace CalculateFunding.Functions.Publishing.ServiceBus
@@ -21,8 +22,10 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
             ILogger logger,
             IPublishService publishService,
             IMessengerService messengerService,
-            IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, publishService)
+            IUserProfileProvider userProfileProvider,
+            IConfigurationRefresherProvider refresherProvider,
+            bool useAzureStorage = false) 
+            : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, publishService, refresherProvider)
         {
             Guard.ArgumentNotNull(publishService, nameof(publishService));
 

@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Functions.Users.ServiceBus;
 using CalculateFunding.Common.ServiceBus.Interfaces;
+using CalculateFunding.Tests.Common.Helpers;
 
 namespace CalculateFunding.Functions.Users.SmokeTests
 {
@@ -39,7 +40,8 @@ namespace CalculateFunding.Functions.Users.SmokeTests
                 _fundingStreamPermissionService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                  _userProfileProvider,
-                IsDevelopment);
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
+                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.UpdateUsersForEditSpecification,
                 async(Message smokeResponse) => await onEditSpecificationEvent.Run(smokeResponse),

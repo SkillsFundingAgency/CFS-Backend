@@ -13,6 +13,7 @@ using Serilog;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using CalculateFunding.Tests.Common.Helpers;
 
 namespace CalculateFunding.Functions.Calcs.SmokeTests
 {
@@ -48,6 +49,7 @@ namespace CalculateFunding.Functions.Calcs.SmokeTests
                 Substitute.For<ICodeContextCache>(),
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _userProfileProvider,
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.ApplyTemplateCalculations,
@@ -66,6 +68,7 @@ namespace CalculateFunding.Functions.Calcs.SmokeTests
                 _applyTemplateCalculationsService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _userProfileProvider,
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.ApplyTemplateCalculations,
@@ -83,6 +86,7 @@ namespace CalculateFunding.Functions.Calcs.SmokeTests
                 _buildProjectsService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _userProfileProvider,
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.UpdateBuildProjectRelationships,
@@ -100,6 +104,7 @@ namespace CalculateFunding.Functions.Calcs.SmokeTests
                 _buildProjectsService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _userProfileProvider,
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.CalculationJobInitialiser, 
@@ -117,6 +122,7 @@ namespace CalculateFunding.Functions.Calcs.SmokeTests
                 _jobService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _userProfileProvider,
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.CreateInstructAllocationsJob,
@@ -135,6 +141,7 @@ namespace CalculateFunding.Functions.Calcs.SmokeTests
                 _datasetDefinitionFieldChangesProcessor,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _userProfileProvider,
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.UpdateCalculationFieldDefinitionProperties,
@@ -153,6 +160,7 @@ namespace CalculateFunding.Functions.Calcs.SmokeTests
                 _calculationService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _userProfileProvider,
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.DeleteCalculations,

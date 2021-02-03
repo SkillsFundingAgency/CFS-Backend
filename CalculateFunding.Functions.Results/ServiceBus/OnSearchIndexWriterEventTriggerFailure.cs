@@ -8,6 +8,7 @@ using CalculateFunding.Services.Processing.Functions;
 using CalculateFunding.Services.Processing.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Extensions.Configuration.AzureAppConfiguration;
 using Serilog;
 
 namespace CalculateFunding.Functions.Results.ServiceBus
@@ -19,7 +20,8 @@ namespace CalculateFunding.Functions.Results.ServiceBus
 
         public OnSearchIndexWriterEventTriggerFailure(
             ILogger logger,
-            IDeadletterService jobHelperService) : base (logger, jobHelperService, QueueName)
+            IDeadletterService jobHelperService,
+            IConfigurationRefresherProvider refresherProvider) : base (logger, jobHelperService, QueueName, refresherProvider)
         {
         }
 

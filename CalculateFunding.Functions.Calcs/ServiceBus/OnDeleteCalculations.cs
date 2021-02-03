@@ -7,6 +7,7 @@ using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Processing.Functions;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Extensions.Configuration.AzureAppConfiguration;
 using Serilog;
 
 namespace CalculateFunding.Functions.Calcs.ServiceBus
@@ -21,8 +22,10 @@ namespace CalculateFunding.Functions.Calcs.ServiceBus
             ILogger logger,
             ICalculationService calculationService,
             IMessengerService messengerService,
-            IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, calculationService)
+            IUserProfileProvider userProfileProvider,
+            IConfigurationRefresherProvider refresherProvider,
+            bool useAzureStorage = false) 
+            : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, calculationService, refresherProvider)
         {
             Guard.ArgumentNotNull(calculationService, nameof(calculationService));
 

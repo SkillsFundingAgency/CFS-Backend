@@ -8,6 +8,7 @@ using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Common.ServiceBus.Options;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core.AppConfiguration;
 using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Core.Logging;
 using CalculateFunding.Services.Core.Options;
@@ -17,6 +18,7 @@ using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.AzureAppConfiguration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Serilog.Core;
@@ -297,6 +299,20 @@ namespace CalculateFunding.Services.Core.Extensions
             httpClient.DefaultRequestHeaders?.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             httpClient.DefaultRequestHeaders?.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
             httpClient.DefaultRequestHeaders?.AcceptEncoding.Add(new StringWithQualityHeaderValue("deflate"));
+        }
+
+        public static void AddAppConfiguration(this IServiceCollection builder)
+        {
+            string appConfigConnectionString = Environment.GetEnvironmentVariable("AzureConfiguration:ConnectionString");
+
+            if (!string.IsNullOrEmpty(appConfigConnectionString))
+            {
+                builder.AddAzureAppConfiguration();
+            }
+            else
+            {
+                builder.AddScoped<IConfigurationRefresherProvider, LocalAppConfigurationRefreshProvider>();
+            }
         }
     }
 }

@@ -5,6 +5,7 @@ using CalculateFunding.Services.Processing.Functions;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Extensions.Configuration.AzureAppConfiguration;
 using Serilog;
 using System.Threading.Tasks;
 
@@ -22,8 +23,10 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
             ILogger logger,
             IPublishedProviderEstateCsvGenerator csvGenerator,
             IMessengerService messengerService,
-            IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, csvGenerator)
+            IUserProfileProvider userProfileProvider,
+            IConfigurationRefresherProvider refresherProvider,
+            bool useAzureStorage = false) 
+            : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, csvGenerator, refresherProvider)
         {
         }
 

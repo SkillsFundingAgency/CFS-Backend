@@ -44,6 +44,8 @@ namespace CalculateFunding.Api.External
 {
     public class Startup
     {
+        private static readonly string AppConfigConnectionString = Environment.GetEnvironmentVariable("AzureConfiguration:ConnectionString");
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -105,6 +107,11 @@ namespace CalculateFunding.Api.External
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostApplicationLifetime applicationLifetime, IWebHostEnvironment env, IApiVersionDescriptionProvider provider)
         {
+            if (!string.IsNullOrEmpty(AppConfigConnectionString))
+            {
+                app.UseAzureAppConfiguration();
+            }
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

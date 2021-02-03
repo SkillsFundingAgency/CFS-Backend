@@ -4,6 +4,7 @@ using CalculateFunding.Functions.Results.ServiceBus;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Tests.Common;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.DependencyInjection;
@@ -45,7 +46,8 @@ namespace CalculateFunding.Functions.Results.SmokeTests
                 _providerResultsCsvGeneratorService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                  _userProfileProvider,
-                IsDevelopment);
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
+                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.CalculationResultsCsvGeneration,
                 async(Message smokeResponse) => await onCalculationResultsCsvGeneration.Run(smokeResponse), useSession:true);
@@ -62,7 +64,8 @@ namespace CalculateFunding.Functions.Results.SmokeTests
                 _resultsService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                  _userProfileProvider,
-                IsDevelopment);
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
+                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.CleanupCalculationResultsForSpecificationProviders,
                 async(Message smokeResponse) => await onProviderResultsSpecificationCleanup.Run(smokeResponse),
@@ -80,7 +83,8 @@ namespace CalculateFunding.Functions.Results.SmokeTests
                 _providerCalculationResultsReIndexerService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                  _userProfileProvider,
-                IsDevelopment);
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
+                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.ReIndexCalculationResultsIndex,
                 async(Message smokeResponse) => await onReIndexCalculationResults.Run(smokeResponse));
@@ -97,6 +101,7 @@ namespace CalculateFunding.Functions.Results.SmokeTests
                 _providerResultsService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _userProfileProvider,
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.MergeSpecificationInformationForProvider,
@@ -114,6 +119,7 @@ namespace CalculateFunding.Functions.Results.SmokeTests
                 _resultsService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _userProfileProvider,
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.DeleteCalculationResults,

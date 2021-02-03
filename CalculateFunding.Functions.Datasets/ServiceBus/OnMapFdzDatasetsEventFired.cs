@@ -6,6 +6,7 @@ using CalculateFunding.Services.Datasets.Interfaces;
 using CalculateFunding.Services.Processing.Functions;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Extensions.Configuration.AzureAppConfiguration;
 using Serilog;
 using System.Threading.Tasks;
 
@@ -21,8 +22,10 @@ namespace CalculateFunding.Functions.Datasets.ServiceBus
         public OnMapFdzDatasetsEventFired(ILogger logger,
             IProcessDatasetService processDatasetService,
             IMessengerService messengerService,
-            IUserProfileProvider userProfileProvider, bool useAzureStorage = false)
-            : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, processDatasetService)
+            IUserProfileProvider userProfileProvider,
+            IConfigurationRefresherProvider refresherProvider,
+            bool useAzureStorage = false)
+            : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, processDatasetService, refresherProvider)
         {
             Guard.ArgumentNotNull(processDatasetService, nameof(processDatasetService));
 

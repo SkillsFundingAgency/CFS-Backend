@@ -6,6 +6,7 @@ using CalculateFunding.Services.Policy.Interfaces;
 using CalculateFunding.Services.Processing.Functions;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Extensions.Configuration.AzureAppConfiguration;
 using Serilog;
 
 namespace CalculateFunding.Functions.Policy.ServiceBus
@@ -18,8 +19,10 @@ namespace CalculateFunding.Functions.Policy.ServiceBus
         public OnReIndexTemplates(ILogger logger,
             ITemplatesReIndexerService templatesReIndexerService,
             IMessengerService messengerService,
-             IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, templatesReIndexerService)
+             IUserProfileProvider userProfileProvider,
+             IConfigurationRefresherProvider refresherProvider,
+             bool useAzureStorage = false) 
+            : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, templatesReIndexerService, refresherProvider)
         {
         }
 

@@ -1,16 +1,14 @@
 ﻿using CalculateFunding.Common.Models;
 using CalculateFunding.Common.ServiceBus.Interfaces;
-using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Constants;
-using CalculateFunding.Services.Core.Functions;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Serilog;
 using System;
 using System.Threading.Tasks;
 using CalculateFunding.Services.Providers.Interfaces;
-using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Processing.Functions;
+using Microsoft.Extensions.Configuration.AzureAppConfiguration;
 
 namespace CalculateFunding.Functions.Providers.ServiceBus
 {
@@ -24,8 +22,9 @@ namespace CalculateFunding.Functions.Providers.ServiceBus
             IMessengerService messengerService,
             IUserProfileProvider userProfileProvider,
             IProviderSnapshotDataLoadService providerSnapshotDataLoadService,
+            IConfigurationRefresherProvider refresherProvider,
             bool useAzureStorage = false)
-            : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, providerSnapshotDataLoadService)
+            : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, providerSnapshotDataLoadService, refresherProvider)
         {
         }
 

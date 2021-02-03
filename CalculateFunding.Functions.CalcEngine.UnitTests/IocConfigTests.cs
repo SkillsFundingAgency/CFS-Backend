@@ -33,6 +33,8 @@ namespace CalculateFunding.Functions.CalcEngine.UnitTests
 
         protected override void RegisterDependencies()
         {
+
+
             Startup.RegisterComponents(ServiceCollection, CreateTestConfiguration());
         }
     }

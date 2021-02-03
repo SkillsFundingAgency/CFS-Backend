@@ -69,6 +69,8 @@ namespace CalculateFunding.Api.Publishing
 {
     public class Startup
     {
+        private static readonly string AppConfigConnectionString = Environment.GetEnvironmentVariable("AzureConfiguration:ConnectionString");
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -90,8 +92,10 @@ namespace CalculateFunding.Api.Publishing
         public void Configure(IApplicationBuilder app,
             IWebHostEnvironment env)
         {
-            //TODO: this is required for dynamic changes and more config implementation is required
-            //app.UseAzureAppConfiguration();
+            if (!string.IsNullOrEmpty(AppConfigConnectionString))
+            {
+                app.UseAzureAppConfiguration();
+            }
 
             if (env.IsDevelopment())
             {

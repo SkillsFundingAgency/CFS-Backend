@@ -4,6 +4,7 @@ using CalculateFunding.Functions.Datasets.ServiceBus;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Datasets.Interfaces;
 using CalculateFunding.Tests.Common;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.DependencyInjection;
@@ -44,6 +45,7 @@ namespace CalculateFunding.Functions.Datasets.SmokeTests
                 _datasetDefinitionChangesProcessor,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _userProfileProvider,
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.UpdateDataDefinitionName,
@@ -62,6 +64,7 @@ namespace CalculateFunding.Functions.Datasets.SmokeTests
                 _processDatasetService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _userProfileProvider,
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.MapFdzDatasets,
@@ -79,6 +82,7 @@ namespace CalculateFunding.Functions.Datasets.SmokeTests
                 _processDatasetService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _userProfileProvider,
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.ProcessDataset,
@@ -96,6 +100,7 @@ namespace CalculateFunding.Functions.Datasets.SmokeTests
                 _datasetService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _userProfileProvider,
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.ValidateDataset,
@@ -113,6 +118,7 @@ namespace CalculateFunding.Functions.Datasets.SmokeTests
                 _datasetService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _userProfileProvider,
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.DeleteDatasets,

@@ -4,6 +4,7 @@ using CalculateFunding.Functions.TestEngine.ServiceBus;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using CalculateFunding.Tests.Common;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.DependencyInjection;
@@ -41,7 +42,8 @@ namespace CalculateFunding.Functions.TestEngine.SmokeTests
                 _testResultsService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                  _userProfileProvider,
-                IsDevelopment);
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
+                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.DeleteTestResults,
                 async(Message smokeResponse) => await onDeleteTestResults.Run(smokeResponse));
@@ -58,7 +60,8 @@ namespace CalculateFunding.Functions.TestEngine.SmokeTests
                 _testResultsService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                  _userProfileProvider,
-                IsDevelopment);
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
+                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.UpdateScenarioResultsForEditSpecification,
                 async(Message smokeResponse) => await onEditSpecificationEvent.Run(smokeResponse),
@@ -76,7 +79,8 @@ namespace CalculateFunding.Functions.TestEngine.SmokeTests
                 _testEngineService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                  _userProfileProvider,
-                IsDevelopment);
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
+                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.TestEngineExecuteTests,
                 async(Message smokeResponse) => await onTestExecution.Run(smokeResponse));
@@ -93,7 +97,8 @@ namespace CalculateFunding.Functions.TestEngine.SmokeTests
                 _testResultsService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                  _userProfileProvider,
-                IsDevelopment);
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
+                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.CleanupTestResultsForSpecificationProviders,
                 async(Message smokeResponse) => await onTestSpecificationProviderResultsCleanup.Run(smokeResponse),

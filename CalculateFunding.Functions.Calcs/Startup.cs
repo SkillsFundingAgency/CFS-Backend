@@ -76,6 +76,8 @@ namespace CalculateFunding.Functions.Calcs
 
         private static IServiceProvider Register(IServiceCollection builder, IConfigurationRoot config)
         {
+            builder.AddAppConfiguration();
+
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
 
             builder.AddFeatureManagement();

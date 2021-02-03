@@ -7,6 +7,7 @@ using CalculateFunding.Services.Datasets.Interfaces;
 using CalculateFunding.Services.Processing.Functions;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Extensions.Configuration.AzureAppConfiguration;
 using Serilog;
 
 namespace CalculateFunding.Functions.Datasets.ServiceBus
@@ -22,8 +23,10 @@ namespace CalculateFunding.Functions.Datasets.ServiceBus
             ILogger logger,
             IDatasetService datasetService,
             IMessengerService messengerService,
-            IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, datasetService)
+            IUserProfileProvider userProfileProvider,
+            IConfigurationRefresherProvider refresherProvider,
+            bool useAzureStorage = false) 
+            : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, datasetService, refresherProvider)
         {
             Guard.ArgumentNotNull(datasetService, nameof(datasetService));
 

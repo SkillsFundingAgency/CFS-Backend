@@ -3,6 +3,7 @@ using CalculateFunding.Services.Processing.Functions;
 using CalculateFunding.Services.Processing.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Extensions.Configuration.AzureAppConfiguration;
 using Serilog;
 using System.Threading.Tasks;
 
@@ -15,7 +16,8 @@ namespace CalculateFunding.Functions.Calcs.ServiceBus
 
         public OnApproveAllCalculationsFailure(
             ILogger logger,
-            IDeadletterService jobHelperService) : base(logger, jobHelperService, QueueName)
+            IDeadletterService jobHelperService,
+            IConfigurationRefresherProvider refresherProvider) : base(logger, jobHelperService, QueueName, refresherProvider)
         {
         }
 

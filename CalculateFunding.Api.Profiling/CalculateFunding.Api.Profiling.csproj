@@ -21,6 +21,7 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="5.5.0" />
     <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="5.1.1" />
     <PackageReference Include="Swashbuckle.AspNetCore.Newtonsoft" Version="5.5.0" />
+    <PackageReference Include="Microsoft.Azure.AppConfiguration.AspNetCore" Version="4.1.0" />
   </ItemGroup>
 
   <ItemGroup>

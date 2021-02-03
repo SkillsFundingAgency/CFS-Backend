@@ -7,6 +7,7 @@ using CalculateFunding.Services.Processing.Functions;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Extensions.Configuration.AzureAppConfiguration;
 using Serilog;
 
 namespace CalculateFunding.Functions.TestEngine.ServiceBus
@@ -21,8 +22,10 @@ namespace CalculateFunding.Functions.TestEngine.ServiceBus
             ILogger logger,
             ITestResultsService testResultsService,
             IMessengerService messengerService,
-            IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, testResultsService)
+            IUserProfileProvider userProfileProvider,
+            IConfigurationRefresherProvider refresherProvider,
+            bool useAzureStorage = false) 
+            : base(logger, messengerService, FunctionName, QueueName, useAzureStorage, userProfileProvider, testResultsService, refresherProvider)
         {
             Guard.ArgumentNotNull(testResultsService, nameof(testResultsService));
 

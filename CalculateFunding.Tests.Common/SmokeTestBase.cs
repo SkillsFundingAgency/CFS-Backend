@@ -1,6 +1,5 @@
 ﻿using CalculateFunding.Common.Models;
 using CalculateFunding.Services.Core.Constants;
-using CalculateFunding.Services.Core.Options;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using System;
@@ -10,8 +9,6 @@ using System.Linq;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Helpers;
 using Microsoft.Extensions.DependencyInjection;
-using System.Diagnostics;
-using CalculateFunding.Service.Core.Extensions;
 using NSubstitute;
 using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Common.ServiceBus.Options;
@@ -48,7 +45,7 @@ namespace CalculateFunding.Tests.Common
             {
                 if (_useMocking)
                 {
-                    return Substitute.For<IMessengerService, IServiceBusService, IQueueService>(); ;
+                    return Substitute.For<IMessengerService, IServiceBusService, IQueueService>();
                 }
                 else
                 {

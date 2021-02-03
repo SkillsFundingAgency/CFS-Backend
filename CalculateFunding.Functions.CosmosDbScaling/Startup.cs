@@ -35,7 +35,6 @@ namespace CalculateFunding.Functions.CosmosDbScaling
         public static IServiceProvider RegisterComponents(IServiceCollection builder, IConfiguration azureFuncConfig = null)
         {
             IConfigurationRoot config = ConfigHelper.AddConfig(azureFuncConfig);
-
             return RegisterComponents(builder, config);
         }
 
@@ -46,6 +45,8 @@ namespace CalculateFunding.Functions.CosmosDbScaling
 
         private static IServiceProvider Register(IServiceCollection builder, IConfigurationRoot config)
         {
+            builder.AddAppConfiguration();
+
             // These registrations of the functions themselves are just for the DebugQueue. Ideally we don't want these registered in production
             if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
             {
