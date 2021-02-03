@@ -3,6 +3,8 @@ using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Interfaces.Undo;
 using CalculateFunding.Services.Publishing.Undo;
 using Serilog;
+using System;
+using System.Collections.Generic;
 
 namespace CalculateFunding.Migrations.DSG.RollBack.Migrations
 {
@@ -52,5 +54,27 @@ namespace CalculateFunding.Migrations.DSG.RollBack.Migrations
             ProducerConsumerFactory,
             Logger,
             JobTracker);
+
+        public IEnumerable<IPublishedFundingUndoJobTask> CreateUndoTasks(PublishedFundingUndoTaskContext taskContext)
+        {
+            List<IPublishedFundingUndoJobTask> undoTasks = new List<IPublishedFundingUndoJobTask>();
+
+            AddWithNullCheck(taskContext.PublishedFundingDetails, undoTasks, CreatePublishedFundingUndoTask);
+            AddWithNullCheck(taskContext.PublishedFundingVersionDetails, undoTasks, CreatePublishedFundingVersionUndoTask);
+            AddWithNullCheck(taskContext.PublishedProviderDetails, undoTasks, CreatePublishedProviderUndoTask);
+            AddWithNullCheck(taskContext.PublishedProviderVersionDetails, undoTasks, CreatePublishedProviderVersionUndoTask);
+
+            return undoTasks;
+        }
+
+        private void AddWithNullCheck(object property, ICollection<IPublishedFundingUndoJobTask> undoTasks, Func<IPublishedFundingUndoJobTask> createTask)
+        {
+            if (property == null)
+            {
+                return;
+            }
+
+            undoTasks.Add(createTask());
+        }
     }
 }

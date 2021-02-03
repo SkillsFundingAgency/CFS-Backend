@@ -38,10 +38,12 @@ namespace CalculateFunding.Services.Publishing.Undo
         {
             List<string> errors = new List<string>();
             
-            GuardAgainstNull(PublishedFundingDetails, nameof(PublishedFundingDetails), errors);
-            GuardAgainstNull(PublishedFundingVersionDetails, nameof(PublishedFundingVersionDetails), errors);
-            GuardAgainstNull(PublishedProviderDetails, nameof(PublishedProviderDetails), errors);
-            GuardAgainstNull(PublishedProviderVersionDetails, nameof(PublishedProviderVersionDetails), errors);
+            if(PublishedFundingDetails == null && PublishedFundingVersionDetails == null
+                && PublishedProviderDetails == null && PublishedProviderVersionDetails == null)
+            {
+                errors.Add($"No funding or provider details in the task context.");
+            }
+
 
             return (!errors.Any(), errors);
         }

@@ -1,7 +1,10 @@
+using CalculateFunding.Services.Publishing.Interfaces.Undo;
 using CalculateFunding.Services.Publishing.Undo;
 using CalculateFunding.Services.Publishing.Undo.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Undo
 {
@@ -56,6 +59,34 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
         public void CreatesSoftDeletePublishedFundingVersionUndoTasks()
         {
             TheTaskIs<SoftDeletePublishedFundingVersionUndoTask>(Factory.CreatePublishedFundingVersionUndoTask());    
+        }
+
+        [TestMethod]
+        public void CreateSoftDeleteUndoTasksBasedOnContext()
+        {
+            PublishedFundingUndoTaskContext context = NewPublishedFundingUndoTaskContext(_ =>
+            _.WithPublishedFundingDetails(NewUndoTaskDetails())
+            .WithPublishedFundingVersionDetails(NewUndoTaskDetails())
+            .WithPublishedProviderDetails(NewUndoTaskDetails())
+            .WithPublishedProviderVersionDetails(NewUndoTaskDetails()));
+
+            IEnumerable<IPublishedFundingUndoJobTask> undoTasks = WhenTheFactoryCreatesUndoTasks(context);
+
+            undoTasks.Select(x => x.GetType())
+                .Should()
+                .BeEquivalentTo(new[]
+                {
+                    typeof(PublishedProviderUndoTask),
+                    typeof(SoftDeletePublishedProviderVersionsUndoTask),
+                    typeof(PublishedFundingUndoTask),
+                    typeof(SoftDeletePublishedFundingVersionUndoTask)
+                }, opt
+                    => opt.WithoutStrictOrdering());
+        }
+
+        private IEnumerable<IPublishedFundingUndoJobTask> WhenTheFactoryCreatesUndoTasks(PublishedFundingUndoTaskContext context)
+        {
+            return Factory.CreateUndoTasks(context);
         }
     }
 }

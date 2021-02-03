@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
@@ -65,21 +66,19 @@ namespace CalculateFunding.Services.Publishing.Undo
                 IPublishedFundingUndoTaskFactory taskFactory = _factoryLocator.GetTaskFactoryFor(parameters);
 
                 IPublishedFundingUndoJobTask initialiseContextTask = taskFactory.CreateContextInitialisationTask();
-                IPublishedFundingUndoJobTask undoPublishedProviderTask = taskFactory.CreatePublishedProviderUndoTask();
-                IPublishedFundingUndoJobTask undoPublishedProviderVersionTask = taskFactory.CreatePublishedProviderVersionUndoTask();
-                IPublishedFundingUndoJobTask undoPublishedFundingTask = taskFactory.CreatePublishedFundingUndoTask();
-                IPublishedFundingUndoJobTask undoPublishedFundingVersionTask = taskFactory.CreatePublishedFundingVersionUndoTask();
-
                 PublishedFundingUndoTaskContext taskContext = new PublishedFundingUndoTaskContext(parameters);
-
                 await initialiseContextTask.Run(taskContext);
 
-                Task[] undoTasks = new[]
-                {
-                    undoPublishedFundingTask.Run(taskContext), undoPublishedFundingVersionTask.Run(taskContext), undoPublishedProviderTask.Run(taskContext), undoPublishedProviderVersionTask.Run(taskContext)
-                };
+                IEnumerable<IPublishedFundingUndoJobTask> undoTasksToExecute = taskFactory.CreateUndoTasks(taskContext);
 
-                await TaskHelper.WhenAllAndThrow(undoTasks);
+                List<Task> undoTasks = new List<Task>();
+
+                foreach (var tasktoExecute in undoTasksToExecute)
+                {
+                    undoTasks.Add(tasktoExecute.Run(taskContext));
+                }
+
+                await TaskHelper.WhenAllAndThrow(undoTasks.ToArray());
 
                 EnsureNoTaskErrors(taskContext);
             }

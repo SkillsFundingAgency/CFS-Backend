@@ -1,4 +1,5 @@
 using CalculateFunding.Services.Publishing.Undo;
+using System.Collections.Generic;
 
 namespace CalculateFunding.Services.Publishing.Interfaces.Undo
 {
@@ -15,5 +16,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces.Undo
         IPublishedFundingUndoJobTask CreatePublishedFundingUndoTask();
         
         IPublishedFundingUndoJobTask CreatePublishedFundingVersionUndoTask();
+
+        IEnumerable<IPublishedFundingUndoJobTask> CreateUndoTasks(PublishedFundingUndoTaskContext taskContext);
     }
 }

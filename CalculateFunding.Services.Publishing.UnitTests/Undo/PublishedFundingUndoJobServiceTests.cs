@@ -33,11 +33,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
         private Mock<IPublishedFundingUndoJobTask> _undoPublishedFundingVersionsTask;
 
         private Message _message;
-        
+
         private IPublishedFundingUndoJobService _service;
 
         private List<Mock<IPublishedFundingUndoJobTask>> _invokedTasks;
-        
+
         [TestInitialize]
         public void SetUp()
         {
@@ -54,29 +54,27 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
 
             _taskFactory.Setup(_ => _.CreateContextInitialisationTask())
                 .Returns(_initialiseTask.Object);
-            _taskFactory.Setup(_ => _.CreatePublishedFundingUndoTask())
-                .Returns(_undoPublishedFundingTask.Object);
-            _taskFactory.Setup(_ => _.CreatePublishedFundingVersionUndoTask())
-                .Returns(_undoPublishedFundingVersionsTask.Object);
-            _taskFactory.Setup(_ => _.CreatePublishedProviderUndoTask())
-                .Returns(_undoPublishedProvidersTask.Object);
-            _taskFactory.Setup(_ => _.CreatePublishedProviderVersionUndoTask())
-                .Returns(_undoPublishedProviderVersionsTask.Object);
-            
+           _taskFactory.Setup(_ => _.CreateUndoTasks(It.IsAny<PublishedFundingUndoTaskContext>()))
+                .Returns(new[] {
+                    _undoPublishedFundingTask.Object,
+                    _undoPublishedFundingVersionsTask.Object,
+                    _undoPublishedProvidersTask.Object,
+                    _undoPublishedProviderVersionsTask.Object});
+
             _service = new PublishedFundingUndoJobService(_taskFactoryLocator.Object,
                 _jobManagement.Object,
                 _jobCreation.Object,
                 Logger.None);
-            
+
             _message = new Message();
-            
+
             _invokedTasks = new List<Mock<IPublishedFundingUndoJobTask>>();
         }
 
         [TestMethod]
         public void GuardsAgainstMissingForCorrelationIdInMessage()
         {
-            GivenTheMessageProperties(("is-hard-delete", NewRandomFlag().ToString()), 
+            GivenTheMessageProperties(("is-hard-delete", NewRandomFlag().ToString()),
                 ("jobId", NewRandomString()));
 
             Func<Task> invocation = WhenTheJobIsRun;
@@ -89,11 +87,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
                 .Should()
                 .Be("for-correlation-id");
         }
-        
+
         [TestMethod]
         public void GuardsAgainstMissingJobIdInMessage()
         {
-            GivenTheMessageProperties(("is-hard-delete", NewRandomFlag().ToString()), 
+            GivenTheMessageProperties(("is-hard-delete", NewRandomFlag().ToString()),
                 ("for-correlation-id", NewRandomString()));
 
             Func<Task> invocation = WhenTheJobIsRun;
@@ -106,11 +104,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
                 .Should()
                 .Be("jobId");
         }
-        
+
         [TestMethod]
         public void GuardsAgainstMissingIsHardDeleteInMessage()
         {
-            GivenTheMessageProperties(("jobId", NewRandomString()), 
+            GivenTheMessageProperties(("jobId", NewRandomString()),
                 ("for-correlation-id", NewRandomString()));
 
             Func<Task> invocation = WhenTheJobIsRun;
@@ -130,15 +128,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
         public async Task BuildsTasksForSuppliedParametersAndRunsJob(bool isHardDelete)
         {
             string jobId = NewRandomString();
-            
+
             GivenTheMessageProperties(("jobId", jobId),
                 ("for-correlation-id", NewRandomString()),
                 ("is-hard-delete", isHardDelete.ToString()));
             AndTheTaskFactoryIsForTheSuppliedParameters();
             AndTheJobCanBeTracked(jobId);
-            
+
             await WhenTheJobIsRun();
-            
+
             ThenTheContextWasInitialisedFirst();
             AndTheRemainingUndoTasksWereRunAfter();
             AndTheJobWasCompleted(jobId);
@@ -155,11 +153,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
                 ("is-hard-delete", NewRandomFlag().ToString()));
             AndTheTaskFactoryIsForTheSuppliedParameters();
             AndTheJobCanBeTracked(jobId);
-            
+
             Func<Task> invocation = WhenTheJobIsRun;
-            
+
             Exception expectedInnerException = new Exception();
-            
+
             AndTheTaskCollectsException(_undoPublishedFundingVersionsTask, expectedInnerException);
 
             invocation
@@ -177,7 +175,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
                 .InnerExceptions
                 .Should()
                 .BeEquivalentTo(new object[] { expectedInnerException });
-            
+
             AndTheJobWasFailed(jobId, $"Unable to complete {JobConstants.DefinitionNames.PublishedFundingUndoJob} for correlationId: {correlationId}.\nUndo tasks generated unhandled exceptions");
         }
 
@@ -197,7 +195,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
                 .Should()
                 .Be("forCorrelationId");
         }
-        
+
         [TestMethod]
         public void QueuesUndoJobsGuardsAgainstMissingUser()
         {
@@ -214,7 +212,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
                 .Should()
                 .Be("user");
         }
-        
+
         private async Task<Job> WhenTheJobIsQueued(string forCorrelationId,
             bool isHardDelete,
             Reference user,
@@ -225,7 +223,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
                 user,
                 correlationId);
         }
-        
+
         private async Task WhenTheJobIsRun()
         {
             await _service.Run(_message);
@@ -286,7 +284,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
                     ctx.Parameters.ToString() == GetParametersString())))
                 .Callback(() => _invokedTasks.Add(task))
                 .Returns(Task.CompletedTask);
-            
+
             return task;
         }
 
@@ -299,13 +297,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
         {
             string parameters = GetParametersString();
 
-            _taskFactoryLocator.Setup(_ => _.GetTaskFactoryFor(It.Is<PublishedFundingUndoJobParameters>(prm 
+            _taskFactoryLocator.Setup(_ => _.GetTaskFactoryFor(It.Is<PublishedFundingUndoJobParameters>(prm
                     => prm.ToString() == parameters)))
                 .Returns(_taskFactory.Object);
         }
 
         private string GetParametersString() => new PublishedFundingUndoJobParameters(_message).ToString();
-        
+
         private Reference NewUser() => new ReferenceBuilder().Build();
     }
 }
