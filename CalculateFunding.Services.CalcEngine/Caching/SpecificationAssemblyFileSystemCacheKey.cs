@@ -5,12 +5,10 @@ namespace CalculateFunding.Services.CalcEngine.Caching
     public class SpecificationAssemblyFileSystemCacheKey : FileSystemCacheKey
     {
         public SpecificationAssemblyFileSystemCacheKey(string specificationId,
-            string etag) : base($"SpecificationAssembly_{specificationId}_{etag.Replace("\"", "")}")
+            string etag)
+            : base($"SpecificationAssembly_{specificationId}_{etag.Replace("\"", "")}",
+                "specification-assemblies")
         {
         }
-
-        public const string Folder = "specification-assemblies";
-
-        public override string Path => $"{Folder}\\{Key}";
     }
 }

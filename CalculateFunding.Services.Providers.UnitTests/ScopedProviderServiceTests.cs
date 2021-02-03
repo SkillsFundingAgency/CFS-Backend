@@ -96,6 +96,85 @@ namespace CalculateFunding.Services.Providers.UnitTests
                     _bytesWrittenToFileSystemCache[key.Key] = writtenBytes;
                 });
         }
+        
+        [TestMethod]
+        public void FetchCoreProviderData_GuardsAgainstMissingSpecificationSummary()
+        {
+            Func<IActionResult> invocation = () => WhenTheCoreProviderDataIsFetched(NewRandomString())
+                .GetAwaiter()
+                .GetResult();
+
+            invocation
+                .Should()
+                .Throw<ArgumentNullException>()
+                .Which
+                .ParamName
+                .Should()
+                .Be("specificationSummary");
+        }
+
+        [TestMethod]
+        public async Task FetchCoreProviderData_ReturnsFileSystemDataForFdzProviderSources()
+        {
+            string specificationId = NewRandomString();
+            string providerVersionId = NewRandomString();
+            
+            SpecificationSummary specificationSummary = NewSpecificationSummary(_ => _.WithId(specificationId)
+                .WithProviderSource(ProviderSource.FDZ)
+                .WithProviderVersionId(providerVersionId));
+
+            Provider providerOne = NewProvider();
+            Provider providerTwo = NewProvider();
+
+            ProviderSummary[] expectedProviderSummaries = MapProvidersToSummaries(providerOne, providerTwo);
+            
+            GivenTheSpecificationSummary(specificationId, specificationSummary);
+            AndTheProviderVersionInTheFileSystemCache(providerVersionId, NewProviderVersion(_ => 
+                _.WithProviders(providerOne, providerTwo)));
+            
+            ContentResult result = await WhenTheCoreProviderDataIsFetched(specificationId) as ContentResult;
+            
+            result
+                .Content
+                .Should()
+                .Be(expectedProviderSummaries.AsJson());
+
+            result
+                .ContentType
+                .Should()
+                .Be("application/json");
+        }
+        
+        [TestMethod]
+        public async Task FetchCoreProviderData_ReturnsBlobDataForFdzProviderSourcesAndAddsToFileSystemCacheForProviderVersionIdIfNotAlreadyCached()
+        {
+            string specificationId = NewRandomString();
+            string providerVersionId = NewRandomString();
+            
+            SpecificationSummary specificationSummary = NewSpecificationSummary(_ => _.WithId(specificationId)
+                .WithProviderSource(ProviderSource.FDZ)
+                .WithProviderVersionId(providerVersionId));
+
+            Provider providerOne = NewProvider();
+            Provider providerTwo = NewProvider();
+            
+            GivenTheSpecificationSummary(specificationId, specificationSummary);
+            AndTheProviderVersion(providerVersionId, NewProviderVersion(_ => _.WithProviders(providerOne, providerTwo)));
+            
+            ContentResult result = await WhenTheCoreProviderDataIsFetched(specificationId) as ContentResult;
+            
+            ProviderSummary[] expectedProviderSummaries = MapProvidersToSummaries(providerOne, providerTwo);
+            
+            result
+                .Content
+                .Should()
+                .Be(expectedProviderSummaries.AsJson());
+
+            result
+                .ContentType
+                .Should()
+                .Be("application/json");
+        }
 
         [TestMethod]
         public async Task GetScopedProviderIds_WhenProviderSourceIsCFS_FetchesScopedProviderIdsFromResultsService()
@@ -330,7 +409,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
         private void GivenTheSpecificationSummary(string specificationId,
             SpecificationSummary specificationSummary)
         {
-            _specificationsApiClient.Setup(_ => _.GetSpecificationSummaryById(specificationId))
+            _specificationsApiClient.Setup(_ => _.GetSpecificationSummaryById(specificationSummary.Id))
                 .ReturnsAsync(new ApiResponse<SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
         }
 
@@ -432,31 +511,55 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 .ReturnsAsync(providerSummaries);
         }
 
+        private void AndTheProviderVersionInTheFileSystemCache(string providerVersionId,
+            ProviderVersion providerVersion)
+        {
+            GivenTheFileSystemCacheContents(new ProviderVersionFileSystemCacheKey(providerVersionId).Key,
+                 providerVersion.AsJsonBytes());
+        }
+
         private void AndTheProviderSummariesInTheFileSystemCache(string specificationId,
             string cacheGuid,
             IEnumerable<ProviderSummary> cachedProviderSummaries)
         {
-            string fileSystemCacheKey = new ScopedProvidersFileSystemCacheKey(specificationId, cacheGuid).Key;
+            GivenTheFileSystemCacheContents(new ScopedProvidersFileSystemCacheKey(specificationId, cacheGuid).Key, 
+                cachedProviderSummaries.AsJsonBytes());
+        }
 
+        private void GivenTheFileSystemCacheContents(string fileSystemCacheKey,
+            byte[] documentBytes)
+        {
             _fileSystemCache.Setup(_ => _.Exists(It.Is<FileSystemCacheKey>(fs => fs.Key == fileSystemCacheKey)))
                 .Returns(true);
             _fileSystemCache.Setup(_ => _.Get(It.Is<FileSystemCacheKey>(fs => fs.Key == fileSystemCacheKey)))
-                .Returns(new MemoryStream(cachedProviderSummaries.AsJsonBytes()));
+                .Returns(new MemoryStream(documentBytes));
+        }
+
+        private void AndTheProviderVersionWasAddedToTheFileSystemCache(string providerVersionId,
+            params ProviderSummary[] providerSummaries)
+        {
+            AndTheFileSystemCacheDataWasWritten(new ProviderVersionFileSystemCacheKey(providerVersionId).Key, 
+                providerSummaries.AsJsonBytes());
         }
 
         private void AndTheProviderSummariesWereAddedToTheFileSystemCache(string specificationId,
             string cacheGuid,
             IEnumerable<ProviderSummary> providerSummaries)
         {
-            string fileSystemCacheKey = new ScopedProvidersFileSystemCacheKey(specificationId, cacheGuid).Key;
+            AndTheFileSystemCacheDataWasWritten(new ScopedProvidersFileSystemCacheKey(specificationId, cacheGuid).Key, 
+                providerSummaries.AsJsonBytes());
+        }
 
+        private void AndTheFileSystemCacheDataWasWritten(string fileSystemCacheKey,
+            byte[] expectedData)
+        {
             _bytesWrittenToFileSystemCache.TryGetValue(fileSystemCacheKey, out byte[] actualBytes)
                 .Should()
                 .BeTrue();
 
             actualBytes
                 .Should()
-                .BeEquivalentTo(providerSummaries.AsJsonBytes());
+                .BeEquivalentTo(expectedData);
         }
 
         private void AndTheFileSystemCacheFolderWasLazilyInitialised()

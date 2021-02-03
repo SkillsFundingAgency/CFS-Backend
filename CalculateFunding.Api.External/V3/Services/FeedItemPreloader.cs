@@ -53,7 +53,8 @@ namespace CalculateFunding.Api.External.V3.Services
         {
             if (ShouldNotPreload) return;
             
-            _cache.EnsureFoldersExist(FundingFileSystemCacheKey.Folder, ProviderFundingFileSystemCacheKey.Folder);
+            _cache.EnsureFoldersExist(FundingFileSystemCacheKey.Folder, 
+                ProviderFundingFileSystemCacheKey.Folder);
         }
 
         public async Task BeginFeedItemPreLoading()

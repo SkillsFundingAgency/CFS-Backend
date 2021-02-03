@@ -23,6 +23,8 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
         private FileSystemCache _cache;
         
         private ICollection<TempFile> _tempFiles;
+        private string _providerFundingFolder;
+        private string _fundingFolder;
 
         [TestInitialize]
         public void SetUp()
@@ -30,6 +32,9 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
             _systemCacheSettings = Substitute.For<IFileSystemCacheSettings>();
             _fileSystemAccess = Substitute.For<IFileSystemAccess>();
 
+            _providerFundingFolder = ProviderFundingFileSystemCacheKey.Folder;
+            _fundingFolder = FundingFileSystemCacheKey.Folder;
+            
             _root = NewRandomString();
             _prefix = NewRandomString();
             
@@ -166,8 +171,8 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
             EnsureFoldersExist();
             
             ThenFolderWasCreated(_root);
-            AndFolderWasCreated(Path.Combine(_root, ProviderFundingFileSystemCacheKey.Folder));
-            AndFolderWasCreated(Path.Combine(_root, FundingFileSystemCacheKey.Folder));
+            AndFolderWasCreated(Path.Combine(_root, _providerFundingFolder));
+            AndFolderWasCreated(Path.Combine(_root, _fundingFolder));
         }
         
         [TestMethod]
@@ -178,8 +183,8 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
             EnsureFoldersExist();
             
             ThenFolderWasNotCreated(_root);
-            AndFolderWasCreated(Path.Combine(_root, ProviderFundingFileSystemCacheKey.Folder));
-            AndFolderWasCreated(Path.Combine(_root, FundingFileSystemCacheKey.Folder));
+            AndFolderWasCreated(Path.Combine(_root, _providerFundingFolder));
+            AndFolderWasCreated(Path.Combine(_root, _fundingFolder));
         }
 
         [TestMethod]
@@ -274,7 +279,7 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
 
         private void EnsureFoldersExist()
         {
-            _cache.EnsureFoldersExist(ProviderFundingFileSystemCacheKey.Folder, FundingFileSystemCacheKey.Folder);
+            _cache.EnsureFoldersExist(_providerFundingFolder, _fundingFolder);
         }
 
         private void GivenAddThrowsException(string key, Stream content, CancellationToken cancellationToken, Exception exception)
@@ -337,7 +342,7 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
 
         private class TestCacheKey : FileSystemCacheKey
         {
-            public TestCacheKey(string key) : base(key)
+            public TestCacheKey(string key) : base(key, null)
             {
             }
 
