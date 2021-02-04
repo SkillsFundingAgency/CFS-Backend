@@ -69,7 +69,10 @@ namespace CalculateFunding.Services.Publishing.Errors
                     publishedProvidersContext.FundingConfiguration,
                     apiClientProviders,
                     publishedProvidersContext.ProviderVersionId);
-                organisationGroupsHashSet = organisationGroups.SelectMany(_ => _.Identifiers.Select(_ => $"{_.Type}-{_.Value}")).Distinct().ToHashSet();
+                organisationGroupsHashSet = organisationGroups
+                                            .Where(_ => _.Providers.AnyWithNullCheck() 
+                                                        && _.Providers.Any(p => p.ProviderId == publishedProvider.Current.ProviderId))
+                                            .SelectMany(_ => _.Identifiers.Select(_ => $"{_.Type}-{_.Value}")).Distinct().ToHashSet();
                 publishedProvidersContext.OrganisationGroupResultsData.Add(keyForOrganisationGroups, organisationGroupsHashSet);
             }
 

@@ -13,6 +13,7 @@ using CalculateFunding.Services.Publishing.Errors;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Tests.Common.Helpers;
+using ApiProvider = CalculateFunding.Common.ApiClient.Providers.Models.Provider;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -64,7 +65,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
             SpecificationSummary specificationSummary = NewSpecificationSummary(_ => _.WithId(specificationId).WithProviderVersionId(providerVersionId));
             PublishedProvider publishedProvider = NewPublishedProvider(_ => _
                 .WithCurrent(NewPublishedProviderVersion(pv => pv.WithFundingStreamId(fundingStreamId)
-                    .WithFundingPeriodId(fundingPeriodId)))
+                    .WithFundingPeriodId(fundingPeriodId)
+                    .WithProviderId(providerId2)))
                 .WithReleased(NewPublishedProviderVersion(pv => pv.WithFundingStreamId(fundingStreamId)
                     .WithFundingPeriodId(fundingPeriodId)
                     .WithProviderId(providerId2)
@@ -84,13 +86,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
                     {
                         NewOrganisationIdentifier(i => i.WithType(groupTypeIdentifier).WithValue(identifierValue1)),
                         NewOrganisationIdentifier(i => i.WithType(groupTypeIdentifier).WithValue(NewRandomString()))
-                    })),
+                    }))
+                ,
                 NewOrganisationGroupResult(_ => _
                     .WithIdentifiers(new[]
                     {
                         NewOrganisationIdentifier(i => i.WithType(groupTypeIdentifier).WithValue(identifierValue2)),
                         NewOrganisationIdentifier(i => i.WithType(groupTypeIdentifier).WithValue(NewRandomString()))
-                    }))
+                    })
+                    .WithProviders(new[] { new ApiProvider { ProviderId = providerId2 } }))
             };
 
             IEnumerable<PublishedFunding> publishedFundings = new[]
