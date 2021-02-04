@@ -1,0 +1,40 @@
+pool:
+  name: Hosted Ubuntu 1604
+
+trigger:
+- master
+
+steps:
+- bash: |
+   echo $(DeploymentKey) | base64 --decode > github.key
+   
+   chmod 700 github.key
+   
+   echo "Starting SSH Agent"
+   eval $(ssh-agent -s)
+   
+   echo "Adding github to known hosts"
+   
+   mkdir ~/.ssh
+   touch ~/.ssh/known_hosts
+   ssh-keyscan github.com >> ~/.ssh/known_hosts
+   
+   echo "Adding SSH Private Key"
+   ssh-add github.key
+   
+   echo "Sock value"
+   echo "$SSH_AUTH_SOCK"
+   
+   echo "Checking connection to github"
+   ssh -T git@github.com
+   
+   #echo "Available keys"
+   #ssh-add -l
+   #ssh-add -L
+   
+   echo "Setting github remote in git"
+   git remote add github git@github.com:SkillsFundingAgency/CFS-Backend.git
+   
+   echo  "Pushing changes to github"
+   git push --force github HEAD:master
+  displayName: 'Publish source code to GitHub (Backend Repo)'
