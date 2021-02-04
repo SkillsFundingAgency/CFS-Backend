@@ -84,9 +84,8 @@ namespace CalculateFunding.Services.Core.Functions
 
             await WhenNonSmokeMessageReceivedBySmokeTest();
 
-            test
-                .Should()
-                .BeSameAs(expectedTest);
+            await Wait.Until(() => test == expectedTest, 
+                "Expected smoke test to have run");
         }
 
         private async Task WhenNonSmokeMessageReceivedBySmokeTest()
