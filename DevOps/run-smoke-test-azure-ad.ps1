@@ -95,14 +95,14 @@ do {
         $stopTrying = $true
     }
     catch {
-        if ($retrycount -gt 3) {
-            Write-Host "##vso[task.logissue type=error;] $fullUrl failed after 3 attempts, please check app insights with correlation id $correlationId" -ForegroundColor Red
+        if ($retrycount -gt 5) {
+            Write-Host "##vso[task.logissue type=error;] $fullUrl failed after 5 attempts, please check app insights with correlation id $correlationId" -ForegroundColor Red
             Write-Error $_.Exception
             $stopTrying = $true
         }
         else {
-            Write-Host "##vso[task.logissue type=warning;] $fullUrl failed, retrying in 3 seconds." -ForegroundColor Yellow
-            Start-Sleep -Seconds 3
+            Write-Host "##vso[task.logissue type=warning;] $fullUrl failed, retrying in 10 seconds." -ForegroundColor Yellow
+            Start-Sleep -Seconds 10
             $retrycount = $retrycount + 1
         }
 
