@@ -3293,6 +3293,173 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
+        public async Task OnValidateDataset_GivenValidDatasetToMergeWithValidateFailures_ThenItThrowsValidationFailures()
+        {
+            //Arrange
+            const string authorId = "author-id";
+            const string authorName = "author-name";
+            const string name = "name";
+            const string description = "updated description";
+            const string operationId = "operationId";
+            const int newRowCount = 3;
+            const int updatedRowCount = 2;
+
+            IDictionary<string, string> metaData = new Dictionary<string, string>
+                {
+                    { "dataDefinitionId", DataDefinitionId },
+                    { "authorName", authorName },
+                    { "authorId", authorId },
+                    { "datasetId", DatasetId },
+                    { "name", name },
+                    { "description", description },
+                    { "fundingStreamId", FundingStreamId }
+            };
+
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingStreams()
+                .Returns(NewFundingStreams());
+
+            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _.WithVersion(2)
+                                                                    .WithFundingStreamId(FundingStreamId)
+                                                                    .WithDatasetId(DatasetId)
+                                                                    .WithFileName("ds.xlsx")
+                                                                    .WithMergeExistingVersion(true)
+                                                                    .WithComment("MergeTest")
+                                                                    .WithLastUpdatedBy(new ReferenceBuilder()
+                                                                    .WithId(authorId)
+                                                                    .WithName(authorName))
+                                                                    .WithDescription(description));
+
+            Message message = GetValidateDatasetMessage(model);
+
+            ILogger logger = CreateLogger();
+
+            ICloudBlob blob = Substitute.For<ICloudBlob>();
+            blob
+                .Metadata
+                .Returns(metaData);
+
+            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .GetBlobReferenceFromServerAsync(Arg.Is(model.ToString()))
+                .Returns(blob);
+            blobClient
+                .DownloadToStreamAsync(Arg.Is(blob))
+                .Returns(memoryStream);
+
+            DatasetDefinition datasetDefinition = new DatasetDefinition
+            {
+                Id = DataDefinitionId,
+                FundingStreamId = FundingStreamId,
+                Name = name
+            };
+
+            IEnumerable<DatasetDefinition> datasetDefinitions = new[]
+            {
+                datasetDefinition
+            };
+
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            datasetRepository
+                .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DocumentEntity<DatasetDefinition>, bool>>>())
+                .Returns(datasetDefinitions);
+
+            DatasetVersion existingDatasetVersion = new DatasetVersion()
+            {
+                Version = 1,
+            };
+
+            Dataset existingDataset = new Dataset()
+            {
+                Id = model.DatasetId,
+                Current = existingDatasetVersion,
+                History = new List<DatasetVersion>() { existingDatasetVersion },
+                Definition = new Reference(datasetDefinition.Id, datasetDefinition.Name),
+                Description = "description",
+                Name = name,
+                Published = null,
+            };
+
+            datasetRepository
+                .GetDatasetsByQuery(Arg.Any<Expression<Func<DocumentEntity<Dataset>, bool>>>())
+                .Returns(new[] { existingDataset });
+
+            datasetRepository.GetDatasetByDatasetId(model.DatasetId)
+                .Returns(existingDataset);
+
+            datasetRepository
+                .SaveDataset(Arg.Any<Dataset>())
+                .Returns(HttpStatusCode.OK);
+
+            IEnumerable<TableLoadResult> tableLoadResults = new[]
+            {
+                new TableLoadResult{ GlobalErrors = new List<DatasetValidationError>() }
+            };
+
+            ISearchRepository<DatasetIndex> searchRepository = CreateSearchRepository();
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
+            ApiResponse<ProviderVersion> providerVersionResponse = new ApiResponse<ProviderVersion>(HttpStatusCode.NotFound);
+
+            IJobManagement jobManagement = CreateJobManagement();
+
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
+                .GetCurrentProvidersForFundingStream(FundingStreamId)
+                .Returns(providerVersionResponse);
+
+            DatasetDataTableMergeResult tableMergeResult = new DatasetDataTableMergeResult()
+            {
+                TableDefinitionName = "Test-data-definition-name",
+                NewRowsCount = newRowCount,
+                UpdatedRowsCount = updatedRowCount
+            };
+            DatasetDataMergeResult mergeResult = new DatasetDataMergeResult();
+            mergeResult.TablesMergeResults.Add(tableMergeResult);
+
+            IDatasetDataMergeService datasetDataMergeService = CreateDatasetDataMergeService();
+            datasetDataMergeService.Merge(Arg.Is<DatasetDefinition>(_ => _.Id == DataDefinitionId), Arg.Any<string>(), Arg.Any<string>())
+                .Returns(mergeResult);
+
+            DatasetService service = CreateDatasetService(logger: logger,
+                blobClient: blobClient,
+                datasetRepository: datasetRepository,
+                searchRepository: searchRepository,
+                cacheProvider: cacheProvider,
+                jobManagement: jobManagement,
+                providersApiClient: providersApiClient,
+                policyRepository: policyRepository,
+                datasetDataMergeService: datasetDataMergeService);
+
+            // Act
+            Func<Task> invocation = async () => await service.Run(message);
+
+            // Assert
+            invocation
+                .Should()
+                .Throw<NonRetriableException>();
+
+            logger
+                .Received(1)
+                .Error(Arg.Is($"No provider version for the funding stream {FundingStreamId}"));
+
+            await cacheProvider
+                 .Received(1)
+                 .SetAsync<DatasetValidationStatusModel>(
+                 Arg.Is<string>(a => a.StartsWith(CacheKeys.DatasetValidationStatus)),
+                 Arg.Is<DatasetValidationStatusModel>(s =>
+                     s.CurrentOperation == DatasetValidationStatus.FailedValidation &&
+                     s.OperationId == message.UserProperties["operation-id"].ToString() &&
+                     s.ValidationFailures.ContainsKey(nameof(datasetDefinition.FundingStreamId)) &&
+                     s.ValidationFailures[nameof(datasetDefinition.FundingStreamId)].Any(_ => _ == $"No provider version for the funding stream {FundingStreamId}")
+                     ));
+        }
+
+        [TestMethod]
         public async Task OnValidateDataset_GivenValidDatasetToMerge_ThenItMergesWithPreviousVersionOfDataset()
         {
             //Arrange

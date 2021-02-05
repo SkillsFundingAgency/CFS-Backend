@@ -565,7 +565,8 @@ namespace CalculateFunding.Services.Datasets
                     (validationFailures, _) = await ValidateTableResults(datasetDefinition, datasetStream);
                     if (validationFailures.Count > 0)
                     {
-                        return;
+                        await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, null, validationFailures);
+                        throw new NonRetriableException("Failed validation - with validation failures");
                     }
 
                     await NotifyPercentComplete(35);
