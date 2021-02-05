@@ -727,7 +727,7 @@ namespace CalculateFunding.Services.Specs
 
                     if (fundingConfiguration.ProviderSource == ProviderSource.FDZ)
                     {
-                        if (!createModel.ProviderSnapshotId.HasValue)
+                        if (createModel.CoreProviderVersionUpdates == CoreProviderVersionUpdates.Manual && !createModel.ProviderSnapshotId.HasValue)
                         {
                             return new PreconditionFailedResult(
                                 $"{nameof(createModel.ProviderSnapshotId)} not set when provider source is FDZ for " +
@@ -884,7 +884,7 @@ namespace CalculateFunding.Services.Specs
 
             if (fundingConfiguration.ProviderSource == ProviderSource.FDZ)
             {
-                if (!editModel.ProviderSnapshotId.HasValue)
+                if (editModel.CoreProviderVersionUpdates == CoreProviderVersionUpdates.Manual && !editModel.ProviderSnapshotId.HasValue)
                 {
                     return new PreconditionFailedResult(
                         $"{nameof(editModel.ProviderSnapshotId)} not set when provider source is FDZ for " +

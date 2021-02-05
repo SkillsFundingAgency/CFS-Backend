@@ -85,9 +85,9 @@ namespace CalculateFunding.Services.Specs.Validators
                             }
                         case ProviderSource.FDZ:
                             {
-                                if (!specModel.ProviderSnapshotId.HasValue)
+                                if (specModel.CoreProviderVersionUpdates == CoreProviderVersionUpdates.Manual && !specModel.ProviderSnapshotId.HasValue)
                                 {
-                                    context.AddFailure($"Null or empty provider snapshot id");
+                                    context.AddFailure("Null or empty provider snapshot id");
                                 }
 
                                 break;
