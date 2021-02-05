@@ -101,6 +101,8 @@ namespace CalculateFunding.Api.TestRunner
 
         public void RegisterComponents(IServiceCollection builder)
         {
+            builder.AddAppConfiguration();
+
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
 
             builder

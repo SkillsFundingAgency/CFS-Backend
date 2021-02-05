@@ -155,6 +155,8 @@ namespace CalculateFunding.Api.External
 
         public void RegisterComponents(IServiceCollection builder)
         {
+            builder.AddAppConfiguration();
+
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
 
             builder

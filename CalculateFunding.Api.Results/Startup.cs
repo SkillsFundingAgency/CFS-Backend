@@ -102,6 +102,8 @@ namespace CalculateFunding.Api.Results
 
         private void RegisterComponents(IServiceCollection builder)
         {
+            builder.AddAppConfiguration();
+
             builder.AddSpecificationsInterServiceClient(Configuration, handlerLifetime: Timeout.InfiniteTimeSpan)
                 .AddCalculationsInterServiceClient(Configuration, handlerLifetime: Timeout.InfiniteTimeSpan);
 

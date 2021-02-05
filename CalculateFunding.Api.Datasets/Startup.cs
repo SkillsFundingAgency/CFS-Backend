@@ -117,6 +117,8 @@ namespace CalculateFunding.Api.Datasets
 
         public void RegisterComponents(IServiceCollection builder)
         {
+            builder.AddAppConfiguration();
+
             builder.AddSingleton<IDateTimeProvider, DateTimeProvider>();
             
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();

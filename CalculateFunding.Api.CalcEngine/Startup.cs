@@ -106,6 +106,8 @@ namespace CalculateFunding.Api.CalcEngine
 
         public void RegisterComponents(IServiceCollection builder)
         {
+            builder.AddAppConfiguration();
+
             builder.AddScoped<ICalculationEngineService, CalculationEngineService>();
             builder.AddScoped<ICalculationEngine, CalculationEngine>();
             builder.AddScoped<IAllocationFactory, AllocationFactory>();

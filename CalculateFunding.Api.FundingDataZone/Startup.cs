@@ -81,6 +81,8 @@ namespace CalculateFunding.Api.FundingDataZone
 
         public void RegisterComponents(IServiceCollection builder)
         {
+            builder.AddAppConfiguration();
+
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
 
             builder.AddFundingDataZoneServices(Configuration);

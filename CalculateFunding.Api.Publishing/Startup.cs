@@ -134,6 +134,8 @@ namespace CalculateFunding.Api.Publishing
 
         private void RegisterComponents(IServiceCollection builder)
         {
+            builder.AddAppConfiguration();
+
             builder.AddSingleton<IBatchProfilingOptions, BatchProfilingOptions>();
             builder.AddSingleton<IBatchProfilingService, BatchProfilingService>();
             builder.AddSingleton<IProducerConsumerFactory, ProducerConsumerFactory>();

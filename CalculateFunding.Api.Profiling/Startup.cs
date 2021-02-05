@@ -93,6 +93,8 @@ namespace CalculateFunding.Api.Profiling
 
         private void RegisterComponents(IServiceCollection builder)
         {
+            builder.AddAppConfiguration();
+
             ConfigureSwaggerServices(builder, "Calculate Funding Profiling", "v1");
 
             builder.AddSingleton<IProducerConsumerFactory, ProducerConsumerFactory>();

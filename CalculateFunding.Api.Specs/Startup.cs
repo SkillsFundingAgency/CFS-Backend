@@ -120,6 +120,8 @@ namespace CalculateFunding.Api.Specs
 
         public void RegisterComponents(IServiceCollection builder)
         {
+            builder.AddAppConfiguration();
+
             builder.AddHttpCachingMvc();
 
             builder.AddQueryProviderAndExtractorForViewModelMvc<

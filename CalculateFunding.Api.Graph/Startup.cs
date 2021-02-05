@@ -82,6 +82,8 @@ namespace CalculateFunding.Api.Graph
 
         public void RegisterComponents(IServiceCollection builder)
         {
+            builder.AddAppConfiguration();
+
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
             builder
                 .AddScoped<IHealthChecker, ControllerResolverHealthCheck>();

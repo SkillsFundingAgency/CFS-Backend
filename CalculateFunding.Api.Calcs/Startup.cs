@@ -118,6 +118,8 @@ namespace CalculateFunding.Api.Calcs
 
         public void RegisterComponents(IServiceCollection builder)
         {
+            builder.AddAppConfiguration();
+
             builder.AddSingleton<IFundingLineRoundingSettings, FundingLineRoundingSettings>();
             
             builder.AddScoped<ICodeContextCache, CodeContextCache>()
