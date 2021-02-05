@@ -78,8 +78,8 @@ namespace CalculateFunding.Services.Jobs
                 }
             };
 
-            string dateFromString = hourAgo.ToString("yyyy-MM-ddThh:mm:ss.sssZ");
-            string dateToString = now.ToString("yyyy-MM-ddThh:mm:ss.sssZ");
+            string dateFromString = hourAgo.ToString("yyyy-MM-ddTHH:mm:ss.sssZ");
+            string dateToString = now.ToString("yyyy-MM-ddTHH:mm:ss.sssZ");
 
             IJobRepository jobRepository = CreateJobRepository();
             jobRepository
@@ -96,10 +96,10 @@ namespace CalculateFunding.Services.Jobs
                         RunningStatus = RunningStatus.InProgress,
                         SpecificationId = specificationId,
                         Trigger = new Trigger
-                        { 
-                            EntityId = "calc1", 
-                            EntityType = "Calculation", 
-                            Message = "Calc run started" 
+                        {
+                            EntityId = "calc1",
+                            EntityType = "Calculation",
+                            Message = "Calc run started"
                         },
                         Outcomes = outcomes,
                         Outcome = outcome,
@@ -121,10 +121,10 @@ namespace CalculateFunding.Services.Jobs
 
             jobs
                 .Should()
-                .ContainSingle(_ => 
+                .ContainSingle(_ =>
                     _.JobId == "job1" &&
                     _.Outcomes.SequenceEqual(outcomes) &&
-                    _.Outcome == outcome && 
+                    _.Outcome == outcome &&
                     _.OutcomeType == OutcomeType.Succeeded);
         }
 
@@ -189,17 +189,18 @@ namespace CalculateFunding.Services.Jobs
             IJobRepository jobRepository = CreateJobRepository();
             jobRepository
                 .GetLatestJobBySpecificationIdAndDefinitionId(Arg.Is(specificationId), Arg.Is<string>(_ => _.Contains("jobType1")))
-                .Returns( new Job(){
-                            Created = DateTimeOffset.UtcNow.AddHours(-1),
-                            Id = "job1",
-                            InvokerUserDisplayName = "test",
-                            InvokerUserId = "test1",
-                            JobDefinitionId = "jobType1",
-                            LastUpdated = DateTimeOffset.UtcNow.AddHours(-1),
-                            RunningStatus = RunningStatus.InProgress,
-                            SpecificationId = specificationId,
-                            Trigger = new Trigger { EntityId = "calc1", EntityType = "Calculation", Message = "Calc run started" }
-                        });
+                .Returns(new Job()
+                {
+                    Created = DateTimeOffset.UtcNow.AddHours(-1),
+                    Id = "job1",
+                    InvokerUserDisplayName = "test",
+                    InvokerUserId = "test1",
+                    JobDefinitionId = "jobType1",
+                    LastUpdated = DateTimeOffset.UtcNow.AddHours(-1),
+                    RunningStatus = RunningStatus.InProgress,
+                    SpecificationId = specificationId,
+                    Trigger = new Trigger { EntityId = "calc1", EntityType = "Calculation", Message = "Calc run started" }
+                });
 
             IJobService service = CreateJobService(jobRepository);
 
@@ -307,7 +308,7 @@ namespace CalculateFunding.Services.Jobs
             cacheProvider
                 .GetAsync<Job>(cacheKey)
                 .Returns(job);
-            
+
             string cacheKeyTwo = $"{CacheKeys.LatestJobs}{specificationId}:{jobTypeTwo}";
             cacheProvider
                 .SetAsync(jobTypeTwo, Arg.Is<Job>(_ => _.JobDefinitionId == jobTypeTwo))
@@ -369,7 +370,7 @@ namespace CalculateFunding.Services.Jobs
                         RunningStatus = RunningStatus.InProgress,
                         SpecificationId = specificationId,
                         Trigger = new Trigger { EntityId = "calc1", EntityType = "Calculation", Message = "Calc run started" }
-                    } );
+                    });
 
             IJobService service = CreateJobService(jobRepository);
 
@@ -469,11 +470,11 @@ namespace CalculateFunding.Services.Jobs
                         LastUpdated = DateTimeOffset.UtcNow.AddHours(-1),
                         RunningStatus = RunningStatus.InProgress,
                         SpecificationId = specificationId,
-                        Trigger = new Trigger 
-                        { 
-                            EntityId = "calc1", 
-                            EntityType = "Calculation", 
-                            Message = "Calc run started" 
+                        Trigger = new Trigger
+                        {
+                            EntityId = "calc1",
+                            EntityType = "Calculation",
+                            Message = "Calc run started"
                         },
                         Outcome = outcome,
                         Outcomes = outcomes,
@@ -513,7 +514,7 @@ namespace CalculateFunding.Services.Jobs
                 .BeAssignableTo<IEnumerable<JobSummary>>()
                 .Subject;
 
-            jobSummaries.Should().Contain(x => 
+            jobSummaries.Should().Contain(x =>
                 x.JobId == "job2" &&
                 x.Outcome == outcome &&
                 x.Outcomes.SequenceEqual(outcomes) &&

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace System
+﻿namespace System
 {
     public static class DateTimeOffsetExtensions
     {
@@ -16,7 +12,7 @@ namespace System
 
         public static string ToCosmosString(this DateTimeOffset theDate)
         {
-            return theDate.ToString("yyyy-MM-ddThh:mm:ss.sssZ");
+            return theDate.ToString("yyyy-MM-ddTHH:mm:ss.sssZ");
         }
     }
 }
