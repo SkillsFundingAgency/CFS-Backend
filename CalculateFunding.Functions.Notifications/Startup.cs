@@ -36,6 +36,7 @@ namespace CalculateFunding.Functions.Notifications
         private static IServiceProvider Register(IServiceCollection builder, IConfigurationRoot config)
         {
             builder.AddAppConfiguration();
+            builder.AddSingleton<IConfiguration>(config);
 
             // These registrations of the functions themselves are just for the DebugQueue. Ideally we don't want these registered in production
             if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")

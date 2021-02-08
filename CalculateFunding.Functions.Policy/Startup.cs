@@ -53,6 +53,7 @@ namespace CalculateFunding.Functions.Policy
         private static IServiceProvider Register(IServiceCollection builder, IConfigurationRoot config)
         {
             builder.AddAppConfiguration();
+            builder.AddSingleton<IConfiguration>(config);
 
             builder.AddFeatureManagement();
 
