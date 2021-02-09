@@ -107,15 +107,25 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Should()
                 .Be($"{_organisationGroupResult.GroupTypeIdentifier}_{_organisationGroupResult.IdentifierValue}_{_publishedProvider.Current.FundingPeriodId}_{_publishedProvider.Current.FundingStreamId}_{1}");
 
-            DistributionPeriod distributionPeriod = publishedFundingVersion.FundingLines.First().DistributionPeriods.First();
+            DistributionPeriod distributionPeriod1 = publishedFundingVersion.FundingLines.First().DistributionPeriods.First();
             
-            distributionPeriod.Value
+            distributionPeriod1.Value
                 .Should()
-                .Be(150);
+                .Be(100);
 
-            distributionPeriod.ProfilePeriods.First().ProfiledValue
+            distributionPeriod1.ProfilePeriods.First().ProfiledValue
                 .Should()
-                .Be(300);
+                .Be(200);
+
+            DistributionPeriod distributionPeriod3 = publishedFundingVersion.FundingLines.Skip(2).First().DistributionPeriods.First();
+
+            distributionPeriod3.Value
+                .Should()
+                .Be(50);
+
+            distributionPeriod3.ProfilePeriods.First().ProfiledValue
+                .Should()
+                .Be(100);
         }
 
         private void AndTheSpecificationIdIsSet()
@@ -186,7 +196,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _provider2 = new Provider { ProviderId = "provider2" };
 
             _publishedProvider2 = NewPublishedProvider(_ => _.WithCurrent(NewPublishedProviderVersion(version => version.WithFundingPeriodId(_publishedFundingPeriodId)
-            .WithFundingLines(NewFundingLine(fl => fl.WithTemplateLineId(1).WithValue(0)
+            .WithFundingLines(NewFundingLine(fl => fl.WithTemplateLineId(2).WithValue(0)
                 .WithDistributionPeriods(new DistributionPeriod[] { new DistributionPeriod { DistributionPeriodId = _publishedFundingPeriodId, ProfilePeriods = new ProfilePeriod[] { new ProfilePeriod { TypeValue = "April", DistributionPeriodId = _publishedFundingPeriodId, ProfiledValue = 100, Type = ProfilePeriodType.CalendarMonth, Year = 2019 } }, Value = 50 } })))
             .WithFundingStreamId(_fundingStreamId)
             .WithProviderId(_provider2.ProviderId)

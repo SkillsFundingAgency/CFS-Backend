@@ -143,7 +143,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 {
                     Provider = GetProvider(i),
                     Calculations = JsonConvert.DeserializeObject<IEnumerable<FundingCalculation>>(GetResourceString($"CalculateFunding.Services.Publishing.UnitTests.Resources.exampleProvider{i}Calculations{schema}.json")),
-                    FundingLines = new FundingLine[] { NewFundingLine(fl => fl.WithTemplateLineId(1).WithValue(0)) },
+                    FundingLines = new FundingLine[] { NewFundingLine(fl => fl.WithTemplateLineId(1).WithValue(0)), NewFundingLine(fl => fl.WithTemplateLineId(2).WithValue(0)) },
                     ProviderId = "1234" + i,
                     FundingStreamId = "PSG",
                     FundingPeriodId = "AY-1920",

@@ -251,7 +251,7 @@ namespace CalculateFunding.Services.Publishing
 
                 foreach (DistributionPeriod distributionPeriod in fundingLine.DistributionPeriods?.Where(_ => _ != null) ?? ArraySegment<DistributionPeriod>.Empty)
                 {
-                    AggregateDistributionPeriod(distributionPeriod);
+                    AggregateDistributionPeriod(distributionPeriod, fundingLine.TemplateLineId);
                 }
             }
         }
@@ -272,27 +272,28 @@ namespace CalculateFunding.Services.Publishing
             }
         }
 
-        private void AggregateDistributionPeriod(DistributionPeriod distributionPeriod)
+        private void AggregateDistributionPeriod(DistributionPeriod distributionPeriod, uint fundingLineId)
         {
-            if (_aggregatedDistributionPeriods.TryGetValue(distributionPeriod.DistributionPeriodId, out decimal total))
+            string uniqueDistributedProfileKey = $"{fundingLineId}-{distributionPeriod.DistributionPeriodId}";
+            if (_aggregatedDistributionPeriods.TryGetValue(uniqueDistributedProfileKey, out decimal total))
             {
                 // aggregate the value
-                _aggregatedDistributionPeriods[distributionPeriod.DistributionPeriodId] = total + distributionPeriod.Value;
+                _aggregatedDistributionPeriods[uniqueDistributedProfileKey] = total + distributionPeriod.Value;
             }
             else
             {
-                _aggregatedDistributionPeriods.Add(distributionPeriod.DistributionPeriodId, distributionPeriod.Value);
+                _aggregatedDistributionPeriods.Add(uniqueDistributedProfileKey, distributionPeriod.Value);
             }
 
             foreach (ProfilePeriod profilePeriod in distributionPeriod.ProfilePeriods?.Where(_ => _ != null) ?? ArraySegment<ProfilePeriod>.Empty)
             {
-                AggregateProfilePeriod(profilePeriod);
+                AggregateProfilePeriod(profilePeriod, uniqueDistributedProfileKey);
             }
         }
 
-        private void AggregateProfilePeriod(ProfilePeriod profilePeriod)
+        private void AggregateProfilePeriod(ProfilePeriod profilePeriod, string uniqueDistributedProfileKey)
         {
-            string uniqueProfilePeriodKey = $"{profilePeriod.DistributionPeriodId}-{profilePeriod.TypeValue}-{profilePeriod.Year}-{profilePeriod.Occurrence}";
+            string uniqueProfilePeriodKey = $"{uniqueDistributedProfileKey}-{profilePeriod.DistributionPeriodId}-{profilePeriod.TypeValue}-{profilePeriod.Year}-{profilePeriod.Occurrence}";
             if (_aggregatedProfilePeriods.TryGetValue(uniqueProfilePeriodKey, out decimal total))
             {
                 // aggregate the value
@@ -428,7 +429,7 @@ namespace CalculateFunding.Services.Publishing
                     TemplateLineId = fundingLine.TemplateLineId,
                     Calculations = fundingLine.Calculations?.Select(GetAggregateCalculation).Where(_ => _ != null).ToArray(),
                     FundingLines = fundingLine.FundingLines?.Select(GetAggregateFundingLine).ToArray(),
-                    DistributionPeriods = aggregate.DistributionPeriods?.Select(GetAggregatePeriods).ToArray(),
+                    DistributionPeriods = aggregate.DistributionPeriods?.Select(_ => GetAggregatePeriods(_, fundingLine.TemplateLineId)).ToArray(),
                     Value = aggregate.Total
                 };
             }
@@ -436,9 +437,10 @@ namespace CalculateFunding.Services.Publishing
             return null;
         }
 
-        private DistributionPeriod GetAggregatePeriods(DistributionPeriod distributionPeriod)
+        private DistributionPeriod GetAggregatePeriods(DistributionPeriod distributionPeriod, uint key)
         {
-            if (distributionPeriod != null && _aggregatedDistributionPeriods.TryGetValue(distributionPeriod.DistributionPeriodId, out decimal total))
+            string uniqueDistributedProfileKey = $"{key}-{distributionPeriod.DistributionPeriodId}";
+            if (distributionPeriod != null && _aggregatedDistributionPeriods.TryGetValue(uniqueDistributedProfileKey, out decimal total))
             {
                 DistributionPeriod localDistributionPeriod = distributionPeriod.Clone();
 
@@ -446,7 +448,7 @@ namespace CalculateFunding.Services.Publishing
 
                 foreach (ProfilePeriod profilePeriod in localDistributionPeriod.ProfilePeriods)
                 {
-                    SetAggregateProfilePeriods(profilePeriod);
+                    SetAggregateProfilePeriods(profilePeriod, uniqueDistributedProfileKey);
                 }
 
                 return localDistributionPeriod;
@@ -455,9 +457,9 @@ namespace CalculateFunding.Services.Publishing
             return null;
         }
 
-        private void SetAggregateProfilePeriods(ProfilePeriod profilePeriod)
+        private void SetAggregateProfilePeriods(ProfilePeriod profilePeriod, string key)
         {
-            string uniqueProfilePeriodKey = $"{profilePeriod.DistributionPeriodId}-{profilePeriod.TypeValue}-{profilePeriod.Year}-{profilePeriod.Occurrence}";
+            string uniqueProfilePeriodKey = $"{key}-{profilePeriod.DistributionPeriodId}-{profilePeriod.TypeValue}-{profilePeriod.Year}-{profilePeriod.Occurrence}";
 
             if (_aggregatedProfilePeriods.TryGetValue(uniqueProfilePeriodKey, out decimal total))
             {
