@@ -12,7 +12,7 @@
 
         public static string ToCosmosString(this DateTimeOffset theDate)
         {
-            return theDate.ToString("yyyy-MM-ddTHH:mm:ss.sssZ");
+            return theDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.sssK");
         }
     }
 }

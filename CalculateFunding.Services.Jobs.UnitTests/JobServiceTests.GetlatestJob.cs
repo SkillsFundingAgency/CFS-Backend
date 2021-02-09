@@ -78,8 +78,8 @@ namespace CalculateFunding.Services.Jobs
                 }
             };
 
-            string dateFromString = hourAgo.ToString("yyyy-MM-ddTHH:mm:ss.sssZ");
-            string dateToString = now.ToString("yyyy-MM-ddTHH:mm:ss.sssZ");
+            string dateFromString = hourAgo.ToString("yyyy-MM-ddTHH:mm:ss.sss+00:00");
+            string dateToString = now.ToString("yyyy-MM-ddTHH:mm:ss.sss+00:00");
 
             IJobRepository jobRepository = CreateJobRepository();
             jobRepository

@@ -17,7 +17,7 @@ namespace CalculateFunding.Services.Core.Extensions
 
             result
                 .Should()
-                .Be("2021-02-15T08:25:37.37Z");
+                .Be("2021-02-15T08:25:37.37+00:00");
         }
 
         [TestMethod]
@@ -29,7 +29,7 @@ namespace CalculateFunding.Services.Core.Extensions
 
             result
                 .Should()
-                .Be("2021-02-15T17:25:37.37Z");
+                .Be("2021-02-15T17:25:37.37+00:00");
         }
     }
 }
