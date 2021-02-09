@@ -27,7 +27,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
         private ProviderVariationContext NewVariationContext(Action<ProviderVariationContextBuilder> setUp = null)
         {
             decimal totalFunding = new RandomNumberBetween(100, 100000);
-            
+            string profilePatternKey = NewRandomString();
+            string fundingLineCode = NewRandomString();
+
             ProviderVariationContextBuilder variationContextBuilder = new ProviderVariationContextBuilder()
                 .WithPublishedProvider(NewPublishedProvider(_ => _.WithReleased(NewPublishedProviderVersion(ppv =>
                     ppv.WithTotalFunding(totalFunding)))))
@@ -108,9 +110,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
             GivenTheFundingLines(fundingLines);
         }
 
+        protected void AndTheProfilePatternKeys(params ProfilePatternKey[] profilePatternKeys)
+        {
+            GivenTheProfilePatternKeys(profilePatternKeys);
+        }
+
         protected void GivenTheFundingLines(params FundingLine[] fundingLines)
         {
             VariationContext.RefreshState.FundingLines = fundingLines;
+        }
+
+        protected void GivenTheProfilePatternKeys(params ProfilePatternKey[] profilePatternKeys)
+        {
+            VariationContext.RefreshState.ProfilePatternKeys = profilePatternKeys;
         }
 
         protected void GivenTheCalculations(params FundingCalculation[] fundingCalculations)

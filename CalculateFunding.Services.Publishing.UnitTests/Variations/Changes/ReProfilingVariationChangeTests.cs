@@ -61,6 +61,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
             FundingLine fundingLineOne = NewFundingLine();
             FundingLine fundingLineTwo = NewFundingLine();
             FundingLine fundingLineThree = NewFundingLine();
+            ProfilePatternKey profilePatternKey = NewProfilePatternKey(ppk => ppk.WithFundingLineCode(fundingLineOne.FundingLineCode));
 
             ReProfileRequest reProfileRequestOne = NewReProfileRequest();
             ReProfileRequest reProfileRequestThree = NewReProfileRequest();
@@ -77,8 +78,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
             fundingLineThree.DistributionPeriods = NewDistributionPeriods(_ => _.WithDistributionPeriodId(distributionPeriodsThree.Single().DistributionPeriodId));
             
             GivenTheFundingLines(fundingLineOne, fundingLineTwo, fundingLineThree);
+            GivenTheProfilePatternKeys(NewProfilePatternKey(ppk => ppk.WithFundingLineCode(fundingLineOne.FundingLineCode)
+                                                                    .WithKey(profilePatternKey.Key)));
             AndTheAffectedFundingLineCodes(fundingLineOne.FundingLineCode, fundingLineThree.FundingLineCode);
-            AndTheTheReProfileRequest(fundingLineOne, reProfileRequestOne);
+            AndTheTheReProfileRequest(fundingLineOne, reProfileRequestOne, RefreshState.ProfilePatternKeys.Single(_ => _.FundingLineCode == fundingLineOne.FundingLineCode).Key);
             AndTheTheReProfileRequest(fundingLineThree, reProfileRequestThree);
             AndTheReProfileResponse(reProfileRequestOne, reProfileResponseOne);
             AndTheReProfileResponse(reProfileRequestThree, reProfileResponseThree);
@@ -124,13 +127,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
                 .ReturnsAsync(new ApiResponse<ReProfileResponse>(HttpStatusCode.OK, response));
 
         private void AndTheTheReProfileRequest(FundingLine fundingLine,
-            ReProfileRequest reProfileRequest)
+            ReProfileRequest reProfileRequest,
+            string key = null)
             => _reProfileRequestBuilder.Setup(_ => _.BuildReProfileRequest(RefreshState.SpecificationId,
                 RefreshState.FundingStreamId,
                 RefreshState.FundingPeriodId,
                 RefreshState.ProviderId,
                 fundingLine.FundingLineCode,
-                null,
+                key,
                 ProfileConfigurationType.RuleBased,
                 fundingLine.Value))
                 .ReturnsAsync(reProfileRequest);

@@ -37,6 +37,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
             IApplyProviderVariations variationApplications)
         {
             FundingLine fundingLine = refreshState.FundingLines.SingleOrDefault(_ => _.FundingLineCode == fundingLineCode);
+            string profilePatternKey =  refreshState.ProfilePatternKeys?.SingleOrDefault(_ => _.FundingLineCode == fundingLineCode)?.Key;
 
             string providerId = refreshState.ProviderId;
             
@@ -50,7 +51,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
                 refreshState.FundingPeriodId,
                 providerId,
                 fundingLineCode,
-                null,
+                profilePatternKey,
                 ProfileConfigurationType.RuleBased,
                 fundingLine.Value);
 
