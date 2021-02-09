@@ -47,7 +47,7 @@ namespace CalculateFunding.Api.External.V3.Services
             IEnumerable<Models.VariationReason> variationReasons = null,
             int? pageSize = MaxRecords)
         {
-            pageSize = pageSize ?? MaxRecords;
+            pageSize ??= MaxRecords;
 
             if (pageRef < 1) return new BadRequestObjectResult("Page ref should be at least 1");
 
@@ -58,7 +58,10 @@ namespace CalculateFunding.Api.External.V3.Services
                 groupingReasons?.Select(x => x.ToString()),
                 variationReasons?.Select(x => x.ToString()));
 
-            if (searchFeed == null || searchFeed.TotalCount == 0 || searchFeed.Entries.IsNullOrEmpty()) return new NotFoundResult();
+            if (searchFeed == null || searchFeed.TotalCount == 0 || searchFeed.Entries.IsNullOrEmpty() || IsIncompleteArchivePage(searchFeed))
+            {
+                return new NotFoundResult();
+            }
 
             AtomFeed<AtomEntry> atomFeed = await CreateAtomFeed(searchFeed, request);
 
@@ -159,6 +162,9 @@ namespace CalculateFunding.Api.External.V3.Services
             });
         }
 
-
+        private bool IsIncompleteArchivePage(SearchFeedV3<PublishedFundingIndex> searchFeed)
+        {
+            return searchFeed.IsArchivePage == false && searchFeed.Last == searchFeed.PageRef && searchFeed.Entries.Count() != searchFeed.Top;
+        }
     }
 }

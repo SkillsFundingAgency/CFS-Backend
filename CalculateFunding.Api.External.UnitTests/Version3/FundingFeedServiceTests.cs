@@ -172,6 +172,43 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
         }
 
         [TestMethod]
+        public async Task GetNotifications_GivenSearchFeedReturnsIncompleteArchiveResultsForTheGivenPage_ReturnsNotFoundResult()
+        {
+            //Arrange
+            List<PublishedFundingIndex> searchFeedEntries = CreateFeedIndexes().ToList();
+            SearchFeedV3<PublishedFundingIndex> feeds = new SearchFeedV3<PublishedFundingIndex>()
+            {
+                TotalCount = 11,
+                Entries = searchFeedEntries,
+                PageRef = 3,
+                Top = 4
+            };
+
+            IFundingFeedSearchService feedsSearchService = CreateSearchService();
+            feedsSearchService
+                .GetFeedsV3(Arg.Is(3), Arg.Is(4))
+                .Returns(feeds);
+
+            Mock<IExternalEngineOptions> externalEngineOptions = new Mock<IExternalEngineOptions>();
+            externalEngineOptions
+                .Setup(_ => _.BlobLookupConcurrencyCount)
+                .Returns(10);
+
+            FundingFeedService service = CreateService(feedsSearchService,
+                externalEngineOptions: externalEngineOptions.Object);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            //Act
+            IActionResult result = await service.GetFunding(request, pageRef: 3, pageSize: 4);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<NotFoundResult>();
+        }
+
+        [TestMethod]
         public async Task GetNotifications_GivenAQueryStringForWhichThereAreResults_ReturnsAtomFeedWithCorrectLinks()
         {
             //Arrange
