@@ -174,5 +174,35 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task<ApiResponse<IEnumerable<ObsoleteItem>>> GetObsoleteItemsForSpecification(string specificationId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ApiResponse<IEnumerable<ObsoleteItem>>> GetObsoleteItemsForCalculation(string calculationId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ApiResponse<ObsoleteItem>> CreateObsoleteItem(ObsoleteItem obsoleteItem)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<HttpStatusCode> RemoveObsoleteItem(string obsoleteItemId, string calculationId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<HttpStatusCode> AddCalculationToObsoleteItem(string obsoleteItemId, string calculationId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ValidatedApiResponse<Calculation>> EditCalculationWithSkipInstruct(string specificationId, string calculationId, CalculationEditModel calculationEditModel)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

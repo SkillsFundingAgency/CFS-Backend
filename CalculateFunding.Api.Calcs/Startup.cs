@@ -17,6 +17,7 @@ using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Http;
 using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Calcs.ObsoleteItems;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs;
@@ -153,6 +154,12 @@ namespace CalculateFunding.Api.Calcs
                .AddScoped<IInstructionAllocationJobCreation, InstructionAllocationJobCreation>()
                .AddScoped<IHealthChecker, CalculationService>()
                .AddScoped<ICreateCalculationService, CreateCalculationService>();
+
+            builder
+                .AddScoped<IObsoleteItemService, ObsoleteItemService>();
+
+            builder
+                .AddScoped<IValidator<ObsoleteItem>, ObsoleteItemValidator>();
 
             builder
                 .AddScoped<IQueueReIndexSpecificationCalculationRelationships, QueueReIndexSpecificationCalculationRelationships>();

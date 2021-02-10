@@ -9,7 +9,7 @@
     <PackageReference Include="AutoMapper" Version="9.0.0" />
 
     <PackageReference Include="CalculateFunding.Common.ApiClient.Datasets" Version="5.7.2" />
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Calcs" Version="4.5.6" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Calcs" Version="4.6.0" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Jobs" Version="4.1.1" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="6.18.0" />
   </ItemGroup>

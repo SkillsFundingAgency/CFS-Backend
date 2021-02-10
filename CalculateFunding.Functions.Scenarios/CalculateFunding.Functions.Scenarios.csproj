@@ -10,7 +10,7 @@
     <None Remove="EventHub\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Calcs" Version="3.5.5" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Calcs" Version="3.6.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Datasets" Version="5.5.2" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="4.1.1" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="3.16.0" />

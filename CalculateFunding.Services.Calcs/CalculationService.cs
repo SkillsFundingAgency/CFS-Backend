@@ -411,7 +411,7 @@ namespace CalculateFunding.Services.Calcs
 
         public async Task<IActionResult> CreateAdditionalCalculation(string specificationId, CalculationCreateModel model, Reference author, string correlationId)
         {
-            ApiResponse<SpecModel.SpecificationSummary> specificationApiResponse = await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId));
+            ApiResponse<SpecificationSummary> specificationApiResponse = await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId));
 
             if (!specificationApiResponse.StatusCode.IsSuccess() || specificationApiResponse.Content == null)
             {

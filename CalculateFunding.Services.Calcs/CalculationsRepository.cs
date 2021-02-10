@@ -9,6 +9,7 @@ using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Calcs.ObsoleteItems;
 using CalculateFunding.Models.Messages;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Helpers;
@@ -245,6 +246,37 @@ namespace CalculateFunding.Services.Calcs
 
             IEnumerable<int> result = await _cosmosRepository.RawQuery<int>(cosmosDbQuery, 1);
             return result;
+        }
+
+        public async Task<HttpStatusCode> CreateObsoleteItem(ObsoleteItem obsoleteItem)
+        {
+            return await _cosmosRepository.CreateAsync(obsoleteItem);
+        }
+
+        public async Task<ObsoleteItem> GetObsoleteItemById(string obsoleteItemId)
+        {
+            DocumentEntity<ObsoleteItem> result = await _cosmosRepository.ReadDocumentByIdAsync<ObsoleteItem>(obsoleteItemId);
+            return result?.Content;
+        }
+
+        public async Task<HttpStatusCode> UpdateObsoleteItem(ObsoleteItem obsoleteItem)
+        {
+            return await _cosmosRepository.UpsertAsync(obsoleteItem);
+        }
+
+        public async Task<IEnumerable<ObsoleteItem>> GetObsoleteItemsForSpecification(string specificationId)
+        {
+            return await _cosmosRepository.Query<ObsoleteItem>(m => m.Content.SpecificationId == specificationId);
+        }
+
+        public async Task<IEnumerable<ObsoleteItem>> GetObsoleteItemsForCalculation(string calculationId)
+        {
+            return await _cosmosRepository.Query<ObsoleteItem>(m => m.Content.CalculationIds != null && m.Content.CalculationIds.Any(x => x == calculationId));
+        }
+
+        public async Task<HttpStatusCode> DeleteObsoleteItem(string obsoleteItemId)
+        {
+            return await _cosmosRepository.DeleteAsync<ObsoleteItem>(obsoleteItemId, null, hardDelete: true);
         }
     }
 }

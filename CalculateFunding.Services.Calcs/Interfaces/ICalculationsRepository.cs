@@ -3,6 +3,7 @@ using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Calcs.ObsoleteItems;
 using CalculateFunding.Models.Messages;
 
 namespace CalculateFunding.Services.Calcs.Interfaces
@@ -38,7 +39,14 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         Task<TemplateMapping> GetTemplateMapping(string specificationId, string fundingStreamId);
 
         Task UpdateTemplateMapping(string specificationId, string fundingStreamId, TemplateMapping templateMapping);
-
+        
         Task<int> GetCountOfNonApprovedTemplateCalculations(string specificationId);
+
+        Task<HttpStatusCode> CreateObsoleteItem(ObsoleteItem obsoleteItem);
+        Task<ObsoleteItem> GetObsoleteItemById(string obsoleteItemId);
+        Task<HttpStatusCode> UpdateObsoleteItem(ObsoleteItem obsoleteItem);
+        Task<IEnumerable<ObsoleteItem>> GetObsoleteItemsForSpecification(string specificationId);
+        Task<IEnumerable<ObsoleteItem>> GetObsoleteItemsForCalculation(string calculationId);
+        Task<HttpStatusCode> DeleteObsoleteItem(string obsoleteItemId);
     }
 }
