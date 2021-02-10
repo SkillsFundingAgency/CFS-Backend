@@ -27,7 +27,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return this;
         }
 
-        public FundingLineBuilder WithValue(decimal value)
+        public FundingLineBuilder WithValue(decimal? value)
         {
             _value = value;
 

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Common.TemplateMetadata.Models;
+using CalculateFunding.Generators.Funding;
 using CalculateFunding.Models.Publishing;
 using AggregationType = CalculateFunding.Common.TemplateMetadata.Enums.AggregationType;
 using DistributionPeriod = CalculateFunding.Models.Publishing.DistributionPeriod;
@@ -262,7 +263,7 @@ namespace CalculateFunding.Services.Publishing
         {
             if (_aggregatedFundingLines.TryGetValue(key, out (decimal? Total, IEnumerable<DistributionPeriod> DistributionPeriods) aggregate))
             {
-                aggregate = (aggregate.Total + value, aggregate.DistributionPeriods);
+                aggregate = (aggregate.Total.AddValueIfNotNull(value), aggregate.DistributionPeriods);
                 // aggregate the value
                 _aggregatedFundingLines[key] = aggregate;
             }

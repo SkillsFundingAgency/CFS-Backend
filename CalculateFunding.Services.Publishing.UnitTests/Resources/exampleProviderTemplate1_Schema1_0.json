@@ -236,6 +236,47 @@
                   "referenceData": null
                 }
               ]
+            },
+
+            {
+              "name": "Total funding line2",
+              "fundingLineCode": "TotalFundingLine2",
+              "value": 0,
+              "templateLineId": 2,
+              "type": "Payment",
+              "calculations": [
+                {
+                  "name": "Number of pupils",
+                  "templateCalculationId": 1,
+                  "value": "",
+                  "valueFormat": "Number",
+                  "type": "PupilNumber",
+                  "formulaText": "Something * something",
+                  "aggregationType": "Sum",
+                  "calculations": [
+                    {
+                      "name": "Made up Calc Extra",
+                      "templateCalculationId": 900,
+                      "value": "152",
+                      "valueFormat": "Number",
+                      "type": "Rate",
+                      "formulaText": "Something * something else",
+                      "aggregationType": "Sum",
+                      "referenceData": null
+                    }
+                  ],
+                  "referenceData": [
+                    {
+                      "name": "Academic year 2018 to 2019 pupil number on roll",
+                      "templateReferenceId": 1,
+                      "format": "Number",
+                      "value": "1",
+                      "aggregationType": "Sum"
+                    }
+                  ],
+                  "fundingLines": []
+                }
+              ]
             }
           ]
         },
