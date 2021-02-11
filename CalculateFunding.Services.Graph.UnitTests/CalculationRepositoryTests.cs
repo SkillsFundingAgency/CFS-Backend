@@ -179,5 +179,186 @@ namespace CalculateFunding.Services.Graph.UnitTests
                 (AttributeConstants.DataFieldId, dataFieldId),
                 (AttributeConstants.CalculationId, calculationAId));
         }
+
+        [TestMethod]
+        public async Task DeleteCalculations()
+        {
+            string[] ids = AsArray(NewRandomString(), NewRandomString());
+
+            await _calculationRepository.DeleteCalculations(ids);
+
+            await ThenTheNodesWereDeleted<Calculation>(ids.Select(_ => (AttributeConstants.CalculationId, _)).ToArray());
+        }
+
+        [TestMethod]
+        public async Task UpsertCalculationSpecificationRelationships()
+        {
+            string calculationIdOne = NewRandomString();
+            string calculationIdTwo = NewRandomString();
+            string specificationIdOne = NewRandomString();
+            string specificationIdTwo = NewRandomString();
+
+            await _calculationRepository.UpsertCalculationSpecificationRelationships((calculationIdOne, specificationIdOne), (calculationIdTwo, specificationIdTwo));
+
+            await ThenTheRelationshipsWereCreated<Calculation, Specification>(AttributeConstants.CalculationSpecificationRelationshipId,
+                ((AttributeConstants.CalculationId, calculationIdOne),
+                    (AttributeConstants.SpecificationId, specificationIdOne)),
+                ((AttributeConstants.CalculationId, calculationIdTwo),
+                    (AttributeConstants.SpecificationId, specificationIdTwo)));
+
+            await AndTheRelationshipsWereCreated<Specification, Calculation>(AttributeConstants.SpecificationCalculationRelationshipId,
+                ((AttributeConstants.SpecificationId, specificationIdOne),
+                    (AttributeConstants.CalculationId, calculationIdOne)),
+                ((AttributeConstants.SpecificationId, specificationIdTwo),
+                    (AttributeConstants.CalculationId, calculationIdTwo)));
+        }
+        
+        [TestMethod]
+        public async Task UpsertCalculationCalculationRelationships()
+        {
+            string calculationIdOne = NewRandomString();
+            string calculationIdTwo = NewRandomString();
+            string otherCalculationIdOne = NewRandomString();
+            string otherCalculationIdTwo = NewRandomString();
+
+            await _calculationRepository.UpsertCalculationCalculationRelationships((calculationIdOne, otherCalculationIdOne), (calculationIdTwo, otherCalculationIdTwo));
+
+            await ThenTheRelationshipsWereCreated<Calculation, Calculation>(AttributeConstants.CalculationACalculationBRelationship,
+                ((AttributeConstants.CalculationId, calculationIdOne),
+                    (AttributeConstants.CalculationId, otherCalculationIdOne)),
+                ((AttributeConstants.CalculationId, calculationIdTwo),
+                    (AttributeConstants.CalculationId, otherCalculationIdTwo)));
+
+            await AndTheRelationshipsWereCreated<Calculation, Calculation>(AttributeConstants.CalculationBCalculationARelationship,
+                ((AttributeConstants.CalculationId, otherCalculationIdOne),
+                    (AttributeConstants.CalculationId, calculationIdOne)),
+                ((AttributeConstants.CalculationId, otherCalculationIdTwo),
+                    (AttributeConstants.CalculationId, calculationIdTwo)));
+        }
+        
+        [TestMethod]
+        public async Task DeleteCalculationSpecificationRelationships()
+        {
+            string calculationIdOne = NewRandomString();
+            string calculationIdTwo = NewRandomString();
+            string specificationIdOne = NewRandomString();
+            string specificationIdTwo = NewRandomString();
+
+            await _calculationRepository.DeleteCalculationSpecificationRelationships((calculationIdOne, specificationIdOne), (calculationIdTwo, specificationIdTwo));
+
+            await ThenTheRelationshipsWereDeleted<Calculation, Specification>(AttributeConstants.CalculationSpecificationRelationshipId,
+                ((AttributeConstants.CalculationId, calculationIdOne),
+                    (AttributeConstants.SpecificationId, specificationIdOne)),
+                ((AttributeConstants.CalculationId, calculationIdTwo),
+                    (AttributeConstants.SpecificationId, specificationIdTwo)));
+
+            await AndTheRelationshipsWereDeleted<Specification, Calculation>(AttributeConstants.SpecificationCalculationRelationshipId,
+                ((AttributeConstants.SpecificationId, specificationIdOne),
+                    (AttributeConstants.CalculationId, calculationIdOne)),
+                ((AttributeConstants.SpecificationId, specificationIdTwo),
+                    (AttributeConstants.CalculationId, calculationIdTwo)));
+        }
+        
+        [TestMethod]
+        public async Task DeleteCalculationCalculationRelationships()
+        {
+            string calculationIdOne = NewRandomString();
+            string calculationIdTwo = NewRandomString();
+            string otherCalculationIdOne = NewRandomString();
+            string otherCalculationIdTwo = NewRandomString();
+
+            await _calculationRepository.DeleteCalculationCalculationRelationships((calculationIdOne, otherCalculationIdOne), (calculationIdTwo, otherCalculationIdTwo));
+
+            await ThenTheRelationshipsWereDeleted<Calculation, Calculation>(AttributeConstants.CalculationACalculationBRelationship,
+                ((AttributeConstants.CalculationId, calculationIdOne),
+                    (AttributeConstants.CalculationId, otherCalculationIdOne)),
+                ((AttributeConstants.CalculationId, calculationIdTwo),
+                    (AttributeConstants.CalculationId, otherCalculationIdTwo)));
+
+            await AndTheRelationshipsWereDeleted<Calculation, Calculation>(AttributeConstants.CalculationBCalculationARelationship,
+                ((AttributeConstants.CalculationId, otherCalculationIdOne),
+                    (AttributeConstants.CalculationId, calculationIdOne)),
+                ((AttributeConstants.CalculationId, otherCalculationIdTwo),
+                    (AttributeConstants.CalculationId, calculationIdTwo)));
+        }
+        
+        [TestMethod]
+        public async Task UpsertCalculationDataFieldRelationships()
+        {
+            string calculationIdOne = NewRandomString();
+            string calculationIdTwo = NewRandomString();
+            string datafieldIdOne = NewRandomString();
+            string datafieldIdTwo = NewRandomString();
+
+            await _calculationRepository.UpsertCalculationDataFieldRelationships((calculationIdOne, datafieldIdOne), (calculationIdTwo, datafieldIdTwo));
+
+            await ThenTheRelationshipsWereCreated<Calculation, DataField>(AttributeConstants.CalculationDataFieldRelationshipId,
+                ((AttributeConstants.CalculationId, calculationIdOne),
+                    (AttributeConstants.DataFieldId, datafieldIdOne)),
+                ((AttributeConstants.CalculationId, calculationIdTwo),
+                    (AttributeConstants.DataFieldId, datafieldIdTwo)));
+
+            await AndTheRelationshipsWereCreated<DataField, Calculation>(AttributeConstants.DataFieldCalculationRelationship,
+                ((AttributeConstants.DataFieldId, datafieldIdOne),
+                    (AttributeConstants.CalculationId, calculationIdOne)),
+                ((AttributeConstants.DataFieldId, datafieldIdTwo),
+                    (AttributeConstants.CalculationId, calculationIdTwo)));
+        }
+        
+        [TestMethod]
+        public async Task DeleteCalculationDataFieldRelationships()
+        {
+            string calculationIdOne = NewRandomString();
+            string calculationIdTwo = NewRandomString();
+            string datafieldIdOne = NewRandomString();
+            string datafieldIdTwo = NewRandomString();
+
+            await _calculationRepository.DeleteCalculationDataFieldRelationships((calculationIdOne, datafieldIdOne), (calculationIdTwo, datafieldIdTwo));
+
+            await ThenTheRelationshipsWereDeleted<Calculation, DataField>(AttributeConstants.CalculationDataFieldRelationshipId,
+                ((AttributeConstants.CalculationId, calculationIdOne),
+                    (AttributeConstants.DataFieldId, datafieldIdOne)),
+                ((AttributeConstants.CalculationId, calculationIdTwo),
+                    (AttributeConstants.DataFieldId, datafieldIdTwo)));
+
+            await AndTheRelationshipsWereDeleted<DataField, Calculation>(AttributeConstants.DataFieldCalculationRelationship,
+                ((AttributeConstants.DataFieldId, datafieldIdOne),
+                    (AttributeConstants.CalculationId, calculationIdOne)),
+                ((AttributeConstants.DataFieldId, datafieldIdTwo),
+                    (AttributeConstants.CalculationId, calculationIdTwo)));
+        }
+
+        [TestMethod]
+        public async Task GetAllEntitiesForAll()
+        {
+            string[] ids = AsArray(NewRandomString(), NewRandomString());
+
+            Calculation[] entities = AsArray(NewCalculation(), NewCalculation());
+
+            Entity<Calculation>[] expected = entities.Select(calc => new Entity<Calculation>
+            {
+                Node = calc
+            }).ToArray();
+            
+            GivenTheEntitiesForAll( new[]
+            {
+                AttributeConstants.DataFieldCalculationRelationship,
+                AttributeConstants.CalculationDataFieldRelationshipId,
+                AttributeConstants.CalculationACalculationBRelationship,
+                AttributeConstants.CalculationBCalculationARelationship
+            }, ids.Select(id => (AttributeConstants.CalculationId, id))
+                    .ToArray(),
+                expected);
+
+            IEnumerable<Entity<Calculation, IRelationship>> actual = await _calculationRepository.GetAllEntitiesForAll(ids);
+
+            actual
+                .Should()
+                .BeEquivalentTo(expected.Select(_ => new Entity<Calculation, IRelationship>
+                {
+                    Node = _.Node,
+                    Relationships = _.Relationships
+                }));
+        }
     }
 }

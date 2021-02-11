@@ -439,14 +439,14 @@ namespace CalculateFunding.Services.Graph.UnitTests
         public async Task CreateCalculationDatasetFieldsRelationship_GivenValidRelationship_OkStatusCodeReturned()
         {
             string calculationId = NewRandomString();
-            string datasetFieldid = NewRandomString();
+            string datasetFieldId = NewRandomString();
 
             IActionResult result = await _graphService.UpsertCalculationDataFieldRelationship(calculationId,
-                datasetFieldid);
+                datasetFieldId);
 
             await _calculationRepository
                 .Received(1)
-                .UpsertCalculationDataFieldRelationship(calculationId, datasetFieldid);
+                .UpsertCalculationDataFieldRelationship(calculationId, datasetFieldId);
 
             result
                 .Should()
@@ -503,6 +503,315 @@ namespace CalculateFunding.Services.Graph.UnitTests
                 });
         }
 
+        [TestMethod]
+        public async Task DeleteFundingLines()
+        {
+            string[] fieldIds = AsArray(NewRandomString(), NewRandomString());
+            
+            IActionResult result = await _graphService.DeleteFundingLines(fieldIds);
+
+            await _fundingLineRepository
+                .Received(1)
+                .DeleteFundingLines(fieldIds);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+
+        [TestMethod]
+        public async Task UpsertFundingLineCalculationRelationships()
+        {
+            (string, string)[] relationships = AsArray((NewRandomString(), NewRandomString()));
+            
+            IActionResult result = await _graphService.UpsertFundingLineCalculationRelationships(relationships);
+
+            await _fundingLineRepository
+                .Received(1)
+                .UpsertFundingLineCalculationRelationships(relationships);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+        
+        [TestMethod]
+        public async Task UpsertCalculationFundingLineRelationships()
+        {
+            (string, string)[] relationships = AsArray((NewRandomString(), NewRandomString()));
+            
+            IActionResult result = await _graphService.UpsertCalculationFundingLineRelationships(relationships);
+
+            await _fundingLineRepository
+                .Received(1)
+                .UpsertCalculationFundingLineRelationships(relationships);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+        
+        [TestMethod]
+        public async Task DeleteFundingLineCalculationRelationships()
+        {
+            (string, string)[] relationships = AsArray((NewRandomString(), NewRandomString()));
+            
+            IActionResult result = await _graphService.DeleteFundingLineCalculationRelationships(relationships);
+
+            await _fundingLineRepository
+                .Received(1)
+                .DeleteFundingLineCalculationRelationships(relationships);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+        
+        [TestMethod]
+        public async Task UpsertDataDefinitionDatasetRelationships()
+        {
+            (string, string)[] relationships = AsArray((NewRandomString(), NewRandomString()));
+            
+            IActionResult result = await _graphService.UpsertDataDefinitionDatasetRelationships(relationships);
+
+            await _datasetRepository
+                .Received(1)
+                .UpsertDataDefinitionDatasetRelationships(relationships);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+        
+        [TestMethod]
+        public async Task UpsertDatasetDataFieldRelationships()
+        {
+            (string, string)[] relationships = AsArray((NewRandomString(), NewRandomString()));
+            
+            IActionResult result = await _graphService.UpsertDatasetDataFieldRelationships(relationships);
+
+            await _datasetRepository
+                .Received(1)
+                .UpsertDatasetDataFieldRelationships(relationships);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+        
+        [TestMethod]
+        public async Task UpsertSpecificationDatasetRelationships()
+        {
+            (string, string)[] relationships = AsArray((NewRandomString(), NewRandomString()));
+            
+            IActionResult result = await _graphService.UpsertSpecificationDatasetRelationships(relationships);
+
+            await _specificationRepository
+                .Received(1)
+                .CreateSpecificationDatasetRelationships(relationships);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+        
+        [TestMethod]
+        public async Task DeleteSpecificationDatasetRelationships()
+        {
+            (string, string)[] relationships = AsArray((NewRandomString(), NewRandomString()));
+            
+            IActionResult result = await _graphService.DeleteSpecificationDatasetRelationships(relationships);
+
+            await _specificationRepository
+                .Received(1)
+                .DeleteSpecificationDatasetRelationships(relationships);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+        
+        [TestMethod]
+        public async Task UpsertCalculationDataFieldRelationships()
+        {
+            (string, string)[] relationships = AsArray((NewRandomString(), NewRandomString()));
+            
+            IActionResult result = await _graphService.UpsertCalculationDataFieldRelationships(relationships);
+
+            await _calculationRepository
+                .Received(1)
+                .UpsertCalculationDataFieldRelationships(relationships);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+        
+        [TestMethod]
+        public async Task DeleteCalculationDataFieldRelationships()
+        {
+            (string, string)[] relationships = AsArray((NewRandomString(), NewRandomString()));
+            
+            IActionResult result = await _graphService.DeleteCalculationDataFieldRelationships(relationships);
+
+            await _calculationRepository
+                .Received(1)
+                .DeleteCalculationDataFieldRelationships(relationships);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+        
+        [TestMethod]
+        public async Task DeleteCalculations()
+        {
+            string[] ids = AsArray(NewRandomString(), NewRandomString());
+            
+            IActionResult result = await _graphService.DeleteCalculations(ids);
+
+            await _calculationRepository
+                .Received(1)
+                .DeleteCalculations(ids);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+        
+        [TestMethod]
+        public async Task UpsertCalculationSpecificationRelationships()
+        {
+            (string, string)[] relationships = AsArray((NewRandomString(), NewRandomString()));
+            
+            IActionResult result = await _graphService.UpsertCalculationSpecificationRelationships(relationships);
+
+            await _calculationRepository
+                .Received(1)
+                .UpsertCalculationSpecificationRelationships(relationships);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+        
+        [TestMethod]
+        public async Task GetAllCalculationsForAll()
+        {
+            string[] ids = AsArray(NewRandomString(), NewRandomString());
+
+            Entity<Calculation,IRelationship>[] entities = AsArray(NewCalculationEntity(NewRandomString()));
+            
+            _calculationRepository.GetAllEntitiesForAll(ids)
+                .Returns(entities);
+            
+            IEnumerable<Entity<Calculation, IRelationship>> result = 
+                (await _graphService.GetAllCalculationsForAll(ids) as OkObjectResult)?.Value as IEnumerable<Entity<Calculation, IRelationship>>;
+
+            result
+                .Should()
+                .BeEquivalentTo<Entity<Calculation,IRelationship>>(entities);
+        }
+        
+        [TestMethod]
+        public async Task GetAllFundingLinesForAll()
+        {
+            string[] ids = AsArray(NewRandomString(), NewRandomString());
+
+            Entity<FundingLine,IRelationship>[] entities = AsArray(NewFundingLineEntity(NewRandomString()));
+            
+            _fundingLineRepository.GetAllEntitiesForAll(ids)
+                .Returns(entities);
+            
+            IEnumerable<Entity<FundingLine, IRelationship>> result = 
+                (await _graphService.GetAllFundingLinesForAll(ids) as OkObjectResult)?.Value as IEnumerable<Entity<FundingLine, IRelationship>>;
+
+            result
+                .Should()
+                .BeEquivalentTo<Entity<FundingLine,IRelationship>>(entities);
+        }
+        
+        [TestMethod]
+        public async Task DeleteCalculationSpecificationRelationships()
+        {
+            (string, string)[] relationships = AsArray((NewRandomString(), NewRandomString()));
+            
+            IActionResult result = await _graphService.DeleteCalculationSpecificationRelationships(relationships);
+
+            await _calculationRepository
+                .Received(1)
+                .DeleteCalculationSpecificationRelationships(relationships);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+        
+        [TestMethod]
+        public async Task DeleteCalculationCalculationRelationships()
+        {
+            (string, string)[] relationships = AsArray((NewRandomString(), NewRandomString()));
+            
+            IActionResult result = await _graphService.DeleteCalculationCalculationRelationships(relationships);
+
+            await _calculationRepository
+                .Received(1)
+                .DeleteCalculationCalculationRelationships(relationships);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+        
+        [TestMethod]
+        public async Task UpsertCalculationDataFieldsRelationships()
+        {
+            string idA = NewRandomString();
+            string idBOne = NewRandomString();
+            string idBTwo = NewRandomString();
+            
+            (string, string)[] relationships = AsArray((idA, idBOne), (idA, idBTwo));
+            
+            IActionResult result = await _graphService.UpsertCalculationDataFieldsRelationships(idA, AsArray(idBOne, idBTwo));
+
+            await _calculationRepository
+                .Received(1)
+                .UpsertCalculationDataFieldRelationships(Arg.Is<(string, string)[]>(_ => _.SequenceEqual(relationships)) );
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+        
+        [TestMethod]
+        public async Task UpsertCalculationCalculationsRelationships()
+        {
+            string idA = NewRandomString();
+            string idBOne = NewRandomString();
+            string idBTwo = NewRandomString();
+            
+            (string, string)[] relationships = AsArray((idA, idBOne), (idA, idBTwo));
+            
+            IActionResult result = await _graphService.UpsertCalculationCalculationsRelationships(idA, AsArray(idBOne, idBTwo));
+
+            await _calculationRepository
+                .Received(1)
+                .UpsertCalculationCalculationRelationships(Arg.Is<(string, string)[]>(_ => _.SequenceEqual(relationships)) );
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+        
+        private static Entity<FundingLine, IRelationship> NewFundingLineEntity(string fundingLineId) =>
+            new Entity<FundingLine, IRelationship>
+            {
+                Node = new FundingLine
+                {
+                    FundingLineId = fundingLineId
+                }
+            };
+
         private static Entity<Calculation, IRelationship> NewCalculationEntity(string calculationId) =>
             new Entity<Calculation, IRelationship>
             {
@@ -528,6 +837,8 @@ namespace CalculateFunding.Services.Graph.UnitTests
         }
 
         private string NewRandomString() => new RandomString();
+
+        private TItem[] AsArray<TItem>(params TItem[] items) => items;
 
         private Calculation NewCalculation(Action<CalculationBuilder> setUp = null)
         {

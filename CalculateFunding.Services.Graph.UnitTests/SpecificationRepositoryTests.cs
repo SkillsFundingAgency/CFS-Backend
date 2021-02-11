@@ -42,7 +42,7 @@ namespace CalculateFunding.Services.Graph.UnitTests
 
             Entity<Specification> entity = new Entity<Specification> { Node = specification1, Relationships = new[] { new Relationship { One = calculation2, Two = specification1, Type = AttributeConstants.CalculationSpecificationRelationshipId } } };
 
-            GivenAllEntitities(new[] { AttributeConstants.CalculationACalculationBRelationship, AttributeConstants.CalculationSpecificationRelationshipId }, AttributeConstants.SpecificationId, specificationId, entity);
+            GivenTheEntities(new[] { AttributeConstants.CalculationACalculationBRelationship, AttributeConstants.CalculationSpecificationRelationshipId }, AttributeConstants.SpecificationId, specificationId, entity);
 
             IEnumerable<Entity<Specification, IRelationship>> entities = await _specificationRepository.GetAllEntities(specificationId);
 
@@ -107,6 +107,62 @@ namespace CalculateFunding.Services.Graph.UnitTests
             await AndTheRelationshipWasCreated<Dataset, Specification>(AttributeConstants.DatasetSpecificationRelationship,
                 (AttributeConstants.DatasetId, datasetId),
                 (AttributeConstants.SpecificationId, specificationId));
+        }
+        
+        [TestMethod]
+        public async Task DeleteSpecifications()
+        {
+            string[] ids = AsArray(NewRandomString(), NewRandomString());
+
+            await _specificationRepository.DeleteSpecifications(ids);
+
+            await ThenTheNodesWereDeleted<Specification>(ids.Select(_ => (AttributeConstants.SpecificationId, _)).ToArray());
+        }
+        
+        [TestMethod]
+        public async Task CreateSpecificationDatasetRelationships()
+        {
+            string specificationIdOne = NewRandomString();
+            string specificationIdTwo = NewRandomString();
+            string datasetIdOne = NewRandomString();
+            string datasetIdTwo = NewRandomString();
+
+            await _specificationRepository.CreateSpecificationDatasetRelationships((specificationIdOne, datasetIdOne), (specificationIdTwo, datasetIdTwo));
+
+            await ThenTheRelationshipsWereCreated<Specification, Dataset>(AttributeConstants.SpecificationDatasetRelationship,
+                ((AttributeConstants.SpecificationId, specificationIdOne),
+                    (AttributeConstants.DatasetId, datasetIdOne)),
+                ((AttributeConstants.SpecificationId, specificationIdTwo),
+                    (AttributeConstants.DatasetId, datasetIdTwo)));
+
+            await AndTheRelationshipsWereCreated<Dataset, Specification>(AttributeConstants.DatasetSpecificationRelationship,
+                ((AttributeConstants.DatasetId, datasetIdOne),
+                    (AttributeConstants.SpecificationId, specificationIdOne)),
+                ((AttributeConstants.DatasetId, datasetIdTwo),
+                    (AttributeConstants.SpecificationId, specificationIdTwo)));
+        }
+        
+        [TestMethod]
+        public async Task DeleteSpecificationDatasetRelationships()
+        {
+            string specificationIdOne = NewRandomString();
+            string specificationIdTwo = NewRandomString();
+            string datasetIdOne = NewRandomString();
+            string datasetIdTwo = NewRandomString();
+
+            await _specificationRepository.DeleteSpecificationDatasetRelationships((specificationIdOne, datasetIdOne), (specificationIdTwo, datasetIdTwo));
+
+            await ThenTheRelationshipsWereDeleted<Specification, Dataset>(AttributeConstants.SpecificationDatasetRelationship,
+                ((AttributeConstants.SpecificationId, specificationIdOne),
+                    (AttributeConstants.DatasetId, datasetIdOne)),
+                ((AttributeConstants.SpecificationId, specificationIdTwo),
+                    (AttributeConstants.DatasetId, datasetIdTwo)));
+
+            await AndTheRelationshipsWereDeleted<Dataset, Specification>(AttributeConstants.DatasetSpecificationRelationship,
+                ((AttributeConstants.DatasetId, datasetIdOne),
+                    (AttributeConstants.SpecificationId, specificationIdOne)),
+                ((AttributeConstants.DatasetId, datasetIdTwo),
+                    (AttributeConstants.SpecificationId, specificationIdTwo)));
         }
     }
 }

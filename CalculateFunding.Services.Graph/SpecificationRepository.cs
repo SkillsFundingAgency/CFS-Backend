@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Common.Graph.Interfaces;
+﻿using System;
+using CalculateFunding.Common.Graph.Interfaces;
 using CalculateFunding.Models.Graph;
 using CalculateFunding.Services.Graph.Interfaces;
 using System.Collections.Generic;
@@ -20,6 +21,11 @@ namespace CalculateFunding.Services.Graph
         {
             await DeleteNode<Specification>(AttributeConstants.SpecificationId, specificationId);
         }
+        
+        public async Task DeleteSpecifications(params string[] specificationIds)
+        {
+            await DeleteNodes<Specification>( specificationIds.Select(_ =>  (AttributeConstants.SpecificationId, _)).ToArray());
+        }
 
         public async Task UpsertSpecifications(IEnumerable<Specification> specifications)
         {
@@ -36,6 +42,19 @@ namespace CalculateFunding.Services.Graph
                 (AttributeConstants.DatasetId, datasetId),
                 (AttributeConstants.SpecificationId, specificationId));
         }
+
+        public async Task CreateSpecificationDatasetRelationships(params (string specificationId, string datasetId)[] relationships)
+        {
+            await UpsertRelationships<Specification, Dataset>(relationships.Select(_ =>  (AttributeConstants.SpecificationDatasetRelationship,
+                (AttributeConstants.SpecificationId, _.specificationId),
+                (AttributeConstants.DatasetId, _.datasetId)))
+                .ToArray());
+            
+            await UpsertRelationships<Dataset, Specification>(relationships.Select(_ => (AttributeConstants.DatasetSpecificationRelationship,
+                (AttributeConstants.DatasetId, _.datasetId),
+                (AttributeConstants.SpecificationId, _.specificationId)))
+                .ToArray());
+        }
         
         public async Task DeleteSpecificationDatasetRelationship(string specificationId, string datasetId)
         {
@@ -46,6 +65,19 @@ namespace CalculateFunding.Services.Graph
             await DeleteRelationship<Dataset, Specification>(AttributeConstants.DatasetSpecificationRelationship,
                 (AttributeConstants.DatasetId, datasetId),
                 (AttributeConstants.SpecificationId, specificationId));
+        }
+        
+        public async Task DeleteSpecificationDatasetRelationships(params (string specificationId, string datasetId)[] relationships)
+        {
+            await DeleteRelationships<Specification, Dataset>( relationships.Select(_ =>  (AttributeConstants.SpecificationDatasetRelationship,
+                (AttributeConstants.SpecificationId, _.specificationId),
+                (AttributeConstants.DatasetId, _.datasetId)))
+                .ToArray());
+            
+            await DeleteRelationships<Dataset, Specification>(relationships.Select(_ => (AttributeConstants.DatasetSpecificationRelationship,
+                (AttributeConstants.DatasetId, _.datasetId),
+                (AttributeConstants.SpecificationId, _.specificationId)))
+                .ToArray());
         }
 
         public async Task<IEnumerable<Entity<Specification, IRelationship>>> GetAllEntities(string specificationId)

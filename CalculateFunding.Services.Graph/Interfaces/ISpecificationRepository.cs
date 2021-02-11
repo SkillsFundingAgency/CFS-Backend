@@ -15,5 +15,8 @@ namespace CalculateFunding.Services.Graph.Interfaces
         
         Task DeleteSpecificationDatasetRelationship(string specificationId, string datasetId);
         Task<IEnumerable<Entity<Specification, IRelationship>>> GetAllEntities(string specificationId);
+        Task DeleteSpecifications(params string[] specificationIds);
+        Task CreateSpecificationDatasetRelationships(params (string specificationId, string datasetId)[] relationships);
+        Task DeleteSpecificationDatasetRelationships(params (string specificationId, string datasetId)[] relationships);
     }
 }

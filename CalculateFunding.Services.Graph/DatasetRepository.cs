@@ -71,6 +71,19 @@ namespace CalculateFunding.Services.Graph
                 (AttributeConstants.DatasetDefinitionId, datasetDefinitionId));
         }
         
+        public async Task UpsertDataDefinitionDatasetRelationships(params (string datasetDefinitionId, string datasetId)[] relationships)
+        {
+            await UpsertRelationships<DatasetDefinition, Dataset>(relationships.Select(_ => (AttributeConstants.DatasetDefinitionDatasetRelationshipId,
+                (AttributeConstants.DatasetDefinitionId, _.datasetDefinitionId),
+                (AttributeConstants.DatasetId, _.datasetId)))
+                .ToArray());
+            
+            await UpsertRelationships<Dataset, DatasetDefinition>(relationships.Select(_ => (AttributeConstants.DatasetDatasetDefinitionRelationshipId,
+                (AttributeConstants.DatasetId, _.datasetId),
+                (AttributeConstants.DatasetDefinitionId, _.datasetDefinitionId)))
+                .ToArray());
+        }
+        
         public async Task DeleteDataDefinitionDatasetRelationship(string datasetDefinitionId, string datasetId)
         {
             await DeleteRelationship<DatasetDefinition, Dataset>(AttributeConstants.DatasetDefinitionDatasetRelationshipId,
@@ -91,6 +104,19 @@ namespace CalculateFunding.Services.Graph
             await UpsertRelationship<DataField, Dataset>(AttributeConstants.DataFieldDatasetRelationshipId,
                 (AttributeConstants.DataFieldId, dataFieldId),
                 (AttributeConstants.DatasetId, datasetId));
+        }
+        
+        public async Task UpsertDatasetDataFieldRelationships(params (string datasetId, string dataFieldId)[] relationships)
+        {
+            await UpsertRelationships<Dataset, DataField>(relationships.Select(_ => (AttributeConstants.DatasetDataFieldRelationshipId,
+                (AttributeConstants.DatasetId, _.datasetId),
+                (AttributeConstants.DataFieldId, _.dataFieldId)))
+                .ToArray());
+            
+            await UpsertRelationships<DataField, Dataset>(relationships.Select(_ => (AttributeConstants.DataFieldDatasetRelationshipId,
+                (AttributeConstants.DataFieldId, _.dataFieldId),
+                (AttributeConstants.DatasetId, _.datasetId)))
+                .ToArray());
         }
         
         public async Task DeleteDatasetDataFieldRelationship(string datasetId, string dataFieldId)

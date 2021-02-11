@@ -42,7 +42,7 @@ namespace CalculateFunding.Services.Graph.UnitTests
 
             Entity<FundingLine> entity = new Entity<FundingLine> { Node = FundingLine1, Relationships = new[] { new Relationship { One = calculation2, Two = FundingLine1, Type = AttributeConstants.CalculationFundingLineRelationshipId } } };
 
-            GivenAllEntitities(new[] { AttributeConstants.FundingLineCalculationRelationshipId, AttributeConstants.CalculationFundingLineRelationshipId }, AttributeConstants.FundingLineId, FundingLineId, entity);
+            GivenTheEntities(new[] { AttributeConstants.FundingLineCalculationRelationshipId, AttributeConstants.CalculationFundingLineRelationshipId }, AttributeConstants.FundingLineId, FundingLineId, entity);
 
             IEnumerable<Entity<FundingLine, IRelationship>> entities = await _FundingLineRepository.GetAllEntities(FundingLineId);
 
@@ -127,6 +127,115 @@ namespace CalculateFunding.Services.Graph.UnitTests
             await ThenTheRelationshipWasCreated<Calculation, FundingLine>(AttributeConstants.CalculationFundingLineRelationshipId,
                 (AttributeConstants.CalculationId, CalculationId),
                 (AttributeConstants.FundingLineId, FundingLineId));
+        }
+        
+        [TestMethod]
+        public async Task GetAllEntitiesForAll()
+        {
+            string[] ids = AsArray(NewRandomString(), NewRandomString());
+
+            FundingLine[] entities = AsArray(NewFundingLine(), NewFundingLine());
+
+            Entity<FundingLine>[] expected = entities.Select(fl => new Entity<FundingLine>
+            {
+                Node = fl
+            }).ToArray();
+            
+            GivenTheEntitiesForAll( new[]
+                {
+                    AttributeConstants.FundingLineCalculationRelationshipId,
+                    AttributeConstants.CalculationFundingLineRelationshipId
+                }, ids.Select(id => (AttributeConstants.FundingLineId, id))
+                    .ToArray(),
+                expected);
+
+            IEnumerable<Entity<FundingLine, IRelationship>> actual = await _FundingLineRepository.GetAllEntitiesForAll(ids);
+
+            actual
+                .Should()
+                .BeEquivalentTo(expected.Select(_ => new Entity<FundingLine, IRelationship>
+                {
+                    Node = _.Node,
+                    Relationships = _.Relationships
+                }));
+        }
+        
+        [TestMethod]
+        public async Task DeleteCalculationFundingLineRelationships()
+        {
+            string calculationIdOne = NewRandomString();
+            string calculationIdTwo = NewRandomString();
+            string fundingLineIdOne = NewRandomString();
+            string fundingLineIdTwo = NewRandomString();
+
+            await _FundingLineRepository.DeleteCalculationFundingLineRelationships((calculationIdOne, fundingLineIdOne), (calculationIdTwo, fundingLineIdTwo));
+
+            await ThenTheRelationshipsWereDeleted<Calculation, FundingLine>(AttributeConstants.CalculationFundingLineRelationshipId,
+                ((AttributeConstants.CalculationId, calculationIdOne),
+                    (AttributeConstants.FundingLineId, fundingLineIdOne)),
+                ((AttributeConstants.CalculationId, calculationIdTwo),
+                    (AttributeConstants.FundingLineId, fundingLineIdTwo)));
+        }
+        
+        [TestMethod]
+        public async Task DeleteFundingLineCalculationRelationships()
+        {
+            string calculationIdOne = NewRandomString();
+            string calculationIdTwo = NewRandomString();
+            string fundingLineIdOne = NewRandomString();
+            string fundingLineIdTwo = NewRandomString();
+
+            await _FundingLineRepository.DeleteFundingLineCalculationRelationships((fundingLineIdOne, calculationIdOne), (fundingLineIdTwo, calculationIdTwo));
+
+            await ThenTheRelationshipsWereDeleted<FundingLine, Calculation>(AttributeConstants.FundingLineCalculationRelationshipId,
+                ((AttributeConstants.FundingLineId, fundingLineIdOne),
+                    (AttributeConstants.CalculationId, calculationIdOne)),
+                ((AttributeConstants.FundingLineId, fundingLineIdTwo),
+                    (AttributeConstants.CalculationId, calculationIdTwo)));
+        }
+        
+        [TestMethod]
+        public async Task UpsertCalculationFundingLineRelationships()
+        {
+            string calculationIdOne = NewRandomString();
+            string calculationIdTwo = NewRandomString();
+            string fundingLineIdOne = NewRandomString();
+            string fundingLineIdTwo = NewRandomString();
+
+            await _FundingLineRepository.UpsertCalculationFundingLineRelationships((calculationIdOne, fundingLineIdOne), (calculationIdTwo, fundingLineIdTwo));
+
+            await ThenTheRelationshipsWereCreated<Calculation, FundingLine>(AttributeConstants.CalculationFundingLineRelationshipId,
+                ((AttributeConstants.CalculationId, calculationIdOne),
+                    (AttributeConstants.FundingLineId, fundingLineIdOne)),
+                ((AttributeConstants.CalculationId, calculationIdTwo),
+                    (AttributeConstants.FundingLineId, fundingLineIdTwo)));
+        }
+        
+        [TestMethod]
+        public async Task UpsertFundingLineCalculationRelationships()
+        {
+            string calculationIdOne = NewRandomString();
+            string calculationIdTwo = NewRandomString();
+            string fundingLineIdOne = NewRandomString();
+            string fundingLineIdTwo = NewRandomString();
+
+            await _FundingLineRepository.UpsertFundingLineCalculationRelationships((fundingLineIdOne, calculationIdOne), (fundingLineIdTwo, calculationIdTwo));
+
+            await ThenTheRelationshipsWereCreated<FundingLine, Calculation>(AttributeConstants.FundingLineCalculationRelationshipId,
+                ((AttributeConstants.FundingLineId, fundingLineIdOne),
+                    (AttributeConstants.CalculationId, calculationIdOne)),
+                ((AttributeConstants.FundingLineId, fundingLineIdTwo),
+                    (AttributeConstants.CalculationId, calculationIdTwo)));
+        }
+        
+        [TestMethod]
+        public async Task DeleteFundingLines()
+        {
+            string[] ids = AsArray(NewRandomString(), NewRandomString());
+
+            await _FundingLineRepository.DeleteFundingLines(ids);
+
+            await ThenTheNodesWereDeleted<FundingLine>(ids.Select(_ => (AttributeConstants.FundingLineId, _)).ToArray());
         }
     }
 }

@@ -50,5 +50,25 @@ namespace CalculateFunding.Services.Graph.Interfaces
         Task<IActionResult> GetCalculationCircularDependencies(string specificationId);
         Task<IActionResult> GetAllEntities<TNode>(string nodeId)
             where TNode:class;
+
+        Task<IActionResult> DeleteFundingLines(string[] fieldIds);
+        Task<IActionResult> UpsertFundingLineCalculationRelationships(params (string fundingLineId, string calculationId)[] relationships);
+        Task<IActionResult> UpsertCalculationFundingLineRelationships(params (string calculationId, string fundingLineId)[] relationships);
+        Task<IActionResult> DeleteFundingLineCalculationRelationships(params (string fundingLineId, string calculationId)[] relationships);
+        Task<IActionResult> DeleteCalculationFundingLineRelationships(params (string calculationId, string fundingLineId)[] relationships);
+        Task<IActionResult> DeleteSpecificationDatasetRelationships(params (string specificationId, string datasetId)[] relationships);
+        Task<IActionResult> UpsertCalculationDataFieldRelationships(params (string calculationId, string fieldId)[] relationships);
+        Task<IActionResult> DeleteCalculationDataFieldRelationships(params (string calculationId, string fieldId)[] relationships);
+        Task<IActionResult> DeleteCalculations(params string[] calculationIds);
+        Task<IActionResult> UpsertCalculationSpecificationRelationships(params (string calculationId, string specificationId)[] relationships);
+        Task<IActionResult> DeleteCalculationDatasetFieldRelationship(string calculationId, string datasetFieldId);
+        Task<IActionResult> DeleteDatasetField(string datasetFieldId);
+        Task<IActionResult> UpsertSpecificationDatasetRelationships(params (string specificationId, string datasetId)[] relationships);
+        Task<IActionResult> DeleteCalculationSpecificationRelationships(params (string calculationId, string specificationId)[] relationships);
+        Task<IActionResult> DeleteCalculationCalculationRelationships(params (string calculationIdA, string calculationIdB)[] relationships);
+        Task<IActionResult> UpsertDatasetDataFieldRelationships(params (string datasetId, string fieldId)[] relationships);
+        Task<IActionResult> UpsertDataDefinitionDatasetRelationships(params (string definitionId, string datasetId)[] relationships);
+        Task<IActionResult> GetAllCalculationsForAll(params string[] calculationIds);
+        Task<IActionResult> GetAllFundingLinesForAll(params string[] fundingLineIds);
     }
 }

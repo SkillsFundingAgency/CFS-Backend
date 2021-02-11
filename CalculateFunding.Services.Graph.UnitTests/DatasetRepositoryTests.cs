@@ -148,6 +148,52 @@ namespace CalculateFunding.Services.Graph.UnitTests
                 (AttributeConstants.DataFieldId, dataFieldId),
                 (AttributeConstants.DatasetId, datasetId));
         }
+        
+        [TestMethod]
+        public async Task UpsertDataDefinitionDatasetRelationships()
+        {
+            string definitionIdOne = NewRandomString();
+            string definitionIdTwo = NewRandomString();
+            string datasetIdOne = NewRandomString();
+            string datasetIdTwo = NewRandomString();
+
+            await _datasetRepository.UpsertDataDefinitionDatasetRelationships((definitionIdOne, datasetIdOne), (definitionIdTwo, datasetIdTwo));
+
+            await ThenTheRelationshipsWereCreated<DatasetDefinition, Dataset>(AttributeConstants.DatasetDefinitionDatasetRelationshipId,
+                ((AttributeConstants.DatasetDefinitionId, definitionIdOne),
+                    (AttributeConstants.DatasetId, datasetIdOne)),
+                ((AttributeConstants.DatasetDefinitionId, definitionIdTwo),
+                    (AttributeConstants.DatasetId, datasetIdTwo)));
+
+            await AndTheRelationshipsWereCreated<Dataset, DatasetDefinition>(AttributeConstants.DatasetDatasetDefinitionRelationshipId,
+                ((AttributeConstants.DatasetId, datasetIdOne),
+                    (AttributeConstants.DatasetDefinitionId, definitionIdOne)),
+                ((AttributeConstants.DatasetId, datasetIdTwo),
+                    (AttributeConstants.DatasetDefinitionId, definitionIdTwo)));
+        }
+        [TestMethod]
+        public async Task UpsertDatasetDataFieldRelationships()
+        {
+            string datasetIdOne = NewRandomString();
+            string datasetIdTwo = NewRandomString();
+            string datafieldIdOne = NewRandomString();
+            string datafieldIdTwo = NewRandomString();
+
+            await _datasetRepository.UpsertDatasetDataFieldRelationships((datasetIdOne, datafieldIdOne), (datasetIdTwo, datafieldIdTwo));
+
+            await ThenTheRelationshipsWereCreated<Dataset, DataField>(AttributeConstants.DatasetDataFieldRelationshipId,
+                ((AttributeConstants.DatasetId, datasetIdOne),
+                    (AttributeConstants.DataFieldId, datafieldIdOne)),
+                ((AttributeConstants.DatasetId, datasetIdTwo),
+                    (AttributeConstants.DataFieldId, datafieldIdTwo)));
+
+            await AndTheRelationshipsWereCreated<DataField, Dataset>(AttributeConstants.DataFieldDatasetRelationshipId,
+                ((AttributeConstants.DataFieldId, datafieldIdOne),
+                    (AttributeConstants.DatasetId, datasetIdOne)),
+                ((AttributeConstants.DataFieldId, datafieldIdTwo),
+                    (AttributeConstants.DatasetId, datasetIdTwo)));
+        }
+        
 
         private Dataset NewDataset(Action<DatasetBuilder> setUp = null)
         {

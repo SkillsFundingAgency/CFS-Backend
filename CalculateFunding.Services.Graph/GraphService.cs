@@ -2,13 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using CalculateFunding.Common.Graph.Interfaces;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Graph;
 using CalculateFunding.Services.Graph.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Helpers;
 using Serilog;
 using Neo4jDriver = Neo4j.Driver;
 
@@ -100,16 +98,35 @@ namespace CalculateFunding.Services.Graph
             return await ExecuteRepositoryAction(() => _fundingLineRepository.DeleteFundingLine(fieldId),
                 $"Unable to delete funding line {fieldId}");
         }
+        
+        public async Task<IActionResult> DeleteFundingLines(string[] fieldIds)
+        {
+            return await ExecuteRepositoryAction(() => _fundingLineRepository.DeleteFundingLines(fieldIds),
+                $"Unable to delete funding lines.");
+        }
 
         public async Task<IActionResult> UpsertFundingLineCalculationRelationship(string fundingLineId, string calculationId)
         {
             return await ExecuteRepositoryAction(() => _fundingLineRepository.UpsertFundingLineCalculationRelationship(fundingLineId, calculationId),
                 $"Unable to create funding line -> calculation relationship {fundingLineId} -> {calculationId}");
         }
+        
+        public async Task<IActionResult> UpsertFundingLineCalculationRelationships(params (string fundingLineId, string calculationId)[] relationships)
+        {
+            return await ExecuteRepositoryAction(() => _fundingLineRepository.UpsertFundingLineCalculationRelationships(relationships),
+                $"Unable to create funding line -> calculation relationships");
+        }
+        
         public async Task<IActionResult> UpsertCalculationFundingLineRelationship(string calculationId, string fundingLineId)
         {
             return await ExecuteRepositoryAction(() => _fundingLineRepository.UpsertCalculationFundingLineRelationship(calculationId, fundingLineId),
                 $"Unable to create calculation -> funding line relationship {calculationId} -> {fundingLineId}");
+        }
+        
+        public async Task<IActionResult> UpsertCalculationFundingLineRelationships(params (string calculationId, string fundingLineId)[] relationships)
+        {
+            return await ExecuteRepositoryAction(() => _fundingLineRepository.UpsertCalculationFundingLineRelationships(relationships),
+                $"Unable to create calculation -> funding line relationship");
         }
 
         public async Task<IActionResult> DeleteFundingLineCalculationRelationship(string fundingLineId, string calculationId)
@@ -117,17 +134,35 @@ namespace CalculateFunding.Services.Graph
             return await ExecuteRepositoryAction(() => _fundingLineRepository.DeleteFundingLineCalculationRelationship(fundingLineId, calculationId),
                 $"Unable to delete funding line -> calculation relationship {fundingLineId} -> {calculationId}");
         }
+        
+        public async Task<IActionResult> DeleteFundingLineCalculationRelationships(params (string fundingLineId, string calculationId)[] relationships)
+        {
+            return await ExecuteRepositoryAction(() => _fundingLineRepository.DeleteFundingLineCalculationRelationships(relationships),
+                $"Unable to delete funding line -> calculation relationship");
+        }
 
         public async Task<IActionResult> DeleteCalculationFundingLineRelationship(string calculationId, string fundingLineId)
         {
             return await ExecuteRepositoryAction(() => _fundingLineRepository.DeleteCalculationFundingLineRelationship(calculationId, fundingLineId),
                 $"Unable to delete calculation -> funding line relationship {calculationId} -> {fundingLineId}");
         }
+        
+        public async Task<IActionResult> DeleteCalculationFundingLineRelationships(params (string calculationId, string fundingLineId)[] relationships)
+        {
+            return await ExecuteRepositoryAction(() => _fundingLineRepository.DeleteCalculationFundingLineRelationships(relationships),
+                $"Unable to delete calculation -> funding line relationship");
+        }
 
         public async Task<IActionResult> UpsertDataDefinitionDatasetRelationship(string definitionId, string datasetId)
         {
             return await ExecuteRepositoryAction(() => _datasetRepository.UpsertDataDefinitionDatasetRelationship(definitionId, datasetId),
                 $"Unable to create dataset defition -> dataset relationship {definitionId} -> {datasetId}");
+        }
+        
+        public async Task<IActionResult> UpsertDataDefinitionDatasetRelationships(params (string definitionId, string datasetId)[] relationships)
+        {
+            return await ExecuteRepositoryAction(() => _datasetRepository.UpsertDataDefinitionDatasetRelationships(relationships),
+                $"Unable to create dataset defition -> dataset relationships");
         }
         
         public async Task<IActionResult> DeleteDataDefinitionDatasetRelationship(string definitionId, string datasetId)
@@ -140,6 +175,12 @@ namespace CalculateFunding.Services.Graph
         {
             return await ExecuteRepositoryAction(() => _datasetRepository.UpsertDatasetDataFieldRelationship(datasetId, fieldId),
                 $"Unable to create dataset -> datafield relationship {datasetId} -> {fieldId}");
+        }
+
+        public async Task<IActionResult> UpsertDatasetDataFieldRelationships(params (string datasetId, string fieldId)[] relationships)
+        {
+            return await ExecuteRepositoryAction(() => _datasetRepository.UpsertDatasetDataFieldRelationships(relationships),
+                $"Unable to create dataset -> datafield relationships");
         }
         
         public async Task<IActionResult> DeleteDatasetDataFieldRelationship(string datasetId, string fieldId)
@@ -154,10 +195,22 @@ namespace CalculateFunding.Services.Graph
                 $"Unable to create specification -> dataset relationship {specificationId} -> {datasetId}");   
         }
         
+        public async Task<IActionResult> UpsertSpecificationDatasetRelationships(params (string specificationId, string datasetId)[] relationships)
+        {
+            return await ExecuteRepositoryAction(() => _specRepository.CreateSpecificationDatasetRelationships(relationships),
+                $"Unable to create specification -> dataset relationships");   
+        }
+        
         public async Task<IActionResult> DeleteSpecificationDatasetRelationship(string specificationId, string datasetId)
         {
             return await ExecuteRepositoryAction(() => _specRepository.DeleteSpecificationDatasetRelationship(specificationId, datasetId),
                 $"Unable to delete specification -> dataset relationship {specificationId} -> {datasetId}");   
+        }
+        
+        public async Task<IActionResult> DeleteSpecificationDatasetRelationships(params (string specificationId, string datasetId)[] relationships)
+        {
+            return await ExecuteRepositoryAction(() => _specRepository.DeleteSpecificationDatasetRelationships(relationships),
+                $"Unable to delete specification -> dataset relationship");   
         }
         
         public async Task<IActionResult> UpsertCalculationDataFieldRelationship(string calculationId, string fieldId)
@@ -166,10 +219,22 @@ namespace CalculateFunding.Services.Graph
                 $"Unable to create calculation -> datafield relationship {calculationId} -> {fieldId}");   
         }
         
+        public async Task<IActionResult> UpsertCalculationDataFieldRelationships(params (string calculationId, string fieldId)[] relationships)
+        {
+            return await ExecuteRepositoryAction(() => _calcRepository.UpsertCalculationDataFieldRelationships(relationships),
+                $"Unable to create calculation -> datafield relationships");   
+        }
+        
         public async Task<IActionResult> DeleteCalculationDataFieldRelationship(string calculationId, string fieldId)
         {
             return await ExecuteRepositoryAction(() => _calcRepository.DeleteCalculationDataFieldRelationship(calculationId, fieldId),
                 $"Unable to delete calculation -> datafield relationship {calculationId} -> {fieldId}");   
+        }
+        
+        public async Task<IActionResult> DeleteCalculationDataFieldRelationships(params (string calculationId, string fieldId)[] relationships)
+        {
+            return await ExecuteRepositoryAction(() => _calcRepository.DeleteCalculationDataFieldRelationships(relationships),
+                $"Unable to delete calculation -> datafield relationships");   
         }
 
         public async Task<IActionResult> DeleteSpecification(string specificationId)
@@ -195,6 +260,12 @@ namespace CalculateFunding.Services.Graph
             return await ExecuteRepositoryAction(() => _calcRepository.DeleteCalculation(calculationId),
                 $"Delete calculation failed for calculation:'{calculationId}'");
         }
+        
+        public async Task<IActionResult> DeleteCalculations(params string[] calculationIds)
+        {
+            return await ExecuteRepositoryAction(() => _calcRepository.DeleteCalculations(calculationIds),
+                $"Delete calculation failed for calculation:'{calculationIds.AsJson()}'");
+        }
 
         public async Task<IActionResult> UpsertCalculations(IEnumerable<Calculation> calculations)
         {
@@ -208,6 +279,12 @@ namespace CalculateFunding.Services.Graph
                 $"Upsert calculation relationship between specification failed for calculation:'{calculationId}'" +
                 $" and specification:'{specificationId}'");
         }
+        
+        public async Task<IActionResult> UpsertCalculationSpecificationRelationships(params (string calculationId, string specificationId)[] relationships)
+        {
+            return await ExecuteRepositoryAction(() => _calcRepository.UpsertCalculationSpecificationRelationships(relationships),
+                $"Upsert calculation relationships calculation -> specification'");
+        }
 
         public async Task<IActionResult> GetCalculationCircularDependencies(string specificationId)
         {
@@ -215,13 +292,18 @@ namespace CalculateFunding.Services.Graph
                 $"Unable to retrieve calculation circular dependencies for specification {specificationId}.");
         }
 
-        private (bool isCalculation, string calculationId) TryGetCalculationId(dynamic relationship)
+        public async Task<IActionResult> GetAllCalculationsForAll(params string[] calculationIds)
         {
-            bool isCalculation = relationship.One.TryGetValue("calculationid", out object calculationId);
-
-            return (isCalculation, (string) calculationId);
+            return await ExecuteRepositoryAction(() => _calcRepository.GetAllEntitiesForAll(calculationIds), 
+                $"Unable to retrieve all entities for calc ids {calculationIds.AsJson()}");
         }
 
+        public async Task<IActionResult> GetAllFundingLinesForAll(params string[] fundingLineIds)
+        {
+            return await ExecuteRepositoryAction(() => _fundingLineRepository.GetAllEntitiesForAll(fundingLineIds), 
+                $"Unable to retrieve all entities for funding line ids {fundingLineIds.AsJson()}");
+        }
+        
         public async Task<IActionResult> GetAllEntities<TNode>(string nodeId)
             where TNode : class
         {
@@ -256,24 +338,9 @@ namespace CalculateFunding.Services.Graph
 
         public async Task<IActionResult> UpsertCalculationCalculationsRelationships(string calculationId, string[] calculationIds)
         {
-            try
-            {
-                IEnumerable<Task> tasks = calculationIds.Select(async(_) =>
-                {
-                    await _calcRepository.UpsertCalculationCalculationRelationship(calculationId, _);
-                });
-
-                await TaskHelper.WhenAllAndThrow(tasks.ToArray());
-
-                return new OkResult();
-            }
-            catch (Neo4jDriver.Neo4jException ex)
-            {
-                _logger.Error(ex, $"Upsert calculation relationship call to calculation failed for calculation:'{calculationId}'" +
-                                  $" calling calculations:'{calculationIds.AsJson()}'");
-
-                throw;
-            }
+            return await ExecuteRepositoryAction(() => _calcRepository.UpsertCalculationCalculationRelationships(calculationIds.Select(_ => (calculationId, _)).ToArray()),
+                $"Upsert calculation relationship call to calculation failed for calculation:'{calculationId}'" +
+                $" calling calculations:'{calculationIds.AsJson()}'");
         }
 
         public async Task<IActionResult> DeleteCalculationSpecificationRelationship(string calculationId, string specificationId)
@@ -282,6 +349,12 @@ namespace CalculateFunding.Services.Graph
                 $"Delete calculation relationship between specification failed for calculation:'{calculationId}'" +
                 $" and specification:'{specificationId}'");
         }
+        
+        public async Task<IActionResult> DeleteCalculationSpecificationRelationships(params (string calculationId, string specificationId)[] relationships)
+        {
+            return await ExecuteRepositoryAction(() => _calcRepository.DeleteCalculationSpecificationRelationships(relationships),
+                $"Delete calculation s between specification failed ");
+        }
 
         public async Task<IActionResult> DeleteCalculationCalculationRelationship(string calculationIdA, string calculationIdB)
         {
@@ -289,27 +362,18 @@ namespace CalculateFunding.Services.Graph
                 $"Delete calculation relationship call to calculation failed for calculation:'{calculationIdA}'" +
                 $" calling calculation:'{calculationIdB}'");
         }
+        
+        public async Task<IActionResult> DeleteCalculationCalculationRelationships(params (string calculationIdA, string calculationIdB)[] relationships)
+        {
+            return await ExecuteRepositoryAction(() => _calcRepository.DeleteCalculationCalculationRelationships(relationships),
+                $"Delete calculation relationships call to calculation failed");
+        }
 
         public async Task<IActionResult> UpsertCalculationDataFieldsRelationships(string calculationId, string[] datasetFieldIds)
         {
-            try
-            {
-                IEnumerable<Task> tasks = datasetFieldIds.Select(async (_) =>
-                {
-                    await _calcRepository.UpsertCalculationDataFieldRelationship(calculationId, _);
-                });
-
-                await TaskHelper.WhenAllAndThrow(tasks.ToArray());
-
-                return new OkResult();
-            }
-            catch (Neo4jDriver.Neo4jException ex)
-            {
-                _logger.Error(ex, $"Upsert datafield relationship call to calculation failed for calculation:'{calculationId}'" +
-                                  $" calling calculations:'{datasetFieldIds.AsJson()}'");
-
-                throw;
-            }
+            return await ExecuteRepositoryAction(() => _calcRepository.UpsertCalculationDataFieldRelationships(datasetFieldIds.Select(_ => (calculationId, _)).ToArray()),
+                $"Upsert datafield relationship call to calculation failed for calculation:'{calculationId}'" +
+                $" calling calculations:'{datasetFieldIds.AsJson()}'");
         }
 
         public async Task<IActionResult> DeleteCalculationDatasetFieldRelationship(string calculationId, string datasetFieldId)
