@@ -317,6 +317,18 @@ namespace CalculateFunding.Services.Datasets
                 return new StatusCodeResult(412);
             }
 
+            ApiResponse<SpecModel.SpecificationSummary> specificationApiResponse =
+                    await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(relationship.Specification.Id));
+
+            if (!specificationApiResponse.StatusCode.IsSuccess() || specificationApiResponse.Content == null)
+            {
+                _logger.Error($"Specification was not found for id {relationship.Specification.Id}");
+                return new StatusCodeResult(412);
+            }
+
+            SpecModel.SpecificationSummary specification = specificationApiResponse.Content;
+
+
             relationship.Author = user;
             relationship.LastUpdated = _dateTimeProvider.UtcNow;
             relationship.DatasetVersion = new DatasetRelationshipVersion
@@ -350,7 +362,7 @@ namespace CalculateFunding.Services.Datasets
             {
                 InvokerUserDisplayName = user?.Name,
                 InvokerUserId = user?.Id,
-                JobDefinitionId = JobConstants.DefinitionNames.MapDatasetJob,
+                JobDefinitionId = specification.ProviderSource != ProviderSource.FDZ ? JobConstants.DefinitionNames.MapDatasetJob : JobConstants.DefinitionNames.MapFdzDatasetsJob,
                 MessageBody = JsonConvert.SerializeObject(dataset),
                 Properties = new Dictionary<string, string>
                 {

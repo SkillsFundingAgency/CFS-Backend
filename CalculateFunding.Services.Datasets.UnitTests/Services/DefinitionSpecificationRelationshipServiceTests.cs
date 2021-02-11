@@ -1598,6 +1598,7 @@ namespace CalculateFunding.Services.Datasets.Services
             //Arrange
             string datasetId = NewRandomString();
             string relationshipId = NewRandomString();
+            string specificationId = NewRandomString();
 
             AssignDatasourceModel model = new AssignDatasourceModel
             {
@@ -1609,7 +1610,7 @@ namespace CalculateFunding.Services.Datasets.Services
             ILogger logger = CreateLogger();
 
             Dataset dataset = new Dataset();
-            DefinitionSpecificationRelationship relationship = new DefinitionSpecificationRelationship();
+            DefinitionSpecificationRelationship relationship = new DefinitionSpecificationRelationship {Specification = new Reference {Id= specificationId } };
 
             IDatasetRepository datasetRepository = CreateDatasetRepository();
             datasetRepository
@@ -1622,7 +1623,18 @@ namespace CalculateFunding.Services.Datasets.Services
                 .UpdateDefinitionSpecificationRelationship(Arg.Any<DefinitionSpecificationRelationship>())
                 .Returns(HttpStatusCode.BadRequest);
 
-            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
+            SpecModel.SpecificationSummary specification = new SpecModel.SpecificationSummary
+            {
+                Id = specificationId,
+                ProviderSource = ProviderSource.CFS
+            };
+
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
+                .GetSpecificationSummaryById(Arg.Any<string>())
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specification));
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository, specificationsApiClient: specificationsApiClient);
 
             //Act
             IActionResult result = await service.AssignDatasourceVersionToRelationship(model, null, null);
@@ -1649,6 +1661,7 @@ namespace CalculateFunding.Services.Datasets.Services
             //Arrange
             string datasetId = NewRandomString();
             string relationshipId = NewRandomString();
+            string specificationId = NewRandomString();
 
             AssignDatasourceModel model = new AssignDatasourceModel
             {
@@ -1663,7 +1676,7 @@ namespace CalculateFunding.Services.Datasets.Services
             Dataset dataset = new Dataset();
             DefinitionSpecificationRelationship relationship = new DefinitionSpecificationRelationship
             {
-                Specification = new Reference { Id = "spec-id" }
+                Specification = new Reference { Id = specificationId }
             };
 
             IDatasetRepository datasetRepository = CreateDatasetRepository();
@@ -1679,7 +1692,18 @@ namespace CalculateFunding.Services.Datasets.Services
                     _.LastUpdated == _utcNow))
                 .Returns(HttpStatusCode.OK);
 
-            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
+            SpecModel.SpecificationSummary specification = new SpecModel.SpecificationSummary
+            {
+                Id = specificationId,
+                ProviderSource = ProviderSource.CFS
+            };
+
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
+                .GetSpecificationSummaryById(Arg.Any<string>())
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specification));
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository, specificationsApiClient: specificationsApiClient);
 
             //Act
             IActionResult result = await service.AssignDatasourceVersionToRelationship(model, user, null);
@@ -1696,6 +1720,7 @@ namespace CalculateFunding.Services.Datasets.Services
             //Arrange
             string datasetId = NewRandomString();
             string relationshipId = NewRandomString();
+            string specificationId = NewRandomString();
 
             AssignDatasourceModel model = new AssignDatasourceModel
             {
@@ -1711,7 +1736,7 @@ namespace CalculateFunding.Services.Datasets.Services
             Dataset dataset = new Dataset();
             DefinitionSpecificationRelationship relationship = new DefinitionSpecificationRelationship
             {
-                Specification = new Reference { Id = "spec-id" }
+                Specification = new Reference { Id = specificationId }
             };
 
             IDatasetRepository datasetRepository = CreateDatasetRepository();
@@ -1725,11 +1750,23 @@ namespace CalculateFunding.Services.Datasets.Services
                 .UpdateDefinitionSpecificationRelationship(Arg.Any<DefinitionSpecificationRelationship>())
                 .Returns(HttpStatusCode.OK);
 
+            SpecModel.SpecificationSummary specification = new SpecModel.SpecificationSummary
+            {
+                Id = specificationId,
+                ProviderSource = ProviderSource.CFS
+            };
+
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
+                .GetSpecificationSummaryById(Arg.Any<string>())
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specification));
+
+
             IJobManagement jobManagement = CreateJobManagement();
 
             IMessengerService messengerService = CreateMessengerService();
 
-            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository, jobManagement: jobManagement, messengerService: messengerService);
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository, jobManagement: jobManagement, messengerService: messengerService, specificationsApiClient: specificationsApiClient);
 
             //Act
             IActionResult result = await service.AssignDatasourceVersionToRelationship(model, user, null);
@@ -1754,11 +1791,12 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        public async Task AssignDatasourceVersionToRelationship_ForScopedProviderDataset_CreateMapScopedDatasetJob()
+        public async Task AssignDatasourceVersionToRelationship_ForFDZProviderSource_CreateMapFDZDatasetJob()
         {
             //Arrange
             string datasetId = NewRandomString();
             string relationshipId = NewRandomString();
+            string specificationId = NewRandomString();
 
             AssignDatasourceModel model = new AssignDatasourceModel
             {
@@ -1775,7 +1813,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DefinitionSpecificationRelationship relationship = new DefinitionSpecificationRelationship
             {
                 Id = "rel-1",
-                Specification = new Reference { Id = "spec-id" },
+                Specification = new Reference { Id = specificationId },
                 IsSetAsProviderData = true
             };
 
@@ -1790,6 +1828,98 @@ namespace CalculateFunding.Services.Datasets.Services
                 .UpdateDefinitionSpecificationRelationship(Arg.Any<DefinitionSpecificationRelationship>())
                 .Returns(HttpStatusCode.OK);
 
+            SpecModel.SpecificationSummary specification = new SpecModel.SpecificationSummary
+            {
+                Id = specificationId,
+                ProviderSource = ProviderSource.FDZ
+            };
+
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
+                .GetSpecificationSummaryById(Arg.Any<string>())
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specification));
+
+
+            IJobManagement jobManagement = CreateJobManagement();
+
+            IMessengerService messengerService = CreateMessengerService();
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository, jobManagement: jobManagement, messengerService: messengerService, specificationsApiClient: specificationsApiClient);
+
+            //Act
+            IActionResult result = await service.AssignDatasourceVersionToRelationship(model, user, null);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<NoContentResult>();
+
+            await jobManagement
+                .Received(1)
+                .QueueJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == JobConstants.DefinitionNames.MapFdzDatasetsJob &&
+                                                       j.SpecificationId == relationship.Specification.Id &&
+                                                       j.Properties.ContainsKey("user-id") &&
+                                                       j.Properties["user-id"] == "user-id-1" &&
+                                                       j.Properties.ContainsKey("user-name") &&
+                                                       j.Properties["user-name"] == "user-name-1" &&
+                                                       j.Properties.ContainsKey("relationship-id") &&
+                                                       j.Properties["relationship-id"] == "rel-1"));
+
+            await messengerService
+                .DidNotReceive()
+                .SendToQueue(Arg.Any<string>(), Arg.Any<Dataset>(), Arg.Any<IDictionary<string, string>>());
+        }
+
+        [TestMethod]
+        public async Task AssignDatasourceVersionToRelationship_ForScopedProviderDataset_CreateMapScopedDatasetJob()
+        {
+            //Arrange
+            string datasetId = NewRandomString();
+            string relationshipId = NewRandomString();
+            string specificationId = NewRandomString();
+
+            AssignDatasourceModel model = new AssignDatasourceModel
+            {
+                DatasetId = datasetId,
+                RelationshipId = relationshipId,
+                Version = 1
+            };
+
+            Reference user = new Reference("user-id-1", "user-name-1");
+
+            ILogger logger = CreateLogger();
+
+            Dataset dataset = new Dataset();
+            DefinitionSpecificationRelationship relationship = new DefinitionSpecificationRelationship
+            {
+                Id = "rel-1",
+                Specification = new Reference { Id = specificationId },
+                IsSetAsProviderData = true
+            };
+
+            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            datasetRepository
+                .GetDatasetByDatasetId(Arg.Is(datasetId))
+                .Returns(dataset);
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
+                .Returns(relationship);
+            datasetRepository
+                .UpdateDefinitionSpecificationRelationship(Arg.Any<DefinitionSpecificationRelationship>())
+                .Returns(HttpStatusCode.OK);
+
+            SpecModel.SpecificationSummary specification = new SpecModel.SpecificationSummary
+            {
+                Id = specificationId,
+                ProviderSource = ProviderSource.CFS
+            };
+
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
+                .GetSpecificationSummaryById(Arg.Any<string>())
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specification));
+
+
             IJobManagement jobManagement = CreateJobManagement();
 
             jobManagement.QueueJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == JobConstants.DefinitionNames.MapScopedDatasetJob &&
@@ -1803,7 +1933,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IMessengerService messengerService = CreateMessengerService();
 
-            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository, jobManagement: jobManagement, messengerService: messengerService);
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository, jobManagement: jobManagement, messengerService: messengerService, specificationsApiClient: specificationsApiClient);
 
             //Act
             IActionResult result = await service.AssignDatasourceVersionToRelationship(model, user, null);

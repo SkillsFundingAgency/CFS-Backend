@@ -571,6 +571,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
+            AndTheJob(NewJob(_ => _.WithId(_jobId)
+                .WithDefinitionId(CreateInstructAllocationJob)), CreateInstructAllocationJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
@@ -590,6 +592,7 @@ namespace CalculateFunding.Services.Datasets.Services
                     .WithName(_relationshipName)))
                     .WithDatasetDefinition(NewDatasetDefinition())))));
             AndThePopulationOfProviderSummariesForSpecification(false, false);
+            AndTheCompileResponse(HttpStatusCode.NoContent);
 
             ICloudBlob cloudBlob = NewCloudBlob();
 
