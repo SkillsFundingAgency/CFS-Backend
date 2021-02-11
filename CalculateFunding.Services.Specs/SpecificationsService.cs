@@ -1147,7 +1147,8 @@ SELECT  s.id,
         s.content.current.fundingPeriod,
         s.content.current.publishStatus, 
         s.content.current.description, 
-        s.content.current.dataDefinitionRelationshipIds, 
+        s.content.current.dataDefinitionRelationshipIds,
+        s.content.isSelectedForFunding,
         s.content.publishedResultsRefreshedAt, 
         s.updatedAt
 FROM    specs s 
