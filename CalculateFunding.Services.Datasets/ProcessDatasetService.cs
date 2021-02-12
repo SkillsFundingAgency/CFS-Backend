@@ -393,7 +393,7 @@ namespace CalculateFunding.Services.Datasets
 
                 Dictionary<string, Dataset> datasets = new Dictionary<string, Dataset>();
 
-                foreach (DefinitionSpecificationRelationship relationship in relationships)
+                foreach (DefinitionSpecificationRelationship relationship in relationships.Where(_ => _.DatasetVersion != null))
                 {
                     if (!datasets.TryGetValue(relationship.DatasetVersion.Id, out Dataset dataset))
                     {
