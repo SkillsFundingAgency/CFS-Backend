@@ -29,13 +29,25 @@ namespace CalculateFunding.Services.Publishing
             FundingLine[] fundingLines = generatedProviderResults[provider.ProviderId]
                 .FundingLines?
                 .Where(_ => _.Type == FundingLineType.Payment && _.Value.HasValue)
-                .ToArray() ;
+                .ToArray();
+
+            // add all funding lines which were previously either null payment on released or weren't included in last release
+            HashSet<string> newInScopeFundingLines = fundingLines?
+                .Where(fl => providerVersion.FundingLines != null &&
+                                (providerVersion
+                                    .FundingLines
+                                    .Any(_ => _.Type == FundingLineType.Payment &&
+                                            !_.Value.HasValue &&
+                                            _.FundingLineCode == fl.FundingLineCode) ||
+                                providerVersion.FundingLines
+                                    .All(_ => _.FundingLineCode != fl.FundingLineCode))).Select(_ => _.FundingLineCode).ToHashSet();
 
             if (fundingLines != null)
             {
                 ProfilingRequests.Add(new ProviderProfilingRequestData
                 {
                     FundingLinesToProfile = fundingLines,
+                    NewInScopeFundingLines = isNewProvider ? null : newInScopeFundingLines,
                     PublishedProvider = providerVersion,
                     ProviderType = isNewProvider ? provider.ProviderType : null,
                     ProviderSubType = isNewProvider ? provider.ProviderSubType : null,

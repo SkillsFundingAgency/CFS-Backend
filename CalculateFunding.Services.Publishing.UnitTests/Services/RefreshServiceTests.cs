@@ -526,9 +526,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndSpecification();
             AndCalculationResultsBySpecificationId();
             AndTemplateMetadataContents();
-            AndScopedProviders();
+            AndScopedProviders(profilePatternKeyPrefix: profilePatternKey);
 
             var newProvider = _publishedProviders.First();
+            _publishedProviders.Skip(1).First().Current.FundingLines.ForEach(_ => _.Value = null);
+            _publishedProviders.Skip(1).First().Released = null;
             var existingProviders = _publishedProviders.Skip(1).ToList();
 
             AndPublishedProviders(existingProviders);
@@ -538,6 +540,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndCsvJobService();
 
             await WhenMessageReceivedWithJobIdAndCorrelationId();
+
+            _batchProfilingService.Verify(_ => _.ProfileBatches(
+                    It.Is<BatchProfilingContext>(context =>
+                        context.ProfilingRequests != null &&
+                        context.ProfilingRequests.Count == 3 &&
+                        context.ProfilingRequests.First().NewInScopeFundingLines.Count() == 1 &&
+                        context.ProfilingRequests.SkipLast(1).All(request => request.ProfilePatternKeys != null &&
+                                                                 request.ProfilePatternKeys.Values.All(key =>
+                                                                     key.StartsWith(profilePatternKey))))),
+                Times.Once);
 
             _publishedProviderStatusUpdateService
                 .Verify(_ =>

@@ -12,6 +12,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private PublishedProviderVersion _publishedProviderVersion;
         private IDictionary<string, string> _profilePatternKeys;
         private IEnumerable<FundingLine> _fundingLinesToProfile;
+        private HashSet<string> _newInScopeFundingLines;
 
         public ProviderProfilingRequestDataBuilder WithProviderType(string providerType)
         {
@@ -49,6 +50,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return this;
         }
 
+        public ProviderProfilingRequestDataBuilder WithInScopeFundingLines(params FundingLine[] inScopeFundingLines)
+        {
+            _newInScopeFundingLines = inScopeFundingLines.Select(_ => _.FundingLineCode).ToHashSet();
+
+            return this;
+        }
+
         public ProviderProfilingRequestData Build()
         {
             return new ProviderProfilingRequestData
@@ -57,7 +65,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 ProviderSubType = _providerSubType,
                 PublishedProvider = _publishedProviderVersion,
                 ProfilePatternKeys = _profilePatternKeys,
-                FundingLinesToProfile = _fundingLinesToProfile
+                FundingLinesToProfile = _fundingLinesToProfile,
+                NewInScopeFundingLines = _newInScopeFundingLines
             };
         }
     }

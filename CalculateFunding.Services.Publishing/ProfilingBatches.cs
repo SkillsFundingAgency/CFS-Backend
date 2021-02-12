@@ -16,15 +16,15 @@ namespace CalculateFunding.Services.Publishing
 
         private void BatchPublishedProviders(IEnumerable<ProviderProfilingRequestData> publishedProviders)
         {
-            (ProviderProfilingRequestData provider, FundingLine fundingLine)[] fundingLineBreakDown = GetFundingLinesBreakdown(publishedProviders).ToArray();
+            (ProviderProfilingRequestData provider, FundingLine fundingLine, bool fundingLineNewInScope)[] fundingLineBreakDown = GetFundingLinesBreakdown(publishedProviders).ToArray();
 
             _batches = fundingLineBreakDown.GroupBy(_ =>
                     new
                     {
                         _.provider.PublishedProvider.FundingStreamId,
                         _.provider.PublishedProvider.FundingPeriodId,
-                        _.provider.ProviderType,
-                        _.provider.ProviderSubType,
+                        ProviderType = _.fundingLineNewInScope ? _.provider.PublishedProvider.Provider.ProviderType : _.provider.ProviderType,
+                        ProviderSubType = _.fundingLineNewInScope ? _.provider.PublishedProvider.Provider.ProviderSubType : _.provider.ProviderSubType,
                         _.fundingLine.FundingLineCode,
                         ProfilePatternKey = _.provider.GetProfilePatternKey(_.fundingLine),
                         _.fundingLine.Value
@@ -46,14 +46,15 @@ namespace CalculateFunding.Services.Publishing
                 .ToArray();
         }
 
-        private IEnumerable<(ProviderProfilingRequestData, FundingLine)> GetFundingLinesBreakdown(
+        private IEnumerable<(ProviderProfilingRequestData, FundingLine, bool)> GetFundingLinesBreakdown(
             IEnumerable<ProviderProfilingRequestData> providerData)
         {
             foreach (ProviderProfilingRequestData profilingRequestData in providerData)
             {
                 foreach (FundingLine fundingLine in profilingRequestData.FundingLinesToProfile)
                 {
-                    yield return (profilingRequestData, fundingLine);
+                    yield return (profilingRequestData, fundingLine, profilingRequestData.NewInScopeFundingLines != null && 
+                                                                        profilingRequestData.NewInScopeFundingLines.Contains(fundingLine.FundingLineCode));
                 }
             }
         }

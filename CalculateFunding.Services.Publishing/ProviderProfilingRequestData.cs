@@ -9,6 +9,8 @@ namespace CalculateFunding.Services.Publishing
         public PublishedProviderVersion PublishedProvider { get; set; }
         
         public IEnumerable<FundingLine> FundingLinesToProfile { get; set; }
+
+        public HashSet<string> NewInScopeFundingLines { get; set; }
         
         public IDictionary<string, string> ProfilePatternKeys { get; set; }
         
