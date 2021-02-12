@@ -19,14 +19,14 @@ namespace CalculateFunding.Api.External.V3.Services
 {
     public class FundingFeedService : IFundingFeedService
     {
-        const int MaxRecords = 500;
+        public const int MaxRecords = 500;
 
         private readonly IFundingFeedSearchService _feedService;
         private readonly IPublishedFundingRetrievalService _publishedFundingRetrievalService;
         private readonly IExternalEngineOptions _externalEngineOptions;
 
         public FundingFeedService(
-            IFundingFeedSearchService feedService, 
+            IFundingFeedSearchService feedService,
             IPublishedFundingRetrievalService publishedFundingRetrievalService,
             IExternalEngineOptions externalEngineOptions)
         {
@@ -39,6 +39,18 @@ namespace CalculateFunding.Api.External.V3.Services
             _externalEngineOptions = externalEngineOptions;
         }
 
+        /// <summary>
+        /// Generate funding feed page
+        /// Page behaviour should be as https://tools.ietf.org/html/rfc5005, Section 4. Archived Feeds
+        /// </summary>
+        /// <param name="request">Http Request</param>
+        /// <param name="pageRef">Page of historical results, null for latest items</param>
+        /// <param name="fundingStreamIds">Optional funding stream IDs to filter on</param>
+        /// <param name="fundingPeriodIds">Optional funding stream period IDs to filter on</param>
+        /// <param name="groupingReasons">Optional grouping reasons to filter on</param>
+        /// <param name="variationReasons">Optional variation reason to filter on</param>
+        /// <param name="pageSize">Page size</param>
+        /// <returns></returns>
         public async Task<IActionResult> GetFunding(HttpRequest request,
             int? pageRef,
             IEnumerable<string> fundingStreamIds = null,
@@ -51,10 +63,10 @@ namespace CalculateFunding.Api.External.V3.Services
 
             if (pageRef < 1) return new BadRequestObjectResult("Page ref should be at least 1");
 
-            if (pageSize < 1 || pageSize > 500) return new BadRequestObjectResult($"Page size should be more that zero and less than or equal to {MaxRecords}");
+            if (pageSize < 1 || pageSize > MaxRecords) return new BadRequestObjectResult($"Page size should be more that zero and less than or equal to {MaxRecords}");
 
             SearchFeedV3<PublishedFundingIndex> searchFeed = await _feedService.GetFeedsV3(
-                pageRef, pageSize.Value, fundingStreamIds, fundingPeriodIds, 
+                pageRef, pageSize.Value, fundingStreamIds, fundingPeriodIds,
                 groupingReasons?.Select(x => x.ToString()),
                 variationReasons?.Select(x => x.ToString()));
 

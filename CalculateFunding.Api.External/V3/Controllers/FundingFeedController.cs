@@ -45,13 +45,15 @@ namespace CalculateFunding.Api.External.V3.Controllers
 
 
         /// <summary>
-        /// Funding feed - specific historical page of results
+        /// Funding feed - specific historical page of results.
+        /// When requested with a specific page size, the items returned in the page will be the same.
+        /// Page numbers with lower values container older items.
         /// </summary>
         /// <param name="fundingStreamIds">Optional Funding stream IDs</param>
         /// <param name="fundingPeriodIds">Optional Funding Period IDs</param>
         /// <param name="groupingReasons">Optional Grouping Reasons</param>
         /// <param name="variationReasons">Optional Variation Reasons</param>
-        /// <param name="pageSize">Page Size</param>
+        /// <param name="pageSize">Page Size. Maximum size of 500</param>
         /// <param name="pageRef">Page reference for historical page</param>
         /// <returns></returns>
         [HttpGet("{pageRef:int}")]

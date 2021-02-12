@@ -30,13 +30,11 @@ The following table lists the media types used by the service:
 
 | Media Type    | Description |
 | ------------- |-------------| 
-| application/xml | An allocation in XML format |
 | application/json | An allocation in JSON format  |
-| application/atom+xml | An atom feed representing a stream of funding in XML format. Each content item in the feed will be the PublishedProviderVersion |
 | application/atom+json | An atom feed representing a stream of funding in JSON format.* Each content item in the feed will be the PublishedProviderVersion  |
 
 * This not a part of the ATOM standard but is a convenience feature for native JSON clients.
-The media Type above conform to the Accept Header specification. In simple terms that states that the media Type is vendor specific, is a given representation (sfa.funding and version) and delivered in a particular wire format (JSON or XML).
+The media Type above conform to the Accept Header specification. In simple terms that states that the media Type is vendor specific, is a given representation (sfa.funding and version) and delivered in a particular wire format (JSON).
 
 ## Request Headers
 The following HTTP headers are supported by the service.
@@ -49,7 +47,13 @@ The following HTTP headers are supported by the service.
 There are no custom headers returned by the service. However each call will return header to aid the client with caching responses.
 
 ## Page of Results
-The calculate funding API provides resources that represent notification streams. These will be provided as an ATOM feed. The ATOM specification makes provision for paging results in two ways. Both methods provides a means for client to navigate the stream without prior knowledge of the necessary URIs. This follows a Hypermedia As The Engine Of Application State (HATEAOS) pattern. The selected paging method will depend on the specific resource. Clients are expected to be tolerant to changes to the paging method within the confines of the ATOM specification 
+The paging follows the RFC 5005 specification.
+
+See https://tools.ietf.org/html/rfc5005 for more information. **Section 4. Archived Feeds** explains the behaviour.
+
+The first page of the notification feed contains the latest items, up to when the page size is hit.
+
+Then immutable historical pages are created in date descending order, eg page 4 contains newer items than page 3.
 
 ## Generic Error and Exception Behaviour
 All operations will return one of the following messages in the event a generic exception is encountered.

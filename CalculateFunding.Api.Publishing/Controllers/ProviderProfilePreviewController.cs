@@ -7,14 +7,14 @@ using Microsoft.AspNetCore.Mvc;
 namespace CalculateFunding.Api.Publishing.Controllers
 {
     [ApiController]
-    public class ProfiderProfilePreviewController : ControllerBase
+    public class ProviderProfilePreviewController : ControllerBase
     {
         private readonly IProfilePatternPreview _profilePatternPreview;
 
-        public ProfiderProfilePreviewController(IProfilePatternPreview profilePatternPreview)
+        public ProviderProfilePreviewController(IProfilePatternPreview profilePatternPreview)
         {
             Guard.ArgumentNotNull(profilePatternPreview, nameof(profilePatternPreview));
-            
+
             _profilePatternPreview = profilePatternPreview;
         }
 
