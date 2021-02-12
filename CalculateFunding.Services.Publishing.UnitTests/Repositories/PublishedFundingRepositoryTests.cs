@@ -27,7 +27,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
         private Mock<IPublishedFundingQueryBuilder> _publishedFundingQueryBuilder;
 
         private PublishedFundingRepository _repository;
-        
+
         private string _fundingStreamId;
         private string _fundingPeriodId;
         private string _publishedProviderVersion;
@@ -40,7 +40,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
 
             _repository = new PublishedFundingRepository(_cosmosRepository,
                 _publishedFundingQueryBuilder.Object);
-            
+
             _fundingPeriodId = NewRandomString();
             _fundingStreamId = NewRandomString();
             _publishedProviderVersion = NewRandomString();
@@ -80,9 +80,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
         {
             string fundingPeriodId = NewRandomString();
             string fundingStreamId = NewRandomString();
-            
+
             DateTime expectedLastPublishedDate = new RandomDateTime();
-            
+
             GivenTheDynamicResultsForTheQuery(_ => _.QueryText?.Equals(@"SELECT MAX(c.updatedAt)
                                   FROM c
                                   WHERE c.documentType = 'PublishedProvider'
@@ -90,7 +90,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                                   AND c.content.current.fundingStreamId = @fundingStreamId
                                   AND c.content.current.fundingPeriodId = @fundingPeriodId") == true &&
                 HasParameter(_, "@fundingPeriodId", fundingPeriodId) &&
-                HasParameter(_, "@fundingStreamId", fundingStreamId), 
+                HasParameter(_, "@fundingStreamId", fundingStreamId),
                 JObject.Parse($"{{\"$1\" : \"{expectedLastPublishedDate.ToString(CultureInfo.InvariantCulture)}\"}}"));
 
             DateTime? actualLastPublishedDate = await _repository.GetLatestPublishedDate(fundingStreamId, fundingPeriodId);
@@ -110,11 +110,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
             int top = NewRandomNumber();
             int pageRef = NewRandomNumber();
 
-            
+
             IEnumerable<PublishedFundingIndex> expectedResults = new PublishedFundingIndex[0];
             CosmosDbQuery query = new CosmosDbQuery();
-            
-            GivenTheCosmosDbQuery(fundingStreamIds, 
+
+            GivenTheCosmosDbQuery(fundingStreamIds,
                 fundingPeriodIds,
                 groupingReasons,
                 variationReasons,
@@ -206,7 +206,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
         }
 
         private int NewRandomNumber() => new RandomNumberBetween(1, 10000);
-        
+
         private IEnumerable<string> EnumerableFor(params string[] items) => items;
 
         [TestMethod]
@@ -235,7 +235,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                                                HasParameter(_, "@fundingPeriodId", _fundingPeriodId)),
                 50);
         }
-        
+
         [TestMethod]
         public async Task DeleteAllPublishedProviderVersionsByFundingStreamAndPeriodBulkDeletesAllDocumentsWithMatchingFundingPeriodAndStream()
         {
@@ -410,7 +410,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
             await _cosmosRepository
                 .Received(1)
                 .DocumentsBatchProcessingAsync(
-                    Arg.Is((Func<List<PublishedFundingVersion>, Task>) BatchProcessor),
+                    Arg.Is((Func<List<PublishedFundingVersion>, Task>)BatchProcessor),
                     Arg.Is<CosmosDbQuery>(_ => _.QueryText == queryText &&
                                                HasParameter(_, "@fundingPeriodId", fundingPeriodId) &&
                                                HasParameter(_, "@fundingStreamId", fundingStreamId) &&
@@ -452,7 +452,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                                 c.content.id,
                                 {
                                     'organisationGroupTypeCode' : c.content.current.organisationGroupTypeCode,
+                                    'groupingReason' : c.content.current.groupingReason,
                                     'organisationGroupName' : c.content.current.organisationGroupName,
+                                    'organisationGroupIdentifierValue' : c.content.current.organisationGroupIdentifierValue,
                                     'fundingStreamId' : c.content.current.fundingStreamId,
                                     'fundingPeriod' : {
                                       'id' : c.content.current.fundingPeriod.id
@@ -485,7 +487,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
             await _cosmosRepository
                 .Received(1)
                 .DocumentsBatchProcessingAsync(
-                    Arg.Is((Func<List<PublishedFunding>, Task>) BatchProcessor),
+                    Arg.Is((Func<List<PublishedFunding>, Task>)BatchProcessor),
                     Arg.Is<CosmosDbQuery>(_ => _.QueryText == queryText &&
                                                HasParameter(_, "@fundingPeriodId", fundingPeriodId) &&
                                                HasParameter(_, "@fundingStreamId", fundingStreamId) &&
@@ -509,10 +511,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
         {
             const string specificationId = "spec-1";
 
-            await WhenPublishedGroupBatchProcessing(specificationId, (List<PublishedFunding> pfs) => 
+            await WhenPublishedGroupBatchProcessing(specificationId, (List<PublishedFunding> pfs) =>
             {
                 int count = pfs.Count();
-                return Task.CompletedTask; 
+                return Task.CompletedTask;
             }, 50);
 
             string queryText = $@"SELECT {{
@@ -577,7 +579,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
             await _cosmosRepository
                 .Received(1)
                 .DynamicQuery(
-                Arg.Is<CosmosDbQuery>(_ => _.QueryText == queryText 
+                Arg.Is<CosmosDbQuery>(_ => _.QueryText == queryText
                 && HasParameter(_, "@specificationId", specificationId)
                 && HasArrayParameter(_, "@fundingIds", fundingIds)));
         }
@@ -597,7 +599,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                 .Should()
                 .Be("specificationId");
         }
-        
+
         [TestMethod]
         public void GetPublishedProviderStatusCountGuardsAgainstEmptyPublishedProviderIds()
         {
@@ -613,7 +615,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                 .Should()
                 .Be("publishedProviderIds");
         }
-        
+
         [TestMethod]
         public void GetPublishedProviderStatusCountGuardsAgainstTooManyPublishedProviderIds()
         {
@@ -629,7 +631,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                 .Should()
                 .Be("You can only filter against 100 published provider ids at a time");
         }
-        
+
         [TestMethod]
         public void GetPublishedProviderStatusCountGuardsAgainstMissingPublishedProviderIds()
         {
@@ -681,7 +683,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                 CreatePublishedProviderFundingResult(specificationId, publishedProviderId1),
                 CreatePublishedProviderFundingResult(specificationId, publishedProviderId2)
             };
-            
+
             GivenTheDynamicResultsForTheQuery(QueryMatch(specificationId, publishedProviderIds, statuses), results);
 
             IEnumerable<PublishedProviderFunding> fundings = await WhenThePublishedProviderFundingIsQueried(publishedProviderIds, specificationId, statuses);
@@ -714,7 +716,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                      HasArrayParameter(_, "@publishedProviderIds", publishedProviderIds) &&
                      HasArrayParameter(_, "@statuses", statuses.Select(status => status.ToString()));
         }
-        
+
         [TestMethod]
         public async Task GetPublishedProvidersFundingDataForCsvReport()
         {
@@ -789,9 +791,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
             };
 
             string[] ids = AsArray(idOne, idTwo, idThree, idFour, idFive);
-            
+
             GivenTheDynamicResultsForTheQuery(QueryMatch(
-                ids), 
+                ids),
                 results);
 
             IEnumerable<string> filteredIds = await _repository.RemoveIdsInError(ids);
@@ -814,11 +816,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
         private ExpandoObject NewPublishedProviderId(string id)
         {
             ExpandoObject expando = new ExpandoObject();
-            
+
             IDictionary<string, object> asDictionary = expando;
 
             asDictionary["publishedProviderId"] = id;
-            
+
             return expando;
         }
 
@@ -828,7 +830,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                 .DynamicQuery(Arg.Is<CosmosDbQuery>(_ => queryMatch(_)))
                 .Returns(expectedResults);
         }
-        
+
         private TItem[] AsArray<TItem>(params TItem[] items) => items;
 
         private async Task<IEnumerable<PublishedProviderFunding>> WhenThePublishedProviderFundingIsQueried(IEnumerable<string> publishedProviderIds,
@@ -879,7 +881,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
         private bool HasParameter(CosmosDbQuery query, string name, string value)
         {
             return query.Parameters?.Any(_ => _.Name == name &&
-                                              (string) _.Value == value) == true;
+                                              (string)_.Value == value) == true;
         }
         private bool HasArrayParameter(CosmosDbQuery query, string name, IEnumerable<string> value)
         {
@@ -893,7 +895,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
         }
 
         private string NewRandomString() => new RandomString();
-        
+
         private PublishedProviderStatus NewRandomStatus() => new RandomEnum<PublishedProviderStatus>();
 
         private dynamic CreatePublishedProviderFundingResult(string specificationId, string publishedProviderId)

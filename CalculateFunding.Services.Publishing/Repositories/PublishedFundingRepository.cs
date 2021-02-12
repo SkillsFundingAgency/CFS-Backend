@@ -91,11 +91,11 @@ namespace CalculateFunding.Services.Publishing.Repositories
                     new CosmosDbQueryParameter("@fundingStreamId", fundingStreamId)
                 }
             }));
-            
+
             JToken dynamic = dynamicQuery
                 .SingleOrDefault();
 
-            return dynamic?.HasValues == true ? dynamic.First.ToObject<DateTime>() : (DateTime?) null;
+            return dynamic?.HasValues == true ? dynamic.First.ToObject<DateTime>() : (DateTime?)null;
         }
 
         public async Task<IEnumerable<dynamic>> GetFundings(string publishedProviderVersion)
@@ -365,7 +365,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
             Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
             Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
             Guard.IsNotEmpty(ukprns, nameof(ukprns));
-            
+
             CosmosDbQuery query = new CosmosDbQuery
             {
                 QueryText = @"
@@ -379,14 +379,14 @@ namespace CalculateFunding.Services.Publishing.Repositories
                               AND c.content.current.fundingPeriodId = @fundingPeriodId
                               AND ARRAY_CONTAINS(@ukprns, c.content.current.provider.ukprn) 
                               AND c.deleted = false",
-                Parameters = new []
+                Parameters = new[]
                 {
-                    new CosmosDbQueryParameter("@fundingStreamId", fundingStreamId), 
-                    new CosmosDbQueryParameter("@fundingPeriodId", fundingPeriodId), 
-                    new CosmosDbQueryParameter("@ukprns", ukprns), 
+                    new CosmosDbQueryParameter("@fundingStreamId", fundingStreamId),
+                    new CosmosDbQueryParameter("@fundingPeriodId", fundingPeriodId),
+                    new CosmosDbQueryParameter("@ukprns", ukprns),
                 }
             };
-            
+
             IEnumerable<dynamic> results = await _repository.DynamicQuery(query);
 
             return results
@@ -763,7 +763,9 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                 c.content.id,
                                 {
                                     'organisationGroupTypeCode' : c.content.current.organisationGroupTypeCode,
+                                    'groupingReason' : c.content.current.groupingReason,
                                     'organisationGroupName' : c.content.current.organisationGroupName,
+                                    'organisationGroupIdentifierValue' : c.content.current.organisationGroupIdentifierValue,
                                     'fundingStreamId' : c.content.current.fundingStreamId,
                                     'fundingPeriod' : {
                                       'id' : c.content.current.fundingPeriod.id
@@ -1147,7 +1149,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
             Guard.IsNotEmpty(publishedProviderIds, nameof(publishedProviderIds));
             Guard.Ensure(publishedProviderIds.Count() <= 100, "You can only filter against 100 published provider ids at a time");
             Guard.IsNotEmpty(statuses, nameof(statuses));
-            
+
             CosmosDbQuery query = new CosmosDbQuery
             {
                 QueryText = @"
@@ -1168,12 +1170,12 @@ namespace CalculateFunding.Services.Publishing.Repositories
                               AND c.deleted = false",
                 Parameters = new[]
                 {
-                    new CosmosDbQueryParameter("@specificationId", specificationId), 
-                    new CosmosDbQueryParameter("@publishedProviderIds", publishedProviderIds.ToArray()), 
+                    new CosmosDbQueryParameter("@specificationId", specificationId),
+                    new CosmosDbQueryParameter("@publishedProviderIds", publishedProviderIds.ToArray()),
                     new CosmosDbQueryParameter("@statuses", statuses?.Select(_ => _.ToString()).ToArray())
                 }
             };
-            
+
             IEnumerable<dynamic> results = await _repository.DynamicQuery(query);
 
             return results.Select(_ => new PublishedProviderFunding
@@ -1194,7 +1196,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
         public async Task<IEnumerable<string>> RemoveIdsInError(IEnumerable<string> publishedProviderIds)
         {
             CosmosDbQueryParameter providerIdsParameter = new CosmosDbQueryParameter("@publishedProviderIds", null);
-            
+
             CosmosDbQuery query = new CosmosDbQuery
             {
                 QueryText = @"
@@ -1204,21 +1206,21 @@ namespace CalculateFunding.Services.Publishing.Repositories
                               WHERE c.documentType = 'PublishedProvider'
                               AND ARRAY_CONTAINS(@publishedProviderIds, c.content.current.publishedProviderId) 
                               AND (IS_NULL(c.content.current.errors) OR ARRAY_LENGTH(c.content.current.errors) = 0)",
-                Parameters = new []
+                Parameters = new[]
                 {
                     providerIdsParameter
                 }
             };
-            
-            PagedContext<string> publishedProviderIdsPages = new PagedContext<string>(publishedProviderIds, 100); 
+
+            PagedContext<string> publishedProviderIdsPages = new PagedContext<string>(publishedProviderIds, 100);
             List<string> filteredPublishedProviderIds = new List<string>();
 
             while (publishedProviderIdsPages.HasPages)
             {
                 providerIdsParameter.Value = publishedProviderIdsPages.NextPage();
-                
+
                 IEnumerable<dynamic> results = await _repository.DynamicQuery(query);
-                
+
                 filteredPublishedProviderIds.AddRange(results.Select(_ => (string)_.publishedProviderId));
             }
 
