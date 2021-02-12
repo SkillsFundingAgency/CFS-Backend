@@ -3,6 +3,7 @@ using CalculateFunding.Services.Publishing.Profiling;
 using CalculateFunding.Tests.Common.Helpers;
 using System;
 using System.Collections.Generic;
+using CalculateFunding.Models.Publishing;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
 {
@@ -23,6 +24,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
         private decimal? _remainingAmount;
         private decimal? _totalAllocation;
         private IEnumerable<ProfileTotal> _profileTotals;
+        private IEnumerable<PublishedProviderError> _errors;
         private decimal? _profileTotalAmount;
 
         public FundingLineProfileBuilder WithProfileTotalAmount(decimal profileTotalAmount)
@@ -136,6 +138,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
 
             return this;
         }
+        
+        public FundingLineProfileBuilder WithErrors(params PublishedProviderError[] errors)
+        {
+            _errors = errors;
+
+            return this;
+        }
 
         public FundingLineProfile Build()
         {
@@ -157,6 +166,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                 TotalAllocation = _totalAllocation.GetValueOrDefault(),
                 ProfileTotals = _profileTotals,
                 ProfileTotalAmount = _profileTotalAmount.GetValueOrDefault(NewRandomNumberBetween(1000, 99999)),
+                Errors = _errors
             };
         }
     }

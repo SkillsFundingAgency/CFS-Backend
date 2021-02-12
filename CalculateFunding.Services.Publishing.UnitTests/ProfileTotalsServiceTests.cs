@@ -10,6 +10,7 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Profiling;
+using CalculateFunding.Services.Publishing.UnitTests.Errors;
 using CalculateFunding.Services.Publishing.UnitTests.Profiling;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
@@ -857,6 +858,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             string profilePatternDisplayName = NewRandomString();
             string profilePatternDisplayDescription = NewRandomString();
 
+            PublishedProviderError expectedError = NewPublishedProviderError(err => err.WithFundingLineCode(fundingLineCode));
+
             GivenTheLatestPublishedProviderVersionBySpecificationId(
                 specificationId,
                 fundingStreamId,
@@ -865,6 +868,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     .WithFundingStreamId(fundingStreamId)
                     .WithFundingPeriodId(fundingPeriodId)
                     .WithTemplateVersion(templateVersion)
+                    .WithErrors(expectedError,
+                        NewPublishedProviderError())
                     .WithProfilePatternKeys(
                         NewProfilePatternKeys(ppk => ppk
                                 .WithFundingLineCode(fundingLineCode)
@@ -1017,6 +1022,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .WithProfilePatternDescription(profilePatternDisplayDescription)
                 .WithProfileTotalAmount(1500)
                 .WithTotalAllocation(1600)
+                .WithErrors(expectedError)
                 .WithProfileTotals(new[]
                 {
                     NewProfileTotal(pt => pt
@@ -1278,6 +1284,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             return profileTotalBuilder
                 .Build();
+        }
+
+        private PublishedProviderError NewPublishedProviderError(Action<PublishedProviderErrorBuilder> setUp = null)
+        {
+            PublishedProviderErrorBuilder publishedProviderErrorBuilder = new PublishedProviderErrorBuilder();
+
+            setUp?.Invoke(publishedProviderErrorBuilder);
+            
+            return publishedProviderErrorBuilder.Build();
         }
 
         private FundingLineProfile NewProfileTotal(Action<FundingLineProfileBuilder> setUp = null)

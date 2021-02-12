@@ -220,6 +220,9 @@ namespace CalculateFunding.Models.Publishing
         public bool FundingLineHasCustomProfile(string fundingLineCode)
             => CustomProfiles?.Any(_ => _.FundingLineCode == fundingLineCode) == true;
 
+        public IEnumerable<PublishedProviderError> GetErrorsForFundingLine(string fundingLineCode, string fundingStreamId)
+            => Errors?.Where(_ => _.FundingLineCode == fundingLineCode && _.FundingStreamId == fundingStreamId);
+
         public void AddCarryOver(string fundingLineCode,
             ProfilingCarryOverType type,
             decimal amount)

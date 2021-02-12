@@ -366,7 +366,8 @@ namespace CalculateFunding.Services.Publishing
                     ProfilePatternName = profilePatternName,
                     ProfilePatternDescription = profilePatternDescription,
                     ProfileTotalAmount = profileTotals.Any() ? profileTotals.Sum(_ => _.Value) : (decimal?)null,
-                    ProfileTotals = profileTotals
+                    ProfileTotals = profileTotals,
+                    Errors = latestPublishedProviderVersion.GetErrorsForFundingLine(fundingLineCode, fundingStreamId)
                 };
 
                 if (fundingLineProfile.ProfileTotalAmount != null || fundingLineProfile.CarryOverAmount != null)
@@ -380,10 +381,12 @@ namespace CalculateFunding.Services.Publishing
             return new OkObjectResult(fundingLineProfiles);
         }
 
-        private static (string key, string name, string description) GetProfilePatternDetails(string fundingLineCode, PublishedProviderVersion latestPublishedProviderVersion, IEnumerable<FundingStreamPeriodProfilePattern> fundingStreamPeriodProfilePatterns)
+        private static (string key, string name, string description) GetProfilePatternDetails(string fundingLineCode,
+            PublishedProviderVersion latestPublishedProviderVersion,
+            IEnumerable<FundingStreamPeriodProfilePattern> fundingStreamPeriodProfilePatterns)
         {
             string profilePatternKey = latestPublishedProviderVersion.ProfilePatternKeys?
-                               .SingleOrDefault(_ => _.FundingLineCode == fundingLineCode)?.Key;
+                .SingleOrDefault(_ => _.FundingLineCode == fundingLineCode)?.Key;
 
             bool hasCustomProfileForFundingLine = latestPublishedProviderVersion.FundingLineHasCustomProfile(fundingLineCode);
 

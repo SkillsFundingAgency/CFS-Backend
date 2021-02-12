@@ -1,6 +1,7 @@
 ﻿using CalculateFunding.Common.Models;
 using System;
 using System.Collections.Generic;
+using CalculateFunding.Models.Publishing;
 
 namespace CalculateFunding.Services.Publishing.Profiling
 {
@@ -22,6 +23,7 @@ namespace CalculateFunding.Services.Publishing.Profiling
         public DateTimeOffset? LastUpdatedDate { get; set; }
         public decimal? ProfileTotalAmount { get; set; }
         public IEnumerable<ProfileTotal> ProfileTotals { get; set; }
+        public IEnumerable<PublishedProviderError> Errors { get; set; }
 
         public override bool Equals(object obj)
         {
