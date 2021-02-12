@@ -70,7 +70,7 @@ namespace CalculateFunding.Api.External.V3.Services
                 groupingReasons?.Select(x => x.ToString()),
                 variationReasons?.Select(x => x.ToString()));
 
-            if (searchFeed == null || searchFeed.TotalCount == 0 || searchFeed.Entries.IsNullOrEmpty() || IsIncompleteArchivePage(searchFeed))
+            if (searchFeed == null || searchFeed.TotalCount == 0 || searchFeed.Entries.IsNullOrEmpty() || IsIncompleteArchivePage(searchFeed, pageRef))
             {
                 return new NotFoundResult();
             }
@@ -174,9 +174,9 @@ namespace CalculateFunding.Api.External.V3.Services
             });
         }
 
-        private bool IsIncompleteArchivePage(SearchFeedV3<PublishedFundingIndex> searchFeed)
+        private bool IsIncompleteArchivePage(SearchFeedV3<PublishedFundingIndex> searchFeed, int? pageRef)
         {
-            return searchFeed.IsArchivePage == false && searchFeed.Last == searchFeed.PageRef && searchFeed.Entries.Count() != searchFeed.Top;
+            return pageRef != null && searchFeed.Last == pageRef && searchFeed.Entries.Count() != searchFeed.Top;
         }
     }
 }
