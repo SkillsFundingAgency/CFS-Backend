@@ -48,5 +48,8 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         Task<IEnumerable<ObsoleteItem>> GetObsoleteItemsForSpecification(string specificationId);
         Task<IEnumerable<ObsoleteItem>> GetObsoleteItemsForCalculation(string calculationId);
         Task<HttpStatusCode> DeleteObsoleteItem(string obsoleteItemId);
+
+        Task<IEnumerable<ObsoleteItem>> GetObsoleteItemsForCalculation(string calculationId,
+            ObsoleteItemType obsoleteItemType);
     }
 }

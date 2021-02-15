@@ -21,6 +21,7 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs;
 using CalculateFunding.Services.Calcs.Analysis;
+using CalculateFunding.Services.Calcs.Analysis.ObsoleteItems;
 using CalculateFunding.Services.Calcs.Caching;
 using CalculateFunding.Services.Calcs.CodeGen;
 using CalculateFunding.Services.Calcs.Interfaces;
@@ -77,6 +78,8 @@ namespace CalculateFunding.Functions.Calcs
         private static IServiceProvider Register(IServiceCollection builder, IConfigurationRoot config)
         {
             builder.AddAppConfiguration();
+            
+            builder.AddSingleton<IEnumReferenceCleanUp, EnumReferenceCleanUp>();
 
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
 

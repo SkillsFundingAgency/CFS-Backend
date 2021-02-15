@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using CalculateFunding.Common.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -30,7 +31,31 @@ namespace CalculateFunding.Models.Calcs.ObsoleteItems
         public string CodeReference { get; set; }
 
         [JsonProperty("calculationIds")]
-        public IEnumerable<string> CalculationIds { get; set; }
+        public ICollection<string> CalculationIds { get; set; }
+
+        public bool TryAddCalculationId(string calculationId)
+        {
+            if (HasCalculationId(calculationId)) return false;
+
+            CalculationIds.Add(calculationId);
+
+            return true;
+        }
+
+        public bool TryRemoveCalculationId(string calculationId)
+        {
+            if (!HasCalculationId(calculationId)) return false;
+            
+            CalculationIds.Remove(calculationId);
+
+            return true;
+        }
+
+        private bool HasCalculationId(string calculationId) 
+            => (CalculationIds ??= new List<string>()).Contains(calculationId);
+
+        [JsonIgnore]
+        public bool IsEmpty => CalculationIds?.Any() != true;
 
     }
 }

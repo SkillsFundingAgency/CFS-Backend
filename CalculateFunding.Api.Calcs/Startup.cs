@@ -51,6 +51,7 @@ using Microsoft.FeatureManagement;
 using Polly;
 using Polly.Bulkhead;
 using System;
+using CalculateFunding.Services.Calcs.Analysis.ObsoleteItems;
 using ServiceCollectionExtensions = CalculateFunding.Services.Core.Extensions.ServiceCollectionExtensions;
 
 namespace CalculateFunding.Api.Calcs
@@ -121,6 +122,10 @@ namespace CalculateFunding.Api.Calcs
         {
             builder.AddAppConfiguration();
 
+            builder.AddSingleton<IEnumReferenceCleanUp, EnumReferenceCleanUp>();
+
+            builder.AddSingleton<IUniqueIdentifierProvider, UniqueIdentifierProvider>();
+            
             builder.AddSingleton<IFundingLineRoundingSettings, FundingLineRoundingSettings>();
             
             builder.AddScoped<ICodeContextCache, CodeContextCache>()

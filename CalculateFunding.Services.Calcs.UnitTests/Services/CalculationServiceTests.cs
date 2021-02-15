@@ -17,6 +17,7 @@ using CalculateFunding.Services.Core.Interfaces;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using NSubstitute;
 using Serilog;
 
@@ -37,7 +38,9 @@ namespace CalculateFunding.Services.Calcs.Services
         private const string Description = "test description";
         private const string CorrelationId = "4abc2782-e8cb-4643-8803-951d715fci29";
 
-        private static CalculationService CreateCalculationService(
+        private Mock<IEnumReferenceCleanUp> _enumReferenceCleanUp;
+
+        private CalculationService CreateCalculationService(
             ICalculationsRepository calculationsRepository = null,
             ILogger logger = null,
             ISearchRepository<CalculationIndex> searchRepository = null,
@@ -74,6 +77,8 @@ namespace CalculateFunding.Services.Calcs.Services
                     calculationsFeatureFlag ?? CreateCalculationsFeatureFlag(),
                     jobManagement ?? CreateJobManagement());
 
+            _enumReferenceCleanUp = new Mock<IEnumReferenceCleanUp>();
+
             return new CalculationService
                 (
                 calculationsRepository ?? CreateCalculationsRepository(),
@@ -107,7 +112,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 codeContextCache ?? Substitute.For<ICodeContextCache>(),
                 resultsApiClient ?? Substitute.For<IResultsApiClient>(),
                 datasetsApiClient ?? Substitute.For<IDatasetsApiClient>(),
-                approveAllCalculationsJobAction ?? CreateApproveAllCalculationsJobAction());
+                approveAllCalculationsJobAction ?? CreateApproveAllCalculationsJobAction(),
+                _enumReferenceCleanUp.Object);
         }
 
         private static IApproveAllCalculationsJobAction CreateApproveAllCalculationsJobAction()

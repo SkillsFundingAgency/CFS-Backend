@@ -259,6 +259,7 @@ namespace CalculateFunding.Services.Calcs
             return result?.Content;
         }
 
+        //TODO; we need to use optimistic change these to use optimistic locking
         public async Task<HttpStatusCode> UpdateObsoleteItem(ObsoleteItem obsoleteItem)
         {
             return await _cosmosRepository.UpsertAsync(obsoleteItem);
@@ -268,6 +269,11 @@ namespace CalculateFunding.Services.Calcs
         {
             return await _cosmosRepository.Query<ObsoleteItem>(m => m.Content.SpecificationId == specificationId);
         }
+
+        public async Task<IEnumerable<ObsoleteItem>> GetObsoleteItemsForCalculation(string calculationId,
+            ObsoleteItemType obsoleteItemType)
+            => await _cosmosRepository.Query<ObsoleteItem>(_ => _.Content.CalculationIds.Any(calc => calc == calculationId) &&
+                                                                _.Content.ItemType == obsoleteItemType);
 
         public async Task<IEnumerable<ObsoleteItem>> GetObsoleteItemsForCalculation(string calculationId)
         {

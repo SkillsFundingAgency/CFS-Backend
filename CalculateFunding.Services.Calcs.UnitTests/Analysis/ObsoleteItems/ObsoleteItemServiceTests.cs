@@ -1,25 +1,38 @@
-﻿using CalculateFunding.Models.Calcs.ObsoleteItems;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using CalculateFunding.Models.Calcs.ObsoleteItems;
+using CalculateFunding.Services.Calcs.Analysis.ObsoleteItems;
 using CalculateFunding.Services.Calcs.Interfaces;
+using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using NSubstitute;
+using Polly;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace CalculateFunding.Services.Calcs.UnitTests.Services
+namespace CalculateFunding.Services.Calcs.UnitTests.Analysis.ObsoleteItems
 {
     [TestClass]
     public class ObsoleteItemServiceTests
     {
+        private Mock<IUniqueIdentifierProvider> _uniqueIdentifiers;
+
+        [TestInitialize]
+        public void SetUp()
+        {
+            _uniqueIdentifiers = new Mock<IUniqueIdentifierProvider>();
+            _uniqueIdentifiers.Setup(_ => _.CreateUniqueIdentifier())
+                .Returns(() => Guid.NewGuid().ToString());
+        }
+        
         [TestMethod]
         public async Task CreateObsoleteItem_WhenModelIsInValid_ReturnsBadRequest()
         {
@@ -260,7 +273,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
             string calculationId = NewRandomString();
             ObsoleteItem obsoleteItem = CreateModel();
             obsoleteItem.Id = obsoleteItemId;
-            obsoleteItem.CalculationIds = new[] { calculationId, NewRandomString() };
+            obsoleteItem.CalculationIds = new List<string> { calculationId, NewRandomString() };
 
             ICalculationsRepository repository = CreateCalculationsRepository();
             IObsoleteItemService service = CreateService(repository);
@@ -290,7 +303,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
             string calculationId = NewRandomString();
             ObsoleteItem obsoleteItem = CreateModel();
             obsoleteItem.Id = obsoleteItemId;
-            obsoleteItem.CalculationIds = new[] { calculationId };
+            obsoleteItem.CalculationIds = new List<string> { calculationId };
 
             ICalculationsRepository repository = CreateCalculationsRepository();
             IObsoleteItemService service = CreateService(repository);
@@ -312,14 +325,19 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
                 .DeleteObsoleteItem(Arg.Is(obsoleteItemId));
         }
 
-        private static IObsoleteItemService CreateService(
+        private IObsoleteItemService CreateService(
         ICalculationsRepository calculationsRepository = null,
         IValidator<ObsoleteItem> obsoleteItemValidator = null)
         {
             return new ObsoleteItemService(
                 calculationsRepository ?? CreateCalculationsRepository(),
                 CreateLogger(),
-                obsoleteItemValidator ?? CreateValidator());
+                obsoleteItemValidator ?? CreateValidator(),
+                new ResiliencePolicies
+                {
+                    CalculationsRepository = Policy.NoOpAsync()
+                },
+                _uniqueIdentifiers.Object);
         }
 
         private static ICalculationsRepository CreateCalculationsRepository()
@@ -337,15 +355,17 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
             return Substitute.For<IValidator<ObsoleteItem>>();
         }
 
-        private static ObsoleteItem CreateModel(string specificationId = null, string calculationId = null)
-        {
-            return new ObsoleteItem
+        private static ObsoleteItem CreateModel(string specificationId = null,
+            string calculationId = null) =>
+            new ObsoleteItem
             {
                 Id = NewRandomString(),
                 SpecificationId = specificationId ?? NewRandomString(),
-                CalculationIds = new[] { calculationId ?? NewRandomString() }
+                CalculationIds = new List<string>
+                {
+                    calculationId ?? NewRandomString()
+                }
             };
-        }
 
         private static string NewRandomString() => new RandomString();
     }

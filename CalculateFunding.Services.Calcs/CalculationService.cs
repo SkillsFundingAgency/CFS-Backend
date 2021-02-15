@@ -97,6 +97,7 @@ namespace CalculateFunding.Services.Calcs
         private readonly IJobManagement _jobManagement;
         private readonly ICodeContextCache _codeContextCache;
         private readonly ITypeIdentifierGenerator _typeIdentifierGenerator;
+        private readonly IEnumReferenceCleanUp _enumReferenceCleanUp;
 
         public CalculationService(
             ICalculationsRepository calculationsRepository,
@@ -122,7 +123,8 @@ namespace CalculateFunding.Services.Calcs
             ICodeContextCache codeContextCache,
             IResultsApiClient resultsApiClient,
             IDatasetsApiClient datasetsApiClient,
-            IApproveAllCalculationsJobAction approveAllCalculationsJobAction)
+            IApproveAllCalculationsJobAction approveAllCalculationsJobAction,
+            IEnumReferenceCleanUp enumReferenceCleanUp)
         {
             Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -156,6 +158,7 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(codeContextCache, nameof(codeContextCache));
             Guard.ArgumentNotNull(resultsApiClient, nameof(resultsApiClient));
             Guard.ArgumentNotNull(datasetsApiClient, nameof(datasetsApiClient));
+            Guard.ArgumentNotNull(enumReferenceCleanUp, nameof(enumReferenceCleanUp));
 
             _calculationsRepository = calculationsRepository;
             _logger = logger;
@@ -187,6 +190,7 @@ namespace CalculateFunding.Services.Calcs
             _codeContextCache = codeContextCache;
             _resultsApiClient = resultsApiClient;
             _approveAllCalculationsJobAction = approveAllCalculationsJobAction;
+            _enumReferenceCleanUp = enumReferenceCleanUp;
             _resultsApiClientPolicy = resiliencePolicies?.ResultsApiClient;
             _datasetsApiClient = datasetsApiClient;
             _datasetsApiClientPolicy = resiliencePolicies?.DatasetsApiClient;
@@ -1333,6 +1337,7 @@ End Select");
             return updatedCalculations;
         }
 
+        //TODO: plumb in the obsolete item stuff here
         private async Task<UpdateCalculationResult> UpdateCalculation(Calculation calculation, CalculationVersion calculationVersion, Reference user, bool updateBuildProject = true)
         {
             Guard.ArgumentNotNull(calculation, nameof(calculation));
@@ -1355,6 +1360,8 @@ End Select");
             {
                 throw new InvalidOperationException($"Update calculation returned status code '{statusCode}' instead of OK");
             }
+
+            await _enumReferenceCleanUp.ProcessCalculation(calculation);
 
             BuildProject buildProject = null;
 

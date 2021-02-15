@@ -1943,6 +1943,9 @@ namespace CalculateFunding.Services.Calcs.Services
                     Version = 1,
                     WasTemplateCalculation = false,
                 });
+            
+            _enumReferenceCleanUp.Verify(_ => _.ProcessCalculation(calculation),
+                Times.Once);
         }
 
         [TestMethod]
