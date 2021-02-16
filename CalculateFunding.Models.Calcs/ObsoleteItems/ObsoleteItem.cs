@@ -22,7 +22,7 @@ namespace CalculateFunding.Models.Calcs.ObsoleteItems
         public string EnumValueName { get; set; }
 
         [JsonProperty("fundingLineId")]
-        public uint? FundingLineId { get; set; }
+        public string FundingLineId { get; set; }
 
         [JsonProperty("templateCalculationId")]
         public uint? TemplateCalculationId { get; set; }

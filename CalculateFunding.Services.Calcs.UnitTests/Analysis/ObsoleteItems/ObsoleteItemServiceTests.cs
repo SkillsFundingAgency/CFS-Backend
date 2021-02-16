@@ -13,10 +13,18 @@ using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Serilog;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Text;
+using System.Threading.Tasks;
 using Moq;
+using System.Threading;
 using NSubstitute;
 using Polly;
-using Serilog;
+
 
 namespace CalculateFunding.Services.Calcs.UnitTests.Analysis.ObsoleteItems
 {
@@ -38,10 +46,10 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis.ObsoleteItems
         {
             // Arrange
             ObsoleteItem obsoleteItem = CreateModel();
-            IValidator<ObsoleteItem> validator = CreateValidator();
-            IObsoleteItemService service = CreateService(obsoleteItemValidator: validator);
-            validator.ValidateAsync(Arg.Is<ObsoleteItem>(x => x.Id == obsoleteItem.Id))
-                .Returns(new ValidationResult(new[] { new ValidationFailure(nameof(ObsoleteItem.SpecificationId), NewRandomString()) }));
+            Mock<IValidator<ObsoleteItem>> validator = CreateValidator();
+            IObsoleteItemService service = CreateService(obsoleteItemValidator: validator.Object);
+            validator.Setup(x => x.ValidateAsync(It.Is<ObsoleteItem>(x => x.Id == obsoleteItem.Id), default(CancellationToken)))
+                .ReturnsAsync(new ValidationResult(new[] { new ValidationFailure(nameof(ObsoleteItem.SpecificationId), NewRandomString()) }));
 
             // Act
             IActionResult result = await service.CreateObsoleteItem(obsoleteItem);
@@ -57,13 +65,13 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis.ObsoleteItems
         {
             // Arrange
             ObsoleteItem obsoleteItem = CreateModel();
-            IValidator<ObsoleteItem> validator = CreateValidator();
-            ICalculationsRepository repository = CreateCalculationsRepository();
-            IObsoleteItemService service = CreateService(repository, validator);
-            validator.ValidateAsync(Arg.Is<ObsoleteItem>(x => x.Id == obsoleteItem.Id))
-                .Returns(new ValidationResult());
-            repository.CreateObsoleteItem(Arg.Is<ObsoleteItem>(x => x.Id == obsoleteItem.Id))
-                .Returns(HttpStatusCode.Created);
+            Mock<IValidator<ObsoleteItem>> validator = CreateValidator();
+            Mock<ICalculationsRepository> repository = CreateCalculationsRepository();
+            IObsoleteItemService service = CreateService(repository.Object, validator.Object);
+            validator.Setup(x => x.ValidateAsync(It.Is<ObsoleteItem>(x => x.Id == obsoleteItem.Id), default(CancellationToken)))
+                .ReturnsAsync(new ValidationResult());
+            repository.Setup(x => x.CreateObsoleteItem(It.Is<ObsoleteItem>(x => x.Id == obsoleteItem.Id)))
+                .ReturnsAsync(HttpStatusCode.Created);
 
             // Act
             IActionResult result = await service.CreateObsoleteItem(obsoleteItem);
@@ -80,10 +88,10 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis.ObsoleteItems
             // Arrange
             string obsoleteItemId = NewRandomString();
             string calculationId = NewRandomString();
-            ICalculationsRepository repository = CreateCalculationsRepository();
-            IObsoleteItemService service = CreateService(repository);
-            repository.GetObsoleteItemById(Arg.Is(obsoleteItemId))
-                .Returns((ObsoleteItem)null);
+            Mock<ICalculationsRepository> repository = CreateCalculationsRepository();
+            IObsoleteItemService service = CreateService(repository.Object);
+            repository.Setup(x => x.GetObsoleteItemById(obsoleteItemId))
+                .ReturnsAsync((ObsoleteItem)null);
 
             // Act
             IActionResult result = await service.AddCalculationToObsoleteItem(obsoleteItemId, calculationId);
@@ -104,12 +112,12 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis.ObsoleteItems
             // Arrange
             string obsoleteItemId = NewRandomString();
             string calculationId = NewRandomString();
-            ICalculationsRepository repository = CreateCalculationsRepository();
-            IObsoleteItemService service = CreateService(repository);
-            repository.GetObsoleteItemById(Arg.Is(obsoleteItemId))
-                .Returns(CreateModel());
-            repository.GetCalculationById(Arg.Is(calculationId))
-                .Returns((Models.Calcs.Calculation)null);
+            Mock<ICalculationsRepository> repository = CreateCalculationsRepository();
+            IObsoleteItemService service = CreateService(repository.Object);
+            repository.Setup(x => x.GetObsoleteItemById(obsoleteItemId))
+                .ReturnsAsync(CreateModel());
+            repository.Setup(x => x.GetCalculationById(calculationId))
+                .ReturnsAsync((Models.Calcs.Calculation)null);
 
             // Act
             IActionResult result = await service.AddCalculationToObsoleteItem(obsoleteItemId, calculationId);
@@ -134,12 +142,12 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis.ObsoleteItems
             obsoleteItem.Id = obsoleteItemId;
             obsoleteItem.CalculationIds = new List<string>() { calculationId };
 
-            ICalculationsRepository repository = CreateCalculationsRepository();
-            IObsoleteItemService service = CreateService(repository);
-            repository.GetObsoleteItemById(Arg.Is(obsoleteItemId))
-                .Returns(obsoleteItem);
-            repository.GetCalculationById(Arg.Is(calculationId))
-                .Returns(new Models.Calcs.Calculation() { Id = calculationId });
+            Mock<ICalculationsRepository> repository = CreateCalculationsRepository();
+            IObsoleteItemService service = CreateService(repository.Object);
+            repository.Setup(x => x.GetObsoleteItemById(obsoleteItemId))
+                .ReturnsAsync(obsoleteItem);
+            repository.Setup(x => x.GetCalculationById(calculationId))
+                .ReturnsAsync(new Models.Calcs.Calculation() { Id = calculationId });
 
             // Act
             IActionResult result = await service.AddCalculationToObsoleteItem(obsoleteItemId, calculationId);
@@ -149,9 +157,8 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis.ObsoleteItems
                 Should()
                 .BeOfType<OkResult>();
 
-            await repository
-                .DidNotReceive()
-                .UpdateObsoleteItem(Arg.Is<ObsoleteItem>(a => a.Id == obsoleteItemId));
+            repository
+                .Verify(x => x.UpdateObsoleteItem(It.Is<ObsoleteItem>(a => a.Id == obsoleteItemId)), Times.Never);
         }
 
         [TestMethod]
@@ -163,14 +170,14 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis.ObsoleteItems
             ObsoleteItem obsoleteItem = CreateModel();
             obsoleteItem.Id = obsoleteItemId;
 
-            ICalculationsRepository repository = CreateCalculationsRepository();
-            IObsoleteItemService service = CreateService(repository);
-            repository.GetObsoleteItemById(Arg.Is(obsoleteItemId))
-                .Returns(obsoleteItem);
-            repository.GetCalculationById(Arg.Is(calculationId))
-                .Returns(new Models.Calcs.Calculation() { Id = calculationId });
-            repository.UpdateObsoleteItem(Arg.Is<ObsoleteItem>(x => x.Id == obsoleteItemId))
-                .Returns(HttpStatusCode.OK);
+            Mock<ICalculationsRepository> repository = CreateCalculationsRepository();
+            IObsoleteItemService service = CreateService(repository.Object);
+            repository.Setup(x => x.GetObsoleteItemById(obsoleteItemId))
+                .ReturnsAsync(obsoleteItem);
+            repository.Setup(x => x.GetCalculationById(calculationId))
+                .ReturnsAsync(new Models.Calcs.Calculation() { Id = calculationId });
+            repository.Setup(x => x.UpdateObsoleteItem(It.Is<ObsoleteItem>(x => x.Id == obsoleteItemId)))
+                .ReturnsAsync(HttpStatusCode.OK);
 
             // Act
             IActionResult result = await service.AddCalculationToObsoleteItem(obsoleteItemId, calculationId);
@@ -180,9 +187,9 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis.ObsoleteItems
                 Should()
                 .BeOfType<OkResult>();
 
-            await repository
-                .Received(1)
-                .UpdateObsoleteItem(Arg.Is<ObsoleteItem>(a => a.Id == obsoleteItemId && a.CalculationIds.Any(x => x == calculationId)));
+            repository
+                .Verify(x => x.UpdateObsoleteItem(It.Is<ObsoleteItem>(a => a.Id == obsoleteItemId && a.CalculationIds.Any(x => x == calculationId)))
+                , Times.Once);
         }
         
         [TestMethod]
@@ -195,10 +202,10 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis.ObsoleteItems
             obsoleteItem.Id = obsoleteItemId;
             obsoleteItem.CalculationIds = new[] { calculationId };
 
-            ICalculationsRepository repository = CreateCalculationsRepository();
-            IObsoleteItemService service = CreateService(repository);
-            repository.GetObsoleteItemsForCalculation(Arg.Is(calculationId))
-                .Returns(new[] { obsoleteItem });
+            Mock<ICalculationsRepository> repository = CreateCalculationsRepository();
+            IObsoleteItemService service = CreateService(repository.Object);
+            repository.Setup(x => x.GetObsoleteItemsForCalculation(calculationId))
+                .ReturnsAsync(new[] { obsoleteItem });
 
             // Act
             IActionResult result = await service.GetObsoleteItemsForCalculation(calculationId);
@@ -223,10 +230,10 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis.ObsoleteItems
             obsoleteItem.Id = obsoleteItemId;
             obsoleteItem.SpecificationId = specificationId;
 
-            ICalculationsRepository repository = CreateCalculationsRepository();
-            IObsoleteItemService service = CreateService(repository);
-            repository.GetObsoleteItemsForSpecification(Arg.Is(specificationId))
-                .Returns(new[] { obsoleteItem });
+            Mock<ICalculationsRepository> repository = CreateCalculationsRepository();
+            IObsoleteItemService service = CreateService(repository.Object);
+            repository.Setup(x => x.GetObsoleteItemsForSpecification(specificationId))
+                .ReturnsAsync(new[] { obsoleteItem });
 
             // Act
             IActionResult result = await service.GetObsoleteItemsForSpecification(specificationId);
@@ -247,10 +254,10 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis.ObsoleteItems
             // Arrange
             string obsoleteItemId = NewRandomString();
             string calculationId = NewRandomString();
-            ICalculationsRepository repository = CreateCalculationsRepository();
-            IObsoleteItemService service = CreateService(repository);
-            repository.GetObsoleteItemById(Arg.Is(obsoleteItemId))
-                .Returns((ObsoleteItem)null);
+            Mock<ICalculationsRepository> repository = CreateCalculationsRepository();
+            IObsoleteItemService service = CreateService(repository.Object);
+            repository.Setup(x => x.GetObsoleteItemById(obsoleteItemId))
+                .ReturnsAsync((ObsoleteItem)null);
 
             // Act
             IActionResult result = await service.RemoveObsoleteItem(obsoleteItemId, calculationId);
@@ -275,12 +282,12 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis.ObsoleteItems
             obsoleteItem.Id = obsoleteItemId;
             obsoleteItem.CalculationIds = new List<string> { calculationId, NewRandomString() };
 
-            ICalculationsRepository repository = CreateCalculationsRepository();
-            IObsoleteItemService service = CreateService(repository);
-            repository.GetObsoleteItemById(Arg.Is(obsoleteItemId))
-                .Returns(obsoleteItem);
-            repository.UpdateObsoleteItem(Arg.Is<ObsoleteItem>(x => x.Id == obsoleteItemId))
-                .Returns(HttpStatusCode.OK);
+            Mock<ICalculationsRepository> repository = CreateCalculationsRepository();
+            IObsoleteItemService service = CreateService(repository.Object);
+            repository.Setup(x => x.GetObsoleteItemById(obsoleteItemId))
+                .ReturnsAsync(obsoleteItem);
+            repository.Setup(x => x.UpdateObsoleteItem(It.Is<ObsoleteItem>(x => x.Id == obsoleteItemId)))
+                .ReturnsAsync(HttpStatusCode.OK);
 
             // Act
             IActionResult result = await service.RemoveObsoleteItem(obsoleteItemId, calculationId);
@@ -290,9 +297,8 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis.ObsoleteItems
                 Should()
                 .BeOfType<NoContentResult>();
 
-            await repository
-                .Received(1)
-                .UpdateObsoleteItem(Arg.Is<ObsoleteItem>(x => x.Id == obsoleteItemId));
+            repository
+                .Verify(x => x.UpdateObsoleteItem(It.Is<ObsoleteItem>(x => x.Id == obsoleteItemId)), Times.Once);
         }
 
         [TestMethod]
@@ -305,12 +311,12 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis.ObsoleteItems
             obsoleteItem.Id = obsoleteItemId;
             obsoleteItem.CalculationIds = new List<string> { calculationId };
 
-            ICalculationsRepository repository = CreateCalculationsRepository();
-            IObsoleteItemService service = CreateService(repository);
-            repository.GetObsoleteItemById(Arg.Is(obsoleteItemId))
-                .Returns(obsoleteItem);
-            repository.DeleteObsoleteItem(Arg.Is(obsoleteItemId))
-                .Returns(HttpStatusCode.NoContent);
+            Mock<ICalculationsRepository> repository = CreateCalculationsRepository();
+            IObsoleteItemService service = CreateService(repository.Object);
+            repository.Setup(x => x.GetObsoleteItemById(obsoleteItemId))
+                .ReturnsAsync(obsoleteItem);
+            repository.Setup(x => x.DeleteObsoleteItem(obsoleteItemId))
+                .ReturnsAsync(HttpStatusCode.NoContent);
 
             // Act
             IActionResult result = await service.RemoveObsoleteItem(obsoleteItemId, calculationId);
@@ -320,9 +326,8 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis.ObsoleteItems
                 Should()
                 .BeOfType<NoContentResult>();
 
-            await repository
-                .Received(1)
-                .DeleteObsoleteItem(Arg.Is(obsoleteItemId));
+            repository
+                .Verify(x => x.DeleteObsoleteItem(obsoleteItemId), Times.Once);
         }
 
         private IObsoleteItemService CreateService(
@@ -330,9 +335,9 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis.ObsoleteItems
         IValidator<ObsoleteItem> obsoleteItemValidator = null)
         {
             return new ObsoleteItemService(
-                calculationsRepository ?? CreateCalculationsRepository(),
-                CreateLogger(),
-                obsoleteItemValidator ?? CreateValidator(),
+                calculationsRepository ?? CreateCalculationsRepository().Object,
+                CreateLogger().Object,
+                obsoleteItemValidator ?? CreateValidator().Object,
                 new ResiliencePolicies
                 {
                     CalculationsRepository = Policy.NoOpAsync()
@@ -340,19 +345,19 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis.ObsoleteItems
                 _uniqueIdentifiers.Object);
         }
 
-        private static ICalculationsRepository CreateCalculationsRepository()
+        private static Mock<ICalculationsRepository> CreateCalculationsRepository()
         {
-            return Substitute.For<ICalculationsRepository>();
+            return new Mock<ICalculationsRepository>();
         }
 
-        private static ILogger CreateLogger()
+        private static Mock<ILogger> CreateLogger()
         {
-            return Substitute.For<ILogger>();
+            return new Mock<ILogger>();
         }
 
-        private static IValidator<ObsoleteItem> CreateValidator()
+        private static Mock<IValidator<ObsoleteItem>> CreateValidator()
         {
-            return Substitute.For<IValidator<ObsoleteItem>>();
+            return new Mock<IValidator<ObsoleteItem>>();
         }
 
         private static ObsoleteItem CreateModel(string specificationId = null,

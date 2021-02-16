@@ -71,6 +71,11 @@ namespace CalculateFunding.Models.Specs
             => !TemplateIds.TryGetValue(fundingStreamId, out string currentTemplate) ||
                currentTemplate != templateId;
 
+        public string GetTemplateVersionId(string fundingStreamId)
+        {
+            return TemplateIds.ContainsKey(fundingStreamId) ? TemplateIds[fundingStreamId] : null;
+        }
+
         public override VersionedItem Clone()
         {
             // Serialise to perform a deep copy

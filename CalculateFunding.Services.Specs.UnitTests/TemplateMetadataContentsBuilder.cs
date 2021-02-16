@@ -24,4 +24,5 @@ namespace CalculateFunding.Services.Specs.UnitTests
             };
         }
     }
+
 }
