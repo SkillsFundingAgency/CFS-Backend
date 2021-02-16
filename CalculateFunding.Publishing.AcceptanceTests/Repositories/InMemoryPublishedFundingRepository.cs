@@ -508,5 +508,15 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
 
         public Task<IEnumerable<string>> RemoveIdsInError(IEnumerable<string> publishedProviderIds) => throw new NotImplementedException();
+
+        public Task DeletePublishedProviders(IEnumerable<PublishedProvider> publishedProviders)
+        {
+            foreach (PublishedProvider publishedProvider in publishedProviders)
+            {
+                _repo.PublishedProviders.Remove(publishedProvider.Id, out _);
+            }
+
+            return Task.CompletedTask;
+        }
     }
 }

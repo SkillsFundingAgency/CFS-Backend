@@ -295,6 +295,8 @@ namespace CalculateFunding.Services.Publishing
 
             Dictionary<string, PublishedProvider> existingPublishedProvidersToUpdate = new Dictionary<string, PublishedProvider>();
 
+            Dictionary<string, PublishedProvider> existingPublishedProvidersToRemove = new Dictionary<string, PublishedProvider>();
+
             FundingLine[] flattenedTemplateFundingLines = templateMetadataContents.RootFundingLines.Flatten(_ => _.FundingLines).ToArray();
 
             _logger.Information("Profiling providers for refresh");
@@ -348,6 +350,17 @@ namespace CalculateFunding.Services.Publishing
                 PublishedProviderVersion publishedProviderVersion = publishedProvider.Value.Current;
 
                 string providerId = publishedProviderVersion.ProviderId;
+
+                // Handle the case where a provider has a record in funding approvals
+                // but when refresh funding is run, it's now no longer in the specification's scoped provider list
+                if (!scopedProviders.ContainsKey(providerId))
+                {
+                    // When there is no released funding for this provider
+                    if (publishedProvider.Value.Released == null)
+                    {
+                        existingPublishedProvidersToRemove.Add(publishedProvider.Key, publishedProvider.Value);
+                    }
+                }
 
                 // this could be a retry and the key may not exist as the provider has been created as a successor so we need to skip
                 if (!generatedPublishedProviderData.ContainsKey(publishedProvider.Key))
@@ -430,7 +443,7 @@ namespace CalculateFunding.Services.Publishing
 
             _logger.Information("Starting to apply variations");
 
-            if (!(await _variationService.ApplyVariations(publishedProvidersToUpdate, newProviders, specification.Id, jobId)))
+            if (!await _variationService.ApplyVariations(publishedProvidersToUpdate, newProviders, specification.Id, jobId))
             {
                 await _jobManagement.UpdateJobStatus(jobId, 0, 0, false, "Refresh job failed with variations errors.");
 
@@ -456,7 +469,7 @@ namespace CalculateFunding.Services.Publishing
                             });
 
                             // Save updated PublishedProviders to cosmos and increment version status
-                            if (existingPublishedProvidersToUpdate.Count > 0)
+                            if (existingPublishedProvidersToUpdate.Any())
                             {
                                 _logger.Information($"Saving updates to existing published providers. Total={existingPublishedProvidersToUpdate.Count}");
                                 await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(existingPublishedProvidersToUpdate.Values, author, PublishedProviderStatus.Updated, jobId, correlationId);
@@ -465,13 +478,22 @@ namespace CalculateFunding.Services.Publishing
                                 await _publishedProviderIndexerService.IndexPublishedProviders(existingPublishedProvidersToUpdate.Values.Select(_ => _.Current));
                             }
 
-                            if (newProviders.Count > 0)
+                            if (newProviders.Any())
                             {
                                 _logger.Information($"Saving new published providers. Total={newProviders.Count}");
                                 await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(newProviders.Values, author, PublishedProviderStatus.Draft, jobId, correlationId);
 
                                 _logger.Information("Indexing newly added PublishedProviders");
                                 await _publishedProviderIndexerService.IndexPublishedProviders(newProviders.Values.Select(_ => _.Current));
+                            }
+
+                            if (existingPublishedProvidersToRemove.Any())
+                            {
+                                _logger.Information($"Deleting existing published providers. Total={existingPublishedProvidersToRemove.Count}");
+                                await _publishedFundingDataService.DeletePublishedProviders(existingPublishedProvidersToRemove.Values);
+
+                                _logger.Information("Removing index of existing PublishedProviders");
+                                await _publishedProviderIndexerService.Remove(existingPublishedProvidersToRemove.Values.Select(_ => _.Current));
                             }
 
                             transaction.Complete();

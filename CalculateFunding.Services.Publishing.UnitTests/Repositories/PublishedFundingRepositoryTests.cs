@@ -808,7 +808,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                                   c.content.current.publishedProviderId
                               FROM publishedProvider c
                               WHERE c.documentType = 'PublishedProvider'
-                              AND ARRAY_CONTAINS(@publishedProviderIds, c.content.current.publishedProviderId) 
+                              AND ARRAY_CONTAINS(@publishedProviderIds, c.content.current.publishedProviderId)
+                              AND c.deleted = false
                               AND (IS_NULL(c.content.current.errors) OR ARRAY_LENGTH(c.content.current.errors) = 0)" &&
                      HasArrayParameter(_, "@publishedProviderIds", ids);
         }

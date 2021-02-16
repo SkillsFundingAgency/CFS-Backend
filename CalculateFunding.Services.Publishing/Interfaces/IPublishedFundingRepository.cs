@@ -154,5 +154,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         Task<IEnumerable<string>> GetPublishedProviderIds(string specificationId);
 
         Task<IEnumerable<string>> GetPublishedProviderPublishedProviderIds(string specificationId);
+
+        Task DeletePublishedProviders(IEnumerable<PublishedProvider> publishedProviders);
     }
 }

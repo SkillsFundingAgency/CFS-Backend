@@ -109,5 +109,13 @@ namespace CalculateFunding.Services.Publishing
 
             return result;
         }
+
+        public async Task DeletePublishedProviders(IEnumerable<PublishedProvider> publishedProviders)
+        {
+            Guard.IsNotEmpty(publishedProviders, nameof(publishedProviders));
+
+            await _publishedFundingRepositoryPolicy.ExecuteAsync(
+                                () => _publishedFundingRepository.DeletePublishedProviders(publishedProviders));
+        }
     }
 }

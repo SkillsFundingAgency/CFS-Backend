@@ -285,6 +285,42 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         }
 
         [TestMethod]
+        public async Task RefreshResults_WhenAnUnReleasedProviderOutOfScope_PublishedProviderDeleted()
+        {
+            string outOfScopeProviderId = NewRandomString();
+
+            GivenJobCanBeProcessed();
+            AndSpecification();
+            AndCalculationResultsBySpecificationId();
+            AndTemplateMetadataContents();
+            AndScopedProviders((_) =>
+            {
+                _.Name = "New name";
+            });
+            AndScopedProviderCalculationResults();
+            AndTemplateMapping();
+
+            List<PublishedProvider> publishedProviders = _publishedProviders.ToList();
+            publishedProviders.Add(NewPublishedProvider(pp => pp.WithCurrent(
+                        NewPublishedProviderVersion(ppv => ppv
+                            .WithProviderId(outOfScopeProviderId)
+                            .WithFundingStreamId(FundingStreamId)))));
+            AndPublishedProviders(publishedProviders);
+            AndNewMissingPublishedProviders();
+            AndCsvJobService();
+
+            await WhenMessageReceivedWithJobIdAndCorrelationId();
+
+            _publishedFundingDataService
+                .Verify(_ => _.DeletePublishedProviders(
+                    It.Is<IEnumerable<PublishedProvider>>(_ => _.Single().Current.ProviderId == outOfScopeProviderId)), Times.Once);
+
+            _publishedProviderIndexerService
+                .Verify(_ => _.Remove(
+                    It.Is<IEnumerable<PublishedProviderVersion>>(_ => _.Single().ProviderId == outOfScopeProviderId)), Times.Once);
+        }
+
+        [TestMethod]
         public async Task RefreshResults_WhenAnUpdatePublishStatusCompletesWithoutErrorAndVariationsEnabled_PublishedProviderUpdatedAndVariationReasonSet()
         {
             GivenJobCanBeProcessed();
@@ -714,7 +750,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Throws(new Exception());
         }
 
-        private void AndScopedProviders(Action<Provider> variationAction = null, string profilePatternKeyPrefix = null, bool includeTemplateContents = true)
+        private void AndScopedProviders(
+            Action<Provider> variationAction = null, 
+            string profilePatternKeyPrefix = null, 
+            bool includeTemplateContents = true)
         {
             _scopedProviders = new[] { NewProvider(), NewProvider(), NewProvider() };
 

@@ -8,7 +8,6 @@ using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
-using OfficeOpenXml.FormulaParsing.Excel.Functions.Information;
 
 namespace CalculateFunding.Services.Publishing.Variations.Changes
 {

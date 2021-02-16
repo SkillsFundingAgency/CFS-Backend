@@ -72,7 +72,37 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Should()
                 .Be("specificationId");
         }
-        
+
+        [TestMethod]
+        public async Task DeletePublishedProvidersCallsUnderlyingDeletePublishedProvidersRepoMethod()
+        {
+            IEnumerable<PublishedProvider> publishedProviders = new List<PublishedProvider>
+            {
+                new PublishedProvider(),
+                new PublishedProvider()
+            };
+
+            GivenTheDeletePublishedProviders(publishedProviders);
+
+            await _dataService.DeletePublishedProviders(publishedProviders);
+
+            _publishedFunding.Verify();
+        }
+
+        [TestMethod]
+        public void DeletePublishedProvidersGuardsAgainstEmptyPublishedProvidersSupplied()
+        {
+            Func<Task> invocation = () => _dataService.DeletePublishedProviders(Enumerable.Empty<PublishedProvider>());
+
+            invocation
+                .Should()
+                .Throw<ArgumentNullException>()
+                .Which
+                .ParamName
+                .Should()
+                .Be("publishedProviders");
+        }
+
         [TestMethod]
         public async Task GetCurrentPublishedFundingsWhenRequestedBySpecificationId()
         {
@@ -106,6 +136,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             _publishedFunding.Setup(_ => _.GetPublishedProviderFundingLines(specificationId, GroupingReason.Payment))
                 .ReturnsAsync(fundingLines)
+                .Verifiable();
+        }
+
+        private void GivenTheDeletePublishedProviders(IEnumerable<PublishedProvider> publishedProviders)
+        {
+            _publishedFunding.Setup(_ => _.DeletePublishedProviders(publishedProviders))
                 .Verifiable();
         }
 

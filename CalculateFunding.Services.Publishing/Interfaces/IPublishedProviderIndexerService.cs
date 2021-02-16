@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Publishing;
-using Microsoft.AspNetCore.Mvc;
 
 namespace CalculateFunding.Services.Publishing.Interfaces
 {
@@ -9,5 +8,6 @@ namespace CalculateFunding.Services.Publishing.Interfaces
     {
         Task IndexPublishedProvider(PublishedProviderVersion publishedProviderVersion);
         Task IndexPublishedProviders(IEnumerable<PublishedProviderVersion> enumerable);
+        Task<string> Remove(IEnumerable<PublishedProviderVersion> publishedProviderVersions);
     }
 }

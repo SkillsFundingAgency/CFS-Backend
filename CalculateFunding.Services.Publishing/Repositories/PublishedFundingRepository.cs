@@ -1204,7 +1204,8 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                   c.content.current.publishedProviderId
                               FROM publishedProvider c
                               WHERE c.documentType = 'PublishedProvider'
-                              AND ARRAY_CONTAINS(@publishedProviderIds, c.content.current.publishedProviderId) 
+                              AND ARRAY_CONTAINS(@publishedProviderIds, c.content.current.publishedProviderId)
+                              AND c.deleted = false
                               AND (IS_NULL(c.content.current.errors) OR ARRAY_LENGTH(c.content.current.errors) = 0)",
                 Parameters = new[]
                 {
@@ -1528,6 +1529,13 @@ namespace CalculateFunding.Services.Publishing.Repositories
                 TotalFunding = (decimal?)_.totalFunding,
                 Status = (string)_.status
             });
+        }
+
+        public async Task DeletePublishedProviders(IEnumerable<PublishedProvider> publishedProviders)
+        {
+            Guard.IsNotEmpty(publishedProviders, nameof(publishedProviders));
+
+            await _repository.BulkDeleteAsync(publishedProviders.Select(p => new KeyValuePair<string, PublishedProvider>(p.Id, p)), hardDelete: false);
         }
     }
 }

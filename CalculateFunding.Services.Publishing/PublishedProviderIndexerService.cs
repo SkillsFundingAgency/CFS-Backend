@@ -101,7 +101,7 @@ namespace CalculateFunding.Services.Publishing
             }
         }
 
-        private async Task<string> Remove(IEnumerable<PublishedProviderVersion> publishedProviderVersions)
+        public async Task<string> Remove(IEnumerable<PublishedProviderVersion> publishedProviderVersions)
         {
             if (publishedProviderVersions == null)
             {
