@@ -650,7 +650,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task RefreshResults_GivenPublishedProviderExcluded_FundingLineOverrideCalled()
+        public async Task RefreshResults_GivenPublishedProviderExcluded_HasPreviousFundingCalled()
         {
             GivenJobCanBeProcessed();
             AndSpecification();
@@ -661,12 +661,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndTemplateMapping();
             AndPublishedProviders();
             AndNewMissingPublishedProviders();
+            AndCsvJobService();
 
             await WhenMessageReceivedWithJobIdAndCorrelationId();
 
             _fundingLineValueOverride
                 .Verify(_ =>
-                _.TryOverridePreviousFundingLineValues(It.IsAny<PublishedProviderVersion>(), It.IsAny<GeneratedProviderResult>()), Times.Exactly(3));
+                _.HasPreviousFunding(It.IsAny<GeneratedProviderResult>(), It.IsAny<PublishedProviderVersion>()), Times.Exactly(3));
         }
 
         [TestMethod]

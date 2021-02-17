@@ -140,7 +140,7 @@ namespace CalculateFunding.Services.Publishing
             Reference author = message.GetUserDetails();
 
             string specificationId = message.UserProperties["specification-id"] as string;
-            
+
             SpecificationSummary specification = await _specificationService.GetSpecificationSummaryById(specificationId);
 
             if (specification == null)
@@ -178,7 +178,7 @@ namespace CalculateFunding.Services.Publishing
             // Check prerequisites for this specification to be chosen/refreshed
             IPrerequisiteChecker prerequisiteChecker = _prerequisiteCheckerLocator.GetPreReqChecker(PrerequisiteCheckerType.Refresh);
             try
-            { 
+            {
                 await prerequisiteChecker.PerformChecks(specification, Job.Id, existingPublishedProvidersByFundingStream.SelectMany(x => x.Value), scopedProviders?.Values);
             }
             catch (JobPrereqFailedException ex)
@@ -301,8 +301,8 @@ namespace CalculateFunding.Services.Publishing
 
             _logger.Information("Profiling providers for refresh");
 
-            try 
-            { 
+            try
+            {
                 await ProfileProviders(publishedProviders, newProviders, generatedPublishedProviderData);
             }
             catch (Exception ex)
@@ -361,25 +361,24 @@ namespace CalculateFunding.Services.Publishing
                     if (publishedProvider.Value.Released == null)
                     {
                         existingPublishedProvidersToRemove.Add(publishedProvider.Key, publishedProvider.Value);
-                        publishedProvidersToUpdate.Add(publishedProvider.Key, publishedProvider.Value);
                     }
-                    // If the provider has a previously released version and is removed from scope
                     else
                     {
                         existingPublishedProvidersToUpdate.Add(publishedProvider.Key, publishedProvider.Value);
-                        publishedProvidersToUpdate.Add(publishedProvider.Key, publishedProvider.Value);
                     }
+
+                    publishedProvidersToUpdate.Add(publishedProvider.Key, publishedProvider.Value);
                 }
 
                 generatedPublishedProviderData.TryGetValue(publishedProvider.Key, out GeneratedProviderResult generatedProviderResult);
 
+                PublishedProviderExclusionCheckResult exclusionCheckResult =
+                    _providerExclusionCheck.ShouldBeExcluded(publishedProvider.Key, generatedProviderResult, flattenedTemplateFundingLines);
+                
                 bool publishedProviderUpdated = false;
 
                 if (providerExists)
                 {
-                    PublishedProviderExclusionCheckResult exclusionCheckResult =
-                        _providerExclusionCheck.ShouldBeExcluded(generatedProviderResult, flattenedTemplateFundingLines);
-
                     if (exclusionCheckResult.ShouldBeExcluded)
                     {
                         if (newProviders.ContainsKey(publishedProvider.Key))
@@ -388,15 +387,16 @@ namespace CalculateFunding.Services.Publishing
                             continue;
                         }
 
-                        if (!_fundingLineValueOverride.TryOverridePreviousFundingLineValues(publishedProviderVersion, generatedProviderResult))
+                        // if there is no previous funding for the generated funding lines then remove
+                        if (publishedProvider.Value.Released == null || !_fundingLineValueOverride.HasPreviousFunding(generatedProviderResult, publishedProviderVersion))
                         {
-                            //there are no none null payment funding line values and we didn't have to override any previous
-                            //version funding lines with a zero amount now they are all null so skip this published provider 
-                            //the updates check
-
+                            existingPublishedProvidersToRemove.Add(publishedProvider.Key, publishedProvider.Value);
+                            publishedProvidersToUpdate.Add(publishedProvider.Key, publishedProvider.Value);
                             continue;
                         }
                     }
+
+                    _fundingLineValueOverride.OverridePreviousFundingLineValues(publishedProvider.Value, generatedProviderResult);
 
                     publishedProviderUpdated = _publishedProviderDataPopulator.UpdatePublishedProvider(publishedProviderVersion,
                         generatedProviderResult,
@@ -534,24 +534,24 @@ namespace CalculateFunding.Services.Publishing
             }
         }
 
-        private async Task ProfileProviders(IDictionary<string, PublishedProvider> publishedProviders, 
-            IDictionary<string, PublishedProvider> newProviders, 
+        private async Task ProfileProviders(IDictionary<string, PublishedProvider> publishedProviders,
+            IDictionary<string, PublishedProvider> newProviders,
             IDictionary<string, GeneratedProviderResult> generatedPublishedProviderData)
         {
             BatchProfilingContext batchProfilingContext = new BatchProfilingContext();
-            
+
             foreach (KeyValuePair<string, PublishedProvider> publishedProvider in publishedProviders)
             {
                 bool isNewProvider = newProviders.ContainsKey(publishedProvider.Key);
-                
+
                 PublishedProviderVersion publishedProviderVersion = publishedProvider.Value.Current;
 
                 if (!generatedPublishedProviderData.ContainsKey(publishedProviderVersion.ProviderId))
                 {
                     continue;
                 }
-                
-                batchProfilingContext.AddProviderProfilingRequestData(publishedProviderVersion, 
+
+                batchProfilingContext.AddProviderProfilingRequestData(publishedProviderVersion,
                     generatedPublishedProviderData,
                     isNewProvider);
             }

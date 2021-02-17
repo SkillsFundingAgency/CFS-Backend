@@ -31,7 +31,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             };
 
             PublishedProviderExclusionCheck exclusionCheck = new PublishedProviderExclusionCheck();
-            PublishedProviderExclusionCheckResult result = exclusionCheck.ShouldBeExcluded(generatedProviderResult, templateFundingLines);
+            PublishedProviderExclusionCheckResult result = exclusionCheck.ShouldBeExcluded(providerId, generatedProviderResult, templateFundingLines);
 
             result.ProviderId
                 .Should()
@@ -61,7 +61,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             };
 
             PublishedProviderExclusionCheck exclusionCheck = new PublishedProviderExclusionCheck();
-            PublishedProviderExclusionCheckResult result = exclusionCheck.ShouldBeExcluded(generatedProviderResult, templateFundingLines);
+            PublishedProviderExclusionCheckResult result = exclusionCheck.ShouldBeExcluded(providerId, generatedProviderResult, templateFundingLines);
 
             result.ProviderId
                 .Should()
@@ -91,7 +91,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             };
 
             PublishedProviderExclusionCheck exclusionCheck = new PublishedProviderExclusionCheck();
-            PublishedProviderExclusionCheckResult result = exclusionCheck.ShouldBeExcluded(generatedProviderResult, templateFundingLines);
+            PublishedProviderExclusionCheckResult result = exclusionCheck.ShouldBeExcluded(providerId, generatedProviderResult, templateFundingLines);
 
             result.ProviderId
                 .Should()

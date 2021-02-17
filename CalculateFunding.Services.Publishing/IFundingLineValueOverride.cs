@@ -4,7 +4,10 @@ namespace CalculateFunding.Services.Publishing
 {
     public interface IFundingLineValueOverride
     {
-        bool TryOverridePreviousFundingLineValues(PublishedProviderVersion publishedProviderVersion,
+        bool HasPreviousFunding(GeneratedProviderResult generatedProviderResult,
+            PublishedProviderVersion publishedProviderVersion);
+
+        void OverridePreviousFundingLineValues(PublishedProvider publishedProvider,
             GeneratedProviderResult generatedProviderResult);
     }
 }

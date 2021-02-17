@@ -287,8 +287,7 @@ namespace CalculateFunding.Migrations.Calculations.Etl.Migrations
                 {
                     WriteLine($"Checking for source additional calculation {sourceCalculationName} in funding stream {fundingStreamId}");
 
-                    if (destinationAdditionalCalculations.Any(_ => _.FundingStreamId == fundingStreamId &&
-                                                                   _.Name.Trim().ToLowerInvariant() == sourceCalculationName))
+                    if (destinationAdditionalCalculations.Any(_ => _.Name.Trim().ToLowerInvariant() == sourceCalculationName))
                     {
                         continue;
                     }
