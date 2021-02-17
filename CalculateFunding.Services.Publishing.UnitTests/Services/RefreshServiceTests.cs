@@ -293,10 +293,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndSpecification();
             AndCalculationResultsBySpecificationId();
             AndTemplateMetadataContents();
-            AndScopedProviders((_) =>
-            {
-                _.Name = "New name";
-            });
+            AndScopedProviders();
             AndScopedProviderCalculationResults();
             AndTemplateMapping();
 
@@ -317,6 +314,50 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             _publishedProviderIndexerService
                 .Verify(_ => _.Remove(
+                    It.Is<IEnumerable<PublishedProviderVersion>>(_ => _.Single().ProviderId == outOfScopeProviderId)), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task RefreshResults_WhenAReleasedProviderOutOfScope_PublishedProviderDeleted()
+        {
+            string outOfScopeProviderId = NewRandomString();
+
+            GivenJobCanBeProcessed();
+            AndSpecification();
+            AndCalculationResultsBySpecificationId();
+            AndTemplateMetadataContents();
+            AndScopedProviders();
+            AndScopedProviderCalculationResults();
+            AndTemplateMapping();
+            AndFundingConfiguration(nameof(PostPaymentOutOfScopeProviderErrorDetector));
+
+            List<PublishedProvider> publishedProviders = _publishedProviders.ToList();
+            publishedProviders.Add(NewPublishedProvider(pp => pp
+                    .WithCurrent(
+                        NewPublishedProviderVersion(ppv => ppv
+                            .WithProviderId(outOfScopeProviderId)
+                            .WithFundingStreamId(FundingStreamId)))
+                    .WithReleased(
+                        NewPublishedProviderVersion(ppv => ppv
+                            .WithProviderId(outOfScopeProviderId)
+                            .WithFundingStreamId(FundingStreamId)))));
+            AndPublishedProviders(publishedProviders);
+            AndNewMissingPublishedProviders();
+            AndCsvJobService();
+
+            await WhenMessageReceivedWithJobIdAndCorrelationId();
+
+            _publishedProviderStatusUpdateService
+                .Verify(_ => _.UpdatePublishedProviderStatus(It.Is<IEnumerable<PublishedProvider>>(_ => _.Single().Current.ProviderId == outOfScopeProviderId
+                        && _.Single().Current.Errors.Single().Type.Equals(PublishedProviderErrorType.PostPaymentOutOfScopeProvider)),
+                    It.IsAny<Reference>(),
+                    PublishedProviderStatus.Updated,
+                    JobId,
+                    CorrelationId,
+                    It.IsAny<bool>()), Times.Once);
+
+            _publishedProviderIndexerService
+                .Verify(_ => _.IndexPublishedProviders(
                     It.Is<IEnumerable<PublishedProviderVersion>>(_ => _.Single().ProviderId == outOfScopeProviderId)), Times.Once);
         }
 
@@ -710,6 +751,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private void GivenFundingConfiguration(params IVariationStrategy[] variations)
         {
             _fundingConfiguration = new FundingConfiguration { Variations = variations.Select(_ => new FundingVariation { Name = _.Name }) };
+            _policiesService
+                .Setup(_ => _.GetFundingConfiguration(FundingStreamId, _specificationSummary.FundingPeriod.Id))
+                .ReturnsAsync(_fundingConfiguration);
+        }
+
+        private void AndFundingConfiguration(params string[] errorDetectors)
+        {
+            _fundingConfiguration = new FundingConfiguration { ErrorDetectors = errorDetectors };
             _policiesService
                 .Setup(_ => _.GetFundingConfiguration(FundingStreamId, _specificationSummary.FundingPeriod.Id))
                 .ReturnsAsync(_fundingConfiguration);

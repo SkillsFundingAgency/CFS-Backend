@@ -351,56 +351,64 @@ namespace CalculateFunding.Services.Publishing
 
                 string providerId = publishedProviderVersion.ProviderId;
 
+                bool providerExists = scopedProviders.ContainsKey(providerId);
+
                 // Handle the case where a provider has a record in funding approvals
                 // but when refresh funding is run, it's now no longer in the specification's scoped provider list
-                if (!scopedProviders.ContainsKey(providerId))
+                if (!providerExists)
                 {
                     // When there is no released funding for this provider
                     if (publishedProvider.Value.Released == null)
                     {
                         existingPublishedProvidersToRemove.Add(publishedProvider.Key, publishedProvider.Value);
+                        publishedProvidersToUpdate.Add(publishedProvider.Key, publishedProvider.Value);
                     }
-                }
-
-                // this could be a retry and the key may not exist as the provider has been created as a successor so we need to skip
-                if (!generatedPublishedProviderData.ContainsKey(publishedProvider.Key))
-                {
-                    continue;
-                }
-
-                GeneratedProviderResult generatedProviderResult = generatedPublishedProviderData[publishedProvider.Key];
-
-                PublishedProviderExclusionCheckResult exclusionCheckResult =
-                    _providerExclusionCheck.ShouldBeExcluded(generatedProviderResult, flattenedTemplateFundingLines);
-
-                if (exclusionCheckResult.ShouldBeExcluded)
-                {
-                    if (newProviders.ContainsKey(publishedProvider.Key))
+                    // If the provider has a previously released version and is removed from scope
+                    else
                     {
-                        newProviders.Remove(publishedProvider.Key);
-                        continue;
-                    }
-
-                    if (!_fundingLineValueOverride.TryOverridePreviousFundingLineValues(publishedProviderVersion, generatedProviderResult))
-                    {
-                        //there are no none null payment funding line values and we didn't have to override any previous
-                        //version funding lines with a zero amount now they are all null so skip this published provider 
-                        //the updates check
-
-                        continue;
+                        existingPublishedProvidersToUpdate.Add(publishedProvider.Key, publishedProvider.Value);
+                        publishedProvidersToUpdate.Add(publishedProvider.Key, publishedProvider.Value);
                     }
                 }
 
-                bool publishedProviderUpdated = _publishedProviderDataPopulator.UpdatePublishedProvider(publishedProviderVersion,
-                    generatedProviderResult,
-                    scopedProviders[providerId],
-                    specification.TemplateIds[fundingStream.Id],
-                    newProviders.ContainsKey(publishedProvider.Key));
+                generatedPublishedProviderData.TryGetValue(publishedProvider.Key, out GeneratedProviderResult generatedProviderResult);
 
-                _logger.Verbose($"Published provider '{publishedProvider.Key}' updated: '{publishedProviderUpdated}'");
+                bool publishedProviderUpdated = false;
 
-                //reapply any custom profiles this provider has and internally check for errors
-                _reApplyCustomProfiles.ProcessPublishedProvider(publishedProviderVersion);
+                if (providerExists)
+                {
+                    PublishedProviderExclusionCheckResult exclusionCheckResult =
+                        _providerExclusionCheck.ShouldBeExcluded(generatedProviderResult, flattenedTemplateFundingLines);
+
+                    if (exclusionCheckResult.ShouldBeExcluded)
+                    {
+                        if (newProviders.ContainsKey(publishedProvider.Key))
+                        {
+                            newProviders.Remove(publishedProvider.Key);
+                            continue;
+                        }
+
+                        if (!_fundingLineValueOverride.TryOverridePreviousFundingLineValues(publishedProviderVersion, generatedProviderResult))
+                        {
+                            //there are no none null payment funding line values and we didn't have to override any previous
+                            //version funding lines with a zero amount now they are all null so skip this published provider 
+                            //the updates check
+
+                            continue;
+                        }
+                    }
+
+                    publishedProviderUpdated = _publishedProviderDataPopulator.UpdatePublishedProvider(publishedProviderVersion,
+                        generatedProviderResult,
+                        scopedProviders[providerId],
+                        specification.TemplateIds[fundingStream.Id],
+                        newProviders.ContainsKey(publishedProvider.Key));
+
+                    _logger.Verbose($"Published provider '{publishedProvider.Key}' updated: '{publishedProviderUpdated}'");
+
+                    //reapply any custom profiles this provider has and internally check for errors
+                    _reApplyCustomProfiles.ProcessPublishedProvider(publishedProviderVersion);
+                }
 
                 // process published provider and detect errors
                 await _detection.ProcessPublishedProvider(publishedProvider.Value, publishedProvidersContext);
@@ -456,7 +464,7 @@ namespace CalculateFunding.Services.Publishing
 
             if (publishedProvidersToUpdate.Count > 0)
             {
-                if (existingPublishedProvidersToUpdate.Count > 0 || newProviders.Count > 0)
+                if (existingPublishedProvidersToUpdate.Count > 0 || newProviders.Count > 0 || existingPublishedProvidersToRemove.Count > 0)
                 {
                     using (Transaction transaction = _transactionFactory.NewTransaction<RefreshService>())
                     {
@@ -469,7 +477,7 @@ namespace CalculateFunding.Services.Publishing
                             });
 
                             // Save updated PublishedProviders to cosmos and increment version status
-                            if (existingPublishedProvidersToUpdate.Any())
+                            if (existingPublishedProvidersToUpdate.Count > 0)
                             {
                                 _logger.Information($"Saving updates to existing published providers. Total={existingPublishedProvidersToUpdate.Count}");
                                 await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(existingPublishedProvidersToUpdate.Values, author, PublishedProviderStatus.Updated, jobId, correlationId);
@@ -478,7 +486,7 @@ namespace CalculateFunding.Services.Publishing
                                 await _publishedProviderIndexerService.IndexPublishedProviders(existingPublishedProvidersToUpdate.Values.Select(_ => _.Current));
                             }
 
-                            if (newProviders.Any())
+                            if (newProviders.Count > 0)
                             {
                                 _logger.Information($"Saving new published providers. Total={newProviders.Count}");
                                 await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(newProviders.Values, author, PublishedProviderStatus.Draft, jobId, correlationId);
@@ -487,7 +495,7 @@ namespace CalculateFunding.Services.Publishing
                                 await _publishedProviderIndexerService.IndexPublishedProviders(newProviders.Values.Select(_ => _.Current));
                             }
 
-                            if (existingPublishedProvidersToRemove.Any())
+                            if (existingPublishedProvidersToRemove.Count > 0)
                             {
                                 _logger.Information($"Deleting existing published providers. Total={existingPublishedProvidersToRemove.Count}");
                                 await _publishedFundingDataService.DeletePublishedProviders(existingPublishedProvidersToRemove.Values);

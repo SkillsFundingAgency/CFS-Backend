@@ -303,6 +303,7 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddTransient<IErrorDetectionStrategyLocator, ErrorDetectionStrategyLocator>();
             builder.AddTransient<IDetectPublishedProviderErrors, FundingLineValueProfileMismatchErrorDetector>();
             builder.AddTransient<IDetectPublishedProviderErrors, TrustIdMismatchErrorDetector>();
+            builder.AddTransient<IDetectPublishedProviderErrors, PostPaymentOutOfScopeProviderErrorDetector>();
 
             builder.AddScoped<IGeneratePublishedFundingCsvJobsCreationLocator, GeneratePublishedFundingCsvJobsCreationLocator>();
             builder.AddScoped<IGeneratePublishedFundingCsvJobsCreation, GenerateRefreshPublishedFundingCsvJobsCreation>();

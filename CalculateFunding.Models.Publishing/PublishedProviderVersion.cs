@@ -5,7 +5,6 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Services.Core.Extensions;
-using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Publishing
