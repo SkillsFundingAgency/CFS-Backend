@@ -357,17 +357,18 @@ namespace CalculateFunding.Services.Publishing
                 // but when refresh funding is run, it's now no longer in the specification's scoped provider list
                 if (!providerExists)
                 {
+                    publishedProvidersToUpdate.Add(publishedProvider.Key, publishedProvider.Value);
+
                     // When there is no released funding for this provider
                     if (publishedProvider.Value.Released == null)
                     {
                         existingPublishedProvidersToRemove.Add(publishedProvider.Key, publishedProvider.Value);
+                        continue;
                     }
                     else
                     {
                         existingPublishedProvidersToUpdate.Add(publishedProvider.Key, publishedProvider.Value);
                     }
-
-                    publishedProvidersToUpdate.Add(publishedProvider.Key, publishedProvider.Value);
                 }
 
                 generatedPublishedProviderData.TryGetValue(publishedProvider.Key, out GeneratedProviderResult generatedProviderResult);
