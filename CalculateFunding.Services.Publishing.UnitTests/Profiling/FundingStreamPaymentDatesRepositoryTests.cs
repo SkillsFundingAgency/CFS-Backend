@@ -61,7 +61,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             _cosmosRepository
                 .Verify(_ => _.UpsertAsync(paymentDates, paymentDates.FundingStreamId, 
                         false, 
-                        true),
+                        true,
+                        null),
                     Times.Once);
         }
 

@@ -350,7 +350,8 @@ namespace CalculateFunding.Services.Providers.UnitTests
             => _cosmos.Verify(_ => _.UpsertAsync(It.IsAny<TEntity>(),
                     It.IsAny<string>(),
                     It.IsAny<bool>(),
-                    It.IsAny<bool>()),
+                    It.IsAny<bool>(),
+                    It.IsAny<string>()),
                 Times.Never);
 
         private void AndNothingWasCreatedInCosmos<TEntity>()
@@ -365,7 +366,8 @@ namespace CalculateFunding.Services.Providers.UnitTests
             => _cosmos.Setup(_ => _.UpsertAsync(entity,
                     null,
                     false,
-                    true))
+                    true,
+                    null))
                 .ReturnsAsync(httpStatusCode);
 
         private void GivenTheStatusCodeForTheCreate<TEntity>(TEntity entity,

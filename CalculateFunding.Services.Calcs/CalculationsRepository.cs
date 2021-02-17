@@ -260,7 +260,8 @@ namespace CalculateFunding.Services.Calcs
         }
 
         //TODO; we need to use optimistic change these to use optimistic locking
-        public async Task<HttpStatusCode> UpdateObsoleteItem(ObsoleteItem obsoleteItem)
+        public async Task<HttpStatusCode> UpdateObsoleteItem(ObsoleteItem obsoleteItem,
+            string etag = null)
         {
             return await _cosmosRepository.UpsertAsync(obsoleteItem);
         }
@@ -270,6 +271,13 @@ namespace CalculateFunding.Services.Calcs
             return await _cosmosRepository.Query<ObsoleteItem>(m => m.Content.SpecificationId == specificationId);
         }
 
+        public IEnumerable<DocumentEntity<ObsoleteItem>> GetObsoleteItemDocumentsForCalculation(string calculationId,
+            ObsoleteItemType obsoleteItemType)
+            => _cosmosRepository.QueryableDocuments<ObsoleteItem>()
+                .Where(_ => _.Content.CalculationIds.Any(calc => calc == calculationId) &&
+                            _.Content.ItemType == obsoleteItemType)
+                .ToArray();
+        
         public async Task<IEnumerable<ObsoleteItem>> GetObsoleteItemsForCalculation(string calculationId,
             ObsoleteItemType obsoleteItemType)
             => await _cosmosRepository.Query<ObsoleteItem>(_ => _.Content.CalculationIds.Any(calc => calc == calculationId) &&
@@ -280,9 +288,10 @@ namespace CalculateFunding.Services.Calcs
             return await _cosmosRepository.Query<ObsoleteItem>(m => m.Content.CalculationIds != null && m.Content.CalculationIds.Any(x => x == calculationId));
         }
 
-        public async Task<HttpStatusCode> DeleteObsoleteItem(string obsoleteItemId)
+        public async Task<HttpStatusCode> DeleteObsoleteItem(string obsoleteItemId,
+            string etag = null)
         {
-            return await _cosmosRepository.DeleteAsync<ObsoleteItem>(obsoleteItemId, null, hardDelete: true);
+            return await _cosmosRepository.DeleteAsync<ObsoleteItem>(obsoleteItemId, null, hardDelete: true, etag);
         }
     }
 }

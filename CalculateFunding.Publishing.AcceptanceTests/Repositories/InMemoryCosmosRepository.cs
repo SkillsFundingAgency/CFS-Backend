@@ -56,7 +56,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             return Task.FromResult(new dynamic[] { }.AsEnumerable());
         }
 
-        public Task<HttpStatusCode> UpsertAsync<T>(T entity, string partitionKey = null, bool undelete = false, bool maintainCreatedDate = true) where T : IIdentifiable
+        public Task<HttpStatusCode> UpsertAsync<T>(T entity, string partitionKey = null, bool undelete = false, bool maintainCreatedDate = true, string etag = null) where T : IIdentifiable
         {
             if (typeof(T).Name == "PublishedProviderVersion")
             {
@@ -229,7 +229,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<HttpStatusCode> UpdateAsync<T>(T entity, bool undelete = false) where T : Reference
+        public Task<HttpStatusCode> UpdateAsync<T>(T entity, bool undelete = false, string etag = null) where T : Reference
         {
             throw new NotImplementedException();
         }
@@ -243,6 +243,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public IQueryable<DocumentEntity<T>> QueryableDocuments<T>(int itemsPerPage = -1,
+            int? maxItemCount = null) where T : IIdentifiable =>
+            throw new NotImplementedException();
 
         public Task BulkSetContentsToNull<T>(IEnumerable<KeyValuePair<string, string>> identifiers, int degreeOfParallelism = 5) where T : class, IIdentifiable
         {
@@ -264,7 +268,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<HttpStatusCode> DeleteAsync<T>(string id, string partitionKey, bool hardDelete = false) where T : IIdentifiable
+        public Task<HttpStatusCode> DeleteAsync<T>(string id, string partitionKey, bool hardDelete = false, string etag = null) where T : IIdentifiable
         {
             throw new NotImplementedException();
         }

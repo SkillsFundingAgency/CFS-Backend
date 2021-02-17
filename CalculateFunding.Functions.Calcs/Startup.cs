@@ -267,6 +267,7 @@ namespace CalculateFunding.Functions.Calcs
             return new ResiliencePolicies
             {
                 CalculationsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                CalculationsRepositoryNoOCCRetry = CosmosResiliencePolicyHelper.GenerateCosmosPolicyWithNoOCCRetry(totalNetworkRequestsPolicy),
                 CalculationsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
                 CacheProviderPolicy = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy),
                 CalculationsVersionsRepositoryPolicy = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),

@@ -170,7 +170,7 @@ namespace CalculateFunding.Services.Profiling.Tests.Repositories
 
         private void GivenTheStatusCodeForDeleteId(string id, HttpStatusCode statusCode)
         {
-            _cosmos.Setup(_ => _.DeleteAsync<FundingStreamPeriodProfilePattern>(id, null, false))
+            _cosmos.Setup(_ => _.DeleteAsync<FundingStreamPeriodProfilePattern>(id, null, false, null))
                 .ReturnsAsync(statusCode);
         }
 

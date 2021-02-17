@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Calcs.ObsoleteItems;
 using CalculateFunding.Services.Calcs.Analysis.ObsoleteItems;
@@ -28,7 +29,8 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis.ObsoleteItems
             _cleanUp = new EnumReferenceCleanUp(_calculations.Object,
                 new ResiliencePolicies
                 {
-                    CalculationsRepository = Policy.NoOpAsync()
+                    CalculationsRepository = Policy.NoOpAsync(),
+                    CalculationsRepositoryNoOCCRetry = Policy.NoOpAsync()
                 });
         }
 
@@ -61,17 +63,18 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis.ObsoleteItems
                 .WithCurrentVersion(NewCalculationVersion(cv =>
                     cv.WithSourceCode($"{NewRandomString()}_{codeReferenceOne}_{NewRandomString()}_{NewRandomString()}"))));
 
-            ObsoleteItem itemOne = NewObsoleteItem(_ => _.WithCalculationIds(calculationId, otherCalculationOneId)
+            DocumentEntity<ObsoleteItem> itemOne = NewObsoleteItemDocument(_ => _.WithCalculationIds(calculationId, otherCalculationOneId)
                 .WithCodeReference(codeReferenceOne));
-            ObsoleteItem itemTwo = NewObsoleteItem(_ => _.WithCalculationIds(calculationId)
+            DocumentEntity<ObsoleteItem> itemTwo = NewObsoleteItemDocument(_ => _.WithCalculationIds(calculationId)
                 .WithCodeReference(codeReferenceTwo));
-            ObsoleteItem itemThree = NewObsoleteItem(_ => _.WithCalculationIds(otherCalculationTwoId));
+            DocumentEntity<ObsoleteItem> itemThree = NewObsoleteItemDocument(_ => _.WithCalculationIds(otherCalculationTwoId));
             
             GivenTheObsoleteItems(calculationId, ObsoleteItemType.EnumValue, itemOne, itemTwo, itemThree);
 
             await WhenTheCalculationIsProcessed(calculation);
 
             itemOne
+                .Content
                 .CalculationIds
                 .Should()
                 .BeEquivalentTo<string>(new[]
@@ -81,33 +84,35 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis.ObsoleteItems
                 });
 
             itemTwo
+                .Content
                 .IsEmpty
                 .Should()
                 .BeTrue();
 
             itemThree
+                .Content
                 .CalculationIds
                 .Should()
                 .BeEquivalentTo(otherCalculationTwoId);
             
             _calculations
-                .Verify(_ => _.UpdateObsoleteItem(itemOne),
+                .Verify(_ => _.UpdateObsoleteItem(itemOne.Content, It.IsAny<string>()),
                     Times.Never);
             
             _calculations
-                .Verify(_ => _.DeleteObsoleteItem(itemTwo.Id),
+                .Verify(_ => _.DeleteObsoleteItem(itemTwo.Id,itemTwo.ETag),
                     Times.Once);
             
             _calculations
-                .Verify(_ => _.UpdateObsoleteItem(itemTwo),
+                .Verify(_ => _.UpdateObsoleteItem(itemTwo.Content,It.IsAny<string>()),
                     Times.Never);
             
             _calculations
-                .Verify(_ => _.DeleteObsoleteItem(itemThree.Id),
+                .Verify(_ => _.DeleteObsoleteItem(itemThree.Id, It.IsAny<string>()),
                     Times.Never);
             
             _calculations
-                .Verify(_ => _.UpdateObsoleteItem(itemThree), 
+                .Verify(_ => _.UpdateObsoleteItem(itemThree.Content,It.IsAny<string>()), 
                     Times.Never);
         }
 
@@ -116,10 +121,10 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis.ObsoleteItems
         
         private void GivenTheObsoleteItems(string calculationId,
             ObsoleteItemType obsoleteItemType,
-            params ObsoleteItem[] obsoleteItems)
+            params DocumentEntity<ObsoleteItem>[] obsoleteItems)
         {
-            _calculations.Setup(_ => _.GetObsoleteItemsForCalculation(calculationId, obsoleteItemType))
-                .ReturnsAsync(obsoleteItems);
+            _calculations.Setup(_ => _.GetObsoleteItemDocumentsForCalculation(calculationId, obsoleteItemType))
+                .Returns(obsoleteItems);
         }
 
         private CalculationVersion NewCalculationVersion(Action<CalculationVersionBuilder> setUp = null)
@@ -140,13 +145,21 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis.ObsoleteItems
             return calculationBuilder.Build();
         }
 
-        private ObsoleteItem NewObsoleteItem(Action<ObsoleteItemBuilder> setUp = null)
+        private DocumentEntity<ObsoleteItem> NewObsoleteItemDocument(Action<ObsoleteItemBuilder> setUp = null)
         {
             ObsoleteItemBuilder obsoleteItemBuilder = new ObsoleteItemBuilder();
 
             setUp?.Invoke(obsoleteItemBuilder);
+
+            ObsoleteItem item = obsoleteItemBuilder.Build();
+
+            DocumentEntity<ObsoleteItem> document = new DocumentEntity<ObsoleteItem>
+            {
+                Content = item,
+                ETag = NewRandomString()
+            };
             
-            return obsoleteItemBuilder.Build();
+            return document;
         }
 
         private string NewRandomString() => new RandomString();

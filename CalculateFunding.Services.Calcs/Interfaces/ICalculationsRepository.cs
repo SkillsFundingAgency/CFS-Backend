@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Calcs.ObsoleteItems;
@@ -44,12 +46,17 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 
         Task<HttpStatusCode> CreateObsoleteItem(ObsoleteItem obsoleteItem);
         Task<ObsoleteItem> GetObsoleteItemById(string obsoleteItemId);
-        Task<HttpStatusCode> UpdateObsoleteItem(ObsoleteItem obsoleteItem);
+        Task<HttpStatusCode> UpdateObsoleteItem(ObsoleteItem obsoleteItem,
+            string etag = null);
         Task<IEnumerable<ObsoleteItem>> GetObsoleteItemsForSpecification(string specificationId);
         Task<IEnumerable<ObsoleteItem>> GetObsoleteItemsForCalculation(string calculationId);
-        Task<HttpStatusCode> DeleteObsoleteItem(string obsoleteItemId);
+        Task<HttpStatusCode> DeleteObsoleteItem(string obsoleteItemId,
+            string etag = null);
 
         Task<IEnumerable<ObsoleteItem>> GetObsoleteItemsForCalculation(string calculationId,
+            ObsoleteItemType obsoleteItemType);
+
+        IEnumerable<DocumentEntity<ObsoleteItem>> GetObsoleteItemDocumentsForCalculation(string calculationId,
             ObsoleteItemType obsoleteItemType);
     }
 }

@@ -33,7 +33,7 @@ namespace CalculateFunding.Services.Profiling.Tests
             // arrange
             FundingStreamPeriodProfilePattern fundingStreamPeriodProfilePattern = _fundingStreamPeriodProfilePatternBuilder.Build();
             var fundingStreamPeriodProfilePatternId = fundingStreamPeriodProfilePattern.Id;
-            _mockCosmoRepository.Setup(x => x.UpsertAsync(It.IsAny<FundingStreamPeriodProfilePattern>(), null, false, true))
+            _mockCosmoRepository.Setup(x => x.UpsertAsync(It.IsAny<FundingStreamPeriodProfilePattern>(), null, false, true, null))
                 .ReturnsAsync(HttpStatusCode.OK);
 
             // act
@@ -41,7 +41,7 @@ namespace CalculateFunding.Services.Profiling.Tests
 
             // assert
             result.Should().Be(HttpStatusCode.OK);
-            _mockCosmoRepository.Verify(x => x.UpsertAsync(It.Is<FundingStreamPeriodProfilePattern>(f => f.Id == fundingStreamPeriodProfilePatternId), null, false, true), Times.Once);
+            _mockCosmoRepository.Verify(x => x.UpsertAsync(It.Is<FundingStreamPeriodProfilePattern>(f => f.Id == fundingStreamPeriodProfilePatternId), null, false, true, null), Times.Once);
         }
 
         [TestMethod]
@@ -67,7 +67,7 @@ namespace CalculateFunding.Services.Profiling.Tests
             // arrange
             FundingStreamPeriodProfilePattern fundingStreamPeriodProfilePattern = _fundingStreamPeriodProfilePatternBuilder.Build();
             var fundingStreamPeriodProfilePatternId = fundingStreamPeriodProfilePattern.Id;
-            _mockCosmoRepository.Setup(x => x.DeleteAsync<FundingStreamPeriodProfilePattern>(fundingStreamPeriodProfilePatternId, null, false))
+            _mockCosmoRepository.Setup(x => x.DeleteAsync<FundingStreamPeriodProfilePattern>(fundingStreamPeriodProfilePatternId, null, false, null))
                 .ReturnsAsync(HttpStatusCode.OK);
 
             // act
@@ -75,7 +75,7 @@ namespace CalculateFunding.Services.Profiling.Tests
 
             // assert
             result.Should().Be(HttpStatusCode.OK);
-            _mockCosmoRepository.Verify(x => x.DeleteAsync<FundingStreamPeriodProfilePattern>(It.Is<string>(id => id == fundingStreamPeriodProfilePatternId), null, false), Times.Once);
+            _mockCosmoRepository.Verify(x => x.DeleteAsync<FundingStreamPeriodProfilePattern>(It.Is<string>(id => id == fundingStreamPeriodProfilePatternId), null, false, null), Times.Once);
         }
 
         [TestMethod]

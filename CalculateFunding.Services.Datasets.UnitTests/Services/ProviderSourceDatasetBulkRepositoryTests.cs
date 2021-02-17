@@ -25,12 +25,14 @@ namespace CalculateFunding.Services.Datasets.Services
             _cosmos.Setup(_ => _.UpsertAsync(It.IsAny<ProviderSourceDataset>(),
                     It.IsAny<string>(),
                     It.IsAny<bool>(),
-                    It.IsAny<bool>()))
+                    It.IsAny<bool>(),
+                    It.IsAny<string>()))
                 .ReturnsAsync(HttpStatusCode.OK);
 
             _cosmos.Setup(_ => _.DeleteAsync<ProviderSourceDataset>(It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<bool>()))
+                    It.IsAny<bool>(),
+                    It.IsAny<string>()))
                 .ReturnsAsync(HttpStatusCode.OK);
 
             _cosmos.Setup(_ => _.CreateAsync(It.IsAny<KeyValuePair<string, ProviderSourceDatasetHistory>>()))
@@ -131,7 +133,7 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             foreach (ProviderSourceDataset providerSourceDataset in providerSourceDatasets)
             {
-                _cosmos.Verify(_ => _.DeleteAsync<ProviderSourceDataset>(providerSourceDataset.Id, providerSourceDataset.ProviderId, false),
+                _cosmos.Verify(_ => _.DeleteAsync<ProviderSourceDataset>(providerSourceDataset.Id, providerSourceDataset.ProviderId, false, null),
                     Times.Once);
             }
         }
@@ -140,7 +142,7 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             foreach (ProviderSourceDataset providerSourceDataset in providerSourceDatasets)
             {
-                _cosmos.Verify(_ => _.UpsertAsync(providerSourceDataset, providerSourceDataset.ProviderId, true, true),
+                _cosmos.Verify(_ => _.UpsertAsync(providerSourceDataset, providerSourceDataset.ProviderId, true, true, null),
                     Times.Once);
             }
         }

@@ -158,7 +158,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis.ObsoleteItems
                 .BeOfType<OkResult>();
 
             repository
-                .Verify(x => x.UpdateObsoleteItem(It.Is<ObsoleteItem>(a => a.Id == obsoleteItemId)), Times.Never);
+                .Verify(x => x.UpdateObsoleteItem(It.Is<ObsoleteItem>(a => a.Id == obsoleteItemId), It.IsAny<string>()), Times.Never);
         }
 
         [TestMethod]
@@ -176,7 +176,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis.ObsoleteItems
                 .ReturnsAsync(obsoleteItem);
             repository.Setup(x => x.GetCalculationById(calculationId))
                 .ReturnsAsync(new Models.Calcs.Calculation() { Id = calculationId });
-            repository.Setup(x => x.UpdateObsoleteItem(It.Is<ObsoleteItem>(x => x.Id == obsoleteItemId)))
+            repository.Setup(x => x.UpdateObsoleteItem(It.Is<ObsoleteItem>(x => x.Id == obsoleteItemId), It.IsAny<string>()))
                 .ReturnsAsync(HttpStatusCode.OK);
 
             // Act
@@ -188,7 +188,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis.ObsoleteItems
                 .BeOfType<OkResult>();
 
             repository
-                .Verify(x => x.UpdateObsoleteItem(It.Is<ObsoleteItem>(a => a.Id == obsoleteItemId && a.CalculationIds.Any(x => x == calculationId)))
+                .Verify(x => x.UpdateObsoleteItem(It.Is<ObsoleteItem>(a => a.Id == obsoleteItemId && a.CalculationIds.Any(x => x == calculationId)), It.IsAny<string>())
                 , Times.Once);
         }
         
@@ -286,7 +286,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis.ObsoleteItems
             IObsoleteItemService service = CreateService(repository.Object);
             repository.Setup(x => x.GetObsoleteItemById(obsoleteItemId))
                 .ReturnsAsync(obsoleteItem);
-            repository.Setup(x => x.UpdateObsoleteItem(It.Is<ObsoleteItem>(x => x.Id == obsoleteItemId)))
+            repository.Setup(x => x.UpdateObsoleteItem(It.Is<ObsoleteItem>(x => x.Id == obsoleteItemId), It.IsAny<string>()))
                 .ReturnsAsync(HttpStatusCode.OK);
 
             // Act
@@ -298,7 +298,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis.ObsoleteItems
                 .BeOfType<NoContentResult>();
 
             repository
-                .Verify(x => x.UpdateObsoleteItem(It.Is<ObsoleteItem>(x => x.Id == obsoleteItemId)), Times.Once);
+                .Verify(x => x.UpdateObsoleteItem(It.Is<ObsoleteItem>(x => x.Id == obsoleteItemId), It.IsAny<string>()), Times.Once);
         }
 
         [TestMethod]
@@ -315,7 +315,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis.ObsoleteItems
             IObsoleteItemService service = CreateService(repository.Object);
             repository.Setup(x => x.GetObsoleteItemById(obsoleteItemId))
                 .ReturnsAsync(obsoleteItem);
-            repository.Setup(x => x.DeleteObsoleteItem(obsoleteItemId))
+            repository.Setup(x => x.DeleteObsoleteItem(obsoleteItemId, It.IsAny<string>()))
                 .ReturnsAsync(HttpStatusCode.NoContent);
 
             // Act
@@ -327,7 +327,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis.ObsoleteItems
                 .BeOfType<NoContentResult>();
 
             repository
-                .Verify(x => x.DeleteObsoleteItem(obsoleteItemId), Times.Once);
+                .Verify(x => x.DeleteObsoleteItem(obsoleteItemId, It.IsAny<string>()), Times.Once);
         }
 
         private IObsoleteItemService CreateService(

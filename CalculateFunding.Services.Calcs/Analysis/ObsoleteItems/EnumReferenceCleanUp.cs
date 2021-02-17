@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Calcs.ObsoleteItems;
@@ -13,33 +15,41 @@ namespace CalculateFunding.Services.Calcs.Analysis.ObsoleteItems
     {
         private readonly ICalculationsRepository _calculations;
         private readonly AsyncPolicy _resilience;
+        private readonly AsyncPolicy _noOCCRetryResilience;
 
         public EnumReferenceCleanUp(ICalculationsRepository calculations,
             ICalcsResiliencePolicies resilience)
         {
             Guard.ArgumentNotNull(calculations, nameof(calculations));
             Guard.ArgumentNotNull(resilience?.CalculationsRepository, nameof(resilience.CalculationsRepository));
+            Guard.ArgumentNotNull(resilience?.CalculationsRepositoryNoOCCRetry, nameof(resilience.CalculationsRepositoryNoOCCRetry));
 
             _calculations = calculations;
             _resilience = resilience.CalculationsRepository;
+            _noOCCRetryResilience = resilience.CalculationsRepositoryNoOCCRetry;
         }
 
         public async Task ProcessCalculation(Calculation calculation)
         {
             Guard.ArgumentNotNull(calculation, nameof(calculation));
 
+            await _resilience.ExecuteAsync(() => ReadObsoleteItemsAndProcessForCalculation(calculation));
+        }
+
+        private async Task ReadObsoleteItemsAndProcessForCalculation(Calculation calculation)
+        {
             string sourceCode = calculation.Current.SourceCode;
             string calculationId = calculation.Id;
 
-            IEnumerable<ObsoleteItem> obsoleteEnumsInCalculation = await GetObsoleteEnumsForCalculation(calculationId);
+            IEnumerable<DocumentEntity<ObsoleteItem>> obsoleteEnumsInCalculation = GetObsoleteEnumDocumentsForCalculation(calculationId);
 
-            foreach (ObsoleteItem obsoleteEnum in obsoleteEnumsInCalculation)
+            foreach (DocumentEntity<ObsoleteItem> document in obsoleteEnumsInCalculation)
             {
-                if (RemovedCalculationFromObsoleteEnum(obsoleteEnum, sourceCode, calculationId))
+                if (RemovedCalculationFromObsoleteEnum(document.Content, sourceCode, calculationId))
                 {
-                    await UpdateObsoleteEnum(obsoleteEnum);
+                    await UpdateObsoleteEnum(document);
                 }
-            }
+            }    
         }
 
         private bool RemovedCalculationFromObsoleteEnum(ObsoleteItem obsoleteEnum,
@@ -54,20 +64,19 @@ namespace CalculateFunding.Services.Calcs.Analysis.ObsoleteItems
             return false;
         }
 
-        //TODO; extend the base cosmos repo to support OCC with etags or timestamps
-        private async Task UpdateObsoleteEnum(ObsoleteItem obsoleteEnum)
+        private async Task UpdateObsoleteEnum(DocumentEntity<ObsoleteItem> obsoleteEnum)
         {
-            if (obsoleteEnum.IsEmpty)
+            if (obsoleteEnum.Content.IsEmpty)
             {
-                await _resilience.ExecuteAsync(() => _calculations.DeleteObsoleteItem(obsoleteEnum.Id));
+                await _noOCCRetryResilience.ExecuteAsync(() => _calculations.DeleteObsoleteItem(obsoleteEnum.Id, obsoleteEnum.ETag));
             }
             else
             {
-                await _resilience.ExecuteAsync(() => _calculations.UpdateObsoleteItem(obsoleteEnum));
+                await _noOCCRetryResilience.ExecuteAsync(() => _calculations.UpdateObsoleteItem(obsoleteEnum.Content, obsoleteEnum.ETag));
             }
         }
 
-        private async Task<IEnumerable<ObsoleteItem>> GetObsoleteEnumsForCalculation(string calculationId)
-            => await _resilience.ExecuteAsync(() => _calculations.GetObsoleteItemsForCalculation(calculationId, ObsoleteItemType.EnumValue));
+        private IEnumerable<DocumentEntity<ObsoleteItem>> GetObsoleteEnumDocumentsForCalculation(string calculationId)
+            => _calculations.GetObsoleteItemDocumentsForCalculation(calculationId, ObsoleteItemType.EnumValue);
     }
 }

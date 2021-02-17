@@ -7,6 +7,8 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         AsyncPolicy GraphApiClientPolicy { get; set; }
 
         AsyncPolicy CalculationsRepository { get; set; }
+        
+        AsyncPolicy CalculationsRepositoryNoOCCRetry { get; set; }
 
         AsyncPolicy CalculationsSearchRepository { get; set; }
 
