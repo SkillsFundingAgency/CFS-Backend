@@ -375,6 +375,7 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(message, nameof(message));
             
             string specificationId = message.GetUserProperty<string>("specification-id");
+            string relationshipId = message.GetUserProperty<string>("relationship-id");
 
             try
             { 
@@ -388,8 +389,17 @@ namespace CalculateFunding.Services.Datasets
                     throw new NonRetriableException("Failed to Process - specification id not provided");
                 }
 
-                IEnumerable<DefinitionSpecificationRelationship> relationships = await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(r 
+                IEnumerable<DefinitionSpecificationRelationship> relationships;
+
+                if (string.IsNullOrWhiteSpace(relationshipId))
+                {
+                    relationships = await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(r
                     => r.Content.Specification.Id == specificationId);
+                }
+                else
+                {
+                    relationships = new[] { await _datasetRepository.GetDefinitionSpecificationRelationshipById(relationshipId) };
+                }
 
                 Dictionary<string, Dataset> datasets = new Dictionary<string, Dataset>();
 

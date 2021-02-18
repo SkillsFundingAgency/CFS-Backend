@@ -184,6 +184,29 @@ namespace CalculateFunding.Services.Datasets.Services
             await ThenTheMapDatasetJobWasCreated(JobConstants.DefinitionNames.MapDatasetJob, relationshipId1, datasetId1, jobId);
             await ThenTheMapDatasetJobWasCreated(JobConstants.DefinitionNames.MapDatasetJob, relationshipId2, datasetId2, jobId);
         }
+        [TestMethod]
+        public async Task MapFdzDatasets_GivenSpecificationIdAndRelationshipId_QueueMapDatasetJobForRelationship()
+        {
+            string jobId = NewRandomString();
+            string relationshipId = NewRandomString();
+            string datasetVersionId = NewRandomString();
+            string datasetId = NewRandomString();
+
+            DefinitionSpecificationRelationship relationship = NewRelationship(_ => _.WithDatasetDefinition(NewReference())
+                                    .WithId(relationshipId)
+                                    .WithDatasetVersion(NewRelationshipVersion(v => v.WithId(datasetVersionId))));
+
+            Dataset dataset = NewDataset(_ => _.WithId(datasetId));
+
+            GivenTheMessageProperties(("jobId", jobId), ("specification-id", SpecificationId), ("relationship-id", relationshipId), ("user-id", UserId), ("user-name", Username));
+            AndTheJobDetails(jobId, JobConstants.DefinitionNames.MapFdzDatasetsJob);
+            AndRelationshipForSpecification(relationship);
+            AndDatasetForDatasetVersion(datasetVersionId, dataset);
+
+            await WhenTheMapFdzDatasetsMessageIsProcessed();
+
+            await ThenTheMapDatasetJobWasCreated(JobConstants.DefinitionNames.MapDatasetJob, relationshipId, datasetId, jobId);
+        }
 
         private void AndTheMapDatasetFailsToQueue(string exception, bool retriable = false)
         {
@@ -211,6 +234,12 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(Arg.Any<Expression<Func<DocumentEntity<DefinitionSpecificationRelationship>, bool>>>())
                 .Returns(relationships);
+        }
+
+        private void AndRelationshipForSpecification(DefinitionSpecificationRelationship relationship)
+        {
+            _datasetRepository.GetDefinitionSpecificationRelationshipById(Arg.Is(relationship.Id))
+                .Returns(relationship);
         }
 
         private string NewRandomString() => new RandomString();

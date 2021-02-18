@@ -416,7 +416,7 @@ namespace CalculateFunding.Services.Publishing
 
                 if (publishedProviderUpdated && existingPublishedProviders.AnyWithNullCheck())
                 {
-                    IDictionary<string, PublishedProvider> newPublishedProviders = await _variationService.PrepareVariedProviders(generatedProviderResult.TotalFunding,
+                    IDictionary<string, PublishedProvider> newPublishedProviders = await _variationService.PrepareVariedProviders(generatedProviderResult.TotalFunding ?? 0,
                         publishedProviders,
                         publishedProvider.Value,
                         scopedProviders[providerId],
