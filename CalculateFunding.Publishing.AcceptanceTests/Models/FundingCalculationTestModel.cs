@@ -4,6 +4,6 @@
     {
         public uint TemplateCalculationId { get; set; }
 
-        public decimal Value { get; set; }
+        public decimal? Value { get; set; }
     }
 }

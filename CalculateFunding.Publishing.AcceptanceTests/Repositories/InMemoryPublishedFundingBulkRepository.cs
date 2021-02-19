@@ -72,7 +72,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
                 PublishedProvider publishedProvider = _repo
                 .PublishedProviders
                 .SelectMany(c => c.Value)
-                .FirstOrDefault(p => p.Id == publishedProviderId.Key);
+                .FirstOrDefault(p => p.Key == publishedProviderId.Key).Value;
 
                 if (publishedProvider != null)
                 {
@@ -128,17 +128,17 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
                 string specificationId = publishedProvider.Current.SpecificationId;
                 if (!_repo.PublishedProviders.ContainsKey(specificationId))
                 {
-                    _repo.PublishedProviders.TryAdd(specificationId, new ConcurrentBag<PublishedProvider>());
+                    _repo.PublishedProviders.TryAdd(specificationId, new ConcurrentDictionary<string, PublishedProvider>());
                 }
 
-                var existingProvider = _repo.PublishedProviders[specificationId].FirstOrDefault(p => p.Id == publishedProvider.Id);
+                var existingProvider = _repo.PublishedProviders[specificationId].FirstOrDefault(p => p.Key == publishedProvider.Id).Value;
                 if (existingProvider != null)
                 {
                     existingProvider.Current = publishedProvider.Current;
                 }
                 else
                 {
-                    _repo.PublishedProviders[specificationId].Add(publishedProvider);
+                    _repo.PublishedProviders[specificationId].TryAdd(publishedProvider.Id, publishedProvider);
                 }
             }
 

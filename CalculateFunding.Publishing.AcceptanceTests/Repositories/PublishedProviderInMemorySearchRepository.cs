@@ -46,7 +46,12 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
         public Task<IEnumerable<IndexError>> Remove(IEnumerable<PublishedProviderIndex> documents)
         {
-            throw new NotImplementedException();
+            foreach (string id in documents.Select(_ => _.Id))
+            {
+                PublishedProviderIndex.Remove(id, out PublishedProviderIndex publishedProvider);
+            };
+
+            return Task.FromResult(Enumerable.Empty<IndexError>());
         }
 
         public Task RunIndexer()

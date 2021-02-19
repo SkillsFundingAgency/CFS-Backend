@@ -22,12 +22,12 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
      
         private readonly InMemoryCosmosRepository _repo;
 
-        public IEnumerable<PublishedProvider> GetInMemoryPublishedProviders(string specificationId)
+        public ConcurrentDictionary<string, PublishedProvider> GetInMemoryPublishedProviders(string specificationId)
         {
             return _repo.PublishedProviders.TryGetValue(specificationId,
-                out ConcurrentBag<PublishedProvider> publishedProviders)
+                out ConcurrentDictionary<string, PublishedProvider> publishedProviders)
                 ? publishedProviders
-                : (IEnumerable<PublishedProvider>) new PublishedProvider[0];
+                : new ConcurrentDictionary<string, PublishedProvider>();
         }
 
         public Task<IEnumerable<PublishedFunding>> GetLatestPublishedFundingBySpecification(string specificationId)
@@ -47,7 +47,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             IEnumerable<PublishedProvider> result = null;
             if (_repo.PublishedProviders.ContainsKey(specificationId))
             {
-                result = _repo.PublishedProviders[specificationId];
+                result = _repo.PublishedProviders[specificationId].Values;
             }
 
             return Task.FromResult(result);
@@ -55,8 +55,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
         public Task<IEnumerable<PublishedProvider>> GetPublishedProvidersForApproval(string specificationId)
         {
-            IEnumerable<PublishedProvider> results = _repo.PublishedProviders[specificationId].Where(p =>
-             p.Current.Status == PublishedProviderStatus.Draft || p.Current.Status == PublishedProviderStatus.Updated);
+            IEnumerable<PublishedProvider > results = _repo.PublishedProviders[specificationId].Where(p =>
+             p.Value.Current.Status == PublishedProviderStatus.Draft || p.Value.Current.Status == PublishedProviderStatus.Updated).Select(_ => _.Value);
 
             return Task.FromResult(results);
         }
@@ -64,9 +64,9 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         public Task<PublishedProviderVersion> GetPublishedProviderVersion(string fundingStreamId, string fundingPeriodId, string providerId, string version)
         {
             PublishedProvider publishedProvider = _repo.PublishedProviders.SelectMany(c => c.Value).Where(p =>
-              p.Current.FundingStreamId == fundingStreamId
-              && p.Current.FundingPeriodId == fundingPeriodId
-              && p.Current.ProviderId == providerId).FirstOrDefault();
+              p.Value.Current.FundingStreamId == fundingStreamId
+              && p.Value.Current.FundingPeriodId == fundingPeriodId
+              && p.Value.Current.ProviderId == providerId).Select(_ => _.Value).FirstOrDefault();
 
             PublishedProviderVersion result = null;
 
@@ -128,10 +128,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
                     string specificationId = publishedProvider.Current.SpecificationId;
                     if (!_repo.PublishedProviders.ContainsKey(specificationId))
                     {
-                        _repo.PublishedProviders.TryAdd(specificationId, new ConcurrentBag<PublishedProvider>());
+                        _repo.PublishedProviders.TryAdd(specificationId, new ConcurrentDictionary<string, PublishedProvider>());
                     }
 
-                    var existingProvider = _repo.PublishedProviders[specificationId].FirstOrDefault(p => p.Id == publishedProvider.Id);
+                    var existingProvider = _repo.PublishedProviders[specificationId][publishedProvider.Id];
                     if (existingProvider != null)
                     {
 
@@ -139,7 +139,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
                     }
                     else
                     {
-                        _repo.PublishedProviders[specificationId].Add(publishedProvider);
+                        _repo.PublishedProviders[specificationId].TryAdd(publishedProvider.Id, publishedProvider);
 
                     }
                     results.Add(HttpStatusCode.OK);
@@ -156,10 +156,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
             if (!_repo.PublishedProviders.ContainsKey(specificationId))
             {
-                _repo.PublishedProviders[specificationId] = new ConcurrentBag<PublishedProvider>();
+                _repo.PublishedProviders[specificationId] = new ConcurrentDictionary<string, PublishedProvider>();
             }
 
-            _repo.PublishedProviders[specificationId].Add(publishedProvider);
+            _repo.PublishedProviders[specificationId].TryAdd(publishedProvider.Id, publishedProvider);
 
             return Task.FromResult(publishedProvider);
         }
@@ -169,9 +169,9 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             IEnumerable<PublishedProvider> publishedProviders = _repo.PublishedProviders
                 .SelectMany(c => c.Value)
                 .Where(p =>
-                    (p.Current.Status == PublishedProviderStatus.Draft || p.Current.Status == PublishedProviderStatus.Updated)
-                && p.Current.FundingStreamId == fundingStreamId
-                && p.Current.FundingPeriodId == fundingPeriodId);
+                    (p.Value.Current.Status == PublishedProviderStatus.Draft || p.Value.Current.Status == PublishedProviderStatus.Updated)
+                && p.Value.Current.FundingStreamId == fundingStreamId
+                && p.Value.Current.FundingPeriodId == fundingPeriodId).Select(_ => _.Value);
 
             if (providerIds != null && providerIds.Any())
             {
@@ -185,7 +185,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
         public Task<PublishedProvider> GetPublishedProviderById(string cosmosId, string partitionKey)
         {
-            PublishedProvider result = _repo.PublishedProviders.SelectMany(c => c.Value).FirstOrDefault(p => p.Id == cosmosId);
+            PublishedProvider result = _repo.PublishedProviders.SelectMany(c => c.Value).FirstOrDefault(p => p.Key == cosmosId).Value;
 
             return Task.FromResult(result);
         }
@@ -194,8 +194,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             IEnumerable<PublishedProvider> publishedProviders = _repo.PublishedProviders
                 .SelectMany(c => c.Value)
-                .Where(p => p.Current.FundingStreamId == fundingStreamId
-                    && p.Current.FundingPeriodId == fundingPeriodId);
+                .Where(p => p.Value.Current.FundingStreamId == fundingStreamId
+                    && p.Value.Current.FundingPeriodId == fundingPeriodId).Select(_ => _.Value);
 
             if (providerIds != null && providerIds.Any())
             {
@@ -211,7 +211,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             IEnumerable<PublishedProvider> publishedProviders = _repo.PublishedProviders
                 .SelectMany(c => c.Value)
-                .Where(p => p.Current.SpecificationId == specificationId);
+                .Where(p => p.Value.Current.SpecificationId == specificationId).Select(_ => _.Value);
 
             IEnumerable<string> results = publishedProviders.Select(r => r.Id);
 
@@ -222,7 +222,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             IEnumerable<PublishedProvider> publishedProviders = _repo.PublishedProviders
                 .SelectMany(c => c.Value)
-                .Where(p => p.Current.SpecificationId == specificationId);
+                .Where(p => p.Value.Current.SpecificationId == specificationId).Select(_ => _.Value);
 
             IEnumerable<string> results = publishedProviders.Select(r => r.Current.PublishedProviderId);
 
@@ -322,7 +322,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             IEnumerable<PublishedProvider> publishedProviders = null;
             if (_repo.PublishedProviders.ContainsKey(specificationId))
             {
-                publishedProviders = _repo.PublishedProviders[specificationId];
+                publishedProviders = _repo.PublishedProviders[specificationId].Select(_ => _.Value);
             }
 
             IEnumerable<string> fundingLines = publishedProviders
@@ -367,17 +367,17 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             string specificationId = publishedProvider.Current.SpecificationId;
             if (!_repo.PublishedProviders.ContainsKey(specificationId))
             {
-                _repo.PublishedProviders.TryAdd(specificationId, new ConcurrentBag<PublishedProvider>());
+                _repo.PublishedProviders.TryAdd(specificationId, new ConcurrentDictionary<string, PublishedProvider>());
             }
 
-            var existingProvider = _repo.PublishedProviders[specificationId].FirstOrDefault(p => p.Id == publishedProvider.Id);
+            var existingProvider = _repo.PublishedProviders[specificationId][publishedProvider.Id];
             if (existingProvider != null)
             {
                 existingProvider.Current = publishedProvider.Current;
             }
             else
             {
-                _repo.PublishedProviders[specificationId].Add(publishedProvider);
+                _repo.PublishedProviders[specificationId].TryAdd(publishedProvider.Id, publishedProvider);
 
             }
             return Task.FromResult(HttpStatusCode.OK);
@@ -386,9 +386,9 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         public Task<PublishedProvider> GetPublishedProvider(string fundingStreamId, string fundingPeriodId, string providerId)
         {
             PublishedProvider publishedProvider = _repo.PublishedProviders.SelectMany(c => c.Value).Where(p =>
-                  p.Current.FundingStreamId == fundingStreamId
-                  && p.Current.FundingPeriodId == fundingPeriodId
-                  && p.Current.ProviderId == providerId).FirstOrDefault();
+                  p.Value.Current.FundingStreamId == fundingStreamId
+                  && p.Value.Current.FundingPeriodId == fundingPeriodId
+                  && p.Value.Current.ProviderId == providerId).FirstOrDefault().Value;
 
             return Task.FromResult(publishedProvider);
         }
@@ -412,7 +412,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         public Task<(string providerVersionId, string providerId)> GetPublishedProviderId(string publishedProviderVersion)
         {
             PublishedProvider publishedProvider = _repo.PublishedProviders.SelectMany(c => c.Value).Where(p =>
-                p.Released.FundingId == publishedProviderVersion).FirstOrDefault();
+                p.Value.Released.FundingId == publishedProviderVersion).FirstOrDefault().Value;
 
             return Task.FromResult((
                 providerVersionId: publishedProvider?.Released?.Provider?.ProviderVersionId, 
@@ -457,8 +457,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             IEnumerable<string> errorMessageSummaries = _repo.PublishedProviders
                 .SelectMany(c => c.Value)
-                .Where(_ => _.Current.Errors != null && _.Current.Errors.Any())
-                .SelectMany(_ => _.Current.Errors)
+                .Where(_ => _.Value.Current.Errors != null && _.Value.Current.Errors.Any())
+                .SelectMany(_ => _.Value.Current.Errors)
                 .Select(_ => _.SummaryErrorMessage);
 
             return Task.FromResult(errorMessageSummaries);
@@ -472,9 +472,9 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
                 _repo.PublishedProviders
                     .SelectMany(c => c.Value)
                     .SingleOrDefault(_ =>
-                        _.Current.SpecificationId == specificationId &&
-                        _.Current.FundingStreamId == fundingStreamId &&
-                        _.Current.ProviderId == providerId)
+                        _.Value.Current.SpecificationId == specificationId &&
+                        _.Value.Current.FundingStreamId == fundingStreamId &&
+                        _.Value.Current.ProviderId == providerId).Value
                     ?.Current);
 
         public Task<IEnumerable<PublishedProviderVersion>> GetPublishedProviderVersionsForApproval(
@@ -513,7 +513,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             foreach (PublishedProvider publishedProvider in publishedProviders)
             {
-                _repo.PublishedProviders.Remove(publishedProvider.Id, out _);
+                _repo.PublishedProviders[publishedProvider.Current.SpecificationId].Remove(publishedProvider.Id, out _);
             }
 
             return Task.CompletedTask;

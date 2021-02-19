@@ -99,22 +99,32 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
                 .Should()
                 .NotBeNull();
 
-            FundingLine fundingLine =
-                publishedProvider.Current.FundingLines.SingleOrDefault(f =>
-                    f.FundingLineCode == fundingLineCode && f.Type == FundingLineType.Payment);
-            fundingLine
-                .Should()
-                .NotBeNull($"funding line should exist with code '{fundingLineCode}'");
 
-            List<DistributionPeriod> distributionPeriods = new List<DistributionPeriod>();
-            if (fundingLine.DistributionPeriods.AnyWithNullCheck())
+            FundingLine[] fundingLines = new[] {publishedProvider.Current.FundingLines.SingleOrDefault(f =>
+                    f.FundingLineCode == fundingLineCode && f.Type == FundingLineType.Payment) };
+
+            if (publishedProvider.Released != null)
             {
-                distributionPeriods.AddRange(fundingLine.DistributionPeriods);
+                fundingLines = fundingLines.Concat(new[] {publishedProvider.Released.FundingLines.SingleOrDefault(f =>
+                    f.FundingLineCode == fundingLineCode && f.Type == FundingLineType.Payment) }).ToArray();
             }
 
-            distributionPeriods.AddRange(table.CreateSet<DistributionPeriod>());
+            foreach (FundingLine fundingLine in fundingLines)
+            {
+                fundingLine
+                    .Should()
+                    .NotBeNull($"funding line should exist with code '{fundingLineCode}'");
 
-            fundingLine.DistributionPeriods = distributionPeriods;
+                List<DistributionPeriod> distributionPeriods = new List<DistributionPeriod>();
+                if (fundingLine.DistributionPeriods.AnyWithNullCheck())
+                {
+                    distributionPeriods.AddRange(fundingLine.DistributionPeriods);
+                }
+
+                distributionPeriods.AddRange(table.CreateSet<DistributionPeriod>());
+
+                fundingLine.DistributionPeriods = distributionPeriods;
+            }
         }
 
         [Given(@"the Published Provider '(.*)' distribution period has the following profiles for funding line '(.*)'")]
@@ -129,7 +139,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
         {
             return _publishedFundingRepositoryStepContext.Repo
                 .GetInMemoryPublishedProviders(_currentSpecificationStepContext.SpecificationId)
-                .FirstOrDefault(_ => _.Current.ProviderId == providerId);
+                .FirstOrDefault(_ => _.Value.Current.ProviderId == providerId).Value;
         }
 
 
@@ -147,64 +157,80 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
                 .Should()
                 .NotBeNull();
 
-            FundingLine fundingLine =
-                publishedProvider.Current.FundingLines.SingleOrDefault(f =>
-                    f.FundingLineCode == fundingLineCode && f.Type == FundingLineType.Payment);
-            fundingLine
-                .Should()
-                .NotBeNull($"funding line should exist with code '{fundingLineCode}'");
+            FundingLine[] fundingLines = new[] {publishedProvider.Current.FundingLines.SingleOrDefault(f =>
+                    f.FundingLineCode == fundingLineCode && f.Type == FundingLineType.Payment) };
 
-            Dictionary<string, DistributionPeriod> distributionPeriods = new Dictionary<string, DistributionPeriod>();
-            if (fundingLine.DistributionPeriods.AnyWithNullCheck())
+            if (publishedProvider.Released != null)
             {
-                foreach (DistributionPeriod distributionPeriod in fundingLine.DistributionPeriods)
-                {
-                    distributionPeriods.Add(distributionPeriod.DistributionPeriodId, distributionPeriod);
-                }
+                fundingLines = fundingLines.Concat(new[] {publishedProvider.Released.FundingLines.SingleOrDefault(f =>
+                    f.FundingLineCode == fundingLineCode && f.Type == FundingLineType.Payment) }).ToArray();
             }
 
-            IEnumerable<ProfilePeriod> profilePeriods = table.CreateSet<ProfilePeriod>();
-
-            foreach (ProfilePeriod profilePeriod in profilePeriods)
+            foreach (FundingLine fundingLine in fundingLines)
             {
-                distributionPeriods
+                fundingLine
                     .Should()
-                    .ContainKey(profilePeriod.DistributionPeriodId, "expected distribution period to exist to add profile to");
+                    .NotBeNull($"funding line should exist with code '{fundingLineCode}'");
 
-                DistributionPeriod distributionPeriod = distributionPeriods[profilePeriod.DistributionPeriodId];
-
-                List<ProfilePeriod> profilePeriodsForDistributionPeriod = new List<ProfilePeriod>();
-                if (distributionPeriod.ProfilePeriods.AnyWithNullCheck())
+                Dictionary<string, DistributionPeriod> distributionPeriods = new Dictionary<string, DistributionPeriod>();
+                if (fundingLine.DistributionPeriods.AnyWithNullCheck())
                 {
-                    profilePeriodsForDistributionPeriod.AddRange(distributionPeriod.ProfilePeriods);
+                    foreach (DistributionPeriod distributionPeriod in fundingLine.DistributionPeriods)
+                    {
+                        if (distributionPeriods.ContainsKey(distributionPeriod.DistributionPeriodId))
+                        {
+                            distributionPeriods[distributionPeriod.DistributionPeriodId].Value = distributionPeriod.Value;
+                        }
+                        else
+                        {
+                            distributionPeriods.Add(distributionPeriod.DistributionPeriodId, distributionPeriod);
+                        }
+                    }
                 }
 
-                profilePeriodsForDistributionPeriod.Add(profilePeriod);
+                IEnumerable<ProfilePeriod> profilePeriods = table.CreateSet<ProfilePeriod>();
 
-                distributionPeriod.ProfilePeriods = profilePeriodsForDistributionPeriod;
+                foreach (ProfilePeriod profilePeriod in profilePeriods)
+                {
+                    distributionPeriods
+                        .Should()
+                        .ContainKey(profilePeriod.DistributionPeriodId, "expected distribution period to exist to add profile to");
+
+                    DistributionPeriod distributionPeriod = distributionPeriods[profilePeriod.DistributionPeriodId];
+
+                    List<ProfilePeriod> profilePeriodsForDistributionPeriod = new List<ProfilePeriod>();
+                    if (distributionPeriod.ProfilePeriods.AnyWithNullCheck())
+                    {
+                        profilePeriodsForDistributionPeriod.AddRange(distributionPeriod.ProfilePeriods);
+                    }
+
+                    profilePeriodsForDistributionPeriod.Add(profilePeriod);
+
+                    distributionPeriod.ProfilePeriods = profilePeriodsForDistributionPeriod;
+                }
+
+                _publishFundingStepContext.ProfilingInMemoryClient.AddFundingValueProfileSplit(
+                    (fundingLine.Value,
+                        publishedProvider.Current.FundingStreamId,
+                        publishedProvider.Current.FundingPeriodId,
+                        fundingLine.FundingLineCode,
+                        profilePeriods.Select(_ =>
+                            new Common.ApiClient.Profiling.Models.ProfilingPeriod
+                            {
+                                DistributionPeriod = _.DistributionPeriodId,
+                                Occurrence = _.Occurrence,
+                                Type = _.Type.ToString(),
+                                Period = _.TypeValue,
+                                Value = _.ProfiledValue,
+                                Year = _.Year
+                            }),
+                        distributionPeriods.Values.Select(_ =>
+                            new Common.ApiClient.Profiling.Models.DistributionPeriods
+                            {
+                                DistributionPeriodCode = _.DistributionPeriodId,
+                                Value = _.Value
+                            })));
             }
-
-            _publishFundingStepContext.ProfilingInMemoryClient.AddFundingValueProfileSplit(
-                (fundingLine.Value,
-                    publishedProvider.Current.FundingStreamId,
-                    publishedProvider.Current.FundingPeriodId,
-                    fundingLine.FundingLineCode,
-                    profilePeriods.Select(_ =>
-                        new Common.ApiClient.Profiling.Models.ProfilingPeriod
-                        {
-                            DistributionPeriod = _.DistributionPeriodId,
-                            Occurrence = _.Occurrence,
-                            Type = _.Type.ToString(),
-                            Period = _.TypeValue,
-                            Value = _.ProfiledValue,
-                            Year = _.Year
-                        }),
-                    distributionPeriods.Values.Select(_ =>
-                        new Common.ApiClient.Profiling.Models.DistributionPeriods
-                        {
-                            DistributionPeriodCode = _.DistributionPeriodId,
-                            Value = _.Value
-                        })));
         }
 
         [Given(@"the Published Provider contains the following calculation results")]
@@ -236,6 +262,19 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
                     TemplateCalculationId = c.TemplateCalculationId, 
                     Value = c.Value
                 });
+
+            if (_publishedFundingRepositoryStepContext.CurrentPublishedProvider.Released != null)
+            {
+                _publishedFundingRepositoryStepContext
+                .CurrentPublishedProvider
+                .Released
+                .Calculations = calculations
+                .Select(c => new FundingCalculation
+                {
+                    TemplateCalculationId = c.TemplateCalculationId,
+                    Value = c.Value
+                });
+            }
         }
 
 

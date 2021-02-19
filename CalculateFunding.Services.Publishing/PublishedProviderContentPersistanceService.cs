@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Calcs.Models;
@@ -55,8 +56,8 @@ namespace CalculateFunding.Services.Publishing
                         try
                         {
                             IEnumerable<PublishedProviderVersion> publishedProviderVersions = publishAll ? 
-                                await _publishedProviderVersioningService.GetVersions(provider) :  
-                                new[] { provider.Current };
+                                (await _publishedProviderVersioningService.GetVersions(provider)).Where(_ => _.MajorVersion > 0 && _.MinorVersion == 0) :
+                                (provider.Current.MajorVersion > 0 && provider.Current.MinorVersion == 0) ? new[] { provider.Current } : new PublishedProviderVersion[0];
 
                             foreach (PublishedProviderVersion publishedProviderVersion in publishedProviderVersions)
                             {

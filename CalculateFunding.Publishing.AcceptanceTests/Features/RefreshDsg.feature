@@ -746,6 +746,248 @@ Scenario Outline: Successful refresh of funding
 		| TrustStatus                   | Not Supported By A Trust |
 		| UKPRN                         | 1000002                  |
 	And the provider with id '1000002' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
+	And the following Published Provider has been previously generated for the current specification
+		| Field           | Value             |
+		| ProviderId      | 1000003           |
+		| FundingStreamId | <FundingStreamId> |
+		| FundingPeriodId | <FundingPeriodId> |
+		| TemplateVersion | <TemplateVersion> |
+		| Status          | Draft             |
+		| TotalFunding    | 12000             |
+		| MajorVersion    | 0                 |
+		| MinorVersion    | 1                 |
+	And the Published Provider has the following funding lines
+		| Name                                                 | FundingLineCode | Value | TemplateLineId | Type        |
+		| Pupil Led Factors                                    | DSG-004         | 640   | 5              | Information |
+		| Funding Through Premises and Mobility Factors        | DSG-007         | 0     | 6              | Information |
+		| Growth funding                                       | DSG-006         | 0     | 7              | Information |
+		| CSSB Pupil Led Funding                               | DSG-012         | 320   | 23             | Information |
+		| Funding for Historic Commitments                     | DSG-013         | 0     | 27             | Information |
+		| Universal Entitlement for 3 and 4 Year Olds          | DSG-014         | 320   | 130            | Information |
+		| Funding for Additional Hours for working parents     | DSG-015         | 320   | 135            | Information |
+		| Participation Funding for Disadvantaged 2 Year Olds  | DSG-016         | 320   | 140            | Information |
+		| Funding Allocation for Early Years Pupil Premium     | DSG-017         | 320   | 145            | Information |
+		| Funding Allocation for Maintained Nursery Supplement | DSG-018         | 320   | 150            | Information |
+		| Funding Allocation for Disability Access Fund        | DSG-019         | 0     | 155            | Information |
+		| Schools Block before recoupment                      | DSG-003         | 640   | 4              | Information |
+		| Central School Services Block                        | DSG-008         | 320   | 8              | Information |
+		| Early Years Block                                    | DSG-009         | 1600  | 9              | Information |
+		| High Needs Block before deductions                   | DSG-010         | 1280  | 10             | Information |
+		| Total High Needs Block After Deductions              | DSG-011         | 14720 | 11             | Information |
+		| School Block After recoupment                        | DSG-005         | 640   | 12             | Information |
+		| Total DSG before deductions and recoupment           | DSG-001         | 3840  | 2              | Information |
+		| Total DSG after deductions and recoupment            | DSG-002         | 15360 | 3              | Payment     |
+	And the Published Provider has the following distribution period for funding line 'DSG-002'
+		| DistributionPeriodId | Value |
+		| FY-1920              | 7000  |
+		| FY-2021              | 5000  |
+	And the Published Providers distribution period has the following profiles for funding line 'DSG-002'
+		| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
+		| FY-1920              | CalendarMonth | October   | 1920 | 1          | 7000          |
+		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 5000          |
+	And the Published Provider contains the following calculation results
+		| TemplateCalculationId | Value |
+		| 238                   |   |
+		| 15                    |   |
+		| 16                    |   |
+		| 17                    |   |
+		| 18                    |   |
+		| 13                    |   |
+		| 14                    |   |
+		| 19                    |   |
+		| 20                    |   |
+		| 25                    |   |
+		| 26                    |   |
+		| 24                    |   |
+		| 28                    |   |
+		| 132                   |   |
+		| 133                   |   |
+		| 134                   |   |
+		| 131                   |   |
+		| 137                   |   |
+		| 138                   |   |
+		| 139                   |   |
+		| 136                   |   |
+		| 142                   |   |
+		| 143                   |   |
+		| 144                   |   |
+		| 141                   |   |
+		| 147                   |   |
+		| 148                   |   |
+		| 149                   |   |
+		| 146                   |   |
+		| 152                   |   |
+		| 153                   |   |
+		| 154                   |   |
+		| 151                   |   |
+		| 31                    |   |
+		| 32                    |   |
+		| 34                    |   |
+		| 35                    |   |
+		| 37                    |   |
+		| 38                    |   |
+		| 29                    |   |
+		| 237                   |   |
+		| 30                    |   |
+		| 33                    |   |
+		| 36                    |   |
+		| 65                    |   |
+		| 66                    |   |
+		| 67                    |   |
+		| 68                    |   |
+		| 64                    |   |
+		| 70                    |   |
+		| 71                    |   |
+		| 235                   |   |
+		| 236                   |   |
+		| 241                   |   |
+		| 242                   |   |
+		| 243                   |   |
+		| 244                   |   |
+		| 245                   |   |
+		| 246                   |   |
+		| 247                   |   |
+		| 248                   |   |
+		| 249                   |   |
+		| 250                   |   |
+		| 72                    |   |
+		| 73                    |   |
+		| 69                    |   |
+		| 75                    |   |
+		| 76                    |   |
+		| 77                    |   |
+		| 78                    |   |
+		| 74                    |   |
+		| 80                    |   |
+		| 81                    |   |
+		| 82                    |   |
+		| 83                    |   |
+		| 79                    |   |
+		| 50                    |   |
+		| 51                    |   |
+		| 52                    |   |
+		| 53                    |   |
+		| 163                   |   |
+		| 164                   |   |
+		| 165                   |   |
+		| 166                   |   |
+		| 162                   |   |
+		| 90                    |   |
+		| 91                    |   |
+		| 92                    |   |
+		| 93                    |   |
+		| 89                    |   |
+		| 95                    |   |
+		| 96                    |   |
+		| 97                    |   |
+		| 98                    |   |
+		| 94                    |   |
+		| 158                   |   |
+		| 175                   |   |
+		| 174                   |   |
+		| 168                   |   |
+		| 169                   |   |
+		| 170                   |   |
+		| 171                   |   |
+		| 167                   |   |
+		| 176                   |   |
+		| 177                   |   |
+		| 178                   |   |
+		| 179                   |   |
+		| 232                   |   |
+		| 182                   |   |
+		| 183                   |   |
+		| 180                   |   |
+		| 181                   |   |
+		| 234                   |   |
+		| 159                   |   |
+		| 161                   |   |
+		| 233                   |   |
+		| 189                   |   |
+		| 190                   |   |
+		| 187                   |   |
+		| 188                   |   |
+		| 186                   |   |
+		| 195                   |   |
+		| 196                   |   |
+		| 193                   |   |
+		| 194                   |   |
+		| 192                   |   |
+		| 185                   |   |
+		| 191                   |   |
+		| 202                   |   |
+		| 203                   |   |
+		| 200                   |   |
+		| 201                   |   |
+		| 199                   |   |
+		| 198                   |   |
+		| 209                   |   |
+		| 210                   |   |
+		| 207                   |   |
+		| 208                   |   |
+		| 206                   |   |
+		| 205                   |   |
+		| 214                   |   |
+		| 215                   |   |
+		| 213                   |   |
+		| 223                   |   |
+		| 224                   |   |
+		| 221                   |   |
+		| 222                   |   |
+		| 220                   |   |
+		| 212                   |   |
+		| 128                   |   |
+		| 129                   |   |
+		| 228                   |   |
+		| 229                   |   |
+		| 227                   |   |
+		| 226                   |   |
+		| 42                    |   |
+		| 156                   |   |
+		| 157                   |   |
+		| 184                   |   |
+		| 197                   |   |
+		| 204                   |   |
+		| 211                   |   |
+		| 218                   |   |
+		| 225                   |   |
+		| 40                    |   |
+		| 41                    |   |
+		| 39                    |   |
+		| 21                    |   |
+		| 22                    |   |
+		| 216                   |   |
+		| 217                   |   |
+		| 219                   |   |
+	And the Published Provider has the following provider information
+		| Field                         | Value                    |
+		| ProviderId                    | 1000003                  |
+		| Name                          | Maintained School 2      |
+		| Authority                     | Local Authority 1        |
+		| DateOpened                    | 2012-03-15               |
+		| LACode                        | 200                      |
+		| LocalAuthorityName            | Maintained School 2      |
+		| ProviderType                  | LA maintained schools    |
+		| ProviderSubType               | Community school         |
+		| ProviderVersionId             | <ProviderVersionId>      |
+		| TrustStatus                   | Not Supported By A Trust |
+		| UKPRN                         | 1000003                  |
+	And the Published Provider is available in the repository for this specification
+	# Maintained schools in Core Provider Data
+	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
+		| Field                         | Value                    |
+		| ProviderId                    | 1000003                  |
+		| Name                          | Maintained School 2      |
+		| Authority                     | Local Authority 1        |
+		| DateOpened                    | 2012-03-15               |
+		| LACode                        | 200                      |
+		| LocalAuthorityName            | Maintained School 2      |
+		| ProviderType                  | LA maintained schools    |
+		| ProviderSubType               | Community school         |
+		| ProviderVersionId             | <ProviderVersionId>      |
+		| TrustStatus                   | Not Supported By A Trust |
+		| UKPRN                         | 1000003                  |
+	And the provider with id '1000003' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
 	# Local Authorities in Core Provider Data
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
 		| Field                         | Value                    |

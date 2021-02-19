@@ -18,7 +18,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
         public ConcurrentDictionary<string, ConcurrentDictionary<string, PublishedProviderVersion>> PublishedProviderVersions { get; private set; }
 
-        public ConcurrentDictionary<string, ConcurrentBag<PublishedProvider>> PublishedProviders { get; private set; }
+        public ConcurrentDictionary<string, ConcurrentDictionary<string, PublishedProvider>> PublishedProviders { get; private set; }
 
         // Keyed on SpecificationId
         public ConcurrentDictionary<string, ConcurrentBag<PublishedFunding>> PublishedFunding { get; private set; }
@@ -26,7 +26,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         public InMemoryCosmosRepository()
         {
             PublishedFundingVersions = new ConcurrentDictionary<string, ConcurrentDictionary<string, PublishedFundingVersion>>();
-            PublishedProviders = new ConcurrentDictionary<string, ConcurrentBag<PublishedProvider>>();
+            PublishedProviders = new ConcurrentDictionary<string, ConcurrentDictionary<string, PublishedProvider>>();
             PublishedFunding = new ConcurrentDictionary<string, ConcurrentBag<PublishedFunding>>();
             PublishedProviderVersions = new ConcurrentDictionary<string, ConcurrentDictionary<string, PublishedProviderVersion>>();
         }

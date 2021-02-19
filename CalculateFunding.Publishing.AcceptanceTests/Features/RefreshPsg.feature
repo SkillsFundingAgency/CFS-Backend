@@ -289,6 +289,49 @@ Background: Existing published funding
 		| TrustStatus        | SupportedByAMultiAcademyTrust |
 		| UKPRN              | 1000102                       |
 	And the Published Provider is available in the repository for this specification
+	And the following Published Provider has been previously generated for the current specification
+		| Field           | Value    |
+		| ProviderId      | 1000104  |
+		| FundingStreamId | PSG      |
+		| FundingPeriodId | AY-1920  |
+		| TemplateVersion | 1.0      |
+		| Status          | Approved |
+		| TotalFunding    | 24000    |
+		| MajorVersion    | 0        |
+		| MinorVersion    | 1        |
+	And the Published Provider has the following funding lines
+		| Name             | FundingLineCode | Value | TemplateLineId | Type    |
+		| Total Allocation | TotalAllocation |       | 1              | Payment |
+	And the Published Provider has the following distribution period for funding line 'TotalAllocation'
+		| DistributionPeriodId | Value |
+		| FY-1920              |       |
+		| FY-2021              |       |
+	And the Published Providers distribution period has the following profiles for funding line 'TotalAllocation'
+		| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
+		| FY-1920              | CalendarMonth | October   | 1920 | 1          |               |
+		| FY-2021              | CalendarMonth | April     | 2021 | 1          |               |
+	And the Published Provider contains the following calculation results
+		| TemplateCalculationId | Value |
+		| 2                     |       |
+		| 3                     |       |
+		| 4                     |       |
+		| 5                     |       |
+		| 6                     |       |
+	And the Published Provider has the following provider information
+		| Field              | Value                         |
+		| ProviderId         | 1000104                       |
+		| Name               | Academy 4                     |
+		| Authority          | Local Authority 1             |
+		| DateOpened         | 2013-04-17                    |
+		| LACode             | 200                           |
+		| LocalAuthorityName | Local Authority 1             |
+		| ProviderType       | Academies                     |
+		| ProviderSubType    | Academy special sponsor led   |
+		| ProviderVersionId  | psg-providers-1.0             |
+		| TrustCode          | 1001                          |
+		| TrustStatus        | SupportedByAMultiAcademyTrust |
+		| UKPRN              | 1000104                       |
+	And the Published Provider is available in the repository for this specification
 	# Maintained schools in Core Provider Data
 	And the following provider exists within core provider data in provider version 'psg-providers-1.0'
 		| Field              | Value                    |
@@ -420,6 +463,21 @@ Background: Existing published funding
 		| TrustStatus        | SupportedByAMultiAcademyTrust |
 		| UKPRN              | 1000103                       |
 	And the provider with id '1000103' should be a scoped provider in the current specification in provider version 'psg-providers-1.0'
+	And the following provider exists within core provider data in provider version 'psg-providers-1.0'
+		| Field              | Value                         |
+		| ProviderId         | 1000104                       |
+		| Name               | Academy 4                     |
+		| Authority          | Local Authority 2             |
+		| DateOpened         | 2013-04-16                    |
+		| LACode             | 200                           |
+		| LocalAuthorityName | Local Authority 2             |
+		| ProviderType       | Free Schools                  |
+		| ProviderSubType    | Free Schools                  |
+		| ProviderVersionId  | psg-providers-1.0             |
+		| TrustCode          | 1002                          |
+		| TrustStatus        | SupportedByAMultiAcademyTrust |
+		| UKPRN              | 1000104                       |
+	And the provider with id '1000104' should be a scoped provider in the current specification in provider version 'psg-providers-1.0'
 	# Local Authorities in Core Provider Data
 	And the following provider exists within core provider data in provider version 'psg-providers-1.0'
 		| Field              | Value                    |

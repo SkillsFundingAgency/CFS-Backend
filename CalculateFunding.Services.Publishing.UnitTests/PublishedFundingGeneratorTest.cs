@@ -186,21 +186,27 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             _provider = new Provider { ProviderId = "provider1" };
 
-            _publishedProvider = NewPublishedProvider(_ => _.WithCurrent(NewPublishedProviderVersion(version => version.WithFundingPeriodId(_publishedFundingPeriodId)
+            PublishedProviderVersion providerVersion1 = NewPublishedProviderVersion(version => version.WithFundingPeriodId(_publishedFundingPeriodId)
             .WithFundingLines(NewFundingLine(fl => fl.WithTemplateLineId(1).WithValue(0)
                 .WithDistributionPeriods(new DistributionPeriod[] { new DistributionPeriod { DistributionPeriodId = _publishedFundingPeriodId, ProfilePeriods = new ProfilePeriod[] { new ProfilePeriod { TypeValue = "April", DistributionPeriodId = _publishedFundingPeriodId, ProfiledValue = 200, Type = ProfilePeriodType.CalendarMonth, Year = 2019 } }, Value = 100 } })))
             .WithFundingStreamId(_fundingStreamId)
             .WithProviderId(_provider.ProviderId)
-            .WithProvider(_provider))));
+            .WithProvider(_provider));
+
+            _publishedProvider = NewPublishedProvider(_ => _.WithCurrent(providerVersion1)
+            .WithReleased(providerVersion1));
 
             _provider2 = new Provider { ProviderId = "provider2" };
 
-            _publishedProvider2 = NewPublishedProvider(_ => _.WithCurrent(NewPublishedProviderVersion(version => version.WithFundingPeriodId(_publishedFundingPeriodId)
+            PublishedProviderVersion providerVersion2 = NewPublishedProviderVersion(version => version.WithFundingPeriodId(_publishedFundingPeriodId)
             .WithFundingLines(NewFundingLine(fl => fl.WithTemplateLineId(2).WithValue(0)
                 .WithDistributionPeriods(new DistributionPeriod[] { new DistributionPeriod { DistributionPeriodId = _publishedFundingPeriodId, ProfilePeriods = new ProfilePeriod[] { new ProfilePeriod { TypeValue = "April", DistributionPeriodId = _publishedFundingPeriodId, ProfiledValue = 100, Type = ProfilePeriodType.CalendarMonth, Year = 2019 } }, Value = 50 } })))
             .WithFundingStreamId(_fundingStreamId)
             .WithProviderId(_provider2.ProviderId)
-            .WithProvider(_provider2))));
+            .WithProvider(_provider2));
+
+            _publishedProvider2 = NewPublishedProvider(_ => _.WithCurrent(providerVersion2)
+            .WithReleased(providerVersion2));
         }
 
         private void WhenPublishedFundingGenerated()

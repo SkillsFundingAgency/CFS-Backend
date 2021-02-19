@@ -62,9 +62,9 @@ namespace CalculateFunding.Services.Publishing
                 IEnumerable<string> publishedProvidersIds = publishedProviders.Select(p => p.Current.ProviderId);
 
                 List<PublishedProvider> publishedProvidersForOrganisationGroup = new List<PublishedProvider>(publishedProviders.Where(p
-                    => providerIds.Contains(p.Current.ProviderId)));
+                    => p.Released != null && providerIds.Contains(p.Released.ProviderId)));
                 List<PublishedProviderVersion> publishedProviderVersionsForOrganisationGroup = new List<PublishedProviderVersion>(
-                    publishedProvidersForOrganisationGroup.Select(p => p.Current));
+                    publishedProvidersForOrganisationGroup.Select(p => p.Released));
 
                 IEnumerable<string> missingProviders = providerIds.Except(publishedProvidersIds);
 
