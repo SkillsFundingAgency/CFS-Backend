@@ -349,6 +349,9 @@ namespace CalculateFunding.Services.Publishing
             {
                 PublishedProviderVersion publishedProviderVersion = publishedProvider.Value.Current;
 
+                // need to reset the variation reasons so we don't carry over variation reasons on a refresh
+                publishedProviderVersion.VariationReasons = Array.Empty<VariationReason>();
+
                 string providerId = publishedProviderVersion.ProviderId;
 
                 bool providerExists = scopedProviders.ContainsKey(providerId);
