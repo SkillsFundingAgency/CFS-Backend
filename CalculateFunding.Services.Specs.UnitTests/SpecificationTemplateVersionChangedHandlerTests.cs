@@ -35,7 +35,6 @@ namespace CalculateFunding.Services.Specs.UnitTests
         private Mock<IJobManagement> _jobs;
         private Mock<ICalculationsApiClient> _calculations;
         private Mock<IPoliciesApiClient> _policiesApiClient;
-        private Mock<IGraphApiClient> _graphApiClient;
 
         private SpecificationTemplateVersionChangedHandler _changedHandler;
 
@@ -45,7 +44,6 @@ namespace CalculateFunding.Services.Specs.UnitTests
             _jobs = new Mock<IJobManagement>();
             _calculations = new Mock<ICalculationsApiClient>();
             _policiesApiClient = new Mock<IPoliciesApiClient>();
-            _graphApiClient = new Mock<IGraphApiClient>();
 
             _changedHandler = new SpecificationTemplateVersionChangedHandler(_jobs.Object,
                 _calculations.Object,
@@ -54,9 +52,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
                     CalcsApiClient = Policy.NoOpAsync(),
                     PoliciesApiClient = Policy.NoOpAsync()
                 },
-                Logger.None,
-                _policiesApiClient.Object,
-                _graphApiClient.Object);
+                Logger.None);
         }
 
         private void GivenAllTheAssociateTemplateIdWithSpecificationCallsSucceed()
@@ -230,78 +226,6 @@ namespace CalculateFunding.Services.Specs.UnitTests
             AndTheAssignTemplateCalculationJobWasNotCreated(specificationId, fundingStream, fundingPeriodId, changedTemplateId);
         }
 
-        [TestMethod]
-        public async Task CreateObsoleteItemsForFundingLinesIfTheSuppliedTemplateVersionsDiffersToTheSpecificationVersion()
-        {
-            string fundingStream = NewRandomString();
-            string existingTemplateId = NewRandomString();
-            string changedTemplateId = NewRandomString();
-            string specificationId = NewRandomString();
-            string fundingPeriodId = NewRandomString();
-
-            uint fundingLineOne = NewRandomUint();
-            uint fundingLineTwo = NewRandomUint();
-
-            string calculationIdOne = NewRandomString();
-            string calculationIdTwo = NewRandomString();
-
-            string templateCalculationId = NewRandomNumber().ToString();
-
-            SpecificationVersion previousSpecificationVersion = NewSpecificationVersion(_ => _.WithSpecificationId(specificationId)
-                .WithFundingPeriodId(fundingPeriodId)
-                .WithTemplateIds((fundingStream, existingTemplateId)));
-
-            SpecificationVersion specificationVersion = previousSpecificationVersion.DeepCopy();
-
-            Reference user = NewUser();
-
-            string correlationId = NewRandomString();
-            ObsoleteItem obsoleteItem = NewObsoleteItem(_ => _.WithFundingLineId(fundingLineTwo)
-                                                            .WithCalculationIds(calculationIdTwo)
-                                                            .WithSpecificationId(specificationId)
-                                                            .WithItemType(ObsoleteItemType.FundingLine));
-
-            GivenAllTheAssociateTemplateIdWithSpecificationCallsSucceed();
-            AndMetadataForTemplateVersion(fundingStream, fundingPeriodId, existingTemplateId, NewTemplateMetadataDistinctContents(_ =>
-                                                _.WithFundingLines(new[] {
-                                                    new TemplateMetadataFundingLine()
-                                                    {
-                                                        FundingLineCode = fundingLineOne.ToString(),
-                                                        TemplateLineId = fundingLineOne
-                                                    },
-                                                    new TemplateMetadataFundingLine()
-                                                    {
-                                                        FundingLineCode = fundingLineTwo.ToString(),
-                                                        TemplateLineId = fundingLineTwo
-                                                    },
-                                                })));
-            AndMetadataForTemplateVersion(fundingStream, fundingPeriodId, changedTemplateId, NewTemplateMetadataDistinctContents(_ =>
-                                                 _.WithFundingLines(new[] {
-                                                    new TemplateMetadataFundingLine()
-                                                    {
-                                                        FundingLineCode = fundingLineOne.ToString(),
-                                                        TemplateLineId = fundingLineOne
-                                                    }
-                                                 })));
-            AndGraphEntitiesForSpecification(specificationId, templateCalculationId, calculationIdOne, calculationIdTwo);
-            AndGraphEntitiesForFundingLine(fundingLineTwo.ToString(), calculationIdTwo);
-            AndTheObsoleteItemCreated(obsoleteItem);
-
-            await WhenTemplateVersionChangeIsHandled(previousSpecificationVersion,
-                specificationVersion,
-                new Dictionary<string, string>
-                {
-                    { fundingStream , changedTemplateId }
-                },
-                user,
-                correlationId);
-
-            ThenTheProcessMappingsWasCalled(fundingStream, changedTemplateId, specificationId);
-            AndTheAssignTemplateCalculationJobWasNotCreated(specificationId, fundingStream, fundingPeriodId, existingTemplateId);
-            AndTheAssignTemplateCalculationJobWasNotCreated(specificationId, fundingStream, fundingPeriodId, changedTemplateId);
-            AssertThatTheObsoleteItemCreated(obsoleteItem);
-        }
-
         private void AndTheSpecVersionTemplateVersionsAssigned(SpecificationVersion specificationVersion, string fundingStreamId, string expectedVersion)
         {
             specificationVersion.TemplateIds[fundingStreamId]
@@ -429,59 +353,10 @@ namespace CalculateFunding.Services.Specs.UnitTests
                 .ReturnsAsync(new ApiResponse<TemplateMetadataDistinctContents>(HttpStatusCode.OK, templateContents));
         }
 
-        private void AndGraphEntitiesForSpecification(string specificationId, string templateCalculationId, params string[] calculationIds)
-        {
-            IEnumerable<Relationship> calculationRelationships = calculationIds
-                .Select(c => new Relationship()
-                {
-                    Type = SpecificationCalculationRelationships.FromIdField,
-                    One = new Models.Graph.Calculation() { CalculationId = c, TemplateCalculationId =  templateCalculationId}
-                });
-
-            _graphApiClient.Setup(x => x.GetAllEntitiesRelatedToSpecification(specificationId))
-                .ReturnsAsync(new ApiResponse<IEnumerable<Entity<GraphApiEntitySpecification>>>(HttpStatusCode.OK,
-                new[] { new Entity<GraphApiEntitySpecification>() { Relationships = calculationRelationships } }));
-        }
-
-        private void AndGraphEntitiesForFundingLine(string fundingLineCode, params string[] calculationIds)
-        {
-            IEnumerable<Relationship> calculationRelationships = calculationIds
-                .Select(c => new Relationship()
-                {
-                    Type = FundingLineCalculationRelationship.FromIdField,
-                    Two = new Models.Graph.Calculation() { CalculationId = c }
-                });
-
-            _graphApiClient.Setup(x => x.GetAllEntitiesRelatedToFundingLine(fundingLineCode))
-                .ReturnsAsync(new ApiResponse<IEnumerable<Entity<GraphApiEntityFundingLine>>>(HttpStatusCode.OK,
-                new[] { new Entity<GraphApiEntityFundingLine>() { Relationships = calculationRelationships } }));
-        }
-
-        private void AndTheObsoleteItemCreated(ObsoleteItem obsoleteItem)
-        {
-            _calculations.Setup(x =>
-                x.CreateObsoleteItem(It.Is<ObsoleteItem>(i => i.SpecificationId == obsoleteItem.SpecificationId && i.FundingLineId == obsoleteItem.FundingLineId)))
-                .ReturnsAsync(new ApiResponse<ObsoleteItem>(HttpStatusCode.OK, obsoleteItem));
-        }
-
-        private void AssertThatTheObsoleteItemCreated(ObsoleteItem obsoleteItem)
-        {
-            _calculations.Verify(x =>
-                x.CreateObsoleteItem(It.Is<ObsoleteItem>(i =>
-                i.SpecificationId == obsoleteItem.SpecificationId &&
-                i.FundingLineId == obsoleteItem.FundingLineId &&
-                i.ItemType == obsoleteItem.ItemType &&
-                i.CalculationIds.SequenceEqual(obsoleteItem.CalculationIds)))
-                , Times.Once);
-        }
         private Reference NewUser() => new ReferenceBuilder()
             .Build();
 
         private string NewRandomString() => new RandomString();
-
-        private int NewRandomNumber() => new RandomNumberBetween(0, int.MaxValue);
-        
-        private uint NewRandomUint() => (uint) NewRandomNumber();
 
         private async Task WhenTemplateVersionChangeIsHandled(SpecificationVersion previousSpecificationVersion,
             SpecificationVersion specificationVersion,
@@ -507,14 +382,6 @@ namespace CalculateFunding.Services.Specs.UnitTests
             return builder.Build();
         }
 
-        private ObsoleteItem NewObsoleteItem(Action<ObsoleteItemBuilder> setup = null)
-        {
-            ObsoleteItemBuilder builder = new ObsoleteItemBuilder();
-            setup?.Invoke(builder);
-
-            return builder.Build();
-        }
-
         private IDictionary<string, string> NewAssignTemplateIds(params (string fundingStreamId, string templateVersionId)[] assignedTemplateIds)
             => assignedTemplateIds.ToDictionary(_ => _.fundingStreamId, _ => _.templateVersionId);
 
@@ -531,6 +398,5 @@ namespace CalculateFunding.Services.Specs.UnitTests
             return expectedProperties.Count == properties.Count &&
                    properties.All(_ => expectedProperties.Contains(_));
         }
-
     }
 }

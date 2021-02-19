@@ -4,18 +4,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Calcs.Models;
-using CalculateFunding.Common.ApiClient.Graph;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
-using CalculateFunding.Common.ApiClient.Policies;
-using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Specs.Interfaces;
 using Polly;
 using Serilog;
@@ -23,9 +19,6 @@ using Job = CalculateFunding.Common.ApiClient.Jobs.Models.Job;
 using GraphApiEntitySpecification = CalculateFunding.Common.ApiClient.Graph.Models.Specification;
 using GraphApiEntityCalculation = CalculateFunding.Common.ApiClient.Graph.Models.Calculation;
 using GraphApiEntityFundingLine = CalculateFunding.Common.ApiClient.Graph.Models.FundingLine;
-using CalculateFunding.Common.ApiClient.Graph.Models;
-using CalculateFunding.Common.TemplateMetadata.Enums;
-using CalculateFunding.Models.Graph;
 
 namespace CalculateFunding.Services.Specs
 {
@@ -35,34 +28,23 @@ namespace CalculateFunding.Services.Specs
 
         private readonly IJobManagement _jobs;
         private readonly ICalculationsApiClient _calculations;
-        private readonly IPoliciesApiClient _policiesApiClient;
-        private readonly IGraphApiClient _graphApiClient;
         private readonly ILogger _logger;
         private readonly AsyncPolicy _calculationsPolicy;
-        private readonly AsyncPolicy _policiesPolicy;
 
         public SpecificationTemplateVersionChangedHandler(IJobManagement jobs,
             ICalculationsApiClient calculations,
             ISpecificationsResiliencePolicies resiliencePolicies,
-            ILogger logger,
-            IPoliciesApiClient policiesApiClient,
-            IGraphApiClient graphApiClient)
+            ILogger logger)
         {
             Guard.ArgumentNotNull(jobs, nameof(jobs));
             Guard.ArgumentNotNull(calculations, nameof(calculations));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(resiliencePolicies?.CalcsApiClient, nameof(resiliencePolicies.CalcsApiClient));
-            Guard.ArgumentNotNull(resiliencePolicies?.PoliciesApiClient, nameof(resiliencePolicies.PoliciesApiClient));
-            Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
-            Guard.ArgumentNotNull(graphApiClient, nameof(graphApiClient));
 
             _jobs = jobs;
             _calculations = calculations;
             _logger = logger;
-            _policiesApiClient = policiesApiClient;
-            _graphApiClient = graphApiClient;
             _calculationsPolicy = resiliencePolicies.CalcsApiClient;
-            _policiesPolicy = resiliencePolicies.PoliciesApiClient;
         }
 
         public async Task HandleTemplateVersionChanged(SpecificationVersion previousSpecificationVersion,
@@ -115,113 +97,7 @@ namespace CalculateFunding.Services.Specs
             string previousTemplateVersionId,
             string templateVersionId)
         {
-            Task<TemplateMetadataDistinctContents> previousTemplateMetadataTask = GetDistinctTemplateMetadataContents(fundingStreamId, fundingPeriodId, previousTemplateVersionId);
-            Task<TemplateMetadataDistinctContents> templateMetadataTask = GetDistinctTemplateMetadataContents(fundingStreamId, fundingPeriodId, templateVersionId);
-
-            await TaskHelper.WhenAllAndThrow(previousTemplateMetadataTask, templateMetadataTask);
-            
-            TemplateMetadataDistinctContents previousTemplateMetadata = previousTemplateMetadataTask.Result;
-            TemplateMetadataDistinctContents templateMetadata = templateMetadataTask.Result;
-
-            HashSet<uint> previousFundingLineTemplateIdsExceptLatest = previousTemplateMetadata.FundingLines
-                .Select(_ => _.TemplateLineId)
-                .ToHashSet();
-
-            previousFundingLineTemplateIdsExceptLatest.ExceptWith(templateMetadata.FundingLines
-                .Select(_ => _.TemplateLineId)
-                .ToHashSet());
-
-            TemplateMetadataFundingLine[] missingFundingLines = previousTemplateMetadata.FundingLines.Where(_ => previousFundingLineTemplateIdsExceptLatest.Contains(_.TemplateLineId)).ToArray();
-
-            if(!missingFundingLines.Any())
-            {
-                return;
-            }
-
-            ApiResponse<IEnumerable<Entity<GraphApiEntitySpecification>>> specificationEntitiesApiResponse =
-                await _graphApiClient.GetAllEntitiesRelatedToSpecification(specificationId);
-
-            if (!specificationEntitiesApiResponse.StatusCode.IsSuccess() && specificationEntitiesApiResponse.Content == null)
-            {
-                string message = $"Unable to find the graph entities for specification - {specificationId}.";
-                LogInformation(message);
-                throw new Exception(message);
-            }
-
-            IEnumerable<Entity<GraphApiEntitySpecification>> specificationEntities = specificationEntitiesApiResponse.Content;
-
-            IEnumerable<Models.Graph.Calculation> specificationCalculations = specificationEntities
-                .Where(_ => _.Relationships != null)
-                .SelectMany(_ => _.Relationships.Where(rel => rel.Type.Equals(SpecificationCalculationRelationships.FromIdField, StringComparison.InvariantCultureIgnoreCase)))
-                .Select(rel => ((object)rel.One).AsJson().AsPoco<Models.Graph.Calculation>())
-                .Distinct();
-
-            foreach (var fundingLine in missingFundingLines)
-            {
-                ApiResponse<IEnumerable<Entity<GraphApiEntityFundingLine>>> fundingLineEntitiesApiResponse =
-                    await _graphApiClient.GetAllEntitiesRelatedToFundingLine(fundingLine.FundingLineCode);
-
-                if (!specificationEntitiesApiResponse.StatusCode.IsSuccess() && specificationEntitiesApiResponse.Content == null)
-                {
-                    string message = $"Unable to find the graph entities for funding line - {fundingLine}.";
-                    LogInformation(message);
-                    throw new Exception(message);
-                }
-
-                IEnumerable<Entity<GraphApiEntityFundingLine>> fundingLineGraphEntries = fundingLineEntitiesApiResponse.Content;
-
-                IEnumerable<string> fundingLineCalculationIds = fundingLineGraphEntries.Where(_ => _.Relationships != null)
-                    .SelectMany(_ => _.Relationships.Where(rel => rel.Type.Equals(FundingLineCalculationRelationship.FromIdField, StringComparison.InvariantCultureIgnoreCase)))
-                    .Select(rel => ((object)rel.Two).AsJson().AsPoco<Models.Graph.Calculation>().CalculationId)
-                    .Distinct();
-
-                // Calculations in specification and in missing funding line
-                IDictionary<string, IEnumerable<string>> fundingLineCalculationIdsByTemplateCalculationId
-                    = specificationCalculations
-                    .Where(sc => fundingLineCalculationIds.Contains(sc.CalculationId))
-                    .GroupBy(x => x.TemplateCalculationId)
-                    .ToDictionary(x => x.Key, x => x.Select(x => x.CalculationId).Distinct());
-
-                if (fundingLineCalculationIdsByTemplateCalculationId.Any())
-                {
-                    foreach (KeyValuePair<string, IEnumerable<string>> calculationsByTemplateId in fundingLineCalculationIdsByTemplateCalculationId.Where(x => x.Value.Any()))
-                    {
-                        ObsoleteItem obsoleteItem = new ObsoleteItem
-                        {
-                            SpecificationId = specificationId,
-                            FundingLineId = fundingLine.TemplateLineId,
-                            TemplateCalculationId = uint.Parse(calculationsByTemplateId.Key),
-                            CalculationIds = calculationsByTemplateId.Value.ToList(),
-                            ItemType = ObsoleteItemType.FundingLine,
-                            Id = Guid.NewGuid().ToString()
-                        };
-
-                        ApiResponse<ObsoleteItem> obsoleteItemResponse = await _calculationsPolicy.ExecuteAsync(() => _calculations.CreateObsoleteItem(obsoleteItem));
-
-                        if (!obsoleteItemResponse.StatusCode.IsSuccess())
-                        {
-                            string message = $"Unable to create obsolete item for funding line template id - {fundingLine}.";
-                            LogInformation(message);
-                            throw new Exception(message);
-                        }
-                    }
-                }
-            }
-        }
-
-        private async Task<TemplateMetadataDistinctContents> GetDistinctTemplateMetadataContents(string fundingStreamId, string fundingPeriodId, string templateVersion)
-        {
-            ApiResponse<TemplateMetadataDistinctContents> templateMetaDataResponse = await _policiesPolicy.ExecuteAsync(() => 
-                _policiesApiClient.GetDistinctTemplateMetadataContents(fundingStreamId, fundingPeriodId, templateVersion));
-
-            if (templateMetaDataResponse?.Content == null)
-            {
-                string message = $"Unable to find the template metadata for funding stream - {fundingStreamId}, funding period id - {fundingPeriodId}, template version - {templateVersion}.";
-                LogInformation(message);
-                throw new Exception(message);
-            }
-
-            return templateMetaDataResponse.Content;
+            //TODO; queue job here?? or after graph has rebuilt??
         }
 
         private Task<Job> QueueAssignTemplateCalculationsJob(Reference user,
@@ -241,7 +117,7 @@ namespace CalculateFunding.Services.Specs
                 {
                     Message = "Changed template version for specification",
                     EntityId = specificationId,
-                    EntityType = nameof(Models.Specs.Specification)
+                    EntityType = nameof(Specification)
                 },
                 Properties = new Dictionary<string, string>
                 {

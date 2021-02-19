@@ -11,6 +11,34 @@ namespace CalculateFunding.Functions.DebugQueue
 {
     public static class Specs
     {
+        [FunctionName("on-detect-obsolete-funding-lines")]
+        public static async Task RunDetectObsoleteFundingLines([QueueTrigger(ServiceBusConstants.QueueNames.DetectObsoleteFundingLines, Connection = "AzureConnectionString")]string item, ILogger log)
+        {
+            using IServiceScope scope = Functions.Specs.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+            
+            Message message = Helpers.ConvertToMessage<Message>(item); 
+
+            OnDetectObsoleteFundingLines function = scope.ServiceProvider.GetService<OnDetectObsoleteFundingLines>();
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
+        
+        [FunctionName("on-detect-obsolete-funding-lines-failure")]
+        public static async Task RunDetectObsoleteFundingLinesFailure([QueueTrigger(ServiceBusConstants.QueueNames.DetectObsoleteFundingLinesPoisonedLocal, Connection = "AzureConnectionString")]string item, ILogger log)
+        {
+            using IServiceScope scope = Functions.Specs.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+            
+            Message message = Helpers.ConvertToMessage<Message>(item); 
+
+            OnDetectObsoleteFundingLinesFailure function = scope.ServiceProvider.GetService<OnDetectObsoleteFundingLinesFailure>();
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
+        
         [FunctionName("on-add-relationship-event")]
         public static async Task RunAddRelationship([QueueTrigger(ServiceBusConstants.QueueNames.AddDefinitionRelationshipToSpecification, Connection = "AzureConnectionString")]string item, ILogger log)
         {

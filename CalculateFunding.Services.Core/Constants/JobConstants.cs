@@ -82,6 +82,8 @@
             public const string GenerateCalcCsvResultsJob = nameof(GenerateCalcCsvResultsJob);
             
             public const string BatchPublishedProviderValidationJob = nameof(BatchPublishedProviderValidationJob);
+
+            public const string DetectObsoleteFundingLinesJob = nameof(DetectObsoleteFundingLinesJob);
         }
 
         public static class NotificationChannels

@@ -23,6 +23,7 @@ namespace CalculateFunding.Functions.Specs.SmokeTests
         private static ISpecificationIndexingService _specificationIndexerService;
         private static ILogger _logger;
         private static IUserProfileProvider _userProfileProvider;
+        private static IObsoleteFundingLineDetection _obsoleteFundingLineDetection;
 
         [ClassInitialize]
         public static void SetupTests(TestContext tc)
@@ -34,6 +35,25 @@ namespace CalculateFunding.Functions.Specs.SmokeTests
             _specificationsService = CreateSpecificationService();
             _userProfileProvider = CreateUserProfileProvider();
             _specificationIndexerService = CreateSpecificationIndexerService();
+            _obsoleteFundingLineDetection = CreateObsoleteFundingLineDetection();
+        }
+
+        [TestMethod]
+        public async Task OnDetectObsoleteFundingLines_SmokeTestSucceeds()
+        {
+            OnDetectObsoleteFundingLines onAddRelationshipEvent = new OnDetectObsoleteFundingLines(_logger,
+                _obsoleteFundingLineDetection,
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                _userProfileProvider,
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
+                IsDevelopment);
+
+            SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.DetectObsoleteFundingLines,
+                async(Message smokeResponse) => await onAddRelationshipEvent.Run(smokeResponse));
+
+            response
+                .Should()
+                .NotBeNull();
         }
 
         [TestMethod]
@@ -71,7 +91,7 @@ namespace CalculateFunding.Functions.Specs.SmokeTests
                 .Should()
                 .NotBeNull();
         }
-        
+
         [TestMethod]
         public async Task OnReIndexSpecification_SmokeTestSucceeds()
         {
@@ -89,6 +109,8 @@ namespace CalculateFunding.Functions.Specs.SmokeTests
                 .Should()
                 .NotBeNull();
         }
+
+        private static IObsoleteFundingLineDetection CreateObsoleteFundingLineDetection() => Substitute.For<IObsoleteFundingLineDetection>();
 
         private static ILogger CreateLogger() => Substitute.For<ILogger>();
 

@@ -224,6 +224,12 @@
             public const string PublishingRunSqlImportPoisoned = "publishing-run-sql-import/$DeadLetterQueue";
             
             public const string PublishingRunSqlImportPoisonedLocal = "publishing-run-sql-import-poisoned";
+
+            public const string DetectObsoleteFundingLines = "detect-obsolete-funding-lines";
+            
+            public const string DetectObsoleteFundingLinesPoisoned = "detect-obsolete-funding-lines/$DeadLetterQueue";
+            
+            public const string DetectObsoleteFundingLinesPoisonedLocal = "detect-obsolete-funding-lines-poisoned";
         }
 
         public static class TopicNames

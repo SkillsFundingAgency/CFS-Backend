@@ -32,6 +32,7 @@ using CalculateFunding.Services.Processing.Interfaces;
 using CalculateFunding.Services.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
 using CalculateFunding.Services.Specs.MappingProfiles;
+using CalculateFunding.Services.Specs.ObsoleteItems;
 using CalculateFunding.Services.Specs.Validators;
 using CalculateFunding.Services.Validators;
 using FluentValidation;
@@ -71,6 +72,9 @@ namespace CalculateFunding.Functions.Specs
             builder.AddAppConfiguration();
             builder.AddSingleton<IConfiguration>(config);
 
+            builder.AddSingleton<IObsoleteFundingLineDetection, ObsoleteFundingLineDetection>();
+            builder.AddSingleton<IUniqueIdentifierProvider, UniqueIdentifierProvider>();
+            
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
             builder.AddSingleton<ISpecificationTemplateVersionChangedHandler, SpecificationTemplateVersionChangedHandler>();
 
@@ -85,6 +89,8 @@ namespace CalculateFunding.Functions.Specs
                 builder.AddScoped<OnReIndexSpecification>();
                 builder.AddScoped<OnDeleteSpecifications>();
                 builder.AddScoped<OnDeleteSpecificationsFailure>();
+                builder.AddScoped<OnDetectObsoleteFundingLines>();
+                builder.AddScoped<OnDetectObsoleteFundingLinesFailure>();
             }
 
             builder.AddSingleton<ISpecificationsRepository, SpecificationsRepository>((ctx) =>
@@ -155,22 +161,18 @@ namespace CalculateFunding.Functions.Specs
 
             AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
 
-            builder.AddSingleton<ISpecificationsResiliencePolicies>((ctx) =>
+            builder.AddSingleton<ISpecificationsResiliencePolicies>((ctx) => new SpecificationsResiliencePolicies()
             {
-                Polly.AsyncPolicy redisPolicy = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy);
-
-                return new SpecificationsResiliencePolicies()
-                {
-                    PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    CalcsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    ProvidersApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    DatasetsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    SpecificationsSearchRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    SpecificationsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    ResultsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    CacheProvider = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy)
-                };
+                PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                CalcsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                ProvidersApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                DatasetsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                SpecificationsSearchRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                SpecificationsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                ResultsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                CacheProvider = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy),
+                GraphApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
             });
 
             builder.AddSingleton<IJobManagementResiliencePolicies>((ctx) => new JobManagementResiliencePolicies()

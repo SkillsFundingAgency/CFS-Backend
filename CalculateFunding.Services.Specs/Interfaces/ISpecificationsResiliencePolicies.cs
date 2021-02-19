@@ -1,22 +1,29 @@
-﻿namespace CalculateFunding.Services.Specs.Interfaces
+﻿using Polly;
+
+namespace CalculateFunding.Services.Specs.Interfaces
 {
     public interface ISpecificationsResiliencePolicies
     {
-        Polly.AsyncPolicy JobsApiClient { get; set; }
-        Polly.AsyncPolicy PoliciesApiClient { get; set; }
+        AsyncPolicy JobsApiClient { get; set; }
+        
+        AsyncPolicy PoliciesApiClient { get; set; }
 
-        Polly.AsyncPolicy CalcsApiClient { get; set; }
+        AsyncPolicy CalcsApiClient { get; set; }
 
-        Polly.AsyncPolicy ProvidersApiClient { get; set; }
+        AsyncPolicy ProvidersApiClient { get; set; }
         
-        Polly.AsyncPolicy DatasetsApiClient { get; set; }
+        AsyncPolicy DatasetsApiClient { get; set; }
         
-        Polly.AsyncPolicy SpecificationsSearchRepository { get; set; }
+        AsyncPolicy SpecificationsSearchRepository { get; set; }
         
-        Polly.AsyncPolicy SpecificationsRepository { get; set; }
+        AsyncPolicy SpecificationsRepository { get; set; }
         
-        Polly.AsyncPolicy ResultsApiClient { get; set; }
+        AsyncPolicy ResultsApiClient { get; set; }
 
-        Polly.AsyncPolicy CacheProvider { get; set; }
+        AsyncPolicy CacheProvider { get; set; }
+        
+        AsyncPolicy GraphApiClient { get; set; }
+        
+        
     }
 }

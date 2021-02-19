@@ -22,5 +22,7 @@ namespace CalculateFunding.Services.Specs
         public AsyncPolicy ResultsApiClient { get; set; }
 
         public AsyncPolicy CacheProvider { get; set; }
+        
+        public AsyncPolicy GraphApiClient { get; set; }
     }
 }
