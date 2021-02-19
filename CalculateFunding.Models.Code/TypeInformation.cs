@@ -38,6 +38,6 @@ namespace CalculateFunding.Models.Code
         /// <summary>
         /// Enum values
         /// </summary>
-        public IEnumerable<string> EnumValues { get; set; }
+        public IEnumerable<EnumValue> EnumValues { get; set; }
     }
 }

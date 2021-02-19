@@ -169,7 +169,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
 
                     FieldInfo[] fieldInfos = typeInfo.DeclaredFields.ToArray();
 
-                    List<string> enumValues = new List<string>();
+                    List<EnumValue> enumValues = new List<EnumValue>();
                     AddMethodsForClass(methods, fieldInfos, enumValues);
 
                     List<PropertyInformation> properties = new List<PropertyInformation>();
@@ -270,7 +270,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
             }
         }
 
-        private void AddMethodsForClass(List<MethodInformation> methods, FieldInfo[] fieldInfos, List<string> enumValues)
+        private void AddMethodsForClass(List<MethodInformation> methods, FieldInfo[] fieldInfos, List<EnumValue> enumValues)
         {
             foreach (FieldInfo fieldInfo in fieldInfos.Where(m => m.FieldType == typeof(Func<decimal?>)
                                 || m.CustomAttributes.Any(c => c.AttributeType.Name == "CalculationAttribute")
@@ -281,7 +281,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                 {
                     if (fieldInfo.IsLiteral)
                     {
-                        enumValues.Add(fieldInfo.Name);
+                        enumValues.Add(new EnumValue() { Name = fieldInfo.Name });
                         continue;
                     }
 

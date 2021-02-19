@@ -18,6 +18,8 @@ namespace CalculateFunding.Models.Code
 
         public bool IsCustom { get; set; }
 
+        public bool IsObsolete { get; set; }
+
         public string ReturnTypeClass { get; set; }
 
         public bool ReturnTypeIsNullable { get; set; }
