@@ -239,8 +239,8 @@ namespace CalculateFunding.Services.Specs.UnitTests
             string specificationId = NewRandomString();
             string fundingPeriodId = NewRandomString();
 
-            string fundingLineOne = NewRandomString();
-            string fundingLineTwo = NewRandomString();
+            uint fundingLineOne = NewRandomUint();
+            uint fundingLineTwo = NewRandomUint();
 
             string calculationIdOne = NewRandomString();
             string calculationIdTwo = NewRandomString();
@@ -264,15 +264,27 @@ namespace CalculateFunding.Services.Specs.UnitTests
             GivenAllTheAssociateTemplateIdWithSpecificationCallsSucceed();
             AndMetadataForTemplateVersion(fundingStream, fundingPeriodId, existingTemplateId, NewTemplateMetadataDistinctContents(_ =>
                                                 _.WithFundingLines(new[] {
-                                                    new TemplateMetadataFundingLine(){FundingLineCode = fundingLineOne},
-                                                    new TemplateMetadataFundingLine(){FundingLineCode = fundingLineTwo},
+                                                    new TemplateMetadataFundingLine()
+                                                    {
+                                                        FundingLineCode = fundingLineOne.ToString(),
+                                                        TemplateLineId = fundingLineOne
+                                                    },
+                                                    new TemplateMetadataFundingLine()
+                                                    {
+                                                        FundingLineCode = fundingLineTwo.ToString(),
+                                                        TemplateLineId = fundingLineTwo
+                                                    },
                                                 })));
             AndMetadataForTemplateVersion(fundingStream, fundingPeriodId, changedTemplateId, NewTemplateMetadataDistinctContents(_ =>
                                                  _.WithFundingLines(new[] {
-                                                    new TemplateMetadataFundingLine(){FundingLineCode = fundingLineOne}
+                                                    new TemplateMetadataFundingLine()
+                                                    {
+                                                        FundingLineCode = fundingLineOne.ToString(),
+                                                        TemplateLineId = fundingLineOne
+                                                    }
                                                  })));
             AndGraphEntitiesForSpecification(specificationId, templateCalculationId, calculationIdOne, calculationIdTwo);
-            AndGraphEntitiesForFundingLine(fundingLineTwo, calculationIdTwo);
+            AndGraphEntitiesForFundingLine(fundingLineTwo.ToString(), calculationIdTwo);
             AndTheObsoleteItemCreated(obsoleteItem);
 
             await WhenTemplateVersionChangeIsHandled(previousSpecificationVersion,
@@ -467,7 +479,9 @@ namespace CalculateFunding.Services.Specs.UnitTests
 
         private string NewRandomString() => new RandomString();
 
-        private int NewRandomNumber() => new RandomNumberBetween(0, 100);
+        private int NewRandomNumber() => new RandomNumberBetween(0, int.MaxValue);
+        
+        private uint NewRandomUint() => (uint) NewRandomNumber();
 
         private async Task WhenTemplateVersionChangeIsHandled(SpecificationVersion previousSpecificationVersion,
             SpecificationVersion specificationVersion,

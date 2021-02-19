@@ -6,12 +6,12 @@ namespace CalculateFunding.Services.Specs.UnitTests
 {
     public class ObsoleteItemBuilder : TestEntityBuilder
     {
-        private string _fundingLineId;
+        private uint? _fundingLineId;
         private string _specificationId;
         private string[] _calculationIds = new string[0];
         private ObsoleteItemType? _itemType;
 
-        public ObsoleteItemBuilder WithFundingLineId(string fundingLineId)
+        public ObsoleteItemBuilder WithFundingLineId(uint fundingLineId)
         {
             _fundingLineId = fundingLineId;
             return this;
@@ -38,10 +38,10 @@ namespace CalculateFunding.Services.Specs.UnitTests
         {
             return new ObsoleteItem()
             { 
-                FundingLineId = _fundingLineId ?? NewRandomString(),
+                FundingLineId = _fundingLineId.GetValueOrDefault(NewRandomUint()),
                 CalculationIds = _calculationIds,
                 SpecificationId = _specificationId ?? NewRandomString(),
-                ItemType = _itemType ?? NewRandomEnum<ObsoleteItemType>()
+                ItemType = _itemType.GetValueOrDefault(NewRandomEnum<ObsoleteItemType>())
             };
         }
     }

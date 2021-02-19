@@ -353,7 +353,7 @@ namespace CalculateFunding.Api.Graph.Controllers
         [ProducesResponseType(200)]
         public async Task<IActionResult> UpsertFundingLineCalculationRelationships([FromBody] AmendRelationshipRequest[] relationships)
         {
-            throw new NotImplementedException();
+            return await _graphService.UpsertFundingLineCalculationRelationships(ToRelationships(relationships));
         }
 
         [HttpPut("api/graph/calculation/{calculationId}/relationships/fundingline/{fundingLineId}")]

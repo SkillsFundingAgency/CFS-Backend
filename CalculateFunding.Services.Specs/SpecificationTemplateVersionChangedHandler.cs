@@ -24,6 +24,7 @@ using GraphApiEntitySpecification = CalculateFunding.Common.ApiClient.Graph.Mode
 using GraphApiEntityCalculation = CalculateFunding.Common.ApiClient.Graph.Models.Calculation;
 using GraphApiEntityFundingLine = CalculateFunding.Common.ApiClient.Graph.Models.FundingLine;
 using CalculateFunding.Common.ApiClient.Graph.Models;
+using CalculateFunding.Common.TemplateMetadata.Enums;
 using CalculateFunding.Models.Graph;
 
 namespace CalculateFunding.Services.Specs
@@ -106,6 +107,7 @@ namespace CalculateFunding.Services.Specs
             }
         }
 
+        //TODO; move this to the azure function for obsolete item indexing etc.
         private async Task DetectAndCreateObsoleteItemsForFundingLines(
             string specificationId,
             string fundingStreamId,
@@ -117,12 +119,19 @@ namespace CalculateFunding.Services.Specs
             Task<TemplateMetadataDistinctContents> templateMetadataTask = GetDistinctTemplateMetadataContents(fundingStreamId, fundingPeriodId, templateVersionId);
 
             await TaskHelper.WhenAllAndThrow(previousTemplateMetadataTask, templateMetadataTask);
+            
             TemplateMetadataDistinctContents previousTemplateMetadata = previousTemplateMetadataTask.Result;
             TemplateMetadataDistinctContents templateMetadata = templateMetadataTask.Result;
 
-            IEnumerable<TemplateMetadataFundingLine> missingFundingLines = previousTemplateMetadata.FundingLines
-                                                                            .Where(p => !templateMetadata.FundingLines.Any(c => c.FundingLineCode == p.FundingLineCode))
-                                                                            .ToList();
+            HashSet<uint> previousFundingLineTemplateIdsExceptLatest = previousTemplateMetadata.FundingLines
+                .Select(_ => _.TemplateLineId)
+                .ToHashSet();
+
+            previousFundingLineTemplateIdsExceptLatest.ExceptWith(templateMetadata.FundingLines
+                .Select(_ => _.TemplateLineId)
+                .ToHashSet());
+
+            TemplateMetadataFundingLine[] missingFundingLines = previousTemplateMetadata.FundingLines.Where(_ => previousFundingLineTemplateIdsExceptLatest.Contains(_.TemplateLineId)).ToArray();
 
             if(!missingFundingLines.Any())
             {
@@ -159,14 +168,14 @@ namespace CalculateFunding.Services.Specs
                     throw new Exception(message);
                 }
 
-                IEnumerable<Entity<GraphApiEntityFundingLine>> fundinglineEntities = fundingLineEntitiesApiResponse.Content;
+                IEnumerable<Entity<GraphApiEntityFundingLine>> fundingLineGraphEntries = fundingLineEntitiesApiResponse.Content;
 
-                IEnumerable<string> fundingLineCalculationIds = fundinglineEntities.Where(_ => _.Relationships != null)
+                IEnumerable<string> fundingLineCalculationIds = fundingLineGraphEntries.Where(_ => _.Relationships != null)
                     .SelectMany(_ => _.Relationships.Where(rel => rel.Type.Equals(FundingLineCalculationRelationship.FromIdField, StringComparison.InvariantCultureIgnoreCase)))
                     .Select(rel => ((object)rel.Two).AsJson().AsPoco<Models.Graph.Calculation>().CalculationId)
                     .Distinct();
 
-                // Calculations in specification and in missing fundingline
+                // Calculations in specification and in missing funding line
                 IDictionary<string, IEnumerable<string>> fundingLineCalculationIdsByTemplateCalculationId
                     = specificationCalculations
                     .Where(sc => fundingLineCalculationIds.Contains(sc.CalculationId))
@@ -175,12 +184,12 @@ namespace CalculateFunding.Services.Specs
 
                 if (fundingLineCalculationIdsByTemplateCalculationId.Any())
                 {
-                    foreach (var calculationsByTemplateId in fundingLineCalculationIdsByTemplateCalculationId.Where(x => x.Value.Any()))
+                    foreach (KeyValuePair<string, IEnumerable<string>> calculationsByTemplateId in fundingLineCalculationIdsByTemplateCalculationId.Where(x => x.Value.Any()))
                     {
                         ObsoleteItem obsoleteItem = new ObsoleteItem
                         {
                             SpecificationId = specificationId,
-                            FundingLineId = fundingLine.FundingLineCode,
+                            FundingLineId = fundingLine.TemplateLineId,
                             TemplateCalculationId = uint.Parse(calculationsByTemplateId.Key),
                             CalculationIds = calculationsByTemplateId.Value.ToList(),
                             ItemType = ObsoleteItemType.FundingLine,
@@ -189,9 +198,9 @@ namespace CalculateFunding.Services.Specs
 
                         ApiResponse<ObsoleteItem> obsoleteItemResponse = await _calculationsPolicy.ExecuteAsync(() => _calculations.CreateObsoleteItem(obsoleteItem));
 
-                        if (!specificationEntitiesApiResponse.StatusCode.IsSuccess() && specificationEntitiesApiResponse.Content == null)
+                        if (!obsoleteItemResponse.StatusCode.IsSuccess())
                         {
-                            string message = $"Unable to find the graph entities for funding line - {fundingLine}.";
+                            string message = $"Unable to create obsolete item for funding line template id - {fundingLine}.";
                             LogInformation(message);
                             throw new Exception(message);
                         }
@@ -202,16 +211,17 @@ namespace CalculateFunding.Services.Specs
 
         private async Task<TemplateMetadataDistinctContents> GetDistinctTemplateMetadataContents(string fundingStreamId, string fundingPeriodId, string templateVersion)
         {
-            ApiResponse<TemplateMetadataDistinctContents> templateMetatdataResponse = await _policiesPolicy.ExecuteAsync(() => _policiesApiClient.GetDistinctTemplateMetadataContents(fundingStreamId, fundingPeriodId, templateVersion));
+            ApiResponse<TemplateMetadataDistinctContents> templateMetaDataResponse = await _policiesPolicy.ExecuteAsync(() => 
+                _policiesApiClient.GetDistinctTemplateMetadataContents(fundingStreamId, fundingPeriodId, templateVersion));
 
-            if (!templateMetatdataResponse.StatusCode.IsSuccess() || templateMetatdataResponse.Content == null)
+            if (templateMetaDataResponse?.Content == null)
             {
                 string message = $"Unable to find the template metadata for funding stream - {fundingStreamId}, funding period id - {fundingPeriodId}, template version - {templateVersion}.";
                 LogInformation(message);
                 throw new Exception(message);
             }
 
-            return templateMetatdataResponse.Content;
+            return templateMetaDataResponse.Content;
         }
 
         private Task<Job> QueueAssignTemplateCalculationsJob(Reference user,

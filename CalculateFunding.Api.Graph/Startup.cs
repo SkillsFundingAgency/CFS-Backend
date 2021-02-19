@@ -15,6 +15,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
+using Newtonsoft.Json;
 
 namespace CalculateFunding.Api.Graph
 {
@@ -34,8 +35,13 @@ namespace CalculateFunding.Api.Graph
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            // services.AddControllers()
+            //    .AddNewtonsoftJson(_ => 
+            //        _.SerializerSettings.TypeNameHandling = TypeNameHandling.Auto);
+            
             services.AddControllers()
-               .AddNewtonsoftJson();
+                .AddNewtonsoftJson();
+
 
             RegisterComponents(services);
         }
