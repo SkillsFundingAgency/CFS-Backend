@@ -26,6 +26,7 @@ using Newtonsoft.Json;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Serilog;
+using CalculateFunding.Services.Core.Interfaces.Logging;
 
 namespace CalculateFunding.Services.CosmosDbScaling
 {
@@ -656,7 +657,8 @@ namespace CalculateFunding.Services.CosmosDbScaling
             JobSummary jobNotification = new JobSummary
             {
                 JobType = "job-def-1",
-                RunningStatus = RunningStatus.Queued
+                RunningStatus = RunningStatus.Queued,
+                JobId = "job-id-1"
             };
 
             CosmosDbScalingRequestModel requestModel = new CosmosDbScalingRequestModel
@@ -701,12 +703,14 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 .Returns(scalingRepository);
 
             ILogger logger = CreateLogger();
+            ITelemetry telemetry = CreateTelemetry();
 
             CosmosDbScalingService cosmosDbScalingService = CreateScalingService(
                 logger,
                 cosmosDbScalingConfigRepository: cosmosDbScalingConfigRepository,
                 cosmosDbScalingRepositoryProvider: cosmosDbScalingRepositoryProvider,
-                cosmosDbScalingRequestModelBuilder: modelBuilder);
+                cosmosDbScalingRequestModelBuilder: modelBuilder,
+                telemetry: telemetry);
 
             //Act
             await cosmosDbScalingService.Process(message);
@@ -725,6 +729,20 @@ namespace CalculateFunding.Services.CosmosDbScaling
             logger
                 .Received(1)
                 .Information("Current settings: {\"id\":\"CalculationProviderResults\",\"cosmosCollectionType\":\"CalculationProviderResults\",\"lastScalingIncrementValue\":0,\"lastScalingDecrementValue\":0,\"lastScalingIncrementDateTime\":null,\"lastScalingDeccrementDateTime\":null,\"currentRequestUnits\":100000,\"maxRequestUnits\":200000,\"minRequestUnits\":10000} has been scaled with settings: {\"id\":\"CalculationProviderResults\",\"cosmosCollectionType\":\"CalculationProviderResults\",\"lastScalingIncrementValue\":0,\"lastScalingDecrementValue\":0,\"lastScalingIncrementDateTime\":null,\"lastScalingDeccrementDateTime\":null,\"currentRequestUnits\":150000,\"maxRequestUnits\":200000,\"minRequestUnits\":10000} scaling direction: Up and type: Job");
+
+            telemetry
+                .Received(1)
+                .TrackEvent("CosmosScalingCompleted", 
+                Arg.Is<IDictionary<string, string>>(p => 
+                                            p["collectionName"] == "calculationresults" &&
+                                            p["scaleEvent"] == "Job" &&
+                                            p["direction"] == "Up" &&
+                                            p["jobDefinitionId"] == "job-def-1" &&
+                                            p["jobId"] == "job-id-1"), 
+                Arg.Is<IDictionary<string, double>>(m => 
+                                            m["scaleValue"] == 150000 &&
+                                            m["previousScaleValue"] == 100000 &&
+                                            m["scaleDifference"] == 50000));
         }
 
         [TestMethod]
@@ -1342,13 +1360,15 @@ namespace CalculateFunding.Services.CosmosDbScaling
             cosmosDbScalingRepositoryProvider
                 .GetRepository(Arg.Is(CosmosCollectionType.CalculationProviderResults))
                 .Returns(scalingRepository);
+            ITelemetry telemetry = CreateTelemetry();
 
             CosmosDbScalingService cosmosDbScalingService = CreateScalingService(
                 logger,
                 jobManagement: jobManagement,
                 cosmosDbScalingConfigRepository: cosmosDbScalingConfigRepository,
                 cacheProvider: cacheProvider,
-                cosmosDbScalingRepositoryProvider: cosmosDbScalingRepositoryProvider);
+                cosmosDbScalingRepositoryProvider: cosmosDbScalingRepositoryProvider,
+                telemetry: telemetry);
 
             //Act
             await cosmosDbScalingService.ScaleDownForJobConfiguration();
@@ -1362,6 +1382,20 @@ namespace CalculateFunding.Services.CosmosDbScaling
             logger
                 .Received(1)
                 .Information("Current settings: {\"id\":\"CalculationProviderResults\",\"cosmosCollectionType\":\"CalculationProviderResults\",\"lastScalingIncrementValue\":0,\"lastScalingDecrementValue\":0,\"lastScalingIncrementDateTime\":null,\"lastScalingDeccrementDateTime\":null,\"currentRequestUnits\":100000,\"maxRequestUnits\":200000,\"minRequestUnits\":10000} has been scaled with settings: {\"id\":\"CalculationProviderResults\",\"cosmosCollectionType\":\"CalculationProviderResults\",\"lastScalingIncrementValue\":0,\"lastScalingDecrementValue\":0,\"lastScalingIncrementDateTime\":null,\"lastScalingDeccrementDateTime\":null,\"currentRequestUnits\":10000,\"maxRequestUnits\":200000,\"minRequestUnits\":10000} scaling direction: Down and type: Job");
+
+            telemetry
+              .Received(1)
+              .TrackEvent("CosmosScalingCompleted",
+              Arg.Is<IDictionary<string, string>>(p =>
+                                          p["collectionName"] == "calculationresults" &&
+                                          p["scaleEvent"] == "Job" &&
+                                          p["direction"] == "Down" &&
+                                          p["jobDefinitionId"] == "NA" &&
+                                          p["jobId"] == "NA"),
+              Arg.Is<IDictionary<string, double>>(m =>
+                                          m["scaleValue"] == 10000 &&
+                                          m["previousScaleValue"] == 100000 &&
+                                          m["scaleDifference"] == -90000));
         }
 
         [TestMethod]
@@ -1667,11 +1701,13 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 .Returns(scalingRepository);
 
             ILogger logger = CreateLogger();
+            ITelemetry telemetry = CreateTelemetry();
 
             CosmosDbScalingService cosmosDbScalingService = CreateScalingService(
                 logger,
                 cosmosDbScalingConfigRepository: cosmosDbScalingConfigRepository,
-                cosmosDbScalingRepositoryProvider: cosmosDbScalingRepositoryProvider);
+                cosmosDbScalingRepositoryProvider: cosmosDbScalingRepositoryProvider,
+                telemetry: telemetry);
 
             //Act
             await cosmosDbScalingService.ScaleDownIncrementally();
@@ -1694,6 +1730,20 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 scalingRepository
                 .Received(1)
                 .SetThroughput(Arg.Is(40000));
+
+            telemetry
+               .Received(1)
+               .TrackEvent("CosmosScalingCompleted",
+               Arg.Is<IDictionary<string, string>>(p =>
+                                           p["collectionName"] == "calculationresults" &&
+                                           p["scaleEvent"] == "Incremental" &&
+                                           p["direction"] == "Down" &&
+                                           p["jobDefinitionId"] == "NA" &&
+                                           p["jobId"] == "NA"),
+               Arg.Is<IDictionary<string, double>>(m =>
+                                           m["scaleValue"] == 40000 &&
+                                           m["previousScaleValue"] == 50000 &&
+                                           m["scaleDifference"] == -10000));
         }
 
         [TestMethod]
@@ -2187,7 +2237,8 @@ namespace CalculateFunding.Services.CosmosDbScaling
             ICosmosDbScalingConfigRepository cosmosDbScalingConfigRepository = null,
             ICosmosDbScalingRequestModelBuilder cosmosDbScalingRequestModelBuilder = null,
             ICosmosDbThrottledEventsFilter cosmosDbThrottledEventsFilter = null,
-            IValidator<ScalingConfigurationUpdateModel> scalingConfigurationUpdateModelValidator = null)
+            IValidator<ScalingConfigurationUpdateModel> scalingConfigurationUpdateModelValidator = null,
+            ITelemetry telemetry = null)
         {
             return new CosmosDbScalingService(
                 logger ?? CreateLogger(),
@@ -2198,7 +2249,15 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 CosmosDbScalingResilienceTestHelper.GenerateTestPolicies(),
                 cosmosDbScalingRequestModelBuilder ?? CreateReqestModelBuilder(),
                 cosmosDbThrottledEventsFilter ?? CreateCosmosDbThrottledEventsFilter(),
-                scalingConfigurationUpdateModelValidator ?? CreateScalingConfigurationUpdateModelValidator());
+                scalingConfigurationUpdateModelValidator ?? CreateScalingConfigurationUpdateModelValidator(),
+                telemetry ?? CreateTelemetry()
+                );
+            
+        }
+
+        private ITelemetry CreateTelemetry()
+        {
+            return Substitute.For<ITelemetry>();
         }
 
         static IValidator<ScalingConfigurationUpdateModel> CreateScalingConfigurationUpdateModelValidator(ValidationResult validationResult = null)

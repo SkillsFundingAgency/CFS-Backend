@@ -11,6 +11,7 @@ using CalculateFunding.Models.CosmosDbScaling;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.CosmosDbScaling.Interfaces;
 using CalculateFunding.Services.Processing;
 using FluentValidation;
@@ -35,7 +36,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
         private readonly AsyncPolicy _scalingConfigRepositoryPolicy;
         private readonly ICosmosDbThrottledEventsFilter _cosmosDbThrottledEventsFilter;
         private readonly IValidator<ScalingConfigurationUpdateModel> _scalingConfigurationUpdateModelValidator;
-
+        private readonly ITelemetry _telemetry;
         private const int scaleUpIncrementValue = 10000;
         private const int previousMinutestoCheckForScaledCollections = 45;
 
@@ -48,7 +49,8 @@ namespace CalculateFunding.Services.CosmosDbScaling
             ICosmosDbScalingResiliencePolicies cosmosDbScalingResiliencePolicies,
             ICosmosDbScalingRequestModelBuilder cosmosDbScalingRequestModelBuilder,
             ICosmosDbThrottledEventsFilter cosmosDbThrottledEventsFilter,
-            IValidator<ScalingConfigurationUpdateModel> scalingConfigurationUpdateModelValidator)
+            IValidator<ScalingConfigurationUpdateModel> scalingConfigurationUpdateModelValidator,
+            ITelemetry telemetry)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(cosmosDbScalingRepositoryProvider, nameof(cosmosDbScalingRepositoryProvider));
@@ -59,6 +61,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
             Guard.ArgumentNotNull(cosmosDbScalingRequestModelBuilder, nameof(cosmosDbScalingRequestModelBuilder));
             Guard.ArgumentNotNull(cosmosDbThrottledEventsFilter, nameof(cosmosDbThrottledEventsFilter));
             Guard.ArgumentNotNull(scalingConfigurationUpdateModelValidator, nameof(scalingConfigurationUpdateModelValidator));
+            Guard.ArgumentNotNull(telemetry, nameof(telemetry));
             Guard.ArgumentNotNull(cosmosDbScalingResiliencePolicies?.ScalingRepository, nameof(cosmosDbScalingResiliencePolicies.ScalingRepository));
             Guard.ArgumentNotNull(cosmosDbScalingResiliencePolicies?.CacheProvider, nameof(cosmosDbScalingResiliencePolicies.CacheProvider));
             Guard.ArgumentNotNull(cosmosDbScalingResiliencePolicies?.ScalingConfigRepository, nameof(cosmosDbScalingResiliencePolicies.ScalingConfigRepository));
@@ -74,6 +77,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
             _scalingConfigRepositoryPolicy = cosmosDbScalingResiliencePolicies.ScalingConfigRepository;
             _cosmosDbThrottledEventsFilter = cosmosDbThrottledEventsFilter;
             _scalingConfigurationUpdateModelValidator = scalingConfigurationUpdateModelValidator;
+            _telemetry = telemetry;
         }
 
         public override async Task Process(Message message)
@@ -88,7 +92,6 @@ namespace CalculateFunding.Services.CosmosDbScaling
             {
                 return;
             }
-
             CosmosDbScalingRequestModel requestModel = _cosmosDbScalingRequestModelBuilder.BuildRequestModel(jobSummary);
 
             if (requestModel.RepositoryTypes.IsNullOrEmpty())
@@ -100,9 +103,17 @@ namespace CalculateFunding.Services.CosmosDbScaling
             {
                 try
                 {
+                    CosmosScalingEvent cosmosScalingEvent = new CosmosScalingEvent()
+                    {
+                        JobId = jobSummary.JobId,
+                        JobDefinitionId = jobSummary.JobType,
+                        CollectionName = cosmosRepositoryType.GetDescription()
+                    };
+
                     CosmosDbScalingConfig cosmosDbScalingConfig = await _scalingConfigRepositoryPolicy.ExecuteAsync(() => _cosmosDbScalingConfigRepository.GetConfigByRepositoryType(cosmosRepositoryType));
 
-                    await ScaleUpCollection(cosmosDbScalingConfig, requestModel.JobDefinitionId);
+                    await ScaleUpCollection(cosmosDbScalingConfig, requestModel.JobDefinitionId, cosmosScalingEvent);
+                    LogCosmosScalingEvent(cosmosScalingEvent);
                 }
                 catch (Exception ex)
                 {
@@ -149,6 +160,12 @@ namespace CalculateFunding.Services.CosmosDbScaling
                         continue;
                     }
 
+                    CosmosScalingEvent cosmosScalingEvent = new CosmosScalingEvent()
+                    {
+                        CollectionName = cosmosRepositoryType.GetDescription(),
+                        PreviousScaleValue = currentThroughput
+                    };
+
                     int incrementalRequestUnitsValue = scaleUpIncrementValue;
 
                     int increasedRequestUnits = currentThroughput + incrementalRequestUnitsValue;
@@ -162,7 +179,12 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
                     settings.CurrentRequestUnits = await ScaleCollection(cosmosRepositoryType, increasedRequestUnits, settings.MaxRequestUnits);
 
+                    cosmosScalingEvent.ScaleEvent = CosmosDbScalingType.Incremental.ToString();
+                    cosmosScalingEvent.ScaleValue = settings.CurrentRequestUnits;
+                    cosmosScalingEvent.Direction = CosmosDbScalingDirection.Up.ToString();
+
                     await UpdateCollectionSettings(currentSettings, settings, CosmosDbScalingDirection.Up, incrementalRequestUnitsValue);
+                    LogCosmosScalingEvent(cosmosScalingEvent);
                 }
                 catch (NonRetriableException)
                 {
@@ -205,11 +227,11 @@ namespace CalculateFunding.Services.CosmosDbScaling
             {
                 CosmosDbScalingCollectionSettings settings = await _scalingConfigRepositoryPolicy.ExecuteAsync(() =>
                     _cosmosDbScalingConfigRepository.GetCollectionSettingsByRepositoryType(cosmosDbScalingConfig.RepositoryType));
-               
+
                 bool jobActive = cosmosDbScalingConfig.JobRequestUnitConfigs.Any(item => jobDefinitionIdsStillActive.Contains(item.JobDefinitionId));
 
                 bool proceed = !settingsToUpdate.Any(m => m.Id == cosmosDbScalingConfig.Id);
-                
+
                 if (proceed && !jobActive)
                 {
                     if (!settings.IsAtBaseLine)
@@ -226,6 +248,11 @@ namespace CalculateFunding.Services.CosmosDbScaling
                     try
                     {
                         CosmosDbScalingCollectionSettings currentSettings = settings.DeepCopy();
+                        CosmosScalingEvent cosmosScalingEvent = new CosmosScalingEvent()
+                        {
+                            CollectionName = settings.CosmosCollectionType.GetDescription(),
+                            PreviousScaleValue = settings.CurrentRequestUnits,
+                        };
 
                         int? minimumRequestUnitsAllowed = await GetMinimumThroughput(settings.CosmosCollectionType);
 
@@ -236,7 +263,12 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
                         settings.CurrentRequestUnits = await ScaleCollection(settings.CosmosCollectionType, settings.MinRequestUnits, settings.MaxRequestUnits);
 
+                        cosmosScalingEvent.ScaleEvent = CosmosDbScalingType.Job.ToString();
+                        cosmosScalingEvent.ScaleValue = settings.CurrentRequestUnits;
+                        cosmosScalingEvent.Direction = CosmosDbScalingDirection.Down.ToString();
+
                         await UpdateCollectionSettings(currentSettings, settings, CosmosDbScalingDirection.Down, CosmosDbScalingType.Job);
+                        LogCosmosScalingEvent(cosmosScalingEvent);
                     }
                     catch (Exception ex)
                     {
@@ -250,10 +282,10 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
         public async Task ScaleDownIncrementally()
         {
-             IEnumerable<CosmosDbScalingCollectionSettings> collectionsToProcess = await _scalingConfigRepositoryPolicy.ExecuteAsync(() =>
-                    _cosmosDbScalingConfigRepository.GetCollectionSettingsIncremented(previousMinutestoCheckForScaledCollections));
+            IEnumerable<CosmosDbScalingCollectionSettings> collectionsToProcess = await _scalingConfigRepositoryPolicy.ExecuteAsync(() =>
+                   _cosmosDbScalingConfigRepository.GetCollectionSettingsIncremented(previousMinutestoCheckForScaledCollections));
 
-            
+
             if (collectionsToProcess.IsNullOrEmpty())
             {
                 return;
@@ -266,6 +298,11 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 try
                 {
                     CosmosDbScalingCollectionSettings currentSettings = settings.DeepCopy();
+                    CosmosScalingEvent cosmosScalingEvent = new CosmosScalingEvent()
+                    {
+                        CollectionName = settings.CosmosCollectionType.GetDescription(),
+                        PreviousScaleValue = settings.CurrentRequestUnits,
+                    };
 
                     int previousCurrentRequestUnits = settings.CurrentRequestUnits;
 
@@ -287,7 +324,11 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
                     settings.CurrentRequestUnits = await ScaleCollection(settings.CosmosCollectionType, settings.CurrentRequestUnits, settings.MaxRequestUnits);
 
+                    cosmosScalingEvent.ScaleEvent = CosmosDbScalingType.Incremental.ToString();
+                    cosmosScalingEvent.ScaleValue = settings.CurrentRequestUnits;
+                    cosmosScalingEvent.Direction = CosmosDbScalingDirection.Down.ToString();
                     await UpdateCollectionSettings(currentSettings, settings, CosmosDbScalingDirection.Down, requestUnitsToDecrement);
+                    LogCosmosScalingEvent(cosmosScalingEvent);
                 }
                 catch (Exception ex)
                 {
@@ -297,7 +338,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
         }
 
-        private async Task ScaleUpCollection(CosmosDbScalingConfig cosmosDbScalingConfig, string jobDefinitionId)
+        private async Task ScaleUpCollection(CosmosDbScalingConfig cosmosDbScalingConfig, string jobDefinitionId, CosmosScalingEvent cosmosScalingEvent)
         {
             Guard.ArgumentNotNull(cosmosDbScalingConfig, nameof(cosmosDbScalingConfig));
             Guard.IsNullOrWhiteSpace(jobDefinitionId, nameof(jobDefinitionId));
@@ -329,12 +370,17 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 throw new RetriableException(errorMessage);
             }
 
+            cosmosScalingEvent.PreviousScaleValue = settings.CurrentRequestUnits;
+
             settings.CurrentRequestUnits =
                     settings.AvailableRequestUnits >= cosmosDbScalingJobConfig.JobRequestUnits ?
                         (settings.CurrentRequestUnits + cosmosDbScalingJobConfig.JobRequestUnits) :
                         settings.MaxRequestUnits;
 
             settings.CurrentRequestUnits = await ScaleCollection(cosmosDbScalingConfig.RepositoryType, settings.CurrentRequestUnits, settings.MaxRequestUnits);
+            cosmosScalingEvent.ScaleValue = settings.CurrentRequestUnits;
+            cosmosScalingEvent.Direction = CosmosDbScalingDirection.Up.ToString();
+            cosmosScalingEvent.ScaleEvent = CosmosDbScalingType.Job.ToString();
 
             await UpdateCollectionSettings(currentSettings, settings, CosmosDbScalingDirection.Up, CosmosDbScalingType.Job);
         }
@@ -351,14 +397,14 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 settings.LastScalingDecrementDateTime = DateTimeOffset.Now;
                 settings.LastScalingDecrementValue = requestUnits;
             }
-            
+
             await UpdateCollectionSettings(currentSettings, settings, direction, CosmosDbScalingType.Incremental);
         }
 
         private async Task UpdateCollectionSettings(CosmosDbScalingCollectionSettings currentSettings, CosmosDbScalingCollectionSettings settings, CosmosDbScalingDirection direction, CosmosDbScalingType type)
         {
             _logger.Information($"Current settings: {currentSettings.AsJson()} has been scaled with settings: {settings.AsJson()} scaling direction: {direction} and type: {type}");
-            
+
             HttpStatusCode statusCode = await _scalingConfigRepositoryPolicy.ExecuteAsync(
                () => _cosmosDbScalingConfigRepository.UpdateCollectionSettings(settings));
 
@@ -475,6 +521,38 @@ namespace CalculateFunding.Services.CosmosDbScaling
         {
             ICosmosDbScalingRepository cosmosDbScalingRepository = _cosmosDbScalingRepositoryProvider.GetRepository(collectionType);
             return await _scalingRepositoryPolicy.ExecuteAsync(async () => await cosmosDbScalingRepository.GetMinimumThroughput());
+        }
+
+        private void LogCosmosScalingEvent(CosmosScalingEvent cosmosScalingEvent)
+        {
+            _telemetry.TrackEvent("CosmosScalingCompleted",
+                    new Dictionary<string, string>()
+                    {
+                        { "collectionName" , cosmosScalingEvent.CollectionName },
+                        { "scaleEvent" , cosmosScalingEvent.ScaleEvent },
+                        { "direction" , cosmosScalingEvent.Direction },
+                        { "jobDefinitionId" , cosmosScalingEvent.JobDefinitionId ?? "NA" },
+                        { "jobId" , cosmosScalingEvent.JobId ?? "NA" },
+                    },
+                    new Dictionary<string, double>()
+                    {
+                        {"scaleValue", cosmosScalingEvent.ScaleValue },
+                        {"previousScaleValue", cosmosScalingEvent.PreviousScaleValue },
+                        {"scaleDifference", cosmosScalingEvent.ScaleDifference },
+                    }
+                );
+        }
+
+        private class CosmosScalingEvent
+        {
+            public string CollectionName { get; set; }
+            public string ScaleEvent { get; set; }
+            public string Direction { get; set; }
+            public string JobDefinitionId { get; set; }
+            public string JobId { get; set; }
+            public int ScaleValue { get; set; }
+            public int PreviousScaleValue { get; set; }
+            public int ScaleDifference => ScaleValue - PreviousScaleValue;
         }
     }
 }
