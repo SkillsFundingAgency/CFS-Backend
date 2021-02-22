@@ -161,6 +161,11 @@ namespace CalculateFunding.Services.Profiling.Services
                             .RoundToDecimalPlaces(2)
                             .RoundToDecimalPlaces(0);
                     }
+                    else if (roundingStrategy == RoundingStrategy.MidpointTwoDecimalPlaces)
+                    {
+                        roundedValue = profiledValue
+                            .RoundToDecimalPlaces(2);
+                    }
                     else
                     {
                         roundedValue = (int)profiledValue;
