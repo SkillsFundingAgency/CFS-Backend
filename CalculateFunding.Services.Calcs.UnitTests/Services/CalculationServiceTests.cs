@@ -11,6 +11,7 @@ using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Calcs.Analysis.ObsoleteItems;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Core.Interfaces;
@@ -38,7 +39,7 @@ namespace CalculateFunding.Services.Calcs.Services
         private const string Description = "test description";
         private const string CorrelationId = "4abc2782-e8cb-4643-8803-951d715fci29";
 
-        private Mock<IEnumReferenceCleanUp> _enumReferenceCleanUp;
+        private Mock<IObsoleteItemCleanup> _obsoleteItemCleanUp;
 
         private CalculationService CreateCalculationService(
             ICalculationsRepository calculationsRepository = null,
@@ -77,7 +78,7 @@ namespace CalculateFunding.Services.Calcs.Services
                     calculationsFeatureFlag ?? CreateCalculationsFeatureFlag(),
                     jobManagement ?? CreateJobManagement());
 
-            _enumReferenceCleanUp = new Mock<IEnumReferenceCleanUp>();
+            _obsoleteItemCleanUp = new Mock<IObsoleteItemCleanup>();
 
             return new CalculationService
                 (
@@ -113,7 +114,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 resultsApiClient ?? Substitute.For<IResultsApiClient>(),
                 datasetsApiClient ?? Substitute.For<IDatasetsApiClient>(),
                 approveAllCalculationsJobAction ?? CreateApproveAllCalculationsJobAction(),
-                _enumReferenceCleanUp.Object);
+                _obsoleteItemCleanUp.Object);
         }
 
         private static IApproveAllCalculationsJobAction CreateApproveAllCalculationsJobAction()

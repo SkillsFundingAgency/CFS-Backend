@@ -1944,7 +1944,7 @@ namespace CalculateFunding.Services.Calcs.Services
                     WasTemplateCalculation = false,
                 });
             
-            _enumReferenceCleanUp.Verify(_ => _.ProcessCalculation(calculation),
+            _obsoleteItemCleanUp.Verify(_ => _.ProcessCalculation(calculation),
                 Times.Once);
         }
 

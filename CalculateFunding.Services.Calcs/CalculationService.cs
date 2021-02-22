@@ -26,6 +26,7 @@ using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Models.Messages;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Calcs.Analysis.ObsoleteItems;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs.ResultModels;
 using CalculateFunding.Services.Compiler;
@@ -97,7 +98,7 @@ namespace CalculateFunding.Services.Calcs
         private readonly IJobManagement _jobManagement;
         private readonly ICodeContextCache _codeContextCache;
         private readonly ITypeIdentifierGenerator _typeIdentifierGenerator;
-        private readonly IEnumReferenceCleanUp _enumReferenceCleanUp;
+        private readonly IObsoleteItemCleanup _obsoleteItemCleanup;
 
         public CalculationService(
             ICalculationsRepository calculationsRepository,
@@ -124,7 +125,7 @@ namespace CalculateFunding.Services.Calcs
             IResultsApiClient resultsApiClient,
             IDatasetsApiClient datasetsApiClient,
             IApproveAllCalculationsJobAction approveAllCalculationsJobAction,
-            IEnumReferenceCleanUp enumReferenceCleanUp)
+            IObsoleteItemCleanup obsoleteItemCleanup)
         {
             Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -158,7 +159,7 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(codeContextCache, nameof(codeContextCache));
             Guard.ArgumentNotNull(resultsApiClient, nameof(resultsApiClient));
             Guard.ArgumentNotNull(datasetsApiClient, nameof(datasetsApiClient));
-            Guard.ArgumentNotNull(enumReferenceCleanUp, nameof(enumReferenceCleanUp));
+            Guard.ArgumentNotNull(obsoleteItemCleanup, nameof(obsoleteItemCleanup));
 
             _calculationsRepository = calculationsRepository;
             _logger = logger;
@@ -190,7 +191,7 @@ namespace CalculateFunding.Services.Calcs
             _codeContextCache = codeContextCache;
             _resultsApiClient = resultsApiClient;
             _approveAllCalculationsJobAction = approveAllCalculationsJobAction;
-            _enumReferenceCleanUp = enumReferenceCleanUp;
+            _obsoleteItemCleanup = obsoleteItemCleanup;
             _resultsApiClientPolicy = resiliencePolicies?.ResultsApiClient;
             _datasetsApiClient = datasetsApiClient;
             _datasetsApiClientPolicy = resiliencePolicies?.DatasetsApiClient;
@@ -1361,7 +1362,7 @@ End Select");
                 throw new InvalidOperationException($"Update calculation returned status code '{statusCode}' instead of OK");
             }
 
-            await _enumReferenceCleanUp.ProcessCalculation(calculation);
+            await _obsoleteItemCleanup.ProcessCalculation(calculation);
 
             BuildProject buildProject = null;
 
