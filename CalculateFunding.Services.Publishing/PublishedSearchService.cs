@@ -31,9 +31,10 @@ namespace CalculateFunding.Services.Publishing
             new FacetFilterType("hasErrors", fieldType: SearchFieldType.Boolean)
         };
 
-        private static readonly string[] IntegerFields =
+        private static readonly string[] NonStringFields =
         {
-            "fundingValue"
+            "fundingValue",
+            "hasErrors",
         };
 
         private readonly ILogger _logger;
@@ -106,7 +107,7 @@ namespace CalculateFunding.Services.Publishing
                     .Select(keyValueFilterPair => new Filter(
                         keyValueFilterPair.Key,
                         keyValueFilterPair.Value,
-                        IntegerFields.Contains(keyValueFilterPair.Key),
+                        NonStringFields.Contains(keyValueFilterPair.Key),
                         "eq"))
                     .ToList();
                 FilterHelper filterHelper = new FilterHelper(filters);

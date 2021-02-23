@@ -234,7 +234,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             PublishedProviderIdSearchModel searchModel = new PublishedProviderIdSearchModel
             {
-                SearchTerm = searchTerm
+                SearchTerm = searchTerm,
             };
 
             SearchResults<PublishedProviderIndex> searchResults = new SearchResults<PublishedProviderIndex>
@@ -259,6 +259,79 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             };
 
             AndTheSearchResults(new SearchModel { SearchTerm = searchTerm }, searchResults);
+
+            IActionResult result = await WhenSearchPublishedProviderIdsIsMade(searchModel);
+
+            result
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Should()
+                .NotBeNull();
+
+            OkObjectResult okObjectResult = result as OkObjectResult;
+
+            okObjectResult
+                .Value
+                .Should()
+                .NotBeNull()
+                .And
+                .BeOfType<ConcurrentBag<string>>();
+
+            ConcurrentBag<string> publishedProviderIds = okObjectResult.Value as ConcurrentBag<string>;
+
+            publishedProviderIds
+                .Should()
+                .HaveCount(2);
+
+            publishedProviderIds
+                .Should()
+                .BeEquivalentTo(new[] { providerIdOne, providerIdTwo });
+        }
+
+        [TestMethod]
+        public async Task GetsSearchPublishedProviderIds_HasErrorsShouldBeConstructedAsBoolean()
+        {
+            string providerIdOne = new RandomString();
+            string providerIdTwo = new RandomString();
+
+            string searchTerm = new RandomString();
+
+            IDictionary<string, string[]> filters = new Dictionary<string, string[]>
+            {
+                { "hasErrors", new string[1] { "true" } }
+            };
+
+            PublishedProviderIdSearchModel searchModel = new PublishedProviderIdSearchModel
+            {
+                SearchTerm = searchTerm,
+                Filters = filters
+            };
+
+            SearchResults<PublishedProviderIndex> searchResults = new SearchResults<PublishedProviderIndex>
+            {
+                Results = new List<CalculateFunding.Repositories.Common.Search.SearchResult<PublishedProviderIndex>>
+                {
+                    new CalculateFunding.Repositories.Common.Search.SearchResult<PublishedProviderIndex>
+                    {
+                        Result = new PublishedProviderIndex
+                        {
+                            Id = providerIdOne
+                        }
+                    },
+                    new CalculateFunding.Repositories.Common.Search.SearchResult<PublishedProviderIndex>
+                    {
+                        Result = new PublishedProviderIndex
+                        {
+                            Id = providerIdTwo
+                        }
+                    }
+                }
+            };
+
+            AndTheSearchResultsWithExpectedFilter(
+                new SearchModel { SearchTerm = searchTerm, Filters = filters }, 
+                searchResults,
+                "(hasErrors eq true)");
 
             IActionResult result = await WhenSearchPublishedProviderIdsIsMade(searchModel);
 
@@ -452,6 +525,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Search(Arg.Is(searchText),
                     Arg.Is<SearchParameters>(_ => _.Skip == expectedSkipCount),
                     Arg.Is(false));
+        }
+
+        private void AndTheSearchResultsWithExpectedFilter(SearchModel search, SearchResults<PublishedProviderIndex> results, string expectedFilter = null)
+        {
+            _searchRepository.Search(Arg.Is(search.SearchTerm), Arg.Is<SearchParameters>(_ => _.Filter == expectedFilter))
+                .Returns(results);
         }
 
         private void AndTheSearchResults(SearchModel search, SearchResults<PublishedProviderIndex> results)
