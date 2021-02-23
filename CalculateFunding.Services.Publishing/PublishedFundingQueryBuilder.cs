@@ -109,9 +109,10 @@ namespace CalculateFunding.Services.Publishing
 
         private string PagingSkipLimit(int? pageRef, int top, int totalCount)
         {
+            int offset = totalCount % top == 0 ? top : totalCount % top;
             return pageRef.HasValue ?
                 $"OFFSET {(pageRef - 1) * top} LIMIT {top}" :
-                $"OFFSET {Math.Max(0, totalCount - top)} LIMIT {top}";
+                $"OFFSET {Math.Max(0, totalCount - offset)} LIMIT {top}";
         }
     }
 }
