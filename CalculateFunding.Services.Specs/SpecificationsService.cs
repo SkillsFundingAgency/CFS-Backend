@@ -795,6 +795,11 @@ namespace CalculateFunding.Services.Specs
                 return new BadRequestObjectResult("Null edit specification model provided");
             }
 
+            if (await IsAnySpecificationJobRunning(specificationId))
+            {
+                return new BadRequestObjectResult("Specification cannot be edited while specification jobs are running");
+            }
+
             editModel.Name = editModel.Name?.Trim();
             editModel.SpecificationId = specificationId;
 
@@ -950,6 +955,23 @@ namespace CalculateFunding.Services.Specs
                 triggerCalculationEngineRunJob);
 
             return new OkObjectResult(specification);
+        }
+
+        private async Task<bool> IsAnySpecificationJobRunning(string specificationId)
+        {
+            List<string> specificationJobTypes = new List<string>
+            {
+                JobConstants.DefinitionNames.RefreshFundingJob,
+                JobConstants.DefinitionNames.ApproveAllProviderFundingJob,
+                JobConstants.DefinitionNames.ApproveBatchProviderFundingJob,
+                JobConstants.DefinitionNames.PublishAllProviderFundingJob,
+                JobConstants.DefinitionNames.PublishBatchProviderFundingJob
+            };
+
+            IEnumerable<JobSummary> latestSpecificationJobs =
+                await _jobManagement.GetLatestJobsForSpecification(specificationId, specificationJobTypes);
+
+            return latestSpecificationJobs.ToList().Any(job => job.RunningStatus != RunningStatus.Completed);
         }
 
         private async Task ReindexSpecification(Specification specification)

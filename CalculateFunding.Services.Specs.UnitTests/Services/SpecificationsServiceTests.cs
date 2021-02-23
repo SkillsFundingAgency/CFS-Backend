@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Calcs;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Policies.Models;
@@ -18,6 +19,7 @@ using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Models.Messages;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Specs.Interfaces;
@@ -26,7 +28,9 @@ using CalculateFunding.Tests.Common.Helpers;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using NSubstitute;
+using NSubstitute.ReturnsExtensions;
 using Serilog;
 
 namespace CalculateFunding.Services.Specs.UnitTests.Services
@@ -58,10 +62,9 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         private readonly ICacheProvider _cacheProvider;
         private readonly IMessengerService _messengerService;
         private readonly IVersionRepository<Models.Specs.SpecificationVersion> _versionRepository;
-
-        private ISpecificationTemplateVersionChangedHandler _templateVersionChangedHandler;
-        private IResultsApiClient _resultsApiClient;        
         
+        private ISpecificationTemplateVersionChangedHandler _templateVersionChangedHandler;
+        private IResultsApiClient _resultsApiClient;
 
         [TestInitialize]
         public void SetUp()
@@ -121,7 +124,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             IFeatureToggle featureToggle = null,
             ICalculationsApiClient calcsApiClient = null,
             IProvidersApiClient providersApiClient = null,
-            IValidator<AssignSpecificationProviderVersionModel> assignSpecificationProviderVersionModelValidator = null)
+            IValidator<AssignSpecificationProviderVersionModel> assignSpecificationProviderVersionModelValidator = null,
+            IJobManagement jobManagement = null)
         {
             return new SpecificationsService(
                 mapper ?? CreateMapper(),
@@ -147,7 +151,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 _resultsApiClient,
                 _templateVersionChangedHandler,
                 assignSpecificationProviderVersionModelValidator ?? CreateAssignSpecificationProviderVersionModelValidator(),
-                CreateJobManagement());
+                jobManagement ?? CreateJobManagement());
         }
 
         protected IVersionRepository<Models.Specs.SpecificationVersion> CreateVersionRepository()
@@ -214,7 +218,24 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
         protected IJobManagement CreateJobManagement()
         {
-            return Substitute.For<IJobManagement>();
+            List<string> specificationJobTypes = new List<string>
+            {
+                JobConstants.DefinitionNames.RefreshFundingJob,
+                JobConstants.DefinitionNames.ApproveAllProviderFundingJob,
+                JobConstants.DefinitionNames.ApproveBatchProviderFundingJob,
+                JobConstants.DefinitionNames.PublishAllProviderFundingJob,
+                JobConstants.DefinitionNames.PublishBatchProviderFundingJob
+            };
+
+            IJobManagement jobManagement = Substitute.For<IJobManagement>();
+            foreach (var specificationJobType in specificationJobTypes)
+            {
+                jobManagement.GetLatestJobsForSpecification(It.IsAny<string>(), Arg.Is<IEnumerable<string>>(jobTypes =>
+                        jobTypes.Contains(specificationJobType)))
+                    .ReturnsNull();
+            }
+
+            return jobManagement;
         }
 
         protected static ILogger CreateLogger()

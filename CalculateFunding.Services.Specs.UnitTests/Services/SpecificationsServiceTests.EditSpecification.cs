@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Providers.Models;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Messages;
 using CalculateFunding.Models.Specs;
@@ -74,6 +76,36 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             result.Should().BeOfType<BadRequestObjectResult>();
             _logger.Received(1)
                 .Error(Arg.Is("No edit modeld was provided to EditSpecification"));
+        }
+
+        [DataTestMethod]
+        [DataRow(JobConstants.DefinitionNames.RefreshFundingJob)]
+        [DataRow(JobConstants.DefinitionNames.ApproveAllProviderFundingJob)]
+        [DataRow(JobConstants.DefinitionNames.ApproveBatchProviderFundingJob)]
+        [DataRow(JobConstants.DefinitionNames.PublishAllProviderFundingJob)]
+        [DataRow(JobConstants.DefinitionNames.PublishBatchProviderFundingJob)]
+        public async Task EditSpecification_ReturnsBadRequest_GivenSpecificationJobsAreRunning(string specificationJob)
+        {
+            SpecificationEditModel specificationEditModel = new SpecificationEditModel();
+            IEnumerable<JobSummary> aValidJobInprogress = new[]
+            {
+                new JobSummary
+                {
+                    RunningStatus = RunningStatus.InProgress
+                }
+            };
+            IJobManagement jobManagement = Substitute.For<IJobManagement>();
+            jobManagement.GetLatestJobsForSpecification(SpecificationId, Arg.Is<IEnumerable<string>>(jobTypes =>
+                    jobTypes.Contains(specificationJob)))
+                .Returns(aValidJobInprogress);
+            SpecificationsService specificationsService = CreateService(jobManagement: jobManagement);
+
+            IActionResult result = await specificationsService
+                .EditSpecification(SpecificationId, specificationEditModel, null, null);
+
+            result
+                .Should().BeOfType<BadRequestObjectResult>(
+                    "Specification cannot be edited while specification jobs are running");
         }
 
         [TestMethod]
@@ -793,15 +825,15 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 _messengerService
                     .Received(1)
                     .SendToTopic(Arg.Is(ServiceBusConstants.TopicNames.EditSpecification),
-                                Arg.Is<SpecificationVersionComparisonModel>(
-                                    m => m.Id == SpecificationId &&
-                                    m.Current.Name == "new spec name" &&
-                                    m.Previous.Name == "Spec name"
-                                    ), Arg.Any<IDictionary<string, string>>(), Arg.Is(true));
+                        Arg.Is<SpecificationVersionComparisonModel>(
+                            m => m.Id == SpecificationId &&
+                                 m.Current.Name == "new spec name" &&
+                                 m.Previous.Name == "Spec name"
+                        ), Arg.Any<IDictionary<string, string>>(), Arg.Is(true));
             await
-               _versionRepository
-                .Received(1)
-                .SaveVersion(Arg.Is(newSpecVersion));
+                _versionRepository
+                    .Received(1)
+                    .SaveVersion(Arg.Is(newSpecVersion));
         }
 
         private void AndGetFundingConfiguration(
