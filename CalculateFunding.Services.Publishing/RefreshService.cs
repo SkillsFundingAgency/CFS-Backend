@@ -484,7 +484,12 @@ namespace CalculateFunding.Services.Publishing
                             if (existingPublishedProvidersToUpdate.Count > 0)
                             {
                                 _logger.Information($"Saving updates to existing published providers. Total={existingPublishedProvidersToUpdate.Count}");
-                                await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(existingPublishedProvidersToUpdate.Values, author, PublishedProviderStatus.Updated, jobId, correlationId);
+
+                                IEnumerable<PublishedProvider> draftPublishedProviders = existingPublishedProvidersToUpdate.Values.Where(_ => _.Current.Status == PublishedProviderStatus.Draft);
+                                IEnumerable<PublishedProvider> nonDraftPublishedProviders = existingPublishedProvidersToUpdate.Values.Except(draftPublishedProviders);
+
+                                await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(nonDraftPublishedProviders, author, PublishedProviderStatus.Updated, jobId, correlationId);
+                                await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(draftPublishedProviders, author, PublishedProviderStatus.Draft, jobId, correlationId);
 
                                 _logger.Information("Indexing existing PublishedProviders");
                                 await _publishedProviderIndexerService.IndexPublishedProviders(existingPublishedProvidersToUpdate.Values.Select(_ => _.Current));

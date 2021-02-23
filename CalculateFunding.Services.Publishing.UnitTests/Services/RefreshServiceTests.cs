@@ -274,9 +274,40 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             await WhenMessageReceivedWithJobIdAndCorrelationId();
 
             _publishedProviderStatusUpdateService
-                .Verify(_ => _.UpdatePublishedProviderStatus(It.Is<IEnumerable<PublishedProvider>>(_ => _.Single().Current.ProviderId == _publishedProviders.Last().Current.ProviderId),
+                .Verify(_ => _.UpdatePublishedProviderStatus(It.Is<IEnumerable<PublishedProvider>>(_ => _.Count() == 1 && _.Single().Current.ProviderId == _publishedProviders.Last().Current.ProviderId),
                     It.IsAny<Reference>(),
                     PublishedProviderStatus.Updated,
+                    JobId,
+                    CorrelationId,
+                    It.IsAny<bool>()), Times.Once);
+
+            AndTheCustomProfilesWereReApplied();
+        }
+
+        [TestMethod]
+        public async Task RefreshResults_WhenAnUpdatePublishStatusWithAnExistingDraftPublishedProviderCompletesWithoutError_PublishedProviderStatusSetToDraft()
+        {
+            GivenJobCanBeProcessed();
+            AndSpecification();
+            AndCalculationResultsBySpecificationId();
+            AndTemplateMetadataContents();
+            AndScopedProviders((_) =>
+            {
+                _.Name = "New name";
+            },
+            publishedProviderStatus: PublishedProviderStatus.Draft);
+            AndScopedProviderCalculationResults();
+            AndTemplateMapping();
+            AndPublishedProviders();
+            AndNewMissingPublishedProviders();
+            AndCsvJobService();
+
+            await WhenMessageReceivedWithJobIdAndCorrelationId();
+
+            _publishedProviderStatusUpdateService
+                .Verify(_ => _.UpdatePublishedProviderStatus(It.Is<IEnumerable<PublishedProvider>>(_ => _.Count() == 1 && _.Single().Current.ProviderId == _publishedProviders.Last().Current.ProviderId),
+                    It.IsAny<Reference>(),
+                    PublishedProviderStatus.Draft,
                     JobId,
                     CorrelationId,
                     It.IsAny<bool>()), Times.Once);
@@ -301,6 +332,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             publishedProviders.Add(NewPublishedProvider(pp => pp.WithCurrent(
                         NewPublishedProviderVersion(ppv => ppv
                             .WithProviderId(outOfScopeProviderId)
+                            .WithPublishedProviderStatus(PublishedProviderStatus.Draft)
                             .WithFundingStreamId(FundingStreamId)))));
             AndPublishedProviders(publishedProviders);
             AndNewMissingPublishedProviders();
@@ -335,10 +367,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             publishedProviders.Add(NewPublishedProvider(pp => pp
                     .WithCurrent(
                         NewPublishedProviderVersion(ppv => ppv
+                            .WithPublishedProviderStatus(PublishedProviderStatus.Updated)
                             .WithProviderId(outOfScopeProviderId)
                             .WithFundingStreamId(FundingStreamId)))
                     .WithReleased(
                         NewPublishedProviderVersion(ppv => ppv
+                            .WithPublishedProviderStatus(PublishedProviderStatus.Updated)
                             .WithProviderId(outOfScopeProviderId)
                             .WithFundingStreamId(FundingStreamId)))));
             AndPublishedProviders(publishedProviders);
@@ -348,7 +382,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             await WhenMessageReceivedWithJobIdAndCorrelationId();
 
             _publishedProviderStatusUpdateService
-                .Verify(_ => _.UpdatePublishedProviderStatus(It.Is<IEnumerable<PublishedProvider>>(_ => _.Single().Current.ProviderId == outOfScopeProviderId
+                .Verify(_ => _.UpdatePublishedProviderStatus(It.Is<IEnumerable<PublishedProvider>>(_ => _.Count() == 1 
+                        && _.Single().Current.ProviderId == outOfScopeProviderId
                         && _.Single().Current.Errors.Single().Type.Equals(PublishedProviderErrorType.PostPaymentOutOfScopeProvider)),
                     It.IsAny<Reference>(),
                     PublishedProviderStatus.Updated,
@@ -383,7 +418,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             await WhenMessageReceivedWithJobIdAndCorrelationId();
 
             _publishedProviderStatusUpdateService
-                .Verify(_ => _.UpdatePublishedProviderStatus(It.Is<IEnumerable<PublishedProvider>>(_ => _.Single().Current.ProviderId == _publishedProviders.Last().Current.ProviderId && _.Single().Current.VariationReasons.Single().Equals(VariationReason.NameFieldUpdated)),
+                .Verify(_ => _.UpdatePublishedProviderStatus(It.Is<IEnumerable<PublishedProvider>>(_ => _.Count() == 1 && _.Single().Current.ProviderId == _publishedProviders.Last().Current.ProviderId && _.Single().Current.VariationReasons.Single().Equals(VariationReason.NameFieldUpdated)),
                     It.IsAny<Reference>(),
                     PublishedProviderStatus.Updated,
                     JobId,
@@ -803,7 +838,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private void AndScopedProviders(
             Action<Provider> variationAction = null, 
             string profilePatternKeyPrefix = null, 
-            bool includeTemplateContents = true)
+            bool includeTemplateContents = true,
+            PublishedProviderStatus publishedProviderStatus = PublishedProviderStatus.Updated)
         {
             _scopedProviders = new[] { NewProvider(), NewProvider(), NewProvider() };
 
@@ -813,6 +849,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                             .WithFundingStreamId(FundingStreamId)
                             .WithProviderId(_.ProviderId)
                             .WithTotalFunding(9)
+                            .WithPublishedProviderStatus(publishedProviderStatus)
                             .WithProfilePatternKeys(includeTemplateContents ? new ProfilePatternKey() { FundingLineCode = _fundingLines[0].FundingLineCode, Key = $"{profilePatternKeyPrefix}-{NewRandomString()}" } : null)
                             .WithFundingLines(includeTemplateContents ? new[] { new FundingLine { FundingLineCode = _fundingLines[0].FundingLineCode, TemplateLineId = _fundingLines[0].TemplateLineId, Value = 9 } } : null)
                             .WithFundingCalculations(includeTemplateContents ? new[] {new FundingCalculation { Value = _calculationResults[0].Value, TemplateCalculationId = _calculationTemplateIds[0].TemplateCalculationId },

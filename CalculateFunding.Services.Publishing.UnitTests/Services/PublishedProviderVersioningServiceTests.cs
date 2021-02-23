@@ -767,6 +767,41 @@ namespace CalculateFunding.Services.Publishing.Services.UnitTests
         }
 
         [TestMethod]
+        public void AssemblePublishedProviderCreateVersionRequests_GivenPublishedProvidersForRefreshRequest_ReturnsCreateVersionRequestWithMinorVersionUpgrade()
+        {
+            //Arrange
+            const int majorVersion = 0;
+            const int minorVersion = 1;
+
+            IEnumerable<PublishedProvider> publishedProviders = new[]
+            {
+                new PublishedProvider
+                {
+                    Current = new PublishedProviderVersion
+                    {
+                        MajorVersion = majorVersion,
+                        MinorVersion = minorVersion,
+                        Status = PublishedProviderStatus.Draft
+                    }
+                }
+            };
+
+            PublishedProviderVersioningService service = CreateVersioningService();
+
+            //Act
+            IEnumerable<PublishedProviderCreateVersionRequest> results = service.AssemblePublishedProviderCreateVersionRequests(
+                publishedProviders, new Reference("id1", "Joe Bloggs"), PublishedProviderStatus.Draft);
+
+            //Assert
+            results
+                .Should()
+                .HaveCount(1);
+
+            results.First().NewVersion.MajorVersion.Should().Be(majorVersion);
+            results.First().NewVersion.MinorVersion.Should().Be(minorVersion + 1);
+        }
+
+        [TestMethod]
         public void AssemblePublishedProviderCreateVersionRequests_GivenPublishedProvidersForReleaseRequest_ReturnsCreateVersionRequestWithReleaseVersionSet()
         {
             //Arrange

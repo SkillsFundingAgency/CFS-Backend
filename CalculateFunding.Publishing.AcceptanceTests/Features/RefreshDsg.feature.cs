@@ -5239,7 +5239,7 @@ this.ScenarioInitialize(scenarioInfo);
                             "Updated"});
                 table528.AddRow(new string[] {
                             string.Format("publishedprovider-1000002-{0}-{1}", fundingPeriodId, fundingStreamId),
-                            "Updated"});
+                            "Draft"});
 #line 1362
  testRunner.Then("the following published provider ids are upserted", ((string)(null)), table528, "Then ");
 #line hidden

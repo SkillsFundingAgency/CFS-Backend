@@ -98,6 +98,12 @@ namespace CalculateFunding.Services.Publishing
                     Interlocked.Increment(ref minorVersion);
                     newVersion.MinorVersion = minorVersion;
                 }
+                else if(publishedProvider.Current.Status == PublishedProviderStatus.Draft 
+                    && publishedProviderStatus == PublishedProviderStatus.Draft)
+                {
+                    Interlocked.Increment(ref minorVersion);
+                    newVersion.MinorVersion = minorVersion;
+                }
                 else if (publishedProviderStatus == PublishedProviderStatus.Released)
                 {
                     Interlocked.Increment(ref majorVersion);

@@ -1362,7 +1362,7 @@ Scenario Outline: Successful refresh of funding
 	Then the following published provider ids are upserted
 		| PublishedProviderId                                           | Status  |
 		| publishedprovider-1000000-<FundingPeriodId>-<FundingStreamId> | Updated |
-		| publishedprovider-1000002-<FundingPeriodId>-<FundingStreamId> | Updated |
+		| publishedprovider-1000002-<FundingPeriodId>-<FundingStreamId> | Draft |
 
 	Examples:
 		| FundingStreamId | FundingPeriodId | FundingPeriodName      | TemplateVersion | ProviderVersionId |
