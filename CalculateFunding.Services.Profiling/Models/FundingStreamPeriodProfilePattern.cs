@@ -82,6 +82,9 @@ namespace CalculateFunding.Services.Profiling.Models
 
         private string ProfilePatternKeyString => ProfilePatternKey.IsNullOrEmpty() ? null : $"-{ProfilePatternKey}";
 
+        public string GetReProfilingStrategyKeyForInitialFunding()
+            => ReProfilingConfiguration?.InitialFundingStrategyKey;
+
         public string GetReProfilingStrategyKeyForFundingAmountChange(decimal change)
             => ReProfilingConfiguration?.GetReProfilingStrategyKeyForFundingAmountChange(change);
     }

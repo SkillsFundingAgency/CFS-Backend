@@ -5,13 +5,14 @@ namespace CalculateFunding.Services.Publishing.Interfaces
 {
     public interface IReProfilingRequestBuilder
     {
-        Task<ReProfileRequest> BuildReProfileRequest(string specificationId,
-            string fundingStreamId,
+        Task<ReProfileRequest> BuildReProfileRequest(string fundingStreamId,
+            string specificationId,
             string fundingPeriodId,
             string providerId,
             string fundingLineCode,
             string profilePatternKey,
             ProfileConfigurationType configurationType,
-            decimal? fundingLineTotal = null);
+            decimal? fundingLineTotal = null,
+            bool midYear = false);
     }
 }

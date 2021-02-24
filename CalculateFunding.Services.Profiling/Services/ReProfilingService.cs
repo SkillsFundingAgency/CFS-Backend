@@ -93,10 +93,16 @@ namespace CalculateFunding.Services.Profiling.Services
         private IReProfilingStrategy GetReProfilingStrategy(ReProfileRequest reProfileRequest,
             FundingStreamPeriodProfilePattern profilePattern)
         {
-            string key = profilePattern.GetReProfilingStrategyKeyForFundingAmountChange(reProfileRequest.FundingLineTotalChange);
+            string key = GetReProfilingStrategyKey(reProfileRequest, profilePattern);
 
             return _reProfilingStrategyLocator.GetStrategy(key);
         }
+
+        private static string GetReProfilingStrategyKey(ReProfileRequest reProfileRequest,
+            FundingStreamPeriodProfilePattern profilePattern) =>
+            reProfileRequest.MidYear ? 
+                profilePattern.GetReProfilingStrategyKeyForInitialFunding() :  
+                profilePattern.GetReProfilingStrategyKeyForFundingAmountChange(reProfileRequest.FundingLineTotalChange);
 
         private static void VerifyProfileAmountsReturnedMatchRequestedFundingLineValue(ReProfileRequest reProfileRequest,
             ReProfileStrategyResult strategyResult)

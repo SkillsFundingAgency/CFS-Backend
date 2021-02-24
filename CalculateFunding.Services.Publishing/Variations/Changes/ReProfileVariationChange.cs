@@ -45,14 +45,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
                 throw new NonRetriableException($"Could not locate funding line {fundingLineCode} for published provider version {providerId}");
             }
 
-            ReProfileRequest reProfileRequest = await variationApplications.ReProfilingRequestBuilder.BuildReProfileRequest(refreshState.SpecificationId,
-                refreshState.FundingStreamId,
-                refreshState.FundingPeriodId,
-                providerId,
-                fundingLineCode,
-                profilePatternKey,
-                ProfileConfigurationType.RuleBased,
-                fundingLine.Value);
+            ReProfileRequest reProfileRequest = await BuildReProfileRequest(fundingLineCode, refreshState, variationApplications, providerId, profilePatternKey, fundingLine);
 
             ReProfileResponse reProfileResponse = (await variationApplications.ResiliencePolicies.ProfilingApiClient.ExecuteAsync(()
                 => variationApplications.ProfilingApiClient.ReProfile(reProfileRequest)))?.Content;
@@ -71,5 +64,20 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
                     distributionPeriod.ProfilePeriods);
             }
         }
+
+        protected virtual Task<ReProfileRequest> BuildReProfileRequest(string fundingLineCode,
+            PublishedProviderVersion refreshState,
+            IApplyProviderVariations variationApplications,
+            string providerId,
+            string profilePatternKey,
+            FundingLine fundingLine) =>
+            variationApplications.ReProfilingRequestBuilder.BuildReProfileRequest(refreshState.FundingStreamId,
+                refreshState.SpecificationId,
+                refreshState.FundingPeriodId,
+                providerId,
+                fundingLineCode,
+                profilePatternKey,
+                ProfileConfigurationType.RuleBased,
+                fundingLine.Value);
     }
 }

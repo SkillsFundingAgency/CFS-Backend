@@ -4,9 +4,9 @@ using CalculateFunding.Services.Profiling.Models;
 
 namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
 {
-    public class ReProfileDsgFundingLine : IReProfilingStrategy
+    public class ReProfileDsgFundingLine : ReProfilingStrategy, IReProfilingStrategy
     {
-        public string StrategyKey => "ReProfileDsgFundingLine";
+        public string StrategyKey => nameof(ReProfileDsgFundingLine);
 
         public string DisplayName => "Re-Profile DSG Funding Lines";
 
@@ -25,17 +25,6 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
             };
         }
 
-        private static DistributionPeriods[] MapIntoDistributionPeriods(ReProfileContext context)
-        {
-            return context.ProfileResult.DeliveryProfilePeriods.GroupBy(_ => _.DistributionPeriod)
-                .Select(_ => new DistributionPeriods
-                {
-                    Value = _.Sum(dp => dp.ProfileValue),
-                    DistributionPeriodCode = _.Key
-                })
-                .ToArray();
-        }
-
         private decimal AdjustForUnderOrOverPayment(ReProfileContext context)
         {
             decimal carryOverAmount = 0;
@@ -47,11 +36,7 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
             IExistingProfilePeriod[] orderedExistingProfilePeriods = new YearMonthOrderedProfilePeriods<IExistingProfilePeriod>(reProfileRequest.ExistingPeriods)
                 .ToArray();
 
-            // get the last profile period paid
-            IExistingProfilePeriod existingProfilePeriod = orderedExistingProfilePeriods.LastOrDefault(_ => _.IsPaid);
-            
-            // the variation pointer is the index of the next period after the last paid profile period
-            int variationPointerIndex = existingProfilePeriod == null ? 0 : Array.IndexOf(orderedExistingProfilePeriods, existingProfilePeriod) + 1;
+            int variationPointerIndex = GetVariationPointerIndex(orderedRefreshProfilePeriods, orderedExistingProfilePeriods);
 
             decimal previousFundingLineValuePaid = orderedExistingProfilePeriods.Take(variationPointerIndex).Sum(_ => _.GetProfileValue());
             decimal latestFundingLineValuePaid = orderedRefreshProfilePeriods.Take(variationPointerIndex).Sum(_ => _.GetProfileValue());

@@ -187,8 +187,8 @@ namespace CalculateFunding.Services.Publishing
             string fundingLineCode,
             FundingLine fundingLine)
         {
-            ReProfileRequest reProfileRequest = await _profilingRequestBuilder.BuildReProfileRequest(newPublishedProviderVersion.SpecificationId,
-                newPublishedProviderVersion.FundingStreamId,
+            ReProfileRequest reProfileRequest = await _profilingRequestBuilder.BuildReProfileRequest(newPublishedProviderVersion.FundingStreamId,
+                newPublishedProviderVersion.SpecificationId,
                 newPublishedProviderVersion.FundingPeriodId,
                 newPublishedProviderVersion.ProviderId,
                 fundingLineCode,

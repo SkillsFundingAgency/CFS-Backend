@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Profiling.Models;
 using CalculateFunding.Services.Profiling.ReProfilingStrategies;
@@ -12,33 +10,14 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
 {
     [TestClass]
-    public class ReProfileDsgFundingLineTests
+    public class ReProfileDsgFundingLineTests : ReProfilingStrategyTest
     {
-        private int _year;
-        private string _month;
-        private ReProfileContext _context;
-
-        private ReProfileDsgFundingLine _reProfiling;
-
-        private ReProfileStrategyResult _result;
-
         [TestInitialize]
         public void SetUp()
         {
-            _context = new ReProfileContext();
-            
-            _year = NewRandomYear();
-            _month = NewRandomMonth();
-            
-            _context = new ReProfileContext
-            {
-                Request = new ReProfileRequest(),
-                ProfileResult = new AllocationProfileResponse()
-            };
-            
-            _reProfiling = new ReProfileDsgFundingLine();
+            ReProfiling = new ReProfileDsgFundingLine();
         }
-
+        
         [TestMethod]
         public void NoTotalAllocationChangeWithPreviousReleasedFundingDefect()
         {
@@ -83,9 +62,6 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 .Assembly
                 .GetEmbeddedResourceFileContents($"CalculateFunding.Services.Profiling.Tests.Resources.{file}.json")
                 .AsPoco<T[]>();
-
-        private void WhenTheFundingLineIsReProfiled()
-            => _result = _reProfiling.ReProfile(_context);
 
         private static IEnumerable<object[]> OverAndUnderPaymentExamples()
         {
@@ -153,99 +129,5 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 null
             };
         }
-
-
-        private static decimal[] NewAmounts(params decimal[] amounts) => amounts;
-
-        private void AndTheFundingLinePeriodAmountsShouldBe(params decimal[] expectedAmounts)
-        {
-            DeliveryProfilePeriod[] orderedProfilePeriods = new YearMonthOrderedProfilePeriods<DeliveryProfilePeriod>(_result?.DeliveryProfilePeriods).ToArray();
-            
-            orderedProfilePeriods
-                .Length
-                .Should()
-                .Be(expectedAmounts.Length);
-            
-            for (int amount = 0; amount < expectedAmounts.Length; amount++)
-            {
-                orderedProfilePeriods[amount]
-                    .GetProfileValue()
-                    .Should()
-                    .Be(expectedAmounts[amount], "Profiled value at index {0} should match expected value", amount);
-            }
-        }
-
-        private void AndTheCarryOverShouldBe(decimal? expectedOverPayment)
-        {
-            _result.CarryOverAmount
-                .Should()
-                .Be(expectedOverPayment.GetValueOrDefault());
-        }
-
-        private ExistingProfilePeriod[] AsExistingProfilePeriods(params decimal[] periodValues)
-        {
-            return periodValues.Select((amount, index) => 
-                    NewExistingProfilePeriod(_ => _.WithProfiledValue(amount)
-                .WithPeriodType(PeriodType.CalendarMonth)
-                .WithOccurrence(index)
-                .WithTypeValue(_month)
-                .WithYear(_year)))
-                .ToArray();
-        }
-        
-        private DeliveryProfilePeriod[] AsLatestProfiling(params decimal[] periodValues)
-        {
-            return periodValues.Select((amount, index) => 
-                    NewDeliveryProfilePeriod(_ => _.WithProfiledValue(amount)
-                        .WithPeriodType(PeriodType.CalendarMonth)
-                        .WithOccurrence(index)
-                        .WithTypeValue(_month)
-                        .WithYear(_year)))
-                .ToArray();
-        }
-
-        private void AndTheExistingProfilePeriods(params ExistingProfilePeriod[] existingProfilePeriods)
-        {
-            _context.Request.ExistingPeriods = existingProfilePeriods;
-        }
-
-        private void AndThePreviousFundingTotal(decimal previousFundingTotal)
-        {
-            _context.Request.ExistingFundingLineTotal = previousFundingTotal;
-        }
-        
-        private void AndTheLatestFundingTotal(decimal latestFundingTotal)
-        {
-            _context.Request.FundingLineTotal = latestFundingTotal;
-        }
-
-        private void GivenTheLatestProfiling(params DeliveryProfilePeriod[] deliveryProfilePeriods)
-        {
-            _context.ProfileResult.DeliveryProfilePeriods = deliveryProfilePeriods;
-        }
-
-        private ExistingProfilePeriod NewExistingProfilePeriod(Action<ExistingProfilePeriodBuilder> setUp = null)
-        {
-            ExistingProfilePeriodBuilder existingProfilePeriodBuilder = new ExistingProfilePeriodBuilder();
-
-            setUp?.Invoke(existingProfilePeriodBuilder);
-            
-            return existingProfilePeriodBuilder.Build();
-        }
-
-        private DeliveryProfilePeriod NewDeliveryProfilePeriod(Action<DeliveryProfilePeriodBuilder> setUp = null)
-        {
-            DeliveryProfilePeriodBuilder deliveryProfilePeriodBuilder = new DeliveryProfilePeriodBuilder();
-
-            setUp?.Invoke(deliveryProfilePeriodBuilder);
-            
-            return deliveryProfilePeriodBuilder.Build();
-        }
-
-        private int NewRandomYear() => NewRandomDateTime().Year;
-
-        private static DateTime NewRandomDateTime() => new RandomDateTime();
-
-        private static string NewRandomMonth() => NewRandomDateTime().ToString("MMMM");   
     }
 }

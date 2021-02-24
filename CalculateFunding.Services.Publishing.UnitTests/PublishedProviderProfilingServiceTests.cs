@@ -452,14 +452,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             decimal? fundingLineTotal, 
             ReProfileRequest profileRequest)
         {
-            _reProfilingRequestBuilder.Setup(_ => _.BuildReProfileRequest(specificationId,
-                    fundingStreamId,
+            _reProfilingRequestBuilder.Setup(_ => _.BuildReProfileRequest(fundingStreamId,
+                    specificationId,
                     fundingPeriodId,
                     providerId,
                     fundingLineCode,
                     profilePatternKey,
                     configurationType,
-                    fundingLineTotal))
+                    fundingLineTotal,
+                    false))
                 .ReturnsAsync(profileRequest);
         }
         

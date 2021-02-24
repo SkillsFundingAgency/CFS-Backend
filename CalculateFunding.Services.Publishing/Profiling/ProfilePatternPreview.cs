@@ -43,8 +43,8 @@ namespace CalculateFunding.Services.Publishing.Profiling
         {
             Guard.ArgumentNotNull(request, nameof(request));
 
-            ReProfileRequest reProfileRequest = await _reProfilingRequestBuilder.BuildReProfileRequest(request.SpecificationId,
-                request.FundingStreamId,
+            ReProfileRequest reProfileRequest = await _reProfilingRequestBuilder.BuildReProfileRequest(request.FundingStreamId,
+                request.SpecificationId,
                 request.FundingPeriodId,
                 request.ProviderId,
                 request.FundingLineCode,

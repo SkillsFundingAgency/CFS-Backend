@@ -9,10 +9,18 @@ namespace CalculateFunding.Services.Profiling.Tests.Services
         private string _increase;
         private string _decrease;
         private string _same;
+        private string _initialFunding;
 
         public ProfilePatternReProfilingConfigurationBuilder WithIsEnabled(bool isEnabled)
         {
             _enabled = isEnabled;
+
+            return this;
+        }
+        
+        public ProfilePatternReProfilingConfigurationBuilder WithInitialFundingStrategyKey(string initialFunding)
+        {
+            _initialFunding = initialFunding;
 
             return this;
         }
@@ -45,7 +53,8 @@ namespace CalculateFunding.Services.Profiling.Tests.Services
                 ReProfilingEnabled   =  _enabled.GetValueOrDefault(NewRandomFlag()),
                 SameAmountStrategyKey = _same,
                 DecreasedAmountStrategyKey = _decrease,
-                IncreasedAmountStrategyKey = _increase
+                IncreasedAmountStrategyKey = _increase,
+                InitialFundingStrategyKey = _initialFunding
             };
         }
     }

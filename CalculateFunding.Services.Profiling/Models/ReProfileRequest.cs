@@ -51,6 +51,12 @@ namespace CalculateFunding.Services.Profiling.Models
         /// </summary>
         [Required]
         public ProfileConfigurationType ConfigurationType { get; set; }
+        
+        /// <summary>
+        /// Flag indicating whether the re profiling
+        /// should use a new opener or new allocation strategy 
+        /// </summary>
+        public bool MidYear { get; set; }
 
         [JsonIgnore] 
         public decimal FundingLineTotalChange => FundingLineTotal - ExistingFundingLineTotal;

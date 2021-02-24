@@ -36,14 +36,15 @@ namespace CalculateFunding.Services.Publishing.Profiling
             _publishedFundingResilience = resiliencePolicies.PublishedFundingRepository;
         }
 
-        public async Task<ReProfileRequest> BuildReProfileRequest(string specificationId,
-            string fundingStreamId,
+        public async Task<ReProfileRequest> BuildReProfileRequest(string fundingStreamId,
+            string specificationId,
             string fundingPeriodId,
             string providerId,
             string fundingLineCode,
             string profilePatternKey,
             ProfileConfigurationType configurationType,
-            decimal? fundingLineTotal = null)
+            decimal? fundingLineTotal = null,
+            bool midYear = false)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
             Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
@@ -75,7 +76,8 @@ namespace CalculateFunding.Services.Publishing.Profiling
                 FundingStreamId = fundingStreamId,
                 FundingLineTotal = fundingLineTotal.GetValueOrDefault(existingFundingLineTotal),
                 ExistingFundingLineTotal = existingFundingLineTotal,
-                ExistingPeriods = existingProfilePeriods
+                ExistingPeriods = existingProfilePeriods,
+                MidYear = midYear
             };
         }
 

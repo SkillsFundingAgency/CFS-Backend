@@ -269,26 +269,28 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             => await _preview.PreviewProfilingChange(request);
 
         private void AndAReProfileRequestWasBuiltForTheRequest(ProfilePreviewRequest request)
-            => _reProfilingRequestBuilder.Verify(_ => _.BuildReProfileRequest(request.SpecificationId,
-                    request.FundingStreamId,
+            => _reProfilingRequestBuilder.Verify(_ => _.BuildReProfileRequest(request.FundingStreamId,
+                    request.SpecificationId,
                     request.FundingPeriodId,
                     request.ProviderId,
                     request.FundingLineCode,
                     request.ProfilePatternKey,
                     request.ConfigurationType,
-                    null),
+                    null,
+                    false),
                 Times.Once);
 
         private void GivenTheReProfileRequest(ProfilePreviewRequest previewRequest,
             ReProfileRequest reProfileRequest)
-            => _reProfilingRequestBuilder.Setup(_ => _.BuildReProfileRequest(previewRequest.SpecificationId,
-                    previewRequest.FundingStreamId,
+            => _reProfilingRequestBuilder.Setup(_ => _.BuildReProfileRequest(previewRequest.FundingStreamId,
+                    previewRequest.SpecificationId,
                     previewRequest.FundingPeriodId,
                     previewRequest.ProviderId,
                     previewRequest.FundingLineCode,
                     previewRequest.ProfilePatternKey,
                     previewRequest.ConfigurationType,
-                    null))
+                    null,
+                    false))
                 .ReturnsAsync(reProfileRequest);
 
         private void AndTheReProfileResponse(ReProfileRequest request,

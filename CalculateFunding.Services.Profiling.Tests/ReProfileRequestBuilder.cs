@@ -11,6 +11,14 @@ namespace CalculateFunding.Services.Profiling.Tests
         private decimal? _fundingValue;
         private decimal? _existingFundingLineTotal;
         private string _profilePatternKey;
+        private bool _midYear;
+        
+        public ReProfileRequestBuilder WithMidYear(bool midYear)
+        {
+            _midYear = midYear;
+
+            return this;
+        }
 
         public ReProfileRequestBuilder WithFundingLineCode(string fundingLineCode)
         {
@@ -63,7 +71,8 @@ namespace CalculateFunding.Services.Profiling.Tests
                 FundingStreamId = _fundingStreamId ?? NewRandomString(),
                 FundingPeriodId = _fundingPeriodId ?? NewRandomString(),
                 FundingLineTotal = _fundingValue.GetValueOrDefault(NewRandomNumberBetween(999, int.MaxValue)),
-                ExistingFundingLineTotal = _existingFundingLineTotal.GetValueOrDefault(NewRandomNumberBetween(999, int.MaxValue))
+                ExistingFundingLineTotal = _existingFundingLineTotal.GetValueOrDefault(NewRandomNumberBetween(999, int.MaxValue)),
+                MidYear = _midYear
             };
         }
         

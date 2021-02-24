@@ -1,19 +1,16 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
-using CalculateFunding.Common.TemplateMetadata.Schema10.Enums;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Profiling;
 using CalculateFunding.Services.Publishing.UnitTests.Variations.Changes;
 using CalculateFunding.Tests.Common.Helpers;
-using Castle.Components.DictionaryAdapter;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -237,13 +234,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
         [TestMethod]
         public async Task BuildsReProfileRequestsOutOfExistingFundingInformationUsingPublishedProvidersAndVariationPointers()
         {
-                        string providerId = NewRandomString();
+            string providerId = NewRandomString();
             string fundingStreamId = NewRandomString();
             string fundingPeriodId = NewRandomString();
             string fundingLineCode = NewRandomString();
             string specificationId = NewRandomString();
             string profilePattern = NewRandomString();
             decimal fundingLineTotal = NewRandomAmount();
+            bool midYear = new RandomBoolean();
             ProfileConfigurationType profileConfigurationType = NewRandomProfileConfigurationType();
 
             GivenThePublishedProvider(fundingStreamId,
@@ -286,7 +284,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                 fundingLineCode,
                 profilePattern,
                 profileConfigurationType,
-                fundingLineTotal);
+                fundingLineTotal,
+                midYear);
             
             reProfileRequest
                 .Should()
@@ -299,6 +298,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                     FundingPeriodId = fundingPeriodId,
                     FundingStreamId = fundingStreamId,
                     ProfilePatternKey = profilePattern,
+                    MidYear = midYear,
                     ExistingPeriods = new []
                     {
                         NewExististingProfilePeriod(_ => _.WithOccurrence(0)
@@ -336,15 +336,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             string fundingLineCode,
             string profilePatternKey,
             ProfileConfigurationType configurationType,
-            decimal? fundingLineTotal = null)
-            => await _requestBuilder.BuildReProfileRequest(specificationId,
-                fundingStreamId,
+            decimal? fundingLineTotal = null,
+            bool midYear = false)
+            => await _requestBuilder.BuildReProfileRequest(fundingStreamId,
+                specificationId,
                 fundingPeriodId,
                 providerId,
                 fundingLineCode,
                 profilePatternKey,
                 configurationType,
-                fundingLineTotal);
+                fundingLineTotal, 
+                midYear);
 
         private void GivenThePublishedProvider(string fundingStreamId,
             string fundingPeriodId,

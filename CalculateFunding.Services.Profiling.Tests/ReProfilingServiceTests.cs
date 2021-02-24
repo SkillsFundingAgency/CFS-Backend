@@ -273,6 +273,50 @@ namespace CalculateFunding.Services.Profiling.Tests
                     ProfilePatternDisplayName = profilePattern.ProfilePatternDisplayName
                 });
         }
+        
+        [TestMethod]
+        public async Task ProfilesFundingLinesNormallyThenReProfilesUsingTheseResultsWithInitialFundingStrategyIfRequestIsMidYear()
+        {
+            decimal newFundingTotal = NewRandomTotal();
+            
+            ReProfileRequest request = NewReProfileRequest(_ => _.WithFundingValue(newFundingTotal)
+                .WithExistingFundingValue(newFundingTotal)
+                .WithMidYear(true));
+            AllocationProfileResponse profileResponse = NewAllocationProfileResponse();
+
+            string key = NewRandomString();
+
+            FundingStreamPeriodProfilePattern profilePattern = NewFundingStreamPeriodProfilePattern(_ =>
+                _.WithReProfilingConfiguration(NewProfilePatternReProfilingConfiguration(cfg =>
+                    cfg.WithIsEnabled(true)
+                        .WithInitialFundingStrategyKey(key))));
+
+            DistributionPeriods distributionPeriods1 = NewDistributionPeriods();
+            DeliveryProfilePeriod deliveryProfilePeriod1 = NewDeliveryProfilePeriod(_ => _.WithProfiledValue(10));
+            DeliveryProfilePeriod deliveryProfilePeriod2 = NewDeliveryProfilePeriod(_ => _.WithProfiledValue(newFundingTotal - 20));
+
+            GivenTheProfilePattern(request, profilePattern);
+            AndTheReProfilingStrategy(key);
+            AndTheProfiling(request, profilePattern, profileResponse);
+            AndTheReProfilingStrategyResponse(profileResponse, request, profilePattern, NewReProfileStrategyResult(_ => 
+                _.WithDistributionPeriods(distributionPeriods1)
+                    .WithDeliveryProfilePeriods(deliveryProfilePeriod1, deliveryProfilePeriod2)
+                    .WithCarryOverAmount(10)));
+
+            ActionResult<ReProfileResponse> reProfileResponse = await WhenTheFundingLineIsReProfiled(request);
+            
+            reProfileResponse?
+                .Value
+                .Should()
+                .BeEquivalentTo(new ReProfileResponse
+                {
+                    DistributionPeriods = new [] { distributionPeriods1 },
+                    CarryOverAmount = 10,
+                    DeliveryProfilePeriods = new [] { deliveryProfilePeriod1, deliveryProfilePeriod2 },
+                    ProfilePatternKey = profilePattern.ProfilePatternKey,
+                    ProfilePatternDisplayName = profilePattern.ProfilePatternDisplayName
+                });
+        }
 
         private async Task<ActionResult<ReProfileResponse>> WhenTheFundingLineIsReProfiled(ReProfileRequest request)
             => await _service.ReProfile(request);
