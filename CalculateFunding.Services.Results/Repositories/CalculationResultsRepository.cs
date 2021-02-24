@@ -124,7 +124,8 @@ namespace CalculateFunding.Services.Results.Repositories
                             FROM    calculationresults c
                             WHERE   c.content.specificationId = @SpecificationId 
                                     AND c.documentType = 'ProviderResult' 
-                                    AND c.deleted = false",
+                                    AND c.deleted = false
+                            ORDER BY c.content.provider.ukPrn ASC",
                 Parameters = new[]
                 {
                     new CosmosDbQueryParameter("@SpecificationId", specificationId)
