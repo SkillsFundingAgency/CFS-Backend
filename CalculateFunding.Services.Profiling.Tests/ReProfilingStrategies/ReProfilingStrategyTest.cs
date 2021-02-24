@@ -80,10 +80,15 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                         .WithYear(_year)))
                 .ToArray();
         }
+        
+        protected void GivenTheExistingProfilePeriods(params ExistingProfilePeriod[] existingProfilePeriods)
+        {
+            Context.Request.ExistingPeriods = existingProfilePeriods;
+        }
 
         protected void AndTheExistingProfilePeriods(params ExistingProfilePeriod[] existingProfilePeriods)
         {
-            Context.Request.ExistingPeriods = existingProfilePeriods;
+            GivenTheExistingProfilePeriods(existingProfilePeriods);
         }
 
         protected void AndThePreviousFundingTotal(decimal previousFundingTotal)
