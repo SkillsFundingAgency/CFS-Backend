@@ -263,7 +263,7 @@ namespace CalculateFunding.Services.Publishing
         {
             if (_aggregatedFundingLines.TryGetValue(key, out (decimal? Total, IEnumerable<DistributionPeriod> DistributionPeriods) aggregate))
             {
-                aggregate = (aggregate.Total.AddValueIfNotNull(value), aggregate.DistributionPeriods);
+                aggregate = (aggregate.Total.AddValueIfNotNull(value), aggregate.DistributionPeriods ?? distributionPeriods);
                 // aggregate the value
                 _aggregatedFundingLines[key] = aggregate;
             }

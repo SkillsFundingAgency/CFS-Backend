@@ -6,13 +6,13 @@ namespace CalculateFunding.Services.Core.Filtering
 	public class Filter
 	{
 		private static string _stringFormat = "{0} {1} \'{2}\'";
-		private static string _integerFormat = "{0} {1} {2}";
+		private static string _nonStringFormat = "{0} {1} {2}";
 
-		public Filter(string filterName, IEnumerable<string> filters, bool isInt, string @operator)
+		public Filter(string filterName, IEnumerable<string> filters, bool isNonString, string @operator)
 		{
 			FilterName = filterName;
 			Filters = filters;
-			IsInt = isInt;
+			IsNonString = isNonString;
 			Operator = @operator;
 		}
 
@@ -20,13 +20,13 @@ namespace CalculateFunding.Services.Core.Filtering
 
 		public IEnumerable<string> Filters { get; set; }
 
-		public bool IsInt { get; set; }
+		public bool IsNonString { get; set; }
 
 		public string Operator { get; set; }
 
 		public string BuildOrFilterQuery()
 		{
-			string filterFormat = IsInt ? _integerFormat : _stringFormat;
+			string filterFormat = IsNonString ? _nonStringFormat : _stringFormat;
 
 			return Filters.IsNullOrEmpty()
 				? null
