@@ -11,6 +11,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using Serilog.Core;
+using DistributionPeriod = CalculateFunding.Models.Publishing.DistributionPeriod;
 using FundingLine = CalculateFunding.Models.Publishing.FundingLine;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
@@ -102,6 +103,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Should()
                 .Be(6000.975M);
 
+            fundingLines.First().DistributionPeriods.Where(x => x.DistributionPeriodId == "FY-1920").First().Value
+                .Should()
+                .Be(12001.950M);
+
             fundingLines.First().Calculations.Where(x => x.TemplateCalculationId == 1).First().Calculations.Where(x => x.TemplateCalculationId == 156).First().Calculations.Where(x => x.TemplateCalculationId == 152).First().Value
                 .Should()
                 .Be(4590000.975M);
@@ -112,7 +117,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             fundingLines.First().Calculations.Where(x => x.TemplateCalculationId == 126).First().Value
                 .Should()
-                .Be(127000.325M);
+                .Be(95250.24375M);
 
             fundingLines.First().FundingLines.First().Calculations.Where(x => x.TemplateCalculationId == 1).First().Value
                 .Should()
@@ -124,7 +129,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             fundingLines.First().FundingLines.First().Calculations.Where(x => x.TemplateCalculationId == 126).First().Value
                 .Should()
-                .Be(127000.325M);
+                .Be(95250.24375M);
         }
 
         public ITemplateMetadataGenerator CreateSchema10TemplateGenerator() 
@@ -137,13 +142,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             List<PublishedProviderVersion> providerVersions = new List<PublishedProviderVersion>();
 
-            for (int i = 1; i <= 3; i++)
+            for (int i = 4; i > 0; i--)
             {
+                DistributionPeriod[] distributionPeriods = null;
+                
+                if (i<4)
+                {
+                    distributionPeriods = JsonConvert.DeserializeObject<IEnumerable<DistributionPeriod>>(GetResourceString($"CalculateFunding.Services.Publishing.UnitTests.Resources.exampleProvider{i}DistributionPeriods.json")).ToArray();
+                }
+
                 providerVersions.Add(new PublishedProviderVersion
                 {
                     Provider = GetProvider(i),
                     Calculations = JsonConvert.DeserializeObject<IEnumerable<FundingCalculation>>(GetResourceString($"CalculateFunding.Services.Publishing.UnitTests.Resources.exampleProvider{i}Calculations{schema}.json")),
-                    FundingLines = new FundingLine[] { NewFundingLine(fl => fl.WithTemplateLineId(1).WithValue(0)), NewFundingLine(fl => fl.WithTemplateLineId(2).WithValue(null)) },
+                    FundingLines = new FundingLine[] { NewFundingLine(fl => fl.WithTemplateLineId(1).WithValue(0).WithDistributionPeriods(distributionPeriods)), NewFundingLine(fl => fl.WithTemplateLineId(2).WithValue(null)) },
                     ProviderId = "1234" + i,
                     FundingStreamId = "PSG",
                     FundingPeriodId = "AY-1920",

@@ -2,7 +2,7 @@
   {
     "name": "Number of pupils",
     "templateCalculationId": 1,
-    "value": "1000.325",
+    "value": "0",
     "valueFormat": "Number",
     "type": "PupilNumber",
     "formulaText": "Something * something",
@@ -29,7 +29,7 @@
   {
     "name": "Test Rate",
     "templateCalculationId": 152,
-    "value": "1520000.325",
+    "value": "0",
     "valueFormat": "Number",
     "type": "Rate",
     "formulaText": "Something * something else",
@@ -38,7 +38,7 @@
   {
     "name": "Weighting",
     "templateCalculationId": 126,
-    "value": "126000.325",
+    "value": "0",
     "valueFormat": "Percentage",
     "type": "Weighting",
     "formulaText": "",

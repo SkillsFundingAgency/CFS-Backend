@@ -37,15 +37,6 @@
     "referenceData": null
   },
   {
-    "name": "Number of pupils",
-    "templateCalculationId": 1,
-    "value": "2000.325",
-    "valueFormat": "Number",
-    "type": "PupilNumber",
-    "formulaText": "Something * something",
-    "aggregationType": "Sum"
-  },
-  {
     "name": "Weighting",
     "templateCalculationId": 126,
     "value": "127000.325",

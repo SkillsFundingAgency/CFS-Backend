@@ -13,13 +13,23 @@
   <ItemGroup>
     <None Remove="Resources\exampleFundingLineTemplate1.json" />
     <None Remove="Resources\exampleProvider1Calculations.json" />
+    <None Remove="Resources\exampleProvider1DistributionPeriods.json" />
     <None Remove="Resources\exampleProvider2Calculations.json" />
+    <None Remove="Resources\exampleProvider2DistributionPeriods.json" />
     <None Remove="Resources\exampleProvider3Calculations.json" />
+    <None Remove="Resources\exampleProvider3DistributionPeriods.json" />
+    <None Remove="Resources\exampleProvider4Calculations.json" />
+    <None Remove="Resources\exampleProvider4Calculations_Schema1_1.json" />
     <None Remove="Resources\exampleProviderTemplate1.json" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Batches\Resources\batch_2.xlsx" />
+    <EmbeddedResource Include="Resources\exampleProvider1DistributionPeriods.json" />
+    <EmbeddedResource Include="Resources\exampleProvider4Calculations.json" />
+    <EmbeddedResource Include="Resources\exampleProvider4Calculations_Schema1_1.json" />
+    <EmbeddedResource Include="Resources\exampleProvider3DistributionPeriods.json" />
+    <EmbeddedResource Include="Resources\exampleProvider2DistributionPeriods.json" />
     <EmbeddedResource Include="Resources\exampleFundingLineTemplate1.json" />
     <EmbeddedResource Include="Resources\exampleProvider1Calculations.json" />
     <EmbeddedResource Include="Resources\exampleProvider1Calculations_Schema1_1.json" />

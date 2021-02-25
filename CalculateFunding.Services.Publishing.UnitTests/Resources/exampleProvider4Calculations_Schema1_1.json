@@ -1,0 +1,66 @@
+[
+  {
+    "name": "Number of pupils",
+    "templateCalculationId": 1,
+    "value": "940332.956",
+    "valueFormat": "Number",
+    "type": "PupilNumber",
+    "formulaText": "Something * something",
+    "aggregationType": "Sum"
+  },
+  {
+    "name": "Made up calc",
+    "templateCalculationId": 156,
+    "value": "210.0473464076465",
+    "valueFormat": "Number",
+    "type": "Rate",
+    "formulaText": "Something * something else",
+    "aggregationType": "None"
+  },
+  {
+    "name": "Test None",
+    "templateCalculationId": 157,
+    "value": "0",
+    "valueFormat": "Number",
+    "type": "Rate",
+    "formulaText": "Something * something else",
+    "aggregationType": "None"
+  },
+  {
+    "name": "Test Rate",
+    "templateCalculationId": 152,
+    "value": "200",
+    "valueFormat": "Number",
+    "type": "Rate",
+    "formulaText": "Something * something else",
+    "aggregationType": "Sum"
+  },
+  {
+    "name": "Test Rate Divide By Zero",
+    "templateCalculationId": 153,
+    "value": "0",
+    "valueFormat": "Number",
+    "type": "Rate",
+    "formulaText": "Something * something else",
+    "aggregationType": "Sum"
+  },
+  {
+    "name": "Number of pupils",
+    "templateCalculationId": 1,
+    "value": "1000.325",
+    "valueFormat": "Number",
+    "type": "PupilNumber",
+    "formulaText": "Something * something",
+    "aggregationType": "Sum"
+  },
+  {
+    "name": "Percentage change between Test Rate and Made up Calc - Sum",
+    "templateCalculationId": 9001,
+    "value": null
+  },
+  {
+    "name": "Percentage change between Test Rate and Made up Calc - Avg",
+    "templateCalculationId": 9002,
+    "value": null
+  }
+]

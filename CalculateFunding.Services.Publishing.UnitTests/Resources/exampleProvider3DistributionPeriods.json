@@ -1,0 +1,30 @@
+[
+  {
+    "value": 6000.650,
+    "distributionPeriodId": "FY-1920",
+    "profilePeriods": [
+      {
+        "type": "CalendarMonth",
+        "typeValue": "October",
+        "year": 2019,
+        "occurrence": 1,
+        "profiledValue": 6000.650,
+        "distributionPeriodId": "FY-1920"
+      }
+    ]
+  },
+  {
+    "value": 0,
+    "distributionPeriodId": "FY-2021",
+    "profilePeriods": [
+      {
+        "type": "CalendarMonth",
+        "typeValue": "April",
+        "year": 2020,
+        "occurrence": 1,
+        "profiledValue": 0,
+        "distributionPeriodId": "FY-2021"
+      }
+    ]
+  }
+]
