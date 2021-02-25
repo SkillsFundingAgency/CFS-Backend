@@ -9,7 +9,7 @@
   <ItemGroup>
     <PackageReference Include="CalculateFunding.Common.CosmosDb" Version="5.7.5" />
     <PackageReference Include="CommandLineParser" Version="2.8.0" />
-    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.15.0-preview" />
+    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.16.0" />
   </ItemGroup>
 
   <ItemGroup>
