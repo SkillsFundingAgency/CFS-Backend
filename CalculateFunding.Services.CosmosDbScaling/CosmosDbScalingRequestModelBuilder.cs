@@ -92,6 +92,14 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 {
                     CosmosCollectionType.Calculations
                 },
+                JobDefinitions.GenerateCalcCsvResultsJob => new []
+                {
+                    CosmosCollectionType.CalculationProviderResults
+                },
+                JobDefinitions.RunSqlImportJob => new []
+                {
+                    CosmosCollectionType.PublishedFunding
+                },
                 _ => cosmosDbScalingRequestModel.RepositoryTypes
             };
 
