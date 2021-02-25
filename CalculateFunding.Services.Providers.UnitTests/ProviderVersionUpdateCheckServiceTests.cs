@@ -1,4 +1,8 @@
-﻿using AutoMapper;
+﻿using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Threading.Tasks;
+using AutoMapper;
 using CalculateFunding.Common.ApiClient.FundingDataZone;
 using CalculateFunding.Common.ApiClient.FundingDataZone.Models;
 using CalculateFunding.Common.ApiClient.Models;
@@ -7,6 +11,7 @@ using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Providers.Interfaces;
@@ -17,9 +22,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Polly;
 using Serilog.Core;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Providers.UnitTests
 {
@@ -31,6 +33,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
         private Mock<IProviderVersionsMetadataRepository> _providerVersionsMetadataRepository;
         private Mock<IFundingDataZoneApiClient> _fundingDataZoneApiClient;
         private Mock<ISpecificationsApiClient> _specificationsApiClient;
+        private Mock<IPublishingJobClashCheck> _publishingJobClashCheck;
 
         private IMapper _mapper;
         private IEnumerable<FundingStream> _fundingStreams;
@@ -51,8 +54,6 @@ namespace CalculateFunding.Services.Providers.UnitTests
         [TestInitialize]
         public void SetUp()
         {
-            int _previousProviderSnapshotId;
-
             MapperConfiguration mappingConfig = new MapperConfiguration(c => { c.AddProfile<ProviderVersionsMappingProfile>(); });
             _mapper = mappingConfig.CreateMapper();
 
@@ -60,28 +61,31 @@ namespace CalculateFunding.Services.Providers.UnitTests
             _providerVersionsMetadataRepository = new Mock<IProviderVersionsMetadataRepository>();
             _fundingDataZoneApiClient = new Mock<IFundingDataZoneApiClient>();
             _specificationsApiClient = new Mock<ISpecificationsApiClient>();
+            _publishingJobClashCheck = new Mock<IPublishingJobClashCheck>();
 
             _service = new ProviderVersionUpdateCheckService(
-                policiesApiClient: _policiesApiClient.Object,
-                logger: Logger.None,
-                resiliencePolicies: new ProvidersResiliencePolicies
+                _policiesApiClient.Object,
+                Logger.None,
+                new ProvidersResiliencePolicies
                 {
                     PoliciesApiClient = Policy.NoOpAsync(),
                     ProviderVersionMetadataRepository = Policy.NoOpAsync(),
                     FundingDataZoneApiClient = Policy.NoOpAsync(),
                     SpecificationsApiClient = Policy.NoOpAsync()
                 },
-                providerVersionMetadata: _providerVersionsMetadataRepository.Object,
-                fundingDataZoneApiClient: _fundingDataZoneApiClient.Object,
-                specificationsApiClient: _specificationsApiClient.Object,
-                mapper: _mapper
+                _providerVersionsMetadataRepository.Object,
+                _fundingDataZoneApiClient.Object,
+                _specificationsApiClient.Object,
+                _mapper,
+                _publishingJobClashCheck.Object
             );
+
+            int previousProviderSnapshotId = NewRandomInteger();
 
             _fundingStreamOneId = NewRandomString();
             _fundingPeriodId = NewRandomString();
             _currentProviderSnapshotId = NewRandomInteger();
             _latestProviderSnapshotId = NewRandomInteger();
-            _previousProviderSnapshotId = NewRandomInteger();
             _specificationName = NewRandomString();
             _specificationDescription = NewRandomString();
             _specificationProviderVersionId = NewRandomString();
@@ -120,14 +124,14 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 {
                     TargetDate = DateTime.UtcNow.AddDays(1),
                     Version = 1,
-                    ProviderSnapshotId = _previousProviderSnapshotId,
+                    ProviderSnapshotId = previousProviderSnapshotId,
                     FundingStreamCode = _fundingStreamOneId
                 },
                 new ProviderSnapshot
                 {
                     TargetDate = DateTime.UtcNow.AddDays(2),
                     Version = 2,
-                    ProviderSnapshotId = _previousProviderSnapshotId,
+                    ProviderSnapshotId = previousProviderSnapshotId,
                     FundingStreamCode = NewRandomString()
                 },
                 new ProviderSnapshot
@@ -151,7 +155,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
                             Id = _fundingStreamOneId
                         }
                     },
-                    FundingPeriod = new Common.Models.Reference
+                    FundingPeriod = new Reference
                     {
                         Id = _fundingPeriodId
                     },
@@ -163,11 +167,11 @@ namespace CalculateFunding.Services.Providers.UnitTests
         }
 
         [TestMethod]
-        public async Task CheckProviderVersionUpdate_GivenFundingStreamsNotFound_ThrowsError()
+        public void CheckProviderVersionUpdate_GivenFundingStreamsNotFound_ThrowsError()
         {
             GivenErrorGetFundingStreams();
 
-            Func<Task> invocation = () => WhenCheckProviderVersionUpdate();
+            Func<Task> invocation = WhenTheProviderVersionUpdateIsChecked;
 
             invocation
                 .Should()
@@ -179,15 +183,15 @@ namespace CalculateFunding.Services.Providers.UnitTests
         }
 
         [TestMethod]
-        public async Task CheckProviderVersionUpdate_GivenGetSpecificationsWithProviderVersionUpdatesAsUseLatestReturnsBadRequest_ThrowsError()
+        public void CheckProviderVersionUpdate_GivenGetSpecificationsWithProviderVersionUpdatesAsUseLatestReturnsBadRequest_ThrowsError()
         {
-            GivenGetFundingStreams();
-            AndGetAllCurrentProviderVersions();
-            AndGetFundingConfigurationsByFundingStreamId();
-            AndGetProviderSnapshotsForFundingStream();
+            GivenTheFundingStreams(_fundingStreams);
+            AndTheCurrentProviderVersions(_currentProviderVersions);
+            AndTheFundingConfigurationsForTheFundingStreamId(_fundingConfigurations, _fundingStreamOneId);
+            AndTheProviderSnapshotsForFundingStream(_providerSnapshots);
             AndErrorGetSpecificationsWithProviderVersionUpdatesAsUseLatest();
 
-            Func<Task> invocation = () => WhenCheckProviderVersionUpdate();
+            Func<Task> invocation = WhenTheProviderVersionUpdateIsChecked;
 
             invocation
                 .Should()
@@ -201,95 +205,114 @@ namespace CalculateFunding.Services.Providers.UnitTests
         [TestMethod]
         public async Task CheckProviderVersionUpdate_GivenGetSpecificationsWithProviderVersionUpdatesAsUseLatest_UpdatesSpecification()
         {
-            GivenGetFundingStreams();
-            AndGetAllCurrentProviderVersions();
-            AndGetFundingConfigurationsByFundingStreamId();
-            AndGetProviderSnapshotsForFundingStream();
-            AndGetSpecificationsWithProviderVersionUpdatesAsUseLatest();
+            GivenTheFundingStreams(_fundingStreams);
+            AndTheCurrentProviderVersions(_currentProviderVersions);
+            AndTheFundingConfigurationsForTheFundingStreamId(_fundingConfigurations, _fundingStreamOneId);
+            AndTheProviderSnapshotsForFundingStream(_providerSnapshots);
+            AndTheSpecificationsUseTheLatestProviderSnapshot(_specificationSummaries);
 
-            await WhenCheckProviderVersionUpdate();
+            await WhenTheProviderVersionUpdateIsChecked();
 
-            ThenUpdatesSpecification();
+            ThenUpdatesSpecification(_specificationId);
         }
 
         [TestMethod]
         public async Task CheckProviderVersionUpdate_GivenGetSpecificationsWithProviderVersionUpdatesAsUseLatestNotFound_ThenDoesNotUpdatesSpecification()
         {
-            GivenGetFundingStreams();
-            AndGetAllCurrentProviderVersions();
-            AndGetFundingConfigurationsByFundingStreamId();
-            AndGetProviderSnapshotsForFundingStream();
-            AndNotFoundGetSpecificationsWithProviderVersionUpdatesAsUseLatest();
+            GivenTheFundingStreams(_fundingStreams);
+            AndTheCurrentProviderVersions(_currentProviderVersions);
+            AndTheFundingConfigurationsForTheFundingStreamId(_fundingConfigurations, _fundingStreamOneId);
+            AndTheProviderSnapshotsForFundingStream(_providerSnapshots);
+            AndNoSpecificationsUseTheLatestProviderVersion();
 
-            await WhenCheckProviderVersionUpdate();
+            await WhenTheProviderVersionUpdateIsChecked();
 
-            ThenDoesNotUpdatesSpecification();
+            ThenDoesNotUpdatesSpecification(_specificationId);
+        }
+        
+        [TestMethod]
+        public async Task SkipsUpdatesForProviderSnapshotsInUseBySpecificationsWithRunningPublishingJobs()
+        {
+            GivenTheFundingStreams(_fundingStreams);
+            AndTheCurrentProviderVersions(_currentProviderVersions);
+            AndTheFundingConfigurationsForTheFundingStreamId(_fundingConfigurations, _fundingStreamOneId);
+            AndTheProviderSnapshotsForFundingStream(_providerSnapshots);
+            AndTheSpecificationsUseTheLatestProviderSnapshot(_specificationSummaries);
+            AndThereIsAPublishingJobClashingWithTheProviderSnapshotForTheSpecifications(_specificationId);
+
+            await WhenTheProviderVersionUpdateIsChecked();
+
+            ThenDoesNotUpdatesSpecification(_specificationId);
         }
 
-        private void ThenUpdatesSpecification() =>
+        private void ThenUpdatesSpecification(string specificationId) =>
             _specificationsApiClient
-                .Verify(_ => _.UpdateSpecification(_specificationId, It.IsAny<EditSpecificationModel>()), Times.Once);
+                .Verify(_ => _.UpdateSpecification(specificationId, It.IsAny<EditSpecificationModel>()), Times.Once);
 
-        private void ThenDoesNotUpdatesSpecification() =>
+        private void ThenDoesNotUpdatesSpecification(string specificationId) =>
             _specificationsApiClient
-                .Verify(_ => _.UpdateSpecification(_specificationId, It.IsAny<EditSpecificationModel>()), Times.Never);
+                .Verify(_ => _.UpdateSpecification(specificationId, It.IsAny<EditSpecificationModel>()), Times.Never);
 
         private void GivenErrorGetFundingStreams() =>
             _policiesApiClient
                 .Setup(_ => _.GetFundingStreams())
-                .ReturnsAsync(new ApiResponse<IEnumerable<FundingStream>>(System.Net.HttpStatusCode.BadRequest));
+                .ReturnsAsync(new ApiResponse<IEnumerable<FundingStream>>(HttpStatusCode.BadRequest));
 
-        private void GivenGetFundingStreams() =>
+        private void GivenTheFundingStreams(IEnumerable<FundingStream> fundingStreams) =>
             _policiesApiClient
                 .Setup(_ => _.GetFundingStreams())
-                .ReturnsAsync(new ApiResponse<IEnumerable<FundingStream>>(System.Net.HttpStatusCode.OK, _fundingStreams));
+                .ReturnsAsync(new ApiResponse<IEnumerable<FundingStream>>(HttpStatusCode.OK, fundingStreams));
 
-        private void AndGetFundingConfigurationsByFundingStreamId() =>
+        private void AndTheFundingConfigurationsForTheFundingStreamId(IEnumerable<FundingConfiguration> fundingConfigurations,
+            string fundingStreamOneId) =>
             _policiesApiClient
-                .Setup(_ => _.GetFundingConfigurationsByFundingStreamId(_fundingStreamOneId))
-                .ReturnsAsync(new ApiResponse<IEnumerable<FundingConfiguration>>(System.Net.HttpStatusCode.OK, _fundingConfigurations));
+                .Setup(_ => _.GetFundingConfigurationsByFundingStreamId(fundingStreamOneId))
+                .ReturnsAsync(new ApiResponse<IEnumerable<FundingConfiguration>>(HttpStatusCode.OK, fundingConfigurations));
 
         private void AndErrorGetFundingConfigurationsByFundingStreamId() =>
             _policiesApiClient
                 .Setup(_ => _.GetFundingConfigurationsByFundingStreamId(_fundingStreamOneId))
-                .ReturnsAsync(new ApiResponse<IEnumerable<FundingConfiguration>>(System.Net.HttpStatusCode.BadRequest));
+                .ReturnsAsync(new ApiResponse<IEnumerable<FundingConfiguration>>(HttpStatusCode.BadRequest));
 
-        private void AndGetAllCurrentProviderVersions() =>
+        private void AndTheCurrentProviderVersions(IEnumerable<CurrentProviderVersion> currentProviderVersions) =>
             _providerVersionsMetadataRepository
                 .Setup(_ => _.GetAllCurrentProviderVersions())
-                .ReturnsAsync(new List<CurrentProviderVersion>(_currentProviderVersions));
+                .ReturnsAsync(new List<CurrentProviderVersion>(currentProviderVersions));
 
-        private void AndGetProviderSnapshotsForFundingStream() =>
+        private void AndTheProviderSnapshotsForFundingStream(IEnumerable<ProviderSnapshot> providerSnapshots) =>
             _fundingDataZoneApiClient
                 .Setup(_ => _.GetLatestProviderSnapshotsForAllFundingStreams())
-                .ReturnsAsync(new ApiResponse<IEnumerable<ProviderSnapshot>>(System.Net.HttpStatusCode.OK, _providerSnapshots));
+                .ReturnsAsync(new ApiResponse<IEnumerable<ProviderSnapshot>>(HttpStatusCode.OK, providerSnapshots));
 
         private void AndErrorGetProviderSnapshotsForFundingStream() =>
             _fundingDataZoneApiClient
                 .Setup(_ => _.GetLatestProviderSnapshotsForAllFundingStreams())
-                .ReturnsAsync(new ApiResponse<IEnumerable<ProviderSnapshot>>(System.Net.HttpStatusCode.BadRequest));
+                .ReturnsAsync(new ApiResponse<IEnumerable<ProviderSnapshot>>(HttpStatusCode.BadRequest));
 
-        private void AndGetSpecificationsWithProviderVersionUpdatesAsUseLatest() =>
+        private void AndTheSpecificationsUseTheLatestProviderSnapshot(IEnumerable<SpecificationSummary> specificationSummaries) =>
             _specificationsApiClient
                 .Setup(_ => _.GetSpecificationsWithProviderVersionUpdatesAsUseLatest())
-                .ReturnsAsync(new ApiResponse<IEnumerable<SpecificationSummary>>(System.Net.HttpStatusCode.OK, _specificationSummaries));
+                .ReturnsAsync(new ApiResponse<IEnumerable<SpecificationSummary>>(HttpStatusCode.OK, specificationSummaries));
 
         private void AndErrorGetSpecificationsWithProviderVersionUpdatesAsUseLatest() =>
             _specificationsApiClient
                 .Setup(_ => _.GetSpecificationsWithProviderVersionUpdatesAsUseLatest())
-                .ReturnsAsync(new ApiResponse<IEnumerable<SpecificationSummary>>(System.Net.HttpStatusCode.BadRequest));
+                .ReturnsAsync(new ApiResponse<IEnumerable<SpecificationSummary>>(HttpStatusCode.BadRequest));
 
-        private void AndNotFoundGetSpecificationsWithProviderVersionUpdatesAsUseLatest() =>
+        private void AndNoSpecificationsUseTheLatestProviderVersion() =>
             _specificationsApiClient
                 .Setup(_ => _.GetSpecificationsWithProviderVersionUpdatesAsUseLatest())
-                .ReturnsAsync(new ApiResponse<IEnumerable<SpecificationSummary>>(System.Net.HttpStatusCode.NotFound));
+                .ReturnsAsync(new ApiResponse<IEnumerable<SpecificationSummary>>(HttpStatusCode.NotFound));
 
-        private async Task WhenCheckProviderVersionUpdate() =>
+        private void AndThereIsAPublishingJobClashingWithTheProviderSnapshotForTheSpecifications(string specificationId)
+            => _publishingJobClashCheck.Setup(_ => _.PublishingJobsClashWithFundingStreamCoreProviderUpdate(specificationId))
+                .ReturnsAsync(true);
+
+        private async Task WhenTheProviderVersionUpdateIsChecked() =>
             await _service.CheckProviderVersionUpdate();
 
         private static string NewRandomString() => new RandomString();
-        private static int NewRandomInteger() => new RandomNumberBetween(0, 100);
 
-
+        private static int NewRandomInteger() => new RandomNumberBetween(0, int.MaxValue);
     }
 }

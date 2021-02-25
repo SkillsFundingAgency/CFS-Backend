@@ -14,7 +14,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 {
     [TestClass]
     public class JobsRunningCheckerTests
-
     {
         private IJobManagement _jobs;
         private IEnumerable<JobSummary> _job;

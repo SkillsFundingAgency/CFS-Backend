@@ -13,8 +13,7 @@ namespace CalculateFunding.Services.Publishing
     {
         private readonly IJobManagement _jobManagement;
 
-        public JobsRunning(
-            IJobManagement jobManagement)
+        public JobsRunning(IJobManagement jobManagement)
         {
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
 
