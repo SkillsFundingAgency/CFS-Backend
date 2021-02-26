@@ -41,7 +41,7 @@ namespace CalculateFunding.Functions.Specs.SmokeTests
         [TestMethod]
         public async Task OnDetectObsoleteFundingLines_SmokeTestSucceeds()
         {
-            OnDetectObsoleteFundingLines onAddRelationshipEvent = new OnDetectObsoleteFundingLines(_logger,
+            OnDetectObsoleteFundingLines onDetectObsoleteFundingLines = new OnDetectObsoleteFundingLines(_logger,
                 _obsoleteFundingLineDetection,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _userProfileProvider,
@@ -49,7 +49,8 @@ namespace CalculateFunding.Functions.Specs.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.DetectObsoleteFundingLines,
-                async(Message smokeResponse) => await onAddRelationshipEvent.Run(smokeResponse));
+                async(Message smokeResponse) => await onDetectObsoleteFundingLines.Run(smokeResponse),
+                useSession:true);
 
             response
                 .Should()
