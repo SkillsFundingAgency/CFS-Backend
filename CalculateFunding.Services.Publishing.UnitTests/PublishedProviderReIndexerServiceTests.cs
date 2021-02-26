@@ -3,15 +3,13 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.JobManagement;
-using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Publishing;
-using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Publishing.Interfaces;
 using FluentAssertions;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
+using Moq;
 using Polly;
 using Serilog;
 
@@ -21,28 +19,28 @@ namespace CalculateFunding.Services.Publishing.UnitTests
     public class PublishedProviderReIndexerServiceTests
     {
         private PublishedProviderReIndexerService _service;
-        private ISearchRepository<PublishedProviderIndex> _searchRepository;
-        private IPublishedFundingRepository _publishedFundingRepository;
-        private IJobManagement _jobManagement;
+        private Mock<IPublishedFundingRepository> _publishedFundingRepository;
+        private Mock<IPublishedProviderIndexerService> _publishedProviderIndexerService;
+        private Mock<IJobManagement> _jobManagement;
         private const string JobId = "jobId";
         private const string SpecificationId = "specification-id";
 
         [TestInitialize]
         public void SetUp()
         {
-            _searchRepository = Substitute.For<ISearchRepository<PublishedProviderIndex>>();
-            _publishedFundingRepository = Substitute.For<IPublishedFundingRepository>();
-            _jobManagement = Substitute.For<IJobManagement>();
+            _publishedProviderIndexerService = new Mock<IPublishedProviderIndexerService>();
+            _publishedFundingRepository = new Mock<IPublishedFundingRepository>();
+            _jobManagement = new Mock<IJobManagement>();
 
-            _service = new PublishedProviderReIndexerService(_searchRepository,
+            _service = new PublishedProviderReIndexerService(_publishedProviderIndexerService.Object,
                 new ResiliencePolicies
                 {
                     PublishedProviderSearchRepository = Policy.NoOpAsync(),
                     PublishedFundingRepository = Policy.NoOpAsync()
                 },
-                _publishedFundingRepository,
-                _jobManagement,
-                Substitute.For<ILogger>());
+                _publishedFundingRepository.Object,
+                _jobManagement.Object,
+                Mock.Of<ILogger>());
         }
 
         [TestMethod]
@@ -52,22 +50,33 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             message.UserProperties.Add("jobId", JobId);
 
-            _jobManagement.RetrieveJobAndCheckCanBeProcessed(JobId)
-                .Returns(NewJobViewModel());
+            _jobManagement.Setup(_ => _.RetrieveJobAndCheckCanBeProcessed(JobId))
+                .ReturnsAsync(NewJobViewModel());
+
+            string specificationIdProvided = null;
+
+            _publishedFundingRepository.Setup(_ => _.AllPublishedProviderBatchProcessing(It.IsAny<Func<List<PublishedProvider>, Task>>(), It.IsAny<int>(), It.IsAny<string>()))
+                .Callback<Func<List<PublishedProvider>, Task>, int, string>((cb, batchSize, specId) =>
+                {
+                    cb.Invoke(new List<PublishedProvider>());
+
+                    specificationIdProvided = specId;
+                });
+
 
             await _service.Run(message);
 
-            await _jobManagement
-                .Received(1)
-                .UpdateJobStatus(JobId, 0, 0, null, null);
+            _jobManagement.Verify(_ => _.UpdateJobStatus(JobId, 0, 0, null, null), Times.Once);
 
-            await _publishedFundingRepository
-                .Received(1)
-                .AllPublishedProviderBatchProcessing(Arg.Any<Func<List<PublishedProvider>, Task>>(), Arg.Is(1000), null);
+            _publishedFundingRepository.Verify(_ => _.AllPublishedProviderBatchProcessing(It.IsAny<Func<List<PublishedProvider>, Task>>(), 1000, null), Times.Once);
 
-            await _jobManagement
-                .Received(1)
-                .UpdateJobStatus(JobId, 0, 0, true, null);
+            _jobManagement.Verify(_ => _.UpdateJobStatus(JobId, 0, 0, true, null), Times.Once);
+
+            _publishedProviderIndexerService.Verify(_ => _.IndexPublishedProviders(It.IsAny<IEnumerable<PublishedProviderVersion>>()));
+
+            specificationIdProvided
+                .Should()
+                .BeNull();
         }
 
         [TestMethod]
@@ -78,22 +87,32 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             message.UserProperties.Add("jobId", JobId);
             message.UserProperties.Add("specification-id", SpecificationId);
 
-            _jobManagement.RetrieveJobAndCheckCanBeProcessed(JobId)
-                .Returns(NewJobViewModel());
+            _jobManagement.Setup(_ => _.RetrieveJobAndCheckCanBeProcessed(JobId))
+                 .ReturnsAsync(NewJobViewModel());
+
+            string specificationIdProvided = null;
+
+
+            _publishedFundingRepository.Setup(_ => _.AllPublishedProviderBatchProcessing(It.IsAny<Func<List<PublishedProvider>, Task>>(), It.IsAny<int>(), It.IsAny<string>()))
+                 .Callback<Func<List<PublishedProvider>, Task>, int, string>((cb, batchSize, specId) =>
+                 {
+                     cb.Invoke(new List<PublishedProvider>());
+
+                     specificationIdProvided = specId;
+                 });
+
 
             await _service.Run(message);
 
-            await _jobManagement
-                .Received(1)
-                .UpdateJobStatus(JobId, 0, 0, null, null);
+            _jobManagement.Verify(_ => _.UpdateJobStatus(JobId, 0, 0, null, null), Times.Once);
 
-            await _publishedFundingRepository
-                .Received(1)
-                .AllPublishedProviderBatchProcessing(Arg.Any<Func<List<PublishedProvider>, Task>>(), Arg.Is(1000), Arg.Is(SpecificationId));
+            _publishedFundingRepository.Verify(_ => _.AllPublishedProviderBatchProcessing(It.IsAny<Func<List<PublishedProvider>, Task>>(), 1000, SpecificationId), Times.Once);
 
-            await _jobManagement
-                .Received(1)
-                .UpdateJobStatus(JobId, 0, 0, true, null);
+            _publishedProviderIndexerService.Verify(_ => _.IndexPublishedProviders(It.IsAny<IEnumerable<PublishedProviderVersion>>()));
+
+            specificationIdProvided
+                .Should()
+                .Be(SpecificationId);
         }
 
         [TestMethod]
@@ -103,10 +122,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             message.UserProperties.Add("jobId", JobId);
 
-            _jobManagement.RetrieveJobAndCheckCanBeProcessed(JobId)
-                .Returns<JobViewModel>(x => { throw new Exception(); });
+            _jobManagement.Setup(_ => _.RetrieveJobAndCheckCanBeProcessed(JobId)).Throws<NonRetriableException>();
 
-            Func<Task> invocation = async() => await _service.Run(message);
+            Func<Task> invocation = async () => await _service.Run(message);
 
             invocation
                 .Should()
