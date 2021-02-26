@@ -106,6 +106,11 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
             Context.Request.FundingLineTotal = latestFundingTotal;
         }
 
+        protected void AndTheVariationPointerIndex(int? variationPointerIndex)
+        {
+            Context.Request.VariationPointerIndex = variationPointerIndex;
+        }
+
         protected void GivenTheLatestProfiling(params DeliveryProfilePeriod[] deliveryProfilePeriods)
         {
             Context.ProfileResult.DeliveryProfilePeriods = deliveryProfilePeriods;

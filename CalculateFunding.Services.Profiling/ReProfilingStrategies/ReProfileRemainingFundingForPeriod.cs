@@ -20,7 +20,7 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
             IExistingProfilePeriod[] orderedExistingProfilePeriods = new YearMonthOrderedProfilePeriods<IExistingProfilePeriod>(reProfileRequest.ExistingPeriods)
                 .ToArray();
 
-            int variationPointerIndex = GetVariationPointerIndex(orderedRefreshProfilePeriods, orderedExistingProfilePeriods);
+            int variationPointerIndex = GetVariationPointerIndex(orderedRefreshProfilePeriods, orderedExistingProfilePeriods, context);
 
             for (int refreshProfilePeriodIndex = 0; refreshProfilePeriodIndex < variationPointerIndex; refreshProfilePeriodIndex++)
             {

@@ -77,7 +77,8 @@ namespace CalculateFunding.Services.Publishing.Profiling
                 FundingLineTotal = fundingLineTotal.GetValueOrDefault(existingFundingLineTotal),
                 ExistingFundingLineTotal = existingFundingLineTotal,
                 ExistingPeriods = existingProfilePeriods,
-                MidYear = midYear
+                MidYear = midYear,
+                VariationPointerIndex = paidUpToIndex
             };
         }
 

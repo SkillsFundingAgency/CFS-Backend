@@ -177,7 +177,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                     .WithOccurence(0)
                     .WithYear(2021)
                     .WithFundingStreamId(fundingStreamId)
-                    .WithFundingLineId(fundingLineCode)
                     .WithTypeValue("March")
                     .WithPeriodType("CalenderMonth")));
 
@@ -201,6 +200,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                     FundingPeriodId = fundingPeriodId,
                     FundingStreamId = fundingStreamId,
                     ProfilePatternKey = profilePattern,
+                    VariationPointerIndex = 2,
                     ExistingPeriods = new []
                     {
                         NewExististingProfilePeriod(_ => _.WithOccurrence(0)
@@ -299,6 +299,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                     FundingStreamId = fundingStreamId,
                     ProfilePatternKey = profilePattern,
                     MidYear = midYear,
+                    VariationPointerIndex = 0,
                     ExistingPeriods = new []
                     {
                         NewExististingProfilePeriod(_ => _.WithOccurrence(0)

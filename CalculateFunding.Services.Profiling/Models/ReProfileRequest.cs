@@ -57,6 +57,12 @@ namespace CalculateFunding.Services.Profiling.Models
         /// should use a new opener or new allocation strategy 
         /// </summary>
         public bool MidYear { get; set; }
+        
+        /// <summary>
+        /// The index into the ordered refresh profile periods
+        /// to start paying from
+        /// </summary>
+        public int? VariationPointerIndex { get; set; }
 
         [JsonIgnore] 
         public decimal FundingLineTotalChange => FundingLineTotal - ExistingFundingLineTotal;

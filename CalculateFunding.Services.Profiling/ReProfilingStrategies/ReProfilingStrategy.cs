@@ -18,8 +18,16 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
         }
 
         protected int GetVariationPointerIndex(IProfilePeriod[] orderedRefreshProfilePeriods,
-            IExistingProfilePeriod[] orderedExistingProfilePeriods)
+            IExistingProfilePeriod[] orderedExistingProfilePeriods,
+            ReProfileContext context)
         {
+            int? requestVariationPointerIndex = context.Request?.VariationPointerIndex;
+            
+            if (requestVariationPointerIndex.HasValue)
+            {
+                return requestVariationPointerIndex.GetValueOrDefault();
+            }
+            
             IExistingProfilePeriod finalPaidProfilePeriod = orderedExistingProfilePeriods.LastOrDefault(_ => _.IsPaid);
             
             return finalPaidProfilePeriod == null ? 0 : Array.IndexOf(orderedExistingProfilePeriods, finalPaidProfilePeriod) + 1;    
