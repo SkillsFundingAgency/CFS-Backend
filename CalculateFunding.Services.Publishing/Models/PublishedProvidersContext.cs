@@ -7,7 +7,7 @@ namespace CalculateFunding.Services.Publishing.Models
 {
     public class PublishedProvidersContext
     {
-        public IDictionary<string, HashSet<string>> OrganisationGroupResultsData 
+        public IDictionary<string, IEnumerable<OrganisationGroupResult>> OrganisationGroupResultsData 
         { 
             get; set; 
         }

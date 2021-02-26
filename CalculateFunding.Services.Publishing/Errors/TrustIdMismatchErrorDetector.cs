@@ -56,25 +56,27 @@ namespace CalculateFunding.Services.Publishing.Errors
                 return $"{fundingStreamId}:{fundingPeriodId}";
             }
 
-            HashSet<string> organisationGroupsHashSet;
+            IEnumerable<OrganisationGroupResult> organisationGroups;
+
             string keyForOrganisationGroups = OrganisationGroupsKey(publishedProvider.Current.FundingStreamId, publishedProvider.Current.FundingPeriodId);
 
             if (publishedProvidersContext.OrganisationGroupResultsData.ContainsKey(keyForOrganisationGroups))
             {
-                organisationGroupsHashSet = publishedProvidersContext.OrganisationGroupResultsData[keyForOrganisationGroups];
+                organisationGroups = publishedProvidersContext.OrganisationGroupResultsData[keyForOrganisationGroups];
             }
             else
             {
-                IEnumerable<OrganisationGroupResult> organisationGroups = await _organisationGroupGenerator.GenerateOrganisationGroup(
+                organisationGroups = await _organisationGroupGenerator.GenerateOrganisationGroup(
                     publishedProvidersContext.FundingConfiguration,
                     apiClientProviders,
                     publishedProvidersContext.ProviderVersionId);
-                organisationGroupsHashSet = organisationGroups
-                                            .Where(_ => _.Providers.AnyWithNullCheck() 
+                publishedProvidersContext.OrganisationGroupResultsData.Add(keyForOrganisationGroups, organisationGroups);
+            }
+
+            HashSet<string> organisationGroupsHashSet = organisationGroups
+                                            .Where(_ => _.Providers.AnyWithNullCheck()
                                                         && _.Providers.Any(p => p.ProviderId == publishedProvider.Current.ProviderId))
                                             .SelectMany(_ => _.Identifiers.Select(_ => $"{_.Type}-{_.Value}")).Distinct().ToHashSet();
-                publishedProvidersContext.OrganisationGroupResultsData.Add(keyForOrganisationGroups, organisationGroupsHashSet);
-            }
 
             publishedProvidersContext.CurrentPublishedFunding
                 .ForEach(x =>
