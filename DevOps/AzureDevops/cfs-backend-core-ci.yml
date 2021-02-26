@@ -1,0 +1,34 @@
+name: $(Rev:r)
+
+variables:
+ - name: releaseconfiguration
+   value: 'release'
+ - name: DOTNET_SKIP_FIRST_TIME_EXPERIENCE
+   value: true
+
+pool:
+  vmImage: vs2017-win2016
+
+resources:
+  repositories:
+  - repository: self
+
+trigger:
+  batch: true
+  branches:
+    include:
+    - master
+    - providers
+  paths:
+    include:
+    - /devops
+
+steps:
+- task: CopyFiles@2
+  displayName: 'Copy Files to: $(build.artifactstagingdirectory)/DevOps'
+  inputs:
+    SourceFolder: DevOps
+    TargetFolder: '$(build.artifactstagingdirectory)/DevOps'
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifact: drop'
