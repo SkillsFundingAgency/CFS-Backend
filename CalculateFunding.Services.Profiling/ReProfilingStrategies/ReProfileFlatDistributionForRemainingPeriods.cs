@@ -68,18 +68,5 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
 
             finalProfilePeriod.SetProfiledValue(finalProfilePeriod.GetProfileValue() + remainderForFinalPeriod);
         }
-
-        private static void RetainPaidProfilePeriodValues(int variationPointerIndex,
-            IExistingProfilePeriod[] orderedExistingProfilePeriods,
-            IProfilePeriod[] orderedRefreshProfilePeriods)
-        {
-            for (int paidProfilePeriodIndex = 0; paidProfilePeriodIndex < variationPointerIndex; paidProfilePeriodIndex++)
-            {
-                IProfilePeriod paidProfilePeriod = orderedExistingProfilePeriods[paidProfilePeriodIndex];
-                IProfilePeriod refreshProfilePeriod = orderedRefreshProfilePeriods[paidProfilePeriodIndex];
-
-                refreshProfilePeriod.SetProfiledValue(paidProfilePeriod.GetProfileValue());
-            }
-        }
     }
 }

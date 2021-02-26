@@ -52,6 +52,11 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
             }
         }
 
+        protected void ThenTheFundingLinePeriodAmountsShouldBe(params decimal[] expectedAmounts)
+        {
+            AndTheFundingLinePeriodAmountsShouldBe(expectedAmounts);
+        }
+
         protected void AndTheCarryOverShouldBe(decimal? expectedOverPayment)
         {
             Result.CarryOverAmount

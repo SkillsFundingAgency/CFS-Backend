@@ -168,7 +168,8 @@ namespace CalculateFunding.Api.Profiling
             builder.AddSingleton<IReProfilingStrategy, ReProfileDsgFundingLine>();
             builder.AddSingleton<IReProfilingStrategy, ReProfileRemainingFundingForPeriod>();
             builder.AddSingleton<IReProfilingStrategy, ReProfileFlatDistributionForRemainingPeriods>();
-            builder.AddSingleton<IReProfilingStrategyLocator, ReProfilingStrategyLocator>();
+            builder.AddSingleton<IReProfilingStrategy, ReProfileFutureDistributionPeriodsWithAdjustments>();
+            builder.AddSingleton<IReProfilingStrategyLocator, ReProfilingStrategyLocator>();          
         }
 
         public static void ConfigureSwaggerServices(IServiceCollection services,
