@@ -216,9 +216,15 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<ApiResponse<TemplateMetadataDistinctFundingLinesContents>> GetDistinctTemplateMetadataFundingLinesContents(string fundingStreamId, string fundingPeriodId, string templateVersion)
+        public Task<ApiResponse<TemplateMetadataDistinctFundingLinesContents>> GetDistinctTemplateMetadataFundingLinesContents(
+            string fundingStreamId, 
+            string fundingPeriodId, 
+            string templateVersion)
         {
-            throw new NotImplementedException();
+            return Task.FromResult(
+                new ApiResponse<TemplateMetadataDistinctFundingLinesContents>(
+                    HttpStatusCode.OK, 
+                    new TemplateMetadataDistinctFundingLinesContents()));
         }
 
         public Task<ApiResponse<TemplateMetadataDistinctCalculationsContents>> GetDistinctTemplateMetadataCalculationsContents(string fundingStreamId, string fundingPeriodId, string templateVersion)

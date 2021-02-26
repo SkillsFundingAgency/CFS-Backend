@@ -570,6 +570,9 @@ Background: Existing published funding
 		| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
 		| FY-1920              | CalendarMonth | October   | 1920 | 1          | 14000         |
 		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 10000         |
+	And the following profile pattern exists
+		| FundingStreamId | FundingPeriodId |
+		| PSG | AY-1920 |
 
 Scenario: Successful refresh of funding
 	When funding is refreshed

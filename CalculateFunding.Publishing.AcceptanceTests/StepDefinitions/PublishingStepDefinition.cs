@@ -112,6 +112,16 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             });
         }
 
+        [Given(@"the following profile pattern exists")]
+        public void GivenTheFollowingProfilePatternExist(Table table)
+        {
+            _publishFundingStepContext.ProfilingInMemoryClient.FundingStreamPeriodProfilePatterns = table.Rows.Select(
+                row => new Common.ApiClient.Profiling.Models.FundingStreamPeriodProfilePattern
+                {
+                    FundingStreamId = row[0],
+                    FundingPeriodId = row[1]
+                });
+        }
 
         [When(@"funding is published")]
         public async Task WhenFundingIsPublished()

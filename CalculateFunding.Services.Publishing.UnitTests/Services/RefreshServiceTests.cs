@@ -152,8 +152,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _prerequisiteCheckerLocator = new Mock<IPrerequisiteCheckerLocator>();
             _policiesService = new Mock<IPoliciesService>();
             _prerequisiteCheckerLocator.Setup(_ => _.GetPreReqChecker(PrerequisiteCheckerType.Refresh))
-                .Returns(new RefreshPrerequisiteChecker(_specificationFundingStatusService.Object,
-                _specificationService, _jobsRunning.Object, _calculationApprovalCheckerService.Object, _jobManagement.Object, _logger.Object));
+                .Returns(new RefreshPrerequisiteChecker(
+                    _specificationFundingStatusService.Object,
+                _specificationService, 
+                _jobsRunning.Object, 
+                _calculationApprovalCheckerService.Object, 
+                _jobManagement.Object, 
+                _logger.Object,
+                _policiesService.Object,
+                _profilingService.Object));
             _organisationGroupGenerator = new Mock<IOrganisationGroupGenerator>();
             _transactionFactory = new TransactionFactory(_logger.Object, new TransactionResiliencePolicies { TransactionPolicy = Policy.NoOpAsync() });
             _publishedProviderVersionService = new Mock<IPublishedProviderVersionService>();
@@ -239,6 +246,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndPublishedProviders();
             AndNewMissingPublishedProviders();
             AndUpdateStatusThrowsAnError(error);
+            AndProfilePatternsForFundingStreamAndFundingPeriod();
 
             Func<Task> invocation = WhenMessageReceivedWithJobIdAndCorrelationId;
 
@@ -270,6 +278,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndPublishedProviders();
             AndNewMissingPublishedProviders();
             AndCsvJobService();
+            AndProfilePatternsForFundingStreamAndFundingPeriod();
 
             await WhenMessageReceivedWithJobIdAndCorrelationId();
 
@@ -301,6 +310,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndPublishedProviders();
             AndNewMissingPublishedProviders();
             AndCsvJobService();
+            AndProfilePatternsForFundingStreamAndFundingPeriod();
 
             await WhenMessageReceivedWithJobIdAndCorrelationId();
 
@@ -327,6 +337,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndScopedProviders();
             AndScopedProviderCalculationResults();
             AndTemplateMapping();
+            AndProfilePatternsForFundingStreamAndFundingPeriod();
 
             List<PublishedProvider> publishedProviders = _publishedProviders.ToList();
             publishedProviders.Add(NewPublishedProvider(pp => pp.WithCurrent(
@@ -378,6 +389,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndPublishedProviders(publishedProviders);
             AndNewMissingPublishedProviders();
             AndCsvJobService();
+            AndProfilePatternsForFundingStreamAndFundingPeriod();
 
             await WhenMessageReceivedWithJobIdAndCorrelationId();
 
@@ -412,6 +424,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndPublishedProviders();
             AndNewMissingPublishedProviders();
             AndCsvJobService();
+            AndProfilePatternsForFundingStreamAndFundingPeriod();
 
             GivenFundingConfiguration(new ProviderMetadataVariationStrategy());
 
@@ -475,6 +488,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndTemplateMetadataContents();
             AndScopedProviders();
             GivenCalculationResultsBySpecificationIdThrowsException();
+            AndProfilePatternsForFundingStreamAndFundingPeriod();
 
             Func<Task> invocation = WhenMessageReceivedWithJobIdAndCorrelationId;
 
@@ -498,6 +512,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndScopedProviders();
             AndScopedProviderCalculationResults();
             AndNewMissingPublishedProviders();
+            AndProfilePatternsForFundingStreamAndFundingPeriod();
 
             Func<Task> invocation = WhenMessageReceivedWithJobIdAndCorrelationId;
 
@@ -548,6 +563,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndNewMissingPublishedProviders();
             AndNoScopedProviderCalculationResults();
             AndTemplateMapping();
+            AndProfilePatternsForFundingStreamAndFundingPeriod();
 
             Func<Task> invocation = WhenMessageReceivedWithJobIdAndCorrelationId;
 
@@ -571,6 +587,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 _.Name = "New name";
             }, includeTemplateContents: false);
             AndScopedProviderCalculationResults();
+            AndProfilePatternsForFundingStreamAndFundingPeriod();
 
             await WhenMessageReceivedWithJobIdAndCorrelationId();
 
@@ -591,6 +608,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndPublishedProviders();
             AndNewMissingPublishedProviders();
             AndProfilingThrowsExeption();
+            AndProfilePatternsForFundingStreamAndFundingPeriod();
 
             Func<Task> invocation = WhenMessageReceivedWithJobIdAndCorrelationId;
 
@@ -617,6 +635,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndTemplateMapping();
             AndPublishedProviders();
             AndNewMissingPublishedProviders();
+            AndProfilePatternsForFundingStreamAndFundingPeriod();
 
             await WhenMessageReceivedWithJobIdAndCorrelationId();
 
@@ -650,6 +669,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndScopedProviderCalculationResultsWithModifiedCalculationResults();
             AndTemplateMapping();
             AndCsvJobService();
+            AndProfilePatternsForFundingStreamAndFundingPeriod();
 
             await WhenMessageReceivedWithJobIdAndCorrelationId();
 
@@ -697,6 +717,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndPublishedProviders();
             AndNewMissingPublishedProviders();
             AndCsvJobService();
+            AndProfilePatternsForFundingStreamAndFundingPeriod();
 
             await WhenMessageReceivedWithJobIdAndCorrelationId();
 
@@ -928,6 +949,25 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _generateCsvJobsLocator
                 .Setup(_ => _.GetService(It.IsAny<GeneratePublishingCsvJobsCreationAction>()))
                 .Returns(_generateCsvJobsCreation.Object);
+        }
+
+        private void AndProfilePatternsForFundingStreamAndFundingPeriod()
+        {
+            IEnumerable<Common.ApiClient.Profiling.Models.FundingStreamPeriodProfilePattern> fundingStreamPeriodProfilePatterns
+                = new List<Common.ApiClient.Profiling.Models.FundingStreamPeriodProfilePattern>
+                {
+                    new Common.ApiClient.Profiling.Models.FundingStreamPeriodProfilePattern
+                    {
+
+                    }
+                };
+
+            foreach (Reference fundingStream in _specificationSummary.FundingStreams)
+            {
+                _profilingService
+                    .Setup(_ => _.GetProfilePatternsForFundingStreamAndFundingPeriod(fundingStream.Id, _specificationSummary.FundingPeriod.Id))
+                    .ReturnsAsync(fundingStreamPeriodProfilePatterns);
+            }
         }
 
         private void GivenJobNotFound()

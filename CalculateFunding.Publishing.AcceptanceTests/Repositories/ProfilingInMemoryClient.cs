@@ -6,15 +6,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using NSubstitute;
 
 namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 {
     public class ProfilingInMemoryClient : IProfilingApiClient
     {
-        public IEnumerable<ProfilingPeriod> ProfilingPeriods { get; set; } = new ProfilingPeriod[0];
+        public IEnumerable<ProfilingPeriod> ProfilingPeriods { get; set; } = Array.Empty<ProfilingPeriod>();
 
-        public IEnumerable<DistributionPeriods> DistributionPeriods { get; set; } = new DistributionPeriods[0];
+        public IEnumerable<DistributionPeriods> DistributionPeriods { get; set; } = Array.Empty<DistributionPeriods>();
+
+        public IEnumerable<FundingStreamPeriodProfilePattern> FundingStreamPeriodProfilePatterns { get; set; } = Array.Empty<FundingStreamPeriodProfilePattern>();
 
         public IList<(decimal? Value, 
             string FundingStreamId, 
@@ -76,9 +77,17 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<ApiResponse<IEnumerable<FundingStreamPeriodProfilePattern>>> GetProfilePatternsForFundingStreamAndFundingPeriod(string fundingStreamId, string fundingPeriodId)
+        public Task<ApiResponse<IEnumerable<FundingStreamPeriodProfilePattern>>> GetProfilePatternsForFundingStreamAndFundingPeriod(
+            string fundingStreamId, 
+            string fundingPeriodId)
         {
-            throw new NotImplementedException();
+            IEnumerable<FundingStreamPeriodProfilePattern> fundingStreamPeriodProfilePatterns
+                = FundingStreamPeriodProfilePatterns.Where(_ => _.FundingStreamId == fundingStreamId && _.FundingPeriodId == fundingPeriodId);
+
+            return Task.FromResult(
+                new ApiResponse<IEnumerable<FundingStreamPeriodProfilePattern>>(
+                    HttpStatusCode.OK,
+                    fundingStreamPeriodProfilePatterns));
         }
 
         public Task<(bool Ok, string Message)> IsHealthOk()

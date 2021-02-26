@@ -16,6 +16,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Profiling.Models;
+using CalculateFunding.Common.Models;
+using CalculateFunding.Common.ApiClient.Policies.Models;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
 {
@@ -29,6 +32,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private IJobManagement _jobManagement;
         private ILogger _logger;
         private RefreshPrerequisiteChecker _refreshPrerequisiteChecker;
+        private IPoliciesService _policiesService;
+        private IProfilingService _profilingService;
+
 
         [TestInitialize]
         public void SetUp()
@@ -39,6 +45,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _calculationApprovalCheckerService = Substitute.For<ICalculationPrerequisiteCheckerService>();
             _jobManagement = Substitute.For<IJobManagement>();
             _logger = Substitute.For<ILogger>();
+            _policiesService = Substitute.For<IPoliciesService>();
+            _profilingService = Substitute.For<IProfilingService>();
 
             _refreshPrerequisiteChecker = new RefreshPrerequisiteChecker(
                 _specificationFundingStatusService, 
@@ -46,7 +54,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _jobsRunning,
                 _calculationApprovalCheckerService,
                 _jobManagement,
-                _logger);
+                _logger,
+                _policiesService,
+                _profilingService);
         }
 
         [TestMethod]
@@ -153,13 +163,24 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             // Arrange
             string specificationId = "specId01";
-            SpecificationSummary specificationSummary = new SpecificationSummary { Id = specificationId, ApprovalStatus = PublishStatus.Approved };
+            string fundingStreamId = NewRandomString();
+            string fundingPeriodId = NewRandomString();
+
+            SpecificationSummary specificationSummary = new SpecificationSummary
+            {
+                Id = specificationId,
+                ApprovalStatus = PublishStatus.Approved,
+                FundingStreams = new[] { NewReference(_ => _.WithId(fundingStreamId)) },
+                FundingPeriod = NewReference(_ => _.WithId(fundingPeriodId))
+            };
+
             IEnumerable<Provider> providers = new[] { new Provider { ProviderId = "ProviderId" } };
 
             string errorMessage = "Generic error message";
 
             GivenTheSpecificationFundingStatusForTheSpecification(specificationSummary, SpecificationFundingStatus.CanChoose);
             GivenExceptionThrownForSelectSpecificationForFunding(specificationId, new Exception(errorMessage));
+            GivenProfilePatternsForFundingStreamAndFundingPeriod(fundingStreamId, fundingPeriodId, new[] { new FundingStreamPeriodProfilePattern { } });
 
             // Act
             Func<Task> invocation
@@ -207,17 +228,88 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         }
 
         [TestMethod]
+        public void ReturnsErrorMessageWhenProfilingConfigPrequisitesNotMet()
+        {
+            // Arrange
+            string specificationId = "specId01";
+            string fundingStreamId = NewRandomString();
+            string fundingPeriodId = NewRandomString();
+            string fundingLineCodeOne = NewRandomString();
+            string fundingLineCodeTwo = NewRandomString();
+            string templateId = NewRandomString();
+
+            SpecificationSummary specificationSummary = new SpecificationSummary
+            {
+                Id = specificationId,
+                ApprovalStatus = PublishStatus.Approved,
+                FundingStreams = new[] { NewReference(_ => _.WithId(fundingStreamId)) },
+                FundingPeriod = NewReference(_ => _.WithId(fundingPeriodId)),
+                TemplateIds = new Dictionary<string, string>
+                {
+                    { fundingStreamId, templateId }
+                }
+            };
+            IEnumerable<Provider> providers = new[] { new Provider { ProviderId = "ProviderId" } };
+
+            string errorMessage = $"Profiling configuration missing for funding lines {fundingLineCodeOne},{fundingLineCodeTwo}";
+
+            TemplateMetadataDistinctFundingLinesContents templateMetadataDistinctFundingLinesContents = new TemplateMetadataDistinctFundingLinesContents
+            {
+                FundingLines = new List<TemplateMetadataFundingLine>
+                {
+                    new TemplateMetadataFundingLine
+                    {
+                        FundingLineCode = fundingLineCodeOne
+                    },
+                    new TemplateMetadataFundingLine
+                    {
+                        FundingLineCode = fundingLineCodeTwo
+                    }
+                }
+            };
+            
+            GivenTheSpecificationFundingStatusForTheSpecification(specificationSummary, SpecificationFundingStatus.AlreadyChosen);
+            GivenCalculationEngineRunningStatusForTheSpecification(specificationId);
+            GivenProfilePatternsForFundingStreamAndFundingPeriod(fundingStreamId, fundingPeriodId, Array.Empty<FundingStreamPeriodProfilePattern>());
+            GivenDistinctTemplateMetadataFundingLinesContents(fundingStreamId, specificationSummary, templateMetadataDistinctFundingLinesContents);
+
+            // Act
+            Func<Task> invocation
+                = () => WhenThePreRequisitesAreChecked(specificationSummary, Enumerable.Empty<PublishedProvider>(), providers);
+
+            // Assert
+            invocation
+                .Should()
+                .Throw<JobPrereqFailedException>()
+                .Where(_ =>
+                    _.Message == $"Specification with id: '{specificationSummary.Id} has prerequisites which aren't complete.");
+
+            _logger
+                .Received()
+                .Error(errorMessage);
+        }
+
+        [TestMethod]
         public void ReturnsErrorMessageWhenCalculationPrequisitesNotMet()
         {
             // Arrange
             string specificationId = "specId01";
-            SpecificationSummary specificationSummary = new SpecificationSummary { Id = specificationId, ApprovalStatus = PublishStatus.Approved };
+            string fundingStreamId = NewRandomString();
+            string fundingPeriodId = NewRandomString();
+            SpecificationSummary specificationSummary = new SpecificationSummary
+            {
+                Id = specificationId,
+                ApprovalStatus = PublishStatus.Approved,
+                FundingStreams = new[] { NewReference(_ => _.WithId(fundingStreamId)) },
+                FundingPeriod = NewReference(_ => _.WithId(fundingPeriodId))
+            };
             IEnumerable<Provider> providers = new[] { new Provider { ProviderId = "ProviderId" } };
 
             string errorMessage = "Error message";
 
             GivenTheSpecificationFundingStatusForTheSpecification(specificationSummary, SpecificationFundingStatus.AlreadyChosen);
             GivenCalculationEngineRunningStatusForTheSpecification(specificationId);
+            GivenProfilePatternsForFundingStreamAndFundingPeriod(fundingStreamId, fundingPeriodId, new[] { new FundingStreamPeriodProfilePattern { } });
             GivenValidationErrorsForTheSpecification(specificationSummary, new List<string> { errorMessage });
 
             // Act
@@ -354,9 +446,39 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Returns(validationErrors);
         }
 
+        private void GivenProfilePatternsForFundingStreamAndFundingPeriod(
+            string fundingStreamId, 
+            string fundingPeriodId,
+            IEnumerable<FundingStreamPeriodProfilePattern> fundingStreamPeriodProfilePatterns)
+        {
+            _profilingService.GetProfilePatternsForFundingStreamAndFundingPeriod(fundingStreamId, fundingPeriodId)
+                .Returns(fundingStreamPeriodProfilePatterns);
+        }
+
+        private void GivenDistinctTemplateMetadataFundingLinesContents(
+            string fundingStreamId,
+            SpecificationSummary specificationSummary,
+            TemplateMetadataDistinctFundingLinesContents templateMetadataDistinctFundingLinesContents)
+        {
+            _policiesService.GetDistinctTemplateMetadataFundingLinesContents(
+                fundingStreamId,
+                specificationSummary.FundingPeriod.Id,
+                specificationSummary.TemplateIds[fundingStreamId])
+                .Returns(templateMetadataDistinctFundingLinesContents);
+        }
+
         private async Task WhenThePreRequisitesAreChecked(SpecificationSummary specification, IEnumerable<PublishedProvider> publishedProviders, IEnumerable<Provider> providers)
         {
             await _refreshPrerequisiteChecker.PerformChecks(specification, null, publishedProviders, providers);
+        }
+
+        private static Reference NewReference(Action<ReferenceBuilder> setUp = null)
+        {
+            ReferenceBuilder referenceBuilder = new ReferenceBuilder();
+
+            setUp?.Invoke(referenceBuilder);
+
+            return referenceBuilder.Build();
         }
 
         private static PublishedProviderVersion NewPublishedProviderVersion(Action<PublishedProviderVersionBuilder> setUp = null)

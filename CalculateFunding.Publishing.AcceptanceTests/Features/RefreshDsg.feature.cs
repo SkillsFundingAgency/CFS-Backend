@@ -5228,20 +5228,29 @@ this.ScenarioInitialize(scenarioInfo);
 #line 1357
  testRunner.And("the following profiles exist", ((string)(null)), table527, "And ");
 #line hidden
+                TechTalk.SpecFlow.Table table528 = new TechTalk.SpecFlow.Table(new string[] {
+                            "FundingStreamId",
+                            "FundingPeriodId"});
+                table528.AddRow(new string[] {
+                            "DSG",
+                            "FY-2021"});
 #line 1361
+ testRunner.And("the following profile pattern exists", ((string)(null)), table528, "And ");
+#line hidden
+#line 1364
  testRunner.When("funding is refreshed", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-                TechTalk.SpecFlow.Table table528 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table529 = new TechTalk.SpecFlow.Table(new string[] {
                             "PublishedProviderId",
                             "Status"});
-                table528.AddRow(new string[] {
+                table529.AddRow(new string[] {
                             string.Format("publishedprovider-1000000-{0}-{1}", fundingPeriodId, fundingStreamId),
                             "Updated"});
-                table528.AddRow(new string[] {
+                table529.AddRow(new string[] {
                             string.Format("publishedprovider-1000002-{0}-{1}", fundingPeriodId, fundingStreamId),
                             "Draft"});
-#line 1362
- testRunner.Then("the following published provider ids are upserted", ((string)(null)), table528, "Then ");
+#line 1365
+ testRunner.Then("the following published provider ids are upserted", ((string)(null)), table529, "Then ");
 #line hidden
             }
             this.ScenarioCleanup();

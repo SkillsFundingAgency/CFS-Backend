@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Constants;
@@ -19,6 +21,8 @@ namespace CalculateFunding.Services.Publishing
         private readonly ISpecificationService _specificationService;
         private readonly ICalculationPrerequisiteCheckerService _calculationApprovalCheckerService;
         private readonly ILogger _logger;
+        private readonly IPoliciesService _policiesService;
+        private readonly IProfilingService _profilingService;
 
         public RefreshPrerequisiteChecker(
             ISpecificationFundingStatusService specificationFundingStatusService,
@@ -26,17 +30,23 @@ namespace CalculateFunding.Services.Publishing
             IJobsRunning jobsRunning,
             ICalculationPrerequisiteCheckerService calculationApprovalCheckerService,
             IJobManagement jobManagement,
-            ILogger logger) : base(jobsRunning, jobManagement, logger)
+            ILogger logger,
+            IPoliciesService policiesService,
+            IProfilingService profilingService) : base(jobsRunning, jobManagement, logger)
         {
             Guard.ArgumentNotNull(specificationFundingStatusService, nameof(specificationFundingStatusService));
             Guard.ArgumentNotNull(specificationService, nameof(specificationService));
             Guard.ArgumentNotNull(calculationApprovalCheckerService, nameof(calculationApprovalCheckerService));
             Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(policiesService, nameof(policiesService));
+            Guard.ArgumentNotNull(profilingService, nameof(profilingService));
 
             _specificationFundingStatusService = specificationFundingStatusService;
             _specificationService = specificationService;
             _calculationApprovalCheckerService = calculationApprovalCheckerService;
             _logger = logger;
+            _policiesService = policiesService;
+            _profilingService = profilingService;
         }
 
         public async Task PerformChecks<T>(T prereqObject, string jobId, IEnumerable<PublishedProvider> publishedProviders = null, IEnumerable<Provider> providers = null)
@@ -86,6 +96,31 @@ namespace CalculateFunding.Services.Publishing
 
                 _logger.Error(errorMessage);
                 return new string[] { errorMessage };
+            }
+
+            foreach (Reference fundingStream in specification.FundingStreams) 
+            {
+                IEnumerable<Common.ApiClient.Profiling.Models.FundingStreamPeriodProfilePattern> fundingStreamPeriodProfilePatterns 
+                    = await _profilingService.GetProfilePatternsForFundingStreamAndFundingPeriod(fundingStream.Id, specification.FundingPeriod.Id);
+
+                if (!fundingStreamPeriodProfilePatterns.AnyWithNullCheck())
+                {
+                    TemplateMetadataDistinctFundingLinesContents templateMetadataDistinctFundingLinesContents =
+                        await _policiesService.GetDistinctTemplateMetadataFundingLinesContents(
+                            fundingStream.Id, 
+                            specification.FundingPeriod.Id, 
+                            specification.TemplateIds[fundingStream.Id]);
+
+                    IEnumerable<TemplateMetadataFundingLine> templateMetadataPaymentFundingLines
+                        = templateMetadataDistinctFundingLinesContents
+                            .FundingLines
+                            .Where(_ => _.Type == Common.TemplateMetadata.Enums.FundingLineType.Payment);
+
+                    string errorMessage = $"Profiling configuration missing for funding lines {string.Join(",", templateMetadataPaymentFundingLines.Select(_ => _.FundingLineCode))}";
+
+                    _logger.Error(errorMessage);
+                    return new string[] { errorMessage };
+                }
             }
 
             if (specificationFundingStatus == SpecificationFundingStatus.CanChoose)

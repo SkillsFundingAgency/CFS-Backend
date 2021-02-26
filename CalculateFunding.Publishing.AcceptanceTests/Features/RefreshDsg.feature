@@ -1358,6 +1358,9 @@ Scenario Outline: Successful refresh of funding
 		| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
 		| FY-1920              | CalendarMonth | October   | 1920 | 1          | 1200          |
 		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 2000          |
+	And the following profile pattern exists
+		| FundingStreamId | FundingPeriodId |
+		| DSG | FY-2021 |
 	When funding is refreshed
 	Then the following published provider ids are upserted
 		| PublishedProviderId                                           | Status  |
