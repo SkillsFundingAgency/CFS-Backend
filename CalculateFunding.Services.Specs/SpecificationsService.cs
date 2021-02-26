@@ -971,7 +971,7 @@ namespace CalculateFunding.Services.Specs
             IEnumerable<JobSummary> latestSpecificationJobs =
                 await _jobManagement.GetLatestJobsForSpecification(specificationId, specificationJobTypes);
 
-            return latestSpecificationJobs.ToList().Any(job => job.RunningStatus != RunningStatus.Completed);
+            return latestSpecificationJobs?.Any(job => job != null && job.RunningStatus == RunningStatus.InProgress) == true;
         }
 
         private async Task ReindexSpecification(Specification specification)

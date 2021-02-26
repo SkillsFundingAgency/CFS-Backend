@@ -49,6 +49,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             _messengerService = CreateMessengerService();
             _versionRepository = CreateVersionRepository();
             _providersApiClient = CreateProvidersApiClient();
+            _jobManagement = CreateJobManagement();
             _editSpecificationJobActions = CreateQueueEditSpecificationJobActions();
             _fundingPeriodResponse = new ApiResponse<PolicyModels.FundingPeriod>(
                 HttpStatusCode.OK, _fundingPeriod);
@@ -89,6 +90,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             SpecificationEditModel specificationEditModel = new SpecificationEditModel();
             IEnumerable<JobSummary> aValidJobInprogress = new[]
             {
+                null,
                 new JobSummary
                 {
                     RunningStatus = RunningStatus.InProgress
@@ -516,6 +518,18 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 specificationEditModel.FundingPeriodId,
                 withRunCalculationEngineAfterCoreProviderUpdate: withRunCalculationEngineAfterCoreProviderUpdate);
 
+            IEnumerable<JobSummary> aValidJobInprogress = new[]
+            {
+                null,
+                new JobSummary
+                {
+                    RunningStatus = RunningStatus.Completed
+                }
+            };
+
+            _jobManagement.GetLatestJobsForSpecification(SpecificationId, Arg.Any<IEnumerable<string>>())
+                .Returns(aValidJobInprogress);
+
             SpecificationsService service = CreateSpecificationsService(newSpecVersion);
           
             string correlationId = NewRandomString();
@@ -728,7 +742,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 messengerService: _messengerService,
                 specificationVersionRepository: _versionRepository,
                 providersApiClient: _providersApiClient,
-                queueEditSpecificationJobActions: _editSpecificationJobActions);
+                queueEditSpecificationJobActions: _editSpecificationJobActions,
+                jobManagement: _jobManagement);
             return service;
         }
 

@@ -61,6 +61,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         private readonly ISearchRepository<SpecificationIndex> _searchRepository;
         private readonly ICacheProvider _cacheProvider;
         private readonly IMessengerService _messengerService;
+        private readonly IJobManagement _jobManagement;
         private readonly IVersionRepository<Models.Specs.SpecificationVersion> _versionRepository;
         
         private ISpecificationTemplateVersionChangedHandler _templateVersionChangedHandler;
