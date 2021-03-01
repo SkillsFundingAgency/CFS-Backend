@@ -1342,7 +1342,6 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task GetDataSourcesByRelationshipId_GivenRelationshipFoundAndDatasetsFound_ReturnsOKResult()
         {
             string relationshipId = NewRandomString();
-            int datasetVersion = NewRandomInt();
             string datasetComment = NewRandomString();
             DateTimeOffset datasetDate = NewRandomDateTime();
             string datasetAuthorId = NewRandomString();
@@ -1373,7 +1372,25 @@ namespace CalculateFunding.Services.Datasets.Services
                     .WithDescription(datasetDescription)
                     .WithHistory(
                         NewDatasetVersion(dv=> dv
-                            .WithVersion(datasetVersion)
+                            .WithVersion(1)
+                            .WithComment(datasetComment)
+                            .WithDate(datasetDate)
+                            .WithAuthor(
+                                NewReference(r=>r
+                                    .WithId(datasetAuthorId)
+                                    .WithName(datasetAuthorName)))
+                            ),
+                        NewDatasetVersion(dv=> dv
+                            .WithVersion(3)
+                            .WithComment(datasetComment)
+                            .WithDate(datasetDate)
+                            .WithAuthor(
+                                NewReference(r=>r
+                                    .WithId(datasetAuthorId)
+                                    .WithName(datasetAuthorName)))
+                            ),
+                        NewDatasetVersion(dv=> dv
+                            .WithVersion(2)
                             .WithComment(datasetComment)
                             .WithDate(datasetDate)
                             .WithAuthor(
@@ -1429,7 +1446,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .First()
                 .Version
                 .Should()
-                .Be(datasetVersion);
+                .Be(3);
 
             sourceModel
                 .Datasets

@@ -279,7 +279,7 @@ namespace CalculateFunding.Services.Datasets
                             Name = dataset.Name,
                             Description = dataset.Description,
                             SelectedVersion = (relationship.DatasetVersion != null && relationship.DatasetVersion.Id == dataset.Id) ? relationship.DatasetVersion.Version : null as int?,
-                            Versions = dataset.History.Select(m => new DatasetVersionModel
+                            Versions = dataset.History.OrderByDescending(_ => _.Version).Select(m => new DatasetVersionModel
                             { 
                                 Id = m.Id,
                                 Version = m.Version,
