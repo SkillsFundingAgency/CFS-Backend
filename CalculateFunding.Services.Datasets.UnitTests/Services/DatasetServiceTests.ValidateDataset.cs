@@ -349,21 +349,10 @@ namespace CalculateFunding.Services.Datasets.Services
                 policyRepository: policyRepository);
 
             // Act
-            await service.Run(message);
+            Func<Task> action = async () => { await service.Run(message); };
 
-            // Assert     
-            service.Outcome.Should().Be("ValidationFailed");
-            service.Job.CompletionStatus.Should().Be(CompletionStatus.Succeeded);
-
-            string validationErrorBlobName = $"validation-errors/{JobId}.xlsx";
-            blobClient
-                .Received(1)
-                .GetBlockBlobReference(Arg.Is(validationErrorBlobName));
-
-            mapper
-                .Received(1)
-                .Map<Models.ProviderLegacy.ProviderSummary>(Arg.Any<Common.ApiClient.Providers.Models.Provider>());
-
+            // Assert
+            action.Should().Throw<NonRetriableException>().WithMessage("Failed validation - The data source file does not match the schema rules;");
             await cacheProvider
                 .Received(1)
                 .SetAsync(
@@ -578,16 +567,10 @@ namespace CalculateFunding.Services.Datasets.Services
                 jobManagement: jobManagement);
 
             // Act
-            await service.Run(message);
+            Func<Task> action = async () => { await service.Run(message); };
 
             // Assert
-            service.Outcome.Should().Be("ValidationFailed");
-            service.Job.CompletionStatus.Should().Be(CompletionStatus.Succeeded);
-
-            string validationErrorBlobName = $"validation-errors/{JobId}.xlsx";
-            blobClient
-                .Received(1)
-                .GetBlockBlobReference(Arg.Is(validationErrorBlobName));
+            action.Should().Throw<NonRetriableException>();
         }
 
         [TestMethod]
@@ -1002,18 +985,10 @@ namespace CalculateFunding.Services.Datasets.Services
                 policyRepository: policyRepository);
 
             // Act
-            await service.Run(message);
+            Func<Task> action = async () => { await service.Run(message); };
 
             // Assert
-            service.Outcome.Should().Be("ValidationFailed");
-            service.Job.CompletionStatus.Should().Be(CompletionStatus.Succeeded);
-
-            string validationErrorBlobName = $"validation-errors/{JobId}.xlsx";
-            
-            blobClient
-                .Received(1)
-                .GetBlockBlobReference(Arg.Is(validationErrorBlobName));
-
+            action.Should().Throw<NonRetriableException>().WithMessage("Failed validation - The data source file does not match the schema rules;");
             await cacheProvider
                 .Received(1)
                 .SetAsync(Arg.Is($"{CacheKeys.DatasetValidationStatus}:{message.UserProperties["operation-id"].ToString()}"), Arg.Is<DatasetValidationStatusModel>(v =>

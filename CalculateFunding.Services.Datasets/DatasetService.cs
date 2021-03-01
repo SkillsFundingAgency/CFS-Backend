@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using AutoMapper;
@@ -558,7 +559,7 @@ namespace CalculateFunding.Services.Datasets
                 if (validationResult != null && (!validationResult.IsValid || validationResult.Errors.Count > 0))
                 {
                     await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, null, ConvertToErrorDictionary(validationResult));
-                    throw new NonRetriableException("Failed validation - with validation errors");
+                    throw new NonRetriableException($"Failed validation - {GetValidationResultErrors(validationResult)}"); 
                 }
                 else if(model.MergeExistingVersion && dataset != null)
                 {
@@ -566,7 +567,7 @@ namespace CalculateFunding.Services.Datasets
                     if (validationFailures.Count > 0)
                     {
                         await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, null, validationFailures);
-                        throw new NonRetriableException("Failed validation - with validation failures");
+                        throw new NonRetriableException($"Failed validation - {GetValidationFailuresValues(validationFailures)}");
                     }
 
                     await NotifyPercentComplete(35);
@@ -634,16 +635,28 @@ namespace CalculateFunding.Services.Datasets
 
             (validationFailures, validationRowCount) = await ValidateTableResults(datasetDefinition, datasetStream);
 
-            if (validationFailures.Count == 0)
+            if (validationFailures.Count > 0)
             {
-                await onValidatedTableResults(message, operationId, datasetDefinition, blob, model, fundingStream,
-                    mergeResult, validationRowCount);
+                await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, null, validationFailures);
+                throw new NonRetriableException($"Failed validation - {GetValidationFailuresValues(validationFailures)}");
             }
-            else
+
+            await onValidatedTableResults(message, operationId, datasetDefinition, blob, model, fundingStream,
+                mergeResult, validationRowCount);
+        }
+
+        private static string GetValidationResultErrors(ValidationResult validationResult) =>
+            string.Join(";", validationResult.Errors.Select(m => m.ErrorMessage).ToArraySafe());
+
+        private static StringBuilder GetValidationFailuresValues(IDictionary<string, IEnumerable<string>> validationFailures)
+        {
+            StringBuilder errors = new StringBuilder();
+            validationFailures.ForEach(validationFailure => validationFailure.Value.Where(failure=>!string.IsNullOrEmpty(failure)).ForEach(e =>
             {
-                await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation,
-                    validationFailures: validationFailures);
-            }
+                errors.Append(e);
+                errors.Append(";");
+            }));
+            return errors;
         }
 
         private async Task onValidatedTableResults(Message message, string operationId, DatasetDefinition datasetDefinition,
