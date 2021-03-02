@@ -6,6 +6,28 @@ namespace CalculateFunding.Services.Publishing.SqlExport
 {
     public class SqlSchemaGenerator : ISqlSchemaGenerator
     {
+        public string GenerateCreateTableSql(string tableName,
+            string fundingStreamId,
+            string fundingPeriodId,
+            IEnumerable<SqlColumnDefinition> fields)
+        {
+            string createTableSql = GenerateCreateTableSql(tableName, fields);
+            string createExtendedPropertiesSql = CreateExtendedPropertiesSql(tableName, fundingStreamId, fundingPeriodId);
+            
+            return $@"{createTableSql}
+
+{createExtendedPropertiesSql}";
+        }
+
+        private string CreateExtendedPropertiesSql(string tableName,
+            string fundingStreamId,
+            string fundingPeriodId) =>
+            $@"EXEC sys.sp_addextendedproperty   
+@name = N'CFS_FundingStreamId_FundingPeriodId',   
+@value = N'{fundingStreamId}_{fundingPeriodId}',   
+@level0type = N'SCHEMA', @level0name = 'dbo',  
+@level1type = N'TABLE',  @level1name = '{tableName}';";
+
         public string GenerateCreateTableSql(string tableName, IEnumerable<SqlColumnDefinition> fields)
         {
 
@@ -21,7 +43,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
 
    [PublishedProviderId] ASC
 )WITH(PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON[PRIMARY]
-) ON[PRIMARY]";
+) ON[PRIMARY];";
 
             return sql;
         }

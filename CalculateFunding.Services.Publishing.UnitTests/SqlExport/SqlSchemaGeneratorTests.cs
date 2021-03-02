@@ -11,8 +11,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
     public class SqlSchemaGeneratorTests
     {
         private SqlSchemaGenerator _sqlSchemaGenerator;
-        
-        
+
+
         [TestInitialize]
         public void SetUp()
         {
@@ -22,21 +22,33 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
         [TestMethod]
         [DynamicData(nameof(GenerateDDLExamples), DynamicDataSourceType.Method)]
         public void GeneratesDDLForSuppliedTableDefinitions(string tableName,
+            string fundingStreamId,
+            string fundingPeriodId,
             IEnumerable<SqlColumnDefinition> columnDefinitions,
             string expectedDDL)
         {
-            TheGeneratedDDLFor(tableName, columnDefinitions)
+            TheGeneratedDDLFor(tableName, fundingStreamId, fundingPeriodId, columnDefinitions)
                 .Should()
                 .Be(expectedDDL);
         }
 
         private string TheGeneratedDDLFor(string tableName,
+            string fundingStreamId,
+            string fundingPeriodId,
             IEnumerable<SqlColumnDefinition> columnDefinitions)
-            => _sqlSchemaGenerator.GenerateCreateTableSql(tableName, columnDefinitions);
+            => _sqlSchemaGenerator.GenerateCreateTableSql(tableName,
+                fundingStreamId,
+                fundingPeriodId,
+                columnDefinitions);
 
         private static IEnumerable<object[]> GenerateDDLExamples()
         {
-            yield return new object [] { "TableOne", AsArray(NewColumn(_ => _.WithName("one")
+            yield return new object[]
+            {
+                "TableOne",
+                "streamOne",
+                "periodOne",
+                AsArray(NewColumn(_ => _.WithName("one")
                         .WithType("boolean")
                         .WithAllowNulls(false)),
                     NewColumn(_ => _.WithName("two")
@@ -58,14 +70,25 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
 
    [PublishedProviderId] ASC
 )WITH(PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON[PRIMARY]
-) ON[PRIMARY]"
+) ON[PRIMARY];
+
+EXEC sys.sp_addextendedproperty   
+@name = N'CFS_FundingStreamId_FundingPeriodId',   
+@value = N'streamOne_periodOne',   
+@level0type = N'SCHEMA', @level0name = 'dbo',  
+@level1type = N'TABLE',  @level1name = 'TableOne';"
             };
-            yield return new object [] { "TableOne", AsArray(NewColumn(_ => _.WithName("one")
-                .WithType("decimal")
-                .WithAllowNulls(true)),
-                NewColumn(_ => _.WithName("two")
-                    .WithType("string")
-                    .WithAllowNulls(false))),
+            yield return new object[]
+            {
+                "TableOne",
+                "streamTwo",
+                "periodTwo",
+                AsArray(NewColumn(_ => _.WithName("one")
+                        .WithType("decimal")
+                        .WithAllowNulls(true)),
+                    NewColumn(_ => _.WithName("two")
+                        .WithType("string")
+                        .WithAllowNulls(false))),
                 @" CREATE TABLE[dbo].[TableOne](
            
                [PublishedProviderId][varchar](128) NOT NULL,
@@ -78,7 +101,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
 
    [PublishedProviderId] ASC
 )WITH(PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON[PRIMARY]
-) ON[PRIMARY]"
+) ON[PRIMARY];
+
+EXEC sys.sp_addextendedproperty   
+@name = N'CFS_FundingStreamId_FundingPeriodId',   
+@value = N'streamTwo_periodTwo',   
+@level0type = N'SCHEMA', @level0name = 'dbo',  
+@level1type = N'TABLE',  @level1name = 'TableOne';"
             };
         }
 
@@ -87,7 +116,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             SqlColumnDefinitionBuilder sqlColumnDefinitionBuilder = new SqlColumnDefinitionBuilder();
 
             setUp?.Invoke(sqlColumnDefinitionBuilder);
-            
+
             return sqlColumnDefinitionBuilder.Build();
         }
 

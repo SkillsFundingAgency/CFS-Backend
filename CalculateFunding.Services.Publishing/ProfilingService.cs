@@ -29,8 +29,8 @@ namespace CalculateFunding.Services.Publishing
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(profilingApiClient, nameof(profilingApiClient));
-            Guard.ArgumentNotNull(publishingResiliencePolicies, nameof(publishingResiliencePolicies));
             Guard.ArgumentNotNull(publishingResiliencePolicies.ProfilingApiClient, nameof(publishingResiliencePolicies.ProfilingApiClient));
+            Guard.ArgumentNotNull(publishingResiliencePolicies, nameof(publishingResiliencePolicies));
 
             _logger = logger;
             _profilingApiClient = profilingApiClient;

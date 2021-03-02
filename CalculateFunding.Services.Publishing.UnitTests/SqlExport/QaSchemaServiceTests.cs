@@ -101,7 +101,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             
             await WhenTheSchemaIsRecreated(specificationId, fundingStreamId);
                
-            ThenTheTotalNumberOfDDLScriptsExecutedWas(32);
+            ThenTheTotalNumberOfDDLScriptsExecutedWas(7);
         }
 
         private void ThenTheTotalNumberOfDDLScriptsExecutedWas(int count)

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
@@ -22,19 +23,6 @@ using Polly;
 
 namespace CalculateFunding.Services.Publishing.SqlExport
 {
-    public class SchemaContext
-    {
-        public IDictionary<string, ProfilePeriodPattern[]> FundingLineProfilePatterns { get; private set; }
-
-        public void AddFundingLineProfilePatterns(string fundingLineCode,
-            ProfilePeriodPattern[] profilePeriodPatterns)
-        {
-            FundingLineProfilePatterns ??= new Dictionary<string, ProfilePeriodPattern[]>();
-
-            FundingLineProfilePatterns[fundingLineCode] = profilePeriodPatterns;
-        }
-    }
-    
     public class QaSchemaService : IQaSchemaService
     {
         private readonly IPoliciesApiClient _policies;
@@ -116,42 +104,49 @@ namespace CalculateFunding.Services.Publishing.SqlExport
         private async Task EnsureTablesForFundingStream(SpecificationSummary specification, string fundingStreamId, SchemaContext schemaContext)
         {
             // TODO: handle multiple version of the template for fields....
+            string fundingPeriodId = specification.FundingPeriod.Id;
+
+            await DropExistingTables(fundingStreamId, fundingPeriodId);
+            
             UniqueTemplateContents templateMetadata = await GetTemplateData(specification, fundingStreamId);
             Dictionary<string, IEnumerable<SqlColumnDefinition>> profilingTables =
-                await GenerateProfiling(fundingStreamId, specification.FundingPeriod.Id, templateMetadata, schemaContext);
+                await GenerateProfiling(fundingStreamId, fundingPeriodId, templateMetadata, schemaContext);
 
-            string fundingStreamTablePrefix = $"{fundingStreamId}_{specification.FundingPeriod.Id}";
+            string fundingStreamTablePrefix = $"{fundingStreamId}_{fundingPeriodId}";
 
-            DropForeignKeys(fundingStreamTablePrefix, "Funding", "Providers");
-            DropForeignKeys(fundingStreamTablePrefix, "Funding", "InformationFundingLines");
-            DropForeignKeys(fundingStreamTablePrefix, "Funding", "PaymentFundingLines");
-            DropForeignKeys(fundingStreamTablePrefix, "Funding", "Calculations");
-
-            foreach (KeyValuePair<string, IEnumerable<SqlColumnDefinition>> profileTable in profilingTables)
-                DropForeignKeys(fundingStreamTablePrefix, "Funding", $"Profiles_{profileTable.Key}");
-
-            EnsureTable($"{fundingStreamTablePrefix}_Funding", GetSqlColumnDefinitionsForFunding());
-            EnsureTable($"{fundingStreamTablePrefix}_Providers", GetSqlColumnDefinitionsForProviderInformation());
+            EnsureTable($"{fundingStreamTablePrefix}_Funding", GetSqlColumnDefinitionsForFunding(), fundingStreamId, fundingPeriodId);
+            EnsureTable($"{fundingStreamTablePrefix}_Providers", GetSqlColumnDefinitionsForProviderInformation(), fundingStreamId, fundingPeriodId);
 
             (IEnumerable<SqlColumnDefinition> informationFundingLineFields,
                 IEnumerable<SqlColumnDefinition> paymentFundingLineFields,
                 IEnumerable<SqlColumnDefinition> calculationFields) = GetUniqueFundingLinesAndCalculationsForFundingStream(templateMetadata);
 
-
             foreach (KeyValuePair<string, IEnumerable<SqlColumnDefinition>> profileTable in profilingTables)
-                EnsureTable($"{fundingStreamTablePrefix}_Profiles_{profileTable.Key}", profileTable.Value);
+                EnsureTable($"{fundingStreamTablePrefix}_Profiles_{profileTable.Key}", profileTable.Value, fundingStreamId, fundingPeriodId);
 
-            EnsureTable($"{fundingStreamTablePrefix}_InformationFundingLines", informationFundingLineFields);
-            EnsureTable($"{fundingStreamTablePrefix}_PaymentFundingLines", paymentFundingLineFields);
-            EnsureTable($"{fundingStreamTablePrefix}_Calculations", calculationFields);
+            EnsureTable($"{fundingStreamTablePrefix}_InformationFundingLines", informationFundingLineFields, fundingStreamId, fundingPeriodId);
+            EnsureTable($"{fundingStreamTablePrefix}_PaymentFundingLines", paymentFundingLineFields, fundingStreamId, fundingPeriodId);
+            EnsureTable($"{fundingStreamTablePrefix}_Calculations", calculationFields, fundingStreamId, fundingPeriodId);
+        }
 
-            AddForeignKey(fundingStreamTablePrefix, "Funding", "Providers");
-            AddForeignKey(fundingStreamTablePrefix, "Funding", "InformationFundingLines");
-            AddForeignKey(fundingStreamTablePrefix, "Funding", "PaymentFundingLines");
-            AddForeignKey(fundingStreamTablePrefix, "Funding", "Calculations");
+        private async Task DropExistingTables(string fundingStreamId,
+            string fundingPeriodId)
+        {
+            IEnumerable<TableForStreamAndPeriod> tablesToDrop = await _qaRepository.GetTablesForFundingStreamAndPeriod(fundingStreamId, fundingPeriodId);
 
-            foreach (KeyValuePair<string, IEnumerable<SqlColumnDefinition>> profileTable in profilingTables)
-                AddForeignKey(fundingStreamTablePrefix, "Funding", $"Profiles_{profileTable.Key}");
+            StringBuilder dropSql = new StringBuilder();
+
+            foreach (TableForStreamAndPeriod table in tablesToDrop)
+            {
+                dropSql.AppendLine($"DROP TABLE [dbo].[{table.Name}];");
+            }
+
+            if (dropSql.Length == 0)
+            {
+                return;
+            }
+            
+            _qaRepository.ExecuteSql(dropSql.ToString());
         }
 
         private async Task<Dictionary<string, IEnumerable<SqlColumnDefinition>>> GenerateProfiling(string fundingStreamId,
@@ -239,35 +234,13 @@ namespace CalculateFunding.Services.Publishing.SqlExport
 
             return profiling;
         }
-
-        private void DropForeignKeys(string fundingStreamTablePrefix, string fundingTableName, string targetTableName)
+        
+        private void EnsureTable(string tableName, IEnumerable<SqlColumnDefinition> fields,
+            string fundingStreamId, 
+            string fundingPeriodId)
         {
-            string sql =
-                $@"IF(EXISTS ( SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = '{fundingStreamTablePrefix}_{targetTableName}')) BEGIN
-ALTER TABLE [dbo].[{fundingStreamTablePrefix}_{targetTableName}] DROP CONSTRAINT IF EXISTS [FK_{fundingStreamTablePrefix}_{targetTableName}_{fundingStreamTablePrefix}_{fundingTableName}] END";
+            string sql = _schemaGenerator.GenerateCreateTableSql(tableName, fundingStreamId, fundingPeriodId, fields);
 
-            _qaRepository.ExecuteSql(sql);
-        }
-
-        private void AddForeignKey(string fundingStreamTablePrefix, string fundingTableName, string targetTableName)
-        {
-            string sql =
-                $@"ALTER TABLE [dbo].[{fundingStreamTablePrefix}_{targetTableName}]  WITH CHECK ADD  CONSTRAINT [FK_{fundingStreamTablePrefix}_{targetTableName}_{fundingStreamTablePrefix}_{fundingTableName}] FOREIGN KEY([PublishedProviderId])
-REFERENCES [dbo].[{fundingStreamTablePrefix}_{fundingTableName}] ([PublishedProviderId])";
-
-            _qaRepository.ExecuteSql(sql);
-
-            string sql1 =
-                $"ALTER TABLE [dbo].[{fundingStreamTablePrefix}_{targetTableName}] CHECK CONSTRAINT [FK_{fundingStreamTablePrefix}_{targetTableName}_{fundingStreamTablePrefix}_{fundingTableName}]";
-
-            _qaRepository.ExecuteSql(sql1);
-        }
-
-        private void EnsureTable(string tableName, IEnumerable<SqlColumnDefinition> fields)
-        {
-            string sql = _schemaGenerator.GenerateCreateTableSql(tableName, fields);
-
-            _qaRepository.ExecuteSql($"DROP TABLE IF EXISTS dbo.[{tableName}]");
             _qaRepository.ExecuteSql(sql);
         }
 
