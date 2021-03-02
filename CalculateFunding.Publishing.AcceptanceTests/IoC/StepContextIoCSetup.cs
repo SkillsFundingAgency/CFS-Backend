@@ -120,7 +120,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<ReApplyCustomProfiles, IReApplyCustomProfiles>();
             RegisterTypeAs<ReProfilingResponseMapper, IReProfilingResponseMapper>();
             RegisterTypeAs<ReProfilingRequestBuilder, IReProfilingRequestBuilder>();
-            
+            RegisterTypeAs<InMemoryCalculationsService, ICalculationsService>();
+
             IMapper mapper = new MapperConfiguration(c =>
             {
                 c.AddProfile<PublishingServiceMappingProfile>();

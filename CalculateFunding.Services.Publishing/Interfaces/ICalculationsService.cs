@@ -9,5 +9,6 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         Task<bool> HaveAllTemplateCalculationsBeenApproved(string specificationId);
         Task<TemplateMapping> GetTemplateMapping(string specificationId, string fundingStreamId);
         Task<IEnumerable<CalculationMetadata>> GetCalculationMetadataForSpecification(string specificationId);
+        Task<IEnumerable<ObsoleteItem>> GetObsoleteItemsForSpecification(string specificationId);
     }
 }

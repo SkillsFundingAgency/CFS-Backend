@@ -106,6 +106,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private ArraySegment<ProfileVariationPointer> _profileVariationPointers;
         private PublishingEngineOptions _publishingEngineOptions;
         private Mock<IBatchProfilingService> _batchProfilingService;
+        private Mock<ICalculationsService> _calculationsService;
 
         [TestInitialize]
         public void Setup()
@@ -151,6 +152,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _jobManagement = new Mock<IJobManagement>();
             _prerequisiteCheckerLocator = new Mock<IPrerequisiteCheckerLocator>();
             _policiesService = new Mock<IPoliciesService>();
+            _calculationsService = new Mock<ICalculationsService>();
+
             _prerequisiteCheckerLocator.Setup(_ => _.GetPreReqChecker(PrerequisiteCheckerType.Refresh))
                 .Returns(new RefreshPrerequisiteChecker(
                     _specificationFundingStatusService.Object,
@@ -160,7 +163,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 _jobManagement.Object, 
                 _logger.Object,
                 _policiesService.Object,
-                _profilingService.Object));
+                _profilingService.Object,
+                _calculationsService.Object));
             _organisationGroupGenerator = new Mock<IOrganisationGroupGenerator>();
             _transactionFactory = new TransactionFactory(_logger.Object, new TransactionResiliencePolicies { TransactionPolicy = Policy.NoOpAsync() });
             _publishedProviderVersionService = new Mock<IPublishedProviderVersionService>();

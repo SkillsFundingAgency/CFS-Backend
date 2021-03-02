@@ -19,6 +19,7 @@ using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models;
+using CalculateFunding.Common.ApiClient.Calcs.Models;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
 {
@@ -34,7 +35,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private RefreshPrerequisiteChecker _refreshPrerequisiteChecker;
         private IPoliciesService _policiesService;
         private IProfilingService _profilingService;
-
+        private ICalculationsService _calculationsService;
 
         [TestInitialize]
         public void SetUp()
@@ -47,6 +48,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _logger = Substitute.For<ILogger>();
             _policiesService = Substitute.For<IPoliciesService>();
             _profilingService = Substitute.For<IProfilingService>();
+            _calculationsService = Substitute.For<ICalculationsService>();
 
             _refreshPrerequisiteChecker = new RefreshPrerequisiteChecker(
                 _specificationFundingStatusService, 
@@ -56,7 +58,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _jobManagement,
                 _logger,
                 _policiesService,
-                _profilingService);
+                _profilingService,
+                _calculationsService);
         }
 
         [TestMethod]
@@ -115,6 +118,40 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             // Act
             Func<Task> invocation
                 = () => WhenThePreRequisitesAreChecked(specificationSummary, Enumerable.Empty<PublishedProvider>(), Enumerable.Empty<Provider>());
+
+            // Assert
+            invocation
+                .Should()
+                .Throw<JobPrereqFailedException>()
+                .Where(_ =>
+                    _.Message == $"Specification with id: '{specificationSummary.Id} has prerequisites which aren't complete.");
+
+            _logger
+                .Received()
+                .Error(errorMessage);
+
+        }
+
+        [TestMethod]
+        public void ReturnsErrorMessageWhenSpecificationHasObsoleteItems()
+        {
+            // Arrange
+            string specificationId = "specId01";
+            SpecificationSummary specificationSummary = new SpecificationSummary { Id = specificationId, ApprovalStatus = PublishStatus.Approved };
+            IEnumerable<Provider> providers = new[] { new Provider { ProviderId = "ProviderId" } };
+
+            string errorMessage = "Funding can not be refreshed due to calculation errors.";
+
+            IEnumerable<ObsoleteItem> obsoleteItems = new List<ObsoleteItem>
+            {
+                new ObsoleteItem()
+            };
+
+            GivenObsoleteItemsForSpecification(specificationSummary.Id, obsoleteItems);
+
+            // Act
+            Func<Task> invocation
+                = () => WhenThePreRequisitesAreChecked(specificationSummary, Enumerable.Empty<PublishedProvider>(), providers);
 
             // Assert
             invocation
@@ -426,6 +463,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             _specificationFundingStatusService.CheckChooseForFundingStatus(specification)
                 .Returns(specificationFundingStatus);
+        }
+
+        private void GivenObsoleteItemsForSpecification(
+            string specificationId, 
+            IEnumerable<ObsoleteItem> obsoleteItems)
+        {
+            _calculationsService.GetObsoleteItemsForSpecification(specificationId)
+                .Returns(obsoleteItems);
         }
 
         private void GivenExceptionThrownForSelectSpecificationForFunding(string specificationId, Exception ex)

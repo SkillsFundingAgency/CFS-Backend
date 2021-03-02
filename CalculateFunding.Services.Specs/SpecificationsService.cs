@@ -1272,6 +1272,25 @@ WHERE   s.documentType = @DocumentType",
                 return new ConflictResult();
             }
 
+            ApiResponse<IEnumerable<Common.ApiClient.Calcs.Models.ObsoleteItem>> obsoleteItemsApiResponse =
+                await _calcsApiClientPolicy.ExecuteAsync(() => _calcsApiClient.GetObsoleteItemsForSpecification(specification.Id));
+
+            if (!obsoleteItemsApiResponse.StatusCode.IsSuccess())
+            {
+                string error = "Error while retrieving obsolete items";
+
+                _logger.Error(error);
+                return new InternalServerErrorResult(error);
+            }
+
+            if(obsoleteItemsApiResponse.Content.AnyWithNullCheck())
+            {
+                string error = "Specification cannot be chosen for funding due to calculation errors.";
+
+                _logger.Error(error);
+                return new InternalServerErrorResult(error);
+            }
+
             specification.IsSelectedForFunding = true;
 
             return await UpdateSpecification(specification, specificationId);
@@ -1314,6 +1333,19 @@ WHERE   s.documentType = @DocumentType",
             }
 
             return new NoContentResult();
+        }
+
+        private async Task<bool> HasObsoleteItem(Specification specification)
+        {
+            ApiResponse<IEnumerable<Common.ApiClient.Calcs.Models.ObsoleteItem>> obsoleteItemsApiResponse =
+                await _calcsApiClientPolicy.ExecuteAsync(() => _calcsApiClient.GetObsoleteItemsForSpecification(specification.Id));
+
+            if (!obsoleteItemsApiResponse.StatusCode.IsSuccess())
+            {
+                return false;
+            }
+
+            return obsoleteItemsApiResponse.Content.AnyWithNullCheck();
         }
 
         private async Task<bool> SharesFundingStreamWithAnyOtherSpecificationSelectedForFundingInTheSamePeriod(

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.JobManagement;
@@ -23,6 +24,7 @@ namespace CalculateFunding.Services.Publishing
         private readonly ILogger _logger;
         private readonly IPoliciesService _policiesService;
         private readonly IProfilingService _profilingService;
+        private readonly ICalculationsService _calculationsService;
 
         public RefreshPrerequisiteChecker(
             ISpecificationFundingStatusService specificationFundingStatusService,
@@ -32,7 +34,8 @@ namespace CalculateFunding.Services.Publishing
             IJobManagement jobManagement,
             ILogger logger,
             IPoliciesService policiesService,
-            IProfilingService profilingService) : base(jobsRunning, jobManagement, logger)
+            IProfilingService profilingService,
+            ICalculationsService calculationsService) : base(jobsRunning, jobManagement, logger)
         {
             Guard.ArgumentNotNull(specificationFundingStatusService, nameof(specificationFundingStatusService));
             Guard.ArgumentNotNull(specificationService, nameof(specificationService));
@@ -40,6 +43,7 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(policiesService, nameof(policiesService));
             Guard.ArgumentNotNull(profilingService, nameof(profilingService));
+            Guard.ArgumentNotNull(calculationsService, nameof(calculationsService));
 
             _specificationFundingStatusService = specificationFundingStatusService;
             _specificationService = specificationService;
@@ -47,6 +51,7 @@ namespace CalculateFunding.Services.Publishing
             _logger = logger;
             _policiesService = policiesService;
             _profilingService = profilingService;
+            _calculationsService = calculationsService;
         }
 
         public async Task PerformChecks<T>(T prereqObject, string jobId, IEnumerable<PublishedProvider> publishedProviders = null, IEnumerable<Provider> providers = null)
@@ -86,6 +91,16 @@ namespace CalculateFunding.Services.Publishing
             {
                 _logger.Error("Specification failed refresh prerequisite check. Reason: no scoped providers");
                 return new string[] { "Specification must have providers in scope." };
+            }
+
+            IEnumerable<ObsoleteItem> obsoleteItems = await _calculationsService.GetObsoleteItemsForSpecification(specification.Id);
+
+            if (obsoleteItems.AnyWithNullCheck())
+            {
+                string errorMessage = "Funding can not be refreshed due to calculation errors.";
+
+                _logger.Error(errorMessage);
+                return new string[] { errorMessage };
             }
 
             SpecificationFundingStatus specificationFundingStatus = await _specificationFundingStatusService.CheckChooseForFundingStatus(specification);

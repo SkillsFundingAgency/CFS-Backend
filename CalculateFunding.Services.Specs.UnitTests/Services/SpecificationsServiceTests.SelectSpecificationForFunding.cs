@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Calcs;
+using CalculateFunding.Common.ApiClient.Calcs.Models;
+using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
@@ -172,7 +175,15 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .UpdateSpecification(Arg.Is(specification))
                 .Returns(HttpStatusCode.BadRequest);
 
-            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository);
+            ICalculationsApiClient calculationsApiClient = CreateCalcsApiClient();
+            calculationsApiClient
+                .GetObsoleteItemsForSpecification(Arg.Is(SpecificationId))
+                .Returns(Task.FromResult(new ApiResponse<IEnumerable<ObsoleteItem>>(HttpStatusCode.OK, Array.Empty<ObsoleteItem>())));
+
+            SpecificationsService service = CreateService(
+                logs: logger, 
+                specificationsRepository: specificationsRepository,
+                calcsApiClient: calculationsApiClient);
 
             //Act
             IActionResult result = await service.SelectSpecificationForFunding(SpecificationId);
@@ -207,16 +218,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             specificationsRepository
                 .UpdateSpecification(Arg.Is(specification))
                 .Returns(HttpStatusCode.OK);
-
-            // IEnumerable<IndexError> errors = new[]
-            // {
-            //     new IndexError{ ErrorMessage = "failed" }
-            // };
-
-            // ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
-            // searchRepository
-            //     .Index(Arg.Any<IEnumerable<SpecificationIndex>>())
-            //     .Returns(errors);
             
             _specificationIndexer
                 .When(_ => _.Index(Arg.Is<Specification>(sp => sp.IsSelectedForFunding)))
@@ -224,10 +225,16 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             ICacheProvider cacheProvider = CreateCacheProvider();
 
+            ICalculationsApiClient calculationsApiClient = CreateCalcsApiClient();
+            calculationsApiClient
+                .GetObsoleteItemsForSpecification(Arg.Is(SpecificationId))
+                .Returns(Task.FromResult(new ApiResponse<IEnumerable<ObsoleteItem>>(HttpStatusCode.OK, Array.Empty<ObsoleteItem>())));
+
             SpecificationsService service = CreateService(
                 logs: logger,
                 specificationsRepository: specificationsRepository,
-                cacheProvider: cacheProvider);
+                cacheProvider: cacheProvider,
+                calcsApiClient: calculationsApiClient);
 
             // Act
             IActionResult result = await service.SelectSpecificationForFunding(SpecificationId);
@@ -237,17 +244,92 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Should()
                 .BeOfType<InternalServerErrorResult>();
 
-            // logger
-            //     .Received(1)
-            //     .Error(Arg.Is($"Failed to index search for specification {SpecificationId} with the following errors: failed"));
-            //
-            // logger
-            //     .Received(1)
-            //     .Error(Arg.Any<Exception>(), Arg. ($"Failed to index search for specification {SpecificationId} with the following errors: failed"));
-
             await cacheProvider
                 .Received(1)
                 .RemoveAsync<SpecificationSummary>($"{CacheKeys.SpecificationSummaryById}{specification.Id}");
+        }
+
+        [TestMethod]
+        public async Task SelectSpecificationForFunding_GivenGetObsoleteItemsForSpecificationFails_ReturnsInternalServerErrorResult()
+        {
+            // Arrange
+            Specification specification = CreateSpecification();
+
+            ILogger logger = CreateLogger();
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationById(Arg.Is(SpecificationId))
+                .Returns(specification);
+
+            specificationsRepository
+                .UpdateSpecification(Arg.Is(specification))
+                .Returns(HttpStatusCode.OK);
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
+            ICalculationsApiClient calculationsApiClient = CreateCalcsApiClient();
+            calculationsApiClient
+                .GetObsoleteItemsForSpecification(Arg.Is(SpecificationId))
+                .Returns(Task.FromResult(new ApiResponse<IEnumerable<ObsoleteItem>>(HttpStatusCode.InternalServerError)));
+
+            SpecificationsService service = CreateService(
+                logs: logger,
+                specificationsRepository: specificationsRepository,
+                cacheProvider: cacheProvider,
+                calcsApiClient: calculationsApiClient);
+
+            // Act
+            IActionResult result = await service.SelectSpecificationForFunding(SpecificationId);
+
+            // Assert
+            result
+                .Should()
+                .BeOfType<InternalServerErrorResult>();
+        }
+
+        [TestMethod]
+        public async Task SelectSpecificationForFunding_GivenThereIsObsoleteItemsForSpecification_ReturnsInternalServerErrorResult()
+        {
+            // Arrange
+            Specification specification = CreateSpecification();
+
+            ILogger logger = CreateLogger();
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationById(Arg.Is(SpecificationId))
+                .Returns(specification);
+
+            specificationsRepository
+                .UpdateSpecification(Arg.Is(specification))
+                .Returns(HttpStatusCode.OK);
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
+            IEnumerable<ObsoleteItem> obsoleteItems = new List<ObsoleteItem>
+            {
+                new ObsoleteItem()
+            };
+
+            ICalculationsApiClient calculationsApiClient = CreateCalcsApiClient();
+            calculationsApiClient
+                .GetObsoleteItemsForSpecification(Arg.Is(SpecificationId))
+                .Returns(Task.FromResult(new ApiResponse<IEnumerable<ObsoleteItem>>(HttpStatusCode.OK, obsoleteItems)));
+
+            SpecificationsService service = CreateService(
+                logs: logger,
+                specificationsRepository: specificationsRepository,
+                cacheProvider: cacheProvider,
+                calcsApiClient: calculationsApiClient);
+
+            // Act
+            IActionResult result = await service.SelectSpecificationForFunding(SpecificationId);
+
+            // Assert
+            result
+                .Should()
+                .BeOfType<InternalServerErrorResult>();
         }
 
         [TestMethod]
@@ -269,10 +351,16 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             ICacheProvider cacheProvider = CreateCacheProvider();
 
+            ICalculationsApiClient calculationsApiClient = CreateCalcsApiClient();
+            calculationsApiClient
+                .GetObsoleteItemsForSpecification(Arg.Is(SpecificationId))
+                .Returns(Task.FromResult(new ApiResponse<IEnumerable<ObsoleteItem>>(HttpStatusCode.OK, Array.Empty<ObsoleteItem>())));
+
             SpecificationsService service = CreateService(
                 logs: logger,
                 specificationsRepository: specificationsRepository,
-                cacheProvider: cacheProvider);
+                cacheProvider: cacheProvider,
+                calcsApiClient: calculationsApiClient);
 
             // Act
             IActionResult result = await service.SelectSpecificationForFunding(SpecificationId);

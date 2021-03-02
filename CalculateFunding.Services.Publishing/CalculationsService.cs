@@ -92,5 +92,25 @@ namespace CalculateFunding.Services.Publishing
 
             return apiResponse.Content;
         }
+
+        public async Task<IEnumerable<ObsoleteItem>> GetObsoleteItemsForSpecification(string specificationId)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+
+            ApiResponse<IEnumerable<ObsoleteItem>> apiResponse = await _calcsApiClientPolicy.ExecuteAsync(
+                () => _calculationsApiClient.GetObsoleteItemsForSpecification(specificationId));
+
+            if (!apiResponse.StatusCode.IsSuccess())
+            {
+                string errorMessage = $"Failed to retrieve obsolete items for specification id '{specificationId}'" +
+                    $" with status code '{apiResponse.StatusCode}'";
+
+                _logger.Error(errorMessage);
+
+                throw new RetriableException(errorMessage);
+            }
+
+            return apiResponse.Content;
+        }
     }
 }
