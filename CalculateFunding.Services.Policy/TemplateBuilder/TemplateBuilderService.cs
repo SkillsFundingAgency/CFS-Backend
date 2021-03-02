@@ -60,7 +60,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            ServiceHealth templateRepoHealth = await ((IHealthChecker) _templateRepository).IsHealthOk();
+            ServiceHealth templateRepoHealth = await ((IHealthChecker)_templateRepository).IsHealthOk();
             ServiceHealth templateVersionRepoHealth = await _templateVersionRepository.IsHealthOk();
             (bool Ok, string Message) = await _searchRepository.IsHealthOk();
 
@@ -71,7 +71,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             health.Dependencies.AddRange(templateRepoHealth.Dependencies);
             health.Dependencies.AddRange(templateVersionRepoHealth.Dependencies);
             health.Dependencies.Add(new DependencyHealth
-                {HealthOk = Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(), Message = Message});
+            { HealthOk = Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(), Message = Message });
 
             return health;
         }
@@ -239,7 +239,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                     };
                 }
 
-                string errorMessage = $"Failed to create a new template with name {templateName} in Cosmos. Status code {(int) result}";
+                string errorMessage = $"Failed to create a new template with name {templateName} in Cosmos. Status code {(int)result}";
                 _logger.Error(errorMessage);
 
                 return new CommandResult
@@ -345,7 +345,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                     };
                 }
 
-                string errorMessage = $"Failed to create a new template with name {templateName} in Cosmos. Status code {(int) result}";
+                string errorMessage = $"Failed to create a new template with name {templateName} in Cosmos. Status code {(int)result}";
                 _logger.Error(errorMessage);
                 return CommandResult.Fail(errorMessage);
             }
@@ -418,7 +418,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             (ValidationFailure error, TemplateJsonContentUpdateCommand updateCommand) = MapCommand(originalCommand);
             if (error != null)
             {
-                return CommandResult.ValidationFail(new ValidationResult(new[] {error}));
+                return CommandResult.ValidationFail(new ValidationResult(new[] { error }));
             }
 
             if (!restore && template.Current.TemplateJson == updateCommand.TemplateJson)
@@ -512,7 +512,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
 
             if (templateVersion.TemplateJson.IsNullOrEmpty())
             {
-                return CommandResult.ValidationFail(nameof(templateVersion.TemplateJson), 
+                return CommandResult.ValidationFail(nameof(templateVersion.TemplateJson),
                     "Template doesn't contain any template content. Please ensure the template has the correct content before publishing.");
             }
 
@@ -543,7 +543,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             {
                 return CommandResult.Fail($"Failed to approve template: {templateUpdateResult}");
             }
-            
+
             await CreateTemplateIndexItem(template, command.Author);
 
             // finally add to blob so it's available to the rest of CFS
@@ -671,8 +671,8 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
 
             var templateJson = new SchemaJson
             {
-                Schema = "https://fundingschemas.blob.core.windows.net/schemas/funding-template-schema-1.1.json",
-                SchemaVersion = "1.1",
+                Schema = "https://fundingschemas.blob.core.windows.net/schemas/funding-template-schema-1.2.json",
+                SchemaVersion = "1.2",
                 FundingTemplate = new SchemaJsonFundingStreamTemplate
                 {
                     FundingLines = fundingLines

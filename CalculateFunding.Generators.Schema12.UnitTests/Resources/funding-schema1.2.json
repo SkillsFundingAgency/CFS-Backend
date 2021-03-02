@@ -1,0 +1,1146 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://fundingschemas.blob.core.windows.net/schemas/funding-schema-1.1.json",
+  "title": "Corporate Funding Schema",
+  "description": "A Department of Education view of funding allocation",
+  "version": "1.2",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Spec URI"
+    },
+    "schemaVersion": {
+      "type": "string",
+      "description": "The schema version. Schema here refers to the Classes etc.., not the specific allocation model being used."
+    },
+    "funding": {
+      "$ref": "#/definitions/funding-schema",
+      "description": "The funding group (grouping on region or organisation - such as an LA, MAT, Region etc...)."
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "funding"
+  ],
+  "definitions": {
+    "organisationGroupTypeIdentifier-schema": {
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "The identifier type for the organisation GroupType (e.g. UKPRN, AcademyTrustCode)",
+          "enum": [
+            "UKPRN",
+            "LACode",
+            "UPIN",
+            "URN",
+            "UID",
+            "CompaniesHouseNumber",
+            "GroupID",
+            "RSCRegionCode",
+            "GovernmentOfficeRegionCode",
+            "DistrictCode",
+            "WardCode",
+            "CensusWardCode",
+            "MiddleSuperOutputAreaCode",
+            "LowerSuperOutputAreaCode",
+            "ParliamentaryConstituencyCode",
+            "DfeNumber",
+            "AcademyTrustCode",
+            "CountryCode",
+            "LocalAuthorityClassificationTypeCode"
+          ]
+        },
+        "value": {
+          "type": "string",
+          "description": "The value of the organisation GroupType identifier type (e.g. if the organisation GroupType identifier type is UKPRN, then the value may be 10003988. If the organisation GroupType identifier type is LACode, the value may be 202)."
+        }
+      },
+      "required": [
+        "type",
+        "value"
+      ],
+      "additionalProperties": false
+    },
+    "organisationGroupTypeIdentifiers-schema": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/organisationGroupTypeIdentifier-schema"
+      },
+      "additionalProperties": false
+    },
+    "organisationGroup-schema": {
+      "properties": {
+        "groupTypeCode": {
+          "type": "string",
+          "description": "Grouped type code ( e.g. LocalAuthority, CensusWard, ParliamentaryConstituency)",
+          "enum": [
+            "LocalAuthority",
+            "AcademyTrust",
+            "Region",
+            "RSCRegion",
+            "GovernmentOfficeRegion",
+            "District",
+            "Ward",
+            "CensusWard",
+            "MiddleSuperOutputArea",
+            "LowerSuperOutputArea",
+            "ParliamentaryConstituency",
+            "Provider",
+            "Country",
+            "LocalGovernmentGroup",
+            "LocalAuthoritySsf",
+            "LocalAuthorityMss",
+            "LocalAuthorityMaintained"
+          ]
+        },
+        "groupTypeClassification": {
+          "type": "string",
+          "description": "The Classification of organisation group type (e.g. LegalEntity and GeographicalBoundary)",
+          "enum": [
+            "LegalEntity",
+            "GeographicalBoundary"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "description": "If Grouped by Type is Authority Type, then it will be value such as London, Metropolitan authorities. If type is Region, value will be such as East of England. If Group by type is LA, then the value would be Camden"
+        },
+        "searchableName": {
+          "type": "string",
+          "description": "Text to make this entity searchable. This is the name, but with punctuation etc removed to make it suitable for searching"
+        },
+        "groupTypeIdentifier": {
+          "description": "The organisation group type identier (e.g. UKPRN, AcademyTrustCode) and corresponding value",
+          "$ref": "#/definitions/organisationGroupTypeIdentifier-schema"
+        },
+        "identifiers": {
+          "description": "Other Identifiers for this organisation group. e.g. LA grouped for Payment will have UKPRN as primary identifier and this filed will contain it's LA code, in case of Academe Trust grouped for payment reason will have UKPRN as primary and this filed will contain AcademyTrustCode",
+          "$ref": "#/definitions/organisationGroupTypeIdentifiers-schema"
+        }
+      },
+      "additionalProperties": false
+    },
+    "fundingStream-schema": {
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "The code for the funding stream (e.g. PSG, DSG, GAG)"
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the funding stream (e.g. PE and Sports Premium, Dedicated School Grant)"
+        }
+      },
+      "required": [
+        "code",
+        "name"
+      ],
+      "additionalProperties": false
+    },
+    "fundingPeriod-schema": {
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The funding period ID for the period (e.g. AY-1920). This field is concatication of Type and Period fields e.g. Type-Period"
+        },
+        "period": {
+          "type": "string",
+          "description": "The code for the period (e.g. 1920 or 2021)"
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the period (e.g. Financial Year 2019-20)"
+        },
+        "type": {
+          "type": "string",
+          "description": "The type of the period (academic or financial year ...)",
+          "enum": [
+            "AY",
+            "FY",
+            "CY",
+            "AC",
+            "AS"
+          ]
+        },
+        "startDate": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The start date for the period"
+        },
+        "endDate": {
+          "type": "string",
+          "format": "date-time",
+          "description": " The end date for the period."
+        }
+      },
+      "required": [
+        "id",
+        "period",
+        "name",
+        "type",
+        "startDate",
+        "endDate"
+      ],
+      "additionalProperties": false
+    },
+    "funding-schema": {
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier of this funding group / business event (in format '{fundingStream.code}-{fundingPeriod.id}-{groupingReason.type}-{groupTypeIdentifier.code}-{groupTypeIdentifier.value}-{fundingVersion}', e.g. DSG-FY-1819-PAYMENT-UKPRN-10003988-1_0)"
+        },
+        "templateVersion": {
+          "type": "string",
+          "description": "The version of the template (e.g. this is Version 2 of PE and Sport template)."
+        },
+        "fundingVersion": {
+          "type": "string",
+          "description": "Version number of the published data. If there are changes to the funding for this organisation in this period, this number would increase. Major and minor are seperated by an underscore eg 1_0"
+        },
+        "status": {
+          "type": "string",
+          "description": "The funding status - Released (or Approved in future)",
+          "enum": [
+            "Released",
+            "Approved"
+          ]
+        },
+        "fundingStream": {
+          "$ref": "#/definitions/fundingStream-schema",
+          "description": "The funding stream the funding relates to"
+        },
+        "fundingPeriod": {
+          "$ref": "#/definitions/fundingPeriod-schema",
+          "description": "The funding period the funding relates t"
+        },
+        "organisationGroup": {
+          "$ref": "#/definitions/organisationGroup-schema",
+          "description": "The grouped organisation or region (e.g. if we are grouping by LA, the organisation may be Camden and if we are grouping by GeographicalBoundry organisation maybe GovernmentOfficeRegion, CensusWard etc.)"
+        },
+        "fundingValue": {
+          "$ref": "#/definitions/fundingValue-schema",
+          "description": "Funding value breakdown"
+        },
+        "providerFundings": {
+          "$ref": "#/definitions/providerFundings-schema",
+          "description": "The fundings (child organisation level lines, e.g. providers under an LA) that are grouped into this funding group"
+        },
+        "groupingReason": {
+          "type": "string",
+          "description": "Does the grouping reflect how the money is paid ('Payment') or is it just useful to show it this way? ('Information') or this group of funding required contract to be in place before money can ca be paid? ('Contracting')",
+          "enum": [
+            "Payment",
+            "Information",
+            "Contracting",
+            "Indicative"
+          ]
+        },
+        "statusChangedDate": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The date the funding was published by a business user."
+        },
+        "externalPublicationDate": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Date and time when the allocation can be published externally."
+        },
+        "earliestPaymentAvailableDate": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The earliest date when the payment can be made available to the provider."
+        }
+      },
+      "required": [
+        "id",
+        "fundingVersion",
+        "status",
+        "fundingStream",
+        "fundingPeriod",
+        "organisationGroup",
+        "fundingValue",
+        "providerFundings",
+        "groupingReason",
+        "statusChangedDate",
+        "externalPublicationDate",
+        "earliestPaymentAvailableDate"
+      ],
+      "additionalProperties": false
+    },
+    "providerFundings-schema": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/providerFunding-schema"
+      },
+      "additionalProperties": false
+    },
+    "providerFunding-schema": {
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "A unique identifier of this Provider funding (in the format '{fundingStream.code}-{fundingPeriod.id}-{provider.identifier.value}-{fundingVersion}', e.g. DSG-FY-1920-10074740-1_0)"
+        },
+        "fundingVersion": {
+          "type": "string",
+          "description": "Version number for the funding (e.g. 1_0)"
+        },
+        "provider": {
+          "$ref": "#/definitions/provider-schema",
+          "description": "The provider for which the funding is for"
+        },
+        "variationReasons": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "description": "Optional reasons for the provider variation. These reasons are in addition to open and close reason of the provider. This field can contain zero or more items.",
+          "items": {
+            "type": "string",
+            "enum": [
+              "AuthorityFieldUpdated",
+              "EstablishmentNumberFieldUpdated",
+              "DfeEstablishmentNumberFieldUpdated",
+              "NameFieldUpdated",
+              "LACodeFieldUpdated",
+              "LegalNameFieldUpdated",
+              "TrustCodeFieldUpdated",
+              "TrustNameFieldUpdated",
+              "FundingUpdated",
+              "ProfilingUpdated",
+              "URNFieldUpdated",
+              "CompaniesHouseNumberFieldUpdated",
+              "GroupIDFieldUpdated",
+              "RSCRegionCodeFieldUpdated",
+              "RSCRegionNameFieldUpdated",
+              "GovernmentOfficeRegionCodeFieldUpdated",
+              "GovernmentOfficeRegionNameFieldUpdated",
+              "DistrictCodeFieldUpdated",
+              "DistrictNameFieldUpdated",
+              "WardCodeFieldUpdated",
+              "WardNameFieldUpdated",
+              "CensusWardCodeFieldUpdated",
+              "CensusWardNameFieldUpdated",
+              "MiddleSuperOutputAreaCodeFieldUpdated",
+              "MiddleSuperOutputAreaNameFieldUpdated",
+              "LowerSuperOutputAreaCodeFieldUpdated",
+              "LowerSuperOutputAreaNameFieldUpdated",
+              "ParliamentaryConstituencyCodeFieldUpdated",
+              "ParliamentaryConstituencyNameFieldUpdated",
+              "CountryCodeFieldUpdated",
+              "CountryNameFieldUpdated"
+            ]
+          }
+        },
+        "successors": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/definitions/providerIdentifers-schema"
+            }
+          ],
+          "description": "Collection of successor provider identifiers"
+        },
+        "predecessors": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/definitions/providerIdentifers-schema"
+            }
+          ],
+          "description": "Collection of predecessor provider identifiers"
+        },
+        "fundingValue": {
+          "$ref": "#/definitions/fundingValue-schema",
+          "description": "Funding value Breakdown"
+        },
+        "fundingStreamCode": {
+          "type": "string",
+          "description": "The funding stream the funding relates to (e.g. PESport, DSG, GAG)"
+        },
+        "fundingPeriodId": {
+          "type": "string",
+          "description": "The funding period the funding relates to (e.g. AY-1920)"
+        }
+      },
+      "required": [
+        "id",
+        "provider",
+        "fundingVersion",
+        "fundingValue",
+        "fundingStreamCode",
+        "fundingPeriodId"
+      ],
+      "additionalProperties": false
+    },
+    "provider-schema": {
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the provider"
+        },
+        "searchableName": {
+          "type": "string",
+          "description": "A searchable name of the provider"
+        },
+        "providerVersionId": {
+          "type": "string",
+          "description": "Identifier numbers for this provider"
+        },
+        "providerType": {
+          "type": "string",
+          "description": "Provider type (e.g. School, Academy, Special School) defined in the context of corresponding Funding Stream. Funding Policy for each funding stream define different provider types from different provider source systems."
+        },
+        "providerSubType": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "Provider type (e.g. School, Academy, Special School) defined in the context of corresponding Funding Stream. Funding Policy for each funding stream define different provider types from different provider source systems."
+        },
+        "identifier": {
+          "description": "The Provider identier (UKPRN is the default/main identifier) and corresponding value.",
+          "$ref": "#/definitions/providerIdentifer-schema"
+        },
+        "otherIdentifiers": {
+          "description": "Other Identifiers for this Provider (e.g. LACode, UPIN, URN) and their corresponding values ",
+          "$ref": "#/definitions/providerIdentifers-schema"
+        },
+        "providerDetails": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/definitions/providerDetails-schema"
+            }
+          ],
+          "description": "Provider Details. This property is optional"
+        }
+      },
+      "required": [
+        "name",
+        "providerType",
+        "providerVersionId"
+      ],
+      "additionalProperties": false
+    },
+    "providerIdentifers-schema": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/providerIdentifer-schema"
+      },
+      "additionalProperties": false
+    },
+    "providerIdentifer-schema": {
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "The type of provider identifier (e.g. UKPRN)",
+          "enum": [
+            "UKPRN",
+            "LACode",
+            "UPIN",
+            "URN",
+            "UID",
+            "DfeNumber"
+          ]
+        },
+        "value": {
+          "type": "string",
+          "description": "The value of this identifier type (e.g. if the type is UKPRN, then the value may be 12345678. If the type is LACode, the value may be 'LE 203')."
+        }
+      },
+      "required": [
+        "type",
+        "value"
+      ],
+      "additionalProperties": false
+    },
+    "providerDetails-schema": {
+      "properties": {
+        "dateOpened": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time",
+          "description": "Date Opened."
+        },
+        "dateClosed": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time",
+          "description": "Date Closed."
+        },
+        "status": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Status of the organisation"
+        },
+        "phaseOfEducation": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": ""
+        },
+        "localAuthorityName": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Local Authority Name"
+        },
+        "companiesHouseNumber": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Companies House Number"
+        },
+        "groupIdNumber": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "GroupID"
+        },
+        "rscRegionName": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "RSC Region Name"
+        },
+        "rscRegionCode": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "RSC Region Code"
+        },
+        "governmentOfficeRegionName": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Government Office Region Name"
+        },
+        "governmentOfficeRegionCode": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Government Office Region Code"
+        },
+        "districtName": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "District Name"
+        },
+        "districtCode": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "District Code"
+        },
+        "wardName": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Ward Name"
+        },
+        "wardCode": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Ward Code"
+        },
+        "censusWardName": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Census Ward Name"
+        },
+        "censusWardCode": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Census Ward Code"
+        },
+        "middleSuperOutputAreaName": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Middle Super Output Area Name"
+        },
+        "middleSuperOutputAreaCode": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Middle Super Output Area Code"
+        },
+        "lowerSuperOutputAreaName": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Lower Super Output Area Name"
+        },
+        "lowerSuperOutputAreaCode": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Lower Super Output Area Code"
+        },
+        "parliamentaryConstituencyName": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Parliamentary Constituency Name"
+        },
+        "parliamentaryConstituencyCode": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Parliamentary Constituency Code"
+        },
+        "countryCode": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Country Code "
+        },
+        "countryName": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Country Name"
+        },
+        "openReason": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Optional open reason from the list of GIAS Open Reasons"
+        },
+        "closeReason": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Optional close reason from list of GIAS Close Reasons"
+        },
+        "trustStatus": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": ""
+        },
+        "trustName": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Academy Trust Name"
+        },
+        "town": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The town of the provider"
+        },
+        "postcode": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The postcode of the provider"
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "fundingValue-schema": {
+      "properties": {
+        "totalValue": {
+          "type": "number",
+          "description": "The funding value amount in pence"
+        },
+        "fundingLines": {
+          "$ref": "#/definitions/fundingLines-schema",
+          "description": "The lines that make up this funding"
+        },
+        "calculations": {
+          "$ref": "#/definitions/calculations-schema",
+          "description": "The lines that make up all the calculations"
+        }
+      },
+      "required": [
+        "totalValue",
+        "fundingLines",
+        "calculations"
+      ],
+      "additionalProperties": false
+    },
+    "fundingLines-schema": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/fundingLine-schema"
+      },
+      "additionalProperties": false
+    },
+    "fundingLine-schema": {
+      "properties": {
+        "templateLineId": {
+          "type": "number",
+          "description": " A unique ID (in terms of template, not data) for this funding line (e.g. 345)"
+        },
+        "type": {
+          "type": "string",
+          "description": "This is either payable funding line or information",
+          "enum": [
+            "Payment",
+            "Information"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of a funding line (e.g. 'Total funding line')"
+        },
+        "fundingLineCode": {
+          "description": "The funding line code (e.g. PSG-001)"
+        },
+        "value": {
+          "type": "number",
+          "description": "The funding value in pence."
+        },
+        "distributionPeriods": {
+          "description": "An array showing the amounts by the periods (envelopes) they are paid in (e.g. for PE + Sport there are 2 periods per year, with a 7/5 split)",
+          "$ref": "#/definitions/distributionPeriods-schema"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "Payment"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "fundingLineCode": {
+                "type": "string"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "fundingLineCode": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ],
+      "required": [
+        "templateLineId",
+        "type",
+        "name",
+        "value"
+      ],
+      "additionalProperties": false
+    },
+    "distributionPeriods-schema": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/distributionPeriod-schema"
+      },
+      "additionalProperties": false
+    },
+    "distributionPeriod-schema": {
+      "properties": {
+        "distributionPeriodId": {
+          "type": "string",
+          "description": "Distribution Period is the period under the funding period where there is an additional need for the funding to be aportioned between different start and end dates to the funding period (e.g. format will be AY-1819)"
+        },
+        "value": {
+          "type": "number",
+          "description": "The overall value for the distribution period"
+        },
+        "profilePeriods": {
+          "$ref": "#/definitions/profilePeriods-schema",
+          "description": "The periods that this funding line where paid in / are due to be paid in"
+        }
+      },
+      "required": [
+        "distributionPeriodId",
+        "value",
+        "profilePeriods"
+      ],
+      "additionalProperties": false
+    },
+    "profilePeriods-schema": {
+      "type": "array",
+      "description": "",
+      "items": {
+        "$ref": "#/definitions/profilePeriod-schema"
+      },
+      "additionalProperties": false
+    },
+    "profilePeriod-schema": {
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "The type of the period (e.g. CalendarMonth, Quarterly, HalfYearly)",
+          "enum": [
+            "CalendarMonth"
+          ]
+        },
+        "typeValue": {
+          "type": "string",
+          "description": "The value identifier for this period (e.g. if type is 'Calendar Month', this could be 'April')"
+        },
+        "year": {
+          "type": "number",
+          "description": "Which Calendar year is the period in"
+        },
+        "occurrence": {
+          "type": "number",
+          "description": "Which occurance this month (note that this is 1 indexed)"
+        },
+        "profiledValue": {
+          "type": "number",
+          "description": "The amount of the profiled value, in pence"
+        },
+        "distributionPeriodId": {
+          "type": "string",
+          "description": "The distributionPeriodId is referring to the distributionPeriodId from the parent distributionPeriod entity."
+        }
+      },
+      "required": [
+        "occurrence",
+        "type",
+        "typeValue",
+        "year",
+        "profiledValue",
+        "distributionPeriodId"
+      ],
+      "additionalProperties": false
+    },
+    "groupRate-schema": {
+      "properties": {
+        "numerator": {
+          "type": "number",
+          "description": "numerator for GroupRate agrregation"
+        },
+        "denominator": {
+          "type": "number",
+          "description": "denominator for GroupRate agrregation"
+        }
+      },
+      "required": [
+        "numerator",
+        "denominator"
+      ],
+      "additionalProperties": false
+    },
+    "percentageChangeBetweenAandB-schema": {
+      "properties": {
+        "calculationA": {
+          "type": "number",
+          "description": ""
+        },
+        "calculationB": {
+          "type": "number",
+          "description": ""
+        },
+        "calculationAggregationType": {
+          "type": "string",
+          "enum": [
+            "Sum",
+            "Average"
+          ],
+          "description": ""
+        }
+      },
+      "required": [
+        "calculationA",
+        "calculationB",
+        "calculationAggregationType"
+      ],
+      "additionalProperties": false
+    },
+    "calculations-schema": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/calculation-schema"
+      },
+      "additionalProperties": false
+    },
+    "calculation-schema": {
+      "properties": {
+        "templateCalculationId": {
+          "type": "number",
+          "description": "The template calculation id (i.e. a way to get to this property in the template)"
+        },
+        "type": {
+          "type": "string",
+          "description": "The type of calculation.",
+          "enum": [
+            "Cash",
+            "Rate",
+            "PupilNumber",
+            "Number",
+            "Weighting",
+            "Boolean",
+            "Enum"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the calculation"
+        },
+        "value": {
+          "description": "value the calculation is resulting in"
+        },
+        "formulaText": {
+          "type": "string",
+          "description": "Presentation data about how a formula is built up"
+        },
+        "valueFormat": {
+          "type": "string",
+          "description": "The way the value should show",
+          "enum": [
+            "Number",
+            "Percentage",
+            "Currency",
+            "Boolean",
+            "String"
+          ]
+        },
+        "aggregationType": {
+          "type": "string",
+          "description": "How the reference data should aggregate",
+          "enum": [
+            "None",
+            "Average",
+            "Sum",
+            "GroupRate",
+            "PercentageChangeBetweenAandB"
+          ]
+        },
+        "groupRate": {
+          "description": "GroupRate Aggregation"
+        },
+        "percentageChangeBetweenAandB": {
+          "description": "PercentageChangeBetweenAandB Aggregation"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "aggregationType": {
+                "const": "GroupRate"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "groupRate": {
+                "$ref": "#/definitions/groupRate-schema"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "groupRate": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "aggregationType": {
+                "const": "PercentageChangeBetweenAandB"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "percentageChangeBetweenAandB": {
+                "$ref": "#/definitions/percentageChangeBetweenAandB-schema"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "percentageChangeBetweenAandB": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "Cash"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "Rate"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "PupilNumber"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "Number"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "Boolean"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "Enum"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "required": [
+        "type",
+        "name",
+        "value",
+        "aggregationType"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

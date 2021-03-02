@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <LangVersion>default</LangVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\CalculateFunding.Services.Publishing\CalculateFunding.Services.Publishing.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="CalculateFunding.Common.TemplateMetadata.Schema12" Version="1.0.0" />
+    </ItemGroup>
+
+</Project>

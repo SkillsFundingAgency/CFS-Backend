@@ -1,24 +1,31 @@
+using System;
 using System.Threading;
 using AutoMapper;
 using CalculateFunding.Common.Config.ApiClient.Calcs;
+using CalculateFunding.Common.Config.ApiClient.Jobs;
+using CalculateFunding.Common.Config.ApiClient.Results;
+using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
-using CalculateFunding.Common.Config.ApiClient.Jobs;
-using CalculateFunding.Common.Config.ApiClient.Results;
-using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Policy.FundingPolicy;
+using CalculateFunding.Models.Policy.TemplateBuilder;
+using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core.AspNet.Extensions;
 using CalculateFunding.Services.Core.AspNet.HealthChecks;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Policy;
 using CalculateFunding.Services.Policy.Interfaces;
 using CalculateFunding.Services.Policy.MappingProfiles;
+using CalculateFunding.Services.Policy.TemplateBuilder;
 using CalculateFunding.Services.Policy.Validators;
 using CalculateFunding.Services.Providers.Validators;
 using FluentValidation;
@@ -29,15 +36,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Polly.Bulkhead;
 using Serilog;
-using CalculateFunding.Common.Models;
-using CalculateFunding.Models.Policy.TemplateBuilder;
-using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Services.Policy.TemplateBuilder;
 using TemplateMetadataSchema10 = CalculateFunding.Common.TemplateMetadata.Schema10;
 using TemplateMetadataSchema11 = CalculateFunding.Common.TemplateMetadata.Schema11;
-using CalculateFunding.Services.Core.AspNet.Extensions;
-using CalculateFunding.Services.Core.Services;
-using System;
+using TemplateMetadataSchema12 = CalculateFunding.Common.TemplateMetadata.Schema12;
 
 namespace CalculateFunding.Api.Policy
 {
@@ -87,7 +88,8 @@ namespace CalculateFunding.Api.Policy
 
             app.MapWhen(
                     context => !context.Request.Path.Value.StartsWith("/swagger"),
-                    appBuilder => {
+                    appBuilder =>
+                    {
                         appBuilder.UseMiddleware<ApiKeyMiddleware>();
                         appBuilder.UseHealthCheckMiddleware();
                         appBuilder.UseMiddleware<LoggedInUserMiddleware>();
@@ -109,7 +111,7 @@ namespace CalculateFunding.Api.Policy
                 .AddSpecificationsInterServiceClient(Configuration, handlerLifetime: Timeout.InfiniteTimeSpan)
                 .AddCalculationsInterServiceClient(Configuration, handlerLifetime: Timeout.InfiniteTimeSpan)
                 .AddResultsInterServiceClient(Configuration, handlerLifetime: Timeout.InfiniteTimeSpan);
-            
+
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
 
             builder.AddSingleton<IIoCValidatorFactory, ValidatorFactory>()
@@ -246,7 +248,7 @@ namespace CalculateFunding.Api.Policy
 
             builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
 
-            builder.AddHttpContextAccessor();           
+            builder.AddHttpContextAccessor();
             builder.AddHealthCheckMiddleware();
 
             if (Configuration.IsSwaggerEnabled())
@@ -278,12 +280,15 @@ namespace CalculateFunding.Api.Policy
                 {
                     TemplateMetadataResolver resolver = new TemplateMetadataResolver();
                     ILogger logger = ctx.GetService<ILogger>();
-                    
+
                     TemplateMetadataSchema10.TemplateMetadataGenerator schema10Generator = new TemplateMetadataSchema10.TemplateMetadataGenerator(logger);
                     resolver.Register("1.0", schema10Generator);
 
                     TemplateMetadataSchema11.TemplateMetadataGenerator schema11Generator = new TemplateMetadataSchema11.TemplateMetadataGenerator(logger);
                     resolver.Register("1.1", schema11Generator);
+
+                    TemplateMetadataSchema12.TemplateMetadataGenerator schema12Generator = new TemplateMetadataSchema12.TemplateMetadataGenerator(logger);
+                    resolver.Register("1.2", schema12Generator);
 
                     return resolver;
                 });

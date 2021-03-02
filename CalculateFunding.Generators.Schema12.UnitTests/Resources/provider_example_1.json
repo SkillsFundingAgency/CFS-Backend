@@ -1,0 +1,51 @@
+{
+    "identifier": "1000999",
+    "name": "Provider Name",
+    "searchableName": "Provider_Name",
+    "otherIdentifiers": [
+      {
+        "type": "URN",
+        "value": "188396"
+      },
+      {
+        "type": "UKPRN",
+        "value": "188396"
+      }
+    ],
+    "providerVersionId": null,
+    "providerType": null,
+    "providerSubType": null,
+    "providerDetails": {
+      "dateOpened": "2020-07-03T16:36:54.3903179+01:00",
+      "dateClosed": null,
+      "status": "Approved",
+      "phaseOfEducation": null,
+      "localAuthorityName": null,
+      "openReason": null,
+      "closeReason": null,
+      "trustStatus": "Supported by a trust",
+      "trustName": "London Trust",
+      "town": "London",
+      "postcode": "2a86957a-f4f8-400f-a124-f70320aff397",
+      "companiesHouseNumber": null,
+      "groupIdNumber": null,
+      "rscRegionName": null,
+      "rscRegionCode": null,
+      "governmentOfficeRegionName": null,
+      "governmentOfficeRegionCode": null,
+      "districtName": "Greater London",
+      "districtCode": "LON",
+      "wardName": "WardName",
+      "wardCode": "WARDCODE",
+      "censusWardName": "Census Ward Name",
+      "censusWardCode": "CWC",
+      "middleSuperOutputAreaName": null,
+      "middleSuperOutputAreaCode": null,
+      "lowerSuperOutputAreaName": null,
+      "lowerSuperOutputAreaCode": null,
+      "parliamentaryConstituencyName": null,
+      "parliamentaryConstituencyCode": null,
+      "countryCode": null,
+      "countryName": "UK"
+    }
+}

@@ -1,0 +1,341 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://fundingschemas.blob.core.windows.net/schemas/funding-template-schema-1.1.json",
+  "title": "Funding Template Schema",
+  "description": "Funding Template Schema to define Funding Line and Calculation Hierarchy required for specific funding stream",
+  "version": "1.1",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Spec URI"
+    },
+    "schemaVersion": {
+      "type": "string",
+      "description": "schemaVersion refers to the version of Funding Template Schema."
+    },
+    "fundingTemplate": {
+      "$ref": "#/definitions/fundingTemplate-schema",
+      "description": "The funding  template represents single Funding Stream in the Funding Service."
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "fundingTemplate"
+  ],
+  "definitions": {
+    "fundingTemplate-schema": {
+      "properties": {
+        "fundingLines": {
+          "$ref": "#/definitions/fundingLines-schema",
+          "description": "The lines that make up this funding"
+        }
+      },
+      "required": [
+        "fundingLines"
+      ],
+      "additionalProperties": false
+    },
+    "fundingLines-schema": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/fundingLine-schema"
+      },
+      "additionalProperties": false
+    },
+    "fundingLine-schema": {
+      "properties": {
+        "templateLineId": {
+          "type": "number",
+          "description": " A unique ID (in terms of template, not data) for this funding line (e.g. 345)"
+        },
+        "type": {
+          "type": "string",
+          "description": "This is either payable funding line or information",
+          "enum": [
+            "Payment",
+            "Information"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of a funding line (e.g. 'Total funding line')"
+        },
+        "fundingLineCode": {
+          "description": "The funding line code (e.g. PSG-001), This should only exist for payment type fundlineLine and it can't be null for payment findingLine."
+        },
+        "fundingLines": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/definitions/fundingLines-schema"
+            }
+          ],
+          "description": "Sub funding lines that make up this funding line"
+        },
+        "calculations": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/definitions/calculations-schema"
+            }
+          ],
+          "description": "Calculations that make up this funding line"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "Payment"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "fundingLineCode": {
+                "type": "string"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "fundingLineCode": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ],
+      "required": [
+        "templateLineId",
+        "type",
+        "name",
+        "calculations"
+      ],
+      "additionalProperties": false
+    },
+    "calculations-schema": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/calculation-schema"
+      },
+      "additionalProperties": false
+    },
+    "calculation-schema": {
+      "properties": {
+        "templateCalculationId": {
+          "type": "number",
+          "description": "The template calculation id (i.e. a way to get to this property in the template)"
+        },
+        "type": {
+          "type": "string",
+          "description": "The type of calculation.",
+          "enum": [
+            "Cash",
+            "Rate",
+            "PupilNumber",
+            "Number",
+            "Weighting",
+            "Boolean",
+            "Enum"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the calculation"
+        },
+        "formulaText": {
+          "type": "string",
+          "description": "Presentation data about how a formula is built up"
+        },
+        "valueFormat": {
+          "type": "string",
+          "description": "The way the value should show",
+          "enum": [
+            "Number",
+            "Percentage",
+            "Currency",
+            "Boolean",
+            "String"
+          ]
+        },
+        "calculations": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/definitions/calculations-schema"
+            }
+          ],
+          "description": "Sub level calculations"
+        },
+        "aggregationType": {
+          "type": "string",
+          "description": "How the reference data should aggregate",
+          "enum": [
+            "None",
+            "Average",
+            "Sum",
+            "GroupRate",
+            "PercentageChangeBetweenAandB"
+          ]
+        },
+        "allowedEnumTypeValues": {
+          "description": "This attribute is required/valid for  input model only, this attribute will contain allowed enum values. These values can only be string and can't be null when type is defined as Enum. This attribute should be null when type isn't Enum."
+        },
+        "groupRate": {
+          "description": "GroupRate Aggregation"
+        },
+        "percentageChangeBetweenAandB": {
+          "description": "PercentageChangeBetweenAandB Aggregation"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "aggregationType": {
+                "const": "GroupRate"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "groupRate": {
+                "$ref": "#/definitions/groupRate-schema"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "groupRate": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "aggregationType": {
+                "const": "PercentageChangeBetweenAandB"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "percentageChangeBetweenAandB": {
+                "$ref": "#/definitions/percentageChangeBetweenAandB-schema"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "percentageChangeBetweenAandB": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "Enum"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "valueFormat": {
+                "const": "String"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "allowedEnumTypeValues": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "Boolean"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "valueFormat": {
+                "const": "Boolean"
+              }
+            }
+          }
+        }
+      ],
+      "required": [
+        "type",
+        "name",
+        "formulaText",
+        "valueFormat",
+        "aggregationType"
+      ],
+      "additionalProperties": false
+    },
+    "groupRate-schema": {
+      "properties": {
+        "numerator": {
+          "type": "number",
+          "description": "numerator for GroupRate agrregation"
+        },
+        "denominator": {
+          "type": "number",
+          "description": "denominator for GroupRate agrregation"
+        }
+      },
+      "required": [
+        "numerator",
+        "denominator"
+      ],
+      "additionalProperties": false
+    },
+    "percentageChangeBetweenAandB-schema": {
+      "properties": {
+        "calculationA": {
+          "type": "number",
+          "description": ""
+        },
+        "calculationB": {
+          "type": "number",
+          "description": ""
+        },
+        "calculationAggregationType": {
+          "type": "string",
+          "enum": [
+            "Sum",
+            "Average"
+          ],
+          "description": ""
+        }
+      },
+      "required": [
+        "calculationA",
+        "calculationB",
+        "calculationAggregationType"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

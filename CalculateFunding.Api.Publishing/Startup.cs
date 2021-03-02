@@ -64,6 +64,7 @@ using LocalBlobClient = CalculateFunding.Services.Core.AzureStorage.BlobClient;
 using LocalIBlobClient = CalculateFunding.Services.Core.Interfaces.AzureStorage.IBlobClient;
 using TemplateMetadataSchema10 = CalculateFunding.Common.TemplateMetadata.Schema10;
 using TemplateMetadataSchema11 = CalculateFunding.Common.TemplateMetadata.Schema11;
+using TemplateMetadataSchema12 = CalculateFunding.Common.TemplateMetadata.Schema12;
 
 namespace CalculateFunding.Api.Publishing
 {
@@ -139,9 +140,9 @@ namespace CalculateFunding.Api.Publishing
             builder.AddSingleton<IBatchProfilingOptions, BatchProfilingOptions>();
             builder.AddSingleton<IBatchProfilingService, BatchProfilingService>();
             builder.AddSingleton<IProducerConsumerFactory, ProducerConsumerFactory>();
-            
+
             builder.AddSingleton<IReProfilingResponseMapper, ReProfilingResponseMapper>();
-            
+
             builder.AddSingleton<IBatchUploadQueryService, BatchUploadQueryService>();
             builder.AddSingleton<IUniqueIdentifierProvider, UniqueIdentifierProvider>();
             builder.AddSingleton<IBatchUploadValidationService, BatchUploadValidationService>();
@@ -180,6 +181,9 @@ namespace CalculateFunding.Api.Publishing
                TemplateMetadataSchema11.TemplateMetadataGenerator schema11Generator = new TemplateMetadataSchema11.TemplateMetadataGenerator(logger);
                resolver.Register("1.1", schema11Generator);
 
+               TemplateMetadataSchema12.TemplateMetadataGenerator schema12Generator = new TemplateMetadataSchema12.TemplateMetadataGenerator(logger);
+               resolver.Register("1.2", schema12Generator);
+
                return resolver;
            });
             builder.AddSingleton<ICosmosRepository, CosmosRepository>();
@@ -198,6 +202,7 @@ namespace CalculateFunding.Api.Publishing
 
                 resolver.Register("1.0", new Generators.Schema10.PublishedFundingContentsGenerator());
                 resolver.Register("1.1", new Generators.Schema11.PublishedFundingContentsGenerator());
+                resolver.Register("1.2", new Generators.Schema12.PublishedFundingContentsGenerator());
 
                 return resolver;
             });
@@ -210,6 +215,7 @@ namespace CalculateFunding.Api.Publishing
 
                 resolver.Register("1.0", v10Generator);
                 resolver.Register("1.1", v10Generator);
+                resolver.Register("1.2", v10Generator);
 
                 return resolver;
             });

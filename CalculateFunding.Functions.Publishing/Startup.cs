@@ -68,6 +68,7 @@ using IBlobClient = CalculateFunding.Services.Core.Interfaces.AzureStorage.IBlob
 using ServiceCollectionExtensions = CalculateFunding.Services.Core.Extensions.ServiceCollectionExtensions;
 using TemplateMetadataSchema10 = CalculateFunding.Common.TemplateMetadata.Schema10;
 using TemplateMetadataSchema11 = CalculateFunding.Common.TemplateMetadata.Schema11;
+using TemplateMetadataSchema12 = CalculateFunding.Common.TemplateMetadata.Schema12;
 
 [assembly: FunctionsStartup(typeof(Startup))]
 
@@ -128,19 +129,24 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddScoped<ISqlSchemaGenerator, SqlSchemaGenerator>();
             builder.AddScoped<IQaSchemaService, QaSchemaService>();
             builder.AddScoped<IQaRepository, QaRepository>();
+
             builder.AddSingleton<ITemplateMetadataResolver>(ctx =>
-           {
-               TemplateMetadataResolver resolver = new TemplateMetadataResolver();
-               ILogger logger = ctx.GetService<ILogger>();
+             {
+                 TemplateMetadataResolver resolver = new TemplateMetadataResolver();
+                 ILogger logger = ctx.GetService<ILogger>();
 
-               TemplateMetadataSchema10.TemplateMetadataGenerator schema10Generator = new TemplateMetadataSchema10.TemplateMetadataGenerator(logger);
-               resolver.Register("1.0", schema10Generator);
+                 TemplateMetadataSchema10.TemplateMetadataGenerator schema10Generator = new TemplateMetadataSchema10.TemplateMetadataGenerator(logger);
+                 resolver.Register("1.0", schema10Generator);
 
-               TemplateMetadataSchema11.TemplateMetadataGenerator schema11Generator = new TemplateMetadataSchema11.TemplateMetadataGenerator(logger);
-               resolver.Register("1.1", schema11Generator);
+                 TemplateMetadataSchema11.TemplateMetadataGenerator schema11Generator = new TemplateMetadataSchema11.TemplateMetadataGenerator(logger);
+                 resolver.Register("1.1", schema11Generator);
 
-               return resolver;
-           });
+                 TemplateMetadataSchema12.TemplateMetadataGenerator schema12Generator = new TemplateMetadataSchema12.TemplateMetadataGenerator(logger);
+                 resolver.Register("1.2", schema12Generator);
+
+                 return resolver;
+             });
+
             builder.AddSingleton<ICosmosRepository, CosmosRepository>();
 
             CosmosDbSettings settings = new CosmosDbSettings();
@@ -509,6 +515,7 @@ namespace CalculateFunding.Functions.Publishing
 
                 resolver.Register("1.0", new Generators.Schema10.PublishedProviderContentsGenerator());
                 resolver.Register("1.1", new Generators.Schema11.PublishedProviderContentsGenerator());
+                resolver.Register("1.2", new Generators.Schema12.PublishedProviderContentsGenerator());
 
                 return resolver;
             });
@@ -519,6 +526,7 @@ namespace CalculateFunding.Functions.Publishing
 
                 resolver.Register("1.0", new Generators.Schema10.PublishedFundingContentsGenerator());
                 resolver.Register("1.1", new Generators.Schema11.PublishedFundingContentsGenerator());
+                resolver.Register("1.2", new Generators.Schema12.PublishedFundingContentsGenerator());
 
                 return resolver;
             });
@@ -531,6 +539,7 @@ namespace CalculateFunding.Functions.Publishing
 
                 resolver.Register("1.0", v10Generator);
                 resolver.Register("1.1", v10Generator);
+                resolver.Register("1.2", v10Generator);
 
                 return resolver;
             });

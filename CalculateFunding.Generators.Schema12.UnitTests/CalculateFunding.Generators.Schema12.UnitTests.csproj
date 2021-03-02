@@ -1,0 +1,49 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="FluentAssertions" Version="5.10.3" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
+        <PackageReference Include="MSTest.TestAdapter" Version="2.1.1" />
+        <PackageReference Include="MSTest.TestFramework" Version="2.1.1" />
+        <PackageReference Include="coverlet.collector" Version="1.2.0" />
+        <PackageReference Include="NJsonSchema" Version="10.1.18" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\CalculateFunding.Generators.Schema12\CalculateFunding.Generators.Schema12.csproj" />
+      <ProjectReference Include="..\CalculateFunding.Tests.Common\CalculateFunding.Tests.Common.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Resources\1.1.json" />
+      <None Remove="Resources\example-funding-template1.2.json" />
+      <None Remove="Resources\funding-schema1.2.json" />
+      <None Remove="Resources\provider-schema-1.2.json" />
+      <None Remove="Resources\provider_example_1.json" />
+      <None Remove="Resources\published_provider_example_1.2.json" />
+      <None Remove="Resources\schema1.1-draft2.json" />
+      <None Remove="Resources\funding-template-schema 1.1-draft.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Include="Resources\example-funding-template1.2.json" />
+      <None Remove="Resources\template-schema1.1.json" />
+      <EmbeddedResource Include="Resources\funding-schema1.2.json" />
+      <EmbeddedResource Include="Resources\provider-schema-1.2.json" />
+      <EmbeddedResource Include="Resources\provider_example_1.json" />
+      <EmbeddedResource Include="Resources\template-schema1.1.json" />
+      <None Remove="Resources\example-published-funding-version.json" />
+      <EmbeddedResource Include="Resources\example-published-funding-version.json" />
+      <None Remove="Resources\example-published-provider-version.json" />
+      <EmbeddedResource Include="Resources\example-published-provider-version.json" />
+      <None Remove="Resources\funding_example_1.1.json" />
+      <EmbeddedResource Include="Resources\published_provider_example_1.2.json" />
+    </ItemGroup>
+
+</Project>

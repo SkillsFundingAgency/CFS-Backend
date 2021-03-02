@@ -11,8 +11,6 @@ using CalculateFunding.Common.Config.ApiClient.Results;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
-using CalculateFunding.Common.TemplateMetadata;
-using CalculateFunding.Common.TemplateMetadata.Schema10;
 using CalculateFunding.Functions.Specs.ServiceBus;
 using CalculateFunding.Models.Messages;
 using CalculateFunding.Models.Specs;
@@ -42,7 +40,6 @@ using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
-using Serilog;
 using ServiceCollectionExtensions = CalculateFunding.Services.Core.Extensions.ServiceCollectionExtensions;
 using SpecificationVersion = CalculateFunding.Models.Specs.SpecificationVersion;
 
@@ -78,7 +75,7 @@ namespace CalculateFunding.Functions.Specs
 
             builder.AddSingleton<IObsoleteFundingLineDetection, ObsoleteFundingLineDetection>();
             builder.AddSingleton<IUniqueIdentifierProvider, UniqueIdentifierProvider>();
-            
+
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
             builder.AddSingleton<ISpecificationTemplateVersionChangedHandler, SpecificationTemplateVersionChangedHandler>();
 
@@ -121,17 +118,6 @@ namespace CalculateFunding.Functions.Specs
             builder.AddSingleton<IProducerConsumerFactory, ProducerConsumerFactory>();
             builder.AddSingleton<ISpecificationIndexingService, SpecificationIndexingService>();
             builder.AddSingleton<IDeadletterService, DeadletterService>();
-
-            builder.AddSingleton<ITemplateMetadataResolver>((ctx) =>
-            {
-                TemplateMetadataResolver resolver = new TemplateMetadataResolver();
-
-                TemplateMetadataGenerator schema10Generator = new TemplateMetadataGenerator(ctx.GetService<ILogger>());
-
-                resolver.Register("1.0", schema10Generator);
-
-                return resolver;
-            });
 
             builder
                 .AddSingleton<IBlobClient, BlobClient>((ctx) =>

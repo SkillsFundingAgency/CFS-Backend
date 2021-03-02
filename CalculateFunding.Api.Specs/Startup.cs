@@ -1,19 +1,18 @@
-﻿using AutoMapper;
+﻿using System;
+using AutoMapper;
 using CacheCow.Server.Core.Mvc;
 using CalculateFunding.Common.Config.ApiClient.Calcs;
 using CalculateFunding.Common.Config.ApiClient.Dataset;
+using CalculateFunding.Common.Config.ApiClient.Graph;
 using CalculateFunding.Common.Config.ApiClient.Jobs;
 using CalculateFunding.Common.Config.ApiClient.Policies;
 using CalculateFunding.Common.Config.ApiClient.Providers;
 using CalculateFunding.Common.Config.ApiClient.Results;
-using CalculateFunding.Common.Config.ApiClient.Graph;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Storage;
-using CalculateFunding.Common.TemplateMetadata;
-using CalculateFunding.Common.TemplateMetadata.Schema10;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.Messages;
@@ -46,14 +45,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Polly.Bulkhead;
-using Serilog;
 using BlobClient = CalculateFunding.Common.Storage.BlobClient;
 using IBlobClient = CalculateFunding.Common.Storage.IBlobClient;
 using LocalBlobClient = CalculateFunding.Services.Core.AzureStorage.BlobClient;
 using LocalIBlobClient = CalculateFunding.Services.Core.Interfaces.AzureStorage.IBlobClient;
 using ServiceCollectionExtensions = CalculateFunding.Services.Core.Extensions.ServiceCollectionExtensions;
 using SpecificationVersion = CalculateFunding.Models.Specs.SpecificationVersion;
-using System;
 
 namespace CalculateFunding.Api.Specs
 {
@@ -176,17 +173,6 @@ namespace CalculateFunding.Api.Specs
             builder
                 .AddSingleton<ISpecificationsReportService, SpecificationsReportService>()
                 .AddSingleton<IHealthChecker, SpecificationsReportService>();
-
-            builder.AddSingleton<ITemplateMetadataResolver>((ctx) =>
-            {
-                TemplateMetadataResolver resolver = new TemplateMetadataResolver();
-
-                TemplateMetadataGenerator schema10Generator = new TemplateMetadataGenerator(ctx.GetService<ILogger>());
-
-                resolver.Register("1.0", schema10Generator);
-
-                return resolver;
-            });
 
             builder
                 .AddSingleton<LocalIBlobClient, LocalBlobClient>((ctx) =>
