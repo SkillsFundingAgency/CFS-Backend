@@ -60,7 +60,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling
 
             builder.AddSingleton<ICosmosDbScalingRepositoryProvider, CosmosDbScalingRepositoryProvider>();
 
-            builder.AddSingleton<ICosmosDbScalingService, CosmosDbScalingService>();
+            builder.AddScoped<ICosmosDbScalingService, CosmosDbScalingService>();
 
             builder.AddSingleton<ICosmosDbScalingRequestModelBuilder, CosmosDbScalingRequestModelBuilder>();
 

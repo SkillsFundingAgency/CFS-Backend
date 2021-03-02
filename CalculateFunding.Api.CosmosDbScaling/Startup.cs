@@ -99,7 +99,7 @@ namespace CalculateFunding.API.CosmosDbScaling
                 .AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
 
             builder.AddSingleton<ICosmosRepository, CosmosRepository>();
-            builder.AddSingleton<ICosmosDbScalingService, CosmosDbScalingService>();
+            builder.AddScoped<ICosmosDbScalingService, CosmosDbScalingService>();
             builder.AddSingleton<ICosmosDbScalingRepositoryProvider, CosmosDbScalingRepositoryProvider>();
             builder.AddSingleton<ICosmosDbScalingRequestModelBuilder, CosmosDbScalingRequestModelBuilder>();
             builder.AddSingleton<ICosmosDbThrottledEventsFilter, CosmosDbThrottledEventsFilter>();
