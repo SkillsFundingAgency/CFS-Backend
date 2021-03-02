@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Calcs.ObsoleteItems;
 using CalculateFunding.Models.Code;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs.Services;
@@ -21,7 +22,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests
         private Mock<IBuildProjectsService> _buildProjects;
         private Mock<ISourceCodeService> _compiler;
         private Mock<ICalculationsRepository> _calculations;
-
+        
         private CodeContextBuilder _codeContextBuilder;
 
         [TestInitialize]
@@ -123,7 +124,8 @@ namespace CalculateFunding.Services.Calcs.UnitTests
             => _compiler.Setup(_ => _.Compile(buildProject,
                     It.Is<IEnumerable<Calculation>>(calcs =>
                         calcs.SequenceEqual(calculations ?? Enumerable.Empty<Calculation>())),
-                        null))
+                        It.IsAny<IEnumerable<ObsoleteItem>>(),
+                    null))
                 .Returns(build);
 
         private void AndTheCodeContext(BuildProject buildProject,

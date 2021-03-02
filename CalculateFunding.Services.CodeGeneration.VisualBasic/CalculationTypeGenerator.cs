@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Calcs.ObsoleteItems;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
 using CalculateFunding.Services.CodeGeneration.VisualBasic.Type.Interfaces;
@@ -33,7 +34,9 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             _typeIdentifierGenerator = new VisualBasicTypeIdentifierGenerator();
         }
 
-        public IEnumerable<SourceFile> GenerateCalcs(IEnumerable<Calculation> calculations, IDictionary<string, Funding> funding)
+        public IEnumerable<SourceFile> GenerateCalcs(IEnumerable<Calculation> calculations,
+            IDictionary<string, Funding> funding,
+            IEnumerable<ObsoleteItem> obsoleteItems)
         {
             SyntaxList<OptionStatementSyntax> optionsList = new SyntaxList<OptionStatementSyntax>(new[]
             {
@@ -55,7 +58,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 ? SyntaxFactory.ParseTypeName("LegacyBaseCalculation")
                 : SyntaxFactory.ParseTypeName("BaseCalculation")));
 
-            IEnumerable<StatementSyntax> methods = CreateMembers(calculations, funding);
+            IEnumerable<StatementSyntax> methods = CreateMembers(calculations, funding, obsoleteItems);
             
             ClassBlockSyntax classBlock = SyntaxFactory.ClassBlock(classStatement,
                 inherits,
@@ -83,7 +86,9 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             yield return new SourceFile { FileName = "Calculations.vb", SourceCode = sourceCode };
         }
 
-        private IEnumerable<StatementSyntax> CreateMembers(IEnumerable<Calculation> calculations, IDictionary<string, Funding> funding)
+        private IEnumerable<StatementSyntax> CreateMembers(IEnumerable<Calculation> calculations,
+            IDictionary<string, Funding> funding,
+            IEnumerable<ObsoleteItem> obsoleteItems)
         {
             yield return ParseSourceCodeToStatementSyntax("Public StackFrameStartingCount As Integer = 0");
             yield return ParseSourceCodeToStatementSyntax("Public Property Dictionary As Dictionary(Of String, String()) = New Dictionary(Of String, String())(2)");
@@ -106,10 +111,10 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                     return fl;
                 });
             }
-
+            
             IEnumerable<NamespaceBuilderResult> namespaceBuilderResults = new[] {
                 new CalculationNamespaceBuilder(_compilerOptions).BuildNamespacesForCalculations(calculations),
-                new FundingLineNamespaceBuilder().BuildNamespacesForFundingLines(funding, _fundingLineRoundingSettings.DecimalPlaces)
+                new FundingLineNamespaceBuilder().BuildNamespacesForFundingLines(funding, obsoleteItems, _fundingLineRoundingSettings.DecimalPlaces)
             };
 
             foreach (NamespaceBuilderResult namespaceBuilderResult in namespaceBuilderResults)

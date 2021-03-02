@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Calcs.ObsoleteItems;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
@@ -16,7 +17,8 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
     public class FundingLineNamespaceBuilderTests
     {
         private IDictionary<string, Funding> _fundingLines;
-
+        private IEnumerable<ObsoleteItem> _obsoleteItems;
+        
         private FundingLineNamespaceBuilder _builder;
 
         private NamespaceBuilderResult _result;
@@ -24,6 +26,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
         [TestInitialize]
         public void SetUp()
         {
+            _obsoleteItems = new ObsoleteItem[0];
             _fundingLines = new Dictionary<string, Funding>();
             _builder = new FundingLineNamespaceBuilder();
         }
@@ -53,6 +56,45 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
             WhenTheFundingLineNamespacesAreBuilt();
 
             ThenResultContainsNamespaceDefinitionsFor(psg, dsg);
+        }
+        
+        [TestMethod]
+        public void EachNamespaceClassContainsAMethodToInitialiseAllObsoleteFundingLines()
+        {
+            string psg = "PSG";
+
+            string[] expectedInitialiseMethodContains =
+            {
+                @"ObsoleteOne = Function() As Decimal?
+Return Nothing
+End Function
+ObsoleteTwo = Function() As Decimal?
+Return Nothing
+End Function"
+            };
+            
+            string obsoleteFundingLineOne = "ObsoleteOne";
+            string obsoleteFundingLineTwo = "ObsoleteTwo";
+
+            GivenTheFundingLine(psg,
+                NewFunding(_ => _
+                    .WithFundingLines(NewFundingLine(fl => fl
+                        .WithCalculations(NewFundingLineCalculation(cal => cal.WithId(1)
+                            .WithCalculationNamespaceType(CalculationNamespace.Template)))
+                        .WithId(1)
+                        .WithName("One")
+                        .WithSourceCodeName("One")
+                        .WithNamespace(psg)))));
+            AndTheObsoleteItems(NewObsoleteItem(_ => _.WithCodeReference(obsoleteFundingLineOne)
+                    .WithItemType(ObsoleteItemType.FundingLine)),
+                NewObsoleteItem(_ => _.WithItemType(ObsoleteItemType.Calculation)),
+                NewObsoleteItem(_ => _.WithCodeReference(obsoleteFundingLineTwo)
+                    .WithItemType(ObsoleteItemType.FundingLine)));
+
+            WhenTheFundingLineNamespacesAreBuilt();
+
+            ThenResultContainsNamespaceDefinitionsFor(psg);
+            AndTheNamespaceDefinition(psg, expectedInitialiseMethodContains);
         }
 
         [TestMethod]
@@ -128,10 +170,14 @@ End Function";
         {
             string psg = "PSG";
             string dsg = "DSG";
+            string obsoleteFundingLineOne = "ObsoleteOne";
+            string obsoleteFundingLineTwo = "ObsoleteTwo";
 
             string[] expectedFunctionPointers =
             {
-                "Public One As Func(Of decimal?) = Nothing"
+                "Public One As Func(Of decimal?) = Nothing",
+                "Public ObsoleteOne As Func(Of decimal?) = Nothing",
+                "Public ObsoleteTwo As Func(Of decimal?) = Nothing"
             };
 
             GivenTheFundingLine(psg,
@@ -144,8 +190,7 @@ End Function";
                         .WithName("One")
                         .WithSourceCodeName("One")
                         .WithNamespace(psg)))));
-
-            GivenTheFundingLine(dsg,
+            AndTheFundingLine(dsg,
                 NewFunding(_ => _
                     .WithFundingLines(NewFundingLine(fl => fl
                         .WithCalculations(NewFundingLineCalculation(cal => cal
@@ -155,6 +200,11 @@ End Function";
                         .WithName("Two")
                         .WithSourceCodeName("Two")
                         .WithNamespace(dsg)))));
+            AndTheObsoleteItems(NewObsoleteItem(_ => _.WithCodeReference(obsoleteFundingLineOne)
+                    .WithItemType(ObsoleteItemType.FundingLine)),
+                NewObsoleteItem(_ => _.WithItemType(ObsoleteItemType.Calculation)),
+                NewObsoleteItem(_ => _.WithCodeReference(obsoleteFundingLineTwo)
+                    .WithItemType(ObsoleteItemType.FundingLine)));
 
             WhenTheFundingLineNamespacesAreBuilt();
 
@@ -167,7 +217,22 @@ End Function";
         {
             _fundingLines.Add(fundingStream, funding);
         }
+        
+        private void GivenTheObsoleteItems(params ObsoleteItem[] obsoleteItems)
+            => _obsoleteItems = obsoleteItems;
+        
+        private void AndTheObsoleteItems(params ObsoleteItem[] obsoleteItems)
+            => GivenTheObsoleteItems(obsoleteItems);
 
+        private ObsoleteItem NewObsoleteItem(Action<ObsoleteItemBuilder> setUp = null)
+        {
+            ObsoleteItemBuilder obsoleteItemBuilder = new ObsoleteItemBuilder();
+
+            setUp?.Invoke(obsoleteItemBuilder);
+            
+            return obsoleteItemBuilder.Build();
+        }
+        
         private void AndTheFundingLine(string fundingStream,
             Funding funding)
         {
@@ -176,7 +241,7 @@ End Function";
 
         private void WhenTheFundingLineNamespacesAreBuilt(int decimalPlaces = 2)
         {
-            _result = _builder.BuildNamespacesForFundingLines(_fundingLines, decimalPlaces);
+            _result = _builder.BuildNamespacesForFundingLines(_fundingLines, _obsoleteItems, decimalPlaces);
         }
 
         private void ThenResultContainsNamespaceDefinitionsFor(params string[] expectedNamespaces)
@@ -267,6 +332,57 @@ End Function";
                 SyntaxFactory.ImportsStatement(SyntaxFactory.SingletonSeparatedList<ImportsClauseSyntax>(
                     SyntaxFactory.SimpleImportsClause(SyntaxFactory.ParseName("Microsoft.VisualBasic.CompilerServices"))))
             });
+        }
+    }
+
+    public class ObsoleteItemBuilder : TestEntityBuilder
+    {
+        private uint? _fundingLineId;
+        private string _specificationId;
+        private string[] _calculationIds = new string[0];
+        private ObsoleteItemType? _itemType;
+        private string _codeReference;
+
+        public ObsoleteItemBuilder WithCodeReference(string sourceCode)
+        {
+            _codeReference = sourceCode;
+
+            return this;
+        }
+        
+        public ObsoleteItemBuilder WithFundingLineId(uint fundingLineId)
+        {
+            _fundingLineId = fundingLineId;
+            return this;
+        }
+
+        public ObsoleteItemBuilder WithCalculationIds(params string[] calculationIds)
+        {
+            _calculationIds = calculationIds;
+            return this;
+        }
+        public ObsoleteItemBuilder WithSpecificationId(string specificationId)
+        {
+            _specificationId = specificationId;
+            return this;
+        }
+
+        public ObsoleteItemBuilder WithItemType(ObsoleteItemType? itemType)
+        {
+            _itemType = itemType;
+            return this;
+        }
+
+        public ObsoleteItem Build()
+        {
+            return new ObsoleteItem()
+            { 
+                FundingLineId = _fundingLineId.GetValueOrDefault(NewRandomUint()),
+                CalculationIds = _calculationIds,
+                SpecificationId = _specificationId ?? NewRandomString(),
+                ItemType = _itemType.GetValueOrDefault(NewRandomEnum<ObsoleteItemType>()),
+                CodeReference = _codeReference
+            };
         }
     }
 }

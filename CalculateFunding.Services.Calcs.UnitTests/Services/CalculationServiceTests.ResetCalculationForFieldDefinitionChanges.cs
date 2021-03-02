@@ -8,6 +8,7 @@ using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Calcs.ObsoleteItems;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Services.Calcs.Interfaces;
@@ -220,7 +221,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Is(buildProject), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
+                .Compile(Arg.Is(buildProject), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<IEnumerable<ObsoleteItem>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             IVersionRepository<CalculationVersion> calculationVersionRepository = CreateCalculationVersionRepository();

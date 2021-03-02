@@ -20,6 +20,7 @@ using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Calcs.ObsoleteItems;
 using CalculateFunding.Models.Code;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.ViewModels;
@@ -1427,7 +1428,9 @@ End Select");
             //forcing off for calc runs only
             compilerOptions.OptionStrictEnabled = false;
 
-            buildProject.Build = _sourceCodeService.Compile(buildProject, calculations, compilerOptions);
+            IEnumerable<ObsoleteItem> obsoleteItems = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetObsoleteItemsForSpecification(buildProject.SpecificationId));
+
+            buildProject.Build = _sourceCodeService.Compile(buildProject, calculations, obsoleteItems, compilerOptions);
 
             await _sourceCodeService.SaveSourceFiles(buildProject.Build.SourceFiles, specificationSummary.Id, SourceCodeType.Release);
 

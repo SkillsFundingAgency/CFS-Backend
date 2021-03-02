@@ -15,6 +15,7 @@ using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Graph;
 using CalculateFunding.Models.Specs;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type.Interfaces;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Specs.ObsoleteItems;
 using CalculateFunding.Tests.Common.Builders;
@@ -37,6 +38,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.ObsoleteItems
         private Mock<IPoliciesApiClient> _policiesApiClient;
         private Mock<IGraphApiClient> _graphApiClient;
         private Mock<IUniqueIdentifierProvider> _uniqueIdentifiers;
+        private Mock<ITypeIdentifierGenerator> _identifierGenerator;
 
         private ObsoleteFundingLineDetection _detection;
         
@@ -48,6 +50,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.ObsoleteItems
             _policiesApiClient = new Mock<IPoliciesApiClient>();
             _graphApiClient = new Mock<IGraphApiClient>();
             _uniqueIdentifiers = new Mock<IUniqueIdentifierProvider>();
+            _identifierGenerator = new Mock<ITypeIdentifierGenerator>();
 
             _detection = new ObsoleteFundingLineDetection(_calculations.Object,
                 _policiesApiClient.Object,
@@ -59,6 +62,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.ObsoleteItems
                     PoliciesApiClient = Policy.NoOpAsync(),
                     GraphApiClient = Policy.NoOpAsync()
                 },
+                _identifierGenerator.Object,
                 _jobs.Object,
                 Logger.None);
         }
@@ -75,6 +79,12 @@ namespace CalculateFunding.Services.Specs.UnitTests.ObsoleteItems
             uint fundingLineOne = NewRandomUint();
             uint fundingLineTwo = NewRandomUint();
 
+            string fundingLineNameOne = NewRandomString();
+            string fundingLineIdentifierOne = NewRandomString();
+
+            string fundingLineNameTwo = NewRandomString();
+            string fundingLineIdentifierTwo = NewRandomString();
+
             string calculationIdOne = NewRandomString();
             string calculationIdTwo = NewRandomString();
 
@@ -83,6 +93,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.ObsoleteItems
             ObsoleteItem obsoleteItem = NewObsoleteItem(_ => _.WithFundingLineId(fundingLineTwo)
                 .WithCalculationIds(calculationIdTwo)
                 .WithSpecificationId(specificationId)
+                .WithCodeReference(fundingLineIdentifierTwo)
                 .WithItemType(ObsoleteItemType.FundingLine));
 
             GivenMetadataForTemplateVersion(fundingStreamId, fundingPeriodId, existingTemplateId, NewTemplateMetadataDistinctContents(_ =>
@@ -90,12 +101,14 @@ namespace CalculateFunding.Services.Specs.UnitTests.ObsoleteItems
                     new TemplateMetadataFundingLine()
                     {
                         FundingLineCode = fundingLineOne.ToString(),
-                        TemplateLineId = fundingLineOne
+                        TemplateLineId = fundingLineOne,
+                        Name = fundingLineNameOne
                     },
                     new TemplateMetadataFundingLine()
                     {
                         FundingLineCode = fundingLineTwo.ToString(),
-                        TemplateLineId = fundingLineTwo
+                        TemplateLineId = fundingLineTwo,
+                        Name = fundingLineNameTwo
                     },
                 })));
             AndTheMetadataForTemplateVersion(fundingStreamId, fundingPeriodId, changedTemplateId, NewTemplateMetadataDistinctContents(_ =>
@@ -109,6 +122,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.ObsoleteItems
             AndGraphEntitiesForSpecification(specificationId, templateCalculationId, calculationIdOne, calculationIdTwo);
             AndGraphEntitiesForFundingLine(fundingLineTwo.ToString(), calculationIdTwo);
             AndTheObsoleteItemIsCreatedSuccessfully(obsoleteItem);
+            AndTheIdentifierName(fundingLineNameTwo, fundingLineIdentifierTwo);
 
             await WhenTheFundingLineDetectionIsRun(specificationId,
                 fundingStreamId,
@@ -167,6 +181,11 @@ namespace CalculateFunding.Services.Specs.UnitTests.ObsoleteItems
                     new[] { new Entity<FundingLine>() { Relationships = calculationRelationships } }));
         }
 
+        private void AndTheIdentifierName(string value,
+            string identifier)
+            => _identifierGenerator.Setup(_ => _.GenerateIdentifier(value))
+                .Returns(identifier);
+
         private void AndTheObsoleteItemIsCreatedSuccessfully(ObsoleteItem obsoleteItem)
         {
             _calculations.Setup(_ =>
@@ -181,11 +200,11 @@ namespace CalculateFunding.Services.Specs.UnitTests.ObsoleteItems
                         obs.SpecificationId == obsoleteItem.SpecificationId &&
                         obs.FundingLineId == obsoleteItem.FundingLineId &&
                         obs.ItemType == obsoleteItem.ItemType &&
+                        obs.CodeReference != null &&
+                        obs.CodeReference.Equals(obsoleteItem.CodeReference) &&
                         obs.CalculationIds.SequenceEqual(obsoleteItem.CalculationIds)))
                 , Times.Once);
         }
-        private Reference NewUser() => new ReferenceBuilder()
-            .Build();
 
         private string NewRandomString() => new RandomString();
 

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Calcs.ObsoleteItems;
 using CalculateFunding.Models.Code;
 
 namespace CalculateFunding.Services.Calcs.Interfaces
@@ -11,7 +12,11 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 
         Task<byte[]> GetAssembly(BuildProject buildProject, bool useExistingAssembly = true);
 
-        Build Compile(BuildProject buildProject, IEnumerable<Calculation> calculations, CompilerOptions compilerOptions = null);
+        Build Compile(BuildProject buildProject,
+            IEnumerable<Calculation> calculations,
+            IEnumerable<ObsoleteItem> obsoleteItems,
+            CompilerOptions compilerOptions = null
+            );
 
         Task<IEnumerable<TypeInformation>> GetTypeInformation(BuildProject buildProject);
 
@@ -21,6 +26,9 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 
         Task DeleteAssembly(string specificationId);
 
-        IEnumerable<SourceFile> GenerateSourceFiles(BuildProject buildProject, IEnumerable<Calculation> calculations, CompilerOptions compilerOptions);
+        IEnumerable<SourceFile> GenerateSourceFiles(BuildProject buildProject,
+            IEnumerable<Calculation> calculations,
+            CompilerOptions compilerOptions,
+            IEnumerable<ObsoleteItem> obsoleteItems);
     }
 }

@@ -10,6 +10,7 @@ using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Calcs.ObsoleteItems;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs.MappingProfiles;
@@ -306,7 +307,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<IEnumerable<ObsoleteItem>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             sourceCodeService
@@ -349,9 +350,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
             sourceCodeService
                 .DidNotReceive()
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Is<CompilerOptions>(
-                        m => m.OptionStrictEnabled == false
-                    ));
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<IEnumerable<ObsoleteItem>>(), Arg.Is<CompilerOptions>(
+                    m => m.OptionStrictEnabled == false
+                ));
         }
 
         [TestMethod]
@@ -415,7 +416,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<IEnumerable<ObsoleteItem>>(),Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             sourceCodeService
@@ -458,9 +459,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
             sourceCodeService
                 .DidNotReceive()
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Is<CompilerOptions>(
-                        m => m.OptionStrictEnabled == false
-                    ));
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(),Arg.Any<IEnumerable<ObsoleteItem>>(),Arg.Is<CompilerOptions>(
+                    m => m.OptionStrictEnabled == false
+                ));
         }
 
         [TestMethod]
@@ -547,7 +548,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(),Arg.Any<IEnumerable<ObsoleteItem>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             sourceCodeService
@@ -596,6 +597,7 @@ namespace CalculateFunding.Services.Calcs.Services
                  .Compile(
                     Arg.Is(buildProject),
                     Arg.Is<IEnumerable<Calculation>>(m => m.Count() == 1),
+                    Arg.Any<IEnumerable<ObsoleteItem>>(),
                     Arg.Any<CompilerOptions>());
 
             logger
@@ -721,7 +723,7 @@ End Class";
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<IEnumerable<ObsoleteItem>>(),Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             sourceCodeService
@@ -735,9 +737,9 @@ End Class";
             };
 
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Is<CompilerOptions>(
-                        m => m.OptionStrictEnabled == false
-                    )).Returns(nonPreviewBuild);
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<IEnumerable<ObsoleteItem>>(),Arg.Is<CompilerOptions>(
+                    m => m.OptionStrictEnabled == false
+                )).Returns(nonPreviewBuild);
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
                 buildProjectsService: buildProjectsService, sourceCodeService: sourceCodeService);
@@ -853,7 +855,7 @@ End Class";
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<IEnumerable<ObsoleteItem>>(),Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             sourceCodeService
@@ -867,9 +869,9 @@ End Class";
             };
 
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Is<CompilerOptions>(
-                        m => m.OptionStrictEnabled == false
-                    )).Returns(nonPreviewBuild);
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<IEnumerable<ObsoleteItem>>(),Arg.Is<CompilerOptions>(
+                    m => m.OptionStrictEnabled == false
+                )).Returns(nonPreviewBuild);
 
             List<CalcEngineModels.CalculationResult> calculationResults = new List<CalcEngineModels.CalculationResult>
             {
@@ -1042,7 +1044,7 @@ End Class";
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<IEnumerable<ObsoleteItem>>(),Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             sourceCodeService
@@ -1056,9 +1058,9 @@ End Class";
             };
 
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Is<CompilerOptions>(
-                        m => m.OptionStrictEnabled == false
-                    )).Returns(nonPreviewBuild);
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<IEnumerable<ObsoleteItem>>(),Arg.Is<CompilerOptions>(
+                    m => m.OptionStrictEnabled == false
+                )).Returns(nonPreviewBuild);
 
             List<CalcEngineModels.CalculationResult> calculationResults = new List<CalcEngineModels.CalculationResult>
             {
@@ -1225,7 +1227,7 @@ End Class";
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<IEnumerable<ObsoleteItem>>(),Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             sourceCodeService
@@ -1239,9 +1241,9 @@ End Class";
             };
 
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Is<CompilerOptions>(
-                        m => m.OptionStrictEnabled == false
-                    )).Returns(nonPreviewBuild);
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<IEnumerable<ObsoleteItem>>(),Arg.Is<CompilerOptions>(
+                    m => m.OptionStrictEnabled == false
+                )).Returns(nonPreviewBuild);
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
                 buildProjectsService: buildProjectsService, sourceCodeService: sourceCodeService);
@@ -1367,7 +1369,7 @@ End Class";
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(),Arg.Any<IEnumerable<ObsoleteItem>>(), Arg.Any<CompilerOptions>())
                 .Returns(compilerOutput);
 
             sourceCodeService
@@ -1485,7 +1487,7 @@ End Class";
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<IEnumerable<ObsoleteItem>>(),Arg.Any<CompilerOptions>())
                 .Returns(compilerOutput);
 
             sourceCodeService
@@ -1626,7 +1628,7 @@ End Class";
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<IEnumerable<ObsoleteItem>>(),Arg.Any<CompilerOptions>())
                 .Returns(compilerOutput);
 
             sourceCodeService
@@ -2175,7 +2177,7 @@ End Class";
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<IEnumerable<ObsoleteItem>>(),Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             sourceCodeService
@@ -2304,7 +2306,7 @@ End Class";
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<IEnumerable<ObsoleteItem>>(),Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             sourceCodeService
@@ -2421,7 +2423,7 @@ End Class";
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<IEnumerable<ObsoleteItem>>(),Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             sourceCodeService
@@ -2544,7 +2546,7 @@ End Class";
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<IEnumerable<ObsoleteItem>>(),Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             sourceCodeService
@@ -2663,7 +2665,7 @@ End Class";
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<IEnumerable<ObsoleteItem>>(),Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             sourceCodeService
@@ -2776,7 +2778,7 @@ End Class";
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<IEnumerable<ObsoleteItem>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             sourceCodeService
@@ -2897,7 +2899,7 @@ End Class";
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<IEnumerable<ObsoleteItem>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             sourceCodeService
@@ -3018,7 +3020,7 @@ End Class";
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<IEnumerable<ObsoleteItem>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             Dictionary<string, string> sourceCodes = new Dictionary<string, string>
@@ -3042,6 +3044,7 @@ End Class";
             sourceCodeService
                 .Compile(Arg.Any<BuildProject>(),
                     Arg.Any<IEnumerable<Calculation>>(),
+                    Arg.Any<IEnumerable<ObsoleteItem>>(),
                     Arg.Any<CompilerOptions>())
                 .Returns(nonPreviewBuild);
 

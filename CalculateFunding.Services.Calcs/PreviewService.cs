@@ -10,6 +10,7 @@ using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Calcs.ObsoleteItems;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
@@ -204,7 +205,10 @@ namespace CalculateFunding.Services.Calcs
         {
             PreviewProviderCalculationResponseModel previewProviderCalculation = null;
 
-            Build compilerOutput = _sourceCodeService.Compile(buildProject, calculations, compilerOptions);
+            //TODO; add in a new AsyncPolicy for the cals repo here as there is none!!
+            IEnumerable<ObsoleteItem> obsoleteItems = await _calculationsRepository.GetObsoleteItemsForSpecification(buildProject.SpecificationId);
+
+            Build compilerOutput = _sourceCodeService.Compile(buildProject, calculations, obsoleteItems, compilerOptions);
 
             if (compilerOutput.SourceFiles != null)
             {

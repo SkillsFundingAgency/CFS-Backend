@@ -10,6 +10,7 @@ using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Calcs.ObsoleteItems;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
 using CalculateFunding.Services.Core.Interfaces;
@@ -365,7 +366,7 @@ Return Datasets.{datasetRelationshipIdVisualBasicVariable}.{new VisualBasicTypeI
                 .Returns(Task.FromResult(buildProject));
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
-            sourceCodeService.Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
+            sourceCodeService.Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<IEnumerable<ObsoleteItem>>(), Arg.Any<CompilerOptions>())
                 .Returns(new Build() { SourceFiles = new List<SourceFile>() });
 
             CalculationService service = CreateCalculationService(
@@ -575,7 +576,7 @@ Return Datasets.{datasetRelationshipIdVisualBasicVariable}.{new VisualBasicTypeI
                 .Returns(Task.FromResult(buildProject));
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
-            sourceCodeService.Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
+            sourceCodeService.Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<IEnumerable<ObsoleteItem>>(),Arg.Any<CompilerOptions>())
                 .Returns(new Build() { SourceFiles = new List<SourceFile>() });
 
             CalculationService service = CreateCalculationService(

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Calcs.ObsoleteItems;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using FluentAssertions;
@@ -16,10 +17,13 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
     public class CalculationTypeGeneratorTests
     {
         private Mock<IFundingLineRoundingSettings> _fundingLineRoundingSettings;
+        private IEnumerable<ObsoleteItem> _obsoleteItems;
         
         [TestInitialize]
         public void SetUp()
         {
+            _obsoleteItems = new ObsoleteItem[0];
+            
             _fundingLineRoundingSettings = new Mock<IFundingLineRoundingSettings>();
         }
         
@@ -65,7 +69,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
             CalculationTypeGenerator calculationTypeGenerator = new CalculationTypeGenerator(compilerOptions, _fundingLineRoundingSettings.Object);
 
             // Act
-            IEnumerable<SourceFile> results = calculationTypeGenerator.GenerateCalcs(calculations, fundingLines);
+            IEnumerable<SourceFile> results = calculationTypeGenerator.GenerateCalcs(calculations, fundingLines, _obsoleteItems);
 
             // Assert
             results.Should().HaveCount(1);
@@ -87,7 +91,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
             CalculationTypeGenerator calculationTypeGenerator = new CalculationTypeGenerator(compilerOptions, _fundingLineRoundingSettings.Object);
 
             // Act
-            IEnumerable<SourceFile> results = calculationTypeGenerator.GenerateCalcs(calculations, fundingLines);
+            IEnumerable<SourceFile> results = calculationTypeGenerator.GenerateCalcs(calculations, fundingLines, _obsoleteItems);
 
             // Assert
             results.Should().HaveCount(1);
@@ -108,7 +112,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
             CalculationTypeGenerator calculationTypeGenerator = new CalculationTypeGenerator(compilerOptions, _fundingLineRoundingSettings.Object);
 
             // Act
-            IEnumerable<SourceFile> results = calculationTypeGenerator.GenerateCalcs(new List<Calculation>(), fundingLines);
+            IEnumerable<SourceFile> results = calculationTypeGenerator.GenerateCalcs(new List<Calculation>(), fundingLines, _obsoleteItems);
 
             // Assert
             results.Should().HaveCount(1);
@@ -142,7 +146,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
                 {"1619", NewFunding(_ => _.WithFundingLines(new[] { _1619fl }))},
             };
 
-            IEnumerable<SourceFile> results = new CalculationTypeGenerator(new CompilerOptions(), _fundingLineRoundingSettings.Object).GenerateCalcs(new[] { _1619}, fundingLines);
+            IEnumerable<SourceFile> results = new CalculationTypeGenerator(new CompilerOptions(), _fundingLineRoundingSettings.Object).GenerateCalcs(new[] { _1619}, fundingLines, _obsoleteItems);
 
             results.Should().HaveCount(1);
             results.First()
@@ -188,7 +192,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
                 {"PSG", NewFunding(_ => _.WithFundingLines(new[] { psgfl }))}
             };
 
-            IEnumerable<SourceFile> results = new CalculationTypeGenerator(new CompilerOptions(), _fundingLineRoundingSettings.Object).GenerateCalcs(new[] { _1619, psg }, fundingLines);
+            IEnumerable<SourceFile> results = new CalculationTypeGenerator(new CompilerOptions(), _fundingLineRoundingSettings.Object).GenerateCalcs(new[] { _1619, psg }, fundingLines, _obsoleteItems);
 
             results.Should().HaveCount(1);
             results.First()
@@ -232,7 +236,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
                 {"PSG", NewFunding(_ => _.WithFundingLines(new[] { psgfl }))}
             };
 
-            IEnumerable<SourceFile> results = new CalculationTypeGenerator(new CompilerOptions(), _fundingLineRoundingSettings.Object).GenerateCalcs(new[] { _1619, psg }, fundingLines);
+            IEnumerable<SourceFile> results = new CalculationTypeGenerator(new CompilerOptions(), _fundingLineRoundingSettings.Object).GenerateCalcs(new[] { _1619, psg }, fundingLines, _obsoleteItems);
 
             results.Should().HaveCount(1);
             results.First()
@@ -269,7 +273,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
                 {"1619", NewFunding(_ => _.WithFundingLines(new[] { _1619fl }))}
             };
 
-            IEnumerable<SourceFile> results = new CalculationTypeGenerator(new CompilerOptions(), _fundingLineRoundingSettings.Object).GenerateCalcs(new[] { _1619 }, fundingLines).ToList();
+            IEnumerable<SourceFile> results = new CalculationTypeGenerator(new CompilerOptions(), _fundingLineRoundingSettings.Object).GenerateCalcs(new[] { _1619 }, fundingLines, _obsoleteItems).ToList();
 
             results.Should().HaveCount(1);
 
@@ -302,7 +306,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
                 {"1619", NewFunding(_ => _.WithFundingLines(new[] { _1619fl }))}
             };
 
-            IEnumerable<SourceFile> results = new CalculationTypeGenerator(new CompilerOptions(), _fundingLineRoundingSettings.Object).GenerateCalcs(new[] { _1619 }, fundingLines).ToList();
+            IEnumerable<SourceFile> results = new CalculationTypeGenerator(new CompilerOptions(), _fundingLineRoundingSettings.Object).GenerateCalcs(new[] { _1619 }, fundingLines, _obsoleteItems).ToList();
 
             results.Should().HaveCount(1);
 
@@ -315,7 +319,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
         {
             Dictionary<string, Funding> fundingLines = new Dictionary<string, Funding>();
 
-            IEnumerable<SourceFile> results = new CalculationTypeGenerator(new CompilerOptions(), _fundingLineRoundingSettings.Object).GenerateCalcs(Enumerable.Empty<Calculation>(), fundingLines);
+            IEnumerable<SourceFile> results = new CalculationTypeGenerator(new CompilerOptions(), _fundingLineRoundingSettings.Object).GenerateCalcs(Enumerable.Empty<Calculation>(), fundingLines, _obsoleteItems);
 
             results.Should().HaveCount(1);
             results.First()
@@ -346,7 +350,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
 
             Dictionary<string, Funding> fundingLines = new Dictionary<string, Funding>();
 
-            IEnumerable<SourceFile> results = new CalculationTypeGenerator(new CompilerOptions(), _fundingLineRoundingSettings.Object).GenerateCalcs(new[] { _1619, psg, additionalOne, additionalTwo }, fundingLines);
+            IEnumerable<SourceFile> results = new CalculationTypeGenerator(new CompilerOptions(), _fundingLineRoundingSettings.Object).GenerateCalcs(new[] { _1619, psg, additionalOne, additionalTwo }, fundingLines, _obsoleteItems);
 
             results.Should().HaveCount(1);
             results.First()
@@ -372,7 +376,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
             Dictionary<string, Funding> fundingLines = new Dictionary<string, Funding>();
 
             // Act
-            IEnumerable<SourceFile> results = calculationTypeGenerator.GenerateCalcs(new List<Calculation>(), fundingLines);
+            IEnumerable<SourceFile> results = calculationTypeGenerator.GenerateCalcs(new List<Calculation>(), fundingLines, _obsoleteItems);
 
             // Assert
             results.Should().HaveCount(1);
@@ -421,7 +425,7 @@ Return Result + 0";
 
             Dictionary<string, Funding> fundingLines = new Dictionary<string, Funding>();
 
-            Action generate = () => calculationTypeGenerator.GenerateCalcs(calculations, fundingLines).ToList();
+            Action generate = () => calculationTypeGenerator.GenerateCalcs(calculations, fundingLines, _obsoleteItems).ToList();
 
             generate
                 .Should()
@@ -444,7 +448,7 @@ Return Result + 0";
 
             Dictionary<string, Funding> fundingLines = new Dictionary<string, Funding>();
 
-            Action generate = () => calculationTypeGenerator.GenerateCalcs(calculations, fundingLines).ToList();
+            Action generate = () => calculationTypeGenerator.GenerateCalcs(calculations, fundingLines, _obsoleteItems).ToList();
 
             generate
                 .Should()

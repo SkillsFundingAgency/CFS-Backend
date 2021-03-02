@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Calcs.ObsoleteItems;
 using Serilog;
 
 namespace CalculateFunding.Services.CodeGeneration
@@ -16,7 +17,10 @@ namespace CalculateFunding.Services.CodeGeneration
             _logger = logger;
         }
 
-        public List<SourceFile> GenerateCode(BuildProject buildProject, IEnumerable<Calculation> calculations, CompilerOptions compilerOptions)
+        public List<SourceFile> GenerateCode(BuildProject buildProject,
+            IEnumerable<Calculation> calculations,
+            CompilerOptions compilerOptions,
+            IEnumerable<ObsoleteItem> obsoleteItems = null)
         {
             Stopwatch stopwatch = new Stopwatch();
 
@@ -27,14 +31,17 @@ namespace CalculateFunding.Services.CodeGeneration
 
             sourceFiles.AddRange(GenerateDatasetSourceFiles(buildProject));
 
-            sourceFiles.AddRange(GenerateCalculationSourceFiles(buildProject, calculations, compilerOptions));
+            sourceFiles.AddRange(GenerateCalculationSourceFiles(buildProject, calculations, compilerOptions, obsoleteItems));
 
             stopwatch.Stop();
             _logger.Information($"${buildProject.Id} created syntax tree ({stopwatch.ElapsedMilliseconds}ms)");
             return sourceFiles;
         }
 
-        protected abstract IEnumerable<SourceFile> GenerateCalculationSourceFiles(BuildProject buildProject, IEnumerable<Calculation> calculations, CompilerOptions compilerOptions);
+        protected abstract IEnumerable<SourceFile> GenerateCalculationSourceFiles(BuildProject buildProject,
+            IEnumerable<Calculation> calculations,
+            CompilerOptions compilerOptions,
+            IEnumerable<ObsoleteItem> obsoleteItems);
 
         protected abstract IEnumerable<SourceFile> GenerateDatasetSourceFiles(BuildProject buildProject);
 

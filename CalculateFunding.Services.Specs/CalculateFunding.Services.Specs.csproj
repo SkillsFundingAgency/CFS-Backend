@@ -12,7 +12,7 @@
     <PackageReference Include="ByteSize" Version="2.0.0" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Datasets" Version="5.7.2" />
 
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Calcs" Version="6.0.0" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Calcs" Version="7.1.0" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Graph" Version="4.4.5" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Jobs" Version="4.1.1" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="6.4.1" />
@@ -25,6 +25,7 @@
     <PackageReference Include="FluentValidation" Version="8.6.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="YamlDotNet" Version="6.1.2" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="3.6.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -34,7 +35,14 @@
     <ProjectReference Include="..\CalculateFunding.Models.Specs\CalculateFunding.Models.Specs.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Core\CalculateFunding.Services.Core.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Processing\CalculateFunding.Services.Processing.csproj" />
-  </ItemGroup>
+
+   
+    <ProjectReference Include="..\CalculateFunding.Services.CodeGeneration.VisualBasic.Type\CalculateFunding.Services.CodeGeneration.VisualBasic.Type.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.CodeGeneration.VisualBasic\CalculateFunding.Services.CodeGeneration.VisualBasic.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.CodeGeneration\CalculateFunding.Services.CodeGeneration.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.CodeMetadataGenerator\CalculateFunding.Services.CodeMetadataGenerator.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.Compiler\CalculateFunding.Services.Compiler.csproj" />
+  </ItemGroup> 
 
   <ItemGroup>
     <Compile Update="ValidationMessages.Designer.cs">

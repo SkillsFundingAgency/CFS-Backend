@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Calcs.ObsoleteItems;
 using CalculateFunding.Models.Code;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
@@ -104,8 +105,10 @@ namespace CalculateFunding.Services.Calcs
                 if (buildProject.Build.Assembly.IsNullOrEmpty())
                 {
                     IEnumerable<Calculation> calculations = await _calculationsRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(buildProject.SpecificationId));
+                    IEnumerable<ObsoleteItem> obsoleteItems =
+                        await _calculationsRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetObsoleteItemsForSpecification(buildProject.SpecificationId));
 
-                    buildProject.Build = Compile(buildProject, calculations);
+                    buildProject.Build = Compile(buildProject, calculations, obsoleteItems);
                 }
 
                 rawAssembly = buildProject.Build.Assembly;
@@ -128,7 +131,10 @@ namespace CalculateFunding.Services.Calcs
             return rawAssembly;
         }
 
-        public Build Compile(BuildProject buildProject, IEnumerable<Calculation> calculations, CompilerOptions compilerOptions = null)
+        public Build Compile(BuildProject buildProject,
+            IEnumerable<Calculation> calculations,
+            IEnumerable<ObsoleteItem> obsoleteItems,
+            CompilerOptions compilerOptions = null)
         {
             try
             {
@@ -137,7 +143,7 @@ namespace CalculateFunding.Services.Calcs
                     compilerOptions = new CompilerOptions { SpecificationId = buildProject.SpecificationId, OptionStrictEnabled = false };
                 }
 
-                IEnumerable<SourceFile> sourceFiles = GenerateSourceFiles(buildProject, calculations, compilerOptions);
+                IEnumerable<SourceFile> sourceFiles = GenerateSourceFiles(buildProject, calculations, compilerOptions, obsoleteItems);
 
                 ICompiler compiler = _compilerFactory.GetCompiler(sourceFiles);
                 
@@ -149,13 +155,16 @@ namespace CalculateFunding.Services.Calcs
             }
         }
 
-        public IEnumerable<SourceFile> GenerateSourceFiles(BuildProject buildProject, IEnumerable<Calculation> calculations, CompilerOptions compilerOptions)
+        public IEnumerable<SourceFile> GenerateSourceFiles(BuildProject buildProject,
+            IEnumerable<Calculation> calculations,
+            CompilerOptions compilerOptions,
+            IEnumerable<ObsoleteItem> obsoleteItems)
         {
             Guard.ArgumentNotNull(buildProject, nameof(buildProject));
             Guard.ArgumentNotNull(calculations, nameof(calculations));
             Guard.ArgumentNotNull(compilerOptions, nameof(compilerOptions));
-
-            return _sourceFileGenerator.GenerateCode(buildProject, calculations, compilerOptions);
+            
+            return _sourceFileGenerator.GenerateCode(buildProject, calculations, compilerOptions, obsoleteItems);
         }
 
         public async Task<IEnumerable<TypeInformation>> GetTypeInformation(BuildProject buildProject)

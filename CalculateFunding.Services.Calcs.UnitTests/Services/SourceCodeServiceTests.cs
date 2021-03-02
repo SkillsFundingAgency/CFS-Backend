@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Calcs.ObsoleteItems;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
@@ -29,6 +30,8 @@ namespace CalculateFunding.Services.Calcs.Services
         const string specificationId = "spec-id-1";
         const string calculationId = "calc-id-1";
         const string buildProjectId = "bp-id-1";
+
+        private IEnumerable<ObsoleteItem> obsoleteItems = new ObsoleteItem[0];
 
         [TestMethod]
         public void Compile_GivenStringCompareInCodeAndAggregatesIsEnabledAndCalculationAggregateFunctionsFound_CompilesCodeAndReturnsOk()
@@ -78,7 +81,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceFileGenerator sourceFileGenerator = Substitute.For<ISourceFileGenerator>();
             sourceFileGenerator
-                .GenerateCode(Arg.Is(buildProject), Arg.Is(calculations), compilerOptions)
+                .GenerateCode(Arg.Is(buildProject), Arg.Is(calculations), compilerOptions, Arg.Any<IEnumerable<ObsoleteItem>>())
                 .Returns(sourceFiles);
 
             ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider();
@@ -93,7 +96,7 @@ namespace CalculateFunding.Services.Calcs.Services
             SourceCodeService sourceCodeService = CreateSourceCodeService(sourceFileGeneratorProvider: sourceFileGeneratorProvider, compilerFactory: compilerFactory);
 
             //Act
-            Build buildResult = sourceCodeService.Compile(buildProject, calculations, compilerOptions);
+            Build buildResult = sourceCodeService.Compile(buildProject, calculations, obsoleteItems, compilerOptions);
 
             //Assert
             compiler
@@ -112,7 +115,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceFileGenerator sourceFileGenerator = Substitute.For<ISourceFileGenerator>();
             sourceFileGenerator
-                .GenerateCode(buildProject, calculations, Arg.Any<CompilerOptions>())
+                .GenerateCode(buildProject, calculations, Arg.Any<CompilerOptions>(), Arg.Any<IEnumerable<ObsoleteItem>>())
                 .Throws(new Exception(errorMessage));
 
             ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider();
@@ -123,7 +126,7 @@ namespace CalculateFunding.Services.Calcs.Services
             SourceCodeService sourceCodeService = CreateSourceCodeService(sourceFileGeneratorProvider: sourceFileGeneratorProvider);
 
             //Act
-            Build result = sourceCodeService.Compile(buildProject, calculations);
+            Build result = sourceCodeService.Compile(buildProject, calculations, obsoleteItems);
 
             //Assert
             result.CompilerMessages.Count
@@ -137,7 +140,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Received(1)
                 .GenerateCode(buildProject,
                     calculations,
-                    Arg.Is<CompilerOptions>(x => x.SpecificationId == buildProject.SpecificationId && !x.OptionStrictEnabled));
+                    Arg.Is<CompilerOptions>(x => x.SpecificationId == buildProject.SpecificationId && !x.OptionStrictEnabled),
+                    Arg.Any<IEnumerable<ObsoleteItem>>());
         }
 
         [TestMethod]
@@ -305,7 +309,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceFileGenerator sourceFileGenerator = Substitute.For<ISourceFileGenerator>();
             sourceFileGenerator
-                .GenerateCode(Arg.Is(buildProject), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
+                .GenerateCode(Arg.Is(buildProject), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>(), Arg.Any<IEnumerable<ObsoleteItem>>())
                 .Returns(sourceFiles);
 
             ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider();
@@ -499,7 +503,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CompilerOptions compilerOptions = new CompilerOptions();
 
             // Act
-            Build build = sourceCodeService.Compile(buildProject, calculations, compilerOptions);
+            Build build = sourceCodeService.Compile(buildProject, calculations, obsoleteItems, compilerOptions);
 
             // Assert
             build.Success.Should().BeTrue();

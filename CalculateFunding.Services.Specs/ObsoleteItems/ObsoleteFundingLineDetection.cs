@@ -12,6 +12,7 @@ using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Graph;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
@@ -29,6 +30,7 @@ namespace CalculateFunding.Services.Specs.ObsoleteItems
     public class ObsoleteFundingLineDetection : JobProcessingService, IObsoleteFundingLineDetection
     {
         private readonly IUniqueIdentifierProvider _uniqueIdentifierProvider;
+        private readonly ITypeIdentifierGenerator _typeIdentifierGenerator;
         private readonly ICalculationsApiClient _calculations;
         private readonly IPoliciesApiClient _policies;
         private readonly IGraphApiClient _graph;
@@ -41,6 +43,7 @@ namespace CalculateFunding.Services.Specs.ObsoleteItems
             IGraphApiClient graph,
             IUniqueIdentifierProvider uniqueIdentifierProvider,
             ISpecificationsResiliencePolicies resiliencePolicies,
+            ITypeIdentifierGenerator typeIdentifierGenerator,
             IJobManagement jobManagement,
             ILogger logger) : base(jobManagement, logger)
         {
@@ -50,12 +53,14 @@ namespace CalculateFunding.Services.Specs.ObsoleteItems
             Guard.ArgumentNotNull(uniqueIdentifierProvider, nameof(uniqueIdentifierProvider));
             Guard.ArgumentNotNull(resiliencePolicies?.PoliciesApiClient, nameof(resiliencePolicies.PoliciesApiClient));
             Guard.ArgumentNotNull(resiliencePolicies.CalcsApiClient, nameof(resiliencePolicies.CalcsApiClient));
+            Guard.ArgumentNotNull(typeIdentifierGenerator, nameof(typeIdentifierGenerator));
             
             _calculations = calculations;
             _policies = policies;
             _graph = graph;
             _uniqueIdentifierProvider = uniqueIdentifierProvider;
             _logger = logger;
+            _typeIdentifierGenerator = typeIdentifierGenerator;
             _calculationsPolicy = resiliencePolicies.CalcsApiClient;
             _policiesPolicy = resiliencePolicies.PoliciesApiClient;
         }
@@ -69,7 +74,6 @@ namespace CalculateFunding.Services.Specs.ObsoleteItems
             await DetectAndCreateObsoleteItemsForFundingLines(fundingLineDetectionParameters);
         }
 
-        //TODO; shouldn't this process also remove any that are no longer referenced by calcs?
         private async Task DetectAndCreateObsoleteItemsForFundingLines(FundingLineDetectionParameters fundingLineDetectionParameters)
         {
             string specificationId = fundingLineDetectionParameters.SpecificationId;
@@ -164,6 +168,8 @@ namespace CalculateFunding.Services.Specs.ObsoleteItems
                         {
                             SpecificationId = specificationId,
                             FundingLineId = fundingLine.TemplateLineId,
+                            FundingStreamId = fundingStreamId,
+                            CodeReference = _typeIdentifierGenerator.GenerateIdentifier(fundingLine.Name),
                             TemplateCalculationId = Convert.ToUInt32(calculationsByTemplateId.Key),
                             CalculationIds = calculationsByTemplateId.Value.ToList(),
                             ItemType = ObsoleteItemType.FundingLine,

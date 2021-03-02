@@ -17,6 +17,8 @@ using CalculateFunding.Functions.Specs.ServiceBus;
 using CalculateFunding.Models.Messages;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type.Interfaces;
 using CalculateFunding.Services.Core.AzureStorage;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Functions.Extensions;
@@ -71,6 +73,8 @@ namespace CalculateFunding.Functions.Specs
         {
             builder.AddAppConfiguration();
             builder.AddSingleton<IConfiguration>(config);
+
+            builder.AddSingleton<ITypeIdentifierGenerator, VisualBasicTypeIdentifierGenerator>();
 
             builder.AddSingleton<IObsoleteFundingLineDetection, ObsoleteFundingLineDetection>();
             builder.AddSingleton<IUniqueIdentifierProvider, UniqueIdentifierProvider>();

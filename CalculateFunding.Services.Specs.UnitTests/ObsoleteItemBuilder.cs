@@ -1,6 +1,5 @@
 ﻿using CalculateFunding.Common.ApiClient.Calcs.Models;
-using CalculateFunding.Tests.Common.Helpers;
-using System.Collections.Generic;
+using CalculateFunding.Tests.Common.Helpers;using System.Collections.Generic;
 
 namespace CalculateFunding.Services.Specs.UnitTests
 {
@@ -10,7 +9,15 @@ namespace CalculateFunding.Services.Specs.UnitTests
         private string _specificationId;
         private string[] _calculationIds = new string[0];
         private ObsoleteItemType? _itemType;
+        private string _codeReference;
 
+        public ObsoleteItemBuilder WithCodeReference(string sourceCode)
+        {
+            _codeReference = sourceCode;
+
+            return this;
+        }
+        
         public ObsoleteItemBuilder WithFundingLineId(uint fundingLineId)
         {
             _fundingLineId = fundingLineId;
@@ -41,7 +48,8 @@ namespace CalculateFunding.Services.Specs.UnitTests
                 FundingLineId = _fundingLineId.GetValueOrDefault(NewRandomUint()),
                 CalculationIds = _calculationIds,
                 SpecificationId = _specificationId ?? NewRandomString(),
-                ItemType = _itemType.GetValueOrDefault(NewRandomEnum<ObsoleteItemType>())
+                ItemType = _itemType.GetValueOrDefault(NewRandomEnum<ObsoleteItemType>()),
+                CodeReference = _codeReference
             };
         }
     }

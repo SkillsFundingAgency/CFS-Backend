@@ -18,6 +18,7 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Calcs.ObsoleteItems;
 using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Models.ProviderLegacy;
 using CalculateFunding.Models.Specs;
@@ -56,6 +57,8 @@ namespace CalculateFunding.Services.Calcs.Services
         const string SpecificationId = "bbe8bec3-1395-445f-a190-f7e300a8c336";
         const string BuildProjectId = "47b680fa-4dbe-41e0-a4ce-c25e41a634c1";
         private const string AssemblyEtag = "assembly-etag";
+        
+        private IEnumerable<ObsoleteItem> obsoleteItems = new ObsoleteItem[0];
 
         [TestMethod]
         public void Process_GivenNullMessage_ThrowsArgumentNullException()
@@ -234,7 +237,7 @@ namespace CalculateFunding.Services.Calcs.Services
             //Assert
             sourceCodeService
                 .DidNotReceive()
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>());
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<IEnumerable<ObsoleteItem>>(),Arg.Any<CompilerOptions>());
         }
 
         [TestMethod]
@@ -330,7 +333,7 @@ namespace CalculateFunding.Services.Calcs.Services
             //Assert
             sourceCodeService
                 .Received(1)
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>());
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<IEnumerable<ObsoleteItem>>(), Arg.Any<CompilerOptions>());
         }
 
         [TestMethod]
@@ -3578,7 +3581,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Is(calculations), Arg.Any<CompilerOptions>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Is(calculations), Arg.Any<IEnumerable<ObsoleteItem>>(), Arg.Any<CompilerOptions>())
                     .Returns(build);
 
             IFeatureToggle featureToggle = CreateFeatureToggle();
@@ -3649,7 +3652,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Is(calculations), Arg.Any<CompilerOptions>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Is(calculations), Arg.Any<IEnumerable<ObsoleteItem>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             IFeatureToggle featureToggle = CreateFeatureToggle();

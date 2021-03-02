@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using CalculateFunding.Models.Calcs.ObsoleteItems;
 using CalculateFunding.Services.CodeGeneration.VisualBasic.Type.Interfaces;
 using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
 
@@ -21,6 +22,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
         }
 
         public NamespaceBuilderResult BuildNamespacesForFundingLines(IDictionary<string, Funding> funding,
+            IEnumerable<ObsoleteItem> obsoleteItems,
             int decimalPlaces = 2)
         {
             NamespaceBuilderResult result = new NamespaceBuilderResult
@@ -40,7 +42,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                                                 SyntaxFactory.Token(SyntaxKind.PublicKeyword))),
                                     new SyntaxList<InheritsStatementSyntax>(),
                                     new SyntaxList<ImplementsStatementSyntax>(),
-                                    SyntaxFactory.List(CreateFundingLineClass(funding[@namespace].FundingLines.DistinctBy(_ => _.Id), @namespace, decimalPlaces)),
+                                    SyntaxFactory.List(CreateFundingLineClass(funding[@namespace].FundingLines.DistinctBy(_ => _.Id), @namespace, decimalPlaces, obsoleteItems)),
                                     SyntaxFactory.EndClassStatement()
                                 );
 
@@ -53,7 +55,8 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
         private IEnumerable<StatementSyntax> CreateFundingLineClass(IEnumerable<FundingLine> fundingLines, 
             string @namespace, 
-            int decimalPlaces)
+            int decimalPlaces,
+            IEnumerable<ObsoleteItem> obsoleteItems)
         {
             if (fundingLines == null) yield break;
 
@@ -67,11 +70,24 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 yield return ParseSourceCodeToStatementSyntax(sourceCode);
             }
 
+            ObsoleteItem[] obsoleteFundingLines = obsoleteItems?.Where(_ => _.ItemType == ObsoleteItemType.FundingLine).ToArray() ?? new ObsoleteItem[0];
+
+            foreach (ObsoleteItem obsoleteFundingLine in obsoleteFundingLines)
+            {
+                StringBuilder sourceCode = new StringBuilder();
+
+                sourceCode.AppendLine("<ObsoleteItem()>");
+                sourceCode.AppendLine($"<FundingLine(FundingStream := \"{@namespace}\", Id := \"{obsoleteFundingLine.FundingLineId}\", Name := \"{obsoleteFundingLine.CodeReference}\")>");
+                sourceCode.AppendLine($"Public {obsoleteFundingLine.CodeReference} As Func(Of decimal?) = Nothing");
+                
+                yield return ParseSourceCodeToStatementSyntax(sourceCode);
+            }
+ 
             yield return ParseSourceCodeToStatementSyntax($"Public Property {_typeIdentifierGenerator.GenerateIdentifier(@namespace)} As {_typeIdentifierGenerator.GenerateIdentifier(@namespace)}Calculations");
 
             // create funding line initialise method
             yield return CreateAddToNullableMethod();
-            yield return CreateInitialiseMethod(fundingLines.Where(_ => _.Namespace == @namespace), @namespace, decimalPlaces);
+            yield return CreateInitialiseMethod(fundingLines.Where(_ => _.Namespace == @namespace), @namespace, decimalPlaces, obsoleteFundingLines);
         }
 
         private StatementSyntax CreateAddToNullableMethod()
@@ -92,7 +108,8 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
         private StatementSyntax CreateInitialiseMethod(IEnumerable<FundingLine> fundingLines,
             string @namespace,
-            int decimalPlaces)
+            int decimalPlaces,
+            ObsoleteItem[] obsoleteFundingLines)
         {
             StringBuilder sourceCode = new StringBuilder();
             sourceCode.AppendLine("Public Sub Initialise(calculationContext As CalculationContext)");
@@ -145,6 +162,13 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 sourceCode.AppendLine("End Try");
                 sourceCode.AppendLine();
 
+                sourceCode.AppendLine("End Function");
+            }
+
+            foreach (ObsoleteItem obsoleteFundingLine in obsoleteFundingLines)
+            {
+                sourceCode.AppendLine($"{obsoleteFundingLine.CodeReference} = Function() As Decimal?");
+                sourceCode.AppendLine("Return Nothing");
                 sourceCode.AppendLine("End Function");
             }
 

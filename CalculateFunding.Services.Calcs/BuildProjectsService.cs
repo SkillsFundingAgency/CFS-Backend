@@ -18,6 +18,7 @@ using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Calcs.ObsoleteItems;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Models.ProviderLegacy;
@@ -120,7 +121,7 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.PoliciesApiClient, nameof(resiliencePolicies.PoliciesApiClient));
             Guard.ArgumentNotNull(sourceFileRepository, nameof(sourceFileRepository));
-
+            
             _logger = logger;
             _telemetry = telemetry;
             _providersApiClient = providersApiClient;
@@ -396,7 +397,9 @@ namespace CalculateFunding.Services.Calcs
 
             IEnumerable<Models.Calcs.Calculation> calculations = await _calculationsRepository.GetCalculationsBySpecificationId(specificationId);
 
-            buildProject.Build = _sourceCodeService.Compile(buildProject, calculations ?? Enumerable.Empty<Models.Calcs.Calculation>());
+            IEnumerable<ObsoleteItem> obsoleteItems = await GetObsoleteItemsForSpecification(specificationId);
+
+            buildProject.Build = _sourceCodeService.Compile(buildProject, calculations ?? Enumerable.Empty<Models.Calcs.Calculation>(), obsoleteItems);
 
             if (!_featureToggle.IsDynamicBuildProjectEnabled())
             {
@@ -408,6 +411,9 @@ namespace CalculateFunding.Services.Calcs
             return new OkObjectResult(buildProject);
         }
 
+        private async Task<IEnumerable<ObsoleteItem>> GetObsoleteItemsForSpecification(string specificationId) 
+            => await _calculationsRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetObsoleteItemsForSpecification(specificationId));
+
         public async Task<IActionResult> CompileAndSaveAssembly(string specificationId)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
@@ -418,7 +424,9 @@ namespace CalculateFunding.Services.Calcs
             CompilerOptions compilerOptions = await _calculationsRepository.GetCompilerOptions(specificationId);
             (compilerOptions ?? (compilerOptions = new CompilerOptions())).ConfigureForReleaseBuild();
 
-            buildProject.Build = _sourceCodeService.Compile(buildProject, calculations ?? Enumerable.Empty<Models.Calcs.Calculation>(), compilerOptions);
+            IEnumerable<ObsoleteItem> obsoleteItems = await GetObsoleteItemsForSpecification(specificationId);
+
+            buildProject.Build = _sourceCodeService.Compile(buildProject, calculations ?? Enumerable.Empty<Models.Calcs.Calculation>(), obsoleteItems, compilerOptions);
 
             if (buildProject.Build.Success)
             {
@@ -460,7 +468,9 @@ namespace CalculateFunding.Services.Calcs
                 compilerOptions.UseDiagnosticsMode = true;
             }
 
-            IEnumerable<SourceFile> sourceFiles = _sourceCodeService.GenerateSourceFiles(buildProject, calculations, compilerOptions);
+            IEnumerable<ObsoleteItem> obsoleteItems = await GetObsoleteItemsForSpecification(specificationId);
+
+            IEnumerable<SourceFile> sourceFiles = _sourceCodeService.GenerateSourceFiles(buildProject, calculations, compilerOptions, obsoleteItems);
 
             await _sourceCodeService.SaveSourceFiles(sourceFiles, specificationId, sourceCodeType);
 
@@ -510,7 +520,9 @@ namespace CalculateFunding.Services.Calcs
                 IEnumerable<Models.Calcs.Calculation> calculations = await _calculationsRepository.GetCalculationsBySpecificationId(specificationId);
                 CompilerOptions compilerOptions = await _calculationsRepository.GetCompilerOptions(specificationId);
 
-                buildProject.Build = _sourceCodeService.Compile(buildProject, calculations ?? Enumerable.Empty<Models.Calcs.Calculation>(), compilerOptions);
+                IEnumerable<ObsoleteItem> obsoleteItems = await GetObsoleteItemsForSpecification(specificationId);
+
+                buildProject.Build = _sourceCodeService.Compile(buildProject, calculations ?? Enumerable.Empty<Models.Calcs.Calculation>(), obsoleteItems, compilerOptions);
 
                 if (!_featureToggle.IsDynamicBuildProjectEnabled())
                 {

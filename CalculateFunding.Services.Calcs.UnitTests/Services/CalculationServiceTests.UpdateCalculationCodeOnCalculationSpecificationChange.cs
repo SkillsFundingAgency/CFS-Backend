@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Calcs.ObsoleteItems;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
 using CalculateFunding.Services.Core.Interfaces;
@@ -125,7 +126,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(new BuildProject());
 
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<IEnumerable<ObsoleteItem>>(), Arg.Any<CompilerOptions>())
                 .Returns(new Build());
 
             // Act
@@ -253,7 +254,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(new BuildProject());
 
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>()) 
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<IEnumerable<ObsoleteItem>>(),Arg.Any<CompilerOptions>()) 
                 .Returns(new Build());
 
             // Act

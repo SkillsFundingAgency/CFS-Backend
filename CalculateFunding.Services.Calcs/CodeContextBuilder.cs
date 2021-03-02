@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Calcs.ObsoleteItems;
 using CalculateFunding.Models.Code;
 using CalculateFunding.Services.Calcs.Interfaces;
 using Polly;
@@ -46,8 +47,9 @@ namespace CalculateFunding.Services.Calcs
             BuildProject buildProject = await _buildProjects.GetBuildProjectForSpecificationId(specificationId);
 
             IEnumerable<Calculation> calculations = await _calculationsResilience.ExecuteAsync(() => _calculations.GetCalculationsBySpecificationId(specificationId));
+            IEnumerable<ObsoleteItem> obsoleteItems = await _calculationsResilience.ExecuteAsync(() => _calculations.GetObsoleteItemsForSpecification(specificationId));
 
-            buildProject.Build = _compiler.Compile(buildProject, calculations ?? Enumerable.Empty<Calculation>());
+            buildProject.Build = _compiler.Compile(buildProject, calculations ?? Enumerable.Empty<Calculation>(), obsoleteItems);
 
             Guard.ArgumentNotNull(buildProject.Build, nameof(buildProject.Build));
 

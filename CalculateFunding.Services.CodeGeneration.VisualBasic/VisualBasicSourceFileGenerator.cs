@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Calcs.ObsoleteItems;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
 using CalculateFunding.Services.CodeGeneration.VisualBasic.Type.Interfaces;
@@ -23,10 +24,13 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             _typeIdentifierGenerator = new VisualBasicTypeIdentifierGenerator();
         }
 
-        protected override IEnumerable<SourceFile> GenerateCalculationSourceFiles(BuildProject buildProject, IEnumerable<Calculation> calculations, CompilerOptions compilerOptions)
+        protected override IEnumerable<SourceFile> GenerateCalculationSourceFiles(BuildProject buildProject,
+            IEnumerable<Calculation> calculations,
+            CompilerOptions compilerOptions,
+            IEnumerable<ObsoleteItem> obsoleteItems)
         {
             CalculationTypeGenerator calculationTypeGenerator = new CalculationTypeGenerator(compilerOptions, _fundingLineRoundingSettings);
-            return calculationTypeGenerator.GenerateCalcs(calculations, buildProject.FundingLines);
+            return calculationTypeGenerator.GenerateCalcs(calculations, buildProject.FundingLines, obsoleteItems);
         }
 
         protected override IEnumerable<SourceFile> GenerateDatasetSourceFiles(BuildProject buildProject)

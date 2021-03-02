@@ -8,7 +8,7 @@
 
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.FundingDataZone" Version="1.4.2" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="4.3.0" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Calcs" Version="4.0.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Calcs" Version="5.1.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="4.1.1" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Profiling" Version="2.2.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Providers" Version="4.3.0" /> 
