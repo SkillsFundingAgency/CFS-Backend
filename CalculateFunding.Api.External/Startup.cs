@@ -31,6 +31,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.Formatters;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -58,7 +59,7 @@ namespace CalculateFunding.Api.External
         {
             services.AddSingleton(Configuration);
             services.AddCaching(Configuration);
-            
+
             IConfigurationSection azureADConfig = Configuration.GetSection("AzureAD");
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
@@ -90,7 +91,19 @@ namespace CalculateFunding.Api.External
                     jFormatter?.SupportedMediaTypes.Clear();
                     jFormatter?.SupportedMediaTypes.Add("application/atom+json");
                     jFormatter?.SupportedMediaTypes.Add("application/json");
-                });     
+                });
+
+            // If using Kestrel:
+            services.Configure<KestrelServerOptions>(options =>
+            {
+                options.AllowSynchronousIO = true;
+            });
+
+            // If using IIS:
+            services.Configure<IISServerOptions>(options =>
+            {
+                options.AllowSynchronousIO = true;
+            });
 
             services.AddApiVersioning(
                 o =>

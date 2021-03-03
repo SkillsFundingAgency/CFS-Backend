@@ -28,7 +28,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Controllers
 
             await fundingFeedService
                 .Received(1)
-                .GetFunding(Arg.Any<HttpRequest>(), null, Arg.Is(fundingStreamIds), Arg.Is(fundingPeriodIds), Arg.Is(groupReasons), Arg.Is(variationReasons), Arg.Is(5));
+                .GetFunding(Arg.Any<HttpRequest>(), Arg.Any<HttpResponse>(), null, Arg.Is(fundingStreamIds), Arg.Is(fundingPeriodIds), Arg.Is(groupReasons), Arg.Is(variationReasons), Arg.Is(5));
         }
 
         [TestMethod]
@@ -48,7 +48,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Controllers
 
             await fundingFeedService
                 .Received(1)
-                .GetFunding(Arg.Any<HttpRequest>(), null, Arg.Is(fundingStreamIds), Arg.Is(fundingPeriodIds), Arg.Is(groupReasons), Arg.Is(variationReasons), Arg.Is(5));
+                .GetFunding(Arg.Any<HttpRequest>(), Arg.Any<HttpResponse>(), null, Arg.Is(fundingStreamIds), Arg.Is(fundingPeriodIds), Arg.Is(groupReasons), Arg.Is(variationReasons), Arg.Is(5));
         }
 
         [TestMethod]
@@ -68,7 +68,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Controllers
 
             await fundingFeedService
                 .Received(1)
-                .GetFunding(Arg.Any<HttpRequest>(), null, Arg.Is(fundingStreamIds), Arg.Is(fundingPeriodIds), Arg.Is(groupReasons), Arg.Is(variationReasons), Arg.Is(5));
+                .GetFunding(Arg.Any<HttpRequest>(), Arg.Any<HttpResponse>(), null, Arg.Is(fundingStreamIds), Arg.Is(fundingPeriodIds), Arg.Is(groupReasons), Arg.Is(variationReasons), Arg.Is(5));
         }
 
         [TestMethod]
@@ -88,7 +88,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Controllers
 
             await fundingFeedService
                 .Received(1)
-                .GetFunding(Arg.Any<HttpRequest>(), Arg.Is(1), Arg.Is(fundingStreamIds), Arg.Is(fundingPeriodIds), Arg.Is(groupReasons), Arg.Is(variationReasons), Arg.Is(5));
+                .GetFunding(Arg.Any<HttpRequest>(), Arg.Any<HttpResponse>(), Arg.Is(1), Arg.Is(fundingStreamIds), Arg.Is(fundingPeriodIds), Arg.Is(groupReasons), Arg.Is(variationReasons), Arg.Is(5));
         }
     }
 }

@@ -9,10 +9,11 @@ namespace CalculateFunding.Api.External.V3.Interfaces
     public interface IFundingFeedService
     {
         Task<IActionResult> GetFunding(
-            HttpRequest request, 
-            int? pageRef, 
-            IEnumerable<string> fundingStreamIds, 
-            IEnumerable<string> fundingPeriodIds, 
+            HttpRequest request,
+            HttpResponse response,
+            int? pageRef,
+            IEnumerable<string> fundingStreamIds,
+            IEnumerable<string> fundingPeriodIds,
             IEnumerable<GroupingReason> groupingReasons,
             IEnumerable<VariationReason> variationReasons,
             int? pageSize);

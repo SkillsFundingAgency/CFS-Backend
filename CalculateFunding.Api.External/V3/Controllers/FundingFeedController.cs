@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.IO;
+using System.Threading.Tasks;
 using CalculateFunding.Api.External.V3.Interfaces;
 using CalculateFunding.Api.External.V3.Models;
 using CalculateFunding.Common.Utility;
@@ -39,7 +40,7 @@ namespace CalculateFunding.Api.External.V3.Controllers
             [FromQuery] VariationReason[] variationReasons,
             [FromQuery] int? pageSize)
         {
-            return await _fundingFeedsService.GetFunding(Request, null, fundingStreamIds,
+            return await _fundingFeedsService.GetFunding(Request, Response, null, fundingStreamIds,
                  fundingPeriodIds, groupingReasons, variationReasons, pageSize);
         }
 
@@ -66,7 +67,7 @@ namespace CalculateFunding.Api.External.V3.Controllers
             [FromQuery] int? pageSize,
             [FromRoute] int pageRef)
         {
-            return await _fundingFeedsService.GetFunding(Request, pageRef, fundingStreamIds,
+            return await _fundingFeedsService.GetFunding(Request, Response, pageRef, fundingStreamIds,
                  fundingPeriodIds, groupingReasons, variationReasons, pageSize);
         }
     }

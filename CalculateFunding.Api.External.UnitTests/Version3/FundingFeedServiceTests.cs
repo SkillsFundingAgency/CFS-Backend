@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Api.External.V3.Interfaces;
@@ -33,9 +34,10 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
             FundingFeedService service = CreateService(feedsSearchService);
 
             HttpRequest request = Substitute.For<HttpRequest>();
+            HttpResponse response = Substitute.For<HttpResponse>();
 
             //Act
-            await service.GetFunding(request, pageRef: 3);
+            await service.GetFunding(request, response, pageRef: 3);
 
             //Assert
             await
@@ -51,9 +53,10 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
             FundingFeedService service = CreateService();
 
             HttpRequest request = Substitute.For<HttpRequest>();
+            HttpResponse response = Substitute.For<HttpResponse>();
 
             //Act
-            IActionResult result = await service.GetFunding(request, pageRef: -1);
+            IActionResult result = await service.GetFunding(request, response, pageRef: -1);
 
             //Assert
             result
@@ -72,9 +75,10 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
             FundingFeedService service = CreateService();
 
             HttpRequest request = Substitute.For<HttpRequest>();
+            HttpResponse response = Substitute.For<HttpResponse>();
 
             //Act
-            IActionResult result = await service.GetFunding(request, 1, pageSize: 0);
+            IActionResult result = await service.GetFunding(request, response, 1, pageSize: 0);
 
             //Assert
             result
@@ -93,9 +97,10 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
             FundingFeedService service = CreateService();
 
             HttpRequest request = Substitute.For<HttpRequest>();
+            HttpResponse response = Substitute.For<HttpResponse>();
 
             //Act
-            IActionResult result = await service.GetFunding(request, 1, pageSize: 1000);
+            IActionResult result = await service.GetFunding(request, response, 1, pageSize: 1000);
 
             //Assert
             result
@@ -127,9 +132,10 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
                 externalEngineOptions: externalEngineOptions.Object);
 
             HttpRequest request = Substitute.For<HttpRequest>();
+            HttpResponse response = Substitute.For<HttpResponse>();
 
             //Act
-            IActionResult result = await service.GetFunding(request, pageRef: 3);
+            IActionResult result = await service.GetFunding(request, response, pageRef: 3);
 
             //Assert
             result
@@ -161,9 +167,10 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
                 externalEngineOptions: externalEngineOptions.Object);
 
             HttpRequest request = Substitute.For<HttpRequest>();
+            HttpResponse response = Substitute.For<HttpResponse>();
 
             //Act
-            IActionResult result = await service.GetFunding(request, pageRef: 3);
+            IActionResult result = await service.GetFunding(request, response, pageRef: 3);
 
             //Assert
             result
@@ -198,9 +205,10 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
                 externalEngineOptions: externalEngineOptions.Object);
 
             HttpRequest request = Substitute.For<HttpRequest>();
+            HttpResponse response = Substitute.For<HttpResponse>();
 
             //Act
-            IActionResult result = await service.GetFunding(request, pageRef: 3, pageSize: 4);
+            IActionResult result = await service.GetFunding(request, response, pageRef: 3, pageSize: 4);
 
             //Assert
             result
@@ -275,16 +283,23 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
             request.Headers.Returns(headerDictionary);
             request.Query.Returns(queryStringValues);
 
+            HttpResponse response = Substitute.For<HttpResponse>();
+            MemoryStream responseStream = new MemoryStream();
+            response.Body.Returns(responseStream);
+
+            StreamReader responseStreamReader = new StreamReader(responseStream);
+
             //Act
-            IActionResult result = await service.GetFunding(request, pageRef: pageRef, pageSize: pageSize);
+            IActionResult result = await service.GetFunding(request, response, pageRef: pageRef, pageSize: pageSize);
 
             //Assert
             result
                 .Should()
-                .BeOfType<OkObjectResult>();
+                .BeOfType<EmptyResult>();
 
-            OkObjectResult contentResult = result as OkObjectResult;
-            Models.External.V3.AtomItems.AtomFeed<AtomEntry> atomFeed = contentResult.Value as Models.External.V3.AtomItems.AtomFeed<AtomEntry>;
+            responseStream.Seek(0, SeekOrigin.Begin);
+            string responseContent = await responseStreamReader.ReadToEndAsync();
+            AtomFeed<AtomEntry> atomFeed = JsonConvert.DeserializeObject<AtomFeed<AtomEntry>>(responseContent);
 
             atomFeed
                 .Should()
@@ -303,10 +318,11 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
             for (int i = 0; i < 3; i++)
             {
                 string text = $"id-{i + 1}";
-                atomFeed.AtomEntry.ElementAt(i).Id.Should().Be($"{scheme}://{host}/api/v3/fundings/byId/{text}");
-                atomFeed.AtomEntry.ElementAt(i).Title.Should().Be(text);
-                atomFeed.AtomEntry.ElementAt(i).Summary.Should().Be(text);
-                atomFeed.AtomEntry.ElementAt(i).Content.Should().NotBeNull();
+                AtomEntry atomEntry = atomFeed.AtomEntry.First(x => x.Title == text);
+                atomEntry.Id.Should().Be($"{scheme}://{host}/api/v3/fundings/byId/{text}");
+                atomEntry.Title.Should().Be(text);
+                atomEntry.Summary.Should().Be(text);
+                atomEntry.Content.Should().NotBeNull();
             }
 
             JObject content = atomFeed.AtomEntry.ElementAt(0).Content as JObject;
@@ -327,6 +343,9 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
                     .Received(1)
                     .GetFundingFeedDocument(index.DocumentPath);
             }
+
+            responseStreamReader.Close();
+            responseStreamReader.Dispose();
         }
 
         [TestMethod]
@@ -376,16 +395,23 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
             request.Host.Returns(new HostString("wherever.naf:12345"));
             request.Headers.Returns(headerDictionary);
 
+            HttpResponse response = Substitute.For<HttpResponse>();
+            MemoryStream responseStream = new MemoryStream();
+            response.Body.Returns(responseStream);
+
+            StreamReader responseStreamReader = new StreamReader(responseStream);
+
             //Act
-            IActionResult result = await service.GetFunding(request, pageSize: 2, pageRef: 2);
+            IActionResult result = await service.GetFunding(request, response, pageSize: 2, pageRef: 2);
 
             //Assert
             result
                 .Should()
-                .BeOfType<OkObjectResult>();
+                .BeOfType<EmptyResult>();
 
-            OkObjectResult contentResult = result as OkObjectResult;
-            Models.External.V3.AtomItems.AtomFeed<AtomEntry> atomFeed = contentResult.Value as Models.External.V3.AtomItems.AtomFeed<AtomEntry>;
+            responseStream.Seek(0, SeekOrigin.Begin);
+            string responseContent = await responseStreamReader.ReadToEndAsync();
+            AtomFeed<AtomEntry> atomFeed = JsonConvert.DeserializeObject<AtomFeed<AtomEntry>>(responseContent);
 
             atomFeed
                 .Should()
@@ -398,6 +424,9 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
             atomFeed.Link.First(m => m.Rel == "next-archive").Href.Should().Be("https://wherever.naf:12345/api/v3/funding/notifications/3");
             atomFeed.Link.First(m => m.Rel == "current").Href.Should().Be("https://wherever.naf:12345/api/v3/funding/notifications/2");
             atomFeed.Link.First(m => m.Rel == "self").Href.Should().Be("https://wherever.naf:12345/api/v3/funding/notifications");
+
+            responseStreamReader.Close();
+            responseStreamReader.Dispose();
         }
 
         [TestMethod]
@@ -434,8 +463,10 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
             request.Headers.Returns(headerDictionary);
             request.Query.Returns(queryStringValues);
 
+            HttpResponse response = Substitute.For<HttpResponse>();
+
             //Act
-            IActionResult result = await service.GetFunding(request, pageRef: 1, pageSize: 2, fundingStreamIds: new[] { "10070703" });
+            IActionResult result = await service.GetFunding(request, response, pageRef: 1, pageSize: 2, fundingStreamIds: new[] { "10070703" });
 
             //Assert
             await feedsSearchService
