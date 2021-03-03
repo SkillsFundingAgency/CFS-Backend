@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
@@ -518,5 +519,28 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
             return Task.CompletedTask;
         }
+
+        public ICosmosDbFeedIterator<PublishedProviderVersion> GetPublishedProviderVersionsForBatchProcessing(string predicate,
+            string specificationId,
+            int batchSize,
+            string joinPredicate = null,
+            string fundingLineCode = null) =>
+            throw new NotImplementedException();
+
+        public ICosmosDbFeedIterator<PublishedFundingVersion> GetPublishedFundingVersionsForBatchProcessing(string specificationId,
+            string fundingStreamId,
+            string fundingPeriodId,
+            int batchSize) =>
+            throw new NotImplementedException();
+
+        public ICosmosDbFeedIterator<PublishedFunding> GetPublishedFundingForBatchProcessing(string specificationId,
+            string fundingStreamId,
+            string fundingPeriodId,
+            int batchSize) =>
+            throw new NotImplementedException();
+
+        public ICosmosDbFeedIterator<PublishedProviderVersion> GetRefreshedProviderVersionBatchProcessing(string specificationId,
+            int batchSize) =>
+            throw new NotImplementedException();
     }
 }

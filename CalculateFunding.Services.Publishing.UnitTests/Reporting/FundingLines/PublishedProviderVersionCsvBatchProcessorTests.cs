@@ -1,14 +1,14 @@
-using System;
 using System.Collections.Generic;
 using System.Dynamic;
-using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Reporting.FundingLines;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using Polly;
+using Moq.Language;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
 {
@@ -20,10 +20,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         {
             BatchProcessor = new PublishedProviderVersionCsvBatchProcessor(PublishedFunding.Object,
                 PredicateBuilder.Object,
-                new ResiliencePolicies
-                {
-                    PublishedFundingRepository = Policy.NoOpAsync()
-                },
                 FileSystemAccess.Object,
                 CsvUtils.Object);
         }
@@ -50,6 +46,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             string fundingLineCode = NewRandomString();
             string fundingStreamId = NewRandomString();
             string fundingPeriodId = NewRandomString();
+            
+            GivenThePublishedProviderVersionsForBatchProfessingFeed(specificationId, fundingLineCode, new Mock<ICosmosDbFeedIterator<PublishedProviderVersion>>().Object);
 
             bool processedResults = await WhenTheCsvIsGenerated(FundingLineCsvGeneratorJobType.Released, specificationId, fundingPeriodId, NewRandomString(), fundingLineCode, fundingStreamId);
 
@@ -99,29 +97,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             string predicate = NewRandomString();
             string joinPredicate = NewRandomString();
 
+            Mock<ICosmosDbFeedIterator<PublishedProviderVersion>> feed = new Mock<ICosmosDbFeedIterator<PublishedProviderVersion>>();
+
             GivenTheCsvRowTransformation(publishProviderVersionsOne, transformedRowsOne, expectedCsvOne, true);
             AndTheCsvRowTransformation(publishedProviderVersionTwo, transformedRowsTwo, expectedCsvTwo,  false);
             AndThePredicate(jobType, predicate);
             AndTheJoinPredicate(jobType, joinPredicate);
-            
-            PublishedFunding.Setup(_ => _.PublishedProviderVersionBatchProcessing(predicate,
-                    specificationId,
-                    It.IsAny<Func<List<PublishedProviderVersion>, Task>>(),
-                    100,
-                    joinPredicate,
-                    fundingLineCode))
-                .Callback<string, string, Func<List<PublishedProviderVersion>, Task>, int, string, string>((pred, spec, 
-                    batchProcessor, batchSize, join, fl) =>
-                {
-                    batchProcessor(publishProviderVersionsOne.ToList())
-                        .GetAwaiter()
-                        .GetResult();
-                    
-                    batchProcessor(publishedProviderVersionTwo.ToList())
-                        .GetAwaiter()
-                        .GetResult();
-                })
-                .Returns(Task.CompletedTask);
+            AndThePublishedProviderVersionsForBatchProfessingFeed(predicate, joinPredicate, specificationId, fundingLineCode, feed.Object);
+            AndTheFeedIteratorHasThePages(feed, publishProviderVersionsOne, publishedProviderVersionTwo);
 
             bool processedResults = await WhenTheCsvIsGenerated(jobType, specificationId, fundingPeriodId, expectedInterimFilePath, fundingLineCode, null);
 
@@ -143,5 +126,27 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         }
         
         private PublishedProviderVersion NewPublishedProviderVersion() => new PublishedProviderVersion();
+        
+        private void GivenThePublishedProviderVersionsForBatchProfessingFeed(string specificationId,
+            string fundingLineCode,
+            ICosmosDbFeedIterator<PublishedProviderVersion> feed)
+            => PublishedFunding.Setup(_ => _.GetPublishedProviderVersionsForBatchProcessing(It.IsAny<string>(),
+                    specificationId,
+                    CsvBatchProcessBase.BatchSize,
+                    It.IsAny<string>(),
+                    fundingLineCode))
+                .Returns(feed);
+
+        private void AndThePublishedProviderVersionsForBatchProfessingFeed(string predicate,
+            string joinPredicate,
+            string specificationId,
+            string fundingLineCode,
+            ICosmosDbFeedIterator<PublishedProviderVersion> feed)
+            => PublishedFunding.Setup(_ => _.GetPublishedProviderVersionsForBatchProcessing(predicate,
+                    specificationId,
+                    CsvBatchProcessBase.BatchSize,
+                    joinPredicate,
+                    fundingLineCode))
+                .Returns(feed);
     }
 }

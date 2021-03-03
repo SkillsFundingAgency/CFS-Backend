@@ -12,10 +12,12 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Threading.Tasks;
 using System.Linq;
+using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Reporting.FundingLines;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Services.Core;
 
 namespace CalculateFunding.Services.Publishing.Reporting.PublishedProviderEstate
 {
@@ -24,7 +26,6 @@ namespace CalculateFunding.Services.Publishing.Reporting.PublishedProviderEstate
         public const int BatchSize = 1000;
 
         private readonly IPublishedFundingRepository _publishedFundingRepository;
-        private readonly AsyncPolicy _publishedFundingRepositoryPolicy;
 
         protected override string JobDefinitionName => JobConstants.DefinitionNames.GeneratePublishedProviderEstateCsvJob;
 
@@ -41,10 +42,8 @@ namespace CalculateFunding.Services.Publishing.Reporting.PublishedProviderEstate
             : base(jobManagement, fileSystemAccess, blobClient, policies, csvUtils, logger, fileSystemCacheSettings, publishedProviderCsvTransformServiceLocator)
         {
             Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
-            Guard.ArgumentNotNull(policies?.PublishedFundingRepository, nameof(policies.PublishedFundingRepository));
 
             _publishedFundingRepository = publishedFundingRepository;
-            _publishedFundingRepositoryPolicy = policies.PublishedFundingRepository;
         }
 
         protected override async Task<bool> GenerateCsv(Message message,
@@ -55,19 +54,27 @@ namespace CalculateFunding.Services.Publishing.Reporting.PublishedProviderEstate
             bool processedResults = false;
 
             string specificationId = message.GetUserProperty<string>("specification-id");
+            
+            ICosmosDbFeedIterator<PublishedProviderVersion> documents = _publishedFundingRepository.GetRefreshedProviderVersionBatchProcessing(specificationId,
+                BatchSize);
 
-            await _publishedFundingRepositoryPolicy.ExecuteAsync(() => _publishedFundingRepository.RefreshedProviderVersionBatchProcessing(specificationId,
-                publishedProviderVersions =>
-                {
-                    List<IGrouping<string, PublishedProviderVersion>> providerVersionGroups = publishedProviderVersions.GroupBy(v => v.ProviderId).ToList();
+            if (documents == null)
+            {
+                throw new NonRetriableException(
+                    $"Unable to generate CSV for PublishedProviderEstateCsvGenerator for specification {specificationId}. Failed to get feed iterator from cosmos");
+            }
 
-                    GenerateGroupedPublishedProviderEstateCsv(providerVersionGroups, publishedProviderCsvTransform, temporaryFilePath, outputHeaders);
+            while (documents.HasMoreResults)
+            {
+                IEnumerable<PublishedProviderVersion> publishedProviderVersions = await documents.ReadNext();
+                
+                List<IGrouping<string, PublishedProviderVersion>> providerVersionGroups = publishedProviderVersions.GroupBy(v => v.ProviderId).ToList();
 
-                    outputHeaders = false;
-                    processedResults = true;
-                    return Task.CompletedTask;
-                }, BatchSize)
-            );
+                GenerateGroupedPublishedProviderEstateCsv(providerVersionGroups, publishedProviderCsvTransform, temporaryFilePath, outputHeaders);
+
+                outputHeaders = false;
+                processedResults = true;                    
+            }
 
             return processedResults;
         }

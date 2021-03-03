@@ -150,6 +150,7 @@ namespace CalculateFunding.Models.Publishing
         [JsonProperty("variationReasons")]
         public IEnumerable<VariationReason> VariationReasons { get; set; }
 
+        [JsonIgnore]
         public IEnumerable<FundingLine> PaymentFundingLinesWithValues => FundingLines?.Where(_ => _.Value.HasValue && _.Type == FundingLineType.Payment);
 
         public void AddVariationReasons(params VariationReason[] variationReasons) => VariationReasons = (VariationReasons ?? Array.Empty<VariationReason>())

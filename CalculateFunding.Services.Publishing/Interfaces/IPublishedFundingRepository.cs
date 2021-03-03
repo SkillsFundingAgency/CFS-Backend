@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Models;
@@ -156,5 +157,24 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         Task<IEnumerable<string>> GetPublishedProviderPublishedProviderIds(string specificationId);
 
         Task DeletePublishedProviders(IEnumerable<PublishedProvider> publishedProviders);
+
+        ICosmosDbFeedIterator<PublishedProviderVersion> GetPublishedProviderVersionsForBatchProcessing(string predicate,
+            string specificationId,
+            int batchSize,
+            string joinPredicate = null,
+            string fundingLineCode = null);
+
+        ICosmosDbFeedIterator<PublishedFundingVersion> GetPublishedFundingVersionsForBatchProcessing(string specificationId,
+            string fundingStreamId,
+            string fundingPeriodId,
+            int batchSize);
+
+        ICosmosDbFeedIterator<PublishedFunding> GetPublishedFundingForBatchProcessing(string specificationId,
+            string fundingStreamId,
+            string fundingPeriodId,
+            int batchSize);
+
+        ICosmosDbFeedIterator<PublishedProviderVersion> GetRefreshedProviderVersionBatchProcessing(string specificationId,
+            int batchSize);
     }
 }

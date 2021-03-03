@@ -1,16 +1,20 @@
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
+using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Reporting.FundingLines;
 using CalculateFunding.Tests.Common.Helpers;
+using Microsoft.FeatureManagement;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using Moq.Language;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
 {
@@ -46,6 +50,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             return await BatchProcessor.GenerateCsv(jobType, specificationId, fundingPeriodId, path, _transformation.Object, fundingLineCode, fundingStreamId);
         }
 
+        protected void AndTheFeedIteratorHasThePages<TEntity>(Mock<ICosmosDbFeedIterator<TEntity>> feed,
+            params IEnumerable<TEntity>[] pages)
+        {
+            ISetupSequentialResult<bool> hasMoreRecordsSequence = feed.SetupSequence(_ => _.HasMoreResults);
+            ISetupSequentialResult<Task<IEnumerable<TEntity>>> readNextSequence 
+                = feed.SetupSequence(_ => _.ReadNext(It.IsAny<CancellationToken>()));
+
+            foreach (IEnumerable<TEntity> page in pages)
+            {
+                hasMoreRecordsSequence = hasMoreRecordsSequence.Returns(true);
+                readNextSequence = readNextSequence.ReturnsAsync(page);
+            }
+        }
+
         protected void AndTheCsvRowTransformation(IEnumerable<dynamic> publishedProviders, ExpandoObject[] transformedRows, string csv, bool outputHeaders)
         {
             GivenTheCsvRowTransformation(publishedProviders, transformedRows, csv, outputHeaders);
@@ -74,10 +92,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                 .Returns(predicate);
         }
 
-        protected static RandomString NewRandomString()
-        {
-            return new RandomString();
-        }
+        protected static RandomString NewRandomString() => new RandomString();
+
+        protected static int NewRandomNumber() => new RandomNumberBetween(1, int.MaxValue);
 
         protected static SpecificationSummary NewSpecificationSummary(Action<SpecificationSummaryBuilder> setUp = null)
         {

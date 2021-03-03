@@ -9,6 +9,7 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Threading;
@@ -751,13 +752,34 @@ namespace CalculateFunding.Services.Publishing.Repositories
             itemsPerPage: 50);
         }
 
+        public ICosmosDbFeedIterator<PublishedFunding> GetPublishedFundingForBatchProcessing(string specificationId,
+            string fundingStreamId,
+            string fundingPeriodId,
+            int batchSize)
+        {
+            CosmosDbQuery query = CreateQueryForPublishedFundingBatchProcessing(specificationId, fundingStreamId, fundingPeriodId);
+
+            return _repository.GetFeedIterator<PublishedFunding>(query, batchSize);
+        }
+
         public async Task PublishedFundingBatchProcessing(string specificationId,
             string fundingStreamId,
             string fundingPeriodId,
             Func<List<PublishedFunding>, Task> batchProcessor,
             int batchSize)
         {
-            CosmosDbQuery query = new CosmosDbQuery
+            CosmosDbQuery query = CreateQueryForPublishedFundingBatchProcessing(specificationId, fundingStreamId, fundingPeriodId);
+
+            await _repository.DocumentsBatchProcessingAsync(batchProcessor,
+                query,
+                batchSize);
+        }
+
+        private static CosmosDbQuery CreateQueryForPublishedFundingBatchProcessing(string specificationId,
+            string fundingStreamId,
+            string fundingPeriodId)
+        {
+            return new CosmosDbQuery
             {
                 QueryText = @"SELECT 
                                 c.content.id,
@@ -801,10 +823,16 @@ namespace CalculateFunding.Services.Publishing.Repositories
                     new CosmosDbQueryParameter("@fundingPeriodId", fundingPeriodId)
                 }
             };
+        }
 
-            await _repository.DocumentsBatchProcessingAsync(batchProcessor,
-                query,
-                batchSize);
+        public ICosmosDbFeedIterator<PublishedFundingVersion> GetPublishedFundingVersionsForBatchProcessing(string specificationId,
+            string fundingStreamId,
+            string fundingPeriodId,
+            int batchSize)
+        {
+            CosmosDbQuery query = CreateQueryForPublishedFundingVersionBatchProcessing(specificationId, fundingStreamId, fundingPeriodId);
+
+            return _repository.GetFeedIterator<PublishedFundingVersion>(query, batchSize);
         }
 
         public async Task PublishedFundingVersionBatchProcessing(string specificationId,
@@ -813,7 +841,18 @@ namespace CalculateFunding.Services.Publishing.Repositories
             Func<List<PublishedFundingVersion>, Task> batchProcessor,
             int batchSize)
         {
-            CosmosDbQuery query = new CosmosDbQuery
+            CosmosDbQuery query = CreateQueryForPublishedFundingVersionBatchProcessing(specificationId, fundingStreamId, fundingPeriodId);
+
+            await _repository.DocumentsBatchProcessingAsync(batchProcessor,
+                query,
+                batchSize);
+        }
+
+        private static CosmosDbQuery CreateQueryForPublishedFundingVersionBatchProcessing(string specificationId,
+            string fundingStreamId,
+            string fundingPeriodId)
+        {
+            return new CosmosDbQuery
             {
                 QueryText = @"SELECT 
                                 c.content.id,
@@ -853,10 +892,17 @@ namespace CalculateFunding.Services.Publishing.Repositories
                     new CosmosDbQueryParameter("@fundingPeriodId", fundingPeriodId)
                 }
             };
+        }
 
-            await _repository.DocumentsBatchProcessingAsync(batchProcessor,
-                query,
-                batchSize);
+        public ICosmosDbFeedIterator<PublishedProviderVersion> GetPublishedProviderVersionsForBatchProcessing(string predicate,
+            string specificationId,
+            int batchSize,
+            string joinPredicate = null,
+            string fundingLineCode = null)
+        {
+            CosmosDbQuery query = CreateQueryForPublishedProviderVersionBatchProcessing(predicate, specificationId, joinPredicate, fundingLineCode);
+
+            return _repository.GetFeedIterator<PublishedProviderVersion>(query, batchSize);
         }
 
         public async Task PublishedProviderVersionBatchProcessing(string predicate,
@@ -866,7 +912,19 @@ namespace CalculateFunding.Services.Publishing.Repositories
             string joinPredicate = null,
             string fundingLineCode = null)
         {
-            CosmosDbQuery query = new CosmosDbQuery
+            CosmosDbQuery query = CreateQueryForPublishedProviderVersionBatchProcessing(predicate, specificationId, joinPredicate, fundingLineCode);
+
+            await _repository.DocumentsBatchProcessingAsync(persistBatchToIndex: batchProcessor,
+                cosmosDbQuery: query,
+                itemsPerPage: batchSize);
+        }
+
+        private static CosmosDbQuery CreateQueryForPublishedProviderVersionBatchProcessing(string predicate,
+            string specificationId,
+            string joinPredicate,
+            string fundingLineCode)
+        {
+            return new CosmosDbQuery
             {
                 QueryText = $@"SELECT 
                                 c.content.id,
@@ -917,14 +975,10 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                 ORDER BY c.content.provider.ukprn",
                 Parameters = new[]
                 {
-                        new CosmosDbQueryParameter("@specificationId", specificationId),
-                        new CosmosDbQueryParameter("@fundingLineCode", fundingLineCode),
-                    }
+                    new CosmosDbQueryParameter("@specificationId", specificationId),
+                    new CosmosDbQueryParameter("@fundingLineCode", fundingLineCode),
+                }
             };
-
-            await _repository.DocumentsBatchProcessingAsync(persistBatchToIndex: batchProcessor,
-                cosmosDbQuery: query,
-                itemsPerPage: batchSize);
         }
 
         public async Task PublishedProviderBatchProcessing(string predicate,
@@ -1316,15 +1370,29 @@ namespace CalculateFunding.Services.Publishing.Repositories
             return results;
         }
 
-        public async Task RefreshedProviderVersionBatchProcessing(
-            string specificationId, Func<List<PublishedProviderVersion>, Task> persistIndexBatch, int batchSize)
+        public ICosmosDbFeedIterator<PublishedProviderVersion> GetRefreshedProviderVersionBatchProcessing(string specificationId,
+            int batchSize)
         {
-            List<CosmosDbQueryParameter> cosmosDbQueryParameters = new List<CosmosDbQueryParameter>
-            {
-                new CosmosDbQueryParameter("@specificationId", specificationId)
-            };
+            CosmosDbQuery query = CreateQueryForRefreshedProviderVersionBatchProcessing(specificationId);
 
-            CosmosDbQuery query = new CosmosDbQuery
+            return _repository.GetFeedIterator<PublishedProviderVersion>(query, batchSize);
+        }
+
+        public async Task RefreshedProviderVersionBatchProcessing(
+            string specificationId, 
+            Func<List<PublishedProviderVersion>, Task> persistIndexBatch, 
+            int batchSize)
+        {
+            CosmosDbQuery query = CreateQueryForRefreshedProviderVersionBatchProcessing(specificationId);
+
+            await _repository.DocumentsBatchProcessingAsync(persistBatchToIndex: persistIndexBatch,
+                cosmosDbQuery: query,
+                itemsPerPage: batchSize);
+        }
+
+        private static CosmosDbQuery CreateQueryForRefreshedProviderVersionBatchProcessing(string specificationId)
+        {
+            return new CosmosDbQuery
             {
                 QueryText = @"SELECT 
                                         c.content.id,
@@ -1354,12 +1422,11 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                 AND (c.content.status = 'Updated' OR c.content.status = 'Released')
                                 AND c.deleted = false
                                 ORDER BY c.content.providerId",
-                Parameters = cosmosDbQueryParameters
+                Parameters = new []
+                {
+                    new CosmosDbQueryParameter("@specificationId", specificationId)
+                }
             };
-
-            await _repository.DocumentsBatchProcessingAsync(persistBatchToIndex: persistIndexBatch,
-                cosmosDbQuery: query,
-                itemsPerPage: batchSize);
         }
 
         public async Task<IEnumerable<string>> GetPublishedProviderFundingLines(string specificationId, GroupingReason fundingLineType)

@@ -2,28 +2,26 @@
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Publishing.Interfaces;
-using Polly;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Threading.Tasks;
+using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Core;
 
 namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
 {
     public class PublishedFundingOrganisationGroupCsvBatchProcessor : CsvBatchProcessBase, IFundingLineCsvBatchProcessor
     {
         private readonly IPublishedFundingRepository _publishedFunding;
-        private readonly AsyncPolicy _publishedFundingPolicy;
 
-        public PublishedFundingOrganisationGroupCsvBatchProcessor(IPublishingResiliencePolicies publishingResiliencePolicies,
-            IFileSystemAccess fileSystemAccess,
+        public PublishedFundingOrganisationGroupCsvBatchProcessor(IFileSystemAccess fileSystemAccess,
             ICsvUtils csvUtils,
             IPublishedFundingRepository publishedFunding) 
             : base(fileSystemAccess, csvUtils)
         {
             Guard.ArgumentNotNull(publishedFunding, nameof(publishedFunding));
-            Guard.ArgumentNotNull(publishingResiliencePolicies?.PublishedFundingRepository, nameof(publishingResiliencePolicies.PublishedFundingRepository));
 
-            _publishedFundingPolicy = publishingResiliencePolicies.PublishedFundingRepository;
             _publishedFunding = publishedFunding;
         }
 
@@ -43,22 +41,29 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
         {
             bool outputHeaders = true;
             bool processedResults = false;
+            
+            ICosmosDbFeedIterator<PublishedFunding> documents = _publishedFunding.GetPublishedFundingForBatchProcessing(specificationId,
+                fundingStreamId,
+                fundingPeriodId,
+                BatchSize);
 
-            await _publishedFundingPolicy.ExecuteAsync(() =>  _publishedFunding.PublishedFundingBatchProcessing(specificationId,
-                    fundingStreamId,
-                    fundingPeriodId,
-                    publishedFunding =>
-                    {
-                        IEnumerable<ExpandoObject> csvRows = fundingLineCsvTransform.Transform(publishedFunding);
-                        
-                        AppendCsvFragment(temporaryFilePath, csvRows, outputHeaders);
+            if (documents == null)
+            {
+                throw new NonRetriableException(
+                    $"Unable to generate CSV for PublishedFundingOrganisationGroupCsvBatchProcessor for specification {specificationId}. Failed to get feed iterator from cosmos");
+            }
 
-                        outputHeaders = false;
-                        processedResults = true;
+            while (documents.HasMoreResults)
+            {
+                IEnumerable<PublishedFunding> publishedFunding = await documents.ReadNext();
+                
+                IEnumerable<ExpandoObject> csvRows = fundingLineCsvTransform.Transform(publishedFunding);
                         
-                        return Task.CompletedTask;
-                    },
-                    BatchSize));
+                AppendCsvFragment(temporaryFilePath, csvRows, outputHeaders);
+
+                outputHeaders = false;
+                processedResults = true;   
+            }
             
             return processedResults;
         }

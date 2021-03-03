@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Models.Publishing;
@@ -12,13 +14,16 @@ using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Reporting.FundingLines;
 using CalculateFunding.Services.Publishing.Reporting.PublishedProviderEstate;
+using CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.Storage.Blob;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using Moq.Language;
 using NSubstitute;
 using Polly;
 using Serilog;
@@ -26,7 +31,7 @@ using Serilog;
 namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
 {
     [TestClass]
-    public class PublishedProviderEstateCsvGeneratorTests
+    public class PublishedProviderEstateCsvGeneratorTests 
     {
         private PublishedProviderEstateCsvGenerator _service;
 
@@ -47,7 +52,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
         private Message _message;
 
         private const string PublishedFundingReportContainerName = "publishingreports";
-        private const string PublishedFundingReportSpecificationIdMetadataKey = "specification-id";
 
         [TestInitialize]
         public void SetUp()
@@ -131,6 +135,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
                 ("funding-stream-id", fundingStreamId));
             AndTheFileExists(expectedInterimFilePath);
             AndTheJobExists(jobId);
+            AndTheRefreshedProviderVersionBatchProcessingFeed(specificationId, new Mock<ICosmosDbFeedIterator<PublishedProviderVersion>>().Object);
 
             await WhenTheCsvIsGenerated();
 
@@ -166,14 +171,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
             string expectedInterimFilePath = Path.Combine(_rootPath, fileName);
             string jobDefinitionName = JobConstants.DefinitionNames.GeneratePublishedProviderEstateCsvJob;
 
-            IEnumerable<PublishedProviderVersion> publishProviderVersionsOne = new[]
+            IEnumerable<PublishedProviderVersion> publishedProviderVersionsOne = new[]
             {
                 new PublishedProviderVersion(),
-            };
-            IEnumerable<PublishedProviderVersion> publishedProviderVersionsTwo = new[]
-            {
-                new PublishedProviderVersion(),
-                new PublishedProviderVersion()
             };
 
             ExpandoObject[] transformedRowsOne = {
@@ -182,17 +182,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
                 new ExpandoObject(),
                 new ExpandoObject(),
             };
-            ExpandoObject[] transformedRowsTwo = {
-                new ExpandoObject(),
-                new ExpandoObject(),
-                new ExpandoObject(),
-                new ExpandoObject(),
-            };
 
             string expectedCsvOne = NewRandomString();
-            string expectedCsvTwo = NewRandomString();
 
             MemoryStream incrementalFileStream = new MemoryStream();
+
+            Mock<ICosmosDbFeedIterator<PublishedProviderVersion>> feed = new Mock<ICosmosDbFeedIterator<PublishedProviderVersion>>();
 
             GivenTheCsvRowTransformation(transformedRowsOne, expectedCsvOne, true);
             AndTheMessageProperties(("specification-id", specificationId),
@@ -207,25 +202,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
             AndTheJobExists(jobId);
             string errorMessage = "Unable to complete csv generation job.";
             AndTheBlobThrowsError(incrementalFileStream, new NonRetriableException(errorMessage));
-
-            _publishedFunding.Setup(_ => _.RefreshedProviderVersionBatchProcessing(
-                    specificationId,
-                    It.IsAny<Func<List<PublishedProviderVersion>, Task>>(),
-                    It.IsAny<int>()))
-                .Callback<string, Func<List<PublishedProviderVersion>, Task>, int>((spec, batchProcessor, batchSize) =>
-                {
-                    batchProcessor(publishProviderVersionsOne.ToList())
-                        .GetAwaiter()
-                        .GetResult();
-
-                    batchProcessor(publishedProviderVersionsTwo.ToList())
-                        .GetAwaiter()
-                        .GetResult();
-                })
-                .Returns(Task.CompletedTask);
+            AndTheRefreshedProviderVersionBatchProcessingFeed(specificationId, feed.Object);
+            AndTheFeedIteratorHasThePages(feed, publishedProviderVersionsOne);
 
             Func<Task> test = async () => await WhenTheCsvIsGenerated();
-
 
             test
                 .Should()
@@ -246,7 +226,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
                 .Verify(_ => _.Append(expectedInterimFilePath,
                         It.IsAny<string>(),
                         default),
-                    Times.Exactly(2));
+                    Times.Exactly(1));
 
             _blobClient
                 .Verify(_ => _.UploadFileAsync(_cloudBlob.Object, incrementalFileStream),
@@ -271,7 +251,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
             string expectedInterimFilePath = Path.Combine(_rootPath, fileName);
             string jobDefinitionName = JobConstants.DefinitionNames.GeneratePublishedProviderEstateCsvJob;
 
-            IEnumerable<PublishedProviderVersion> publishProviderVersionsOne = new []
+            IEnumerable<PublishedProviderVersion> publishedProviderVersionsOne = new []
             {
                 new PublishedProviderVersion(),
             };
@@ -287,17 +267,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
                 new ExpandoObject(),
                 new ExpandoObject(),
             };
-            ExpandoObject[] transformedRowsTwo = {
-                new ExpandoObject(),
-                new ExpandoObject(),
-                new ExpandoObject(),
-                new ExpandoObject(),
-            };
             
             string expectedCsvOne = NewRandomString();
-            string expectedCsvTwo = NewRandomString();
             
             MemoryStream incrementalFileStream = new MemoryStream();
+
+            Mock<ICosmosDbFeedIterator<PublishedProviderVersion>> feed = new Mock<ICosmosDbFeedIterator<PublishedProviderVersion>>();
 
             GivenTheCsvRowTransformation(transformedRowsOne, expectedCsvOne, true);
             AndTheMessageProperties(("specification-id", specificationId), 
@@ -309,22 +284,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
             AndTheFileExists(expectedInterimFilePath);
             AndTheTransformForJobDefinition(jobDefinitionName);
             AndTheJobExists(jobId);
-            
-            _publishedFunding.Setup(_ => _.RefreshedProviderVersionBatchProcessing(
-                    specificationId,
-                    It.IsAny<Func<List<PublishedProviderVersion>, Task>>(),
-                    It.IsAny<int>()))
-                .Callback<string, Func<List<PublishedProviderVersion>, Task>, int>((spec,  batchProcessor, batchSize) =>
-                {
-                    batchProcessor(publishProviderVersionsOne.ToList())
-                        .GetAwaiter()
-                        .GetResult();
-                    
-                    batchProcessor(publishedProviderVersionsTwo.ToList())
-                        .GetAwaiter()
-                        .GetResult();
-                })
-                .Returns(Task.CompletedTask);
+            AndTheRefreshedProviderVersionBatchProcessingFeed(specificationId, feed.Object);
+            AndTheFeedIteratorHasThePages(feed, publishedProviderVersionsOne, publishedProviderVersionsTwo);
 
             await WhenTheCsvIsGenerated();
             
@@ -365,7 +326,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
             string expectedInterimFilePath = Path.Combine(_rootPath, fileName);
             string jobDefinitionName = JobConstants.DefinitionNames.GeneratePublishedProviderEstateCsvJob;
 
-            IEnumerable<PublishedProviderVersion> publishProviderVersionsOne = new []
+            IEnumerable<PublishedProviderVersion> publishedProviderVersionsOne = new []
             {
                 new PublishedProviderVersion(),
             };
@@ -390,8 +351,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
             string expectedCsvTwo = NewRandomString();
             
             MemoryStream incrementalFileStream = new MemoryStream();
+            
+            Mock<ICosmosDbFeedIterator<PublishedProviderVersion>> feed = new Mock<ICosmosDbFeedIterator<PublishedProviderVersion>>();
 
             GivenTheCsvRowTransformation(transformedRowsOne, expectedCsvOne, true);
+            AndTheCsvRowTransformation(transformedRowsTwo, expectedCsvTwo, false);
             AndTheMessageProperties(("specification-id", specificationId), ("jobId", jobId), ("funding-period-id", fundingPeriodId));
             AndTheCloudBlobForSpecificationId(fileName, PublishedFundingReportContainerName);
             AndTheFileStream(expectedInterimFilePath, incrementalFileStream);
@@ -399,22 +363,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
             AndTheTransformForJobDefinition(jobDefinitionName);
             AndTheJobCanBeRun(jobId);
             AndTheJobExists(jobId);
-
-            _publishedFunding.Setup(_ => _.RefreshedProviderVersionBatchProcessing(
-                    specificationId,
-                    It.IsAny<Func<List<PublishedProviderVersion>, Task>>(),
-                    It.IsAny<int>()))
-                .Callback<string, Func<List<PublishedProviderVersion>, Task>, int>((spec,  batchProcessor, batchSize) =>
-                {
-                    batchProcessor(publishProviderVersionsOne.ToList())
-                        .GetAwaiter()
-                        .GetResult();
-                    
-                    batchProcessor(publishedProviderVersionsTwo.ToList())
-                        .GetAwaiter()
-                        .GetResult();
-                })
-                .Returns(Task.CompletedTask);
+            AndTheRefreshedProviderVersionBatchProcessingFeed(specificationId, feed.Object);
+            AndTheFeedIteratorHasThePages(feed, publishedProviderVersionsOne, publishedProviderVersionsTwo);
 
             await WhenTheCsvIsGenerated();
 
@@ -492,6 +442,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
                 .Returns(true);
         }
 
+        private void AndTheCsvRowTransformation(IEnumerable<ExpandoObject> transformedRows,
+            string csv,
+            bool outputHeaders)
+            => GivenTheCsvRowTransformation(transformedRows, csv, outputHeaders);
+
         private void GivenTheCsvRowTransformation(IEnumerable<ExpandoObject> transformedRows, string csv, bool outputHeaders)
         {
             _transformation
@@ -521,6 +476,30 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
         private void GivenTheMessageProperties(params (string,string)[] properties)
         {
             _message.AddUserProperties(properties);
-        }   
+        }  
+        
+        private void GivenTheRefreshedProviderVersionBatchProcessingFeed(string specificationId,
+            ICosmosDbFeedIterator<PublishedProviderVersion> feed)
+            => _publishedFunding.Setup(_ => _.GetRefreshedProviderVersionBatchProcessing(specificationId,
+                    PublishedProviderEstateCsvGenerator.BatchSize))
+                .Returns(feed);
+
+        private void AndTheRefreshedProviderVersionBatchProcessingFeed(string specification,
+            ICosmosDbFeedIterator<PublishedProviderVersion> feed)
+            => GivenTheRefreshedProviderVersionBatchProcessingFeed(specification, feed);
+        
+        private void AndTheFeedIteratorHasThePages<TEntity>(Mock<ICosmosDbFeedIterator<TEntity>> feed,
+            params IEnumerable<TEntity>[] pages)
+        {
+            ISetupSequentialResult<bool> hasMoreRecordsSequence = feed.SetupSequence(_ => _.HasMoreResults);
+            ISetupSequentialResult<Task<IEnumerable<TEntity>>> readNextSequence 
+                = feed.SetupSequence(_ => _.ReadNext(It.IsAny<CancellationToken>()));
+
+            foreach (IEnumerable<TEntity> page in pages)
+            {
+                hasMoreRecordsSequence = hasMoreRecordsSequence.Returns(true);
+                readNextSequence = readNextSequence.ReturnsAsync(page);
+            }
+        }
     }
 }
