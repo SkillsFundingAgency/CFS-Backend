@@ -53,7 +53,7 @@ namespace CalculateFunding.Tests.Common
                 }
             });
 
-            _timeout = TimeSpan.FromSeconds(IsDevelopment ? 10 : 60);
+            _timeout = TimeSpan.FromSeconds(IsDevelopment ? 10 : 300);
         }
 
         public async Task<SmokeResponse> RunSmokeTest(string queueName,
