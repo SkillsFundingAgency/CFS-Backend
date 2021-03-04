@@ -47,7 +47,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
         }
 
         [TestMethod]
-        public async Task GetNotifications_GivenInvallidPageRef_ReturnsBadRequest()
+        public async Task GetNotifications_GivenInvalidPageRef_ReturnsBadRequest()
         {
             //Arrange
             FundingFeedService service = CreateService();

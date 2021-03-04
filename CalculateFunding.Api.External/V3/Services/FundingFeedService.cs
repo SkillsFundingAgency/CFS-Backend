@@ -91,36 +91,35 @@ namespace CalculateFunding.Api.External.V3.Services
         private async Task CreateAtomFeed(SearchFeedV3<PublishedFundingIndex> searchFeed, HttpRequest request, HttpResponse response)
         {
             // Using AutoFlush while writing the response. LeaveOpen required for unit testing
-            using (var responseStreamWriter = new StreamWriter(response.Body, leaveOpen: true) { AutoFlush = true })
+            await using StreamWriter responseStreamWriter = new StreamWriter(response.Body, leaveOpen: true) { AutoFlush = true };
+            
+            const string fundingEndpointName = "notifications";
+            string baseRequestPath = request.Path.Value.Substring(0, request.Path.Value.IndexOf(fundingEndpointName, StringComparison.Ordinal) + fundingEndpointName.Length);
+            string fundingTrimmedRequestPath = baseRequestPath.Replace(fundingEndpointName, string.Empty).TrimEnd('/');
+
+            string queryString = request.QueryString.Value;
+
+            string fundingUrl = $"{request.Scheme}://{request.Host.Value}{baseRequestPath}{{0}}{(!string.IsNullOrWhiteSpace(queryString) ? queryString : "")}";
+
+            await CreateAtomFeedHeader(searchFeed, fundingUrl, responseStreamWriter);
+
+            List<PublishedFundingIndex> publishedFundingIndexes = searchFeed.Entries.ToList();
+            int remainingCount = publishedFundingIndexes.Count;
+            int batchCount = _externalEngineOptions.BlobLookupConcurrencyCount;
+            int skipCount = 0;
+
+            while (remainingCount > 0)
             {
-                const string fundingEndpointName = "notifications";
-                string baseRequestPath = request.Path.Value.Substring(0, request.Path.Value.IndexOf(fundingEndpointName, StringComparison.Ordinal) + fundingEndpointName.Length);
-                string fundingTrimmedRequestPath = baseRequestPath.Replace(fundingEndpointName, string.Empty).TrimEnd('/');
+                ConcurrentDictionary<PublishedFundingIndex, string> fundingFeedDocuments = await GetFundingFeedDocuments(publishedFundingIndexes.Skip(skipCount).Take(batchCount));
 
-                string queryString = request.QueryString.Value;
+                remainingCount -= fundingFeedDocuments.Count;
+                skipCount += fundingFeedDocuments.Count;
+                bool isLastBatch = remainingCount <= 0;
 
-                string fundingUrl = $"{request.Scheme}://{request.Host.Value}{baseRequestPath}{{0}}{(!string.IsNullOrWhiteSpace(queryString) ? queryString : "")}";
-
-                await CreateAtomFeedHeader(searchFeed, fundingUrl, responseStreamWriter);
-
-                List<PublishedFundingIndex> publishedFundingIndexes = searchFeed.Entries.ToList();
-                int remainingCount = publishedFundingIndexes.Count;
-                int batchCount = _externalEngineOptions.BlobLookupConcurrencyCount;
-                int skipCount = 0;
-
-                while (remainingCount > 0)
-                {
-                    ConcurrentDictionary<PublishedFundingIndex, string> fundingFeedDocuments = await GetFundingFeedDocuments(publishedFundingIndexes.Skip(skipCount).Take(batchCount));
-
-                    remainingCount -= fundingFeedDocuments.Count;
-                    skipCount += fundingFeedDocuments.Count;
-                    bool isLastBatch = remainingCount <= 0;
-
-                    await AddAtomEntryAsync(request, responseStreamWriter, fundingTrimmedRequestPath, fundingFeedDocuments, isLastBatch);
-                }
-
-                await CreateAtomFeedFooter(responseStreamWriter);
+                await AddAtomEntryAsync(request, responseStreamWriter, fundingTrimmedRequestPath, fundingFeedDocuments, isLastBatch);
             }
+
+            await CreateAtomFeedFooter(responseStreamWriter);
         }
 
         private async Task CreateAtomFeedFooter(StreamWriter responseStreamWriter)
@@ -160,35 +159,41 @@ namespace CalculateFunding.Api.External.V3.Services
 
         private async Task CreateAtomFeedHeader(SearchFeedV3<PublishedFundingIndex> searchFeed, string fundingUrl, StreamWriter responseStreamWriter)
         {
-            StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.AppendLine($"{{");
-            stringBuilder.AppendLine($"    \"id\":\"{Guid.NewGuid().ToString("N")}\",");
-            stringBuilder.AppendLine($"    \"title\":\"Calculate Funding Service Funding Feed\",");
-            stringBuilder.AppendLine($"    \"author\":{{");
-            stringBuilder.AppendLine($"                 \"name\":\"Calculate Funding Service\",");
-            stringBuilder.AppendLine($"                 \"email\":\"calculate-funding@education.gov.uk\"");
-            stringBuilder.AppendLine($"               }},");
-            stringBuilder.AppendLine($"    \"updated\":\"{DateTimeOffset.Now}\",");
-            stringBuilder.AppendLine($"    \"rights\":\"calculate-funding@education.gov.uk\",");
-            stringBuilder.AppendLine($"    \"link\": [");
+            CalculateFunding.Models.External.AtomItems.AtomLink[] atomLinks = searchFeed.GenerateAtomLinksForResultGivenBaseUrl(fundingUrl).ToArray();
 
-            IList<CalculateFunding.Models.External.AtomItems.AtomLink> atomLinks = searchFeed.GenerateAtomLinksForResultGivenBaseUrl(fundingUrl).ToList();
+            int approximateFeedLength = 11 * 70 + atomLinks.Length * 6 * 30;
+            
+            StringBuilder stringBuilder = new StringBuilder(approximateFeedLength);
+            
+            stringBuilder.AppendLine("{");
+            stringBuilder.AppendLine($"    \"id\":\"{Guid.NewGuid():N}\",");
+            stringBuilder.AppendLine("    \"title\":\"Calculate Funding Service Funding Feed\",");
+            stringBuilder.AppendLine("    \"author\":{");
+            stringBuilder.AppendLine("                 \"name\":\"Calculate Funding Service\",");
+            stringBuilder.AppendLine("                 \"email\":\"calculate-funding@education.gov.uk\"");
+            stringBuilder.AppendLine("               },");
+            stringBuilder.AppendLine($"    \"updated\":\"{DateTimeOffset.Now}\",");
+            stringBuilder.AppendLine("    \"rights\":\"calculate-funding@education.gov.uk\",");
+            stringBuilder.AppendLine("    \"link\": [");
+            
             int linkCount = 0;
+            
             foreach (CalculateFunding.Models.External.AtomItems.AtomLink link in atomLinks)
             {
                 linkCount++;
-                stringBuilder.AppendLine($"    {{");
+                stringBuilder.AppendLine("    {");
                 stringBuilder.AppendLine($"        \"href\":\"{link.Href}\",");
                 stringBuilder.AppendLine($"        \"rel\":\"{link.Rel}\"");
-                stringBuilder.AppendLine($"    }}");
-                if (linkCount != atomLinks.Count)
+                stringBuilder.AppendLine("    }");
+                
+                if (linkCount != atomLinks.Length)
                 {
                     stringBuilder.Append(",");
                 };
             }
 
-            stringBuilder.AppendLine($"             ],");
-            stringBuilder.AppendLine($"    \"atomEntry\": [");
+            stringBuilder.AppendLine("             ],");
+            stringBuilder.AppendLine("    \"atomEntry\": [");
 
             await responseStreamWriter.WriteLineAsync(stringBuilder.ToString());
         }
@@ -199,8 +204,13 @@ namespace CalculateFunding.Api.External.V3.Services
             ConcurrentDictionary<PublishedFundingIndex, string> fundingFeedDocuments,
             bool isLastBatch)
         {
-            StringBuilder stringBuilder = new StringBuilder();
+            int feedDocumentCount = fundingFeedDocuments.Count;
+            int approximateEntryLength = 15 * 60 * feedDocumentCount;
+            
+            StringBuilder stringBuilder = new StringBuilder(approximateEntryLength);
+            
             int count = 0;
+            
             foreach (KeyValuePair<PublishedFundingIndex, string> item in fundingFeedDocuments)
             {
                 count++;
@@ -208,31 +218,31 @@ namespace CalculateFunding.Api.External.V3.Services
 
                 string link = $"{request.Scheme}://{request.Host.Value}{fundingTrimmedRequestPath}/byId/{feedIndex.Id}";
 
-                stringBuilder.AppendLine($"        {{");
+                stringBuilder.AppendLine("        {");
                 stringBuilder.AppendLine($"             \"id\":\"{link}\",");
                 stringBuilder.AppendLine($"             \"title\":\"{feedIndex.Id}\",");
                 stringBuilder.AppendLine($"             \"summary\":\"{feedIndex.Id}\",");
                 stringBuilder.AppendLine($"             \"published\":\"{feedIndex.StatusChangedDate}\",");
-                stringBuilder.AppendLine($"             \"updated\":\"{feedIndex.StatusChangedDate.Value}\",");
+                stringBuilder.AppendLine($"             \"updated\":\"{feedIndex.StatusChangedDate.GetValueOrDefault()}\",");
                 stringBuilder.AppendLine($"             \"version\":\"{feedIndex.Version}\",");
-                stringBuilder.AppendLine($"             \"link\":");
-                stringBuilder.AppendLine($"                     {{");
+                stringBuilder.AppendLine("             \"link\":");
+                stringBuilder.AppendLine("                     {");
                 stringBuilder.AppendLine($"                         \"href\":\"{link}\",");
-                stringBuilder.AppendLine($"                         \"rel\":\"Funding\"");
-                stringBuilder.AppendLine($"                     }},");
+                stringBuilder.AppendLine("                         \"rel\":\"Funding\"");
+                stringBuilder.AppendLine("                     },");
                 if (string.IsNullOrWhiteSpace(item.Value))
                 {
-                    stringBuilder.AppendLine($"             \"content\":null");
+                    stringBuilder.AppendLine("             \"content\":null");
                 }
                 else
                 {
                     stringBuilder.AppendLine($"             \"content\":{item.Value}");
                 }
-                stringBuilder.AppendLine($"        }}");
+                stringBuilder.AppendLine("        }");
 
-                if (!isLastBatch || count != fundingFeedDocuments.Count)
+                if (!isLastBatch || count != feedDocumentCount)
                 {
-                    stringBuilder.Append($",");
+                    stringBuilder.Append(",");
                 }
             }
 
