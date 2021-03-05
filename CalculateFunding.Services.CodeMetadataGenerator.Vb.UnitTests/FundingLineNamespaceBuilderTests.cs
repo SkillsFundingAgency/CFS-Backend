@@ -342,6 +342,22 @@ End Function";
         private string[] _calculationIds = new string[0];
         private ObsoleteItemType? _itemType;
         private string _codeReference;
+        private string _enumValueName;
+        private uint? _templateCalculationId;
+
+        public ObsoleteItemBuilder WithEnumValueName(string enumValueName)
+        {
+            _enumValueName = enumValueName;
+
+            return this;
+        }
+
+        public ObsoleteItemBuilder WithTemplateCalculationId(uint templateCalculationId)
+        {
+            _templateCalculationId = templateCalculationId;
+
+            return this;
+        }
 
         public ObsoleteItemBuilder WithCodeReference(string sourceCode)
         {
@@ -381,7 +397,9 @@ End Function";
                 CalculationIds = _calculationIds,
                 SpecificationId = _specificationId ?? NewRandomString(),
                 ItemType = _itemType.GetValueOrDefault(NewRandomEnum<ObsoleteItemType>()),
-                CodeReference = _codeReference
+                CodeReference = _codeReference,
+                TemplateCalculationId = _templateCalculationId,
+                EnumValueName = _enumValueName
             };
         }
     }

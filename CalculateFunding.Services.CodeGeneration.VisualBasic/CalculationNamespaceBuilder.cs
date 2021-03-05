@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Calcs.ObsoleteItems;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.Syntax;
@@ -22,7 +23,9 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             _typeIdentifierGenerator = new VisualBasicTypeIdentifierGenerator();
         }
 
-        public NamespaceBuilderResult BuildNamespacesForCalculations(IEnumerable<Calculation> calculations)
+        public NamespaceBuilderResult BuildNamespacesForCalculations(IEnumerable<Calculation> calculations,
+            IEnumerable<ObsoleteItem> obsoleteItems,
+            IDictionary<string, Funding> funding)
         {
             NamespaceBuilderResult result = new NamespaceBuilderResult();
 
@@ -39,7 +42,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
             result.PropertiesDefinitions = propertyDefinitions.Where(_ => !_.IsFundingLines).Select(_ => _.Syntax).ToArray();
             
-            result.EnumsDefinitions = CreateEnums(calculations);
+            result.EnumsDefinitions = CreateEnums(calculations, obsoleteItems, funding);
 
             foreach (IGrouping<string, Calculation> fundingStreamCalculationGroup in fundingStreamCalculationGroups)
                 result.InnerClasses.Add(CreateNamespaceDefinition(_typeIdentifierGenerator.GenerateIdentifier(fundingStreamCalculationGroup.Key),
@@ -73,7 +76,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
             IEnumerable<StatementSyntax> namespaceFunctionPointers = CreateNamespaceFunctionPointers(calculationsInNamespace);
 
-            StatementSyntax initialiseMethodDefinition = CreateInitialiseMethod(calculationsInNamespace, propertyAssignments, className);
+            StatementSyntax initialiseMethodDefinition = CreateInitialiseMethod(calculationsInNamespace, propertyAssignments);
 
             ClassBlockSyntax classBlock = SyntaxFactory.ClassBlock(classStatement,
                 inherits,
@@ -126,8 +129,19 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             }
         }
 
-        private IEnumerable<StatementSyntax> CreateEnums(IEnumerable<Calculation> calculations)
+        private IEnumerable<StatementSyntax> CreateEnums(IEnumerable<Calculation> calculations,
+            IEnumerable<ObsoleteItem> obsoleteItems,
+            IDictionary<string, Funding> funding)
         {
+            IDictionary<uint, string> templateCalculationMappings = funding.SelectMany(_ => _.Value.Mappings)
+                .DistinctBy(_ => $"{_.Key}_{_.Value}")
+                .ToDictionary(_ => _.Key, _ => _.Value);
+
+            IDictionary<string, ObsoleteItem> obsoleteEnumsByCalculationId = obsoleteItems
+                .Where(_ => _.ItemType == ObsoleteItemType.EnumValue &&
+                            templateCalculationMappings.ContainsKey(_.TemplateCalculationId.GetValueOrDefault()))
+                .ToDictionary(_ => templateCalculationMappings[_.TemplateCalculationId.GetValueOrDefault()]);
+            
             foreach (Calculation calculation in calculations.Where(c => c.Current.DataType == CalculationDataType.Enum))
             {
                 StringBuilder sourceCode = new StringBuilder();
@@ -146,6 +160,16 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                     sourceCode.AppendLine($"    <Description(Description:=\"None\")>");
                     sourceCode.AppendLine($"    None");
                 }
+
+                if (obsoleteEnumsByCalculationId.TryGetValue(calculation.Id, out ObsoleteItem obsoleteItem))
+                {
+                    string enumValueName = obsoleteItem.EnumValueName;
+
+                    sourceCode.AppendLine($"    <ObsoleteItem()>");
+                    sourceCode.AppendLine($"    <Description(Description:=\"{enumValueName}\")>");
+                    sourceCode.AppendLine($"    {_typeIdentifierGenerator.GenerateIdentifier(enumValueName)}");   
+                }
+                
                 sourceCode.AppendLine("End Enum");
                 sourceCode.AppendLine();
 
@@ -177,7 +201,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             }
         }
 
-        private StatementSyntax CreateInitialiseMethod(IEnumerable<Calculation> calculations, IEnumerable<string> propertyAssignments, string className)
+        private StatementSyntax CreateInitialiseMethod(IEnumerable<Calculation> calculations, IEnumerable<string> propertyAssignments)
         {
             StringBuilder sourceCode = new StringBuilder();
 
@@ -186,7 +210,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             sourceCode.AppendLine("Provider = calculationContext.Provider");
             sourceCode.AppendLine();
 
-            foreach (var propertyAssignment in propertyAssignments) sourceCode.AppendLine(propertyAssignment);
+            foreach (string propertyAssignment in propertyAssignments) sourceCode.AppendLine(propertyAssignment);
 
             sourceCode.AppendLine();
 

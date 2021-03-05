@@ -113,7 +113,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             }
             
             IEnumerable<NamespaceBuilderResult> namespaceBuilderResults = new[] {
-                new CalculationNamespaceBuilder(_compilerOptions).BuildNamespacesForCalculations(calculations),
+                new CalculationNamespaceBuilder(_compilerOptions).BuildNamespacesForCalculations(calculations, obsoleteItems, funding),
                 new FundingLineNamespaceBuilder().BuildNamespacesForFundingLines(funding, obsoleteItems, _fundingLineRoundingSettings.DecimalPlaces)
             };
 
@@ -167,7 +167,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
             foreach (string @namespace in funding.Keys)
             {
-                foreach (FundingLine fundingline in funding[@namespace].FundingLines)
+                foreach (FundingLine fundingLine in funding[@namespace].FundingLines)
                 {
                     builder.AppendLine("Try");
                     builder.AppendLine();
@@ -175,7 +175,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                     // Reset baseline stack frame count before executing calc
                     builder.AppendLine("StackFrameStartingCount = New System.Diagnostics.StackTrace().FrameCount");
 
-                    builder.AppendLine($"{_typeIdentifierGenerator.GenerateIdentifier(@namespace)}.FundingLines.{fundingline.SourceCodeName}()");
+                    builder.AppendLine($"{_typeIdentifierGenerator.GenerateIdentifier(@namespace)}.FundingLines.{fundingLine.SourceCodeName}()");
 
                     builder.AppendLine();
 

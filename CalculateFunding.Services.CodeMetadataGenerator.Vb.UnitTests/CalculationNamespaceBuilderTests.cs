@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Calcs.ObsoleteItems;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
+using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.VisualBasic;
@@ -17,6 +20,8 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
     {
         private const string Additional = "Calculations";
 
+        private ICollection<ObsoleteItem> _obsoleteItems;
+        private Dictionary<string, Funding> _funding;
         private List<Calculation> _calculations;
         private CalculationNamespaceBuilder _builder;
 
@@ -25,6 +30,8 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
         [TestInitialize]
         public void SetUp()
         {
+            _obsoleteItems = new List<ObsoleteItem>();
+            _funding = new Dictionary<string, Funding>();
             _calculations = new List<Calculation>();
             _builder = new CalculationNamespaceBuilder(new CompilerOptions
             {
@@ -35,15 +42,15 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
         [TestMethod]
         public void CreatesInnerClassForEachNamespaceInSpecification()
         {
-            const string Psg = "PSG";
+            const string psg = "PSG";
             const string _1619 = "1619";
 
-            GivenTheCalculations(NewCalculationWithNamespace(Psg),
+            GivenTheCalculations(NewCalculationWithNamespace(psg),
                 NewCalculationWithNamespace(_1619));
 
             WhenTheCalculationNamespacesAreBuilt();
 
-            ThenResultContainsNamespaceDefinitionsFor(Psg, $"_{_1619}", Additional);
+            ThenResultContainsNamespaceDefinitionsFor(psg, $"_{_1619}", Additional);
         }
 
         [TestMethod]
@@ -53,19 +60,64 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
             const string Option1 = nameof(Option1);
             const string Option2 = nameof(Option2);
 
-            string ExpectedEnumSourceCode = 
-@$"Enum {EnumName}Options
+            string expectedEnumSourceCode =
+                @$"Enum {EnumName}Options
     <Description(Description:=""{Option1}"")>
     {Option1}
     <Description(Description:=""{Option2}"")>
     {Option2}
 End Enum";
 
-            GivenTheCalculations(NewCalculationWithNamespaceAndEnumDataType(EnumName, new[] { Option1, Option2}));
+            GivenTheCalculations(NewCalculationWithNamespaceAndEnumDataType(EnumName,
+                new[]
+                {
+                    Option1,
+                    Option2
+                }));
 
             WhenTheCalculationNamespacesAreBuilt();
 
-            ThenTheEnumDefinition(_ => StatementHasSourceCodeContaining(_, ExpectedEnumSourceCode));
+            ThenTheEnumDefinition(_ => StatementHasSourceCodeContaining(_, expectedEnumSourceCode));
+        }
+
+        [TestMethod]
+        public void StubsEnumEntriesForObsoleteEnumItemsForTheSpecification()
+        {
+            const string EnumName = nameof(EnumName);
+            const string Option1 = nameof(Option1);
+            const string Option2 = nameof(Option2);
+
+            const string ObsoleteOption2 = nameof(ObsoleteOption2);
+
+            uint templateCalculationId = NewRandomUint();
+            string calculationId = NewRandomString();
+            
+            string expectedEnumSourceCode =
+                @$"Enum {EnumName}Options
+    <Description(Description:=""{Option1}"")>
+    {Option1}
+    <Description(Description:=""{Option2}"")>
+    {Option2}
+    <ObsoleteItem()>
+    <Description(Description:=""{ObsoleteOption2}"")>
+    {ObsoleteOption2}
+End Enum";
+
+            GivenTheCalculations(NewCalculationWithNamespaceAndEnumDataType(EnumName,
+                new[]
+                {
+                    Option1,
+                    Option2
+                }, calculationId: calculationId));
+            AndTheObsoleteItems(NewObsoleteItem(_ => _.WithItemType(ObsoleteItemType.Calculation)),
+                NewObsoleteItem(_ => _.WithItemType(ObsoleteItemType.EnumValue)
+                    .WithEnumValueName(ObsoleteOption2)
+                    .WithTemplateCalculationId(templateCalculationId)));
+            AndTheFundings(NewFunding(NewRandomString(), _ => _.WithMappings((templateCalculationId, calculationId))));
+
+            WhenTheCalculationNamespacesAreBuilt();
+
+            ThenTheEnumDefinition(_ => StatementHasSourceCodeContaining(_, expectedEnumSourceCode));
         }
 
         [TestMethod]
@@ -73,7 +125,8 @@ End Enum";
         {
             const string one = "One";
 
-            string[] expectedInitialiseMethod = {
+            string[] expectedInitialiseMethod =
+            {
                 @"Public Initialise As Action(Of CalculationContext) = Sub(calculationContext)
 Datasets = calculationContext.Datasets
 Provider = calculationContext.Provider
@@ -81,14 +134,14 @@ Provider = calculationContext.Provider
 One = calculationContext.One
 Calculations = calculationContext.Calculations"
             };
-            
+
             GivenTheCalculations(NewCalculationWithNamespace(one));
 
             WhenTheCalculationNamespacesAreBuilt();
 
             ThenResultContainsNamespaceDefinitionsFor(one, Additional);
             AndTheNamespaceDefinition(Additional, ns => HasSourceCodeContaining(ns, expectedInitialiseMethod));
-            AndTheNamespaceDefinition(one, ns => HasSourceCodeContaining(ns, expectedInitialiseMethod));   
+            AndTheNamespaceDefinition(one, ns => HasSourceCodeContaining(ns, expectedInitialiseMethod));
         }
 
         [TestMethod]
@@ -96,7 +149,8 @@ Calculations = calculationContext.Calculations"
         {
             const string one = "One";
 
-            string[] expectedFunctionPointers = {
+            string[] expectedFunctionPointers =
+            {
                 "Public One As Func(Of Decimal?) = Nothing",
                 "Public Two As Func(Of Decimal?) = Nothing"
             };
@@ -107,7 +161,7 @@ Calculations = calculationContext.Calculations"
 
             ThenResultContainsNamespaceDefinitionsFor(one, Additional);
             AndTheNamespaceDefinition(Additional, ns => HasSourceCodeNotContaining(ns, expectedFunctionPointers));
-            AndTheNamespaceDefinition(one, ns => HasSourceCodeContaining(ns, expectedFunctionPointers));   
+            AndTheNamespaceDefinition(one, ns => HasSourceCodeContaining(ns, expectedFunctionPointers));
         }
 
         [TestMethod]
@@ -115,11 +169,12 @@ Calculations = calculationContext.Calculations"
         {
             const string one = "One";
 
-            string[] expectedPropertyDefinitions = {
+            string[] expectedPropertyDefinitions =
+            {
                 "PublicPropertyOneAsOneCalculations",
                 "PublicPropertyCalculationsAsAdditionalCalculations"
             };
-            
+
             GivenTheCalculations(NewCalculationWithNamespace(one));
 
             WhenTheCalculationNamespacesAreBuilt();
@@ -139,7 +194,7 @@ Calculations = calculationContext.Calculations"
 
         private void ThenTheEnumDefinition(Func<StatementSyntax, bool> predicate)
         {
-            _result.EnumsDefinitions.Any(_ => predicate(_)).Should().BeTrue();
+            _result.EnumsDefinitions.Any(predicate).Should().BeTrue();
         }
 
         private void GivenTheCalculations(params Calculation[] calculations)
@@ -147,9 +202,20 @@ Calculations = calculationContext.Calculations"
             _calculations.AddRange(calculations);
         }
 
+        private void AndTheObsoleteItems(params ObsoleteItem[] obsoleteItems)
+            => _obsoleteItems.AddRange(obsoleteItems);
+
+        private void AndTheFundings(params (string key, Funding funding)[] fundings)
+        {
+            foreach ((string key, Funding funding) funding in fundings)
+            {
+                _funding[funding.key] = funding.funding;
+            }
+        }
+
         private void WhenTheCalculationNamespacesAreBuilt()
         {
-            _result = _builder.BuildNamespacesForCalculations(_calculations);
+            _result = _builder.BuildNamespacesForCalculations(_calculations, _obsoleteItems, _funding);
         }
 
         private void ThenResultContainsNamespaceDefinitionsFor(params string[] expectedNamespaces)
@@ -160,7 +226,8 @@ Calculations = calculationContext.Calculations"
                 .BeEquivalentTo(expectedNamespaces);
         }
 
-        private void AndTheNamespaceDefinition(string @namespace, Func<NamespaceClassDefinition, bool> predicate)
+        private void AndTheNamespaceDefinition(string @namespace,
+            Func<NamespaceClassDefinition, bool> predicate)
         {
             NamespaceClassDefinition namespaceDefinition = _result.InnerClasses.FirstOrDefault(_ => _.Namespace == @namespace);
 
@@ -172,16 +239,21 @@ Calculations = calculationContext.Calculations"
                 .BeTrue();
         }
 
-        private Calculation NewCalculationWithNamespace(string @namespace, string sourceCodeName = null)
+        private Calculation NewCalculationWithNamespace(string @namespace,
+            string sourceCodeName = null)
         {
             return NewCalculation(_ => _.WithCalculationNamespaceType(CalculationNamespace.Template)
                 .WithFundingStream(NewReference(rf => rf.WithId(@namespace)))
                 .WithSourceCodeName(sourceCodeName));
         }
 
-        private Calculation NewCalculationWithNamespaceAndEnumDataType(string name, IEnumerable<string> allowedEnumTypeValues, string sourceCodeName = null)
+        private Calculation NewCalculationWithNamespaceAndEnumDataType(string name,
+            IEnumerable<string> allowedEnumTypeValues,
+            string sourceCodeName = null,
+            string calculationId = null)
         {
             return NewCalculation(_ => _.WithCalculationNamespaceType(CalculationNamespace.Template)
+                .WithId(calculationId)
                 .WithSourceCodeName(sourceCodeName)
                 .WithName(name)
                 .WithDataType(CalculationDataType.Enum)
@@ -209,7 +281,7 @@ Calculations = calculationContext.Calculations"
         private bool HasSourceCodeContaining(NamespaceClassDefinition namespaceClassDefinition,
             params string[] expectedSourceCode)
         {
-            var classSourceCode = GetSourceForClassBlock(namespaceClassDefinition.ClassBlockSyntax);
+            string classSourceCode = GetSourceForClassBlock(namespaceClassDefinition.ClassBlockSyntax);
 
             return expectedSourceCode.All(expectedSourceCodeSnippet
                 => classSourceCode.Contains(expectedSourceCodeSnippet));
@@ -218,17 +290,15 @@ Calculations = calculationContext.Calculations"
         private bool StatementHasSourceCodeContaining(StatementSyntax statementSyntax,
             params string[] expectedSourceCode)
         {
-            var classSourceCode = GetSourceForClassBlock(statementSyntax);
+            string classSourceCode = GetSourceForClassBlock(statementSyntax);
 
             return expectedSourceCode.All(expectedSourceCodeSnippet
                 => classSourceCode.Contains(expectedSourceCodeSnippet));
         }
 
         private bool HasSourceCodeNotContaining(NamespaceClassDefinition namespaceClassDefinition,
-            params string[] expectedSourceCode)
-        {
-            return !HasSourceCodeContaining(namespaceClassDefinition, expectedSourceCode);
-        }
+            params string[] expectedSourceCode) =>
+            !HasSourceCodeContaining(namespaceClassDefinition, expectedSourceCode);
 
         private string GetSourceForClassBlock(StatementSyntax classBlockSyntax)
         {
@@ -240,7 +310,7 @@ Calculations = calculationContext.Calculations"
                         SyntaxFactory.Token(SyntaxKind.OnKeyword))
                 }))
                 .WithImports(StandardImports())
-                .WithMembers(SyntaxFactory.SingletonList<StatementSyntax>(classBlockSyntax));
+                .WithMembers(SyntaxFactory.SingletonList(classBlockSyntax));
 
             return syntaxTree.ToFullString();
         }
@@ -257,5 +327,28 @@ Calculations = calculationContext.Calculations"
                     SyntaxFactory.SimpleImportsClause(SyntaxFactory.ParseName("Microsoft.VisualBasic.CompilerServices"))))
             });
         }
+
+        private ObsoleteItem NewObsoleteItem(Action<ObsoleteItemBuilder> setUp = null)
+        {
+            ObsoleteItemBuilder obsoleteItemBuilder = new ObsoleteItemBuilder();
+
+            setUp?.Invoke(obsoleteItemBuilder);
+            
+            return obsoleteItemBuilder.Build();
+        }
+
+        private (string, Funding) NewFunding(string fundingStream,
+            Action<FundingBuilder> setUp = null)
+        {
+            FundingBuilder fundingBuilder = new FundingBuilder();
+
+            setUp?.Invoke(fundingBuilder);
+            
+            return (fundingStream, fundingBuilder.Build());
+        }
+
+        private uint NewRandomUint() => (uint) new RandomNumberBetween(1, int.MaxValue);
+
+        private string NewRandomString() => new RandomString();
     }
 }

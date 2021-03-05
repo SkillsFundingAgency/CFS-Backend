@@ -25,6 +25,13 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
             return this;
         }
 
+        public FundingBuilder WithMappings(params (uint key, string value)[] mappings)
+        {
+            _mappings = mappings.ToDictionary(_ => _.key, _ => _.value);
+
+            return this;
+        }
+
         public Funding Build()
         {
             return new Funding
