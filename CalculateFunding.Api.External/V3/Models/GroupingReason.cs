@@ -23,5 +23,10 @@ namespace CalculateFunding.Api.External.V3.Models
         /// Contracting
         /// </summary>
         Contracting,
+
+        /// <summary>
+        /// Indicative
+        /// </summary>
+        Indicative
     }
 }

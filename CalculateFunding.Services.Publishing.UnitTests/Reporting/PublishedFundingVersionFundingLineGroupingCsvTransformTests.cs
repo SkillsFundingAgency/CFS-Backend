@@ -39,6 +39,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
         }
 
         [TestMethod]
+        [DataRow(CalculateFunding.Models.Publishing.GroupingReason.Indicative)]
         [DataRow(CalculateFunding.Models.Publishing.GroupingReason.Contracting)]
         [DataRow(CalculateFunding.Models.Publishing.GroupingReason.Payment)]
         [DataRow(CalculateFunding.Models.Publishing.GroupingReason.Information)]

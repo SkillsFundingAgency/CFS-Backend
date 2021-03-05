@@ -9,5 +9,6 @@ namespace CalculateFunding.Models.Policy.FundingPolicy
         Payment,
         Information,
         Contracting,
+        Indicative
     }
 }

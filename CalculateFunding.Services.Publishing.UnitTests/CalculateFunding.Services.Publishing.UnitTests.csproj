@@ -50,7 +50,7 @@
   <ItemGroup>
     <PackageReference Include="CalculateFunding.Common.TemplateMetadata.Schema10" Version="2.1.1" />
     <PackageReference Include="CalculateFunding.Common.TemplateMetadata.Schema11" Version="2.1.1" />
-    <PackageReference Include="CalculateFunding.Generators.OrganisationGroup" Version="2.3.3" />
+    <PackageReference Include="CalculateFunding.Generators.OrganisationGroup" Version="2.4.0" />
     <PackageReference Include="FluentAssertions" Version="5.10.3" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.4.0" />
     <PackageReference Include="Moq" Version="4.15.2" />

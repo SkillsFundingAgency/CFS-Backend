@@ -23,5 +23,10 @@ namespace CalculateFunding.Services.Publishing
         /// Contracting
         /// </summary>
         Contracting,
+
+        /// <summary>
+        /// Indicative
+        /// </summary>
+        Indicative
     }
 }
