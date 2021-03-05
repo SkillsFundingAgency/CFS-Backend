@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Calcs.Models;
@@ -99,6 +100,11 @@ namespace CalculateFunding.Services.Publishing
 
             ApiResponse<IEnumerable<ObsoleteItem>> apiResponse = await _calcsApiClientPolicy.ExecuteAsync(
                 () => _calculationsApiClient.GetObsoleteItemsForSpecification(specificationId));
+
+            if (apiResponse.StatusCode == HttpStatusCode.NotFound)
+            {
+                return null;
+            }
 
             if (!apiResponse.StatusCode.IsSuccess())
             {
