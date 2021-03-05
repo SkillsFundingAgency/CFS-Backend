@@ -16,15 +16,13 @@ using CalculateFunding.Services.Specs.Interfaces;
 using Polly;
 using Serilog;
 using Job = CalculateFunding.Common.ApiClient.Jobs.Models.Job;
-using GraphApiEntitySpecification = CalculateFunding.Common.ApiClient.Graph.Models.Specification;
-using GraphApiEntityCalculation = CalculateFunding.Common.ApiClient.Graph.Models.Calculation;
-using GraphApiEntityFundingLine = CalculateFunding.Common.ApiClient.Graph.Models.FundingLine;
 
 namespace CalculateFunding.Services.Specs
 {
     public class SpecificationTemplateVersionChangedHandler : ISpecificationTemplateVersionChangedHandler
     {
         private const string AssignTemplateCalculationsJob = JobConstants.DefinitionNames.AssignTemplateCalculationsJob;
+        private const string DetectObsoleteFundingLinesJob = JobConstants.DefinitionNames.DetectObsoleteFundingLinesJob;
 
         private readonly IJobManagement _jobs;
         private readonly ICalculationsApiClient _calculations;
@@ -81,7 +79,7 @@ namespace CalculateFunding.Services.Specs
                 string previousTemplateVersionId = previousSpecificationVersion.GetTemplateVersionId(fundingStreamId);
                 if (!string.IsNullOrWhiteSpace(previousTemplateVersionId))
                 {
-                    await DetectAndCreateObsoleteItemsForFundingLines(specificationId, fundingStreamId, fundingPeriodId, previousTemplateVersionId, templateVersionId);
+                    await DetectAndCreateObsoleteItemsForFundingLines(user, correlationId, specificationId, fundingStreamId, fundingPeriodId, previousTemplateVersionId, templateVersionId);
                 }
 
                 await AssignTemplateWithSpecification(specificationVersion, templateVersionId, fundingStreamId, fundingPeriodId);
@@ -89,16 +87,44 @@ namespace CalculateFunding.Services.Specs
             }
         }
 
-        //TODO; move this to the azure function for obsolete item indexing etc.
-        private async Task DetectAndCreateObsoleteItemsForFundingLines(
+        private Task<Job> DetectAndCreateObsoleteItemsForFundingLines(Reference user,
+            string correlationId,
             string specificationId,
             string fundingStreamId,
             string fundingPeriodId,
             string previousTemplateVersionId,
-            string templateVersionId)
-        {
-            //TODO; queue job here?? or after graph has rebuilt??
-        }
+            string templateVersionId) => _jobs.QueueJob(new JobCreateModel
+            {
+                JobDefinitionId = DetectObsoleteFundingLinesJob,
+                InvokerUserId = user?.Id,
+                InvokerUserDisplayName = user?.Name,
+                CorrelationId = correlationId,
+                SpecificationId = specificationId,
+                Trigger = new Trigger
+                {
+                    Message = "Changed template version for specification",
+                    EntityId = specificationId,
+                    EntityType = nameof(Specification)
+                },
+                Properties = new Dictionary<string, string>
+                {
+                    {
+                        "specification-id", specificationId
+                    },
+                    {
+                        "fundingstream-id", fundingStreamId
+                    },
+                    {
+                        "fundingperiod-id", fundingPeriodId
+                    },
+                    {
+                        "previous-template-version-id", previousTemplateVersionId
+                    },
+                    {
+                        "template-version", templateVersionId
+                    }
+                }
+            });
 
         private Task<Job> QueueAssignTemplateCalculationsJob(Reference user,
             string correlationId,

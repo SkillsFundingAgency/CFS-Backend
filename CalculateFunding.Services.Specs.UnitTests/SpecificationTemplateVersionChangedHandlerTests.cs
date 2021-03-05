@@ -182,6 +182,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
             AndTheProcessMappingsWasNotCalled(fundingStreamTwo, existingTemplateIdTwo, specificationId);
             AndTheProcessMappingsWasNotCalled(fundingStreamOne, existingTemplateIdOne, specificationId);
             AndTheProcessMappingsWasNotCalled(fundingStreamThree, existingTemplateIdThree, specificationId);
+            AndTheDetectObsoleteFundingLinesJobWasCreated(user, correlationId, specificationId, fundingStreamTwo, fundingPeriodId, existingTemplateIdTwo, changedTemplateIdTwo);
             AndTheAssignTemplateCalculationJobWasCreated(user, correlationId, specificationId, fundingStreamTwo, fundingPeriodId, changedTemplateIdTwo);
             AndTheAssignTemplateCalculationJobWasNotCreated(user, correlationId, specificationId, fundingStreamTwo, fundingPeriodId, existingTemplateIdTwo);
             AndTheAssignTemplateCalculationJobWasNotCreated(user, correlationId, specificationId, fundingStreamOne, fundingPeriodId, existingTemplateIdOne);
@@ -222,6 +223,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
                 correlationId);
 
             ThenTheProcessMappingsWasCalled(fundingStream, changedTemplateId, specificationId);
+            AndTheDetectObsoleteFundingLinesJobWasNotCreated(specificationId, fundingStream, fundingPeriodId, existingTemplateId, changedTemplateId);
             AndTheAssignTemplateCalculationJobWasNotCreated(specificationId, fundingStream, fundingPeriodId, existingTemplateId);
             AndTheAssignTemplateCalculationJobWasNotCreated(specificationId, fundingStream, fundingPeriodId, changedTemplateId);
         }
@@ -301,6 +303,40 @@ namespace CalculateFunding.Services.Specs.UnitTests
                            Times.Never());
         }
 
+        private void AndTheDetectObsoleteFundingLinesJobWasNotCreated(string specificationId,
+            string fundingStreamId,
+            string fundingPeriodId,
+            string previousTemplateVersionId,
+            string templateVersionId)
+        {
+            AndTheDetectObsoleteFundingLinesJobWasCreatedXTimes(null,
+                           null,
+                           specificationId,
+                           fundingStreamId,
+                           fundingPeriodId,
+                           previousTemplateVersionId,
+                           templateVersionId,
+                           Times.Never());
+        }
+
+        private void AndTheDetectObsoleteFundingLinesJobWasCreated(Reference user,
+            string correlationId,
+            string specificationId,
+            string fundingStreamId,
+            string fundingPeriodId,
+            string previousTemplateVersionId,
+            string templateVersionId)
+        {
+            AndTheDetectObsoleteFundingLinesJobWasCreatedXTimes(user,
+                correlationId,
+                specificationId,
+                fundingStreamId,
+                fundingPeriodId,
+                previousTemplateVersionId,
+                templateVersionId,
+                Times.Once());
+        }
+
         private void AndTheAssignTemplateCalculationJobWasCreated(Reference user,
             string correlationId,
             string specificationId,
@@ -315,6 +351,32 @@ namespace CalculateFunding.Services.Specs.UnitTests
                 fundingPeriodId,
                 templateVersionId,
                 Times.Once());
+        }
+
+        private void AndTheDetectObsoleteFundingLinesJobWasCreatedXTimes(Reference user,
+            string correlationId,
+            string specificationId,
+            string fundingStreamId,
+            string fundingPeriodId,
+            string previousTemplateVersionId,
+            string templateVersionId,
+            Times times)
+        {
+            string userId = user?.Id;
+            string userName = user?.Name;
+
+            _jobs.Verify(_ => _.QueueJob(It.Is<JobCreateModel>(job =>
+                    job.JobDefinitionId == JobConstants.DefinitionNames.DetectObsoleteFundingLinesJob &&
+                    job.InvokerUserId == userId &&
+                    job.InvokerUserDisplayName == userName &&
+                    job.CorrelationId == correlationId &&
+                    HasUserProperties(job.Properties,
+                        "specification-id", specificationId,
+                        "fundingstream-id", fundingStreamId,
+                        "fundingperiod-id", fundingPeriodId,
+                        "previous-template-version-id", previousTemplateVersionId,
+                        "template-version", templateVersionId))),
+                times);
         }
 
         private void AndTheAssignTemplateCalculationJobWasCreatedXTimes(Reference user,
