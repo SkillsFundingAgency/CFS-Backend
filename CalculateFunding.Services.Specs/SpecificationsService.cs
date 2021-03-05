@@ -1275,20 +1275,23 @@ WHERE   s.documentType = @DocumentType",
             ApiResponse<IEnumerable<Common.ApiClient.Calcs.Models.ObsoleteItem>> obsoleteItemsApiResponse =
                 await _calcsApiClientPolicy.ExecuteAsync(() => _calcsApiClient.GetObsoleteItemsForSpecification(specification.Id));
 
-            if (!obsoleteItemsApiResponse.StatusCode.IsSuccess())
+            if (obsoleteItemsApiResponse.StatusCode != HttpStatusCode.NotFound)
             {
-                string error = "Error while retrieving obsolete items";
+                if (!obsoleteItemsApiResponse.StatusCode.IsSuccess())
+                {
+                    string error = "Error while retrieving obsolete items";
 
-                _logger.Error(error);
-                return new InternalServerErrorResult(error);
-            }
+                    _logger.Error(error);
+                    return new InternalServerErrorResult(error);
+                }
 
-            if(obsoleteItemsApiResponse.Content.AnyWithNullCheck())
-            {
-                string error = "Specification cannot be chosen for funding due to calculation errors.";
+                if (obsoleteItemsApiResponse.Content.AnyWithNullCheck())
+                {
+                    string error = "Specification cannot be chosen for funding due to calculation errors.";
 
-                _logger.Error(error);
-                return new InternalServerErrorResult(error);
+                    _logger.Error(error);
+                    return new InternalServerErrorResult(error);
+                }
             }
 
             specification.IsSelectedForFunding = true;
