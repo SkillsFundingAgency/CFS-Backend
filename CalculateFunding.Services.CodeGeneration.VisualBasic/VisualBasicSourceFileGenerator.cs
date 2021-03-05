@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
@@ -30,7 +31,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             IEnumerable<ObsoleteItem> obsoleteItems)
         {
             CalculationTypeGenerator calculationTypeGenerator = new CalculationTypeGenerator(compilerOptions, _fundingLineRoundingSettings);
-            return calculationTypeGenerator.GenerateCalcs(calculations, buildProject.FundingLines, obsoleteItems);
+            return calculationTypeGenerator.GenerateCalcs(calculations, buildProject.FundingLines, obsoleteItems ?? ArraySegment<ObsoleteItem>.Empty);
         }
 
         protected override IEnumerable<SourceFile> GenerateDatasetSourceFiles(BuildProject buildProject)
