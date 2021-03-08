@@ -7,6 +7,7 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Processing;
@@ -26,6 +27,8 @@ namespace CalculateFunding.Services.Publishing
         private readonly ILogger _logger;
         private readonly IPublishedFundingContentsPersistanceService _publishedFundingContentsPersistanceService;
         private readonly IPublishedProviderContentPersistanceService _publishedProviderContentsPersistanceService;
+        private readonly ISearchRepository<PublishedFundingIndex> _publishedFundingSearchRepository;
+        private readonly AsyncPolicy _publishedIndexSearchResiliencePolicy;
         private readonly ISpecificationService _specificationService;
         private readonly IProviderService _providerService;
         private readonly IPublishedFundingDataService _publishedFundingDataService;
@@ -48,6 +51,7 @@ namespace CalculateFunding.Services.Publishing
             ICalculationsApiClient calculationsApiClient,
             IPublishedFundingService publishedFundingService,
             IPublishedProviderContentsGeneratorResolver publishedProviderContentsGeneratorResolver,
+            ISearchRepository<PublishedFundingIndex> publishedFundingSearchRepository,
             IPublishedFundingVersionDataService publishedFundingVersionDataService) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -63,6 +67,8 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(publishedFundingService, nameof(publishedFundingService));
             Guard.ArgumentNotNull(publishedProviderContentsGeneratorResolver, nameof(publishedProviderContentsGeneratorResolver));
             Guard.ArgumentNotNull(publishedFundingVersionDataService, nameof(publishedFundingVersionDataService));
+            Guard.ArgumentNotNull(publishedFundingSearchRepository, nameof(publishedFundingSearchRepository));
+            Guard.ArgumentNotNull(publishingResiliencePolicies.PublishedIndexSearchResiliencePolicy, nameof(publishingResiliencePolicies.PublishedIndexSearchResiliencePolicy));
 
             _logger = logger;
             _calculationsApiClient = calculationsApiClient;
@@ -76,6 +82,8 @@ namespace CalculateFunding.Services.Publishing
             _policiesService = policiesService;
             _publishedProviderContentsGeneratorResolver = publishedProviderContentsGeneratorResolver;
             _publishedFundingVersionDataService = publishedFundingVersionDataService;
+            _publishedIndexSearchResiliencePolicy = publishingResiliencePolicies.PublishedIndexSearchResiliencePolicy;
+            _publishedFundingSearchRepository = publishedFundingSearchRepository;
         }
 
         public override async Task Process(Message message)
@@ -144,6 +152,8 @@ namespace CalculateFunding.Services.Publishing
                 await _publishedProviderContentsPersistanceService.SavePublishedProviderContents(templateMetadataContents, templateMapping,
                     selectedPublishedProviders, generator, publishAll);
             }
+
+            await _publishedIndexSearchResiliencePolicy.ExecuteAsync(() => _publishedFundingSearchRepository.RunIndexer());
         }
 
         private async Task<TemplateMapping> GetTemplateMapping(Reference fundingStream, string specificationId)

@@ -41,13 +41,11 @@ namespace CalculateFunding.Services.Publishing
         private readonly ISearchRepository<PublishedFundingIndex> _publishedFundingSearchRepository;
         private readonly IGeneratePublishedFundingCsvJobsCreationLocator _generateCsvJobsLocator;
         private readonly AsyncPolicy _calculationsApiClientPolicy;
-        private readonly IJobManagement _jobManagement;
         private readonly AsyncPolicy _publishedIndexSearchResiliencePolicy;
         private readonly ITransactionFactory _transactionFactory;
         private readonly IPublishedProviderVersionService _publishedProviderVersionService;
         private readonly IPublishedFundingService _publishedFundingService;
         private readonly IPublishedFundingDataService _publishedFundingDataService;
-        private readonly IPoliciesService _policiesService;
         private readonly ICreatePublishIntegrityJob _createPublishIntegrityJob;
 
         public PublishService(IPublishedFundingStatusUpdateService publishedFundingStatusUpdateService,
@@ -70,7 +68,6 @@ namespace CalculateFunding.Services.Publishing
             IPublishedProviderVersionService publishedProviderVersionService,
             IPublishedFundingService publishedFundingService,
             IPublishedFundingDataService publishedFundingDataService,
-            IPoliciesService policiesService,
             ICreatePublishIntegrityJob createPublishIntegrityJob) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(generateCsvJobsLocator, nameof(generateCsvJobsLocator));
@@ -90,12 +87,10 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(calculationsApiClient, nameof(calculationsApiClient));
             Guard.ArgumentNotNull(publishingResiliencePolicies.CalculationsApiClient, nameof(publishingResiliencePolicies.CalculationsApiClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(publishingResiliencePolicies.PublishedIndexSearchResiliencePolicy, nameof(publishingResiliencePolicies.PublishedIndexSearchResiliencePolicy));
             Guard.ArgumentNotNull(transactionFactory, nameof(transactionFactory));
             Guard.ArgumentNotNull(publishedProviderVersionService, nameof(publishedProviderVersionService));
             Guard.ArgumentNotNull(publishedFundingDataService, nameof(publishedFundingDataService));
-            Guard.ArgumentNotNull(policiesService, nameof(policiesService));
             Guard.ArgumentNotNull(createPublishIntegrityJob, nameof(createPublishIntegrityJob));
 
             _publishedFundingStatusUpdateService = publishedFundingStatusUpdateService;
@@ -112,13 +107,11 @@ namespace CalculateFunding.Services.Publishing
             _calculationsApiClient = calculationsApiClient;
             _calculationsApiClientPolicy = publishingResiliencePolicies.CalculationsApiClient;
             _generateCsvJobsLocator = generateCsvJobsLocator;
-            _jobManagement = jobManagement;
             _publishedIndexSearchResiliencePolicy = publishingResiliencePolicies.PublishedIndexSearchResiliencePolicy;
             _transactionFactory = transactionFactory;
             _publishedProviderVersionService = publishedProviderVersionService;
             _providerService = providerService;
             _publishedFundingService = publishedFundingService;
-            _policiesService = policiesService;
             _createPublishIntegrityJob = createPublishIntegrityJob;
         }
 

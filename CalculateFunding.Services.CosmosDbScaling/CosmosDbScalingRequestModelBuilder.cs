@@ -68,6 +68,10 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 {
                     CosmosCollectionType.PublishedFunding
                 },
+                JobDefinitions.PublishIntegrityCheckJob => new[]
+                {
+                    CosmosCollectionType.PublishedFunding
+                },
                 JobDefinitions.DeletePublishedProvidersJob => new []
                 {
                     CosmosCollectionType.PublishedFunding

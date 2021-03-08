@@ -163,7 +163,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 _publishedProviderVersionService,
                 _publishedFundingService,
                 _publishedFundingDataService,
-                _policiesService,
                 _createPublishIntegrityJob
             );
         }

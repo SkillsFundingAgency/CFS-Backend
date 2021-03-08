@@ -10,6 +10,7 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Generators.OrganisationGroup.Interfaces;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
@@ -65,7 +66,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private ISpecificationFundingStatusService _specificationFundingStatusService;
         private IPublishedFundingVersionDataService _publishedFundingVersionDataService;
         private IJobsRunning _jobsRunning;
-        
+        private ISearchRepository<PublishedFundingIndex> _publishedFundingSearchRepository;
+
         private const string SpecificationId = "SpecificationId";
         private const string FundingPeriodId = "AY-2020";
         private const string JobId = "JobId";
@@ -114,6 +116,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _publishedFundingDateService = Substitute.For<IPublishedFundingDateService>();
             _publishedFundingDataService = Substitute.For<IPublishedFundingDataService>();
             _publishedFundingVersionDataService = Substitute.For<IPublishedFundingVersionDataService>();
+            _publishedFundingSearchRepository = Substitute.For<ISearchRepository<PublishedFundingIndex>>();
 
             _publishedFundingService = new PublishedFundingService(_publishedFundingDataService,
                 _publishingResiliencePolicies,
@@ -136,6 +139,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 _calculationsApiClient,
                 _publishedFundingService,
                 _publishedProviderContentsGeneratorResolver,
+                _publishedFundingSearchRepository,
                 _publishedFundingVersionDataService
             );
         }
