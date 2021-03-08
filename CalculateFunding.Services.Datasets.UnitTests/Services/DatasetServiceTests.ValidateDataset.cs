@@ -574,10 +574,13 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        public async Task ValidateDataset_GivenDatasetBlobModel_CallsJobServiceToQueueJob()
+        public async Task ValidateDataset_GivenDatasetBlobModelWithMergeAndRecentlyUpdatedDatasetDefinition_FailsValidation()
         {
             // Arrange
-            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _.WithDefinitionId(DataDefinitionId));
+            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _
+                .WithDefinitionId(DataDefinitionId)
+                .WithMergeExistingVersion(true)
+                .WithDatasetId(DatasetId));
 
             string blobPath = $"{model.DatasetId}/v{model.Version}/{model.Filename}";
 
@@ -609,12 +612,116 @@ namespace CalculateFunding.Services.Datasets.Services
                 FundingStreamId = FundingStreamId
             };
 
-            IEnumerable<DatasetDefinition> datasetDefinitions = new List<DatasetDefinition>() { datasetDefinition };
+            Dataset dataset = new Dataset
+            {
+                Id = DatasetId
+            };
+
+            DocumentEntity<DatasetDefinition> datasetDefinitionDocument = new DocumentEntity<DatasetDefinition> 
+            { 
+                Content = datasetDefinition, 
+                UpdatedAt = DateTimeOffset.Now.AddHours(-1) 
+            };
+
+            DocumentEntity<Dataset> datasetDocument = new DocumentEntity<Dataset>
+            {
+                Content = dataset,
+                UpdatedAt = DateTimeOffset.Now.AddHours(-2)
+            };
 
             IDatasetRepository datasetRepository = CreateDatasetsRepository();
             datasetRepository
-                .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DocumentEntity<DatasetDefinition>, bool>>>())
-                .Returns(datasetDefinitions);
+                .GetDatasetDefinitionDocumentByDatasetDefinitionId(DataDefinitionId)
+                .Returns(datasetDefinitionDocument);
+
+            datasetRepository
+                .GetDatasetDocumentByDatasetId(DatasetId)
+                .Returns(datasetDocument);
+
+            DatasetService service = CreateDatasetService(
+                logger: logger,
+                blobClient: blobClient,
+                datasetRepository: datasetRepository);
+
+            string errorMessage = 
+                "There has been data schema change since the last version of this data source file was uploaded. Retry uploading with the create new version option";
+
+            // Act
+            IActionResult result = await service.ValidateDataset(model, null, null);
+
+            // Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+
+            logger
+                .Received(1)
+                .Error(errorMessage);
+        }
+
+        [TestMethod]
+        public async Task ValidateDataset_GivenDatasetBlobModel_CallsJobServiceToQueueJob()
+        {
+            // Arrange
+            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _
+                .WithDefinitionId(DataDefinitionId)
+                .WithDatasetId(DatasetId));
+
+            string blobPath = $"{model.DatasetId}/v{model.Version}/{model.Filename}";
+
+            ILogger logger = CreateLogger();
+
+            IDictionary<string, string> metaData = new Dictionary<string, string>
+            {
+                { "dataDefinitionId", DataDefinitionId }
+            };
+
+            ICloudBlob blob = Substitute.For<ICloudBlob>();
+            blob
+                .Metadata
+                .Returns(metaData);
+
+            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
+                .Returns(blob);
+            blobClient
+               .DownloadToStreamAsync(Arg.Is(blob))
+               .Returns(memoryStream);
+
+            DatasetDefinition datasetDefinition = new DatasetDefinition()
+            {
+                Id = DataDefinitionId,
+                FundingStreamId = FundingStreamId
+            };
+
+            Dataset dataset = new Dataset
+            {
+                Id = DatasetId
+            };
+
+            DocumentEntity<DatasetDefinition> datasetDefinitionDocument = new DocumentEntity<DatasetDefinition>
+            {
+                Content = datasetDefinition,
+                UpdatedAt = DateTimeOffset.Now.AddHours(-1)
+            };
+
+            DocumentEntity<Dataset> datasetDocument = new DocumentEntity<Dataset>
+            {
+                Content = dataset,
+                UpdatedAt = DateTimeOffset.Now.AddHours(-2)
+            };
+
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            datasetRepository
+                .GetDatasetDefinitionDocumentByDatasetDefinitionId(DataDefinitionId)
+                .Returns(datasetDefinitionDocument);
+
+            datasetRepository
+                .GetDatasetDocumentByDatasetId(DatasetId)
+                .Returns(datasetDocument);
 
             ICacheProvider cacheProvider = CreateCacheProvider();
 
@@ -667,7 +774,9 @@ namespace CalculateFunding.Services.Datasets.Services
             const string authorId = "user1";
             const string authorName = "user 1";
 
-            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _.WithDefinitionId(DataDefinitionId));
+            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _
+                .WithDefinitionId(DataDefinitionId)
+                .WithDatasetId(DatasetId));
 
             string blobPath = $"{model.DatasetId}/v{model.Version}/{model.Filename}";
 
@@ -701,12 +810,31 @@ namespace CalculateFunding.Services.Datasets.Services
                 FundingStreamId = FundingStreamId
             };
 
-            IEnumerable<DatasetDefinition> datasetDefinitions = new List<DatasetDefinition>() { datasetDefinition };
+            Dataset dataset = new Dataset
+            {
+                Id = DatasetId
+            };
+
+            DocumentEntity<DatasetDefinition> datasetDefinitionDocument = new DocumentEntity<DatasetDefinition>
+            {
+                Content = datasetDefinition,
+                UpdatedAt = DateTimeOffset.Now.AddHours(-1)
+            };
+
+            DocumentEntity<Dataset> datasetDocument = new DocumentEntity<Dataset>
+            {
+                Content = dataset,
+                UpdatedAt = DateTimeOffset.Now.AddHours(-2)
+            };
 
             IDatasetRepository datasetRepository = CreateDatasetsRepository();
             datasetRepository
-                .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DocumentEntity<DatasetDefinition>, bool>>>())
-                .Returns(datasetDefinitions);
+                .GetDatasetDefinitionDocumentByDatasetDefinitionId(DataDefinitionId)
+                .Returns(datasetDefinitionDocument);
+
+            datasetRepository
+                .GetDatasetDocumentByDatasetId(DatasetId)
+                .Returns(datasetDocument);
 
             ICacheProvider cacheProvider = CreateCacheProvider();
 

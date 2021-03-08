@@ -203,6 +203,11 @@ namespace CalculateFunding.Services.Datasets
             return await _cosmosRepository.ReadDocumentByIdAsync<Dataset>(datasetId);
         }
 
+        public async Task<DocumentEntity<DatasetDefinition>> GetDatasetDefinitionDocumentByDatasetDefinitionId(string datasetDefinitionId)
+        {
+            return await _cosmosRepository.ReadDocumentByIdAsync<DatasetDefinition>(datasetDefinitionId);
+        }
+
         public async Task<IEnumerable<DefinitionSpecificationRelationship>> GetAllDefinitionSpecificationsRelationships()
         {
             return await _cosmosRepository.Query<DefinitionSpecificationRelationship>();

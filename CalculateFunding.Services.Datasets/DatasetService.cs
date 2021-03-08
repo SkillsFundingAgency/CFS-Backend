@@ -362,15 +362,35 @@ namespace CalculateFunding.Services.Datasets
 
             string dataDefinitionId = blob.Metadata["dataDefinitionId"];
 
+            DocumentEntity<DatasetDefinition> datasetDefinitionDocumentEntity =
+                await _datasetRepository.GetDatasetDefinitionDocumentByDatasetDefinitionId(dataDefinitionId);
 
-            DatasetDefinition datasetDefinition =
-                (await _datasetRepository.GetDatasetDefinitionsByQuery(m => m.Id == dataDefinitionId)).FirstOrDefault();
-
-            if (datasetDefinition == null)
+            if (datasetDefinitionDocumentEntity?.Content == null)
             {
                 _logger.Error($"Unable to find a data definition for id: {dataDefinitionId}, for blob: {fullBlobName}");
 
                 return new PreconditionFailedResult($"Unable to find a data definition for id: {dataDefinitionId}, for blob: {fullBlobName}");
+            }
+
+            DocumentEntity<Dataset> datasetDocumentEntity = await _datasetRepository.GetDatasetDocumentByDatasetId(model.DatasetId);
+
+            if (datasetDocumentEntity?.Content == null)
+            {
+                _logger.Error($"Unable to find a dataset for id: {dataDefinitionId}, for blob: {fullBlobName}");
+
+                return new PreconditionFailedResult($"Unable to find a dataset for id: {dataDefinitionId}, for blob: {fullBlobName}");
+            }
+
+            if (model.MergeExistingVersion && datasetDefinitionDocumentEntity.UpdatedAt > datasetDocumentEntity.UpdatedAt)
+            {
+                string errorMessage =
+                    "There has been data schema change since the last version of this data source file was uploaded. Retry uploading with the create new version option";
+
+                _logger.Error(errorMessage);
+
+                string[] errors = new[] { errorMessage };
+
+                return new BadRequestObjectResult(errors.ToModelStateDictionary());
             }
 
             DatasetValidationStatusModel responseModel = new DatasetValidationStatusModel
@@ -403,7 +423,7 @@ namespace CalculateFunding.Services.Datasets
             {
                 EntityId = model.DatasetId,
                 EntityType = nameof(Dataset),
-                Message = $"Validating dataset: '{model.DatasetId}' against definition: '{datasetDefinition.Name}'"
+                Message = $"Validating dataset: '{model.DatasetId}' against definition: '{datasetDefinitionDocumentEntity.Content.Name}'"
             };
 
             JobCreateModel job = new JobCreateModel
