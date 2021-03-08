@@ -141,7 +141,8 @@ namespace CalculateFunding.Services.Publishing
                 ProviderId = latestPublishedProviderVersion.ProviderId,
                 UKPRN = latestPublishedProviderVersion.Provider.UKPRN,
                 ProviderName = latestPublishedProviderVersion.Provider.Name,
-                CarryOverAmount = latestPublishedProviderVersion.GetCarryOverTotalForFundingLine(fundingLineCode) ?? 0
+                CarryOverAmount = latestPublishedProviderVersion.GetCarryOverTotalForFundingLine(fundingLineCode) ?? 0,
+                IsCustomProfile = latestPublishedProviderVersion.FundingLineHasCustomProfile(fundingLineCode),
             };
 
             ProfileVariationPointer currentProfileVariationPointer
@@ -367,7 +368,8 @@ namespace CalculateFunding.Services.Publishing
                     ProfilePatternDescription = profilePatternDescription,
                     ProfileTotalAmount = profileTotals.Any() ? profileTotals.Sum(_ => _.Value) : (decimal?)null,
                     ProfileTotals = profileTotals,
-                    Errors = latestPublishedProviderVersion.GetErrorsForFundingLine(fundingLineCode, fundingStreamId)
+                    Errors = latestPublishedProviderVersion.GetErrorsForFundingLine(fundingLineCode, fundingStreamId),
+                    IsCustomProfile = latestPublishedProviderVersion.FundingLineHasCustomProfile(fundingLineCode),
                 };
 
                 if (fundingLineProfile.ProfileTotalAmount != null || fundingLineProfile.CarryOverAmount != null)

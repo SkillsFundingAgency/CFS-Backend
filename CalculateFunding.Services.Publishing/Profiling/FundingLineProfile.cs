@@ -19,6 +19,7 @@ namespace CalculateFunding.Services.Publishing.Profiling
         public string ProfilePatternKey { get; set; }
         public string ProfilePatternName { get; set; }
         public string ProfilePatternDescription { get; set; }
+        public bool IsCustomProfile { get; set; }
         public Reference LastUpdatedUser { get; set; }
         public DateTimeOffset? LastUpdatedDate { get; set; }
         public decimal? ProfileTotalAmount { get; set; }
