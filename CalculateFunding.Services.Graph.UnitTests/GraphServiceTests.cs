@@ -4,17 +4,15 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Graph;
 using CalculateFunding.Common.Graph.Interfaces;
 using CalculateFunding.Tests.Common.Helpers;
 using Serilog;
-using Neo4jDriver = Neo4j.Driver;
+using System;
+using Enum = CalculateFunding.Models.Graph.Enum;
 
 namespace CalculateFunding.Services.Graph.UnitTests
 {
@@ -25,6 +23,7 @@ namespace CalculateFunding.Services.Graph.UnitTests
         private ISpecificationRepository _specificationRepository;
         private IDatasetRepository _datasetRepository;
         private IFundingLineRepository _fundingLineRepository;
+        private IEnumRepository _enumRepository;
         private GraphService _graphService;
         private ILogger _logger;
 
@@ -36,12 +35,14 @@ namespace CalculateFunding.Services.Graph.UnitTests
             _specificationRepository = Substitute.For<ISpecificationRepository>();
             _datasetRepository = Substitute.For<IDatasetRepository>();
             _fundingLineRepository = Substitute.For<IFundingLineRepository>();
+            _enumRepository = Substitute.For<IEnumRepository>();
 
             _graphService = new GraphService(_logger, 
                 _calculationRepository, 
                 _specificationRepository,
                 _datasetRepository,
-                _fundingLineRepository);
+                _fundingLineRepository,
+                _enumRepository);
         }
 
         [TestMethod]
@@ -139,7 +140,23 @@ namespace CalculateFunding.Services.Graph.UnitTests
                 .Should()
                 .BeOfType<OkResult>();
         }
-        
+
+        [TestMethod]
+        public async Task DeleteFundingLine()
+        {
+            string fieldId = NewRandomString();
+
+            IActionResult result = await _graphService.DeleteFundingLine(fieldId);
+
+            await _fundingLineRepository
+                .Received(1)
+                .DeleteFundingLine(fieldId);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+
         [TestMethod]
         public async Task UpsertDataDefinitionDatasetRelationshipDelegatesToRepository()
         {
@@ -175,7 +192,43 @@ namespace CalculateFunding.Services.Graph.UnitTests
                 .Should()
                 .BeOfType<OkResult>();
         }
-        
+
+        [TestMethod]
+        public async Task DeleteFundingLineCalculationRelationshipDelegatesToRepository()
+        {
+            string fundingLineId = NewRandomString();
+            string calculationId = NewRandomString();
+
+            IActionResult result = await _graphService.DeleteFundingLineCalculationRelationship(fundingLineId,
+                calculationId);
+
+            await _fundingLineRepository
+                .Received(1)
+                .DeleteFundingLineCalculationRelationship(fundingLineId, calculationId);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+
+        [TestMethod]
+        public async Task DeleteCalculationFundingLineRelationshipDelegatesToRepository()
+        {
+            string calculationId = NewRandomString();
+            string fundingLineId = NewRandomString();
+
+            IActionResult result = await _graphService.DeleteCalculationFundingLineRelationship(calculationId, 
+                fundingLineId);
+
+            await _fundingLineRepository
+                .Received(1)
+                .DeleteCalculationFundingLineRelationship(calculationId, fundingLineId);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+
         [TestMethod]
         public async Task UpsertDatasetDataFieldRelationshipDelegatesToRepository()
         {
@@ -317,6 +370,70 @@ namespace CalculateFunding.Services.Graph.UnitTests
         }
 
         [TestMethod]
+        public async Task SaveEnums_GivenValidEnums_OkStatusCodeReturned()
+        {
+            Enum[] enums = new[] { NewEnum(), NewEnum() };
+
+            IActionResult result = await _graphService.UpsertEnums(enums);
+
+            await _enumRepository
+                .Received(1)
+                .UpsertEnums(enums);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+
+        [TestMethod]
+        public async Task SaveFundingLine_GivenValidEnums_OkStatusCodeReturned()
+        {
+            FundingLine[] fundingLines = new[] { NewFundingLine(), NewFundingLine() };
+
+            IActionResult result = await _graphService.UpsertFundingLines(fundingLines);
+
+            await _fundingLineRepository
+                .Received(1)
+                .UpsertFundingLines(fundingLines);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+
+        [TestMethod]
+        public async Task SaveDatasetDefinitions_GivenValidEnums_OkStatusCodeReturned()
+        {
+            DatasetDefinition[] datasetDefinitions = new[] { NewDataDefinition(), NewDataDefinition() };
+
+            IActionResult result = await _graphService.UpsertDatasetDefinitions(datasetDefinitions);
+
+            await _datasetRepository
+                .Received(1)
+                .UpsertDatasetDefinitions(datasetDefinitions);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+
+        [TestMethod]
+        public async Task SaveUpsertDatasets_GivenValidEnums_OkStatusCodeReturned()
+        {
+            Dataset[] datasets = new[] { NewDataset(), NewDataset() };
+
+            IActionResult result = await _graphService.UpsertDatasets(datasets);
+
+            await _datasetRepository
+                .Received(1)
+                .UpsertDatasets(datasets);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+
+        [TestMethod]
         public async Task DeleteCalculation_GivenExistingCalculation_OkStatusCodeReturned()
         {
             string calculationId = NewRandomString();
@@ -326,6 +443,97 @@ namespace CalculateFunding.Services.Graph.UnitTests
             await _calculationRepository
                 .Received(1)
                 .DeleteCalculation(calculationId);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+
+        [TestMethod]
+        public async Task GetAllEntitiesRelatedToSpecification()
+        {
+            string specificationId = NewRandomString();
+            IActionResult result = await _graphService.GetAllEntities<Specification>(specificationId);
+
+            await _specificationRepository
+                .Received(1)
+                .GetAllEntities(specificationId);
+
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+        }
+
+        [TestMethod]
+        public async Task GetAllEntitiesRelatedToCalculation()
+        {
+            string calculationId = NewRandomString();
+            IActionResult result = await _graphService.GetAllEntities<Calculation>(calculationId);
+
+            await _calculationRepository
+                .Received(1)
+                .GetAllEntities(calculationId);
+
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+        }
+
+        [TestMethod]
+        public async Task GetAllEntitiesRelatedToFundingLine()
+        {
+            string fundingLineId = NewRandomString();
+            IActionResult result = await _graphService.GetAllEntities<FundingLine>(fundingLineId);
+
+            await _fundingLineRepository
+                .Received(1)
+                .GetAllEntities(fundingLineId);
+
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+        }
+
+        [TestMethod]
+        public async Task GetAllEntitiesRelatedToDataField()
+        {
+            string dataFieldId = NewRandomString();
+            IActionResult result = await _graphService.GetAllEntities<DataField>(dataFieldId);
+
+            await _datasetRepository
+                .Received(1)
+                .GetAllEntities(dataFieldId);
+
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+        }
+
+        [TestMethod]
+        public async Task GetAllEntitiesRelatedToEnum()
+        {
+            string enumId = NewRandomString();
+            IActionResult result = await _graphService.GetAllEntities<Enum>(enumId);
+
+            await _enumRepository
+                .Received(1)
+                .GetAllEntities(enumId);
+
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+        }
+
+        [TestMethod]
+        public async Task DeleteEnum_GivenExistingEnum_OkStatusCodeReturned()
+        {
+            string enumId = NewRandomString();
+
+            IActionResult result = await _graphService.DeleteEnum(enumId);
+
+            await _enumRepository
+                .Received(1)
+                .DeleteEnum(enumId);
 
             result
                 .Should()
@@ -365,6 +573,43 @@ namespace CalculateFunding.Services.Graph.UnitTests
                 .Should()
                 .BeOfType<OkResult>();
         }
+
+        [TestMethod]
+        public async Task UpsertCalculationEnumRelationship_GivenValidRelationship_OkStatusCodeReturned()
+        {
+            string calculationId = NewRandomString();
+            string enumId = NewRandomString();
+
+            IActionResult result = await _graphService.UpsertCalculationEnumRelationship(calculationId,
+                enumId);
+
+            await _enumRepository
+                .Received(1)
+                .UpsertCalculationEnumRelationship(calculationId, enumId);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+
+        [TestMethod]
+        public async Task UpsertEnumCalculationRelationship_GivenValidRelationship_OkStatusCodeReturned()
+        {
+            string calculationId = NewRandomString();
+            string enumId = NewRandomString();
+
+            IActionResult result = await _graphService.UpsertEnumCalculationRelationship(enumId, 
+                calculationId);
+
+            await _enumRepository
+                .Received(1)
+                .UpsertEnumCalculationRelationship(enumId, calculationId);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+        
 
         [TestMethod]
         public async Task CreateCalculationCalculationRelationship_GivenValidRelationship_OkStatusCodeReturned()
@@ -566,7 +811,23 @@ namespace CalculateFunding.Services.Graph.UnitTests
                 .Should()
                 .BeOfType<OkResult>();
         }
-        
+
+        [TestMethod]
+        public async Task DeleteCalculationFundingLineRelationships()
+        {
+            (string, string)[] relationships = AsArray((NewRandomString(), NewRandomString()));
+
+            IActionResult result = await _graphService.DeleteCalculationFundingLineRelationships(relationships);
+
+            await _fundingLineRepository
+                .Received(1)
+                .DeleteCalculationFundingLineRelationships(relationships);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+
         [TestMethod]
         public async Task UpsertDataDefinitionDatasetRelationships()
         {
@@ -598,7 +859,58 @@ namespace CalculateFunding.Services.Graph.UnitTests
                 .Should()
                 .BeOfType<OkResult>();
         }
-        
+
+        [TestMethod]
+        public async Task UpsertSpecificationDatasetRelationship()
+        {
+            string specificationId = NewRandomString();
+            string datasetId = NewRandomString();
+
+            IActionResult result = await _graphService.UpsertSpecificationDatasetRelationship(specificationId, datasetId);
+
+            await _specificationRepository
+                .Received(1)
+                .CreateSpecificationDatasetRelationship(specificationId, datasetId);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+
+        [TestMethod]
+        public async Task UpsertFundingLineCalculationRelationship()
+        {
+            string fundingLineId = NewRandomString();
+            string calculationId = NewRandomString();
+
+            IActionResult result = await _graphService.UpsertFundingLineCalculationRelationship(fundingLineId, calculationId);
+
+            await _fundingLineRepository
+                .Received(1)
+                .UpsertFundingLineCalculationRelationship(fundingLineId, calculationId);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+
+        [TestMethod]
+        public async Task UpsertCalculationFundingLineRelationship()
+        {
+            string calculationId = NewRandomString();
+            string fundingLineId = NewRandomString();
+
+            IActionResult result = await _graphService.UpsertCalculationFundingLineRelationship(calculationId, fundingLineId);
+
+            await _fundingLineRepository
+                .Received(1)
+                .UpsertCalculationFundingLineRelationship(calculationId, fundingLineId);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+
         [TestMethod]
         public async Task UpsertSpecificationDatasetRelationships()
         {
@@ -646,7 +958,39 @@ namespace CalculateFunding.Services.Graph.UnitTests
                 .Should()
                 .BeOfType<OkResult>();
         }
-        
+
+        [TestMethod]
+        public async Task UpsertCalculationEnumRelationships()
+        {
+            (string, string)[] relationships = AsArray((NewRandomString(), NewRandomString()));
+
+            IActionResult result = await _graphService.UpsertCalculationEnumRelationships(relationships);
+
+            await _enumRepository
+                .Received(1)
+                .UpsertCalculationEnumRelationships(relationships);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+
+        [TestMethod]
+        public async Task UpsertEnumCalculationRelationships()
+        {
+            (string, string)[] relationships = AsArray((NewRandomString(), NewRandomString()));
+
+            IActionResult result = await _graphService.UpsertEnumCalculationRelationships(relationships);
+
+            await _enumRepository
+                .Received(1)
+                .UpsertEnumCalculationRelationships(relationships);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+
         [TestMethod]
         public async Task DeleteCalculationDataFieldRelationships()
         {
@@ -678,7 +1022,23 @@ namespace CalculateFunding.Services.Graph.UnitTests
                 .Should()
                 .BeOfType<OkResult>();
         }
-        
+
+        [TestMethod]
+        public async Task DeleteEnums()
+        {
+            string[] ids = AsArray(NewRandomString(), NewRandomString());
+
+            IActionResult result = await _graphService.DeleteEnums(ids);
+
+            await _enumRepository
+                .Received(1)
+                .DeleteEnums(ids);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+
         [TestMethod]
         public async Task UpsertCalculationSpecificationRelationships()
         {
@@ -856,6 +1216,42 @@ namespace CalculateFunding.Services.Graph.UnitTests
             setUp?.Invoke(specificationBuilder);
 
             return specificationBuilder.Build();
+        }
+
+        private Enum NewEnum(Action<EnumBuilder> setUp = null)
+        {
+            EnumBuilder enumBuilder = new EnumBuilder();
+
+            setUp?.Invoke(enumBuilder);
+
+            return enumBuilder.Build();
+        }
+
+        private FundingLine NewFundingLine(Action<FundingLineBuilder> setUp = null)
+        {
+            FundingLineBuilder fundingLineBuilder = new FundingLineBuilder();
+
+            setUp?.Invoke(fundingLineBuilder);
+
+            return fundingLineBuilder.Build();
+        }
+
+        private DatasetDefinition NewDataDefinition(Action<DatasetDefinitionBuilder> setUp = null)
+        {
+            DatasetDefinitionBuilder datasetDefinitionBuilder = new DatasetDefinitionBuilder();
+
+            setUp?.Invoke(datasetDefinitionBuilder);
+
+            return datasetDefinitionBuilder.Build();
+        }
+
+        private Dataset NewDataset(Action<DatasetBuilder> setUp = null)
+        {
+            DatasetBuilder datasetBuilder = new DatasetBuilder();
+
+            setUp?.Invoke(datasetBuilder);
+
+            return datasetBuilder.Build();
         }
 
         private DataField NewDataField(Action<DataFieldBuilder> setUp = null)

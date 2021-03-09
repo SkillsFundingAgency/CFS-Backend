@@ -50,8 +50,6 @@ namespace CalculateFunding.Services.Calcs
 
             bool generateCalculationAggregations = SourceCodeHelpers.HasCalculationAggregateFunctionParameters(allCalculations.Select(m => m.Current.SourceCode));
 
-           
-            
             string jobDefinitionId = generateCalculationAggregations ?
                     JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob :
                     JobConstants.DefinitionNames.CreateInstructAllocationJob;

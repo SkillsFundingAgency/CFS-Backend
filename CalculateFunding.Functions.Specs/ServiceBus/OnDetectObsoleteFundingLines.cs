@@ -22,15 +22,15 @@ namespace CalculateFunding.Functions.Specs.ServiceBus
 
         public OnDetectObsoleteFundingLines(
             ILogger logger,
-            IObsoleteFundingLineDetection obsoleteFundingLineDetection,
+            IObsoleteFundingLineAndEnumDetection obsoleteFundingLineAndEnumDetection,
             IMessengerService messengerService,
             IUserProfileProvider userProfileProvider,
             IConfigurationRefresherProvider refresherProvider,
             bool useAzureStorage = false) 
-            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider, obsoleteFundingLineDetection)
+            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider, obsoleteFundingLineAndEnumDetection)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(obsoleteFundingLineDetection, nameof(obsoleteFundingLineDetection));
+            Guard.ArgumentNotNull(obsoleteFundingLineAndEnumDetection, nameof(obsoleteFundingLineAndEnumDetection));
             Guard.ArgumentNotNull(refresherProvider, nameof(refresherProvider));
 
             _configurationRefresher = refresherProvider.Refreshers.First();

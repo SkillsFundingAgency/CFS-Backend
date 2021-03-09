@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Calcs.Models;
@@ -22,12 +23,13 @@ using Microsoft.Azure.ServiceBus;
 using Polly;
 using Serilog;
 using Calculation = CalculateFunding.Models.Graph.Calculation;
+using Enum = CalculateFunding.Common.ApiClient.Graph.Models.Enum;
 using FundingLine = CalculateFunding.Common.ApiClient.Graph.Models.FundingLine;
 using Specification = CalculateFunding.Common.ApiClient.Graph.Models.Specification;
 
 namespace CalculateFunding.Services.Specs.ObsoleteItems
 {
-    public class ObsoleteFundingLineDetection : JobProcessingService, IObsoleteFundingLineDetection
+    public class ObsoleteFundingLineAndEnumDetection : JobProcessingService, IObsoleteFundingLineAndEnumDetection
     {
         private readonly IUniqueIdentifierProvider _uniqueIdentifierProvider;
         private readonly ITypeIdentifierGenerator _typeIdentifierGenerator;
@@ -38,7 +40,7 @@ namespace CalculateFunding.Services.Specs.ObsoleteItems
         private readonly AsyncPolicy _calculationsPolicy;
         private readonly AsyncPolicy _policiesPolicy;
 
-        public ObsoleteFundingLineDetection(ICalculationsApiClient calculations,
+        public ObsoleteFundingLineAndEnumDetection(ICalculationsApiClient calculations,
             IPoliciesApiClient policies,
             IGraphApiClient graph,
             IUniqueIdentifierProvider uniqueIdentifierProvider,
@@ -71,16 +73,18 @@ namespace CalculateFunding.Services.Specs.ObsoleteItems
 
             FundingLineDetectionParameters fundingLineDetectionParameters = message;
 
-            await DetectAndCreateObsoleteItemsForFundingLines(fundingLineDetectionParameters);
+            await DetectAndCreateObsoleteItems(fundingLineDetectionParameters);
         }
 
-        private async Task DetectAndCreateObsoleteItemsForFundingLines(FundingLineDetectionParameters fundingLineDetectionParameters)
+        private async Task DetectAndCreateObsoleteItems(FundingLineDetectionParameters fundingLineDetectionParameters)
         {
             string specificationId = fundingLineDetectionParameters.SpecificationId;
             string fundingStreamId = fundingLineDetectionParameters.FundingStreamId;
             string fundingPeriodId = fundingLineDetectionParameters.FundingPeriodId;
             string previousTemplateVersionId = fundingLineDetectionParameters.PreviousTemplateVersionId;
             string templateVersionId = fundingLineDetectionParameters.TemplateVersionId;
+
+            await ClearDownObsoleteItems(specificationId);
             
             Task<TemplateMetadataDistinctContents> previousTemplateMetadataTask = GetDistinctTemplateMetadataContents(fundingStreamId, fundingPeriodId, previousTemplateVersionId);
             Task<TemplateMetadataDistinctContents> templateMetadataTask = GetDistinctTemplateMetadataContents(fundingStreamId, fundingPeriodId, templateVersionId);
@@ -90,6 +94,63 @@ namespace CalculateFunding.Services.Specs.ObsoleteItems
             TemplateMetadataDistinctContents previousTemplateMetadata = previousTemplateMetadataTask.Result;
             TemplateMetadataDistinctContents templateMetadata = templateMetadataTask.Result;
 
+            Dictionary<uint, IEnumerable<string>> previousAllowedEnumValuesByTemplateCalculationId = previousTemplateMetadata.Calculations.Where(_ => _.Type == Common.TemplateMetadata.Enums.CalculationType.Enum)
+                .ToDictionary(_ => _.TemplateCalculationId, _ => _.AllowedEnumTypeValues);
+
+            IEnumerable<Enum> templateCalculationEnumValuesObsolete = templateMetadata.Calculations
+                .Where(_ => _.Type == Common.TemplateMetadata.Enums.CalculationType.Enum &&
+                                        previousAllowedEnumValuesByTemplateCalculationId.ContainsKey(_.TemplateCalculationId) &&
+                                        !previousAllowedEnumValuesByTemplateCalculationId[_.TemplateCalculationId].SequenceEqual(_.AllowedEnumTypeValues))
+                .SelectMany(_ => previousAllowedEnumValuesByTemplateCalculationId[_.TemplateCalculationId]
+                                        .Except(_.AllowedEnumTypeValues)
+                                        .Select(t => new Enum { FundingStreamId = fundingStreamId, 
+                                                                SpecificationId = specificationId, 
+                                                                EnumName = _typeIdentifierGenerator.GenerateIdentifier($"{_.Name}Options"), 
+                                                                EnumValue = _typeIdentifierGenerator.GenerateIdentifier(t),
+                                                                EnumValueName = t}))
+                .DistinctBy(_ => _.EnumId);
+
+            foreach(Enum enumObject in templateCalculationEnumValuesObsolete)
+            {
+                ApiResponse<IEnumerable<Entity<Enum>>> enumEntitiesApiResponse =
+                await _graph.GetAllEntitiesRelatedToEnum(enumObject.EnumId);
+
+                if (enumEntitiesApiResponse?.Content != null)
+                {
+                    IEnumerable<Entity<Enum>> enumEntities = enumEntitiesApiResponse.Content;
+
+                    IEnumerable<Calculation> enumCalculations = enumEntities
+                        .Where(_ => _.Relationships != null)
+                        .SelectMany(_ => _.Relationships.Where(rel => rel.Type.Equals(CalculationEnumRelationship.FromIdField, StringComparison.InvariantCultureIgnoreCase)))
+                        .Select(rel => ((object)rel.One).AsJson().AsPoco<Calculation>())
+                        .Distinct();
+
+                    ObsoleteItem obsoleteItem = new ObsoleteItem
+                    {
+                        SpecificationId = specificationId,
+                        FundingStreamId = fundingStreamId,
+                        CodeReference = enumObject.CodeReference,
+                        EnumValueName = enumObject.EnumValueName,
+                        TemplateCalculationId = Convert.ToUInt32(enumCalculations.First().TemplateCalculationId),
+                        CalculationIds = enumCalculations.Select(_ => _.CalculationId).ToList(),
+                        ItemType = ObsoleteItemType.EnumValue,
+                        Id = _uniqueIdentifierProvider.CreateUniqueIdentifier()
+                    };
+
+                    ApiResponse<ObsoleteItem> obsoleteItemResponse = await _calculationsPolicy.ExecuteAsync(() =>
+                            _calculations.CreateObsoleteItem(obsoleteItem));
+
+                    if (!obsoleteItemResponse.StatusCode.IsSuccess())
+                    {
+                        string message = $"Unable to create obsolete item for enum - {enumObject.EnumId}.";
+
+                        LogInformation(message);
+
+                        throw new Exception(message);
+                    }
+                }
+            }
+                
             HashSet<uint> previousFundingLineTemplateIdsExceptLatest = previousTemplateMetadata.FundingLines
                 .Select(_ => _.TemplateLineId)
                 .ToHashSet();
@@ -189,6 +250,44 @@ namespace CalculateFunding.Services.Specs.ObsoleteItems
                         }
                     }
                 }
+            }
+        }
+
+        private async Task ClearDownObsoleteItems(string specificationId)
+        {
+            ApiResponse<IEnumerable<ObsoleteItem>> obsoleteItemsResponse = await _calculationsPolicy.ExecuteAsync(() => _calculations.GetObsoleteItemsForSpecification(specificationId));
+
+            if (obsoleteItemsResponse?.Content == null)
+            {
+                return;
+            }
+
+            if (!obsoleteItemsResponse.StatusCode.IsSuccess())
+            {
+                string message = $"Unable to retrieve obsolete items for specification - {specificationId}.";
+
+                LogInformation(message);
+
+                throw new Exception(message);
+            }
+
+            foreach (ObsoleteItem obsoleteItem in obsoleteItemsResponse.Content)
+            {
+                Task<HttpStatusCode>[] tasks = obsoleteItem.CalculationIds.Select(_ => _calculationsPolicy.ExecuteAsync(() => _calculations.RemoveObsoleteItem(obsoleteItem.Id, _))).ToArraySafe();
+
+                await TaskHelper.WhenAllAndThrow(tasks);
+
+                tasks.ForEach(_ =>
+                {
+                    if (!_.Result.IsSuccess())
+                    {
+                        string message = $"Unable to delete obsolete item - {obsoleteItem.Id}.";
+
+                        LogInformation(message);
+
+                        throw new Exception(message);
+                    }
+                });
             }
         }
 

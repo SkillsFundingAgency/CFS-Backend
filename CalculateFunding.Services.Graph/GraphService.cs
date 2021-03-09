@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using CalculateFunding.Services.Core.Extensions;
 using Serilog;
 using Neo4jDriver = Neo4j.Driver;
+using Enum = CalculateFunding.Models.Graph.Enum;
 
 namespace CalculateFunding.Services.Graph
 {
@@ -17,6 +18,7 @@ namespace CalculateFunding.Services.Graph
         private readonly ILogger _logger;
         private readonly ICalculationRepository _calcRepository;
         private readonly ISpecificationRepository _specRepository;
+        private readonly IEnumRepository _enumRepository;
         private readonly IDatasetRepository _datasetRepository;
         private readonly IFundingLineRepository _fundingLineRepository;
 
@@ -24,19 +26,22 @@ namespace CalculateFunding.Services.Graph
             ICalculationRepository calcRepository, 
             ISpecificationRepository specRepository, 
             IDatasetRepository datasetRepository,
-            IFundingLineRepository fundingLineRepository)
+            IFundingLineRepository fundingLineRepository,
+            IEnumRepository enumRepository)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(calcRepository, nameof(calcRepository));
             Guard.ArgumentNotNull(specRepository, nameof(specRepository));
             Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
             Guard.ArgumentNotNull(fundingLineRepository, nameof(fundingLineRepository));
+            Guard.ArgumentNotNull(enumRepository, nameof(enumRepository));
 
             _logger = logger;
             _calcRepository = calcRepository;
             _specRepository = specRepository;
             _datasetRepository = datasetRepository;
             _fundingLineRepository = fundingLineRepository;
+            _enumRepository = enumRepository;
         }
 
         public async Task<IActionResult> UpsertDataset(Dataset dataset)
@@ -255,6 +260,24 @@ namespace CalculateFunding.Services.Graph
                 $"Save specifications failed for specifications:'{specifications.AsJson()}'");
         }
 
+        public async Task<IActionResult> UpsertEnums(IEnumerable<Enum> enums)
+        {
+            return await ExecuteRepositoryAction(() => _enumRepository.UpsertEnums(enums),
+                $"Save enums failed for enums:'{enums.AsJson()}'");
+        }
+
+        public async Task<IActionResult> DeleteEnum(string enumNameValue)
+        {
+            return await ExecuteRepositoryAction(() => _enumRepository.DeleteEnum(enumNameValue),
+                $"Delete enum name value failed for enum name value:'{enumNameValue}'");
+        }
+
+        public async Task<IActionResult> DeleteEnums(params string[] enumNameValues)
+        {
+            return await ExecuteRepositoryAction(() => _enumRepository.DeleteEnums(enumNameValues),
+                $"Delete enum name values failed for enum name values:'{enumNameValues.AsJson()}'");
+        }
+
         public async Task<IActionResult> DeleteCalculation(string calculationId)
         {
             return await ExecuteRepositoryAction(() => _calcRepository.DeleteCalculation(calculationId),
@@ -283,7 +306,33 @@ namespace CalculateFunding.Services.Graph
         public async Task<IActionResult> UpsertCalculationSpecificationRelationships(params (string calculationId, string specificationId)[] relationships)
         {
             return await ExecuteRepositoryAction(() => _calcRepository.UpsertCalculationSpecificationRelationships(relationships),
-                $"Upsert calculation relationships calculation -> specification'");
+                $"Upsert calculation relationships calculation -> specification");
+        }
+
+        public async Task<IActionResult> UpsertCalculationEnumRelationship(string calculationId, string enumId)
+        {
+            return await ExecuteRepositoryAction(() => _enumRepository.UpsertCalculationEnumRelationship(calculationId, enumId),
+                $"Upsert calculation relationship between enum failed for calculation:'{calculationId}'" +
+                $" and enum:'{enumId}'");
+        }
+
+        public async Task<IActionResult> UpsertEnumCalculationRelationship(string enumId, string calculationId)
+        {
+            return await ExecuteRepositoryAction(() => _enumRepository.UpsertEnumCalculationRelationship(enumId, calculationId),
+                $"Upsert enum relationship between calculation failed for enum:'{enumId}'" +
+                $" and calculation:'{calculationId}'");
+        }
+
+        public async Task<IActionResult> UpsertCalculationEnumRelationships(params (string calculationId, string enumId)[] relationships)
+        {
+            return await ExecuteRepositoryAction(() => _enumRepository.UpsertCalculationEnumRelationships(relationships),
+                $"Upsert calculation relationships calculation -> enum");
+        }
+
+        public async Task<IActionResult> UpsertEnumCalculationRelationships(params (string enumId, string calculationId)[] relationships)
+        {
+            return await ExecuteRepositoryAction(() => _enumRepository.UpsertEnumCalculationRelationships(relationships),
+                $"Upsert enum relationships enum -> calculation");
         }
 
         public async Task<IActionResult> GetCalculationCircularDependencies(string specificationId)
@@ -322,6 +371,10 @@ namespace CalculateFunding.Services.Graph
             else if (typeof(TNode).IsAssignableFrom(typeof(FundingLine)))
             {
                 return await ExecuteRepositoryAction(() => _fundingLineRepository.GetAllEntities(nodeId), $"Unable to retrieve all entities for {typeof(TNode).Name.ToLowerInvariant()}.");
+            }
+            else if (typeof(TNode).IsAssignableFrom(typeof(Enum)))
+            {
+                return await ExecuteRepositoryAction(() => _enumRepository.GetAllEntities(nodeId), $"Unable to retrieve all entities for {typeof(TNode).Name.ToLowerInvariant()}.");
             }
             else
             {

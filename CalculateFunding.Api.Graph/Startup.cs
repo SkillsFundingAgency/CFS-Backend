@@ -133,6 +133,9 @@ namespace CalculateFunding.Api.Graph
             builder
                 .AddScoped<IFundingLineRepository, FundingLineRepository>();
 
+            builder
+                .AddScoped<IEnumRepository, EnumRepository>();
+
             builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
 
             builder.AddHttpContextAccessor();

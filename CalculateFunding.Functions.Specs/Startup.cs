@@ -73,7 +73,7 @@ namespace CalculateFunding.Functions.Specs
 
             builder.AddSingleton<ITypeIdentifierGenerator, VisualBasicTypeIdentifierGenerator>();
 
-            builder.AddSingleton<IObsoleteFundingLineDetection, ObsoleteFundingLineDetection>();
+            builder.AddSingleton<IObsoleteFundingLineAndEnumDetection, ObsoleteFundingLineAndEnumDetection>();
             builder.AddSingleton<IUniqueIdentifierProvider, UniqueIdentifierProvider>();
 
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();

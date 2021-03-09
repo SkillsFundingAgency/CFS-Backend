@@ -7,14 +7,15 @@ namespace CalculateFunding.Services.Specs.UnitTests
     {
         private uint? _fundingLineId;
         private string _specificationId;
+        private string _enumValueName;
         private string[] _calculationIds = new string[0];
+        private uint? _templateCalculationId;
         private ObsoleteItemType? _itemType;
         private string _codeReference;
 
         public ObsoleteItemBuilder WithCodeReference(string sourceCode)
         {
             _codeReference = sourceCode;
-
             return this;
         }
         
@@ -29,6 +30,19 @@ namespace CalculateFunding.Services.Specs.UnitTests
             _calculationIds = calculationIds;
             return this;
         }
+
+        public ObsoleteItemBuilder WithEnumValueName(string enumValueName)
+        {
+            _enumValueName = enumValueName;
+            return this;
+        }
+
+        public ObsoleteItemBuilder WithTemplateCalculationId(uint templateCalculationId)
+        {
+            _templateCalculationId = templateCalculationId;
+            return this;
+        }
+
         public ObsoleteItemBuilder WithSpecificationId(string specificationId)
         {
             _specificationId = specificationId;
@@ -45,9 +59,11 @@ namespace CalculateFunding.Services.Specs.UnitTests
         {
             return new ObsoleteItem()
             { 
-                FundingLineId = _fundingLineId.GetValueOrDefault(NewRandomUint()),
+                FundingLineId = _fundingLineId,
                 CalculationIds = _calculationIds,
                 SpecificationId = _specificationId ?? NewRandomString(),
+                TemplateCalculationId = _templateCalculationId.GetValueOrDefault(NewRandomUint()),
+                EnumValueName = _enumValueName,
                 ItemType = _itemType.GetValueOrDefault(NewRandomEnum<ObsoleteItemType>()),
                 CodeReference = _codeReference
             };

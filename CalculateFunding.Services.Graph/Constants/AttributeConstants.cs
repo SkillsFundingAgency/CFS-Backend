@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Enum = CalculateFunding.Models.Graph.Enum;
 
 namespace CalculateFunding.Services.Graph.Constants
 {
@@ -13,6 +14,9 @@ namespace CalculateFunding.Services.Graph.Constants
         public const string CalculationId = Calculation.IdField;
         public const string SpecificationId = Specification.IdField;
         public const string FundingLineId = FundingLine.IdField;
+        public const string EnumId = Enum.IdField;
+        public const string CalculationEnumRelationshipId = CalculationEnumRelationship.ToIdField;
+        public const string EnumCalculationRelationshipId = CalculationEnumRelationship.FromIdField;
         public const string SpecificationCalculationRelationshipId = SpecificationCalculationRelationships.ToIdField;
         public const string CalculationSpecificationRelationshipId = SpecificationCalculationRelationships.FromIdField;
         public const string CalculationACalculationBRelationship = CalculationRelationship.ToIdField;

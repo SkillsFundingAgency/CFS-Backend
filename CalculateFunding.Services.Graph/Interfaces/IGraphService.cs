@@ -9,11 +9,18 @@ namespace CalculateFunding.Services.Graph.Interfaces
     {
         Task<IActionResult> UpsertCalculations(IEnumerable<Calculation> calculations);
         Task<IActionResult> UpsertSpecifications(IEnumerable<Specification> specifications);
+        Task<IActionResult> UpsertEnums(IEnumerable<Enum> enums);
         Task<IActionResult> DeleteCalculation(string calculationId);
         Task<IActionResult> DeleteSpecification(string specificationId);
+        Task<IActionResult> DeleteEnum(string enumNameValue);
+        Task<IActionResult> DeleteEnums(string[] enumNameValues);
         Task<IActionResult> UpsertCalculationSpecificationRelationship(string calculationId, string specificationId);
+        Task<IActionResult> UpsertCalculationEnumRelationship(string calculationId, string enumNameValue);
+        Task<IActionResult> UpsertEnumCalculationRelationship(string enumNameValue, string calculationId);
         Task<IActionResult> UpsertCalculationCalculationRelationship(string calculationIdA, string calculationIdB);
         Task<IActionResult> UpsertCalculationCalculationsRelationships(string calculationId, string[] calculationIds);
+        Task<IActionResult> UpsertCalculationEnumRelationships(params (string calculationId, string enumId)[] relationships);
+        Task<IActionResult> UpsertEnumCalculationRelationships(params (string enumId, string calculationId)[] relationships);
         Task<IActionResult> UpsertCalculationDataFieldsRelationships(string calculationId, string[] datasetFieldIds);
         Task<IActionResult> UpsertCalculationDataFieldRelationship(string calculationId, string datasetFieldId);
         Task<IActionResult> DeleteCalculationSpecificationRelationship(string calculationId, string specificationId);

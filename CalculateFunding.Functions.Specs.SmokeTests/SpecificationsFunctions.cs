@@ -23,7 +23,7 @@ namespace CalculateFunding.Functions.Specs.SmokeTests
         private static ISpecificationIndexingService _specificationIndexerService;
         private static ILogger _logger;
         private static IUserProfileProvider _userProfileProvider;
-        private static IObsoleteFundingLineDetection _obsoleteFundingLineDetection;
+        private static IObsoleteFundingLineAndEnumDetection _obsoleteFundingLineAndEnumDetection;
 
         [ClassInitialize]
         public static void SetupTests(TestContext tc)
@@ -35,14 +35,14 @@ namespace CalculateFunding.Functions.Specs.SmokeTests
             _specificationsService = CreateSpecificationService();
             _userProfileProvider = CreateUserProfileProvider();
             _specificationIndexerService = CreateSpecificationIndexerService();
-            _obsoleteFundingLineDetection = CreateObsoleteFundingLineDetection();
+            _obsoleteFundingLineAndEnumDetection = CreateObsoleteFundingLineAndEnumDetection();
         }
 
         [TestMethod]
         public async Task OnDetectObsoleteFundingLines_SmokeTestSucceeds()
         {
             OnDetectObsoleteFundingLines onDetectObsoleteFundingLines = new OnDetectObsoleteFundingLines(_logger,
-                _obsoleteFundingLineDetection,
+                _obsoleteFundingLineAndEnumDetection,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _userProfileProvider,
                 AppConfigurationHelper.CreateConfigurationRefresherProvider(),
@@ -111,7 +111,7 @@ namespace CalculateFunding.Functions.Specs.SmokeTests
                 .NotBeNull();
         }
 
-        private static IObsoleteFundingLineDetection CreateObsoleteFundingLineDetection() => Substitute.For<IObsoleteFundingLineDetection>();
+        private static IObsoleteFundingLineAndEnumDetection CreateObsoleteFundingLineAndEnumDetection() => Substitute.For<IObsoleteFundingLineAndEnumDetection>();
 
         private static ILogger CreateLogger() => Substitute.For<ILogger>();
 
