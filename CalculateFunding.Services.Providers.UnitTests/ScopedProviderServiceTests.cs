@@ -635,7 +635,12 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 Locality = provider.Locality,
                 Address3 = provider.Address3,
                 PaymentOrganisationIdentifier = provider.PaymentOrganisationIdentifier,
-                PaymentOrganisationName = provider.PaymentOrganisationName
+                PaymentOrganisationName = provider.PaymentOrganisationName,
+                ProviderTypeCode = provider.ProviderTypeCode,
+                ProviderSubTypeCode = provider.ProviderSubTypeCode,
+                PreviousLAcode = provider.PreviousLACode,
+                PreviousLAname = provider.PreviousLAName,
+                PreviousEstablishmentNumber = provider.PreviousEstablishmentNumber
             };
         
         private Provider NewProvider(Action<ProviderBuilder> setUp = null)

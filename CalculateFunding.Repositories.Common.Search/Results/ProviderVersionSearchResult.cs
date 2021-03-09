@@ -117,5 +117,15 @@ namespace CalculateFunding.Repositories.Common.Search.Results
         public string PaymentOrganisationIdentifier { get; set; }
 
         public string PaymentOrganisationName { get; set; }
+
+        public string ProviderTypeCode { get; set; }
+
+        public string ProviderSubTypeCode { get; set; }
+
+        public string PreviousLACode { get; set; }
+
+        public string PreviousLAName { get; set; }
+
+        public string PreviousEstablishmentNumber { get; set; }
     }
 }

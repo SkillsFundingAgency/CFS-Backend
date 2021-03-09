@@ -426,7 +426,12 @@ namespace CalculateFunding.Services.Providers
                     Locality = m.Result.Locality,
                     Address3 = m.Result.Address3,
                     PaymentOrganisationIdentifier = m.Result.PaymentOrganisationIdentifier,
-                    PaymentOrganisationName = m.Result.PaymentOrganisationName
+                    PaymentOrganisationName = m.Result.PaymentOrganisationName,
+                    ProviderTypeCode = m.Result.ProviderTypeCode,
+                    ProviderSubTypeCode = m.Result.ProviderSubTypeCode,
+                    PreviousLACode = m.Result.PreviousLACode,
+                    PreviousLAName = m.Result.PreviousLAName,
+                    PreviousEstablishmentNumber = m.Result.PreviousEstablishmentNumber
                 });
             }
         }

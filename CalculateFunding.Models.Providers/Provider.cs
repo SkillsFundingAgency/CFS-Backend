@@ -174,6 +174,21 @@ namespace CalculateFunding.Models.Providers
         [JsonProperty("paymentOrganisationName")]
         public string PaymentOrganisationName { get; set; }
 
+        [JsonProperty("providerTypeCode")]
+        public string ProviderTypeCode { get; set; }
+
+        [JsonProperty("providerSubTypeCode")]
+        public string ProviderSubTypeCode { get; set; }
+
+        [JsonProperty("previousLACode")]
+        public string PreviousLACode { get; set; }
+
+        [JsonProperty("previousLAName")]
+        public string PreviousLAName { get; set; }
+
+        [JsonProperty("previousEstablishmentNumber")]
+        public string PreviousEstablishmentNumber { get; set; }
+
         [JsonIgnore]
         public TrustStatus TrustStatus
         {

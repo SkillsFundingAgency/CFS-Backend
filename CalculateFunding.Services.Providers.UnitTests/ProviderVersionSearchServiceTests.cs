@@ -980,7 +980,12 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 Locality = "Locality",
                 Address3 = "Address3",
                 PaymentOrganisationIdentifier = "PaymentOrganisationIdentifier",
-                PaymentOrganisationName = "PaymentOrganisationName"
+                PaymentOrganisationName = "PaymentOrganisationName",
+                ProviderTypeCode = "ProviderTypeCode",
+                ProviderSubTypeCode = "ProviderSubTypeCode",
+                PreviousLACode = "PreviousLAcode",
+                PreviousLAName = "PreviousLAname",
+                PreviousEstablishmentNumber = "PreviousEstablishmentNumber"
             };
         }
 

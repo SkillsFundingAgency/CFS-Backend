@@ -161,5 +161,20 @@ namespace CalculateFunding.Models.ProviderLegacy
 
         [JsonProperty("paymentOrganisationName")]
         public string PaymentOrganisationName { get; set; }
+
+        [JsonProperty("providerTypeCode")]
+        public string ProviderTypeCode { get; set; }
+
+        [JsonProperty("providerSubTypeCode")]
+        public string ProviderSubTypeCode { get; set; }
+
+        [JsonProperty("previousLAcode")]
+        public string PreviousLAcode { get; set; }
+
+        [JsonProperty("previousLAname")]
+        public string PreviousLAname { get; set; }
+
+        [JsonProperty("previousEstablishmentNumber")]
+        public string PreviousEstablishmentNumber { get; set; }
     }
 }

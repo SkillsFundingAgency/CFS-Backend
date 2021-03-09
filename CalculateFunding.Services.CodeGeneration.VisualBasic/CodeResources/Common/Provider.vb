@@ -159,4 +159,24 @@ Public Class Provider
     <Field(Id:="LocalGovernmentGroupTypeName", Name:="LocalGovernmentGroupTypeName")>
     <Description(Description:="The local government group type name")>
     Public Property LocalGovernmentGroupTypeName() As String
+
+    <Field(Id:="ProviderTypeCode", Name:="ProviderTypeCode")>
+    <Description(Description:="Provider type code")>
+    Public Property ProviderTypeCode() As String
+
+    <Field(Id:="ProviderSubTypeCode", Name:="ProviderSubTypeCode")>
+    <Description(Description:="Provider sub type code")>
+    Public Property ProviderSubTypeCode() As String
+
+    <Field(Id:="PreviousLACode", Name:="PreviousLACode")>
+    <Description(Description:="Previous local authority code")>
+    Public Property PreviousLACode() As String
+
+    <Field(Id:="PreviousLAName", Name:="PreviousLAName")>
+    <Description(Description:="Previous local authority name")>
+    Public Property PreviousLAName() As String
+
+    <Field(Id:="PreviousEstablishmentNumber", Name:="PreviousEstablishmentNumber")>
+    <Description(Description:="Previous establishment number")>
+    Public Property PreviousEstablishmentNumber() As String
 End Class
