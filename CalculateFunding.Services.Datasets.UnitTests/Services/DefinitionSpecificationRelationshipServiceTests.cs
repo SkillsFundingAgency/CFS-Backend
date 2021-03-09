@@ -1679,6 +1679,7 @@ namespace CalculateFunding.Services.Datasets.Services
             string datasetId = NewRandomString();
             string relationshipId = NewRandomString();
             string specificationId = NewRandomString();
+            string jobId = NewRandomString();
 
             AssignDatasourceModel model = new AssignDatasourceModel
             {
@@ -1715,12 +1716,23 @@ namespace CalculateFunding.Services.Datasets.Services
                 ProviderSource = ProviderSource.CFS
             };
 
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .QueueJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == JobConstants.DefinitionNames.MapDatasetJob &&
+                                                    j.SpecificationId == relationship.Specification.Id &&
+                                                    j.Trigger.EntityId == relationship.Id))
+                .Returns(new Job { Id = jobId });
+
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
             specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Any<string>())
                 .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specification));
 
-            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository, specificationsApiClient: specificationsApiClient);
+            DefinitionSpecificationRelationshipService service = CreateService(
+                logger: logger, 
+                datasetRepository: datasetRepository, 
+                specificationsApiClient: specificationsApiClient,
+                jobManagement: jobManagement);
 
             //Act
             IActionResult result = await service.AssignDatasourceVersionToRelationship(model, user, null);
@@ -1728,7 +1740,18 @@ namespace CalculateFunding.Services.Datasets.Services
             //Assert
             result
                 .Should()
-                .BeOfType<NoContentResult>();
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .BeOfType<JobCreationResponse>();
+
+            JobCreationResponse jobCreationResponse = (result as OkObjectResult).Value as JobCreationResponse;
+
+            jobCreationResponse
+                .JobId
+                .Should()
+                .Be(jobId);
         }
 
         [TestMethod]
@@ -1738,6 +1761,7 @@ namespace CalculateFunding.Services.Datasets.Services
             string datasetId = NewRandomString();
             string relationshipId = NewRandomString();
             string specificationId = NewRandomString();
+            string jobId = NewRandomString();
 
             AssignDatasourceModel model = new AssignDatasourceModel
             {
@@ -1781,6 +1805,12 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IJobManagement jobManagement = CreateJobManagement();
 
+            jobManagement
+                .QueueJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == JobConstants.DefinitionNames.MapDatasetJob &&
+                                                    j.SpecificationId == relationship.Specification.Id &&
+                                                    j.Trigger.EntityId == relationship.Id))
+                .Returns(new Job { Id = jobId });
+
             IMessengerService messengerService = CreateMessengerService();
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository, jobManagement: jobManagement, messengerService: messengerService, specificationsApiClient: specificationsApiClient);
@@ -1791,7 +1821,18 @@ namespace CalculateFunding.Services.Datasets.Services
             //Assert
             result
                 .Should()
-                .BeOfType<NoContentResult>();
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .BeOfType<JobCreationResponse>();
+
+            JobCreationResponse jobCreationResponse = (result as OkObjectResult).Value as JobCreationResponse;
+
+            jobCreationResponse
+                .JobId
+                .Should()
+                .Be(jobId);
 
             await jobManagement
                 .Received(1)
@@ -1814,6 +1855,7 @@ namespace CalculateFunding.Services.Datasets.Services
             string datasetId = NewRandomString();
             string relationshipId = NewRandomString();
             string specificationId = NewRandomString();
+            string jobId = NewRandomString();
 
             AssignDatasourceModel model = new AssignDatasourceModel
             {
@@ -1859,6 +1901,12 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IJobManagement jobManagement = CreateJobManagement();
 
+            jobManagement
+                .QueueJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == JobConstants.DefinitionNames.MapFdzDatasetsJob &&
+                                                    j.SpecificationId == relationship.Specification.Id &&
+                                                    j.Trigger.EntityId == relationship.Id))
+                .Returns(new Job { Id = jobId });
+
             IMessengerService messengerService = CreateMessengerService();
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository, jobManagement: jobManagement, messengerService: messengerService, specificationsApiClient: specificationsApiClient);
@@ -1869,7 +1917,18 @@ namespace CalculateFunding.Services.Datasets.Services
             //Assert
             result
                 .Should()
-                .BeOfType<NoContentResult>();
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .BeOfType<JobCreationResponse>();
+
+            JobCreationResponse jobCreationResponse = (result as OkObjectResult).Value as JobCreationResponse;
+
+            jobCreationResponse
+                .JobId
+                .Should()
+                .Be(jobId);
 
             await jobManagement
                 .Received(1)
@@ -1894,6 +1953,7 @@ namespace CalculateFunding.Services.Datasets.Services
             string datasetId = NewRandomString();
             string relationshipId = NewRandomString();
             string specificationId = NewRandomString();
+            string jobId = NewRandomString();
 
             AssignDatasourceModel model = new AssignDatasourceModel
             {
@@ -1947,6 +2007,11 @@ namespace CalculateFunding.Services.Datasets.Services
                                                        j.Properties["specification-summary-cache-key"] == $"{CacheKeys.SpecificationSummaryById}{relationship.Specification.Id}"))
                 .Returns(new Job { Id = "parentJobId" });
 
+            jobManagement
+                .QueueJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == JobConstants.DefinitionNames.MapDatasetJob &&
+                                                    j.SpecificationId == relationship.Specification.Id &&
+                                                    j.Trigger.EntityId == relationship.Id))
+                .Returns(new Job { Id = jobId });
 
             IMessengerService messengerService = CreateMessengerService();
 
@@ -1958,7 +2023,18 @@ namespace CalculateFunding.Services.Datasets.Services
             //Assert
             result
                 .Should()
-                .BeOfType<NoContentResult>();
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .BeOfType<JobCreationResponse>();
+
+            JobCreationResponse jobCreationResponse = (result as OkObjectResult).Value as JobCreationResponse;
+
+            jobCreationResponse
+                .JobId
+                .Should()
+                .Be(jobId);
 
             await jobManagement
                 .Received(1)

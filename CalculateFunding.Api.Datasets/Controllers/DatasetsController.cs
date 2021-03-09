@@ -192,7 +192,7 @@ namespace CalculateFunding.Api.Datasets.Controllers
 
         [Route("api/datasets/assign-datasource-to-relationship")]
         [HttpPost]
-        [ProducesResponseType(204)]
+        [ProducesResponseType(200, Type = typeof(JobCreationResponse))]
         public Task<IActionResult> AssignDatasourceVersionToRelationship([FromBody] AssignDatasourceModel assignDatasourceModel)
         {
             Reference user = ControllerContext.HttpContext.Request.GetUserOrDefault();

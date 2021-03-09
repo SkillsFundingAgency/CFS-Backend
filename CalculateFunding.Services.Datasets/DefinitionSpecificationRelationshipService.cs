@@ -353,9 +353,9 @@ namespace CalculateFunding.Services.Datasets
 
             Trigger trigger = new Trigger
             {
-                EntityId = dataset.Id,
+                EntityId = relationship.Id,
                 EntityType = nameof(Dataset),
-                Message = $"Mapping dataset: '{dataset.Id}'"
+                Message = $"Mapping dataset: '{dataset.Id}' with relationship '{relationship.Id}'"
             };
 
             JobCreateModel job = new JobCreateModel
@@ -407,9 +407,14 @@ namespace CalculateFunding.Services.Datasets
                 job.Properties.Add("parentJobId", parentJob.Id);
             }
 
-            await _jobManagement.QueueJob(job);
-            
-            return new NoContentResult();
+            Job childJob = await _jobManagement.QueueJob(job);
+
+            JobCreationResponse jobCreationResponse = new JobCreationResponse()
+            {
+                JobId = childJob.Id,
+            };
+
+            return new OkObjectResult(jobCreationResponse);
         }
 
         public async Task<IActionResult> GetRelationshipBySpecificationIdAndName(string specificationId, string name)

@@ -2,7 +2,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.Caching;
@@ -223,6 +222,27 @@ namespace CalculateFunding.Services.Jobs
             }
 
             return new OkObjectResult(results);
+        }
+
+        public async Task<IActionResult> GetLatestJobByTriggerEntityId(string specificationId, string entityId)
+        {
+            Guard.ArgumentNotNull(specificationId, nameof(specificationId));
+            Guard.ArgumentNotNull(entityId, nameof(entityId));
+
+            string cacheKey = $"{CacheKeys.LatestJobByEntityId}{specificationId}:{entityId}";
+
+            Job job = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.GetAsync<Job>(cacheKey));
+
+            if(job == null)
+            {
+                job = await _jobRepository.GetLatestJobByTriggerEntityId(specificationId, entityId);
+                job ??= new Job();
+                await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, job));
+            }
+
+            JobSummary jobSummary = _mapper.Map<JobSummary>(job);
+
+            return new OkObjectResult(jobSummary);
         }
 
         public async Task<IActionResult> GetLatestSuccessfulJob(string specificationId, string jobDefinitionId)
