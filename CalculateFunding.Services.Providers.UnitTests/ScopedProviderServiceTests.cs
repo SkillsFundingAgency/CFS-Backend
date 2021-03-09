@@ -157,9 +157,10 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
             Provider providerOne = NewProvider();
             Provider providerTwo = NewProvider();
+            ProviderVersion providerVersion = NewProviderVersion(_ => _.WithProviders(providerOne, providerTwo));
             
             GivenTheSpecificationSummary(specificationId, specificationSummary);
-            AndTheProviderVersion(providerVersionId, NewProviderVersion(_ => _.WithProviders(providerOne, providerTwo)));
+            AndTheProviderVersion(providerVersionId, providerVersion);
             
             ContentResult result = await WhenTheCoreProviderDataIsFetched(specificationId) as ContentResult;
             
@@ -174,6 +175,9 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 .ContentType
                 .Should()
                 .Be("application/json");
+            
+            AndTheFileSystemCacheDataWasWritten(new ProviderVersionFileSystemCacheKey(providerVersionId).Key,
+                providerVersion.AsJsonBytes());
         }
 
         [TestMethod]

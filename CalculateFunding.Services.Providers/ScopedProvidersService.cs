@@ -34,8 +34,7 @@ namespace CalculateFunding.Services.Providers
     public class ScopedProvidersService : JobProcessingService, IScopedProvidersService, IHealthChecker
     {
         private const string SpecificationId = "specification-id";
-        private const string JobId = "jobId";
-        
+
         private readonly ICacheProvider _cacheProvider;
         private readonly IResultsApiClient _resultsApiClient;
         private readonly ISpecificationsApiClient _specificationsApiClient;
@@ -323,6 +322,13 @@ namespace CalculateFunding.Services.Providers
             ProviderVersion providerVersion = await _providerVersionService.GetProvidersByVersion(providerVersionId);
 
             Guard.ArgumentNotNull(providerVersion, nameof(providerVersion), $"Did not locate provider version {providerVersionId} in blob storage");
+
+            if (fileSystemEnabled)
+            {
+                await using Stream providerVersionStream = new MemoryStream(providerVersion.AsJsonBytes());
+                
+                _fileSystemCache.Add(fileSystemCacheKey, providerVersionStream);
+            }
 
             IEnumerable<Provider> sourceProviders = providerVersion.Providers;
 
