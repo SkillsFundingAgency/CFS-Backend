@@ -5,7 +5,6 @@ using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Calcs.Models;
-using CalculateFunding.Common.ApiClient.Graph;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
@@ -21,11 +20,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Polly;
 using Serilog.Core;
-using GraphApiEntitySpecification = CalculateFunding.Common.ApiClient.Graph.Models.Specification;
-using GraphApiEntityCalculation = CalculateFunding.Common.ApiClient.Graph.Models.Calculation;
-using GraphApiEntityFundingLine = CalculateFunding.Common.ApiClient.Graph.Models.FundingLine;
-using CalculateFunding.Common.ApiClient.Graph.Models;
-using CalculateFunding.Models.Graph;
 
 namespace CalculateFunding.Services.Specs.UnitTests
 {
@@ -372,10 +366,10 @@ namespace CalculateFunding.Services.Specs.UnitTests
                     job.CorrelationId == correlationId &&
                     HasUserProperties(job.Properties,
                         "specification-id", specificationId,
-                        "fundingstream-id", fundingStreamId,
-                        "fundingperiod-id", fundingPeriodId,
+                        "funding-stream-id", fundingStreamId,
+                        "funding-period-id", fundingPeriodId,
                         "previous-template-version-id", previousTemplateVersionId,
-                        "template-version", templateVersionId))),
+                        "template-version-id", templateVersionId))),
                 times);
         }
 

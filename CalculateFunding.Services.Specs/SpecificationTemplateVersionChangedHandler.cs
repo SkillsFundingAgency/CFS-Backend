@@ -112,16 +112,16 @@ namespace CalculateFunding.Services.Specs
                         "specification-id", specificationId
                     },
                     {
-                        "fundingstream-id", fundingStreamId
+                        "funding-stream-id", fundingStreamId
                     },
                     {
-                        "fundingperiod-id", fundingPeriodId
+                        "funding-period-id", fundingPeriodId
                     },
                     {
                         "previous-template-version-id", previousTemplateVersionId
                     },
                     {
-                        "template-version", templateVersionId
+                        "template-version-id", templateVersionId
                     }
                 }
             });
