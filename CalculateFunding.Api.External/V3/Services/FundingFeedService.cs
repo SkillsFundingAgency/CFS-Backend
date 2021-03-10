@@ -3,19 +3,16 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Api.External.V3.Interfaces;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.External;
-using CalculateFunding.Models.External.V3.AtomItems;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 
 namespace CalculateFunding.Api.External.V3.Services
 {
@@ -71,7 +68,7 @@ namespace CalculateFunding.Api.External.V3.Services
             if (pageSize < 1 || pageSize > MaxRecords) return new BadRequestObjectResult($"Page size should be more that zero and less than or equal to {MaxRecords}");
 
             response.StatusCode = 200;
-            response.ContentType = "text/plain";
+            response.ContentType = "application/json";
 
             SearchFeedV3<PublishedFundingIndex> searchFeed = await _feedService.GetFeedsV3(
                 pageRef, pageSize.Value, fundingStreamIds, fundingPeriodIds,
@@ -92,7 +89,7 @@ namespace CalculateFunding.Api.External.V3.Services
         {
             // Using AutoFlush while writing the response. LeaveOpen required for unit testing
             await using StreamWriter responseStreamWriter = new StreamWriter(response.Body, leaveOpen: true) { AutoFlush = true };
-            
+
             const string fundingEndpointName = "notifications";
             string baseRequestPath = request.Path.Value.Substring(0, request.Path.Value.IndexOf(fundingEndpointName, StringComparison.Ordinal) + fundingEndpointName.Length);
             string fundingTrimmedRequestPath = baseRequestPath.Replace(fundingEndpointName, string.Empty).TrimEnd('/');
@@ -161,41 +158,35 @@ namespace CalculateFunding.Api.External.V3.Services
         {
             CalculateFunding.Models.External.AtomItems.AtomLink[] atomLinks = searchFeed.GenerateAtomLinksForResultGivenBaseUrl(fundingUrl).ToArray();
 
-            int approximateFeedLength = 11 * 70 + atomLinks.Length * 6 * 30;
-            
-            StringBuilder stringBuilder = new StringBuilder(approximateFeedLength);
-            
-            stringBuilder.AppendLine("{");
-            stringBuilder.AppendLine($"    \"id\":\"{Guid.NewGuid():N}\",");
-            stringBuilder.AppendLine("    \"title\":\"Calculate Funding Service Funding Feed\",");
-            stringBuilder.AppendLine("    \"author\":{");
-            stringBuilder.AppendLine("                 \"name\":\"Calculate Funding Service\",");
-            stringBuilder.AppendLine("                 \"email\":\"calculate-funding@education.gov.uk\"");
-            stringBuilder.AppendLine("               },");
-            stringBuilder.AppendLine($"    \"updated\":\"{DateTimeOffset.Now}\",");
-            stringBuilder.AppendLine("    \"rights\":\"calculate-funding@education.gov.uk\",");
-            stringBuilder.AppendLine("    \"link\": [");
-            
+            await responseStreamWriter.WriteLineAsync("{");
+            await responseStreamWriter.WriteLineAsync($"    \"id\":\"{Guid.NewGuid():N}\",");
+            await responseStreamWriter.WriteLineAsync("    \"title\":\"Calculate Funding Service Funding Feed\",");
+            await responseStreamWriter.WriteLineAsync("    \"author\":{");
+            await responseStreamWriter.WriteLineAsync("                 \"name\":\"Calculate Funding Service\",");
+            await responseStreamWriter.WriteLineAsync("                 \"email\":\"calculate-funding@education.gov.uk\"");
+            await responseStreamWriter.WriteLineAsync("               },");
+            await responseStreamWriter.WriteLineAsync($"    \"updated\":{System.Text.Json.JsonSerializer.Serialize(DateTimeOffset.Now)},");
+            await responseStreamWriter.WriteLineAsync("    \"rights\":\"calculate-funding@education.gov.uk\",");
+            await responseStreamWriter.WriteLineAsync("    \"link\": [");
+
             int linkCount = 0;
-            
+
             foreach (CalculateFunding.Models.External.AtomItems.AtomLink link in atomLinks)
             {
                 linkCount++;
-                stringBuilder.AppendLine("    {");
-                stringBuilder.AppendLine($"        \"href\":\"{link.Href}\",");
-                stringBuilder.AppendLine($"        \"rel\":\"{link.Rel}\"");
-                stringBuilder.AppendLine("    }");
-                
+                await responseStreamWriter.WriteLineAsync("    {");
+                await responseStreamWriter.WriteLineAsync($"        \"href\":\"{link.Href}\",");
+                await responseStreamWriter.WriteLineAsync($"        \"rel\":\"{link.Rel}\"");
+                await responseStreamWriter.WriteLineAsync("    }");
+
                 if (linkCount != atomLinks.Length)
                 {
-                    stringBuilder.Append(",");
+                    await responseStreamWriter.WriteLineAsync(",");
                 };
             }
 
-            stringBuilder.AppendLine("             ],");
-            stringBuilder.AppendLine("    \"atomEntry\": [");
-
-            await responseStreamWriter.WriteLineAsync(stringBuilder.ToString());
+            await responseStreamWriter.WriteLineAsync("             ],");
+            await responseStreamWriter.WriteLineAsync("    \"atomEntry\": [");
         }
 
         private async Task AddAtomEntryAsync(HttpRequest request,
@@ -205,12 +196,9 @@ namespace CalculateFunding.Api.External.V3.Services
             bool isLastBatch)
         {
             int feedDocumentCount = fundingFeedDocuments.Count;
-            int approximateEntryLength = 15 * 60 * feedDocumentCount;
-            
-            StringBuilder stringBuilder = new StringBuilder(approximateEntryLength);
-            
+
             int count = 0;
-            
+
             foreach (KeyValuePair<PublishedFundingIndex, string> item in fundingFeedDocuments)
             {
                 count++;
@@ -218,35 +206,35 @@ namespace CalculateFunding.Api.External.V3.Services
 
                 string link = $"{request.Scheme}://{request.Host.Value}{fundingTrimmedRequestPath}/byId/{feedIndex.Id}";
 
-                stringBuilder.AppendLine("        {");
-                stringBuilder.AppendLine($"             \"id\":\"{link}\",");
-                stringBuilder.AppendLine($"             \"title\":\"{feedIndex.Id}\",");
-                stringBuilder.AppendLine($"             \"summary\":\"{feedIndex.Id}\",");
-                stringBuilder.AppendLine($"             \"published\":\"{feedIndex.StatusChangedDate}\",");
-                stringBuilder.AppendLine($"             \"updated\":\"{feedIndex.StatusChangedDate.GetValueOrDefault()}\",");
-                stringBuilder.AppendLine($"             \"version\":\"{feedIndex.Version}\",");
-                stringBuilder.AppendLine("             \"link\":");
-                stringBuilder.AppendLine("                     {");
-                stringBuilder.AppendLine($"                         \"href\":\"{link}\",");
-                stringBuilder.AppendLine("                         \"rel\":\"Funding\"");
-                stringBuilder.AppendLine("                     },");
+                await responseStreamWriter.WriteLineAsync("        {");
+                await responseStreamWriter.WriteLineAsync($"             \"id\":\"{link}\",");
+                await responseStreamWriter.WriteLineAsync($"             \"title\":\"{feedIndex.Id}\",");
+                await responseStreamWriter.WriteLineAsync($"             \"summary\":\"{feedIndex.Id}\",");
+                await responseStreamWriter.WriteLineAsync($"             \"published\": {System.Text.Json.JsonSerializer.Serialize(feedIndex.StatusChangedDate)},");
+                await responseStreamWriter.WriteLineAsync($"             \"updated\":{System.Text.Json.JsonSerializer.Serialize(feedIndex.StatusChangedDate.GetValueOrDefault())},");
+                await responseStreamWriter.WriteLineAsync($"             \"version\":\"{feedIndex.Version}\",");
+                await responseStreamWriter.WriteLineAsync("             \"link\":");
+                await responseStreamWriter.WriteLineAsync("                     {");
+                await responseStreamWriter.WriteLineAsync($"                         \"href\":\"{link}\",");
+                await responseStreamWriter.WriteLineAsync("                         \"rel\":\"Funding\"");
+                await responseStreamWriter.WriteLineAsync("                     },");
                 if (string.IsNullOrWhiteSpace(item.Value))
                 {
-                    stringBuilder.AppendLine("             \"content\":null");
+                    await responseStreamWriter.WriteLineAsync("             \"content\":null");
                 }
                 else
                 {
-                    stringBuilder.AppendLine($"             \"content\":{item.Value}");
+                    await responseStreamWriter.WriteLineAsync($"             \"content\":{item.Value}");
                 }
-                stringBuilder.AppendLine("        }");
+                await responseStreamWriter.WriteLineAsync("        }");
 
                 if (!isLastBatch || count != feedDocumentCount)
                 {
-                    stringBuilder.Append(",");
+                    await responseStreamWriter.WriteLineAsync(",");
                 }
-            }
 
-            await responseStreamWriter.WriteLineAsync(stringBuilder.ToString());
+                await responseStreamWriter.FlushAsync();
+            }
         }
 
         private bool IsIncompleteArchivePage(SearchFeedV3<PublishedFundingIndex> searchFeed, int? pageRef)
