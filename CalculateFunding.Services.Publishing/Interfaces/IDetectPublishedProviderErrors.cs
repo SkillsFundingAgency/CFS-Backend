@@ -7,6 +7,14 @@ namespace CalculateFunding.Services.Publishing.Interfaces
     public interface IDetectPublishedProviderErrors
     {
         string Name { get; }
+        
+        bool IsPreVariationCheck { get; }
+
+        bool IsPostVariationCheck { get; }
+        
+        bool IsAssignProfilePatternCheck { get; }
+
+        bool IsForAllFundingConfigurations { get; }
 
         Task DetectErrors(PublishedProvider publishedProvider, PublishedProvidersContext publishedProvidersContext);
     }

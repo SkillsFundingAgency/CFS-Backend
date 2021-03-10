@@ -619,7 +619,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private void AndThePublishedProviderWasProcessed(PublishedProvider publishedProvider)
         {
             _publishedProviderErrorDetection.Verify(_ =>
-                    _.ProcessPublishedProvider(publishedProvider, It.IsAny<Func<IDetectPublishedProviderErrors, bool>>(), It.IsAny<PublishedProvidersContext>()),
+                    _.ApplyAssignProfilePatternErrorDetection(publishedProvider, It.IsAny<PublishedProvidersContext>()),
                 Times.Once);
         }
 

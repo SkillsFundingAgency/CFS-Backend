@@ -416,7 +416,7 @@ namespace CalculateFunding.Services.Publishing
                 }
 
                 // process published provider and detect errors
-                await _detection.ProcessPublishedProvider(publishedProvider.Value, publishedProvidersContext);
+                await _detection.ApplyRefreshPreVariationErrorDetection(publishedProvider.Value, publishedProvidersContext);
 
                 if (publishedProviderUpdated && existingPublishedProviders.AnyWithNullCheck())
                 {
@@ -466,6 +466,12 @@ namespace CalculateFunding.Services.Publishing
             _logger.Information("Finished applying variations");
 
             _logger.Information($"Updating a total of {publishedProvidersToUpdate.Count} published providers");
+
+            //apply any post variation error detection that we also need to run
+            foreach (PublishedProvider publishedProvider in publishedProvidersToUpdate.Values)
+            {
+                await _detection.ApplyRefreshPostVariationsErrorDetection(publishedProvider, publishedProvidersContext);
+            }
 
             if (publishedProvidersToUpdate.Count > 0)
             {

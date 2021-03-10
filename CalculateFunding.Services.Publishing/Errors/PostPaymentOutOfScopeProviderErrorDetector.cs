@@ -8,12 +8,15 @@ namespace CalculateFunding.Services.Publishing.Errors
 {
     public class PostPaymentOutOfScopeProviderErrorDetector : PublishedProviderErrorDetector
     {
-        public override string Name => nameof(PostPaymentOutOfScopeProviderErrorDetector);
-
-        protected override void ClearErrors(PublishedProviderVersion publishedProviderVersion)
+        public PostPaymentOutOfScopeProviderErrorDetector() : base(PublishedProviderErrorType.PostPaymentOutOfScopeProvider)
         {
-            publishedProviderVersion.Errors?.RemoveAll(_ => _.Type == PublishedProviderErrorType.PostPaymentOutOfScopeProvider);
         }
+
+        public override bool IsPreVariationCheck => true;
+
+        public override bool IsAssignProfilePatternCheck => false;
+        
+        public override string Name => nameof(PostPaymentOutOfScopeProviderErrorDetector);
 
         protected override Task<ErrorCheck> HasErrors(PublishedProvider publishedProvider, PublishedProvidersContext publishedProvidersContext)
         {

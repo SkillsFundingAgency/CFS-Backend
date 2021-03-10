@@ -205,9 +205,9 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
 
             RegisterTypeAs<OrganisationGroupTargetProviderLookup, IOrganisationGroupTargetProviderLookup>();
 
-            IDetectPublishedProviderErrors[] detectorStrategies = typeof(PublishedProviderErrorDetector).Assembly.GetTypes()
-                .Where(_ => _.Implements(typeof(PublishedProviderErrorDetector)))
-                .Select(_ => (PublishedProviderErrorDetector)_objectContainer.Resolve(_))
+            IDetectPublishedProviderErrors[] detectorStrategies = typeof(IDetectPublishedProviderErrors).Assembly.GetTypes()
+                .Where(_ => _.Implements(typeof(PublishedProviderErrorDetector)) && !_.IsAbstract)
+                .Select(_ => (IDetectPublishedProviderErrors)_objectContainer.Resolve(_))
                 .ToArray();
 
             RegisterInstanceAs<IErrorDetectionStrategyLocator>(new ErrorDetectionStrategyLocator(detectorStrategies));

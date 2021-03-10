@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Publishing;
@@ -10,12 +8,16 @@ namespace CalculateFunding.Services.Publishing.Errors
 {
     public class FundingLineValueProfileMismatchErrorDetector : PublishedProviderErrorDetector
     {
-        public override string Name => nameof(FundingLineValueProfileMismatchErrorDetector);
-
-        protected override void ClearErrors(PublishedProviderVersion publishedProviderVersion)
+        public FundingLineValueProfileMismatchErrorDetector() 
+            : base(PublishedProviderErrorType.FundingLineValueProfileMismatch)
         {
-            publishedProviderVersion.Errors?.RemoveAll(_ => _.Type == PublishedProviderErrorType.FundingLineValueProfileMismatch);
         }
+
+        public override bool IsPreVariationCheck => true;
+
+        public override bool IsAssignProfilePatternCheck => true;
+        
+        public override string Name => nameof(FundingLineValueProfileMismatchErrorDetector);
 
         protected override Task<ErrorCheck> HasErrors(PublishedProvider publishedProvider, PublishedProvidersContext publishedProvidersContext)
         {
@@ -23,7 +25,7 @@ namespace CalculateFunding.Services.Publishing.Errors
 
             PublishedProviderVersion publishedProviderVersion = publishedProvider.Current;
             
-            foreach (FundingLine fundingLine in CustomPaymentFundingLinesFor(publishedProviderVersion))
+            foreach (FundingLine fundingLine in publishedProvider.Current.CustomPaymentFundingLines)
             {
                 decimal fundingLineValue = fundingLine.Value.GetValueOrDefault();
                 decimal profiledValue = GetProfiledSum(fundingLine, publishedProviderVersion);
@@ -35,7 +37,7 @@ namespace CalculateFunding.Services.Publishing.Errors
                         Identifier = fundingLine.FundingLineCode,
                         Type = PublishedProviderErrorType.FundingLineValueProfileMismatch,
                         SummaryErrorMessage = "A funding line profile doesn't match allocation value.",
-                        DetailedErrorMessage = $"Funding line profile doesn't match allocation value. " +
+                        DetailedErrorMessage = "Funding line profile doesn't match allocation value. " +
                         $"The allocation value is £{fundingLineValue}, but the profile value is set to £{profiledValue}",
                         FundingLineCode = fundingLine.FundingLineCode,
                         FundingStreamId = publishedProviderVersion.FundingStreamId
@@ -44,24 +46,6 @@ namespace CalculateFunding.Services.Publishing.Errors
             }
 
             return Task.FromResult(errorCheck);
-        }
-
-        private static IEnumerable<FundingLine> CustomPaymentFundingLinesFor(PublishedProviderVersion publishedProviderVersion)
-        {
-            if (publishedProviderVersion.ProfilePatternKeys.IsNullOrEmpty() &&
-                !publishedProviderVersion.HasCustomProfiles)
-            {
-                return Enumerable.Empty<FundingLine>();
-            }
-
-            HashSet<string> fundingLineCodes = publishedProviderVersion
-                .ProfilePatternKeys
-                .Select(_ => _.FundingLineCode)
-                .Union(publishedProviderVersion.CustomProfiles?.Select(_ => _.FundingLineCode) ?? ArraySegment<string>.Empty)
-                .ToHashSet();
-
-            return publishedProviderVersion.FundingLines.Where(_ => _.Type == FundingLineType.Payment
-                                                                    && fundingLineCodes.Contains(_.FundingLineCode)); 
         }
 
         private static decimal GetProfiledSum(FundingLine fundingLine, PublishedProviderVersion publishedProviderVersion) 

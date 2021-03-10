@@ -38,6 +38,26 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
                 _organisationGroupGenerator,
                 _mapper);
         }
+        
+        [TestMethod]
+        public void RunsForPreVariations()
+        {
+            _errorDetector.IsPostVariationCheck
+                .Should()
+                .BeFalse();
+
+            _errorDetector.IsPreVariationCheck
+                .Should()
+                .BeTrue();
+
+            _errorDetector.IsForAllFundingConfigurations
+                .Should()
+                .BeFalse();
+
+            _errorDetector.IsAssignProfilePatternCheck
+                .Should()
+                .BeFalse();
+        }
 
         [TestMethod]
         public async Task ReturnsErrorMessageWhenTrustIdMismatch()

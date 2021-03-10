@@ -10,6 +10,23 @@ namespace CalculateFunding.Services.Publishing.Errors
 {
     public abstract class PublishedProviderErrorDetector : IDetectPublishedProviderErrors
     {
+        protected readonly PublishedProviderErrorType ProviderErrorType;
+
+        protected PublishedProviderErrorDetector(PublishedProviderErrorType providerErrorType)
+        {
+            ProviderErrorType = providerErrorType;
+        }
+
+        public virtual bool IsForAllFundingConfigurations => false;
+
+        public abstract bool IsAssignProfilePatternCheck { get; }
+
+        public virtual bool IsPostVariationCheck => false;
+
+        public abstract string Name { get; }
+
+        public abstract bool IsPreVariationCheck { get; }
+
         public async Task DetectErrors(PublishedProvider publishedProvider, PublishedProvidersContext publishedProvidersContext)
         {
             Guard.ArgumentNotNull(publishedProvider, nameof(publishedProvider));
@@ -24,9 +41,8 @@ namespace CalculateFunding.Services.Publishing.Errors
             }
         }
 
-        public abstract string Name { get; }
-
-        protected abstract void ClearErrors(PublishedProviderVersion publishedProviderVersion);
+        protected void ClearErrors(PublishedProviderVersion publishedProviderVersion)
+        => publishedProviderVersion.Errors?.RemoveAll(_ => _.Type == ProviderErrorType);
 
         protected abstract Task<ErrorCheck> HasErrors(PublishedProvider publishedProvider, PublishedProvidersContext publishedProvidersContext);
 

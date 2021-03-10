@@ -21,6 +21,26 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
         {
             _errorDetector = new PostPaymentOutOfScopeProviderErrorDetector();
         }
+        
+        [TestMethod]
+        public void RunsForPreVariations()
+        {
+            _errorDetector.IsPostVariationCheck
+                .Should()
+                .BeFalse();
+
+            _errorDetector.IsPreVariationCheck
+                .Should()
+                .BeTrue();
+
+            _errorDetector.IsForAllFundingConfigurations
+                .Should()
+                .BeFalse();
+
+            _errorDetector.IsAssignProfilePatternCheck
+                .Should()
+                .BeFalse();
+        }
 
         [TestMethod]
         public async Task NoErrorsWhenPublishedProviderNotReleased()

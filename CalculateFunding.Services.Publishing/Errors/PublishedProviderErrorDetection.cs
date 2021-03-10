@@ -20,25 +20,47 @@ namespace CalculateFunding.Services.Publishing.Errors
             _errorDetectorLocator = errorDetectorLocator;
         }
 
-        public async Task ProcessPublishedProvider(PublishedProvider publishedProvider,
+        public async Task ApplyRefreshPreVariationErrorDetection(PublishedProvider publishedProvider,
             PublishedProvidersContext context)
         {
-            await ProcessPublishedProvider(publishedProvider, _ => true, context);
+            IEnumerable<IDetectPublishedProviderErrors> errorDetectors = GetErrorDetectorsForFundingConfiguration(context)?
+                .Where(_ => _.IsPreVariationCheck);
+
+            await ProcessPublishedProviderWithErrorDetectors(publishedProvider, errorDetectors, context);
         }
 
-        public async Task ProcessPublishedProvider(PublishedProvider publishedProvider,
-            Func<IDetectPublishedProviderErrors, bool> predicate,
+        public async Task ApplyRefreshPostVariationsErrorDetection(PublishedProvider publishedProvider,
             PublishedProvidersContext context)
         {
-            IEnumerable<IDetectPublishedProviderErrors> errorDetectors = context.FundingConfiguration?.ErrorDetectors?.Select(_ => _errorDetectorLocator.GetDetector(_));
+            IEnumerable<IDetectPublishedProviderErrors> errorDetectors = GetErrorDetectorsForFundingConfiguration(context)?
+                .Where(_ => _.IsPostVariationCheck);
 
-            if (errorDetectors.AnyWithNullCheck())
+            await ProcessPublishedProviderWithErrorDetectors(publishedProvider, errorDetectors, context);
+        }
+
+        public async Task ApplyAssignProfilePatternErrorDetection(PublishedProvider publishedProvider,
+            PublishedProvidersContext context)
+        {
+            IEnumerable<IDetectPublishedProviderErrors> errorDetectors = GetErrorDetectorsForFundingConfiguration(context)?
+                .Where(_ => _.IsAssignProfilePatternCheck);
+
+            await ProcessPublishedProviderWithErrorDetectors(publishedProvider, errorDetectors, context);
+        }
+
+        private IEnumerable<IDetectPublishedProviderErrors> GetErrorDetectorsForFundingConfiguration(PublishedProvidersContext context)
+        {
+            return context.FundingConfiguration?.ErrorDetectors?.Select(_ => _errorDetectorLocator.GetErrorDetectorByName(_))
+                .Concat(_errorDetectorLocator.GetErrorDetectorsForAllFundingConfigurations());
+        }
+
+        private async Task ProcessPublishedProviderWithErrorDetectors(PublishedProvider publishedProvider,
+            IEnumerable<IDetectPublishedProviderErrors> errorDetectors,
+            PublishedProvidersContext context)
+        {
+            foreach (IDetectPublishedProviderErrors errorDetector in errorDetectors ?? ArraySegment<IDetectPublishedProviderErrors>.Empty)
             {
-                foreach (IDetectPublishedProviderErrors errorDetector in errorDetectors.Where(predicate))
-                {
-                    await errorDetector.DetectErrors(publishedProvider, context);
-                }
-            }
+                await errorDetector.DetectErrors(publishedProvider, context);
+            }   
         }
     }
 }

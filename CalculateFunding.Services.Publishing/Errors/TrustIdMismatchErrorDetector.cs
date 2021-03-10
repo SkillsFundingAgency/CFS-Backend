@@ -16,21 +16,20 @@ namespace CalculateFunding.Services.Publishing.Errors
         private readonly IOrganisationGroupGenerator _organisationGroupGenerator;
         private readonly IMapper _mapper;
 
+        public override bool IsPreVariationCheck => true;
+
+        public override bool IsAssignProfilePatternCheck => false;
+        
         public override string Name => nameof(TrustIdMismatchErrorDetector);
 
         public TrustIdMismatchErrorDetector(IOrganisationGroupGenerator organisationGroupGenerator,
-            IMapper mapper)
+            IMapper mapper) : base(PublishedProviderErrorType.TrustIdMismatch)
         {
             Guard.ArgumentNotNull(organisationGroupGenerator, nameof(organisationGroupGenerator));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
 
             _organisationGroupGenerator = organisationGroupGenerator;
             _mapper = mapper;
-        }
-
-        protected override void ClearErrors(PublishedProviderVersion publishedProviderVersion)
-        {
-            publishedProviderVersion.Errors?.RemoveAll(_ => _.Type == PublishedProviderErrorType.TrustIdMismatch);
         }
 
         protected override async Task<ErrorCheck> HasErrors(

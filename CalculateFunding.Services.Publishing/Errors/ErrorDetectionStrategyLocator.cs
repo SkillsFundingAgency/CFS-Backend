@@ -17,7 +17,7 @@ namespace CalculateFunding.Services.Publishing.Errors
                 registeredStrategies.ToDictionary(_ => _.Name));
         }
 
-        public IDetectPublishedProviderErrors GetDetector(string errorDetectorName)
+        public IDetectPublishedProviderErrors GetErrorDetectorByName(string errorDetectorName)
         {
             Guard.IsNullOrWhiteSpace(errorDetectorName, nameof(errorDetectorName));
 
@@ -29,5 +29,8 @@ namespace CalculateFunding.Services.Publishing.Errors
             throw new ArgumentOutOfRangeException(nameof(errorDetectorName), 
                 $"Unable to find a registered error detector strategy with name: {errorDetectorName}");
         }
+
+        public IEnumerable<IDetectPublishedProviderErrors> GetErrorDetectorsForAllFundingConfigurations() 
+            => _detectorStrategies.Values.Where(_ => _.IsForAllFundingConfigurations);
     }
 }

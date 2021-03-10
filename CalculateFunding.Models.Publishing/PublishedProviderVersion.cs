@@ -151,7 +151,31 @@ namespace CalculateFunding.Models.Publishing
         public IEnumerable<VariationReason> VariationReasons { get; set; }
 
         [JsonIgnore]
-        public IEnumerable<FundingLine> PaymentFundingLinesWithValues => FundingLines?.Where(_ => _.Value.HasValue && _.Type == FundingLineType.Payment);
+        public IEnumerable<FundingLine> PaymentFundingLinesWithValues => FundingLines?.Where(_ => _.Value.HasValue && _.Type == FundingLineType.Payment) ?? ArraySegment<FundingLine>.Empty;
+
+        [JsonIgnore] 
+        public IEnumerable<FundingLine> PaymentFundingLinesWithoutValues => FundingLines?.Where(_ => !_.Value.HasValue && _.Type == FundingLineType.Payment) ?? ArraySegment<FundingLine>.Empty;
+
+        [JsonIgnore]
+        public IEnumerable<FundingLine> CustomPaymentFundingLines
+        {
+            get
+            {
+                if (ProfilePatternKeys.IsNullOrEmpty() &&
+                    !HasCustomProfiles)
+                {
+                    return Enumerable.Empty<FundingLine>();
+                }
+
+                HashSet<string> fundingLineCodes = ProfilePatternKeys
+                    .Select(_ => _.FundingLineCode)
+                    .Union(CustomProfiles?.Select(_ => _.FundingLineCode) ?? ArraySegment<string>.Empty)
+                    .ToHashSet();
+
+                return FundingLines.Where(_ => _.Type == FundingLineType.Payment
+                                               && fundingLineCodes.Contains(_.FundingLineCode));
+            }
+        }
 
         public void AddVariationReasons(params VariationReason[] variationReasons) => VariationReasons = (VariationReasons ?? Array.Empty<VariationReason>())
                 .Concat(variationReasons ?? Array.Empty<VariationReason>())
