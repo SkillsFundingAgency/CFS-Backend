@@ -372,25 +372,27 @@ namespace CalculateFunding.Services.Datasets
                 return new PreconditionFailedResult($"Unable to find a data definition for id: {dataDefinitionId}, for blob: {fullBlobName}");
             }
 
-            DocumentEntity<Dataset> datasetDocumentEntity = await _datasetRepository.GetDatasetDocumentByDatasetId(model.DatasetId);
-
-            if (datasetDocumentEntity?.Content == null)
+            if (model.MergeExistingVersion)
             {
-                _logger.Error($"Unable to find a dataset for id: {dataDefinitionId}, for blob: {fullBlobName}");
+                DocumentEntity<Dataset> datasetDocumentEntity = await _datasetRepository.GetDatasetDocumentByDatasetId(model.DatasetId);
 
-                return new PreconditionFailedResult($"Unable to find a dataset for id: {dataDefinitionId}, for blob: {fullBlobName}");
-            }
+                if (datasetDocumentEntity?.Content == null)
+                {
+                    _logger.Error($"Unable to find a dataset for id: {dataDefinitionId}, for blob: {fullBlobName}");
 
-            if (model.MergeExistingVersion && datasetDefinitionDocumentEntity.UpdatedAt > datasetDocumentEntity.UpdatedAt)
-            {
-                string errorMessage =
-                    "There has been data schema change since the last version of this data source file was uploaded. Retry uploading with the create new version option";
+                    return new PreconditionFailedResult($"Unable to find a dataset for id: {dataDefinitionId}, for blob: {fullBlobName}");
+                }
 
-                _logger.Error(errorMessage);
+                if (datasetDefinitionDocumentEntity.UpdatedAt > datasetDocumentEntity.UpdatedAt) {
+                    string errorMessage =
+                        "There has been data schema change since the last version of this data source file was uploaded. Retry uploading with the create new version option";
 
-                string[] errors = new[] { errorMessage };
+                    _logger.Error(errorMessage);
 
-                return new BadRequestObjectResult(errors.ToModelStateDictionary());
+                    string[] errors = new[] { errorMessage };
+
+                    return new BadRequestObjectResult(errors.ToModelStateDictionary());
+                }
             }
 
             DatasetValidationStatusModel responseModel = new DatasetValidationStatusModel
