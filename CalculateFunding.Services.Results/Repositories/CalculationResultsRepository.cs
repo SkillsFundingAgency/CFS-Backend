@@ -133,7 +133,7 @@ namespace CalculateFunding.Services.Results.Repositories
             };
 
             await _cosmosRepository.DocumentsBatchProcessingAsync(persistBatchToIndex: processProcessProviderResultsBatch,
-				cosmosDbQuery: cosmosDbQuery,
+                cosmosDbQuery: cosmosDbQuery,
                 itemsPerPage: itemsPerPage);
         }
 
@@ -156,12 +156,12 @@ namespace CalculateFunding.Services.Results.Repositories
                               WHERE   p.documentType = 'ProviderWithResultsForSpecifications'
                               AND p.deleted = false
                               AND EXISTS(SELECT VALUE specification FROM specification IN p.content.specifications WHERE specification.id = @specificationId)",
-                Parameters = new []
+                Parameters = new[]
                 {
-                    new CosmosDbQueryParameter("@specificationId", specificationId), 
+                    new CosmosDbQueryParameter("@specificationId", specificationId),
                 }
             };
-            
+
             return _cosmosRepository.GetFeedIterator<ProviderWithResultsForSpecifications>(cosmosDbQuery);
         }
 
@@ -354,6 +354,21 @@ namespace CalculateFunding.Services.Results.Repositories
         public async Task<ProviderResult> GetProviderResultById(string providerResultId, string partitionKey)
         {
             return (await _cosmosRepository.TryReadDocumentByIdPartitionedAsync<ProviderResult>(providerResultId, partitionKey))?.Content;
+        }
+
+        public async Task<DateTime?> GetSpecificationCalculationResultsLastUpdated(string specificationId)
+        {
+            CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
+            {
+                QueryText = "SELECT VALUE MAX(c.updatedAt) FROM c WHERE c.documentType = 'ProviderResult' AND  c.content.specificationId = @SpecificationId",
+                Parameters = new[]
+                 {
+                    new CosmosDbQueryParameter("@SpecificationId", specificationId)
+                }
+            };
+
+            IEnumerable<DateTime?> result = await _cosmosRepository.RawQuery<DateTime?>(cosmosDbQuery, 1);
+            return result.FirstOrDefault();
         }
     }
 }

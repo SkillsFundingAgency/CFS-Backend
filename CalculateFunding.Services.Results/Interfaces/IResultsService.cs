@@ -35,5 +35,6 @@ namespace CalculateFunding.Services.Results.Interfaces
         Task QueueCsvGenerationMessages();
 
         Task<IActionResult> QueueCsvGeneration(string specificationId);
+        Task<IActionResult> GetSpecificationCalculationResultsMetadata(string specificationId);
     }
 }

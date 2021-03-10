@@ -11,6 +11,7 @@ using MergeSpecificationInformationRequest = CalculateFunding.Services.Results.M
 using ProviderResult = CalculateFunding.Models.Calcs.ProviderResult;
 using ProviderResultResponse = CalculateFunding.Models.Calcs.ProviderResultResponse;
 using ProviderWithResultsForSpecifications = CalculateFunding.Services.Results.Models.ProviderWithResultsForSpecifications;
+using SpecificationCalculationResultsMetadata = CalculateFunding.Models.Calcs.SpecificationCalculationResultsMetadata;
 
 namespace CalculateFunding.Api.Results.Controllers
 {
@@ -173,6 +174,13 @@ namespace CalculateFunding.Api.Results.Controllers
             return await _specificationsWithProviderResultsService.QueueMergeSpecificationInformationJob(mergeRequest,
                 Request.GetUser(), 
                 Request.GetCorrelationId());
+        }
+
+        [HttpGet("api/results/specifications/{specificationId}/metadata")]
+        [Produces(typeof(SpecificationCalculationResultsMetadata))]
+        public async Task<IActionResult> GetSpecificationCalculationResultsMetadata([FromRoute]string specificationId)
+        {
+            return await _resultsService.GetSpecificationCalculationResultsMetadata(specificationId);
         }
     }
 }

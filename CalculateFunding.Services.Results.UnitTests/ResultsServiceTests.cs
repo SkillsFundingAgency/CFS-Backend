@@ -37,6 +37,7 @@ using CalculateFunding.Common.Storage;
 using Microsoft.Azure.Storage.Blob;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalculateFunding.Tests.Common.Helpers;
 
 namespace CalculateFunding.Services.Results.UnitTests
 {
@@ -1151,6 +1152,81 @@ namespace CalculateFunding.Services.Results.UnitTests
             await resultsService.DeleteCalculationResults(message);
 
             await calculationsRepository.Received(1).DeleteCalculationResultsBySpecificationId(specificationId, deletionType);
+        }
+
+        [TestMethod]
+        public async Task GetSpecificationCalculationResultsMetadata_GivenNullOrEmptySpecificationId_ReturnsBadRequest()
+        {
+            //Arrange
+            ILogger logger = CreateLogger();
+
+            ResultsService service = CreateResultsService(logger: logger);
+
+            //Act
+            IActionResult result = await service.GetSpecificationCalculationResultsMetadata(null);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+
+            logger
+                .Received(1)
+                .Error(Arg.Is("No specification Id was provided to get calculation results metadata"));
+        }
+
+        [TestMethod]
+        public async Task GetSpecificationCalculationResultsMetadata_GivenCalculationResultsMetadataReturned_ReturnsOK()
+        {
+            //Arrange
+            ILogger logger = CreateLogger();
+            DateTime lastUpdated = new RandomDateTime();
+
+            ICalculationResultsRepository resultsRepository = CreateResultsRepository();
+            resultsRepository
+                .GetSpecificationCalculationResultsLastUpdated(Arg.Is(specificationId))
+                .Returns(lastUpdated);
+
+            ResultsService service = CreateResultsService(logger, resultsRepository);
+
+            //Act
+            IActionResult result = await service.GetSpecificationCalculationResultsMetadata(specificationId);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .BeAssignableTo<SpecificationCalculationResultsMetadata>()
+                .Which
+                .LastUpdated
+                .Should()
+                .Be(lastUpdated);
+        }
+
+        [TestMethod]
+        public async Task GetSpecificationCalculationResultsMetadata_GivenNoCalculationResultsMetadataReturned_ReturnsNotFound()
+        {
+            //Arrange
+            ILogger logger = CreateLogger();
+            DateTime? lastUpdated = null;
+
+            ICalculationResultsRepository resultsRepository = CreateResultsRepository();
+            resultsRepository
+                .GetSpecificationCalculationResultsLastUpdated(Arg.Is(specificationId))
+                .Returns(lastUpdated);
+
+            ResultsService service = CreateResultsService(logger, resultsRepository);
+
+            //Act
+            IActionResult result = await service.GetSpecificationCalculationResultsMetadata(specificationId);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<NotFoundResult>();
         }
 
         #region "Dependency creation"

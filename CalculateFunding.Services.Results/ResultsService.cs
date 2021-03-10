@@ -586,6 +586,21 @@ namespace CalculateFunding.Services.Results
             return new OkObjectResult(job);
         }
 
+        public async Task<IActionResult> GetSpecificationCalculationResultsMetadata(string specificationId)
+        {
+            if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                _logger.Error("No specification Id was provided to get calculation results metadata");
+                return new BadRequestObjectResult("Null or empty specification Id provided");
+            }
+
+            DateTime? lastUpdatedDate = await _resultsRepositoryPolicy.ExecuteAsync(() => _resultsRepository.GetSpecificationCalculationResultsLastUpdated(specificationId));
+
+            return lastUpdatedDate.HasValue ?
+                new OkObjectResult(new SpecificationCalculationResultsMetadata() { SpecificationId = specificationId, LastUpdated = lastUpdatedDate.Value })
+                : (IActionResult)new NotFoundResult();
+        }
+
         public async Task<Job> QueueCsvGenerationMessageIfNewCalculationResults(string specificationId, string specificationName)
         {
             bool hasNewResults = false;

@@ -31,5 +31,6 @@ namespace CalculateFunding.Services.Results.Interfaces
         Task UpsertSpecificationWithProviderResults(params ProviderWithResultsForSpecifications[] providerWithResultsForSpecifications); 
         ICosmosDbFeedIterator<ProviderWithResultsForSpecifications> GetProvidersWithResultsForSpecificationBySpecificationId(string specificationId);
         Task DeleteCalculationResultsBySpecificationId(string specificationId, DeletionType deletionType);
+        Task<DateTime?> GetSpecificationCalculationResultsLastUpdated(string specificationId);
     }
 }
