@@ -1,29 +1,29 @@
-﻿using AutoMapper;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using AutoMapper;
 using CalculateFunding.Common.ApiClient.FundingDataZone;
 using CalculateFunding.Common.ApiClient.FundingDataZone.Models;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
-using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Common.Models;
+using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Providers.ViewModels;
+using CalculateFunding.Services.Core;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Processing;
 using CalculateFunding.Services.Providers.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Polly;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
-using CalculateFunding.Common.JobManagement;
-using CalculateFunding.Common.ApiClient.Jobs.Models;
-using CalculateFunding.Common.Models;
-using CalculateFunding.Services.Core.Constants;
-using CalculateFunding.Services.Core;
-using CalculateFunding.Services.Processing;
 
 namespace CalculateFunding.Services.Providers
 {
@@ -79,7 +79,7 @@ namespace CalculateFunding.Services.Providers
                 Name = nameof(ProviderSnapshotDataLoadService)
             };
             health.Dependencies.AddRange(providerVersionServiceHealth.Dependencies);
-            
+
             return health;
         }
 
@@ -232,7 +232,6 @@ namespace CalculateFunding.Services.Providers
         {
             ApiResponse<IEnumerable<Common.ApiClient.FundingDataZone.Models.Provider>> providersInSnapshotResponse = await _fundingDataZoneApiClientPolicy.ExecuteAsync(
                             () => _fundingDataZoneApiClient.GetProvidersInSnapshot(providerSnapshotId));
-
 
             if (!providersInSnapshotResponse.StatusCode.IsSuccess())
             {

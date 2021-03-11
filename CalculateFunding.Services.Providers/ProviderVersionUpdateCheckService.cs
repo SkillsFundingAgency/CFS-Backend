@@ -88,8 +88,6 @@ namespace CalculateFunding.Services.Providers
 
                 string fundingStreamId = fundingStream.Id;
 
-
-
                 IEnumerable<FundingConfiguration> fundingStreamConfigurations = await GetFundingConfigurationsByFundingStreamId(fundingStreamId);
 
                 if (!fundingStreamConfigurations.AnyWithNullCheck())
@@ -149,8 +147,6 @@ namespace CalculateFunding.Services.Providers
             }
 
             IEnumerable<SpecificationSummary> specificationSummaries = await GetSpecificationsWithProviderVersionUpdatesAsUseLatest();
-
-
 
             await EditSpecifications(fundingConfigurations, fundingStreamsLatestProviderSnapshotIds, specificationSummaries);
         }

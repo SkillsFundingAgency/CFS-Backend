@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Specs;
@@ -14,6 +15,8 @@ namespace CalculateFunding.Api.Specs.Controllers
 
         public SpecificationProviderController(IQueueCreateSpecificationJobActions queueCreateSpecificationJobActions)
         {
+            Guard.ArgumentNotNull(queueCreateSpecificationJobActions, nameof(queueCreateSpecificationJobActions));
+
             _queueCreateSpecificationJobActions = queueCreateSpecificationJobActions;
         }
 
