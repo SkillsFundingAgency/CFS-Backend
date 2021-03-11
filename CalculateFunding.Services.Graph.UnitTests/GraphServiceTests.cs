@@ -593,25 +593,6 @@ namespace CalculateFunding.Services.Graph.UnitTests
         }
 
         [TestMethod]
-        public async Task UpsertEnumCalculationRelationship_GivenValidRelationship_OkStatusCodeReturned()
-        {
-            string calculationId = NewRandomString();
-            string enumId = NewRandomString();
-
-            IActionResult result = await _graphService.UpsertEnumCalculationRelationship(enumId, 
-                calculationId);
-
-            await _enumRepository
-                .Received(1)
-                .UpsertEnumCalculationRelationship(enumId, calculationId);
-
-            result
-                .Should()
-                .BeOfType<OkResult>();
-        }
-        
-
-        [TestMethod]
         public async Task CreateCalculationCalculationRelationship_GivenValidRelationship_OkStatusCodeReturned()
         {
             string calculationAId = NewRandomString();
@@ -969,22 +950,6 @@ namespace CalculateFunding.Services.Graph.UnitTests
             await _enumRepository
                 .Received(1)
                 .UpsertCalculationEnumRelationships(relationships);
-
-            result
-                .Should()
-                .BeOfType<OkResult>();
-        }
-
-        [TestMethod]
-        public async Task UpsertEnumCalculationRelationships()
-        {
-            (string, string)[] relationships = AsArray((NewRandomString(), NewRandomString()));
-
-            IActionResult result = await _graphService.UpsertEnumCalculationRelationships(relationships);
-
-            await _enumRepository
-                .Received(1)
-                .UpsertEnumCalculationRelationships(relationships);
 
             result
                 .Should()

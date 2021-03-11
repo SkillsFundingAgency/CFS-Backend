@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Graph;
@@ -34,6 +35,45 @@ namespace CalculateFunding.Services.Compiler.Analysis
                         throw new InvalidOperationException($"Could not locate a calculation id for sourceCodeName {rel}")
                 });
             });
+        }
+
+        public IEnumerable<CalculationEnumRelationship> DetermineRelationshipsBetweenCalculationsAndEnums(IEnumerable<Calculation> calculations)
+        {
+            Guard.IsNotEmpty(calculations, nameof(calculations));
+
+            IEnumerable<string> enums = calculations.Where(_ => _.Current.DataType == CalculationDataType.Enum).Select(_ => $"{_.Current.SourceCodeName}Options").Distinct();
+
+            IEnumerable<CalculationEnumRelationship> calculationEnumRelationships = new CalculationEnumRelationship[0];
+
+            foreach (Calculation calculation in calculations)
+            {
+                calculationEnumRelationships = calculationEnumRelationships.Concat(enums.SelectMany(_ => {
+                    MatchCollection enumMatches = Regex.Matches(calculation.Current.SourceCode, $"({_}).(.*?(?=\\s\\w|$))", RegexOptions.Multiline | RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                    return enumMatches.Where(_ => _.Groups.Count > 0).Select(match => new CalculationEnumRelationship
+                    {
+                        Enum = new Models.Graph.Enum
+                        {
+                            EnumName = match.Groups[1].Value,
+                            EnumValue = match.Groups[2].Value,
+                            FundingStreamId = calculation.FundingStreamId,
+                            SpecificationId = calculation.SpecificationId
+                        },
+                        Calculation = new Models.Graph.Calculation
+                        {
+                            SpecificationId = calculation.SpecificationId,
+                            CalculationId = calculation.Id,
+                            FundingStream = calculation.FundingStreamId,
+                            CalculationName = calculation.Name,
+                            CalculationType = calculation.Current.CalculationType == Models.Calcs.CalculationType.Additional ? 
+                                                                                        Models.Graph.CalculationType.Additional : 
+                                                                                        Models.Graph.CalculationType.Template
+                        }
+
+                    });
+                }));
+            }
+
+            return calculationEnumRelationships;
         }
 
         public IEnumerable<FundingLineCalculationRelationship> DetermineRelationshipsBetweenFundingLinesAndCalculations(IEnumerable<Calculation> calculations, IDictionary<string, Funding> fundingLines)

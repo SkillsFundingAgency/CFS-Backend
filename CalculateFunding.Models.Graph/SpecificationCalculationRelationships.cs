@@ -31,5 +31,8 @@ namespace CalculateFunding.Models.Graph
 
         [JsonProperty("datasetdatasetdefinitionrelationships")]
         public IEnumerable<DatasetDatasetDefinitionRelationship> DatasetDatasetDefinitionRelationships { get; set; }
+
+        [JsonProperty("calculationenumrelationships")]
+        public IEnumerable<CalculationEnumRelationship> CalculationEnumRelationships { get; set; }
     }
 }

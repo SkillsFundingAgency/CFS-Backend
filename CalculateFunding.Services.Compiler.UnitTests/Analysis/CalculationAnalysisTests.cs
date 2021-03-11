@@ -18,6 +18,7 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
     {
         private CalculationAnalysis _analysis;
         private IEnumerable<CalculationRelationship> _relationships;
+        private IEnumerable<CalculationEnumRelationship> _enumRelationships;
         private IEnumerable<FundingLineCalculationRelationship> _fundingLineRelationships;
 
         [TestInitialize]
@@ -40,11 +41,14 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
         [TestMethod]
         [DynamicData(nameof(CalculationRelationshipExamples), DynamicDataSourceType.Method)]
         public void LocatesRelatedCalculationsFromSourceCode(IEnumerable<Calculation> calculations,
-            IEnumerable<CalculationRelationship> expectedCalculationRelationships)
+            IEnumerable<CalculationRelationship> expectedCalculationRelationships,
+            IEnumerable<CalculationEnumRelationship> expectedEnumCalculationRelationships)
         {
             WhenTheCalculationsAreAnalysed(calculations);
 
             ThenTheCalculationRelationshipsShouldMatch(expectedCalculationRelationships);
+
+            ThenTheCalculationEnumRelationshipsShouldMatch(expectedEnumCalculationRelationships);
         }
 
         [TestMethod]
@@ -69,6 +73,17 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
                 .BeEquivalentTo(expectedCalculationRelationships);
         }
 
+        private void ThenTheCalculationEnumRelationshipsShouldMatch(IEnumerable<CalculationEnumRelationship> expectedEnumCalculationRelationships)
+        {
+            _enumRelationships
+                .Should()
+                .NotBeNull();
+
+            _enumRelationships
+                .Should()
+                .BeEquivalentTo(expectedEnumCalculationRelationships);
+        }
+
         private void ThenTheFundingLineCalculationRelationShipsShouldMatch(IEnumerable<FundingLineCalculationRelationship> expectedFundingLineRelationships)
         {
             _fundingLineRelationships
@@ -83,6 +98,8 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
         private void WhenTheCalculationsAreAnalysed(IEnumerable<Calculation> calculations)
         {
             _relationships = _analysis.DetermineRelationshipsBetweenCalculations(calculations);
+
+            _enumRelationships = _analysis.DetermineRelationshipsBetweenCalculationsAndEnums(calculations);
         }
 
         private void WhenTheFundingLinesAreAnalysed(IEnumerable<Calculation> calculations, IDictionary<string, Funding> funding)
@@ -213,13 +230,17 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
             string calcThreeId = NewRandomString();
             string calcFourName = nameof(calcFourName);
             string calcFourId = NewRandomString();
+            string enumValue = NewRandomString();
+
+            Calculation calculation = NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion(cv
+                            => cv.WithSourceCodeName(calcOneName)
+                                .WithDataType(Models.Calcs.CalculationDataType.Enum)
+                                .WithSourceCode($"return {calcOneName}Options.{enumValue}")))
+                        .WithId(calcOneId));
 
             yield return new object[]
             {
-                Calculations(NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion(cv
-                            => cv.WithSourceCodeName(calcOneName)
-                                .WithSourceCode("return 10")))
-                        .WithId(calcOneId)),
+                Calculations(calculation,
                     NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion(cv
                             => cv.WithSourceCodeName(calcTwoName)
                                 .WithSourceCode($"return Calculations.{calcOneName}() + 20")))
@@ -238,7 +259,18 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
                     NewCalculationRelationship(_ => _.WithCalculationOneId(calcThreeId)
                         .WithCalculationTwoId(calcOneId)),
                     NewCalculationRelationship(_ => _.WithCalculationOneId(calcThreeId)
-                        .WithCalculationTwoId(calcFourId)))
+                        .WithCalculationTwoId(calcFourId))),
+                CalulationEnumRelationships(NewCalculationEnumRelationship(_ => _.WithCalculation(new Models.Graph.Calculation{SpecificationId = calculation.SpecificationId,
+                            CalculationId = calculation.Id,
+                            FundingStream = calculation.FundingStreamId,
+                            CalculationName = calculation.Name,
+                            CalculationType = calculation.Current.CalculationType == Models.Calcs.CalculationType.Additional ?
+                                                                                        Models.Graph.CalculationType.Additional :
+                                                                                        Models.Graph.CalculationType.Template })
+                    .WithEnum(new Models.Graph.Enum{ 
+                        EnumName = $"{calcOneName}Options",
+                        EnumValue = enumValue
+                    })))
             };
             yield return new object[]
             {
@@ -260,7 +292,8 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
                         .WithId(calcFourId))
                 ),
                 CalculationRelationships(NewCalculationRelationship(_ => _.WithCalculationOneId(calcTwoId)
-                        .WithCalculationTwoId(calcOneId)))
+                        .WithCalculationTwoId(calcOneId))),
+                new CalculationEnumRelationship[0]
             };
             yield return new object[]
             {
@@ -281,7 +314,8 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
                                 .WithSourceCode("return 0")))
                         .WithId(calcFourId))
                 ),
-                new CalculationRelationship[0]
+                new CalculationRelationship[0],
+                new CalculationEnumRelationship[0]
             };
         }
 
@@ -298,6 +332,11 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
         private static CalculationRelationship[] CalculationRelationships(params CalculationRelationship[] calculationRelationships)
         {
             return calculationRelationships;
+        }
+
+        private static CalculationEnumRelationship[] CalulationEnumRelationships(params CalculationEnumRelationship[] calculationEnumRelationships)
+        {
+            return calculationEnumRelationships;
         }
 
         private static IEnumerable<object[]> MissingCalculationExamples()
@@ -339,6 +378,15 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
             setUp?.Invoke(calculationRelationshipBuilder);
 
             return calculationRelationshipBuilder.Build();
+        }
+
+        private static CalculationEnumRelationship NewCalculationEnumRelationship(Action<CalculationEnumRelationshipBuilder> setUp = null)
+        {
+            CalculationEnumRelationshipBuilder calculationEnumRelationshipBuilder = new CalculationEnumRelationshipBuilder();
+
+            setUp?.Invoke(calculationEnumRelationshipBuilder);
+
+            return calculationEnumRelationshipBuilder.Build();
         }
 
         private static string NewRandomString()

@@ -235,11 +235,23 @@ namespace CalculateFunding.Services.Graph
             return await ExecuteRepositoryAction(() => _calcRepository.DeleteCalculationDataFieldRelationship(calculationId, fieldId),
                 $"Unable to delete calculation -> datafield relationship {calculationId} -> {fieldId}");   
         }
-        
+
+        public async Task<IActionResult> DeleteCalculationEnumRelationship(string calculationId, string fieldId)
+        {
+            return await ExecuteRepositoryAction(() => _enumRepository.DeleteCalculationEnumRelationship(calculationId, fieldId),
+                $"Unable to delete calculation -> nume relationship {calculationId} -> {fieldId}");
+        }
+
         public async Task<IActionResult> DeleteCalculationDataFieldRelationships(params (string calculationId, string fieldId)[] relationships)
         {
             return await ExecuteRepositoryAction(() => _calcRepository.DeleteCalculationDataFieldRelationships(relationships),
                 $"Unable to delete calculation -> datafield relationships");   
+        }
+
+        public async Task<IActionResult> DeleteCalculationEnumRelationships(params (string calculationId, string fieldId)[] relationships)
+        {
+            return await ExecuteRepositoryAction(() => _enumRepository.DeleteCalculationEnumRelationships(relationships),
+                $"Unable to delete calculation -> enum relationships");
         }
 
         public async Task<IActionResult> DeleteSpecification(string specificationId)
@@ -316,23 +328,10 @@ namespace CalculateFunding.Services.Graph
                 $" and enum:'{enumId}'");
         }
 
-        public async Task<IActionResult> UpsertEnumCalculationRelationship(string enumId, string calculationId)
-        {
-            return await ExecuteRepositoryAction(() => _enumRepository.UpsertEnumCalculationRelationship(enumId, calculationId),
-                $"Upsert enum relationship between calculation failed for enum:'{enumId}'" +
-                $" and calculation:'{calculationId}'");
-        }
-
         public async Task<IActionResult> UpsertCalculationEnumRelationships(params (string calculationId, string enumId)[] relationships)
         {
             return await ExecuteRepositoryAction(() => _enumRepository.UpsertCalculationEnumRelationships(relationships),
                 $"Upsert calculation relationships calculation -> enum");
-        }
-
-        public async Task<IActionResult> UpsertEnumCalculationRelationships(params (string enumId, string calculationId)[] relationships)
-        {
-            return await ExecuteRepositoryAction(() => _enumRepository.UpsertEnumCalculationRelationships(relationships),
-                $"Upsert enum relationships enum -> calculation");
         }
 
         public async Task<IActionResult> GetCalculationCircularDependencies(string specificationId)
@@ -406,7 +405,7 @@ namespace CalculateFunding.Services.Graph
         public async Task<IActionResult> DeleteCalculationSpecificationRelationships(params (string calculationId, string specificationId)[] relationships)
         {
             return await ExecuteRepositoryAction(() => _calcRepository.DeleteCalculationSpecificationRelationships(relationships),
-                $"Delete calculation s between specification failed ");
+                $"Delete calculations between specification failed ");
         }
 
         public async Task<IActionResult> DeleteCalculationCalculationRelationship(string calculationIdA, string calculationIdB)

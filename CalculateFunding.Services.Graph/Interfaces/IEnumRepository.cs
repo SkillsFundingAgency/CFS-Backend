@@ -12,14 +12,12 @@ namespace CalculateFunding.Services.Graph.Interfaces
         Task UpsertEnums(IEnumerable<Enum> enums);
 
         Task UpsertCalculationEnumRelationship(string enumNameValue, string calculationId);
-        Task UpsertEnumCalculationRelationship(string calculationId, string enumNameValue);
 
         Task DeleteCalculationEnumRelationship(string enumNameValue, string calculationId);
 
         Task<IEnumerable<Entity<Enum, IRelationship>>> GetAllEntities(string enumNameValue);
         Task DeleteEnums(IEnumerable<string> enumNameValues);
         Task UpsertCalculationEnumRelationships(params (string calculationId, string enumId)[] relationships);
-        Task UpsertEnumCalculationRelationships(params (string enumId, string calculationId)[] relationships);
         Task DeleteCalculationEnumRelationships(params (string calculationId, string enumNameValue)[] relationships);
         Task<IEnumerable<Entity<Enum, IRelationship>>> GetAllEntitiesForAll(params string[] enumNameValues);
     }

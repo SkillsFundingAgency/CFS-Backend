@@ -28,7 +28,7 @@ namespace CalculateFunding.Models.Graph
         [JsonProperty("enumvalue")]
         public string EnumValue { get; set; }
 
-        [JsonProperty("enumvaluename")]
+        [JsonIgnore]
         public string EnumValueName { get; set; }
     }
 }

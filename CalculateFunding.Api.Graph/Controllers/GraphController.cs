@@ -174,12 +174,26 @@ namespace CalculateFunding.Api.Graph.Controllers
         {
             return await _graphService.DeleteCalculationDataFieldRelationship(calculationId, fieldId);
         }
-        
+
+        [HttpDelete("api/graph/calculations/{calculationId}/relationships/enums/{fieldId}")]
+        [ProducesResponseType(200)]
+        public async Task<IActionResult> DeleteCalculationEnumRelationship([FromRoute] string calculationId, [FromRoute] string fieldId)
+        {
+            return await _graphService.DeleteCalculationEnumRelationship(calculationId, fieldId);
+        }
+
         [HttpPost("api/graph/calculations/relationships/datafields/delete")]
         [ProducesResponseType(200)]
         public async Task<IActionResult> DeleteCalculationDataFieldRelationships([FromBody] AmendRelationshipRequest[] relationships)
         {
             return await _graphService.DeleteCalculationDataFieldRelationships(ToRelationships(relationships));
+        }
+
+        [HttpPost("api/graph/calculations/relationships/enums/delete")]
+        [ProducesResponseType(200)]
+        public async Task<IActionResult> DeleteCalculationEnumRelationships([FromBody] AmendRelationshipRequest[] relationships)
+        {
+            return await _graphService.DeleteCalculationEnumRelationships(ToRelationships(relationships));
         }
 
         [HttpPost("api/graph/calculations")]
@@ -349,13 +363,6 @@ namespace CalculateFunding.Api.Graph.Controllers
             return await _graphService.UpsertCalculationEnumRelationships(ToRelationships(relationships));
         }
 
-        [HttpPut("api/graph/enum/relationships/calculation")]
-        [ProducesResponseType(200)]
-        public async Task<IActionResult> UpsertEnumCalculationRelationships([FromBody] AmendRelationshipRequest[] relationships)
-        {
-            return await _graphService.UpsertEnumCalculationRelationships(ToRelationships(relationships));
-        }
-
         [HttpPost("api/graph/fundinglines")]
         [ProducesResponseType(200)]
         public async Task<IActionResult> UpsertFundingLines([FromBody]FundingLine[] fundingLines)
@@ -396,13 +403,6 @@ namespace CalculateFunding.Api.Graph.Controllers
         public async Task<IActionResult> UpsertCalculationEnumRelationship([FromRoute] string calculationId, [FromRoute] string enumId)
         {
             return await _graphService.UpsertCalculationEnumRelationship(calculationId, enumId);
-        }
-
-        [HttpPut("api/graph/enum/{enumId}/relationships/calculation/{calculationId}")]
-        [ProducesResponseType(200)]
-        public async Task<IActionResult> UpsertEnumCalculationRelationship([FromRoute] string enumId, [FromRoute] string calculationId)
-        {
-            return await _graphService.UpsertEnumCalculationRelationship(enumId, calculationId);
         }
 
         [HttpPut("api/graph/fundingline/relationships/calculation")]

@@ -83,6 +83,7 @@ namespace CalculateFunding.Services.Calcs.MappingProfiles
             CreateMap<Models.Graph.DataField, Common.ApiClient.Graph.Models.DataField>();
             CreateMap<Models.Graph.DatasetDefinition, Common.ApiClient.Graph.Models.DatasetDefinition>();
             CreateMap<Models.Graph.Dataset, Common.ApiClient.Graph.Models.Dataset>();
+            CreateMap<Models.Graph.Enum, Common.ApiClient.Graph.Models.Enum>();
         }
     }
 }

@@ -14,6 +14,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
         private IEnumerable<CalculationDataFieldRelationship> _calculationDatafieldRelationships;
         private IEnumerable<DatasetDataFieldRelationship> _datasetDataFieldRelationships;
         private IEnumerable<DatasetDatasetDefinitionRelationship> _datasetDatasetDefinitionRelationships;
+        private IEnumerable<CalculationEnumRelationship> _calculationEnumRelationships;
 
         public SpecificationCalculationRelationshipBuilder WithCalculations(params Calculation[] calculations)
         {
@@ -50,6 +51,13 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
             return this;
         }
 
+        public SpecificationCalculationRelationshipBuilder WithCalculationEnumRelationships(params CalculationEnumRelationship[] calculationEnumRelationships)
+        {
+            _calculationEnumRelationships = calculationEnumRelationships;
+
+            return this;
+        }
+
         public SpecificationCalculationRelationshipBuilder WithDatasetDataFieldRelationships(params DatasetDataFieldRelationship[] datasetDataFieldRelationships)
         {
             _datasetDataFieldRelationships = datasetDataFieldRelationships;
@@ -82,6 +90,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
                 CalculationRelationships = _relationships ?? new CalculationRelationship[0],
                 CalculationDataFieldRelationships = _calculationDatafieldRelationships ?? new CalculationDataFieldRelationship[0],
                 DatasetDataFieldRelationships = _datasetDataFieldRelationships ?? new DatasetDataFieldRelationship[0],
+                CalculationEnumRelationships = _calculationEnumRelationships ?? new CalculationEnumRelationship[0],
                 DatasetDatasetDefinitionRelationships = _datasetDatasetDefinitionRelationships ?? new DatasetDatasetDefinitionRelationship[0]
             };
         }

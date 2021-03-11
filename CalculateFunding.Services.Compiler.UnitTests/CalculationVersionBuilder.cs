@@ -7,6 +7,7 @@ namespace CalculateFunding.Services.Compiler.UnitTests
     {
         private string _name;
         private CalculationValueType _calculationValueType;
+        private CalculationDataType _calculationDataType;
         private string _sourceCodeName;
         private string _sourceCode;
 
@@ -38,6 +39,13 @@ namespace CalculateFunding.Services.Compiler.UnitTests
             return this;
         }
 
+        public CalculationVersionBuilder WithDataType(CalculationDataType calculationDataType)
+        {
+            _calculationDataType = calculationDataType;
+
+            return this;
+        }
+
         public CalculationVersion Build()
         {
             return new CalculationVersion
@@ -45,7 +53,8 @@ namespace CalculateFunding.Services.Compiler.UnitTests
                 SourceCode = _sourceCode ?? "return 0",
                 SourceCodeName = _sourceCodeName ?? NewRandomString().Replace("-", ""),
                 Name = _name,
-                ValueType = _calculationValueType
+                ValueType = _calculationValueType,
+                DataType = _calculationDataType
             };
         }
     }

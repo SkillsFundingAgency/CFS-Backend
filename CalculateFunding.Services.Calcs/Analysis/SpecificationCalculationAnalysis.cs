@@ -90,6 +90,8 @@ namespace CalculateFunding.Services.Calcs.Analysis
 
             IEnumerable<DatasetReference> datasetReferences = _datasetReferenceService.GetDatasetRelationShips(calculations, buildProject.DatasetRelationships);
 
+            IEnumerable<CalculationEnumRelationship> calculationEnumRelationships = _calculationAnalysis.DetermineRelationshipsBetweenCalculationsAndEnums(calculations);
+
             return new SpecificationCalculationRelationships
             {
                 Specification = _mapper.Map<Specification>(specificationSummary),
@@ -97,6 +99,7 @@ namespace CalculateFunding.Services.Calcs.Analysis
                 FundingLines = _mapper.Map<IEnumerable<GraphFundingLine>>(buildProject.FundingLines?.Values.SelectMany(_ => _.FundingLines)),
                 CalculationRelationships = calculationRelationships,
                 FundingLineRelationships = fundingLineRelationships,
+                CalculationEnumRelationships = calculationEnumRelationships,
                 CalculationDataFieldRelationships = datasetReferences.SelectMany(_ => _.Calculations.Select(calc => new CalculationDataFieldRelationship { Calculation = calc, DataField = _.DataField })).Distinct(),
                 DatasetDataFieldRelationships = datasetReferences.Select(_ => new DatasetDataFieldRelationship { Dataset = _.Dataset, DataField = _.DataField }),
                 DatasetDatasetDefinitionRelationships = datasetReferences.Select(_ => new DatasetDatasetDefinitionRelationship { Dataset = _.Dataset, DatasetDefinition = _.DatasetDefinition })

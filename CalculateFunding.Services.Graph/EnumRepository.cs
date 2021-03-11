@@ -37,6 +37,10 @@ namespace CalculateFunding.Services.Graph
             await UpsertRelationship<Calculation, Enum>(AttributeConstants.CalculationEnumRelationshipId,
                 (AttributeConstants.CalculationId, calculationId),
                 (AttributeConstants.EnumId, enumNameValue));
+
+            await UpsertRelationship<Enum, Calculation>(AttributeConstants.EnumCalculationRelationshipId,
+                (AttributeConstants.EnumId, enumNameValue),
+                (AttributeConstants.CalculationId, calculationId));
         }
 
         public async Task UpsertCalculationEnumRelationships(params (string calculationId, string enumId)[] relationships)
@@ -45,18 +49,7 @@ namespace CalculateFunding.Services.Graph
                     (AttributeConstants.CalculationId, _.calculationId),
                     (AttributeConstants.EnumId, _.enumId)))
                 .ToArray());
-        }
 
-        public async Task UpsertEnumCalculationRelationship(string enumNameValue,
-            string calculationId)
-        {
-            await UpsertRelationship<Enum, Calculation>(AttributeConstants.EnumCalculationRelationshipId,
-                (AttributeConstants.EnumId, enumNameValue),
-                (AttributeConstants.CalculationId, calculationId));
-        }
-
-        public async Task UpsertEnumCalculationRelationships(params (string enumId, string calculationId)[] relationships)
-        {
             await UpsertRelationships<Enum, Calculation>(relationships.Select(_ => (AttributeConstants.EnumCalculationRelationshipId,
                     (AttributeConstants.EnumId, _.enumId),
                     (AttributeConstants.CalculationId, _.calculationId)))

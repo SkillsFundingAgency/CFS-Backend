@@ -115,6 +115,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
             GraphCalculation[] graphCalculations = new GraphCalculation[0];
             FundingLine[] fundingLines = new FundingLine[0];
             CalculationRelationship[] calculationRelationships = new CalculationRelationship[0];
+            CalculationEnumRelationship[] calculationEnumRelationships = new CalculationEnumRelationship[0];
             FundingLineCalculationRelationship[] fundingLineCalculationRelationships = new FundingLineCalculationRelationship[0];
 
             List<Models.Calcs.DatasetRelationshipSummary> datasetRelationshipSummaries = new List<Models.Calcs.DatasetRelationshipSummary>();
@@ -125,11 +126,14 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
                 DatasetDefinition = new DatasetDefinition()
             },  };
 
+
+
             GivenTheSpecification(specificationId, specificationSummary);   
             AndTheCalculations(specificationId, calculations);
             AndTheRelationshipsForTheCalculations(calculations, calculationRelationships);
             AndTheBuildProjectForTheSpecification(specificationId, datasetRelationshipSummaries);
             AndTheDatasetReferencesForTheCalculations(calculations, datasetRelationshipSummaries, datasetReferences);
+            AndTheEnumReferencesForTheCalculations(calculations, calculationEnumRelationships);
             AndTheMapping(calculations, graphCalculations);
             AndTheMapping(specificationSummary, graphSpecification);
 
@@ -144,6 +148,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
                     FundingLines = fundingLines,
                     Calculations = graphCalculations,
                     CalculationRelationships = calculationRelationships,
+                    CalculationEnumRelationships = calculationEnumRelationships,
                     CalculationDataFieldRelationships = datasetReferences.SelectMany(_ => _.Calculations.Select(calculation => new CalculationDataFieldRelationship { Calculation = calculation, DataField = _.DataField })),
                     DatasetDataFieldRelationships = datasetReferences.Select(_ => new DatasetDataFieldRelationship { Dataset = _.Dataset, DataField = _.DataField }),
                     DatasetDatasetDefinitionRelationships = datasetReferences.Select(_ => new DatasetDatasetDefinitionRelationship { Dataset = _.Dataset, DatasetDefinition = _.DatasetDefinition })
@@ -179,6 +184,14 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
             _calculationsAnalysis.Setup(_ => _.DetermineRelationshipsBetweenCalculations(calculations))
                 .Returns(relationships);
         }
+
+        private void AndTheEnumReferencesForTheCalculations(IEnumerable<Calculation> calculations,
+            params CalculationEnumRelationship[] relationships)
+        {
+            _calculationsAnalysis.Setup(_ => _.DetermineRelationshipsBetweenCalculationsAndEnums(calculations))
+                .Returns(relationships);
+        }
+
         private void AndTheBuildProjectForTheSpecification(string specificationId, List<Models.Calcs.DatasetRelationshipSummary> datasetRelationships)
         {
             _buildProjectsService

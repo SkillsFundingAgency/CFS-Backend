@@ -6,6 +6,7 @@ using CalculateFunding.Models.Graph;
 using CalculateFunding.Tests.Common.Helpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using Enum = CalculateFunding.Models.Graph.Enum;
 
 namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
 {
@@ -41,6 +42,15 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
         protected DataField NewDataField(Action<DataFieldBuilder> setUp = null)
         {
             DataFieldBuilder builder = new DataFieldBuilder();
+
+            setUp?.Invoke(builder);
+
+            return builder.Build();
+        }
+
+        protected Enum NewEnum(Action<EnumBuilder> setUp = null)
+        {
+            EnumBuilder builder = new EnumBuilder();
 
             setUp?.Invoke(builder);
 

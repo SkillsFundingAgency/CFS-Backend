@@ -16,6 +16,7 @@ using ApiSpecification = CalculateFunding.Common.ApiClient.Graph.Models.Specific
 using ApiCalculation = CalculateFunding.Common.ApiClient.Graph.Models.Calculation;
 using ApiFundingLine = CalculateFunding.Common.ApiClient.Graph.Models.FundingLine;
 using ApiDataField = CalculateFunding.Common.ApiClient.Graph.Models.DataField;
+using ApiEnum = CalculateFunding.Common.ApiClient.Graph.Models.Enum;
 using ApiDataSet = CalculateFunding.Common.ApiClient.Graph.Models.Dataset;
 using ApiDatasetDefinition = CalculateFunding.Common.ApiClient.Graph.Models.DatasetDefinition;
 using ApiEntitySpecification = CalculateFunding.Common.ApiClient.Graph.Models.Entity<CalculateFunding.Common.ApiClient.Graph.Models.Specification>;
@@ -29,6 +30,7 @@ using Dataset = CalculateFunding.Models.Graph.Dataset;
 using DatasetDefinition = CalculateFunding.Models.Graph.DatasetDefinition;
 using FundingLine = CalculateFunding.Models.Graph.FundingLine;
 using Specification = CalculateFunding.Models.Graph.Specification;
+using Enum = CalculateFunding.Models.Graph.Enum;
 
 namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
 {
@@ -67,12 +69,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
         }
 
         [TestMethod]
-        [DataRow(false, true, true)]
-        [DataRow(true, true, true)]
-        [DataRow(true, true, false)]
-        [DataRow(false, false, true)]
-        [Ignore("God test. Branching in a test. Couldn't unravel the branching to make required changes. needs replacing")]
-        public async Task DeletesThenInsertsGraphForSpecification(bool withCallsCalculation, bool withBelongsToSpecification, bool withFundingLineRemoval)
+        public async Task DeletesThenInsertsGraphForSpecification()
         {
             string specificationId = NewRandomString();
 
@@ -94,28 +91,28 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
             IEnumerable<ApiEntitySpecification> existingEntities = new[] {
                 new ApiEntitySpecification {
                     Node = new ApiSpecification { SpecificationId = specificationId},
-                    Relationships = withBelongsToSpecification ? new[] {
+                    Relationships = new[] {
                         new ApiRelationship { One = NewGraphCalculation(_ => _.WithId(calculationIdFive)), Type = "BelongsToSpecification", Two = specification }
-                    } : null
+                    }
                 }
             };
+
+            Enum existingEnum = NewEnum(_ => _.WithEnumName($"{calculationIdFour}Options").WithSpecificationId(specificationId));
 
             IEnumerable<ApiEntityCalculation> existingCalculationEntities = new[] { new ApiEntityCalculation
             {
                 Node = new ApiCalculation { CalculationId = calculationIdFive },
-                Relationships = new[] { new ApiRelationship { One = NewGraphCalculation(_ => _.WithId(calculationIdOne)), Type = "ReferencesDataField", Two = NewDataField(_ => _.WithCalculationId(calculationIdOne).WithDataFieldId(datafieldId)) } } }
+                Relationships = new[] { new ApiRelationship { One = NewGraphCalculation(_ => _.WithId(calculationIdOne)), Type = "ReferencesDataField", Two = NewDataField(_ => _.WithCalculationId(calculationIdOne).WithDataFieldId(datafieldId)) } ,
+                                new ApiRelationship { One = NewGraphCalculation(_ => _.WithId(calculationIdFour)), Type = "ReferencesEnum", Two =  existingEnum} }}
             };
 
-            if (withCallsCalculation)
-            {
-                existingCalculationEntities = existingCalculationEntities.Concat(new[] {
+            existingCalculationEntities = existingCalculationEntities.Concat(new[] {
                     new ApiEntityCalculation
                     {
                         Node = new ApiCalculation { SpecificationId = specificationId, CalculationId = calculationIdFour },
                         Relationships = new[] { new ApiRelationship { One = NewGraphCalculation(_ => _.WithId(calculationIdFour)), Type = "CallsCalculation", Two = NewGraphCalculation(_ => _.WithId(calculationIdFive)) } }
                     }
                 });
-            }
 
             IEnumerable<ApiEntityFundingLine> existingFundingLines = (new[] {
                     new ApiEntityFundingLine
@@ -173,14 +170,11 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
             };
             IEnumerable<CalculationRelationship> unusedCalculationRelationships = new CalculationRelationship[0];
 
-            if (withCallsCalculation)
+            unusedCalculationRelationships = unusedCalculationRelationships.Concat(new[]
             {
-                unusedCalculationRelationships = unusedCalculationRelationships.Concat(new[]
-                {
-                    NewCalculationRelationship(_ => _.WithCalculationOneId(calculationIdFour)
-                        .WithCalculationTwoId(calculationIdFive))
-                });
-            }
+                NewCalculationRelationship(_ => _.WithCalculationOneId(calculationIdFour)
+                    .WithCalculationTwoId(calculationIdFive))
+            });
 
             CalculationDataFieldRelationship[] dataFieldRelationships = calculations.Select(_ => new CalculationDataFieldRelationship
             {
@@ -188,6 +182,16 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
                 DataField = NewDataField(datafieldBuilder =>
                     datafieldBuilder.WithCalculationId(_.CalculationId))
             }).ToArray();
+
+            CalculationEnumRelationship[] calculationEnumRelationships = calculations.TakeLast(1).Select(_ => new CalculationEnumRelationship
+            {
+                Calculation = _,
+                Enum = NewEnum(enumBuilder =>
+                    enumBuilder.WithEnumName($"{_.CalculationName}Options")
+                    .WithSpecificationId(specificationId))
+            }).ToArray();
+
+            Enum[] enumNameValues = calculationEnumRelationships.Select(_ => _.Enum).ToArray();
 
             Dataset newDataset = NewDataset();
 
@@ -210,7 +214,14 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
                 Calculation = NewGraphCalculation(_ => _.WithId(calculationIdOne)),
                 DataField = NewDataField(datasetBuilder =>
                     datasetBuilder.WithCalculationId(calculationIdOne).WithDataFieldId(datafieldId))
-            } };
+            }};
+
+            CalculationEnumRelationship[] unusedEnumRelationships = new[] { new CalculationEnumRelationship
+            { 
+                Calculation = NewGraphCalculation(_ => _.WithId(calculationIdFour)),
+                Enum = existingEnum
+            }
+    };
 
             SpecificationCalculationRelationships specificationCalculationRelationships = NewSpecificationCalculationRelationships(_ =>
                 _.WithSpecification(specification)
@@ -219,6 +230,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
                     .WithFundingLineCalculationRelationships(fundingLineRelationships)
                     .WithCalculationRelationships(calculationRelationships)
                     .WithCalculationDataFieldRelationships(dataFieldRelationships)
+                    .WithCalculationEnumRelationships(calculationEnumRelationships)
                     .WithDatasetDataFieldRelationships(datasetDataFieldRelationships)
                     .WithDatasetDatasetDefinitionRelationships(datasetDatasetDefinitionRelationships));
 
@@ -229,6 +241,15 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
                 NewApiCalculation(),
                 NewApiCalculation()
             };
+
+            ApiEnum[] apiEnums = enumNameValues.Select(_ => 
+                new ApiEnum
+                {
+                    EnumName = _.EnumName,
+                    FundingStreamId = _.FundingStreamId,
+                    SpecificationId = _.SpecificationId,
+                    EnumValue = _.EnumValue
+                }).ToArray();
 
             ApiFundingLine[] apiFundingLines = new[]
             {
@@ -251,6 +272,17 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
                 });
             }
 
+            foreach (CalculationEnumRelationship enumRelationship in calculationEnumRelationships)
+            {
+                AndTheMapping(enumRelationship.Enum, new ApiEnum
+                {
+                    EnumName = enumRelationship.Enum.EnumName,
+                    SpecificationId = enumRelationship.Enum.SpecificationId,
+                    FundingStreamId = enumRelationship.Enum.FundingStreamId,
+                    EnumValue = enumRelationship.Enum.EnumValue
+                });
+            }
+
             AndTheMapping(newDataset, new ApiDataSet
             {
                 DatasetId = newDataset.DatasetId,
@@ -263,10 +295,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
                 Name = newDatasetDefinition.Name
             });
 
-            if (withFundingLineRemoval)
-            {
-                AndTheMapping(existingFundingLines.Select(_ => _.Node).First(), unusedFundingLines.First());
-            }
+            AndTheMapping(existingFundingLines.Select(_ => _.Node).First(), unusedFundingLines.First());
 
             foreach (FundingLine fundingLine in fundingLines.Where(_ => !unusedFundingLines.Any(uf => uf.FundingLineId == _.FundingLineId)))
             {
@@ -274,15 +303,13 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
             }
 
             AndTheCollectionMapping(calculations, apiCalculations);
-            AndTheSpecificationRelationshipsAreDeleted(calculationIdFive, specificationId, unusedCalculationRelationships, unusedDataFieldRelationships, withBelongsToSpecification);
+            AndTheSpecificationRelationshipsAreDeleted(calculationIdFive, specificationId, unusedCalculationRelationships, unusedDataFieldRelationships, unusedEnumRelationships);
             
-            if (withFundingLineRemoval)
-            {
-                AndTheFundingLinesAreDeleted(unusedFundingLines.ToArray());
-            }
+            AndTheFundingLinesAreDeleted(unusedFundingLines.ToArray());
             
             AndTheSpecificationIsCreated(apiSpecification);
             AndTheCalculationsAreCreated(apiCalculations);
+
             AndTheFundingLinesAreCreated(apiFundingLines.Where(_ => !unusedFundingLines.Any(uf => uf.FundingLineId == _.FundingLineId)).ToArray());
             AndTheSpecificationCalculationRelationshipsWereCreated(specificationId, new []
             {
@@ -293,18 +320,15 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
             });
             AndTheFundingLineCalculationRelationshipsWereCreated(calculationIdOne, fundingLines.Select(_ => _.FundingLineId).ToArray(), calculations.Select(_ => _.CalculationId).ToArray());
             AndTheExistingRelationships(specificationId, existingEntities);
-            AndTheExistingCalculationRelationships(calculationIdOne, existingCalculationEntities);
-
-            if (withFundingLineRemoval)
-            {
-                AndTheExistingFundingLines(existingFundingLines);
-            }
+            AndTheExistingCalculationRelationships(specificationCalculationRelationships.Calculations.Select(_ => _.CalculationId).ToArray(), existingCalculationEntities);
+            AndTheExistingFundingLines(specificationCalculationRelationships.FundingLines.Select(_ => _.FundingLineId).ToArray(), existingFundingLines);
 
             AndTheRelationshipsWereCreated(calculationRelationships);
             AndTheDataFieldRelationshipsWereCreated(dataFieldRelationships);
+            AndTheEnumRelationshipsWereCreated(calculationEnumRelationships);
             AndTheDatasetDataFieldRelationshipsWereCreated(datasetDataFieldRelationships, specificationId);
             AndTheDatasetDatasetDefinitionRelationshipsWereCreated(datasetDatasetDefinitionRelationships);
-
+            
             SpecificationCalculationRelationships specificationUnusedCalculationRelationships = await WhenTheUnusedRelationshipsAreReturned(specificationCalculationRelationships);
 
             await AndTheGraphIsRecreated(specificationCalculationRelationships, specificationUnusedCalculationRelationships);
@@ -312,15 +336,12 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
             _graphApiClient.VerifyAll();
         }
 
-        private void AndTheSpecificationRelationshipsAreDeleted(string calculationId, string specificationId, IEnumerable<CalculationRelationship> calculationRelationships, IEnumerable<CalculationDataFieldRelationship> datasetFieldRelationships, bool withBelongsToSpecification)
+        private void AndTheSpecificationRelationshipsAreDeleted(string calculationId, string specificationId, IEnumerable<CalculationRelationship> calculationRelationships, IEnumerable<CalculationDataFieldRelationship> datasetFieldRelationships, IEnumerable<CalculationEnumRelationship> calculationEnumRelationships)
         {
-            if (withBelongsToSpecification)
-            {
-                _graphApiClient.Setup(_ => _.DeleteCalculationSpecificationRelationships(It.Is<AmendRelationshipRequestModel[]>(requests 
+            _graphApiClient.Setup(_ => _.DeleteCalculationSpecificationRelationships(It.Is<AmendRelationshipRequestModel[]>(requests 
                         => RequestsMatch(requests, calculationId, new [] { specificationId } ) )))
                     .ReturnsAsync(HttpStatusCode.OK)
                     .Verifiable();
-            }
             
             _graphApiClient.Setup(_ => _.DeleteCalculationCalculationRelationships(It.Is<AmendRelationshipRequestModel[]>(requests =>
                     RequestsMatch(requests,
@@ -332,6 +353,12 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
                     RequestsMatch(requests,
                         datasetFieldRelationships.Select(fr => fr.Calculation.CalculationId).ToArray(),
                         datasetFieldRelationships.Select(fr => fr.DataField.DataFieldId).ToArray()))))
+                .ReturnsAsync(HttpStatusCode.OK);
+
+            _graphApiClient.Setup(_ => _.DeleteCalculationEnumRelationships(It.Is<AmendRelationshipRequestModel[]>(requests =>
+                    RequestsMatch(requests,
+                        calculationEnumRelationships.Select(ce => ce.Calculation.CalculationId).ToArray(),
+                        calculationEnumRelationships.Select(ce => ce.Enum.EnumId).ToArray()))))
                 .ReturnsAsync(HttpStatusCode.OK);
         }
 
@@ -374,18 +401,18 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
                 .Verifiable();
         }
 
-        private void AndTheExistingCalculationRelationships(string calculationId, IEnumerable<ApiEntityCalculation> entities)
+        private void AndTheExistingCalculationRelationships(string[] calculations, IEnumerable<ApiEntityCalculation> entities)
         {
-            _graphApiClient.Setup(_ => _.GetAllEntitiesRelatedToCalculations(It.Is<string[]>(ids => ids.SequenceEqual(new [] { calculationId }))))
+            _graphApiClient.Setup(_ => _.GetAllEntitiesRelatedToCalculations(It.Is<string[]>(ids => ids.SequenceEqual(calculations))))
                     .ReturnsAsync(new ApiResponse<IEnumerable<ApiEntityCalculation>>(HttpStatusCode.OK, entities))
                     .Verifiable();
         }
 
-        private void AndTheExistingFundingLines(IEnumerable<ApiEntityFundingLine> existingFundingLines)
+        private void AndTheExistingFundingLines(string[] existingFundingLines, IEnumerable<ApiEntityFundingLine> fundingLines)
         {
             _graphApiClient.Setup(_ => _.GetAllEntitiesRelatedToFundingLines(It.Is<string[]>(ids
-                    => ids.SequenceEqual(existingFundingLines.SkipLast(1).Select(_ => _.Node.FundingLineId)))))
-                .ReturnsAsync(new ApiResponse<IEnumerable<ApiEntityFundingLine>>(HttpStatusCode.OK, existingFundingLines))
+                    => ids.SequenceEqual(existingFundingLines))))
+                .ReturnsAsync(new ApiResponse<IEnumerable<ApiEntityFundingLine>>(HttpStatusCode.OK, fundingLines))
                 .Verifiable();
         }
 
@@ -417,6 +444,25 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
 
                 _graphApiClient.Setup(_ => _.UpsertCalculationDataFieldsRelationships(relationships.Key, It.Is<string[]>(calcs =>
                         calcs.SequenceEqual(relationships.Select(rel => rel.DataField.DataFieldId).ToArray()))))
+                    .ReturnsAsync(HttpStatusCode.OK)
+                    .Verifiable();
+            }
+        }
+
+        private void AndTheEnumRelationshipsWereCreated(CalculationEnumRelationship[] enumRelationships)
+        {
+            IEnumerable<IGrouping<string, CalculationEnumRelationship>> relationshipsPerCalculation =
+                enumRelationships.GroupBy(_ => _.Calculation.CalculationId);
+
+            foreach (IGrouping<string, CalculationEnumRelationship> relationships in relationshipsPerCalculation)
+            {
+                _graphApiClient.Setup(_ => _.UpsertEnums(It.Is<ApiEnum[]>(enums =>
+                        enums.Select(_ => _.EnumId).SequenceEqual(relationships.Select(rel => rel.Enum.EnumId).Distinct().ToArray()))))
+                    .ReturnsAsync(HttpStatusCode.OK)
+                    .Verifiable();
+
+                _graphApiClient.Setup(_ => _.UpsertCalculationEnumRelationships(It.Is<AmendRelationshipRequestModel[]>(requests =>
+                        RequestsMatch(requests, relationships.Key, relationships.Select(_ => _.Enum.EnumId).ToArray()))))
                     .ReturnsAsync(HttpStatusCode.OK)
                     .Verifiable();
             }

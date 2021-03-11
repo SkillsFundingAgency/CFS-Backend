@@ -17,6 +17,7 @@ using Polly;
 using Serilog;
 using ApiSpecification = CalculateFunding.Common.ApiClient.Graph.Models.Specification;
 using ApiCalculation = CalculateFunding.Common.ApiClient.Graph.Models.Calculation;
+using ApiEnum = CalculateFunding.Common.ApiClient.Graph.Models.Enum;
 using ApiDataField = CalculateFunding.Common.ApiClient.Graph.Models.DataField;
 using ApiDataset = CalculateFunding.Common.ApiClient.Graph.Models.Dataset;
 using ApiDatasetDefinition = CalculateFunding.Common.ApiClient.Graph.Models.DatasetDefinition;
@@ -30,6 +31,7 @@ using DataField = CalculateFunding.Models.Graph.DataField;
 using FundingLine = CalculateFunding.Models.Graph.FundingLine;
 using IEnumerableExtensions = CalculateFunding.Common.Extensions.IEnumerableExtensions;
 using Specification = CalculateFunding.Models.Graph.Specification;
+using Enum = CalculateFunding.Models.Graph.Enum;
 
 namespace CalculateFunding.Services.Calcs.Analysis
 {
@@ -71,6 +73,30 @@ namespace CalculateFunding.Services.Calcs.Analysis
                 return null;
             }
 
+            IEnumerable<ApiEntityCalculation> allCalculationsRelatedToSpecification = await GetAllCalculationsRelatedToSpecification(specificationCalculationRelationships);
+            
+            IEnumerable<Calculation> removedSpecificationCalculations = RemoveCalculationSpecificationRelationships(specificationCalculationRelationships.Calculations, entities);
+            IEnumerable<CalculationRelationship> removedCalculationRelationships =
+                RemoveCalculationCalculationRelationships(specificationCalculationRelationships.CalculationRelationships, allCalculationsRelatedToSpecification);
+            IEnumerable<CalculationDataFieldRelationship> removedDatasetReferences =
+                await RemoveDataFieldCalculationRelationships(specificationCalculationRelationships.CalculationDataFieldRelationships, allCalculationsRelatedToSpecification);
+            IEnumerable<CalculationEnumRelationship> removedCalculationEnumRelationship =
+                await RemoveCalculationEnumRelationships(specificationCalculationRelationships.CalculationEnumRelationships, allCalculationsRelatedToSpecification);
+            IEnumerable<FundingLine> removedFundingLines = await RemoveFundingLines(specificationCalculationRelationships.FundingLineRelationships, specificationCalculationRelationships.FundingLines);
+
+            return new SpecificationCalculationRelationships
+            {
+                Specification = specificationCalculationRelationships.Specification,
+                Calculations = removedSpecificationCalculations,
+                FundingLines = removedFundingLines,
+                CalculationRelationships = removedCalculationRelationships,
+                CalculationDataFieldRelationships = removedDatasetReferences,
+                CalculationEnumRelationships = removedCalculationEnumRelationship
+            };
+        }
+
+        private async Task<IEnumerable<ApiEntityCalculation>> GetAllCalculationsRelatedToSpecification(SpecificationCalculationRelationships specificationCalculationRelationships)
+        {
             PagedContext<Calculation> pagedRequests = new PagedContext<Calculation>(specificationCalculationRelationships.Calculations,
                 PageSize);
 
@@ -94,21 +120,7 @@ namespace CalculateFunding.Services.Calcs.Analysis
                 allCalculations.AddRange(calculationsPage);
             }
 
-            IEnumerable<Calculation> removedSpecificationCalculations = RemoveCalculationSpecificationRelationships(specificationCalculationRelationships.Calculations, entities);
-            IEnumerable<CalculationRelationship> removedCalculationRelationships =
-                RemoveCalculationCalculationRelationships(specificationCalculationRelationships.CalculationRelationships, allCalculations);
-            IEnumerable<CalculationDataFieldRelationship> removedDatasetReferences =
-                await RemoveDataFieldCalculationRelationships(specificationCalculationRelationships.CalculationDataFieldRelationships, specificationCalculationRelationships.Calculations);
-            IEnumerable<FundingLine> removedFundingLines = await RemoveFundingLines(specificationCalculationRelationships.FundingLineRelationships, specificationCalculationRelationships.FundingLines);
-
-            return new SpecificationCalculationRelationships
-            {
-                Specification = specificationCalculationRelationships.Specification,
-                Calculations = removedSpecificationCalculations,
-                FundingLines = removedFundingLines,
-                CalculationRelationships = removedCalculationRelationships,
-                CalculationDataFieldRelationships = removedDatasetReferences
-            };
+            return allCalculations;
         }
 
         private IEnumerable<Calculation> RemoveCalculationSpecificationRelationships(IEnumerable<Calculation> calculations,
@@ -181,53 +193,68 @@ namespace CalculateFunding.Services.Calcs.Analysis
 
             return fundingLines.Where(_ => !fundingLineCalculationRelationships.Any(rel => rel.FundingLine.FundingLineId == _.FundingLineId));
         }
-
-        private async Task<IEnumerable<CalculationDataFieldRelationship>> RemoveDataFieldCalculationRelationships(IEnumerable<CalculationDataFieldRelationship> datasetReferences,
-            IEnumerable<Calculation> calculations)
+        
+        private async Task<IEnumerable<CalculationEnumRelationship>> RemoveCalculationEnumRelationships(IEnumerable<CalculationEnumRelationship> enumReferences,
+            IEnumerable<ApiEntityCalculation> calculations)
         {
-            PagedContext<Calculation> pagedRequests = new PagedContext<Calculation>(calculations,
-                PageSize);
+            // retrieve all calculation to enum relationships from current graph
+            IEnumerable<ApiRelationship> calculationEnumRelations = calculations?.Where(_ => _.Relationships != null).SelectMany(_ =>
+                _.Relationships.Where(rel =>
+                    rel.Type.Equals(CalculationEnumRelationship.FromIdField, StringComparison.InvariantCultureIgnoreCase)));
 
-            List<CalculationDataFieldRelationship> calculationDatasetReferencesList = new List<CalculationDataFieldRelationship>();
-
-            while (pagedRequests.HasPages)
+            // if there are no calculation relationships to remove then exit early
+            if (calculationEnumRelations.IsNullOrEmpty())
             {
-                ApiResponse<IEnumerable<ApiEntityCalculation>> apiCalcResponse = await _resilience.ExecuteAsync(() =>
-                    _graphApiClient.GetAllEntitiesRelatedToCalculations(pagedRequests
-                        .NextPage()
-                        .Select(_ => _.CalculationId)
-                        .ToArray()));
-
-                IEnumerable<ApiEntityCalculation> calculationsPage = apiCalcResponse?.Content;
-
-                if (calculationsPage == null || !calculationsPage.Any())
-                {
-                    continue;
-                }
-
-                IEnumerable<ApiRelationship> entityRelationships = calculationsPage.Where(_ => _.Relationships != null).SelectMany(_ => _.Relationships);
-
-                if (entityRelationships.AnyWithNullCheck())
-                {
-                    calculationDatasetReferencesList.AddRange(entityRelationships
-                        .Where(rel => rel.Type.Equals(CalculationDataFieldRelationship.FromIdField, StringComparison.InvariantCultureIgnoreCase))
-                        .Select(datasetRelationship => new CalculationDataFieldRelationship
-                        {
-                            Calculation = ((object) datasetRelationship.One).AsJson().AsPoco<Calculation>(),
-                            DataField = ((object) datasetRelationship.Two).AsJson().AsPoco<DataField>()
-                        }));
-                }
+                return null;
             }
 
-            // no relationships exist in the current graph for any of the calculations
-            if (calculationDatasetReferencesList.IsNullOrEmpty())
+            // retrieve all emums referenced from the current graph related to the calculations
+            IDictionary<string, CalculationEnumRelationship> calculationEnumReferences = calculationEnumRelations.Select(_ =>
+                new CalculationEnumRelationship
+                {
+                    //double check how we handle dynamic at the other end as I don't believe this is needed
+                    Calculation = ((object)_.One).AsJson().AsPoco<Calculation>(),
+                    Enum = ((object)_.Two).AsJson().AsPoco<Enum>()
+                }).ToDictionary(_ => $"{_.Calculation.CalculationId}{_.Enum.EnumId}");
+
+            // there are no enum references in the new set of calculations so need to delete all current references
+            if (enumReferences.IsNullOrEmpty())
+            {
+                return calculationEnumReferences.Values;
+            }
+
+            // retrieve all the new enums related to the calculations
+            IDictionary<string, CalculationEnumRelationship> newCalculationEnums = enumReferences.ToDictionary(_ => $"{_.Calculation.CalculationId}{_.Enum.EnumId}");
+
+            // retrieve all dataset field relationships which exist in the current graph but not in the new result set
+            IEnumerable<CalculationEnumRelationship> removedEnums = calculationEnumReferences
+                .Where(_ => !newCalculationEnums.ContainsKey(_.Key)).Select(_ => _.Value);
+
+            return removedEnums;
+        }
+
+        private async Task<IEnumerable<CalculationDataFieldRelationship>> RemoveDataFieldCalculationRelationships(IEnumerable<CalculationDataFieldRelationship> datasetReferences,
+            IEnumerable<ApiEntityCalculation> calculations)
+        {
+            // retrieve all calculation to datafield relationships from current graph
+            IEnumerable<ApiRelationship> calculationDataFieldRelations = calculations?.Where(_ => _.Relationships != null).SelectMany(_ =>
+                _.Relationships.Where(rel =>
+                    rel.Type.Equals(CalculationDataFieldRelationship.FromIdField, StringComparison.InvariantCultureIgnoreCase)));
+
+            // if there are no calculation relationships to remove then exit early
+            if (calculationDataFieldRelations.IsNullOrEmpty())
             {
                 return null;
             }
 
             // retrieve all dataset referenced from the current graph related to the calculations
-            IDictionary<string, CalculationDataFieldRelationship> calculationDatasetReferences =
-                calculationDatasetReferencesList?.ToDictionary(_ => $"{_.Calculation.CalculationId}{_.DataField.DataFieldId}");
+            IDictionary<string, CalculationDataFieldRelationship> calculationDatasetReferences = calculationDataFieldRelations.Select(_ =>
+                new CalculationDataFieldRelationship
+                {
+                    //double check how we handle dynamic at the other end as I don't believe this is needed
+                    Calculation = ((object)_.One).AsJson().AsPoco<Calculation>(),
+                    DataField = ((object)_.Two).AsJson().AsPoco<DataField>()
+                }).ToDictionary(_ => $"{_.Calculation.CalculationId}{_.DataField.DataFieldId}");
 
             // there are no dataset references in the new set of calculations so need to delete all current references
             if (datasetReferences.IsNullOrEmpty())
@@ -265,10 +292,10 @@ namespace CalculateFunding.Services.Calcs.Analysis
                     //double check how we handle dynamic at the other end as I don't believe this is needed
                     CalculationOneId = ((object) _.One).AsJson().AsPoco<Calculation>().CalculationId,
                     CalculationTwoId = ((object) _.Two).AsJson().AsPoco<Calculation>().CalculationId
-                }).ToDictionary(_ => $"{_.CalculationOneId}{_.CalculationTwoId}");
+                }).DistinctBy(_ => $"{_.CalculationOneId}{_.CalculationTwoId}").ToDictionary(_ => $"{_.CalculationOneId}{_.CalculationTwoId}");
 
             // retrieve all new calculation relationships 
-            IDictionary<string, CalculationRelationship> calculationRelationshipsDictionary = calculationRelationships.ToDictionary(_ => $"{_.CalculationOneId}{_.CalculationTwoId}");
+            IDictionary<string, CalculationRelationship> calculationRelationshipsDictionary = calculationRelationships.DistinctBy(_ => $"{_.CalculationOneId}{_.CalculationTwoId}").ToDictionary(_ => $"{_.CalculationOneId}{_.CalculationTwoId}");
 
             // retrieve all calculation to calculation relationships from current graph not in the new result set
             IEnumerable<CalculationRelationship> removedCalculationRelationships = calculationCalculationRelationsDictionary
@@ -325,6 +352,11 @@ namespace CalculateFunding.Services.Calcs.Analysis
             {
                 await DeleteDatasetRelationships(specificationCalculationUnusedRelationships.CalculationDataFieldRelationships);
             }
+
+            if (specificationCalculationUnusedRelationships.CalculationEnumRelationships != null)
+            {
+                await DeleteEnumRelationships(specificationCalculationUnusedRelationships.CalculationEnumRelationships);
+            }
         }
 
         private async Task InsertSpecificationGraph(SpecificationCalculationRelationships specificationCalculationRelationships)
@@ -342,6 +374,7 @@ namespace CalculateFunding.Services.Calcs.Analysis
                 UpsertSpecificationRelationships(specificationCalculationRelationships),
                 UpsertCalculationRelationships(specificationCalculationRelationships.CalculationRelationships),
                 UpsertDataFieldRelationships(specificationCalculationRelationships.CalculationDataFieldRelationships),
+                UpsertEnumRelationships(specificationCalculationRelationships.CalculationEnumRelationships),
                 UpsertDatasetDataFieldRelationships(specificationCalculationRelationships.DatasetDataFieldRelationships, specificationCalculationRelationships.Specification.SpecificationId),
                 UpsertDatasetDatasetDefinitionRelationships(specificationCalculationRelationships.DatasetDatasetDefinitionRelationships)
             };
@@ -429,7 +462,27 @@ namespace CalculateFunding.Services.Calcs.Analysis
                     .NextPage()
                     .ToArray()));
 
-                EnsureApiCallSucceeded(response, "Unable to delete previous graph s for calculation ids and data field ids");
+                EnsureApiCallSucceeded(response, "Unable to delete previous graph relationships for calculation ids and data field ids");
+            }
+        }
+
+        private async Task DeleteEnumRelationships(IEnumerable<CalculationEnumRelationship> enumRelationships)
+        {
+            PagedContext<AmendRelationshipRequestModel> pagedRequests = new PagedContext<AmendRelationshipRequestModel>(enumRelationships
+                    .Select(_ => new AmendRelationshipRequestModel
+                    {
+                        IdA = _.Calculation.CalculationId,
+                        IdB = _.Enum.EnumId
+                    }),
+                PageSize);
+
+            while (pagedRequests.HasPages)
+            {
+                HttpStatusCode response = await _resilience.ExecuteAsync(() => _graphApiClient.DeleteCalculationEnumRelationships(pagedRequests
+                    .NextPage()
+                    .ToArray()));
+
+                EnsureApiCallSucceeded(response, "Unable to delete previous graph relationships for calculation ids and enum ids");
             }
         }
 
@@ -523,7 +576,32 @@ namespace CalculateFunding.Services.Calcs.Analysis
                 EnsureApiCallSucceeded(response, "Unable to create data field calculation relationships");
             }
         }
+        
+        private async Task UpsertEnumRelationships(IEnumerable<CalculationEnumRelationship> enumRelationships)
+        {
+            IEnumerable<IGrouping<string, CalculationEnumRelationship>> relationshipsPerCalculation =
+                enumRelationships.GroupBy(_ => _.Calculation.CalculationId);
 
+            foreach (IGrouping<string, CalculationEnumRelationship> relationships in relationshipsPerCalculation)
+            {
+                HttpStatusCode response;
+
+                ApiEnum[] apiEnums = relationships.Select(_ => _mapper.Map<ApiEnum>(_.Enum)).ToArray();
+
+                response = await _resilience.ExecuteAsync(() =>
+                    _graphApiClient.UpsertEnums(apiEnums));
+
+                EnsureApiCallSucceeded(response, "Unable to create enums");
+
+                response = await _resilience.ExecuteAsync(() =>
+                    _graphApiClient.UpsertCalculationEnumRelationships(relationships.Select(_ => new AmendRelationshipRequestModel{
+                        IdA = _.Calculation.CalculationId,
+                        IdB = _.Enum.EnumId
+                    }).ToArraySafe()));
+
+                EnsureApiCallSucceeded(response, "Unable to create enum calculation relationships");
+            }
+        }
         private async Task UpsertDatasetDataFieldRelationships(IEnumerable<DatasetDataFieldRelationship> datasetDataFieldRelationships,
             string specificationId)
         {
