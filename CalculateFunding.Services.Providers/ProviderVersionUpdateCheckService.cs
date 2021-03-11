@@ -1,4 +1,7 @@
-﻿using AutoMapper;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using AutoMapper;
 using CalculateFunding.Common.ApiClient.FundingDataZone;
 using CalculateFunding.Common.ApiClient.FundingDataZone.Models;
 using CalculateFunding.Common.ApiClient.Models;
@@ -14,9 +17,6 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Providers.Interfaces;
 using Polly;
 using Serilog;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Providers
 {
@@ -88,6 +88,24 @@ namespace CalculateFunding.Services.Providers
 
                 string fundingStreamId = fundingStream.Id;
 
+
+
+                IEnumerable<FundingConfiguration> fundingStreamConfigurations = await GetFundingConfigurationsByFundingStreamId(fundingStreamId);
+
+                if (!fundingStreamConfigurations.AnyWithNullCheck())
+                {
+                    continue;
+                }
+
+                IEnumerable<FundingConfiguration> periodsWithUpdatesEnabled = fundingStreamConfigurations.Where(_ => _.UpdateCoreProviderVersion == UpdateCoreProviderVersion.ToLatest);
+
+                if (!periodsWithUpdatesEnabled.Any())
+                {
+                    continue;
+                }
+
+                fundingConfigurations.AddRange(periodsWithUpdatesEnabled);
+
                 CurrentProviderVersionMetadata currentProviderVersionMetadata =
                     metadataForAllFundingStreams.SingleOrDefault(_ => _.FundingStreamId == fundingStreamId);
                 if (currentProviderVersionMetadata == null)
@@ -97,9 +115,6 @@ namespace CalculateFunding.Services.Providers
                     continue;
                 }
 
-                IEnumerable<FundingConfiguration> fundingStreamConfigurations = await GetFundingConfigurationsByFundingStreamId(fundingStreamId);
-                fundingConfigurations.AddRange(fundingStreamConfigurations);
-
                 IEnumerable<ProviderSnapshot> providerSnapshots = await GetLatestProviderSnapshots();
                 if (providerSnapshots.IsNullOrEmpty())
                 {
@@ -108,7 +123,7 @@ namespace CalculateFunding.Services.Providers
 
                 ProviderSnapshot latestProviderSnapshot = providerSnapshots.FirstOrDefault(x => x.FundingStreamCode == fundingStreamId);
 
-                if(latestProviderSnapshot == null)
+                if (latestProviderSnapshot == null)
                 {
                     continue;
                 }
@@ -116,7 +131,7 @@ namespace CalculateFunding.Services.Providers
                 int latestProviderSnapshotId = latestProviderSnapshot.ProviderSnapshotId;
                 int? currentProviderSnapshotId = currentProviderVersionMetadata.ProviderSnapshotId;
 
-               
+
 
                 if (currentProviderSnapshotId != latestProviderSnapshotId)
                 {
@@ -134,9 +149,9 @@ namespace CalculateFunding.Services.Providers
             }
 
             IEnumerable<SpecificationSummary> specificationSummaries = await GetSpecificationsWithProviderVersionUpdatesAsUseLatest();
-            
-            
-            
+
+
+
             await EditSpecifications(fundingConfigurations, fundingStreamsLatestProviderSnapshotIds, specificationSummaries);
         }
 
@@ -207,7 +222,7 @@ namespace CalculateFunding.Services.Providers
                 await _specificationsApiClientPolicy.ExecuteAsync(() =>
                     _specificationsApiClient.GetSpecificationsWithProviderVersionUpdatesAsUseLatest());
 
-            if(specificationsWithProviderVersionUpdateResponse.StatusCode == System.Net.HttpStatusCode.NotFound)
+            if (specificationsWithProviderVersionUpdateResponse.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
                 string errorMessage = "No specification with provider version updates as use latest";
                 _logger.Information(errorMessage);
@@ -229,32 +244,32 @@ namespace CalculateFunding.Services.Providers
             Dictionary<string, int> fundingStreamsLatestProviderSnapshotIds,
             IEnumerable<SpecificationSummary> specificationSummaries)
         {
-            IEnumerable<FundingConfiguration> updateLatestFundingConfigurations = 
+            IEnumerable<FundingConfiguration> updateLatestFundingConfigurations =
                 fundingConfigurations.Where(_ => _.UpdateCoreProviderVersion == UpdateCoreProviderVersion.ToLatest).ToList();
 
             foreach (SpecificationSummary specificationSummary in specificationSummaries)
             {
                 string fundingStreamId = specificationSummary.FundingStreams.FirstOrDefault().Id;
 
-                if (updateLatestFundingConfigurations.Any(_ => 
-                    _.FundingPeriodId == specificationSummary.FundingPeriod.Id && 
+                if (updateLatestFundingConfigurations.Any(_ =>
+                    _.FundingPeriodId == specificationSummary.FundingPeriod.Id &&
                     _.FundingStreamId == fundingStreamId))
                 {
                     int latestProviderSnapshotId = fundingStreamsLatestProviderSnapshotIds[fundingStreamId];
-                    
+
                     if (await _publishingJobClashCheck.PublishingJobsClashWithFundingStreamCoreProviderUpdate(specificationSummary.GetSpecificationId()))
                     {
                         LogInformation($"Skipping Update Specification Provider Version for funding stream ID: {fundingStreamId}. " +
                                        $"Latest provider snapshot ID: {latestProviderSnapshotId} as detected publishing jobs running for specifications using an earlier snapshot of this provider data");
-                    
+
                         continue;
                     }
-                    
+
                     await _specificationsApiClientPolicy.ExecuteAsync(() =>
                             _specificationsApiClient.UpdateSpecification(
-                                specificationSummary.Id, 
-                                new EditSpecificationModel 
-                                { 
+                                specificationSummary.Id,
+                                new EditSpecificationModel
+                                {
                                     Name = specificationSummary.Name,
                                     Description = specificationSummary.Description,
                                     FundingStreamId = fundingStreamId,

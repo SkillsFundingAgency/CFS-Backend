@@ -2,20 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
-using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Specs;
-using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Specs.Interfaces;
+using Microsoft.AspNetCore.Mvc;
 using Polly;
 using Serilog;
 using Calculation = CalculateFunding.Common.TemplateMetadata.Models.Calculation;
@@ -79,24 +77,36 @@ namespace CalculateFunding.Services.Specs
             await TaskHelper.WhenAllAndThrow(createAssignTemplateJobTasks);
 
             Reference fundingStream = specificationVersion.FundingStreams.FirstOrDefault();
-            if(fundingStream != null && specificationVersion.ProviderSource == Models.Providers.ProviderSource.FDZ)
+            if (fundingStream != null && specificationVersion.ProviderSource == Models.Providers.ProviderSource.FDZ)
             {
-                errorMessage = $"Unable to queue ProviderSnapshotDataLoadJob for specification - {versionSpecificationId}";
-                Job createProviderSnapshotDataLoadJob = await CreateJob(errorMessage,
-                NewJobCreateModel(versionSpecificationId,
-                    "Assigning ProviderVersionId for specification",
-                    JobConstants.DefinitionNames.ProviderSnapshotDataLoadJob,
-                    correlationId,
-                    user,
-                    new Dictionary<string, string>
-                    {
-                        {"specification-id", versionSpecificationId},
-                        {"fundingstream-id", fundingStream.Id},
-                        {"providerSanpshot-id", specificationVersion.ProviderSnapshotId?.ToString() }
-                    }));
-
-                GuardAgainstNullJob(createProviderSnapshotDataLoadJob, errorMessage);
+                await CreateProviderSnapshotDataLoadJob(new ProviderSnapshotDataLoadRequest()
+                {
+                    FundingStreamId = fundingStream.Id,
+                    ProviderSnapshotId = specificationVersion.ProviderSnapshotId.Value,
+                    SpecificationId = versionSpecificationId,
+                }, user, correlationId);
             }
+        }
+
+        public async Task<ActionResult<Job>> CreateProviderSnapshotDataLoadJob(ProviderSnapshotDataLoadRequest request, Reference user, string correlationId)
+        {
+            string errorMessage = $"Unable to queue ProviderSnapshotDataLoadJob for specification - {request.SpecificationId}";
+            Job createProviderSnapshotDataLoadJob = await CreateJob(errorMessage,
+            NewJobCreateModel(request.SpecificationId,
+                "Assigning ProviderVersionId for specification",
+                JobConstants.DefinitionNames.ProviderSnapshotDataLoadJob,
+                correlationId,
+                user,
+                new Dictionary<string, string>
+                {
+                        {"specification-id", request.SpecificationId},
+                        {"fundingstream-id", request.FundingStreamId },
+                        {"providerSanpshot-id", request.ProviderSnapshotId.ToString() }
+                }));
+
+            GuardAgainstNullJob(createProviderSnapshotDataLoadJob, errorMessage);
+
+            return createProviderSnapshotDataLoadJob;
         }
 
         private async Task CreateAssignCalculationJobForFundingStream(string fundingStreamId,
@@ -105,7 +115,7 @@ namespace CalculateFunding.Services.Specs
             Reference user,
             string correlationId,
             string parentJobId)
-        { 
+        {
             string templateVersion = specificationVersion.TemplateIds.ContainsKey(fundingStreamId) ? specificationVersion.TemplateIds[fundingStreamId] : string.Empty;
 
             if (string.IsNullOrEmpty(templateVersion)) return;
@@ -187,7 +197,7 @@ namespace CalculateFunding.Services.Specs
 
                 return job;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.Error(ex, errorMessage);
 
