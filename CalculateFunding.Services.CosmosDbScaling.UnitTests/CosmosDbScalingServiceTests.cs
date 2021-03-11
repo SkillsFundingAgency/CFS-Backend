@@ -1662,7 +1662,9 @@ namespace CalculateFunding.Services.CosmosDbScaling
               .Received(1)
               .UpdateCollectionSettings(Arg.Is<CosmosDbScalingCollectionSettings>(m =>
                    m.CurrentRequestUnits == 10000 &&
-                   m.LastScalingIncrementValue == 10000 &&
+                   m.LastScalingIncrementDateTime == null &&
+                   m.LastScalingIncrementValue == 0 &&
+                   m.LastScalingDecrementValue == 10000 &&
                    m.LastScalingDecrementDateTime.HasValue
               ));
 
@@ -1722,7 +1724,9 @@ namespace CalculateFunding.Services.CosmosDbScaling
               .Received(1)
               .UpdateCollectionSettings(Arg.Is<CosmosDbScalingCollectionSettings>(m =>
                    m.CurrentRequestUnits == 40000 &&
-                   m.LastScalingIncrementValue == 10000 &&
+                   m.LastScalingIncrementDateTime == null &&
+                   m.LastScalingIncrementValue == 0 &&
+                   m.LastScalingDecrementValue == 10000 &&
                    m.LastScalingDecrementDateTime.HasValue
               ));
 
@@ -1796,7 +1800,9 @@ namespace CalculateFunding.Services.CosmosDbScaling
               .Received(1)
               .UpdateCollectionSettings(Arg.Is<CosmosDbScalingCollectionSettings>(m =>
                    m.CurrentRequestUnits == 35000 &&
-                   m.LastScalingIncrementValue == 20000 &&
+                   m.LastScalingIncrementDateTime == null &&
+                   m.LastScalingIncrementValue == 0 &&
+                   m.LastScalingDecrementValue == 15000 &&
                    m.LastScalingDecrementDateTime.HasValue
               ));
 

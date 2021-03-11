@@ -394,6 +394,9 @@ namespace CalculateFunding.Services.CosmosDbScaling
             }
             else
             {
+                // need to set max date on increment datetime so it doesn't scale down again until it scales up on incremental
+                settings.LastScalingIncrementDateTime = null;
+                settings.LastScalingIncrementValue = 0;
                 settings.LastScalingDecrementDateTime = DateTimeOffset.Now;
                 settings.LastScalingDecrementValue = requestUnits;
             }

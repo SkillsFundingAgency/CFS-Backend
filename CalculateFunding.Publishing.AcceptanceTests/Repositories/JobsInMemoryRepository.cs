@@ -190,5 +190,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         public Task<ApiResponse<JobCreateResult>> TryCreateJob(JobCreateModel jobCreateModel) => throw new NotImplementedException();
 
         public Task<ApiResponse<IEnumerable<JobCreateResult>>> TryCreateJobs(IEnumerable<JobCreateModel> jobCreateModels) => throw new NotImplementedException();
+
+        public Task<ApiResponse<JobSummary>> GetLatestJobByTriggerEntityId(string specificationId, string entityId) => throw new NotImplementedException();
     }
 }
