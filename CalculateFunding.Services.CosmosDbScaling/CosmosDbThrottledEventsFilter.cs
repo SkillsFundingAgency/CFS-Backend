@@ -9,6 +9,8 @@ namespace CalculateFunding.Services.CosmosDbScaling
 {
     public class CosmosDbThrottledEventsFilter : ICosmosDbThrottledEventsFilter
     {
+        private const int EventHubWindow = 15;
+
         public IEnumerable<string> GetUniqueCosmosDBContainerNamesFromEventData(IEnumerable<EventData> events)
         {
             Guard.ArgumentNotNull(events, nameof(events));
@@ -18,7 +20,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             foreach (EventData eventData in events)
             {
-                if (eventData.Properties.Count == 0)
+                if (eventData.Properties.Count == 0 || eventData.GetSystemProperty<DateTime>("x-opt-enqueued-time") < DateTime.UtcNow.AddMinutes(-EventHubWindow))
                 {
                     continue;
                 }
@@ -37,5 +39,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             return collections;
         }
+
+        
     }
 }

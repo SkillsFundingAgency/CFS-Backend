@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -64,6 +65,8 @@ namespace CalculateFunding.Services.CosmosDbScaling
         [TestMethod]
         public void GetUniqueCosmosDBContainerNamesFromEventData_GivenEventsWhereOneStatusCodeIs429_ReturnsCollectionWithOneItem()
         {
+            int outsideEventHubWindowMinutes = 30;
+
             //Arrange
             EventData eventData1 = new EventData(Encoding.UTF8.GetBytes(""));
             eventData1.Properties.Add("statusCode", (int)HttpStatusCode.Created);
@@ -71,12 +74,18 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             EventData eventData2 = new EventData(Encoding.UTF8.GetBytes(""));
             eventData2.Properties.Add("statusCode", (int)HttpStatusCode.TooManyRequests);
-            eventData2.Properties.Add("collection", "calcs");
+            eventData2.SystemProperties = new EventData.SystemPropertiesCollection(1, DateTime.UtcNow.AddMinutes(-outsideEventHubWindowMinutes), string.Empty, string.Empty);
+            eventData2.Properties.Add("collection", "specs");
+
+            EventData eventData3 = new EventData(Encoding.UTF8.GetBytes(""));
+            eventData3.Properties.Add("statusCode", (int)HttpStatusCode.TooManyRequests);
+            eventData3.Properties.Add("collection", "calcs");
 
             IEnumerable<EventData> events = new[]
             {
                 eventData1,
-                eventData2
+                eventData2,
+                eventData3
             };
 
             CosmosDbThrottledEventsFilter cosmosDbThrottledEventsFilter = new CosmosDbThrottledEventsFilter();
