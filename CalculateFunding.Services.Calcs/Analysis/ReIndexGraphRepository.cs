@@ -505,12 +505,18 @@ namespace CalculateFunding.Services.Calcs.Analysis
         {
             Guard.IsNotEmpty(calculations, nameof(calculations));
 
-            ApiCalculation[] graphCalculations = _mapper.Map<IEnumerable<ApiCalculation>>(calculations)
-                .ToArray();
+            PagedContext<ApiCalculation> pagedRequests = new PagedContext<ApiCalculation>(_mapper.Map<IEnumerable<ApiCalculation>>(calculations),
+                PageSize);
 
-            HttpStatusCode response = await _resilience.ExecuteAsync(() => _graphApiClient.UpsertCalculations(graphCalculations));
+            while (pagedRequests.HasPages)
+            {
+                HttpStatusCode response = await _resilience.ExecuteAsync(() =>
+                    _graphApiClient.UpsertCalculations(pagedRequests
+                        .NextPage()
+                        .ToArray()));
 
-            EnsureApiCallSucceeded(response, "Unable to create calculation nodes");
+                EnsureApiCallSucceeded(response, "Unable to create calculation nodes");
+            }
         }
 
         private async Task UpsertSpecificationRelationships(SpecificationCalculationRelationships specificationCalculationRelationships)
@@ -602,6 +608,7 @@ namespace CalculateFunding.Services.Calcs.Analysis
                 EnsureApiCallSucceeded(response, "Unable to create enum calculation relationships");
             }
         }
+
         private async Task UpsertDatasetDataFieldRelationships(IEnumerable<DatasetDataFieldRelationship> datasetDataFieldRelationships,
             string specificationId)
         {
