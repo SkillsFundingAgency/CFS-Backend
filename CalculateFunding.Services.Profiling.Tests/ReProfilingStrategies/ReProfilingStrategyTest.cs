@@ -32,7 +32,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
             };
         }
 
-        protected static decimal[] NewAmounts(params decimal[] amounts) => amounts;
+        protected static decimal[] NewDecimals(params decimal[] amounts) => amounts;
 
         protected void AndTheFundingLinePeriodAmountsShouldBe(params decimal[] expectedAmounts)
         {
@@ -64,9 +64,22 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 .Be(expectedOverPayment.GetValueOrDefault());
         }
 
+        protected ProfilePeriodPattern[] AsProfilePattern(params decimal[] profilePeriodPercentages)
+        {
+            return profilePeriodPercentages.Select((percentage,
+                        index) =>
+                    NewProfilePeriodPattern(_ => _.WithPercentage(percentage)
+                        .WithType(PeriodType.CalendarMonth)
+                        .WithYear(_year)
+                        .WithPeriod(_month)
+                        .WithOccurrence(index)
+                        .Build()))
+                .ToArray();
+        }
+
         protected ExistingProfilePeriod[] AsExistingProfilePeriods(params decimal[] periodValues)
         {
-            return periodValues.Select<decimal, ExistingProfilePeriod>((amount, index) => 
+            return periodValues.Select((amount, index) => 
                     NewExistingProfilePeriod(_ => _.WithProfiledValue(amount)
                         .WithPeriodType(PeriodType.CalendarMonth)
                         .WithOccurrence(index)
@@ -77,7 +90,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
 
         protected DeliveryProfilePeriod[] AsLatestProfiling(params decimal[] periodValues)
         {
-            return periodValues.Select<decimal, DeliveryProfilePeriod>((amount, index) => 
+            return periodValues.Select((amount, index) => 
                     NewDeliveryProfilePeriod(_ => _.WithProfiledValue(amount)
                         .WithPeriodType(PeriodType.CalendarMonth)
                         .WithOccurrence(index)
@@ -116,6 +129,11 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
             Context.ProfileResult.DeliveryProfilePeriods = deliveryProfilePeriods;
         }
 
+        protected void AndTheProfilePattern(FundingStreamPeriodProfilePattern profilePattern)
+        {
+            Context.ProfilePattern = profilePattern;
+        }
+
         private ExistingProfilePeriod NewExistingProfilePeriod(Action<ExistingProfilePeriodBuilder> setUp = null)
         {
             ExistingProfilePeriodBuilder existingProfilePeriodBuilder = new ExistingProfilePeriodBuilder();
@@ -134,8 +152,28 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
             return deliveryProfilePeriodBuilder.Build();
         }
 
+        protected FundingStreamPeriodProfilePattern NewFundingStreamPeriodProfilePattern(Action<FundingStreamPeriodProfilePatternBuilder> setUp = null)
+        {
+            FundingStreamPeriodProfilePatternBuilder fundingStreamPeriodProfilePatternBuilder = new FundingStreamPeriodProfilePatternBuilder();
+
+            setUp?.Invoke(fundingStreamPeriodProfilePatternBuilder);
+            
+            return fundingStreamPeriodProfilePatternBuilder.Build();
+        }
+
+        private ProfilePeriodPattern NewProfilePeriodPattern(Action<ProfilePeriodPatternBuilder> setUp = null)
+        {
+            ProfilePeriodPatternBuilder profilePeriodPatternBuilder = new ProfilePeriodPatternBuilder();
+            
+            setUp?.Invoke(profilePeriodPatternBuilder);
+
+            return profilePeriodPatternBuilder.Build();
+        }
+
         private int NewRandomYear() => NewRandomDateTime().Year;
+        
         private static DateTime NewRandomDateTime() => new RandomDateTime();
+        
         private static string NewRandomMonth() => NewRandomDateTime().ToString("MMMM");
 
         protected void WhenTheFundingLineIsReProfiled()

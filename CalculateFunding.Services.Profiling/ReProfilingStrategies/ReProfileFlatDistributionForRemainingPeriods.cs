@@ -24,8 +24,9 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
             int variationPointerIndex = GetVariationPointerIndex(orderedRefreshProfilePeriods, orderedExistingProfilePeriods, context);
             
             RetainPaidProfilePeriodValues(variationPointerIndex, orderedExistingProfilePeriods, orderedRefreshProfilePeriods);
-
-            decimal  carryOverAmount = DistributeRemainingFundingLineValueEvenly(orderedExistingProfilePeriods, variationPointerIndex, reProfileRequest, orderedRefreshProfilePeriods);
+            DistributeRemainingFundingLineValueEvenly(orderedExistingProfilePeriods, variationPointerIndex, reProfileRequest, orderedRefreshProfilePeriods);
+            
+            decimal carryOverAmount = CalculateCarryOverAmount(reProfileRequest, orderedRefreshProfilePeriods);
 
             return new ReProfileStrategyResult
             {
@@ -35,33 +36,41 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
             };
         }
 
-        private static decimal DistributeRemainingFundingLineValueEvenly(IExistingProfilePeriod[] orderedExistingProfilePeriods,
+        private static decimal CalculateCarryOverAmount(ReProfileRequest reProfileRequest,
+            IProfilePeriod[] orderedRefreshProfilePeriods)
+        {
+            return Math.Abs(reProfileRequest.FundingLineTotal - orderedRefreshProfilePeriods.Sum(_ => _.GetProfileValue()));
+        }
+
+        private static void DistributeRemainingFundingLineValueEvenly(IExistingProfilePeriod[] orderedExistingProfilePeriods,
             int variationPointerIndex,
             ReProfileRequest reProfileRequest,
             IProfilePeriod[] orderedRefreshProfilePeriods)
         {
             decimal previousFundingLineValuePaid = orderedExistingProfilePeriods.Take(variationPointerIndex).Sum(_ => _.GetProfileValue());
             decimal remainingFundingLineValueToPay = reProfileRequest.FundingLineTotal - previousFundingLineValuePaid;
+            decimal remainingFundingLineProfiledToPay = orderedRefreshProfilePeriods.Skip(variationPointerIndex).Sum(_ => _.GetProfileValue());
+            decimal differenceToDistribute = remainingFundingLineValueToPay - remainingFundingLineProfiledToPay;
 
-            DistributeRemainingBalance(variationPointerIndex, orderedRefreshProfilePeriods, Math.Max(remainingFundingLineValueToPay, 0));
-
-            return remainingFundingLineValueToPay < 0 ? Math.Abs(remainingFundingLineValueToPay) : 0;
+            DistributeRemainingBalance(variationPointerIndex, orderedRefreshProfilePeriods, differenceToDistribute);
         }
         
         private static void DistributeRemainingBalance(int variationPointerIndex,
             IProfilePeriod[] orderedRefreshProfilePeriods,
-            decimal remainingFundingLineValueToPay)
+            decimal differenceToDistribute)
         {
             int remainingPeriodsToPay = orderedRefreshProfilePeriods.Length - variationPointerIndex;
 
-            int remainingPeriodsProfileValue = (int) Math.Floor(remainingFundingLineValueToPay / remainingPeriodsToPay);
-            decimal remainderForFinalPeriod = remainingFundingLineValueToPay - remainingPeriodsToPay * remainingPeriodsProfileValue;
+            decimal remainingPeriodsProfileValue = Math.Round(differenceToDistribute / remainingPeriodsToPay, 2, MidpointRounding.AwayFromZero);
+            decimal remainderForFinalPeriod = differenceToDistribute - remainingPeriodsToPay * remainingPeriodsProfileValue;
 
             for (int refreshProfilePeriodIndex = variationPointerIndex; refreshProfilePeriodIndex < orderedRefreshProfilePeriods.Length; refreshProfilePeriodIndex++)
             {
                 IProfilePeriod profilePeriod = orderedRefreshProfilePeriods[refreshProfilePeriodIndex];
 
-                profilePeriod.SetProfiledValue(remainingPeriodsProfileValue);
+                decimal adjustedProfileValue = profilePeriod.GetProfileValue() + remainingPeriodsProfileValue;
+                
+                profilePeriod.SetProfiledValue(Math.Max(adjustedProfileValue, 0));
             }
 
             IProfilePeriod finalProfilePeriod = orderedRefreshProfilePeriods.Last();

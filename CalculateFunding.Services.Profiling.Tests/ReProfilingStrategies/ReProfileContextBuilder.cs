@@ -7,7 +7,15 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
     {
         private ReProfileRequest _request;
         private AllocationProfileResponse _response;
+        private FundingStreamPeriodProfilePattern _profilePattern;
 
+        public ReProfileContextBuilder WithProfilePattern(FundingStreamPeriodProfilePattern profilePattern)
+        {
+            _profilePattern = profilePattern;
+
+            return this;
+        }
+        
         public ReProfileContextBuilder WithReProfileRequest(ReProfileRequest request)
         {
             _request = request;
@@ -27,7 +35,8 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
             return new ReProfileContext
             {
                 Request = _request,
-                ProfileResult = _response
+                ProfileResult = _response,
+                ProfilePattern = _profilePattern
             };
         }
     }
