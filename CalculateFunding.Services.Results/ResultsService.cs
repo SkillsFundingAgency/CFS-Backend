@@ -560,7 +560,7 @@ namespace CalculateFunding.Services.Results
 
             IEnumerable<SpecModel.SpecificationSummary> specificationSummaries = specificationApiResponse.Content;
 
-            Task[] queueCsvJobTasks = specificationSummaries.Select(_ => 
+            Task<Job>[] queueCsvJobTasks = specificationSummaries.Select(_ => 
                 QueueCsvGenerationMessageIfNewCalculationResults(_.Id, _.Name))
                 .ToArray();
 
@@ -603,7 +603,7 @@ namespace CalculateFunding.Services.Results
 
         public async Task<Job> QueueCsvGenerationMessageIfNewCalculationResults(string specificationId, string specificationName)
         {
-            bool hasNewResults = false;
+            bool hasNewResults;
 
             bool blobExists = await _blobClientPolicy.ExecuteAsync(() => 
                 _blobClient.DoesBlobExistAsync($"{CalculationResultsReportFilePrefix}-{specificationId}", CalcsResultsContainerName));

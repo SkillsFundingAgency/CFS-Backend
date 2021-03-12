@@ -318,10 +318,10 @@ namespace CalculateFunding.Services.Results.Repositories
             CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
             {
                 QueryText = @"SELECT c.id 
-                            FROM calculationresults c
+                            FROM results c
                             WHERE c.content.specificationId = @SpecificationId
                             AND c.documentType = 'ProviderResult'
-                            AND c.updatedAt >= @DateFrom",
+                            AND c.updatedAt > @DateFrom",
 
                 Parameters = new[]
                 {
@@ -332,7 +332,7 @@ namespace CalculateFunding.Services.Results.Repositories
 
             IEnumerable<dynamic> result = await _cosmosRepository.DynamicQuery(cosmosDbQuery, 1);
 
-            return result.FirstOrDefault() != null;
+            return result.Any();
         }
 
         public async Task<ProviderResult> GetSingleProviderResultBySpecificationId(string specificationId)
