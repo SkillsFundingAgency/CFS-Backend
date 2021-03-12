@@ -13,12 +13,12 @@
 
   <ItemGroup>
     <PackageReference Include="CacheCow.Server.Core.Mvc" Version="2.7.4" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Graph" Version="2.5.7" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Graph" Version="2.5.8" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Calcs" Version="5.1.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Datasets" Version="5.6.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="4.1.1" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="4.4.0" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Results" Version="5.1.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Results" Version="5.2.0" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.15.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.2" />
     <PackageReference Include="Microsoft.Azure.AppConfiguration.AspNetCore" Version="4.1.0" />
