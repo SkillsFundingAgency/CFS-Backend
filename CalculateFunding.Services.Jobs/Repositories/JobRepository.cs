@@ -125,10 +125,9 @@ namespace CalculateFunding.Services.Jobs.Repositories
             {
                 new CosmosDbQueryParameter("@SpecificationId", specificationId),
                 new CosmosDbQueryParameter("@JobDefinitionId", jobDefinitionId),
-                new CosmosDbQueryParameter("@Date", DateTimeOffset.UtcNow.AddDays(-1))
             };
 
-            string query = @"SELECT r.content.id AS id, 
+            string query = @"SELECT TOP 1 r.content.id AS id, 
                                     r.content.jobDefinitionId AS jobDefinitionId, 
                                     r.content.runningStatus AS runningStatus, 
                                     r.content.completionStatus AS completionStatus, 
@@ -152,8 +151,7 @@ namespace CalculateFunding.Services.Jobs.Repositories
                             WHERE   r.documentType = 'Job' 
                                     AND r.deleted = false 
                                     AND r.content.specificationId = @SpecificationId
-                                    AND r.content.jobDefinitionId = @JobDefinitionId 
-                                    AND r.content.created > @Date ";
+                                    AND r.content.jobDefinitionId = @JobDefinitionId";
 
             if (completionStatusToFilter.HasValue)
             {
