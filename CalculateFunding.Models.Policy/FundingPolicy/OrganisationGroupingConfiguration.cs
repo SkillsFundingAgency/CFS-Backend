@@ -19,5 +19,8 @@ namespace CalculateFunding.Models.Policy.FundingPolicy
 
         [JsonProperty("providerTypeMatch")]
         public IEnumerable<ProviderTypeMatch> ProviderTypeMatch { get; set; }
+
+        [JsonProperty("providerStatus")]
+        public IEnumerable<string> ProviderStatus { get; set; }
     }
 }

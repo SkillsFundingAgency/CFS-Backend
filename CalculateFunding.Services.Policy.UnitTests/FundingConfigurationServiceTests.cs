@@ -488,6 +488,10 @@ namespace CalculateFunding.Services.Policy.UnitTests
                                 ProviderSubtype = "providerSubType",
                                 ProviderType = "providerType"
                             }
+                        },
+                        ProviderStatus = new[]
+                        {
+                            "New opener - Proposed to open"
                         }
                     }
                 }
