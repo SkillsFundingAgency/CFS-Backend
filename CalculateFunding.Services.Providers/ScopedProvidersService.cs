@@ -165,33 +165,38 @@ namespace CalculateFunding.Services.Providers
             return new OkObjectResult(await RegenerateScopedProvidersForSpecification(specificationId, setCachedProviders));
         }
 
-        public async Task<IActionResult> FetchCoreProviderData(string specificationId)
+        public async Task<IActionResult> FetchCoreProviderData(string specificationId, string providerVersionId = null)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
-            EnsureFolderExists(ScopedProvidersFileSystemCacheKey.Folder);
+            ScopedProvidersFileSystemCacheKey cacheKey = null;
 
-            string filesystemCacheKey = $"{CacheKeys.ScopedProviderSummariesFilesystemKeyPrefix}{specificationId}";
-            string cacheGuid = await _cachePolicy.ExecuteAsync(() => _cacheProvider.GetAsync<string>(filesystemCacheKey));
-
-            if (cacheGuid.IsNullOrEmpty())
+            if (string.IsNullOrWhiteSpace(providerVersionId))
             {
-                cacheGuid = Guid.NewGuid().ToString();
-                await _cacheProvider.SetAsync(filesystemCacheKey, cacheGuid, TimeSpan.FromDays(7), true);
+                EnsureFolderExists(ScopedProvidersFileSystemCacheKey.Folder);
+
+                string filesystemCacheKey = $"{CacheKeys.ScopedProviderSummariesFilesystemKeyPrefix}{specificationId}";
+                string cacheGuid = await _cachePolicy.ExecuteAsync(() => _cacheProvider.GetAsync<string>(filesystemCacheKey));
+
+                if (cacheGuid.IsNullOrEmpty())
+                {
+                    cacheGuid = Guid.NewGuid().ToString();
+                    await _cacheProvider.SetAsync(filesystemCacheKey, cacheGuid, TimeSpan.FromDays(7), true);
+                }
+
+                cacheKey = new ScopedProvidersFileSystemCacheKey(specificationId, cacheGuid);
+
+                bool isFileSystemCacheEnabled = IsFileSystemCacheEnabled;
+
+                if (isFileSystemCacheEnabled && _fileSystemCache.Exists(cacheKey))
+                {
+                    await using Stream cachedStream = _fileSystemCache.Get(cacheKey);
+
+                    return GetActionResultForStream(cachedStream, specificationId);
+                }
             }
 
-            ScopedProvidersFileSystemCacheKey cacheKey = new ScopedProvidersFileSystemCacheKey(specificationId, cacheGuid);
-
-            bool isFileSystemCacheEnabled = IsFileSystemCacheEnabled;
-            
-            if (isFileSystemCacheEnabled && _fileSystemCache.Exists(cacheKey))
-            {
-                await using Stream cachedStream = _fileSystemCache.Get(cacheKey);
-
-                return GetActionResultForStream(cachedStream, specificationId);
-            }
-
-            (bool isFdz, IEnumerable<ProviderSummary> providerSummaries) = await GetScopedProvidersForSpecification(specificationId);
+            IEnumerable<ProviderSummary> providerSummaries = await GetScopedProvidersForSpecification(specificationId, providerVersionId);
 
             if (providerSummaries.IsNullOrEmpty())
             {
@@ -203,7 +208,7 @@ namespace CalculateFunding.Services.Providers
                 Position = 0
             };
 
-            if (isFileSystemCacheEnabled && !isFdz)
+            if (string.IsNullOrWhiteSpace(providerVersionId) && IsFileSystemCacheEnabled)
             {
                 _fileSystemCache.Add(cacheKey, stream);
             }
@@ -259,7 +264,9 @@ namespace CalculateFunding.Services.Providers
                 return scopedProviderIdsRequest.Content;
             }
             
-            ContentResult coreProviderData = await FetchCoreProviderData(specificationId) as ContentResult;
+            // if the provider source is FDZ then we will need the provider version
+            ContentResult coreProviderData = await FetchCoreProviderData(specificationId,
+                specificationSummary.ProviderSource == ProviderSource.FDZ ? specificationSummary.ProviderVersionId : null) as ContentResult;
 
             string contentLiteral = coreProviderData?.Content;
             
@@ -274,20 +281,14 @@ namespace CalculateFunding.Services.Providers
             return providers.Select(_ => _.Id).ToArray();
         }
 
-        private async Task<(bool isFdz, IEnumerable<ProviderSummary> providers)> GetScopedProvidersForSpecification(string specificationId)
+        private async Task<IEnumerable<ProviderSummary>> GetScopedProvidersForSpecification(string specificationId, string providerVersionId)
         {
-            SpecificationSummary specificationSummary = (await _specificationsPolicy.ExecuteAsync(() => 
-                _specificationsApiClient.GetSpecificationSummaryById(specificationId)))?.Content;
-
-            Guard.ArgumentNotNull(specificationSummary, 
-                nameof(specificationSummary), $"Did not locate a specification with Id {specificationId}");
-
-            if (specificationSummary.ProviderSource == ProviderSource.CFS)
+            if (string.IsNullOrWhiteSpace(providerVersionId))
             {
-                return (false, await GetCfsScopedProvidersForSpecification(specificationId));
+                return await GetCfsScopedProvidersForSpecification(specificationId);
             }
 
-            return (true, await GetFdzScopedProvidersForSpecification(specificationSummary));
+            return await GetFdzScopedProvidersForSpecification(providerVersionId);
         }
 
         private async Task<IEnumerable<ProviderSummary>> GetCfsScopedProvidersForSpecification(string specificationId)
@@ -299,10 +300,8 @@ namespace CalculateFunding.Services.Providers
                 _cacheProvider.ListRangeAsync<ProviderSummary>(cacheKeyScopedListCacheKey, 0, (int) scopedProviderRedisListCount));   
         }
 
-        private async Task<IEnumerable<ProviderSummary>> GetFdzScopedProvidersForSpecification(SpecificationSummary specificationSummary)
+        private async Task<IEnumerable<ProviderSummary>> GetFdzScopedProvidersForSpecification(string providerVersionId)
         {
-            string providerVersionId = specificationSummary.ProviderVersionId;
-            
             EnsureFolderExists(ProviderVersionFileSystemCacheKey.Folder);
 
             bool fileSystemEnabled = IsFileSystemCacheEnabled;

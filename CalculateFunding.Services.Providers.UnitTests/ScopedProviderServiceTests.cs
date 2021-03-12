@@ -96,43 +96,22 @@ namespace CalculateFunding.Services.Providers.UnitTests
                     _bytesWrittenToFileSystemCache[key.Key] = writtenBytes;
                 });
         }
-        
-        [TestMethod]
-        public void FetchCoreProviderData_GuardsAgainstMissingSpecificationSummary()
-        {
-            Func<IActionResult> invocation = () => WhenTheCoreProviderDataIsFetched(NewRandomString())
-                .GetAwaiter()
-                .GetResult();
-
-            invocation
-                .Should()
-                .Throw<ArgumentNullException>()
-                .Which
-                .ParamName
-                .Should()
-                .Be("specificationSummary");
-        }
 
         [TestMethod]
         public async Task FetchCoreProviderData_ReturnsFileSystemDataForFdzProviderSources()
         {
             string specificationId = NewRandomString();
             string providerVersionId = NewRandomString();
-            
-            SpecificationSummary specificationSummary = NewSpecificationSummary(_ => _.WithId(specificationId)
-                .WithProviderSource(ProviderSource.FDZ)
-                .WithProviderVersionId(providerVersionId));
 
             Provider providerOne = NewProvider();
             Provider providerTwo = NewProvider();
 
             ProviderSummary[] expectedProviderSummaries = MapProvidersToSummaries(providerOne, providerTwo);
             
-            GivenTheSpecificationSummary(specificationId, specificationSummary);
             AndTheProviderVersionInTheFileSystemCache(providerVersionId, NewProviderVersion(_ => 
                 _.WithProviders(providerOne, providerTwo)));
             
-            ContentResult result = await WhenTheCoreProviderDataIsFetched(specificationId) as ContentResult;
+            ContentResult result = await WhenTheCoreProviderDataIsFetched(specificationId, providerVersionId) as ContentResult;
             
             result
                 .Content
@@ -150,19 +129,14 @@ namespace CalculateFunding.Services.Providers.UnitTests
         {
             string specificationId = NewRandomString();
             string providerVersionId = NewRandomString();
-            
-            SpecificationSummary specificationSummary = NewSpecificationSummary(_ => _.WithId(specificationId)
-                .WithProviderSource(ProviderSource.FDZ)
-                .WithProviderVersionId(providerVersionId));
 
             Provider providerOne = NewProvider();
             Provider providerTwo = NewProvider();
             ProviderVersion providerVersion = NewProviderVersion(_ => _.WithProviders(providerOne, providerTwo));
             
-            GivenTheSpecificationSummary(specificationId, specificationSummary);
             AndTheProviderVersion(providerVersionId, providerVersion);
             
-            ContentResult result = await WhenTheCoreProviderDataIsFetched(specificationId) as ContentResult;
+            ContentResult result = await WhenTheCoreProviderDataIsFetched(specificationId, providerVersionId) as ContentResult;
             
             ProviderSummary[] expectedProviderSummaries = MapProvidersToSummaries(providerOne, providerTwo);
             
@@ -218,37 +192,6 @@ namespace CalculateFunding.Services.Providers.UnitTests
                     scopedProviderIdFive,
                 });
         }
-        
-        [TestMethod]
-        public async Task GetScopedProviderIds_WhenProviderSourceIsFDZ_ProjectsAllProviderIdsOffThePopulatedScopedProviderData()
-        {
-            string specificationId = NewRandomString();
-            string providerVersionId = NewRandomString();
-            string cacheGuid = NewRandomString();
-            string cacheGuidKey = $"{CacheKeys.ScopedProviderSummariesFilesystemKeyPrefix}{specificationId}";
-
-            Provider providerOne = NewProvider();
-            Provider providerTwo = NewProvider();
-            SpecificationSummary specificationSummary = NewSpecificationSummary(_ => _.WithId(specificationId)
-                .WithProviderVersionId(providerVersionId)
-                .WithProviderSource(ProviderSource.FDZ));
-            ProviderSummary[] cachedProviderSummaries = MapProvidersToSummaries(providerOne, providerTwo);
-            await using MemoryStream memoryStream = new MemoryStream(cachedProviderSummaries.AsJsonBytes());
-            
-            GivenTheSpecificationSummary(specificationId, specificationSummary);
-            AndTheCacheGuidForTheSpecification(cacheGuidKey, cacheGuid);
-            AndTheProviderSummariesInTheFileSystemCache(specificationId, cacheGuid, cachedProviderSummaries);
-            
-            OkObjectResult result = await WhenTheScopedProviderIdsAreQueried(specificationId) as OkObjectResult;
-
-            result
-                .Should()
-                .NotBeNull();
-
-            result.Value
-                .Should()
-                .BeEquivalentTo(cachedProviderSummaries.Select(_ => _.Id).ToArray());
-        }
 
         [TestMethod]
         public async Task FetchCoreProviderData_WhenProviderSourceIsFDZ_FetchesAllProvidersInProviderVersion()
@@ -260,13 +203,15 @@ namespace CalculateFunding.Services.Providers.UnitTests
             Provider providerOne = NewProvider();
             Provider providerTwo = NewProvider();
             Provider providerThree = NewProvider();
-            ProviderVersion providerVersion = NewProviderVersion(_ => _.WithProviders(providerOne,
-                providerTwo,
-                providerThree));
+
             SpecificationSummary specificationSummary = NewSpecificationSummary(_ => _.WithId(specificationId)
                 .WithProviderVersionId(providerVersionId)
                 .WithProviderSource(ProviderSource.FDZ));
-            
+
+            ProviderVersion providerVersion = NewProviderVersion(_ => _.WithProviders(providerOne,
+                providerTwo,
+                providerThree));
+
             GivenTheSpecificationSummary(specificationId, specificationSummary);
             AndTheProviderVersion(providerVersionId, providerVersion);
             AndTheMessageProperties(("jobId", NewRandomString()), ("specification-id", specificationId));
@@ -330,10 +275,11 @@ namespace CalculateFunding.Services.Providers.UnitTests
             ProviderVersion providerVersion = NewProviderVersion(_ => _.WithProviders(NewProvider(),
                 NewProvider(),
                 NewProvider()));
+
             SpecificationSummary specificationSummary = NewSpecificationSummary(_ => _.WithId(specificationId)
                 .WithProviderVersionId(providerVersionId)
                 .WithProviderSource(ProviderSource.FDZ));
-            
+
             GivenTheSpecificationSummary(specificationId, specificationSummary);
             AndTheProviderVersion(providerVersionId, providerVersion);
             AndTheMessageProperties(("jobId", NewRandomString()), ("specification-id", specificationId));
@@ -572,8 +518,8 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 Times.Once);
         }
 
-        private async Task<IActionResult> WhenTheCoreProviderDataIsFetched(string specificationId)
-            => await _scopedProvidersService.FetchCoreProviderData(specificationId);
+        private async Task<IActionResult> WhenTheCoreProviderDataIsFetched(string specificationId, string providerVersionId = null)
+            => await _scopedProvidersService.FetchCoreProviderData(specificationId, providerVersionId);
 
 
         private ProviderSummary[] MapProvidersToSummaries(params Provider[] providers)
