@@ -200,6 +200,44 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
                 .Should()
                 .BeNullOrEmpty();
         }
+        
+        [TestMethod]
+        public async Task TakesCarryIntoAccountWhenCheckingDistributionPeriodTotalsAgainstFundingLineValues()
+        {
+            string fundingLineCode1 = NewRandomString();
+            string fundingLineCode2 = NewRandomString();
+
+            PublishedProvider publishedProvider = NewPublishedProvider(_ => _.WithCurrent(NewPublishedProviderVersion(ppv => ppv
+                .WithFundingStreamId("fs1")
+                .WithCarryOvers(NewProfilingCarryOver(co => co.WithFundingLineCode(fundingLineCode1)
+                    .WithAmount(-1)
+                    .WithType(ProfilingCarryOverType.Undefined)))
+                .WithFundingLines(NewFundingLine(fl => fl.WithFundingLineType(FundingLineType.Payment)
+                        .WithValue(200M)
+                        .WithFundingLineCode(fundingLineCode1)
+                        .WithDistributionPeriods(NewDistributionPeriod(dp =>
+                                dp.WithValue(100M)
+                                    .WithProfilePeriods(NewProfilePeriod(pp => pp.WithAmount(100M)))),
+                            NewDistributionPeriod(dp =>
+                                dp.WithValue(101M)
+                                    .WithProfilePeriods(NewProfilePeriod(pp => pp.WithAmount(101M)))))),
+                    NewFundingLine(fl => fl.WithFundingLineType(FundingLineType.Payment)
+                        .WithValue(200M)
+                        .WithFundingLineCode(fundingLineCode2)
+                        .WithDistributionPeriods(NewDistributionPeriod(dp =>
+                                dp.WithValue(100M)
+                                    .WithProfilePeriods(NewProfilePeriod(pp => pp.WithAmount(100M)))),
+                            NewDistributionPeriod(dp =>
+                                dp.WithValue(100M)
+                                    .WithProfilePeriods(NewProfilePeriod(pp => pp.WithAmount(100M))))))))));
+
+            await WhenErrorsAreDetectedOnThePublishedProvider(publishedProvider);
+
+            publishedProvider.Current
+                .Errors
+                .Should()
+                .BeNullOrEmpty();
+        }
 
         private async Task WhenErrorsAreDetectedOnThePublishedProvider(PublishedProvider publishedProvider)
         {

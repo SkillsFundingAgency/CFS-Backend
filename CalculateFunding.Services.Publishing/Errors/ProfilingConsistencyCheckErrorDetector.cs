@@ -48,14 +48,17 @@ namespace CalculateFunding.Services.Publishing.Errors
             FundingLine fundingLine,
             ErrorCheck errorCheck)
         {
+            string fundingLineCode = fundingLine.FundingLineCode;
+
             decimal distributionPeriodsTotal = (fundingLine.DistributionPeriods?.Sum(_ => _.Value))
-                .GetValueOrDefault();
+                                               .GetValueOrDefault()
+                                               + publishedProviderVersion.GetCarryOverTotalForFundingLine(fundingLineCode)
+                                                   .GetValueOrDefault();
 
             decimal totalExpectedFunding = fundingLine.Value.GetValueOrDefault();
 
             if (distributionPeriodsTotal != totalExpectedFunding)
             {
-                string fundingLineCode = fundingLine.FundingLineCode;
                 string errorMessage = $"Post Profiling and Variations - The payment funding line {fundingLineCode} has a total expected" + 
                                       $" funding of {totalExpectedFunding} but the distribution periods total for the funding line is {distributionPeriodsTotal}";
                 

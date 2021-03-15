@@ -23,7 +23,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
 
         public string BuildJoinPredicate(FundingLineCsvGeneratorJobType jobType)
         {
-            return Joins.TryGetValue(jobType, out string @join) ? @join : string.Empty;
+            return Joins.TryGetValue(jobType, out string join) ? join : string.Empty;
         }
 
         public string BuildPredicate(FundingLineCsvGeneratorJobType jobType)
