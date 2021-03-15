@@ -6,11 +6,14 @@ using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Calcs;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
-using CalculateFunding.Common.ServiceBus.Interfaces;
+using CalculateFunding.Common.Storage;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.MappingProfiles;
@@ -22,6 +25,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Results.Interfaces;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -30,14 +34,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
-using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalcModel = CalculateFunding.Common.ApiClient.Calcs.Models;
-using CalculateFunding.Common.JobManagement;
-using CalculateFunding.Common.Storage;
-using Microsoft.Azure.Storage.Blob;
-using CalculateFunding.Common.ApiClient.Jobs.Models;
-using CalculateFunding.Common.ApiClient.Specifications.Models;
-using CalculateFunding.Tests.Common.Helpers;
+using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.Results.UnitTests
 {
@@ -47,7 +45,7 @@ namespace CalculateFunding.Services.Results.UnitTests
         private const string ProviderId = "123456";
         private const string SpecificationId = "888999";
         private const string JobId = "job-id";
-        private const string CsvReportsContainerName = "publishingreports";
+        private const string CsvReportsContainerName = "calcresults";
 
         [TestMethod]
         public async Task GetProviderResults_GivenNullOrEmptyProviderId_ReturnsBadRequest()
@@ -135,7 +133,7 @@ namespace CalculateFunding.Services.Results.UnitTests
                 .GetCalculationMetadataForSpecification(Arg.Is(SpecificationId))
                 .Returns(new ApiResponse<IEnumerable<CalcModel.CalculationMetadata>>(HttpStatusCode.OK, CreateCalculationMetadata()));
 
-            ResultsService service = CreateResultsService(logger, resultsRepository, calculationsApiClient:calculationsApiClient);
+            ResultsService service = CreateResultsService(logger, resultsRepository, calculationsApiClient: calculationsApiClient);
 
             //Act
             IActionResult result = await service.GetProviderResults(ProviderId, SpecificationId);
@@ -507,7 +505,7 @@ namespace CalculateFunding.Services.Results.UnitTests
 
             OkObjectResult okResults = result as OkObjectResult;
 
-            bool okResultsValue = (bool) okResults.Value;
+            bool okResultsValue = (bool)okResults.Value;
 
             okResultsValue
                 .Should()
@@ -1054,7 +1052,7 @@ namespace CalculateFunding.Services.Results.UnitTests
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
-                .DoesBlobExistAsync($"funding-lines-{specificationId}-Released.csv", CsvReportsContainerName)
+                .DoesBlobExistAsync($"calculation-results-{specificationId}.csv", CsvReportsContainerName)
                 .Returns(true);
 
             ResultsService resultsService = CreateResultsService(logger: logger,
@@ -1074,9 +1072,9 @@ namespace CalculateFunding.Services.Results.UnitTests
             await jobManagement
                 .Received(expectedOperations)
                 .QueueJob(
-                    Arg.Is<JobCreateModel>(_ => 
-                    _.JobDefinitionId == JobConstants.DefinitionNames.GenerateCalcCsvResultsJob && 
-                    _.SpecificationId == specificationId && 
+                    Arg.Is<JobCreateModel>(_ =>
+                    _.JobDefinitionId == JobConstants.DefinitionNames.GenerateCalcCsvResultsJob &&
+                    _.SpecificationId == specificationId &&
                     _.Properties["specification-id"] == specificationId && _.Properties["specification-name"] == specificationName));
         }
 

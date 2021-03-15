@@ -3,10 +3,14 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using CalculateFunding.Common.ApiClient.Calcs;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
@@ -18,26 +22,23 @@ using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Processing;
 using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search.Models;
 using Microsoft.Azure.ServiceBus;
-using Serilog;
-using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
-using CalcModels = CalculateFunding.Common.ApiClient.Calcs.Models;
-using ApiModels = CalculateFunding.Common.ApiClient.Models;
-using AutoMapper;
-using CalculateFunding.Common.JobManagement;
-using CalculateFunding.Services.Processing;
-using CalculateFunding.Common.Storage;
 using Microsoft.Azure.Storage.Blob;
-using CalculateFunding.Common.ApiClient.Jobs.Models;
+using Serilog;
+using ApiModels = CalculateFunding.Common.ApiClient.Models;
+using CalcModels = CalculateFunding.Common.ApiClient.Calcs.Models;
+using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.Results
 {
     public class ResultsService : JobProcessingService, IResultsService, IHealthChecker
     {
-        private const string CsvReportsContainerName = "publishingreports";
+        private const string CalcsResultsContainerName = "calcresults";
+        private const string CalculationResultsReportFilePrefix = "calculation-results";
 
         private readonly ILogger _logger;
         private readonly ICalculationResultsRepository _resultsRepository;
@@ -177,7 +178,7 @@ namespace CalculateFunding.Services.Results
 
                 ProviderResultResponse providerResultResponse = _mapper.Map<ProviderResultResponse>(providerResult);
 
-                foreach(CalculationResultResponse calculationResult in providerResultResponse.CalculationResults)
+                foreach (CalculationResultResponse calculationResult in providerResultResponse.CalculationResults)
                 {
                     calculationResult.CalculationValueType = _mapper.Map<CalculationValueType>(calculations[calculationResult.Calculation.Id].ValueType);
                 }
@@ -530,9 +531,9 @@ namespace CalculateFunding.Services.Results
 
             CalculationResult calculationResult = providerResult?
                 .CalculationResults?
-                .FirstOrDefault(m => 
-                    string.Equals(m.Calculation.Id, 
-                        calculationId, 
+                .FirstOrDefault(m =>
+                    string.Equals(m.Calculation.Id,
+                        calculationId,
                         StringComparison.InvariantCultureIgnoreCase));
 
             if (calculationResult != null)
@@ -557,18 +558,20 @@ namespace CalculateFunding.Services.Results
                 throw new RetriableException(errorMessage);
             }
 
-            IEnumerable<SpecModel.SpecificationSummary> specificationSummaries = specificationApiResponse.Content;
+            if (specificationApiResponse.Content == null)
+            {
+                throw new NonRetriableException("List of specifications is null");
+            }
 
-            Task<Job>[] queueCsvJobTasks = specificationSummaries.Select(_ => 
-                QueueCsvGenerationMessageIfNewCalculationResults(_.Id, _.Name))
-                .ToArray();
-
-            await TaskHelper.WhenAllAndThrow(queueCsvJobTasks);
+            foreach (SpecModel.SpecificationSummary spec in specificationApiResponse.Content)
+            {
+                await QueueCsvGenerationMessageIfNewCalculationResults(spec.Id, spec.Name);
+            }
         }
 
         public async Task<IActionResult> QueueCsvGeneration(string specificationId)
         {
-            Common.ApiClient.Models.ApiResponse<SpecModel.SpecificationSummary> specificationApiResponse =
+            ApiModels.ApiResponse<SpecModel.SpecificationSummary> specificationApiResponse =
                 await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId));
 
             if (!specificationApiResponse.StatusCode.IsSuccess() || specificationApiResponse.Content == null)
@@ -604,17 +607,16 @@ namespace CalculateFunding.Services.Results
         {
             bool hasNewResults;
 
-            string blobName = $"funding-lines-{specificationId}-Released.csv";
-            
-            bool blobExists = await _blobClientPolicy.ExecuteAsync(() => 
-                _blobClient.DoesBlobExistAsync(blobName, CsvReportsContainerName));
+            string reportFilename = $"{CalculationResultsReportFilePrefix}-{specificationId}.csv";
+
+            bool blobExists = await _blobClientPolicy.ExecuteAsync(() =>
+                _blobClient.DoesBlobExistAsync(reportFilename, CalcsResultsContainerName));
 
             if (blobExists)
             {
-                ICloudBlob cloudBlob = await _blobClientPolicy.ExecuteAsync(() => 
-                    _blobClient.GetBlobReferenceFromServerAsync(
-                        blobName,
-                        CsvReportsContainerName));
+                ICloudBlob cloudBlob = await _blobClientPolicy.ExecuteAsync(() =>
+                    _blobClient.GetBlobReferenceFromServerAsync(reportFilename,
+                        CalcsResultsContainerName));
 
                 DateTimeOffset? lastModified = cloudBlob.Properties?.LastModified;
 
@@ -633,7 +635,7 @@ namespace CalculateFunding.Services.Results
             {
                 _logger.Information(
                     $"No new calculation results for specification id '{specificationId}'. Not queueing report job");
-                
+
                 return null;
             }
 

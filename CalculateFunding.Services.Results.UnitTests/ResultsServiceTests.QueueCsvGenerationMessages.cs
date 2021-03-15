@@ -7,7 +7,6 @@ using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.JobManagement;
-using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
@@ -133,7 +132,7 @@ namespace CalculateFunding.Services.Results.UnitTests
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
-                .DoesBlobExistAsync($"funding-lines-{SpecificationId}-Released.csv", CsvReportsContainerName)
+                .DoesBlobExistAsync($"calculation-results-{SpecificationId}.csv", CsvReportsContainerName)
                 .Returns(true);
 
             ResultsService resultsService = CreateResultsService(
@@ -151,8 +150,8 @@ namespace CalculateFunding.Services.Results.UnitTests
                 jobManagement
                     .Received(1)
                     .QueueJob(
-                    Arg.Is<JobCreateModel>(_ => 
-                        _.JobDefinitionId == JobConstants.DefinitionNames.GenerateCalcCsvResultsJob && 
+                    Arg.Is<JobCreateModel>(_ =>
+                        _.JobDefinitionId == JobConstants.DefinitionNames.GenerateCalcCsvResultsJob &&
                         _.Properties["specification-id"] == SpecificationId));
 
             logger
@@ -197,10 +196,10 @@ namespace CalculateFunding.Services.Results.UnitTests
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
-                .DoesBlobExistAsync($"funding-lines-{SpecificationOneId}-Released.csv", CsvReportsContainerName)
+                .DoesBlobExistAsync($"calculation-results-{SpecificationOneId}.csv", CsvReportsContainerName)
                 .Returns(true);
             blobClient
-                .DoesBlobExistAsync($"funding-lines-{SpecificationTwoId}-Released.csv", CsvReportsContainerName)
+                .DoesBlobExistAsync($"calculation-results-{SpecificationTwoId}.csv", CsvReportsContainerName)
                 .Returns(true);
 
             ResultsService resultsService = CreateResultsService(
