@@ -851,7 +851,21 @@ namespace CalculateFunding.Services.Providers.UnitTests
         }
 
         [TestMethod]
-        public async Task GetAllProviders_WhenProviderVersionIdExists_ProviderListReturned()
+        public async Task GetProviderVersion_WhenProviderDoesntExist_NullRetuned()
+        {
+            // Arrange
+            IProviderVersionService providerService = CreateProviderVersionService();
+
+            // Act
+            ProviderVersion providerVersionReturned = await providerService.GetProvidersByVersion(ProviderVersionId);
+
+            providerVersionReturned
+                .Should()
+                .BeNull();
+        }
+
+        [TestMethod]
+        public async Task GetProviderVersion_WhenProviderVersionExists_ProviderVersionRetuned()
         {
             // Arrange
             ProviderVersionViewModel providerVersionViewModel = CreateProviderVersion();
@@ -885,7 +899,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 fileSystemCache: fileSystemCache);
 
             // Act
-            IActionResult okRequest = await providerService.GetAllProviders(providerVersionViewModel.ProviderVersionId);
+            ProviderVersion providerVersionReturned = await providerService.GetProvidersByVersion(providerVersionViewModel.ProviderVersionId);
 
             blobClient
                 .Received(1)
@@ -894,13 +908,13 @@ namespace CalculateFunding.Services.Providers.UnitTests
             await blobClient.Received(1)
                 .DownloadToStreamAsync(Arg.Any<ICloudBlob>());
 
-            okRequest
-                .Should()
-                .BeOfType<ContentResult>();
-
             fileSystemCache
                 .DidNotReceive()
                 .EnsureFoldersExist(ProviderVersionFileSystemCacheKey.Folder);
+
+            providerVersionReturned
+                .Should()
+                .BeEquivalentTo(providerVersion);
         }
 
         [TestMethod]

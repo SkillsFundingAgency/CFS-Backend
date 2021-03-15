@@ -178,9 +178,9 @@ namespace CalculateFunding.Services.Providers
         {
             Guard.IsNullOrWhiteSpace(providerVersionId, nameof(providerVersionId));
 
-            ContentResult contentResult = (ContentResult)await GetAllProviders(providerVersionId);
+            ContentResult contentResult = await GetAllProviders(providerVersionId) as ContentResult;
 
-            return JsonConvert.DeserializeObject<ProviderVersion>(contentResult.Content);
+            return contentResult == null ? null : JsonConvert.DeserializeObject<ProviderVersion>(contentResult.Content);
         }
 
         public async Task<IActionResult> GetAllProviders(string providerVersionId)
