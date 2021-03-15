@@ -37,8 +37,7 @@ namespace CalculateFunding.Services.Results
 {
     public class ResultsService : JobProcessingService, IResultsService, IHealthChecker
     {
-        private const string CalcsResultsContainerName = "calcresults";
-        private const string CalculationResultsReportFilePrefix = "calculation-results";
+        private const string CsvReportsContainerName = "publishingreports";
 
         private readonly ILogger _logger;
         private readonly ICalculationResultsRepository _resultsRepository;
@@ -605,15 +604,17 @@ namespace CalculateFunding.Services.Results
         {
             bool hasNewResults;
 
+            string blobName = $"funding-lines-{specificationId}-Released.csv";
+            
             bool blobExists = await _blobClientPolicy.ExecuteAsync(() => 
-                _blobClient.DoesBlobExistAsync($"{CalculationResultsReportFilePrefix}-{specificationId}", CalcsResultsContainerName));
+                _blobClient.DoesBlobExistAsync(blobName, CsvReportsContainerName));
 
             if (blobExists)
             {
                 ICloudBlob cloudBlob = await _blobClientPolicy.ExecuteAsync(() => 
                     _blobClient.GetBlobReferenceFromServerAsync(
-                        $"{CalculationResultsReportFilePrefix}-{specificationId}",
-                        CalcsResultsContainerName));
+                        blobName,
+                        CsvReportsContainerName));
 
                 DateTimeOffset? lastModified = cloudBlob.Properties?.LastModified;
 

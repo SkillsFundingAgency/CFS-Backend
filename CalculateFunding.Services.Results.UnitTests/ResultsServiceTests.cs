@@ -44,11 +44,10 @@ namespace CalculateFunding.Services.Results.UnitTests
     [TestClass]
     public partial class ResultsServiceTests
     {
-        const string providerId = "123456";
-        const string specificationId = "888999";
-        const string jobId = "job-id";
-        const string CalcsResultsContainerName = "calcresults";
-        const string CalculationResultsReportFilePrefix = "calculation-results";
+        private const string ProviderId = "123456";
+        private const string SpecificationId = "888999";
+        private const string JobId = "job-id";
+        private const string CsvReportsContainerName = "publishingreports";
 
         [TestMethod]
         public async Task GetProviderResults_GivenNullOrEmptyProviderId_ReturnsBadRequest()
@@ -80,7 +79,7 @@ namespace CalculateFunding.Services.Results.UnitTests
             ResultsService service = CreateResultsService(logger: logger);
 
             //Act
-            IActionResult result = await service.GetProviderResults(providerId, null);
+            IActionResult result = await service.GetProviderResults(ProviderId, null);
 
             //Assert
             result
@@ -100,13 +99,13 @@ namespace CalculateFunding.Services.Results.UnitTests
 
             ICalculationResultsRepository resultsRepository = CreateResultsRepository();
             resultsRepository
-                .GetProviderResult(Arg.Is(providerId), Arg.Is(specificationId))
+                .GetProviderResult(Arg.Is(ProviderId), Arg.Is(SpecificationId))
                 .Returns((ProviderResult)null);
 
             ResultsService service = CreateResultsService(logger, resultsRepository);
 
             //Act
-            IActionResult result = await service.GetProviderResults(providerId, specificationId);
+            IActionResult result = await service.GetProviderResults(ProviderId, SpecificationId);
 
             //Assert
             result
@@ -115,7 +114,7 @@ namespace CalculateFunding.Services.Results.UnitTests
 
             logger
                 .Received(1)
-                .Information(Arg.Is($"A result was not found for provider id {providerId}, specification id {specificationId}"));
+                .Information(Arg.Is($"A result was not found for provider id {ProviderId}, specification id {SpecificationId}"));
         }
 
         [TestMethod]
@@ -128,18 +127,18 @@ namespace CalculateFunding.Services.Results.UnitTests
 
             ICalculationResultsRepository resultsRepository = CreateResultsRepository();
             resultsRepository
-                .GetProviderResult(Arg.Is(providerId), Arg.Is(specificationId))
+                .GetProviderResult(Arg.Is(ProviderId), Arg.Is(SpecificationId))
                 .Returns(providerResult);
 
             ICalculationsApiClient calculationsApiClient = CreateCalculationsApiClient();
             calculationsApiClient
-                .GetCalculationMetadataForSpecification(Arg.Is(specificationId))
+                .GetCalculationMetadataForSpecification(Arg.Is(SpecificationId))
                 .Returns(new ApiResponse<IEnumerable<CalcModel.CalculationMetadata>>(HttpStatusCode.OK, CreateCalculationMetadata()));
 
             ResultsService service = CreateResultsService(logger, resultsRepository, calculationsApiClient:calculationsApiClient);
 
             //Act
-            IActionResult result = await service.GetProviderResults(providerId, specificationId);
+            IActionResult result = await service.GetProviderResults(ProviderId, SpecificationId);
 
             //Assert
             result
@@ -200,7 +199,7 @@ namespace CalculateFunding.Services.Results.UnitTests
             ResultsService service = CreateResultsService(logger: logger);
 
             //Act
-            IActionResult result = await service.GetProviderResultByCalculationType(providerId, string.Empty, CalculationType.Template);
+            IActionResult result = await service.GetProviderResultByCalculationType(ProviderId, string.Empty, CalculationType.Template);
 
             //Assert
             result
@@ -220,13 +219,13 @@ namespace CalculateFunding.Services.Results.UnitTests
 
             ICalculationResultsRepository resultsRepository = CreateResultsRepository();
             resultsRepository
-                .GetProviderResult(Arg.Is(providerId), Arg.Is(specificationId))
+                .GetProviderResult(Arg.Is(ProviderId), Arg.Is(SpecificationId))
                 .Returns((ProviderResult)null);
 
             ResultsService service = CreateResultsService(logger, resultsRepository);
 
             //Act
-            IActionResult result = await service.GetProviderResultByCalculationType(providerId, specificationId, CalculationType.Additional);
+            IActionResult result = await service.GetProviderResultByCalculationType(ProviderId, SpecificationId, CalculationType.Additional);
 
             //Assert
             result
@@ -235,7 +234,7 @@ namespace CalculateFunding.Services.Results.UnitTests
 
             logger
                 .Received(1)
-                .Information(Arg.Is($"A result was not found for provider id {providerId}, specification id {specificationId}"));
+                .Information(Arg.Is($"A result was not found for provider id {ProviderId}, specification id {SpecificationId}"));
         }
 
         [TestMethod]
@@ -248,13 +247,13 @@ namespace CalculateFunding.Services.Results.UnitTests
 
             ICalculationResultsRepository resultsRepository = CreateResultsRepository();
             resultsRepository
-                .GetProviderResultByCalculationType(Arg.Is(providerId), Arg.Is(specificationId), Arg.Is(CalculationType.Additional))
+                .GetProviderResultByCalculationType(Arg.Is(ProviderId), Arg.Is(SpecificationId), Arg.Is(CalculationType.Additional))
                 .Returns(providerResult);
 
             ResultsService service = CreateResultsService(logger, resultsRepository);
 
             //Act
-            IActionResult result = await service.GetProviderResultByCalculationType(providerId, specificationId, CalculationType.Additional);
+            IActionResult result = await service.GetProviderResultByCalculationType(ProviderId, SpecificationId, CalculationType.Additional);
 
             //Assert
             result
@@ -272,13 +271,13 @@ namespace CalculateFunding.Services.Results.UnitTests
 
             ICalculationResultsRepository resultsRepository = CreateResultsRepository();
             resultsRepository
-                .GetSpecificationResults(Arg.Is(providerId))
+                .GetSpecificationResults(Arg.Is(ProviderId))
                 .Returns(providerResults);
 
             ResultsService service = CreateResultsService(logger, resultsRepository);
 
             //Act
-            IActionResult result = await service.GetProviderSpecifications(providerId);
+            IActionResult result = await service.GetProviderSpecifications(ProviderId);
 
             //Assert
             result
@@ -294,7 +293,7 @@ namespace CalculateFunding.Services.Results.UnitTests
 
             logger
                 .Received(1)
-                .Information(Arg.Is($"Results were not found for provider id '{providerId}'"));
+                .Information(Arg.Is($"Results were not found for provider id '{ProviderId}'"));
         }
 
         [TestMethod]
@@ -307,19 +306,19 @@ namespace CalculateFunding.Services.Results.UnitTests
             {
                 new ProviderResult
                 {
-                    SpecificationId = specificationId,
+                    SpecificationId = SpecificationId,
                 }
             };
 
             ICalculationResultsRepository resultsRepository = CreateResultsRepository();
             resultsRepository
-                .GetSpecificationResults(Arg.Is(providerId))
+                .GetSpecificationResults(Arg.Is(ProviderId))
                 .Returns(providerResults);
 
             ResultsService service = CreateResultsService(logger, resultsRepository);
 
             //Act
-            IActionResult result = await service.GetProviderSpecifications(providerId);
+            IActionResult result = await service.GetProviderSpecifications(ProviderId);
 
             //Assert
             result
@@ -344,11 +343,11 @@ namespace CalculateFunding.Services.Results.UnitTests
             {
                 new ProviderResult
                 {
-                    SpecificationId = specificationId,
+                    SpecificationId = SpecificationId,
                 },
                 new ProviderResult
                 {
-                    SpecificationId = specificationId,
+                    SpecificationId = SpecificationId,
                 },
                 new ProviderResult
                 {
@@ -358,13 +357,13 @@ namespace CalculateFunding.Services.Results.UnitTests
 
             ICalculationResultsRepository resultsRepository = CreateResultsRepository();
             resultsRepository
-                .GetSpecificationResults(Arg.Is(providerId))
+                .GetSpecificationResults(Arg.Is(ProviderId))
                 .Returns(providerResults);
 
             ResultsService service = CreateResultsService(logger, resultsRepository);
 
             //Act
-            IActionResult result = await service.GetProviderSpecifications(providerId);
+            IActionResult result = await service.GetProviderSpecifications(ProviderId);
 
             //Assert
             result
@@ -410,13 +409,13 @@ namespace CalculateFunding.Services.Results.UnitTests
 
             ICalculationResultsRepository resultsRepository = CreateResultsRepository();
             resultsRepository
-                .GetProviderResultsBySpecificationId(Arg.Is(specificationId))
+                .GetProviderResultsBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(providerResults);
 
             ResultsService service = CreateResultsService(logger, resultsRepository: resultsRepository);
 
             //Act
-            IActionResult result = await service.GetProviderResultsBySpecificationId(specificationId, null);
+            IActionResult result = await service.GetProviderResultsBySpecificationId(SpecificationId, null);
 
             //Assert
             result
@@ -447,13 +446,13 @@ namespace CalculateFunding.Services.Results.UnitTests
 
             ICalculationResultsRepository resultsRepository = CreateResultsRepository();
             resultsRepository
-                .GetProviderResultsBySpecificationId(Arg.Is(specificationId), Arg.Is(1))
+                .GetProviderResultsBySpecificationId(Arg.Is(SpecificationId), Arg.Is(1))
                 .Returns(providerResults);
 
             ResultsService service = CreateResultsService(logger, resultsRepository: resultsRepository);
 
             //Act
-            IActionResult result = await service.GetProviderResultsBySpecificationId(specificationId, "1");
+            IActionResult result = await service.GetProviderResultsBySpecificationId(SpecificationId, "1");
 
             //Assert
             result
@@ -493,13 +492,13 @@ namespace CalculateFunding.Services.Results.UnitTests
             //Arrange
             ICalculationResultsRepository resultsRepository = CreateResultsRepository();
             resultsRepository
-                .ProviderHasResultsBySpecificationId(specificationId)
+                .ProviderHasResultsBySpecificationId(SpecificationId)
                 .Returns(Task.FromResult(hasResults));
 
             ResultsService service = CreateResultsService(resultsRepository: resultsRepository);
 
             //Act
-            IActionResult result = await service.ProviderHasResultsBySpecificationId(specificationId);
+            IActionResult result = await service.ProviderHasResultsBySpecificationId(SpecificationId);
 
             //Assert
             result
@@ -545,7 +544,7 @@ namespace CalculateFunding.Services.Results.UnitTests
             ResultsService service = CreateResultsService(logger);
 
             //Act
-            IActionResult result = await service.GetProviderSourceDatasetsByProviderIdAndSpecificationId(specificationId, null);
+            IActionResult result = await service.GetProviderSourceDatasetsByProviderIdAndSpecificationId(SpecificationId, null);
 
             //Assert
             result
@@ -567,13 +566,13 @@ namespace CalculateFunding.Services.Results.UnitTests
 
             IProviderSourceDatasetRepository providerSourceDatasetRepository = CreateProviderSourceDatasetRepository();
             providerSourceDatasetRepository
-                .GetProviderSourceDatasets(Arg.Is(providerId), Arg.Is(specificationId))
+                .GetProviderSourceDatasets(Arg.Is(ProviderId), Arg.Is(SpecificationId))
                 .Returns(providerSources);
 
             ResultsService service = CreateResultsService(logger, providerSourceDatasetRepository: providerSourceDatasetRepository);
 
             //Act
-            IActionResult result = await service.GetProviderSourceDatasetsByProviderIdAndSpecificationId(specificationId, providerId);
+            IActionResult result = await service.GetProviderSourceDatasetsByProviderIdAndSpecificationId(SpecificationId, ProviderId);
 
             //Assert
             result
@@ -792,7 +791,7 @@ namespace CalculateFunding.Services.Results.UnitTests
 
             ICalculationResultsRepository calculationResultsRepository = CreateResultsRepository();
             calculationResultsRepository
-                .GetProviderResultsBySpecificationIdAndProviders(Arg.Any<IEnumerable<string>>(), Arg.Is<string>(specificationId))
+                .GetProviderResultsBySpecificationIdAndProviders(Arg.Any<IEnumerable<string>>(), Arg.Is<string>(SpecificationId))
                 .Returns(new ProviderResult[] { providerResult.Content });
 
             ResultsService resultsService = CreateResultsService(
@@ -802,13 +801,13 @@ namespace CalculateFunding.Services.Results.UnitTests
 
             Dictionary<string, string> properties = new Dictionary<string, string>
             {
-                { "specificationId", specificationId },
+                { "specificationId", SpecificationId },
                 { "sfa-correlationId", Guid.NewGuid().ToString() }
             };
 
             Message message = new Message { Body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(specificationProviders)) };
 
-            message.UserProperties["specificationId"] = specificationId;
+            message.UserProperties["specificationId"] = SpecificationId;
 
             //Act
             await resultsService.Process(message);
@@ -1055,7 +1054,7 @@ namespace CalculateFunding.Services.Results.UnitTests
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
-                .DoesBlobExistAsync($"{CalculationResultsReportFilePrefix}-{specificationId}", CalcsResultsContainerName)
+                .DoesBlobExistAsync($"funding-lines-{specificationId}-Released.csv", CsvReportsContainerName)
                 .Returns(true);
 
             ResultsService resultsService = CreateResultsService(logger: logger,
@@ -1141,7 +1140,7 @@ namespace CalculateFunding.Services.Results.UnitTests
             {
                 UserProperties =
                 {
-                    new KeyValuePair<string, object>("jobId", jobId),
+                    new KeyValuePair<string, object>("jobId", JobId),
                     new KeyValuePair<string, object>("specification-id", specificationId),
                     new KeyValuePair<string, object>("deletion-type", (int)deletionType)
                 }
@@ -1184,13 +1183,13 @@ namespace CalculateFunding.Services.Results.UnitTests
 
             ICalculationResultsRepository resultsRepository = CreateResultsRepository();
             resultsRepository
-                .GetSpecificationCalculationResultsLastUpdated(Arg.Is(specificationId))
+                .GetSpecificationCalculationResultsLastUpdated(Arg.Is(SpecificationId))
                 .Returns(lastUpdated);
 
             ResultsService service = CreateResultsService(logger, resultsRepository);
 
             //Act
-            IActionResult result = await service.GetSpecificationCalculationResultsMetadata(specificationId);
+            IActionResult result = await service.GetSpecificationCalculationResultsMetadata(SpecificationId);
 
             //Assert
             result
@@ -1215,13 +1214,13 @@ namespace CalculateFunding.Services.Results.UnitTests
 
             ICalculationResultsRepository resultsRepository = CreateResultsRepository();
             resultsRepository
-                .GetSpecificationCalculationResultsLastUpdated(Arg.Is(specificationId))
+                .GetSpecificationCalculationResultsLastUpdated(Arg.Is(SpecificationId))
                 .Returns(lastUpdated);
 
             ResultsService service = CreateResultsService(logger, resultsRepository);
 
             //Act
-            IActionResult result = await service.GetSpecificationCalculationResultsMetadata(specificationId);
+            IActionResult result = await service.GetSpecificationCalculationResultsMetadata(SpecificationId);
 
             //Assert
             result

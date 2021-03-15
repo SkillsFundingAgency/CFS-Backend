@@ -78,7 +78,7 @@ namespace CalculateFunding.Services.Results.UnitTests
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
-                .DoesBlobExistAsync($"{CalculationResultsReportFilePrefix}-spec-1", CalcsResultsContainerName)
+                .DoesBlobExistAsync("funding-lines-spec-1-Released.csv", CsvReportsContainerName)
                 .Returns(false);
 
             ILogger logger = CreateLogger();
@@ -112,7 +112,7 @@ namespace CalculateFunding.Services.Results.UnitTests
             //Arrange
             IEnumerable<SpecModel.SpecificationSummary> specificationSummaries = new[]
             {
-                new SpecModel.SpecificationSummary { Id = specificationId }
+                new SpecModel.SpecificationSummary { Id = SpecificationId }
             };
 
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
@@ -123,7 +123,7 @@ namespace CalculateFunding.Services.Results.UnitTests
             ICalculationResultsRepository calculationResultsRepository = CreateResultsRepository();
             calculationResultsRepository
                 .CheckHasNewResultsForSpecificationIdAndTime(
-                    Arg.Is(specificationId),
+                    Arg.Is(SpecificationId),
                     Arg.Any<DateTimeOffset>())
                 .Returns(true);
 
@@ -133,7 +133,7 @@ namespace CalculateFunding.Services.Results.UnitTests
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
-                .DoesBlobExistAsync($"{CalculationResultsReportFilePrefix}-{specificationId}", CalcsResultsContainerName)
+                .DoesBlobExistAsync($"funding-lines-{SpecificationId}-Released.csv", CsvReportsContainerName)
                 .Returns(true);
 
             ResultsService resultsService = CreateResultsService(
@@ -153,11 +153,11 @@ namespace CalculateFunding.Services.Results.UnitTests
                     .QueueJob(
                     Arg.Is<JobCreateModel>(_ => 
                         _.JobDefinitionId == JobConstants.DefinitionNames.GenerateCalcCsvResultsJob && 
-                        _.Properties["specification-id"] == specificationId));
+                        _.Properties["specification-id"] == SpecificationId));
 
             logger
                 .Received()
-                .Information($"Found new calculation results for specification id '{specificationId}'");
+                .Information($"Found new calculation results for specification id '{SpecificationId}'");
         }
 
         [TestMethod]
@@ -197,10 +197,10 @@ namespace CalculateFunding.Services.Results.UnitTests
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
-                .DoesBlobExistAsync($"{CalculationResultsReportFilePrefix}-{SpecificationOneId}", CalcsResultsContainerName)
+                .DoesBlobExistAsync($"funding-lines-{SpecificationOneId}-Released.csv", CsvReportsContainerName)
                 .Returns(true);
             blobClient
-                .DoesBlobExistAsync($"{CalculationResultsReportFilePrefix}-{SpecificationTwoId}", CalcsResultsContainerName)
+                .DoesBlobExistAsync($"funding-lines-{SpecificationTwoId}-Released.csv", CsvReportsContainerName)
                 .Returns(true);
 
             ResultsService resultsService = CreateResultsService(
