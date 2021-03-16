@@ -42,7 +42,7 @@ namespace CalculateFunding.Services.Policy
         {
             Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
 
-            return (await _cosmosRepository.ReadDocumentByIdPartitionedAsync<FundingStream>(fundingStreamId, fundingStreamId))?.Content;
+            return (await _cosmosRepository.TryReadDocumentByIdPartitionedAsync<FundingStream>(fundingStreamId, fundingStreamId))?.Content;
         }
 
         public async Task<IEnumerable<FundingStream>> GetFundingStreams(Expression<Func<DocumentEntity<FundingStream>, bool>> query = null)
@@ -91,7 +91,7 @@ namespace CalculateFunding.Services.Policy
         {
             Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
 
-            return (await _cosmosRepository.ReadDocumentByIdPartitionedAsync<FundingPeriod>(fundingPeriodId, fundingPeriodId))?.Content;
+            return (await _cosmosRepository.TryReadDocumentByIdPartitionedAsync<FundingPeriod>(fundingPeriodId, fundingPeriodId))?.Content;
         }
 
         public async Task<IEnumerable<FundingPeriod>> GetFundingPeriods(Expression<Func<DocumentEntity<FundingPeriod>, bool>> query = null)
