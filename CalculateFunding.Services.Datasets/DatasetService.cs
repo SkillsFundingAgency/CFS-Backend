@@ -299,7 +299,7 @@ namespace CalculateFunding.Services.Datasets
             }
 
             IEnumerable<Dataset> datasets = await _datasetRepository.GetDatasetsByQuery(m => m.Content.Definition.Id == definitionId.ToLower());
-
+            
             IEnumerable<DatasetViewModel> result = datasets?.Select(_mapper.Map<DatasetViewModel>).ToArraySafe();
 
             return new OkObjectResult(result ?? Enumerable.Empty<DatasetViewModel>());
@@ -383,7 +383,7 @@ namespace CalculateFunding.Services.Datasets
                     return new PreconditionFailedResult($"Unable to find a dataset for id: {dataDefinitionId}, for blob: {fullBlobName}");
                 }
 
-                if (datasetDefinitionDocumentEntity.UpdatedAt > datasetDocumentEntity.UpdatedAt) {
+                if (datasetDefinitionDocumentEntity.Content.Version > datasetDocumentEntity.Content.Definition.Version) {
                     string errorMessage =
                         "There has been data schema change since the last version of this data source file was uploaded. Retry uploading with the create new version option";
 
@@ -1181,7 +1181,9 @@ namespace CalculateFunding.Services.Datasets
                 Id = metadataModel.DatasetId,
                 Name = metadataModel.Name,
                 Description = metadataModel.Description,
-                Definition = new Reference(datasetDefinition.Id, datasetDefinition.Name),
+                Definition = new DatasetDefinitionVersion { Id = datasetDefinition.Id, 
+                                                            Name = datasetDefinition.Name,
+                                                            Version = datasetDefinition.Version },
                 Current = newVersion,
                 History = new List<DatasetVersion>
                 {
@@ -1447,14 +1449,24 @@ namespace CalculateFunding.Services.Datasets
         public async Task<IActionResult> FixupDatasetsFundingStream()
         {
             int totalUpdatedDatasets = 0;
-            IEnumerable<Dataset> datasetDocuments = await _datasetRepository.GetDatasetsByQuery(_ => !_.Content.Current.FundingStream.IsDefined());
+            IEnumerable<Dataset> datasetDocuments = await _datasetRepository.GetDatasetsByQuery(_ => !_.Content.Current.FundingStream.IsDefined() || !_.Content.Definition.Version.HasValue);
             
             if (datasetDocuments.AnyWithNullCheck())
             {
                 foreach (Dataset dataset in datasetDocuments)
                 {
                     DatasetDefinition definition = await _datasetRepository.GetDatasetDefinition(dataset.Definition.Id);
-                    dataset.Current.FundingStream = new Reference { Id = definition.FundingStreamId, Name = definition.FundingStreamId };
+
+                    if (dataset.Current.FundingStream == null)
+                    {
+                        dataset.Current.FundingStream = new Reference { Id = definition.FundingStreamId, Name = definition.FundingStreamId };
+                    }
+
+                    // version has never been set so need to set it here
+                    if (!dataset.Definition.Version.HasValue)
+                    {
+                        dataset.Definition.Version = definition.Version;
+                    }
                     totalUpdatedDatasets++;
                 }
 

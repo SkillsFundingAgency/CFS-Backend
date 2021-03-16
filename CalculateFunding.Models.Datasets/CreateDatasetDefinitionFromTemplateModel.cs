@@ -9,6 +9,7 @@ namespace CalculateFunding.Models.Datasets
         public string FundingStreamId { get; set; }
         public string FundingPeriodId { get; set; }
         public string TemplateVersion { get; set; }
+        public int? Version { get; set; }
         public int DatasetDefinitionId { get; set; }
     }
 }

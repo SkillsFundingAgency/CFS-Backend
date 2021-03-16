@@ -14,7 +14,7 @@ namespace CalculateFunding.Models.Datasets.ViewModels
 
         public PublishStatus PublishStatus { get; set; }
 
-        public Reference Definition { get; set; }
+        public DatasetDefinitionVersion Definition { get; set; }
 
         public string Description { get; set; }
 

@@ -179,6 +179,7 @@ namespace CalculateFunding.Services.Datasets
                 Description = definition.Description,
                 LastUpdatedDate = DateTimeOffset.Now,
                 ProviderIdentifier = definition.TableDefinitions.FirstOrDefault()?.FieldDefinitions?.Where(f => f.IdentifierFieldType.HasValue)?.Select(f => Enum.GetName(typeof(IdentifierFieldType), f.IdentifierFieldType.Value)).FirstOrDefault(),
+                Version = definition.Version,
                 ModelHash = hashCode,
                 FundingStreamId = fundingStream.Id,
                 FundingStreamName = fundingStream.Name
@@ -333,7 +334,7 @@ namespace CalculateFunding.Services.Datasets
             FundingStream fundingStream = await _policyRepository.GetFundingStream(model.FundingStreamId);
             TemplateMetadataDistinctCalculationsContents templateContents = await _policyRepository.GetDistinctTemplateMetadataCalculationsContents(model.FundingStreamId, model.FundingPeriodId, model.TemplateVersion);
 
-            if(templateContents == null)
+            if (templateContents == null)
             {
                 return new BadRequestObjectResult($"No funding template for given FundingStreamId " +
                     $"- {model.FundingStreamId}, FundingPeriodId - {model.FundingPeriodId}, TemplateVersion - {model.TemplateVersion}");
@@ -354,6 +355,7 @@ namespace CalculateFunding.Services.Datasets
             DatasetDefinition datasetDefinition = new DatasetDefinition()
             {
                 Id = id.ToString(),
+                Version = model.Version,
                 Name = name,
                 Description = name,
                 FundingStreamId = fundingStream.Id
@@ -424,6 +426,12 @@ namespace CalculateFunding.Services.Datasets
             DatasetDefinitionChanges datasetDefinitionChanges = new DatasetDefinitionChanges();
 
             DatasetDefinition existingDefinition = await _datasetsRepositoryPolicy.ExecuteAsync(() => _datasetsRepository.GetDatasetDefinition(definition.Id));
+
+            // if version is null then use existing version
+            definition.Version ??= existingDefinition?.Version;
+
+            // if no existing version or version not set then default to version 1
+            definition.Version ??= 1;
 
             IEnumerable<string> relationships = null;
 

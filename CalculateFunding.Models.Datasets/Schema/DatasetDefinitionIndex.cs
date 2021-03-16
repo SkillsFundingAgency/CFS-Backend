@@ -37,6 +37,10 @@ namespace CalculateFunding.Models.Datasets.Schema
         [IsRetrievable(true)]
         public string ModelHash { get; set; }
 
+        [JsonProperty("version")]
+        [IsRetrievable(true)]
+        public int? Version { get; set; }
+
         [IsFilterable, IsSortable, IsRetrievable(true)]
         [JsonProperty("lastUpdatedDate")]
         public DateTimeOffset LastUpdatedDate { get; set; }

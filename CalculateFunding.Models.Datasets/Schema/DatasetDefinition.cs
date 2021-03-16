@@ -12,6 +12,9 @@ namespace CalculateFunding.Models.Datasets.Schema
         [JsonProperty("fundingStreamId")]
         public string FundingStreamId { get; set; }
 
+        [JsonProperty("version")]
+        public int? Version { get; set; }
+
         [JsonProperty("tableDefinitions")]
         public List<TableDefinition> TableDefinitions { get; set; }
     }

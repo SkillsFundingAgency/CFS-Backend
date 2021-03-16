@@ -814,7 +814,7 @@ namespace CalculateFunding.Services.Datasets.Services
             {
                 Id = datasetId,
                 Current = existingDatasetVersion,
-                Definition = new Reference("defId", "Definition Name"),
+                Definition = new DatasetDefinitionVersion { Id = "defId", Name = "Definition Name" },
                 Description = "Description v1",
                 History = new List<DatasetVersion>()
                 {
@@ -982,7 +982,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 Id = datasetId,
                 Current = datasetVersion,
                 History = new List<DatasetVersion>() { datasetVersion },
-                Definition = new Reference("defId", "definitionName"),
+                Definition = new DatasetDefinitionVersion { Id = "defId", Name = "definitionName" },
                 Description = "Description",
                 Name = "Dataset Name",
                 Published = null,
@@ -1015,7 +1015,7 @@ namespace CalculateFunding.Services.Datasets.Services
                     Comment = "My update comment",
                     LastUpdatedDate = new DateTime(2018, 12, 1, 3, 4, 5),
                     PublishStatus = Models.Versioning.PublishStatus.Draft,
-                    Definition = new Reference("defId", "definitionName"),
+                    Definition = new DatasetDefinitionVersion { Id = "defId", Name = "definitionName"},
                     Description = "Description",
                     Version = 1,
                 });
@@ -1047,7 +1047,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 Id = datasetId,
                 Current = datasetVersion1,
                 History = new List<DatasetVersion>() { datasetVersion1},
-                Definition = new Reference("defId", "definitionName"),
+                Definition = new DatasetDefinitionVersion { Id = "defId", Name = "Definition Name" },
                 Description = "Description",
                 Name = "Dataset Name",
                 Published = null,
@@ -1055,7 +1055,8 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetDefinition datasetDefinition = new DatasetDefinition()
             { 
-                FundingStreamId = "fs1"
+                FundingStreamId = "fs1",
+                Version = 1
             };
 
 
@@ -1114,7 +1115,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 Id = datasetId,
                 Current = datasetVersion2,
                 History = new List<DatasetVersion>() { datasetVersion1, datasetVersion2 },
-                Definition = new Reference("defId", "definitionName"),
+                Definition = new DatasetDefinitionVersion { Id = "defId", Name = "definitionName" },
                 Description = "Description",
                 Name = "Dataset Name",
                 Published = null,
@@ -1147,7 +1148,7 @@ namespace CalculateFunding.Services.Datasets.Services
                     Comment = "My update comment for second",
                     LastUpdatedDate = new DateTime(2018, 12, 1, 3, 2, 2),
                     PublishStatus = Models.Versioning.PublishStatus.Draft,
-                    Definition = new Reference("defId", "definitionName"),
+                    Definition = new DatasetDefinitionVersion { Id = "defId", Name = "definitionName" },
                     Description = "Description",
                     Version = 2,
                 });
@@ -1354,7 +1355,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IEnumerable<Dataset> datasets = new[]
             {
-                new Dataset{ Definition = new Reference() }
+                new Dataset{ Definition = new DatasetDefinitionVersion () }
             };
 
             ILogger logger = CreateLogger();
@@ -1399,7 +1400,7 @@ namespace CalculateFunding.Services.Datasets.Services
             IEnumerable<Dataset> datasets = new[]
             {
                 new Dataset{
-                    Definition = new Reference(definitionId, defintionName),
+                    Definition = new DatasetDefinitionVersion { Id = definitionId, Name = defintionName },
                     History = new List<DatasetVersion>
                     {
 

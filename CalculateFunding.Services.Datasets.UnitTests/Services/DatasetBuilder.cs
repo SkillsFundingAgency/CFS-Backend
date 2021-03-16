@@ -11,7 +11,7 @@ namespace CalculateFunding.Services.Datasets.Services
         private string _id;
         private string _name;
         private string _description;
-        private Reference _definition;
+        private DatasetDefinitionVersion _definition;
         private DatasetVersion _current;
         private IEnumerable<DatasetVersion> _history;
 
@@ -50,7 +50,7 @@ namespace CalculateFunding.Services.Datasets.Services
             return this;
         }
 
-        public DatasetBuilder WithDefinition(Reference definition)
+        public DatasetBuilder WithDefinition(DatasetDefinitionVersion definition)
         {
             _definition = definition;
 

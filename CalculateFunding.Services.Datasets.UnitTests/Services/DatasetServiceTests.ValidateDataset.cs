@@ -609,24 +609,24 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetDefinition datasetDefinition = new DatasetDefinition()
             {
                 Id = DataDefinitionId,
-                FundingStreamId = FundingStreamId
+                FundingStreamId = FundingStreamId,
+                Version = 2
             };
 
             Dataset dataset = new Dataset
             {
-                Id = DatasetId
+                Id = DatasetId,
+                Definition = new DatasetDefinitionVersion { Id = DataDefinitionId, Version = 1}
             };
 
             DocumentEntity<DatasetDefinition> datasetDefinitionDocument = new DocumentEntity<DatasetDefinition> 
             { 
-                Content = datasetDefinition, 
-                UpdatedAt = DateTimeOffset.Now.AddHours(-1) 
+                Content = datasetDefinition
             };
 
             DocumentEntity<Dataset> datasetDocument = new DocumentEntity<Dataset>
             {
-                Content = dataset,
-                UpdatedAt = DateTimeOffset.Now.AddHours(-2)
+                Content = dataset
             };
 
             IDatasetRepository datasetRepository = CreateDatasetsRepository();
@@ -1637,7 +1637,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 Id = model.DatasetId,
                 Current = existingDatasetVersion,
                 History = new List<DatasetVersion>() { existingDatasetVersion },
-                Definition = new Reference(datasetDefinition.Id, datasetDefinition.Name),
+                Definition = new DatasetDefinitionVersion { Id = datasetDefinition.Id, Name = datasetDefinition.Name },
                 Description = initialDescription,
                 Name = name,
                 Published = null,
@@ -1836,7 +1836,7 @@ namespace CalculateFunding.Services.Datasets.Services
                     existingDatasetVersion1,
                     existingDatasetVersion2,
                 },
-                Definition = new Reference(datasetDefinition.Id, datasetDefinition.Name),
+                Definition = new DatasetDefinitionVersion {Id = datasetDefinition.Id, Name = datasetDefinition.Name },
                 Description = initialDescription,
                 Name = name,
                 Published = null,
@@ -2103,7 +2103,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 Id = model.DatasetId,
                 Current = existingDatasetVersion,
                 History = new List<DatasetVersion>() { existingDatasetVersion },
-                Definition = new Reference(datasetDefinition.Id, datasetDefinition.Name),
+                Definition = new DatasetDefinitionVersion { Id = datasetDefinition.Id, Name = datasetDefinition.Name },
                 Description = initialDescription,
                 Name = name,
                 Published = null,
@@ -2239,7 +2239,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 Id = model.DatasetId,
                 Current = existingDatasetVersion,
                 History = new List<DatasetVersion>() { existingDatasetVersion },
-                Definition = new Reference(datasetDefinition.Id, datasetDefinition.Name),
+                Definition = new DatasetDefinitionVersion { Id = datasetDefinition.Id, Name = datasetDefinition.Name },
                 Description = initialDescription,
                 Name = name,
                 Published = null,
@@ -2908,7 +2908,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 Id = getDatasetBlobModel.DatasetId,
                 Current = existingDatasetVersion,
                 History = new List<DatasetVersion>() { existingDatasetVersion },
-                Definition = new Reference(datasetDefinition.Id, datasetDefinition.Name),
+                Definition = new DatasetDefinitionVersion { Id = datasetDefinition.Id, Name = datasetDefinition.Name },
                 Description = initialDescription,
                 Name = name,
                 Published = null,
@@ -3053,7 +3053,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 Id = getDatasetBlobModel.DatasetId,
                 Current = existingDatasetVersion,
                 History = new List<DatasetVersion>() { existingDatasetVersion },
-                Definition = new Reference(datasetDefinition.Id, datasetDefinition.Name),
+                Definition = new DatasetDefinitionVersion { Id = datasetDefinition.Id, Name = datasetDefinition.Name },
                 Description = initialDescription,
                 Name = name,
                 Published = null,
@@ -3480,7 +3480,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 Id = model.DatasetId,
                 Current = existingDatasetVersion,
                 History = new List<DatasetVersion>() { existingDatasetVersion },
-                Definition = new Reference(datasetDefinition.Id, datasetDefinition.Name),
+                Definition = new DatasetDefinitionVersion { Id = datasetDefinition.Id, Name = datasetDefinition.Name },
                 Description = "description",
                 Name = name,
                 Published = null,
@@ -3647,7 +3647,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 Id = model.DatasetId,
                 Current = existingDatasetVersion,
                 History = new List<DatasetVersion>() { existingDatasetVersion },
-                Definition = new Reference(datasetDefinition.Id, datasetDefinition.Name),
+                Definition = new DatasetDefinitionVersion { Id = datasetDefinition.Id, Name = datasetDefinition.Name },
                 Description = "description",
                 Name = name,
                 Published = null,
