@@ -25,6 +25,8 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
     [TestClass]
     public class FundingFeedServiceTests
     {
+        private const int IndexItems = 1000;
+
         [TestMethod]
         public async Task GetNotifications_GivenPageRefOfThreeSupplied_RequestsPageThree()
         {
@@ -313,12 +315,12 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
             atomFeed.Link.First(m => m.Rel == "self").Href.Should().Be($"{scheme}://{host}{path}{queryString}");
             atomFeed.Link.First(m => m.Rel == "current").Href.Should().Be($"{scheme}://{host}{path}/2{queryString}");
 
-            atomFeed.AtomEntry.Count.Should().Be(3);
+            atomFeed.AtomEntry.Count.Should().Be(IndexItems);
 
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < IndexItems; i++)
             {
                 string text = $"id-{i + 1}";
-                AtomEntry atomEntry = atomFeed.AtomEntry.First(x => x.Title == text);
+                AtomEntry atomEntry = atomFeed.AtomEntry[i];
                 atomEntry.Id.Should().Be($"{scheme}://{host}/api/v3/fundings/byId/{text}");
                 atomEntry.Title.Should().Be(text);
                 atomEntry.Summary.Should().Be(text);
@@ -506,36 +508,22 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
 
         private static IEnumerable<PublishedFundingIndex> CreateFeedIndexes()
         {
-            return new[]
+            List<PublishedFundingIndex> indexes = new List<PublishedFundingIndex>();
+
+            for(int i=1; i<= IndexItems; i++)
+            {
+                indexes.Add(new PublishedFundingIndex
                 {
-                    new PublishedFundingIndex
-                    {
-                         Id = "id-1",
-                         FundingStreamId = "PES",
-                         FundingPeriodId = "ABC",
-                         GroupTypeIdentifier = "LocalAuthority",
-                         StatusChangedDate = DateTime.Now.AddDays(-1),
-                         DocumentPath = "a"
-                    },
-                    new PublishedFundingIndex
-                    {
-                         Id = "id-2",
-                         FundingStreamId = "PES1",
-                         FundingPeriodId = "ABC1",
-                         GroupTypeIdentifier = "LocalAuthority",
-                         StatusChangedDate = DateTime.Now.AddDays(-2),
-                         DocumentPath = "b"
-                    },
-                    new PublishedFundingIndex
-                    {
-                         Id = "id-3",
-                         FundingStreamId = "PES2",
-                         FundingPeriodId = "ABC2",
-                         GroupTypeIdentifier = "LocalAuthority",
-                         StatusChangedDate = DateTime.Now.AddDays(-3),
-                         DocumentPath = "c"
-                    }
-                };
+                    Id = $"id-{i}",
+                    FundingStreamId = $"PES-{i}",
+                    FundingPeriodId = $"ABC-{i}",
+                    GroupTypeIdentifier = "LocalAuthority",
+                    StatusChangedDate = DateTime.Now.AddDays(-1),
+                    DocumentPath = $"path-{i}"
+                });
+            }
+
+            return indexes.ToArray();
         }
     }
 }

@@ -100,14 +100,14 @@ namespace CalculateFunding.Api.External.V3.Services
 
             await CreateAtomFeedHeader(searchFeed, fundingUrl, responseStreamWriter);
 
-            List<PublishedFundingIndex> publishedFundingIndexes = searchFeed.Entries.ToList();
+            List<(PublishedFundingIndex Index, int Order)> publishedFundingIndexes = searchFeed.Entries.Select((_, index) => (_, index)).ToList();
             int remainingCount = publishedFundingIndexes.Count;
             int batchCount = _externalEngineOptions.BlobLookupConcurrencyCount;
             int skipCount = 0;
 
             while (remainingCount > 0)
             {
-                ConcurrentDictionary<PublishedFundingIndex, string> fundingFeedDocuments = await GetFundingFeedDocuments(publishedFundingIndexes.Skip(skipCount).Take(batchCount));
+                IDictionary<PublishedFundingIndex, string> fundingFeedDocuments = await GetFundingFeedDocuments(publishedFundingIndexes.Skip(skipCount).Take(batchCount));
 
                 remainingCount -= fundingFeedDocuments.Count;
                 skipCount += fundingFeedDocuments.Count;
@@ -124,13 +124,13 @@ namespace CalculateFunding.Api.External.V3.Services
             await responseStreamWriter.WriteLineAsync("]}");
         }
 
-        private async Task<ConcurrentDictionary<PublishedFundingIndex, string>> GetFundingFeedDocuments(IEnumerable<PublishedFundingIndex> fundingIndexes)
+        private async Task<IDictionary<PublishedFundingIndex, string>> GetFundingFeedDocuments(IEnumerable<(PublishedFundingIndex Index, int Order)> fundingIndexes)
         {
-            ConcurrentDictionary<PublishedFundingIndex, string> feedContentResults = new ConcurrentDictionary<PublishedFundingIndex, string>();
+            ConcurrentDictionary<PublishedFundingIndex, (string Contents, int Order)> feedContentResults = new ConcurrentDictionary<PublishedFundingIndex, (string Contents, int Order)>();
 
             List<Task> allTasks = new List<Task>();
             SemaphoreSlim throttler = new SemaphoreSlim(initialCount: _externalEngineOptions.BlobLookupConcurrencyCount);
-            foreach (PublishedFundingIndex feedIndex in fundingIndexes)
+            foreach ((PublishedFundingIndex Index, int Order) in fundingIndexes)
             {
                 await throttler.WaitAsync();
                 allTasks.Add(
@@ -139,8 +139,8 @@ namespace CalculateFunding.Api.External.V3.Services
                         try
                         {
                             //TODO; sort out the full document url as just the blob name is no good
-                            string contents = await _publishedFundingRetrievalService.GetFundingFeedDocument(feedIndex.DocumentPath);
-                            feedContentResults.TryAdd(feedIndex, contents);
+                            string contents = await _publishedFundingRetrievalService.GetFundingFeedDocument(Index.DocumentPath);
+                            feedContentResults.TryAdd(Index, (contents, Order));
                         }
                         finally
                         {
@@ -151,7 +151,7 @@ namespace CalculateFunding.Api.External.V3.Services
 
             await TaskHelper.WhenAllAndThrow(allTasks.ToArray());
 
-            return feedContentResults;
+            return feedContentResults.OrderBy(_ => _.Value.Order).ToDictionary(_ => _.Key, _ => _.Value.Contents);
         }
 
         private async Task CreateAtomFeedHeader(SearchFeedV3<PublishedFundingIndex> searchFeed, string fundingUrl, StreamWriter responseStreamWriter)
@@ -192,7 +192,7 @@ namespace CalculateFunding.Api.External.V3.Services
         private async Task AddAtomEntryAsync(HttpRequest request,
             StreamWriter responseStreamWriter,
             string fundingTrimmedRequestPath,
-            ConcurrentDictionary<PublishedFundingIndex, string> fundingFeedDocuments,
+            IDictionary<PublishedFundingIndex, string> fundingFeedDocuments,
             bool isLastBatch)
         {
             int feedDocumentCount = fundingFeedDocuments.Count;
