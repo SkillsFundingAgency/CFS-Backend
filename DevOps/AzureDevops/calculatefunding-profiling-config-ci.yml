@@ -1,0 +1,56 @@
+name: $(Rev:r)
+
+pool:
+  vmImage: windows-2019
+
+trigger:
+  branches:
+    include:
+      - providers
+  paths:
+    include:
+      - /CalculateFunding.Profiling.ConsoleConfig
+      - /CalculateFunding.Profiling.ConsoleConfig/Profiles
+
+variables:
+ - name: buildconfiguration
+   value: 'release'
+ - name: DOTNET_SKIP_FIRST_TIME_EXPERIENCE
+   value: true
+ - group: 'Dotnet Core SDK Version'
+
+steps:
+- task: DotNetCoreInstaller@0
+  displayName: 'Use .NET Core sdk $(DotnetCoreSdkVersion)'
+  inputs:
+    version: '$(DotnetCoreSdkVersion)'
+
+- task: DotNetCoreCLI@2
+  displayName: 'dotnet build'
+  inputs:
+    projects: '**/*CalculateFunding.Profiling.ConsoleConfig.csproj'
+    arguments: '--configuration $(BuildConfiguration)'
+
+- task: DotNetCoreCLI@2
+  displayName: 'dotnet publish'
+  inputs:
+    command: publish
+    publishWebProjects: false
+    projects: '**/*CalculateFunding.Profiling.ConsoleConfig.csproj'
+    arguments: '--configuration $(BuildConfiguration) --output $(build.artifactstagingdirectory)'
+    zipAfterPublish: false
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifact: drop'
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifact: profiles'
+  inputs:
+    PathtoPublish: CalculateFunding.Profiling.ConsoleConfig/Profiles
+    ArtifactName: profiles
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifact: devops'
+  inputs:
+    PathtoPublish: DevOps
+    ArtifactName: devops
