@@ -4,9 +4,12 @@ using System.Linq;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Publishing.AcceptanceTests.Contexts;
+using CalculateFunding.Publishing.AcceptanceTests.Extensions;
 using CalculateFunding.Publishing.AcceptanceTests.Models;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
+using Newtonsoft.Json;
 using TechTalk.SpecFlow;
 using TechTalk.SpecFlow.Assist;
 
@@ -45,6 +48,24 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             }
 
             _publishedFundingRepositoryStepContext.CurrentPublishedProvider = publishedProvider;
+        }
+
+        [Given(@"the Published Provider '(.*)' has been been previously generated for the current specification")]
+        public void GivenThePublishedProviderHasBeenBeenPreviouslyGeneratedForTheCurrentSpecification(string publishedProviderFilename)
+        {
+            string publishedProviderJson = ResourceHelper.GetResourceContent("Input.PublishedProviders", $"{publishedProviderFilename}.json");
+            PublishedProvider publishedProvider = JsonConvert.DeserializeObject<PublishedProvider>(publishedProviderJson);
+
+            _publishedFundingRepositoryStepContext.CurrentPublishedProvider = publishedProvider;
+
+            _publishFundingStepContext.CalculationsInMemoryRepository.AddProviderResults(_publishedFundingRepositoryStepContext.CurrentPublishedProvider.Current.ProviderId,
+                    publishedProvider.Current.Calculations.Select(_ =>
+                        new CalculationResult
+                        {
+                            Id = _publishFundingStepContext.CalculationsInMemoryClient.Mapping.TemplateMappingItems.FirstOrDefault(t => t.TemplateId == _.TemplateCalculationId)?.CalculationId,
+                            Value = _.Value
+                        }).ToArray()
+                );
         }
 
         [Given(@"the Published Provider has the following funding lines")]
@@ -307,6 +328,5 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             
             _publishedFundingRepositoryStepContext.CurrentPublishedProvider = null;
         }
-
     }
 }

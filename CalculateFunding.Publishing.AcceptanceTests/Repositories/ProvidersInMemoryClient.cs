@@ -161,6 +161,23 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
+        public void AddProviderVersionWithProviders(ProviderVersion providerVersion)
+        {
+            Guard.ArgumentNotNull(providerVersion, nameof(providerVersion));
+            Guard.IsNullOrWhiteSpace(providerVersion.ProviderVersionId, nameof(providerVersion.ProviderVersionId));
+
+            _providerVersions[providerVersion.ProviderVersionId] = providerVersion;
+            if (!_providers.ContainsKey(providerVersion.ProviderVersionId))
+            {
+                _providers.Add(providerVersion.ProviderVersionId, new Dictionary<string, Provider>());
+            }
+
+            foreach (Provider provider in providerVersion.Providers)
+            {
+                _providers[providerVersion.ProviderVersionId][provider.ProviderId] = provider;
+            }
+        }
+
         public void AddProviderVersion(ProviderVersion providerVersion)
         {
             Guard.ArgumentNotNull(providerVersion, nameof(providerVersion));

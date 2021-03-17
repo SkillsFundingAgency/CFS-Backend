@@ -1,7 +1,9 @@
 ﻿using CalculateFunding.Common.ApiClient.Providers.Models;
 using CalculateFunding.Common.ApiClient.Providers.Models.Search;
 using CalculateFunding.Publishing.AcceptanceTests.Contexts;
+using CalculateFunding.Publishing.AcceptanceTests.Extensions;
 using FluentAssertions;
+using Newtonsoft.Json;
 using TechTalk.SpecFlow;
 using TechTalk.SpecFlow.Assist;
 
@@ -28,6 +30,15 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
 
             _providersStepContext.EmulatedClient.AddProviderVersion(providerVersion);
         }
+
+        [Given(@"the provider version '(.*)' exists in the provider service for '(.*)'")]
+        public void GivenTheProviderVersionExistsInTheProviderServiceFor(string providerVersionFileName, string providerVersionId)
+        {
+            string providerVersionJson = ResourceHelper.GetResourceContent("Input.ProviderVersions", $"{providerVersionFileName}.json");
+            ProviderVersion publishedProvider = JsonConvert.DeserializeObject<ProviderVersion>(providerVersionJson);
+            _providersStepContext.EmulatedClient.AddProviderVersionWithProviders(publishedProvider);
+        }
+
 
         [Given(@"the following provider exists within master provider data")]
         public void GivenTheFollowingProviderExistsWithinMasterProviderData(ProviderVersionSearchResult providerVersionSearchResult)

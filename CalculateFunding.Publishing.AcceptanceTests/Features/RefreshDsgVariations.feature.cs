@@ -97,360 +97,360 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
         {
 #line 7
 #line hidden
-            TechTalk.SpecFlow.Table table530 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table663 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table530.AddRow(new string[] {
+            table663.AddRow(new string[] {
                         "DefaultTemplateVersion",
                         "2.0"});
 #line 8
  testRunner.Given("a funding configuration exists for funding stream \'DSG\' in funding period \'FY-202" +
-                    "1\'", ((string)(null)), table530, "Given ");
+                    "1\'", ((string)(null)), table663, "Given ");
 #line hidden
-            TechTalk.SpecFlow.Table table531 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table664 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table531.AddRow(new string[] {
+            table664.AddRow(new string[] {
                         "GroupTypeIdentifier",
                         "UKPRN"});
-            table531.AddRow(new string[] {
+            table664.AddRow(new string[] {
                         "GroupingReason",
                         "Payment"});
-            table531.AddRow(new string[] {
+            table664.AddRow(new string[] {
                         "GroupTypeClassification",
                         "LegalEntity"});
-            table531.AddRow(new string[] {
+            table664.AddRow(new string[] {
                         "OrganisationGroupTypeCode",
                         "LocalAuthority"});
 #line 11
- testRunner.And("the funding configuration has the following organisation group", ((string)(null)), table531, "And ");
+ testRunner.And("the funding configuration has the following organisation group", ((string)(null)), table664, "And ");
 #line hidden
 #line 17
  testRunner.And("the funding configuration is available in the policies repository", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table532 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table665 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table532.AddRow(new string[] {
+            table665.AddRow(new string[] {
                         "GroupTypeIdentifier",
                         "LACode"});
-            table532.AddRow(new string[] {
+            table665.AddRow(new string[] {
                         "GroupingReason",
                         "Information"});
-            table532.AddRow(new string[] {
+            table665.AddRow(new string[] {
                         "GroupTypeClassification",
                         "GeographicalBoundary"});
-            table532.AddRow(new string[] {
+            table665.AddRow(new string[] {
                         "OrganisationGroupTypeCode",
                         "LocalAuthority"});
 #line 18
- testRunner.And("the funding configuration has the following organisation group", ((string)(null)), table532, "And ");
+ testRunner.And("the funding configuration has the following organisation group", ((string)(null)), table665, "And ");
 #line hidden
 #line 24
  testRunner.And("the funding configuration is available in the policies repository", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table533 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table666 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table533.AddRow(new string[] {
+            table666.AddRow(new string[] {
                         "GroupTypeIdentifier",
                         "LocalAuthorityClassificationTypeCode"});
-            table533.AddRow(new string[] {
+            table666.AddRow(new string[] {
                         "GroupingReason",
                         "Information"});
-            table533.AddRow(new string[] {
+            table666.AddRow(new string[] {
                         "GroupTypeClassification",
                         "GeographicalBoundary"});
-            table533.AddRow(new string[] {
+            table666.AddRow(new string[] {
                         "OrganisationGroupTypeCode",
                         "LocalGovernmentGroup"});
 #line 25
- testRunner.And("the funding configuration has the following organisation group", ((string)(null)), table533, "And ");
+ testRunner.And("the funding configuration has the following organisation group", ((string)(null)), table666, "And ");
 #line hidden
 #line 31
  testRunner.And("the funding configuration is available in the policies repository", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table534 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table667 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table534.AddRow(new string[] {
+            table667.AddRow(new string[] {
                         "GroupTypeIdentifier",
                         "GovernmentOfficeRegionCode"});
-            table534.AddRow(new string[] {
+            table667.AddRow(new string[] {
                         "GroupingReason",
                         "Information"});
-            table534.AddRow(new string[] {
+            table667.AddRow(new string[] {
                         "GroupTypeClassification",
                         "GeographicalBoundary"});
-            table534.AddRow(new string[] {
+            table667.AddRow(new string[] {
                         "OrganisationGroupTypeCode",
                         "GovernmentOfficeRegion"});
 #line 32
- testRunner.And("the funding configuration has the following organisation group", ((string)(null)), table534, "And ");
+ testRunner.And("the funding configuration has the following organisation group", ((string)(null)), table667, "And ");
 #line hidden
 #line 38
  testRunner.And("the funding configuration is available in the policies repository", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table535 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table668 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table535.AddRow(new string[] {
+            table668.AddRow(new string[] {
                         "GroupTypeIdentifier",
                         "CountryCode"});
-            table535.AddRow(new string[] {
+            table668.AddRow(new string[] {
                         "GroupingReason",
                         "Information"});
-            table535.AddRow(new string[] {
+            table668.AddRow(new string[] {
                         "GroupTypeClassification",
                         "GeographicalBoundary"});
-            table535.AddRow(new string[] {
+            table668.AddRow(new string[] {
                         "OrganisationGroupTypeCode",
                         "Country"});
 #line 39
- testRunner.And("the funding configuration has the following organisation group", ((string)(null)), table535, "And ");
+ testRunner.And("the funding configuration has the following organisation group", ((string)(null)), table668, "And ");
 #line hidden
 #line 45
  testRunner.And("the funding configuration is available in the policies repository", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table536 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table669 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table536.AddRow(new string[] {
+            table669.AddRow(new string[] {
                         "Id",
                         "FY-2021"});
-            table536.AddRow(new string[] {
+            table669.AddRow(new string[] {
                         "Name",
                         "Financial Year 2020-21"});
-            table536.AddRow(new string[] {
+            table669.AddRow(new string[] {
                         "StartDate",
                         "2019-08-01 00:00:00"});
-            table536.AddRow(new string[] {
+            table669.AddRow(new string[] {
                         "EndDate",
                         "2020-07-31 00:00:00"});
-            table536.AddRow(new string[] {
+            table669.AddRow(new string[] {
                         "Period",
                         "2021"});
-            table536.AddRow(new string[] {
+            table669.AddRow(new string[] {
                         "Type",
                         "FY"});
 #line 46
- testRunner.And("the funding period exists in the policies service", ((string)(null)), table536, "And ");
+ testRunner.And("the funding period exists in the policies service", ((string)(null)), table669, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table537 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table670 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table537.AddRow(new string[] {
+            table670.AddRow(new string[] {
                         "Id",
                         "specForPublishing"});
-            table537.AddRow(new string[] {
+            table670.AddRow(new string[] {
                         "Name",
                         "Test Specification for Publishing"});
-            table537.AddRow(new string[] {
+            table670.AddRow(new string[] {
                         "IsSelectedForFunding",
                         "true"});
-            table537.AddRow(new string[] {
+            table670.AddRow(new string[] {
                         "ProviderVersionId",
                         "dsg-providers-2.0"});
 #line 54
- testRunner.And("the following specification exists", ((string)(null)), table537, "And ");
+ testRunner.And("the following specification exists", ((string)(null)), table670, "And ");
 #line hidden
 #line 60
  testRunner.And("the specification has the funding period with id \'FY-2021\' and name \'Financial Ye" +
                     "ar 2020-21\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table538 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table671 = new TechTalk.SpecFlow.Table(new string[] {
                         "Name",
                         "Id"});
-            table538.AddRow(new string[] {
+            table671.AddRow(new string[] {
                         "DSG",
                         "DSG"});
 #line 61
- testRunner.And("the specification has the following funding streams", ((string)(null)), table538, "And ");
+ testRunner.And("the specification has the following funding streams", ((string)(null)), table671, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table539 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table672 = new TechTalk.SpecFlow.Table(new string[] {
                         "Key",
                         "Value"});
-            table539.AddRow(new string[] {
+            table672.AddRow(new string[] {
                         "DSG",
                         "2.0"});
 #line 64
- testRunner.And("the specification has the following template versions for funding streams", ((string)(null)), table539, "And ");
+ testRunner.And("the specification has the following template versions for funding streams", ((string)(null)), table672, "And ");
 #line hidden
 #line 67
  testRunner.And("the specification is approved", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table540 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table673 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table540.AddRow(new string[] {
+            table673.AddRow(new string[] {
                         "StatusChangedDate",
                         "2019-09-27 00:00:00"});
-            table540.AddRow(new string[] {
+            table673.AddRow(new string[] {
                         "ExternalPublicationDate",
                         "2019-09-28 00:00:00"});
-            table540.AddRow(new string[] {
+            table673.AddRow(new string[] {
                         "EarliestPaymentAvailableDate",
                         "2019-09-29 00:00:00"});
 #line 68
- testRunner.And("the publishing dates for the specifcation are set as following", ((string)(null)), table540, "And ");
+ testRunner.And("the publishing dates for the specifcation are set as following", ((string)(null)), table673, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table541 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table674 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table541.AddRow(new string[] {
+            table674.AddRow(new string[] {
                         "JobDefinitionId",
                         "PublishFundingJob"});
-            table541.AddRow(new string[] {
+            table674.AddRow(new string[] {
                         "InvokerUserId",
                         "PublishUserId"});
-            table541.AddRow(new string[] {
+            table674.AddRow(new string[] {
                         "InvokerUserDisplayName",
                         "Invoker User"});
-            table541.AddRow(new string[] {
+            table674.AddRow(new string[] {
                         "ParentJobId",
                         ""});
 #line 73
- testRunner.And("the following job is requested to be queued for the current specification", ((string)(null)), table541, "And ");
+ testRunner.And("the following job is requested to be queued for the current specification", ((string)(null)), table674, "And ");
 #line hidden
 #line 79
  testRunner.And("the job is submitted to the job service", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table542 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table675 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table542.AddRow(new string[] {
+            table675.AddRow(new string[] {
                         "ProviderVersionId",
                         "dsg-providers-2.0"});
-            table542.AddRow(new string[] {
+            table675.AddRow(new string[] {
                         "VersionType",
                         "Custom"});
-            table542.AddRow(new string[] {
+            table675.AddRow(new string[] {
                         "Name",
                         "DSG Provider Version"});
-            table542.AddRow(new string[] {
+            table675.AddRow(new string[] {
                         "Description",
                         "Acceptance Tests"});
-            table542.AddRow(new string[] {
+            table675.AddRow(new string[] {
                         "Version",
                         "2"});
-            table542.AddRow(new string[] {
+            table675.AddRow(new string[] {
                         "TargetDate",
                         "2019-12-12 00:00"});
-            table542.AddRow(new string[] {
+            table675.AddRow(new string[] {
                         "FundingStream",
                         "DSG"});
-            table542.AddRow(new string[] {
+            table675.AddRow(new string[] {
                         "Created",
                         "2019-12-11 00:00"});
 #line 80
- testRunner.And("the following provider version exists in the providers service", ((string)(null)), table542, "And ");
+ testRunner.And("the following provider version exists in the providers service", ((string)(null)), table675, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table543 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table676 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table543.AddRow(new string[] {
+            table676.AddRow(new string[] {
                         "ProviderId",
                         "1000000"});
-            table543.AddRow(new string[] {
+            table676.AddRow(new string[] {
                         "FundingStreamId",
                         "DSG"});
-            table543.AddRow(new string[] {
+            table676.AddRow(new string[] {
                         "FundingPeriodId",
                         "FY-2021"});
-            table543.AddRow(new string[] {
+            table676.AddRow(new string[] {
                         "TemplateVersion",
                         "1.0"});
-            table543.AddRow(new string[] {
+            table676.AddRow(new string[] {
                         "Status",
                         "Released"});
-            table543.AddRow(new string[] {
+            table676.AddRow(new string[] {
                         "TotalFunding",
                         "14000"});
-            table543.AddRow(new string[] {
+            table676.AddRow(new string[] {
                         "MajorVersion",
                         "0"});
-            table543.AddRow(new string[] {
+            table676.AddRow(new string[] {
                         "MinorVersion",
                         "1"});
 #line 90
  testRunner.And("the following Published Provider has been previously generated for the current sp" +
-                    "ecification", ((string)(null)), table543, "And ");
+                    "ecification", ((string)(null)), table676, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table544 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table677 = new TechTalk.SpecFlow.Table(new string[] {
                         "Name",
                         "FundingLineCode",
                         "Value",
                         "TemplateLineId",
                         "Type"});
-            table544.AddRow(new string[] {
+            table677.AddRow(new string[] {
                         "Total DSG after deductions and recoupment",
                         "DSG-002",
                         "14000",
                         "3",
                         "Payment"});
 #line 100
- testRunner.And("the Published Provider has the following funding lines", ((string)(null)), table544, "And ");
+ testRunner.And("the Published Provider has the following funding lines", ((string)(null)), table677, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table545 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table678 = new TechTalk.SpecFlow.Table(new string[] {
                         "DistributionPeriodId",
                         "Value"});
-            table545.AddRow(new string[] {
+            table678.AddRow(new string[] {
                         "FY-2021",
                         "14000"});
 #line 103
  testRunner.And("the Published Provider has the following distribution period for funding line \'DS" +
-                    "G-002\'", ((string)(null)), table545, "And ");
+                    "G-002\'", ((string)(null)), table678, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table546 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table679 = new TechTalk.SpecFlow.Table(new string[] {
                         "DistributionPeriodId",
                         "Type",
                         "TypeValue",
                         "Year",
                         "Occurrence",
                         "ProfiledValue"});
-            table546.AddRow(new string[] {
+            table679.AddRow(new string[] {
                         "FY-2021",
                         "CalendarMonth",
                         "April",
                         "2021",
                         "1",
                         "2000"});
-            table546.AddRow(new string[] {
+            table679.AddRow(new string[] {
                         "FY-2021",
                         "CalendarMonth",
                         "May",
                         "2021",
                         "1",
                         "2000"});
-            table546.AddRow(new string[] {
+            table679.AddRow(new string[] {
                         "FY-2021",
                         "CalendarMonth",
                         "June",
                         "2021",
                         "1",
                         "2000"});
-            table546.AddRow(new string[] {
+            table679.AddRow(new string[] {
                         "FY-2021",
                         "CalendarMonth",
                         "July",
                         "2021",
                         "1",
                         "2000"});
-            table546.AddRow(new string[] {
+            table679.AddRow(new string[] {
                         "FY-2021",
                         "CalendarMonth",
                         "August",
                         "2021",
                         "1",
                         "2000"});
-            table546.AddRow(new string[] {
+            table679.AddRow(new string[] {
                         "FY-2021",
                         "CalendarMonth",
                         "September",
                         "2021",
                         "1",
                         "2000"});
-            table546.AddRow(new string[] {
+            table679.AddRow(new string[] {
                         "FY-2021",
                         "CalendarMonth",
                         "October",
@@ -459,192 +459,192 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
                         "2000"});
 #line 106
  testRunner.And("the Published Providers distribution period has the following profiles for fundin" +
-                    "g line \'DSG-002\'", ((string)(null)), table546, "And ");
+                    "g line \'DSG-002\'", ((string)(null)), table679, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table547 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table680 = new TechTalk.SpecFlow.Table(new string[] {
                         "EntityType",
                         "CalculationId",
                         "TemplateId",
                         "Name"});
-            table547.AddRow(new string[] {
+            table680.AddRow(new string[] {
                         "Calculation",
                         "5cfb28de-88d6-4faa-a936-d81a065fb596",
                         "219",
                         "Stub for total funding"});
 #line 115
- testRunner.And("template mapping exists", ((string)(null)), table547, "And ");
+ testRunner.And("template mapping exists", ((string)(null)), table680, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table548 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table681 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table548.AddRow(new string[] {
+            table681.AddRow(new string[] {
                         "ProviderId",
                         "1000000"});
-            table548.AddRow(new string[] {
+            table681.AddRow(new string[] {
                         "Name",
                         "Maintained School 1"});
-            table548.AddRow(new string[] {
+            table681.AddRow(new string[] {
                         "Authority",
                         "Local Authority 1"});
-            table548.AddRow(new string[] {
+            table681.AddRow(new string[] {
                         "DateOpened",
                         "2012-03-15"});
-            table548.AddRow(new string[] {
+            table681.AddRow(new string[] {
                         "LACode",
                         "200"});
-            table548.AddRow(new string[] {
+            table681.AddRow(new string[] {
                         "LocalAuthorityName",
                         "Maintained School 1"});
-            table548.AddRow(new string[] {
+            table681.AddRow(new string[] {
                         "ProviderType",
                         "LA maintained schools"});
-            table548.AddRow(new string[] {
+            table681.AddRow(new string[] {
                         "ProviderSubType",
                         "Community school"});
-            table548.AddRow(new string[] {
+            table681.AddRow(new string[] {
                         "ProviderVersionId",
                         "dsg-providers-2.0"});
-            table548.AddRow(new string[] {
+            table681.AddRow(new string[] {
                         "TrustStatus",
                         "Not Supported By A Trust"});
-            table548.AddRow(new string[] {
+            table681.AddRow(new string[] {
                         "UKPRN",
                         "1000000"});
 #line 118
- testRunner.And("the Published Provider has the following provider information", ((string)(null)), table548, "And ");
+ testRunner.And("the Published Provider has the following provider information", ((string)(null)), table681, "And ");
 #line hidden
 #line 131
  testRunner.And("the Published Provider is available in the repository for this specification", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table549 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table682 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table549.AddRow(new string[] {
+            table682.AddRow(new string[] {
                         "ProviderId",
                         "1000000"});
-            table549.AddRow(new string[] {
+            table682.AddRow(new string[] {
                         "Name",
                         "Maintained School 1 - Changed"});
-            table549.AddRow(new string[] {
+            table682.AddRow(new string[] {
                         "Authority",
                         "Local Authority 1"});
-            table549.AddRow(new string[] {
+            table682.AddRow(new string[] {
                         "DateOpened",
                         "2012-03-15"});
-            table549.AddRow(new string[] {
+            table682.AddRow(new string[] {
                         "LACode",
                         "200"});
-            table549.AddRow(new string[] {
+            table682.AddRow(new string[] {
                         "LocalAuthorityName",
                         "Maintained School 1"});
-            table549.AddRow(new string[] {
+            table682.AddRow(new string[] {
                         "ProviderType",
                         "LA maintained schools"});
-            table549.AddRow(new string[] {
+            table682.AddRow(new string[] {
                         "ProviderSubType",
                         "Community school"});
-            table549.AddRow(new string[] {
+            table682.AddRow(new string[] {
                         "ProviderVersionId",
                         "dsg-providers-2.0"});
-            table549.AddRow(new string[] {
+            table682.AddRow(new string[] {
                         "TrustStatus",
                         "Not Supported By A Trust"});
-            table549.AddRow(new string[] {
+            table682.AddRow(new string[] {
                         "UKPRN",
                         "1000000"});
 #line 132
  testRunner.And("the following provider exists within core provider data in provider version \'dsg-" +
-                    "providers-2.0\'", ((string)(null)), table549, "And ");
+                    "providers-2.0\'", ((string)(null)), table682, "And ");
 #line hidden
 #line 145
  testRunner.And("the provider with id \'1000000\' should be a scoped provider in the current specifi" +
                     "cation in provider version \'dsg-providers-2.0\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table550 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table683 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table550.AddRow(new string[] {
+            table683.AddRow(new string[] {
                         "ProviderId",
                         "9000000"});
-            table550.AddRow(new string[] {
+            table683.AddRow(new string[] {
                         "Name",
                         "Local Authority 1"});
-            table550.AddRow(new string[] {
+            table683.AddRow(new string[] {
                         "Authority",
                         "Local Authority 1"});
-            table550.AddRow(new string[] {
+            table683.AddRow(new string[] {
                         "DateOpened",
                         "2012-03-15"});
-            table550.AddRow(new string[] {
+            table683.AddRow(new string[] {
                         "LACode",
                         "200"});
-            table550.AddRow(new string[] {
+            table683.AddRow(new string[] {
                         "LocalAuthorityName",
                         "Local Authority 1"});
-            table550.AddRow(new string[] {
+            table683.AddRow(new string[] {
                         "ProviderType",
                         "Local Authority"});
-            table550.AddRow(new string[] {
+            table683.AddRow(new string[] {
                         "ProviderSubType",
                         "Local Authority"});
-            table550.AddRow(new string[] {
+            table683.AddRow(new string[] {
                         "ProviderVersionId",
                         "<ProviderVersionId>"});
-            table550.AddRow(new string[] {
+            table683.AddRow(new string[] {
                         "TrustStatus",
                         "Not Supported By A Trust"});
-            table550.AddRow(new string[] {
+            table683.AddRow(new string[] {
                         "UKPRN",
                         "9000000"});
 #line 147
  testRunner.And("the following provider exists within core provider data in provider version \'dsg-" +
-                    "providers-2.0\'", ((string)(null)), table550, "And ");
+                    "providers-2.0\'", ((string)(null)), table683, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table551 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table684 = new TechTalk.SpecFlow.Table(new string[] {
                         "CalculationType",
                         "CalculationId",
                         "Name",
                         "PublishStatus"});
-            table551.AddRow(new string[] {
+            table684.AddRow(new string[] {
                         "Template",
                         "5cfb28de-88d6-4faa-a936-d81a065fb596",
                         "Stub for total funding",
                         "Approved"});
 #line 160
- testRunner.And("calculation meta data exists for \'DSG\'", ((string)(null)), table551, "And ");
+ testRunner.And("calculation meta data exists for \'DSG\'", ((string)(null)), table684, "And ");
 #line hidden
 #line 163
  testRunner.And("variations are enabled", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table552 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table685 = new TechTalk.SpecFlow.Table(new string[] {
                         "Name",
                         "Order"});
-            table552.AddRow(new string[] {
+            table685.AddRow(new string[] {
                         "ProviderMetadata",
                         "0"});
-            table552.AddRow(new string[] {
+            table685.AddRow(new string[] {
                         "DsgTotalAllocationChange",
                         "1"});
-            table552.AddRow(new string[] {
+            table685.AddRow(new string[] {
                         "FundingUpdated",
                         "2"});
-            table552.AddRow(new string[] {
+            table685.AddRow(new string[] {
                         "ProfilingUpdated",
                         "3"});
-            table552.AddRow(new string[] {
+            table685.AddRow(new string[] {
                         "PupilNumberSuccessor",
                         "4"});
 #line 164
- testRunner.And("the funding configuration has the following funding variations", ((string)(null)), table552, "And ");
+ testRunner.And("the funding configuration has the following funding variations", ((string)(null)), table685, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table553 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table686 = new TechTalk.SpecFlow.Table(new string[] {
                         "FundingStreamId",
                         "FundingPeriodId"});
-            table553.AddRow(new string[] {
+            table686.AddRow(new string[] {
                         "DSG",
                         "FY-2021"});
 #line 171
- testRunner.And("the following profile pattern exists", ((string)(null)), table553, "And ");
+ testRunner.And("the following profile pattern exists", ((string)(null)), table686, "And ");
 #line hidden
         }
         
@@ -679,14 +679,14 @@ this.ScenarioInitialize(scenarioInfo);
 #line 7
 this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table554 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table687 = new TechTalk.SpecFlow.Table(new string[] {
                             "FundingStreamId",
                             "FundingLineId",
                             "PeriodType",
                             "TypeValue",
                             "Year",
                             "Occurrence"});
-                table554.AddRow(new string[] {
+                table687.AddRow(new string[] {
                             "DSG",
                             "DSG-002",
                             "CalenderMonth",
@@ -694,76 +694,76 @@ this.FeatureBackground();
                             "2021",
                             "1"});
 #line 176
-    testRunner.Given("the following variation pointers exist", ((string)(null)), table554, "Given ");
+    testRunner.Given("the following variation pointers exist", ((string)(null)), table687, "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table555 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table688 = new TechTalk.SpecFlow.Table(new string[] {
                             "Value",
                             "Id"});
-                table555.AddRow(new string[] {
+                table688.AddRow(new string[] {
                             "21000",
                             "5cfb28de-88d6-4faa-a936-d81a065fb596"});
 #line 179
- testRunner.And("the following calculation results also exist", ((string)(null)), table555, "And ");
+ testRunner.And("the following calculation results also exist", ((string)(null)), table688, "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table556 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table689 = new TechTalk.SpecFlow.Table(new string[] {
                             "DistributionPeriodId",
                             "Value"});
-                table556.AddRow(new string[] {
+                table689.AddRow(new string[] {
                             "FY-2021",
                             "21000"});
 #line 182
- testRunner.And("the following distribution periods exist", ((string)(null)), table556, "And ");
+ testRunner.And("the following distribution periods exist", ((string)(null)), table689, "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table557 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table690 = new TechTalk.SpecFlow.Table(new string[] {
                             "DistributionPeriodId",
                             "Type",
                             "TypeValue",
                             "Year",
                             "Occurrence",
                             "ProfiledValue"});
-                table557.AddRow(new string[] {
+                table690.AddRow(new string[] {
                             "FY-2021",
                             "CalendarMonth",
                             "April",
                             "2021",
                             "1",
                             "3000"});
-                table557.AddRow(new string[] {
+                table690.AddRow(new string[] {
                             "FY-2021",
                             "CalendarMonth",
                             "May",
                             "2021",
                             "1",
                             "3000"});
-                table557.AddRow(new string[] {
+                table690.AddRow(new string[] {
                             "FY-2021",
                             "CalendarMonth",
                             "June",
                             "2021",
                             "1",
                             "3000"});
-                table557.AddRow(new string[] {
+                table690.AddRow(new string[] {
                             "FY-2021",
                             "CalendarMonth",
                             "July",
                             "2021",
                             "1",
                             "3000"});
-                table557.AddRow(new string[] {
+                table690.AddRow(new string[] {
                             "FY-2021",
                             "CalendarMonth",
                             "August",
                             "2021",
                             "1",
                             "3000"});
-                table557.AddRow(new string[] {
+                table690.AddRow(new string[] {
                             "FY-2021",
                             "CalendarMonth",
                             "September",
                             "2021",
                             "1",
                             "3000"});
-                table557.AddRow(new string[] {
+                table690.AddRow(new string[] {
                             "FY-2021",
                             "CalendarMonth",
                             "October",
@@ -771,12 +771,12 @@ this.FeatureBackground();
                             "1",
                             "3000"});
 #line 185
- testRunner.And("the following profiles exist", ((string)(null)), table557, "And ");
+ testRunner.And("the following profiles exist", ((string)(null)), table690, "And ");
 #line hidden
 #line 194
  testRunner.When("funding is refreshed", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-                TechTalk.SpecFlow.Table table558 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table691 = new TechTalk.SpecFlow.Table(new string[] {
                             "FundingLineCode",
                             "DistributionPeriodId",
                             "Type",
@@ -784,7 +784,7 @@ this.FeatureBackground();
                             "Year",
                             "Occurrence",
                             "ProfiledValue"});
-                table558.AddRow(new string[] {
+                table691.AddRow(new string[] {
                             "DSG-002",
                             "FY-2021",
                             "CalendarMonth",
@@ -792,7 +792,7 @@ this.FeatureBackground();
                             "2021",
                             "1",
                             "2000"});
-                table558.AddRow(new string[] {
+                table691.AddRow(new string[] {
                             "DSG-002",
                             "FY-2021",
                             "CalendarMonth",
@@ -800,7 +800,7 @@ this.FeatureBackground();
                             "2021",
                             "1",
                             "2000"});
-                table558.AddRow(new string[] {
+                table691.AddRow(new string[] {
                             "DSG-002",
                             "FY-2021",
                             "CalendarMonth",
@@ -808,7 +808,7 @@ this.FeatureBackground();
                             "2021",
                             "1",
                             "5000"});
-                table558.AddRow(new string[] {
+                table691.AddRow(new string[] {
                             "DSG-002",
                             "FY-2021",
                             "CalendarMonth",
@@ -816,7 +816,7 @@ this.FeatureBackground();
                             "2021",
                             "1",
                             "3000"});
-                table558.AddRow(new string[] {
+                table691.AddRow(new string[] {
                             "DSG-002",
                             "FY-2021",
                             "CalendarMonth",
@@ -824,7 +824,7 @@ this.FeatureBackground();
                             "2021",
                             "1",
                             "3000"});
-                table558.AddRow(new string[] {
+                table691.AddRow(new string[] {
                             "DSG-002",
                             "FY-2021",
                             "CalendarMonth",
@@ -832,7 +832,7 @@ this.FeatureBackground();
                             "2021",
                             "1",
                             "3000"});
-                table558.AddRow(new string[] {
+                table691.AddRow(new string[] {
                             "DSG-002",
                             "FY-2021",
                             "CalendarMonth",
@@ -842,35 +842,35 @@ this.FeatureBackground();
                             "3000"});
 #line 195
  testRunner.Then("the upserted provider version for \'1000000\' has the following funding line profil" +
-                        "e periods", ((string)(null)), table558, "Then ");
+                        "e periods", ((string)(null)), table691, "Then ");
 #line hidden
-                TechTalk.SpecFlow.Table table559 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table692 = new TechTalk.SpecFlow.Table(new string[] {
                             "FundingLineCode",
                             "Value"});
-                table559.AddRow(new string[] {
+                table692.AddRow(new string[] {
                             "TotalAllocation",
                             "21000"});
 #line 204
- testRunner.And("the upserted provider version for \'1000000\' has the funding line totals", ((string)(null)), table559, "And ");
+ testRunner.And("the upserted provider version for \'1000000\' has the funding line totals", ((string)(null)), table692, "And ");
 #line hidden
 #line 207
  testRunner.And("the upserted provider version for \'1000000\' has no funding line over payments for" +
                         " funding line \'DSG-002\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table560 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table693 = new TechTalk.SpecFlow.Table(new string[] {
                             "ProviderId",
                             "VariationReason"});
-                table560.AddRow(new string[] {
+                table693.AddRow(new string[] {
                             "1000000",
                             "FundingUpdated"});
-                table560.AddRow(new string[] {
+                table693.AddRow(new string[] {
                             "1000000",
                             "NameFieldUpdated"});
-                table560.AddRow(new string[] {
+                table693.AddRow(new string[] {
                             "1000000",
                             "ProfilingUpdated"});
 #line 208
- testRunner.And("the provider variation reasons were recorded", ((string)(null)), table560, "And ");
+ testRunner.And("the provider variation reasons were recorded", ((string)(null)), table693, "And ");
 #line hidden
             }
             this.ScenarioCleanup();
@@ -907,14 +907,14 @@ this.ScenarioInitialize(scenarioInfo);
 #line 7
 this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table561 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table694 = new TechTalk.SpecFlow.Table(new string[] {
                             "FundingStreamId",
                             "FundingLineId",
                             "PeriodType",
                             "TypeValue",
                             "Year",
                             "Occurrence"});
-                table561.AddRow(new string[] {
+                table694.AddRow(new string[] {
                             "DSG",
                             "DSG-002",
                             "CalenderMonth",
@@ -922,76 +922,76 @@ this.FeatureBackground();
                             "2021",
                             "1"});
 #line 215
-    testRunner.Given("the following variation pointers exist", ((string)(null)), table561, "Given ");
+    testRunner.Given("the following variation pointers exist", ((string)(null)), table694, "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table562 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table695 = new TechTalk.SpecFlow.Table(new string[] {
                             "Value",
                             "Id"});
-                table562.AddRow(new string[] {
+                table695.AddRow(new string[] {
                             "3500",
                             "5cfb28de-88d6-4faa-a936-d81a065fb596"});
 #line 218
- testRunner.And("the following calculation results also exist", ((string)(null)), table562, "And ");
+ testRunner.And("the following calculation results also exist", ((string)(null)), table695, "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table563 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table696 = new TechTalk.SpecFlow.Table(new string[] {
                             "DistributionPeriodId",
                             "Value"});
-                table563.AddRow(new string[] {
+                table696.AddRow(new string[] {
                             "FY-2021",
                             "3500"});
 #line 221
- testRunner.And("the following distribution periods exist", ((string)(null)), table563, "And ");
+ testRunner.And("the following distribution periods exist", ((string)(null)), table696, "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table564 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table697 = new TechTalk.SpecFlow.Table(new string[] {
                             "DistributionPeriodId",
                             "Type",
                             "TypeValue",
                             "Year",
                             "Occurrence",
                             "ProfiledValue"});
-                table564.AddRow(new string[] {
+                table697.AddRow(new string[] {
                             "FY-2021",
                             "CalendarMonth",
                             "April",
                             "2021",
                             "1",
                             "500"});
-                table564.AddRow(new string[] {
+                table697.AddRow(new string[] {
                             "FY-2021",
                             "CalendarMonth",
                             "May",
                             "2021",
                             "1",
                             "500"});
-                table564.AddRow(new string[] {
+                table697.AddRow(new string[] {
                             "FY-2021",
                             "CalendarMonth",
                             "June",
                             "2021",
                             "1",
                             "500"});
-                table564.AddRow(new string[] {
+                table697.AddRow(new string[] {
                             "FY-2021",
                             "CalendarMonth",
                             "July",
                             "2021",
                             "1",
                             "500"});
-                table564.AddRow(new string[] {
+                table697.AddRow(new string[] {
                             "FY-2021",
                             "CalendarMonth",
                             "August",
                             "2021",
                             "1",
                             "500"});
-                table564.AddRow(new string[] {
+                table697.AddRow(new string[] {
                             "FY-2021",
                             "CalendarMonth",
                             "September",
                             "2021",
                             "1",
                             "500"});
-                table564.AddRow(new string[] {
+                table697.AddRow(new string[] {
                             "FY-2021",
                             "CalendarMonth",
                             "October",
@@ -999,12 +999,12 @@ this.FeatureBackground();
                             "1",
                             "500"});
 #line 224
- testRunner.And("the following profiles exist", ((string)(null)), table564, "And ");
+ testRunner.And("the following profiles exist", ((string)(null)), table697, "And ");
 #line hidden
 #line 233
  testRunner.When("funding is refreshed", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-                TechTalk.SpecFlow.Table table565 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table698 = new TechTalk.SpecFlow.Table(new string[] {
                             "FundingLineCode",
                             "DistributionPeriodId",
                             "Type",
@@ -1012,7 +1012,7 @@ this.FeatureBackground();
                             "Year",
                             "Occurrence",
                             "ProfiledValue"});
-                table565.AddRow(new string[] {
+                table698.AddRow(new string[] {
                             "DSG-002",
                             "FY-2021",
                             "CalendarMonth",
@@ -1020,7 +1020,7 @@ this.FeatureBackground();
                             "2021",
                             "1",
                             "2000"});
-                table565.AddRow(new string[] {
+                table698.AddRow(new string[] {
                             "DSG-002",
                             "FY-2021",
                             "CalendarMonth",
@@ -1028,7 +1028,7 @@ this.FeatureBackground();
                             "2021",
                             "1",
                             "0"});
-                table565.AddRow(new string[] {
+                table698.AddRow(new string[] {
                             "DSG-002",
                             "FY-2021",
                             "CalendarMonth",
@@ -1036,7 +1036,7 @@ this.FeatureBackground();
                             "2021",
                             "1",
                             "0"});
-                table565.AddRow(new string[] {
+                table698.AddRow(new string[] {
                             "DSG-002",
                             "FY-2021",
                             "CalendarMonth",
@@ -1044,7 +1044,7 @@ this.FeatureBackground();
                             "2021",
                             "1",
                             "0"});
-                table565.AddRow(new string[] {
+                table698.AddRow(new string[] {
                             "DSG-002",
                             "FY-2021",
                             "CalendarMonth",
@@ -1052,7 +1052,7 @@ this.FeatureBackground();
                             "2021",
                             "1",
                             "500"});
-                table565.AddRow(new string[] {
+                table698.AddRow(new string[] {
                             "DSG-002",
                             "FY-2021",
                             "CalendarMonth",
@@ -1060,7 +1060,7 @@ this.FeatureBackground();
                             "2021",
                             "1",
                             "500"});
-                table565.AddRow(new string[] {
+                table698.AddRow(new string[] {
                             "DSG-002",
                             "FY-2021",
                             "CalendarMonth",
@@ -1070,35 +1070,35 @@ this.FeatureBackground();
                             "500"});
 #line 234
  testRunner.Then("the upserted provider version for \'1000000\' has the following funding line profil" +
-                        "e periods", ((string)(null)), table565, "Then ");
+                        "e periods", ((string)(null)), table698, "Then ");
 #line hidden
-                TechTalk.SpecFlow.Table table566 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table699 = new TechTalk.SpecFlow.Table(new string[] {
                             "FundingLineCode",
                             "Value"});
-                table566.AddRow(new string[] {
+                table699.AddRow(new string[] {
                             "TotalAllocation",
                             "3500"});
 #line 243
- testRunner.And("the upserted provider version for \'1000000\' has the funding line totals", ((string)(null)), table566, "And ");
+ testRunner.And("the upserted provider version for \'1000000\' has the funding line totals", ((string)(null)), table699, "And ");
 #line hidden
 #line 246
  testRunner.And("the upserted provider version for \'1000000\' has no funding line over payments for" +
                         " funding line \'DSG-002\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table567 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table700 = new TechTalk.SpecFlow.Table(new string[] {
                             "ProviderId",
                             "VariationReason"});
-                table567.AddRow(new string[] {
+                table700.AddRow(new string[] {
                             "1000000",
                             "FundingUpdated"});
-                table567.AddRow(new string[] {
+                table700.AddRow(new string[] {
                             "1000000",
                             "NameFieldUpdated"});
-                table567.AddRow(new string[] {
+                table700.AddRow(new string[] {
                             "1000000",
                             "ProfilingUpdated"});
 #line 247
- testRunner.And("the provider variation reasons were recorded", ((string)(null)), table567, "And ");
+ testRunner.And("the provider variation reasons were recorded", ((string)(null)), table700, "And ");
 #line hidden
             }
             this.ScenarioCleanup();
@@ -1137,14 +1137,14 @@ this.ScenarioInitialize(scenarioInfo);
 #line 7
 this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table568 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table701 = new TechTalk.SpecFlow.Table(new string[] {
                             "FundingStreamId",
                             "FundingLineId",
                             "PeriodType",
                             "TypeValue",
                             "Year",
                             "Occurrence"});
-                table568.AddRow(new string[] {
+                table701.AddRow(new string[] {
                             "DSG",
                             "DSG-002",
                             "CalenderMonth",
@@ -1152,76 +1152,76 @@ this.FeatureBackground();
                             "2021",
                             "1"});
 #line 254
-    testRunner.Given("the following variation pointers exist", ((string)(null)), table568, "Given ");
+    testRunner.Given("the following variation pointers exist", ((string)(null)), table701, "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table569 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table702 = new TechTalk.SpecFlow.Table(new string[] {
                             "Value",
                             "Id"});
-                table569.AddRow(new string[] {
+                table702.AddRow(new string[] {
                             "3500",
                             "5cfb28de-88d6-4faa-a936-d81a065fb596"});
 #line 257
- testRunner.And("the following calculation results also exist", ((string)(null)), table569, "And ");
+ testRunner.And("the following calculation results also exist", ((string)(null)), table702, "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table570 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table703 = new TechTalk.SpecFlow.Table(new string[] {
                             "DistributionPeriodId",
                             "Value"});
-                table570.AddRow(new string[] {
+                table703.AddRow(new string[] {
                             "FY-2021",
                             "3500"});
 #line 260
- testRunner.And("the following distribution periods exist", ((string)(null)), table570, "And ");
+ testRunner.And("the following distribution periods exist", ((string)(null)), table703, "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table571 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table704 = new TechTalk.SpecFlow.Table(new string[] {
                             "DistributionPeriodId",
                             "Type",
                             "TypeValue",
                             "Year",
                             "Occurrence",
                             "ProfiledValue"});
-                table571.AddRow(new string[] {
+                table704.AddRow(new string[] {
                             "FY-2021",
                             "CalendarMonth",
                             "April",
                             "2021",
                             "1",
                             "500"});
-                table571.AddRow(new string[] {
+                table704.AddRow(new string[] {
                             "FY-2021",
                             "CalendarMonth",
                             "May",
                             "2021",
                             "1",
                             "500"});
-                table571.AddRow(new string[] {
+                table704.AddRow(new string[] {
                             "FY-2021",
                             "CalendarMonth",
                             "June",
                             "2021",
                             "1",
                             "500"});
-                table571.AddRow(new string[] {
+                table704.AddRow(new string[] {
                             "FY-2021",
                             "CalendarMonth",
                             "July",
                             "2021",
                             "1",
                             "500"});
-                table571.AddRow(new string[] {
+                table704.AddRow(new string[] {
                             "FY-2021",
                             "CalendarMonth",
                             "August",
                             "2021",
                             "1",
                             "500"});
-                table571.AddRow(new string[] {
+                table704.AddRow(new string[] {
                             "FY-2021",
                             "CalendarMonth",
                             "September",
                             "2021",
                             "1",
                             "500"});
-                table571.AddRow(new string[] {
+                table704.AddRow(new string[] {
                             "FY-2021",
                             "CalendarMonth",
                             "October",
@@ -1229,12 +1229,12 @@ this.FeatureBackground();
                             "1",
                             "500"});
 #line 263
- testRunner.And("the following profiles exist", ((string)(null)), table571, "And ");
+ testRunner.And("the following profiles exist", ((string)(null)), table704, "And ");
 #line hidden
 #line 272
  testRunner.When("funding is refreshed", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-                TechTalk.SpecFlow.Table table572 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table705 = new TechTalk.SpecFlow.Table(new string[] {
                             "FundingLineCode",
                             "DistributionPeriodId",
                             "Type",
@@ -1242,7 +1242,7 @@ this.FeatureBackground();
                             "Year",
                             "Occurrence",
                             "ProfiledValue"});
-                table572.AddRow(new string[] {
+                table705.AddRow(new string[] {
                             "DSG-002",
                             "FY-2021",
                             "CalendarMonth",
@@ -1250,7 +1250,7 @@ this.FeatureBackground();
                             "2021",
                             "1",
                             "2000"});
-                table572.AddRow(new string[] {
+                table705.AddRow(new string[] {
                             "DSG-002",
                             "FY-2021",
                             "CalendarMonth",
@@ -1258,7 +1258,7 @@ this.FeatureBackground();
                             "2021",
                             "1",
                             "2000"});
-                table572.AddRow(new string[] {
+                table705.AddRow(new string[] {
                             "DSG-002",
                             "FY-2021",
                             "CalendarMonth",
@@ -1266,7 +1266,7 @@ this.FeatureBackground();
                             "2021",
                             "1",
                             "2000"});
-                table572.AddRow(new string[] {
+                table705.AddRow(new string[] {
                             "DSG-002",
                             "FY-2021",
                             "CalendarMonth",
@@ -1274,7 +1274,7 @@ this.FeatureBackground();
                             "2021",
                             "1",
                             "2000"});
-                table572.AddRow(new string[] {
+                table705.AddRow(new string[] {
                             "DSG-002",
                             "FY-2021",
                             "CalendarMonth",
@@ -1282,7 +1282,7 @@ this.FeatureBackground();
                             "2021",
                             "1",
                             "2000"});
-                table572.AddRow(new string[] {
+                table705.AddRow(new string[] {
                             "DSG-002",
                             "FY-2021",
                             "CalendarMonth",
@@ -1290,7 +1290,7 @@ this.FeatureBackground();
                             "2021",
                             "1",
                             "0"});
-                table572.AddRow(new string[] {
+                table705.AddRow(new string[] {
                             "DSG-002",
                             "FY-2021",
                             "CalendarMonth",
@@ -1300,41 +1300,41 @@ this.FeatureBackground();
                             "0"});
 #line 273
  testRunner.Then("the upserted provider version for \'1000000\' has the following funding line profil" +
-                        "e periods", ((string)(null)), table572, "Then ");
+                        "e periods", ((string)(null)), table705, "Then ");
 #line hidden
-                TechTalk.SpecFlow.Table table573 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table706 = new TechTalk.SpecFlow.Table(new string[] {
                             "FundingLineCode",
                             "Value"});
-                table573.AddRow(new string[] {
+                table706.AddRow(new string[] {
                             "TotalAllocation",
                             "10000"});
 #line 282
- testRunner.And("the upserted provider version for \'1000000\' has the funding line totals", ((string)(null)), table573, "And ");
+ testRunner.And("the upserted provider version for \'1000000\' has the funding line totals", ((string)(null)), table706, "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table574 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table707 = new TechTalk.SpecFlow.Table(new string[] {
                             "FundingLineCode",
                             "OverPayment"});
-                table574.AddRow(new string[] {
+                table707.AddRow(new string[] {
                             "DSG-002",
                             "6500"});
 #line 285
  testRunner.And("the upserted provider version for \'1000000\' has the following funding line over p" +
-                        "ayments", ((string)(null)), table574, "And ");
+                        "ayments", ((string)(null)), table707, "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table575 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table708 = new TechTalk.SpecFlow.Table(new string[] {
                             "ProviderId",
                             "VariationReason"});
-                table575.AddRow(new string[] {
+                table708.AddRow(new string[] {
                             "1000000",
                             "FundingUpdated"});
-                table575.AddRow(new string[] {
+                table708.AddRow(new string[] {
                             "1000000",
                             "NameFieldUpdated"});
-                table575.AddRow(new string[] {
+                table708.AddRow(new string[] {
                             "1000000",
                             "ProfilingUpdated"});
 #line 288
- testRunner.And("the provider variation reasons were recorded", ((string)(null)), table575, "And ");
+ testRunner.And("the provider variation reasons were recorded", ((string)(null)), table708, "And ");
 #line hidden
             }
             this.ScenarioCleanup();

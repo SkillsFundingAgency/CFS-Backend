@@ -1,0 +1,926 @@
+{
+  "id": "publishedprovider-1000002-AC-2021-GAG",
+  "publishedProviderId": "GAG-AC-2021-1000002",
+  "current": {
+    "id": "publishedprovider-1000002-AC-2021-GAG-0",
+    "fundingId": "GAG-AC-2021-1000002-0_1",
+    "publishedProviderId": "GAG-AC-2021-1000002",
+    "fundingStreamId": "GAG",
+    "fundingPeriodId": "AC-2021",
+    "profilePatternKeys": null,
+    "customProfiles": null,
+    "hasCustomProfiles": false,
+    "specificationId": "specForPublishing",
+    "templateVersion": "1.0",
+    "entityId": "publishedprovider-1000002-AC-2021-GAG",
+    "status": "Draft",
+    "providerId": "1000002",
+    "partitionKey": "publishedprovider-1000002-AC-2021-GAG",
+    "fundingLines": [
+      {
+        "name": "Pupil Led Factors",
+        "fundingLineCode": "GAG-004",
+        "value": 640.0,
+        "templateLineId": 5,
+        "type": "Information",
+        "distributionPeriods": null
+      },
+      {
+        "name": "Funding Through Premises and Mobility Factors",
+        "fundingLineCode": "GAG-007",
+        "value": 0.0,
+        "templateLineId": 6,
+        "type": "Information",
+        "distributionPeriods": null
+      },
+      {
+        "name": "Growth funding",
+        "fundingLineCode": "GAG-006",
+        "value": 0.0,
+        "templateLineId": 7,
+        "type": "Information",
+        "distributionPeriods": null
+      },
+      {
+        "name": "CSSB Pupil Led Funding",
+        "fundingLineCode": "GAG-012",
+        "value": 320.0,
+        "templateLineId": 23,
+        "type": "Information",
+        "distributionPeriods": null
+      },
+      {
+        "name": "Funding for Historic Commitments",
+        "fundingLineCode": "GAG-013",
+        "value": 0.0,
+        "templateLineId": 27,
+        "type": "Information",
+        "distributionPeriods": null
+      },
+      {
+        "name": "Universal Entitlement for 3 and 4 Year Olds",
+        "fundingLineCode": "GAG-014",
+        "value": 320.0,
+        "templateLineId": 130,
+        "type": "Information",
+        "distributionPeriods": null
+      },
+      {
+        "name": "Funding for Additional Hours for working parents",
+        "fundingLineCode": "GAG-015",
+        "value": 320.0,
+        "templateLineId": 135,
+        "type": "Information",
+        "distributionPeriods": null
+      },
+      {
+        "name": "Participation Funding for Disadvantaged 2 Year Olds",
+        "fundingLineCode": "GAG-016",
+        "value": 320.0,
+        "templateLineId": 140,
+        "type": "Information",
+        "distributionPeriods": null
+      },
+      {
+        "name": "Funding Allocation for Early Years Pupil Premium",
+        "fundingLineCode": "GAG-017",
+        "value": 320.0,
+        "templateLineId": 145,
+        "type": "Information",
+        "distributionPeriods": null
+      },
+      {
+        "name": "Funding Allocation for Maintained Nursery Supplement",
+        "fundingLineCode": "GAG-018",
+        "value": 320.0,
+        "templateLineId": 150,
+        "type": "Information",
+        "distributionPeriods": null
+      },
+      {
+        "name": "Funding Allocation for Disability Access Fund",
+        "fundingLineCode": "GAG-019",
+        "value": 0.0,
+        "templateLineId": 155,
+        "type": "Information",
+        "distributionPeriods": null
+      },
+      {
+        "name": "Schools Block before recoupment",
+        "fundingLineCode": "GAG-003",
+        "value": 640.0,
+        "templateLineId": 4,
+        "type": "Information",
+        "distributionPeriods": null
+      },
+      {
+        "name": "Central School Services Block",
+        "fundingLineCode": "GAG-008",
+        "value": 320.0,
+        "templateLineId": 8,
+        "type": "Information",
+        "distributionPeriods": null
+      },
+      {
+        "name": "Early Years Block",
+        "fundingLineCode": "GAG-009",
+        "value": 1600.0,
+        "templateLineId": 9,
+        "type": "Information",
+        "distributionPeriods": null
+      },
+      {
+        "name": "High Needs Block before deductions",
+        "fundingLineCode": "GAG-010",
+        "value": 1280.0,
+        "templateLineId": 10,
+        "type": "Information",
+        "distributionPeriods": null
+      },
+      {
+        "name": "Total High Needs Block After Deductions",
+        "fundingLineCode": "GAG-011",
+        "value": 14720.0,
+        "templateLineId": 11,
+        "type": "Information",
+        "distributionPeriods": null
+      },
+      {
+        "name": "School Block After recoupment",
+        "fundingLineCode": "GAG-005",
+        "value": 640.0,
+        "templateLineId": 12,
+        "type": "Information",
+        "distributionPeriods": null
+      },
+      {
+        "name": "Total GAG before deductions and recoupment",
+        "fundingLineCode": "GAG-001",
+        "value": 3840.0,
+        "templateLineId": 2,
+        "type": "Information",
+        "distributionPeriods": null
+      },
+      {
+        "name": "Total GAG after deductions and recoupment",
+        "fundingLineCode": "GAG-002",
+        "value": 15360.0,
+        "templateLineId": 3,
+        "type": "Payment",
+        "distributionPeriods": [
+          {
+            "value": 7000.0,
+            "distributionPeriodId": "FY-1920",
+            "profilePeriods": [
+              {
+                "type": "CalendarMonth",
+                "typeValue": "October",
+                "year": 1920,
+                "occurrence": 1,
+                "profiledValue": 7000.0,
+                "distributionPeriodId": "FY-1920"
+              }
+            ]
+          },
+          {
+            "value": 5000.0,
+            "distributionPeriodId": "AC-2021",
+            "profilePeriods": [
+              {
+                "type": "CalendarMonth",
+                "typeValue": "April",
+                "year": 2021,
+                "occurrence": 1,
+                "profiledValue": 5000.0,
+                "distributionPeriodId": "AC-2021"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "calculations": [
+      {
+        "templateCalculationId": 238,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 15,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 16,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 17,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 18,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 13,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 14,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 19,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 20,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 25,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 26,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 24,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 28,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 132,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 133,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 134,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 131,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 137,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 138,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 139,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 136,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 142,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 143,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 144,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 141,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 147,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 148,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 149,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 146,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 152,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 153,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 154,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 151,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 31,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 32,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 34,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 35,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 37,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 38,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 29,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 237,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 30,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 33,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 36,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 65,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 66,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 67,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 68,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 64,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 70,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 71,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 235,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 236,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 72,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 73,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 69,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 75,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 76,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 77,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 78,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 74,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 80,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 81,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 82,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 83,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 79,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 50,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 51,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 52,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 53,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 163,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 164,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 165,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 166,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 162,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 90,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 91,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 92,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 93,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 89,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 95,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 96,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 97,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 98,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 94,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 158,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 175,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 174,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 168,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 169,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 170,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 171,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 167,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 176,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 177,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 178,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 179,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 232,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 182,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 183,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 180,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 181,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 234,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 159,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 161,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 233,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 189,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 190,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 187,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 188,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 186,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 195,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 196,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 193,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 194,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 192,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 185,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 191,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 202,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 203,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 200,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 201,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 199,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 198,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 209,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 210,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 207,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 208,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 206,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 205,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 214,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 215,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 213,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 223,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 224,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 221,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 222,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 220,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 212,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 128,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 129,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 228,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 229,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 227,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 226,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 42,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 156,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 157,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 184,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 197,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 204,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 211,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 218,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 225,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 40,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 41,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 39,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 21,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 22,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 216,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 217,
+        "value": 320.0
+      },
+      {
+        "templateCalculationId": 219,
+        "value": 320.0
+      }
+    ],
+    "referenceData": null,
+    "totalFunding": 12000.0,
+    "majorVersion": 0,
+    "minorVersion": 1,
+    "provider": {
+      "providerVersionId": "gag-providers-1.0",
+      "providerId": "1000002",
+      "trustStatus": 1,
+      "name": "Maintained School 2",
+      "urn": "1234567",
+      "ukprn": "1000002",
+      "upin": "123456",
+      "establishmentNumber": "",
+      "dfeEstablishmentNumber": "",
+      "authority": "Local Authority 1",
+      "providerType": "LA maintained schools",
+      "providerSubType": "Community school",
+      "dateOpened": "2012-03-15T00:00:00+00:00",
+      "dateClosed": null,
+      "providerProfileIdType": "",
+      "laCode": "200",
+      "navVendorNo": "",
+      "crmAccountId": "",
+      "legalName": "",
+      "status": "",
+      "phaseOfEducation": "",
+      "reasonEstablishmentOpened": "",
+      "reasonEstablishmentClosed": "",
+      "successor": "",
+      "trustName": "",
+      "trustCode": "",
+      "town": "",
+      "postcode": "",
+      "companiesHouseNumber": "",
+      "groupIdNumber": "",
+      "rscRegionName": "",
+      "rscRegionCode": "",
+      "governmentOfficeRegionName": "",
+      "governmentOfficeRegionCode": "",
+      "districtName": "",
+      "districtCode": "",
+      "wardName": "",
+      "wardCode": "",
+      "censusWardName": "",
+      "censusWardCode": "",
+      "middleSuperOutputAreaName": "",
+      "middleSuperOutputAreaCode": "",
+      "lowerSuperOutputAreaName": "",
+      "lowerSuperOutputAreaCode": "",
+      "parliamentaryConstituencyName": "",
+      "parliamentaryConstituencyCode": "",
+      "countryCode": "",
+      "countryName": "",
+      "localGovernmentGroupTypeCode": null,
+      "localGovernmentGroupTypeName": null,
+      "paymentOrganisationIdentifier": null,
+      "paymentOrganisationName": null
+    },
+    "predecessors": null,
+    "variationReasons": null,
+    "errors": null,
+    "HasErrors": false,
+    "jobId": null,
+    "correlationId": null,
+    "carryOvers": null,
+    "profilingAudits": null,
+    "version": 0,
+    "date": "0001-01-01T00:00:00+00:00",
+    "author": null,
+    "comment": null,
+    "publishStatus": "Draft"
+  },
+  "released": null,
+  "partitionKey": "publishedprovider-1000002-AC-2021-GAG"
+}

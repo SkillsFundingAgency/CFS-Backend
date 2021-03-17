@@ -1,0 +1,67 @@
+{
+  "$schema": "https://fundingschemas.blob.core.windows.net/schemas/logicalmodel-1.0.json#schema",
+  "schemaVersion": "1.0",
+  "funding": {
+    "templateVersion": "1.0.Variations",
+    "id": "GAG-AC-2021-Information-Country-E92000001-1_0",
+    "fundingVersion": "1_0",
+    "status": "Released",
+    "fundingStream": {
+      "code": "GAG",
+      "name": "Dedicated Schools Grant"
+    },
+    "fundingPeriod": {
+      "id": "AC-2021",
+      "period": "2021",
+      "name": "Financial Year 2020-21",
+      "type": "FY",
+      "startDate": "2020-04-01T00:00:00+00:00",
+      "endDate": "2021-03-31T00:00:00+00:00"
+    },
+    "organisationGroup": {
+      "groupTypeCode": "Country",
+      "groupTypeIdentifier": "CountryCode",
+      "identifierValue": "E92000001",
+      "groupTypeCategory": "GeographicalBoundary",
+      "name": "England",
+      "searchableName": "England",
+      "identifiers": [
+        {
+          "type": "CountryCode",
+          "value": "E92000001"
+        }
+      ]
+    },
+    "fundingValue": {
+      "totalValue": 2400,
+      "fundingLines": [
+        {
+          "name": "Total GAG after deductions and recoupment",
+          "fundingLineCode": "GAG-002",
+          "value": 0,
+          "templateLineId": 3,
+          "type": "Payment",
+          "fundingLines": [],
+          "calculations": [
+            {
+              "name": "Stub total allocation",
+              "templateCalculationId": 219,
+              "value": "",
+              "formulaText": "",
+              "type": "Cash",
+              "aggregationType": "None",
+              "valueFormat": "Currency",
+              "calculations": []
+            }
+          ],
+          "distributionPeriods": []
+        }
+      ]
+    },
+    "providerFundings": [],
+    "groupingReason": "Payment",
+    "statusChangedDate": "2020-08-02T17:05:20.1752444",
+    "externalPublicationDate": "2020-09-01T00:00:00",
+    "earliestPaymentAvailableDate": "2020-08-02T17:05:20.17524"
+  }
+}

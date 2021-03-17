@@ -13,6 +13,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using Microsoft.Azure.ServiceBus;
+using Newtonsoft.Json;
 using TechTalk.SpecFlow;
 using TechTalk.SpecFlow.Assist;
 using CalculationResult = CalculateFunding.Models.Publishing.CalculationResult;
@@ -52,6 +53,15 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
                 TemplateMappingItems = templateMappingItems
             });
         }
+        
+        [Given(@"template mapping '(.*)' exists")]
+        public void GivenTemplateMappingExists(string templateMappingFileName)
+        {
+            string templateMappingJson = ResourceHelper.GetResourceContent("Input.TemplateMapping", $"{templateMappingFileName}.json");
+            TemplateMapping templateMapping = JsonConvert.DeserializeObject<TemplateMapping>(templateMappingJson);
+
+            _publishFundingStepContext.CalculationsInMemoryClient.SetInMemoryTemplateMapping(templateMapping);
+        }
 
         [Given(@"calculation meta data exists for '(.*)'")]
         [SuppressMessage("ReSharper", "PossibleMultipleEnumeration")]
@@ -72,6 +82,14 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
         [Given(@"calculations exists")]
         public void GivenCalculationsExists(IEnumerable<CalculationResult> calculationResults)
         {
+            _publishFundingStepContext.CalculationsInMemoryRepository.SetCalculationResults(calculationResults);
+        }
+
+        [Given(@"calculations '(.*)' exists")]
+        public void GivenCalculationsExists(string calculationsFileName)
+        {
+            string calculationResultsJson = ResourceHelper.GetResourceContent("Input.CalculationResults", $"{calculationsFileName}.json");
+            IEnumerable<CalculationResult> calculationResults = JsonConvert.DeserializeObject<IEnumerable<CalculationResult>>(calculationResultsJson);
             _publishFundingStepContext.CalculationsInMemoryRepository.SetCalculationResults(calculationResults);
         }
 
