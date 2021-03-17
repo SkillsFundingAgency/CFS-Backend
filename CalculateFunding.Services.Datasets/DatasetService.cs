@@ -1449,7 +1449,7 @@ namespace CalculateFunding.Services.Datasets
         public async Task<IActionResult> FixupDatasetsFundingStream()
         {
             int totalUpdatedDatasets = 0;
-            IEnumerable<Dataset> datasetDocuments = await _datasetRepository.GetDatasetsByQuery(_ => !_.Content.Current.FundingStream.IsDefined() || !_.Content.Definition.Version.HasValue);
+            IEnumerable<Dataset> datasetDocuments = await _datasetRepository.GetDatasetsByQuery(_ => !_.Content.Current.FundingStream.IsDefined() || !_.Content.Definition.Version.IsDefined());
             
             if (datasetDocuments.AnyWithNullCheck())
             {
