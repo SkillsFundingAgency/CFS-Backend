@@ -14,7 +14,7 @@ namespace CalculateFunding.Services.Core.Helpers
         /// </summary>
         public string AsCsv(IEnumerable<dynamic> documents, bool outputHeaders)
         {
-            if (!documents.Any()) return null;
+            if (!documents.AnyWithNullCheck()) return null;
             
             using (StringWriter writer = new StringWriter())
             using (CsvWriter csvWriter = new CsvWriter(writer))

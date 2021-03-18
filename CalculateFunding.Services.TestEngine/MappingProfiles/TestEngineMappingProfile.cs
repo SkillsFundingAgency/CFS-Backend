@@ -41,7 +41,8 @@ namespace CalculateFunding.Services.TestEngine.MappingProfiles
             CreateMap<Common.ApiClient.Calcs.Models.SourceLocation, SourceLocation>();
             CreateMap<Common.ApiClient.Calcs.Models.DatasetRelationshipSummary, DatasetRelationshipSummary>();
             CreateMap<Common.ApiClient.Calcs.Models.Schema.DataGranularity, DataGranularity>();
-            CreateMap<Common.ApiClient.Calcs.Models.Schema.DatasetDefinition, DatasetDefinition>();
+            CreateMap<Common.ApiClient.Calcs.Models.Schema.DatasetDefinition, DatasetDefinition>()
+                .ForMember(m=> m.Version, opt => opt.Ignore());
             CreateMap<Common.ApiClient.Calcs.Models.Schema.TableDefinition, TableDefinition>();
             CreateMap<Common.ApiClient.Calcs.Models.Schema.FieldDefinition, FieldDefinition>();
             CreateMap<Common.ApiClient.Calcs.Models.Schema.FieldType, FieldType>();
