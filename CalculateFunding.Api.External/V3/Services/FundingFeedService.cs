@@ -117,6 +117,7 @@ namespace CalculateFunding.Api.External.V3.Services
             }
 
             await CreateAtomFeedFooter(responseStreamWriter);
+            await responseStreamWriter.FlushAsync();
         }
 
         private async Task CreateAtomFeedFooter(StreamWriter responseStreamWriter)
