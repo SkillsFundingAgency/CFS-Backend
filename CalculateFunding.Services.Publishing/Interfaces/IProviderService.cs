@@ -13,7 +13,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         Task<IEnumerable<string>> GetScopedProviderIdsForSpecification(string specificationId);
         Task<(IDictionary<string, PublishedProvider> PublishedProvidersForFundingStream, IDictionary<string, PublishedProvider> ScopedPublishedProviders)> 
             GetPublishedProviders(Reference fundingStream, SpecificationSummary specification);
-        IDictionary<string, PublishedProvider> GenerateMissingPublishedProviders(IEnumerable<Provider> scopedProviders,
+        Task<IDictionary<string, PublishedProvider>> GenerateMissingPublishedProviders(IEnumerable<Provider> scopedProviders,
                 SpecificationSummary specification,
                 Reference fundingStream,
                 IDictionary<string, PublishedProvider> publishedProviders);

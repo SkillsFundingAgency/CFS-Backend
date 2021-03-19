@@ -150,13 +150,13 @@ namespace CalculateFunding.Services.Publishing.Providers
             return scopedProvidersInVersion;
         }
 
-        public IDictionary<string, PublishedProvider> GenerateMissingPublishedProviders(IEnumerable<Provider> scopedProviders,
+        public async Task<IDictionary<string, PublishedProvider>> GenerateMissingPublishedProviders(IEnumerable<Provider> scopedProviders,
             SpecificationSummary specification,
             Reference fundingStream,
             IDictionary<string, PublishedProvider> publishedProviders)
         {
             string specificationId = specification?.Id;
-            string specificationFundingPeriodId = specification?.FundingPeriod?.Id;
+            string specificationFundingPeriodId = await _policiesService.GetFundingPeriodId( specification?.FundingPeriod?.Id);
             string fundingStreamId = fundingStream?.Id;
 
             if (specificationId.IsNullOrWhitespace())

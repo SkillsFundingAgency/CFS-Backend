@@ -204,6 +204,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
                 ProviderVersionId = providerVersionId
             };
 
+            GivenThePeriod(fundingPeriodId);
+
             if (string.IsNullOrWhiteSpace(specificationId) || string.IsNullOrWhiteSpace(fundingPeriodId) || string.IsNullOrWhiteSpace(fundingStreamId))
             {
                 string message = $"Specified argument was out of the range of valid values. (Parameter 'specificationId')";
@@ -218,7 +220,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
                     message = $"Specified argument was out of the range of valid values. (Parameter 'fundingStreamId')";
                 }
 
-                Action invocation = () => WhenGenerateMissingProviders(scopedProviders,
+                Func<Task> invocation = async() => await WhenGenerateMissingProviders(scopedProviders,
                 specification,
                 new Reference { Id = fundingStreamId },
                 publishedProviders.ToDictionary(_ => _.Current.ProviderId));
@@ -231,7 +233,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
                 return;
             }
 
-            IDictionary<string, PublishedProvider> missingPublishedProviders = WhenGenerateMissingProviders(scopedProviders,
+            IDictionary<string, PublishedProvider> missingPublishedProviders = await WhenGenerateMissingProviders(scopedProviders,
                 specification,
                 new Reference { Id = fundingStreamId },
                 publishedProviders.ToDictionary(_ => _.Current.ProviderId));
@@ -309,7 +311,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
             return await _providerService.GetScopedProviderIdsForSpecification(specification);
         }
 
-        private IDictionary<string, PublishedProvider> WhenGenerateMissingProviders(IEnumerable<Provider> scopedProviders,
+        private Task<IDictionary<string, PublishedProvider>> WhenGenerateMissingProviders(IEnumerable<Provider> scopedProviders,
             SpecificationSummary specification,
             Reference fundingStream,
             IDictionary<string, PublishedProvider> publishedProviders)
@@ -320,6 +322,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
         private async Task<IEnumerable<Provider>> WhenTheProvidersAreQueriedByVersionId(string providerVersionId)
         {
             return await _providerService.GetProvidersByProviderVersionsId(providerVersionId);
+        }
+
+        private void GivenThePeriod(string fundingPeriodConfigId)
+        {
+            _policiesService
+                .GetFundingPeriodId(fundingPeriodConfigId)
+                .Returns(fundingPeriodConfigId);
         }
 
         private void GivenTheApiResponse<T>(Func<Task<ApiResponse<T>>> action, ApiResponse<T> response)

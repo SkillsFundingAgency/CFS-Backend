@@ -265,7 +265,7 @@ namespace CalculateFunding.Services.Publishing
             }
 
             // Create PublishedProvider for providers which don't already have a record (eg ProviderID-FundingStreamId-FundingPeriodId)
-            IDictionary<string, PublishedProvider> newProviders = _providerService.GenerateMissingPublishedProviders(scopedProviders.Values, specification, fundingStream, publishedProviders);
+            IDictionary<string, PublishedProvider> newProviders = await _providerService.GenerateMissingPublishedProviders(scopedProviders.Values, specification, fundingStream, publishedProviders);
             publishedProviders.AddRange(newProviders);
 
             // Get TemplateMapping for calcs from Calcs API client nuget
