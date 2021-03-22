@@ -1,0 +1,60 @@
+name: $(Rev:r)
+
+pool:
+  vmImage: windows-2019
+
+resources:
+  repositories:
+  - repository: self
+  - repository: funding-blocks
+    type: github
+    name: SkillsFundingAgency/funding-platform-building-blocks
+    ref: refs/heads/master
+    endpoint: 'Github (ESFA)'
+
+trigger:
+  branches:
+    include:
+    - master
+    - providers
+    - fdps
+  paths:
+    include:
+    - CalculateFunding.Api.Datasets
+    - CalculateFunding.Functions.Datasets
+    - CalculateFunding.Services.Datasets
+    - CalculateFunding.Services.Datasets.UnitTests
+    - CalculateFunding.Services.Core
+    - Devops/search-indexes/datasetindex
+    - Devops/search-indexes/datasetdefinitionindex
+    - CalculateFunding.Models.Calcs
+    - CalculateFunding.Models.Search
+    - CalculateFunding.Models.Versioning
+    - CalculateFunding.Models.ProviderLegacy
+    - CalculateFunding.Models.Messages
+    - CalculateFunding.Services.Compiler
+    - CalculateFunding.Services.DataImporter
+    - CalculateFunding.Models.Datasets
+
+variables:
+ - name: ProjectName
+   value: 'Datasets'
+ - name: BuildApi
+   value: true
+ - name: BuildFunction
+   value: true
+ - name: DOTNET_SKIP_FIRST_TIME_EXPERIENCE
+   value: '1'
+ - name: DOTNET_CLI_TELEMETRY_OPTOUT
+   value: '1'
+ - group: 'Dotnet Core SDK Version'
+
+
+steps:
+- template: azure-pipelines-templates/cfs/standard-service-ci-build.yml@funding-blocks
+  parameters:
+    ProjectName: $(ProjectName)
+    DotnetCoreSdkVersion: $(DotnetCoreSdkVersion)
+    BuildApi: ${{ variables.BuildApi }}
+    BuildFunction: ${{ variables.BuildFunction }}
+    
