@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
+using System.IO.Pipelines;
 using System.Linq;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Api.External.V3.Interfaces;
-using CalculateFunding.Api.External.V3.Models;
 using CalculateFunding.Api.External.V3.Services;
 using CalculateFunding.Models.External;
 using CalculateFunding.Models.External.V3.AtomItems;
@@ -285,22 +286,29 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
             request.Headers.Returns(headerDictionary);
             request.Query.Returns(queryStringValues);
 
-            HttpResponse response = Substitute.For<HttpResponse>();
-            MemoryStream responseStream = new MemoryStream();
-            response.Body.Returns(responseStream);
 
-            StreamReader responseStreamReader = new StreamReader(responseStream);
+            Mock<HttpResponse> response = new Mock<HttpResponse>();
+            Mock<PipeWriter> pipeWriter = new Mock<PipeWriter>();
+
+            response.Setup(_ => _.BodyWriter).Returns(pipeWriter.Object);
+
+            List<byte> writtenBytes = new List<byte>();
+
+            pipeWriter.Setup(_ => _.WriteAsync(It.IsAny<ReadOnlyMemory<byte>>(), It.IsAny<CancellationToken>()))
+                .Callback((ReadOnlyMemory<byte> bytes, CancellationToken cancellationToken) =>
+                {
+                    writtenBytes.AddRange(bytes.Span.ToArray());
+                });
 
             //Act
-            IActionResult result = await service.GetFunding(request, response, pageRef: pageRef, pageSize: pageSize);
+            IActionResult result = await service.GetFunding(request, response.Object, pageRef: pageRef, pageSize: pageSize);
 
             //Assert
             result
                 .Should()
                 .BeOfType<EmptyResult>();
 
-            responseStream.Seek(0, SeekOrigin.Begin);
-            string responseContent = await responseStreamReader.ReadToEndAsync();
+            string responseContent = Encoding.UTF8.GetString(writtenBytes.ToArray());
             AtomFeed<AtomEntry> atomFeed = JsonConvert.DeserializeObject<AtomFeed<AtomEntry>>(responseContent);
 
             atomFeed
@@ -346,8 +354,6 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
                     .GetFundingFeedDocument(index.DocumentPath);
             }
 
-            responseStreamReader.Close();
-            responseStreamReader.Dispose();
         }
 
         [TestMethod]
@@ -377,7 +383,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
 
             fundingRetrievalService.Setup(_ => _.GetFundingFeedDocument(It.IsAny<string>(), false))
                 .ReturnsAsync(string.Empty);
-            
+
             Mock<IExternalEngineOptions> externalEngineOptions = new Mock<IExternalEngineOptions>();
             externalEngineOptions
                 .Setup(_ => _.BlobLookupConcurrencyCount)
@@ -397,22 +403,29 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
             request.Host.Returns(new HostString("wherever.naf:12345"));
             request.Headers.Returns(headerDictionary);
 
-            HttpResponse response = Substitute.For<HttpResponse>();
-            MemoryStream responseStream = new MemoryStream();
-            response.Body.Returns(responseStream);
+            Mock<HttpResponse> response = new Mock<HttpResponse>();
+            Mock<PipeWriter> pipeWriter = new Mock<PipeWriter>();
 
-            StreamReader responseStreamReader = new StreamReader(responseStream);
+            response.Setup(_ => _.BodyWriter).Returns(pipeWriter.Object);
+
+            List<byte> writtenBytes = new List<byte>();
+
+            pipeWriter.Setup(_ => _.WriteAsync(It.IsAny<ReadOnlyMemory<byte>>(), It.IsAny<CancellationToken>()))
+                .Callback((ReadOnlyMemory<byte> bytes, CancellationToken cancellationToken) =>
+                {
+                    writtenBytes.AddRange(bytes.Span.ToArray());
+                });
 
             //Act
-            IActionResult result = await service.GetFunding(request, response, pageSize: 2, pageRef: 2);
+            IActionResult result = await service.GetFunding(request, response.Object, pageSize: 2, pageRef: 2);
 
             //Assert
             result
                 .Should()
                 .BeOfType<EmptyResult>();
 
-            responseStream.Seek(0, SeekOrigin.Begin);
-            string responseContent = await responseStreamReader.ReadToEndAsync();
+            string responseContent = Encoding.UTF8.GetString(writtenBytes.ToArray());
+
             AtomFeed<AtomEntry> atomFeed = JsonConvert.DeserializeObject<AtomFeed<AtomEntry>>(responseContent);
 
             atomFeed
@@ -426,9 +439,6 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
             atomFeed.Link.First(m => m.Rel == "next-archive").Href.Should().Be("https://wherever.naf:12345/api/v3/funding/notifications/3");
             atomFeed.Link.First(m => m.Rel == "current").Href.Should().Be("https://wherever.naf:12345/api/v3/funding/notifications/2");
             atomFeed.Link.First(m => m.Rel == "self").Href.Should().Be("https://wherever.naf:12345/api/v3/funding/notifications");
-
-            responseStreamReader.Close();
-            responseStreamReader.Dispose();
         }
 
         [TestMethod]
@@ -442,7 +452,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
                 .Setup(_ => _.BlobLookupConcurrencyCount)
                 .Returns(10);
 
-            FundingFeedService service = CreateService(feedsSearchService, 
+            FundingFeedService service = CreateService(feedsSearchService,
                 externalEngineOptions: externalEngineOptions.Object);
 
             IHeaderDictionary headerDictionary = new HeaderDictionary
@@ -510,7 +520,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
         {
             List<PublishedFundingIndex> indexes = new List<PublishedFundingIndex>();
 
-            for(int i=1; i<= IndexItems; i++)
+            for (int i = 1; i <= IndexItems; i++)
             {
                 indexes.Add(new PublishedFundingIndex
                 {
