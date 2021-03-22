@@ -406,13 +406,28 @@ namespace CalculateFunding.Services.Providers
         private async Task<bool> RegenerateScopedProvidersForSpecification(string specificationId,
             bool setCachedProviders)
         {
-            string scopedProviderSummariesCountCacheKey = $"{CacheKeys.ScopedProviderSummariesCount}{specificationId}";
-            string currentProviderCount = await _cachePolicy.ExecuteAsync(() => _cacheProvider.GetAsync<string>(scopedProviderSummariesCountCacheKey));
+            SpecificationSummary specificationSummary =  await GetSpecificationSummary(specificationId);
 
-            string cacheKeyScopedListCacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
-            long scopedProviderRedisListCount = await _cachePolicy.ExecuteAsync(() => _cacheProvider.ListLengthAsync<ProviderSummary>(cacheKeyScopedListCacheKey));
+            if (specificationSummary.ProviderSource == ProviderSource.CFS && !setCachedProviders)
+            {
+                string scopedProviderSummariesCountCacheKey = $"{CacheKeys.ScopedProviderSummariesCount}{specificationId}";
+                string currentProviderCount = await _cachePolicy.ExecuteAsync(() => _cacheProvider.GetAsync<string>(scopedProviderSummariesCountCacheKey));
 
-            if (string.IsNullOrWhiteSpace(currentProviderCount) || int.Parse(currentProviderCount) != scopedProviderRedisListCount || setCachedProviders)
+                string cacheKeyScopedListCacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
+                long scopedProviderRedisListCount = await _cachePolicy.ExecuteAsync(() => _cacheProvider.ListLengthAsync<ProviderSummary>(cacheKeyScopedListCacheKey));
+
+                if (string.IsNullOrWhiteSpace(currentProviderCount) || int.Parse(currentProviderCount) != scopedProviderRedisListCount)
+                {
+                    setCachedProviders = true;
+                }
+            }
+            else
+            {
+                // if the provider source is FDZ then we always want to refresh the cache here
+                setCachedProviders = true;
+            }
+
+            if (setCachedProviders)
             {
                 IEnumerable<JobSummary> latestJob = await _jobManagement.GetLatestJobsForSpecification(specificationId,
                     new[]
