@@ -7,23 +7,34 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\16191.0.json" />
+    <None Remove="Resources\16192.0.json" />
     <None Remove="Resources\DSG1.0.json" />
     <None Remove="Resources\DSG2.0.json" />
     <None Remove="Resources\GAG1.0.json" />
     <None Remove="Resources\GAG2.0.json" />
+    <None Remove="Resources\Input\CalculationResults\1619-approve-all-funding-calculations.json" />
     <None Remove="Resources\Input\CalculationResults\gag-approve-all-funding-calculations.json" />
+    <None Remove="Resources\Input\ProviderVersions\1619-providers-1_0.json" />
     <None Remove="Resources\Input\ProviderVersions\gag-providers-1_0.json" />
+    <None Remove="Resources\Input\PublishedProviders\1619-AS-2021-1000000.json" />
+    <None Remove="Resources\Input\PublishedProviders\1619-AS-2021-1000002.json" />
     <None Remove="Resources\Input\PublishedProviders\GAG-AC-2021-1000002.json" />
+    <None Remove="Resources\Input\TemplateMapping\1619-TemplateMapping.json" />
     <None Remove="Resources\Input\TemplateMapping\GAG-TemplateMapping.json" />
     <None Remove="Resources\PSG-AY-1920-Information-Provider-1000201-1_0.json" />
     <None Remove="Resources\PSG-AY-1920-Information-Provider-1000202-1_0.json" />
     <None Remove="Resources\PSG-AY-1920-Payment-AcademyTrust-8000001-1_0.json" />
     <None Remove="Resources\PSG-AY-1920-Payment-LocalAuthority-9000000-1_0.json" />
     <None Remove="Resources\psg1.0.json" />
+    <None Remove="Resources\PublishedFunding\1619-AS-2021-Information-LocalAuthority-200-1_0.json" />
+    <None Remove="Resources\PublishedFunding\1619-AS-2021-Payment-LocalAuthority-9000000-1_0.json" />
     <None Remove="Resources\PublishedFunding\DSG-FY-2021-Information-LocalAuthority-200-1_0.json" />
     <None Remove="Resources\PublishedFunding\DSG-FY-2021-Payment-LocalAuthority-9000000-1_0.json" />
     <None Remove="Resources\PublishedFunding\GAG-AC-2021-Information-LocalAuthority-200-1_0.json" />
     <None Remove="Resources\PublishedFunding\GAG-AC-2021-Payment-LocalAuthority-9000000-1_0.json" />
+    <None Remove="Resources\PublishedProviders\1619-AS-2021-1000000-1_0.json" />
+    <None Remove="Resources\PublishedProviders\1619-AS-2021-1000002-1_0.json" />
     <None Remove="Resources\PublishedProviders\DSG-FY-2021-1000000-1_0.json" />
     <None Remove="Resources\PublishedProviders\DSG-FY-2021-1000002-1_0.json" />
     <None Remove="Resources\PublishedProviders\GAG-AC-2021-1000000-1_0.json" />
@@ -39,6 +50,7 @@
 
   <ItemGroup>
     <SpecFlowObsoleteCodeBehindFiles Remove="Features\ApproveAllFundingDsg - Copy.feature.cs" />
+    <SpecFlowObsoleteCodeBehindFiles Remove="Features\ApproveAllFundingGag - Copy.feature.cs" />
     <SpecFlowObsoleteCodeBehindFiles Remove="Features\ApproveBatchFundingDsg - Copy.feature.cs" />
     <SpecFlowObsoleteCodeBehindFiles Remove="Features\ApproveFundingDsg - Copy.feature.cs" />
     <SpecFlowObsoleteCodeBehindFiles Remove="Features\ApproveFundingPsg - Copy.feature.cs" />
@@ -52,14 +64,23 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Resources\16191.0.json" />
+    <EmbeddedResource Include="Resources\16192.0.json" />
     <EmbeddedResource Include="Resources\GAG2.0.json" />
     <EmbeddedResource Include="Resources\GAG1.0.json" />
     <EmbeddedResource Include="Resources\DSG2.0.json" />
     <EmbeddedResource Include="Resources\DSG1.0.json" />
+    <EmbeddedResource Include="Resources\Input\CalculationResults\1619-approve-all-funding-calculations.json" />
     <EmbeddedResource Include="Resources\Input\CalculationResults\gag-approve-all-funding-calculations.json" />
+    <EmbeddedResource Include="Resources\Input\ProviderVersions\1619-providers-1_0.json" />
     <EmbeddedResource Include="Resources\Input\ProviderVersions\gag-providers-1_0.json" />
+    <EmbeddedResource Include="Resources\Input\PublishedProviders\1619-AS-2021-1000000.json" />
+    <EmbeddedResource Include="Resources\Input\PublishedProviders\1619-AS-2021-1000002.json" />
     <EmbeddedResource Include="Resources\Input\PublishedProviders\GAG-AC-2021-1000002.json" />
+    <EmbeddedResource Include="Resources\Input\TemplateMapping\1619-TemplateMapping.json" />
     <EmbeddedResource Include="Resources\Input\TemplateMapping\GAG-TemplateMapping.json" />
+    <EmbeddedResource Include="Resources\PublishedFunding\1619-AS-2021-Information-LocalAuthority-200-1_0.json" />
+    <EmbeddedResource Include="Resources\PublishedFunding\1619-AS-2021-Payment-LocalAuthority-9000000-1_0.json" />
     <EmbeddedResource Include="Resources\PublishedFunding\GAG-AC-2021-Payment-LocalAuthority-9000000-1_0.json" />
     <EmbeddedResource Include="Resources\PublishedFunding\GAG-AC-2021-Information-LocalAuthority-200-1_0.json" />
     <EmbeddedResource Include="Resources\PublishedFunding\DSG-FY-2021-Information-LocalAuthority-200-1_0.json" />
@@ -70,6 +91,8 @@
     <EmbeddedResource Include="Resources\PublishedFunding\PSG-AY-1920-Payment-LocalAuthority-9000000-1_0.json" />
     <EmbeddedResource Include="Resources\PSG1.0.json" />
     <EmbeddedResource Include="Resources\Input\PublishedProviders\GAG-AC-2021-1000000.json" />
+    <EmbeddedResource Include="Resources\PublishedProviders\1619-AS-2021-1000000-1_0.json" />
+    <EmbeddedResource Include="Resources\PublishedProviders\1619-AS-2021-1000002-1_0.json" />
     <EmbeddedResource Include="Resources\PublishedProviders\GAG-AC-2021-1000002-1_0.json" />
     <EmbeddedResource Include="Resources\PublishedProviders\GAG-AC-2021-1000000-1_0.json" />
     <EmbeddedResource Include="Resources\PublishedProviders\DSG-FY-2021-1000000-1_0.json" />
@@ -108,6 +131,9 @@
     <Compile Update="Features\ApproveAllFundingGag.feature.cs">
       <DependentUpon>ApproveAllFundingGag.feature</DependentUpon>
     </Compile>
+    <Compile Update="Features\ApproveBatchFunding1619.feature.cs">
+      <DependentUpon>ApproveBatchFunding1619.feature</DependentUpon>
+    </Compile>
     <Compile Update="Features\ApproveBatchFundingGag.feature.cs">
       <DependentUpon>ApproveBatchFundingGag.feature</DependentUpon>
     </Compile>
@@ -117,8 +143,14 @@
     <Compile Update="Features\ApproveBatchFundingPsg.feature.cs">
       <DependentUpon>ApproveBatchFundingPsg.feature</DependentUpon>
     </Compile>
+    <Compile Update="Features\PublishingAllFunding1619.feature.cs">
+      <DependentUpon>PublishingAllFunding1619.feature</DependentUpon>
+    </Compile>
     <Compile Update="Features\PublishingAllFundingGag.feature.cs">
       <DependentUpon>PublishingAllFundingGag.feature</DependentUpon>
+    </Compile>
+    <Compile Update="Features\PublishingBatchFunding1619.feature.cs">
+      <DependentUpon>PublishingBatchFunding1619.feature</DependentUpon>
     </Compile>
     <Compile Update="Features\PublishingBatchFundingGag.feature.cs">
       <DependentUpon>PublishingBatchFundingGag.feature</DependentUpon>
@@ -153,7 +185,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <SpecFlowFeatureFiles Update="Features\ApproveAllFunding1619.feature">
+      <Visible>$(UsingMicrosoftNETSdk)</Visible>
+      <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
+    </SpecFlowFeatureFiles>
     <SpecFlowFeatureFiles Update="Features\ApproveAllFundingGag.feature">
+      <Visible>$(UsingMicrosoftNETSdk)</Visible>
+      <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
+    </SpecFlowFeatureFiles>
+    <SpecFlowFeatureFiles Update="Features\ApproveBatchFunding1619.feature">
       <Visible>$(UsingMicrosoftNETSdk)</Visible>
       <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
     </SpecFlowFeatureFiles>
@@ -169,7 +209,15 @@
       <Visible>$(UsingMicrosoftNETSdk)</Visible>
       <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
     </SpecFlowFeatureFiles>
+    <SpecFlowFeatureFiles Update="Features\PublishingAllFunding1619.feature">
+      <Visible>$(UsingMicrosoftNETSdk)</Visible>
+      <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
+    </SpecFlowFeatureFiles>
     <SpecFlowFeatureFiles Update="Features\PublishingAllFundingGag.feature">
+      <Visible>$(UsingMicrosoftNETSdk)</Visible>
+      <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
+    </SpecFlowFeatureFiles>
+    <SpecFlowFeatureFiles Update="Features\PublishingBatchFunding1619.feature">
       <Visible>$(UsingMicrosoftNETSdk)</Visible>
       <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
     </SpecFlowFeatureFiles>

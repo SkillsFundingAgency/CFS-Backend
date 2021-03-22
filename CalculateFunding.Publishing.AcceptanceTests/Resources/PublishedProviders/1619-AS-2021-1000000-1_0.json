@@ -1,0 +1,2876 @@
+{
+  "id": "1619-AS-2021-1000000-1_0",
+  "fundingVersion": "1_0",
+  "provider": {
+    "identifier": "1000000",
+    "name": "Maintained School 1",
+    "searchableName": "MaintainedSchool1",
+    "otherIdentifiers": [
+      {
+        "type": "UKPRN",
+        "value": "1000000"
+      },
+      {
+        "type": "LACode",
+        "value": "200"
+      }
+    ],
+    "providerVersionId": "1619-providers-1.0",
+    "providerType": "LA maintained schools",
+    "providerSubType": "Community school",
+    "providerDetails": {
+      "dateOpened": "2012-03-15T00:00:00+00:00",
+      "dateClosed": null,
+      "status": "",
+      "phaseOfEducation": "",
+      "localAuthorityName": "Maintained School 1",
+      "openReason": "",
+      "closeReason": "",
+      "trustStatus": "Not supported by a trust",
+      "trustName": "",
+      "town": "",
+      "postcode": "",
+      "companiesHouseNumber": "",
+      "groupIdNumber": "",
+      "rscRegionName": "",
+      "rscRegionCode": "",
+      "governmentOfficeRegionName": "",
+      "governmentOfficeRegionCode": "",
+      "districtName": "",
+      "districtCode": "",
+      "wardName": "",
+      "wardCode": "",
+      "censusWardName": "",
+      "censusWardCode": "",
+      "middleSuperOutputAreaName": "",
+      "middleSuperOutputAreaCode": "",
+      "lowerSuperOutputAreaName": "",
+      "lowerSuperOutputAreaCode": "",
+      "parliamentaryConstituencyName": "",
+      "parliamentaryConstituencyCode": "",
+      "countryCode": "",
+      "countryName": ""
+    }
+  },
+  "fundingStreamCode": "1619",
+  "fundingPeriodId": "AS-2021",
+  "fundingValue": {
+    "totalValue": 12000.0,
+    "fundingLines": [
+      {
+        "name": "Total 1619 before deductions and recoupment",
+        "fundingLineCode": "1619-001",
+        "value": 3840,
+        "templateLineId": 2,
+        "type": "Information",
+        "calculations": null,
+        "fundingLines": [
+          {
+            "name": "Schools Block before recoupment",
+            "fundingLineCode": "1619-003",
+            "value": 640,
+            "templateLineId": 4,
+            "type": "Information",
+            "calculations": [],
+            "fundingLines": [
+              {
+                "name": "Provisional Schools Block Funding Excluding Growth",
+                "fundingLineCode": "1619-020",
+                "value": 0,
+                "templateLineId": 239,
+                "type": "Information",
+                "calculations": [
+                  {
+                    "name": "Provisional Schools Block Funding Excluding Growth",
+                    "templateCalculationId": 241,
+                    "value": 320.0,
+                    "valueFormat": "Currency",
+                    "type": "Number",
+                    "formulaText": "",
+                    "aggregationType": "Sum",
+                    "calculations": [],
+                    "referenceData": null
+                  }
+                ],
+                "fundingLines": [
+                  {
+                    "name": "Pupil Led Factors",
+                    "fundingLineCode": "1619-004",
+                    "value": 640,
+                    "templateLineId": 5,
+                    "type": "Information",
+                    "calculations": [
+                      {
+                        "name": "Primary pupil sub-total",
+                        "templateCalculationId": 13,
+                        "value": 320.0,
+                        "valueFormat": "Currency",
+                        "type": "Cash",
+                        "formulaText": "",
+                        "aggregationType": "Sum",
+                        "calculations": [
+                          {
+                            "name": "Primary Pupil Number",
+                            "templateCalculationId": 15,
+                            "value": 320.0,
+                            "valueFormat": "Number",
+                            "type": "PupilNumber",
+                            "formulaText": "",
+                            "aggregationType": "Sum",
+                            "calculations": [],
+                            "referenceData": null
+                          },
+                          {
+                            "name": "Primary Unit of Funding",
+                            "templateCalculationId": 16,
+                            "value": 320.0,
+                            "valueFormat": "Currency",
+                            "type": "Rate",
+                            "formulaText": "",
+                            "aggregationType": "None",
+                            "calculations": [],
+                            "referenceData": null
+                          }
+                        ],
+                        "referenceData": null
+                      },
+                      {
+                        "name": "Secondary pupil sub-total",
+                        "templateCalculationId": 14,
+                        "value": 320.0,
+                        "valueFormat": "Currency",
+                        "type": "Cash",
+                        "formulaText": "",
+                        "aggregationType": "Sum",
+                        "calculations": [
+                          {
+                            "name": "Secondary Pupil Number",
+                            "templateCalculationId": 17,
+                            "value": 320.0,
+                            "valueFormat": "Number",
+                            "type": "PupilNumber",
+                            "formulaText": "",
+                            "aggregationType": "Sum",
+                            "calculations": [],
+                            "referenceData": null
+                          },
+                          {
+                            "name": "Secondary Unit of Funding",
+                            "templateCalculationId": 18,
+                            "value": 320.0,
+                            "valueFormat": "Currency",
+                            "type": "Rate",
+                            "formulaText": "",
+                            "aggregationType": "None",
+                            "calculations": [],
+                            "referenceData": null
+                          }
+                        ],
+                        "referenceData": null
+                      }
+                    ],
+                    "fundingLines": [],
+                    "distributionPeriods": null
+                  },
+                  {
+                    "name": "Funding Through Premises and Mobility Factors",
+                    "fundingLineCode": "1619-007",
+                    "value": 0,
+                    "templateLineId": 6,
+                    "type": "Information",
+                    "calculations": [
+                      {
+                        "name": "Premises and Mobility Factors",
+                        "templateCalculationId": 19,
+                        "value": 320.0,
+                        "valueFormat": "Currency",
+                        "type": "Cash",
+                        "formulaText": "",
+                        "aggregationType": "Sum",
+                        "calculations": null,
+                        "referenceData": null
+                      }
+                    ],
+                    "fundingLines": [],
+                    "distributionPeriods": null
+                  }
+                ],
+                "distributionPeriods": null
+              },
+              {
+                "name": "LA Protection",
+                "fundingLineCode": "1619-021",
+                "value": 0,
+                "templateLineId": 240,
+                "type": "Information",
+                "calculations": [
+                  {
+                    "name": "Current Year Local Authority Protection",
+                    "templateCalculationId": 243,
+                    "value": 320.0,
+                    "valueFormat": "Currency",
+                    "type": "Cash",
+                    "formulaText": "",
+                    "aggregationType": "Sum",
+                    "calculations": [
+                      {
+                        "name": "Current Year Provisional Schools Block Excluding Growth Funding Per Pupil",
+                        "templateCalculationId": 246,
+                        "value": 320.0,
+                        "valueFormat": "Currency",
+                        "type": "Rate",
+                        "formulaText": "",
+                        "aggregationType": "None",
+                        "calculations": [
+                          {
+                            "name": "Current Year School Block Pupil No",
+                            "templateCalculationId": 242,
+                            "value": 320.0,
+                            "valueFormat": "Number",
+                            "type": "PupilNumber",
+                            "formulaText": "",
+                            "aggregationType": "Sum",
+                            "calculations": [
+                              {
+                                "name": "Primary Pupil Number",
+                                "templateCalculationId": 15,
+                                "value": 320.0,
+                                "valueFormat": "Number",
+                                "type": "PupilNumber",
+                                "formulaText": "",
+                                "aggregationType": "Sum",
+                                "calculations": [],
+                                "referenceData": null
+                              },
+                              {
+                                "name": "Secondary Pupil Number",
+                                "templateCalculationId": 17,
+                                "value": 320.0,
+                                "valueFormat": "Number",
+                                "type": "PupilNumber",
+                                "formulaText": "",
+                                "aggregationType": "Sum",
+                                "calculations": [],
+                                "referenceData": null
+                              }
+                            ],
+                            "referenceData": null
+                          },
+                          {
+                            "name": "Current Year Provisional Schools Block Funding Excluding Growth - NON CASH",
+                            "templateCalculationId": 248,
+                            "value": 320.0,
+                            "valueFormat": "Currency",
+                            "type": "Number",
+                            "formulaText": "",
+                            "aggregationType": "Sum",
+                            "calculations": null,
+                            "referenceData": null
+                          }
+                        ],
+                        "referenceData": null
+                      },
+                      {
+                        "name": "Previous Year Schools Block Excluding Growth Funding Per Pupil",
+                        "templateCalculationId": 247,
+                        "value": 320.0,
+                        "valueFormat": "Currency",
+                        "type": "Rate",
+                        "formulaText": "",
+                        "aggregationType": "None",
+                        "calculations": [
+                          {
+                            "name": "Previous Year Schools Block Pupil Numbers",
+                            "templateCalculationId": 249,
+                            "value": 320.0,
+                            "valueFormat": "Number",
+                            "type": "PupilNumber",
+                            "formulaText": "",
+                            "aggregationType": "Sum",
+                            "calculations": null,
+                            "referenceData": null
+                          },
+                          {
+                            "name": "Previous Year Schools Block Excluding Growth Funding",
+                            "templateCalculationId": 250,
+                            "value": 320.0,
+                            "valueFormat": "Currency",
+                            "type": "Number",
+                            "formulaText": "",
+                            "aggregationType": "Sum",
+                            "calculations": null,
+                            "referenceData": null
+                          }
+                        ],
+                        "referenceData": null
+                      }
+                    ],
+                    "referenceData": null
+                  },
+                  {
+                    "name": "Percentage Change between Current Year and Previous Year per Pupil Funding",
+                    "templateCalculationId": 244,
+                    "value": 320.0,
+                    "valueFormat": "Percentage",
+                    "type": "Number",
+                    "formulaText": "",
+                    "aggregationType": "Average",
+                    "calculations": [
+                      {
+                        "name": "Current Year Provisional Schools Block Excluding Growth Funding Per Pupil",
+                        "templateCalculationId": 246,
+                        "value": 320.0,
+                        "valueFormat": "Currency",
+                        "type": "Rate",
+                        "formulaText": "",
+                        "aggregationType": "None",
+                        "calculations": [
+                          {
+                            "name": "Current Year School Block Pupil No",
+                            "templateCalculationId": 242,
+                            "value": 320.0,
+                            "valueFormat": "Number",
+                            "type": "PupilNumber",
+                            "formulaText": "",
+                            "aggregationType": "Sum",
+                            "calculations": [
+                              {
+                                "name": "Primary Pupil Number",
+                                "templateCalculationId": 15,
+                                "value": 320.0,
+                                "valueFormat": "Number",
+                                "type": "PupilNumber",
+                                "formulaText": "",
+                                "aggregationType": "Sum",
+                                "calculations": [],
+                                "referenceData": null
+                              },
+                              {
+                                "name": "Secondary Pupil Number",
+                                "templateCalculationId": 17,
+                                "value": 320.0,
+                                "valueFormat": "Number",
+                                "type": "PupilNumber",
+                                "formulaText": "",
+                                "aggregationType": "Sum",
+                                "calculations": [],
+                                "referenceData": null
+                              }
+                            ],
+                            "referenceData": null
+                          },
+                          {
+                            "name": "Current Year Provisional Schools Block Funding Excluding Growth - NON CASH",
+                            "templateCalculationId": 248,
+                            "value": 320.0,
+                            "valueFormat": "Currency",
+                            "type": "Number",
+                            "formulaText": "",
+                            "aggregationType": "Sum",
+                            "calculations": null,
+                            "referenceData": null
+                          }
+                        ],
+                        "referenceData": null
+                      },
+                      {
+                        "name": "Previous Year Schools Block Excluding Growth Funding Per Pupil",
+                        "templateCalculationId": 247,
+                        "value": 320.0,
+                        "valueFormat": "Currency",
+                        "type": "Rate",
+                        "formulaText": "",
+                        "aggregationType": "None",
+                        "calculations": [
+                          {
+                            "name": "Previous Year Schools Block Pupil Numbers",
+                            "templateCalculationId": 249,
+                            "value": 320.0,
+                            "valueFormat": "Number",
+                            "type": "PupilNumber",
+                            "formulaText": "",
+                            "aggregationType": "Sum",
+                            "calculations": null,
+                            "referenceData": null
+                          },
+                          {
+                            "name": "Previous Year Schools Block Excluding Growth Funding",
+                            "templateCalculationId": 250,
+                            "value": 320.0,
+                            "valueFormat": "Currency",
+                            "type": "Number",
+                            "formulaText": "",
+                            "aggregationType": "Sum",
+                            "calculations": null,
+                            "referenceData": null
+                          }
+                        ],
+                        "referenceData": null
+                      }
+                    ],
+                    "referenceData": null
+                  },
+                  {
+                    "name": "Percentage Change between Current Year and Previous Year per Pupil Funding after local authority protection",
+                    "templateCalculationId": 245,
+                    "value": 320.0,
+                    "valueFormat": "Percentage",
+                    "type": "Number",
+                    "formulaText": "",
+                    "aggregationType": "Average",
+                    "calculations": [
+                      {
+                        "name": "Current Year Provisional Schools Block Excluding Growth Funding Per Pupil",
+                        "templateCalculationId": 246,
+                        "value": 320.0,
+                        "valueFormat": "Currency",
+                        "type": "Rate",
+                        "formulaText": "",
+                        "aggregationType": "None",
+                        "calculations": [
+                          {
+                            "name": "Current Year School Block Pupil No",
+                            "templateCalculationId": 242,
+                            "value": 320.0,
+                            "valueFormat": "Number",
+                            "type": "PupilNumber",
+                            "formulaText": "",
+                            "aggregationType": "Sum",
+                            "calculations": [
+                              {
+                                "name": "Primary Pupil Number",
+                                "templateCalculationId": 15,
+                                "value": 320.0,
+                                "valueFormat": "Number",
+                                "type": "PupilNumber",
+                                "formulaText": "",
+                                "aggregationType": "Sum",
+                                "calculations": [],
+                                "referenceData": null
+                              },
+                              {
+                                "name": "Secondary Pupil Number",
+                                "templateCalculationId": 17,
+                                "value": 320.0,
+                                "valueFormat": "Number",
+                                "type": "PupilNumber",
+                                "formulaText": "",
+                                "aggregationType": "Sum",
+                                "calculations": [],
+                                "referenceData": null
+                              }
+                            ],
+                            "referenceData": null
+                          },
+                          {
+                            "name": "Current Year Provisional Schools Block Funding Excluding Growth - NON CASH",
+                            "templateCalculationId": 248,
+                            "value": 320.0,
+                            "valueFormat": "Currency",
+                            "type": "Number",
+                            "formulaText": "",
+                            "aggregationType": "Sum",
+                            "calculations": null,
+                            "referenceData": null
+                          }
+                        ],
+                        "referenceData": null
+                      },
+                      {
+                        "name": "Previous Year Schools Block Excluding Growth Funding Per Pupil",
+                        "templateCalculationId": 247,
+                        "value": 320.0,
+                        "valueFormat": "Currency",
+                        "type": "Rate",
+                        "formulaText": "",
+                        "aggregationType": "None",
+                        "calculations": [
+                          {
+                            "name": "Previous Year Schools Block Pupil Numbers",
+                            "templateCalculationId": 249,
+                            "value": 320.0,
+                            "valueFormat": "Number",
+                            "type": "PupilNumber",
+                            "formulaText": "",
+                            "aggregationType": "Sum",
+                            "calculations": null,
+                            "referenceData": null
+                          },
+                          {
+                            "name": "Previous Year Schools Block Excluding Growth Funding",
+                            "templateCalculationId": 250,
+                            "value": 320.0,
+                            "valueFormat": "Currency",
+                            "type": "Number",
+                            "formulaText": "",
+                            "aggregationType": "Sum",
+                            "calculations": null,
+                            "referenceData": null
+                          }
+                        ],
+                        "referenceData": null
+                      }
+                    ],
+                    "referenceData": null
+                  }
+                ],
+                "fundingLines": [],
+                "distributionPeriods": null
+              },
+              {
+                "name": "Growth funding",
+                "fundingLineCode": "1619-006",
+                "value": 0,
+                "templateLineId": 7,
+                "type": "Information",
+                "calculations": [
+                  {
+                    "name": "Growth",
+                    "templateCalculationId": 20,
+                    "value": 320.0,
+                    "valueFormat": "Currency",
+                    "type": "Cash",
+                    "formulaText": "",
+                    "aggregationType": "Sum",
+                    "calculations": null,
+                    "referenceData": null
+                  }
+                ],
+                "fundingLines": [],
+                "distributionPeriods": null
+              }
+            ],
+            "distributionPeriods": null
+          },
+          {
+            "name": "Central School Services Block",
+            "fundingLineCode": "1619-008",
+            "value": 320,
+            "templateLineId": 8,
+            "type": "Information",
+            "calculations": [],
+            "fundingLines": [
+              {
+                "name": "CSSB Pupil Led Funding",
+                "fundingLineCode": "1619-012",
+                "value": 320,
+                "templateLineId": 23,
+                "type": "Information",
+                "calculations": [
+                  {
+                    "name": "CSSB Pupil Led Total",
+                    "templateCalculationId": 24,
+                    "value": 320.0,
+                    "valueFormat": "Currency",
+                    "type": "Cash",
+                    "formulaText": "",
+                    "aggregationType": "Sum",
+                    "calculations": [
+                      {
+                        "name": "CSSB per Pupil Rate",
+                        "templateCalculationId": 25,
+                        "value": 320.0,
+                        "valueFormat": "Currency",
+                        "type": "Rate",
+                        "formulaText": "",
+                        "aggregationType": "None",
+                        "calculations": [],
+                        "referenceData": null
+                      },
+                      {
+                        "name": "CSSB Pupil Number",
+                        "templateCalculationId": 26,
+                        "value": 320.0,
+                        "valueFormat": "Number",
+                        "type": "PupilNumber",
+                        "formulaText": "",
+                        "aggregationType": "Sum",
+                        "calculations": [],
+                        "referenceData": null
+                      }
+                    ],
+                    "referenceData": null
+                  }
+                ],
+                "fundingLines": [],
+                "distributionPeriods": null
+              },
+              {
+                "name": "Funding for Historic Commitments",
+                "fundingLineCode": "1619-013",
+                "value": 0,
+                "templateLineId": 27,
+                "type": "Information",
+                "calculations": [
+                  {
+                    "name": "Actual CSSB Funding for Historic Commitments",
+                    "templateCalculationId": 28,
+                    "value": 320.0,
+                    "valueFormat": "Currency",
+                    "type": "Cash",
+                    "formulaText": "",
+                    "aggregationType": "Sum",
+                    "calculations": null,
+                    "referenceData": null
+                  }
+                ],
+                "fundingLines": [],
+                "distributionPeriods": null
+              }
+            ],
+            "distributionPeriods": null
+          },
+          {
+            "name": "Early Years Block",
+            "fundingLineCode": "1619-009",
+            "value": 1600,
+            "templateLineId": 9,
+            "type": "Information",
+            "calculations": null,
+            "fundingLines": [
+              {
+                "name": "Universal Entitlement for 3 and 4 Year Olds",
+                "fundingLineCode": "1619-014",
+                "value": 320,
+                "templateLineId": 130,
+                "type": "Information",
+                "calculations": [
+                  {
+                    "name": "Universal Entitlement for 3 and 4 Year Olds total",
+                    "templateCalculationId": 131,
+                    "value": 320.0,
+                    "valueFormat": "Currency",
+                    "type": "Cash",
+                    "formulaText": "",
+                    "aggregationType": "Sum",
+                    "calculations": [
+                      {
+                        "name": "Universal Entitlement for 3 and 4 Year Olds total Early Years Universal Entitlement for 3 and 4 Year Olds Rate",
+                        "templateCalculationId": 132,
+                        "value": 320.0,
+                        "valueFormat": "Currency",
+                        "type": "Rate",
+                        "formulaText": "",
+                        "aggregationType": "None",
+                        "calculations": null,
+                        "referenceData": null
+                      },
+                      {
+                        "name": "Total 3 and 4 Year Olds (PTE)",
+                        "templateCalculationId": 133,
+                        "value": 320.0,
+                        "valueFormat": "Number",
+                        "type": "PupilNumber",
+                        "formulaText": "",
+                        "aggregationType": "Average",
+                        "calculations": null,
+                        "referenceData": null
+                      },
+                      {
+                        "name": "Universal Entitlement for 3 and 4 Year Olds total PTE Funded hours",
+                        "templateCalculationId": 134,
+                        "value": 320.0,
+                        "valueFormat": "Number",
+                        "type": "Number",
+                        "formulaText": "",
+                        "aggregationType": "None",
+                        "calculations": null,
+                        "referenceData": null
+                      }
+                    ],
+                    "referenceData": null
+                  }
+                ],
+                "fundingLines": [],
+                "distributionPeriods": null
+              },
+              {
+                "name": "Funding for Additional Hours for working parents",
+                "fundingLineCode": "1619-015",
+                "value": 320,
+                "templateLineId": 135,
+                "type": "Information",
+                "calculations": [
+                  {
+                    "name": "Funding for Additional Hours for working parents total",
+                    "templateCalculationId": 136,
+                    "value": 320.0,
+                    "valueFormat": "Currency",
+                    "type": "Cash",
+                    "formulaText": "",
+                    "aggregationType": "Sum",
+                    "calculations": [
+                      {
+                        "name": "Funding for Additional Hours for working parents total Early Years Universal Entitlement for 3 and 4 Year Olds Rate",
+                        "templateCalculationId": 137,
+                        "value": 320.0,
+                        "valueFormat": "Currency",
+                        "type": "Rate",
+                        "formulaText": "",
+                        "aggregationType": "None",
+                        "calculations": null,
+                        "referenceData": null
+                      },
+                      {
+                        "name": "Total 3 and 4 Year Old for Additional Hours for Working Parents (PTE)",
+                        "templateCalculationId": 138,
+                        "value": 320.0,
+                        "valueFormat": "Number",
+                        "type": "PupilNumber",
+                        "formulaText": "",
+                        "aggregationType": "Average",
+                        "calculations": null,
+                        "referenceData": null
+                      },
+                      {
+                        "name": "Funding for Additional Hours for working parents total PTE Funded hours",
+                        "templateCalculationId": 139,
+                        "value": 320.0,
+                        "valueFormat": "Number",
+                        "type": "Number",
+                        "formulaText": "",
+                        "aggregationType": "None",
+                        "calculations": null,
+                        "referenceData": null
+                      }
+                    ],
+                    "referenceData": null
+                  }
+                ],
+                "fundingLines": [],
+                "distributionPeriods": null
+              },
+              {
+                "name": "Participation Funding for Disadvantaged 2 Year Olds",
+                "fundingLineCode": "1619-016",
+                "value": 320,
+                "templateLineId": 140,
+                "type": "Information",
+                "calculations": [
+                  {
+                    "name": "Participation Funding for Disadvantaged 2 Year Olds total",
+                    "templateCalculationId": 141,
+                    "value": 320.0,
+                    "valueFormat": "Currency",
+                    "type": "Cash",
+                    "formulaText": "",
+                    "aggregationType": "Sum",
+                    "calculations": [
+                      {
+                        "name": "Early Years Participation Funding for 2 Year Olds Rate",
+                        "templateCalculationId": 142,
+                        "value": 320.0,
+                        "valueFormat": "Currency",
+                        "type": "Rate",
+                        "formulaText": "",
+                        "aggregationType": "None",
+                        "calculations": null,
+                        "referenceData": null
+                      },
+                      {
+                        "name": "Total 2 Year Olds (PTE)",
+                        "templateCalculationId": 143,
+                        "value": 320.0,
+                        "valueFormat": "Number",
+                        "type": "PupilNumber",
+                        "formulaText": "",
+                        "aggregationType": "Sum",
+                        "calculations": null,
+                        "referenceData": null
+                      },
+                      {
+                        "name": "Participation Funding for Disadvantaged 2 Year Olds total PTE Funded hours",
+                        "templateCalculationId": 144,
+                        "value": 320.0,
+                        "valueFormat": "Number",
+                        "type": "Number",
+                        "formulaText": "",
+                        "aggregationType": "None",
+                        "calculations": null,
+                        "referenceData": null
+                      }
+                    ],
+                    "referenceData": null
+                  }
+                ],
+                "fundingLines": [],
+                "distributionPeriods": null
+              },
+              {
+                "name": "Funding Allocation for Early Years Pupil Premium",
+                "fundingLineCode": "1619-017",
+                "value": 320,
+                "templateLineId": 145,
+                "type": "Information",
+                "calculations": [
+                  {
+                    "name": "Funding Allocation for Early Years Pupil Premium total",
+                    "templateCalculationId": 146,
+                    "value": 320.0,
+                    "valueFormat": "Currency",
+                    "type": "Cash",
+                    "formulaText": "",
+                    "aggregationType": "Sum",
+                    "calculations": [
+                      {
+                        "name": "Early Years Pupil Premium",
+                        "templateCalculationId": 147,
+                        "value": 320.0,
+                        "valueFormat": "Currency",
+                        "type": "Rate",
+                        "formulaText": "",
+                        "aggregationType": "None",
+                        "calculations": null,
+                        "referenceData": null
+                      },
+                      {
+                        "name": "Pupil Premium Pupil Count for 3 to 4 Year Olds (PTE)",
+                        "templateCalculationId": 148,
+                        "value": 320.0,
+                        "valueFormat": "Number",
+                        "type": "PupilNumber",
+                        "formulaText": "",
+                        "aggregationType": "Sum",
+                        "calculations": null,
+                        "referenceData": null
+                      },
+                      {
+                        "name": "Funding Allocation for Early Years Pupil Premium total PTE Funded hours",
+                        "templateCalculationId": 149,
+                        "value": 320.0,
+                        "valueFormat": "Number",
+                        "type": "Number",
+                        "formulaText": "",
+                        "aggregationType": "None",
+                        "calculations": null,
+                        "referenceData": null
+                      }
+                    ],
+                    "referenceData": null
+                  }
+                ],
+                "fundingLines": [],
+                "distributionPeriods": null
+              },
+              {
+                "name": "Funding Allocation for Maintained Nursery Supplement",
+                "fundingLineCode": "1619-018",
+                "value": 320,
+                "templateLineId": 150,
+                "type": "Information",
+                "calculations": [
+                  {
+                    "name": "Funding Allocation for Maintained Nursery Supplement total",
+                    "templateCalculationId": 151,
+                    "value": 320.0,
+                    "valueFormat": "Currency",
+                    "type": "Cash",
+                    "formulaText": "",
+                    "aggregationType": "Sum",
+                    "calculations": [
+                      {
+                        "name": "Maintained Nursery Schools Supplement Hourly Rate",
+                        "templateCalculationId": 152,
+                        "value": 320.0,
+                        "valueFormat": "Currency",
+                        "type": "Rate",
+                        "formulaText": "",
+                        "aggregationType": "None",
+                        "calculations": null,
+                        "referenceData": null
+                      },
+                      {
+                        "name": "Maintained Nursery Schools Supplement (PTE)",
+                        "templateCalculationId": 153,
+                        "value": 320.0,
+                        "valueFormat": "Number",
+                        "type": "PupilNumber",
+                        "formulaText": "",
+                        "aggregationType": "Sum",
+                        "calculations": null,
+                        "referenceData": null
+                      },
+                      {
+                        "name": "PTE Funded hours",
+                        "templateCalculationId": 154,
+                        "value": 320.0,
+                        "valueFormat": "Number",
+                        "type": "Number",
+                        "formulaText": "",
+                        "aggregationType": "None",
+                        "calculations": null,
+                        "referenceData": null
+                      }
+                    ],
+                    "referenceData": null
+                  }
+                ],
+                "fundingLines": [],
+                "distributionPeriods": null
+              },
+              {
+                "name": "Funding Allocation for Disability Access Fund",
+                "fundingLineCode": "1619-019",
+                "value": 0,
+                "templateLineId": 155,
+                "type": "Information",
+                "calculations": [
+                  {
+                    "name": "Disability Access Fund",
+                    "templateCalculationId": 238,
+                    "value": 320.0,
+                    "valueFormat": "Currency",
+                    "type": "Cash",
+                    "formulaText": "",
+                    "aggregationType": "Sum",
+                    "calculations": null,
+                    "referenceData": null
+                  }
+                ],
+                "fundingLines": [],
+                "distributionPeriods": null
+              }
+            ],
+            "distributionPeriods": null
+          },
+          {
+            "name": "High Needs Block before deductions",
+            "fundingLineCode": "1619-010",
+            "value": 1280,
+            "templateLineId": 10,
+            "type": "Information",
+            "calculations": [
+              {
+                "name": "HN Block Baseline",
+                "templateCalculationId": 29,
+                "value": 320.0,
+                "valueFormat": "Currency",
+                "type": "Cash",
+                "formulaText": "",
+                "aggregationType": "Sum",
+                "calculations": null,
+                "referenceData": null
+              },
+              {
+                "name": "Additional Funding For free Schools",
+                "templateCalculationId": 237,
+                "value": 320.0,
+                "valueFormat": "Currency",
+                "type": "Cash",
+                "formulaText": "",
+                "aggregationType": "Sum",
+                "calculations": null,
+                "referenceData": null
+              },
+              {
+                "name": "Basic Entitlement",
+                "templateCalculationId": 30,
+                "value": 320.0,
+                "valueFormat": "Currency",
+                "type": "Cash",
+                "formulaText": "",
+                "aggregationType": "Sum",
+                "calculations": [
+                  {
+                    "name": "Basic Entitlement Per Pupil Rate",
+                    "templateCalculationId": 31,
+                    "value": 320.0,
+                    "valueFormat": "Currency",
+                    "type": "Rate",
+                    "formulaText": "",
+                    "aggregationType": "None",
+                    "calculations": null,
+                    "referenceData": null
+                  },
+                  {
+                    "name": "Basic Entitlement Per Pupil Number",
+                    "templateCalculationId": 32,
+                    "value": 320.0,
+                    "valueFormat": "Number",
+                    "type": "PupilNumber",
+                    "formulaText": "",
+                    "aggregationType": "Sum",
+                    "calculations": null,
+                    "referenceData": null
+                  }
+                ],
+                "referenceData": null
+              },
+              {
+                "name": "Import/Export Adjustment",
+                "templateCalculationId": 33,
+                "value": 320.0,
+                "valueFormat": "Currency",
+                "type": "Cash",
+                "formulaText": "",
+                "aggregationType": "Sum",
+                "calculations": [
+                  {
+                    "name": "Import/Export Adjustment per pupil number",
+                    "templateCalculationId": 34,
+                    "value": 320.0,
+                    "valueFormat": "Number",
+                    "type": "PupilNumber",
+                    "formulaText": "",
+                    "aggregationType": "Sum",
+                    "calculations": null,
+                    "referenceData": null
+                  },
+                  {
+                    "name": "Import/Export Adjustment per pupil rate",
+                    "templateCalculationId": 35,
+                    "value": 320.0,
+                    "valueFormat": "Currency",
+                    "type": "Rate",
+                    "formulaText": "",
+                    "aggregationType": "None",
+                    "calculations": null,
+                    "referenceData": null
+                  }
+                ],
+                "referenceData": null
+              },
+              {
+                "name": "Additional High Needs Funding",
+                "templateCalculationId": 36,
+                "value": 320.0,
+                "valueFormat": "Currency",
+                "type": "Cash",
+                "formulaText": "",
+                "aggregationType": "Average",
+                "calculations": [
+                  {
+                    "name": "Mid 2019 Age 2-18 ONS Population Projection",
+                    "templateCalculationId": 37,
+                    "value": 320.0,
+                    "valueFormat": "Number",
+                    "type": "PupilNumber",
+                    "formulaText": "",
+                    "aggregationType": "Sum",
+                    "calculations": null,
+                    "referenceData": null
+                  },
+                  {
+                    "name": "Additional High Needs Funding Quantum",
+                    "templateCalculationId": 38,
+                    "value": 320.0,
+                    "valueFormat": "Currency",
+                    "type": "Cash",
+                    "formulaText": "",
+                    "aggregationType": "None",
+                    "calculations": null,
+                    "referenceData": null
+                  }
+                ],
+                "referenceData": null
+              }
+            ],
+            "fundingLines": [],
+            "distributionPeriods": null
+          }
+        ],
+        "distributionPeriods": null
+      },
+      {
+        "name": "Total 1619 after deductions and recoupment",
+        "fundingLineCode": "1619-002",
+        "value": 15360,
+        "templateLineId": 3,
+        "type": "Payment",
+        "calculations": [],
+        "fundingLines": [
+          {
+            "name": "Central School Services Block",
+            "fundingLineCode": "1619-008",
+            "value": 320,
+            "templateLineId": 8,
+            "type": "Information",
+            "calculations": [],
+            "fundingLines": [
+              {
+                "name": "CSSB Pupil Led Funding",
+                "fundingLineCode": "1619-012",
+                "value": 320,
+                "templateLineId": 23,
+                "type": "Information",
+                "calculations": [
+                  {
+                    "name": "CSSB Pupil Led Total",
+                    "templateCalculationId": 24,
+                    "value": 320.0,
+                    "valueFormat": "Currency",
+                    "type": "Cash",
+                    "formulaText": "",
+                    "aggregationType": "Sum",
+                    "calculations": [
+                      {
+                        "name": "CSSB per Pupil Rate",
+                        "templateCalculationId": 25,
+                        "value": 320.0,
+                        "valueFormat": "Currency",
+                        "type": "Rate",
+                        "formulaText": "",
+                        "aggregationType": "None",
+                        "calculations": [],
+                        "referenceData": null
+                      },
+                      {
+                        "name": "CSSB Pupil Number",
+                        "templateCalculationId": 26,
+                        "value": 320.0,
+                        "valueFormat": "Number",
+                        "type": "PupilNumber",
+                        "formulaText": "",
+                        "aggregationType": "Sum",
+                        "calculations": [],
+                        "referenceData": null
+                      }
+                    ],
+                    "referenceData": null
+                  }
+                ],
+                "fundingLines": [],
+                "distributionPeriods": null
+              },
+              {
+                "name": "Funding for Historic Commitments",
+                "fundingLineCode": "1619-013",
+                "value": 0,
+                "templateLineId": 27,
+                "type": "Information",
+                "calculations": [
+                  {
+                    "name": "Actual CSSB Funding for Historic Commitments",
+                    "templateCalculationId": 28,
+                    "value": 320.0,
+                    "valueFormat": "Currency",
+                    "type": "Cash",
+                    "formulaText": "",
+                    "aggregationType": "Sum",
+                    "calculations": null,
+                    "referenceData": null
+                  }
+                ],
+                "fundingLines": [],
+                "distributionPeriods": null
+              }
+            ],
+            "distributionPeriods": null
+          },
+          {
+            "name": "Early Years Block",
+            "fundingLineCode": "1619-009",
+            "value": 1600,
+            "templateLineId": 9,
+            "type": "Information",
+            "calculations": [],
+            "fundingLines": [
+              {
+                "name": "Universal Entitlement for 3 and 4 Year Olds",
+                "fundingLineCode": "1619-014",
+                "value": 320,
+                "templateLineId": 130,
+                "type": "Information",
+                "calculations": [
+                  {
+                    "name": "Universal Entitlement for 3 and 4 Year Olds total",
+                    "templateCalculationId": 131,
+                    "value": 320.0,
+                    "valueFormat": "Currency",
+                    "type": "Cash",
+                    "formulaText": "",
+                    "aggregationType": "Sum",
+                    "calculations": [
+                      {
+                        "name": "Universal Entitlement for 3 and 4 Year Olds total Early Years Universal Entitlement for 3 and 4 Year Olds Rate",
+                        "templateCalculationId": 132,
+                        "value": 320.0,
+                        "valueFormat": "Currency",
+                        "type": "Rate",
+                        "formulaText": "",
+                        "aggregationType": "None",
+                        "calculations": null,
+                        "referenceData": null
+                      },
+                      {
+                        "name": "Total 3 and 4 Year Olds (PTE)",
+                        "templateCalculationId": 133,
+                        "value": 320.0,
+                        "valueFormat": "Number",
+                        "type": "PupilNumber",
+                        "formulaText": "",
+                        "aggregationType": "Average",
+                        "calculations": null,
+                        "referenceData": null
+                      },
+                      {
+                        "name": "Universal Entitlement for 3 and 4 Year Olds total PTE Funded hours",
+                        "templateCalculationId": 134,
+                        "value": 320.0,
+                        "valueFormat": "Number",
+                        "type": "Number",
+                        "formulaText": "",
+                        "aggregationType": "None",
+                        "calculations": null,
+                        "referenceData": null
+                      }
+                    ],
+                    "referenceData": null
+                  }
+                ],
+                "fundingLines": [],
+                "distributionPeriods": null
+              },
+              {
+                "name": "Funding for Additional Hours for working parents",
+                "fundingLineCode": "1619-015",
+                "value": 320,
+                "templateLineId": 135,
+                "type": "Information",
+                "calculations": [
+                  {
+                    "name": "Funding for Additional Hours for working parents total",
+                    "templateCalculationId": 136,
+                    "value": 320.0,
+                    "valueFormat": "Currency",
+                    "type": "Cash",
+                    "formulaText": "",
+                    "aggregationType": "Sum",
+                    "calculations": [
+                      {
+                        "name": "Funding for Additional Hours for working parents total Early Years Universal Entitlement for 3 and 4 Year Olds Rate",
+                        "templateCalculationId": 137,
+                        "value": 320.0,
+                        "valueFormat": "Currency",
+                        "type": "Rate",
+                        "formulaText": "",
+                        "aggregationType": "None",
+                        "calculations": null,
+                        "referenceData": null
+                      },
+                      {
+                        "name": "Total 3 and 4 Year Old for Additional Hours for Working Parents (PTE)",
+                        "templateCalculationId": 138,
+                        "value": 320.0,
+                        "valueFormat": "Number",
+                        "type": "PupilNumber",
+                        "formulaText": "",
+                        "aggregationType": "Average",
+                        "calculations": null,
+                        "referenceData": null
+                      },
+                      {
+                        "name": "Funding for Additional Hours for working parents total PTE Funded hours",
+                        "templateCalculationId": 139,
+                        "value": 320.0,
+                        "valueFormat": "Number",
+                        "type": "Number",
+                        "formulaText": "",
+                        "aggregationType": "None",
+                        "calculations": null,
+                        "referenceData": null
+                      }
+                    ],
+                    "referenceData": null
+                  }
+                ],
+                "fundingLines": [],
+                "distributionPeriods": null
+              },
+              {
+                "name": "Participation Funding for Disadvantaged 2 Year Olds",
+                "fundingLineCode": "1619-016",
+                "value": 320,
+                "templateLineId": 140,
+                "type": "Information",
+                "calculations": [
+                  {
+                    "name": "Participation Funding for Disadvantaged 2 Year Olds total",
+                    "templateCalculationId": 141,
+                    "value": 320.0,
+                    "valueFormat": "Currency",
+                    "type": "Cash",
+                    "formulaText": "",
+                    "aggregationType": "Sum",
+                    "calculations": [
+                      {
+                        "name": "Early Years Participation Funding for 2 Year Olds Rate",
+                        "templateCalculationId": 142,
+                        "value": 320.0,
+                        "valueFormat": "Currency",
+                        "type": "Rate",
+                        "formulaText": "",
+                        "aggregationType": "None",
+                        "calculations": null,
+                        "referenceData": null
+                      },
+                      {
+                        "name": "Total 2 Year Olds (PTE)",
+                        "templateCalculationId": 143,
+                        "value": 320.0,
+                        "valueFormat": "Number",
+                        "type": "PupilNumber",
+                        "formulaText": "",
+                        "aggregationType": "Sum",
+                        "calculations": null,
+                        "referenceData": null
+                      },
+                      {
+                        "name": "Participation Funding for Disadvantaged 2 Year Olds total PTE Funded hours",
+                        "templateCalculationId": 144,
+                        "value": 320.0,
+                        "valueFormat": "Number",
+                        "type": "Number",
+                        "formulaText": "",
+                        "aggregationType": "None",
+                        "calculations": null,
+                        "referenceData": null
+                      }
+                    ],
+                    "referenceData": null
+                  }
+                ],
+                "fundingLines": [],
+                "distributionPeriods": null
+              },
+              {
+                "name": "Funding Allocation for Early Years Pupil Premium",
+                "fundingLineCode": "1619-017",
+                "value": 320,
+                "templateLineId": 145,
+                "type": "Information",
+                "calculations": [
+                  {
+                    "name": "Funding Allocation for Early Years Pupil Premium total",
+                    "templateCalculationId": 146,
+                    "value": 320.0,
+                    "valueFormat": "Currency",
+                    "type": "Cash",
+                    "formulaText": "",
+                    "aggregationType": "Sum",
+                    "calculations": [
+                      {
+                        "name": "Early Years Pupil Premium",
+                        "templateCalculationId": 147,
+                        "value": 320.0,
+                        "valueFormat": "Currency",
+                        "type": "Rate",
+                        "formulaText": "",
+                        "aggregationType": "None",
+                        "calculations": null,
+                        "referenceData": null
+                      },
+                      {
+                        "name": "Pupil Premium Pupil Count for 3 to 4 Year Olds (PTE)",
+                        "templateCalculationId": 148,
+                        "value": 320.0,
+                        "valueFormat": "Number",
+                        "type": "PupilNumber",
+                        "formulaText": "",
+                        "aggregationType": "Sum",
+                        "calculations": null,
+                        "referenceData": null
+                      },
+                      {
+                        "name": "Funding Allocation for Early Years Pupil Premium total PTE Funded hours",
+                        "templateCalculationId": 149,
+                        "value": 320.0,
+                        "valueFormat": "Number",
+                        "type": "Number",
+                        "formulaText": "",
+                        "aggregationType": "None",
+                        "calculations": null,
+                        "referenceData": null
+                      }
+                    ],
+                    "referenceData": null
+                  }
+                ],
+                "fundingLines": [],
+                "distributionPeriods": null
+              },
+              {
+                "name": "Funding Allocation for Maintained Nursery Supplement",
+                "fundingLineCode": "1619-018",
+                "value": 320,
+                "templateLineId": 150,
+                "type": "Information",
+                "calculations": [
+                  {
+                    "name": "Funding Allocation for Maintained Nursery Supplement total",
+                    "templateCalculationId": 151,
+                    "value": 320.0,
+                    "valueFormat": "Currency",
+                    "type": "Cash",
+                    "formulaText": "",
+                    "aggregationType": "Sum",
+                    "calculations": [
+                      {
+                        "name": "Maintained Nursery Schools Supplement Hourly Rate",
+                        "templateCalculationId": 152,
+                        "value": 320.0,
+                        "valueFormat": "Currency",
+                        "type": "Rate",
+                        "formulaText": "",
+                        "aggregationType": "None",
+                        "calculations": null,
+                        "referenceData": null
+                      },
+                      {
+                        "name": "Maintained Nursery Schools Supplement (PTE)",
+                        "templateCalculationId": 153,
+                        "value": 320.0,
+                        "valueFormat": "Number",
+                        "type": "PupilNumber",
+                        "formulaText": "",
+                        "aggregationType": "Sum",
+                        "calculations": null,
+                        "referenceData": null
+                      },
+                      {
+                        "name": "PTE Funded hours",
+                        "templateCalculationId": 154,
+                        "value": 320.0,
+                        "valueFormat": "Number",
+                        "type": "Number",
+                        "formulaText": "",
+                        "aggregationType": "None",
+                        "calculations": null,
+                        "referenceData": null
+                      }
+                    ],
+                    "referenceData": null
+                  }
+                ],
+                "fundingLines": [],
+                "distributionPeriods": null
+              },
+              {
+                "name": "Funding Allocation for Disability Access Fund",
+                "fundingLineCode": "1619-019",
+                "value": 0,
+                "templateLineId": 155,
+                "type": "Information",
+                "calculations": [
+                  {
+                    "name": "Disability Access Fund",
+                    "templateCalculationId": 238,
+                    "value": 320.0,
+                    "valueFormat": "Currency",
+                    "type": "Cash",
+                    "formulaText": "",
+                    "aggregationType": "Sum",
+                    "calculations": null,
+                    "referenceData": null
+                  }
+                ],
+                "fundingLines": [],
+                "distributionPeriods": null
+              }
+            ],
+            "distributionPeriods": null
+          },
+          {
+            "name": "Total High Needs Block After Deductions",
+            "fundingLineCode": "1619-011",
+            "value": 14720,
+            "templateLineId": 11,
+            "type": "Information",
+            "calculations": [
+              {
+                "name": "HN after deductions",
+                "templateCalculationId": 39,
+                "value": 320.0,
+                "valueFormat": "Currency",
+                "type": "Cash",
+                "formulaText": "",
+                "aggregationType": "Sum",
+                "calculations": [
+                  {
+                    "name": "HN Deductions",
+                    "templateCalculationId": 40,
+                    "value": 320.0,
+                    "valueFormat": "Currency",
+                    "type": "Cash",
+                    "formulaText": "",
+                    "aggregationType": "Sum",
+                    "calculations": [
+                      {
+                        "name": "Mainstream Academies (SEN units and Resourced provision)",
+                        "templateCalculationId": 42,
+                        "value": 320.0,
+                        "valueFormat": "Currency",
+                        "type": "Cash",
+                        "formulaText": "",
+                        "aggregationType": "Sum",
+                        "calculations": [
+                          {
+                            "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @6k",
+                            "templateCalculationId": 50,
+                            "value": 320.0,
+                            "valueFormat": "Currency",
+                            "type": "Cash",
+                            "formulaText": "",
+                            "aggregationType": "Sum",
+                            "calculations": [
+                              {
+                                "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @6k SEN places deduction",
+                                "templateCalculationId": 64,
+                                "value": 320.0,
+                                "valueFormat": "Currency",
+                                "type": "Cash",
+                                "formulaText": "",
+                                "aggregationType": "Sum",
+                                "calculations": [
+                                  {
+                                    "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @6k SEN places deduction April (Year 1) - August (Year 1)",
+                                    "templateCalculationId": 65,
+                                    "value": 320.0,
+                                    "valueFormat": "Number",
+                                    "type": "PupilNumber",
+                                    "formulaText": "",
+                                    "aggregationType": "Sum",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @6k SEN places deduction September (Year 1) - March (Year 2)",
+                                    "templateCalculationId": 66,
+                                    "value": 320.0,
+                                    "valueFormat": "Number",
+                                    "type": "PupilNumber",
+                                    "formulaText": "",
+                                    "aggregationType": "Sum",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @6k SEN places deduction April (Year 1) - August (Year 1) rate",
+                                    "templateCalculationId": 67,
+                                    "value": 320.0,
+                                    "valueFormat": "Currency",
+                                    "type": "Rate",
+                                    "formulaText": "",
+                                    "aggregationType": "None",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @6k SEN places deduction September (Year 1) - March (Year 2) rate",
+                                    "templateCalculationId": 68,
+                                    "value": 320.0,
+                                    "valueFormat": "Currency",
+                                    "type": "Rate",
+                                    "formulaText": "",
+                                    "aggregationType": "None",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  }
+                                ],
+                                "referenceData": null
+                              }
+                            ],
+                            "referenceData": null
+                          },
+                          {
+                            "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @10k",
+                            "templateCalculationId": 51,
+                            "value": 320.0,
+                            "valueFormat": "Currency",
+                            "type": "Cash",
+                            "formulaText": "",
+                            "aggregationType": "Sum",
+                            "calculations": [
+                              {
+                                "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @10k SEN places deduction",
+                                "templateCalculationId": 69,
+                                "value": 320.0,
+                                "valueFormat": "Currency",
+                                "type": "Cash",
+                                "formulaText": "",
+                                "aggregationType": "Sum",
+                                "calculations": [
+                                  {
+                                    "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @10k SEN places deduction April (Year 1) - August (Year 1)",
+                                    "templateCalculationId": 70,
+                                    "value": 320.0,
+                                    "valueFormat": "Number",
+                                    "type": "PupilNumber",
+                                    "formulaText": "",
+                                    "aggregationType": "Sum",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @10k SEN places deduction September (Year 1) - March (Year 2)",
+                                    "templateCalculationId": 71,
+                                    "value": 320.0,
+                                    "valueFormat": "Number",
+                                    "type": "PupilNumber",
+                                    "formulaText": "",
+                                    "aggregationType": "Sum",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @10k SEN places deduction April (Year 1) - August (Year 1) Top Up rate",
+                                    "templateCalculationId": 235,
+                                    "value": 320.0,
+                                    "valueFormat": "Currency",
+                                    "type": "Rate",
+                                    "formulaText": "",
+                                    "aggregationType": "None",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @10k SEN places deduction September (Year 1) - March (Year 2) Top Up rate",
+                                    "templateCalculationId": 236,
+                                    "value": 320.0,
+                                    "valueFormat": "Currency",
+                                    "type": "Rate",
+                                    "formulaText": "",
+                                    "aggregationType": "None",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @10k SEN places deduction April (Year 1) - August (Year 1) rate",
+                                    "templateCalculationId": 72,
+                                    "value": 320.0,
+                                    "valueFormat": "Currency",
+                                    "type": "Rate",
+                                    "formulaText": "",
+                                    "aggregationType": "None",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @10k SEN places deduction September (Year 1) - March (Year 2) rate",
+                                    "templateCalculationId": 73,
+                                    "value": 320.0,
+                                    "valueFormat": "Currency",
+                                    "type": "Rate",
+                                    "formulaText": "",
+                                    "aggregationType": "None",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  }
+                                ],
+                                "referenceData": null
+                              }
+                            ],
+                            "referenceData": null
+                          },
+                          {
+                            "name": "Post-16 SEN Places Main Stream Academies",
+                            "templateCalculationId": 52,
+                            "value": 320.0,
+                            "valueFormat": "Currency",
+                            "type": "Cash",
+                            "formulaText": "",
+                            "aggregationType": "Sum",
+                            "calculations": [
+                              {
+                                "name": "Mainstream Academies (SEN units and Resourced provision) Post-16 SEN Places Deduction",
+                                "templateCalculationId": 74,
+                                "value": 320.0,
+                                "valueFormat": "Currency",
+                                "type": "Cash",
+                                "formulaText": "",
+                                "aggregationType": "Sum",
+                                "calculations": [
+                                  {
+                                    "name": "Mainstream Academies (SEN units and Resourced provision) Post-16 SEN Places Deduction April (Year 1) - July (Year 1)",
+                                    "templateCalculationId": 75,
+                                    "value": 320.0,
+                                    "valueFormat": "Number",
+                                    "type": "PupilNumber",
+                                    "formulaText": "",
+                                    "aggregationType": "Sum",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "Mainstream Academies (SEN units and Resourced provision) Post-16 SEN Places Deduction August (Year 1) - March (Year 2)",
+                                    "templateCalculationId": 76,
+                                    "value": 320.0,
+                                    "valueFormat": "Number",
+                                    "type": "PupilNumber",
+                                    "formulaText": "",
+                                    "aggregationType": "Sum",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "Mainstream Academies (SEN units and Resourced provision) Post-16 SEN Places Deduction April (Year 1) - July (Year 1) rate",
+                                    "templateCalculationId": 77,
+                                    "value": 320.0,
+                                    "valueFormat": "Currency",
+                                    "type": "Rate",
+                                    "formulaText": "",
+                                    "aggregationType": "None",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "Mainstream Academies (SEN units and Resourced provision) Post-16 SEN Places Deduction August (Year 1) - March (Year 2) rate",
+                                    "templateCalculationId": 78,
+                                    "value": 320.0,
+                                    "valueFormat": "Currency",
+                                    "type": "Rate",
+                                    "formulaText": "",
+                                    "aggregationType": "None",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  }
+                                ],
+                                "referenceData": null
+                              }
+                            ],
+                            "referenceData": null
+                          },
+                          {
+                            "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 AP Places",
+                            "templateCalculationId": 53,
+                            "value": 320.0,
+                            "valueFormat": "Currency",
+                            "type": "Cash",
+                            "formulaText": "",
+                            "aggregationType": "Sum",
+                            "calculations": [
+                              {
+                                "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 AP Places Deduction",
+                                "templateCalculationId": 79,
+                                "value": 320.0,
+                                "valueFormat": "Currency",
+                                "type": "Cash",
+                                "formulaText": "",
+                                "aggregationType": "Sum",
+                                "calculations": [
+                                  {
+                                    "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 AP Places Deduction April (Year 1) - August (Year 1)",
+                                    "templateCalculationId": 80,
+                                    "value": 320.0,
+                                    "valueFormat": "Number",
+                                    "type": "PupilNumber",
+                                    "formulaText": "",
+                                    "aggregationType": "Sum",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 AP Places Deduction September (Year 1) - March (Year 2)",
+                                    "templateCalculationId": 81,
+                                    "value": 320.0,
+                                    "valueFormat": "Number",
+                                    "type": "PupilNumber",
+                                    "formulaText": "",
+                                    "aggregationType": "Sum",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 AP Places Deduction April (Year 1) - August (Year 1) rate",
+                                    "templateCalculationId": 82,
+                                    "value": 320.0,
+                                    "valueFormat": "Currency",
+                                    "type": "Rate",
+                                    "formulaText": "",
+                                    "aggregationType": "None",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 AP Places Deduction September (Year 1) - March (Year 2) rate",
+                                    "templateCalculationId": 83,
+                                    "value": 320.0,
+                                    "valueFormat": "Currency",
+                                    "type": "Rate",
+                                    "formulaText": "",
+                                    "aggregationType": "None",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  }
+                                ],
+                                "referenceData": null
+                              }
+                            ],
+                            "referenceData": null
+                          }
+                        ],
+                        "referenceData": null
+                      },
+                      {
+                        "name": "Special Academies",
+                        "templateCalculationId": 156,
+                        "value": 320.0,
+                        "valueFormat": "Currency",
+                        "type": "Cash",
+                        "formulaText": "",
+                        "aggregationType": "Sum",
+                        "calculations": [
+                          {
+                            "name": "Special Academies Pre-16 SEN Places",
+                            "templateCalculationId": 158,
+                            "value": 320.0,
+                            "valueFormat": "Currency",
+                            "type": "Cash",
+                            "formulaText": "",
+                            "aggregationType": "Sum",
+                            "calculations": [
+                              {
+                                "name": "Special Academies Deduction",
+                                "templateCalculationId": 162,
+                                "value": 320.0,
+                                "valueFormat": "Currency",
+                                "type": "Cash",
+                                "formulaText": "",
+                                "aggregationType": "Sum",
+                                "calculations": [
+                                  {
+                                    "name": "Special Academies Pre-16 SEN Places Deduction April (Year 1) - July (Year 1)",
+                                    "templateCalculationId": 163,
+                                    "value": 320.0,
+                                    "valueFormat": "Number",
+                                    "type": "PupilNumber",
+                                    "formulaText": "",
+                                    "aggregationType": "Sum",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "Special Academies Pre-16 SEN Places Deduction August (Year 1) - March (Year 2)",
+                                    "templateCalculationId": 164,
+                                    "value": 320.0,
+                                    "valueFormat": "Number",
+                                    "type": "PupilNumber",
+                                    "formulaText": "",
+                                    "aggregationType": "Sum",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "Special Academies Pre-16 SEN Places Deduction April (Year 1) - July (Year 1) rate",
+                                    "templateCalculationId": 165,
+                                    "value": 320.0,
+                                    "valueFormat": "Currency",
+                                    "type": "Rate",
+                                    "formulaText": "",
+                                    "aggregationType": "None",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "Special Academies Pre-16 SEN Places Deduction August (Year 1) - March (Year 2) rate",
+                                    "templateCalculationId": 166,
+                                    "value": 320.0,
+                                    "valueFormat": "Currency",
+                                    "type": "Rate",
+                                    "formulaText": "",
+                                    "aggregationType": "None",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  }
+                                ],
+                                "referenceData": null
+                              }
+                            ],
+                            "referenceData": null
+                          },
+                          {
+                            "name": "Special Academies Post-16 SEN Places",
+                            "templateCalculationId": 175,
+                            "value": 320.0,
+                            "valueFormat": "Currency",
+                            "type": "Cash",
+                            "formulaText": "",
+                            "aggregationType": "Sum",
+                            "calculations": [
+                              {
+                                "name": "Special Academies Post-16 SEN Places Deduction",
+                                "templateCalculationId": 89,
+                                "value": 320.0,
+                                "valueFormat": "Currency",
+                                "type": "Cash",
+                                "formulaText": "",
+                                "aggregationType": "Sum",
+                                "calculations": [
+                                  {
+                                    "name": "Special Academies Post-16 SEN Places Deduction April (Year 1) - July (Year 1)",
+                                    "templateCalculationId": 90,
+                                    "value": 320.0,
+                                    "valueFormat": "Number",
+                                    "type": "PupilNumber",
+                                    "formulaText": "",
+                                    "aggregationType": "Sum",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "Special Academies Post-16 SEN Places Deduction August (Year 1) - March (Year 2)",
+                                    "templateCalculationId": 91,
+                                    "value": 320.0,
+                                    "valueFormat": "Number",
+                                    "type": "PupilNumber",
+                                    "formulaText": "",
+                                    "aggregationType": "Sum",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "Special Academies Post-16 SEN Places Deduction April (Year 1) - July (Year 1) rate",
+                                    "templateCalculationId": 92,
+                                    "value": 320.0,
+                                    "valueFormat": "Currency",
+                                    "type": "Rate",
+                                    "formulaText": "",
+                                    "aggregationType": "None",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "Special Academies Post-16 SEN Places Deduction August (Year 1) - March (Year 2) rate",
+                                    "templateCalculationId": 93,
+                                    "value": 320.0,
+                                    "valueFormat": "Currency",
+                                    "type": "Rate",
+                                    "formulaText": "",
+                                    "aggregationType": "None",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  }
+                                ],
+                                "referenceData": null
+                              }
+                            ],
+                            "referenceData": null
+                          },
+                          {
+                            "name": "Special Academies Pre-16 AP Places",
+                            "templateCalculationId": 174,
+                            "value": 320.0,
+                            "valueFormat": "Currency",
+                            "type": "Cash",
+                            "formulaText": "",
+                            "aggregationType": "Sum",
+                            "calculations": [
+                              {
+                                "name": "Special Academies Pre-16 AP Places Deduction",
+                                "templateCalculationId": 94,
+                                "value": 320.0,
+                                "valueFormat": "Currency",
+                                "type": "Cash",
+                                "formulaText": "",
+                                "aggregationType": "Sum",
+                                "calculations": [
+                                  {
+                                    "name": "Special Academies Pre-16 AP Places Deduction April (Year 1) - July (Year 1)",
+                                    "templateCalculationId": 95,
+                                    "value": 320.0,
+                                    "valueFormat": "Number",
+                                    "type": "PupilNumber",
+                                    "formulaText": "",
+                                    "aggregationType": "Sum",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "Special Academies Pre-16 AP Places Deduction August (Year 1) - March (Year 2)",
+                                    "templateCalculationId": 96,
+                                    "value": 320.0,
+                                    "valueFormat": "Number",
+                                    "type": "PupilNumber",
+                                    "formulaText": "",
+                                    "aggregationType": "Sum",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "Special Academies Pre-16 AP Places Deduction April (Year 1) - July (Year 1) rate",
+                                    "templateCalculationId": 97,
+                                    "value": 320.0,
+                                    "valueFormat": "Currency",
+                                    "type": "Rate",
+                                    "formulaText": "",
+                                    "aggregationType": "None",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "Special Academies Pre-16 AP Places Deduction August (Year 1) - March (Year 2) rate",
+                                    "templateCalculationId": 98,
+                                    "value": 320.0,
+                                    "valueFormat": "Currency",
+                                    "type": "Rate",
+                                    "formulaText": "",
+                                    "aggregationType": "None",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  }
+                                ],
+                                "referenceData": null
+                              }
+                            ],
+                            "referenceData": null
+                          }
+                        ],
+                        "referenceData": null
+                      },
+                      {
+                        "name": "Special Free Schools",
+                        "templateCalculationId": 157,
+                        "value": 320.0,
+                        "valueFormat": "Currency",
+                        "type": "Cash",
+                        "formulaText": "",
+                        "aggregationType": "Sum",
+                        "calculations": [
+                          {
+                            "name": "Special Free Schools Pre-16 SEN Places",
+                            "templateCalculationId": 159,
+                            "value": 320.0,
+                            "valueFormat": "Currency",
+                            "type": "Cash",
+                            "formulaText": "",
+                            "aggregationType": "Sum",
+                            "calculations": [
+                              {
+                                "name": "Special Free Schools Deduction",
+                                "templateCalculationId": 167,
+                                "value": 320.0,
+                                "valueFormat": "Currency",
+                                "type": "Cash",
+                                "formulaText": "",
+                                "aggregationType": "Sum",
+                                "calculations": [
+                                  {
+                                    "name": "Special Free Schools Pre-16 SEN Places Deduction April (Year 1) - August (Year 1)",
+                                    "templateCalculationId": 168,
+                                    "value": 320.0,
+                                    "valueFormat": "Number",
+                                    "type": "PupilNumber",
+                                    "formulaText": "",
+                                    "aggregationType": "Sum",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "Special Free Schools Pre-16 SEN Places Deduction August (Year 1) - March (Year 2)",
+                                    "templateCalculationId": 169,
+                                    "value": 320.0,
+                                    "valueFormat": "Number",
+                                    "type": "PupilNumber",
+                                    "formulaText": "",
+                                    "aggregationType": "Sum",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "Special Free Schools Pre-16 SEN Places Deduction April (Year 1) - August (Year 1) rate",
+                                    "templateCalculationId": 170,
+                                    "value": 320.0,
+                                    "valueFormat": "Currency",
+                                    "type": "Rate",
+                                    "formulaText": "",
+                                    "aggregationType": "None",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "Special Free Schools Pre-16 SEN Places Deduction August (Year 1) - March (Year 2) rate",
+                                    "templateCalculationId": 171,
+                                    "value": 320.0,
+                                    "valueFormat": "Currency",
+                                    "type": "Rate",
+                                    "formulaText": "",
+                                    "aggregationType": "None",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  }
+                                ],
+                                "referenceData": null
+                              }
+                            ],
+                            "referenceData": null
+                          },
+                          {
+                            "name": "Special Free Schools Post-16 SEN Places",
+                            "templateCalculationId": 161,
+                            "value": 320.0,
+                            "valueFormat": "Currency",
+                            "type": "Cash",
+                            "formulaText": "",
+                            "aggregationType": "Sum",
+                            "calculations": [
+                              {
+                                "name": "Special Free Schools Post-16 SEN Places Deduction",
+                                "templateCalculationId": 232,
+                                "value": 320.0,
+                                "valueFormat": "Currency",
+                                "type": "Cash",
+                                "formulaText": "",
+                                "aggregationType": "Sum",
+                                "calculations": [
+                                  {
+                                    "name": "Special Free Schools Post-16 SEN Places Deduction April (Year 1) - July (Year 1)",
+                                    "templateCalculationId": 176,
+                                    "value": 320.0,
+                                    "valueFormat": "Number",
+                                    "type": "PupilNumber",
+                                    "formulaText": "",
+                                    "aggregationType": "Sum",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "Special Free Schools Post-16 SEN Places Deduction August (Year 1) - March (Year 2)",
+                                    "templateCalculationId": 177,
+                                    "value": 320.0,
+                                    "valueFormat": "Number",
+                                    "type": "PupilNumber",
+                                    "formulaText": "",
+                                    "aggregationType": "Sum",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "Special Free Schools Post-16 SEN Places Deduction April (Year 1) - July (Year 1) rate",
+                                    "templateCalculationId": 178,
+                                    "value": 320.0,
+                                    "valueFormat": "Currency",
+                                    "type": "Rate",
+                                    "formulaText": "",
+                                    "aggregationType": "None",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "Special Free Schools Post-16 SEN Places Deduction August (Year 1) - March (Year 2) rate",
+                                    "templateCalculationId": 179,
+                                    "value": 320.0,
+                                    "valueFormat": "Currency",
+                                    "type": "Rate",
+                                    "formulaText": "",
+                                    "aggregationType": "None",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  }
+                                ],
+                                "referenceData": null
+                              }
+                            ],
+                            "referenceData": null
+                          },
+                          {
+                            "name": "Special Free Schools Pre-16 AP Places",
+                            "templateCalculationId": 233,
+                            "value": 320.0,
+                            "valueFormat": "Currency",
+                            "type": "Cash",
+                            "formulaText": "",
+                            "aggregationType": "Sum",
+                            "calculations": [
+                              {
+                                "name": "Special Free Schools Pre-16 AP Places Deduction",
+                                "templateCalculationId": 234,
+                                "value": 320.0,
+                                "valueFormat": "Currency",
+                                "type": "Cash",
+                                "formulaText": "",
+                                "aggregationType": "Sum",
+                                "calculations": [
+                                  {
+                                    "name": "Special Free Schools Pre-16 AP Places Deduction April (Year 1) - August (Year 1)",
+                                    "templateCalculationId": 182,
+                                    "value": 320.0,
+                                    "valueFormat": "Number",
+                                    "type": "PupilNumber",
+                                    "formulaText": "",
+                                    "aggregationType": "Sum",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "Special Free Schools Pre-16 AP Places Deduction September (Year 1) - March (Year 2)",
+                                    "templateCalculationId": 183,
+                                    "value": 320.0,
+                                    "valueFormat": "Number",
+                                    "type": "PupilNumber",
+                                    "formulaText": "",
+                                    "aggregationType": "Sum",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "Special Free Schools Pre-16 AP Places Deduction April (Year 1) - August (Year 1) rate",
+                                    "templateCalculationId": 180,
+                                    "value": 320.0,
+                                    "valueFormat": "Currency",
+                                    "type": "Rate",
+                                    "formulaText": "",
+                                    "aggregationType": "None",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "Special Free Schools Pre-16 AP Places Deduction September (Year 1) - March (Year 2) rate",
+                                    "templateCalculationId": 181,
+                                    "value": 320.0,
+                                    "valueFormat": "Currency",
+                                    "type": "Rate",
+                                    "formulaText": "",
+                                    "aggregationType": "None",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  }
+                                ],
+                                "referenceData": null
+                              }
+                            ],
+                            "referenceData": null
+                          }
+                        ],
+                        "referenceData": null
+                      },
+                      {
+                        "name": "AP Academies & Free schools",
+                        "templateCalculationId": 184,
+                        "value": 320.0,
+                        "valueFormat": "Currency",
+                        "type": "Cash",
+                        "formulaText": "",
+                        "aggregationType": "Sum",
+                        "calculations": [
+                          {
+                            "name": "AP Academies & Free schools Pre- 16 SEN places",
+                            "templateCalculationId": 185,
+                            "value": 320.0,
+                            "valueFormat": "Currency",
+                            "type": "Cash",
+                            "formulaText": "",
+                            "aggregationType": "Sum",
+                            "calculations": [
+                              {
+                                "name": "AP Academies and Free Schools Pre-16 SEN Places Deduction",
+                                "templateCalculationId": 186,
+                                "value": 320.0,
+                                "valueFormat": "Currency",
+                                "type": "Cash",
+                                "formulaText": "",
+                                "aggregationType": "Sum",
+                                "calculations": [
+                                  {
+                                    "name": "AP Academies and Free Schools Pre-16 SEN Places April (Year 1) - August (Year 1)",
+                                    "templateCalculationId": 189,
+                                    "value": 320.0,
+                                    "valueFormat": "Number",
+                                    "type": "PupilNumber",
+                                    "formulaText": "",
+                                    "aggregationType": "Sum",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "AP Academies and Free Schools Pre-16 SEN Places Sept (Year 1) - March (Year 2)",
+                                    "templateCalculationId": 190,
+                                    "value": 320.0,
+                                    "valueFormat": "Number",
+                                    "type": "PupilNumber",
+                                    "formulaText": "",
+                                    "aggregationType": "Sum",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "AP Academies and Free Schools April (Year 1) - August (Year 1) rate",
+                                    "templateCalculationId": 187,
+                                    "value": 320.0,
+                                    "valueFormat": "Currency",
+                                    "type": "Rate",
+                                    "formulaText": "",
+                                    "aggregationType": "None",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "AP Academies and Free Schools September (Year 1) - March (Year 2) rate",
+                                    "templateCalculationId": 188,
+                                    "value": 320.0,
+                                    "valueFormat": "Currency",
+                                    "type": "Rate",
+                                    "formulaText": "",
+                                    "aggregationType": "None",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  }
+                                ],
+                                "referenceData": null
+                              }
+                            ],
+                            "referenceData": null
+                          },
+                          {
+                            "name": "AP Academies & Free schools Pre-16 AP Places",
+                            "templateCalculationId": 191,
+                            "value": 320.0,
+                            "valueFormat": "Currency",
+                            "type": "Cash",
+                            "formulaText": "",
+                            "aggregationType": "Sum",
+                            "calculations": [
+                              {
+                                "name": "AP Academies & Free schools Pre-16 AP Places Deduction",
+                                "templateCalculationId": 192,
+                                "value": 320.0,
+                                "valueFormat": "Currency",
+                                "type": "Cash",
+                                "formulaText": "",
+                                "aggregationType": "Sum",
+                                "calculations": [
+                                  {
+                                    "name": "AP Academies & Free schools Pre-16 AP Places Deduction April (Year 1) - August (Year 1)",
+                                    "templateCalculationId": 195,
+                                    "value": 320.0,
+                                    "valueFormat": "Number",
+                                    "type": "PupilNumber",
+                                    "formulaText": "",
+                                    "aggregationType": "Sum",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "AP Academies & Free schools Pre-16 AP Places Deduction September (Year 1) - March (Year 2)",
+                                    "templateCalculationId": 196,
+                                    "value": 320.0,
+                                    "valueFormat": "Number",
+                                    "type": "PupilNumber",
+                                    "formulaText": "",
+                                    "aggregationType": "Sum",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "AP Academies & Free schools Pre-16 AP Places Deduction April (Year 1) - August (Year 1) rate",
+                                    "templateCalculationId": 193,
+                                    "value": 320.0,
+                                    "valueFormat": "Currency",
+                                    "type": "Rate",
+                                    "formulaText": "",
+                                    "aggregationType": "None",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "AP Academies & Free schools Pre-16 AP Places Deduction September (Year 1) - March (Year 2) rate",
+                                    "templateCalculationId": 194,
+                                    "value": 320.0,
+                                    "valueFormat": "Currency",
+                                    "type": "Rate",
+                                    "formulaText": "",
+                                    "aggregationType": "None",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  }
+                                ],
+                                "referenceData": null
+                              }
+                            ],
+                            "referenceData": null
+                          }
+                        ],
+                        "referenceData": null
+                      },
+                      {
+                        "name": "Maintained Special Schools",
+                        "templateCalculationId": 197,
+                        "value": 320.0,
+                        "valueFormat": "Currency",
+                        "type": "Cash",
+                        "formulaText": "",
+                        "aggregationType": "Sum",
+                        "calculations": [
+                          {
+                            "name": "Maintained Special Schools Post-16 SEN Places",
+                            "templateCalculationId": 198,
+                            "value": 320.0,
+                            "valueFormat": "Currency",
+                            "type": "Cash",
+                            "formulaText": "",
+                            "aggregationType": "Sum",
+                            "calculations": [
+                              {
+                                "name": "Maintained Special Schools Post-16 SEN Places deduction",
+                                "templateCalculationId": 199,
+                                "value": 320.0,
+                                "valueFormat": "Currency",
+                                "type": "Cash",
+                                "formulaText": "",
+                                "aggregationType": "Sum",
+                                "calculations": [
+                                  {
+                                    "name": "Maintained Special Schools Post-16 SEN Places Deduction April (Year 1) - July (Year 1)",
+                                    "templateCalculationId": 202,
+                                    "value": 320.0,
+                                    "valueFormat": "Number",
+                                    "type": "PupilNumber",
+                                    "formulaText": "",
+                                    "aggregationType": "Sum",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "Maintained Special Schools Post-16 SEN Places Deduction August (Year 1) - March (Year 2)",
+                                    "templateCalculationId": 203,
+                                    "value": 320.0,
+                                    "valueFormat": "Number",
+                                    "type": "PupilNumber",
+                                    "formulaText": "",
+                                    "aggregationType": "Sum",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "Maintained Special Schools Post-16 SEN Places Deduction April (Year 1) - July (Year 1) rate",
+                                    "templateCalculationId": 200,
+                                    "value": 320.0,
+                                    "valueFormat": "Currency",
+                                    "type": "Rate",
+                                    "formulaText": "",
+                                    "aggregationType": "None",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "Maintained Special Schools Post-16 SEN Places Deduction August (Year 1) - March (Year 1) rate",
+                                    "templateCalculationId": 201,
+                                    "value": 320.0,
+                                    "valueFormat": "Currency",
+                                    "type": "Rate",
+                                    "formulaText": "",
+                                    "aggregationType": "None",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  }
+                                ],
+                                "referenceData": null
+                              }
+                            ],
+                            "referenceData": null
+                          }
+                        ],
+                        "referenceData": null
+                      },
+                      {
+                        "name": "Maintained Mainstream Schools",
+                        "templateCalculationId": 204,
+                        "value": 320.0,
+                        "valueFormat": "Currency",
+                        "type": "Cash",
+                        "formulaText": "",
+                        "aggregationType": "Sum",
+                        "calculations": [
+                          {
+                            "name": "Maintained Mainstream Schools Post-16 SEN Places",
+                            "templateCalculationId": 205,
+                            "value": 320.0,
+                            "valueFormat": "Currency",
+                            "type": "Cash",
+                            "formulaText": "",
+                            "aggregationType": "Sum",
+                            "calculations": [
+                              {
+                                "name": "Maintained Mainstream Schools Post-16 SEN Places Deduction",
+                                "templateCalculationId": 206,
+                                "value": 320.0,
+                                "valueFormat": "Currency",
+                                "type": "Cash",
+                                "formulaText": "",
+                                "aggregationType": "Sum",
+                                "calculations": [
+                                  {
+                                    "name": "Maintained Mainstream Schools Post-16 SEN Places Deduction April (Year 1) - July (Year 1)",
+                                    "templateCalculationId": 209,
+                                    "value": 320.0,
+                                    "valueFormat": "Number",
+                                    "type": "PupilNumber",
+                                    "formulaText": "",
+                                    "aggregationType": "Sum",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "Maintained Mainstream Schools Post-16 SEN Places Deduction August (Year 1) - March (Year 2)",
+                                    "templateCalculationId": 210,
+                                    "value": 320.0,
+                                    "valueFormat": "Number",
+                                    "type": "PupilNumber",
+                                    "formulaText": "",
+                                    "aggregationType": "Sum",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "Maintained Mainstream Schools Post-16 SEN Places Deduction April (Year 1) - July (Year 1) rate",
+                                    "templateCalculationId": 207,
+                                    "value": 320.0,
+                                    "valueFormat": "Currency",
+                                    "type": "Rate",
+                                    "formulaText": "",
+                                    "aggregationType": "None",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "Maintained Mainstream Schools Post-16 SEN Places Deduction August (Year 1) - March (Year 2) rate",
+                                    "templateCalculationId": 208,
+                                    "value": 320.0,
+                                    "valueFormat": "Currency",
+                                    "type": "Rate",
+                                    "formulaText": "",
+                                    "aggregationType": "None",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  }
+                                ],
+                                "referenceData": null
+                              }
+                            ],
+                            "referenceData": null
+                          }
+                        ],
+                        "referenceData": null
+                      },
+                      {
+                        "name": "Hospital Academies",
+                        "templateCalculationId": 211,
+                        "value": 320.0,
+                        "valueFormat": "Currency",
+                        "type": "Cash",
+                        "formulaText": "",
+                        "aggregationType": "Sum",
+                        "calculations": [
+                          {
+                            "name": "Hospital Academies Funding Total Hospital Education",
+                            "templateCalculationId": 212,
+                            "value": 320.0,
+                            "valueFormat": "Currency",
+                            "type": "Cash",
+                            "formulaText": "",
+                            "aggregationType": "Sum",
+                            "calculations": [
+                              {
+                                "name": "Hospital Academies Funding Total Hospital Education Deduction",
+                                "templateCalculationId": 213,
+                                "value": 320.0,
+                                "valueFormat": "Currency",
+                                "type": "Cash",
+                                "formulaText": "",
+                                "aggregationType": "Sum",
+                                "calculations": [
+                                  {
+                                    "name": "Hospital Academies Funding Total Hospital Education Deduction April (Year 1) - August (Year 1)",
+                                    "templateCalculationId": 214,
+                                    "value": 320.0,
+                                    "valueFormat": "Number",
+                                    "type": "PupilNumber",
+                                    "formulaText": "",
+                                    "aggregationType": "Sum",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "Hospital Academies Funding Total Hospital Education Deduction September (Year 1) - March (Year 2)",
+                                    "templateCalculationId": 215,
+                                    "value": 320.0,
+                                    "valueFormat": "Number",
+                                    "type": "PupilNumber",
+                                    "formulaText": "",
+                                    "aggregationType": "Sum",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "Hospital Academies Funding Total Hospital Education Deduction April (Year 1) - August (Year 1) rate",
+                                    "templateCalculationId": 216,
+                                    "value": 320.0,
+                                    "valueFormat": "Currency",
+                                    "type": "Rate",
+                                    "formulaText": "",
+                                    "aggregationType": "None",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "Hospital Academies Funding Total Hospital Education Deduction September (Year 1) - March (Year 2) rate",
+                                    "templateCalculationId": 217,
+                                    "value": 320.0,
+                                    "valueFormat": "Currency",
+                                    "type": "Rate",
+                                    "formulaText": "",
+                                    "aggregationType": "None",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  }
+                                ],
+                                "referenceData": null
+                              }
+                            ],
+                            "referenceData": null
+                          }
+                        ],
+                        "referenceData": null
+                      },
+                      {
+                        "name": "16-19 Academies and Free Schools",
+                        "templateCalculationId": 218,
+                        "value": 320.0,
+                        "valueFormat": "Currency",
+                        "type": "Cash",
+                        "formulaText": "",
+                        "aggregationType": "Sum",
+                        "calculations": [
+                          {
+                            "name": "16-19 Academies and Free Schools Total Post-16 Schools SEN Places",
+                            "templateCalculationId": 219,
+                            "value": 320.0,
+                            "valueFormat": "Currency",
+                            "type": "Cash",
+                            "formulaText": "",
+                            "aggregationType": "Sum",
+                            "calculations": [
+                              {
+                                "name": "16-19 Academies and Free Schools Total Post-16 Schools SEN Places Deduction",
+                                "templateCalculationId": 220,
+                                "value": 320.0,
+                                "valueFormat": "Currency",
+                                "type": "Cash",
+                                "formulaText": "",
+                                "aggregationType": "Sum",
+                                "calculations": [
+                                  {
+                                    "name": "16-19 Academies and Free Schools Total Post-16 Schools SEN Places Deduction April (Year 1) to July (Year 1)",
+                                    "templateCalculationId": 223,
+                                    "value": 320.0,
+                                    "valueFormat": "Number",
+                                    "type": "PupilNumber",
+                                    "formulaText": "",
+                                    "aggregationType": "Sum",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "16-19 Academies and Free Schools Total Post-16 Schools SEN Places Deduction August (Year 1) to March (Year 2)",
+                                    "templateCalculationId": 224,
+                                    "value": 320.0,
+                                    "valueFormat": "Number",
+                                    "type": "PupilNumber",
+                                    "formulaText": "",
+                                    "aggregationType": "Sum",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "16-19 Academies and Free Schools Total Post-16 Schools SEN Places Deduction April (Year 1) to July (Year 1) rate",
+                                    "templateCalculationId": 221,
+                                    "value": 320.0,
+                                    "valueFormat": "Currency",
+                                    "type": "Rate",
+                                    "formulaText": "",
+                                    "aggregationType": "None",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "16-19 Academies and Free Schools Total Post-16 Schools SEN Places Deduction August (Year 1) to March (Year 2) rate",
+                                    "templateCalculationId": 222,
+                                    "value": 320.0,
+                                    "valueFormat": "Currency",
+                                    "type": "Rate",
+                                    "formulaText": "",
+                                    "aggregationType": "None",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  }
+                                ],
+                                "referenceData": null
+                              }
+                            ],
+                            "referenceData": null
+                          }
+                        ],
+                        "referenceData": null
+                      },
+                      {
+                        "name": "FE and ILP",
+                        "templateCalculationId": 225,
+                        "value": 320.0,
+                        "valueFormat": "Currency",
+                        "type": "Cash",
+                        "formulaText": "",
+                        "aggregationType": "Sum",
+                        "calculations": [
+                          {
+                            "name": "FE and ILP Places",
+                            "templateCalculationId": 226,
+                            "value": 320.0,
+                            "valueFormat": "Currency",
+                            "type": "Cash",
+                            "formulaText": "",
+                            "aggregationType": "Sum",
+                            "calculations": [
+                              {
+                                "name": "FE and ILP Deduction",
+                                "templateCalculationId": 227,
+                                "value": 320.0,
+                                "valueFormat": "Currency",
+                                "type": "Cash",
+                                "formulaText": "",
+                                "aggregationType": "Sum",
+                                "calculations": [
+                                  {
+                                    "name": "FE and ILP Places April (Year 1) - July (Year 1)",
+                                    "templateCalculationId": 128,
+                                    "value": 320.0,
+                                    "valueFormat": "Number",
+                                    "type": "PupilNumber",
+                                    "formulaText": "",
+                                    "aggregationType": "Sum",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "FE and ILP Places August (Year 1)- March (Year 2)",
+                                    "templateCalculationId": 129,
+                                    "value": 320.0,
+                                    "valueFormat": "Number",
+                                    "type": "PupilNumber",
+                                    "formulaText": "",
+                                    "aggregationType": "Sum",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "FE and ILP Places Deduction April (Year 1) - July (Year 1) rate",
+                                    "templateCalculationId": 228,
+                                    "value": 320.0,
+                                    "valueFormat": "Currency",
+                                    "type": "Rate",
+                                    "formulaText": "",
+                                    "aggregationType": "None",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  },
+                                  {
+                                    "name": "FE and ILP Places Deduction August (Year 1) - March (Year 2) rate",
+                                    "templateCalculationId": 229,
+                                    "value": 320.0,
+                                    "valueFormat": "Currency",
+                                    "type": "Rate",
+                                    "formulaText": "",
+                                    "aggregationType": "None",
+                                    "calculations": null,
+                                    "referenceData": null
+                                  }
+                                ],
+                                "referenceData": null
+                              }
+                            ],
+                            "referenceData": null
+                          }
+                        ],
+                        "referenceData": null
+                      }
+                    ],
+                    "referenceData": null
+                  },
+                  {
+                    "name": "HN before deductions",
+                    "templateCalculationId": 41,
+                    "value": 320.0,
+                    "valueFormat": "Currency",
+                    "type": "Cash",
+                    "formulaText": "",
+                    "aggregationType": "Sum",
+                    "calculations": null,
+                    "referenceData": null
+                  }
+                ],
+                "referenceData": null
+              }
+            ],
+            "fundingLines": [],
+            "distributionPeriods": null
+          },
+          {
+            "name": "School Block After recoupment",
+            "fundingLineCode": "1619-005",
+            "value": 640,
+            "templateLineId": 12,
+            "type": "Information",
+            "calculations": [
+              {
+                "name": "School Block After Recoupment",
+                "templateCalculationId": 22,
+                "value": 320.0,
+                "valueFormat": "Currency",
+                "type": "Cash",
+                "formulaText": "",
+                "aggregationType": "Sum",
+                "calculations": [
+                  {
+                    "name": "Recoupment",
+                    "templateCalculationId": 21,
+                    "value": 320.0,
+                    "valueFormat": "Currency",
+                    "type": "Cash",
+                    "formulaText": "",
+                    "aggregationType": "Sum",
+                    "calculations": [],
+                    "referenceData": null
+                  }
+                ],
+                "referenceData": null
+              }
+            ],
+            "fundingLines": [],
+            "distributionPeriods": null
+          }
+        ],
+        "distributionPeriods": [
+          {
+            "value": 7000.0,
+            "distributionPeriodId": "AS-1920",
+            "profilePeriods": [
+              {
+                "type": "CalendarMonth",
+                "typeValue": "October",
+                "year": 1920,
+                "occurrence": 1,
+                "profiledValue": 7000.0,
+                "distributionPeriodId": "AS-1920"
+              }
+            ]
+          },
+          {
+            "value": 5000.0,
+            "distributionPeriodId": "AS-2021",
+            "profilePeriods": [
+              {
+                "type": "CalendarMonth",
+                "typeValue": "April",
+                "year": 2021,
+                "occurrence": 1,
+                "profiledValue": 5000.0,
+                "distributionPeriodId": "AS-2021"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "variationReasons": null,
+  "successors": null,
+  "predecessors": null
+}

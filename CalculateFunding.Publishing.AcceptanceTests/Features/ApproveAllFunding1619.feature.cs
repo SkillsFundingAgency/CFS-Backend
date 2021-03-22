@@ -20,7 +20,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
     [System.CodeDom.Compiler.GeneratedCodeAttribute("TechTalk.SpecFlow", "3.6.0.0")]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     [Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute()]
-    public partial class ApproveAllFundingGagFeature
+    public partial class ApproveAllFunding1619Feature
     {
         
         private static TechTalk.SpecFlow.ITestRunner testRunner;
@@ -29,7 +29,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
         
         private string[] _featureTags = ((string[])(null));
         
-#line 1 "ApproveAllFundingGag.feature"
+#line 1 "ApproveAllFunding1619.feature"
 #line hidden
         
         public virtual Microsoft.VisualStudio.TestTools.UnitTesting.TestContext TestContext
@@ -48,8 +48,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
         public static void FeatureSetup(Microsoft.VisualStudio.TestTools.UnitTesting.TestContext testContext)
         {
             testRunner = TechTalk.SpecFlow.TestRunnerManager.GetTestRunner();
-            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "ApproveAllFundingGag", "\tIn order to approve funding for GAG\r\n\tAs a funding approver\r\n\tI want to approve " +
-                    "funding for all providers within a specification", ProgrammingLanguage.CSharp, ((string[])(null)));
+            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "ApproveAllFunding1619", "\tIn order to approve funding for 1619\r\n\tAs a funding approver\r\n\tI want to approve" +
+                    " funding for all providers within a specification", ProgrammingLanguage.CSharp, ((string[])(null)));
             testRunner.OnFeatureStart(featureInfo);
         }
         
@@ -64,9 +64,9 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
         public virtual void TestInitialize()
         {
             if (((testRunner.FeatureContext != null) 
-                        && (testRunner.FeatureContext.FeatureInfo.Title != "ApproveAllFundingGag")))
+                        && (testRunner.FeatureContext.FeatureInfo.Title != "ApproveAllFunding1619")))
             {
-                global::CalculateFunding.Publishing.AcceptanceTests.Features.ApproveAllFundingGagFeature.FeatureSetup(null);
+                global::CalculateFunding.Publishing.AcceptanceTests.Features.ApproveAllFunding1619Feature.FeatureSetup(null);
             }
         }
         
@@ -122,229 +122,229 @@ this.ScenarioInitialize(scenarioInfo);
             else
             {
                 this.ScenarioStart();
-                TechTalk.SpecFlow.Table table47 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table1 = new TechTalk.SpecFlow.Table(new string[] {
                             "Field",
                             "Value"});
-                table47.AddRow(new string[] {
+                table1.AddRow(new string[] {
                             "DefaultTemplateVersion",
                             "1.0"});
 #line 7
- testRunner.Given(string.Format("a funding configuration exists for funding stream \'{0}\' in funding period \'{1}\'", fundingStreamId, fundingPeriodId), ((string)(null)), table47, "Given ");
+ testRunner.Given(string.Format("a funding configuration exists for funding stream \'{0}\' in funding period \'{1}\'", fundingStreamId, fundingPeriodId), ((string)(null)), table1, "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table48 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table2 = new TechTalk.SpecFlow.Table(new string[] {
                             "Field",
                             "Value"});
-                table48.AddRow(new string[] {
+                table2.AddRow(new string[] {
                             "GroupTypeIdentifier",
                             "UKPRN"});
-                table48.AddRow(new string[] {
+                table2.AddRow(new string[] {
                             "GroupingReason",
                             "Payment"});
-                table48.AddRow(new string[] {
+                table2.AddRow(new string[] {
                             "GroupTypeClassification",
                             "LegalEntity"});
-                table48.AddRow(new string[] {
+                table2.AddRow(new string[] {
                             "OrganisationGroupTypeCode",
                             "LocalAuthority"});
 #line 10
- testRunner.And("the funding configuration has the following organisation group", ((string)(null)), table48, "And ");
+ testRunner.And("the funding configuration has the following organisation group", ((string)(null)), table2, "And ");
 #line hidden
 #line 16
  testRunner.And("the funding configuration is available in the policies repository", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table49 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table3 = new TechTalk.SpecFlow.Table(new string[] {
                             "Field",
                             "Value"});
-                table49.AddRow(new string[] {
+                table3.AddRow(new string[] {
                             "GroupTypeIdentifier",
                             "LACode"});
-                table49.AddRow(new string[] {
+                table3.AddRow(new string[] {
                             "GroupingReason",
                             "Information"});
-                table49.AddRow(new string[] {
+                table3.AddRow(new string[] {
                             "GroupTypeClassification",
                             "GeographicalBoundary"});
-                table49.AddRow(new string[] {
+                table3.AddRow(new string[] {
                             "OrganisationGroupTypeCode",
                             "LocalAuthority"});
 #line 17
- testRunner.And("the funding configuration has the following organisation group", ((string)(null)), table49, "And ");
+ testRunner.And("the funding configuration has the following organisation group", ((string)(null)), table3, "And ");
 #line hidden
 #line 23
  testRunner.And("the funding configuration is available in the policies repository", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table50 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table4 = new TechTalk.SpecFlow.Table(new string[] {
                             "Field",
                             "Value"});
-                table50.AddRow(new string[] {
+                table4.AddRow(new string[] {
                             "GroupTypeIdentifier",
                             "LocalAuthorityClassificationTypeCode"});
-                table50.AddRow(new string[] {
+                table4.AddRow(new string[] {
                             "GroupingReason",
                             "Information"});
-                table50.AddRow(new string[] {
+                table4.AddRow(new string[] {
                             "GroupTypeClassification",
                             "GeographicalBoundary"});
-                table50.AddRow(new string[] {
+                table4.AddRow(new string[] {
                             "OrganisationGroupTypeCode",
                             "LocalGovernmentGroup"});
 #line 24
- testRunner.And("the funding configuration has the following organisation group", ((string)(null)), table50, "And ");
+ testRunner.And("the funding configuration has the following organisation group", ((string)(null)), table4, "And ");
 #line hidden
 #line 30
  testRunner.And("the funding configuration is available in the policies repository", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table51 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table5 = new TechTalk.SpecFlow.Table(new string[] {
                             "Field",
                             "Value"});
-                table51.AddRow(new string[] {
+                table5.AddRow(new string[] {
                             "GroupTypeIdentifier",
                             "GovernmentOfficeRegionCode"});
-                table51.AddRow(new string[] {
+                table5.AddRow(new string[] {
                             "GroupingReason",
                             "Information"});
-                table51.AddRow(new string[] {
+                table5.AddRow(new string[] {
                             "GroupTypeClassification",
                             "GeographicalBoundary"});
-                table51.AddRow(new string[] {
+                table5.AddRow(new string[] {
                             "OrganisationGroupTypeCode",
                             "GovernmentOfficeRegion"});
 #line 31
- testRunner.And("the funding configuration has the following organisation group", ((string)(null)), table51, "And ");
+ testRunner.And("the funding configuration has the following organisation group", ((string)(null)), table5, "And ");
 #line hidden
 #line 37
  testRunner.And("the funding configuration is available in the policies repository", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table52 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table6 = new TechTalk.SpecFlow.Table(new string[] {
                             "Field",
                             "Value"});
-                table52.AddRow(new string[] {
+                table6.AddRow(new string[] {
                             "GroupTypeIdentifier",
                             "CountryCode"});
-                table52.AddRow(new string[] {
+                table6.AddRow(new string[] {
                             "GroupingReason",
                             "Information"});
-                table52.AddRow(new string[] {
+                table6.AddRow(new string[] {
                             "GroupTypeClassification",
                             "GeographicalBoundary"});
-                table52.AddRow(new string[] {
+                table6.AddRow(new string[] {
                             "OrganisationGroupTypeCode",
                             "Country"});
 #line 38
- testRunner.And("the funding configuration has the following organisation group", ((string)(null)), table52, "And ");
+ testRunner.And("the funding configuration has the following organisation group", ((string)(null)), table6, "And ");
 #line hidden
 #line 44
  testRunner.And("the funding configuration is available in the policies repository", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table53 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table7 = new TechTalk.SpecFlow.Table(new string[] {
                             "Field",
                             "Value"});
-                table53.AddRow(new string[] {
+                table7.AddRow(new string[] {
                             "Id",
                             string.Format("{0}", fundingPeriodId)});
-                table53.AddRow(new string[] {
+                table7.AddRow(new string[] {
                             "Name",
                             string.Format("{0}", fundingPeriodName)});
-                table53.AddRow(new string[] {
+                table7.AddRow(new string[] {
                             "StartDate",
                             "2019-08-01 00:00:00"});
-                table53.AddRow(new string[] {
+                table7.AddRow(new string[] {
                             "EndDate",
                             "2020-07-31 00:00:00"});
-                table53.AddRow(new string[] {
+                table7.AddRow(new string[] {
                             "Period",
                             "2021"});
-                table53.AddRow(new string[] {
+                table7.AddRow(new string[] {
                             "Type",
-                            "AC"});
+                            "AS"});
 #line 45
- testRunner.And("the funding period exists in the policies service", ((string)(null)), table53, "And ");
+ testRunner.And("the funding period exists in the policies service", ((string)(null)), table7, "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table54 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table8 = new TechTalk.SpecFlow.Table(new string[] {
                             "Field",
                             "Value"});
-                table54.AddRow(new string[] {
+                table8.AddRow(new string[] {
                             "Id",
                             "specForPublishing"});
-                table54.AddRow(new string[] {
+                table8.AddRow(new string[] {
                             "Name",
                             "Test Specification for Publishing"});
-                table54.AddRow(new string[] {
+                table8.AddRow(new string[] {
                             "IsSelectedForFunding",
                             "true"});
-                table54.AddRow(new string[] {
+                table8.AddRow(new string[] {
                             "ProviderVersionId",
                             string.Format("{0}", providerVersionId)});
 #line 53
- testRunner.And("the following specification exists", ((string)(null)), table54, "And ");
+ testRunner.And("the following specification exists", ((string)(null)), table8, "And ");
 #line hidden
 #line 59
  testRunner.And(string.Format("the specification has the funding period with id \'{0}\' and name \'{1}\'", fundingPeriodId, fundingPeriodName), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table55 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table9 = new TechTalk.SpecFlow.Table(new string[] {
                             "Name",
                             "Id"});
-                table55.AddRow(new string[] {
-                            "GAG",
+                table9.AddRow(new string[] {
+                            "1619",
                             string.Format("{0}", fundingStreamId)});
 #line 60
- testRunner.And("the specification has the following funding streams", ((string)(null)), table55, "And ");
+ testRunner.And("the specification has the following funding streams", ((string)(null)), table9, "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table56 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table10 = new TechTalk.SpecFlow.Table(new string[] {
                             "Key",
                             "Value"});
-                table56.AddRow(new string[] {
+                table10.AddRow(new string[] {
                             string.Format("{0}", fundingStreamId),
                             "1.0"});
 #line 63
- testRunner.And("the specification has the following template versions for funding streams", ((string)(null)), table56, "And ");
+ testRunner.And("the specification has the following template versions for funding streams", ((string)(null)), table10, "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table57 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table11 = new TechTalk.SpecFlow.Table(new string[] {
                             "Field",
                             "Value"});
-                table57.AddRow(new string[] {
+                table11.AddRow(new string[] {
                             "StatusChangedDate",
                             "2019-09-27 00:00:00"});
-                table57.AddRow(new string[] {
+                table11.AddRow(new string[] {
                             "ExternalPublicationDate",
                             "2019-09-28 00:00:00"});
-                table57.AddRow(new string[] {
+                table11.AddRow(new string[] {
                             "EarliestPaymentAvailableDate",
                             "2019-09-29 00:00:00"});
 #line 66
- testRunner.And("the publishing dates for the specifcation are set as following", ((string)(null)), table57, "And ");
+ testRunner.And("the publishing dates for the specifcation are set as following", ((string)(null)), table11, "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table58 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table12 = new TechTalk.SpecFlow.Table(new string[] {
                             "Field",
                             "Value"});
-                table58.AddRow(new string[] {
+                table12.AddRow(new string[] {
                             "JobDefinitionId",
                             "PublishFundingJob"});
-                table58.AddRow(new string[] {
+                table12.AddRow(new string[] {
                             "InvokerUserId",
                             "PublishUserId"});
-                table58.AddRow(new string[] {
+                table12.AddRow(new string[] {
                             "InvokerUserDisplayName",
                             "Invoker User"});
-                table58.AddRow(new string[] {
+                table12.AddRow(new string[] {
                             "ParentJobId",
                             ""});
 #line 71
- testRunner.And("the following job is requested to be queued for the current specification", ((string)(null)), table58, "And ");
+ testRunner.And("the following job is requested to be queued for the current specification", ((string)(null)), table12, "And ");
 #line hidden
 #line 77
  testRunner.And("the job is submitted to the job service", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 78
- testRunner.And(string.Format("the provider version \'gag-providers-1_0\' exists in the provider service for \'{0}\'" +
-                            "", providerVersionId), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+ testRunner.And(string.Format("the provider version \'1619-providers-1_0\' exists in the provider service for \'{0}" +
+                            "\'", providerVersionId), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 79
- testRunner.And("template mapping \'GAG-TemplateMapping\' exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+ testRunner.And("template mapping \'1619-TemplateMapping\' exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 80
- testRunner.And("the Published Provider \'GAG-AC-2021-1000000\' has been been previously generated f" +
-                        "or the current specification", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+ testRunner.And("the Published Provider \'1619-AS-2021-1000000\' has been been previously generated " +
+                        "for the current specification", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 81
  testRunner.And("the Published Provider is available in the repository for this specification", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
@@ -354,8 +354,8 @@ this.ScenarioInitialize(scenarioInfo);
                             "cation in provider version \'{0}\'", providerVersionId), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 83
- testRunner.And("the Published Provider \'GAG-AC-2021-1000002\' has been been previously generated f" +
-                        "or the current specification", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+ testRunner.And("the Published Provider \'1619-AS-2021-1000002\' has been been previously generated " +
+                        "for the current specification", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 84
  testRunner.And("the Published Provider is available in the repository for this specification", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
@@ -365,24 +365,24 @@ this.ScenarioInitialize(scenarioInfo);
                             "cation in provider version \'{0}\'", providerVersionId), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 86
- testRunner.And("calculations \'gag-approve-all-funding-calculations\' exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+ testRunner.And("calculations \'1619-approve-all-funding-calculations\' exists", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 87
  testRunner.When("funding is approved", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-                TechTalk.SpecFlow.Table table59 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table13 = new TechTalk.SpecFlow.Table(new string[] {
                             "PublishedProviderId",
                             "Status"});
-                table59.AddRow(new string[] {
+                table13.AddRow(new string[] {
                             string.Format("publishedprovider-1000000-{0}-{1}", fundingPeriodId, fundingStreamId),
                             "Approved"});
-                table59.AddRow(new string[] {
+                table13.AddRow(new string[] {
                             string.Format("publishedprovider-1000002-{0}-{1}", fundingPeriodId, fundingStreamId),
                             "Approved"});
 #line 88
- testRunner.Then("the following published provider ids are upserted", ((string)(null)), table59, "Then ");
+ testRunner.Then("the following published provider ids are upserted", ((string)(null)), table13, "Then ");
 #line hidden
-                TechTalk.SpecFlow.Table table60 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table14 = new TechTalk.SpecFlow.Table(new string[] {
                             "ID",
                             "ProviderType",
                             "ProviderSubType",
@@ -397,8 +397,8 @@ this.ScenarioInitialize(scenarioInfo);
                             "UPIN",
                             "URN",
                             "Errors"});
-                table60.AddRow(new string[] {
-                            "GAG-AC-2021-1000002",
+                table14.AddRow(new string[] {
+                            "1619-AS-2021-1000002",
                             "LA maintained schools",
                             "Community school",
                             "Local Authority 1",
@@ -414,25 +414,25 @@ this.ScenarioInitialize(scenarioInfo);
                             ""});
 #line 92
  testRunner.And(string.Format("the following published provider search index items is produced for providerid wi" +
-                            "th \'{0}\' and \'{1}\'", fundingStreamId, fundingPeriodId), ((string)(null)), table60, "And ");
+                            "th \'{0}\' and \'{1}\'", fundingStreamId, fundingPeriodId), ((string)(null)), table14, "And ");
 #line hidden
             }
             this.ScenarioCleanup();
         }
         
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Successful approve of funding: GAG")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "ApproveAllFundingGag")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("VariantName", "GAG")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:FundingStreamId", "GAG")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:FundingPeriodId", "AC-2021")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Successful approve of funding: 1619")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "ApproveAllFunding1619")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("VariantName", "1619")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:FundingStreamId", "1619")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:FundingPeriodId", "AS-2021")]
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:FundingPeriodName", "Financial Year 2020-21")]
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:TemplateVersion", "1.0")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:ProviderVersionId", "gag-providers-1.0")]
-        public virtual void SuccessfulApproveOfFunding_GAG()
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:ProviderVersionId", "1619-providers-1.0")]
+        public virtual void SuccessfulApproveOfFunding_1619()
         {
 #line 6
-this.SuccessfulApproveOfFunding("GAG", "AC-2021", "Financial Year 2020-21", "1.0", "gag-providers-1.0", ((string[])(null)));
+this.SuccessfulApproveOfFunding("1619", "AS-2021", "Financial Year 2020-21", "1.0", "1619-providers-1.0", ((string[])(null)));
 #line hidden
         }
     }
