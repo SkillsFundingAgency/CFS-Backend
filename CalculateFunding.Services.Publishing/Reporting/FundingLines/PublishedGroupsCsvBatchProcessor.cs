@@ -63,7 +63,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
                         publishedfundingsWithProviders.Add(new PublishedFundingWithProvider { PublishedFunding = publishedFunding, PublishedProviders = providers });
                     }
 
-                    IEnumerable<ExpandoObject> csvRows = fundingLineCsvTransform.Transform(publishedfundingsWithProviders);
+                    IEnumerable<ExpandoObject> csvRows = fundingLineCsvTransform.Transform(publishedfundingsWithProviders, jobType);
 
                     AppendCsvFragment(temporaryFilePath, csvRows, outputHeaders);
 

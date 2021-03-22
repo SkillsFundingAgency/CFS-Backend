@@ -11,7 +11,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
             return jobType == FundingLineCsvGeneratorJobType.HistoryProfileValues;
         }
 
-        protected override PublishedProviderVersion GetPublishedProviderVersion(IEnumerable<dynamic> documents, int resultCount)
+        protected override PublishedProviderVersion GetPublishedProviderVersion(IEnumerable<dynamic> documents, int resultCount, FundingLineCsvGeneratorJobType jobType)
         {
             return documents.ElementAt(resultCount);
         }

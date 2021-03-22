@@ -72,7 +72,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         protected void GivenTheCsvRowTransformation(IEnumerable<dynamic> publishedProviders, IEnumerable<ExpandoObject> transformedRows, string csv, bool outputHeaders)
         {
             _transformation
-                .Setup(_ => _.Transform(publishedProviders))
+                .Setup(_ => _.Transform(publishedProviders, It.IsAny<FundingLineCsvGeneratorJobType>()))
                 .Returns(transformedRows);
 
             CsvUtils

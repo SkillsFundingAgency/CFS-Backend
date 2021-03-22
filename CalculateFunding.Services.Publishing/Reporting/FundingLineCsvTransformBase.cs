@@ -15,7 +15,7 @@ namespace CalculateFunding.Services.Publishing.Reporting
 
         public abstract bool IsForJobType(FundingLineCsvGeneratorJobType jobType);
 
-        public virtual IEnumerable<ExpandoObject> Transform(IEnumerable<dynamic> documents)
+        public virtual IEnumerable<ExpandoObject> Transform(IEnumerable<dynamic> documents, FundingLineCsvGeneratorJobType jobType)
         {
             int resultsCount = documents.Count();
             
@@ -23,7 +23,7 @@ namespace CalculateFunding.Services.Publishing.Reporting
 
             for (int resultCount = 0; resultCount < resultsCount; resultCount++)
             {
-                PublishedProviderVersion publishedProviderVersion = GetPublishedProviderVersion(documents, resultCount);
+                PublishedProviderVersion publishedProviderVersion = GetPublishedProviderVersion(documents, resultCount, jobType);
                 
                 IDictionary<string, object> row = resultsBatch[resultCount] ?? (resultsBatch[resultCount] = new ExpandoObject());
 
@@ -65,6 +65,6 @@ namespace CalculateFunding.Services.Publishing.Reporting
         {
         }
 
-        protected virtual PublishedProviderVersion GetPublishedProviderVersion(IEnumerable<dynamic> documents, int resultCount) => null;
+        protected virtual PublishedProviderVersion GetPublishedProviderVersion(IEnumerable<dynamic> documents, int resultCount, FundingLineCsvGeneratorJobType jobType) => null;
     }
 }

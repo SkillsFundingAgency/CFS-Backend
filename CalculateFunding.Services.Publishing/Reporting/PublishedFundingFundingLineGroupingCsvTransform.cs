@@ -10,7 +10,8 @@ namespace CalculateFunding.Services.Publishing.Reporting
         public override bool IsForJobType(FundingLineCsvGeneratorJobType jobType) => jobType == FundingLineCsvGeneratorJobType.CurrentOrganisationGroupValues;
 
         protected override PublishedFundingVersion GetPublishedFundingVersion(IEnumerable<dynamic> documents,
-            int resultCount) 
+            int resultCount,
+            FundingLineCsvGeneratorJobType jobType) 
             => documents.ElementAt(resultCount).Current;
     }
 }

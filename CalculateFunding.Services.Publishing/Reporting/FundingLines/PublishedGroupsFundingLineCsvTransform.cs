@@ -22,7 +22,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
             return jobType == FundingLineCsvGeneratorJobType.PublishedGroups;
         }
 
-        public IEnumerable<ExpandoObject> Transform(IEnumerable<dynamic> documents)
+        public IEnumerable<ExpandoObject> Transform(IEnumerable<dynamic> documents, FundingLineCsvGeneratorJobType jobType)
         {
             IEnumerable<PublishedFundingWithProvider> publishedFundingsWithProviders = documents.Cast<PublishedFundingWithProvider>();
             int resultsCount = publishedFundingsWithProviders.Sum(x => x.PublishedProviders.Any() ? x.PublishedProviders.Count() : 1);
@@ -43,7 +43,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
                     foreach (var publishedProvider in publishedProviders)
                     {
                         IDictionary<string, object> row = resultsBatch[resultCount] ?? (resultsBatch[resultCount] = new ExpandoObject());
-                        AddFundingAndProviderData(row, publishedFundingVersion, publishedProvider);
+                        AddFundingAndProviderData(row, publishedFundingVersion, publishedProvider.Released);
                         resultCount++;
 
                         yield return (ExpandoObject)row;
@@ -62,7 +62,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
             _expandoObjectsPool.Return(resultsBatch);
         }
 
-        private void AddFundingAndProviderData(IDictionary<string, object> row, PublishedFundingVersion publishedFundingVersion, PublishedProvider publishedProvider = null)
+        private void AddFundingAndProviderData(IDictionary<string, object> row, PublishedFundingVersion publishedFundingVersion, PublishedProviderVersion publishedProvider = null)
         {
             row["Funding ID"] = publishedFundingVersion.FundingId;
             row["Funding Major Version"] = publishedFundingVersion.MajorVersion;
@@ -95,19 +95,19 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
             }
             else
             {
-                row["Provider Funding ID"] = publishedProvider.Released.FundingId;
-                row["Provider Id"] = publishedProvider.Released.ProviderId;
-                row["Provider Name"] = publishedProvider.Released.Provider?.Name;
-                row["Provider Major Version"] = publishedProvider.Released.MajorVersion;
-                row["Provider Total Funding"] = publishedProvider.Released.TotalFunding;
-                row["Provider UKPRN"] = publishedProvider.Released.Provider?.UKPRN;
-                row["Provider URN"] = publishedProvider.Released.Provider?.URN;
-                row["Provider UPIN"] = publishedProvider.Released.Provider?.UPIN;
-                row["Provider LACode"] = publishedProvider.Released.Provider?.LACode;
-                row["Provider Status"] = publishedProvider.Released.Provider?.Status;
-                row["Provider Successor"] = publishedProvider.Released.Provider?.Successor;
-                row["Provider Predecessors"] = publishedProvider.Released.Predecessors != null ? string.Join(';', publishedProvider.Released.Predecessors) : string.Empty;
-                row["Provider Variation Reasons"] = publishedProvider.Released.VariationReasons != null ? string.Join(';', publishedProvider.Released.VariationReasons) : string.Empty;
+                row["Provider Funding ID"] = publishedProvider.FundingId;
+                row["Provider Id"] = publishedProvider.ProviderId;
+                row["Provider Name"] = publishedProvider.Provider?.Name;
+                row["Provider Major Version"] = publishedProvider.MajorVersion;
+                row["Provider Total Funding"] = publishedProvider.TotalFunding;
+                row["Provider UKPRN"] = publishedProvider.Provider?.UKPRN;
+                row["Provider URN"] = publishedProvider.Provider?.URN;
+                row["Provider UPIN"] = publishedProvider.Provider?.UPIN;
+                row["Provider LACode"] = publishedProvider.Provider?.LACode;
+                row["Provider Status"] = publishedProvider.Provider?.Status;
+                row["Provider Successor"] = publishedProvider.Provider?.Successor;
+                row["Provider Predecessors"] = publishedProvider.Predecessors != null ? string.Join(';', publishedProvider.Predecessors) : string.Empty;
+                row["Provider Variation Reasons"] = publishedProvider.VariationReasons != null ? string.Join(';', publishedProvider.VariationReasons) : string.Empty;
             }
         }
     }

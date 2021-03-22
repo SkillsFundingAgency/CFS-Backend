@@ -6,8 +6,13 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
 {
     public class PublishedProviderFundingLineCsvTransform : FundingLineCsvTransformBase
     {
-        protected override PublishedProviderVersion GetPublishedProviderVersion(IEnumerable<dynamic> documents, int resultCount)
+        protected override PublishedProviderVersion GetPublishedProviderVersion(IEnumerable<dynamic> documents, int resultCount, FundingLineCsvGeneratorJobType jobType)
         {
+            if (jobType == FundingLineCsvGeneratorJobType.Released)
+            {
+                return documents.ElementAt(resultCount).Released;
+            }
+
             return documents.ElementAt(resultCount).Current;
         }
 

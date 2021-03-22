@@ -18,7 +18,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
                     jobType == FundingLineCsvGeneratorJobType.HistoryOrganisationGroupValues;
         }
 
-        public override IEnumerable<ExpandoObject> Transform(IEnumerable<dynamic> documents)
+        public override IEnumerable<ExpandoObject> Transform(IEnumerable<dynamic> documents, FundingLineCsvGeneratorJobType jobType)
         {
             int resultsCount = documents.Count();
             IEnumerable<PublishedFundingOrganisationGrouping> organisationGroupings = documents.Cast<PublishedFundingOrganisationGrouping>();

@@ -57,7 +57,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
             {
                 IEnumerable<PublishedFunding> publishedFunding = await documents.ReadNext();
                 
-                IEnumerable<ExpandoObject> csvRows = fundingLineCsvTransform.Transform(publishedFunding);
+                IEnumerable<ExpandoObject> csvRows = fundingLineCsvTransform.Transform(publishedFunding, jobType);
                         
                 AppendCsvFragment(temporaryFilePath, csvRows, outputHeaders);
 

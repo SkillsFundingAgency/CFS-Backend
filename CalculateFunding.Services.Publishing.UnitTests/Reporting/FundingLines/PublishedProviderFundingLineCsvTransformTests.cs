@@ -127,7 +127,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             };
 
 
-            ExpandoObject[] transformProviderResultsIntoCsvRows = _transformation.Transform(publishedProviders).ToArray();
+            ExpandoObject[] transformProviderResultsIntoCsvRows = _transformation.Transform(publishedProviders, FundingLineCsvGeneratorJobType.CurrentState).ToArray();
 
             transformProviderResultsIntoCsvRows
                 .Should()

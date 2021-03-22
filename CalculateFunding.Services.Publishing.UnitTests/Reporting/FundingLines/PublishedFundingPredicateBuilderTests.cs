@@ -18,7 +18,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
 
         [TestMethod]
         [DataRow(FundingLineCsvGeneratorJobType.CurrentState, "1 = 1")]
-        [DataRow(FundingLineCsvGeneratorJobType.Released, "c.content.current.status = 'Released'")]
+        [DataRow(FundingLineCsvGeneratorJobType.Released, "c.content.released != null")]
         [DataRow(FundingLineCsvGeneratorJobType.CurrentProfileValues, "1 = 1")]
         [DataRow(FundingLineCsvGeneratorJobType.HistoryProfileValues, "1 = 1")]
         [DataRow(FundingLineCsvGeneratorJobType.History, "1 = 1")]
