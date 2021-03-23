@@ -1240,6 +1240,7 @@ namespace CalculateFunding.Services.Datasets.Services
             const string authorId = "author-id";
             const string authorName = "author-name";
             const string name = "name";
+            const bool converterWizard = true;
 
             GetDatasetBlobModel model = NewGetDatasetBlobModel();
 
@@ -1255,7 +1256,8 @@ namespace CalculateFunding.Services.Datasets.Services
                     { "datasetId", model.DatasetId },
                     { "name", name },
                     { "description", model.Description },
-                    { "fundingStreamId", FundingStreamId }
+                    { "fundingStreamId", FundingStreamId },
+                    { "converterWizard", converterWizard.ToString() }
             };
 
             IPolicyRepository policyRepository = CreatePolicyRepository();
@@ -1498,7 +1500,8 @@ namespace CalculateFunding.Services.Datasets.Services
                     d.First().LastUpdatedByName == authorName &&
                     d.First().ChangeNote == "" &&
                     d.First().FundingStreamId == model.FundingStreamId &&
-                    d.First().FundingStreamName == FundingStreamName
+                    d.First().FundingStreamName == FundingStreamName &&
+                    d.First().ConverterWizard == false
               ));
 
             await cacheProvider
@@ -1699,7 +1702,8 @@ namespace CalculateFunding.Services.Datasets.Services
                     d.First().LastUpdatedByName == authorName &&
                     d.First().ChangeNote == updateComment &&
                     d.First().FundingStreamId == model.FundingStreamId &&
-                    d.First().FundingStreamName == FundingStreamName
+                    d.First().FundingStreamName == FundingStreamName &&
+                    d.First().ConverterWizard == false
                     ));
 
             await cacheProvider

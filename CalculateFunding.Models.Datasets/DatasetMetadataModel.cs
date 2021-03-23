@@ -13,5 +13,6 @@ namespace CalculateFunding.Models.Datasets
         public string Description { get; set; }
         public string Comment { get; set; }
         public string FundingStreamId { get; set; }
+        public bool ConverterWizard { get; set; }
     }
 }

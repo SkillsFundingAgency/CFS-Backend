@@ -8,5 +8,7 @@ namespace CalculateFunding.Models.Datasets
         public DatasetDefinitionVersion Definition { get; set; }
 
         public string Description { get; set; }
+
+        public bool ConverterWizard { get; set; }
     }
 }

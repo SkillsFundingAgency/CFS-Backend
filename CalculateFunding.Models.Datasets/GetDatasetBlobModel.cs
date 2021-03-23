@@ -22,6 +22,8 @@
 
         public bool MergeExistingVersion { get; set; }
 
+        public bool ConverterWizard { get; set; }
+
         public override string ToString()
         {
             return $"{DatasetId}/v{Version}/{Filename}";

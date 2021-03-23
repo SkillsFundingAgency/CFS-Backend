@@ -5,5 +5,6 @@
         public string Filename { get; set; }
         public string DatasetId { get; set; }
         public string FundingStreamId { get; set; }
+        public bool ConverterWizard { get; set; }
     }
 }
