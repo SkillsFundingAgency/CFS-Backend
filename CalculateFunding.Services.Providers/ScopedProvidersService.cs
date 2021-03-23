@@ -408,17 +408,20 @@ namespace CalculateFunding.Services.Providers
         {
             SpecificationSummary specificationSummary =  await GetSpecificationSummary(specificationId);
 
-            if (specificationSummary.ProviderSource == ProviderSource.CFS && !setCachedProviders)
+            if (specificationSummary.ProviderSource == ProviderSource.CFS)
             {
-                string scopedProviderSummariesCountCacheKey = $"{CacheKeys.ScopedProviderSummariesCount}{specificationId}";
-                string currentProviderCount = await _cachePolicy.ExecuteAsync(() => _cacheProvider.GetAsync<string>(scopedProviderSummariesCountCacheKey));
-
-                string cacheKeyScopedListCacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
-                long scopedProviderRedisListCount = await _cachePolicy.ExecuteAsync(() => _cacheProvider.ListLengthAsync<ProviderSummary>(cacheKeyScopedListCacheKey));
-
-                if (string.IsNullOrWhiteSpace(currentProviderCount) || int.Parse(currentProviderCount) != scopedProviderRedisListCount)
+                if (!setCachedProviders)
                 {
-                    setCachedProviders = true;
+                    string scopedProviderSummariesCountCacheKey = $"{CacheKeys.ScopedProviderSummariesCount}{specificationId}";
+                    string currentProviderCount = await _cachePolicy.ExecuteAsync(() => _cacheProvider.GetAsync<string>(scopedProviderSummariesCountCacheKey));
+
+                    string cacheKeyScopedListCacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
+                    long scopedProviderRedisListCount = await _cachePolicy.ExecuteAsync(() => _cacheProvider.ListLengthAsync<ProviderSummary>(cacheKeyScopedListCacheKey));
+
+                    if (string.IsNullOrWhiteSpace(currentProviderCount) || int.Parse(currentProviderCount) != scopedProviderRedisListCount)
+                    {
+                        setCachedProviders = true;
+                    }
                 }
             }
             else

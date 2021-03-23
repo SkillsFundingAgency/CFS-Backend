@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Results;
 using CalculateFunding.Common.ApiClient.Specifications;
@@ -15,6 +16,7 @@ using CalculateFunding.Models.ProviderLegacy;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Caching.FileSystem;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Providers.Caching;
 using CalculateFunding.Services.Providers.Interfaces;
@@ -223,7 +225,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
         }
         
         [TestMethod]
-        public async Task PopulateProviderSummariesForSpecification_GivenSpecificationWithProviderVersionIdAndProviderSourceOfFDZ_CachesAllProvidersInTheProviderVersion()
+        public async Task FetchCoreProviderData_GivenSpecificationWithProviderVersionIdAndProviderSourceOfFDZ_CachesAllProvidersInTheProviderVersion()
         {
             string specificationId = NewRandomString();
             string providerVersionId = NewRandomString();
@@ -266,7 +268,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
         }
         
         [TestMethod]
-        public async Task PopulateProviderSummariesForSpecification_WhenNotCachedAndSourceFDZ_ReturnsAllProvidersInProviderVersion()
+        public async Task Process_WhenNotCachedAndSourceFDZ_ReturnsAllProvidersInProviderVersion()
         {
             string specificationId = NewRandomString();
             string providerVersionId = NewRandomString();
@@ -291,7 +293,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
         }
 
         [TestMethod]
-        public async Task PopulateProviderSummariesForSpecification_GivenSpecificationWithProviderVersionIdAndProviderSourceOfCFS_CachesOnlyThoseProvidersInScope()
+        public async Task Process_GivenSpecificationWithProviderVersionIdAndProviderSourceOfCFS_CachesOnlyThoseProvidersInScope()
         {
             string specificationId = NewRandomString();
             string providerVersionId = NewRandomString();
@@ -315,6 +317,74 @@ namespace CalculateFunding.Services.Providers.UnitTests
             
             ThenTheEquivalentProviderSummaryWasCached(cacheKeyForList, MapProviderToSummary(provider));
             AndACacheExpiryWasSet(cacheKeyForList);
+        }
+
+
+        [TestMethod]
+        [DataRow(false)]
+        [DataRow(true)]
+        public async Task PopulateProviderSummariesForSpecification_GivenProviderSourceFromFDZ_ThenJobQueued(bool setCacheProviders)
+        {
+            string specificationId = NewRandomString();
+            string providerVersionId = NewRandomString();
+            
+            SpecificationSummary specificationSummary = NewSpecificationSummary(_ => _.WithId(specificationId)
+                .WithProviderVersionId(providerVersionId)
+                .WithProviderSource(ProviderSource.FDZ));
+
+            GivenTheSpecificationSummary(specificationId, specificationSummary);
+            
+            OkObjectResult contentResult = await WhenTheProviderSummariesPopulated(specificationId, false) as OkObjectResult;
+
+            ThenTheJobIsQueued(true);
+
+            contentResult
+                .Should()
+                .NotBeNull();
+
+            bool? jobQueued = (bool)contentResult.Value;
+
+            jobQueued
+                .Should()
+                .Be(true);
+        }
+
+        [TestMethod]
+        [DataRow(false, 0, true)]
+        [DataRow(false, 1, false)]
+        [DataRow(true, 0, true)]
+        public async Task PopulateProviderSummariesForSpecification_GivenProviderSourceFromCFS_ThenTheExpectedResult(bool setCacheProviders, int providerSummaryCacheCount, bool expectedResult)
+        {
+            string specificationId = NewRandomString();
+            string providerVersionId = NewRandomString();
+            string scopedProviderId = NewRandomString();
+            string cacheKeyScopedProviderSummariesCount = $"{CacheKeys.ScopedProviderSummariesCount}{specificationId}";
+            string cacheKeyScopedProviderSummaries = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
+
+            Provider provider = NewProvider(_ => _.WithProviderId(scopedProviderId));
+            SpecificationSummary specificationSummary = NewSpecificationSummary(_ => _.WithId(specificationId)
+                .WithProviderVersionId(providerVersionId)
+                .WithProviderSource(ProviderSource.CFS));
+
+            ProviderSummary[] cachedProviderSummaries = MapProvidersToSummaries(provider);
+
+            GivenTheSpecificationSummary(specificationId, specificationSummary);
+            AndTheCachedScopedProvidersCount(cacheKeyScopedProviderSummariesCount, providerSummaryCacheCount);
+            AndTheCachedScopedProvidersInRange(cacheKeyScopedProviderSummaries, 1, 1, cachedProviderSummaries);
+
+            OkObjectResult contentResult = await WhenTheProviderSummariesPopulated(specificationId, false) as OkObjectResult;
+
+            ThenTheJobIsQueued(expectedResult);
+
+            contentResult
+                .Should()
+                .NotBeNull();
+
+            bool? jobQueued = (bool)contentResult.Value;
+
+            jobQueued
+                .Should()
+                .Be(expectedResult);
         }
 
 
@@ -393,6 +463,18 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 summaries.Count() == 1 &&
                 provider.ToExpectedObject().Equals(summaries.Single())),
                 key), Times.Once);
+        }
+
+        private void ThenTheJobIsQueued(bool called)
+        {
+            if (called)
+            {
+                _jobManagement.Verify(_ => _.QueueJob(It.Is<JobCreateModel>(job => job.JobDefinitionId == JobConstants.DefinitionNames.PopulateScopedProvidersJob)), Times.Once);
+            }
+            else
+            {
+                _jobManagement.Verify(_ => _.QueueJob(It.Is<JobCreateModel>(job => job.JobDefinitionId == JobConstants.DefinitionNames.PopulateScopedProvidersJob)), Times.Never);
+            }
         }
         
         private void ThenTheEquivalentProviderSummariesWereCached(string key, params ProviderSummary[] providers)
@@ -521,6 +603,8 @@ namespace CalculateFunding.Services.Providers.UnitTests
         private async Task<IActionResult> WhenTheCoreProviderDataIsFetched(string specificationId, string providerVersionId = null)
             => await _scopedProvidersService.FetchCoreProviderData(specificationId, providerVersionId);
 
+        private async Task<IActionResult> WhenTheProviderSummariesPopulated(string specificationId, bool setCachedProviders)
+            => await _scopedProvidersService.PopulateProviderSummariesForSpecification(specificationId, null, null , setCachedProviders);
 
         private ProviderSummary[] MapProvidersToSummaries(params Provider[] providers)
             => providers.Select(MapProviderToSummary).ToArray();
