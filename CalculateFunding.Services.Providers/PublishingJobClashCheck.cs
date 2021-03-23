@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Providers.Interfaces;
 
@@ -32,10 +33,17 @@ namespace CalculateFunding.Services.Providers
        public async Task<bool> PublishingJobsClashWithFundingStreamCoreProviderUpdate(string specificationId)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
-            
-            IEnumerable<JobSummary> jobSummaries = await _jobManagement.GetLatestJobsForSpecification(specificationId, PublishingJobs);
 
-            return jobSummaries?.Any(_ => _ != null && _.RunningStatus == RunningStatus.InProgress) == true;
+            try
+            {
+                IEnumerable<JobSummary> jobSummaries = await _jobManagement.GetLatestJobsForSpecification(specificationId, PublishingJobs);
+
+                return jobSummaries?.Any(_ => _ != null && _.RunningStatus == RunningStatus.InProgress) == true;
+            }
+            catch (JobsNotRetrievedException ex)
+            {
+                throw new NonRetriableException(ex.Message, ex);
+            }
         }
     }
 }

@@ -16,6 +16,7 @@ using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.ProviderLegacy;
 using CalculateFunding.Models.Providers;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Constants;
@@ -432,11 +433,21 @@ namespace CalculateFunding.Services.Providers
 
             if (setCachedProviders)
             {
-                IEnumerable<JobSummary> latestJob = await _jobManagement.GetLatestJobsForSpecification(specificationId,
-                    new[]
-                    {
-                        JobConstants.DefinitionNames.PopulateScopedProvidersJob
-                    });
+                IEnumerable<JobSummary> latestJob = Enumerable.Empty<JobSummary>();
+
+                try
+                {
+                    latestJob = await _jobManagement.GetLatestJobsForSpecification(
+                        specificationId,
+                        new[]
+                        {
+                                JobConstants.DefinitionNames.PopulateScopedProvidersJob
+                        });
+                }
+                catch (JobsNotRetrievedException ex)
+                {
+                    throw new NonRetriableException(ex.Message, ex);
+                }
 
                 // the populate scoped providers job is already running so don't need to queue another job
                 if (latestJob?.FirstOrDefault()?.RunningStatus == RunningStatus.InProgress)

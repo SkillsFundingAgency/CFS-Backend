@@ -968,10 +968,16 @@ namespace CalculateFunding.Services.Specs
                 JobConstants.DefinitionNames.PublishBatchProviderFundingJob
             };
 
-            IEnumerable<JobSummary> latestSpecificationJobs =
-                await _jobManagement.GetLatestJobsForSpecification(specificationId, specificationJobTypes);
+            try
+            {
+                IEnumerable<JobSummary> latestSpecificationJobs = await _jobManagement.GetLatestJobsForSpecification(specificationId, specificationJobTypes);
 
-            return latestSpecificationJobs?.Any(job => job != null && job.RunningStatus == RunningStatus.InProgress) == true;
+                return latestSpecificationJobs?.Any(job => job != null && job.RunningStatus == RunningStatus.InProgress) == true;
+            }
+            catch (JobsNotRetrievedException ex)
+            {
+                throw new NonRetriableException(ex.Message, ex);
+            }
         }
 
         private async Task ReindexSpecification(Specification specification)

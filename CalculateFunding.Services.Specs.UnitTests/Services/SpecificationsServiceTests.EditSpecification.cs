@@ -111,6 +111,25 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         }
 
         [TestMethod]
+        public void EditSpecification_NonRetriableException_GivenGetLatestJobsForSpecificationThrowsJobsNotRetrievedException()
+        {
+            SpecificationEditModel specificationEditModel = new SpecificationEditModel();
+            
+            IJobManagement jobManagement = Substitute.For<IJobManagement>();
+            jobManagement
+                .When(_ => _.GetLatestJobsForSpecification(SpecificationId, Arg.Any<IEnumerable<string>>()))
+                .Do(_ => { throw new JobsNotRetrievedException(string.Empty, string.Empty, new string[] { }); });
+
+            SpecificationsService specificationsService = CreateService(jobManagement: jobManagement);
+
+            Func<Task<IActionResult>> invocation = () => specificationsService.EditSpecification(SpecificationId, specificationEditModel, null, null);
+
+            invocation
+                .Should()
+                .ThrowAsync<NonRetriableException>();
+        }
+
+        [TestMethod]
         public async Task EditSpecification_WhenInvalidModelProvided_ThenValidationErrorReturned()
         {
             // Arrange

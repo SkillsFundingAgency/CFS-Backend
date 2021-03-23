@@ -138,6 +138,22 @@ namespace CalculateFunding.Services.Results.UnitTests
         }
 
         [TestMethod]
+        public void ThrowsExceptionIfGetLatestJobsForSpecificationThrowsException()
+        {
+            string specificationId = NewRandomString();
+
+            GivenGetLatestJobsForSpecificationThrowsException(
+                specificationId,
+                new List<string> { JobConstants.DefinitionNames.CreateInstructAllocationJob });
+
+            Func<Task> invocation = WhenTheCsvIsGenerated;
+
+            invocation
+                .Should()
+                .ThrowAsync<NonRetriableException>();
+        }
+
+        [TestMethod]
         public async Task TransformsProviderResultsForSpecificationInBatchesAndCreatesCsvWithResults()
         {
             string specificationId = NewRandomString();
@@ -259,6 +275,17 @@ namespace CalculateFunding.Services.Results.UnitTests
                     Arg.Is(specificationId),
                     Arg.Is<IEnumerable<string>>(_ => _.SequenceEqual(jobTypes)))
                 .Returns(Task.FromResult(latestJobs));
+        }
+
+        private void GivenGetLatestJobsForSpecificationThrowsException(
+            string specificationId,
+            IEnumerable<string> jobTypes)
+        {
+            _jobManagement
+                .When(_ => _.GetLatestJobsForSpecification(
+                    Arg.Is(specificationId),
+                    Arg.Is<IEnumerable<string>>(_ => _.SequenceEqual(jobTypes))))
+                .Do(_ => { throw new JobsNotRetrievedException(string.Empty, specificationId, jobTypes); });
         }
 
         private void GivenSpecification(string specificationId, string fundingStream) => _specsApiClient.GetSpecificationSummaryById(Arg.Is(specificationId)).Returns(new ApiResponse<SpecificationSummary>(HttpStatusCode.OK, new SpecificationSummary { Id = specificationId, FundingStreams = new[] { new Reference { Id = fundingStream } } }));

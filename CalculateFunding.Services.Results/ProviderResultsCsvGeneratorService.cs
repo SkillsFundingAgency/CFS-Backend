@@ -230,9 +230,16 @@ namespace CalculateFunding.Services.Results
         {
             Guard.ArgumentNotNull(jobTypes, nameof(jobTypes));
 
-            IEnumerable<JobSummary> jobSummaries = await _jobManagement.GetLatestJobsForSpecification(specificationId, jobTypes);
+            try
+            {
+                IEnumerable<JobSummary> jobSummaries = await _jobManagement.GetLatestJobsForSpecification(specificationId, jobTypes);
 
-            return jobSummaries.Where(_ => _ != null && _.RunningStatus == RunningStatus.InProgress).Select(_ => _.JobType);
+                return jobSummaries.Where(_ => _ != null && _.RunningStatus == RunningStatus.InProgress).Select(_ => _.JobType);
+            }
+            catch (JobsNotRetrievedException ex)
+            {
+                throw new NonRetriableException(ex.Message, ex);
+            }
         }
 
         private class CsvFilePath

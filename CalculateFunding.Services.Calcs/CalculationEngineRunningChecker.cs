@@ -5,7 +5,7 @@ using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Calcs.Interfaces;
-using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -25,9 +25,16 @@ namespace CalculateFunding.Services.Calcs
         {
             Guard.ArgumentNotNull(jobTypes, nameof(jobTypes));
 
-            IEnumerable<JobSummary> jobSummaries = await _jobManagement.GetLatestJobsForSpecification(specificationId, jobTypes);
+            try
+            {
+                IEnumerable<JobSummary> jobSummaries = await _jobManagement.GetLatestJobsForSpecification(specificationId, jobTypes);
 
-            return jobSummaries.Any(j => j != null && j.RunningStatus == RunningStatus.InProgress);
+                return jobSummaries.Any(j => j != null && j.RunningStatus == RunningStatus.InProgress);
+            }
+            catch (JobsNotRetrievedException ex)
+            {
+                throw new NonRetriableException(ex.Message, ex);
+            }
         }
     }
 }

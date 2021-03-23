@@ -1,5 +1,6 @@
 ﻿using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
@@ -66,6 +67,21 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         }
 
         [TestMethod]
+        public async Task CalculationEngineRunningChecker_WhenTheJobForTheJobIdThrowsException_ThrowsException()
+        {
+            //Arrange
+            GivenTheJobForTheJobIdThrowsException();
+
+            //Act
+            Func<Task> func = async () => await WhenJobsAreRunningStatusIsChecked();
+
+            //Assert
+            await func
+                .Should()
+                .ThrowAsync<NonRetriableException>();
+        }
+
+        [TestMethod]
         public async Task CalculationEngineRunningChecker_WhenNoCreateAllocationJobsForSpecificationAreFound_FalseIsReturned()
         {
             //Act
@@ -92,6 +108,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             _jobs.GetLatestJobsForSpecification(_specificationId, Arg.Is<IEnumerable<string>>(_ => _.Single() == JobConstants.DefinitionNames.CreateInstructAllocationJob))
                 .Returns(_job);
+        }
+
+        private void GivenTheJobForTheJobIdThrowsException()
+        {
+            JobSummaryBuilder jobSummaryBuilder = new JobSummaryBuilder();
+
+            _job = jobSummaryBuilder.Build();
+
+            _jobs
+                .When(_ => _.GetLatestJobsForSpecification(_specificationId, Arg.Is<IEnumerable<string>>(_ => _.Single() == JobConstants.DefinitionNames.CreateInstructAllocationJob)))
+                .Do(_ => { throw new JobsNotRetrievedException(string.Empty, _specificationId, new[] { JobConstants.DefinitionNames.CreateInstructAllocationJob }); });
         }
 
         private async Task<IEnumerable<string>> WhenJobsAreRunningStatusIsChecked()

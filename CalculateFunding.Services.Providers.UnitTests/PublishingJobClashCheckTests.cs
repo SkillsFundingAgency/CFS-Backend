@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
@@ -74,7 +75,21 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 .Should()
                 .BeFalse();  
         }
-        
+
+        [TestMethod]
+        public async Task ThrowsExceptionIfGetLatestJobsForSpecificationThrowsException()
+        {
+            string specificationId = NewRandomString();
+
+            GivenThePublishingJobSummariesForTheSpecificationIdThrowsException(specificationId);
+
+            Func<Task> func = async () => await WhenJobClashesAreCheckedForTheSpecification(specificationId);
+
+            await func
+                .Should()
+                .ThrowAsync<NonRetriableException>();
+        }
+
         [TestMethod]
         public async Task IsFalseIfNoJobsForSpecificationIdAndPublishingJobTypesAtAll()
         {
@@ -106,6 +121,19 @@ namespace CalculateFunding.Services.Providers.UnitTests
                         JobConstants.DefinitionNames.PublishBatchProviderFundingJob,
                     }))))
                 .ReturnsAsync(jobSummaries);
+
+        private void GivenThePublishingJobSummariesForTheSpecificationIdThrowsException(string specificationId)
+            => _jobs
+                .Setup(_ => _.GetLatestJobsForSpecification(It.Is<string>(id => id == specificationId),
+                    It.Is<IEnumerable<string>>(types => types.SequenceEqual(new[]
+                    {
+                                JobConstants.DefinitionNames.RefreshFundingJob,
+                                JobConstants.DefinitionNames.ApproveAllProviderFundingJob,
+                                JobConstants.DefinitionNames.ApproveBatchProviderFundingJob,
+                                JobConstants.DefinitionNames.PublishAllProviderFundingJob,
+                                JobConstants.DefinitionNames.PublishBatchProviderFundingJob,
+                    }))))
+                .ThrowsAsync(new JobsNotRetrievedException(string.Empty, specificationId, new[] { JobConstants.DefinitionNames.RefreshFundingJob }));
 
         private string NewRandomString() => new RandomString();
         
