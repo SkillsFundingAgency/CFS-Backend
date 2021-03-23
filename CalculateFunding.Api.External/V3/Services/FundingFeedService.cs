@@ -10,10 +10,12 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.External;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Serilog;
 
 namespace CalculateFunding.Api.External.V3.Services
 {
@@ -24,19 +26,23 @@ namespace CalculateFunding.Api.External.V3.Services
         private readonly IFundingFeedSearchService _feedService;
         private readonly IPublishedFundingRetrievalService _publishedFundingRetrievalService;
         private readonly IExternalEngineOptions _externalEngineOptions;
+        private readonly ILogger _logger;
 
         public FundingFeedService(
             IFundingFeedSearchService feedService,
             IPublishedFundingRetrievalService publishedFundingRetrievalService,
-            IExternalEngineOptions externalEngineOptions)
+            IExternalEngineOptions externalEngineOptions,
+            ILogger logger)
         {
             Guard.ArgumentNotNull(feedService, nameof(feedService));
             Guard.ArgumentNotNull(publishedFundingRetrievalService, nameof(publishedFundingRetrievalService));
             Guard.ArgumentNotNull(externalEngineOptions, nameof(externalEngineOptions));
+            Guard.ArgumentNotNull(logger, nameof(logger));
 
             _feedService = feedService;
             _publishedFundingRetrievalService = publishedFundingRetrievalService;
             _externalEngineOptions = externalEngineOptions;
+            _logger = logger;
         }
 
         /// <summary>
@@ -68,9 +74,6 @@ namespace CalculateFunding.Api.External.V3.Services
 
             if (pageSize < 1 || pageSize > MaxRecords) return new BadRequestObjectResult($"Page size should be more that zero and less than or equal to {MaxRecords}");
 
-            response.StatusCode = 200;
-            response.ContentType = "application/json";
-
             SearchFeedV3<PublishedFundingIndex> searchFeed = await _feedService.GetFeedsV3(
                 pageRef, pageSize.Value, fundingStreamIds, fundingPeriodIds,
                 groupingReasons?.Select(x => x.ToString()),
@@ -81,17 +84,24 @@ namespace CalculateFunding.Api.External.V3.Services
                 return new NotFoundResult();
             }
 
-            await CreateAtomFeed(searchFeed, request, response);
+            response.StatusCode = 200;
+            response.ContentType = "application/json";
+
+            try
+            {
+                await CreateAtomFeed(searchFeed, request, response);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, ex.Message);
+                return new InternalServerErrorResult(ex.Message);
+            }
 
             return new EmptyResult();
         }
 
         private async Task CreateAtomFeed(SearchFeedV3<PublishedFundingIndex> searchFeed, HttpRequest request, HttpResponse response)
         {
-            // Using AutoFlush while writing the response. LeaveOpen required for unit testing
-            //await using StreamWriter responseStreamWriter = new StreamWriter(response.Body, leaveOpen: true) { AutoFlush = false };
-
-
             const string fundingEndpointName = "notifications";
             string baseRequestPath = request.Path.Value.Substring(0, request.Path.Value.IndexOf(fundingEndpointName, StringComparison.Ordinal) + fundingEndpointName.Length);
             string fundingTrimmedRequestPath = baseRequestPath.Replace(fundingEndpointName, string.Empty).TrimEnd('/');
@@ -209,11 +219,19 @@ namespace CalculateFunding.Api.External.V3.Services
 
             int count = 0;
 
+            var noContentDocuments = fundingFeedDocuments.Where(x => string.IsNullOrWhiteSpace(x.Value)).ToList();
+            
+            if (noContentDocuments.Any())
+            {
+                string message = $"No funding content blob found for document path: {string.Join(',', noContentDocuments.Select(x => x.Key.DocumentPath))}.";
+                throw new Exception(message);
+            }
+
             foreach (KeyValuePair<PublishedFundingIndex, string> item in fundingFeedDocuments)
             {
                 count++;
                 PublishedFundingIndex feedIndex = item.Key;
-
+               
                 string link = $"{request.Scheme}://{request.Host.Value}{fundingTrimmedRequestPath}/byId/{feedIndex.Id}";
 
                 await writer.WriteAsync("        {");
@@ -227,16 +245,9 @@ namespace CalculateFunding.Api.External.V3.Services
                 await writer.WriteAsync("                     {");
                 await writer.WriteAsync($"                         \"href\":\"{link}\",");
                 await writer.WriteAsync("                         \"rel\":\"Funding\"");
-                await writer.WriteAsync("                     },");
-                if (string.IsNullOrWhiteSpace(item.Value))
-                {
-                    await writer.WriteAsync("             \"content\":null");
-                }
-                else
-                {
-                    await writer.WriteAsync("             \"content\":");
-                    await writer.WriteAsync(item.Value);
-                }
+                await writer.WriteAsync("                     },");               
+                await writer.WriteAsync("             \"content\":");
+                await writer.WriteAsync(item.Value);                
                 await writer.WriteAsync("        }");
 
                 if (!isLastBatch || (isLastBatch && count != feedDocumentCount))

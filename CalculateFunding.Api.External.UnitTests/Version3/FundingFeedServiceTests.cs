@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.IO.Pipelines;
 using System.Linq;
 using System.Text;
@@ -10,6 +11,7 @@ using CalculateFunding.Api.External.V3.Services;
 using CalculateFunding.Models.External;
 using CalculateFunding.Models.External.V3.AtomItems;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
@@ -20,6 +22,7 @@ using Moq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NSubstitute;
+using Serilog;
 
 namespace CalculateFunding.Api.External.UnitTests.Version3
 {
@@ -368,6 +371,11 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
                 Entries = CreateFeedIndexes()
             };
 
+            string fundingFeedDocument = JsonConvert.SerializeObject(new
+            {
+                FundingStreamId = "PES"
+            });
+
             Mock<IFundingFeedSearchService> feedsSearchService = new Mock<IFundingFeedSearchService>();
 
             feedsSearchService.Setup(_ => _
@@ -382,7 +390,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
             Mock<IPublishedFundingRetrievalService> fundingRetrievalService = new Mock<IPublishedFundingRetrievalService>();
 
             fundingRetrievalService.Setup(_ => _.GetFundingFeedDocument(It.IsAny<string>(), false))
-                .ReturnsAsync(string.Empty);
+                .ReturnsAsync(fundingFeedDocument);            
 
             Mock<IExternalEngineOptions> externalEngineOptions = new Mock<IExternalEngineOptions>();
             externalEngineOptions
@@ -442,6 +450,80 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
         }
 
         [TestMethod]
+        public async Task GetFunding_GivenGetFundingFeedDocumentReturnsEmpty_ThrowAnException()
+        {
+            //Arrange
+            SearchFeedV3<PublishedFundingIndex> feeds = new SearchFeedV3<PublishedFundingIndex>
+            {
+                PageRef = 2,
+                Top = 2,
+                TotalCount = 8,
+                Entries = CreateFeedIndexes()
+            };
+
+            string fundingFeedDocument = JsonConvert.SerializeObject(new
+            {
+                FundingStreamId = "PES"
+            });
+
+            Mock<IFundingFeedSearchService> feedsSearchService = new Mock<IFundingFeedSearchService>();
+
+            feedsSearchService.Setup(_ => _
+                    .GetFeedsV3(It.IsAny<int?>(),
+                        It.IsAny<int>(),
+                        It.IsAny<IEnumerable<string>>(),
+                        It.IsAny<IEnumerable<string>>(),
+                        It.IsAny<IEnumerable<string>>(),
+                        It.IsAny<IEnumerable<string>>()))
+                .ReturnsAsync(feeds);
+
+            Mock<IPublishedFundingRetrievalService> fundingRetrievalService = new Mock<IPublishedFundingRetrievalService>();
+
+            fundingRetrievalService.Setup(_ => _.GetFundingFeedDocument(It.IsAny<string>(), false))
+                .ReturnsAsync(string.Empty);
+
+            Mock<IExternalEngineOptions> externalEngineOptions = new Mock<IExternalEngineOptions>();
+            externalEngineOptions
+                .Setup(_ => _.BlobLookupConcurrencyCount)
+                .Returns(10);
+
+            FundingFeedService service = CreateService(feedsSearchService.Object,
+                fundingRetrievalService.Object, externalEngineOptions.Object);
+
+            IHeaderDictionary headerDictionary = new HeaderDictionary
+            {
+                { "Accept", new StringValues("application/json") }
+            };
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request.Scheme.Returns("https");
+            request.Path.Returns(new PathString("/api/v3/funding/notifications/2"));
+            request.Host.Returns(new HostString("wherever.naf:12345"));
+            request.Headers.Returns(headerDictionary);
+
+            HttpResponse response = Substitute.For<HttpResponse>();
+            MemoryStream responseStream = new MemoryStream();
+            response.Body.Returns(responseStream);
+
+            StreamReader responseStreamReader = new StreamReader(responseStream);
+
+            //Act
+            IActionResult result = await service.GetFunding(request, response, pageSize: 2, pageRef: 2);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<InternalServerErrorResult>()
+                .Which
+                .Value.ToString()
+                .Should()
+                .Contain("No funding content blob found for document path: path-1");
+
+            responseStreamReader.Close();
+            responseStreamReader.Dispose();
+        }
+
+        [TestMethod]
         public async Task GetNotifications_GivenFundingStreamId_ThenOnlyFundingStreamRequested()
         {
             //Arrange
@@ -492,13 +574,14 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
         private static FundingFeedService CreateService(
             IFundingFeedSearchService searchService = null,
             IPublishedFundingRetrievalService publishedFundingRetrievalService = null,
-            IExternalEngineOptions externalEngineOptions = null)
+            IExternalEngineOptions externalEngineOptions = null,
+            ILogger logger = null)
         {
             return new FundingFeedService(
                 searchService ?? CreateSearchService(),
                 publishedFundingRetrievalService ?? CreatePublishedFundingRetrievalService(),
-                externalEngineOptions ?? CreateExternalEngineOptions()
-                );
+                externalEngineOptions ?? CreateExternalEngineOptions(),
+                logger ?? CreateLogger());
         }
 
         private static IExternalEngineOptions CreateExternalEngineOptions()
@@ -509,6 +592,11 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
         private static IFundingFeedSearchService CreateSearchService()
         {
             return Substitute.For<IFundingFeedSearchService>();
+        }
+
+        private static ILogger CreateLogger()
+        {
+            return Substitute.For<ILogger>();
         }
 
         private static IPublishedFundingRetrievalService CreatePublishedFundingRetrievalService()
