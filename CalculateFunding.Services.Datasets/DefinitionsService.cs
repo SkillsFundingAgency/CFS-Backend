@@ -182,7 +182,8 @@ namespace CalculateFunding.Services.Datasets
                 Version = definition.Version,
                 ModelHash = hashCode,
                 FundingStreamId = fundingStream.Id,
-                FundingStreamName = fundingStream.Name
+                FundingStreamName = fundingStream.Name,
+                ConverterEnabled = definition.ConverterEnabled
             };
 
             if (string.IsNullOrWhiteSpace(datasetDefinitionIndex.ProviderIdentifier))
@@ -200,7 +201,8 @@ namespace CalculateFunding.Services.Datasets
                 if (existingIndex.ModelHash == hashCode &&
                         existingIndex.Description == definition.Description &&
                         existingIndex.Name == definition.Name &&
-                        existingIndex.ProviderIdentifier == datasetDefinitionIndex.ProviderIdentifier)
+                        existingIndex.ProviderIdentifier == datasetDefinitionIndex.ProviderIdentifier &&
+                        existingIndex.ConverterEnabled == datasetDefinitionIndex.ConverterEnabled)
                 {
                     updateIndex = false;
                 }
@@ -358,7 +360,8 @@ namespace CalculateFunding.Services.Datasets
                 Version = model.Version,
                 Name = name,
                 Description = name,
-                FundingStreamId = fundingStream.Id
+                FundingStreamId = fundingStream.Id,
+                ConverterEnabled = model.ConverterEnabled
             };
 
             id += 1;

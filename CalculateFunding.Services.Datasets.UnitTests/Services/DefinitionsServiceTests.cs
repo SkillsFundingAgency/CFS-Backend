@@ -566,7 +566,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 ModelHash = "OLDHASH",
                 Name = "14/15",
                 ProviderIdentifier = "None",
-                Version = 1
+                Version = 1,
+                ConverterEnabled = true
             };
 
             IDatasetRepository datasetsRepository = CreateDataSetsRepository();
@@ -631,10 +632,11 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Index(Arg.Is<IEnumerable<DatasetDefinitionIndex>>(
                     i => i.First().Description == "14/15 description" &&
                     i.First().Id == "9183" &&
-                    i.First().ModelHash == "B9148733CF5E8DFCDE5C83A84EB22CA8D7ED82929AC10994E3AB8CB112CA679C" &&
+                    i.First().ModelHash == "472501ED8134B536DF7988911EAFE38025D87E5C1061EDBF5D738E9091345442" &&
                     i.First().Name == "14/15" &&
                     i.First().ProviderIdentifier == "None" &&
-                    i.First().Version == 1
+                    i.First().Version == 1 &&
+                    i.First().ConverterEnabled == false
                    ));
 
             await datasetsRepository
@@ -643,7 +645,8 @@ namespace CalculateFunding.Services.Datasets.Services
                     i => i.Description == "14/15 description" &&
                     i.Id == "9183" &&
                     i.Name == "14/15" &&
-                    i.Version == 1
+                    i.Version == 1 &&
+                    i.ConverterEnabled == false
                    ));
 
 
@@ -673,11 +676,12 @@ namespace CalculateFunding.Services.Datasets.Services
                 Description = "14/15 description",
                 Id = "9183",
                 LastUpdatedDate = new DateTimeOffset(2018, 6, 19, 14, 10, 2, TimeSpan.Zero),
-                ModelHash = "B9148733CF5E8DFCDE5C83A84EB22CA8D7ED82929AC10994E3AB8CB112CA679C",
+                ModelHash = "472501ED8134B536DF7988911EAFE38025D87E5C1061EDBF5D738E9091345442",
                 Name = "14/15",
                 ProviderIdentifier = "None",
                 FundingStreamId = FundingStreamId,
-                Version = 1
+                Version = 1,
+                ConverterEnabled = false
             };
 
             ISearchRepository<DatasetDefinitionIndex> searchRepository = CreateDatasetDefinitionSearchRepository();
@@ -1494,6 +1498,7 @@ namespace CalculateFunding.Services.Datasets.Services
             yaml.AppendLine(@"version: 1");
             yaml.AppendLine(@"description: 14/15 description");
             yaml.AppendLine($"fundingStreamId: {FundingStreamId}");
+            yaml.AppendLine($"converterEnabled: false");
             yaml.AppendLine(@"tableDefinitions:");
             yaml.AppendLine(@"- id: 9189");
             yaml.AppendLine(@"  name: 14/15");

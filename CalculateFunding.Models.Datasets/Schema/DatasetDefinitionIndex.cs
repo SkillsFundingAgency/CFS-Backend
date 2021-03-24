@@ -44,5 +44,9 @@ namespace CalculateFunding.Models.Datasets.Schema
         [IsFilterable, IsSortable, IsRetrievable(true)]
         [JsonProperty("lastUpdatedDate")]
         public DateTimeOffset LastUpdatedDate { get; set; }
+
+        [IsFilterable, IsRetrievable(true)]
+        [JsonProperty("converterEnabled")]
+        public bool ConverterEnabled { get; set; }
     }
 }

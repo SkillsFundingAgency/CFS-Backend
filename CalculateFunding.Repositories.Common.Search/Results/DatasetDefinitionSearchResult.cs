@@ -17,5 +17,7 @@ namespace CalculateFunding.Repositories.Common.Search.Results
         public string ProviderIdentifier { get; set; }
 
         public DateTimeOffset LastUpdatedDate { get; set; }
+
+        public bool ConverterEnabled { get; set; }
     }
 }

@@ -11,5 +11,6 @@ namespace CalculateFunding.Models.Datasets
         public string TemplateVersion { get; set; }
         public int? Version { get; set; }
         public int DatasetDefinitionId { get; set; }
+        public bool ConverterEnabled { get; set; }
     }
 }

@@ -17,6 +17,9 @@ namespace CalculateFunding.Models.Datasets.Schema
 
         [JsonProperty("tableDefinitions")]
         public List<TableDefinition> TableDefinitions { get; set; }
+
+        [JsonProperty("converterEnabled")]
+        public bool ConverterEnabled { get; set; }
     }
 
 }

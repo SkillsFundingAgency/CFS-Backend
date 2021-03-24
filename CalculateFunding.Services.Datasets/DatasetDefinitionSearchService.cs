@@ -165,7 +165,8 @@ namespace CalculateFunding.Services.Datasets
                     LastUpdatedDate = m.Result.LastUpdatedDate,
                     ProviderIdentifier = m.Result.ProviderIdentifier,
                     FundingStreamId = m.Result.FundingStreamId,
-                    FundingStreamName = m.Result.FundingStreamName
+                    FundingStreamName = m.Result.FundingStreamName,
+                    ConverterEnabled = m.Result.ConverterEnabled
                 });
             }
         }
