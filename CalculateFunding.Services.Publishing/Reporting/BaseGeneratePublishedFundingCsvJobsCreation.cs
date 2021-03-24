@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.Helpers;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Publishing.Interfaces;
@@ -25,85 +26,101 @@ namespace CalculateFunding.Services.Publishing.Reporting
             _createGeneratePublishedProviderEstateCsvJobs = createGeneratePublishedProviderEstateCsvJob;
         }
 
-        public abstract Task CreateJobs(PublishedFundingCsvJobsRequest publishedFundingCsvJobsRequest);
+        public abstract Task<IEnumerable<Job>> CreateJobs(PublishedFundingCsvJobsRequest publishedFundingCsvJobsRequest);
 
-        protected async Task CreatePublishedProviderEstateCsvJobs(PublishedFundingCsvJobsRequest publishedFundingCsvJobsRequest)
+        protected async Task<IEnumerable<Job>> CreatePublishedProviderEstateCsvJobs(PublishedFundingCsvJobsRequest publishedFundingCsvJobsRequest)
         {
+            List<Task<Job>> tasks = new List<Task<Job>>();
+
             foreach (string fundingStreamId in publishedFundingCsvJobsRequest.FundingStreamIds)
             {
-                await _createGeneratePublishedProviderEstateCsvJobs.CreateJob(
+                tasks.Add(_createGeneratePublishedProviderEstateCsvJobs.CreateJob(
                     publishedFundingCsvJobsRequest.SpecificationId,
                     publishedFundingCsvJobsRequest.User,
                     publishedFundingCsvJobsRequest.CorrelationId,
-                    JobProperties(FundingLineCsvGeneratorJobType.HistoryPublishedProviderEstate, null, fundingStreamId, publishedFundingCsvJobsRequest.FundingPeriodId));
+                    JobProperties(FundingLineCsvGeneratorJobType.HistoryPublishedProviderEstate, null, fundingStreamId, publishedFundingCsvJobsRequest.FundingPeriodId)));
             }
+
+            return await TaskHelper.WhenAllAndThrow(tasks.ToArray());
         }
 
-        protected async Task CreatePublishedOrganisationGroupCsvJobs(PublishedFundingCsvJobsRequest publishedFundingCsvJobsRequest)
+        protected async Task<IEnumerable<Job>> CreatePublishedOrganisationGroupCsvJobs(PublishedFundingCsvJobsRequest publishedFundingCsvJobsRequest)
         {
+            List<Task<Job>> tasks = new List<Task<Job>>();
+            
             foreach (string fundingStreamId in publishedFundingCsvJobsRequest.FundingStreamIds)
             {
-                await CreatePublishedFundingCsvJob(
+                tasks.Add(CreatePublishedFundingCsvJob(
                     publishedFundingCsvJobsRequest.SpecificationId,
                     publishedFundingCsvJobsRequest.CorrelationId, 
                     publishedFundingCsvJobsRequest.User, 
                     FundingLineCsvGeneratorJobType.CurrentOrganisationGroupValues, 
                     fundingStreamId: fundingStreamId, 
-                    fundingPeriodId: publishedFundingCsvJobsRequest.FundingPeriodId);
+                    fundingPeriodId: publishedFundingCsvJobsRequest.FundingPeriodId));
 
-                await CreatePublishedFundingCsvJob(publishedFundingCsvJobsRequest.SpecificationId,
+                tasks.Add(CreatePublishedFundingCsvJob(publishedFundingCsvJobsRequest.SpecificationId,
                     publishedFundingCsvJobsRequest.CorrelationId,
                     publishedFundingCsvJobsRequest.User, 
                     FundingLineCsvGeneratorJobType.HistoryOrganisationGroupValues, 
                     fundingStreamId: fundingStreamId, 
-                    fundingPeriodId: publishedFundingCsvJobsRequest.FundingPeriodId);
+                    fundingPeriodId: publishedFundingCsvJobsRequest.FundingPeriodId));
             }
+
+            return await TaskHelper.WhenAllAndThrow(tasks.ToArray());
         }
 
-        protected async Task CreatePublishedFundingCsvJobs(PublishedFundingCsvJobsRequest publishedFundingCsvJobsRequest)
+        protected async Task<IEnumerable<Job>> CreatePublishedFundingCsvJobs(PublishedFundingCsvJobsRequest publishedFundingCsvJobsRequest)
         {
+            List<Task<Job>> tasks = new List<Task<Job>>();
+            
             foreach (FundingLineCsvGeneratorJobType jobType in new[] { FundingLineCsvGeneratorJobType.CurrentState, FundingLineCsvGeneratorJobType.Released, FundingLineCsvGeneratorJobType.History })
             {
-                await CreatePublishedFundingCsvJob(
+                tasks.Add(CreatePublishedFundingCsvJob(
                    publishedFundingCsvJobsRequest.SpecificationId,
                    publishedFundingCsvJobsRequest.CorrelationId,
                    publishedFundingCsvJobsRequest.User,
                    jobType,
-                   fundingPeriodId: publishedFundingCsvJobsRequest.FundingPeriodId);
+                   fundingPeriodId: publishedFundingCsvJobsRequest.FundingPeriodId));
             }
            
             foreach (string fundingLineCode in publishedFundingCsvJobsRequest.FundingLineCodes)
             {
-                await CreatePublishedFundingCsvJob(
+                tasks.Add(CreatePublishedFundingCsvJob(
                    publishedFundingCsvJobsRequest.SpecificationId,
                    publishedFundingCsvJobsRequest.CorrelationId,
                    publishedFundingCsvJobsRequest.User,
                    FundingLineCsvGeneratorJobType.CurrentProfileValues,
                    fundingLineCode,
-                   fundingPeriodId: publishedFundingCsvJobsRequest.FundingPeriodId);
+                   fundingPeriodId: publishedFundingCsvJobsRequest.FundingPeriodId));
 
-                await CreatePublishedFundingCsvJob(
+                tasks.Add(CreatePublishedFundingCsvJob(
                    publishedFundingCsvJobsRequest.SpecificationId,
                    publishedFundingCsvJobsRequest.CorrelationId,
                    publishedFundingCsvJobsRequest.User,
                    FundingLineCsvGeneratorJobType.HistoryProfileValues,
                    fundingLineCode,
-                   fundingPeriodId: publishedFundingCsvJobsRequest.FundingPeriodId);
+                   fundingPeriodId: publishedFundingCsvJobsRequest.FundingPeriodId));
             }
+
+            return await TaskHelper.WhenAllAndThrow(tasks.ToArray());
         }
 
-        protected async Task CreatePublishedGroupsCsvJob(PublishedFundingCsvJobsRequest publishedFundingCsvJobsRequest)
+        protected async Task<IEnumerable<Job>> CreatePublishedGroupsCsvJob(PublishedFundingCsvJobsRequest publishedFundingCsvJobsRequest)
         {
+            List<Task<Job>> tasks = new List<Task<Job>>();
+            
             foreach (string fundingStreamId in publishedFundingCsvJobsRequest.FundingStreamIds)
             {
-                await CreatePublishedFundingCsvJob(
+                tasks.Add(CreatePublishedFundingCsvJob(
                     publishedFundingCsvJobsRequest.SpecificationId,
                     publishedFundingCsvJobsRequest.CorrelationId,
                     publishedFundingCsvJobsRequest.User, 
                     FundingLineCsvGeneratorJobType.PublishedGroups, 
                     fundingStreamId: fundingStreamId, 
-                    fundingPeriodId: publishedFundingCsvJobsRequest.FundingPeriodId);
+                    fundingPeriodId: publishedFundingCsvJobsRequest.FundingPeriodId));
             }
+
+            return await TaskHelper.WhenAllAndThrow(tasks.ToArray());
         }
         
         private Task<Job> CreatePublishedFundingCsvJob(

@@ -57,7 +57,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private ICalculationsApiClient _calculationsApiClient;
         private IProviderService _providerService;
         private IJobManagement _jobManagement;
-        private IGeneratePublishedFundingCsvJobsCreationLocator _generateCsvJobsLocator;
+        private IPublishedFundingCsvJobsService _publishFundingCsvJobsService;
         private IMapper _mapper;
         private ITransactionFactory _transactionFactory;
         private IPublishedProviderVersionService _publishedProviderVersionService;
@@ -122,7 +122,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Returns(new PublishAllPrerequisiteChecker(_specificationFundingStatusService, _jobsRunning, _jobManagement, _logger));
             _prerequisiteCheckerLocator.GetPreReqChecker(PrerequisiteCheckerType.ReleaseBatchProviders)
                 .Returns(new PublishBatchPrerequisiteChecker(_specificationFundingStatusService, _jobsRunning, _jobManagement, _logger));
-            _generateCsvJobsLocator = Substitute.For<IGeneratePublishedFundingCsvJobsCreationLocator>();
+            _publishFundingCsvJobsService = Substitute.For<IPublishedFundingCsvJobsService>();
             _mapper = Substitute.For<IMapper>();
             _transactionFactory = new TransactionFactory(_logger, new TransactionResiliencePolicies { TransactionPolicy = Policy.NoOpAsync() });
             _publishedProviderVersionService = Substitute.For<IPublishedProviderVersionService>();
@@ -158,12 +158,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 _calculationsApiClient,
                 _logger,
                 _jobManagement,
-                _generateCsvJobsLocator,
                 _transactionFactory,
                 _publishedProviderVersionService,
                 _publishedFundingService,
-                _publishedFundingDataService,
-                _createPublishIntegrityJob
+                _createPublishIntegrityJob,
+                _publishFundingCsvJobsService
             );
         }
 
@@ -171,7 +170,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         public async Task PublishAllProviderFundingResults_AddsInitialAllocationVariationReasonsToAllNewProviderVersions()
         {
             GivenJobCanBeProcessed();
-            AndSpecification();
+            AndSpecification(true);
             AndCalculationResultsBySpecificationId();
             AndTemplateMetadataContents();
             AndPublishedProviders();
@@ -180,6 +179,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             await WhenPublishAllProvidersMessageReceivedWithJobId();
 
             ThenEachProviderVersionHasTheFollowingVariationReasons(VariationReason.FundingUpdated, VariationReason.ProfilingUpdated, VariationReason.AuthorityFieldUpdated);
+            AndTheCsvGenerationJobsWereCreated(SpecificationId, FundingPeriodId, FundingStreamId, true);
         }
         
         [TestMethod]
@@ -558,12 +558,25 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Throws(new Exception(error));
         }
 
-        private void AndSpecification()
+        private void AndTheCsvGenerationJobsWereCreated(string specificationId, string fundingPeriodId, string fundingStreamId, bool isSelectedForFunding)
+        {
+            _publishFundingCsvJobsService.Received(1)
+                .GenerateCsvJobs(GeneratePublishingCsvJobsCreationAction.Release,
+                        Arg.Is(specificationId),
+                        Arg.Is(fundingPeriodId),
+                        Arg.Any<string>(),
+                        Arg.Any<Reference>(),
+                        Arg.Is<IEnumerable<string>>(_ => _.First() == fundingStreamId),
+                        isSelectedForFunding);
+        }
+
+        private void AndSpecification(bool isSelectedForFunding = false)
         {
             _specificationSummary = NewSpecificationSummary(_ => _.WithId(SpecificationId)
             .WithFundingStreamIds(new[] { FundingStreamId })
             .WithFundingPeriodId(FundingPeriodId)
-            .WithTemplateIds((FundingStreamId, "1.0")));
+            .WithTemplateIds((FundingStreamId, "1.0"))
+            .WithIsSelectedForFunding(isSelectedForFunding));
 
             _specificationsApiClient.GetSpecificationSummaryById(SpecificationId)
                 .Returns(new ApiResponse<SpecificationSummary>(HttpStatusCode.OK, _specificationSummary));

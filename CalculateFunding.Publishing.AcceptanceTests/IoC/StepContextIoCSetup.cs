@@ -285,6 +285,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<PublishedProviderVersioningService, IPublishedProviderVersioningService>();
             RegisterTypeAs<PublishedProviderContentPersistanceService, IPublishedProviderContentPersistanceService>();
             RegisterTypeAs<PublishedFundingContentsPersistanceService, IPublishedFundingContentsPersistanceService>();
+            RegisterTypeAs<PublishedFundingCsvJobsService, IPublishedFundingCsvJobsService>();
 
             RegisterTypeAs<VariationErrorRecorder, IRecordVariationErrors>();
             RegisterTypeAs<RefreshService, IRefreshService>();

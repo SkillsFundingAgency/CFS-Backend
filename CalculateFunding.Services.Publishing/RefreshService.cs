@@ -17,6 +17,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Processing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Polly;
 using Serilog;
@@ -45,14 +46,13 @@ namespace CalculateFunding.Services.Publishing
         private readonly IFundingLineValueOverride _fundingLineValueOverride;
         private readonly IPublishedProviderIndexerService _publishedProviderIndexerService;
         private readonly IJobManagement _jobManagement;
-        private readonly IGeneratePublishedFundingCsvJobsCreationLocator _generateCsvJobsLocator;
         private readonly ITransactionFactory _transactionFactory;
         private readonly IPublishedProviderVersionService _publishedProviderVersionService;
         private readonly IPoliciesService _policiesService;
         private readonly IVariationService _variationService;
         private readonly IReApplyCustomProfiles _reApplyCustomProfiles;
-        private readonly IPublishingEngineOptions _publishingEngineOptions;
         private readonly IPublishedProviderErrorDetection _detection;
+        private readonly IPublishedFundingCsvJobsService _publishFundingCsvJobsService;
 
         public RefreshService(IPublishedProviderStatusUpdateService publishedProviderStatusUpdateService,
             IPublishedFundingDataService publishedFundingDataService,
@@ -73,13 +73,11 @@ namespace CalculateFunding.Services.Publishing
             ITransactionFactory transactionFactory,
             IPublishedProviderVersionService publishedProviderVersionService,
             IPoliciesService policiesService,
-            IGeneratePublishedFundingCsvJobsCreationLocator generateCsvJobsLocator,
             IReApplyCustomProfiles reApplyCustomProfiles,
-            IPublishingEngineOptions publishingEngineOptions,
             IPublishedProviderErrorDetection detection,
-            IBatchProfilingService batchProfilingService) : base(jobManagement, logger)
+            IBatchProfilingService batchProfilingService,
+            IPublishedFundingCsvJobsService publishFundingCsvJobsService) : base(jobManagement, logger)
         {
-            Guard.ArgumentNotNull(generateCsvJobsLocator, nameof(generateCsvJobsLocator));
             Guard.ArgumentNotNull(publishedProviderStatusUpdateService, nameof(publishedProviderStatusUpdateService));
             Guard.ArgumentNotNull(publishedFundingDataService, nameof(publishedFundingDataService));
             Guard.ArgumentNotNull(publishingResiliencePolicies, nameof(publishingResiliencePolicies));
@@ -103,8 +101,8 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(detection, nameof(detection));
             Guard.ArgumentNotNull(publishingResiliencePolicies.CalculationsApiClient, nameof(publishingResiliencePolicies.CalculationsApiClient));
             Guard.ArgumentNotNull(publishingResiliencePolicies.PublishedFundingRepository, nameof(publishingResiliencePolicies.PublishedFundingRepository));
-            Guard.ArgumentNotNull(publishingEngineOptions, nameof(publishingEngineOptions));
             Guard.ArgumentNotNull(batchProfilingService, nameof(batchProfilingService));
+            Guard.ArgumentNotNull(publishFundingCsvJobsService, nameof(publishFundingCsvJobsService));
 
             _publishedProviderStatusUpdateService = publishedProviderStatusUpdateService;
             _publishedFundingDataService = publishedFundingDataService;
@@ -119,7 +117,6 @@ namespace CalculateFunding.Services.Publishing
             _providerExclusionCheck = providerExclusionCheck;
             _fundingLineValueOverride = fundingLineValueOverride;
             _variationService = variationService;
-            _generateCsvJobsLocator = generateCsvJobsLocator;
             _reApplyCustomProfiles = reApplyCustomProfiles;
             _detection = detection;
             _batchProfilingService = batchProfilingService;
@@ -131,7 +128,7 @@ namespace CalculateFunding.Services.Publishing
             _transactionFactory = transactionFactory;
             _publishedProviderVersionService = publishedProviderVersionService;
             _policiesService = policiesService;
-            _publishingEngineOptions = publishingEngineOptions;
+            _publishFundingCsvJobsService = publishFundingCsvJobsService;
         }
 
         public override async Task Process(Message message)
@@ -220,8 +217,7 @@ namespace CalculateFunding.Services.Publishing
                         Job.Id,
                         author,
                         correlationId,
-                        existingPublishedProvidersByFundingStream[fundingStream.Id],
-                        specification.FundingPeriod.Id);
+                        existingPublishedProvidersByFundingStream[fundingStream.Id]);
 
                     _logger.Information($"Finished processing refresh funding for '{fundingStream.Id}'");
 
@@ -241,8 +237,7 @@ namespace CalculateFunding.Services.Publishing
             IDictionary<string, ProviderCalculationResult> allCalculationResults,
             string jobId, Reference author,
             string correlationId,
-            IEnumerable<PublishedProvider> existingPublishedProviders,
-            string fundingPeriodId)
+            IEnumerable<PublishedProvider> existingPublishedProviders)
         {
             TemplateMetadataContents templateMetadataContents = await _policiesService.GetTemplateMetadataContents(fundingStream.Id, specification.FundingPeriod.Id, specification.TemplateIds[fundingStream.Id]);
 
@@ -532,27 +527,14 @@ namespace CalculateFunding.Services.Publishing
 
                     _logger.Information("Creating generate Csv jobs");
 
-                    IGeneratePublishedFundingCsvJobsCreation generateCsvJobs = _generateCsvJobsLocator
-                    .GetService(GeneratePublishingCsvJobsCreationAction.Refresh);
-                    IEnumerable<string> fundingLineCodes = await _publishedFundingDataService.GetPublishedProviderFundingLines(specification.Id);
-                    IEnumerable<string> fundingStreamIds = Array.Empty<string>();
-                    PublishedFundingCsvJobsRequest publishedFundingCsvJobsRequest = new PublishedFundingCsvJobsRequest
-                    {
-                        SpecificationId = specification.Id,
-                        CorrelationId = correlationId,
-                        User = author,
-                        FundingLineCodes = fundingLineCodes,
-                        FundingStreamIds = fundingStreamIds,
-                        FundingPeriodId = fundingPeriodId
-                    };
-                    await generateCsvJobs.CreateJobs(publishedFundingCsvJobsRequest);
+                    await _publishFundingCsvJobsService.GenerateCsvJobs(GeneratePublishingCsvJobsCreationAction.Refresh, specification.Id, specification.FundingPeriod.Id, correlationId, author);
                 }
             }
         }
 
         private async Task ProfileProviders(IDictionary<string, PublishedProvider> publishedProviders,
-            IDictionary<string, PublishedProvider> newProviders,
-            IDictionary<string, GeneratedProviderResult> generatedPublishedProviderData)
+        IDictionary<string, PublishedProvider> newProviders,
+        IDictionary<string, GeneratedProviderResult> generatedPublishedProviderData)
         {
             BatchProfilingContext batchProfilingContext = new BatchProfilingContext();
 

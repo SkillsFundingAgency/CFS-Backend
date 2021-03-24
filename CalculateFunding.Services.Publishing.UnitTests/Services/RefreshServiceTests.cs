@@ -70,8 +70,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private Mock<IPublishedProviderVersionService> _publishedProviderVersionService;
         private Mock<IPoliciesService> _policiesService;
         private IVariationService _variationService;
-        private Mock<IGeneratePublishedFundingCsvJobsCreationLocator> _generateCsvJobsLocator;
-        private Mock<IGeneratePublishedFundingCsvJobsCreation> _generateCsvJobsCreation;
+        private Mock<IPublishedFundingCsvJobsService> _publishFundingCsvJobsService;
         private TemplateMetadataContents _templateMetadataContents;
         private TemplateMapping _templateMapping;
         private IEnumerable<ProviderCalculationResult> _providerCalculationResults;
@@ -104,7 +103,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private string providerVersionId;
         private PublishedProvider _missingProvider;
         private ArraySegment<ProfileVariationPointer> _profileVariationPointers;
-        private PublishingEngineOptions _publishingEngineOptions;
         private Mock<IBatchProfilingService> _batchProfilingService;
         private Mock<ICalculationsService> _calculationsService;
 
@@ -113,7 +111,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         {
             providerVersionId = NewRandomString();
 
-            Mock<IConfiguration> configuration = new Mock<IConfiguration>();
             _publishedProviderStatusUpdateService = new Mock<IPublishedProviderStatusUpdateService>();
             _publishedFundingDataService = new Mock<IPublishedFundingDataService>();
             _publishingResiliencePolicies = new ResiliencePolicies
@@ -168,8 +165,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _organisationGroupGenerator = new Mock<IOrganisationGroupGenerator>();
             _transactionFactory = new TransactionFactory(_logger.Object, new TransactionResiliencePolicies { TransactionPolicy = Policy.NoOpAsync() });
             _publishedProviderVersionService = new Mock<IPublishedProviderVersionService>();
-            _generateCsvJobsLocator = new Mock<IGeneratePublishedFundingCsvJobsCreationLocator>();
-            _generateCsvJobsCreation = new Mock<IGeneratePublishedFundingCsvJobsCreation>();
+            _publishFundingCsvJobsService = new Mock<IPublishedFundingCsvJobsService>();
             _reApplyCustomProfiles = new Mock<IReApplyCustomProfiles>();
             IDetectPublishedProviderErrors[] detectPublishedProviderErrors = typeof(IDetectPublishedProviderErrors).Assembly.GetTypes()
                 .Where(_ => _.Implements(typeof(IDetectPublishedProviderErrors)) &&
@@ -225,11 +221,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 _transactionFactory,
                 _publishedProviderVersionService.Object,
                 _policiesService.Object,
-                _generateCsvJobsLocator.Object,
                 _reApplyCustomProfiles.Object,
-                new PublishingEngineOptions(configuration.Object),
                 _detection,
-                _batchProfilingService.Object);
+                _batchProfilingService.Object,
+                _publishFundingCsvJobsService.Object);
         }
 
         [TestMethod]
@@ -281,7 +276,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndTemplateMapping();
             AndPublishedProviders();
             AndNewMissingPublishedProviders();
-            AndCsvJobService();
             AndProfilePatternsForFundingStreamAndFundingPeriod();
 
             await WhenMessageReceivedWithJobIdAndCorrelationId();
@@ -295,6 +289,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                     It.IsAny<bool>()), Times.Once);
 
             AndTheCustomProfilesWereReApplied();
+            AndTheCsvGenerationJobsWereCreated(SpecificationId, FundingPeriodId);
         }
 
         [TestMethod]
@@ -313,7 +308,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndTemplateMapping();
             AndPublishedProviders();
             AndNewMissingPublishedProviders();
-            AndCsvJobService();
             AndProfilePatternsForFundingStreamAndFundingPeriod();
 
             await WhenMessageReceivedWithJobIdAndCorrelationId();
@@ -351,7 +345,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                             .WithFundingStreamId(FundingStreamId)))));
             AndPublishedProviders(publishedProviders);
             AndNewMissingPublishedProviders();
-            AndCsvJobService();
 
             await WhenMessageReceivedWithJobIdAndCorrelationId();
 
@@ -392,7 +385,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                             .WithFundingStreamId(FundingStreamId)))));
             AndPublishedProviders(publishedProviders);
             AndNewMissingPublishedProviders();
-            AndCsvJobService();
             AndProfilePatternsForFundingStreamAndFundingPeriod();
 
             await WhenMessageReceivedWithJobIdAndCorrelationId();
@@ -427,7 +419,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndTemplateMapping();
             AndPublishedProviders();
             AndNewMissingPublishedProviders();
-            AndCsvJobService();
             AndProfilePatternsForFundingStreamAndFundingPeriod();
 
             GivenFundingConfiguration(new ProviderMetadataVariationStrategy());
@@ -449,6 +440,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                         VariationReason.FundingUpdated, VariationReason.ProfilingUpdated
                     },
                     opt => opt.WithoutStrictOrdering());
+
+            AndTheCsvGenerationJobsWereCreated(SpecificationId, FundingPeriodId);
         }
 
         [TestMethod]
@@ -672,7 +665,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndNewMissingPublishedProviders(new[] { newProvider });
             AndScopedProviderCalculationResultsWithModifiedCalculationResults();
             AndTemplateMapping();
-            AndCsvJobService();
             AndProfilePatternsForFundingStreamAndFundingPeriod();
 
             await WhenMessageReceivedWithJobIdAndCorrelationId();
@@ -720,7 +712,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndTemplateMapping();
             AndPublishedProviders();
             AndNewMissingPublishedProviders();
-            AndCsvJobService();
             AndProfilePatternsForFundingStreamAndFundingPeriod();
 
             await WhenMessageReceivedWithJobIdAndCorrelationId();
@@ -807,6 +798,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _policiesService
                 .Setup(_ => _.GetTemplateMetadataContents(FundingStreamId, _specificationSummary.FundingPeriod.Id, _specificationSummary.TemplateIds[FundingStreamId]))
                 .ReturnsAsync(_templateMetadataContents);
+        }
+
+        private void AndTheCsvGenerationJobsWereCreated(string specificationId, string fundingPeriodId)
+        {
+            _publishFundingCsvJobsService.Verify(_ =>
+                _.GenerateCsvJobs(GeneratePublishingCsvJobsCreationAction.Refresh,
+                        specificationId,
+                        fundingPeriodId,
+                        It.IsAny<string>(),
+                        It.IsAny<Reference>(),
+                        It.IsAny<IEnumerable<string>>(),
+                        false),
+                        Times.Once);
         }
 
         private void GivenFundingConfiguration(params IVariationStrategy[] variations)
@@ -946,13 +950,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             _jobManagement.Setup(_ => _.RetrieveJobAndCheckCanBeProcessed(JobId))
                 .ReturnsAsync(jobViewModel);
-        }
-
-        private void AndCsvJobService()
-        {
-            _generateCsvJobsLocator
-                .Setup(_ => _.GetService(It.IsAny<GeneratePublishingCsvJobsCreationAction>()))
-                .Returns(_generateCsvJobsCreation.Object);
         }
 
         private void AndProfilePatternsForFundingStreamAndFundingPeriod()

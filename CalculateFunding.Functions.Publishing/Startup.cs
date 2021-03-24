@@ -343,6 +343,7 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddScoped<IPublishedProviderCsvTransformServiceLocator, PublishedProviderCsvTransformServiceLocator>();
             builder.AddScoped<IPublishedProviderCsvTransform, PublishedProviderEstateCsvTransform>();
             builder.AddScoped<ICreateGeneratePublishedProviderEstateCsvJobs, CreateGeneratePublishedProviderEstateCsvJobs>();
+            builder.AddScoped<IPublishedFundingCsvJobsService, PublishedFundingCsvJobsService>();
 
             builder
                 .AddSingleton<IPublishedProviderVersioningService, PublishedProviderVersioningService>()

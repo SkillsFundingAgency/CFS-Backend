@@ -35,7 +35,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private IPublishedFundingDataService _publishedFundingDataService;
         private IPublishedProviderStatusUpdateService _publishedProviderStatusUpdateService;
         private IPublishedProviderIndexerService _publishedProviderIndexerService;
-        private IGeneratePublishedFundingCsvJobsCreationLocator _generateCsvJobsLocator;
+        private IPublishedFundingCsvJobsService _publishFundingCsvJobsService;
         private ITransactionFactory _transactionFactory;
         private IPublishedProviderVersionService _publishedProviderVersionService;
         private ITransactionResiliencePolicies _transactionResiliencePolicies;
@@ -64,7 +64,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _publishedFundingDataService = Substitute.For<IPublishedFundingDataService>();
             _publishedProviderStatusUpdateService = Substitute.For<IPublishedProviderStatusUpdateService>();
             _publishedProviderIndexerService = Substitute.For<IPublishedProviderIndexerService>();
-            _generateCsvJobsLocator = Substitute.For<IGeneratePublishedFundingCsvJobsCreationLocator>();
+            _publishFundingCsvJobsService = Substitute.For<IPublishedFundingCsvJobsService>();
             _transactionResiliencePolicies = new TransactionResiliencePolicies { TransactionPolicy = Policy.NoOpAsync() };
             _transactionFactory = new TransactionFactory(_logger, _transactionResiliencePolicies);
             _publishedProviderVersionService = Substitute.For<IPublishedProviderVersionService>();
@@ -81,7 +81,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 _logger,
                 _transactionFactory,
                 _publishedProviderVersionService,
-                _generateCsvJobsLocator);
+                _publishFundingCsvJobsService);
 
             _jobId = NewRandomString();
             _correlationId = NewRandomString();
@@ -402,7 +402,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             await WhenAllProvidersResultsAreApproved();
 
             ThenThePublishedProvidersWereApproved(expectedPublishedProviders);
-            AndTheCsvGenerationJobsWereCreated();
+            AndTheCsvGenerationJobsWereCreated(specificationId, expectedPublishedProviders.First().Current.FundingPeriodId);
         }
 
         [TestMethod]
@@ -436,13 +436,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             await WhenBatchProvidersResultsAreApproved();
 
             ThenThePublishedProvidersWereApproved(expectedPublishedProviders);
-            AndTheCsvGenerationJobsWereCreated();
+            AndTheCsvGenerationJobsWereCreated(specificationId, expectedPublishedProviders.First().Current.FundingPeriodId);
         }
 
-        private void AndTheCsvGenerationJobsWereCreated()
+        private void AndTheCsvGenerationJobsWereCreated(string specificationId, string fundingPeriodId)
         {
-            _generateCsvJobsLocator.Received(1)
-                .GetService(Arg.Any<GeneratePublishingCsvJobsCreationAction>());
+            _publishFundingCsvJobsService.Received(1)
+                .GenerateCsvJobs(GeneratePublishingCsvJobsCreationAction.Approve,
+                        Arg.Is(specificationId),
+                        Arg.Is(fundingPeriodId),
+                        Arg.Any<string>(),
+                        Arg.Any<Reference>());
         }
 
         private void AndCalculationEngineApproveProviderRunning(string specificationId)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
@@ -13,6 +14,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Processing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Serilog;
 
@@ -27,9 +29,9 @@ namespace CalculateFunding.Services.Publishing
         private readonly IPublishedFundingDataService _publishedFundingDataService;
         private readonly IPublishedProviderIndexerService _publishedProviderIndexerService;
         private readonly IPrerequisiteCheckerLocator _prerequisiteCheckerLocator;
-        private readonly IGeneratePublishedFundingCsvJobsCreationLocator _generateCsvJobsLocator;
         private readonly ITransactionFactory _transactionFactory;
         private readonly IPublishedProviderVersionService _publishedProviderVersionService;
+        private readonly IPublishedFundingCsvJobsService _publishFundingCsvJobsService;
 
         public ApproveService(IPublishedProviderStatusUpdateService publishedProviderStatusUpdateService,
             IPublishedFundingDataService publishedFundingDataService,
@@ -40,9 +42,8 @@ namespace CalculateFunding.Services.Publishing
             ILogger logger,
             ITransactionFactory transactionFactory,
             IPublishedProviderVersionService publishedProviderVersionService,
-            IGeneratePublishedFundingCsvJobsCreationLocator generateCsvJobsLocator) : base(jobManagement, logger)
+            IPublishedFundingCsvJobsService publishFundingCsvJobsService) : base(jobManagement, logger)
         {
-            Guard.ArgumentNotNull(generateCsvJobsLocator, nameof(generateCsvJobsLocator));
             Guard.ArgumentNotNull(prerequisiteCheckerLocator, nameof(prerequisiteCheckerLocator));
             Guard.ArgumentNotNull(publishedProviderStatusUpdateService, nameof(publishedProviderStatusUpdateService));
             Guard.ArgumentNotNull(publishedFundingDataService, nameof(publishedFundingDataService));
@@ -51,15 +52,16 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(transactionFactory, nameof(transactionFactory));
             Guard.ArgumentNotNull(publishedProviderVersionService, nameof(publishedProviderVersionService));
+            Guard.ArgumentNotNull(publishFundingCsvJobsService, nameof(publishFundingCsvJobsService));
 
             _publishedProviderStatusUpdateService = publishedProviderStatusUpdateService;
             _publishedFundingDataService = publishedFundingDataService;
             _publishedProviderIndexerService = publishedProviderIndexerService;
             _prerequisiteCheckerLocator = prerequisiteCheckerLocator;
             _logger = logger;
-            _generateCsvJobsLocator = generateCsvJobsLocator;
             _transactionFactory = transactionFactory;
             _publishedProviderVersionService = publishedProviderVersionService;
+            _publishFundingCsvJobsService = publishFundingCsvJobsService;
         }
 
         public override async Task Process(Message message)
@@ -143,20 +145,8 @@ namespace CalculateFunding.Services.Publishing
                     await _publishedProviderIndexerService.IndexPublishedProviders(publishedProviders.Select(_ => _.Current));
 
                     _logger.Information("Creating generate Csv jobs");
-                    IGeneratePublishedFundingCsvJobsCreation generateCsvJobs = _generateCsvJobsLocator
-                        .GetService(GeneratePublishingCsvJobsCreationAction.Approve);
-                    IEnumerable<string> fundingLineCodes = await _publishedFundingDataService.GetPublishedProviderFundingLines(specificationId);
-                    IEnumerable<string> fundingStreamIds = Array.Empty<string>();
-                    PublishedFundingCsvJobsRequest publishedFundingCsvJobsRequest = new PublishedFundingCsvJobsRequest
-                    {
-                        SpecificationId = specificationId,
-                        CorrelationId = correlationId,
-                        User = author,
-                        FundingLineCodes = fundingLineCodes,
-                        FundingStreamIds = fundingStreamIds,
-                        FundingPeriodId = fundingPeriodId
-                    };
-                    await generateCsvJobs.CreateJobs(publishedFundingCsvJobsRequest);
+
+                    await _publishFundingCsvJobsService.GenerateCsvJobs(GeneratePublishingCsvJobsCreationAction.Approve, specificationId, fundingPeriodId, correlationId, author);
                 }
 
                 transaction.Complete();

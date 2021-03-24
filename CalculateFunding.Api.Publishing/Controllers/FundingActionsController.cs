@@ -1,5 +1,8 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.Helpers;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
@@ -14,16 +17,20 @@ namespace CalculateFunding.Api.Publishing.Controllers
     {
         private readonly ISpecificationPublishingService _specificationPublishingService;
         private readonly IProviderFundingPublishingService _providerFundingPublishingService;
+        private readonly IPublishedFundingCsvJobsService _publishFundingCsvJobsService;
 
         public FundingActionsController(
             ISpecificationPublishingService specificationPublishingService,
-            IProviderFundingPublishingService providerFundingPublishingService)
+            IProviderFundingPublishingService providerFundingPublishingService,
+            IPublishedFundingCsvJobsService publishFundingCsvJobsService)
         {
             Guard.ArgumentNotNull(specificationPublishingService, nameof(specificationPublishingService));
             Guard.ArgumentNotNull(providerFundingPublishingService, nameof(providerFundingPublishingService));
+            Guard.ArgumentNotNull(publishFundingCsvJobsService, nameof(publishFundingCsvJobsService));
 
             _specificationPublishingService = specificationPublishingService;
             _providerFundingPublishingService = providerFundingPublishingService;
+            _publishFundingCsvJobsService = publishFundingCsvJobsService;
         }
 
         /// <summary>
@@ -118,6 +125,37 @@ namespace CalculateFunding.Api.Publishing.Controllers
                 publishedProviderIdsRequest,
                 Request.GetUser(),
                 GetCorrelationId());
+        }
+
+        /// <summary>
+        /// Queue all csv jobs
+        /// </summary>
+        /// <param name="specificationId">The specification id</param>
+        /// <returns></returns>
+        [HttpGet("api/specifications/{specificationId}/queue-all-csv-jobs")]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<Job>))]
+        public async Task<IActionResult> QueueAllCsvJobs([FromRoute] string specificationId)
+        {
+            List<Task<IEnumerable<Job>>> tasks = new List<Task<IEnumerable<Job>>>();
+
+            tasks.Add(_publishFundingCsvJobsService.QueueCsvJobs(GeneratePublishingCsvJobsCreationAction.Approve,
+                specificationId,
+                Request.GetCorrelationId(),
+                Request.GetUser()));
+
+            tasks.Add(_publishFundingCsvJobsService.QueueCsvJobs(GeneratePublishingCsvJobsCreationAction.Approve,
+                specificationId,
+                Request.GetCorrelationId(),
+                Request.GetUser()));
+
+            tasks.Add(_publishFundingCsvJobsService.QueueCsvJobs(GeneratePublishingCsvJobsCreationAction.Approve,
+                specificationId,
+                Request.GetCorrelationId(),
+                Request.GetUser()));
+
+            IEnumerable<Job>[] jobs = await TaskHelper.WhenAllAndThrow(tasks.ToArray());
+
+            return new OkObjectResult(jobs.SelectMany(_ => _));
         }
 
         private string GetCorrelationId()

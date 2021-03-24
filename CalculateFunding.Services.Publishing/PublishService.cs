@@ -16,6 +16,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Processing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Polly;
 using Serilog;
@@ -39,14 +40,13 @@ namespace CalculateFunding.Services.Publishing
         private readonly IPublishedProviderContentsGeneratorResolver _publishedProviderContentsGeneratorResolver;
         private readonly IPublishedProviderStatusUpdateService _publishedProviderStatusUpdateService;
         private readonly ISearchRepository<PublishedFundingIndex> _publishedFundingSearchRepository;
-        private readonly IGeneratePublishedFundingCsvJobsCreationLocator _generateCsvJobsLocator;
         private readonly AsyncPolicy _calculationsApiClientPolicy;
         private readonly AsyncPolicy _publishedIndexSearchResiliencePolicy;
         private readonly ITransactionFactory _transactionFactory;
         private readonly IPublishedProviderVersionService _publishedProviderVersionService;
         private readonly IPublishedFundingService _publishedFundingService;
-        private readonly IPublishedFundingDataService _publishedFundingDataService;
         private readonly ICreatePublishIntegrityJob _createPublishIntegrityJob;
+        private readonly IPublishedFundingCsvJobsService _publishFundingCsvJobsService;
 
         public PublishService(IPublishedFundingStatusUpdateService publishedFundingStatusUpdateService,
             IPublishingResiliencePolicies publishingResiliencePolicies,
@@ -63,14 +63,12 @@ namespace CalculateFunding.Services.Publishing
             ICalculationsApiClient calculationsApiClient,
             ILogger logger,
             IJobManagement jobManagement,
-            IGeneratePublishedFundingCsvJobsCreationLocator generateCsvJobsLocator,
             ITransactionFactory transactionFactory,
             IPublishedProviderVersionService publishedProviderVersionService,
             IPublishedFundingService publishedFundingService,
-            IPublishedFundingDataService publishedFundingDataService,
-            ICreatePublishIntegrityJob createPublishIntegrityJob) : base(jobManagement, logger)
+            ICreatePublishIntegrityJob createPublishIntegrityJob,
+            IPublishedFundingCsvJobsService publishFundingCsvJobsService) : base(jobManagement, logger)
         {
-            Guard.ArgumentNotNull(generateCsvJobsLocator, nameof(generateCsvJobsLocator));
             Guard.ArgumentNotNull(publishedFundingStatusUpdateService, nameof(publishedFundingStatusUpdateService));
             Guard.ArgumentNotNull(publishingResiliencePolicies, nameof(publishingResiliencePolicies));
             Guard.ArgumentNotNull(specificationService, nameof(specificationService));
@@ -90,11 +88,10 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(publishingResiliencePolicies.PublishedIndexSearchResiliencePolicy, nameof(publishingResiliencePolicies.PublishedIndexSearchResiliencePolicy));
             Guard.ArgumentNotNull(transactionFactory, nameof(transactionFactory));
             Guard.ArgumentNotNull(publishedProviderVersionService, nameof(publishedProviderVersionService));
-            Guard.ArgumentNotNull(publishedFundingDataService, nameof(publishedFundingDataService));
             Guard.ArgumentNotNull(createPublishIntegrityJob, nameof(createPublishIntegrityJob));
+            Guard.ArgumentNotNull(publishFundingCsvJobsService, nameof(publishFundingCsvJobsService));
 
             _publishedFundingStatusUpdateService = publishedFundingStatusUpdateService;
-            _publishedFundingDataService = publishedFundingDataService;
             _specificationService = specificationService;
             _prerequisiteCheckerLocator = prerequisiteCheckerLocator;
             _publishedFundingGenerator = publishedFundingGenerator;
@@ -106,13 +103,13 @@ namespace CalculateFunding.Services.Publishing
             _logger = logger;
             _calculationsApiClient = calculationsApiClient;
             _calculationsApiClientPolicy = publishingResiliencePolicies.CalculationsApiClient;
-            _generateCsvJobsLocator = generateCsvJobsLocator;
             _publishedIndexSearchResiliencePolicy = publishingResiliencePolicies.PublishedIndexSearchResiliencePolicy;
             _transactionFactory = transactionFactory;
             _publishedProviderVersionService = publishedProviderVersionService;
             _providerService = providerService;
             _publishedFundingService = publishedFundingService;
             _createPublishIntegrityJob = createPublishIntegrityJob;
+            _publishFundingCsvJobsService = publishFundingCsvJobsService;
         }
 
         public override async Task Process(Message message)
@@ -161,30 +158,13 @@ namespace CalculateFunding.Services.Publishing
             _logger.Information($"Running search reindexer for published funding");
             await _publishedIndexSearchResiliencePolicy.ExecuteAsync(() => _publishedFundingSearchRepository.RunIndexer());
 
-            await GenerateCsvJobs(specificationId, correlationId, specification, author);
-        }
-
-        private async Task GenerateCsvJobs(string specificationId, string correlationId, SpecificationSummary specification, Reference author)
-        {
-            _logger.Information("Creating generate Csv jobs");
-
-            IGeneratePublishedFundingCsvJobsCreation generateCsvJobs = _generateCsvJobsLocator
-                .GetService(GeneratePublishingCsvJobsCreationAction.Release);
-            IEnumerable<string> fundingLineCodes = await _publishedFundingDataService.GetPublishedProviderFundingLines(specificationId);
-            IEnumerable<string> fundingStreamIds = specification.FundingStreams.Select(fs => fs.Id); //this will only ever be a single I think
-
-            PublishedFundingCsvJobsRequest publishedFundingCsvJobsRequest = new PublishedFundingCsvJobsRequest
-            {
-                SpecificationId = specificationId,
-                CorrelationId = correlationId,
-                User = author,
-                FundingLineCodes = fundingLineCodes,
-                FundingStreamIds = fundingStreamIds,
-                FundingPeriodId = specification.FundingPeriod.Id,
-                IsSpecificationSelectedForFunding = specification.IsSelectedForFunding
-            };
-
-            await generateCsvJobs.CreateJobs(publishedFundingCsvJobsRequest);
+            await _publishFundingCsvJobsService.GenerateCsvJobs(GeneratePublishingCsvJobsCreationAction.Release,
+                specificationId,
+                specification.FundingPeriod.Id,
+                correlationId,
+                author,
+                specification.FundingStreams.Select(fs => fs.Id),
+                specification.IsSelectedForFunding);
         }
 
         private async Task PublishFundingStream(Reference fundingStream,

@@ -42,6 +42,8 @@ using CalculateFunding.Services.Publishing.Interfaces.Undo;
 using CalculateFunding.Services.Publishing.IoC;
 using CalculateFunding.Services.Publishing.Profiling;
 using CalculateFunding.Services.Publishing.Profiling.Custom;
+using CalculateFunding.Services.Publishing.Reporting;
+using CalculateFunding.Services.Publishing.Reporting.PublishedProviderEstate;
 using CalculateFunding.Services.Publishing.Repositories;
 using CalculateFunding.Services.Publishing.Specifications;
 using CalculateFunding.Services.Publishing.SqlExport;
@@ -249,6 +251,13 @@ namespace CalculateFunding.Api.Publishing
             builder.AddScoped<IValidator<ApplyCustomProfileRequest>, ApplyCustomProfileRequestValidator>();
             builder.AddSingleton<IPublishedProviderStatusUpdateService, PublishedProviderStatusUpdateService>();
             builder.AddSingleton<IPublishedProviderVersioningService, PublishedProviderVersioningService>();
+            builder.AddScoped<IGeneratePublishedFundingCsvJobsCreationLocator, GeneratePublishedFundingCsvJobsCreationLocator>();
+            builder.AddScoped<IGeneratePublishedFundingCsvJobsCreation, GenerateRefreshPublishedFundingCsvJobsCreation>();
+            builder.AddScoped<IGeneratePublishedFundingCsvJobsCreation, GenerateApprovePublishedFundingCsvJobsCreation>();
+            builder.AddScoped<IGeneratePublishedFundingCsvJobsCreation, GenerateReleasePublishedFundingCsvJobsCreation>();
+            builder.AddScoped<ICreateGeneratePublishedProviderEstateCsvJobs, CreateGeneratePublishedProviderEstateCsvJobs>();
+            builder.AddTransient<ICreateGeneratePublishedFundingCsvJobs, GeneratePublishedFundingCsvJobCreation>();
+            builder.AddScoped<IPublishedFundingCsvJobsService, PublishedFundingCsvJobsService>();
             builder.AddSingleton<IJobTracker, JobTracker>();
             builder.AddSingleton<IJobManagement, JobManagement>();
             builder.AddSingleton<IVersionRepository<PublishedProviderVersion>, VersionRepository<PublishedProviderVersion>>((ctx) =>
