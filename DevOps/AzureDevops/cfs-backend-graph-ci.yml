@@ -29,15 +29,23 @@ trigger:
     - CalculateFunding.Api.Graph
     - CalculateFunding.Api.Graph.UnitTests
 
-
 variables:
-  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
-  DOTNET_CLI_TELEMETRY_OPTOUT: 1
-
+ - name: ProjectName
+   value: 'Graph'
+ - name: BuildApi
+   value: true
+ - name: BuildFunction
+   value: false
+ - name: DOTNET_SKIP_FIRST_TIME_EXPERIENCE
+   value: '1'
+ - name: DOTNET_CLI_TELEMETRY_OPTOUT
+   value: '1'
+ - group: 'Dotnet Core SDK Version'
 
 steps:
-- template: azure-pipelines-templates/cfs/standard-service-build.yml@funding-blocks
+- template: azure-pipelines-templates/cfs/standard-service-ci-build.yml@funding-blocks
   parameters:
-    ProjectName: Graph
-    BuildFunction: false
-
+    ProjectName: $(ProjectName)
+    DotnetCoreSdkVersion: $(DotnetCoreSdkVersion)
+    BuildApi: ${{ variables.BuildApi }}
+    BuildFunction: ${{ variables.BuildFunction }}
