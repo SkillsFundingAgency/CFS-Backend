@@ -143,12 +143,12 @@ namespace CalculateFunding.Api.Publishing.Controllers
                 Request.GetCorrelationId(),
                 Request.GetUser()));
 
-            tasks.Add(_publishFundingCsvJobsService.QueueCsvJobs(GeneratePublishingCsvJobsCreationAction.Approve,
+            tasks.Add(_publishFundingCsvJobsService.QueueCsvJobs(GeneratePublishingCsvJobsCreationAction.Refresh,
                 specificationId,
                 Request.GetCorrelationId(),
                 Request.GetUser()));
 
-            tasks.Add(_publishFundingCsvJobsService.QueueCsvJobs(GeneratePublishingCsvJobsCreationAction.Approve,
+            tasks.Add(_publishFundingCsvJobsService.QueueCsvJobs(GeneratePublishingCsvJobsCreationAction.Release,
                 specificationId,
                 Request.GetCorrelationId(),
                 Request.GetUser()));
