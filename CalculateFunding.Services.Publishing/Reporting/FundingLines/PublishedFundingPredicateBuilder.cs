@@ -9,7 +9,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
         private static readonly IDictionary<FundingLineCsvGeneratorJobType, string> Predicates = new Dictionary<FundingLineCsvGeneratorJobType, string>
         {
             {FundingLineCsvGeneratorJobType.CurrentState, "1 = 1"},
-            {FundingLineCsvGeneratorJobType.Released, "c.content.released != null"},
+            {FundingLineCsvGeneratorJobType.Released, "NOT IS_NULL(c.content.released)"},
             {FundingLineCsvGeneratorJobType.CurrentProfileValues, "1 = 1"},
             {FundingLineCsvGeneratorJobType.HistoryProfileValues, "1 = 1"},
             {FundingLineCsvGeneratorJobType.History, "1 = 1"}

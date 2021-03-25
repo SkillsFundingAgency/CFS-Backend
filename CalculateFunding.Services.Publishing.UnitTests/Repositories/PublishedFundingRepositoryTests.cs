@@ -518,7 +518,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                                             }},
                                 'statusChangedDate' : c.content.current.statusChangedDate,
                                 'providerFundings' : c.content.current.providerFundings
-                                }} AS Current                                
+                                }} AS current                                
                                 FROM c 
                                 where c.documentType='PublishedFunding'
                                 and c.content.current.status = 'Released'

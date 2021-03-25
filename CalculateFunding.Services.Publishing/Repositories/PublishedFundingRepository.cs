@@ -1001,7 +1001,53 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                         ) AS distributionPeriods
                                         FROM fundingLine IN c.content.current.fundingLines  {joinPredicate}
                                     )
-                                }} AS current
+                                }} AS current,
+                                {{
+                                    'id': c.content.released.id,
+                                    'providerId' : c.content.released.providerId,
+                                    'fundingStreamId' : c.content.released.fundingStreamId,
+                                    'fundingPeriodId' : c.content.released.fundingPeriodId,
+                                    'specificationId' : c.content.released.specificationId,
+                                    'status'          : c.content.released.status,
+                                    'totalFunding'    : c.content.released.totalFunding,
+                                    'version'         : c.content.released.version,
+                                    'majorVersion'    : c.content.released.majorVersion,
+                                    'minorVersion'    : c.content.released.minorVersion,
+                                    'date'            : c.content.released.date,
+                                    'author'          : {{
+                                        'name' : c.content.released.author.name
+                                    }},
+                                    'provider'        : {{ 
+                                        'providerType' : c.content.released.provider.providerType,
+                                        'providerSubType' : c.content.released.provider.providerSubType,
+                                        'localAuthorityName' : c.content.released.provider.localAuthorityName,
+                                        'laCode' : c.content.released.provider.laCode,
+                                        'name' : c.content.released.provider.name,
+                                        'ukprn' : c.content.released.provider.ukprn,
+                                        'urn' : c.content.released.provider.urn,
+                                        'establishmentNumber' : c.content.released.provider.establishmentNumber,
+                                        'status' : c.content.released.provider.status,
+										'successor' : c.content.released.provider.successor
+                                    }},
+                                    'predecessors' : c.content.released.predecessors,
+                                    'variationReasons' : c.content.released.variationReasons,
+                                    'fundingLines' : ARRAY(
+                                        SELECT fundingLine.name,
+                                        fundingLine['value'],
+                                        ARRAY(
+                                            SELECT distributionPeriod['value'],
+                                            ARRAY(
+                                                SELECT profilePeriod.year,
+                                                profilePeriod.typeValue,
+                                                profilePeriod.occurrence,
+                                                profilePeriod.profiledValue
+                                                FROM profilePeriod IN distributionPeriod.profilePeriods
+                                            ) AS profilePeriods
+                                            FROM distributionPeriod IN fundingLine.distributionPeriods
+                                        ) AS distributionPeriods
+                                        FROM fundingLine IN c.content.released.fundingLines  {joinPredicate}
+                                    )
+                                }} AS released
                                FROM     publishedProviders c
                                WHERE    c.documentType = 'PublishedProvider'
                                AND      c.content.current.specificationId = @specificationId
@@ -1041,7 +1087,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                             }},
                                 'statusChangedDate' : c.content.current.statusChangedDate,
                                 'providerFundings' : c.content.current.providerFundings
-                                }} AS Current                                
+                                }} AS current                                
                                 FROM c 
                                 where c.documentType='PublishedFunding'
                                 and c.content.current.status = 'Released'
