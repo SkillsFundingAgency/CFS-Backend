@@ -9,7 +9,6 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
-using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Threading;
@@ -762,19 +761,6 @@ namespace CalculateFunding.Services.Publishing.Repositories
             return _repository.GetFeedIterator<PublishedFunding>(query, batchSize);
         }
 
-        public async Task PublishedFundingBatchProcessing(string specificationId,
-            string fundingStreamId,
-            string fundingPeriodId,
-            Func<List<PublishedFunding>, Task> batchProcessor,
-            int batchSize)
-        {
-            CosmosDbQuery query = CreateQueryForPublishedFundingBatchProcessing(specificationId, fundingStreamId, fundingPeriodId);
-
-            await _repository.DocumentsBatchProcessingAsync(batchProcessor,
-                query,
-                batchSize);
-        }
-
         private static CosmosDbQuery CreateQueryForPublishedFundingBatchProcessing(string specificationId,
             string fundingStreamId,
             string fundingPeriodId)
@@ -782,32 +768,34 @@ namespace CalculateFunding.Services.Publishing.Repositories
             return new CosmosDbQuery
             {
                 QueryText = @"SELECT 
-                                c.content.id,
                                 {
-                                    'organisationGroupTypeCode' : c.content.current.organisationGroupTypeCode,
-                                    'groupingReason' : c.content.current.groupingReason,
-                                    'organisationGroupName' : c.content.current.organisationGroupName,
-                                    'organisationGroupIdentifierValue' : c.content.current.organisationGroupIdentifierValue,
-                                    'fundingStreamId' : c.content.current.fundingStreamId,
-                                    'fundingPeriod' : {
-                                      'id' : c.content.current.fundingPeriod.id
-                                    },
-                                    'specificationId' : c.content.current.specificationId,
-                                    'status' : c.content.current.status,
-                                    'version' : c.content.current.version,
-                                    'majorVersion' : c.content.current.majorVersion,
-                                    'minorVersion' : c.content.current.minorVersion,
-                                    'date' : c.content.current.date,
-                                    'providerFundings' : c.content.current.providerFundings,
-                                    'author' : {
-                                        'name' : c.content.current.author.name
-                                    },
-                                    'fundingLines' : ARRAY(
-                                        SELECT fundingLine.name,
-                                        fundingLine['value']
-                                        FROM fundingLine IN c.content.current.fundingLines
-                                    )
-                                } AS Current
+                                    'id':c.content.id,
+                                    'current':{
+                                        'organisationGroupTypeCode' : c.content.current.organisationGroupTypeCode,
+                                        'groupingReason' : c.content.current.groupingReason,
+                                        'organisationGroupName' : c.content.current.organisationGroupName,
+                                        'organisationGroupIdentifierValue' : c.content.current.organisationGroupIdentifierValue,
+                                        'fundingStreamId' : c.content.current.fundingStreamId,
+                                        'fundingPeriod' : {
+                                          'id' : c.content.current.fundingPeriod.id
+                                        },
+                                        'specificationId' : c.content.current.specificationId,
+                                        'status' : c.content.current.status,
+                                        'version' : c.content.current.version,
+                                        'majorVersion' : c.content.current.majorVersion,
+                                        'minorVersion' : c.content.current.minorVersion,
+                                        'date' : c.content.current.date,
+                                        'providerFundings' : c.content.current.providerFundings,
+                                        'author' : {
+                                            'name' : c.content.current.author.name
+                                        },
+                                        'fundingLines' : ARRAY(
+                                            SELECT fundingLine.name,
+                                            fundingLine['value']
+                                            FROM fundingLine IN c.content.current.fundingLines
+                                        )
+                                    }
+                                } as content
                                 FROM     publishedFunding c
                                 WHERE    c.documentType = 'PublishedFunding'
                                 AND      c.content.current.specificationId = @specificationId
@@ -835,19 +823,6 @@ namespace CalculateFunding.Services.Publishing.Repositories
             return _repository.GetFeedIterator<PublishedFundingVersion>(query, batchSize);
         }
 
-        public async Task PublishedFundingVersionBatchProcessing(string specificationId,
-            string fundingStreamId,
-            string fundingPeriodId,
-            Func<List<PublishedFundingVersion>, Task> batchProcessor,
-            int batchSize)
-        {
-            CosmosDbQuery query = CreateQueryForPublishedFundingVersionBatchProcessing(specificationId, fundingStreamId, fundingPeriodId);
-
-            await _repository.DocumentsBatchProcessingAsync(batchProcessor,
-                query,
-                batchSize);
-        }
-
         private static CosmosDbQuery CreateQueryForPublishedFundingVersionBatchProcessing(string specificationId,
             string fundingStreamId,
             string fundingPeriodId)
@@ -855,28 +830,30 @@ namespace CalculateFunding.Services.Publishing.Repositories
             return new CosmosDbQuery
             {
                 QueryText = @"SELECT 
-                                c.content.id,
-                                c.content.organisationGroupTypeCode,
-                                c.content.organisationGroupName,
-                                c.content.fundingStreamId,
                                 {
-                                      'id' : c.content.fundingPeriod.id
-                                } AS FundingPeriod,
-                                c.content.specificationId,
-                                c.content.status,
-                                c.content.version,
-                                c.content.majorVersion,
-                                c.content.minorVersion,
-                                c.content.date,
-                                {
-                                    'name' : c.content.author.name
-                                } AS Author,
-                                ARRAY(
-                                    SELECT fundingLine.name,
-                                    fundingLine['value']
-                                    FROM fundingLine IN c.content.fundingLines
-                                ) AS FundingLines,
-                                c.content.providerFundings
+                                    'id':c.content.id,
+                                    'organisationGroupTypeCode':c.content.organisationGroupTypeCode,
+                                    'organisationGroupName':c.content.organisationGroupName,
+                                    'fundingStreamId':c.content.fundingStreamId,
+                                    'fundingPeriod':{
+                                          'id' : c.content.fundingPeriod.id
+                                    },
+                                    'specificationId':c.content.specificationId,
+                                    'status':c.content.status,
+                                    'version':c.content.version,
+                                    'majorVersion':c.content.majorVersion,
+                                    'minorVersion':c.content.minorVersion,
+                                    'date':c.content.date,
+                                    'author':{
+                                        'name' : c.content.author.name
+                                    },
+                                    'fundingLines':ARRAY(
+                                        SELECT fundingLine.name,
+                                        fundingLine['value']
+                                        FROM fundingLine IN c.content.fundingLines
+                                    ),
+                                    'providerFundings':c.content.providerFundings
+                                } as content
                                 FROM     publishedFundingVersions c
                                 WHERE    c.documentType = 'PublishedFundingVersion'
                                 AND      c.content.specificationId = @specificationId
@@ -905,20 +882,6 @@ namespace CalculateFunding.Services.Publishing.Repositories
             return _repository.GetFeedIterator<PublishedProviderVersion>(query, batchSize);
         }
 
-        public async Task PublishedProviderVersionBatchProcessing(string predicate,
-            string specificationId,
-            Func<List<PublishedProviderVersion>, Task> batchProcessor,
-            int batchSize,
-            string joinPredicate = null,
-            string fundingLineCode = null)
-        {
-            CosmosDbQuery query = CreateQueryForPublishedProviderVersionBatchProcessing(predicate, specificationId, joinPredicate, fundingLineCode);
-
-            await _repository.DocumentsBatchProcessingAsync(persistBatchToIndex: batchProcessor,
-                cosmosDbQuery: query,
-                itemsPerPage: batchSize);
-        }
-
         private static CosmosDbQuery CreateQueryForPublishedProviderVersionBatchProcessing(string predicate,
             string specificationId,
             string joinPredicate,
@@ -927,46 +890,48 @@ namespace CalculateFunding.Services.Publishing.Repositories
             return new CosmosDbQuery
             {
                 QueryText = $@"SELECT 
-                                c.content.id,
-                                c.content.providerId,
-                                c.content.fundingStreamId,
-                                c.content.fundingPeriodId,
-                                c.content.specificationId,
-                                c.content.status,
-                                c.content.totalFunding,
-                                c.content.version,
-                                c.content.majorVersion,
-                                c.content.minorVersion,
-                                c.content.date,
-                                {{
-                                    'name' : c.content.author.name
-                                }} AS Author,
-                                {{ 
-                                    'providerType' : c.content.provider.providerType,
-                                    'providerSubType' : c.content.provider.providerSubType,
-                                    'localAuthorityName' : c.content.provider.localAuthorityName,
-                                    'laCode' : c.content.provider.laCode,
-                                    'name' : c.content.provider.name,
-                                    'ukprn' : c.content.provider.ukprn,
-                                    'urn' : c.content.provider.urn,
-                                    'establishmentNumber' : c.content.provider.establishmentNumber
-                                }} AS Provider,
-                               ARRAY(
-                                    SELECT fundingLine.name,
-                                    fundingLine['value'],
-                                    ARRAY(
-                                        SELECT distributionPeriod['value'],
-                                        ARRAY(
-                                            SELECT profilePeriod.year,
-                                            profilePeriod.typeValue,
-                                            profilePeriod.occurrence,
-                                            profilePeriod.profiledValue
-                                            FROM profilePeriod IN distributionPeriod.profilePeriods
-                                        ) AS profilePeriods
-                                        FROM distributionPeriod IN fundingLine.distributionPeriods
-                                    ) AS distributionPeriods
-                                    FROM fundingLine IN c.content.fundingLines {joinPredicate}
-                                ) AS FundingLines
+                                    {{
+                                        'id':c.content.id,
+                                        'providerId':c.content.providerId,
+                                        'fundingStreamId':c.content.fundingStreamId,
+                                        'fundingPeriodId':c.content.fundingPeriodId,
+                                        'specificationId':c.content.specificationId,
+                                        'status':c.content.status,
+                                        'totalFunding':c.content.totalFunding,
+                                        'version':c.content.version,
+                                        'majorVersion':c.content.majorVersion,
+                                        'minorVersion':c.content.minorVersion,
+                                        'date':c.content.date,
+                                        'author':{{
+                                            'name' : c.content.author.name
+                                        }},
+                                        'provider':{{ 
+                                            'providerType' : c.content.provider.providerType,
+                                            'providerSubType' : c.content.provider.providerSubType,
+                                            'localAuthorityName' : c.content.provider.localAuthorityName,
+                                            'laCode' : c.content.provider.laCode,
+                                            'name' : c.content.provider.name,
+                                            'ukprn' : c.content.provider.ukprn,
+                                            'urn' : c.content.provider.urn,
+                                            'establishmentNumber' : c.content.provider.establishmentNumber
+                                        }},
+                                        'fundingLines':ARRAY(
+                                            SELECT fundingLine.name,
+                                            fundingLine['value'],
+                                            ARRAY(
+                                                SELECT distributionPeriod['value'],
+                                                ARRAY(
+                                                    SELECT profilePeriod.year,
+                                                    profilePeriod.typeValue,
+                                                    profilePeriod.occurrence,
+                                                    profilePeriod.profiledValue
+                                                    FROM profilePeriod IN distributionPeriod.profilePeriods
+                                                ) AS profilePeriods
+                                                FROM distributionPeriod IN fundingLine.distributionPeriods
+                                            ) AS distributionPeriods
+                                            FROM fundingLine IN c.content.fundingLines {joinPredicate}
+                                        )
+                                    }} as content
                                 FROM     publishedProviderVersions c
                                 WHERE    c.documentType = 'PublishedProviderVersion'
                                 AND      c.content.specificationId = @specificationId
@@ -1036,7 +1001,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                         ) AS distributionPeriods
                                         FROM fundingLine IN c.content.current.fundingLines  {joinPredicate}
                                     )
-                                }} AS Current
+                                }} AS current
                                FROM     publishedProviders c
                                WHERE    c.documentType = 'PublishedProvider'
                                AND      c.content.current.specificationId = @specificationId
@@ -1378,29 +1343,18 @@ namespace CalculateFunding.Services.Publishing.Repositories
             return _repository.GetFeedIterator<PublishedProviderVersion>(query, batchSize);
         }
 
-        public async Task RefreshedProviderVersionBatchProcessing(
-            string specificationId, 
-            Func<List<PublishedProviderVersion>, Task> persistIndexBatch, 
-            int batchSize)
-        {
-            CosmosDbQuery query = CreateQueryForRefreshedProviderVersionBatchProcessing(specificationId);
-
-            await _repository.DocumentsBatchProcessingAsync(persistBatchToIndex: persistIndexBatch,
-                cosmosDbQuery: query,
-                itemsPerPage: batchSize);
-        }
-
         private static CosmosDbQuery CreateQueryForRefreshedProviderVersionBatchProcessing(string specificationId)
         {
             return new CosmosDbQuery
             {
                 QueryText = @"SELECT 
-                                        c.content.id,
-                                        c.content.variationReasons,
-                                        c.content.providerId,
-                                        c.content.status,
-                                        c.content.version,
-                                        {
+                                    {
+                                        'id':c.content.id,
+                                        'variationReasons':c.content.variationReasons,
+                                        'providerId':c.content.providerId,
+                                        'status':c.content.status,
+                                        'version':c.content.version,
+                                        'provider' : {
                                             'ukprn' : c.content.provider.ukprn,
                                             'successor' : c.content.provider.successor,
                                             'dateClosed' : c.content.provider.dateClosed,
@@ -1415,7 +1369,8 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                             'reasonEstablishmentClosed' : c.content.provider.reasonEstablishmentClosed,
                                             'trustCode' : c.content.provider.trustCode,
                                             'trustName' : c.content.provider.trustName
-                                        } AS Provider
+                                        }
+                                    } as content
                                 FROM publishedProviders c
                                 WHERE c.documentType = 'PublishedProviderVersion' 
                                 AND c.content.specificationId = @specificationId 

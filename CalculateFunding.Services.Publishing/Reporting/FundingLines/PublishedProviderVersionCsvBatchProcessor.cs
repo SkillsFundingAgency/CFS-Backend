@@ -62,7 +62,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
 
             while (documents.HasMoreResults)
             {
-                IEnumerable<PublishedProviderVersion> publishedProviderVersions = await documents.ReadNext();
+                var publishedProviderVersions = await documents.ReadNext();
                 
                 IEnumerable<ExpandoObject> csvRows = fundingLineCsvTransform.Transform(publishedProviderVersions, jobType);
 

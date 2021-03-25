@@ -42,27 +42,22 @@ namespace CalculateFunding.Services.Publishing.Reporting
                 throw new Exception($"Could not find specification with id '{specificationId}'");
             }
 
-            if (createActionType == GeneratePublishingCsvJobsCreationAction.Release)
+            if (!specification.IsSelectedForFunding)
             {
-                return await GenerateCsvJobs(createActionType,
+                throw new Exception($"Specification with id '{specificationId}' is not chosen for funding.");
+            }
+
+            return await GenerateCsvJobs(createActionType,
                     specification.Id,
                     specification.FundingPeriod.Id,
                     correlationId,
                     author,
-                    specification.FundingStreams.Select(_ => _.Id),
-                    specification.IsSelectedForFunding);
-            }
-            else
-            {
-                return await GenerateCsvJobs(createActionType,
-                    specification.Id, 
-                    specification.FundingPeriod.Id, 
-                    correlationId,  
-                    author);
-            }
+                    createActionType == GeneratePublishingCsvJobsCreationAction.Release ? 
+                        specification.FundingStreams.Select(_ => _.Id) : 
+                        null);
         }
 
-        public async Task<IEnumerable<Job>> GenerateCsvJobs(GeneratePublishingCsvJobsCreationAction createActionType, string specificationId, string fundingPeriodId, string correlationId, Reference author, IEnumerable<string> fundingStreamIds = null, bool isSpecificationSelectedForFunding = false)
+        public async Task<IEnumerable<Job>> GenerateCsvJobs(GeneratePublishingCsvJobsCreationAction createActionType, string specificationId, string fundingPeriodId, string correlationId, Reference author, IEnumerable<string> fundingStreamIds = null)
         {
             IGeneratePublishedFundingCsvJobsCreation generateCsvJobs = _generateCsvJobsLocator
                     .GetService(createActionType);
@@ -74,8 +69,7 @@ namespace CalculateFunding.Services.Publishing.Reporting
                 User = author,
                 FundingLineCodes = fundingLineCodes,
                 FundingStreamIds = fundingStreamIds ?? Array.Empty<string>(),
-                FundingPeriodId = fundingPeriodId,
-                IsSpecificationSelectedForFunding  = isSpecificationSelectedForFunding
+                FundingPeriodId = fundingPeriodId
             };
             return await generateCsvJobs.CreateJobs(publishedFundingCsvJobsRequest);
         }

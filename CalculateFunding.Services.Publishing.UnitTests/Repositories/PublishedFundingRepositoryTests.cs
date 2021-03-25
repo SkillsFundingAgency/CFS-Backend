@@ -357,47 +357,43 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
         }
 
         [TestMethod]
-        public async Task PublishedFundingVersionBatchProcessing()
+        public void PublishedFundingVersionBatchProcessing()
         {
             string specificationId = NewRandomString();
             string fundingStreamId = NewRandomString();
             string fundingPeriodId = NewRandomString();
             int batchSize = NewRandomNumber();
 
-            Task BatchProcessor(List<PublishedFundingVersion> _)
-            {
-                return Task.CompletedTask;
-            }
-
-            await WhenPublishedFundingVersionBatchProcessingIsUsed(specificationId,
+            WhenPublishedFundingVersionBatchProcessingIsUsed(specificationId,
                 fundingStreamId,
                 fundingPeriodId,
-                BatchProcessor,
                 batchSize);
 
             string queryText = @"SELECT 
-                                c.content.id,
-                                c.content.organisationGroupTypeCode,
-                                c.content.organisationGroupName,
-                                c.content.fundingStreamId,
                                 {
-                                      'id' : c.content.fundingPeriod.id
-                                } AS FundingPeriod,
-                                c.content.specificationId,
-                                c.content.status,
-                                c.content.version,
-                                c.content.majorVersion,
-                                c.content.minorVersion,
-                                c.content.date,
-                                {
-                                    'name' : c.content.author.name
-                                } AS Author,
-                                ARRAY(
-                                    SELECT fundingLine.name,
-                                    fundingLine['value']
-                                    FROM fundingLine IN c.content.fundingLines
-                                ) AS FundingLines,
-                                c.content.providerFundings
+                                    'id':c.content.id,
+                                    'organisationGroupTypeCode':c.content.organisationGroupTypeCode,
+                                    'organisationGroupName':c.content.organisationGroupName,
+                                    'fundingStreamId':c.content.fundingStreamId,
+                                    'fundingPeriod':{
+                                          'id' : c.content.fundingPeriod.id
+                                    },
+                                    'specificationId':c.content.specificationId,
+                                    'status':c.content.status,
+                                    'version':c.content.version,
+                                    'majorVersion':c.content.majorVersion,
+                                    'minorVersion':c.content.minorVersion,
+                                    'date':c.content.date,
+                                    'author':{
+                                        'name' : c.content.author.name
+                                    },
+                                    'fundingLines':ARRAY(
+                                        SELECT fundingLine.name,
+                                        fundingLine['value']
+                                        FROM fundingLine IN c.content.fundingLines
+                                    ),
+                                    'providerFundings':c.content.providerFundings
+                                } as content
                                 FROM     publishedFundingVersions c
                                 WHERE    c.documentType = 'PublishedFundingVersion'
                                 AND      c.content.specificationId = @specificationId
@@ -407,10 +403,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                                 ORDER BY c.content.organisationGroupTypeCode ASC,
                                 c.content.date DESC";
 
-            await _cosmosRepository
+            _cosmosRepository
                 .Received(1)
-                .DocumentsBatchProcessingAsync(
-                    Arg.Is((Func<List<PublishedFundingVersion>, Task>)BatchProcessor),
+                .GetFeedIterator<PublishedFundingVersion>(
                     Arg.Is<CosmosDbQuery>(_ => _.QueryText == queryText &&
                                                HasParameter(_, "@fundingPeriodId", fundingPeriodId) &&
                                                HasParameter(_, "@fundingStreamId", fundingStreamId) &&
@@ -418,63 +413,57 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                     Arg.Is(batchSize));
         }
 
-        private async Task WhenPublishedFundingVersionBatchProcessingIsUsed(string specificationId,
+        private void WhenPublishedFundingVersionBatchProcessingIsUsed(string specificationId,
             string fundingStreamId,
             string fundingPeriodId,
-            Func<List<PublishedFundingVersion>, Task> batchProcessor,
             int batchSize)
-            => await _repository.PublishedFundingVersionBatchProcessing(specificationId,
+            => _repository.GetPublishedFundingVersionsForBatchProcessing(specificationId,
                 fundingStreamId,
                 fundingPeriodId,
-                batchProcessor,
                 batchSize);
 
         [TestMethod]
-        public async Task PublishedFundingBatchProcessing()
+        public void PublishedFundingBatchProcessing()
         {
             string specificationId = NewRandomString();
             string fundingStreamId = NewRandomString();
             string fundingPeriodId = NewRandomString();
             int batchSize = NewRandomNumber();
 
-            Task BatchProcessor(List<PublishedFunding> _)
-            {
-                return Task.CompletedTask;
-            }
-
-            await WhenPublishedFundingBatchProcessingIsUsed(specificationId,
+            WhenPublishedFundingBatchProcessingIsUsed(specificationId,
                 fundingStreamId,
                 fundingPeriodId,
-                BatchProcessor,
                 batchSize);
 
             string queryText = @"SELECT 
-                                c.content.id,
                                 {
-                                    'organisationGroupTypeCode' : c.content.current.organisationGroupTypeCode,
-                                    'groupingReason' : c.content.current.groupingReason,
-                                    'organisationGroupName' : c.content.current.organisationGroupName,
-                                    'organisationGroupIdentifierValue' : c.content.current.organisationGroupIdentifierValue,
-                                    'fundingStreamId' : c.content.current.fundingStreamId,
-                                    'fundingPeriod' : {
-                                      'id' : c.content.current.fundingPeriod.id
-                                    },
-                                    'specificationId' : c.content.current.specificationId,
-                                    'status' : c.content.current.status,
-                                    'version' : c.content.current.version,
-                                    'majorVersion' : c.content.current.majorVersion,
-                                    'minorVersion' : c.content.current.minorVersion,
-                                    'date' : c.content.current.date,
-                                    'providerFundings' : c.content.current.providerFundings,
-                                    'author' : {
-                                        'name' : c.content.current.author.name
-                                    },
-                                    'fundingLines' : ARRAY(
-                                        SELECT fundingLine.name,
-                                        fundingLine['value']
-                                        FROM fundingLine IN c.content.current.fundingLines
-                                    )
-                                } AS Current
+                                    'id':c.content.id,
+                                    'current':{
+                                        'organisationGroupTypeCode' : c.content.current.organisationGroupTypeCode,
+                                        'groupingReason' : c.content.current.groupingReason,
+                                        'organisationGroupName' : c.content.current.organisationGroupName,
+                                        'organisationGroupIdentifierValue' : c.content.current.organisationGroupIdentifierValue,
+                                        'fundingStreamId' : c.content.current.fundingStreamId,
+                                        'fundingPeriod' : {
+                                          'id' : c.content.current.fundingPeriod.id
+                                        },
+                                        'specificationId' : c.content.current.specificationId,
+                                        'status' : c.content.current.status,
+                                        'version' : c.content.current.version,
+                                        'majorVersion' : c.content.current.majorVersion,
+                                        'minorVersion' : c.content.current.minorVersion,
+                                        'date' : c.content.current.date,
+                                        'providerFundings' : c.content.current.providerFundings,
+                                        'author' : {
+                                            'name' : c.content.current.author.name
+                                        },
+                                        'fundingLines' : ARRAY(
+                                            SELECT fundingLine.name,
+                                            fundingLine['value']
+                                            FROM fundingLine IN c.content.current.fundingLines
+                                        )
+                                    }
+                                } as content
                                 FROM     publishedFunding c
                                 WHERE    c.documentType = 'PublishedFunding'
                                 AND      c.content.current.specificationId = @specificationId
@@ -484,10 +473,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                                 ORDER BY c.content.current.organisationGroupTypeCode ASC,
                                 c.content.current.date DESC";
 
-            await _cosmosRepository
+            _cosmosRepository
                 .Received(1)
-                .DocumentsBatchProcessingAsync(
-                    Arg.Is((Func<List<PublishedFunding>, Task>)BatchProcessor),
+                .GetFeedIterator<PublishedFunding>(
                     Arg.Is<CosmosDbQuery>(_ => _.QueryText == queryText &&
                                                HasParameter(_, "@fundingPeriodId", fundingPeriodId) &&
                                                HasParameter(_, "@fundingStreamId", fundingStreamId) &&
@@ -495,15 +483,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                     Arg.Is(batchSize));
         }
 
-        private async Task WhenPublishedFundingBatchProcessingIsUsed(string specificationId,
+        private void WhenPublishedFundingBatchProcessingIsUsed(string specificationId,
             string fundingStreamId,
             string fundingPeriodId,
-            Func<List<PublishedFunding>, Task> batchProcessor,
             int batchSize)
-            => await _repository.PublishedFundingBatchProcessing(specificationId,
+            => _repository.GetPublishedFundingForBatchProcessing(specificationId,
                 fundingStreamId,
                 fundingPeriodId,
-                batchProcessor,
                 batchSize);
 
         [TestMethod]

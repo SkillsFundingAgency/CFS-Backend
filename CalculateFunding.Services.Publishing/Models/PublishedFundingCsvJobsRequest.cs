@@ -11,6 +11,5 @@ namespace CalculateFunding.Services.Publishing.Models
         public IEnumerable<string> FundingLineCodes { get; set; }
         public IEnumerable<string> FundingStreamIds { get; set; }
         public string FundingPeriodId { get; set; }
-        public bool IsSpecificationSelectedForFunding { get; set; }
     }
 }

@@ -29,11 +29,7 @@ namespace CalculateFunding.Services.Publishing.Reporting
 
             tasks.Add(CreatePublishedFundingCsvJobs(publishedFundingCsvJobsRequest));
             tasks.Add(CreatePublishedOrganisationGroupCsvJobs(publishedFundingCsvJobsRequest));
-
-            if (publishedFundingCsvJobsRequest.IsSpecificationSelectedForFunding)
-            {
-                tasks.Add(CreatePublishedGroupsCsvJob(publishedFundingCsvJobsRequest));
-            }
+            tasks.Add(CreatePublishedGroupsCsvJob(publishedFundingCsvJobsRequest));
 
             IEnumerable<Job>[] jobs = await TaskHelper.WhenAllAndThrow(tasks.ToArray());
 

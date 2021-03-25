@@ -808,8 +808,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                         fundingPeriodId,
                         It.IsAny<string>(),
                         It.IsAny<Reference>(),
-                        It.IsAny<IEnumerable<string>>(),
-                        false),
+                        It.IsAny<IEnumerable<string>>()),
                         Times.Once);
         }
 

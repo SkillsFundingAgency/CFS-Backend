@@ -163,8 +163,7 @@ namespace CalculateFunding.Services.Publishing
                 specification.FundingPeriod.Id,
                 correlationId,
                 author,
-                specification.FundingStreams.Select(fs => fs.Id),
-                specification.IsSelectedForFunding);
+                specification.FundingStreams.Select(fs => fs.Id));
         }
 
         private async Task PublishFundingStream(Reference fundingStream,

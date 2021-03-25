@@ -99,13 +99,35 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
                 .WithMessage($"Could not find specification with id '{specificationId}'");
         }
 
-        private void GivenSpecification(string specificationId, string fundingPeriodId, string fundingStreamId)
+        [TestMethod]
+        [DataRow(GeneratePublishingCsvJobsCreationAction.Approve)]
+        [DataRow(GeneratePublishingCsvJobsCreationAction.Refresh)]
+        [DataRow(GeneratePublishingCsvJobsCreationAction.Release)]
+        public void QueueCsvJobs_WhenSpecificationNotSelectedForFunding_ThrowsException(GeneratePublishingCsvJobsCreationAction actionType)
+        {
+            string specificationId = new RandomString();
+            string fundingPeriodId = new RandomString();
+            string fundingStreamId = new RandomString();
+            string correlationId = new RandomString();
+
+            GivenSpecification(specificationId, fundingPeriodId, fundingStreamId, false);
+
+            Func<Task> invocation = () => WhenQueueJobForCsvRequested(actionType, specificationId, correlationId);
+
+            invocation
+                .Should()
+                .Throw<Exception>()
+                .WithMessage($"Specification with id '{specificationId}' is not chosen for funding.");
+        }
+
+        private void GivenSpecification(string specificationId, string fundingPeriodId, string fundingStreamId, bool isSelectedForFunding = true)
         {
             _specificationService
                 .Setup(_ => _.GetSpecificationSummaryById(specificationId))
                 .ReturnsAsync(NewSpecification(_ => _.WithId(specificationId)
                             .WithFundingPeriodId(fundingPeriodId)
-                            .WithFundingStreamIds(new[] { fundingStreamId })));
+                            .WithFundingStreamIds(new[] { fundingStreamId })
+                            .WithIsSelectedForFunding(isSelectedForFunding)));
         }
 
         private void AndReportGenerator(GeneratePublishingCsvJobsCreationAction actionType)

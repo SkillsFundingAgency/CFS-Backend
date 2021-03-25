@@ -179,7 +179,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             await WhenPublishAllProvidersMessageReceivedWithJobId();
 
             ThenEachProviderVersionHasTheFollowingVariationReasons(VariationReason.FundingUpdated, VariationReason.ProfilingUpdated, VariationReason.AuthorityFieldUpdated);
-            AndTheCsvGenerationJobsWereCreated(SpecificationId, FundingPeriodId, FundingStreamId, true);
+            AndTheCsvGenerationJobsWereCreated(SpecificationId, FundingPeriodId, FundingStreamId);
         }
         
         [TestMethod]
@@ -558,7 +558,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Throws(new Exception(error));
         }
 
-        private void AndTheCsvGenerationJobsWereCreated(string specificationId, string fundingPeriodId, string fundingStreamId, bool isSelectedForFunding)
+        private void AndTheCsvGenerationJobsWereCreated(string specificationId, string fundingPeriodId, string fundingStreamId)
         {
             _publishFundingCsvJobsService.Received(1)
                 .GenerateCsvJobs(GeneratePublishingCsvJobsCreationAction.Release,
@@ -566,8 +566,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                         Arg.Is(fundingPeriodId),
                         Arg.Any<string>(),
                         Arg.Any<Reference>(),
-                        Arg.Is<IEnumerable<string>>(_ => _.First() == fundingStreamId),
-                        isSelectedForFunding);
+                        Arg.Is<IEnumerable<string>>(_ => _.First() == fundingStreamId));
         }
 
         private void AndSpecification(bool isSelectedForFunding = false)
