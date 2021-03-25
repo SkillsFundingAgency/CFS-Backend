@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Calcs.ObsoleteItems;
 using CalculateFunding.Services.Calcs.Analysis.ObsoleteItems;
 using CalculateFunding.Services.Calcs.Interfaces;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
@@ -13,18 +15,9 @@ using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using Moq;
-using System.Threading;
-using NSubstitute;
 using Polly;
-
+using Serilog;
 
 namespace CalculateFunding.Services.Calcs.UnitTests.Analysis.ObsoleteItems
 {
@@ -40,7 +33,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis.ObsoleteItems
             _uniqueIdentifiers.Setup(_ => _.CreateUniqueIdentifier())
                 .Returns(() => Guid.NewGuid().ToString());
         }
-        
+
         [TestMethod]
         public async Task CreateObsoleteItem_WhenModelIsInValid_ReturnsBadRequest()
         {
@@ -191,7 +184,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis.ObsoleteItems
                 .Verify(x => x.UpdateObsoleteItem(It.Is<ObsoleteItem>(a => a.Id == obsoleteItemId && a.CalculationIds.Any(x => x == calculationId)), It.IsAny<string>())
                 , Times.Once);
         }
-        
+
         [TestMethod]
         public async Task GetObsoleteItemsForCalculation_WhenObsoleteItemExists_ReturnOkResult()
         {
@@ -246,6 +239,34 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis.ObsoleteItems
                 .Value
                 .Should()
                 .BeEquivalentTo(new[] { obsoleteItem });
+        }
+
+        [TestMethod]
+        public async Task GetObsoleteItemsForSpecification_WhenObsoleteItemReturnsNull_ReturnInternalErrorResult()
+        {
+            // Arrange
+            string obsoleteItemId = NewRandomString();
+            string specificationId = NewRandomString();
+            ObsoleteItem obsoleteItem = CreateModel();
+            obsoleteItem.Id = obsoleteItemId;
+            obsoleteItem.SpecificationId = specificationId;
+
+            Mock<ICalculationsRepository> repository = CreateCalculationsRepository();
+            IObsoleteItemService service = CreateService(repository.Object);
+            repository.Setup(x => x.GetObsoleteItemsForSpecification(specificationId))
+                .ReturnsAsync((IEnumerable<ObsoleteItem>)null);
+
+            // Act
+            IActionResult result = await service.GetObsoleteItemsForSpecification(specificationId);
+
+            // Assert
+            result.
+                Should()
+                .BeOfType<InternalServerErrorResult>()
+                .Which
+                .Value
+                .Should()
+                .BeEquivalentTo("Obsolete items returned null");
         }
 
         [TestMethod]

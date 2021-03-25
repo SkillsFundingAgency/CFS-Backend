@@ -48,7 +48,7 @@ namespace CalculateFunding.Services.Calcs.Analysis.ObsoleteItems
             Guard.ArgumentNotNull(obsoleteItem, nameof(obsoleteItem));
 
             ValidationResult validationResult = await _obsoleteItemValidator.ValidateAsync(obsoleteItem);
-            
+
             if (!validationResult.IsValid)
             {
                 return validationResult.AsBadRequest();
@@ -56,7 +56,7 @@ namespace CalculateFunding.Services.Calcs.Analysis.ObsoleteItems
 
             obsoleteItem.Id = _uniqueIdentifierProvider.CreateUniqueIdentifier();
 
-            HttpStatusCode statusCode = await _calculationsResilience.ExecuteAsync(() 
+            HttpStatusCode statusCode = await _calculationsResilience.ExecuteAsync(()
                 => _calculationsRepository.CreateObsoleteItem(obsoleteItem));
 
             return statusCode == HttpStatusCode.Created ?
@@ -69,9 +69,9 @@ namespace CalculateFunding.Services.Calcs.Analysis.ObsoleteItems
             Guard.ArgumentNotNull(obsoleteItemId, nameof(obsoleteItemId));
             Guard.ArgumentNotNull(calculationId, nameof(calculationId));
 
-            ObsoleteItem obsoleteItem = await _calculationsResilience.ExecuteAsync(() 
+            ObsoleteItem obsoleteItem = await _calculationsResilience.ExecuteAsync(()
                 => _calculationsRepository.GetObsoleteItemById(obsoleteItemId));
-            
+
             if (obsoleteItem == null)
             {
                 string message = $"Obsolete item not found for given obsolete item id - {obsoleteItemId}";
@@ -79,9 +79,9 @@ namespace CalculateFunding.Services.Calcs.Analysis.ObsoleteItems
                 return new NotFoundObjectResult(message);
             }
 
-            Calculation calculation = await _calculationsResilience.ExecuteAsync(() 
+            Calculation calculation = await _calculationsResilience.ExecuteAsync(()
                 => _calculationsRepository.GetCalculationById(calculationId));
-            
+
             if (calculation == null)
             {
                 string message = $"Calculation not found for given calculation id - {calculationId}";
@@ -91,7 +91,7 @@ namespace CalculateFunding.Services.Calcs.Analysis.ObsoleteItems
 
             if (obsoleteItem.TryAddCalculationId(calculationId))
             {
-                HttpStatusCode statusCode = await _calculationsResilience.ExecuteAsync(() 
+                HttpStatusCode statusCode = await _calculationsResilience.ExecuteAsync(()
                     => _calculationsRepository.UpdateObsoleteItem(obsoleteItem));
 
                 return statusCode == HttpStatusCode.OK ?
@@ -106,7 +106,7 @@ namespace CalculateFunding.Services.Calcs.Analysis.ObsoleteItems
         {
             Guard.ArgumentNotNull(calculationId, nameof(calculationId));
 
-            IEnumerable<ObsoleteItem> obsoleteItems = await _calculationsResilience.ExecuteAsync(() 
+            IEnumerable<ObsoleteItem> obsoleteItems = await _calculationsResilience.ExecuteAsync(()
                 => _calculationsRepository.GetObsoleteItemsForCalculation(calculationId));
 
             if (obsoleteItems != null && obsoleteItems.Any())
@@ -121,15 +121,15 @@ namespace CalculateFunding.Services.Calcs.Analysis.ObsoleteItems
         {
             Guard.ArgumentNotNull(specificationId, nameof(specificationId));
 
-            IEnumerable<ObsoleteItem> obsoleteItems = await _calculationsResilience.ExecuteAsync(() 
+            IEnumerable<ObsoleteItem> obsoleteItems = await _calculationsResilience.ExecuteAsync(()
                 => _calculationsRepository.GetObsoleteItemsForSpecification(specificationId));
 
-            if(obsoleteItems != null && obsoleteItems.Any())
+            if (obsoleteItems == null)
             {
-                return new OkObjectResult(obsoleteItems);
+                return new InternalServerErrorResult("Obsolete items returned null");
             }
 
-            return new NotFoundResult();
+            return new OkObjectResult(obsoleteItems);
         }
 
         public async Task<IActionResult> RemoveObsoleteItem(string obsoleteItemId, string calculationId)
@@ -137,23 +137,23 @@ namespace CalculateFunding.Services.Calcs.Analysis.ObsoleteItems
             Guard.ArgumentNotNull(obsoleteItemId, nameof(obsoleteItemId));
             Guard.ArgumentNotNull(calculationId, nameof(calculationId));
 
-            ObsoleteItem obsoleteItem = await _calculationsResilience.ExecuteAsync(() 
+            ObsoleteItem obsoleteItem = await _calculationsResilience.ExecuteAsync(()
                 => _calculationsRepository.GetObsoleteItemById(obsoleteItemId));
-            
+
             if (obsoleteItem == null)
             {
                 string message = $"Obsolete item not found for given obsolete item id - {obsoleteItemId}";
                 _logger.Error(message);
                 return new NotFoundObjectResult(message);
             }
-            
+
             obsoleteItem.TryRemoveCalculationId(calculationId);
 
             string errorMessage = $"Error occurred while removing calculation - {calculationId} from obsolete item - {obsoleteItem.Id}";
 
             if (!obsoleteItem.IsEmpty)
             {
-                HttpStatusCode statusCode = await _calculationsResilience.ExecuteAsync(() 
+                HttpStatusCode statusCode = await _calculationsResilience.ExecuteAsync(()
                     => _calculationsRepository.UpdateObsoleteItem(obsoleteItem));
 
                 return statusCode == HttpStatusCode.OK ?
@@ -162,7 +162,7 @@ namespace CalculateFunding.Services.Calcs.Analysis.ObsoleteItems
             }
             else
             {
-                HttpStatusCode statusCode = await _calculationsResilience.ExecuteAsync(() 
+                HttpStatusCode statusCode = await _calculationsResilience.ExecuteAsync(()
                     => _calculationsRepository.DeleteObsoleteItem(obsoleteItemId));
 
                 return statusCode == HttpStatusCode.NoContent ?
