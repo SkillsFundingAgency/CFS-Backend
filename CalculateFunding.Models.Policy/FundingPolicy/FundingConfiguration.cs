@@ -51,5 +51,11 @@ namespace CalculateFunding.Models.Policy.FundingPolicy
 
         [JsonProperty("runCalculationEngineAfterCoreProviderUpdate")]
         public bool RunCalculationEngineAfterCoreProviderUpdate { get; set; }
+
+        [JsonProperty("enableConverterDataMerge")]
+        public bool EnableConverterDataMerge { get; set; }
+
+        [JsonProperty("indicativeOpenerProviderStatus")]
+        public IEnumerable<string> IndicativeOpenerProviderStatus { get; set; }
     }
 }

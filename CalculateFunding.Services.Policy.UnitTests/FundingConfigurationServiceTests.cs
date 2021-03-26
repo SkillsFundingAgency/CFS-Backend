@@ -494,7 +494,9 @@ namespace CalculateFunding.Services.Policy.UnitTests
                             "New opener - Proposed to open"
                         }
                     }
-                }
+                },
+                EnableConverterDataMerge = false,
+                IndicativeOpenerProviderStatus = new[] {"Draft"}
             };
 
         }

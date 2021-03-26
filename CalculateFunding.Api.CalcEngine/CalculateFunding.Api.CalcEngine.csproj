@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Datasets" Version="5.8.0" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="4.5.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="4.6.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Providers" Version="4.5.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Results" Version="5.2.0" />
     <PackageReference Include="Microsoft.Azure.AppConfiguration.AspNetCore" Version="4.1.0" />

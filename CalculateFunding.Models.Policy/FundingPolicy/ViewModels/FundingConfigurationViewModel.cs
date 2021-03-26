@@ -52,5 +52,9 @@ namespace CalculateFunding.Models.Policy.FundingPolicy.ViewModels
         /// Indicates whether rule based profiling changes are enabled for the fundingstream or not
         /// </summary>
         public bool EnableUserEditableRuleBasedProfiles { get; set; }
+
+        public bool EnableConverterDataMerge { get; set; }
+
+        public IEnumerable<string> IndicativeOpenerProviderStatus { get; set; }
     }
 }
