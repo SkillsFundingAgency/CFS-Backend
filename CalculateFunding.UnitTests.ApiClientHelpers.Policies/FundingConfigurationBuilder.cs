@@ -2,7 +2,7 @@ using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Tests.Common.Helpers;
 
-namespace CalculateFunding.Services.Specs.UnitTests
+namespace CalculateFunding.UnitTests.ApiClientHelpers.Policies
 {
     public class FundingConfigurationBuilder : TestEntityBuilder
     {
@@ -11,6 +11,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
         private string _fundingPeriodId;
         private ProviderSource _providerSource;
         private bool _runCalculationEngineAfterCoreProviderUpdate;
+        private bool _enableConverterDataMerge;
 
         public FundingConfigurationBuilder WithFundingPeriodId(string fundingPeriodId)
         {
@@ -47,6 +48,13 @@ namespace CalculateFunding.Services.Specs.UnitTests
             return this;
         }
 
+        public FundingConfigurationBuilder WithEnableConverterDataMerge(bool enableConverterDataMerge)
+        {
+            _enableConverterDataMerge = enableConverterDataMerge;
+
+            return this;
+        }
+
         public FundingConfiguration Build()
         {
             return new FundingConfiguration
@@ -55,7 +63,8 @@ namespace CalculateFunding.Services.Specs.UnitTests
                 FundingStreamId = _fundingStreamId ?? NewRandomString(),
                 DefaultTemplateVersion = _defaultTemplateVersion,
                 ProviderSource = _providerSource,
-                RunCalculationEngineAfterCoreProviderUpdate = _runCalculationEngineAfterCoreProviderUpdate
+                RunCalculationEngineAfterCoreProviderUpdate = _runCalculationEngineAfterCoreProviderUpdate,
+                EnableConverterDataMerge = _enableConverterDataMerge,
             };
         }
     }

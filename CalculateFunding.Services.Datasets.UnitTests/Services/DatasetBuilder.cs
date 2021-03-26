@@ -56,7 +56,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             return this;
         }
-        
+
         public Dataset Build()
         {
             return new Dataset
@@ -66,7 +66,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 Current = _current,
                 History = _history?.ToList(),
                 Name = _name ?? NewRandomString(),
-                Description = _description ?? NewRandomString()
+                Description = _description ?? NewRandomString(),
             };
         }
     }

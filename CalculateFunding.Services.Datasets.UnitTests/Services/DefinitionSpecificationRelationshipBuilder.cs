@@ -6,10 +6,18 @@ namespace CalculateFunding.Services.Datasets.Services
 {
     public class DefinitionSpecificationRelationshipBuilder : TestEntityBuilder
     {
+        private Reference _specification;
         private Reference _datasetDefinition;
         private DatasetRelationshipVersion _datasetVersion;
         private bool _isSetAsProviderData;
         private string _id;
+        
+        public DefinitionSpecificationRelationshipBuilder WithSpecification(Reference specification)
+        {
+            _specification = specification;
+
+            return this;
+        }
 
         public DefinitionSpecificationRelationshipBuilder WithDatasetDefinition(Reference datasetDefinition)
         {
@@ -35,6 +43,7 @@ namespace CalculateFunding.Services.Datasets.Services
         public DefinitionSpecificationRelationshipBuilder WithId(string id)
         {
             _id = id;
+            
             return this;
         }
 
@@ -45,7 +54,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 DatasetDefinition = _datasetDefinition,
                 DatasetVersion = _datasetVersion,
                 IsSetAsProviderData = _isSetAsProviderData,
-                Id = _id
+                Specification = _specification,
+                Id = _id ?? NewRandomString()
             };
         }
     }

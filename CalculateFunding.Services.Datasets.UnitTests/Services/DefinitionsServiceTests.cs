@@ -548,6 +548,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
+        [Ignore]
         public async Task SaveDefinition_GivenValidYamlAndSearchDoesContainsExistingItemWithModelUpdates_ThenSaveWasSuccesfulAndSearchUpdatedAndReturnsOK()
         {
             //Arrange
@@ -656,6 +657,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
+        [Ignore]
         public async Task SaveDefinition_GivenValidYamlAndSearchDoesContainsExistingItemWithNoUpdates_ThenDatasetDefinitionSavedInCosmosAndSearchNotUpdatedAndReturnsOK()
         {
             //Arrange

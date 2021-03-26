@@ -1858,9 +1858,9 @@ namespace CalculateFunding.Services.Datasets.Services
             return relationshipBuilder.Build();
         }
 
-        private SpecificationSummary NewSpecification(Action<SpecificationSummaryBuilder> setUp = null)
+        private SpecificationSummary NewSpecification(Action<ApiSpecificationSummaryBuilder> setUp = null)
         {
-            SpecificationSummaryBuilder relationshipBuilder = new SpecificationSummaryBuilder();
+            ApiSpecificationSummaryBuilder relationshipBuilder = new ApiSpecificationSummaryBuilder();
 
             setUp?.Invoke(relationshipBuilder);
 

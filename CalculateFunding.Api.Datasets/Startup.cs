@@ -51,6 +51,8 @@ using LocalBlobClient = CalculateFunding.Services.Core.AzureStorage.BlobClient;
 using LocalIBlobClient = CalculateFunding.Services.Core.Interfaces.AzureStorage.IBlobClient;
 using CalculateFunding.Common.Storage;
 using System;
+using CalculateFunding.Models.Datasets.Converter;
+using CalculateFunding.Services.Datasets.Converter;
 
 namespace CalculateFunding.Api.Datasets
 {
@@ -118,6 +120,13 @@ namespace CalculateFunding.Api.Datasets
         public void RegisterComponents(IServiceCollection builder)
         {
             builder.AddAppConfiguration();
+            
+            builder.AddSingleton<IConverterDataMergeService, ConverterDataMergeService>();
+            builder.AddSingleton<IDatasetCloneBuilderFactory, DatasetCloneBuilderFactory>();
+            builder.AddSingleton<IConverterDataMergeLogger, ConverterDataMergeLogger>();
+            builder.AddSingleton<IConverterEligibleProviderService, ConverterEligibleProviderService>();
+            builder.AddSingleton<IValidator<ConverterMergeRequest>, ConverterMergeRequestValidation>();
+
 
             builder.AddSingleton<IDateTimeProvider, DateTimeProvider>();
             

@@ -4,7 +4,6 @@ using System.Linq;
 using System.Net;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Calcs;
-using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Policies.Models;
@@ -25,6 +24,7 @@ using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Specs.Interfaces;
 using CalculateFunding.Services.Specs.MappingProfiles;
 using CalculateFunding.Tests.Common.Helpers;
+using CalculateFunding.UnitTests.ApiClientHelpers.Policies;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -39,7 +39,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
     public partial class SpecificationsServiceTests
     {
         private ISpecificationIndexer _specificationIndexer;
-        
+
         const string FundingStreamId = "YAPGG";
         const string SpecificationId = "ffa8ccb3-eb8e-4658-8b3f-f1e4c3a8f313";
         const string PolicyId = "dda8ccb3-eb8e-4658-8b3f-f1e4c3a8f322";
@@ -63,7 +63,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         private readonly IMessengerService _messengerService;
         private readonly IJobManagement _jobManagement;
         private readonly IVersionRepository<Models.Specs.SpecificationVersion> _versionRepository;
-        
+
         private ISpecificationTemplateVersionChangedHandler _templateVersionChangedHandler;
         private IResultsApiClient _resultsApiClient;
 
@@ -100,7 +100,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Returns(MapSpecification(_specWithFundingPeriodAndFundingStream2));
             mapper.Map<SpecificationSummary>(_specWithNoFundingStream)
                 .Returns(MapSpecification(_specWithNoFundingStream));
-            
+
             _specificationIndexer = Substitute.For<ISpecificationIndexer>();
             _resultsApiClient = Substitute.For<IResultsApiClient>();
             _templateVersionChangedHandler = Substitute.For<ISpecificationTemplateVersionChangedHandler>();
@@ -180,7 +180,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             MapperConfiguration mappingConfiguration = new MapperConfiguration(
                 c =>
                 {
-                    c.AddProfile<SpecificationsMappingProfile>();                  
+                    c.AddProfile<SpecificationsMappingProfile>();
                 }
             );
             IMapper mapper = mappingConfiguration.CreateMapper();

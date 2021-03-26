@@ -10,6 +10,7 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.Datasets.Converter;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Messages;
 using CalculateFunding.Services.Datasets.Interfaces;
@@ -207,6 +208,8 @@ namespace CalculateFunding.Services.Datasets
         {
             return await _cosmosRepository.ReadDocumentByIdAsync<DatasetDefinition>(datasetDefinitionId);
         }
+
+        public async Task SaveConverterDataMergeLog(ConverterDataMergeLog log) => await _cosmosRepository.CreateAsync(log);
 
         public async Task<IEnumerable<DefinitionSpecificationRelationship>> GetAllDefinitionSpecificationsRelationships()
         {

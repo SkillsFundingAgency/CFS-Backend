@@ -230,6 +230,12 @@
             public const string DetectObsoleteFundingLinesPoisoned = "detect-obsolete-funding-lines/$DeadLetterQueue";
             
             public const string DetectObsoleteFundingLinesPoisonedLocal = "detect-obsolete-funding-lines-poisoned";
+
+            public const string RunConverterDatasetMerge = "datasets-converter-dataset-merge";
+            
+            public const string RunConverterDatasetMergePoisoned = "datasets-converter-dataset-merge/$DeadLetterQueue";
+            
+            public const string RunConverterDatasetMergePoisonedLocal = "datasets-converter-dataset-merge-poisoned";
         }
 
         public static class TopicNames

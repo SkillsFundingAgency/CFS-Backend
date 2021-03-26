@@ -7,7 +7,7 @@ using CalculateFunding.Tests.Common.Helpers;
 
 namespace CalculateFunding.Services.Datasets.Builders
 {
-    public class SpecificationSummaryBuilder : TestEntityBuilder
+    public class ApiSpecificationSummaryBuilder : TestEntityBuilder
     {
         private string _id;
         private string _fundingPeriodId;
@@ -18,56 +18,56 @@ namespace CalculateFunding.Services.Datasets.Builders
         private string _providerVersionId;
         private ProviderSource? _providerSource;
 
-        public SpecificationSummaryBuilder WithNoId()
+        public ApiSpecificationSummaryBuilder WithNoId()
         {
             _withNoId = true;
 
             return this;
         }
 
-        public SpecificationSummaryBuilder WithIsSelectedForFunding(bool isSelectedForFunding)
+        public ApiSpecificationSummaryBuilder WithIsSelectedForFunding(bool isSelectedForFunding)
         {
             _isSelectedForFunding = isSelectedForFunding;
 
             return this;
         }
 
-        public SpecificationSummaryBuilder WithId(string id)
+        public ApiSpecificationSummaryBuilder WithId(string id)
         {
             _id = id;
 
             return this;
         }
 
-        public SpecificationSummaryBuilder WithProviderVersionId(string id)
+        public ApiSpecificationSummaryBuilder WithProviderVersionId(string id)
         {
             _providerVersionId = id;
 
             return this;
         }
 
-        public SpecificationSummaryBuilder WithFundingPeriodId(string fundingPeriodId)
+        public ApiSpecificationSummaryBuilder WithFundingPeriodId(string fundingPeriodId)
         {
             _fundingPeriodId = fundingPeriodId;
 
             return this;
         }
 
-        public SpecificationSummaryBuilder WithFundingStreamIds(params string[] fundingStreamIds)
+        public ApiSpecificationSummaryBuilder WithFundingStreamIds(params string[] fundingStreamIds)
         {
             _fundingStreamIds = fundingStreamIds;
 
             return this;
         }
 
-        public SpecificationSummaryBuilder WithNoFundingPeriod()
+        public ApiSpecificationSummaryBuilder WithNoFundingPeriod()
         {
             _withNoFundingPeriod = true;
 
             return this;
         }
 
-        public SpecificationSummaryBuilder WithProviderSource(ProviderSource providerSource)
+        public ApiSpecificationSummaryBuilder WithProviderSource(ProviderSource providerSource)
         {
             _providerSource = providerSource;
             return this;

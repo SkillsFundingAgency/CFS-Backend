@@ -5,6 +5,7 @@ using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.Datasets.Converter;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Messages;
 
@@ -59,5 +60,7 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         Task<bool> DatasetExistsWithGivenName(string datasetName, string datasetId);
 
         Task<DocumentEntity<DatasetDefinition>> GetDatasetDefinitionDocumentByDatasetDefinitionId(string datasetDefinitionId);
+
+        Task SaveConverterDataMergeLog(ConverterDataMergeLog log);
     }
 }

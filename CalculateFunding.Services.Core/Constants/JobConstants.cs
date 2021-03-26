@@ -84,6 +84,8 @@
             public const string BatchPublishedProviderValidationJob = nameof(BatchPublishedProviderValidationJob);
 
             public const string DetectObsoleteFundingLinesJob = nameof(DetectObsoleteFundingLinesJob);
+
+            public const string RunConverterDatasetMergeJob = nameof(RunConverterDatasetMergeJob);
         }
 
         public static class NotificationChannels

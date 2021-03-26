@@ -47,6 +47,8 @@ using IBlobClient = CalculateFunding.Common.Storage.IBlobClient;
 using LocalBlobClient = CalculateFunding.Services.Core.AzureStorage.BlobClient;
 using LocalIBlobClient = CalculateFunding.Services.Core.Interfaces.AzureStorage.IBlobClient;
 using CalculateFunding.Common.Storage;
+using CalculateFunding.Models.Datasets.Converter;
+using CalculateFunding.Services.Datasets.Converter;
 
 [assembly: FunctionsStartup(typeof(CalculateFunding.Functions.Datasets.Startup))]
 
@@ -87,7 +89,15 @@ namespace CalculateFunding.Functions.Datasets
                 builder.AddScoped<OnMapFdzDatasetsEventFiredFailure>();
                 builder.AddScoped<OnDeleteDatasets>();
                 builder.AddScoped<OnDeleteDatasetsFailure>();
+                builder.AddScoped<OnRunConverterDataMerge>();
+                builder.AddScoped<OnRunConverterDataMergeFailure>();
             }
+
+            builder.AddSingleton<IConverterDataMergeService, ConverterDataMergeService>();
+            builder.AddSingleton<IDatasetCloneBuilderFactory, DatasetCloneBuilderFactory>();
+            builder.AddSingleton<IConverterDataMergeLogger, ConverterDataMergeLogger>();
+            builder.AddSingleton<IConverterEligibleProviderService, ConverterEligibleProviderService>();
+            builder.AddSingleton<IValidator<ConverterMergeRequest>, ConverterMergeRequestValidation>();
 
             builder.AddSingleton<IDateTimeProvider, DateTimeProvider>();
 

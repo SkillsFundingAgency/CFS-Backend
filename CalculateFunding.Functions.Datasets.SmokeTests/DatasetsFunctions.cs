@@ -37,6 +37,24 @@ namespace CalculateFunding.Functions.Datasets.SmokeTests
             _datasetService = CreateDatasetService();
             _userProfileProvider = CreateUserProfileProvider();
         }
+        
+        [TestMethod]
+        public async Task OnRunConverterDataMerge_SmokeTestSucceeds()
+        {
+            OnRunConverterDataMerge onRunConverterDataMerge = new OnRunConverterDataMerge(_logger,
+                Substitute.For<IConverterDataMergeService>(),
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                _userProfileProvider,
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
+                IsDevelopment);
+
+            SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.RunConverterDatasetMerge,
+                async(Message smokeResponse) => await onRunConverterDataMerge.Run(smokeResponse));
+
+            response
+                .Should()
+                .NotBeNull();
+        }
 
         [TestMethod]
         public async Task OnDataDefinitionChanges_SmokeTestSucceeds()

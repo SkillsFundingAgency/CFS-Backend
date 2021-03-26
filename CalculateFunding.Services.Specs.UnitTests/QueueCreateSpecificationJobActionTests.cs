@@ -10,9 +10,9 @@ using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Models.Specs;
-using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Tests.Common.Helpers;
+using CalculateFunding.UnitTests.ApiClientHelpers.Policies;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Polly;
@@ -128,7 +128,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
                 CreateJobModelMatching(_ => _.JobDefinitionId == AssignTemplateCalculationsJob &&
                                             _.ParentJobId == expectedParentJobId &&
                                             _.ItemCount == 5 &&
-                                            HasProperty(_, TemplateVersion, templateVersion1) && 
+                                            HasProperty(_, TemplateVersion, templateVersion1) &&
                                             HasProperty(_, SpecificationId, specificationId) &&
                                             HasProperty(_, FundingStreamId, fundingStream1) &&
                                             HasProperty(_, FundingPeriodId, fundingPeriodId)));
@@ -136,7 +136,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
                 CreateJobModelMatching(_ => _.JobDefinitionId == AssignTemplateCalculationsJob &&
                                             _.ParentJobId == expectedParentJobId &&
                                             _.ItemCount == 3 &&
-                                            HasProperty(_, TemplateVersion, templateVersion2) && 
+                                            HasProperty(_, TemplateVersion, templateVersion2) &&
                                             HasProperty(_, SpecificationId, specificationId) &&
                                             HasProperty(_, FundingStreamId, fundingStream3) &&
                                             HasProperty(_, FundingPeriodId, fundingPeriodId)));
@@ -166,13 +166,13 @@ namespace CalculateFunding.Services.Specs.UnitTests
                                                                                       .WithFundingPeriodId(fundingPeriodId)
                                                                                       .WithProviderSource(Models.Providers.ProviderSource.FDZ)
                                                                                       .WithProviderSnapshotId(providerSnapshotId));
-            
+
             GivenTheFundingTemplateContentsForPeriodAndStream(fundingPeriodId, fundingStreamId,
                 templateVersion1,
                  NewTemplateMetadataContents(_ => _.WithFundingLines(
                      NewFundingLine(fl => fl.WithCalculations(NewCalculation(cal => cal.WithReferenceData(NewReferenceData(), NewReferenceData()).WithTemplateCalculationId(templateCalculationId1)))),
                      NewFundingLine(fl => fl.WithCalculations(NewCalculation(cal => cal.WithTemplateCalculationId(templateCalculationId2)), NewCalculation(cal => cal.WithTemplateCalculationId(templateCalculationId3))))))); //item count 5
-           
+
             await WhenTheQueueCreateSpecificationJobActionIsRun(specificationVersion, _user, _correlationId);
 
             await ThenProviderSnapshotDataLoadJobWasCreated(
@@ -198,7 +198,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
 
         private static uint NewRandomUint()
         {
-            return (uint) new RandomNumberBetween(0, int.MaxValue);
+            return (uint)new RandomNumberBetween(0, int.MaxValue);
         }
 
         private static int NewRandomInt() => new RandomNumberBetween(1, 10000);
