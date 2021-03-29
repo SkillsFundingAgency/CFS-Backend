@@ -11,6 +11,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Moq.Language;
+using Polly;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
 {
@@ -23,8 +24,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         public void SetUp()
         {
             _profilingService = new Mock<IProfilingService>();
+
             BatchProcessor = new PublishedProviderVersionCsvBatchProcessor(PublishedFunding.Object,
                 PredicateBuilder.Object,
+                new ResiliencePolicies
+                {
+                    PublishedFundingRepository = Policy.NoOpAsync()
+                },
                 FileSystemAccess.Object,
                 _profilingService.Object,
                 CsvUtils.Object);

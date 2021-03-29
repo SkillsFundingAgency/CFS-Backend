@@ -17,10 +17,10 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
 {
     public class PublishedProviderCsvBatchProcessor : CsvBatchProcessBase, IFundingLineCsvBatchProcessor
     {
-        private readonly IPublishedFundingRepository _publishedFunding;
-        private readonly IPublishedFundingPredicateBuilder _predicateBuilder;
-        private readonly IProfilingService _profilingService;
-        private readonly AsyncPolicy _publishedFundingRepository;
+        protected readonly IPublishedFundingRepository _publishedFunding;
+        protected readonly IPublishedFundingPredicateBuilder _predicateBuilder;
+        protected readonly IProfilingService _profilingService;
+        protected readonly AsyncPolicy _publishedFundingRepository;
 
         public PublishedProviderCsvBatchProcessor(IPublishedFundingRepository publishedFunding,
             IPublishedFundingPredicateBuilder predicateBuilder,
@@ -40,14 +40,14 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
             _publishedFundingRepository = resiliencePolicies.PublishedFundingRepository;
         }
 
-        public bool IsForJobType(FundingLineCsvGeneratorJobType jobType)
+        public virtual bool IsForJobType(FundingLineCsvGeneratorJobType jobType)
         {
             return jobType == FundingLineCsvGeneratorJobType.Released ||
                    jobType == FundingLineCsvGeneratorJobType.CurrentState ||
                    jobType == FundingLineCsvGeneratorJobType.CurrentProfileValues;
         }
 
-        public async Task<bool> GenerateCsv(FundingLineCsvGeneratorJobType jobType,
+        public virtual async Task<bool> GenerateCsv(FundingLineCsvGeneratorJobType jobType,
             string specificationId, 
             string fundingPeriodId,
             string temporaryFilePath, 
@@ -62,26 +62,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
             string predicate = _predicateBuilder.BuildPredicate(jobType);
             string joinPredicate = _predicateBuilder.BuildJoinPredicate(jobType);
 
-            IEnumerable<FundingStreamPeriodProfilePattern> profilePeriodPatterns = await _profilingService.GetProfilePatternsForFundingStreamAndFundingPeriod(fundingStreamId, fundingPeriodId);
-
-            if (profilePeriodPatterns == null)
-            {
-                throw new NonRetriableException(
-                    $"Did not locate any profile patterns for funding stream {fundingStreamId} and funding period {fundingPeriodId}. Unable to continue with Qa Schema Generation");
-            }
-
-            IEnumerable<ProfilePeriodPattern> allPatterns = profilePeriodPatterns
-                    .Where(p => p.FundingLineId == fundingLineCode)
-                    .SelectMany(p => p.ProfilePattern)
-                    .ToArray();
-
-            IEnumerable<ProfilePeriodPattern> uniqueProfilePatterns = allPatterns.DistinctBy(_ => new
-            {
-                _.Occurrence,
-                _.Period,
-                _.PeriodType,
-                _.PeriodYear
-            });
+            IEnumerable<ProfilePeriodPattern> uniqueProfilePatterns = await GetProfilePeriodPatterns(jobType, fundingStreamId, fundingPeriodId, fundingLineCode);
 
             await _publishedFundingRepository.ExecuteAsync(() => _publishedFunding.PublishedProviderBatchProcessing(predicate,
                 specificationId,
@@ -102,6 +83,35 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
             );
             
             return processedResults;
+        }
+
+        protected async Task<IEnumerable<ProfilePeriodPattern>> GetProfilePeriodPatterns(FundingLineCsvGeneratorJobType jobType, string fundingStreamId, string fundingPeriodId, string fundingLineCode)
+        {
+            if (jobType != FundingLineCsvGeneratorJobType.CurrentProfileValues && jobType != FundingLineCsvGeneratorJobType.HistoryProfileValues)
+            {
+                return null;
+            }
+
+            IEnumerable<FundingStreamPeriodProfilePattern> profilePeriodPatterns = await _profilingService.GetProfilePatternsForFundingStreamAndFundingPeriod(fundingStreamId, fundingPeriodId);
+
+            if (profilePeriodPatterns == null)
+            {
+                throw new NonRetriableException(
+                    $"Did not locate any profile patterns for funding stream {fundingStreamId} and funding period {fundingPeriodId}. Unable to continue with Qa Schema Generation");
+            }
+
+            IEnumerable<ProfilePeriodPattern> allPatterns = profilePeriodPatterns
+                    .Where(p => p.FundingLineId == fundingLineCode)
+                    .SelectMany(p => p.ProfilePattern)
+                    .ToArray();
+
+            return allPatterns.DistinctBy(_ => new
+            {
+                _.Occurrence,
+                _.Period,
+                _.PeriodType,
+                _.PeriodYear
+            });
         }
     }
 }

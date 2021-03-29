@@ -15,34 +15,28 @@ using CalculateFunding.Services.Publishing.Interfaces;
 
 namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
 {
-    public class PublishedProviderVersionCsvBatchProcessor : CsvBatchProcessBase,  IFundingLineCsvBatchProcessor
+    public class PublishedProviderVersionCsvBatchProcessor : PublishedProviderCsvBatchProcessor
     {
-        private readonly IPublishedFundingRepository _publishedFunding;
-        private readonly IPublishedFundingPredicateBuilder _predicateBuilder;
-        private readonly IProfilingService _profilingService;
-
         public PublishedProviderVersionCsvBatchProcessor(IPublishedFundingRepository publishedFunding,
             IPublishedFundingPredicateBuilder predicateBuilder,
+            IPublishingResiliencePolicies resiliencePolicies,
             IFileSystemAccess fileSystemAccess,
             IProfilingService profilingService,
-            ICsvUtils csvUtils) : base(fileSystemAccess, csvUtils)
+            ICsvUtils csvUtils) : base(publishedFunding, 
+                                        predicateBuilder, 
+                                        resiliencePolicies, 
+                                        profilingService, 
+                                        fileSystemAccess, csvUtils)
         {
-            Guard.ArgumentNotNull(publishedFunding, nameof(publishedFunding));
-            Guard.ArgumentNotNull(predicateBuilder, nameof(predicateBuilder));
-            Guard.ArgumentNotNull(profilingService, nameof(profilingService));
-
-            _publishedFunding = publishedFunding;
-            _predicateBuilder = predicateBuilder;
-            _profilingService = profilingService;
         }
 
-        public bool IsForJobType(FundingLineCsvGeneratorJobType jobType)
+        public override bool IsForJobType(FundingLineCsvGeneratorJobType jobType)
         {
             return jobType == FundingLineCsvGeneratorJobType.History ||
                    jobType == FundingLineCsvGeneratorJobType.HistoryProfileValues;
         }
 
-        public async Task<bool> GenerateCsv(FundingLineCsvGeneratorJobType jobType,
+        public override async Task<bool> GenerateCsv(FundingLineCsvGeneratorJobType jobType,
             string specificationId, 
             string fundingPeriodId,
             string temporaryFilePath, 
@@ -57,26 +51,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
             string predicate = _predicateBuilder.BuildPredicate(jobType);
             string join = _predicateBuilder.BuildJoinPredicate(jobType);
 
-            IEnumerable<FundingStreamPeriodProfilePattern> profilePeriodPatterns = await _profilingService.GetProfilePatternsForFundingStreamAndFundingPeriod(fundingStreamId, fundingPeriodId);
-
-            if (profilePeriodPatterns == null)
-            {
-                throw new NonRetriableException(
-                    $"Did not locate any profile patterns for funding stream {fundingStreamId} and funding period {fundingPeriodId}. Unable to continue with Qa Schema Generation");
-            }
-
-            IEnumerable<ProfilePeriodPattern> allPatterns = profilePeriodPatterns
-                    .Where(p => p.FundingLineId == fundingLineCode)
-                    .SelectMany(p => p.ProfilePattern)
-                    .ToArray();
-
-            IEnumerable<ProfilePeriodPattern> uniqueProfilePatterns = allPatterns.DistinctBy(_ => new
-            {
-                _.Occurrence,
-                _.Period,
-                _.PeriodType,
-                _.PeriodYear
-            });
+            IEnumerable<ProfilePeriodPattern> uniqueProfilePatterns = await GetProfilePeriodPatterns(jobType, fundingStreamId, fundingPeriodId, fundingLineCode);
 
             ICosmosDbFeedIterator<PublishedProviderVersion> documents = _publishedFunding.GetPublishedProviderVersionsForBatchProcessing(predicate,
                 specificationId,

@@ -27,7 +27,7 @@ namespace CalculateFunding.Services.DataImporter.UnitTests
             //Act
             for(int i = 0; i < headerList.Length; i++)
             {
-                ExcelDatasetReader.AddToDictionary(headers, tableDefinition, headerList[i], i+1);
+                ExcelDatasetReader.AddToDictionary(headers, tableDefinition, headerList[i], i+1, false);
             }
 
             //Assert
