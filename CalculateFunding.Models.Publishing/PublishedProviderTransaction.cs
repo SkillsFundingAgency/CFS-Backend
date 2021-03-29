@@ -2,7 +2,6 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace CalculateFunding.Models.Publishing
 {
@@ -10,7 +9,7 @@ namespace CalculateFunding.Models.Publishing
     {
         [JsonProperty("publishedProviderId")]
         public string PublishedProviderId { get; set; }
-        
+
         /// <summary>
         /// Published Provider Approval Status
         /// </summary>
@@ -22,6 +21,9 @@ namespace CalculateFunding.Models.Publishing
 
         [JsonProperty("author")]
         public Reference Author { get; set; }
+
+        [JsonProperty("variationReasons")]
+        public string[] VariationReasons { get; set; }
 
         [JsonProperty("fundingLines")]
         public IEnumerable<FundingLine> FundingLines { get; set; }

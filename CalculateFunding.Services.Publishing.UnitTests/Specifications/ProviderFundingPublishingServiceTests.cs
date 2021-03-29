@@ -4,11 +4,9 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Policies.Models;
-using CalculateFunding.Common.Extensions;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Publishing;
-using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
@@ -212,19 +210,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 
             string filteredIdOne = NewRandomString();
             string filteredIdTwo = NewRandomString();
-            
+
             GivenTheApiResponseDetailsForTheSuppliedId(NewApiSpecificationSummary(_ =>
                 _.WithIsSelectedForFunding(true)));
             AndTheFilteredListOfPublishedProviderIds(filteredIdOne, filteredIdTwo);
 
             AndTheApiResponseDetailsForSpecificationsBatchProvidersJob(publishFundingJob, Core.Extensions.JsonExtensions.AsJson(new PublishedProviderIdsRequest
-                    {
-                        PublishedProviderIds = new []
+            {
+                PublishedProviderIds = new[]
                         {
                             filteredIdOne,
                             filteredIdTwo
                         }
-                    }));
+            }));
 
             await WhenBatchProvidersFundingIsPublished();
 
@@ -330,9 +328,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         {
             PublishedProviderVersion publishedProviderVersion = NewPublishedProviderVersion(_ =>
                 _.WithAuthor(new Reference
-                    {
-                        Id = Guid.NewGuid().ToString()
-                    })
+                {
+                    Id = Guid.NewGuid().ToString()
+                })
+                    .WithVariationReasons(new List<VariationReason> { VariationReason.FundingUpdated, VariationReason.ProfilingUpdated })
                     .WithFundingLines(NewFundingLine()));
 
             AndThePublishedFundingRepositoryReturnsPublishedProviderVersions(publishedProviderVersion);
@@ -346,6 +345,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                     .WithDate(publishedProviderVersion.Date)
                     .WithPublishedProviderStatus(publishedProviderVersion.Status)
                     .WithTotalFunding(publishedProviderVersion.TotalFunding)
+                    .WithVariationReasons(publishedProviderVersion.VariationReasons.Select(s => s.ToString()).ToArray())
                     .WithFundingLines(publishedProviderVersion.FundingLines.ToArray()))
             };
 

@@ -16,6 +16,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private decimal? _totalFunding;
         private IEnumerable<FundingLine> _fundingLines;
         private string _publishedProviderId;
+        private string[] _variationReasons;
 
         public PublishedProviderTransactionBuilder WithPublishedProviderId(string publishedProviderId)
         {
@@ -23,7 +24,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             return this;
         }
-        
+
         public PublishedProviderTransactionBuilder WithAuthor(Reference author)
         {
             _author = author;
@@ -59,6 +60,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return this;
         }
 
+        public PublishedProviderTransactionBuilder WithVariationReasons(string[] variationReasons)
+        {
+            _variationReasons = variationReasons;
+
+            return this;
+        }
+
         public PublishedProviderTransaction Build()
         {
             return new PublishedProviderTransaction
@@ -67,6 +75,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 Status = _status.GetValueOrDefault(NewRandomEnum<PublishedProviderStatus>()),
                 Author = _author,
                 Date = _date.GetValueOrDefault(NewRandomDateTime()),
+                VariationReasons = _variationReasons,
                 TotalFunding = _totalFunding,
                 FundingLines = _fundingLines
             };
