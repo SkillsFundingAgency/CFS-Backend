@@ -24,7 +24,9 @@ namespace CalculateFunding.Services.Datasets.ExcelFormatter
                     new Tuple<string, Color>("Max. or Min. value exceeded", Color.FromArgb(255, 217, 102)),
                     new Tuple<string, Color>("Provider ID value missing", Color.FromArgb(255, 255, 114)),
                     new Tuple<string, Color>("Duplicate entries in the provider ID column", Color.FromArgb(122, 124, 255)),
-                    new Tuple<string, Color>("Provider ID does not exist in the current funding stream provider", Color.FromArgb(255, 178, 255))
+                    new Tuple<string, Color>("Provider ID does not exist in the current funding stream provider", Color.FromArgb(255, 178, 255)),
+                    new Tuple<string, Color>("New provider to be inserted. All data schema fields required on upload file for new providers.", Color.FromArgb(146, 208, 80)),
+                    new Tuple<string, Color>("Columns not included on the data schema", Color.FromArgb(255, 0, 0))
                 };
 
                 // Act
@@ -82,7 +84,7 @@ namespace CalculateFunding.Services.Datasets.ExcelFormatter
 
         private string ToAsciRgbRepresentation(Color color)
         {
-            return $"FF{color.R:X}{color.G:X}{color.B:X}";
+            return $"FF{color.R:X2}{color.G:X2}{color.B:X2}";
         }
     }
 }

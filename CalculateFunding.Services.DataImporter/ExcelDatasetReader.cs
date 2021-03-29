@@ -35,17 +35,17 @@ namespace CalculateFunding.Services.DataImporter
             }     
 	    }
 
-        public TableLoadResultWithHeaders Read(ExcelPackage excelPackage, DatasetDefinition datasetDefinition, bool parse)
+        public TableLoadResultWithHeaders Read(ExcelPackage excelPackage, DatasetDefinition datasetDefinition, bool parse, bool includeUnmatchingColumn)
         {
             if (datasetDefinition.TableDefinitions.Count == 1 && excelPackage.Workbook.Worksheets.Count > 0)
             {
-                return ConvertSheetToObjects(excelPackage.Workbook.Worksheets.First(), datasetDefinition.TableDefinitions.First(), parse);
+                return ConvertSheetToObjects(excelPackage.Workbook.Worksheets.First(), datasetDefinition.TableDefinitions.First(), parse, includeUnmatchingColumn);
             }
 
             return null;
         }
 
-        private static TableLoadResultWithHeaders ConvertSheetToObjects(ExcelWorksheet worksheet, TableDefinition tableDefinition, bool parse = true)
+        private static TableLoadResultWithHeaders ConvertSheetToObjects(ExcelWorksheet worksheet, TableDefinition tableDefinition, bool parse = true, bool includeUnmatchingColumn = false)
         {
             TableLoadResultWithHeaders result = new TableLoadResultWithHeaders()
 	        {
@@ -62,7 +62,7 @@ namespace CalculateFunding.Services.DataImporter
                 .Distinct()
                 .OrderBy(x => x);
 
-            var headerDictionary = MatchHeaderColumns(worksheet, tableDefinition);
+            var headerDictionary = MatchHeaderColumns(worksheet, tableDefinition, includeUnmatchingColumn);
 
             foreach (var row in rows.Skip(1))
             {
@@ -165,7 +165,7 @@ namespace CalculateFunding.Services.DataImporter
 	        }
         }
 
-        private static Dictionary<string, int> MatchHeaderColumns(ExcelWorksheet worksheet, TableDefinition tableDefinition)
+        private static Dictionary<string, int> MatchHeaderColumns(ExcelWorksheet worksheet, TableDefinition tableDefinition, bool includeUnmatchingColumn)
         {
             ExcelCellAddress start = worksheet.Dimension.Start;
             ExcelCellAddress end = worksheet.Dimension.End;
@@ -177,16 +177,17 @@ namespace CalculateFunding.Services.DataImporter
                 string valAsString = val.GetValue<string>()?.ToLowerInvariant();
                 if (valAsString != null)
                 {
-                    AddToDictionary(headerDictionary, tableDefinition, valAsString, col);
+                    AddToDictionary(headerDictionary, tableDefinition, valAsString, col, includeUnmatchingColumn);
                 }
             }
 
             return headerDictionary;
         }
 
-        public static void AddToDictionary(IDictionary<string, int> headers, TableDefinition tableDefinition, string headerCellValue, int colIndex)
+        public static void AddToDictionary(IDictionary<string, int> headers, TableDefinition tableDefinition, string headerCellValue, int colIndex, bool includeUnmatchingColumn)
         {
             List<FieldDefinition> columns = tableDefinition.FieldDefinitions.Where(x => MatchColumn(x, headerCellValue)).ToList();
+
             if (columns != null)
             {
                 foreach (var column in columns)
@@ -196,6 +197,11 @@ namespace CalculateFunding.Services.DataImporter
                         headers.Add(column.Name, colIndex);
                     }
                 }
+            }
+
+            if (includeUnmatchingColumn && (columns == null || columns.Count == 0))
+            {
+                headers.Add(headerCellValue, colIndex);
             }
         }
 

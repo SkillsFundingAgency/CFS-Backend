@@ -3529,7 +3529,11 @@ namespace CalculateFunding.Services.Datasets.Services
             mergeResult.TablesMergeResults.Add(tableMergeResult);
 
             IDatasetDataMergeService datasetDataMergeService = CreateDatasetDataMergeService();
-            datasetDataMergeService.Merge(Arg.Is<DatasetDefinition>(_ => _.Id == DataDefinitionId), Arg.Any<string>(), Arg.Any<string>())
+            datasetDataMergeService.Merge(
+                Arg.Is<DatasetDefinition>(_ => _.Id == DataDefinitionId), 
+                Arg.Any<string>(), 
+                Arg.Any<string>(),
+                Arg.Any<DatasetEmptyFieldEvaluationOption>())
                 .Returns(mergeResult);
 
             DatasetService service = CreateDatasetService(logger: logger,
@@ -3702,7 +3706,12 @@ namespace CalculateFunding.Services.Datasets.Services
             mergeResult.TablesMergeResults.Add(tableMergeResult);
 
             IDatasetDataMergeService datasetDataMergeService = CreateDatasetDataMergeService();
-            datasetDataMergeService.Merge(Arg.Is<DatasetDefinition>(_ => _.Id == DataDefinitionId), Arg.Any<string>(), Arg.Any<string>())
+            datasetDataMergeService
+                .Merge(
+                Arg.Is<DatasetDefinition>(_ => _.Id == DataDefinitionId), 
+                Arg.Any<string>(), 
+                Arg.Any<string>(),
+                Arg.Any<DatasetEmptyFieldEvaluationOption>())
                 .Returns(mergeResult);
 
             DatasetService service = CreateDatasetService(logger: logger,

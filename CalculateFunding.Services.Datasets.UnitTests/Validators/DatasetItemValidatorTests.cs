@@ -1,18 +1,22 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Linq;
-using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.ProviderLegacy;
+using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.DataImporter.Validators;
 using CalculateFunding.Services.DataImporter.Validators.Extension;
 using CalculateFunding.Services.DataImporter.Validators.Models;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
+using Microsoft.Azure.Storage.Blob;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using Newtonsoft.Json.Linq;
 using OfficeOpenXml;
+using Serilog;
 
 namespace CalculateFunding.Services.Datasets.Validators
 {
@@ -21,17 +25,68 @@ namespace CalculateFunding.Services.Datasets.Validators
 	{
 		private static readonly IList<ProviderSummary> ProviderSummaries = MockData.CreateProviderSummaries();
 
-		[TestMethod]
-		public void Validate_GivenAValidFile_ShouldNotCreateErrorSheetAndDoAnyColoringInFirstSheet()
-		{
-			ValidationShouldBeValid("Factors.json", "FactorsValid.xlsx", new Dictionary<CellReference, FieldValidationResult.ReasonForFailure>(), new List<string>(), true);
+		private Mock<ILogger> _logger;
+		private Mock<IBlobClient> _blobClient;
+
+		[TestInitialize]
+		public void Initialize()
+        {
+			_logger = new Mock<ILogger>();
+			_blobClient = new Mock<IBlobClient>();
 		}
 
 		[TestMethod]
-		public void Validate_GivenAnInvalidFile_ShouldCreateErrorSheet()
+		public void Validate_GivenAValidFile_ShouldNotCreateErrorSheetAndDoAnyColoringInFirstSheet()
+		{
+			string blobFileName = "FactorsValid.xlsx";
+			string currentBlobFilePath = GetTestItemPath(blobFileName);
+
+			using MemoryStream memoryStream = new MemoryStream(File.ReadAllBytes(currentBlobFilePath));
+
+			AndBlobClient(currentBlobFilePath, memoryStream);
+
+			ValidationShouldBeValid(
+				"Factors.json",
+				blobFileName, 
+				new Dictionary<CellReference, FieldValidationResult.ReasonForFailure>(), 
+				new List<string>(), 
+				true,
+				currentBlobFilePath,
+				DatasetEmptyFieldEvaluationOption.NA);
+		}
+
+		[TestMethod]
+		public void Validate_GivenAnInvalidFileWithMissingRequiredFieldForPartialFieldSetWithEvaluateAsNull_ShouldCreateErrorSheet()
 		{
 			// Arrange
-			List<string> expectedHeaderErrors = new List<string>()
+			List<string> expectedHeaderErrors = new List<string>
+			{
+				"1819 Retention Factor"
+			};
+
+			string currentDatasetBlobFileName = "FactorsValid.xlsx";
+			string currentDatasetBlobFilePath = GetTestItemPath(currentDatasetBlobFileName);
+
+			using MemoryStream memoryStream = new MemoryStream(File.ReadAllBytes(currentDatasetBlobFilePath));
+
+			AndBlobClient(currentDatasetBlobFileName, memoryStream);
+
+			// Act & Assert
+			ValidationShouldBeValid(
+				"Factors.json",
+				"FactorsVariousInvalidFields_PartialSet_Current_MissingRequiredield.xlsx",
+				new Dictionary<CellReference, FieldValidationResult.ReasonForFailure>(),
+				expectedHeaderErrors,
+				false,
+				currentDatasetBlobFileName,
+				DatasetEmptyFieldEvaluationOption.AsNull);
+		}
+
+		[TestMethod]
+		public void Validate_GivenAnInvalidFullSetFile_ShouldCreateErrorSheet()
+		{
+			// Arrange
+			List<string> expectedHeaderErrors = new List<string>
 			{
 				"Local Authority"
 			};
@@ -54,31 +109,102 @@ namespace CalculateFunding.Services.Datasets.Validators
 				{new CellReference(7, 1), FieldValidationResult.ReasonForFailure.DuplicateEntriesInTheProviderIdColumn}
 			};
 
+			string currentDatasetBlobFileName = "FactorsVariousInvalidFields_Current.xlsx";
+			string currentDatasetBlobFilePath = GetTestItemPath(currentDatasetBlobFileName);
+
+			using MemoryStream memoryStream = new MemoryStream(File.ReadAllBytes(currentDatasetBlobFilePath));
+
+			AndBlobClient(currentDatasetBlobFileName, memoryStream);
+
 			// Act & Assert
-			ValidationShouldBeValid("Factors.json", "FactorsVariousInvalidFields.xlsx", expectedErrors, expectedHeaderErrors, false);
+			ValidationShouldBeValid(
+				"Factors.json", 
+				"FactorsVariousInvalidFields.xlsx", 
+				expectedErrors, 
+				expectedHeaderErrors, 
+				false,
+				currentDatasetBlobFileName,
+				DatasetEmptyFieldEvaluationOption.NA);
 		}
 
-		private static void ValidationShouldBeValid(string datasetDefinitionName, string excelFileToTest, Dictionary<CellReference, FieldValidationResult.ReasonForFailure> expectedErrors, List<string> expectedHeaderErrors, bool expectedValidationResult)
+		[TestMethod]
+		public void Validate_GivenAnInvalidPartialSetFile_ShouldCreateErrorSheet()
 		{
-			DatasetUploadValidationModelValidator datasetItemValidatorUnderTest = new DatasetUploadValidationModelValidator(new ExcelDatasetReader());
+			// Arrange
+			List<string> expectedHeaderErrors = new List<string>()
+			{
+				"Local Authority",
+				"1819 Area Cost Factor"
+			};
+
+			var expectedErrors = new Dictionary<CellReference, FieldValidationResult.ReasonForFailure>()
+			{
+				{new CellReference(2, 1), FieldValidationResult.ReasonForFailure.NewProviderMissingAllDataSchemaFields},
+			};
+
+			string blobFileName = "FactorsVariousInvalidFields_Current.xlsx";
+			string currentBlobFilePath = GetTestItemPath(blobFileName);
+
+			using MemoryStream memoryStream = new MemoryStream(File.ReadAllBytes(currentBlobFilePath));
+
+			AndBlobClient(blobFileName, memoryStream);
+
+			// Act & Assert
+			ValidationShouldBeValid(
+				"Factors.json", 
+				"FactorsVariousInvalidPartialFields.xlsx", 
+				expectedErrors, 
+				expectedHeaderErrors, 
+				false, 
+				blobFileName,
+				DatasetEmptyFieldEvaluationOption.NA);
+		}
+
+		private void AndBlobClient(string blobFileName, Stream stream)
+		{
+			Mock<ICloudBlob> mockCloudBlob = new Mock<ICloudBlob>();
+
+			_blobClient
+				.Setup(_ => _.GetBlobReferenceFromServerAsync(blobFileName))
+				.ReturnsAsync(mockCloudBlob.Object);
+
+			_blobClient
+				.Setup(_ => _.DownloadToStreamAsync(mockCloudBlob.Object))
+				.ReturnsAsync(stream);
+		}
+
+		private void ValidationShouldBeValid(
+			string datasetDefinitionName, 
+			string excelFileToTest, 
+			Dictionary<CellReference, FieldValidationResult.ReasonForFailure> expectedErrors, 
+			List<string> expectedHeaderErrors, 
+			bool expectedValidationResult,
+			string latestBlobFileName,
+			DatasetEmptyFieldEvaluationOption datasetEmptyFieldEvaluationOption)
+		{
+			DatasetUploadValidationModelValidator datasetItemValidatorUnderTest = 
+				new DatasetUploadValidationModelValidator(new ExcelDatasetReader(), _blobClient.Object, _logger.Object);
 			DatasetDefinition datasetDefinition = GetDatasetDefinitionByName(datasetDefinitionName);
 			FileInfo fileInfoForXlsxFile = GetFileInfoForXlsxFile(excelFileToTest);
 
-			using (var excelPackage = new ExcelPackage(fileInfoForXlsxFile))
-			{
-				DatasetUploadValidationModel uploadValidationModel =
-					new DatasetUploadValidationModel(excelPackage, () => ProviderSummaries, datasetDefinition);
+            using ExcelPackage excelPackage = new ExcelPackage(fileInfoForXlsxFile);
+            DatasetUploadValidationModel uploadValidationModel =
+                new DatasetUploadValidationModel(
+					excelPackage, 
+					() => ProviderSummaries, 
+					datasetDefinition,
+					datasetEmptyFieldEvaluationOption,
+					latestBlobFileName);
 
-				var validationResult = datasetItemValidatorUnderTest.Validate(uploadValidationModel);
+            var validationResult = datasetItemValidatorUnderTest.Validate(uploadValidationModel);
 
-				validationResult.IsValid.Should().Be(expectedValidationResult);
-				CheckFieldsAreColored(excelPackage.Workbook.Worksheets[1], expectedErrors);
-				if (!expectedValidationResult)
-				{
-					CheckHeaderErrors(excelPackage.Workbook.Worksheets[2], expectedHeaderErrors, new CellReference(9, 1));
-				}
-			}
-		}
+            validationResult.IsValid.Should().Be(expectedValidationResult);
+            CheckFieldsAreColored(excelPackage.Workbook.Worksheets[1], expectedErrors);
+            if (!expectedValidationResult)
+            {
+                CheckHeaderErrors(excelPackage.Workbook.Worksheets[2], expectedHeaderErrors, new CellReference(11, 1));
+            }
+        }
 
 		private static void CheckFieldsAreColored(ExcelWorksheet excelWorksheet,
 			IDictionary<CellReference, FieldValidationResult.ReasonForFailure> expectedErrors)
@@ -125,7 +251,12 @@ namespace CalculateFunding.Services.Datasets.Validators
 
 		private static FileInfo GetFileInfoForXlsxFile(string fileName)
 		{
-			return new FileInfo($"TestItems{Path.DirectorySeparatorChar}{fileName}");
+			return new FileInfo(GetTestItemPath(fileName));
+		}
+
+		private static string GetTestItemPath(string fileName)
+        {
+			return Path.Join("TestItems", fileName);
 		}
 
 		private static DatasetDefinition GetDatasetDefinitionByName(string datasetDefinitionName)
@@ -142,6 +273,8 @@ namespace CalculateFunding.Services.Datasets.Validators
 		{
 			return $"FF{color.R:X}{color.G:X}{color.B:X}";
 		}
+
+		private static string NewRandomString() => new RandomString();
 
 		private class CellReference
 		{

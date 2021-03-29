@@ -587,7 +587,7 @@ namespace CalculateFunding.Services.Datasets
                 }
                 else if(model.MergeExistingVersion && dataset != null)
                 {
-                    (validationFailures, _) = await ValidateTableResults(datasetDefinition, datasetStream);
+                    (validationFailures, _) = await ValidateTableResults(datasetDefinition, datasetStream, model.EmptyFieldEvaluationOption, dataset.Current.BlobName);
                     if (validationFailures.Count > 0)
                     {
                         await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, null, validationFailures);
@@ -597,7 +597,7 @@ namespace CalculateFunding.Services.Datasets
                     await NotifyPercentComplete(35);
                     await SetValidationStatus(operationId, DatasetValidationStatus.MergeInprogress);
 
-                    mergeResult = await _datasetDataMergeService.Merge(datasetDefinition, dataset.Current.BlobName, fullBlobName);
+                    mergeResult = await _datasetDataMergeService.Merge(datasetDefinition, dataset.Current.BlobName, fullBlobName, model.EmptyFieldEvaluationOption);
 
                     if (!mergeResult.HasChanges)
                     {
@@ -657,7 +657,7 @@ namespace CalculateFunding.Services.Datasets
             await NotifyPercentComplete(50);
             await SetValidationStatus(operationId, DatasetValidationStatus.ValidatingTableResults);
 
-            (validationFailures, validationRowCount) = await ValidateTableResults(datasetDefinition, datasetStream);
+            (validationFailures, validationRowCount) = await ValidateTableResults(datasetDefinition, datasetStream, model.EmptyFieldEvaluationOption, dataset?.Current?.BlobName);
 
             if (validationFailures.Count > 0)
             {
@@ -1344,7 +1344,10 @@ namespace CalculateFunding.Services.Datasets
         }
 
         private async Task<(IDictionary<string, IEnumerable<string>> validationFailures, int providersProcessed)> ValidateTableResults(
-            DatasetDefinition datasetDefinition, Stream datasetStream)
+            DatasetDefinition datasetDefinition, 
+            Stream datasetStream,
+            DatasetEmptyFieldEvaluationOption datasetEmptyFieldEvaluationOption,
+            string currentBlobName)
         {
             int rowCount = 0;
             Dictionary<string, IEnumerable<string>> validationFailures = new Dictionary<string, IEnumerable<string>>();
@@ -1378,7 +1381,12 @@ namespace CalculateFunding.Services.Datasets
             });
 
             using ExcelPackage excelPackage = new ExcelPackage(datasetStream);
-            DatasetUploadValidationModel uploadModel = new DatasetUploadValidationModel(excelPackage, () => summaries, datasetDefinition);
+            DatasetUploadValidationModel uploadModel = new DatasetUploadValidationModel(
+                excelPackage, 
+                () => summaries, 
+                datasetDefinition, 
+                datasetEmptyFieldEvaluationOption,
+                currentBlobName);
             ValidationResult validationResult = _datasetUploadValidator.Validate(uploadModel);
             if (uploadModel.Data != null)
             {

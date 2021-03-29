@@ -1,5 +1,4 @@
-﻿using CalculateFunding.Models.Datasets;
-using CalculateFunding.Services.DataImporter.Validators.Models;
+﻿using CalculateFunding.Services.DataImporter.Validators.Models;
 
 namespace CalculateFunding.Services.DataImporter.Validators
 {

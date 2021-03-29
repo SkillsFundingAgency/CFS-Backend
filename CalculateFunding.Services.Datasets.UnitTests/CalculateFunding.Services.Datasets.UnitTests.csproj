@@ -53,6 +53,15 @@
     <None Update="TestItems\FactorsValid.xlsx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="TestItems\FactorsVariousInvalidFields_PartialSet_Current_MissingRequiredield.xlsx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TestItems\FactorsVariousInvalidPartialFields.xlsx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TestItems\FactorsVariousInvalidFields_Current.xlsx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="TestItems\FactorsVariousInvalidFields.xlsx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

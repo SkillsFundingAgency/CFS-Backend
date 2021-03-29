@@ -17,8 +17,10 @@ namespace CalculateFunding.Services.DataImporter.ExcelFormatter
 			    new CellLevelErrorKey(FieldValidationResult.ReasonForFailure.MaxOrMinValueExceeded, "Max. or Min. value exceeded"),
 			    new CellLevelErrorKey(FieldValidationResult.ReasonForFailure.ProviderIdValueMissing, "Provider ID value missing"),
 			    new CellLevelErrorKey(FieldValidationResult.ReasonForFailure.DuplicateEntriesInTheProviderIdColumn, "Duplicate entries in the provider ID column"),
-			    new CellLevelErrorKey(FieldValidationResult.ReasonForFailure.ProviderIdMismatchWithServiceProvider, "Provider ID does not exist in the current funding stream provider")
-		    };
+			    new CellLevelErrorKey(FieldValidationResult.ReasonForFailure.ProviderIdMismatchWithServiceProvider, "Provider ID does not exist in the current funding stream provider"),
+				new CellLevelErrorKey(FieldValidationResult.ReasonForFailure.NewProviderMissingAllDataSchemaFields, "New provider to be inserted. All data schema fields required on upload file for new providers."),
+				new CellLevelErrorKey(FieldValidationResult.ReasonForFailure.ExtraHeaderField, "Extra header fields that does not exists in the current data schema"),
+			};
 			
 			if(excelPackage.Workbook.Worksheets["Errors"] != null) excelPackage.Workbook.Worksheets.Delete("Errors");
 			ExcelWorksheet workSheetAdded = excelPackage.Workbook.Worksheets.Add("Errors");

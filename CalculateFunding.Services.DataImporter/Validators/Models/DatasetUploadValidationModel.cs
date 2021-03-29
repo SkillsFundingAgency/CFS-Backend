@@ -1,25 +1,31 @@
-﻿using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Datasets;
+﻿using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.ProviderLegacy;
 using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace CalculateFunding.Services.DataImporter.Validators.Models
 {
     public class DatasetUploadValidationModel
     {
-	    public DatasetUploadValidationModel(ExcelPackage excelPackage, Func<IEnumerable<ProviderSummary>> providerSummaries, DatasetDefinition datasetDefinition)
+	    public DatasetUploadValidationModel(
+            ExcelPackage excelPackage, 
+            Func<IEnumerable<ProviderSummary>> providerSummaries, 
+            DatasetDefinition datasetDefinition,
+            DatasetEmptyFieldEvaluationOption datasetEmptyFieldEvaluationOption,
+            string latestBlobFileName)
 	    {
 		    ExcelPackage = excelPackage;
 		    ProviderSummaries = providerSummaries;
 		    DatasetDefinition = datasetDefinition;
-		    ValidationResult = new DatasetUploadValidationResult();
-	    }
+            DatasetEmptyFieldEvaluationOption = datasetEmptyFieldEvaluationOption;
+            LatestBlobFileName = latestBlobFileName;
 
-	    public ExcelPackage ExcelPackage { get; set; }
+            ValidationResult = new DatasetUploadValidationResult();
+        }
+
+        public ExcelPackage ExcelPackage { get; set; }
 
         public Func<IEnumerable<ProviderSummary>> ProviderSummaries { get; set; }
 
@@ -28,5 +34,9 @@ namespace CalculateFunding.Services.DataImporter.Validators.Models
         public TableLoadResultWithHeaders Data { get; set; }
 
         public IDatasetUploadValidationResult ValidationResult { get; set; }
+
+        public DatasetEmptyFieldEvaluationOption DatasetEmptyFieldEvaluationOption { get; set; }
+
+        public string LatestBlobFileName { get; set; }
     }
 }

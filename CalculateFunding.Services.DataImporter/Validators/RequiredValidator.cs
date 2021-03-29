@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using CalculateFunding.Services.DataImporter.Validators.Models;
+﻿using CalculateFunding.Services.DataImporter.Validators.Models;
 
 namespace CalculateFunding.Services.DataImporter.Validators
 {

@@ -13,9 +13,11 @@ namespace CalculateFunding.Services.DataImporter.Validators.Extension
 	    private static readonly Color LightYellow = Color.FromArgb(255, 255, 114);
 	    private static readonly Color Blue = Color.FromArgb(122, 124, 255);
 	    private static readonly Color LightPink = Color.FromArgb(255, 178, 255);
+		private static readonly Color LightGreen = Color.FromArgb(146, 208, 80);
+		private static readonly Color Red = Color.FromArgb(255, 0, 0);
 
 
-	    private static Dictionary<FieldValidationResult.ReasonForFailure, Color> ReasonForFailureColorMapping =
+		private static Dictionary<FieldValidationResult.ReasonForFailure, Color> ReasonForFailureColorMapping =
 		    new Dictionary<FieldValidationResult.ReasonForFailure, Color>
 		    {
 			    {FieldValidationResult.ReasonForFailure.DataTypeMismatch, Orange},
@@ -23,9 +25,9 @@ namespace CalculateFunding.Services.DataImporter.Validators.Extension
 			    {FieldValidationResult.ReasonForFailure.ProviderIdValueMissing, LightYellow},
 			    {FieldValidationResult.ReasonForFailure.DuplicateEntriesInTheProviderIdColumn, Blue},
 			    {FieldValidationResult.ReasonForFailure.ProviderIdMismatchWithServiceProvider, LightPink},
-		    };
-
-	    
+				{FieldValidationResult.ReasonForFailure.NewProviderMissingAllDataSchemaFields, LightGreen},
+				{FieldValidationResult.ReasonForFailure.ExtraHeaderField, Red},
+			};
 
 	    public static Color GetColorCodeForFailure(this FieldValidationResult.ReasonForFailure reasonForFailure)
 	    {

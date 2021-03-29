@@ -16,6 +16,7 @@ using FluentAssertions;
 using Moq;
 using OfficeOpenXml;
 using Serilog.Core;
+using CalculateFunding.Models.Datasets;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
@@ -77,7 +78,7 @@ namespace CalculateFunding.Services.Datasets.Services
                     _?.CopyTo(uploadedStream);
                 });
 
-            DatasetDataMergeResult result = await _service.Merge(datasetDefinition, latestBlobFileName, blobFileNameToMerge);
+            DatasetDataMergeResult result = await _service.Merge(datasetDefinition, latestBlobFileName, blobFileNameToMerge, DatasetEmptyFieldEvaluationOption.NA);
 
             result.TablesMergeResults.Count().Should().Be(1);
 

@@ -11,6 +11,6 @@ namespace CalculateFunding.Services.DataImporter
     {
         IEnumerable<TableLoadResult> Read(Stream stream, DatasetDefinition datasetDefinition);
 
-	    TableLoadResultWithHeaders Read(ExcelPackage excelPackage, DatasetDefinition datasetDefinition, bool shouldCheckType);
+	    TableLoadResultWithHeaders Read(ExcelPackage excelPackage, DatasetDefinition datasetDefinition, bool shouldCheckType, bool includeUnmatchingColumn);
     }
 }

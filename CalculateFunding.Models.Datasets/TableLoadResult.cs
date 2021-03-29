@@ -33,14 +33,44 @@ namespace CalculateFunding.Models.Datasets
             Rows.AddRange(rows);
         }
 
-        public void UpdateMatchingRowsWithFieldsValuesFrom(IEnumerable<RowLoadResult> otherRows)
+        public void UpdateMatchingRowsWithFieldsValuesFrom(
+            IEnumerable<RowLoadResult> otherRows, 
+            DatasetEmptyFieldEvaluationOption emptyFieldEvaluationOption)
         {
             foreach (RowLoadResult rowLoadResult in otherRows)
             {
                 RowLoadResult match = GetRowWithMatchingIdentifier(rowLoadResult);
 
-                match.Fields = rowLoadResult.Fields;
+                if(emptyFieldEvaluationOption == DatasetEmptyFieldEvaluationOption.Ignore)
+                {
+                    UpdateMatchingRowsWithFieldsValuesFromByIgnoringEmptyFields(rowLoadResult, match);
+                }
+                else
+                {
+                    match.Fields = rowLoadResult.Fields;
+                }
             }
+        }
+
+        private void UpdateMatchingRowsWithFieldsValuesFromByIgnoringEmptyFields(
+            RowLoadResult rowLoadResult, 
+            RowLoadResult match)
+        {
+            Dictionary<string, object> fields = new Dictionary<string, object>();
+
+            foreach (KeyValuePair<string, object> field in match.Fields)
+            {
+                if (rowLoadResult.Fields.ContainsKey(field.Key))
+                {
+                    fields.Add(field.Key, rowLoadResult.Fields.GetValueOrDefault(field.Key));
+                }
+                else
+                {
+                    fields.Add(field.Key, field.Value);
+                }
+            }
+
+            match.Fields = fields;
         }
     }
 }

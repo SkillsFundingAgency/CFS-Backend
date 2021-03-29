@@ -46,7 +46,8 @@ namespace CalculateFunding.Services.Datasets
 
         public async Task<DatasetDataMergeResult> Merge(DatasetDefinition datasetDefinition,
             string latestBlobFileName,
-            string blobFileNameToMerge)
+            string blobFileNameToMerge,
+            DatasetEmptyFieldEvaluationOption emptyFieldEvaluationOption)
         {
             DatasetDataMergeResult result = new DatasetDataMergeResult();
             
@@ -85,7 +86,7 @@ namespace CalculateFunding.Services.Datasets
                 else
                 {
                     // Merge updates latestTableLoadResult with tableLoadResultToMerge data
-                    result.TablesMergeResults.Add(Merge(latestTableLoadResult, tableLoadResultToMerge));
+                    result.TablesMergeResults.Add(Merge(latestTableLoadResult, tableLoadResultToMerge, emptyFieldEvaluationOption));
                 }
             }
 
@@ -133,12 +134,13 @@ namespace CalculateFunding.Services.Datasets
         }
 
         private DatasetDataTableMergeResult Merge(TableLoadResult latestTableLoadResult,
-            TableLoadResult tableLoadResultToMerge)
+            TableLoadResult tableLoadResultToMerge,
+            DatasetEmptyFieldEvaluationOption emptyFieldEvaluationOption)
         {
             IEnumerable<RowLoadResult> newRows = tableLoadResultToMerge.GetRowsMissingFrom(latestTableLoadResult).ToArray();
             IEnumerable<RowLoadResult> updatedRows = tableLoadResultToMerge.GetRowsWhereFieldsDifferFromMatchIn(latestTableLoadResult).ToArray();
 
-            latestTableLoadResult.UpdateMatchingRowsWithFieldsValuesFrom(updatedRows);
+            latestTableLoadResult.UpdateMatchingRowsWithFieldsValuesFrom(updatedRows, emptyFieldEvaluationOption);
             latestTableLoadResult.AddRows(newRows);
 
             return new DatasetDataTableMergeResult
