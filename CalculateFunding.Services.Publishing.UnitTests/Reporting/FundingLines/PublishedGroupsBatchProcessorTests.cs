@@ -56,7 +56,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             string specificationId = NewRandomString();
             string fundingPeriodId = NewRandomString();
 
-            bool processedResults = await WhenTheCsvIsGenerated(FundingLineCsvGeneratorJobType.Released, specificationId, fundingPeriodId, NewRandomString(), NewRandomString(), NewRandomString());
+            bool processedResults = await WhenTheCsvIsGenerated(FundingLineCsvGeneratorJobType.Released, specificationId, fundingPeriodId, NewRandomString(), NewRandomString(), NewRandomString(), NewRandomString());
 
             processedResults
                 .Should()
@@ -70,26 +70,27 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         {
             string specificationId = NewRandomString();
             string fundingPeriodId = NewRandomString();
+            string fundingLineName = NewRandomString();
             string fundingLineCode = NewRandomString();
             string fundingStreamId = NewRandomString();
 
             string expectedInterimFilePath = NewRandomString();
 
-            IEnumerable<PublishedFunding> publishedFundingOne = new List<PublishedFunding>
+            IEnumerable<PublishedFundingWithProvider> publishedFundingOne = new List<PublishedFundingWithProvider>
             {
-                NewPublishedFunding(_ => _.WithCurrent(
+                new PublishedFundingWithProvider{ PublishedFunding = NewPublishedFunding(_ => _.WithCurrent(
                     NewPublishedFundingVersion(ppv => ppv.WithFundingId("f-id")
-                    .WithProviderFundings(new List<string>())))),
+                    .WithProviderFundings(new List<string>())))) }
             };
 
-            IEnumerable<PublishedFunding> publishedFundingWithProviderTwo = new[]
+            IEnumerable<PublishedFundingWithProvider> publishedFundingWithProviderTwo = new[]
             {
-                NewPublishedFunding(_ => _.WithCurrent(
-                    NewPublishedFundingVersion(ppv => ppv.WithFundingId("f-id1")))),
-                NewPublishedFunding(_ => _.WithCurrent(
-                    NewPublishedFundingVersion(ppv => ppv.WithFundingId("f-id2")))),
-                NewPublishedFunding(_ => _.WithCurrent(
-                    NewPublishedFundingVersion(ppv => ppv.WithFundingId("f-id3"))))
+                new PublishedFundingWithProvider{ PublishedFunding = NewPublishedFunding(_ => _.WithCurrent(
+                    NewPublishedFundingVersion(ppv => ppv.WithFundingId("f-id1")))) },
+                new PublishedFundingWithProvider{ PublishedFunding = NewPublishedFunding(_ => _.WithCurrent(
+                    NewPublishedFundingVersion(ppv => ppv.WithFundingId("f-id2")))) },
+                new PublishedFundingWithProvider{ PublishedFunding = NewPublishedFunding(_ => _.WithCurrent(
+                    NewPublishedFundingVersion(ppv => ppv.WithFundingId("f-id3")))) }
             };
 
             ExpandoObject[] transformedRowsOne = {
@@ -111,8 +112,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             string predicate = NewRandomString();
             string joinPredicate = NewRandomString();
 
-            GivenTheCsvRowTransformation(publishedFundingOne, transformedRowsOne, expectedCsvOne, true);
-            AndTheCsvRowTransformation(publishedFundingWithProviderTwo, transformedRowsTwo, expectedCsvTwo, false);
+            GivenTheCsvRowTransformation<PublishedFundingWithProvider>(publishedFundingWithProviders => {
+                return publishedFundingOne.All(_ => publishedFundingWithProviders.Any(pf => _.PublishedFunding.Current.FundingId == pf.PublishedFunding.Current.FundingId));
+            }, transformedRowsOne, expectedCsvOne, true);
+            AndTheCsvRowTransformation<PublishedFundingWithProvider>(publishedFundingWithProviders=> {
+                return publishedFundingWithProviderTwo.All(_ => publishedFundingWithProviders.Any(pf => _.PublishedFunding.Current.FundingId == pf.PublishedFunding.Current.FundingId));
+            }, transformedRowsTwo, expectedCsvTwo, false);
             AndThePredicate(jobType, predicate);
             AndTheJoinPredicate(jobType, joinPredicate);
 
@@ -122,18 +127,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                 .Callback<string, Func<List<PublishedFunding>, Task>, int>((spec,
                     batchProcessor, batchSize) =>
                 {
-                    batchProcessor(publishedFundingOne.ToList())
+                    batchProcessor(publishedFundingOne.Select(_ => _.PublishedFunding).ToList())
                         .GetAwaiter()
                         .GetResult();
                 })
                 .Returns(Task.CompletedTask);
 
-            bool processedResults = await WhenTheCsvIsGenerated(jobType, specificationId, fundingPeriodId, expectedInterimFilePath, fundingLineCode, fundingStreamId);
+            bool processedResults = await WhenTheCsvIsGenerated(jobType, specificationId, fundingPeriodId, expectedInterimFilePath, fundingLineName, fundingStreamId, fundingLineCode);
 
             processedResults
                 .Should()
                 .BeTrue();
-
         }
     }
 }

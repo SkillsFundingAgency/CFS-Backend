@@ -10,15 +10,15 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
         {
             {FundingLineCsvGeneratorJobType.CurrentState, "1 = 1"},
             {FundingLineCsvGeneratorJobType.Released, "NOT IS_NULL(c.content.released)"},
-            {FundingLineCsvGeneratorJobType.CurrentProfileValues, "1 = 1"},
-            {FundingLineCsvGeneratorJobType.HistoryProfileValues, "1 = 1"},
+            {FundingLineCsvGeneratorJobType.CurrentProfileValues, "1 = 1" },
+            {FundingLineCsvGeneratorJobType.HistoryProfileValues, "1 = 1" },
             {FundingLineCsvGeneratorJobType.History, "1 = 1"}
         };
 
         private static readonly IDictionary<FundingLineCsvGeneratorJobType, string> Joins = new Dictionary<FundingLineCsvGeneratorJobType, string>
         {
-            {FundingLineCsvGeneratorJobType.CurrentProfileValues, "WHERE fundingLine.name = @fundingLineCode"},
-            {FundingLineCsvGeneratorJobType.HistoryProfileValues, "WHERE fundingLine.name = @fundingLineCode"}
+            {FundingLineCsvGeneratorJobType.CurrentProfileValues, "WHERE NOT IS_NULL(fundingLine['value']) and fundingLine.name = @fundingLineName"},
+            {FundingLineCsvGeneratorJobType.HistoryProfileValues, "WHERE NOT IS_NULL(fundingLine['value']) and fundingLine.name = @fundingLineName"}
         };
 
         public string BuildJoinPredicate(FundingLineCsvGeneratorJobType jobType)

@@ -57,7 +57,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                 fundingPeriodId,
                 NewRandomString(),
                 NewRandomString(),
-                fundingStreamId);
+                fundingStreamId,
+                NewRandomString());
 
             processedResults
                 .Should()
@@ -69,6 +70,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         {
             string specificationId = NewRandomString();
             string fundingPeriodId = NewRandomString();
+            string fundingLineName = NewRandomString();
             string fundingLineCode = NewRandomString();
             string fundingStreamId = NewRandomString();
             
@@ -97,8 +99,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
 
             Mock<ICosmosDbFeedIterator<PublishedFunding>> feed = new Mock<ICosmosDbFeedIterator<PublishedFunding>>();
 
-            GivenTheCsvRowTransformation(publishedFundingOne, transformedRowsOne, expectedCsvOne, true);
-            AndTheCsvRowTransformation(publishedFundingTwo, transformedRowsTwo, expectedCsvTwo, false);
+            GivenTheCsvRowTransformation<PublishedFunding>(publishedProviders => 
+            {
+                return publishedProviders == publishedFundingOne;
+            }, transformedRowsOne, expectedCsvOne, true);
+            AndTheCsvRowTransformation<PublishedFunding>(publishedProviders =>
+            {
+                return publishedProviders == publishedFundingTwo;
+            }, transformedRowsTwo, expectedCsvTwo, false);
             AndThePublishedFundingForBatchProfessingFeed(specificationId, fundingStreamId, fundingPeriodId, feed.Object);
             AndTheFeedIteratorHasThePages(feed, publishedFundingOne, publishedFundingTwo);
 
@@ -106,8 +114,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                 specificationId,
                 fundingPeriodId,
                 expectedInterimFilePath,
-                fundingLineCode,
-                fundingStreamId);
+                fundingLineName,
+                fundingStreamId,
+                fundingLineCode);
 
             processedResults
                 .Should()

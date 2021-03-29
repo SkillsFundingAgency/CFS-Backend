@@ -127,12 +127,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         public async Task ExitsEarlyIfNoProvidersMatchForTheJobTypePredicate()
         {
             string specificationId = NewRandomString();
-            string fundingLineCode = NewRandomString();
+            string fundingLineName = NewRandomString();
             string jobId = NewRandomString();
-            string expectedInterimFilePath = Path.Combine(_rootPath, $"funding-lines-{specificationId}-Released-{fundingLineCode}.csv");
+            string expectedInterimFilePath = Path.Combine(_rootPath, $"funding-lines-{specificationId}-Released-{fundingLineName}.csv");
             FundingLineCsvGeneratorJobType jobType = FundingLineCsvGeneratorJobType.Released;
 
-            GivenTheMessageProperties(("specification-id", specificationId), ("job-type", jobType.ToString()), ("jobId", jobId), ("funding-line-code", fundingLineCode));
+            GivenTheMessageProperties(("specification-id", specificationId), ("job-type", jobType.ToString()), ("jobId", jobId), ("funding-line-name", fundingLineName));
             AndTheFileExists(expectedInterimFilePath);
             AndTheJobExists(jobId);
             AndTheTransformForJobType(jobType);
@@ -162,25 +162,26 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         }
 
         [TestMethod]
-        [DataRow(FundingLineCsvGeneratorJobType.CurrentState, "spec1", null, null, "AY-1920",
+        [DataRow(FundingLineCsvGeneratorJobType.CurrentState, "spec1", null, null, null, "AY-1920",
             "funding-lines-spec1-CurrentState.csv",
             " AY-1920 Provider Funding Lines Current State", false)]
-        [DataRow(FundingLineCsvGeneratorJobType.Released, "spec2", "FL1", "DSG", "AY-2020",
-            "funding-lines-spec2-Released-FL1-DSG.csv",
+        [DataRow(FundingLineCsvGeneratorJobType.Released, "spec2", "FC1", "FN1", "DSG", "AY-2020",
+            "funding-lines-spec2-Released-FN1-DSG.csv",
             "DSG AY-2020 Provider Funding Lines Released Only", false)]
-        [DataRow(FundingLineCsvGeneratorJobType.CurrentProfileValues, "spec3", null, "PSG", "AY-2021",
+        [DataRow(FundingLineCsvGeneratorJobType.CurrentProfileValues, "spec3", null, null, "PSG", "AY-2021",
             "funding-lines-spec3-CurrentProfileValues-PSG.csv",
             "PSG AY-2021  Profile Current State", false)]
-        [DataRow(FundingLineCsvGeneratorJobType.CurrentProfileValues, "spec3", null, "PSG", "AY-2021",
+        [DataRow(FundingLineCsvGeneratorJobType.CurrentProfileValues, "spec3", null, null, "PSG", "AY-2021",
             "funding-lines-spec3-CurrentProfileValues-PSG.csv",
             "PSG AY-2021  Profile Current State", false)]
-        [DataRow(FundingLineCsvGeneratorJobType.CurrentProfileValues, "spec3", null, "PSG", "AY-2021",
+        [DataRow(FundingLineCsvGeneratorJobType.CurrentProfileValues, "spec3", null, null, "PSG", "AY-2021",
             "funding-lines-spec3-CurrentProfileValues-PSG.csv",
             "PSG AY-2021  Profile Current State", true)]
         public async Task TransformsPublishedProvidersForSpecificationInBatchesAndCreatesCsvWithResultsOrFailJob(
             FundingLineCsvGeneratorJobType jobType,
             string specificationId,
             string fundingLineCode,
+            string fundingLineName,
             string fundingStreamId,
             string fundingPeriodId,
             string expectedFileName,
@@ -197,7 +198,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             GivenTheMessageProperties(("specification-id", specificationId), 
                 ("job-type", jobType.ToString()), 
                 ("jobId", jobId), 
-                ("funding-line-code", fundingLineCode), 
+                ("funding-line-code", fundingLineCode),
+                ("funding-line-name", fundingLineName),
                 ("funding-period-id", fundingPeriodId), 
                 ("funding-stream-id", fundingStreamId));
             AndTheCloudBlobForFileName(expectedFileName);
@@ -207,7 +209,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             AndThePredicate(jobType, predicate);
             AndTheJobExists(jobId);
             AndTheBatchProcessorForJobType(jobType);
-            AndTheBatchProcessorProcessedResults(jobType, specificationId, fundingPeriodId, expectedInterimFilePath, fundingLineCode, fundingStreamId);
+            AndTheBatchProcessorProcessedResults(jobType, specificationId, fundingPeriodId, expectedInterimFilePath, fundingLineName, fundingStreamId, fundingLineCode);
 
             string errorMessage = "Unable to complete funding line csv generation job.";
 
@@ -274,10 +276,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             string specificationId,
             string fundingPeriodId,
             string filePath,
-            string fundingLineCode,
-            string fundingStreamId)
+            string fundingLineName,
+            string fundingStreamId,
+            string fundingLineCode)
         {
-            _batchProcessor.Setup(_ => _.GenerateCsv(jobType, specificationId, fundingPeriodId, filePath, _transformation.Object, fundingLineCode, fundingStreamId))
+            _batchProcessor.Setup(_ => _.GenerateCsv(jobType, specificationId, fundingPeriodId, filePath, _transformation.Object, fundingLineName, fundingStreamId, fundingLineCode))
                 .ReturnsAsync(true)
                 .Verifiable();
         }

@@ -527,7 +527,7 @@ namespace CalculateFunding.Services.Publishing
 
                     _logger.Information("Creating generate Csv jobs");
 
-                    await _publishFundingCsvJobsService.GenerateCsvJobs(GeneratePublishingCsvJobsCreationAction.Refresh, specification.Id, specification.FundingPeriod.Id, correlationId, author);
+                    await _publishFundingCsvJobsService.GenerateCsvJobs(GeneratePublishingCsvJobsCreationAction.Refresh, specification.Id, specification.FundingPeriod.Id, specification.FundingStreams.Select(_ => _.Id) , correlationId, author);
                 }
             }
         }

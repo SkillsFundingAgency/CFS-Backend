@@ -161,9 +161,9 @@ namespace CalculateFunding.Services.Publishing
             await _publishFundingCsvJobsService.GenerateCsvJobs(GeneratePublishingCsvJobsCreationAction.Release,
                 specificationId,
                 specification.FundingPeriod.Id,
+                specification.FundingStreams.Select(fs => fs.Id),
                 correlationId,
-                author,
-                specification.FundingStreams.Select(fs => fs.Id));
+                author);
         }
 
         private async Task PublishFundingStream(Reference fundingStream,

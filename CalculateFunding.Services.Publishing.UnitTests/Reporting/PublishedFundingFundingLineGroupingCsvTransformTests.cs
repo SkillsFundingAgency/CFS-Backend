@@ -83,7 +83,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
                 }
             };
 
-            ExpandoObject[] transformProviderResultsIntoCsvRows = _transformation.Transform(new [] { publishedFunding }, FundingLineCsvGeneratorJobType.CurrentOrganisationGroupValues).ToArray();
+            ExpandoObject[] transformProviderResultsIntoCsvRows = _transformation.Transform(new [] { publishedFunding }, FundingLineCsvGeneratorJobType.CurrentOrganisationGroupValues, null).ToArray();
 
             transformProviderResultsIntoCsvRows
             .Should()

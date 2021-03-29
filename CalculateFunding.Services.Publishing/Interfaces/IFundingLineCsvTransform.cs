@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Dynamic;
+using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Services.Publishing.Reporting.FundingLines;
 
 namespace CalculateFunding.Services.Publishing.Interfaces
@@ -8,6 +9,6 @@ namespace CalculateFunding.Services.Publishing.Interfaces
     {
         bool IsForJobType(FundingLineCsvGeneratorJobType jobType);
         
-        IEnumerable<ExpandoObject> Transform(IEnumerable<dynamic> documents, FundingLineCsvGeneratorJobType jobType);
+        IEnumerable<ExpandoObject> Transform(IEnumerable<dynamic> documents, FundingLineCsvGeneratorJobType jobType, IEnumerable<ProfilePeriodPattern> profilePatterns = null);
     }
 }

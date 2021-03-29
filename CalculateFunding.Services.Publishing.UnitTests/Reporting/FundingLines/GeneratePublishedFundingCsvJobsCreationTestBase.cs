@@ -18,6 +18,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
     {
         private const string JobType = "job-type";
         private const string FundingLineCode = "funding-line-code";
+        private const string FundingLineName = "funding-line-name";
         private const string FundingStreamId = "funding-stream-id";
 
         protected Mock<ICreateGeneratePublishedFundingCsvJobs> CreateGeneratePublishedFundingCsvJobs;
@@ -82,7 +83,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                 .And
                 .ParamName
                 .Should()
-                .Be("FundingLineCodes");
+                .Be("FundingLines");
         }
 
         [TestMethod]
@@ -91,7 +92,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             Func<Task> invocation = () => WhenTheJobsAreCreated(NewRandomString(),
                 NewRandomString(),
                 NewUser(),
-                new List<string>(),
+                new List<(string Code, string Name)>(),
                 null);
 
             invocation
@@ -107,21 +108,24 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         public async Task CreatesCsvJobForEachJobType()
         {
             string specificationId = NewRandomString();
-            IEnumerable<string> fundingLineCodes = new[] { NewRandomString(), NewRandomString() };
+            IEnumerable<(string Code, string Name)> fundingLines = new[] { 
+                (NewRandomString(), NewRandomString()),
+                (NewRandomString(), NewRandomString()) 
+            };
             IEnumerable<string> fundingStreamIds = new[] { NewRandomString(), NewRandomString() };
             string correlationId = NewRandomString();
             Reference user = NewUser();
 
-            await WhenTheJobsAreCreated(specificationId, correlationId, user, fundingLineCodes, fundingStreamIds);
+            await WhenTheJobsAreCreated(specificationId, correlationId, user, fundingLines, fundingStreamIds);
 
-            ThenTheJobWasCreated(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.History, null, null);
-            AndTheJobWasCreated(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.Released, null, null);
-            AndTheJobWasCreated(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.CurrentState, null, null);
+            ThenTheJobWasCreated(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.History, null, null, null);
+            AndTheJobWasCreated(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.Released, null, null, null);
+            AndTheJobWasCreated(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.CurrentState, null, null, null);
 
-            foreach (string fundingLineCode in fundingLineCodes)
+            foreach ((string Code, string Name) in fundingLines)
             {
-                AndTheJobWasCreated(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.CurrentProfileValues, fundingLineCode, null);
-                AndTheJobWasCreated(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.HistoryProfileValues, fundingLineCode, null);
+                AndTheJobWasCreated(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.CurrentProfileValues, Code, Name, fundingStreamIds.FirstOrDefault());
+                AndTheJobWasCreated(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.HistoryProfileValues, Code, Name, fundingStreamIds.FirstOrDefault());
             }
         }
 
@@ -154,6 +158,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             Reference user,
             FundingLineCsvGeneratorJobType jobType,
             string fundingLineCode,
+            string fundingLineName,
             string fundingStreamId)
         {
             CreateGeneratePublishedFundingCsvJobs.Verify(_ => _.CreateJob(specificationId, user, correlationId,
@@ -162,6 +167,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                            props[JobType] == jobType.ToString() &&
                            props.ContainsKey(FundingLineCode) &&
                            props[FundingLineCode] == fundingLineCode &&
+                           props[FundingLineName] == fundingLineName &&
                            props.ContainsKey(FundingStreamId) &&
                            props[FundingStreamId] == fundingStreamId),
                     null,
@@ -175,19 +181,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             Reference user,
             FundingLineCsvGeneratorJobType jobType,
             string fundingLineCode,
+            string fundingLineName,
             string fundingStreamId)
         {
-            ThenTheJobWasCreated(specificationId, correlationId, user, jobType, fundingLineCode, fundingStreamId);
+            ThenTheJobWasCreated(specificationId, correlationId, user, jobType, fundingLineCode, fundingLineName, fundingStreamId);
         }
 
-        protected Task WhenTheJobsAreCreated(string specificationId, string correlationId, Reference user, IEnumerable<string> fundingLineCodes, IEnumerable<string> fundingStreamIds)
+        protected Task WhenTheJobsAreCreated(string specificationId, string correlationId, Reference user, IEnumerable<(string Code, string Name)> fundingLines, IEnumerable<string> fundingStreamIds)
         {
             PublishedFundingCsvJobsRequest publishedFundingCsvJobsRequest = new PublishedFundingCsvJobsRequest
             {
                 SpecificationId = specificationId,
                 CorrelationId = correlationId,
                 User = user,
-                FundingLineCodes = fundingLineCodes,
+                FundingLines = fundingLines,
                 FundingStreamIds = fundingStreamIds
             };
             return JobsCreation.CreateJobs(publishedFundingCsvJobsRequest);

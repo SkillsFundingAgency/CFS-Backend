@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
+using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Reporting.FundingLines;
 using FluentAssertions;
@@ -159,7 +160,35 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                 }
             };
 
-            ExpandoObject[] transformProviderResultsIntoCsvRows = _transformation.Transform(publishedProviders, FundingLineCsvGeneratorJobType.HistoryProfileValues).ToArray();
+            IEnumerable<ProfilePeriodPattern> profilePeriodPatterns = new[]
+            {
+                new ProfilePeriodPattern
+                {
+                    Occurrence = 1,
+                    Period = "January",
+                    PeriodYear = 2020
+                },
+                new ProfilePeriodPattern
+                {
+                    Occurrence = 2,
+                    Period = "January",
+                    PeriodYear = 2020
+                },
+                new ProfilePeriodPattern
+                {
+                    Occurrence = 1,
+                    Period = "January",
+                    PeriodYear = 2021
+                },
+                new ProfilePeriodPattern
+                {
+                    Occurrence = 1,
+                    Period = "February",
+                    PeriodYear = 2021
+                }
+            };
+
+            ExpandoObject[] transformProviderResultsIntoCsvRows = _transformation.Transform(publishedProviders, FundingLineCsvGeneratorJobType.HistoryProfileValues, profilePeriodPatterns).ToArray();
 
             transformProviderResultsIntoCsvRows
                 .Should()

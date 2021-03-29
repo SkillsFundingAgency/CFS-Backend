@@ -83,9 +83,9 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             Func<List<PublishedProvider>, Task> batchProcessor,
             int batchSize,
             string joinPredicate = null,
-            string fundingLineCode = null);
+            string fundingLineName = null);
 
-        Task<IEnumerable<string>> GetPublishedProviderFundingLines(string specificationId, GroupingReason fundingLineType);
+        Task<IEnumerable<(string Code, string Name)>> GetPublishedProviderFundingLines(string specificationId, GroupingReason fundingLineType);
 
         Task<IEnumerable<PublishedFundingIndex>> QueryPublishedFunding(IEnumerable<string> fundingStreamIds,
             IEnumerable<string> fundingPeriodIds,
@@ -139,7 +139,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             string specificationId,
             int batchSize,
             string joinPredicate = null,
-            string fundingLineCode = null);
+            string fundingLineName = null);
 
         ICosmosDbFeedIterator<PublishedFundingVersion> GetPublishedFundingVersionsForBatchProcessing(string specificationId,
             string fundingStreamId,

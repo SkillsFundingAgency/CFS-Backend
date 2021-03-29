@@ -65,6 +65,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
             string specificationId = parameters.SpecificationId;
             string fundingLineName = parameters.FundingLineName;
             string fundingStreamId = parameters.FundingStreamId;
+            string fundingLineCode = parameters.FundingLineCode;
             string fundingPeriodId = parameters.FundingPeriodId;
             FundingLineCsvGeneratorJobType jobType = parameters.JobType;
 
@@ -88,7 +89,8 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
                 temporaryPath, 
                 fundingLineCsvTransform,
                 fundingLineName,
-                fundingStreamId);
+                fundingStreamId,
+                fundingLineCode);
 
             if (!processedResults)
             {
@@ -128,6 +130,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
             private string JobId { get; set; }
             
             public string FundingLineName { get; private set; }
+            public string FundingLineCode { get; private set; }
 
             public string FundingStreamId { get; private set; }
             
@@ -152,9 +155,10 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
                     SpecificationId = specificationId,
                     JobType = jobType.AsEnum<FundingLineCsvGeneratorJobType>(),
                     JobId = jobId,
-                    FundingLineName = GetProperty(message, "funding-line-code"),
+                    FundingLineName = GetProperty(message, "funding-line-name"),
                     FundingStreamId = GetProperty(message, "funding-stream-id"),
-                    FundingPeriodId = GetProperty(message, "funding-period-id")
+                    FundingPeriodId = GetProperty(message, "funding-period-id"),
+                    FundingLineCode = GetProperty(message, "funding-line-code")
                 };
             }
             public IDictionary<string, string> ToDictionary()

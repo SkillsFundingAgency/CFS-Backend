@@ -318,7 +318,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<IEnumerable<string>> GetPublishedProviderFundingLines(string specificationId, GroupingReason fundingLineType)
+        public Task<IEnumerable<(string Code, string Name)>> GetPublishedProviderFundingLines(string specificationId, GroupingReason fundingLineType)
         {
             IEnumerable<PublishedProvider> publishedProviders = null;
             if (_repo.PublishedProviders.ContainsKey(specificationId))
@@ -326,10 +326,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
                 publishedProviders = _repo.PublishedProviders[specificationId].Select(_ => _.Value);
             }
 
-            IEnumerable<string> fundingLines = publishedProviders
+            IEnumerable<(string Code, string Name)> fundingLines = publishedProviders
                 .SelectMany(x => x.Current.FundingLines)
-                .Select(x => x.Name)
-                .Distinct();
+                .Select(x => (x.Name, x.FundingLineCode))
+                .DistinctBy(_ => _.FundingLineCode);
 
             return Task.FromResult(fundingLines);
         }

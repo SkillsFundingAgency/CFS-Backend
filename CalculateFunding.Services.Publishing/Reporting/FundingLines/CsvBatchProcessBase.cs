@@ -22,13 +22,20 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
             _csvUtils = csvUtils;
         }
 
-        protected void AppendCsvFragment(string temporaryFilePath, IEnumerable<ExpandoObject> csvRows, bool outputHeaders)
+        protected bool AppendCsvFragment(string temporaryFilePath, IEnumerable<ExpandoObject> csvRows, bool outputHeaders)
         {
             string csv = _csvUtils.AsCsv(csvRows, outputHeaders);
+
+            if (string.IsNullOrWhiteSpace(csv))
+            {
+                return false;
+            }
 
             _fileSystemAccess.Append(temporaryFilePath, csv)
                 .GetAwaiter()
                 .GetResult();
+
+            return true;
         }   
     }
 }

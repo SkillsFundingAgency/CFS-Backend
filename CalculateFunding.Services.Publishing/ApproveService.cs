@@ -128,6 +128,7 @@ namespace CalculateFunding.Services.Publishing
             string correlationId)
         {
             string fundingPeriodId = publishedProviders.First().Current?.FundingPeriodId;
+            string fundingStreamId = publishedProviders.First().Current?.FundingStreamId;
 
             using Transaction transaction = _transactionFactory.NewTransaction<ApproveService>();
             try
@@ -146,7 +147,7 @@ namespace CalculateFunding.Services.Publishing
 
                     _logger.Information("Creating generate Csv jobs");
 
-                    await _publishFundingCsvJobsService.GenerateCsvJobs(GeneratePublishingCsvJobsCreationAction.Approve, specificationId, fundingPeriodId, correlationId, author);
+                    await _publishFundingCsvJobsService.GenerateCsvJobs(GeneratePublishingCsvJobsCreationAction.Approve, specificationId, fundingPeriodId, new[] { fundingStreamId }, correlationId, author);
                 }
 
                 transaction.Complete();

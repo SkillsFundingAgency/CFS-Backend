@@ -21,12 +21,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         public async Task CreatesProviderStateCsvJobForEachJobType()
         {
             string specificationId = NewRandomString();
-            IEnumerable<string> fundingLineCodes = new[] { NewRandomString(), NewRandomString() };
+            IEnumerable<(string Code, string Name)> fundingLines = new[] { 
+                (NewRandomString(), NewRandomString()),
+                (NewRandomString(), NewRandomString())
+            };
             IEnumerable<string> fundingStreamIds = new[] { NewRandomString(), NewRandomString() };
             string correlationId = NewRandomString();
             Reference user = NewUser();
 
-            await WhenTheJobsAreCreated(specificationId, correlationId, user, fundingLineCodes, fundingStreamIds);
+            await WhenTheJobsAreCreated(specificationId, correlationId, user, fundingLines, fundingStreamIds);
 
             ThenNoProviderEstateCsvJobsWereCreated(specificationId, correlationId, user);
         }
@@ -35,17 +38,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         public async Task CreatesPublishedOrganisationGroupCsvJobs()
         {
             string specificationId = NewRandomString();
-            IEnumerable<string> fundingLineCodes = new[] { NewRandomString(), NewRandomString() };
+            IEnumerable<(string Code, string Name)> fundingLines = new[] {
+                (NewRandomString(), NewRandomString()),
+                (NewRandomString(), NewRandomString())
+            };
             IEnumerable<string> fundingStreamIds = new[] { NewRandomString(), NewRandomString() };
             string correlationId = NewRandomString();
             Reference user = NewUser();
 
-            await WhenTheJobsAreCreated(specificationId, correlationId, user, fundingLineCodes, fundingStreamIds);
+            await WhenTheJobsAreCreated(specificationId, correlationId, user, fundingLines, fundingStreamIds);
 
             foreach (string fundingStreamId in fundingStreamIds)
             {
-                AndTheJobWasCreated(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.CurrentOrganisationGroupValues, null, fundingStreamId);
-                AndTheJobWasCreated(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.HistoryOrganisationGroupValues, null, fundingStreamId);
+                AndTheJobWasCreated(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.CurrentOrganisationGroupValues, null, null, fundingStreamId);
+                AndTheJobWasCreated(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.HistoryOrganisationGroupValues, null, null, fundingStreamId);
             }
         }
     }

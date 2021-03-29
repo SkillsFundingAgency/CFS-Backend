@@ -1,5 +1,6 @@
 ﻿using System;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Services.Publishing.Profiling;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +22,8 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
         }
 
         protected override void TransformFundingLine(IDictionary<string, object> row,
-            PublishedProviderVersion publishedProviderVersion)
+            PublishedProviderVersion publishedProviderVersion,
+            IEnumerable<ProfilePeriodPattern> profilePeriodPatterns)
         {
             FundingLine fundingLine = publishedProviderVersion.FundingLines.SingleOrDefault();
 
@@ -31,11 +33,18 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
             }
 
             row["Total Funding"] = fundingLine.Value;
-            
-            foreach (ProfilePeriod profilePeriod in new YearMonthOrderedProfilePeriods(fundingLine))
+
+            IDictionary<string, ProfilePeriod> profilePeriods = new YearMonthOrderedProfilePeriods(fundingLine).ToDictionary(_ => $"{_.Year} {_.TypeValue} {_.Occurrence}");
+
+            foreach (ProfilePeriodPattern profilePeriodPattern in new YearMonthOrderedProfilePeriodPatterns(profilePeriodPatterns))
             {
-                row[$"{profilePeriod.Year} {profilePeriod.TypeValue} {profilePeriod.Occurrence}"] = profilePeriod.ProfiledValue;
+                string key = $"{profilePeriodPattern.PeriodYear} {profilePeriodPattern.Period} {profilePeriodPattern.Occurrence}";
+                row[key] = profilePeriods.ContainsKey(key) ? 
+                    (decimal?)profilePeriods[key].ProfiledValue : 
+                    null;
             }
         }
+
+
     }
 }

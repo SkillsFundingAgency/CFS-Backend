@@ -1,17 +1,18 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Reporting.FundingLines;
 using CalculateFunding.Tests.Common.Helpers;
-using Microsoft.FeatureManagement;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Moq.Language;
@@ -44,10 +45,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             string specificationId, 
             string fundingPeriodId,
             string path,
-            string fundingLineCode,
-            string fundingStreamId)
+            string fundingLineName,
+            string fundingStreamId,
+            string fundingLineCode)
         {
-            return await BatchProcessor.GenerateCsv(jobType, specificationId, fundingPeriodId, path, _transformation.Object, fundingLineCode, fundingStreamId);
+            return await BatchProcessor.GenerateCsv(jobType, specificationId, fundingPeriodId, path, _transformation.Object, fundingLineName, fundingStreamId, fundingLineCode);
         }
 
         protected void AndTheFeedIteratorHasThePages<TEntity>(Mock<ICosmosDbFeedIterator<TEntity>> feed,
@@ -64,15 +66,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             }
         }
 
-        protected void AndTheCsvRowTransformation(IEnumerable<dynamic> publishedProviders, ExpandoObject[] transformedRows, string csv, bool outputHeaders)
+        protected void AndTheCsvRowTransformation<T>(Func<IEnumerable<T>, bool> publishedProviders, ExpandoObject[] transformedRows, string csv, bool outputHeaders) where T : class
         {
             GivenTheCsvRowTransformation(publishedProviders, transformedRows, csv, outputHeaders);
         }
 
-        protected void GivenTheCsvRowTransformation(IEnumerable<dynamic> publishedProviders, IEnumerable<ExpandoObject> transformedRows, string csv, bool outputHeaders)
+        protected void GivenTheCsvRowTransformation<T>(Func<IEnumerable<T>, bool> publishedProviders, IEnumerable<ExpandoObject> transformedRows, string csv, bool outputHeaders) where T:class
         {
             _transformation
-                .Setup(_ => _.Transform(publishedProviders, It.IsAny<FundingLineCsvGeneratorJobType>()))
+                .Setup(_ => _.Transform(It.Is<IEnumerable<T>>(_ => publishedProviders(_)), It.IsAny<FundingLineCsvGeneratorJobType>(), It.IsAny<IEnumerable<ProfilePeriodPattern>>()))
                 .Returns(transformedRows);
 
             CsvUtils
@@ -91,7 +93,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             PredicateBuilder.Setup(_ => _.BuildJoinPredicate(jobType))
                 .Returns(predicate);
         }
-
         protected static RandomString NewRandomString() => new RandomString();
 
         protected static int NewRandomNumber() => new RandomNumberBetween(1, int.MaxValue);

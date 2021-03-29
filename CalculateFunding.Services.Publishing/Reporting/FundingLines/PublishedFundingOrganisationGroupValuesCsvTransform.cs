@@ -3,6 +3,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Globalization;
+using CalculateFunding.Common.ApiClient.Profiling.Models;
 using System.Linq;
 
 namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
@@ -18,7 +19,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
                     jobType == FundingLineCsvGeneratorJobType.HistoryOrganisationGroupValues;
         }
 
-        public override IEnumerable<ExpandoObject> Transform(IEnumerable<dynamic> documents, FundingLineCsvGeneratorJobType jobType)
+        public override IEnumerable<ExpandoObject> Transform(IEnumerable<dynamic> documents, FundingLineCsvGeneratorJobType jobType, IEnumerable<ProfilePeriodPattern> profilePatterns)
         {
             int resultsCount = documents.Count();
             IEnumerable<PublishedFundingOrganisationGrouping> organisationGroupings = documents.Cast<PublishedFundingOrganisationGrouping>();

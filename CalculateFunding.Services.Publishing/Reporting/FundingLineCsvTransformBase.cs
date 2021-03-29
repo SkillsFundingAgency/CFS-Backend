@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Reporting.FundingLines;
 
@@ -15,16 +16,16 @@ namespace CalculateFunding.Services.Publishing.Reporting
 
         public abstract bool IsForJobType(FundingLineCsvGeneratorJobType jobType);
 
-        public virtual IEnumerable<ExpandoObject> Transform(IEnumerable<dynamic> documents, FundingLineCsvGeneratorJobType jobType)
+        public virtual IEnumerable<ExpandoObject> Transform(IEnumerable<dynamic> documents, FundingLineCsvGeneratorJobType jobType, IEnumerable<ProfilePeriodPattern> profilePatterns = null)
         {
             int resultsCount = documents.Count();
-            
+
             ExpandoObject[] resultsBatch = _expandoObjectsPool.Rent(resultsCount);
 
             for (int resultCount = 0; resultCount < resultsCount; resultCount++)
             {
                 PublishedProviderVersion publishedProviderVersion = GetPublishedProviderVersion(documents, resultCount, jobType);
-                
+
                 IDictionary<string, object> row = resultsBatch[resultCount] ?? (resultsBatch[resultCount] = new ExpandoObject());
 
                 Provider provider = publishedProviderVersion.Provider;
@@ -42,18 +43,19 @@ namespace CalculateFunding.Services.Publishing.Reporting
                 row["Allocation Minor Version"] = publishedProviderVersion.MinorVersion.ToString();
                 row["Allocation Author"] = publishedProviderVersion.Author?.Name;
                 row["Allocation DateTime"] = publishedProviderVersion.Date.ToString("s");
-                
-                TransformFundingLine(row, publishedProviderVersion);
+
+                TransformFundingLine(row, publishedProviderVersion, profilePatterns);
                 TransformProviderDetails(row, publishedProviderVersion);
 
-                yield return (ExpandoObject) row;
+                yield return (ExpandoObject)row;
             }
             
             _expandoObjectsPool.Return(resultsBatch);
         }
 
         protected virtual void TransformFundingLine(IDictionary<string, object> row,
-            PublishedProviderVersion publishedProviderVersion)
+            PublishedProviderVersion publishedProviderVersion,
+            IEnumerable<ProfilePeriodPattern> profilePatternColumnHeaders = null)
         {
             foreach (FundingLine fundingLine in publishedProviderVersion.FundingLines.OrderBy(_ => _.Name))
             {

@@ -56,7 +56,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
             AndTheCsvGenerationJobsWereCreated(actionType, 
                 specificationId, 
                 fundingPeriodId,
-                actionType == GeneratePublishingCsvJobsCreationAction.Release ? new[] { fundingStreamId } : Array.Empty<string>());
+                new[] { fundingStreamId });
         }
 
         [TestMethod]
@@ -158,7 +158,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
             IEnumerable<string> fundingStreamIds, 
             string correlationId)
         {
-            await _publishedFundingCsvJobsService.GenerateCsvJobs(actionType, specificationId, fundingPeriodId, correlationId, null, fundingStreamIds);
+            await _publishedFundingCsvJobsService.GenerateCsvJobs(actionType, specificationId, fundingPeriodId, fundingStreamIds, correlationId, null);
         }
 
         private async Task WhenQueueJobForCsvRequested(GeneratePublishingCsvJobsCreationAction actionType, 

@@ -21,12 +21,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         public async Task CreatesProviderStateCsvJobForEachJobType()
         {
             string specificationId = NewRandomString();
-            IEnumerable<string> fundingLineCodes = new[] { NewRandomString(), NewRandomString() };
+            IEnumerable<(string Code, string Name)> fundingLines = new[] { 
+                (NewRandomString(), NewRandomString()), 
+                (NewRandomString(), NewRandomString())
+            };
             IEnumerable<string> fundingStreamIds = Array.Empty<string>();
             string correlationId = NewRandomString();
             Reference user = NewUser();
 
-            await WhenTheJobsAreCreated(specificationId, correlationId, user, fundingLineCodes, fundingStreamIds);
+            await WhenTheJobsAreCreated(specificationId, correlationId, user, fundingLines, fundingStreamIds);
 
             ThenNoProviderEstateCsvJobsWereCreated(specificationId, correlationId, user);
         }

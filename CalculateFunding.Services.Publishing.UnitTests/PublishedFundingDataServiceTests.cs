@@ -39,16 +39,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         public async Task GetPublishedProviderFundingLinesAsksForFundingLineNamesForPaymentTypeFundingLines()
         {
             string specificationId = new RandomString();
-            string[] expectedFundingLineNames =
+            (string Code, string Name)[] expectedFundingLineNames =
             {
-                NewRandomString(),
-                NewRandomString(),
-                NewRandomString()
+                (NewRandomString(), NewRandomString()),
+                (NewRandomString(), NewRandomString()),
+                (NewRandomString(), NewRandomString())
             };
 
             GivenThePaymentFundingLines(specificationId, expectedFundingLineNames);
 
-            IEnumerable<string> actualFundingLines = await _dataService.GetPublishedProviderFundingLines(specificationId);
+            IEnumerable<(string Code, string Name)> actualFundingLines = await _dataService.GetPublishedProviderFundingLines(specificationId);
 
             actualFundingLines
                 .Should()
@@ -62,7 +62,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         [DataRow("")]
         public void GetPublishedProviderFundingLinesGuardsAgainstMissingSpecificationIdSupplied(string specificationId)
         {
-            Func<Task<IEnumerable<string>>> invocation = () => _dataService.GetPublishedProviderFundingLines(specificationId);
+            Func<Task<IEnumerable<(string Code, string Name)>>> invocation = () => _dataService.GetPublishedProviderFundingLines(specificationId);
 
             invocation
                 .Should()
@@ -132,7 +132,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         }
 
         private void GivenThePaymentFundingLines(string specificationId,
-            IEnumerable<string> fundingLines)
+            IEnumerable<(string Code, string Name)> fundingLines)
         {
             _publishedFunding.Setup(_ => _.GetPublishedProviderFundingLines(specificationId, GroupingReason.Payment))
                 .ReturnsAsync(fundingLines)

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.Helpers;
@@ -38,7 +39,7 @@ namespace CalculateFunding.Services.Publishing.Reporting
                     publishedFundingCsvJobsRequest.SpecificationId,
                     publishedFundingCsvJobsRequest.User,
                     publishedFundingCsvJobsRequest.CorrelationId,
-                    JobProperties(FundingLineCsvGeneratorJobType.HistoryPublishedProviderEstate, null, fundingStreamId, publishedFundingCsvJobsRequest.FundingPeriodId)));
+                    JobProperties(FundingLineCsvGeneratorJobType.HistoryPublishedProviderEstate, null, null, fundingStreamId, publishedFundingCsvJobsRequest.FundingPeriodId)));
             }
 
             return await TaskHelper.WhenAllAndThrow(tasks.ToArray());
@@ -83,23 +84,27 @@ namespace CalculateFunding.Services.Publishing.Reporting
                    fundingPeriodId: publishedFundingCsvJobsRequest.FundingPeriodId));
             }
            
-            foreach (string fundingLineCode in publishedFundingCsvJobsRequest.FundingLineCodes)
+            foreach ((string Code, string Name) in publishedFundingCsvJobsRequest.FundingLines)
             {
                 tasks.Add(CreatePublishedFundingCsvJob(
                    publishedFundingCsvJobsRequest.SpecificationId,
                    publishedFundingCsvJobsRequest.CorrelationId,
                    publishedFundingCsvJobsRequest.User,
                    FundingLineCsvGeneratorJobType.CurrentProfileValues,
-                   fundingLineCode,
-                   fundingPeriodId: publishedFundingCsvJobsRequest.FundingPeriodId));
+                   fundingLineName: Name,
+                   fundingLineCode: Code,
+                   fundingPeriodId: publishedFundingCsvJobsRequest.FundingPeriodId,
+                   fundingStreamId: publishedFundingCsvJobsRequest.FundingStreamIds.FirstOrDefault()));
 
                 tasks.Add(CreatePublishedFundingCsvJob(
                    publishedFundingCsvJobsRequest.SpecificationId,
                    publishedFundingCsvJobsRequest.CorrelationId,
                    publishedFundingCsvJobsRequest.User,
                    FundingLineCsvGeneratorJobType.HistoryProfileValues,
-                   fundingLineCode,
-                   fundingPeriodId: publishedFundingCsvJobsRequest.FundingPeriodId));
+                   fundingLineName: Name,
+                   fundingLineCode: Code,
+                   fundingPeriodId: publishedFundingCsvJobsRequest.FundingPeriodId,
+                   fundingStreamId: publishedFundingCsvJobsRequest.FundingStreamIds.FirstOrDefault()));
             }
 
             return await TaskHelper.WhenAllAndThrow(tasks.ToArray());
@@ -128,15 +133,17 @@ namespace CalculateFunding.Services.Publishing.Reporting
            string correlationId,
            Reference user,
            FundingLineCsvGeneratorJobType jobType,
-           string fundingLineCode = null,
+           string fundingLineName = null,
            string fundingStreamId = null,
-           string fundingPeriodId = null)
+           string fundingPeriodId = null,
+           string fundingLineCode = null)
         {
-            return _createGeneratePublishedFundingCsvJobs.CreateJob(specificationId, user, correlationId, JobProperties(jobType, fundingLineCode, fundingStreamId, fundingPeriodId));
+            return _createGeneratePublishedFundingCsvJobs.CreateJob(specificationId, user, correlationId, JobProperties(jobType, fundingLineCode, fundingLineName, fundingStreamId, fundingPeriodId));
         }
 
         private Dictionary<string, string> JobProperties(FundingLineCsvGeneratorJobType jobType, 
-            string fundingLineCode, 
+            string fundingLineCode,
+            string fundingLineName,
             string fundingStreamId, 
             string fundingPeriodId)
         {
@@ -144,6 +151,7 @@ namespace CalculateFunding.Services.Publishing.Reporting
             {
                 {"job-type", jobType.ToString()},
                 {"funding-line-code", fundingLineCode},
+                {"funding-line-name", fundingLineName},
                 {"funding-stream-id", fundingStreamId},
                 {"funding-period-id", fundingPeriodId},
             };

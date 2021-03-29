@@ -50,24 +50,22 @@ namespace CalculateFunding.Services.Publishing.Reporting
             return await GenerateCsvJobs(createActionType,
                     specification.Id,
                     specification.FundingPeriod.Id,
+                    specification.FundingStreams.Select(_ => _.Id),
                     correlationId,
-                    author,
-                    createActionType == GeneratePublishingCsvJobsCreationAction.Release ? 
-                        specification.FundingStreams.Select(_ => _.Id) : 
-                        null);
+                    author);
         }
 
-        public async Task<IEnumerable<Job>> GenerateCsvJobs(GeneratePublishingCsvJobsCreationAction createActionType, string specificationId, string fundingPeriodId, string correlationId, Reference author, IEnumerable<string> fundingStreamIds = null)
+        public async Task<IEnumerable<Job>> GenerateCsvJobs(GeneratePublishingCsvJobsCreationAction createActionType, string specificationId, string fundingPeriodId, IEnumerable<string> fundingStreamIds, string correlationId, Reference author)
         {
             IGeneratePublishedFundingCsvJobsCreation generateCsvJobs = _generateCsvJobsLocator
                     .GetService(createActionType);
-            IEnumerable<string> fundingLineCodes = await _publishedFundingDataService.GetPublishedProviderFundingLines(specificationId);
+            IEnumerable<(string Code, string Name)> fundingLines = await _publishedFundingDataService.GetPublishedProviderFundingLines(specificationId);
             PublishedFundingCsvJobsRequest publishedFundingCsvJobsRequest = new PublishedFundingCsvJobsRequest
             {
                 SpecificationId = specificationId,
                 CorrelationId = correlationId,
                 User = author,
-                FundingLineCodes = fundingLineCodes,
+                FundingLines = fundingLines,
                 FundingStreamIds = fundingStreamIds ?? Array.Empty<string>(),
                 FundingPeriodId = fundingPeriodId
             };

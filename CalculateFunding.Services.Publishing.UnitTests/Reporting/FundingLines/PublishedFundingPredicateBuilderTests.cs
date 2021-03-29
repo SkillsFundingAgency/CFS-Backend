@@ -31,8 +31,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         }
 
         [TestMethod]
-        [DataRow(FundingLineCsvGeneratorJobType.CurrentProfileValues, "WHERE fundingLine.name = @fundingLineCode")]
-        [DataRow(FundingLineCsvGeneratorJobType.HistoryProfileValues, "WHERE fundingLine.name = @fundingLineCode")]
+        [DataRow(FundingLineCsvGeneratorJobType.CurrentProfileValues, "WHERE NOT IS_NULL(fundingLine['value']) and fundingLine.name = @fundingLineName")]
+        [DataRow(FundingLineCsvGeneratorJobType.HistoryProfileValues, "WHERE NOT IS_NULL(fundingLine['value']) and fundingLine.name = @fundingLineName")]
         public void ReturnsJoinPredicatesAppropriateToJobTypes(FundingLineCsvGeneratorJobType jobType,
             string expectedPredicate)
         {

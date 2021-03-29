@@ -564,9 +564,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .GenerateCsvJobs(GeneratePublishingCsvJobsCreationAction.Release,
                         Arg.Is(specificationId),
                         Arg.Is(fundingPeriodId),
+                        Arg.Is<IEnumerable<string>>(_ => _.First() == fundingStreamId),
                         Arg.Any<string>(),
-                        Arg.Any<Reference>(),
-                        Arg.Is<IEnumerable<string>>(_ => _.First() == fundingStreamId));
+                        Arg.Any<Reference>());
         }
 
         private void AndSpecification(bool isSelectedForFunding = false)

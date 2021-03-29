@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Models.Publishing;
 
 namespace CalculateFunding.Services.Publishing.Profiling
@@ -10,6 +11,7 @@ namespace CalculateFunding.Services.Publishing.Profiling
     public class YearMonthOrderedProfilePeriods : IEnumerable<ProfilePeriod>
     {
         private readonly IEnumerable<ProfilePeriod> _orderedProfilePeriods;
+
         public YearMonthOrderedProfilePeriods(FundingLine fundingLine)
         {
             _orderedProfilePeriods = fundingLine.DistributionPeriods?

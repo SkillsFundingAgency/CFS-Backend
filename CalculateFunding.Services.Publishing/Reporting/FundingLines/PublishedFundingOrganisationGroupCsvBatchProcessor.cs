@@ -36,8 +36,9 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
             string fundingPeriodId,
             string temporaryFilePath, 
             IFundingLineCsvTransform fundingLineCsvTransform, 
-            string fundingLineCode,
-            string fundingStreamId)
+            string fundingLineName,
+            string fundingStreamId,
+            string fundingLineCode)
         {
             bool outputHeaders = true;
             bool processedResults = false;
@@ -58,11 +59,12 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
                 IEnumerable<PublishedFunding> publishedFunding = await documents.ReadNext();
                 
                 IEnumerable<ExpandoObject> csvRows = fundingLineCsvTransform.Transform(publishedFunding, jobType);
-                        
-                AppendCsvFragment(temporaryFilePath, csvRows, outputHeaders);
 
-                outputHeaders = false;
-                processedResults = true;   
+                if (AppendCsvFragment(temporaryFilePath, csvRows, outputHeaders))
+                {
+                    outputHeaders = false;
+                    processedResults = true;
+                }   
             }
             
             return processedResults;

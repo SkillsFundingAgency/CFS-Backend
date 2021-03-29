@@ -22,7 +22,7 @@ namespace CalculateFunding.Services.Publishing.Reporting
         {
             Guard.IsNullOrWhiteSpace(publishedFundingCsvJobsRequest.SpecificationId, nameof(publishedFundingCsvJobsRequest.SpecificationId));
             Guard.ArgumentNotNull(publishedFundingCsvJobsRequest.User, nameof(publishedFundingCsvJobsRequest.User));
-            Guard.ArgumentNotNull(publishedFundingCsvJobsRequest.FundingLineCodes, nameof(publishedFundingCsvJobsRequest.FundingLineCodes));
+            Guard.ArgumentNotNull(publishedFundingCsvJobsRequest.FundingLines, nameof(publishedFundingCsvJobsRequest.FundingLines));
             Guard.ArgumentNotNull(publishedFundingCsvJobsRequest.FundingStreamIds, nameof(publishedFundingCsvJobsRequest.FundingStreamIds));
 
             List<Task<IEnumerable<Job>>> tasks = new List<Task<IEnumerable<Job>>>();

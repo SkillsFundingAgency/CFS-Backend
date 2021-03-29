@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Reporting.FundingLines;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -16,15 +17,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
     [TestClass]
     public class PublishedProviderCsvBatchProcessorTests : BatchProcessorTestBase
     {
+        private Mock<IProfilingService> _profilingService;
+
         [TestInitialize]
         public void SetUp()
         {
+            _profilingService = new Mock<IProfilingService>();
+
             BatchProcessor = new PublishedProviderCsvBatchProcessor(PublishedFunding.Object,
                 PredicateBuilder.Object,
                 new ResiliencePolicies
                 {
                     PublishedFundingRepository = Policy.NoOpAsync()
                 },
+                _profilingService.Object,
                 FileSystemAccess.Object,
                 CsvUtils.Object);
         }
@@ -50,7 +56,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             string specificationId = NewRandomString();
             string fundingPeriodId = NewRandomString();
 
-            bool processedResults = await WhenTheCsvIsGenerated(FundingLineCsvGeneratorJobType.Released, specificationId, fundingPeriodId, NewRandomString(), NewRandomString(), NewRandomString());
+            bool processedResults = await WhenTheCsvIsGenerated(FundingLineCsvGeneratorJobType.Released, specificationId, fundingPeriodId, NewRandomString(), NewRandomString(), NewRandomString(), NewRandomString());
 
             processedResults
                 .Should()
@@ -66,6 +72,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         {
             string specificationId = NewRandomString();
             string fundingPeriodId = NewRandomString();
+            string fundingLineName = NewRandomString();
             string fundingLineCode = NewRandomString();
             string fundingStreamId = NewRandomString();
 
@@ -100,9 +107,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
 
             string predicate = NewRandomString();
             string joinPredicate = NewRandomString();
+            string groupingPredicate = NewRandomString();
 
-            GivenTheCsvRowTransformation(publishProvidersOne, transformedRowsOne, expectedCsvOne, true);
-            AndTheCsvRowTransformation(publishedProvidersTwo, transformedRowsTwo, expectedCsvTwo,  false);
+            GivenTheCsvRowTransformation<PublishedProvider>(publishedProviders =>
+            {
+                return publishedProviders.SequenceEqual(publishProvidersOne);
+            }, transformedRowsOne, expectedCsvOne, true);
+            AndTheCsvRowTransformation<PublishedProvider>(publishedProviders =>
+            {
+                return publishedProviders.SequenceEqual(publishedProvidersTwo);
+            }, transformedRowsTwo, expectedCsvTwo,  false);
             AndThePredicate(jobType, predicate);
             AndTheJoinPredicate(jobType, joinPredicate);
 
@@ -111,7 +125,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                     It.IsAny<Func<List<PublishedProvider>, Task>>(),
                     100,
                     joinPredicate,
-                    fundingLineCode))
+                    fundingLineName))
                 .Callback<string, string, Func<List<PublishedProvider>, Task>, int, string, string>((pred, spec, 
                     batchProcessor, batchSize, joinPred, flc) =>
                 {
@@ -125,7 +139,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                 })
                 .Returns(Task.CompletedTask);
 
-            bool processedResults = await WhenTheCsvIsGenerated(jobType, specificationId, fundingPeriodId, expectedInterimFilePath, fundingLineCode, fundingStreamId);
+            bool processedResults = await WhenTheCsvIsGenerated(jobType, specificationId, fundingPeriodId, expectedInterimFilePath, fundingLineName, fundingStreamId, fundingLineCode);
 
             processedResults
                 .Should()
@@ -144,6 +158,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                     Times.Once);
         }
         
-        private PublishedProvider NewPublishedProvider() => new PublishedProvider();
+        private PublishedProvider NewPublishedProvider() => new PublishedProvider { Current = new PublishedProviderVersion { FundingLines = new[] { new FundingLine { Name = "FLName"} } } };
     }
 }

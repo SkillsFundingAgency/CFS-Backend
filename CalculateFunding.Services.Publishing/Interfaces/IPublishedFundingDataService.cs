@@ -12,7 +12,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
 
         Task<IEnumerable<PublishedFunding>> GetCurrentPublishedFunding(string fundingStreamId, string fundingPeriodId);
 
-        Task<IEnumerable<string>> GetPublishedProviderFundingLines(string specificationId);
+        Task<IEnumerable<(string Code, string Name)>> GetPublishedProviderFundingLines(string specificationId);
 
         Task<IEnumerable<PublishedFunding>> GetCurrentPublishedFunding(string specificationId, GroupingReason? groupingReason = null);
 

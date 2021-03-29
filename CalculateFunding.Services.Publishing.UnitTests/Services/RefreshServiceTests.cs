@@ -806,9 +806,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 _.GenerateCsvJobs(GeneratePublishingCsvJobsCreationAction.Refresh,
                         specificationId,
                         fundingPeriodId,
+                        It.IsAny<IEnumerable<string>>(),
                         It.IsAny<string>(),
-                        It.IsAny<Reference>(),
-                        It.IsAny<IEnumerable<string>>()),
+                        It.IsAny<Reference>()),
                         Times.Once);
         }
 

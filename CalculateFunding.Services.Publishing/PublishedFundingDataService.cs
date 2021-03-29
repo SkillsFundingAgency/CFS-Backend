@@ -100,11 +100,11 @@ namespace CalculateFunding.Services.Publishing
             return await _publishedFundingBulkRepository.GetPublishedProviders(publishedProviderIds);
         }
 
-        public async Task<IEnumerable<string>> GetPublishedProviderFundingLines(string specificationId)
+        public async Task<IEnumerable<(string Code, string Name)>> GetPublishedProviderFundingLines(string specificationId)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
-            IEnumerable<string> result = await _publishedFundingRepositoryPolicy.ExecuteAsync(
+            IEnumerable<(string Code, string Name)> result = await _publishedFundingRepositoryPolicy.ExecuteAsync(
                                 () => _publishedFundingRepository.GetPublishedProviderFundingLines(specificationId, GroupingReason.Payment));
 
             return result;

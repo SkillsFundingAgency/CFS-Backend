@@ -8,7 +8,7 @@ namespace CalculateFunding.Services.Publishing.Models
         public string SpecificationId { get; set; }
         public string CorrelationId { get; set; }
         public Reference User { get; set; }
-        public IEnumerable<string> FundingLineCodes { get; set; }
+        public IEnumerable<(string Code, string Name)> FundingLines { get; set; }
         public IEnumerable<string> FundingStreamIds { get; set; }
         public string FundingPeriodId { get; set; }
     }

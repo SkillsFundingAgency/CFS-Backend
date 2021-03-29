@@ -445,6 +445,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .GenerateCsvJobs(GeneratePublishingCsvJobsCreationAction.Approve,
                         Arg.Is(specificationId),
                         Arg.Is(fundingPeriodId),
+                        Arg.Any<IEnumerable<string>>(),
                         Arg.Any<string>(),
                         Arg.Any<Reference>());
         }

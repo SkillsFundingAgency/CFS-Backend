@@ -875,9 +875,9 @@ namespace CalculateFunding.Services.Publishing.Repositories
             string specificationId,
             int batchSize,
             string joinPredicate = null,
-            string fundingLineCode = null)
+            string fundingLineName = null)
         {
-            CosmosDbQuery query = CreateQueryForPublishedProviderVersionBatchProcessing(predicate, specificationId, joinPredicate, fundingLineCode);
+            CosmosDbQuery query = CreateQueryForPublishedProviderVersionBatchProcessing(predicate, specificationId, joinPredicate, fundingLineName);
 
             return _repository.GetFeedIterator<PublishedProviderVersion>(query, batchSize);
         }
@@ -885,7 +885,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
         private static CosmosDbQuery CreateQueryForPublishedProviderVersionBatchProcessing(string predicate,
             string specificationId,
             string joinPredicate,
-            string fundingLineCode)
+            string fundingLineName)
         {
             return new CosmosDbQuery
             {
@@ -941,7 +941,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                 Parameters = new[]
                 {
                     new CosmosDbQueryParameter("@specificationId", specificationId),
-                    new CosmosDbQueryParameter("@fundingLineCode", fundingLineCode),
+                    new CosmosDbQueryParameter("@fundingLineName", fundingLineName)
                 }
             };
         }
@@ -951,7 +951,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
             Func<List<PublishedProvider>, Task> batchProcessor,
             int batchSize,
             string joinPredicate = null,
-            string fundingLineCode = null)
+            string fundingLineName = null)
         {
             CosmosDbQuery query = new CosmosDbQuery
             {
@@ -1057,7 +1057,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                 Parameters = new[]
                 {
                     new CosmosDbQueryParameter("@specificationId", specificationId),
-                    new CosmosDbQueryParameter("@fundingLineCode", fundingLineCode),
+                    new CosmosDbQueryParameter("@fundingLineName", fundingLineName)
                 }
             };
 
@@ -1430,16 +1430,16 @@ namespace CalculateFunding.Services.Publishing.Repositories
             };
         }
 
-        public async Task<IEnumerable<string>> GetPublishedProviderFundingLines(string specificationId, GroupingReason fundingLineType)
+        public async Task<IEnumerable<(string Code, string Name)>> GetPublishedProviderFundingLines(string specificationId, GroupingReason fundingLineType)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
-            List<string> fundingLines = new List<string>();
+            List<(string Code, string Name)> fundingLines = new List<(string Code, string Name)>();
             IEnumerable<dynamic> queryResults = await _repository
              .DynamicQuery(new CosmosDbQuery
              {
                  QueryText = @"
-                                SELECT DISTINCT VALUE  f.name
+                                SELECT DISTINCT f.fundingLineCode, f.name
                                 FROM publishedProviders p
                                 JOIN f IN p.content.current.fundingLines
                                 WHERE    p.documentType = 'PublishedProvider'
@@ -1455,10 +1455,10 @@ namespace CalculateFunding.Services.Publishing.Repositories
 
             foreach (dynamic item in queryResults)
             {
-                fundingLines.Add((string)item);
+                fundingLines.Add((item.fundingLineCode, item.name));
             }
 
-            return await Task.FromResult(fundingLines.Distinct());
+            return await Task.FromResult(fundingLines.DistinctBy(_ => _.Code));
         }
 
         public async Task<int> QueryPublishedFundingCount(IEnumerable<string> fundingStreamIds,
