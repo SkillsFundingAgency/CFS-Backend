@@ -49,7 +49,7 @@ namespace CalculateFunding.Functions.Datasets.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.RunConverterDatasetMerge,
-                async(Message smokeResponse) => await onRunConverterDataMerge.Run(smokeResponse));
+                async(Message smokeResponse) => await onRunConverterDataMerge.Run(smokeResponse), useSession: true);
 
             response
                 .Should()
