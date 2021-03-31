@@ -423,6 +423,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Should()
                 .BeEquivalentTo(expectedFundingLineProfile.ProfileTotals.LastOrDefault());
 
+            actualFundingLineProfile
+                .IsCustomProfile
+                .Should()
+                .BeFalse();
+
             _publishedFunding.VerifyAll();
             _specificationService.VerifyAll();
             _policiesService.VerifyAll();
@@ -463,7 +468,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             _publishedFunding.VerifyAll();
         }
-        
+
         [TestMethod]
         public async Task Returns404WhenNoReleasedPublishedProviderResultsForTheParameters()
         {
@@ -840,6 +845,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         }
 
         [TestMethod]
+        public async Task ReturnsIsCustomProfile()
+        {
+            IActionResult result = await WhenGetCurrentProfileConfig(
+                NewRandomString(),
+                NewRandomString(),
+                NewRandomString());
+
+            result
+                .Should()
+                .BeOfType<NotFoundResult>();
+        }
+
+        [TestMethod]
         public async Task ConstructsFundingLineProfileWhenValidInputProvidedToCurrentProfileConfig()
         {
             string specificationId = NewRandomString();
@@ -1004,7 +1022,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Should()
                 .Be(2);
 
-            FundingLineProfile actualFundingLineProfile = 
+            FundingLineProfile actualFundingLineProfile =
                 actualFundingLineProfiles.FirstOrDefault(x => x.FundingLineCode == fundingLineCode);
 
             actualFundingLineProfile
@@ -1055,8 +1073,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Should()
                 .BeEquivalentTo(expectedFundingLineProfile.ProfileTotals.LastOrDefault());
 
+            actualFundingLineProfile
+                .IsCustomProfile
+                .Should()
+                .BeFalse();
+
             FundingLineProfile actualFundingLineCustomProfile =
-               actualFundingLineProfiles.FirstOrDefault(x => x.FundingLineCode == customProfileFundingLineCode);
+                actualFundingLineProfiles.FirstOrDefault(x => x.FundingLineCode == customProfileFundingLineCode);
 
             actualFundingLineCustomProfile
                 .Should()
@@ -1069,6 +1092,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             actualFundingLineCustomProfile.ProfilePatternDescription
                 .Should()
                 .Be("Custom Profile");
+
+            actualFundingLineCustomProfile.IsCustomProfile
+                .Should()
+                .BeTrue();
 
             _publishedFunding.VerifyAll();
             _specificationService.VerifyAll();
@@ -1291,7 +1318,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             PublishedProviderErrorBuilder publishedProviderErrorBuilder = new PublishedProviderErrorBuilder();
 
             setUp?.Invoke(publishedProviderErrorBuilder);
-            
+
             return publishedProviderErrorBuilder.Build();
         }
 
