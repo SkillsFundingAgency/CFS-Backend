@@ -39,7 +39,8 @@ namespace CalculateFunding.Services.CalcEngine.MappingProfiles
                 .ForMember(dst => dst.LowerSuperOutputAreaName, map => map.Ignore())
                 .ForMember(dst => dst.LowerSuperOutputAreaCode, map => map.Ignore())
                 .ForMember(dst => dst.ParliamentaryConstituencyName, map => map.Ignore())
-                .ForMember(dst => dst.ParliamentaryConstituencyCode, map => map.Ignore());
+                .ForMember(dst => dst.ParliamentaryConstituencyCode, map => map.Ignore())
+                .ForMember(dst => dst.Predecessors, map => map.Ignore());
 
 
         }

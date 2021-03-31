@@ -985,7 +985,8 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 ProviderSubTypeCode = "ProviderSubTypeCode",
                 PreviousLACode = "PreviousLAcode",
                 PreviousLAName = "PreviousLAname",
-                PreviousEstablishmentNumber = "PreviousEstablishmentNumber"
+                PreviousEstablishmentNumber = "PreviousEstablishmentNumber",
+                Predecessors = new[] {"predecessorProviderId1"}
             };
         }
 

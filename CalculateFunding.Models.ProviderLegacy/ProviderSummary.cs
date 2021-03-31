@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using CalculateFunding.Common.Models;
 using Newtonsoft.Json;
 
@@ -176,5 +177,8 @@ namespace CalculateFunding.Models.ProviderLegacy
 
         [JsonProperty("previousEstablishmentNumber")]
         public string PreviousEstablishmentNumber { get; set; }
+
+        [JsonProperty("predecessors")]
+        public IEnumerable<string> Predecessors { get; set; }
     }
 }

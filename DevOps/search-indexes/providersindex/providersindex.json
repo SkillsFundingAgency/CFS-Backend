@@ -494,6 +494,14 @@
       "filterable": false,
       "sortable": false,
       "facetable": false
+    },
+    {
+      "name": "predecessors",
+      "type": "Collection(Edm.String)",
+      "searchable": false,
+      "filterable": false,
+      "sortable": false,
+      "facetable": false
     }
   ]
 }

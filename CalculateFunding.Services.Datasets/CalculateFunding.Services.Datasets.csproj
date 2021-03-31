@@ -7,11 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-
     <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="6.8.0" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Calcs" Version="7.1.0" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Jobs" Version="4.2.0" />
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Providers" Version="4.5.0" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Providers" Version="4.6.0" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="6.19.0" />
     <PackageReference Include="CalculateFunding.Common.JobManagement" Version="6.0.1" />
     <PackageReference Include="FluentValidation" Version="8.6.0" />

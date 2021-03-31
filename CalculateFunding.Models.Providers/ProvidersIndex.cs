@@ -1,6 +1,7 @@
 ﻿using Microsoft.Azure.Search;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace CalculateFunding.Models.Providers
@@ -210,5 +211,8 @@ namespace CalculateFunding.Models.Providers
 
         [JsonProperty("previousEstablishmentNumber")]
         public string PreviousEstablishmentNumber { get; set; }
+
+        [JsonProperty("predecessors")]
+        public IEnumerable<string> Predecessors { get; set; }
     }
 }

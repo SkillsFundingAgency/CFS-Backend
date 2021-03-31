@@ -264,6 +264,11 @@ namespace CalculateFunding.Models.UnitTests
                 modelType = modelType.Replace("[]", "");
                 modelIsCollection = true;
             }
+            else if(matchedProperty.PropertyType.Name == "IEnumerable`1")
+            {
+                modelType = matchedProperty.PropertyType.GenericTypeArguments[0].Name;
+                modelIsCollection = true;
+            }
 
             string jsonType = searchIndexField.Type;
 

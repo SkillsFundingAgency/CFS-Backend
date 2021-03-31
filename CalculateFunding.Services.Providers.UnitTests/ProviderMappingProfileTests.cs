@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using AutoMapper;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Services.Providers.MappingProfiles;
@@ -46,6 +47,28 @@ namespace CalculateFunding.Services.Providers.UnitTests
             // Assert
             provider.PaymentOrganisationIdentifier.Should()
                 .Be(fundingDataZoneProvider.PaymentOrganisationUkprn);
+        }
+
+        [TestMethod]
+        public void ShouldMapFundingDataZoneProviderPredecessorsToProviderPredecessors()
+        {
+            // Arrange
+            FundingDataZoneProvider fundingDataZoneProvider = new FundingDataZoneProvider()
+            {
+                Predecessors = new List<string> { new RandomString(), new RandomString() }
+            };
+
+            MapperConfiguration config = new MapperConfiguration(c => c.AddProfile<ProviderVersionsMappingProfile>());
+            IMapper mapper = config.CreateMapper();
+
+            // Act
+            Models.Providers.Provider provider = mapper.Map<Models.Providers.Provider>(fundingDataZoneProvider);
+
+            // Assert
+            provider.Predecessors.Should()
+                .HaveCount(2);
+            provider.Predecessors.Should()
+                .BeEquivalentTo(fundingDataZoneProvider.Predecessors);
         }
 
         [TestMethod]

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace CalculateFunding.Models.FundingDataZone
@@ -160,5 +161,7 @@ namespace CalculateFunding.Models.FundingDataZone
         public string PreviousLaName { get; set; }
 
         public string PreviousEstablishmentNumber { get; set; }
+
+        public IEnumerable<string> Predecessors { get; set; }
     }
 }

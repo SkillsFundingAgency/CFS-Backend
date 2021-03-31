@@ -1,6 +1,7 @@
 ﻿using CalculateFunding.Models.ProviderLegacy;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 
 namespace CalculateFunding.Models.Providers
 {
@@ -188,6 +189,9 @@ namespace CalculateFunding.Models.Providers
 
         [JsonProperty("previousEstablishmentNumber")]
         public string PreviousEstablishmentNumber { get; set; }
+
+        [JsonProperty("predecessors")]
+        public IEnumerable<string> Predecessors { get; set; }
 
         [JsonIgnore]
         public TrustStatus TrustStatus
