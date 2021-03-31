@@ -126,6 +126,7 @@ namespace CalculateFunding.Api.Datasets
             builder.AddSingleton<IConverterDataMergeLogger, ConverterDataMergeLogger>();
             builder.AddSingleton<IConverterEligibleProviderService, ConverterEligibleProviderService>();
             builder.AddSingleton<IValidator<ConverterMergeRequest>, ConverterMergeRequestValidation>();
+            builder.AddSingleton<IDatasetIndexer, DatasetIndexer>();
 
 
             builder.AddSingleton<IDateTimeProvider, DateTimeProvider>();
@@ -376,6 +377,7 @@ namespace CalculateFunding.Api.Datasets
                 ProviderRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                 DatasetRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                 DatasetSearchService = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
+                DatasetVersionSearchService = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
                 DatasetDefinitionSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
                 BlobClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),

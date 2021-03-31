@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Datasets;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Tests.Common.Helpers;
 
 namespace CalculateFunding.Services.Datasets.Services
@@ -13,7 +14,7 @@ namespace CalculateFunding.Services.Datasets.Services
         private string _description;
         private DatasetDefinitionVersion _definition;
         private DatasetVersion _current;
-        private IEnumerable<DatasetVersion> _history;
+        private ICollection<DatasetVersion> _history = new List<DatasetVersion>();
 
         public DatasetBuilder WithId(string id)
         {
@@ -45,7 +46,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
         public DatasetBuilder WithHistory(params DatasetVersion[] history)
         {
-            _history = history;
+            _history.AddRange(history);
 
             return this;
         }

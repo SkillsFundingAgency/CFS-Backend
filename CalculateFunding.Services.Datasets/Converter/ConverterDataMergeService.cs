@@ -75,13 +75,10 @@ namespace CalculateFunding.Services.Datasets.Converter
         public async Task<IActionResult> QueueJob(ConverterMergeRequest request)
         {
             Guard.ArgumentNotNull(request, nameof(request));
-            
+
             ValidationResult validation = await _requestValidator.ValidateAsync(request);
 
-            if (!validation.IsValid)
-            {
-                return validation.AsBadRequest();
-            }
+            if (!validation.IsValid) return validation.AsBadRequest();
 
             Job job = (await QueueJobs(new JobCreateModel
             {
@@ -95,7 +92,7 @@ namespace CalculateFunding.Services.Datasets.Converter
                 MessageBody = request.AsJson(),
                 Properties = new Dictionary<string, string>
                 {
-                    { "dataset-relationship-id", request.DatasetRelationshipId}
+                    {"dataset-relationship-id", request.DatasetRelationshipId}
                 }
             }))?.SingleOrDefault();
 
@@ -107,7 +104,7 @@ namespace CalculateFunding.Services.Datasets.Converter
             EnsureIsNotNull(message, nameof(message));
 
             string jobId = message.GetUserProperty<string>("jobId");
-            
+
             ConverterMergeRequest request = message.GetPayloadAsInstanceOf<ConverterMergeRequest>();
 
             await MergeDatasetForConverters(request, jobId);
@@ -119,7 +116,7 @@ namespace CalculateFunding.Services.Datasets.Converter
 
             Dataset dataset = await LookupDataset(request);
             DatasetDefinition datasetDefinition = await LookupDatasetDefinition(dataset);
-            
+
             await EnsureConverterCanBeRunAgainstDataset(datasetDefinition, dataset.Current, request.ProviderVersionId);
             EnsureFieldDefinitionIsValid(datasetDefinition);
 
@@ -128,38 +125,34 @@ namespace CalculateFunding.Services.Datasets.Converter
 
             EnsureConvertersAreEnabledForFundingConfiguration(fundingConfiguration);
 
-            IEnumerable<EligibleConverter> eligibleProviders = await GetEligibleProviders(request, fundingConfiguration);
+            EligibleConverter[] eligibleProviders = (await GetEligibleProviders(request, fundingConfiguration)).ToArray();
 
-            if (!eligibleProviders.Any())
-            {
-                return;
-            }
+            if (eligibleProviders.Length == 0) return;
 
             IDatasetCloneBuilder datasetCloneBuilder = _datasetCloneBuilderFactory.CreateCloneBuilder();
 
-            await datasetCloneBuilder.LoadOriginalDataset(dataset);
+            await datasetCloneBuilder.LoadOriginalDataset(dataset, datasetDefinition);
 
-            IEnumerable<EligibleConverter> convertersToProcess = await DetectProvidersToProcess(eligibleProviders, datasetDefinition, datasetCloneBuilder);
+           (string identifierFieldName, EligibleConverter[] convertersToProcess) =
+                 DetectProvidersToProcess(eligibleProviders, datasetDefinition, datasetCloneBuilder);
 
-            if (!convertersToProcess.Any())
-            {
-                return;
-            }
+            if (!convertersToProcess.Any()) return;
 
             List<RowCopyResult> results = new List<RowCopyResult>(convertersToProcess.Count());
 
             foreach (EligibleConverter converter in convertersToProcess)
-            {
-                await CopyRowInDataset(results, converter, datasetCloneBuilder);
+            { 
+                CopyRowInDataset(results, converter, datasetCloneBuilder, identifierFieldName);
             }
 
-            DatasetVersion createdDatasetVersion = await SaveDatasetVersionWhenChangesExist(results, request.Author, datasetCloneBuilder);
+            DatasetVersion createdDatasetVersion = await SaveDatasetVersionWhenChangesExist(results, 
+                request.Author,
+                dataset, 
+                datasetDefinition, 
+                datasetCloneBuilder);
 
-            if (createdDatasetVersion == null)
-            {
-                return;
-            }
-            
+            if (createdDatasetVersion == null) return;
+
             await SaveOutcomesAsLog(results, request, createdDatasetVersion, jobId);
         }
 
@@ -176,14 +169,16 @@ namespace CalculateFunding.Services.Datasets.Converter
 
             EnsureIsNotNullOrWhitespace(specificationId, $"DefinitionSpecificationRelationship {relationship.Id} has no specification reference.");
 
-            SpecificationSummary specificationSummary = (await _specificationsResilience.ExecuteAsync(() => _specifications.GetSpecificationSummaryById(specificationId)))?.Content;
+            SpecificationSummary specificationSummary =
+                (await _specificationsResilience.ExecuteAsync(() => _specifications.GetSpecificationSummaryById(specificationId)))?.Content;
 
             EnsureIsNotNull(specificationSummary, $"Did not locate s specification summary for id {specificationId}");
 
             string fundingPeriodId = specificationSummary.FundingPeriod?.Id;
-            
-            FundingConfiguration fundingConfiguration = (await _policiesResilience.ExecuteAsync(() => _policies.GetFundingConfiguration(fundingStreamId,
-                fundingPeriodId)))?.Content;
+
+            FundingConfiguration fundingConfiguration = (await _policiesResilience.ExecuteAsync(() =>
+                _policies.GetFundingConfiguration(fundingStreamId,
+                    fundingPeriodId)))?.Content;
 
             EnsureIsNotNull(fundingConfiguration, $"Did not locate funding configuration for {fundingStreamId} {fundingPeriodId}");
 
@@ -193,8 +188,10 @@ namespace CalculateFunding.Services.Datasets.Converter
         private async Task SaveOutcomesAsLog(IEnumerable<RowCopyResult> results,
             ConverterMergeRequest request,
             DatasetVersion createdDatasetVersion,
-            string jobId) =>
+            string jobId)
+        {
             await _converterDataMergeLogger.SaveLogs(results, request, jobId, createdDatasetVersion.Version);
+        }
 
         private async Task EnsureConverterCanBeRunAgainstDataset(DatasetDefinition datasetDefinition,
             DatasetVersion dataset,
@@ -205,13 +202,14 @@ namespace CalculateFunding.Services.Datasets.Converter
             // Check if the dataset is enabled for the converter wizard. Fail job if not enabled
 
             // Check the last core provider version which has run against the dataset, if it's the same as the one being request, complete the job as successful, but log that it skipped processing
-            
+
             //from Dan - apparently I just need to check which provider version id is stored against the datasetversion to check this (should be coming with a prereq)
         }
 
         private async Task<DefinitionSpecificationRelationship> GetDatasetRelationship(ConverterMergeRequest request)
         {
-            DefinitionSpecificationRelationship relationship = await _datasets.GetDefinitionSpecificationRelationshipById(request.DatasetRelationshipId);
+            DefinitionSpecificationRelationship relationship =
+                await _datasets.GetDefinitionSpecificationRelationshipById(request.DatasetRelationshipId);
 
             EnsureIsNotNull(relationship, $"Dataset relationship not found. Id = '{request.DatasetRelationshipId}'");
 
@@ -221,7 +219,8 @@ namespace CalculateFunding.Services.Datasets.Converter
         private async Task<IEnumerable<EligibleConverter>> GetEligibleProviders(ConverterMergeRequest request,
             FundingConfiguration fundingConfiguration)
         {
-            IEnumerable<EligibleConverter> eligibleProviders = await _eligibleProviderConverter.GetProviderIdsForConverters(request.ProviderVersionId, fundingConfiguration);
+            IEnumerable<EligibleConverter> eligibleProviders =
+                await _eligibleProviderConverter.GetProviderIdsForConverters(request.ProviderVersionId, fundingConfiguration);
 
             EnsureIsNotNull(eligibleProviders, "Eligible providers returned null");
 
@@ -230,14 +229,21 @@ namespace CalculateFunding.Services.Datasets.Converter
 
         private async Task<DatasetVersion> SaveDatasetVersionWhenChangesExist(List<RowCopyResult> results,
             Reference author,
-            IDatasetCloneBuilder datasetCloneBuilder)
-            => results.Any(_ => _.Outcome == RowCopyOutcome.Copied) ? await datasetCloneBuilder.SaveContents(author) : null;
+            Dataset dataset,
+            DatasetDefinition datasetDefinition,
+            IDatasetCloneBuilder datasetCloneBuilder) =>
+            results.Any(_ => _.Outcome == RowCopyOutcome.Copied) ? 
+                await datasetCloneBuilder.SaveContents(author, datasetDefinition, dataset) : 
+                null;
 
-        private async Task CopyRowInDataset(List<RowCopyResult> results,
+        private void CopyRowInDataset(ICollection<RowCopyResult> results,
             EligibleConverter converter,
-            IDatasetCloneBuilder datasetCloneBuilder)
+            IDatasetCloneBuilder datasetCloneBuilder,
+            string identifierFieldName)
         {
-            RowCopyResult result = await datasetCloneBuilder.CopyRow(converter.PreviousProviderIdentifier, converter.ProviderId);
+            RowCopyResult result = datasetCloneBuilder.CopyRow(identifierFieldName,
+                converter.PreviousProviderIdentifier, 
+                converter.ProviderId);
 
             EnsureIsNotNull(result, $"Copy row result was null when processing {converter.PreviousProviderIdentifier} to {converter.ProviderId}");
 
@@ -246,16 +252,18 @@ namespace CalculateFunding.Services.Datasets.Converter
 
         private static void EnsureFieldDefinitionIsValid(DatasetDefinition datasetDefinition)
         {
-            FieldDefinition identifierField = datasetDefinition.TableDefinitions?.FirstOrDefault().FieldDefinitions?.SingleOrDefault(_ => _.IdentifierFieldType.HasValue);
+            FieldDefinition identifierField = datasetDefinition.TableDefinitions?.FirstOrDefault()?.FieldDefinitions
+                .SingleOrDefault(_ => _.IdentifierFieldType.HasValue);
 
             EnsureIsNotNull(identifierField, "No identifier field was specified on this dataset definition.");
-            Ensure(identifierField.IdentifierFieldType == IdentifierFieldType.UKPRN, "Converter data merge only supports schemas with UKPRN set as the identifier.");
+            Ensure(identifierField.IdentifierFieldType == IdentifierFieldType.UKPRN,
+                "Converter data merge only supports schemas with UKPRN set as the identifier.");
         }
 
         private async Task<DatasetDefinition> LookupDatasetDefinition(Dataset dataset)
         {
             string definitionId = dataset.Definition.Id;
-            
+
             DatasetDefinition datasetDefinition = await _datasets.GetDatasetDefinition(definitionId);
 
             EnsureIsNotNull(datasetDefinition, $"Did not locate dataset definition {definitionId}");
@@ -283,20 +291,26 @@ namespace CalculateFunding.Services.Datasets.Converter
             EnsureIsNotNullOrWhitespace(request.DatasetRelationshipId, "Empty or null datasetRelationshipId");
         }
 
-        private async Task<IEnumerable<EligibleConverter>> DetectProvidersToProcess(IEnumerable<EligibleConverter> eligibleProviders,
+        private (string fieldNameIdentifier, EligibleConverter[]) DetectProvidersToProcess(IEnumerable<EligibleConverter> eligibleProviders,
             DatasetDefinition datasetDefinition,
             IDatasetCloneBuilder datasetCloneBuilder)
         {
-            FieldDefinition fieldOfIdentifier = datasetDefinition.TableDefinitions.First().FieldDefinitions.Single(_ => _.IdentifierFieldType == IdentifierFieldType.UKPRN);
+            FieldDefinition fieldOfIdentifier = datasetDefinition
+                .TableDefinitions
+                .First()
+                .FieldDefinitions
+                .Single(_ => _.IdentifierFieldType == IdentifierFieldType.UKPRN);
 
-            IEnumerable<string> existingProviderIdentifiers = await datasetCloneBuilder.GetExistingIdentifierValues(fieldOfIdentifier.Name);
+            string identifierFieldName = fieldOfIdentifier.Name;
+            
+            IEnumerable<string> existingProviderIdentifiers = datasetCloneBuilder.GetExistingIdentifierValues(identifierFieldName);
 
             IEnumerable<EligibleConverter> providersWithPreviousDatasetSources = eligibleProviders
                 .Where(_ => existingProviderIdentifiers.Contains(_.PreviousProviderIdentifier));
 
-            return providersWithPreviousDatasetSources
+            return (identifierFieldName, providersWithPreviousDatasetSources
                 .Where(_ => !existingProviderIdentifiers
-                    .Contains(_.ProviderId));
+                    .Contains(_.ProviderId)).ToArray());
         }
     }
 }

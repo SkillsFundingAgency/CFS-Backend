@@ -13,6 +13,8 @@ namespace CalculateFunding.Services.Datasets
         public AsyncPolicy DatasetRepository { get; set; }
 
         public AsyncPolicy DatasetSearchService { get; set; }
+        
+        public AsyncPolicy DatasetVersionSearchService { get; set; }
 
         public AsyncPolicy SpecificationsApiClient { get; set; }
 

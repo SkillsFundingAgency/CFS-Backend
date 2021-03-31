@@ -215,7 +215,7 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"));
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.WithReference(NewReference(rf => rf.WithId(DataDefintionId)))))
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
                 .WithHistory(NewDatasetVersion())));
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
@@ -240,7 +240,7 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"));
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.WithReference(NewReference(rf => rf.WithId(DataDefintionId)))))
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
                 .WithHistory(NewDatasetVersion())));
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
@@ -266,7 +266,7 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"));
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.WithReference(NewReference(rf => rf.WithId(DataDefintionId)))))
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
                 .WithHistory(NewDatasetVersion())));
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
@@ -294,7 +294,7 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"));
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.WithReference(NewReference(rf => rf.WithId(DataDefintionId)))))
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
                 .WithHistory(NewDatasetVersion())));
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
@@ -326,7 +326,7 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"));
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.WithReference(NewReference(rf => rf.WithId(DataDefintionId)))))
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
                 .WithHistory(NewDatasetVersion())));
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
@@ -358,7 +358,7 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"));
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.WithReference(NewReference(rf => rf.WithId(DataDefintionId)))))
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
                 .WithHistory(NewDatasetVersion())));
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
@@ -395,7 +395,7 @@ namespace CalculateFunding.Services.Datasets.Services
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username));
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.WithReference(NewReference(rf => rf.WithId(DataDefintionId)))))
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
                 .WithHistory(NewDatasetVersion())));
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
@@ -436,7 +436,7 @@ namespace CalculateFunding.Services.Datasets.Services
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username));
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.WithReference(NewReference(rf => rf.WithId(DataDefintionId)))))
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
                 .WithHistory(NewDatasetVersion())));
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
@@ -473,7 +473,7 @@ namespace CalculateFunding.Services.Datasets.Services
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username));
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.WithReference(NewReference(rf => rf.WithId(DataDefintionId)))))
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
                 .WithHistory(NewDatasetVersion())));
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
@@ -512,7 +512,7 @@ namespace CalculateFunding.Services.Datasets.Services
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username));
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.WithReference(NewReference(rf => rf.WithId(DataDefintionId)))))
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
                 .WithHistory(NewDatasetVersion())));
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
@@ -568,7 +568,7 @@ namespace CalculateFunding.Services.Datasets.Services
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username));
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.WithReference(NewReference(rf => rf.WithId(DataDefintionId)))))
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
                 .WithHistory(NewDatasetVersion())));
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheJob(NewJob(_ => _.WithId(_jobId)
@@ -632,7 +632,7 @@ namespace CalculateFunding.Services.Datasets.Services
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username));
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.WithReference(NewReference(rf => rf.WithId(DataDefintionId)))))
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
                 .WithHistory(NewDatasetVersion())));
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
@@ -691,7 +691,7 @@ namespace CalculateFunding.Services.Datasets.Services
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username));
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.WithReference(NewReference(rf => rf.WithId(DataDefintionId)))))
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
                 .WithHistory(NewDatasetVersion())));
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
@@ -749,7 +749,7 @@ namespace CalculateFunding.Services.Datasets.Services
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username));
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.WithReference(NewReference(rf => rf.WithId(DataDefintionId)))))
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
                 .WithHistory(NewDatasetVersion())));
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
@@ -826,7 +826,7 @@ namespace CalculateFunding.Services.Datasets.Services
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username));
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.WithReference(NewReference(rf => rf.WithId(DataDefintionId)))))
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
                 .WithHistory(NewDatasetVersion())));
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
@@ -907,7 +907,7 @@ namespace CalculateFunding.Services.Datasets.Services
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                ("user-id", UserId), ("user-name", Username));
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.WithReference(NewReference(rf => rf.WithId(DataDefintionId)))))
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
                 .WithHistory(NewDatasetVersion())));
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
@@ -961,7 +961,7 @@ namespace CalculateFunding.Services.Datasets.Services
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username));
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.WithReference(NewReference(rf => rf.WithId(DataDefintionId)))))
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
                 .WithHistory(NewDatasetVersion())));
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
@@ -1018,7 +1018,7 @@ namespace CalculateFunding.Services.Datasets.Services
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username));
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.WithReference(NewReference(rf => rf.WithId(DataDefintionId)))))
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
                 .WithHistory(NewDatasetVersion())));
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
@@ -1072,7 +1072,7 @@ namespace CalculateFunding.Services.Datasets.Services
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username));
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.WithReference(NewReference(rf => rf.WithId(DataDefintionId)))))
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
                 .WithHistory(NewDatasetVersion())));
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
@@ -1141,7 +1141,7 @@ namespace CalculateFunding.Services.Datasets.Services
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username));
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.WithReference(NewReference(rf => rf.WithId(DataDefintionId)))))
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
                 .WithHistory(NewDatasetVersion())));
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
@@ -1195,7 +1195,7 @@ namespace CalculateFunding.Services.Datasets.Services
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username), ("parentJobId", "parentJob1"));
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.WithReference(NewReference(rf => rf.WithId(DataDefintionId)))))
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
                 .WithHistory(NewDatasetVersion())));
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
@@ -1248,7 +1248,7 @@ namespace CalculateFunding.Services.Datasets.Services
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username), ("parentJobId", "parentJob1"));
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.WithReference(NewReference(rf => rf.WithId(DataDefintionId)))))
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
                 .WithHistory(NewDatasetVersion())));
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
@@ -1312,7 +1312,7 @@ namespace CalculateFunding.Services.Datasets.Services
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username), ("disableQueueCalculationJob", "true"));
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.WithReference(NewReference(rf => rf.WithId(DataDefintionId)))))
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
                 .WithHistory(NewDatasetVersion())));
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
@@ -1365,7 +1365,7 @@ namespace CalculateFunding.Services.Datasets.Services
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username));
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.WithReference(NewReference(rf => rf.WithId(DataDefintionId)))))
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
                 .WithHistory(NewDatasetVersion())));
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
@@ -1421,7 +1421,7 @@ namespace CalculateFunding.Services.Datasets.Services
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username));
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.WithReference(NewReference(rf => rf.WithId(DataDefintionId)))))
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
                 .WithHistory(NewDatasetVersion())));
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
@@ -1479,7 +1479,7 @@ namespace CalculateFunding.Services.Datasets.Services
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username));
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.WithReference(NewReference(rf => rf.WithId(DataDefintionId)))))
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
                 .WithHistory(NewDatasetVersion())));
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
@@ -1535,7 +1535,7 @@ namespace CalculateFunding.Services.Datasets.Services
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", invokedByJobId),
                 ("user-id", UserId), ("user-name", Username));
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.WithReference(NewReference(rf => rf.WithId(DataDefintionId)))))
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
                 .WithHistory(NewDatasetVersion())));
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
@@ -1595,7 +1595,7 @@ namespace CalculateFunding.Services.Datasets.Services
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username));
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.WithReference(NewReference(rf => rf.WithId(DataDefintionId)))))
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
                 .WithHistory(NewDatasetVersion())));
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
@@ -1652,7 +1652,7 @@ namespace CalculateFunding.Services.Datasets.Services
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username));
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.WithReference(NewReference(rf => rf.WithId(DataDefintionId)))))
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
                 .WithHistory(NewDatasetVersion())));
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
@@ -1712,7 +1712,7 @@ namespace CalculateFunding.Services.Datasets.Services
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username));
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.WithReference(NewReference(rf => rf.WithId(DataDefintionId)))))
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
                 .WithHistory(NewDatasetVersion())));
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>

@@ -8,16 +8,10 @@ namespace CalculateFunding.Models.Datasets
     {
         //AB: These 2 properties are not required yet, will be updated during the story
         [JsonProperty("id")]
-        public override string Id
-        {
-            get { return ""; }
-        }
+        public override string Id => "";
 
         [JsonProperty("entityId")]
-        public override string EntityId
-        {
-            get { return ""; }
-        }
+        public override string EntityId => "";
 
         public string BlobName { get; set; }
 

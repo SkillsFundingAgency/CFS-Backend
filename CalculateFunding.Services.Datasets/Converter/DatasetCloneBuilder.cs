@@ -1,78 +1,199 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
-using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Converter;
+using CalculateFunding.Models.Datasets.Schema;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
+using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.Datasets.Interfaces;
-using OfficeOpenXml.FormulaParsing.Excel.Functions.Information;
+using Microsoft.Azure.Storage.Blob;
 using Polly;
+using static CalculateFunding.Services.Core.NonRetriableException;
 
 namespace CalculateFunding.Services.Datasets.Converter
 {
-    public class DatasetCloneBuilderFactory : IDatasetCloneBuilderFactory
-    {
-        private readonly IBlobClient _blobs;
-        private readonly IDatasetsResiliencePolicies _resiliencePolicies;
-
-        public DatasetCloneBuilderFactory(IBlobClient blobs,
-            IDatasetsResiliencePolicies resiliencePolicies)
-        {
-            Guard.ArgumentNotNull(blobs, nameof(blobs));
-            Guard.ArgumentNotNull(resiliencePolicies?.BlobClient, nameof(resiliencePolicies.BlobClient));
-            
-            _blobs = blobs;
-            _resiliencePolicies = resiliencePolicies;
-        }
-
-        public IDatasetCloneBuilder CreateCloneBuilder() =>
-            new DatasetCloneBuilder(_blobs,
-                _resiliencePolicies);
-    }
-    
-    /// <summary>
-    /// Ensure this is registered as a scoped instance, rather than singleton in IoC
-    /// </summary>
     public class DatasetCloneBuilder : IDatasetCloneBuilder
     {
         public DatasetCloneBuilder(IBlobClient blobs,
+            IDatasetRepository datasets,
+            IExcelDatasetReader reader,
+            IExcelDatasetWriter writer,
+            IDatasetIndexer indexer,
             IDatasetsResiliencePolicies resiliencePolicies)
         {
             Blobs = blobs;
+            Reader = reader;
+            Writer = writer;
+            Indexer = indexer;
+            Datasets = datasets;
             BlobsResilience = resiliencePolicies.BlobClient;
+            DatasetsResilience = resiliencePolicies.DatasetRepository;
         }
+        
+        public IDatasetIndexer Indexer { get; }
+        
+        public IExcelDatasetReader Reader { get; }
+        
+        public IExcelDatasetWriter Writer { get; }
 
         public IBlobClient Blobs { get; }
+        
+        public IDatasetRepository Datasets { get; }
 
         public AsyncPolicy BlobsResilience { get; }
+        
+        public AsyncPolicy DatasetsResilience { get; }
 
-        public Task<RowCopyResult> CopyRow(string sourceProviderId, string destinationProviderId)
-        {
-            // Copy a row if it exists, between the source and destination provider
-            // Return a result based on if the row was copied or not.
-            throw new NotImplementedException();
-        }
+        public IEnumerable<TableLoadResult> DatasetData { get; set; }
 
-        public Task<IEnumerable<string>> GetExistingIdentifierValues(string fieldNameOfIdentifier)
+        public RowCopyResult CopyRow(string fieldNameOfIdentifier, string sourceProviderId, string destinationProviderId)
         {
-            // Get all existing values from the identifier column in the first sheet of the loaded spreadsheet
-            throw new NotImplementedException();
-        }
+            TableLoadResult datasetTable = DatasetData.First();
 
-        public async Task LoadOriginalDataset(Dataset dataset)
-        {
-            // Load excel file from blob storage, load data and store within a class variable
-            throw new NotImplementedException();
-        }
+            RowLoadResult sourceRow = datasetTable.GetRowWithMatchingFieldValue(fieldNameOfIdentifier, sourceProviderId);
 
-        public Task<DatasetVersion> SaveContents(Reference author)
-        {
-            //TODO; change this to a query method to build the data set for us to save externally
+            EligibleConverter eligibleConverter = new EligibleConverter
+            {
+                PreviousProviderIdentifier = sourceProviderId,
+                ProviderId = destinationProviderId
+            };
             
-            // Save contents as a new dataset version - use existing service to save a new version
-            throw new NotImplementedException();
+            if (sourceRow == null)
+            {
+                return new RowCopyResult
+                {
+                    Outcome = RowCopyOutcome.SourceRowNotFound,
+                    EligibleConverter = eligibleConverter
+                };
+            }
+
+            RowLoadResult destinationRow = datasetTable.GetRowWithMatchingFieldValue(fieldNameOfIdentifier, destinationProviderId);
+
+            if (destinationRow != null)
+            {
+                return new RowCopyResult
+                {
+                    Outcome = RowCopyOutcome.DestinationRowAlreadyExists,
+                    EligibleConverter = eligibleConverter
+                };
+            }
+
+            destinationRow = sourceRow.CopyRow(destinationProviderId, 
+                IdentifierFieldType.UKPRN, 
+                (fieldNameOfIdentifier, destinationProviderId));
+            
+            datasetTable.Rows.Add(destinationRow);
+
+            return new RowCopyResult
+            {
+                Outcome = RowCopyOutcome.Copied,
+                EligibleConverter = eligibleConverter
+            };
+        }
+
+        public IEnumerable<string> GetExistingIdentifierValues(string identifierFieldName) =>
+            DatasetData?
+                .FirstOrDefault()?
+                .Rows
+                .Where(_ => _.Fields.ContainsKey(identifierFieldName))
+                .Select(_ => _.Fields[identifierFieldName]?.ToString())
+                .Distinct()
+                .ToArray();
+
+        public async Task LoadOriginalDataset(Dataset dataset,
+            DatasetDefinition datasetDefinition)
+        {
+            EnsureIsNotNull(dataset, "No dataset supplied to load excel blob data from.");
+            EnsureIsNotNull(datasetDefinition, "No dataset definition supplied to load excel blob data from.");
+
+            string blobPath = GetDatasetVersionExcelBlobName(dataset);
+
+            ICloudBlob blob = await BlobsResilience.ExecuteAsync(() => Blobs.GetBlobReferenceFromServerAsync(blobPath));
+
+            EnsureIsNotNull(blob, $"No blob located with path {blobPath}");
+
+            (blobPath, blob) = await GetExcelBlob(dataset);
+
+            await using Stream excelStream = await BlobsResilience.ExecuteAsync(() => Blobs.DownloadToStreamAsync(blob));
+
+            Ensure(excelStream?.Length > 0, $"Blob {blob.Name} contains no data.");
+
+            DatasetData = Reader.Read(excelStream, datasetDefinition);
+            
+            EnsureIsNotNull(DatasetData?.FirstOrDefault(), $"No dataset table located for xls {blobPath}");
+        }
+
+        private static string GetDatasetVersionExcelBlobName(Dataset dataset)
+        {
+            return $"{dataset.Id}/v{dataset.Current?.Version}/{dataset.Current?.BlobName}";
+        }
+
+        public async Task<DatasetVersion> SaveContents(Reference author, 
+            DatasetDefinition datasetDefinition, 
+            Dataset dataset)
+        {
+            int rowCount = (DatasetData?.FirstOrDefault()?.Rows?.Count).GetValueOrDefault();
+            
+            await CreateNewDatasetVersion(dataset, author, rowCount);
+            
+            byte[] excelData = Writer.Write(datasetDefinition, DatasetData);
+
+            await using MemoryStream excelStream = new MemoryStream(excelData);
+            await UploadBlob(dataset, datasetDefinition, author, excelStream);
+            
+            return dataset.Current;
+        }
+
+        private async Task CreateNewDatasetVersion(Dataset dataset,
+            Reference author,
+            int rowCount)
+        {
+            dataset.CreateNewVersion(author, rowCount);
+
+            HttpStatusCode statusCode = await DatasetsResilience.ExecuteAsync(() => Datasets.SaveDataset(dataset));
+
+            Ensure(statusCode.IsSuccess(), $"Failed to save new dataset {dataset.Id}");
+
+            await Indexer.IndexDatasetAndVersion(dataset);
+        }
+
+        private async Task UploadBlob(Dataset dataset,
+            DatasetDefinition datasetDefinition,
+            Reference author,
+            Stream excelStream)
+        {
+            string blobPath = GetDatasetVersionExcelBlobName(dataset);
+
+            ICloudBlob blob = Blobs.GetBlockBlobReference(blobPath);
+
+            await BlobsResilience.ExecuteAsync(() => blob.UploadFromStreamAsync(excelStream));
+            
+            blob.Metadata["dataDefinitionId"] = datasetDefinition.Id;
+            blob.Metadata["datasetId"] = dataset.Id;
+            blob.Metadata["authorId"] = author.Id;
+            blob.Metadata["authorName"] = author.Name;
+            blob.Metadata["name"] = dataset.Current.BlobName;
+            blob.Metadata["description"] = dataset.Description;
+            blob.Metadata["fundingStreamId"] = datasetDefinition.FundingStreamId;
+            blob.Metadata["converterWizard"] = true.ToString();
+            
+            blob.SetMetadata();
+        }
+
+        private async Task<(string path, ICloudBlob blob)> GetExcelBlob(Dataset dataset)
+        {
+            string blobPath = GetDatasetVersionExcelBlobName(dataset);
+
+            ICloudBlob blob = await BlobsResilience.ExecuteAsync(() => Blobs.GetBlobReferenceFromServerAsync(blobPath));
+
+            EnsureIsNotNull(blob, $"No blob located with path {blobPath}");
+
+            return (blobPath, blob);
         }
     }
 }

@@ -16,7 +16,7 @@ namespace CalculateFunding.Services.Datasets.Services
             return this;
         }
 
-        public DatasetDefinitionVersionBuilder WithReference(Reference reference)
+        public DatasetDefinitionVersionBuilder FromReference(Reference reference)
         {
             _reference = reference;
 
@@ -28,8 +28,8 @@ namespace CalculateFunding.Services.Datasets.Services
             return  new DatasetDefinitionVersion
             {
                 Version = _version,
-                Id = _reference?.Id,
-                Name = _reference?.Name
+                Id = _reference?.Id ?? NewRandomString(),
+                Name = _reference?.Name ?? NewRandomString()
             };
         }
     }

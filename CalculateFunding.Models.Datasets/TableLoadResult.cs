@@ -16,6 +16,11 @@ namespace CalculateFunding.Models.Datasets
         [JsonProperty("rows")]
         public List<RowLoadResult> Rows { get; set; }
 
+        public RowLoadResult GetRowWithMatchingFieldValue(string identifierFieldName,
+            object fieldValue)
+            => Rows?.FirstOrDefault(_ => _.Fields.ContainsKey(identifierFieldName) &&
+                                         _.Fields[identifierFieldName]?.Equals(fieldValue) == true);
+
         public RowLoadResult GetRowWithMatchingIdentifier(RowLoadResult other)
             => Rows?.FirstOrDefault(_ => _.HasSameIdentifier(other));
 

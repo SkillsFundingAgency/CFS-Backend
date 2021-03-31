@@ -33,6 +33,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Polly;
 using Serilog.Core;
+using static CalculateFunding.Tests.Common.Helpers.ConstraintHelpers;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
@@ -587,14 +588,16 @@ namespace CalculateFunding.Services.Datasets.Services
             string fundingStreamId = NewRandomString();
             string identifierName = NewRandomString();
 
+            DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _
+                .WithFundingStreamId(fundingStreamId)
+                .WithConverterEnabled(true)
+                .WithTableDefinitions(NewTableDefinition(tab => tab
+                    .WithFieldDefinitions(NewFieldDefinition(fld => fld
+                        .WithName(identifierName)
+                        .WithIdentifierFieldType(IdentifierFieldType.UKPRN))))));
+            
             AndTheDatasetDefinition(datasetDefinitionVersion.Id,
-                NewDatasetDefinition(_ => _
-                    .WithFundingStreamId(fundingStreamId)
-                    .WithConverterEnabled(true)
-                    .WithTableDefinitions(NewTableDefinition(tab => tab
-                        .WithFieldDefinitions(NewFieldDefinition(fld => fld
-                            .WithName(identifierName)
-                            .WithIdentifierFieldType(IdentifierFieldType.UKPRN)))))));
+                datasetDefinition);
 
             string specificationId = NewRandomString();
 
@@ -641,12 +644,12 @@ namespace CalculateFunding.Services.Datasets.Services
             RowCopyResult rowCopyResultOne = NewRowCopyResult();
             RowCopyResult rowCopyResultTwo = NewRowCopyResult(_ => _.WithOutcome(RowCopyOutcome.Copied));
 
-            AndTheRowCopyResult(eligibleProviderTwo, rowCopyResultOne);
-            AndTheRowCopyResult(eligibleProviderFour, rowCopyResultTwo);
+            AndTheRowCopyResult(identifierName, eligibleProviderTwo, rowCopyResultOne);
+            AndTheRowCopyResult(identifierName, eligibleProviderFour, rowCopyResultTwo);
 
             DatasetVersion createdDatasetVersion = NewDatasetVersion();
 
-            AndTheNewDatasetVersion(createdDatasetVersion, author);
+            AndTheNewDatasetVersion(createdDatasetVersion, dataset, datasetDefinition, author);
 
             string jobId = NewRandomString();
 
@@ -655,8 +658,8 @@ namespace CalculateFunding.Services.Datasets.Services
                     .AsJsonBytes())
                 .WithUserProperty("jobId", jobId)));
 
-            ThenTheOriginalDatasetWasLoaded(dataset);
-            AndTheRowCopyResultsAreSaved(author);
+            ThenTheOriginalDatasetWasLoaded(dataset, datasetDefinition);
+            AndTheRowCopyResultsAreSaved(author, datasetDefinition, dataset);
             AndTheMergeWasLogged(createdDatasetVersion, request, jobId, rowCopyResultOne, rowCopyResultTwo);
         }
 
@@ -673,14 +676,16 @@ namespace CalculateFunding.Services.Datasets.Services
             string fundingStreamId = NewRandomString();
             string identifierName = NewRandomString();
 
+            DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _
+                .WithFundingStreamId(fundingStreamId)
+                .WithConverterEnabled(true)
+                .WithTableDefinitions(NewTableDefinition(tab => tab
+                    .WithFieldDefinitions(NewFieldDefinition(fld => fld
+                        .WithName(identifierName)
+                        .WithIdentifierFieldType(IdentifierFieldType.UKPRN))))));
+            
             AndTheDatasetDefinition(datasetDefinitionVersion.Id,
-                NewDatasetDefinition(_ => _
-                    .WithFundingStreamId(fundingStreamId)
-                    .WithConverterEnabled(true)
-                    .WithTableDefinitions(NewTableDefinition(tab => tab
-                        .WithFieldDefinitions(NewFieldDefinition(fld => fld
-                            .WithName(identifierName)
-                            .WithIdentifierFieldType(IdentifierFieldType.UKPRN)))))));
+                datasetDefinition);
 
             string specificationId = NewRandomString();
 
@@ -727,8 +732,8 @@ namespace CalculateFunding.Services.Datasets.Services
             RowCopyResult rowCopyResultOne = NewRowCopyResult();
             RowCopyResult rowCopyResultThree = NewRowCopyResult();
 
-            AndTheRowCopyResult(eligibleProviderTwo, rowCopyResultOne);
-            AndTheRowCopyResult(eligibleProviderFour, rowCopyResultThree);
+            AndTheRowCopyResult(identifierName, eligibleProviderTwo, rowCopyResultOne);
+            AndTheRowCopyResult(identifierName, eligibleProviderFour, rowCopyResultThree);
 
             string jobId = NewRandomString();
 
@@ -737,7 +742,7 @@ namespace CalculateFunding.Services.Datasets.Services
                     .AsJsonBytes())
                 .WithUserProperty("jobId", jobId)));
 
-            ThenTheOriginalDatasetWasLoaded(dataset);
+            ThenTheOriginalDatasetWasLoaded(dataset, datasetDefinition);
             AndTheRowCopyResultsAreNotSaved();
         }
 
@@ -779,22 +784,30 @@ namespace CalculateFunding.Services.Datasets.Services
         private void ThenNoDatasetDataIsCloned()
             => _datasetCloneBuilderFactory.Verify(_ => _.CreateCloneBuilder(), Times.Never);
 
-        private void ThenTheOriginalDatasetWasLoaded(Dataset dataset)
-            => _datasetCloneBuilder.Verify(_ => _.LoadOriginalDataset(dataset), Times.Once);
+        private void ThenTheOriginalDatasetWasLoaded(Dataset dataset, DatasetDefinition datasetDefinition)
+            => _datasetCloneBuilder.Verify(_ => _.LoadOriginalDataset(dataset, datasetDefinition), Times.Once);
 
         private void AndTheNewDatasetVersion(DatasetVersion datasetVersion,
+            Dataset dataset,
+            DatasetDefinition datasetDefinition,
             Reference author)
             => _datasetCloneBuilder.Setup(_ => _.SaveContents(It.Is<Reference>(user
-                    => AreEquivalent(user, author))))
+                    => AreEquivalent(user, author)),
+                    datasetDefinition,
+                    dataset))
                 .ReturnsAsync(datasetVersion);
 
-        private void AndTheRowCopyResultsAreSaved(Reference author)
+        private void AndTheRowCopyResultsAreSaved(Reference author, DatasetDefinition datasetDefinition, Dataset dataset)
             => _datasetCloneBuilder.Verify(_ => _.SaveContents(It.Is<Reference>(user
-                    => AreEquivalent(user, author))),
+                    => AreEquivalent(user, author)),
+                    datasetDefinition,
+                    dataset),
                 Times.Once);
 
         private void AndTheRowCopyResultsAreNotSaved()
-            => _datasetCloneBuilder.Verify(_ => _.SaveContents(It.IsAny<Reference>()), Times.Never);
+            => _datasetCloneBuilder.Verify(_ => _.SaveContents(It.IsAny<Reference>(),
+                It.IsAny<DatasetDefinition>(), 
+                It.IsAny<Dataset>()), Times.Never);
 
         private void AndTheMergeWasLogged(DatasetVersion createdVersion,
             ConverterMergeRequest request,
@@ -842,12 +855,15 @@ namespace CalculateFunding.Services.Datasets.Services
         private void AndTheExistingIdentifierValues(string fieldName,
             IEnumerable<string> existingIdentifiers)
             => _datasetCloneBuilder.Setup(_ => _.GetExistingIdentifierValues(fieldName))
-                .ReturnsAsync(existingIdentifiers);
+                .Returns(existingIdentifiers);
 
-        private void AndTheRowCopyResult(EligibleConverter eligibleConverter,
+        private void AndTheRowCopyResult(string identifierFieldName,
+            EligibleConverter eligibleConverter,
             RowCopyResult rowCopyResult)
-            => _datasetCloneBuilder.Setup(_ => _.CopyRow(eligibleConverter.PreviousProviderIdentifier, eligibleConverter.ProviderId))
-                .ReturnsAsync(rowCopyResult);
+            => _datasetCloneBuilder.Setup(_ => _.CopyRow(identifierFieldName,
+                    eligibleConverter.PreviousProviderIdentifier, 
+                    eligibleConverter.ProviderId))
+                .Returns(rowCopyResult);
 
         private void GivenTheValidationResult(ConverterMergeRequest converterMergeRequest,
             ValidationResult validationResult)
@@ -864,23 +880,6 @@ namespace CalculateFunding.Services.Datasets.Services
                 {
                     job
                 });
-
-        private bool AreEquivalent<TItem>(TItem actual,
-            TItem expected)
-        {
-            try
-            {
-                actual
-                    .Should()
-                    .BeEquivalentTo(expected);
-
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
 
         private ValidationResult NewValidationResult(Action<ValidationResultBuilder> setUp = null)
         {

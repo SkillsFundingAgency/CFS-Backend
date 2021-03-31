@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Models.Datasets.Converter;
 
-namespace CalculateFunding.Services.Datasets.Converter
+namespace CalculateFunding.Services.Datasets.Interfaces
 {
     public interface IConverterEligibleProviderService
     {
