@@ -363,12 +363,13 @@ namespace CalculateFunding.Services.Graph
                     .Select(_ => _.Node.CalculationId),
                 PageSize);
 
+            circularDependencies = new List<Entity<Calculation, IRelationship>>();
+
             if (calculations.AnyWithNullCheck())
             {
                 return await ExecuteRepositoryAction(async () =>
                 {
-                    circularDependencies = new List<Entity<Calculation, IRelationship>>();
-
+                    
                     while (pagedRequests.HasPages)
                     {
                         circularDependencies.AddRange(await _calcRepository.GetCalculationCircularDependencies(pagedRequests
@@ -383,7 +384,7 @@ namespace CalculateFunding.Services.Graph
             }
             else
             {
-                return new OkResult();
+                return new OkObjectResult(circularDependencies);
             }
         }
 
