@@ -220,7 +220,7 @@ namespace CalculateFunding.Services.Datasets.Converter
             FundingConfiguration fundingConfiguration)
         {
             IEnumerable<EligibleConverter> eligibleProviders =
-                await _eligibleProviderConverter.GetProviderIdsForConverters(request.ProviderVersionId, fundingConfiguration);
+                await _eligibleProviderConverter.GetEligibleConvertersForProviderVersion(request.ProviderVersionId, fundingConfiguration);
 
             EnsureIsNotNull(eligibleProviders, "Eligible providers returned null");
 

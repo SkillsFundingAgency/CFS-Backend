@@ -849,7 +849,7 @@ namespace CalculateFunding.Services.Datasets.Services
         private void AndTheEligibleProviders(string providerVersionId,
             FundingConfiguration fundingConfiguration,
             IEnumerable<EligibleConverter> eligibleProviders)
-            => _eligibleProviders.Setup(_ => _.GetProviderIdsForConverters(providerVersionId, fundingConfiguration))
+            => _eligibleProviders.Setup(_ => _.GetEligibleConvertersForProviderVersion(providerVersionId, fundingConfiguration))
                 .ReturnsAsync(eligibleProviders);
 
         private void AndTheExistingIdentifierValues(string fieldName,

@@ -7,7 +7,7 @@ namespace CalculateFunding.Services.Datasets.Interfaces
 {
     public interface IConverterEligibleProviderService
     {
-        Task<IEnumerable<EligibleConverter>> GetProviderIdsForConverters(string providerVersionId,
+        Task<IEnumerable<EligibleConverter>> GetEligibleConvertersForProviderVersion(string providerVersionId,
             FundingConfiguration fundingConfiguration);
     }
 }

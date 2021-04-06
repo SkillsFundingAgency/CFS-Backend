@@ -555,6 +555,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ThenTheProviderSourceDatasetWasUpdated();
             await AndTheProviderDatasetVersionKeyWasInvalidated();
+            await AndTheProviderDatasetVersionKeyWasInvalidated();
             await AndNoAggregationsWereCreated();
             await AndTheCachedAggregationsWereInvalidated();
             await AndTheCachedCalculationResultsWereInvalidated();

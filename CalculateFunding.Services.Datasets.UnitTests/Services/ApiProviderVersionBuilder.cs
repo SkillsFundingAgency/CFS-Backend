@@ -1,6 +1,7 @@
 using CalculateFunding.Common.ApiClient.Providers.Models;
 using CalculateFunding.Tests.Common.Helpers;
 using System.Collections.Generic;
+using CalculateFunding.Models.Calcs;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
@@ -8,7 +9,7 @@ namespace CalculateFunding.Services.Datasets.Services
     {
         private IEnumerable<Provider> _providers;
 
-        public ApiProviderVersionBuilder WithProviders(IEnumerable<Provider> providers)
+        public ApiProviderVersionBuilder WithProviders(params Provider[] providers)
         {
             _providers = providers;
 

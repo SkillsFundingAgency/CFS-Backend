@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Tests.Common.Helpers;
@@ -12,6 +13,14 @@ namespace CalculateFunding.UnitTests.ApiClientHelpers.Policies
         private ProviderSource _providerSource;
         private bool _runCalculationEngineAfterCoreProviderUpdate;
         private bool _enableConverterDataMerge;
+        private IEnumerable<string> _indicativeOpenerProviderStatus;
+
+        public FundingConfigurationBuilder WithIndicativeOpenerProviderStatus(params string[] indicativeOpenerProviderStatus)
+        {
+            _indicativeOpenerProviderStatus = indicativeOpenerProviderStatus;
+
+            return this;
+        }
 
         public FundingConfigurationBuilder WithFundingPeriodId(string fundingPeriodId)
         {
@@ -65,6 +74,7 @@ namespace CalculateFunding.UnitTests.ApiClientHelpers.Policies
                 ProviderSource = _providerSource,
                 RunCalculationEngineAfterCoreProviderUpdate = _runCalculationEngineAfterCoreProviderUpdate,
                 EnableConverterDataMerge = _enableConverterDataMerge,
+                IndicativeOpenerProviderStatus = _indicativeOpenerProviderStatus
             };
         }
     }
