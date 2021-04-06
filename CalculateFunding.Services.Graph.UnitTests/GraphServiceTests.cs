@@ -13,6 +13,9 @@ using CalculateFunding.Tests.Common.Helpers;
 using Serilog;
 using System;
 using Enum = CalculateFunding.Models.Graph.Enum;
+using CalculateFunding.Common.Caching;
+using Polly;
+using CalculateFunding.Services.Core.Caching;
 
 namespace CalculateFunding.Services.Graph.UnitTests
 {
@@ -25,6 +28,7 @@ namespace CalculateFunding.Services.Graph.UnitTests
         private IFundingLineRepository _fundingLineRepository;
         private IEnumRepository _enumRepository;
         private GraphService _graphService;
+        private ICacheProvider _cacheProvider;
         private ILogger _logger;
 
         [TestInitialize]
@@ -36,13 +40,16 @@ namespace CalculateFunding.Services.Graph.UnitTests
             _datasetRepository = Substitute.For<IDatasetRepository>();
             _fundingLineRepository = Substitute.For<IFundingLineRepository>();
             _enumRepository = Substitute.For<IEnumRepository>();
+            _cacheProvider = Substitute.For<ICacheProvider>();
 
             _graphService = new GraphService(_logger, 
                 _calculationRepository, 
                 _specificationRepository,
                 _datasetRepository,
                 _fundingLineRepository,
-                _enumRepository);
+                _enumRepository,
+                new GraphResiliencePolicies {CacheProviderPolicy = Policy.NoOpAsync() },
+                _cacheProvider);
         }
 
         [TestMethod]
@@ -702,6 +709,7 @@ namespace CalculateFunding.Services.Graph.UnitTests
             const string calculationid = nameof(calculationid);
             
             string specificationId = NewRandomString();
+            string cacheKey = $"{CacheKeys.CircularDependencies}{specificationId}";
             string calculationOneId = NewRandomString();
             string calculationTwoId = NewRandomString();
 
@@ -719,7 +727,11 @@ namespace CalculateFunding.Services.Graph.UnitTests
             AndTheCalculationCircularDependenciesInSpecification(specificationId, expectedCalculationOne, expectedCalculationTwo);
             
             OkObjectResult result = await _graphService.GetCalculationCircularDependencies(specificationId) as OkObjectResult;
-            
+
+            await _cacheProvider
+                .Received(1)
+                .SetAsync(cacheKey, Arg.Any<List<Entity<Calculation, IRelationship>>>(), Arg.Any<TimeSpan>(), true);
+
             result?.Value
                 .Should()
                 .BeEquivalentTo(new []
@@ -1157,7 +1169,10 @@ namespace CalculateFunding.Services.Graph.UnitTests
         private void AndTheCalculationCircularDependenciesInSpecification(string specificationId,
             params Entity<Calculation, IRelationship>[] calculations)
         {
-            _calculationRepository.GetCalculationCircularDependenciesBySpecificationId(specificationId)
+            _calculationRepository.GetAllCalculationsForSpecification(specificationId)
+                .Returns(calculations);
+
+            _calculationRepository.GetCalculationCircularDependencies(Arg.Is<string[]>(_ => _.SequenceEqual(calculations.Select(_ => _.Node.CalculationId).ToArray())))
                 .Returns(calculations);
         }
 

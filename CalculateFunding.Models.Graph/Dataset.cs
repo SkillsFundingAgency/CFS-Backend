@@ -2,7 +2,7 @@ using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Graph
 {
-    public class Dataset
+    public class Dataset : SpecificationNode
     {
         public const string IdField = "datasetid";
 

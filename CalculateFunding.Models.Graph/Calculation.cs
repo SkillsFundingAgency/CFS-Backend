@@ -4,15 +4,12 @@ using System;
 namespace CalculateFunding.Models.Graph
 {
     [Serializable]
-    public class Calculation
+    public class Calculation : SpecificationNode
     {
         public const string IdField = "calculationid";
 
         [JsonProperty("calculationid")]
         public string CalculationId { get; set; }
-
-        [JsonProperty("specificationid")]
-        public string SpecificationId { get; set; }
 
         [JsonProperty("calculationname")]
         public string CalculationName { get; set; }

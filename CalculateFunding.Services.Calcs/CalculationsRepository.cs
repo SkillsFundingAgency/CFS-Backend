@@ -86,7 +86,7 @@ namespace CalculateFunding.Services.Calcs
 
             IEnumerable<Calculation> calculations = await _cosmosRepository.Query<Calculation>(m => m.Content.SpecificationId == specificationId && m.Content.Current.Name == calculationName);
 
-            return (await GetCalculationsBySpecificationId(specificationId)).FirstOrDefault(m => string.Equals(m.Name.RemoveAllSpaces(), calculationName.RemoveAllSpaces(), StringComparison.CurrentCultureIgnoreCase));
+            return calculations.FirstOrDefault();
         }
 
         public async Task<HttpStatusCode> UpdateCalculation(Calculation calculation)

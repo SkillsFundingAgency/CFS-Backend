@@ -18,9 +18,11 @@ namespace CalculateFunding.Services.Graph.Interfaces
         Task DeleteCalculationCalculationRelationship(string calculationIdA, string calculationIdB);
 
         Task<IEnumerable<Entity<Calculation, IRelationship>>> GetCalculationCircularDependencies(string calculationId);
+        Task<IEnumerable<Entity<Calculation, IRelationship>>> GetCalculationCircularDependencies(string[] calculationIds);
 
         Task<IEnumerable<Entity<Calculation, IRelationship>>> GetAllEntities(string calculationId);
-        Task<IEnumerable<Entity<Calculation, IRelationship>>> GetCalculationCircularDependenciesBySpecificationId(string specificationId);
+
+        Task<IEnumerable<Entity<Calculation, IRelationship>>> GetAllCalculationsForSpecification(string specificationId);
         Task DeleteCalculations(params string[] calculationIds);
         Task UpsertCalculationSpecificationRelationships(params (string calculationId, string specificationId)[] relationships);
         Task UpsertCalculationCalculationRelationships(params (string calculationIdA, string calculationIdB)[] relationships);

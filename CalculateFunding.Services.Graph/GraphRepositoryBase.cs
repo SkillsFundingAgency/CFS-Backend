@@ -66,6 +66,11 @@ namespace CalculateFunding.Services.Graph
             return await _graphRepository.GetCircularDependencies<TNode>(relationship, NewField(field, value));
         }
 
+        protected async Task<IEnumerable<Entity<TNode>>> GetCircularDependencies<TNode>(string relationship, string field, string[] values)
+            where TNode : class
+        {
+            return await _graphRepository.GetCircularDependencies<TNode>(relationship, values.Select(_ => NewField(field, _)));
+        }
 
         protected async Task DeleteRelationship<TNodeA, TNodeB>(string label, (string Name, string Value) idA, (string Name, string Value) idB)
         {

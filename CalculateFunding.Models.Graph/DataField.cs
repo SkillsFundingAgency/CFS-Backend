@@ -1,18 +1,14 @@
 ﻿using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CalculateFunding.Models.Graph
 {
-    public class DataField
+    public class DataField : SpecificationNode
     {
         public const string IdField = "datafieldid";
 
         [JsonProperty("datafieldrelationshipname")]
         public string DataFieldRelationshipName { get; set; }
-        [JsonProperty("specificationid")]
-        public string SpecificationId { get; set; }
 
         [JsonProperty("calculationid")]
         public string CalculationId { get; set; }

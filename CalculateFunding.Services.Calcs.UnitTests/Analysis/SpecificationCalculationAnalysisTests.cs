@@ -113,7 +113,6 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
             Specification graphSpecification = NewGraphSpecification();
             Calculation[] calculations = new[] { calculation, };
             GraphCalculation[] graphCalculations = new GraphCalculation[0];
-            FundingLine[] fundingLines = new FundingLine[0];
             CalculationRelationship[] calculationRelationships = new CalculationRelationship[0];
             CalculationEnumRelationship[] calculationEnumRelationships = new CalculationEnumRelationship[0];
             FundingLineCalculationRelationship[] fundingLineCalculationRelationships = new FundingLineCalculationRelationship[0];
@@ -125,8 +124,6 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
                 Dataset = new Models.Graph.Dataset(),
                 DatasetDefinition = new DatasetDefinition()
             },  };
-
-
 
             GivenTheSpecification(specificationId, specificationSummary);   
             AndTheCalculations(specificationId, calculations);
@@ -145,7 +142,6 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
                 {
                     Specification = graphSpecification,
                     FundingLineRelationships = fundingLineCalculationRelationships,
-                    FundingLines = fundingLines,
                     Calculations = graphCalculations,
                     CalculationRelationships = calculationRelationships,
                     CalculationEnumRelationships = calculationEnumRelationships,

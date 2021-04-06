@@ -5,11 +5,15 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Graph;
 using CalculateFunding.Services.Graph.Interfaces;
-using Microsoft.AspNetCore.Mvc;
 using CalculateFunding.Services.Core.Extensions;
-using Serilog;
-using Neo4jDriver = Neo4j.Driver;
 using Enum = CalculateFunding.Models.Graph.Enum;
+using CalculateFunding.Services.Core.Threading;
+using CalculateFunding.Common.Graph.Interfaces;
+using Serilog;
+using Microsoft.AspNetCore.Mvc;
+using System.Threading;
+using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Common.Caching;
 
 namespace CalculateFunding.Services.Graph
 {
@@ -21,19 +25,25 @@ namespace CalculateFunding.Services.Graph
         private readonly IEnumRepository _enumRepository;
         private readonly IDatasetRepository _datasetRepository;
         private readonly IFundingLineRepository _fundingLineRepository;
+        private readonly ICacheProvider _cacheProvider;
+        private readonly Polly.AsyncPolicy _cachePolicy;
+        private const int PageSize = 100;
 
         public GraphService(ILogger logger, 
             ICalculationRepository calcRepository, 
             ISpecificationRepository specRepository, 
             IDatasetRepository datasetRepository,
             IFundingLineRepository fundingLineRepository,
-            IEnumRepository enumRepository)
+            IEnumRepository enumRepository,
+            IGraphResiliencePolicies resiliencePolicies,
+            ICacheProvider cacheProvider)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(calcRepository, nameof(calcRepository));
             Guard.ArgumentNotNull(specRepository, nameof(specRepository));
             Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
             Guard.ArgumentNotNull(fundingLineRepository, nameof(fundingLineRepository));
+            Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(enumRepository, nameof(enumRepository));
 
             _logger = logger;
@@ -42,6 +52,8 @@ namespace CalculateFunding.Services.Graph
             _datasetRepository = datasetRepository;
             _fundingLineRepository = fundingLineRepository;
             _enumRepository = enumRepository;
+            _cacheProvider = cacheProvider;
+            _cachePolicy = resiliencePolicies.CacheProviderPolicy;
         }
 
         public async Task<IActionResult> UpsertDataset(Dataset dataset)
@@ -336,8 +348,43 @@ namespace CalculateFunding.Services.Graph
 
         public async Task<IActionResult> GetCalculationCircularDependencies(string specificationId)
         {
-            return await ExecuteRepositoryAction(() => _calcRepository.GetCalculationCircularDependenciesBySpecificationId(specificationId), 
-                $"Unable to retrieve calculation circular dependencies for specification {specificationId}.");
+            string cacheKey = $"{CacheKeys.CircularDependencies}{specificationId}";
+
+            List<Entity<Calculation, IRelationship>> circularDependencies = await _cachePolicy.ExecuteAsync(() => _cacheProvider.GetAsync<List<Entity<Calculation, IRelationship>>>(cacheKey));
+            
+            if (circularDependencies != null)
+            {
+                return new OkObjectResult(circularDependencies);
+            }
+
+            IEnumerable<Entity<Calculation, IRelationship>> calculations = await _calcRepository.GetAllCalculationsForSpecification(specificationId);
+
+            PagedContext<string> pagedRequests = new PagedContext<string>(calculations
+                    .Select(_ => _.Node.CalculationId),
+                PageSize);
+
+            if (calculations.AnyWithNullCheck())
+            {
+                return await ExecuteRepositoryAction(async () =>
+                {
+                    circularDependencies = new List<Entity<Calculation, IRelationship>>();
+
+                    while (pagedRequests.HasPages)
+                    {
+                        circularDependencies.AddRange(await _calcRepository.GetCalculationCircularDependencies(pagedRequests
+                        .NextPage()
+                        .ToArray()));
+                    }
+
+                    await _cachePolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, circularDependencies, TimeSpan.FromDays(7), true));
+                        
+                    return circularDependencies;
+                }, $"Unable to retrieve calculation circular dependencies for specification {specificationId}.");
+            }
+            else
+            {
+                return new OkResult();
+            }
         }
 
         public async Task<IActionResult> GetAllCalculationsForAll(params string[] calculationIds)

@@ -356,7 +356,7 @@ namespace CalculateFunding.Api.Graph.Controllers
             return await _graphService.UpsertCalculationDataFieldsRelationships(calculationId, dataFieldIds);
         }
 
-        [HttpPut("api/graph/calculation/relationships/enum")]
+        [HttpPost("api/graph/calculation/relationships/enum")]
         [ProducesResponseType(200)]
         public async Task<IActionResult> UpsertCalculationEnumRelationships([FromBody] AmendRelationshipRequest[] relationships)
         {
@@ -398,7 +398,7 @@ namespace CalculateFunding.Api.Graph.Controllers
             return await _graphService.UpsertFundingLineCalculationRelationship(fundingLineId, calculationId);
         }
 
-        [HttpPut("api/graph/calculation/{calculationId}/relationships/enum/{enumId}")]
+        [HttpPost("api/graph/calculation/{calculationId}/relationships/enum/{enumId}")]
         [ProducesResponseType(200)]
         public async Task<IActionResult> UpsertCalculationEnumRelationship([FromRoute] string calculationId, [FromRoute] string enumId)
         {

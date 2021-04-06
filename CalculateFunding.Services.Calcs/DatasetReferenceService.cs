@@ -95,13 +95,15 @@ namespace CalculateFunding.Services.Calcs
                                 Dataset = new CalculateFunding.Models.Graph.Dataset
                                 {
                                     DatasetId = datasetRelationship.DatasetId,
-                                    Name = datasetRelationship.DatasetName
+                                    Name = datasetRelationship.DatasetName,
+                                    SpecificationId = calculation.SpecificationId
                                 },
                                 DatasetDefinition = new CalculateFunding.Models.Graph.DatasetDefinition
                                 {
                                     DatasetDefinitionId = datasetRelationship.DatasetDefinitionId,
                                     Description = datasetRelationship.DatasetDefinition.Description,
-                                    Name = datasetRelationship.DatasetDefinition.Name
+                                    Name = datasetRelationship.DatasetDefinition.Name,
+                                    SpecificationId = calculation.SpecificationId
                                 },
                                 DataField = new DataField()
                                 {
@@ -118,6 +120,7 @@ namespace CalculateFunding.Services.Calcs
                                             {
                                                 new Models.Graph.Calculation()
                                                 {
+                                                    SpecificationId = calculation.SpecificationId,
                                                     CalculationId = calculation.Current.CalculationId,
                                                     CalculationName = calculation.Name
                                                 }
@@ -130,6 +133,7 @@ namespace CalculateFunding.Services.Calcs
                         {
                             dataSetReference.Calculations.Add(new Models.Graph.Calculation()
                             {
+                                SpecificationId = calculation.SpecificationId,
                                 CalculationId = calculation.Current.CalculationId,
                                 CalculationName = calculation.Name
                             });

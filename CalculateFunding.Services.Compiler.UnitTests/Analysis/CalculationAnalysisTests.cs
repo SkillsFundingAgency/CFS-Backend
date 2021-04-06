@@ -117,6 +117,7 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
             uint fundingLineThreeId = 3;
             string fundingLineFourName = nameof(fundingLineFourName);
             uint fundingLineFourId = 4;
+            string specificationId = NewRandomString();
             string calcOneName = nameof(calcOneName);
             string calcOneId = NewRandomString();
             string calcTwoName = nameof(calcTwoName);
@@ -157,19 +158,23 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
                 Calculations(NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion(cv
                             => cv.WithSourceCodeName(calcOneName)
                                 .WithSourceCode("return 10")))
-                        .WithId(calcOneId)),
+                        .WithId(calcOneId)
+                        .WithSpecificationId(specificationId)),
                     NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion(cv
                             => cv.WithSourceCodeName(calcTwoName)
                                 .WithSourceCode($"return Calculations.{calcOneName}() + 20")))
-                        .WithId(calcTwoId)),
+                        .WithId(calcTwoId)
+                        .WithSpecificationId(specificationId)),
                     NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion(cv
                             => cv.WithSourceCodeName(calcThreeName)
                                 .WithSourceCode($"return {@namespace}.FundingLines.{fundingLineTwoName}()")))
-                        .WithId(calcThreeId)),
+                        .WithId(calcThreeId)
+                        .WithSpecificationId(specificationId)),
                     NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion(cv
                             => cv.WithSourceCodeName(calcFourName)
                                 .WithSourceCode("return 0")))
-                        .WithId(calcFourId))
+                        .WithId(calcFourId)
+                        .WithSpecificationId(specificationId))
                 ),
                 fundings,
                 new FundingLineCalculationRelationship[] { new FundingLineCalculationRelationship {CalculationOneId = calcThreeId, CalculationTwoId = calcOneId, FundingLine = fundingLine2 } }
@@ -179,19 +184,23 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
                 Calculations(NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion(cv
                             => cv.WithSourceCodeName(calcOneName)
                                 .WithSourceCode("return 10")))
-                        .WithId(calcOneId)),
+                        .WithId(calcOneId)
+                        .WithSpecificationId(specificationId)),
                     NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion(cv
                             => cv.WithSourceCodeName(calcTwoName)
                                 .WithSourceCode($"return Calculations.{calcOneName}() + 20")))
-                        .WithId(calcTwoId)),
+                        .WithId(calcTwoId)
+                        .WithSpecificationId(specificationId)),
                     NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion(cv
                             => cv.WithSourceCodeName(calcThreeName)
                                 .WithSourceCode("return 10")))
-                        .WithId(calcThreeId)),
+                        .WithId(calcThreeId)
+                        .WithSpecificationId(specificationId)),
                     NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion(cv
                             => cv.WithSourceCodeName(calcFourName)
                                 .WithSourceCode($"return {@namespace}.FundingLines.{fundingLineTwoName}()")))
-                        .WithId(calcFourId))
+                        .WithId(calcFourId)
+                        .WithSpecificationId(specificationId))
                 ),
                 fundings,
                 new FundingLineCalculationRelationship[] { new FundingLineCalculationRelationship {CalculationOneId = calcFourId, CalculationTwoId = calcOneId, FundingLine = fundingLine2 } }
@@ -201,19 +210,23 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
                 Calculations(NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion(cv
                             => cv.WithSourceCodeName(calcOneName)
                                 .WithSourceCode("return 10")))
-                        .WithId(calcOneId)),
+                        .WithId(calcOneId)
+                        .WithSpecificationId(specificationId)),
                     NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion(cv
                             => cv.WithSourceCodeName(calcTwoName)
                                 .WithSourceCode($"return 20")))
-                        .WithId(calcTwoId)),
+                        .WithId(calcTwoId)
+                        .WithSpecificationId(specificationId)),
                     NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion(cv
                             => cv.WithSourceCodeName(calcThreeName)
                                 .WithSourceCode($"return 10")))
-                        .WithId(calcThreeId)),
+                        .WithId(calcThreeId)
+                        .WithSpecificationId(specificationId)),
                     NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion(cv
                             => cv.WithSourceCodeName(calcFourName)
                                 .WithSourceCode("return 0")))
-                        .WithId(calcFourId))
+                        .WithId(calcFourId)
+                        .WithSpecificationId(specificationId))
                 ),
                 fundings,
                 new FundingLineCalculationRelationship[0]
@@ -222,6 +235,7 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
 
         private static IEnumerable<object[]> CalculationRelationshipExamples()
         {
+            string specificationId = NewRandomString();
             string calcOneName = nameof(calcOneName);
             string calcOneId = NewRandomString();
             string calcTwoName = nameof(calcTwoName);
@@ -236,7 +250,8 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
                             => cv.WithSourceCodeName(calcOneName)
                                 .WithDataType(Models.Calcs.CalculationDataType.Enum)
                                 .WithSourceCode($"return {calcOneName}Options.{enumValue}")))
-                        .WithId(calcOneId));
+                        .WithId(calcOneId)
+                        .WithSpecificationId(specificationId));
 
             yield return new object[]
             {
@@ -244,15 +259,18 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
                     NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion(cv
                             => cv.WithSourceCodeName(calcTwoName)
                                 .WithSourceCode($"return Calculations.{calcOneName}() + 20")))
-                        .WithId(calcTwoId)),
+                        .WithId(calcTwoId)
+                        .WithSpecificationId(specificationId)),
                     NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion(cv
                             => cv.WithSourceCodeName(calcThreeName)
                                 .WithSourceCode($"return Calculations.{calcOneName}() * Calculations.{calcFourName}() + 20")))
-                        .WithId(calcThreeId)),
+                        .WithId(calcThreeId)
+                        .WithSpecificationId(specificationId)),
                     NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion(cv
                             => cv.WithSourceCodeName(calcFourName)
                                 .WithSourceCode("return 0")))
-                        .WithId(calcFourId))
+                        .WithId(calcFourId)
+                        .WithSpecificationId(specificationId))
                 ),
                 CalculationRelationships(NewCalculationRelationship(_ => _.WithCalculationOneId(calcTwoId)
                         .WithCalculationTwoId(calcOneId)),
@@ -269,7 +287,8 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
                                                                                         Models.Graph.CalculationType.Template })
                     .WithEnum(new Models.Graph.Enum{ 
                         EnumName = $"{calcOneName}Options",
-                        EnumValue = enumValue
+                        EnumValue = enumValue,
+                        SpecificationId = specificationId
                     })))
             };
             yield return new object[]
@@ -277,19 +296,23 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
                 Calculations(NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion(cv
                             => cv.WithSourceCodeName(calcOneName)
                                 .WithSourceCode("return 10")))
-                        .WithId(calcOneId)),
+                        .WithId(calcOneId)
+                        .WithSpecificationId(specificationId)),
                     NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion(cv
                             => cv.WithSourceCodeName(calcTwoName)
                                 .WithSourceCode($"return Calculations.{calcOneName}() + 20")))
-                        .WithId(calcTwoId)),
+                        .WithId(calcTwoId)
+                        .WithSpecificationId(specificationId)),
                     NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion(cv
                             => cv.WithSourceCodeName(calcThreeName)
                                 .WithSourceCode($"return 10")))
-                        .WithId(calcThreeId)),
+                        .WithId(calcThreeId)
+                        .WithSpecificationId(specificationId)),
                     NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion(cv
                             => cv.WithSourceCodeName(calcFourName)
                                 .WithSourceCode("return 0")))
-                        .WithId(calcFourId))
+                        .WithId(calcFourId)
+                        .WithSpecificationId(specificationId))
                 ),
                 CalculationRelationships(NewCalculationRelationship(_ => _.WithCalculationOneId(calcTwoId)
                         .WithCalculationTwoId(calcOneId))),
@@ -300,19 +323,23 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
                 Calculations(NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion(cv
                             => cv.WithSourceCodeName(calcOneName)
                                 .WithSourceCode("return 10")))
-                        .WithId(calcOneId)),
+                        .WithId(calcOneId)
+                        .WithSpecificationId(specificationId)),
                     NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion(cv
                             => cv.WithSourceCodeName(calcTwoName)
                                 .WithSourceCode($"return 20")))
-                        .WithId(calcTwoId)),
+                        .WithId(calcTwoId)
+                        .WithSpecificationId(specificationId)),
                     NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion(cv
                             => cv.WithSourceCodeName(calcThreeName)
                                 .WithSourceCode($"return 10")))
-                        .WithId(calcThreeId)),
+                        .WithId(calcThreeId)
+                        .WithSpecificationId(specificationId)),
                     NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion(cv
                             => cv.WithSourceCodeName(calcFourName)
                                 .WithSourceCode("return 0")))
-                        .WithId(calcFourId))
+                        .WithId(calcFourId)
+                        .WithSpecificationId(specificationId))
                 ),
                 new CalculationRelationship[0],
                 new CalculationEnumRelationship[0]

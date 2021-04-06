@@ -162,7 +162,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.ObsoleteItems
                 })));
             AndGraphEntitiesForSpecification(specificationId, templateCalculationId.ToString(), templateCalculationName, calculationIdOne, calculationIdTwo);
             AndGraphEntitiesForEnum(enumId, templateCalculationId.ToString(), calculationIdOne);
-            AndGraphEntitiesForFundingLine(fundingLineTwo.ToString(), calculationIdTwo);
+            AndGraphEntitiesForFundingLine(specificationId, fundingLineTwo.ToString(), calculationIdTwo);
             AndTheObsoleteItemsAreRemovedSuccessfully(specificationId, existingObsoleteItems);
             AndTheObsoleteItemIsCreatedSuccessfully(obsoleteItems);
 
@@ -224,7 +224,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.ObsoleteItems
                     new[] { new Entity<Enum>() { Relationships = calculationRelationships } }));
         }
 
-        private void AndGraphEntitiesForFundingLine(string fundingLineCode, params string[] calculationIds)
+        private void AndGraphEntitiesForFundingLine(string specificationId, string fundingLineCode, params string[] calculationIds)
         {
             IEnumerable<Relationship> calculationRelationships = calculationIds
                 .Select(c => new Relationship()
@@ -233,7 +233,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.ObsoleteItems
                     Two = new Models.Graph.Calculation() { CalculationId = c }
                 });
 
-            _graphApiClient.Setup(x => x.GetAllEntitiesRelatedToFundingLine(fundingLineCode))
+            _graphApiClient.Setup(x => x.GetAllEntitiesRelatedToFundingLine($"{specificationId}-{fundingLineCode}"))
                 .ReturnsAsync(new ApiResponse<IEnumerable<Entity<FundingLine>>>(HttpStatusCode.OK,
                     new[] { new Entity<FundingLine>() { Relationships = calculationRelationships } }));
         }

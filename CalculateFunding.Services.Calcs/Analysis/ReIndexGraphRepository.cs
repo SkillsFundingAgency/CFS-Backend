@@ -166,7 +166,7 @@ namespace CalculateFunding.Services.Calcs.Analysis
                 ApiResponse<IEnumerable<ApiEntityFundingLine>> apiResponse = await _resilience.ExecuteAsync(() =>
                     _graphApiClient.GetAllEntitiesRelatedToFundingLines(pagedRequests
                         .NextPage()
-                        .Select(_ => _.FundingLineId)
+                        .Select(_ => _.SpecificationFundingLineId)
                         .ToArray()));
                 
                 IEnumerable<ApiEntityFundingLine> entities = apiResponse?.Content;
@@ -414,7 +414,7 @@ namespace CalculateFunding.Services.Calcs.Analysis
 
         private async Task DeleteFundingLines(IEnumerable<FundingLine> fundingLines)
         {
-            PagedContext<string> pagedRequests = new PagedContext<string>(fundingLines.Select(_ => _.FundingLineId), PageSize);
+            PagedContext<string> pagedRequests = new PagedContext<string>(fundingLines.Select(_ => _.SpecificationFundingLineId), PageSize);
 
             while (pagedRequests.HasPages)
             {
@@ -592,7 +592,7 @@ namespace CalculateFunding.Services.Calcs.Analysis
             {
                 HttpStatusCode response;
 
-                ApiEnum[] apiEnums = relationships.Select(_ => _mapper.Map<ApiEnum>(_.Enum)).ToArray();
+                ApiEnum[] apiEnums = relationships.Select(_ => _mapper.Map<ApiEnum>(_.Enum)).DistinctBy(_ => _.EnumId).ToArray();
 
                 response = await _resilience.ExecuteAsync(() =>
                     _graphApiClient.UpsertEnums(apiEnums));

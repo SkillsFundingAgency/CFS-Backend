@@ -191,7 +191,7 @@ namespace CalculateFunding.Services.Specs.ObsoleteItems
             foreach (TemplateMetadataFundingLine fundingLine in missingFundingLines)
             {
                 ApiResponse<IEnumerable<Entity<FundingLine>>> fundingLineEntitiesApiResponse =
-                    await _graph.GetAllEntitiesRelatedToFundingLine(fundingLine.FundingLineCode);
+                    await _graph.GetAllEntitiesRelatedToFundingLine($"{specificationId}-{fundingLine.FundingLineCode}");
 
                 if (fundingLineEntitiesApiResponse?.Content == null)
                 {

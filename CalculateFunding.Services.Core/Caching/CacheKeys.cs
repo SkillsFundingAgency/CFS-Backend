@@ -92,5 +92,7 @@
         public const string CalculationFundingLines = "calculation-funding-lines:";
 
         public const string CodeContext = "code-contexts:";
+
+        public const string CircularDependencies = "circular-dependencies:";
     }
 }

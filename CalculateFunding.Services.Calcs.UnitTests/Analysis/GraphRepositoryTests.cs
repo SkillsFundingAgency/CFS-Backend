@@ -117,17 +117,22 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
             IEnumerable<ApiEntityFundingLine> existingFundingLines = (new[] {
                     new ApiEntityFundingLine
                     {
-                        Node = new ApiFundingLine { FundingLineId = fundingLineIdFive }
+                        Node = new ApiFundingLine { SpecificationId = specificationId, FundingLineId = fundingLineIdFive }
                     }
                 });
 
             FundingLine[] fundingLines = new[]
             {
-                NewGraphFundingLine(_ => _.WithId(fundingLineIdOne)),
-                NewGraphFundingLine(_ => _.WithId(fundingLineIdTwo)),
-                NewGraphFundingLine(_ => _.WithId(fundingLineIdThree)),
-                NewGraphFundingLine(_ => _.WithId(fundingLineIdFour)),
-                NewGraphFundingLine(_ => _.WithId(fundingLineIdFive))
+                NewGraphFundingLine(_ => _.WithId(fundingLineIdOne)
+                .WithSpecificationId(specificationId)),
+                NewGraphFundingLine(_ => _.WithId(fundingLineIdTwo)
+                .WithSpecificationId(specificationId)),
+                NewGraphFundingLine(_ => _.WithId(fundingLineIdThree)
+                .WithSpecificationId(specificationId)),
+                NewGraphFundingLine(_ => _.WithId(fundingLineIdFour)
+                .WithSpecificationId(specificationId)),
+                NewGraphFundingLine(_ => _.WithId(fundingLineIdFive)
+                .WithSpecificationId(specificationId))
             };
 
             FundingLineCalculationRelationship[] fundingLineRelationships = new[]
@@ -149,7 +154,8 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
 
             unusedFundingLines = unusedFundingLines.Concat(new[]
             {
-                NewGraphFundingLine(_ => _.WithId(fundingLineIdFive))
+                NewGraphFundingLine(_ => _.WithId(fundingLineIdFive)
+                    .WithSpecificationId(specificationId))
             });
 
             Calculation[] calculations = new[]
@@ -321,7 +327,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
             AndTheFundingLineCalculationRelationshipsWereCreated(calculationIdOne, fundingLines.Select(_ => _.FundingLineId).ToArray(), calculations.Select(_ => _.CalculationId).ToArray());
             AndTheExistingRelationships(specificationId, existingEntities);
             AndTheExistingCalculationRelationships(specificationCalculationRelationships.Calculations.Select(_ => _.CalculationId).ToArray(), existingCalculationEntities);
-            AndTheExistingFundingLines(specificationCalculationRelationships.FundingLines.Select(_ => _.FundingLineId).ToArray(), existingFundingLines);
+            AndTheExistingFundingLines(specificationCalculationRelationships.FundingLines.Select(_ => $"{specificationId}-{_.FundingLineId}").ToArray(), existingFundingLines);
 
             AndTheRelationshipsWereCreated(calculationRelationships);
             AndTheDataFieldRelationshipsWereCreated(dataFieldRelationships);
@@ -365,7 +371,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
         private void AndTheFundingLinesAreDeleted(FundingLine[] fundingLines)
         {
             _graphApiClient.Setup(_ => _.DeleteFundingLines(It.Is<string[]>(ids 
-                    => ids.SequenceEqual(fundingLines.Select(fl => fl.FundingLineId)))))
+                    => ids.SequenceEqual(fundingLines.Select(fl => fl.SpecificationFundingLineId)))))
                 .ReturnsAsync(HttpStatusCode.OK)
                 .Verifiable();
         }

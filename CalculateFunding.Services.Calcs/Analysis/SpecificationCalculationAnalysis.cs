@@ -13,6 +13,7 @@ using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Compiler.Interfaces;
 using Polly;
 using Calculation = CalculateFunding.Models.Calcs.Calculation;
+using FundingLine = CalculateFunding.Models.Calcs.FundingLine;
 using GraphCalculation = CalculateFunding.Models.Graph.Calculation;
 using GraphFundingLine = CalculateFunding.Models.Graph.FundingLine;
 
@@ -96,7 +97,9 @@ namespace CalculateFunding.Services.Calcs.Analysis
             {
                 Specification = _mapper.Map<Specification>(specificationSummary),
                 Calculations = _mapper.Map<IEnumerable<GraphCalculation>>(calculations),
-                FundingLines = _mapper.Map<IEnumerable<GraphFundingLine>>(buildProject.FundingLines?.Values.SelectMany(_ => _.FundingLines)),
+                FundingLines = buildProject.FundingLines?.Values.SelectMany(_ => _.FundingLines).Select(_ => _mapper.Map<FundingLine, GraphFundingLine>(_, opt => {
+                    opt.AfterMap((src, dest) => dest.SpecificationId = specificationId);
+                })),
                 CalculationRelationships = calculationRelationships,
                 FundingLineRelationships = fundingLineRelationships,
                 CalculationEnumRelationships = calculationEnumRelationships,

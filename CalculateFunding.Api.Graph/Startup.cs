@@ -15,7 +15,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
-using Newtonsoft.Json;
+using CalculateFunding.Services.Core.Helpers;
+using ServiceCollectionExtensions = CalculateFunding.Services.Core.Extensions.ServiceCollectionExtensions;
+using CalculateFunding.Services.Core.Options;
+using Polly.Bulkhead;
 
 namespace CalculateFunding.Api.Graph
 {
@@ -107,6 +110,19 @@ namespace CalculateFunding.Api.Graph
 
                     return settings;
                 });
+
+
+            builder.AddCaching(Configuration);
+
+            PolicySettings policySettings = ServiceCollectionExtensions.GetPolicySettings(Configuration);
+            AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+            GraphResiliencePolicies resiliencePolicies = new GraphResiliencePolicies
+            {
+                CacheProviderPolicy = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy)
+            };
+
+            builder.AddSingleton<IGraphResiliencePolicies>(resiliencePolicies);
+
 
             builder
                 .AddScoped<IGraphRepository>(ctx =>

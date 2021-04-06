@@ -48,28 +48,28 @@ namespace CalculateFunding.Services.Compiler.Analysis
             foreach (Calculation calculation in calculations)
             {
                 calculationEnumRelationships = calculationEnumRelationships.Concat(enums.SelectMany(_ => {
-                    MatchCollection enumMatches = Regex.Matches(calculation.Current.SourceCode, $"({_}).(.*?(?=\\s\\w|$))", RegexOptions.Multiline | RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                    MatchCollection enumMatches = Regex.Matches(calculation.Current.SourceCode, $"({_})\\.(.*?(?=\\s\\w|$))", RegexOptions.Multiline | RegexOptions.Compiled | RegexOptions.IgnoreCase);
                     return enumMatches.Where(_ => _.Groups.Count > 0).Select(match => new CalculationEnumRelationship
-                    {
-                        Enum = new Models.Graph.Enum
                         {
-                            EnumName = match.Groups[1].Value,
-                            EnumValue = match.Groups[2].Value,
-                            FundingStreamId = calculation.FundingStreamId,
-                            SpecificationId = calculation.SpecificationId
-                        },
-                        Calculation = new Models.Graph.Calculation
-                        {
-                            SpecificationId = calculation.SpecificationId,
-                            CalculationId = calculation.Id,
-                            FundingStream = calculation.FundingStreamId,
-                            CalculationName = calculation.Name,
-                            CalculationType = calculation.Current.CalculationType == Models.Calcs.CalculationType.Additional ? 
-                                                                                        Models.Graph.CalculationType.Additional : 
+                            Enum = new Models.Graph.Enum
+                            {
+                                SpecificationId = calculation.SpecificationId,
+                                EnumName = match.Groups[1].Value,
+                                EnumValue = match.Groups[2].Value,
+                                FundingStreamId = calculation.FundingStreamId
+                            },
+                            Calculation = new Models.Graph.Calculation
+                            {
+                                SpecificationId = calculation.SpecificationId,
+                                CalculationId = calculation.Id,
+                                FundingStream = calculation.FundingStreamId,
+                                CalculationName = calculation.Name,
+                                CalculationType = calculation.Current.CalculationType == Models.Calcs.CalculationType.Additional ?
+                                                                                        Models.Graph.CalculationType.Additional :
                                                                                         Models.Graph.CalculationType.Template
-                        }
+                            }
 
-                    });
+                        });
                 }));
             }
 
@@ -98,7 +98,7 @@ namespace CalculateFunding.Services.Compiler.Analysis
                         funding.Calculations.Select(calc => new FundingLineCalculationRelationship
                         {
                             CalculationOneId = _.Id,
-                            FundingLine = new GraphFundingLine { FundingLineId = $"{funding.FundingLine.Namespace}_{funding.FundingLine.Id}", FundingLineName = funding.FundingLine.Name},
+                            FundingLine = new GraphFundingLine { SpecificationId = _.SpecificationId, FundingLineId = $"{funding.FundingLine.Namespace}_{funding.FundingLine.Id}", FundingLineName = funding.FundingLine.Name},
                             CalculationTwoId = calc
                         }) : throw new InvalidOperationException($"Could not locate a funding line id for sourceCodeName {rel}"));
                 }));

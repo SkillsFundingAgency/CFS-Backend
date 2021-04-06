@@ -68,11 +68,11 @@ namespace CalculateFunding.Services.Graph
             });
         }
 
-        public async Task<IEnumerable<Entity<Calculation, IRelationship>>> GetCalculationCircularDependenciesBySpecificationId(string specificationId)
+        public async Task<IEnumerable<Entity<Calculation, IRelationship>>> GetCalculationCircularDependencies(string[] calculationIds)
         {
             IEnumerable<Entity<Calculation>> entities = await GetCircularDependencies<Calculation>(AttributeConstants.CalculationACalculationBRelationship,
-                AttributeConstants.SpecificationId,
-                specificationId);
+                AttributeConstants.CalculationId,
+                calculationIds);
             return entities?.Select(_ => new Entity<Calculation, IRelationship>
             {
                 Node = _.Node,
@@ -217,6 +217,21 @@ namespace CalculateFunding.Services.Graph
                     AttributeConstants.CalculationDataFieldRelationshipId,
                     AttributeConstants.CalculationACalculationBRelationship,
                     AttributeConstants.CalculationBCalculationARelationship
+                });
+            return entities.Select(_ => new Entity<Calculation, IRelationship>
+            {
+                Node = _.Node,
+                Relationships = _.Relationships
+            });
+        }
+
+        public async Task<IEnumerable<Entity<Calculation, IRelationship>>> GetAllCalculationsForSpecification(string specificationId)
+        {
+            IEnumerable<Entity<Calculation>> entities = await GetAllEntities<Calculation>(AttributeConstants.SpecificationId,
+                specificationId,
+                new[]
+                {
+                    AttributeConstants.SpecificationCalculationRelationshipId
                 });
             return entities.Select(_ => new Entity<Calculation, IRelationship>
             {

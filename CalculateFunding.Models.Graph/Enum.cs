@@ -6,15 +6,12 @@ using System.Text;
 namespace CalculateFunding.Models.Graph
 {
     [Serializable]
-    public class Enum
+    public class Enum : SpecificationNode
     {
         public const string IdField = "enumid";
 
         [JsonProperty(IdField)]
         public string EnumId => $"{SpecificationId}-{FundingStreamId}-{EnumName}-{EnumValue}";
-
-        [JsonProperty("specificationid")]
-        public string SpecificationId { get; set; }
 
         [JsonProperty("fundingstreamid")]
         public string FundingStreamId { get; set; }

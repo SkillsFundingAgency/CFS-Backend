@@ -613,7 +613,7 @@ namespace CalculateFunding.Services.Calcs
                 string cacheKey = $"{CacheKeys.CalculationsMetadataForSpecification}{specificationId}";
 
                 await _cachePolicy.ExecuteAsync(() => _cacheProvider.RemoveAsync<List<CalculationMetadata>>(cacheKey));
-
+                
                 if (skipInstruct)
                 {
                     return new OkObjectResult(result.CurrentVersion);
@@ -1455,8 +1455,7 @@ End Select");
             await _cachePolicy.ExecuteAsync(() => _cacheProvider.KeyDeleteAsync<List<CalculationSummaryModel>>($"{CacheKeys.CalculationsSummariesForSpecification}{currentVersion.SpecificationId}"));
             await _cachePolicy.ExecuteAsync(() => _cacheProvider.KeyDeleteAsync<List<CalculationResponseModel>>($"{CacheKeys.CurrentCalculationsForSpecification}{currentVersion.SpecificationId}"));
             await _cachePolicy.ExecuteAsync(() => _cacheProvider.KeyDeleteAsync<List<CalculationResponseModel>>($"{CacheKeys.CalculationsMetadataForSpecification}{currentVersion.SpecificationId}"));
-
-
+            
             // Set current version in cache
             await _cachePolicy.ExecuteAsync(() => _cacheProvider.SetAsync($"{CacheKeys.CurrentCalculation}{currentVersion.Id}", currentVersion, TimeSpan.FromDays(7), true));
         }

@@ -6,9 +6,12 @@ using System.Text;
 namespace CalculateFunding.Models.Graph
 {
     [Serializable]
-    public class FundingLine
+    public class FundingLine : SpecificationNode
     {
-        public const string IdField = "fundinglineid";
+        public const string IdField = "specificationfundinglineid";
+
+        [JsonProperty(IdField)]
+        public string SpecificationFundingLineId => $"{SpecificationId}-{FundingLineId}";
 
         [JsonProperty("fundinglineid")]
         public string FundingLineId { get; set; }
