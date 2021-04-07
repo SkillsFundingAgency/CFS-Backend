@@ -10,6 +10,7 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Graph;
 using CalculateFunding.Services.Calcs.Interfaces;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
 using CalculateFunding.Services.Compiler.Interfaces;
 using Polly;
 using Calculation = CalculateFunding.Models.Calcs.Calculation;
@@ -29,6 +30,7 @@ namespace CalculateFunding.Services.Calcs.Analysis
         private readonly IBuildProjectsService _buildProjectsService;
         private readonly IDatasetReferenceService _datasetReferenceService;
         private readonly IMapper _mapper;
+        private readonly VisualBasicTypeIdentifierGenerator _typeIdentifierGenerator;
 
         public SpecificationCalculationAnalysis(ICalcsResiliencePolicies policies, 
             ISpecificationsApiClient specifications, 
@@ -55,6 +57,8 @@ namespace CalculateFunding.Services.Calcs.Analysis
             _buildProjectsService = buildProjectsService;
             _datasetReferenceService = datasetReferenceService;
             _mapper = mapper;
+
+            _typeIdentifierGenerator = new VisualBasicTypeIdentifierGenerator();
         }
 
         public async Task<SpecificationCalculationRelationships> GetSpecificationCalculationRelationships(string specificationId)
@@ -81,11 +85,11 @@ namespace CalculateFunding.Services.Calcs.Analysis
                     $"No calculations for specification with id {specificationId}. Unable to get calculation relationships");   
             }
 
-            IEnumerable<CalculationRelationship> calculationRelationships = _calculationAnalysis.DetermineRelationshipsBetweenCalculations(calculations);
+            IEnumerable<CalculationRelationship> calculationRelationships = _calculationAnalysis.DetermineRelationshipsBetweenCalculations((@namespace) => _typeIdentifierGenerator.GenerateIdentifier(@namespace), calculations);
 
             BuildProject buildProject = await _buildProjectsService.GetBuildProjectForSpecificationId(specificationId);
 
-            IEnumerable<FundingLineCalculationRelationship> fundingLineRelationships = _calculationAnalysis.DetermineRelationshipsBetweenFundingLinesAndCalculations(calculations, buildProject.FundingLines);
+            IEnumerable<FundingLineCalculationRelationship> fundingLineRelationships = _calculationAnalysis.DetermineRelationshipsBetweenFundingLinesAndCalculations((@namespace) => _typeIdentifierGenerator.GenerateIdentifier(@namespace), calculations, buildProject.FundingLines);
 
             calculationRelationships = calculationRelationships.Concat(fundingLineRelationships.Select(_ => new CalculationRelationship { CalculationOneId = _.CalculationOneId, CalculationTwoId = _.CalculationTwoId }));
 

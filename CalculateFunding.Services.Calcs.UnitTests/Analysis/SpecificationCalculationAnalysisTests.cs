@@ -177,7 +177,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
         private void AndTheRelationshipsForTheCalculations(IEnumerable<Calculation> calculations, 
             params CalculationRelationship[] relationships)
         {
-            _calculationsAnalysis.Setup(_ => _.DetermineRelationshipsBetweenCalculations(calculations))
+            _calculationsAnalysis.Setup(_ => _.DetermineRelationshipsBetweenCalculations(It.IsAny<Func<string,string>>(), calculations))
                 .Returns(relationships);
         }
 

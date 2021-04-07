@@ -49,7 +49,7 @@ namespace CalculateFunding.Services.Calcs
                 {
                     IEnumerable<string> datasetReferences = datasetReferenceMatches.Where(m => m.Groups.Count > 0).Select(x => x.Groups[0].Value);
                     IEnumerable<string> references = datasetReferences.Select(x => x.Replace(" ", string.Empty).Replace(Environment.NewLine, string.Empty))
-                                    .Where(r => r.Count(c => c == '.') == 2)
+                                    .Where(r => r.Count(c => c == '.') == 2 && !r.Split('.')[2].Equals("hasvalue", StringComparison.OrdinalIgnoreCase) )
                                     .Distinct()
                                     .ToList();
 
@@ -73,7 +73,7 @@ namespace CalculateFunding.Services.Calcs
                     DatasetRelationshipSummary datasetRelationship = datasetRelationShipSummaries.FirstOrDefault(x => _typeIdentifierGenerator.GenerateIdentifier(x.Name).ToLowerInvariant() == datasetRelationshipName ||
                             _typeIdentifierGenerator.GenerateIdentifier(x.Name).Replace("_", string.Empty).ToLowerInvariant() == datasetRelationshipName.Replace("_", string.Empty)); // vb line continuation or names have underscore 
 
-                    if (datasetRelationship != null)
+                    if (datasetRelationship != null && datasetRelationship.DatasetId != null)
                     {
                         FieldDefinition dataField = datasetRelationship.DatasetDefinition.TableDefinitions.FirstOrDefault()?.
                             FieldDefinitions.FirstOrDefault(x => _typeIdentifierGenerator.GenerateIdentifier(x.Name).ToLowerInvariant() == fieldName ||

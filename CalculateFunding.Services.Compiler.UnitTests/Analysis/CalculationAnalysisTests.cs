@@ -97,14 +97,14 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
 
         private void WhenTheCalculationsAreAnalysed(IEnumerable<Calculation> calculations)
         {
-            _relationships = _analysis.DetermineRelationshipsBetweenCalculations(calculations);
+            _relationships = _analysis.DetermineRelationshipsBetweenCalculations(@namespace => @namespace, calculations);
 
             _enumRelationships = _analysis.DetermineRelationshipsBetweenCalculationsAndEnums(calculations);
         }
 
         private void WhenTheFundingLinesAreAnalysed(IEnumerable<Calculation> calculations, IDictionary<string, Funding> funding)
         {
-            _fundingLineRelationships = _analysis.DetermineRelationshipsBetweenFundingLinesAndCalculations(calculations, funding);
+            _fundingLineRelationships = _analysis.DetermineRelationshipsBetweenFundingLinesAndCalculations(@namespace => @namespace, calculations, funding);
         }
 
         private static IEnumerable<object[]> FundingLineRelationshipExamples()

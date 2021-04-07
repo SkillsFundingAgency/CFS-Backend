@@ -31,8 +31,6 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
         [TestMethod]
         public void GetGetDatasetRelationShips_WhenGivenAdditionalCalculationsWithDatasetFieldReferences_ReturnDatasetReferences()
         {
-            string specificationId = Guid.NewGuid().ToString();
-
             List<Calculation> calculations = CreatCalculations();
 
             List<DatasetRelationshipSummary> datasetRelationshipSummaries = CreatDatasetRelationshipSummary();
@@ -111,8 +109,9 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
                     SpecificationId = Guid.NewGuid().ToString(),
                     Current = new Models.Calcs.CalculationVersion(){
                         CalculationType = CalculationType.Additional,
-                        SourceCode = "Dim Pupils as decimal\r\nDim Primary as decimal" +
+                        SourceCode = "Dim Pupils as decimal\r\nDim Primary as decimal\r\nDim HasValue as bool" +
                         "\r\n\r\nPrimary = DSG.PrimaryPupilNumber().value * DSG.PrimaryUnitOfFunding().value\r\n" +
+                        "HasValue = Datasets.JBTEST202003131731.HasValue()\r\n" +
                         "Pupils = Datasets.JBTEST202003131731.APUniversalEntitlement2YO + Datasets.JBTEST202003131734.APPupilPremium3YO " +
                         "\r\n\r\nReturn Math.Round(Pupils,2)",
                         CalculationId = "Calc-Id2",
@@ -128,6 +127,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
             {
                 new DatasetRelationshipSummary()
                 {
+                    DatasetId = "JB TEST 202003131731",
                     Name = "JB TEST 202003131731",
                     Relationship = new Reference(){ Name = "JB TEST 202003131731"},
                     DatasetDefinition = new Models.Datasets.Schema.DatasetDefinition()
@@ -141,7 +141,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
                                 FieldDefinitions = new List<Models.Datasets.Schema.FieldDefinition>()
                                 {
                                     new Models.Datasets.Schema.FieldDefinition()
-                                    {
+                                    { 
                                         Name = "AP Universal Entitlement 2YO",
                                     },
                                     new Models.Datasets.Schema.FieldDefinition()
@@ -156,6 +156,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
                 },
                 new DatasetRelationshipSummary()
                 {
+                    DatasetId = "JB TEST 202003131734",
                     Name = "JB TEST 202003131734",
                     Relationship = new Reference(){ Name = "JB TEST 202003131734"},
                     DatasetDefinition = new Models.Datasets.Schema.DatasetDefinition()

@@ -14,13 +14,13 @@ namespace CalculateFunding.Services.Compiler.Analysis
 {
     public class CalculationAnalysis : ICalculationAnalysis
     {
-        public IEnumerable<CalculationRelationship> DetermineRelationshipsBetweenCalculations(IEnumerable<Calculation> calculations)
+        public IEnumerable<CalculationRelationship> DetermineRelationshipsBetweenCalculations(Func<string, string> GetSourceCodeName, IEnumerable<Calculation> calculations)
         {
             Guard.IsNotEmpty(calculations, nameof(calculations));
             
             Dictionary<string, string> calculationIdsBySourceCodeName = calculations
-                .ToDictionary(_ => $"{_.Namespace}.{_.Current.SourceCodeName}", _ => _.Id);
-            string[] calculationNames = calculations.Select(_ => $"{_.Namespace}.{_.Current.SourceCodeName}")
+                .ToDictionary(_ => $"{GetSourceCodeName(_.Namespace)}.{_.Current.SourceCodeName}", _ => _.Id);
+            string[] calculationNames = calculations.Select(_ => $"{GetSourceCodeName(_.Namespace)}.{_.Current.SourceCodeName}")
                 .ToArray();
 
             return calculations.SelectMany(_ =>
@@ -76,7 +76,7 @@ namespace CalculateFunding.Services.Compiler.Analysis
             return calculationEnumRelationships;
         }
 
-        public IEnumerable<FundingLineCalculationRelationship> DetermineRelationshipsBetweenFundingLinesAndCalculations(IEnumerable<Calculation> calculations, IDictionary<string, Funding> fundingLines)
+        public IEnumerable<FundingLineCalculationRelationship> DetermineRelationshipsBetweenFundingLinesAndCalculations(Func<string, string> GetSourceCodeName, IEnumerable<Calculation> calculations, IDictionary<string, Funding> fundingLines)
         {
             Guard.IsNotEmpty(fundingLines, nameof(fundingLines));
 
@@ -86,8 +86,8 @@ namespace CalculateFunding.Services.Compiler.Analysis
             {
                 Dictionary<string, (FundingLine, IEnumerable<string>)> fundingLineIdsBySourceCodeName = funding.FundingLines
                     .DistinctBy(_ => $"{_.Namespace}.FundingLines.{_.SourceCodeName}")
-                    .ToDictionary(_ => $"{_.Namespace}.FundingLines.{_.SourceCodeName}", _ => (_ , _.Calculations.Select(calc => funding.Mappings[calc.Id])));
-                string[] fundingLineNames = fundingLines.SelectMany(_ => _.Value.FundingLines).Select(_ => $"{_.Namespace}.FundingLines.{_.SourceCodeName}")
+                    .ToDictionary(_ => $"{GetSourceCodeName(_.Namespace)}.FundingLines.{_.SourceCodeName}", _ => (_ , _.Calculations.Select(calc => funding.Mappings[calc.Id])));
+                string[] fundingLineNames = fundingLines.SelectMany(_ => _.Value.FundingLines).Select(_ => $"{GetSourceCodeName(_.Namespace)}.FundingLines.{_.SourceCodeName}")
                     .ToArray();
 
                 relationships = relationships.Concat(calculations.SelectMany(_ =>

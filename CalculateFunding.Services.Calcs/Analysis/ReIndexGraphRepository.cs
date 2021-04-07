@@ -332,28 +332,28 @@ namespace CalculateFunding.Services.Calcs.Analysis
 
             Guard.ArgumentNotNull(specification, nameof(specification));
 
-            if (specificationCalculationUnusedRelationships.Calculations != null)
+            if (specificationCalculationUnusedRelationships.Calculations.AnyWithNullCheck())
             {
                 await DeleteSpecificationCalculationRelationships(specification,
                     specificationCalculationUnusedRelationships.Calculations);
             }
 
-            if (specificationCalculationUnusedRelationships.FundingLines != null)
+            if (specificationCalculationUnusedRelationships.FundingLines.AnyWithNullCheck())
             {
                 await DeleteFundingLines(specificationCalculationUnusedRelationships.FundingLines);
             }
 
-            if (specificationCalculationUnusedRelationships.CalculationRelationships != null)
+            if (specificationCalculationUnusedRelationships.CalculationRelationships.AnyWithNullCheck())
             {
                 await DeleteCalculationRelationships(specificationCalculationUnusedRelationships.CalculationRelationships);
             }
 
-            if (specificationCalculationUnusedRelationships.CalculationDataFieldRelationships != null)
+            if (specificationCalculationUnusedRelationships.CalculationDataFieldRelationships.AnyWithNullCheck())
             {
                 await DeleteDatasetRelationships(specificationCalculationUnusedRelationships.CalculationDataFieldRelationships);
             }
 
-            if (specificationCalculationUnusedRelationships.CalculationEnumRelationships != null)
+            if (specificationCalculationUnusedRelationships.CalculationEnumRelationships.AnyWithNullCheck())
             {
                 await DeleteEnumRelationships(specificationCalculationUnusedRelationships.CalculationEnumRelationships);
             }
@@ -654,7 +654,7 @@ namespace CalculateFunding.Services.Calcs.Analysis
         {
             HttpStatusCode response;
 
-            ApiFundingLine[] apiFundingLines = fundingLineCalculationRelationships.Select(_ => _mapper.Map<ApiFundingLine>(_.FundingLine)).ToArray();
+            ApiFundingLine[] apiFundingLines = fundingLineCalculationRelationships.Select(_ => _mapper.Map<ApiFundingLine>(_.FundingLine)).DistinctBy(_ => _.FundingLineId).ToArray();
 
             response = await _resilience.ExecuteAsync(() =>
                 _graphApiClient.UpsertFundingLines(apiFundingLines));

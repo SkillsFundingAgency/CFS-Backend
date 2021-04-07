@@ -342,7 +342,7 @@ namespace CalculateFunding.Api.Graph.Controllers
             return await _graphService.DeleteCalculationCalculationRelationship(calculationIdA, calculationIdB);
         }
         
-        [HttpDelete("api/graph/calculation/{calculationIdA}/relationships/calculation/{calculationIdB}")]
+        [HttpPost("api/graph/calculation/relationships/calculation/delete")]
         [ProducesResponseType(200)]
         public async Task<IActionResult> DeleteCalculationCalculationRelationships([FromBody] AmendRelationshipRequest[] relationships)
         {
