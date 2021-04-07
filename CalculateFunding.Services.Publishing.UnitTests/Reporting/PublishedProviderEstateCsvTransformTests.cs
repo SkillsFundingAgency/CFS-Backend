@@ -42,6 +42,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
                     NewPublishedProviderVersions(ppv => ppv.WithProvider(
                             NewProvider(pr => pr
                                 .WithSuccessor("successor1")
+                                .WithSuccessors("successor1", "successor2")
                                 .WithName("prname1")
                                 .WithLACode("lacode1")
                                 .WithAuthority("laname1")
@@ -100,7 +101,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
                     {"Current Open Reason", "openReason1"},
                     {"Current Close Date", closedDate1.ToString("s")},
                     {"Current Close Reason", "closeReason1"},
-                    {"Current Successor Provider ID", "successor1"},
+                    {"Current Successor Provider ID", "successor1;successor2"},
                     {"Current Trust Code", "trustCode1"},
                     {"Current Trust Name", "trustName1"},
                     {"Previous URN", "urn2"},

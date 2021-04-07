@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Models.Publishing;
+﻿using System;
+using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Publishing.Interfaces;
 using System.Buffers;
@@ -57,37 +58,42 @@ namespace CalculateFunding.Services.Publishing.Reporting.PublishedProviderEstate
 
                     IDictionary<string, object> row = resultsBatch[resultCount] ?? (resultsBatch[resultCount] = new ExpandoObject());
 
-                    row["UKPRN"] = updatedPublishedProviderVersion.Provider.UKPRN;
-                    row["Provider Has Successor"] = (!string.IsNullOrEmpty(updatedPublishedProviderVersion.Provider.Successor) && string.IsNullOrEmpty(releasedPublishedProviderVersion.Provider.Successor)).ToString();
+                    Provider updatedProvider = updatedPublishedProviderVersion.Provider;
+                    
+                    row["UKPRN"] = updatedProvider.UKPRN;
+                    row["Provider Has Successor"] = updatedProvider.GetSuccessors().Any().ToString();
                     row["Provider Data Changed"] = updatedPublishedProviderVersion.VariationReasons != null ? updatedPublishedProviderVersion.VariationReasons.Any().ToString() : false.ToString();
-                    row["Provider Has Closed"] = (updatedPublishedProviderVersion.Provider.DateClosed != null && releasedPublishedProviderVersion.Provider.DateClosed == null).ToString();
-                    row["Provider Has Opened"] = (updatedPublishedProviderVersion.Provider.DateOpened != null && releasedPublishedProviderVersion.Provider.DateOpened == null).ToString();
+                    
+                    Provider releasedProvider = releasedPublishedProviderVersion.Provider;
+                    
+                    row["Provider Has Closed"] = (updatedProvider.DateClosed != null && releasedProvider.DateClosed == null).ToString();
+                    row["Provider Has Opened"] = (updatedProvider.DateOpened != null && releasedProvider.DateOpened == null).ToString();
                     row["Variation Reason"] = updatedPublishedProviderVersion.VariationReasons != null ? string.Join('|', updatedPublishedProviderVersion.VariationReasons) : string.Empty;
                     
-                    row["Current URN"] = updatedPublishedProviderVersion.Provider.URN;
-                    row["Current Provider Name"] = updatedPublishedProviderVersion.Provider.Name;
-                    row["Current Provider Type"] = updatedPublishedProviderVersion.Provider.ProviderType;
-                    row["Current Provider Subtype"] = updatedPublishedProviderVersion.Provider.ProviderSubType;
-                    row["Current LA Code"] = updatedPublishedProviderVersion.Provider.LACode;
-                    row["Current LA Name"] = updatedPublishedProviderVersion.Provider.Authority;
-                    row["Current Open Date"] = updatedPublishedProviderVersion.Provider.DateOpened?.ToString("s");
-                    row["Current Open Reason"] = updatedPublishedProviderVersion.Provider.ReasonEstablishmentOpened;
-                    row["Current Close Date"] = updatedPublishedProviderVersion.Provider.DateClosed?.ToString("s");
-                    row["Current Close Reason"] = updatedPublishedProviderVersion.Provider.ReasonEstablishmentClosed;
-                    row["Current Successor Provider ID"] = updatedPublishedProviderVersion.Provider.Successor;
-                    row["Current Trust Code"] = updatedPublishedProviderVersion.Provider.TrustCode;
-                    row["Current Trust Name"] = updatedPublishedProviderVersion.Provider.TrustName;
+                    row["Current URN"] = updatedProvider.URN;
+                    row["Current Provider Name"] = updatedProvider.Name;
+                    row["Current Provider Type"] = updatedProvider.ProviderType;
+                    row["Current Provider Subtype"] = updatedProvider.ProviderSubType;
+                    row["Current LA Code"] = updatedProvider.LACode;
+                    row["Current LA Name"] = updatedProvider.Authority;
+                    row["Current Open Date"] = updatedProvider.DateOpened?.ToString("s");
+                    row["Current Open Reason"] = updatedProvider.ReasonEstablishmentOpened;
+                    row["Current Close Date"] = updatedProvider.DateClosed?.ToString("s");
+                    row["Current Close Reason"] = updatedProvider.ReasonEstablishmentClosed;
+                    row["Current Successor Provider ID"] = updatedProvider.GetSuccessors().NullSafeJoinWith(";");
+                    row["Current Trust Code"] = updatedProvider.TrustCode;
+                    row["Current Trust Name"] = updatedProvider.TrustName;
                     
-                    row["Previous URN"] = releasedPublishedProviderVersion.Provider.URN;
-                    row["Previous Provider Name"] = releasedPublishedProviderVersion.Provider.Name;
-                    row["Previous Provider Type"] = releasedPublishedProviderVersion.Provider.ProviderType;
-                    row["Previous Provider Subtype"] = releasedPublishedProviderVersion.Provider.ProviderSubType;
-                    row["Previous LA Code"] = releasedPublishedProviderVersion.Provider.LACode;
-                    row["Previous LA Name"] = releasedPublishedProviderVersion.Provider.Authority;
-                    row["Previous Close Date"] = releasedPublishedProviderVersion.Provider.DateClosed?.ToString("s");
-                    row["Previous Close Reason"] = releasedPublishedProviderVersion.Provider.ReasonEstablishmentClosed;
-                    row["Previous Trust Code"] = releasedPublishedProviderVersion.Provider.TrustCode;
-                    row["Previous Trust Name"] = releasedPublishedProviderVersion.Provider.TrustName;
+                    row["Previous URN"] = releasedProvider.URN;
+                    row["Previous Provider Name"] = releasedProvider.Name;
+                    row["Previous Provider Type"] = releasedProvider.ProviderType;
+                    row["Previous Provider Subtype"] = releasedProvider.ProviderSubType;
+                    row["Previous LA Code"] = releasedProvider.LACode;
+                    row["Previous LA Name"] = releasedProvider.Authority;
+                    row["Previous Close Date"] = releasedProvider.DateClosed?.ToString("s");
+                    row["Previous Close Reason"] = releasedProvider.ReasonEstablishmentClosed;
+                    row["Previous Trust Code"] = releasedProvider.TrustCode;
+                    row["Previous Trust Name"] = releasedProvider.TrustName;
 
                     updatedPublishedProviderVersion = releasedPublishedProviderVersion = null;
 

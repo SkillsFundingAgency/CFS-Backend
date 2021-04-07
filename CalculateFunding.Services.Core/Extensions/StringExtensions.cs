@@ -53,7 +53,12 @@ namespace System
 
         public static string Join(this IEnumerable<string> strings, string separator)
         {
-            return string.Join(separator, strings);
+            return strings == null ? null : string.Join(separator, strings);
+        }
+
+        public static string NullSafeJoinWith(this IEnumerable<string> strings, string separator)
+        {
+            return strings == null ? null : string.Join(separator, strings);
         }
 
         public static bool IsNullOrWhitespace(this string text)

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using CalculateFunding.Common.Extensions;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Tests.Common.Helpers;
@@ -28,7 +29,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private string _trustName;
         private string _reasonEstablishmentClosed;
         private string _paymentOrganisationIdentifier;
+        private IEnumerable<string> _successors;
 
+        public ProviderBuilder WithSuccessors(params string[] successors)
+        {
+            _successors = successors;
+
+            return this;
+        }
+        
         public ProviderBuilder WithPaymentOrganisationIdentifier(string paymentOrganisationIdentifier)
         {
             _paymentOrganisationIdentifier = paymentOrganisationIdentifier;
@@ -179,6 +188,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 Postcode = NewRandomString(),
                 Status = _status ?? NewRandomString(),
                 Successor = _successor,
+                Successors = _successors,
                 Town = NewRandomString(),
                 CountryCode = NewRandomString(),
                 CountryName = NewRandomString(),

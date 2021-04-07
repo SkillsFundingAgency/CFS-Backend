@@ -205,20 +205,23 @@ namespace CalculateFunding.Services.Publishing.Providers
         {
             IDictionary<string, PublishedProvider> scopedPublishedProviders = publishedProviders.Values.Where(_ => scopedProviders.ContainsKey(_.Current.Provider.ProviderId)).ToDictionary(_ => _.Current.Provider.ProviderId);
 
-            foreach (Provider predessor in scopedProviders.Values.Where(_ =>  !string.IsNullOrWhiteSpace(_.Successor)))
+            foreach (Provider predecessor in scopedProviders.Values.Where(_ => _.GetSuccessors().Any()))
             {
-                if (!scopedPublishedProviders.ContainsKey(predessor.Successor))
+                foreach (string successor in predecessor.GetSuccessors())
                 {
-                    if (publishedProviders.ContainsKey(predessor.Successor))
+                    if (!scopedPublishedProviders.ContainsKey(successor))
                     {
-                        scopedPublishedProviders.Add(predessor.Successor, publishedProviders[predessor.Successor]);
-                    }
-                    else
-                    {
-                        string error = $"Could not locate the successor provider:{predessor.Successor}";
-                        _logger.Error(error);
-                        throw new ArgumentOutOfRangeException("Successor");
-                    }
+                        if (publishedProviders.ContainsKey(successor))
+                        {
+                            scopedPublishedProviders.Add(successor, publishedProviders[successor]);
+                        }
+                        else
+                        {
+                            string error = $"Could not locate the successor provider:{successor}";
+                            _logger.Error(error);
+                            throw new ArgumentOutOfRangeException("Successor");
+                        }
+                    }    
                 }
             }
 

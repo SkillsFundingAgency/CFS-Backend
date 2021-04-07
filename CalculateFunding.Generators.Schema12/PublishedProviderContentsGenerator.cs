@@ -136,12 +136,7 @@ namespace CalculateFunding.Generators.Schema12
                           publishedProviderVersion.ProviderId)).Where(_ => _ != null)
                 },
                 publishedProviderVersion.VariationReasons,
-                Successors = string.IsNullOrWhiteSpace(publishedProviderVersion.Provider.Successor)
-                    ? null
-                    : new List<string>
-                    {
-                        publishedProviderVersion.Provider.Successor
-                    },
+                Successors = publishedProviderVersion.Provider.GetSuccessors(),
                 publishedProviderVersion.Predecessors
             };
 

@@ -120,7 +120,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                     {"Allocation DateTime", "2020-02-05T20:03:55"},
                     {"zfl1", 123M.ToString(CultureInfo.InvariantCulture)},
                     {"Provider Status", "Open"},
-                    {"Provider Successor", null },
+                    {"Provider Successor", string.Empty },
                     {"Provider Predecessors", string.Empty },
                     {"Provider Variation Reasons", string.Empty }
                 }

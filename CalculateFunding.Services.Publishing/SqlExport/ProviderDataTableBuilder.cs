@@ -1,5 +1,6 @@
 using System;
 using System.Data;
+using CalculateFunding.Common.Extensions;
 using CalculateFunding.Models.Publishing;
 
 namespace CalculateFunding.Services.Publishing.SqlExport
@@ -44,7 +45,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                 DbNullSafe(provider.DateClosed?.UtcDateTime),
                 DbNullSafe(provider.LACode),
                 DbNullSafe(provider.Status),
-                DbNullSafe(provider.Successor),
+                DbNullSafe(provider.GetSuccessors().JoinWith(';')),
                 DbNullSafe(provider.TrustCode),
                 DbNullSafe(provider.TrustName),
                 DbNullSafe(provider.PaymentOrganisationIdentifier),

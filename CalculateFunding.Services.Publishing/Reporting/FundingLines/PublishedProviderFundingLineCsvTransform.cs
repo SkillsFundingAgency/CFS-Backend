@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using CalculateFunding.Common.Extensions;
 using CalculateFunding.Models.Publishing;
 
 namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
@@ -25,8 +27,8 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
         protected override void TransformProviderDetails(IDictionary<string, object> row, PublishedProviderVersion publishedProviderVersion)
         {
             row["Provider Status"] = publishedProviderVersion.Provider.Status;
-            row["Provider Successor"] = publishedProviderVersion.Provider.Successor;
-            row["Provider Predecessors"] = publishedProviderVersion.Predecessors != null ? string.Join(';', publishedProviderVersion.Predecessors) : string.Empty;
+            row["Provider Successor"] = publishedProviderVersion.Provider.GetSuccessors().NullSafeJoinWith(";") ?? string.Empty;
+            row["Provider Predecessors"] = publishedProviderVersion.Predecessors.NullSafeJoinWith(";") ?? string.Empty;;
             row["Provider Variation Reasons"] = publishedProviderVersion.VariationReasons != null ? string.Join(';', publishedProviderVersion.VariationReasons) : string.Empty;
         }
     }

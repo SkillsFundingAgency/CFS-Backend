@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
@@ -24,7 +25,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
             
             Provider updatedProvider = providerVariationContext.UpdatedProvider;
 
-            string successorId = updatedProvider.Successor;
+            string successorId = updatedProvider.GetSuccessors().SingleOrDefault();
 
             PublishedProviderVersion priorState = providerVariationContext.PriorState;
             

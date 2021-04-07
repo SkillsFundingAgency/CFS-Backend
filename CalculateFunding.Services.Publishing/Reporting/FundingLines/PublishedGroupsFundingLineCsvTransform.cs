@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
+using CalculateFunding.Common.Extensions;
 
 namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
 {
@@ -105,9 +106,9 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
                 row["Provider UPIN"] = publishedProvider.Provider?.UPIN;
                 row["Provider LACode"] = publishedProvider.Provider?.LACode;
                 row["Provider Status"] = publishedProvider.Provider?.Status;
-                row["Provider Successor"] = publishedProvider.Provider?.Successor;
-                row["Provider Predecessors"] = publishedProvider.Predecessors != null ? string.Join(';', publishedProvider.Predecessors) : string.Empty;
-                row["Provider Variation Reasons"] = publishedProvider.VariationReasons != null ? string.Join(';', publishedProvider.VariationReasons) : string.Empty;
+                row["Provider Successor"] = publishedProvider.Provider?.GetSuccessors().NullSafeJoinWith(";") ?? string.Empty;
+                row["Provider Predecessors"] = publishedProvider.Predecessors.NullSafeJoinWith(";") ?? string.Empty;
+                row["Provider Variation Reasons"] = publishedProvider.VariationReasons  != null ? string.Join(';', publishedProvider.VariationReasons) : string.Empty;
             }
         }
     }

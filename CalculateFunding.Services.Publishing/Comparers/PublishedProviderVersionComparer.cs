@@ -7,59 +7,9 @@ namespace CalculateFunding.Services.Publishing.Comparers
 {
     public class PublishedProviderVersionComparer : IEqualityComparer<PublishedProviderVersion>
     {
+        private readonly List<string> _variances = new List<string>();
+        
         public IEnumerable<string> Variances => _variances;
-
-        private readonly List<string> _variances;
-
-        public PublishedProviderVersionComparer()
-        {
-            _variances = new List<string>();
-        }
-
-        private (bool equals, T mismatchedObject) CompareEnumerable<T>(IEnumerable<T> firstEnumerable, IEnumerable<T> secondEnumerable, Func<T, T, bool> predicate)
-        {
-            T mismatchedObject = default;
-
-            if (!firstEnumerable.IsNullOrEmpty())
-            {
-                if (!secondEnumerable.IsNullOrEmpty())
-                {
-                    if (firstEnumerable.Count() != secondEnumerable.Count() || !firstEnumerable.All(x =>
-                    {
-                        // if all objects within the first enumerable are in the second enumerable
-                        if (secondEnumerable.Any(y => predicate(x, y)))
-                        {
-                            // both enumerables have the same number of objects and all the objects in the first enumerable exist in the second 
-                            return true;
-                        }
-
-                        // there is an object which doesn't exist in the second enumerable but exists in the first
-                        mismatchedObject = x;
-                        return false;
-                    }))
-                    {
-                        // the number of objects in the first enumerable doesn't match the number in the second
-                        return (false, mismatchedObject);
-                    }
-                }
-                else
-                {
-                    // the second enumerable is empty
-                    return (false, mismatchedObject);
-                }
-            }
-            else
-            {
-                if (!secondEnumerable.IsNullOrEmpty())
-                {
-                    // the first enumerable is empty but the second one is not
-                    return (false, mismatchedObject);
-                }
-            }
-
-            // if the code reaches this point then the two enumerable are equivalent
-            return (true, mismatchedObject);
-        }
 
         public bool Equals(PublishedProviderVersion x, PublishedProviderVersion y)
         {
@@ -136,15 +86,60 @@ namespace CalculateFunding.Services.Publishing.Comparers
 
             if (!providerComparer.Equals(x.Provider, y.Provider))
             {
-                providerComparer.Variances.ToList().ForEach(_ =>
+                foreach ((string key, string value) in providerComparer.Variances)
                 {
-                    _variances.Add($"Provider: {_.Key}: {_.Value}");
-                });
+                    _variances.Add($"Provider: {key}: {value}");   
+                }
 
                 equals = false;
             }
 
             return equals;
+        }
+
+        private (bool equals, T mismatchedObject) CompareEnumerable<T>(IEnumerable<T> firstEnumerable, IEnumerable<T> secondEnumerable, Func<T, T, bool> predicate)
+        {
+            T mismatchedObject = default;
+
+            if (!firstEnumerable.IsNullOrEmpty())
+            {
+                if (!secondEnumerable.IsNullOrEmpty())
+                {
+                    if (firstEnumerable.Count() != secondEnumerable.Count() || !firstEnumerable.All(x =>
+                    {
+                        // if all objects within the first enumerable are in the second enumerable
+                        if (secondEnumerable.Any(y => predicate(x, y)))
+                        {
+                            // both enumerables have the same number of objects and all the objects in the first enumerable exist in the second 
+                            return true;
+                        }
+
+                        // there is an object which doesn't exist in the second enumerable but exists in the first
+                        mismatchedObject = x;
+                        return false;
+                    }))
+                    {
+                        // the number of objects in the first enumerable doesn't match the number in the second
+                        return (false, mismatchedObject);
+                    }
+                }
+                else
+                {
+                    // the second enumerable is empty
+                    return (false, mismatchedObject);
+                }
+            }
+            else
+            {
+                if (!secondEnumerable.IsNullOrEmpty())
+                {
+                    // the first enumerable is empty but the second one is not
+                    return (false, mismatchedObject);
+                }
+            }
+
+            // if the code reaches this point then the two enumerable are equivalent
+            return (true, mismatchedObject);
         }
 
         public int GetHashCode(PublishedProviderVersion obj)
