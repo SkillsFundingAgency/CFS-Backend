@@ -401,7 +401,8 @@ namespace CalculateFunding.Services.Providers
                     PreviousLAcode = x.PreviousLACode,
                     PreviousLAname = x.PreviousLAName,
                     PreviousEstablishmentNumber = x.PreviousEstablishmentNumber,
-                    Predecessors = x.Predecessors
+                    Predecessors = x.Predecessors,
+                    Successors = x.Successors
                 });
         }
 

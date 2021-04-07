@@ -502,6 +502,14 @@
       "filterable": false,
       "sortable": false,
       "facetable": false
+    },
+    {
+      "name": "successors",
+      "type": "Collection(Edm.String)",
+      "searchable": false,
+      "filterable": false,
+      "sortable": false,
+      "facetable": false
     }
   ]
 }

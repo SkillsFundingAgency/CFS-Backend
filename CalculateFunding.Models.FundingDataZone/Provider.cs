@@ -163,5 +163,7 @@ namespace CalculateFunding.Models.FundingDataZone
         public string PreviousEstablishmentNumber { get; set; }
 
         public IEnumerable<string> Predecessors { get; set; }
+
+        public IEnumerable<string> Successors { get; set; }
     }
 }

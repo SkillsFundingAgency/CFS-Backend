@@ -49,5 +49,26 @@ namespace CalculateFunding.Services.FundingDataZone.UnitTests.MappingProfiles
                 .Should()
                 .BeEquivalentTo(new[] { "p1", "p2"});
         }
+
+        [TestMethod]
+        public void FundingDataZoneMappingProfiles_ShouldMapProviderSuccessors()
+        {
+            // Arrange
+            MapperConfiguration config = new MapperConfiguration(c => c.AddProfile<FundingDataZoneMappingProfiles>());
+            var mapper = new Mapper(config);
+
+            // Act
+            Provider provider = mapper.Map<Provider>(new PublishingAreaProvider() { Successors = "p1,p2" });
+
+            //Assert
+            provider
+                .Successors
+                .Should()
+                .HaveCount(2);
+            provider
+                 .Successors
+                 .Should()
+                 .BeEquivalentTo(new[] { "p1", "p2" });
+        }
     }
 }

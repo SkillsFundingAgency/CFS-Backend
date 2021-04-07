@@ -214,5 +214,8 @@ namespace CalculateFunding.Models.Providers
 
         [JsonProperty("predecessors")]
         public IEnumerable<string> Predecessors { get; set; }
+
+        [JsonProperty("successors")]
+        public IEnumerable<string> Successors { get; set; }
     }
 }

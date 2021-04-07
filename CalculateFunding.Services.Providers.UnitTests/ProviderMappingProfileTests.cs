@@ -72,6 +72,28 @@ namespace CalculateFunding.Services.Providers.UnitTests
         }
 
         [TestMethod]
+        public void ShouldMapFundingDataZoneProviderSuccessorsToProviderSuccessors()
+        {
+            // Arrange
+            FundingDataZoneProvider fundingDataZoneProvider = new FundingDataZoneProvider()
+            {
+                Successors = new List<string> { new RandomString(), new RandomString() }
+            };
+
+            MapperConfiguration config = new MapperConfiguration(c => c.AddProfile<ProviderVersionsMappingProfile>());
+            IMapper mapper = config.CreateMapper();
+
+            // Act
+            Models.Providers.Provider provider = mapper.Map<Models.Providers.Provider>(fundingDataZoneProvider);
+
+            // Assert
+            provider.Successors.Should()
+                .HaveCount(2);
+            provider.Successors.Should()
+                .BeEquivalentTo(fundingDataZoneProvider.Successors);
+        }
+
+        [TestMethod]
         public void SholdMapCurrentProviderVersionToCurrentProviderVersionMetadata()
         {
             // Arrange

@@ -151,5 +151,7 @@ namespace CalculateFunding.Services.FundingDataZone.SqlModels
         public string PreviousEstablishmentNumber { get; set; }
 
         public string Predecessors { get; set; }
+
+        public string Successors { get; set; }
     }
 }

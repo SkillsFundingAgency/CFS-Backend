@@ -16,7 +16,7 @@
 
     <PackageReference Include="CacheCow.Server.Core.Mvc" Version="2.7.4" />
 
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.FundingDataZone" Version="1.6.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.FundingDataZone" Version="1.7.0" />
 
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="4.1.1" />
 
@@ -26,7 +26,7 @@
 
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Profiling" Version="2.2.0" />   
 
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Providers" Version="4.6.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Providers" Version="4.7.0" />
    
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="3.17.0" />
 

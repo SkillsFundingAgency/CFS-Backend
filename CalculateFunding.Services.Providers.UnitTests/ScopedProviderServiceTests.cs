@@ -671,7 +671,8 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 PreviousLAcode = provider.PreviousLACode,
                 PreviousLAname = provider.PreviousLAName,
                 PreviousEstablishmentNumber = provider.PreviousEstablishmentNumber,
-                Predecessors = provider.Predecessors
+                Predecessors = provider.Predecessors,
+                Successors = provider.Successors
             };
         
         private Provider NewProvider(Action<ProviderBuilder> setUp = null)

@@ -12,6 +12,7 @@ namespace CalculateFunding.Services.FundingDataZone.MappingProfiles
         {
             CreateMap<PublishingAreaProvider, Provider>()
                 .ForMember(_ => _.Predecessors, opt => opt.MapFrom<PredecessorsResolver>())
+                .ForMember(_ => _.Successors, opt => opt.MapFrom<SuccessorsResolver>())
                 .ForMember(_ => _.PaymentOrganisationType, opt => opt.Ignore());
             CreateMap<PublishingAreaOrganisation, PaymentOrganisation>()
                 .ForMember(_ => _.Name, 
@@ -27,6 +28,14 @@ namespace CalculateFunding.Services.FundingDataZone.MappingProfiles
         public IEnumerable<string> Resolve(PublishingAreaProvider source, Provider destination, IEnumerable<string> member, ResolutionContext context)
         {
             return source.Predecessors?.Split(",").ToList();
+        }
+    }
+
+    public class SuccessorsResolver : IValueResolver<PublishingAreaProvider, Provider, IEnumerable<string>>
+    {
+        public IEnumerable<string> Resolve(PublishingAreaProvider source, Provider destination, IEnumerable<string> member, ResolutionContext context)
+        {
+            return source.Successors?.Split(",").ToList();
         }
     }
 }

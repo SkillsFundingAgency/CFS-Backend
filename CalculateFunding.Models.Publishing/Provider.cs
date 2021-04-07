@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Publishing
@@ -84,26 +85,23 @@ namespace CalculateFunding.Models.Publishing
 
         [JsonProperty("successor")]
         public string Successor { get; set; }
-        
+
         [JsonProperty("successors")]
         public IEnumerable<string> Successors { get; set; }
 
         public IEnumerable<string> GetSuccessors()
         {
-            if (Successors == null && Successor.IsNullOrWhitespace())
-            {
-                return ArraySegment<string>.Empty;
-            }
-
-            if (Successors != null)
+            if (Successors != null && Successors.Any())
             {
                 return Successors;
             }
-            
-            return new[]
-            {
-                Successor
-            };
+
+            return Successor.IsNullOrWhitespace() ?
+                ArraySegment<string>.Empty :
+                new[]
+                {
+                    Successor
+                };
         }
 
         [JsonProperty("trustName")]
