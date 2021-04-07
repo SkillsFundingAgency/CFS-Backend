@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace CalculateFunding.Services.Publishing.UnitTests.Errors
 {
     [TestClass]
-    public class ProfilingConsistencyCheckErrorDetectorTests : FundingLineErrorDetectorTest
+    public class ProfilingConsistencyCheckErrorDetectorTests : PublishedProviderErrorDetectorTest
     {
         private ProfilingConsistencyCheckErrorDetector _errorDetector;
 
@@ -67,7 +67,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
                                   " but contains 1 distributions periods";
 
             AndPublishedProviderShouldHaveTheErrors(publishedProvider.Current,
-                NewError(_ => _.WithFundingLineCode(fundingLineCode1)
+                NewError(_ => _.WithIdentifier(fundingLineCode1)
                     .WithType(PublishedProviderErrorType.ProfilingConsistencyCheckFailure)
                     .WithSummaryErrorMessage(errorMessage)
                     .WithDetailedErrorMessage(errorMessage)
@@ -113,7 +113,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
                                   " funding of 200 but the distribution periods total for the funding line is 201";
 
             AndPublishedProviderShouldHaveTheErrors(publishedProvider.Current,
-                NewError(_ => _.WithFundingLineCode(fundingLineCode1)
+                NewError(_ => _.WithIdentifier(fundingLineCode1)
                     .WithType(PublishedProviderErrorType.ProfilingConsistencyCheckFailure)
                     .WithSummaryErrorMessage(errorMessage)
                     .WithDetailedErrorMessage(errorMessage)
@@ -165,7 +165,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
                                   "has a total expected funding of 100 but the total profiled for the distribution period is 101";
 
             AndPublishedProviderShouldHaveTheErrors(publishedProvider.Current,
-                NewError(_ => _.WithFundingLineCode(fundingLineCode2)
+                NewError(_ => _.WithIdentifier(fundingLineCode2)
                     .WithType(PublishedProviderErrorType.ProfilingConsistencyCheckFailure)
                     .WithSummaryErrorMessage(errorMessage)
                     .WithDetailedErrorMessage(errorMessage)

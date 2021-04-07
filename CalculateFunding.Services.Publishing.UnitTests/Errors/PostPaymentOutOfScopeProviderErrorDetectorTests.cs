@@ -79,7 +79,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
                 NewError(_ => _.WithType(PublishedProviderErrorType.PostPaymentOutOfScopeProvider)
                     .WithSummaryErrorMessage("Post Payment - Provider is not in scope of specification")
                     .WithDetailedErrorMessage($"Provider {providerId} does not exists on in scope providers of specification {specificationId}")
-                    .WithFundingLineCode(string.Empty)
+                    .WithIdentifier(string.Empty)
                     .WithFundingLine(string.Empty)
                     .WithFundingStreamId(fundingStreamId)));
         }

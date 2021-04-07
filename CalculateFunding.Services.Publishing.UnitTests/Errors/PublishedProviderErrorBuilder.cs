@@ -11,6 +11,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
         private string _detailedErrorMessage;
         private string _fundingStreamId;
         private string _fundingLineCode;
+        private bool _withoutFundingLineCode;
+
+        public PublishedProviderErrorBuilder WithoutFundingLineCode()
+        {
+            _withoutFundingLineCode = true;
+
+            return this;
+        }
+        
 
         public PublishedProviderErrorBuilder WithType(PublishedProviderErrorType type)
         {
@@ -19,9 +28,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
             return this;
         }
 
-        public PublishedProviderErrorBuilder WithFundingLineCode(string fundingLineCode)
+        public PublishedProviderErrorBuilder WithIdentifier(string identifier)
         {
-            _identifier = fundingLineCode;
+            _identifier = identifier;
 
             return this;
         }
@@ -63,7 +72,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
                 SummaryErrorMessage = _summaryErrorMessage ?? NewRandomString(),
                 DetailedErrorMessage = _detailedErrorMessage ?? NewRandomString(),
                 FundingStreamId = _fundingStreamId ?? NewRandomString(),
-                FundingLineCode = _fundingLineCode ?? NewRandomString()
+                FundingLineCode = _withoutFundingLineCode ? null : _fundingLineCode ?? NewRandomString()
             };
         }    
     }

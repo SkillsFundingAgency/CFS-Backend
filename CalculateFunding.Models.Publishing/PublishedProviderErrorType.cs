@@ -11,6 +11,7 @@ namespace CalculateFunding.Models.Publishing
         FundingLineValueProfileMismatch,
         TrustIdMismatch,
         PostPaymentOutOfScopeProvider,
-        ProfilingConsistencyCheckFailure
+        ProfilingConsistencyCheckFailure,
+        MultipleSuccessors
     }
 }

@@ -876,7 +876,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             string profilePatternDisplayName = NewRandomString();
             string profilePatternDisplayDescription = NewRandomString();
 
-            PublishedProviderError expectedError = NewPublishedProviderError(err => err.WithFundingLineCode(fundingLineCode));
+            PublishedProviderError expectedError = NewPublishedProviderError(err => err.WithIdentifier(fundingLineCode));
 
             GivenTheLatestPublishedProviderVersionBySpecificationId(
                 specificationId,

@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace CalculateFunding.Services.Publishing.UnitTests.Errors
 {
     [TestClass]
-    public class FundingLineValueProfileMismatchErrorDetectorTests : FundingLineErrorDetectorTest
+    public class FundingLineValueProfileMismatchErrorDetectorTests : PublishedProviderErrorDetectorTest
     {
         private FundingLineValueProfileMismatchErrorDetector _errorDetector;
 
@@ -16,7 +16,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
         {
             _errorDetector = new FundingLineValueProfileMismatchErrorDetector();
         }
-        
+
         [TestMethod]
         public void RunsForPreVariationsAndAssignProfilePatternCheck()
         {
@@ -124,7 +124,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
                 .NotBeNullOrEmpty();
 
             AndPublishedProviderShouldHaveTheErrors(publishedProvider.Current,
-                NewError(_ => _.WithFundingLineCode(fundingLineCode1)
+                NewError(_ => _.WithIdentifier(fundingLineCode1)
                     .WithType(PublishedProviderErrorType.FundingLineValueProfileMismatch)
                     .WithSummaryErrorMessage("A funding line profile doesn't match allocation value.")
                     .WithDetailedErrorMessage("Funding line profile doesn't match allocation value. The allocation value is £999, but the profile value is set to £10")

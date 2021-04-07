@@ -6,7 +6,7 @@ using FluentAssertions;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Errors
 {
-    public abstract class FundingLineErrorDetectorTest
+    public abstract class PublishedProviderErrorDetectorTest
     {
         protected void AndPublishedProviderShouldHaveTheErrors(PublishedProviderVersion providerVersion,
             params PublishedProviderError[] expectedErrors)
