@@ -20,6 +20,9 @@ namespace CalculateFunding.Models.Datasets.Schema
 
         [JsonProperty("converterEnabled")]
         public bool ConverterEnabled { get; set; }
+
+        [JsonProperty("validateProviders")]
+        public bool ValidateProviders { get; set; }
     }
 
 }

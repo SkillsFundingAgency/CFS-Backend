@@ -22,7 +22,8 @@
 			DuplicateEntriesInTheProviderIdColumn,
 			ProviderIdMismatchWithServiceProvider,
 			NewProviderMissingAllDataSchemaFields,
-			ExtraHeaderField
+			ExtraHeaderField,
+			ProviderIdNotInCorrectFormat
 		}
     }		
 }     

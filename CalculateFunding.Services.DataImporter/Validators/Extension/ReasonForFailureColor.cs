@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Text;
 using CalculateFunding.Services.DataImporter.Validators.Models;
 
 namespace CalculateFunding.Services.DataImporter.Validators.Extension
@@ -15,7 +14,7 @@ namespace CalculateFunding.Services.DataImporter.Validators.Extension
 	    private static readonly Color LightPink = Color.FromArgb(255, 178, 255);
 		private static readonly Color LightGreen = Color.FromArgb(146, 208, 80);
 		private static readonly Color Red = Color.FromArgb(255, 0, 0);
-
+		private static readonly Color LightBlue = Color.FromArgb(0, 176, 240);
 
 		private static Dictionary<FieldValidationResult.ReasonForFailure, Color> ReasonForFailureColorMapping =
 		    new Dictionary<FieldValidationResult.ReasonForFailure, Color>
@@ -27,6 +26,7 @@ namespace CalculateFunding.Services.DataImporter.Validators.Extension
 			    {FieldValidationResult.ReasonForFailure.ProviderIdMismatchWithServiceProvider, LightPink},
 				{FieldValidationResult.ReasonForFailure.NewProviderMissingAllDataSchemaFields, LightGreen},
 				{FieldValidationResult.ReasonForFailure.ExtraHeaderField, Red},
+				{FieldValidationResult.ReasonForFailure.ProviderIdNotInCorrectFormat, LightBlue}
 			};
 
 	    public static Color GetColorCodeForFailure(this FieldValidationResult.ReasonForFailure reasonForFailure)

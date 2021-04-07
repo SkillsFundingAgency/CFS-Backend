@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.ProviderLegacy;
 using CalculateFunding.Services.DataImporter.Validators.Extension;
 using CalculateFunding.Services.DataImporter.Validators.Models;

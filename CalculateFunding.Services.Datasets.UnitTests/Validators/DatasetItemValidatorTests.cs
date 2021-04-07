@@ -128,6 +128,37 @@ namespace CalculateFunding.Services.Datasets.Validators
 		}
 
 		[TestMethod]
+		public void Validate_GivenAnInvalidFullSetFileForDoNotValidateProviderDatasetDefinition_ShouldCreateErrorSheet()
+		{
+			// Arrange
+			List<string> expectedHeaderErrors = new List<string>();
+
+			var expectedErrors = new Dictionary<CellReference, FieldValidationResult.ReasonForFailure>()
+			{
+				{new CellReference(2, 1), FieldValidationResult.ReasonForFailure.DataTypeMismatch},
+
+				{new CellReference(3, 1), FieldValidationResult.ReasonForFailure.ProviderIdNotInCorrectFormat},
+			};
+
+			string currentDatasetBlobFileName = "Factors_DoNotValidateProviders_VariousInvalidFields.xlsx";
+			string currentDatasetBlobFilePath = GetTestItemPath(currentDatasetBlobFileName);
+
+			using MemoryStream memoryStream = new MemoryStream(File.ReadAllBytes(currentDatasetBlobFilePath));
+
+			AndBlobClient(currentDatasetBlobFileName, memoryStream);
+
+			// Act & Assert
+			ValidationShouldBeValid(
+				"Factors_DoNotValidateProviders.json",
+				"Factors_DoNotValidateProviders_VariousInvalidFields.xlsx",
+				expectedErrors,
+				expectedHeaderErrors,
+				false,
+				currentDatasetBlobFileName,
+				DatasetEmptyFieldEvaluationOption.NA);
+		}
+
+		[TestMethod]
 		public void Validate_GivenAnInvalidPartialSetFile_ShouldCreateErrorSheet()
 		{
 			// Arrange
@@ -202,7 +233,7 @@ namespace CalculateFunding.Services.Datasets.Validators
             CheckFieldsAreColored(excelPackage.Workbook.Worksheets[1], expectedErrors);
             if (!expectedValidationResult)
             {
-                CheckHeaderErrors(excelPackage.Workbook.Worksheets[2], expectedHeaderErrors, new CellReference(11, 1));
+                CheckHeaderErrors(excelPackage.Workbook.Worksheets[2], expectedHeaderErrors, new CellReference(12, 1));
             }
         }
 
@@ -271,10 +302,8 @@ namespace CalculateFunding.Services.Datasets.Validators
 
 		private static string ToAsciRgbRepresentation(Color color)
 		{
-			return $"FF{color.R:X}{color.G:X}{color.B:X}";
+			return $"FF{color.R:X2}{color.G:X2}{color.B:X2}";
 		}
-
-		private static string NewRandomString() => new RandomString();
 
 		private class CellReference
 		{

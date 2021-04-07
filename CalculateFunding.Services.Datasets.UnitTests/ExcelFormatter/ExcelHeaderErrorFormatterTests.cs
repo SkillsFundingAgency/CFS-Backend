@@ -63,10 +63,10 @@ namespace CalculateFunding.Services.Datasets.ExcelFormatter
             ExcelWorksheet errorsWorkSheet = excelPackage.Workbook.Worksheets["Errors"];
             errorsWorkSheet.Should().NotBeNull();
 
-            errorsWorkSheet.Cells[12, 1].Value.Should().BeEquivalentTo(fieldDefinitionParentRid.Name);
-            errorsWorkSheet.Cells[13, 1].Value.Should().BeEquivalentTo(fieldDefinitionRid.Name);
+            errorsWorkSheet.Cells[13, 1].Value.Should().BeEquivalentTo(fieldDefinitionParentRid.Name);
+            errorsWorkSheet.Cells[14, 1].Value.Should().BeEquivalentTo(fieldDefinitionRid.Name);
 
-            for (int rowIndex = 14; rowIndex < 24; rowIndex++)
+            for (int rowIndex = 15; rowIndex < 25; rowIndex++)
             {
                 errorsWorkSheet.Cells[rowIndex, 1].Value.Should().BeNull();
             }

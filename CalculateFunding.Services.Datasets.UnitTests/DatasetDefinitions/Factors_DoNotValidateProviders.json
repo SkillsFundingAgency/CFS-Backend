@@ -19,6 +19,18 @@
           "mustMatch": null
         },
         {
+          "id": "1216000",
+          "name": "UKPRN",
+          "identifierFieldType": "UKPRN",
+          "matchExpression": null,
+          "description": "UKPRN",
+          "type": "String",
+          "required": false,
+          "min": null,
+          "max": null,
+          "mustMatch": null
+        },
+        {
           "id": "1216002",
           "name": "Provider Name",
           "identifierFieldType": null,
@@ -131,5 +143,5 @@
   ],
   "id": "1215999",
   "name": "Factors",
-  "validateProviders": true
+  "validateProviders": false
 }

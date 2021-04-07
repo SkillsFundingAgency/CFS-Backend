@@ -20,6 +20,7 @@ namespace CalculateFunding.Services.DataImporter.ExcelFormatter
 			    new CellLevelErrorKey(FieldValidationResult.ReasonForFailure.ProviderIdMismatchWithServiceProvider, "Provider ID does not exist in the current funding stream provider"),
 				new CellLevelErrorKey(FieldValidationResult.ReasonForFailure.NewProviderMissingAllDataSchemaFields, "New provider to be inserted. All data schema fields required on upload file for new providers."),
 				new CellLevelErrorKey(FieldValidationResult.ReasonForFailure.ExtraHeaderField, "Extra header fields that does not exists in the current data schema"),
+				new CellLevelErrorKey(FieldValidationResult.ReasonForFailure.ProviderIdNotInCorrectFormat, "Provider ID not in the correct format"),
 			};
 			
 			if(excelPackage.Workbook.Worksheets["Errors"] != null) excelPackage.Workbook.Worksheets.Delete("Errors");

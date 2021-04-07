@@ -174,7 +174,7 @@ namespace CalculateFunding.Services.DataImporter.Validators
                 }
             }
 
-            IList<IFieldValidator> fieldValidators = GetFieldValidators(providerSummaries);
+            IList<IFieldValidator> fieldValidators = GetFieldValidators(providerSummaries, validationModel.DatasetDefinition.ValidateProviders);
             IBulkFieldValidator bulkFieldValidator = GetBulkFieldValidator();
 
             List<RowLoadResult> allRows = validationModel.Data.TableLoadResult.Rows;
@@ -267,25 +267,37 @@ namespace CalculateFunding.Services.DataImporter.Validators
                 fieldDefinitions.FirstOrDefault(f => f.Name == keyValue.Key));
         }
 
-		private IList<IFieldValidator> GetFieldValidators(IEnumerable<ProviderSummary> providerSummaries)
+		private IList<IFieldValidator> GetFieldValidators(
+            IEnumerable<ProviderSummary> providerSummaries,
+            bool validateProviders)
 		{
 			if (FieldValidators.IsNullOrEmpty())
 			{
 				IFieldValidator requiredValidator = new RequiredValidator();
 				IFieldValidator providerBlankValidator = new ProviderIdentifierBlankValidator();
 				IFieldValidator dataTypeMismatchFieldValidator = new DatatypeMismatchFieldValidator();
-				IFieldValidator providerExistsValidator = new ProviderExistsValidator(providerSummaries.ToList());
 				IFieldValidator maxAndMinFieldValidator = new MaxAndMinFieldValidator();
 
-				return new List<IFieldValidator>
-				{
-					providerBlankValidator,
-					requiredValidator,
-					dataTypeMismatchFieldValidator,
-					providerExistsValidator,
+                List<IFieldValidator> fieldValidators = new List<IFieldValidator>
+                {
+                    providerBlankValidator,
+                    requiredValidator,
+                    dataTypeMismatchFieldValidator,
                     maxAndMinFieldValidator,
-                    providerExistsValidator
                 };
+
+                if (validateProviders)
+                {
+                    IFieldValidator providerExistsValidator = new ProviderExistsValidator(providerSummaries.ToList());
+                    fieldValidators.Add(providerExistsValidator);
+                }
+                else
+                {
+                    IFieldValidator providerIdRangeValidator = new ProviderIdRangeValidator();
+                    fieldValidators.Add(providerIdRangeValidator);
+                }
+
+                return fieldValidators;
             }
 
             return FieldValidators;
