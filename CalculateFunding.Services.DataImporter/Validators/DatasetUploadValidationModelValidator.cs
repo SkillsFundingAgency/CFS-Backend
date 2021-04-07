@@ -72,67 +72,69 @@ namespace CalculateFunding.Services.DataImporter.Validators
             IList<HeaderValidationResult> headerValidationResults
                 = headerValidator.ValidateHeaders(validationModel.Data.RetrievedHeaderFields.Keys.ToList());
 
-            bool success;
-            string errorMessage;
-            List<TableLoadResult> latestTableLoadResults;
-
-            (success, errorMessage, latestTableLoadResults) = await ReadExcelDatasetData(validationModel.DatasetDefinition, validationModel.LatestBlobFileName);
-            if (!success)
+            if (validationModel.LatestBlobFileName != null)
             {
-                _logger.Error(errorMessage);
-                throw new NonRetriableException("Failed Validation - Error while reading dataset file");
-            }
+                bool success;
+                string errorMessage;
+                List<TableLoadResult> latestTableLoadResults;
 
-            TableLoadResult tableLoadResultToMerge = validationModel.Data.TableLoadResult;
-            TableLoadResult latestTableLoadResult =
-                latestTableLoadResults.FirstOrDefault(_ => _.TableDefinition?.Name == tableLoadResultToMerge.TableDefinition.Name);
-            RowLoadResult[] newRows = tableLoadResultToMerge.GetRowsMissingFrom(latestTableLoadResult).ToArray();
-
-            if (newRows.Length > 0)
-            {
-                if (headerValidationResults.Count > 0)
+                (success, errorMessage, latestTableLoadResults) = await ReadExcelDatasetData(validationModel.DatasetDefinition, validationModel.LatestBlobFileName);
+                if (!success)
                 {
-                    headerValidationFailures.AddRange(headerValidationResults);
+                    _logger.Error(errorMessage);
+                    throw new NonRetriableException("Failed Validation - Error while reading dataset file");
+                }
 
-                    IFieldValidator providerIdentifierMissingAllDataSchemaFieldsValidator
-                        = GetProviderIdentifierMissingAllDataSchemaFieldsValidator();
+                TableLoadResult tableLoadResultToMerge = validationModel.Data.TableLoadResult;
+                TableLoadResult latestTableLoadResult =
+                    latestTableLoadResults.FirstOrDefault(_ => _.TableDefinition?.Name == tableLoadResultToMerge.TableDefinition.Name);
+                RowLoadResult[] newRows = tableLoadResultToMerge.GetRowsMissingFrom(latestTableLoadResult).ToArray();
 
-                    for (int index = 0; index < newRows.Count(); index++)
+                if (newRows.Length > 0)
+                {
+                    if (headerValidationResults.Count > 0)
                     {
-                        RowLoadResult newRow = newRows[index];
+                        headerValidationFailures.AddRange(headerValidationResults);
 
-                        // +1 for header field
-                        // +1 for ExcelPackage row index starts from 1, instead of 0
-                        int rowIndex = tableLoadResultToMerge.Rows.IndexOf(newRow) + 2; 
-                        
-                        foreach (KeyValuePair<string, object> fieldKeyValue in newRow.Fields)
+                        IFieldValidator providerIdentifierMissingAllDataSchemaFieldsValidator
+                            = GetProviderIdentifierMissingAllDataSchemaFieldsValidator();
+
+                        for (int index = 0; index < newRows.Count(); index++)
                         {
-                            Field field = GetFieldFromKeyValuePair(fieldDefinitions, rowIndex, fieldKeyValue, validationModel.Data.RetrievedHeaderFields);
-                            FieldValidationResult fieldValidationResult = providerIdentifierMissingAllDataSchemaFieldsValidator.ValidateField(field);
+                            RowLoadResult newRow = newRows[index];
 
-                            if (fieldValidationResult != null)
+                            // +1 for header field
+                            // +1 for ExcelPackage row index starts from 1, instead of 0
+                            int rowIndex = tableLoadResultToMerge.Rows.IndexOf(newRow) + 2;
+
+                            foreach (KeyValuePair<string, object> fieldKeyValue in newRow.Fields)
                             {
-                                fieldValidationFailures.Add(fieldValidationResult);
+                                Field field = GetFieldFromKeyValuePair(fieldDefinitions, rowIndex, fieldKeyValue, validationModel.Data.RetrievedHeaderFields);
+                                FieldValidationResult fieldValidationResult = providerIdentifierMissingAllDataSchemaFieldsValidator.ValidateField(field);
+
+                                if (fieldValidationResult != null)
+                                {
+                                    fieldValidationFailures.Add(fieldValidationResult);
+                                }
                             }
                         }
                     }
                 }
-            }
 
-            if (fieldValidationFailures.Count > 0)
-            {
-                validationModel.ValidationResult = new DatasetUploadValidationResult
+                if (fieldValidationFailures.Count > 0)
                 {
-                    FieldValidationFailures = fieldValidationFailures,
-                    HeaderValitionFailures = headerValidationFailures
-                };
-                return;
+                    validationModel.ValidationResult = new DatasetUploadValidationResult
+                    {
+                        FieldValidationFailures = fieldValidationFailures,
+                        HeaderValitionFailures = headerValidationFailures
+                    };
+                    return;
+                }
             }
 
             int headerRowIndex = 1;
             IFieldValidator extraHeaderFieldValidator = GetExtraHeaderFieldValidator(fieldDefinitions);
-            List<FieldDefinition> headerFieldDefinitions = tableLoadResultToMerge.TableDefinition.FieldDefinitions;
-
+            
             foreach (KeyValuePair<string, int> fieldNameIndex in validationModel.Data.RetrievedHeaderFields)
             {
                 FieldValidationResult extraHeaderFieldValidationResult =

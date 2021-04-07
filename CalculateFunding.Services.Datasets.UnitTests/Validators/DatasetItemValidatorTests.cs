@@ -56,6 +56,26 @@ namespace CalculateFunding.Services.Datasets.Validators
 		}
 
 		[TestMethod]
+		public void Validate_GivenNullFilename_ShouldNotCreateErrorSheetAndDoAnyColoringInFirstSheet()
+		{
+			string blobFileName = "FactorsValid.xlsx";
+			string currentBlobFilePath = GetTestItemPath(blobFileName);
+
+			using MemoryStream memoryStream = new MemoryStream(File.ReadAllBytes(currentBlobFilePath));
+
+			AndBlobClient(currentBlobFilePath, memoryStream);
+
+			ValidationShouldBeValid(
+				"Factors.json",
+				blobFileName,
+				new Dictionary<CellReference, FieldValidationResult.ReasonForFailure>(),
+				new List<string>(),
+				true,
+				null,
+				DatasetEmptyFieldEvaluationOption.NA);
+		}
+
+		[TestMethod]
 		public void Validate_GivenAnInvalidFileWithMissingRequiredFieldForPartialFieldSetWithEvaluateAsNull_ShouldCreateErrorSheet()
 		{
 			// Arrange
