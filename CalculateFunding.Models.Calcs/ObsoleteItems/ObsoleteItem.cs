@@ -36,6 +36,9 @@ namespace CalculateFunding.Models.Calcs.ObsoleteItems
         [JsonProperty("calculationIds")]
         public ICollection<string> CalculationIds { get; set; }
 
+        [JsonProperty("fundingLineName")]
+        public string FundingLineName { get; set; }
+
         public bool TryAddCalculationId(string calculationId)
         {
             if (HasCalculationId(calculationId)) return false;

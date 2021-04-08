@@ -234,7 +234,8 @@ namespace CalculateFunding.Services.Specs.ObsoleteItems
                             TemplateCalculationId = Convert.ToUInt32(calculationsByTemplateId.Key),
                             CalculationIds = calculationsByTemplateId.Value.ToList(),
                             ItemType = ObsoleteItemType.FundingLine,
-                            Id = _uniqueIdentifierProvider.CreateUniqueIdentifier()
+                            Id = _uniqueIdentifierProvider.CreateUniqueIdentifier(),
+                            FundingLineName = fundingLine.Name
                         };
 
                         ApiResponse<ObsoleteItem> obsoleteItemResponse = await _calculationsPolicy.ExecuteAsync(() =>

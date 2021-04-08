@@ -6,8 +6,6 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Calcs.ObsoleteItems;
 using CalculateFunding.Services.Calcs.Interfaces;
-using Microsoft.Azure.ServiceBus;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Polly;
 
 namespace CalculateFunding.Services.Calcs.Analysis.ObsoleteItems

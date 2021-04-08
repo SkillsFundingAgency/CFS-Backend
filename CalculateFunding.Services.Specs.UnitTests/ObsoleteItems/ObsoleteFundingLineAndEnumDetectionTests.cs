@@ -105,14 +105,16 @@ namespace CalculateFunding.Services.Specs.UnitTests.ObsoleteItems
                 .WithSpecificationId(specificationId)
                 .WithCodeReference(_identifierGenerator.GenerateIdentifier(fundingLineNameTwo))
                 .WithTemplateCalculationId(templateCalculationId)
-                .WithItemType(ObsoleteItemType.FundingLine)) };
+                .WithItemType(ObsoleteItemType.FundingLine)
+                .WithFundingLineName(fundingLineNameTwo)) };
 
             ObsoleteItem[] obsoleteItems = new[] { NewObsoleteItem(_ => _.WithFundingLineId(fundingLineTwo)
                 .WithCalculationIds(calculationIdTwo)
                 .WithSpecificationId(specificationId)
                 .WithCodeReference(_identifierGenerator.GenerateIdentifier(fundingLineNameTwo))
                 .WithTemplateCalculationId(templateCalculationId)
-                .WithItemType(ObsoleteItemType.FundingLine)),
+                .WithItemType(ObsoleteItemType.FundingLine)
+                .WithFundingLineName(fundingLineNameTwo)),
             NewObsoleteItem(_ => _.WithCalculationIds(calculationIdOne)
                 .WithEnumValueName(allowedEnumValues[0])
                 .WithSpecificationId(specificationId)
@@ -284,7 +286,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.ObsoleteItems
                             obs.ItemType == obsoleteItem.ItemType &&
                             obs.CodeReference != null &&
                             obs.CodeReference.Equals(obsoleteItem.CodeReference) &&
-                            obs.CalculationIds.SequenceEqual(obsoleteItem.CalculationIds)))
+                            obs.CalculationIds.SequenceEqual(obsoleteItem.CalculationIds) &&
+                            (obsoleteItem.FundingLineName == null || obs.FundingLineName.Equals(obsoleteItem.FundingLineName))))
                     , Times.Once);
             }
         }
