@@ -36,7 +36,9 @@ namespace CalculateFunding.Services.Datasets.Validators.FieldAndHeaderValidators
 		}
 
 		[TestMethod]
-		public void ValidateField_GivenProviderIdentifierIsNotInRange_ShouldReturnFieldError()
+		[DataRow(1)]
+		[DataRow(100000001)]
+		public void ValidateField_GivenProviderIdentifierIsNotInRange_ShouldReturnFieldError(int fieldValue)
 		{
 			// Arrange
 			ProviderIdRangeValidator validatorUnderTest = new ProviderIdRangeValidator();
@@ -50,7 +52,7 @@ namespace CalculateFunding.Services.Datasets.Validators.FieldAndHeaderValidators
 				Type = FieldType.String
 			};
 
-			Field field = new Field(anyCellReference, "1", definition);
+			Field field = new Field(anyCellReference, fieldValue.ToString(), definition);
 
 			// Act
 			FieldValidationResult result = validatorUnderTest.ValidateField(field);

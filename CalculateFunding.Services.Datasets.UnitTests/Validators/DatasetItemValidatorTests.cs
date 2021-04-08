@@ -158,6 +158,8 @@ namespace CalculateFunding.Services.Datasets.Validators
 				{new CellReference(2, 1), FieldValidationResult.ReasonForFailure.DataTypeMismatch},
 
 				{new CellReference(3, 1), FieldValidationResult.ReasonForFailure.ProviderIdNotInCorrectFormat},
+
+				{new CellReference(4, 1), FieldValidationResult.ReasonForFailure.ProviderIdNotInCorrectFormat},
 			};
 
 			string currentDatasetBlobFileName = "Factors_DoNotValidateProviders_VariousInvalidFields.xlsx";

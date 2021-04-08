@@ -6,7 +6,7 @@ namespace CalculateFunding.Services.DataImporter.Validators
     public class ProviderIdRangeValidator : IFieldValidator
     {
         private const int MinProviderIdValue = 1000000;
-        private const int MaxProviderIdValue = 10000000;
+        private const int MaxProviderIdValue = 100000000;
 
         private bool PreValidation(Field field)
         {
