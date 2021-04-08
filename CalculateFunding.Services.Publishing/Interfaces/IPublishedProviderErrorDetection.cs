@@ -12,14 +12,14 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         
         //TODO; change this signature to remove the predicate func and make pre / post or both a property of the
         //error check itself
-        Task ApplyAssignProfilePatternErrorDetection(PublishedProvider publishedProvider,
+        Task<bool> ApplyAssignProfilePatternErrorDetection(PublishedProvider publishedProvider,
             PublishedProvidersContext context = null);
 
         //e.g. ProcessPublishedProviderPreProfiling
-        Task ApplyRefreshPreVariationErrorDetection(PublishedProvider publishedProvider,
+        Task<bool> ApplyRefreshPreVariationErrorDetection(PublishedProvider publishedProvider,
             PublishedProvidersContext context);
 
-        Task ApplyRefreshPostVariationsErrorDetection(PublishedProvider publishedProvider,
+        Task<bool> ApplyRefreshPostVariationsErrorDetection(PublishedProvider publishedProvider,
             PublishedProvidersContext context);
     }
 }

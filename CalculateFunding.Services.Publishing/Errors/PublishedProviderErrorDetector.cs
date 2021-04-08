@@ -27,22 +27,24 @@ namespace CalculateFunding.Services.Publishing.Errors
 
         public abstract bool IsPreVariationCheck { get; }
 
-        public async Task DetectErrors(PublishedProvider publishedProvider, PublishedProvidersContext publishedProvidersContext)
+        public async Task<bool> DetectErrors(PublishedProvider publishedProvider, PublishedProvidersContext publishedProvidersContext)
         {
             Guard.ArgumentNotNull(publishedProvider, nameof(publishedProvider));
 
-            ClearErrors(publishedProvider.Current);
+            bool updated = ClearErrors(publishedProvider.Current);
 
             ErrorCheck errorCheck = await HasErrors(publishedProvider, publishedProvidersContext);
 
             if (errorCheck.HasErrors)
             {
+                updated = true;
                 publishedProvider.Current.AddErrors(errorCheck.Errors);
             }
+
+            return updated;
         }
 
-        protected void ClearErrors(PublishedProviderVersion publishedProviderVersion)
-        => publishedProviderVersion.Errors?.RemoveAll(_ => _.Type == ProviderErrorType);
+        protected bool ClearErrors(PublishedProviderVersion publishedProviderVersion) => (publishedProviderVersion.Errors?.RemoveAll(_ => _.Type == ProviderErrorType)>0) ? true : false;
 
         protected abstract Task<ErrorCheck> HasErrors(PublishedProvider publishedProvider, PublishedProvidersContext publishedProvidersContext);
 

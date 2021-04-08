@@ -3,18 +3,22 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Errors;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Errors
 {
     [TestClass]
     public class FundingLineValueProfileMismatchErrorDetectorTests : PublishedProviderErrorDetectorTest
     {
+        private Mock<IFundingLineRoundingSettings> _fundingLineRoundingSettings;
+
         private FundingLineValueProfileMismatchErrorDetector _errorDetector;
 
         [TestInitialize]
         public void SetUp()
         {
-            _errorDetector = new FundingLineValueProfileMismatchErrorDetector();
+            _fundingLineRoundingSettings = new Mock<IFundingLineRoundingSettings>();
+            _errorDetector = new FundingLineValueProfileMismatchErrorDetector(_fundingLineRoundingSettings.Object);
         }
 
         [TestMethod]
@@ -75,12 +79,48 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
                                 NewProfilePeriod(pp =>
                                     pp.WithAmount(10))))))))));
 
-            await WhenErrorsAreDetectedOnThePublishedProvider(publishedProvider);
+            bool providerUpdated = await WhenErrorsAreDetectedOnThePublishedProvider(publishedProvider);
+
+            providerUpdated
+                .Should()
+                .BeFalse();
 
             publishedProvider.Current
                 .Errors
                 .Should()
                 .BeNullOrEmpty();
+        }
+
+        [TestMethod]
+        public async Task ClearsProfiledValueMismatchErrorsIfPreviousErrorConditionFixed()
+        {
+            string fundingLineCode1 = NewRandomString();
+            
+            PublishedProvider publishedProvider = NewPublishedProvider(_ => _.WithCurrent(NewPublishedProviderVersion(ppv => ppv.WithProfilePatternKeys(
+                    NewProfilePatternKey(pk => pk.WithFundingLineCode(fundingLineCode1)))
+                .WithFundingStreamId("fs1")
+                .WithErrors(new PublishedProviderError { Type = PublishedProviderErrorType.FundingLineValueProfileMismatch})
+                .WithFundingLines(NewFundingLine(fl => fl.WithFundingLineType(FundingLineType.Payment)
+                        .WithName("fl1")
+                        .WithFundingLineCode(fundingLineCode1)
+                        .WithValue(999)
+                        .WithDistributionPeriods(NewDistributionPeriod(dp =>
+                            dp.WithProfilePeriods(
+                                NewProfilePeriod(pp =>
+                                    pp.WithAmount(999))))))))));
+
+            bool providerUpdated = await WhenErrorsAreDetectedOnThePublishedProvider(publishedProvider);
+
+            providerUpdated
+                .Should()
+                .BeTrue();
+
+            publishedProvider.Current
+                .Errors
+                .Should()
+                .BeNullOrEmpty();
+
+
         }
 
         [TestMethod]
@@ -116,7 +156,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
                                 NewProfilePeriod(pp =>
                                     pp.WithAmount(999))))))))));
 
-            await WhenErrorsAreDetectedOnThePublishedProvider(publishedProvider);
+            bool providerUpdated = await WhenErrorsAreDetectedOnThePublishedProvider(publishedProvider);
+
+            providerUpdated
+                .Should()
+                .BeTrue();
 
             publishedProvider.Current
                 .Errors
@@ -132,9 +176,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
                     .WithFundingLine(fundingLineCode1)));
         }
 
-        private async Task WhenErrorsAreDetectedOnThePublishedProvider(PublishedProvider publishedProvider)
+        private async Task<bool> WhenErrorsAreDetectedOnThePublishedProvider(PublishedProvider publishedProvider)
         {
-            await _errorDetector.DetectErrors(publishedProvider, null);
+            return await _errorDetector.DetectErrors(publishedProvider, null);
         }
     }
 }

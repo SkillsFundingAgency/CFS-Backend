@@ -139,6 +139,7 @@ namespace CalculateFunding.Api.Publishing
         {
             builder.AddAppConfiguration();
 
+            builder.AddSingleton<IFundingLineRoundingSettings, FundingLineRoundingSettings>();
             builder.AddSingleton<IBatchProfilingOptions, BatchProfilingOptions>();
             builder.AddSingleton<IBatchProfilingService, BatchProfilingService>();
             builder.AddSingleton<IProducerConsumerFactory, ProducerConsumerFactory>();

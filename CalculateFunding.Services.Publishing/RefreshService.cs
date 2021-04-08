@@ -17,7 +17,6 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Processing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Polly;
 using Serilog;
@@ -411,9 +410,12 @@ namespace CalculateFunding.Services.Publishing
                 }
 
                 // process published provider and detect errors
-                await _detection.ApplyRefreshPreVariationErrorDetection(publishedProvider.Value, publishedProvidersContext);
+                if (await _detection.ApplyRefreshPreVariationErrorDetection(publishedProvider.Value, publishedProvidersContext))
+                {
+                    publishedProviderUpdated = true;
+                }
 
-                if (publishedProviderUpdated && existingPublishedProviders.AnyWithNullCheck())
+                if (publishedProviderUpdated && existingPublishedProviders.AnyWithNullCheck() && scopedProviders.ContainsKey(providerId))
                 {
                     IDictionary<string, PublishedProvider> newPublishedProviders = await _variationService.PrepareVariedProviders(generatedProviderResult.TotalFunding ?? 0,
                         publishedProviders,
@@ -437,10 +439,10 @@ namespace CalculateFunding.Services.Publishing
 
                 if (!newProviders.ContainsKey(publishedProvider.Key))
                 {
-                    existingPublishedProvidersToUpdate.Add(publishedProvider.Key, publishedProvider.Value);
+                    existingPublishedProvidersToUpdate.TryAdd(publishedProvider.Key, publishedProvider.Value);
                 }
 
-                publishedProvidersToUpdate.Add(publishedProvider.Key, publishedProvider.Value);
+                publishedProvidersToUpdate.TryAdd(publishedProvider.Key, publishedProvider.Value);
             }
 
             _logger.Information("Finished processing providers for variations and exclusions");

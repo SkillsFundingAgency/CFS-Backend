@@ -204,6 +204,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             });
 
             RegisterTypeAs<OrganisationGroupTargetProviderLookup, IOrganisationGroupTargetProviderLookup>();
+            RegisterInstanceAs<IFundingLineRoundingSettings>(new RoundingSettingsStub());
 
             IDetectPublishedProviderErrors[] detectorStrategies = typeof(IDetectPublishedProviderErrors).Assembly.GetTypes()
                 .Where(_ => _.Implements(typeof(PublishedProviderErrorDetector)) && !_.IsAbstract)
@@ -297,8 +298,6 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterInstanceAs<IBatchProfilingOptions>(new BatchProfilingOptions(new ConfigurationStub()));
             RegisterTypeAs<BatchProfilingService, IBatchProfilingService>();
             RegisterTypeAs<ProducerConsumerFactory, IProducerConsumerFactory>();
-            
-            RegisterInstanceAs<IFundingLineRoundingSettings>(new RoundingSettingsStub());
         }
 
         public class RoundingSettingsStub : IFundingLineRoundingSettings

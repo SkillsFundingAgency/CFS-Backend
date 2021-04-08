@@ -16,6 +16,6 @@ namespace CalculateFunding.Services.Publishing.Interfaces
 
         bool IsForAllFundingConfigurations { get; }
 
-        Task DetectErrors(PublishedProvider publishedProvider, PublishedProvidersContext publishedProvidersContext);
+        Task<bool> DetectErrors(PublishedProvider publishedProvider, PublishedProvidersContext publishedProvidersContext);
     }
 }

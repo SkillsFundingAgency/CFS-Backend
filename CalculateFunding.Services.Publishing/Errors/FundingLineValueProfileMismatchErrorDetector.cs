@@ -1,5 +1,7 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Services.Publishing.Profiling;
@@ -8,9 +10,14 @@ namespace CalculateFunding.Services.Publishing.Errors
 {
     public class FundingLineValueProfileMismatchErrorDetector : PublishedProviderErrorDetector
     {
-        public FundingLineValueProfileMismatchErrorDetector() 
+        private IFundingLineRoundingSettings _fundingLineRoundingSettings;
+
+        public FundingLineValueProfileMismatchErrorDetector(IFundingLineRoundingSettings fundingLineRoundingSettings) 
             : base(PublishedProviderErrorType.FundingLineValueProfileMismatch)
         {
+            Guard.ArgumentNotNull(fundingLineRoundingSettings, nameof(fundingLineRoundingSettings));
+
+            _fundingLineRoundingSettings = fundingLineRoundingSettings;
         }
 
         public override bool IsPreVariationCheck => true;
@@ -48,8 +55,8 @@ namespace CalculateFunding.Services.Publishing.Errors
             return Task.FromResult(errorCheck);
         }
 
-        private static decimal GetProfiledSum(FundingLine fundingLine, PublishedProviderVersion publishedProviderVersion) 
-            => new YearMonthOrderedProfilePeriods(fundingLine).Sum(_ => _.ProfiledValue) 
-               + publishedProviderVersion.GetCarryOverTotalForFundingLine(fundingLine.FundingLineCode).GetValueOrDefault();
+        private decimal GetProfiledSum(FundingLine fundingLine, PublishedProviderVersion publishedProviderVersion) 
+            => Math.Round(new YearMonthOrderedProfilePeriods(fundingLine).Sum(_ => _.ProfiledValue)
+               + publishedProviderVersion.GetCarryOverTotalForFundingLine(fundingLine.FundingLineCode).GetValueOrDefault(), _fundingLineRoundingSettings.DecimalPlaces, MidpointRounding.AwayFromZero);
     }
 }
