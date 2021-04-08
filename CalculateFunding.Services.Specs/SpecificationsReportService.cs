@@ -1,20 +1,20 @@
-﻿using CalculateFunding.Services.Specs.Interfaces;
-using Microsoft.AspNetCore.Mvc;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Text;
+using System.Threading.Tasks;
+using ByteSizeLib;
+using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.Utility;
-using System.Collections.Generic;
 using CalculateFunding.Models.Specs;
-using System.Linq;
-using System;
-using System.IO;
-using Microsoft.Azure.Storage.Blob;
-using ByteSizeLib;
-using System.Net;
-using System.Threading.Tasks;
-using Microsoft.Azure.Storage;
-using System.Text;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Services.Specs.Interfaces;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Storage;
+using Microsoft.Azure.Storage.Blob;
 
 namespace CalculateFunding.Services.Specs
 {
@@ -70,7 +70,7 @@ namespace CalculateFunding.Services.Specs
             cloudBlob.Metadata.TryGetValue("file_name", out string fileName);
 
             string blobUrl = _blobClient.GetBlobSasUrl(blobName, DateTimeOffset.Now.AddDays(1), SharedAccessBlobPermissions.Read, containerName);
-            
+
             SpecificationsDownloadModel downloadModel = new SpecificationsDownloadModel { Url = blobUrl, FileName = fileName };
             return new OkObjectResult(downloadModel);
         }
@@ -95,19 +95,19 @@ namespace CalculateFunding.Services.Specs
         }
 
         private IEnumerable<SpecificationReport> GetReportMetadata(
-            IEnumerable<IListBlobItem> listBlobItems, 
+            IEnumerable<IListBlobItem> listBlobItems,
             JobType? metadataJobType = null,
             string targetFundingPeriodId = null)
         {
             return listBlobItems.Select(b =>
             {
                 ICloudBlob cloudBlob = (ICloudBlob)b;
-                
+
                 cloudBlob.Metadata.TryGetValue("file_name", out string fileName);
                 cloudBlob.Metadata.TryGetValue("funding_period_id", out string fundingPeriodId);
                 ByteSize fileLength = ByteSize.FromBytes(cloudBlob.Properties.Length);
                 string fileSuffix = Path.GetExtension(b.Uri.AbsolutePath).Replace(".", string.Empty);
-                
+
                 JobType jobType = metadataJobType.GetValueOrDefault();
 
                 if (!string.IsNullOrWhiteSpace(targetFundingPeriodId) && !string.IsNullOrWhiteSpace(fundingPeriodId) && fundingPeriodId != targetFundingPeriodId)
@@ -129,11 +129,14 @@ namespace CalculateFunding.Services.Specs
                 return new SpecificationReport
                 {
                     Name = fileName,
+                    ReportType = jobType,
                     SpecificationReportIdentifier = EncodeReportId(GetReportId(cloudBlob.Metadata)),
                     Category = GetReportCategory(jobType).ToString(),
+                    Grouping = GetReportGrouping(jobType),
+                    GroupingLevel = GetReportGroupingLevel(jobType),
                     LastModified = cloudBlob.Properties.LastModified,
                     Format = fileSuffix.ToUpperInvariant(),
-                    Size = $"{fileLength.LargestWholeNumberDecimalValue:0.#} {fileLength.LargestWholeNumberDecimalSymbol}"
+                    Size = $"{fileLength.LargestWholeNumberDecimalValue:0.#} {fileLength.LargestWholeNumberDecimalSymbol}",
                 };
             }).Where(_ => _ != null).OrderByDescending(_ => _.LastModified);
         }
@@ -144,15 +147,53 @@ namespace CalculateFunding.Services.Specs
                 { } type when type != JobType.CalcResult &&
                               (type == JobType.Released ||
                               type == JobType.History ||
-                              type ==  JobType.HistoryProfileValues ||
-                              type ==  JobType.CurrentProfileValues ||
-                              type ==  JobType.CurrentState ||
-                              type ==  JobType.CurrentOrganisationGroupValues ||
-                              type ==  JobType.HistoryOrganisationGroupValues ||
-                              type ==  JobType.HistoryPublishedProviderEstate ||
+                              type == JobType.HistoryProfileValues ||
+                              type == JobType.CurrentProfileValues ||
+                              type == JobType.CurrentState ||
+                              type == JobType.CurrentOrganisationGroupValues ||
+                              type == JobType.HistoryOrganisationGroupValues ||
+                              type == JobType.HistoryPublishedProviderEstate ||
                               type == JobType.PublishedGroups) => ReportCategory.History,
                 JobType.CalcResult => ReportCategory.Live,
                 _ => ReportCategory.Undefined
+            };
+
+        private ReportGroupingLevel GetReportGroupingLevel(JobType jobType) =>
+            jobType switch
+            {
+                { } type when type == JobType.CalcResult ||
+                              type == JobType.History ||
+                              type == JobType.HistoryOrganisationGroupValues ||
+                              type == JobType.HistoryProfileValues ||
+                              type == JobType.HistoryPublishedProviderEstate
+                               => ReportGroupingLevel.All,
+                { } type when type == JobType.CurrentOrganisationGroupValues ||
+                              type == JobType.CurrentProfileValues ||
+                              type == JobType.CurrentState
+                               => ReportGroupingLevel.Current,
+                { } type when type == JobType.Released ||
+                                type == JobType.PublishedGroups
+                               => ReportGroupingLevel.Released,
+                _ => ReportGroupingLevel.Undefined
+            };
+
+        private ReportGrouping GetReportGrouping(JobType jobType) =>
+            jobType switch
+            {
+                { } type when type == JobType.CurrentOrganisationGroupValues ||
+                              type == JobType.PublishedGroups ||
+                              type == JobType.HistoryOrganisationGroupValues ||
+                              type == JobType.PublishedGroups => ReportGrouping.Group,
+                { } type when type == JobType.CurrentProfileValues ||
+                              type == JobType.HistoryProfileValues
+                               => ReportGrouping.Profiling,
+                { } type when type == JobType.CurrentState ||
+                              type == JobType.History ||
+                              type == JobType.HistoryPublishedProviderEstate ||
+                              type == JobType.Released
+                               => ReportGrouping.Provider,
+                JobType.CalcResult => ReportGrouping.Live,
+                _ => ReportGrouping.Undefined
             };
 
         private ReportType GetReportType(JobType jobType) =>
@@ -161,12 +202,12 @@ namespace CalculateFunding.Services.Specs
                 { } type when type != JobType.CalcResult &&
                               (type == JobType.Released ||
                               type == JobType.History ||
-                              type ==  JobType.HistoryProfileValues ||
-                              type ==  JobType.CurrentProfileValues ||
+                              type == JobType.HistoryProfileValues ||
+                              type == JobType.CurrentProfileValues ||
                               type == JobType.CurrentState ||
-                              type ==  JobType.CurrentOrganisationGroupValues ||
-                              type ==  JobType.HistoryOrganisationGroupValues ||
-                              type ==  JobType.HistoryPublishedProviderEstate ||
+                              type == JobType.CurrentOrganisationGroupValues ||
+                              type == JobType.HistoryOrganisationGroupValues ||
+                              type == JobType.HistoryPublishedProviderEstate ||
                               type == JobType.PublishedGroups) => ReportType.FundingLine,
                 JobType.CalcResult => ReportType.CalculationResult,
                 _ => throw new ArgumentOutOfRangeException()
@@ -188,7 +229,7 @@ namespace CalculateFunding.Services.Specs
 
         private SpecificationReportIdentifier DecodeReportId(string encodedReportId)
         {
-            byte[]  base64EncodedBytes = Convert.FromBase64String(encodedReportId);
+            byte[] base64EncodedBytes = Convert.FromBase64String(encodedReportId);
             string decodedText = Encoding.UTF8.GetString(base64EncodedBytes);
             return decodedText.AsPoco<SpecificationReportIdentifier>();
         }
@@ -242,7 +283,7 @@ namespace CalculateFunding.Services.Specs
                 case ReportType.CalculationResult:
                     return $"{CalculationResultsReportFilePrefix}-{id.SpecificationId}.csv";
                 default:
-                    return null; 
+                    return null;
             }
         }
 

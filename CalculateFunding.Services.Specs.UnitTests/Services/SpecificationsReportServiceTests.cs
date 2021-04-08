@@ -48,20 +48,22 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         }
 
         [TestMethod]
-        [DataRow(JobType.Released, ReportCategory.History, "fp-1")]
-        [DataRow(JobType.History, ReportCategory.History, null)]
-        [DataRow(JobType.CurrentState, ReportCategory.History, null)]
-        [DataRow(JobType.CurrentProfileValues, ReportCategory.History, null)]
-        [DataRow(JobType.HistoryProfileValues, ReportCategory.History, null)]
-        [DataRow(JobType.CurrentOrganisationGroupValues, ReportCategory.History, null)]
-        [DataRow(JobType.HistoryOrganisationGroupValues, ReportCategory.History, null)]
-        [DataRow(JobType.HistoryPublishedProviderEstate, ReportCategory.History, null)]
-        [DataRow(JobType.PublishedGroups, ReportCategory.History, null)]
-        [DataRow(JobType.CalcResult, ReportCategory.Live, null)]
-        [DataRow((JobType)int.MaxValue, ReportCategory.Undefined, null)]
+        [DataRow(JobType.Released, ReportCategory.History, "fp-1", ReportGrouping.Provider, ReportGroupingLevel.Released)]
+        [DataRow(JobType.History, ReportCategory.History, null, ReportGrouping.Provider, ReportGroupingLevel.All)]
+        [DataRow(JobType.CurrentState, ReportCategory.History, null, ReportGrouping.Provider, ReportGroupingLevel.Current)]
+        [DataRow(JobType.CurrentProfileValues, ReportCategory.History, null, ReportGrouping.Profiling, ReportGroupingLevel.Current)]
+        [DataRow(JobType.HistoryProfileValues, ReportCategory.History, null, ReportGrouping.Profiling, ReportGroupingLevel.All)]
+        [DataRow(JobType.CurrentOrganisationGroupValues, ReportCategory.History, null, ReportGrouping.Group, ReportGroupingLevel.Current)]
+        [DataRow(JobType.HistoryOrganisationGroupValues, ReportCategory.History, null, ReportGrouping.Group, ReportGroupingLevel.All)]
+        [DataRow(JobType.HistoryPublishedProviderEstate, ReportCategory.History, null, ReportGrouping.Provider, ReportGroupingLevel.All)]
+        [DataRow(JobType.PublishedGroups, ReportCategory.History, null, ReportGrouping.Group, ReportGroupingLevel.Released)]
+        [DataRow(JobType.CalcResult, ReportCategory.Live, null, ReportGrouping.Live, ReportGroupingLevel.All)]
+        [DataRow((JobType)int.MaxValue, ReportCategory.Undefined, null, ReportGrouping.Undefined, ReportGroupingLevel.Undefined)]
         public void GetReportMetadata_GivenSpecificationIdWithBlobs_ReturnsReportMetadata(JobType jobType,
             ReportCategory expectedReportCategory,
-            string targetFundingPeriodId)
+            string targetFundingPeriodId,
+            ReportGrouping reportGrouping,
+            ReportGroupingLevel reportGroupingLevel)
         {
             string fundingLineBlobName = NewRandomString();
             string fundingLineFileExtension = "csv";
@@ -152,7 +154,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Should()
                 .BeOfType<OkObjectResult>();
 
-            IEnumerable<SpecificationReport> reportMetadata = ((OkObjectResult) result).Value as IEnumerable<SpecificationReport>;
+            IEnumerable<SpecificationReport> reportMetadata = ((OkObjectResult)result).Value as IEnumerable<SpecificationReport>;
 
             reportMetadata
                 .Should()
@@ -170,11 +172,14 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Should()
                 .BeEquivalentTo(new SpecificationReport
                 {
-                        Name = fundingLineFileName,
-                        Category = expectedReportCategory.ToString(),
-                        Format = "CSV",
-                        Size = "-1 B",
-                        SpecificationReportIdentifier = EncodeSpecificationReportIdentifier(id)
+                    Name = fundingLineFileName,
+                    Category = expectedReportCategory.ToString(),
+                    Format = "CSV",
+                    Size = "-1 B",
+                    SpecificationReportIdentifier = EncodeSpecificationReportIdentifier(id),
+                    Grouping = reportGrouping,
+                    GroupingLevel = reportGroupingLevel,
+                    ReportType = jobType,
                 });
         }
 
