@@ -238,6 +238,7 @@ namespace CalculateFunding.Services.Publishing
                             SpecificationId = m.Result.SpecificationId,
                             FundingStreamId = m.Result.FundingStreamId,
                             FundingPeriodId = m.Result.FundingPeriodId,
+                            Indicative = m.Result.Indicative,
                             HasErrors = m.Result.HasErrors,
                             Errors = m.Result.Errors
                         });

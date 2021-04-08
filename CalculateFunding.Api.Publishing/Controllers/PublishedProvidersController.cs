@@ -155,6 +155,7 @@ The publishedProviderVersionId will be in the context of funding stream ID, fund
         /// <param name="providerType">Optional Provider type</param>
         /// <param name="localAuthority">Optional Local authority</param>
         /// <param name="status">Optional Status</param>
+        /// <param name="isIndicative">Optional flag for is indicative</param>
         /// <returns></returns>
         [HttpGet("api/specifications/{specificationId}/publishedproviders/publishingstatus")]
         [ProducesResponseType(200, Type = typeof(IEnumerable<ProviderFundingStreamStatusResponse>))]
@@ -162,8 +163,9 @@ The publishedProviderVersionId will be in the context of funding stream ID, fund
             [FromRoute] string specificationId,
             [FromQuery] string providerType,
             [FromQuery] string localAuthority,
-            [FromQuery] string status) =>
-            await _publishedProviderStatusService.GetProviderStatusCounts(specificationId, providerType, localAuthority, status);
+            [FromQuery] string status,
+            [FromQuery] bool? isIndicative) =>
+            await _publishedProviderStatusService.GetProviderStatusCounts(specificationId, providerType, localAuthority, status, isIndicative);
 
         /// <summary>
         ///     Get the funding total and count for providers in the supplied batch

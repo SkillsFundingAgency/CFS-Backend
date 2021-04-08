@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Models;
@@ -293,6 +294,10 @@ namespace CalculateFunding.Services.Publishing
             Dictionary<string, PublishedProvider> existingPublishedProvidersToRemove = new Dictionary<string, PublishedProvider>();
 
             FundingLine[] flattenedTemplateFundingLines = templateMetadataContents.RootFundingLines.Flatten(_ => _.FundingLines).ToArray();
+            
+
+
+            
 
             _logger.Information("Profiling providers for refresh");
 
@@ -326,6 +331,20 @@ namespace CalculateFunding.Services.Publishing
             // set up the published providers context for error detection laterawait 
             FundingConfiguration fundingConfiguration = await _policiesService.GetFundingConfiguration(fundingStream.Id, specification.FundingPeriod.Id);
             _logger.Information($"Retrieved funding stream configuration for '{fundingStream.Id}'");
+            
+            _logger.Information("Updating IsIndicative flag on published providers");
+            
+            HashSet<string> indicativeStatus = new HashSet<string>(fundingConfiguration?.IndicativeOpenerProviderStatus ?? ArraySegment<string>.Empty);
+            
+            foreach ((string _, PublishedProvider publishedProvider) in newProviders)
+            {
+                publishedProvider.Current.SetIsIndicative(indicativeStatus);
+            }
+
+            foreach (PublishedProvider publishedProvider in existingPublishedProviders)
+            {
+                publishedProvider.Current.SetIsIndicative(indicativeStatus);
+            }
 
             PublishedProvidersContext publishedProvidersContext = new PublishedProvidersContext
             {

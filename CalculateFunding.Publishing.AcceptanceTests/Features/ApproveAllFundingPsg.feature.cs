@@ -4867,7 +4867,8 @@ this.ScenarioInitialize(scenarioInfo);
                             "FundingPeriodId",
                             "UPIN",
                             "URN",
-                            "Errors"});
+                            "Errors",
+                            "Indicative"});
                 table137.AddRow(new string[] {
                             "PSG-AY-1920-1000201",
                             "Special schools",
@@ -4882,7 +4883,8 @@ this.ScenarioInitialize(scenarioInfo);
                             string.Format("{0}", fundingPeriodId),
                             "123456",
                             "1234567",
-                            ""});
+                            "",
+                            "Hide indicative allocations"});
                 table137.AddRow(new string[] {
                             "PSG-AY-1920-1000202",
                             "Special schools",
@@ -4897,7 +4899,8 @@ this.ScenarioInitialize(scenarioInfo);
                             string.Format("{0}", fundingPeriodId),
                             "223456",
                             "2234567",
-                            ""});
+                            "",
+                            "Hide indicative allocations"});
 #line 1531
  testRunner.And(string.Format("the following published provider search index items is produced for providerid wi" +
                             "th \'{0}\' and \'{1}\'", fundingStreamId, fundingPeriodId), ((string)(null)), table137, "And ");

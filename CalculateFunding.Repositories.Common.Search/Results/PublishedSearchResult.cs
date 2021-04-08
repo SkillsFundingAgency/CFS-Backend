@@ -15,6 +15,7 @@
         public string SpecificationId { get; set; }
         public string FundingStreamId { get; set; }
         public string FundingPeriodId { get; set; }
+        public string Indicative { get; set; }
         public bool HasErrors { get; set; }
         public string[] Errors { get; set; }
     }

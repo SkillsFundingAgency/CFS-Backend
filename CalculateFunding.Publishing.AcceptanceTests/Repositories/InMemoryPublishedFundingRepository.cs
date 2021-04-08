@@ -248,7 +248,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             return Task.FromResult(publishedFunding);
         }
 
-        public Task<IEnumerable<PublishedProviderFundingStreamStatus>> GetPublishedProviderStatusCounts(string specificationId, string providerType, string localAuthority, string status)
+        public Task<IEnumerable<PublishedProviderFundingStreamStatus>> GetPublishedProviderStatusCounts(string specificationId,
+            string providerType,
+            string localAuthority,
+            string status,
+            bool? isIndicative = null)
         {
             IEnumerable<PublishedFunding> publishedFundings = _repo.PublishedFunding
                 .SelectMany(c => c.Value)

@@ -142,6 +142,7 @@ namespace CalculateFunding.Services.Publishing
                 HasErrors = publishedProviderVersion.HasErrors,
                 UPIN = publishedProviderVersion.Provider.UPIN,
                 URN = publishedProviderVersion.Provider.URN,
+                Indicative = publishedProviderVersion.IsIndicative ? "Only indicative allocations" : "Hide indicative allocations",
                 Errors = publishedProviderVersion.Errors != null ? publishedProviderVersion
                     .Errors
                     .Select(_ => _.SummaryErrorMessage)

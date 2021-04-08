@@ -1327,7 +1327,11 @@ namespace CalculateFunding.Services.Publishing.Repositories
             return results;
         }
 
-        public async Task<IEnumerable<PublishedProviderFundingStreamStatus>> GetPublishedProviderStatusCounts(string specificationId, string providerType, string localAuthority, string status)
+        public async Task<IEnumerable<PublishedProviderFundingStreamStatus>> GetPublishedProviderStatusCounts(string specificationId,
+            string providerType,
+            string localAuthority,
+            string status,
+            bool? isIndicative = null)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
@@ -1337,22 +1341,28 @@ namespace CalculateFunding.Services.Publishing.Repositories
 
             List<CosmosDbQueryParameter> cosmosDbQueryParameters = new List<CosmosDbQueryParameter> { new CosmosDbQueryParameter("@specificationId", specificationId) };
 
-            if (!string.IsNullOrWhiteSpace(providerType))
+            if (providerType.IsNotNullOrWhitespace())
             {
                 additionalFilter.Append($" and f.content.current.provider.providerType = @providerType ");
                 cosmosDbQueryParameters.Add(new CosmosDbQueryParameter("@providerType", providerType));
             }
 
-            if (!string.IsNullOrWhiteSpace(localAuthority))
+            if (localAuthority.IsNotNullOrWhitespace())
             {
                 additionalFilter.Append($" and f.content.current.provider.localAuthorityName = @localAuthorityName ");
                 cosmosDbQueryParameters.Add(new CosmosDbQueryParameter("@localAuthorityName", localAuthority));
             }
 
-            if (!string.IsNullOrWhiteSpace(status))
+            if (status.IsNotNullOrWhitespace())
             {
                 additionalFilter.Append($" and f.content.current.status = @status ");
                 cosmosDbQueryParameters.Add(new CosmosDbQueryParameter("@status", status));
+            }
+
+            if (isIndicative.HasValue)
+            {
+                additionalFilter.Append(" and f.content.current.isIndicative = @isIndicative");
+                cosmosDbQueryParameters.Add(new CosmosDbQueryParameter("@isIndicative", isIndicative.Value));
             }
 
             CosmosDbQuery query = new CosmosDbQuery

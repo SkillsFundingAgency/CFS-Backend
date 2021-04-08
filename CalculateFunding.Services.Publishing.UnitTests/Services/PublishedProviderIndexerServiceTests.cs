@@ -83,9 +83,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         }
 
         [TestMethod]
-        [DataRow(true)]
-        [DataRow(false)]
-        public async Task IndexPublishedProvider_GivenSearchRepository_NoExceptionThrownAsync(bool hasErrors)
+        [DataRow(true, false, "Hide indicative allocations")]
+        [DataRow(false, true, "Only indicative allocations")]
+        public async Task IndexPublishedProvider_GivenSearchRepository_NoExceptionThrownAsync(bool hasErrors,
+            bool isIndicative,
+            string indicativeIndexText)
         {
             //Arrange           
             PublishedProviderVersion publishedProviderVersion = new PublishedProviderVersion
@@ -97,6 +99,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 Version = 1,
                 MajorVersion = 1,
                 MinorVersion = 0,
+                IsIndicative = isIndicative,
                 VariationReasons = new List<VariationReason> { VariationReason.NameFieldUpdated, VariationReason.FundingUpdated },
                 Errors = hasErrors ? new List<PublishedProviderError>
                 {
@@ -133,6 +136,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                     d.First().SpecificationId == publishedProviderVersion.SpecificationId &&
                     d.First().FundingStreamId == "PSG" &&
                     d.First().FundingPeriodId == publishedProviderVersion.FundingPeriodId &&
+                    d.First().Indicative == indicativeIndexText &&
                     d.First().HasErrors == publishedProviderVersion.HasErrors &&
                     d.First().Errors.Any() == publishedProviderVersion.HasErrors &&
                     (!hasErrors || d.First().Errors.First() == "summary error message")

@@ -3960,7 +3960,8 @@ this.ScenarioInitialize(scenarioInfo);
                             "SpecificationId",
                             "FundingStreamId",
                             "FundingPeriodId",
-                            "Errors"});
+                            "Errors",
+                            "Indicative"});
                 table622.AddRow(new string[] {
                             "DSG-FY-2021-1000000",
                             "LA maintained schools",
@@ -3973,7 +3974,8 @@ this.ScenarioInitialize(scenarioInfo);
                             "specForPublishing",
                             string.Format("{0}", fundingStreamId),
                             string.Format("{0}", fundingPeriodId),
-                            ""});
+                            "",
+                            "Hide indicative allocations"});
 #line 1088
  testRunner.And(string.Format("the following published provider search index items is produced for providerid wi" +
                             "th \'{0}\' and \'{1}\'", fundingStreamId, fundingPeriodId), ((string)(null)), table622, "And ");

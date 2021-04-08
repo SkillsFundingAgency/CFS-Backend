@@ -227,6 +227,20 @@ namespace CalculateFunding.Models.Publishing
         /// </summary>
         [JsonProperty("profilingAudits")]
         public ICollection<ProfilingAudit> ProfilingAudits { get; set; }
+        
+        /// <summary>
+        /// Indicates whether the allocations for this version
+        /// are indicative of payment if the provider converts
+        /// </summary>
+        [JsonProperty("isIndicative")]
+        public bool IsIndicative { get; set; }
+
+        public void SetIsIndicative(HashSet<string> indicativeStatus)
+        {
+            string currentProviderStatus = Provider?.Status;
+
+            IsIndicative = indicativeStatus.Contains(currentProviderStatus);
+        }
 
         public decimal? GetCarryOverTotalForFundingLine(string fundingLineCode)
             => CarryOvers?.Where(_ => _.FundingLineCode == fundingLineCode).Sum(_ => _.Amount);
@@ -235,7 +249,7 @@ namespace CalculateFunding.Models.Publishing
             => FundingLines?.FirstOrDefault(_ => _.FundingLineCode == fundingLineCode)?.Value;
 
         public ProfilingAudit GetLatestFundingLineAudit(string fundingLineCode)
-            => ProfilingAudits?.Where(_ => _.FundingLineCode == fundingLineCode)?.OrderByDescending(_ => _.Date)?.FirstOrDefault();
+            => ProfilingAudits?.Where(_ => _.FundingLineCode == fundingLineCode).OrderByDescending(_ => _.Date).FirstOrDefault();
 
         public Reference GetLatestFundingLineUser(string fundingLineCode)
             => GetLatestFundingLineAudit(fundingLineCode)?.User ?? Author;

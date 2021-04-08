@@ -67,5 +67,9 @@ namespace CalculateFunding.Models.Publishing
         [IsRetrievable(true)]
         [JsonProperty("errors")]
         public string[] Errors { get; set; }
+        
+        [IsFilterable, IsFacetable, IsRetrievable(true)]
+        [JsonProperty("indicative")]
+        public string Indicative { get; set; }
     }
 }

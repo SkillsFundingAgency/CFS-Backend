@@ -86,7 +86,11 @@ namespace CalculateFunding.Services.Publishing.Specifications
             return new ObjectResult(fundingCount);
         }
 
-        public async Task<IActionResult> GetProviderStatusCounts(string specificationId, string providerType, string localAuthority, string status)
+        public async Task<IActionResult> GetProviderStatusCounts(string specificationId,
+            string providerType,
+            string localAuthority,
+            string status,
+            bool? isIndicative = null)
         {
             ValidationResult validationResults = _validator.Validate(specificationId);
 
@@ -96,7 +100,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
                 await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationService.GetSpecificationSummaryById(specificationId));
 
             IEnumerable<PublishedProviderFundingStreamStatus> publishedProviderFundingStreamStatuses =
-                await _publishedFundingRepositoryResilience.ExecuteAsync(() => _publishedFundingRepository.GetPublishedProviderStatusCounts(specificationId, providerType, localAuthority, status));
+                await _publishedFundingRepositoryResilience.ExecuteAsync(() => _publishedFundingRepository.GetPublishedProviderStatusCounts(specificationId, providerType, localAuthority, status, isIndicative));
 
             List<ProviderFundingStreamStatusResponse> response = new List<ProviderFundingStreamStatusResponse>();
 

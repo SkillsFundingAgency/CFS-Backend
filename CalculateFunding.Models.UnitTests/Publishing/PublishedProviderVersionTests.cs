@@ -106,6 +106,60 @@ namespace CalculateFunding.Models.UnitTests.Publishing
                 .BeEquivalentTo(differentFundingLineCarryOver);
         }
 
+        [TestMethod]
+        [DynamicData(nameof(SetIsIndicativeExamples), DynamicDataSourceType.Method)]
+        public void SetsIndicativeFlagToTrueIsProviderStatusContainedInSuppliedSets(HashSet<string> indicativeStatus,
+            string providerStatus,
+            bool expectedIsIndicative)
+        {
+            GivenTheProviderStatus(providerStatus);
+            
+            WhenIsIndicativeIsSet(indicativeStatus);
+
+            _publishedProviderVersion.IsIndicative
+                .Should()
+                .Be(expectedIsIndicative);
+        }
+
+        private void WhenIsIndicativeIsSet(HashSet<string> indicativeStatus)
+            => _publishedProviderVersion.SetIsIndicative(indicativeStatus);
+        
+        private static IEnumerable<object[]> SetIsIndicativeExamples()
+        {
+            string statusOne = NewRandomString();
+            string statusTwo = NewRandomString();
+
+            yield return new object[]
+            {
+                AsHashset(statusOne, NewRandomString()),
+                statusOne,
+                true
+            };
+            yield return new object[]
+            {
+                AsHashset( NewRandomString(), statusTwo, NewRandomString()),
+                statusTwo,
+                true
+            };
+            yield return new object[]
+            {
+                AsHashset( NewRandomString(), NewRandomString()),
+                NewRandomString(),
+                false
+            };
+            yield return new object[]
+            {
+                AsHashset(),
+                NewRandomString(),
+                false
+            };
+        }
+
+        private void GivenTheProviderStatus(string status)
+            => _publishedProviderVersion.Provider = NewProvider(_ => _.Status = status);
+        
+        private static HashSet<string> AsHashset(params string[] items) => new HashSet<string>(items);
+
         private ProfilingCarryOver NewCarryOver(Action<ProfileCarryOverBuilder> setUp = null)
         {
             ProfileCarryOverBuilder profileCarryOverBuilder = new ProfileCarryOverBuilder();
@@ -134,11 +188,20 @@ namespace CalculateFunding.Models.UnitTests.Publishing
             _publishedProviderVersion.RemoveCarryOver(fundingLineId);
         }
 
+        private static Provider NewProvider(Action<Provider> setUp = null)
+        {
+            Provider provider = new Provider();
+
+            setUp?.Invoke(provider);
+            
+            return provider;
+        }
+
         private static RandomEnum<ProfilingCarryOverType> NewRandomCarryOverType()
             => new RandomEnum<ProfilingCarryOverType>(ProfilingCarryOverType.Undefined);
 
-        private string NewRandomString() => new RandomString();
+        private static string NewRandomString() => new RandomString();
 
-        private decimal NewRandomNumber() => (decimal) new RandomNumberBetween(1, 999);
+        private static decimal NewRandomNumber() => (decimal) new RandomNumberBetween(1, 999);
     }
 }

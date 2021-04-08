@@ -90,8 +90,8 @@ Scenario Outline: Successful approve of funding
 		| publishedprovider-1000000-<FundingPeriodId>-<FundingStreamId> | Approved|
 		| publishedprovider-1000002-<FundingPeriodId>-<FundingStreamId> | Approved|
 	And the following published provider search index items is produced for providerid with '<FundingStreamId>' and '<FundingPeriodId>'
-		| ID                  | ProviderType          | ProviderSubType  | LocalAuthority    | FundingStatus | ProviderName        | UKPRN   | FundingValue | SpecificationId   | FundingStreamId   | FundingPeriodId   | UPIN   | URN     | Errors |
-		| GAG-AC-2021-1000002 | LA maintained schools | Community school | Local Authority 1 | Approved      | Maintained School 2 | 1000002 | 12000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> | 123456 | 1234567 |        |
+		| ID                  | ProviderType          | ProviderSubType  | LocalAuthority    | FundingStatus | ProviderName        | UKPRN   | FundingValue | SpecificationId   | FundingStreamId   | FundingPeriodId   | UPIN   | URN     | Errors | Indicative |
+		| GAG-AC-2021-1000002 | LA maintained schools | Community school | Local Authority 1 | Approved      | Maintained School 2 | 1000002 | 12000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> | 123456 | 1234567 |        | Hide indicative allocations |
 	Examples:
 		| FundingStreamId | FundingPeriodId | FundingPeriodName      | TemplateVersion | ProviderVersionId |
 		| GAG             | AC-2021         | Financial Year 2020-21 | 1.0             | gag-providers-1.0 |

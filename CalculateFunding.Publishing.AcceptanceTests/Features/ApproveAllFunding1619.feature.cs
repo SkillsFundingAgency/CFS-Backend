@@ -396,7 +396,8 @@ this.ScenarioInitialize(scenarioInfo);
                             "FundingPeriodId",
                             "UPIN",
                             "URN",
-                            "Errors"});
+                            "Errors",
+                            "Indicative"});
                 table14.AddRow(new string[] {
                             "1619-AS-2021-1000002",
                             "LA maintained schools",
@@ -411,7 +412,8 @@ this.ScenarioInitialize(scenarioInfo);
                             string.Format("{0}", fundingPeriodId),
                             "123456",
                             "1234567",
-                            ""});
+                            "",
+                            "Hide indicative allocations"});
 #line 92
  testRunner.And(string.Format("the following published provider search index items is produced for providerid wi" +
                             "th \'{0}\' and \'{1}\'", fundingStreamId, fundingPeriodId), ((string)(null)), table14, "And ");

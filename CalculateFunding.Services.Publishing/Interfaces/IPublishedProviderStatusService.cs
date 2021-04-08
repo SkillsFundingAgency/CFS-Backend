@@ -6,7 +6,11 @@ namespace CalculateFunding.Services.Publishing.Interfaces
 {
     public interface IPublishedProviderStatusService
     {
-        Task<IActionResult> GetProviderStatusCounts(string specificationId, string providerType, string localAuthority, string status);
+        Task<IActionResult> GetProviderStatusCounts(string specificationId,
+            string providerType,
+            string localAuthority,
+            string status,
+            bool? isIndicative = null);
 
         Task<IActionResult> GetProviderBatchCountForApproval(PublishedProviderIdsRequest providerIds, string specificationId);
         
