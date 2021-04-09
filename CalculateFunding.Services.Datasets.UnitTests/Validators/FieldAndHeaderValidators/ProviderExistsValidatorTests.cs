@@ -104,7 +104,7 @@ namespace CalculateFunding.Services.Datasets.Validators.FieldAndHeaderValidators
                 .Should().Be(field);
 
             result.ReasonOfFailure
-                .Should().Be(FieldValidationResult.ReasonForFailure.ProviderIdMismatchWithServiceProvider);
+                .Should().Be(DatasetCellReasonForFailure.ProviderIdMismatchWithServiceProvider);
         }
 
         [TestMethod]
@@ -138,7 +138,7 @@ namespace CalculateFunding.Services.Datasets.Validators.FieldAndHeaderValidators
 			    .Should().Be(field);
 
 		    result.ReasonOfFailure
-			    .Should().Be(FieldValidationResult.ReasonForFailure.ProviderIdMismatchWithServiceProvider);
+			    .Should().Be(DatasetCellReasonForFailure.ProviderIdMismatchWithServiceProvider);
 	    }
 
 	    [TestMethod]

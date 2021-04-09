@@ -97,7 +97,7 @@ namespace CalculateFunding.Services.Datasets.Validators.FieldAndHeaderValidators
 
 			// Assert
 			result.FieldValidated.CellReference.Should().Be(anyCellReference);
-			result.ReasonOfFailure.Should().Be(FieldValidationResult.ReasonForFailure.MaxOrMinValueExceeded);
+			result.ReasonOfFailure.Should().Be(DatasetCellReasonForFailure.MaxOrMinValueExceeded);
 		}
 
 		[TestMethod]
@@ -128,7 +128,7 @@ namespace CalculateFunding.Services.Datasets.Validators.FieldAndHeaderValidators
 
 			// Assert
 			result.FieldValidated.CellReference.Should().Be(anyCellReference);
-			result.ReasonOfFailure.Should().Be(FieldValidationResult.ReasonForFailure.MaxOrMinValueExceeded);
+			result.ReasonOfFailure.Should().Be(DatasetCellReasonForFailure.MaxOrMinValueExceeded);
 		}
 
 		[TestMethod]
@@ -219,7 +219,7 @@ namespace CalculateFunding.Services.Datasets.Validators.FieldAndHeaderValidators
 
 			// Assert
 			result.FieldValidated.CellReference.Should().Be(anyCellReference);
-			result.ReasonOfFailure.Should().Be(FieldValidationResult.ReasonForFailure.MaxOrMinValueExceeded);
+			result.ReasonOfFailure.Should().Be(DatasetCellReasonForFailure.MaxOrMinValueExceeded);
 		}
 
 		[TestMethod]
@@ -250,7 +250,7 @@ namespace CalculateFunding.Services.Datasets.Validators.FieldAndHeaderValidators
 
 			// Assert
 			result.FieldValidated.CellReference.Should().Be(anyCellReference);
-			result.ReasonOfFailure.Should().Be(FieldValidationResult.ReasonForFailure.MaxOrMinValueExceeded);
+			result.ReasonOfFailure.Should().Be(DatasetCellReasonForFailure.MaxOrMinValueExceeded);
 		}
 	}
 }

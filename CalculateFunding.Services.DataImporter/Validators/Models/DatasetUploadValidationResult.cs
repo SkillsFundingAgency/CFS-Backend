@@ -6,11 +6,9 @@ namespace CalculateFunding.Services.DataImporter.Validators.Models
     public class DatasetUploadValidationResult : IDatasetUploadValidationResult
     {
 		public IEnumerable<FieldValidationResult> FieldValidationFailures { get; set; } = new List<FieldValidationResult>();
-	    public IEnumerable<HeaderValidationResult> HeaderValitionFailures { get; set; } = new List<HeaderValidationResult>();
+		
+	    public IEnumerable<HeaderValidationResult> HeaderValidationFailures { get; set; } = new List<HeaderValidationResult>();
 
-	    public bool IsValid()
-	    {
-		    return FieldValidationFailures.IsNullOrEmpty() && HeaderValitionFailures.IsNullOrEmpty();
-	    }
+	    public bool IsValid => FieldValidationFailures.IsNullOrEmpty() && HeaderValidationFailures.IsNullOrEmpty();
     }
 }

@@ -48,7 +48,7 @@ namespace CalculateFunding.Services.Datasets.Validators
 			ValidationShouldBeValid(
 				"Factors.json",
 				blobFileName, 
-				new Dictionary<CellReference, FieldValidationResult.ReasonForFailure>(), 
+				new Dictionary<CellReference, DatasetCellReasonForFailure>(), 
 				new List<string>(), 
 				true,
 				currentBlobFilePath,
@@ -68,7 +68,7 @@ namespace CalculateFunding.Services.Datasets.Validators
 			ValidationShouldBeValid(
 				"Factors.json",
 				blobFileName,
-				new Dictionary<CellReference, FieldValidationResult.ReasonForFailure>(),
+				new Dictionary<CellReference, DatasetCellReasonForFailure>(),
 				new List<string>(),
 				true,
 				null,
@@ -95,7 +95,7 @@ namespace CalculateFunding.Services.Datasets.Validators
 			ValidationShouldBeValid(
 				"Factors.json",
 				"FactorsVariousInvalidFields_PartialSet_Current_MissingRequiredield.xlsx",
-				new Dictionary<CellReference, FieldValidationResult.ReasonForFailure>(),
+				new Dictionary<CellReference, DatasetCellReasonForFailure>(),
 				expectedHeaderErrors,
 				false,
 				currentDatasetBlobFileName,
@@ -111,22 +111,22 @@ namespace CalculateFunding.Services.Datasets.Validators
 				"Local Authority"
 			};
 
-			var expectedErrors = new Dictionary<CellReference, FieldValidationResult.ReasonForFailure>()
+			var expectedErrors = new Dictionary<CellReference, DatasetCellReasonForFailure>()
 			{
-				{new CellReference(2, 1), FieldValidationResult.ReasonForFailure.ProviderIdValueMissing},
-				{new CellReference(2, 5), FieldValidationResult.ReasonForFailure.DataTypeMismatch},
-				{new CellReference(2, 6), FieldValidationResult.ReasonForFailure.DataTypeMismatch},
+				{new CellReference(2, 1), DatasetCellReasonForFailure.ProviderIdValueMissing},
+				{new CellReference(2, 5), DatasetCellReasonForFailure.DataTypeMismatch},
+				{new CellReference(2, 6), DatasetCellReasonForFailure.DataTypeMismatch},
 
-				{new CellReference(3, 1), FieldValidationResult.ReasonForFailure.ProviderIdMismatchWithServiceProvider},
-				{new CellReference(3, 7), FieldValidationResult.ReasonForFailure.DataTypeMismatch},
+				{new CellReference(3, 1), DatasetCellReasonForFailure.ProviderIdMismatchWithServiceProvider},
+				{new CellReference(3, 7), DatasetCellReasonForFailure.DataTypeMismatch},
 
-				{new CellReference(4, 7), FieldValidationResult.ReasonForFailure.DataTypeMismatch},
+				{new CellReference(4, 7), DatasetCellReasonForFailure.DataTypeMismatch},
 
-				{new CellReference(5, 1), FieldValidationResult.ReasonForFailure.DuplicateEntriesInTheProviderIdColumn},
-				{new CellReference(5, 5), FieldValidationResult.ReasonForFailure.MaxOrMinValueExceeded},
-				{new CellReference(6, 5), FieldValidationResult.ReasonForFailure.MaxOrMinValueExceeded},
+				{new CellReference(5, 1), DatasetCellReasonForFailure.DuplicateEntriesInTheProviderIdColumn},
+				{new CellReference(5, 5), DatasetCellReasonForFailure.MaxOrMinValueExceeded},
+				{new CellReference(6, 5), DatasetCellReasonForFailure.MaxOrMinValueExceeded},
 
-				{new CellReference(7, 1), FieldValidationResult.ReasonForFailure.DuplicateEntriesInTheProviderIdColumn}
+				{new CellReference(7, 1), DatasetCellReasonForFailure.DuplicateEntriesInTheProviderIdColumn}
 			};
 
 			string currentDatasetBlobFileName = "FactorsVariousInvalidFields_Current.xlsx";
@@ -153,13 +153,11 @@ namespace CalculateFunding.Services.Datasets.Validators
 			// Arrange
 			List<string> expectedHeaderErrors = new List<string>();
 
-			var expectedErrors = new Dictionary<CellReference, FieldValidationResult.ReasonForFailure>()
+			Dictionary<CellReference, DatasetCellReasonForFailure> expectedErrors = new Dictionary<CellReference, DatasetCellReasonForFailure>()
 			{
-				{new CellReference(2, 1), FieldValidationResult.ReasonForFailure.DataTypeMismatch},
-
-				{new CellReference(3, 1), FieldValidationResult.ReasonForFailure.ProviderIdNotInCorrectFormat},
-
-				{new CellReference(4, 1), FieldValidationResult.ReasonForFailure.ProviderIdNotInCorrectFormat},
+				{new CellReference(2, 1), DatasetCellReasonForFailure.DataTypeMismatch},
+				{new CellReference(3, 1), DatasetCellReasonForFailure.ProviderIdNotInCorrectFormat},
+				{new CellReference(4, 1), DatasetCellReasonForFailure.ProviderIdNotInCorrectFormat},
 			};
 
 			string currentDatasetBlobFileName = "Factors_DoNotValidateProviders_VariousInvalidFields.xlsx";
@@ -190,9 +188,9 @@ namespace CalculateFunding.Services.Datasets.Validators
 				"1819 Area Cost Factor"
 			};
 
-			var expectedErrors = new Dictionary<CellReference, FieldValidationResult.ReasonForFailure>()
+			var expectedErrors = new Dictionary<CellReference, DatasetCellReasonForFailure>()
 			{
-				{new CellReference(2, 1), FieldValidationResult.ReasonForFailure.NewProviderMissingAllDataSchemaFields},
+				{new CellReference(2, 1), DatasetCellReasonForFailure.NewProviderMissingAllDataSchemaFields},
 			};
 
 			string blobFileName = "FactorsVariousInvalidFields_Current.xlsx";
@@ -229,7 +227,7 @@ namespace CalculateFunding.Services.Datasets.Validators
 		private void ValidationShouldBeValid(
 			string datasetDefinitionName, 
 			string excelFileToTest, 
-			Dictionary<CellReference, FieldValidationResult.ReasonForFailure> expectedErrors, 
+			Dictionary<CellReference, DatasetCellReasonForFailure> expectedErrors, 
 			List<string> expectedHeaderErrors, 
 			bool expectedValidationResult,
 			string latestBlobFileName,
@@ -255,12 +253,12 @@ namespace CalculateFunding.Services.Datasets.Validators
             CheckFieldsAreColored(excelPackage.Workbook.Worksheets[1], expectedErrors);
             if (!expectedValidationResult)
             {
-                CheckHeaderErrors(excelPackage.Workbook.Worksheets[2], expectedHeaderErrors, new CellReference(12, 1));
+                CheckHeaderErrors(excelPackage.Workbook.Worksheets[2], expectedHeaderErrors, new CellReference(13, 1));
             }
         }
 
 		private static void CheckFieldsAreColored(ExcelWorksheet excelWorksheet,
-			IDictionary<CellReference, FieldValidationResult.ReasonForFailure> expectedErrors)
+			IDictionary<CellReference, DatasetCellReasonForFailure> expectedErrors)
 		{
 			for (int row = 1; row <= excelWorksheet.Dimension.Rows; row++)
 			{
@@ -268,7 +266,7 @@ namespace CalculateFunding.Services.Datasets.Validators
 				{
 					ExcelRange excelCell = excelWorksheet.Cells[row, column];
 					bool dictionaryContainsKey = expectedErrors.TryGetValue(new CellReference(row, column),
-						out FieldValidationResult.ReasonForFailure reasonForFailure);
+						out DatasetCellReasonForFailure reasonForFailure);
 					if (dictionaryContainsKey)
 					{
 						excelCell.Style.Fill.BackgroundColor.Rgb

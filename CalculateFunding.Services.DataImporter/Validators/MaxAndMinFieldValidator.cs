@@ -11,10 +11,10 @@ namespace CalculateFunding.Services.DataImporter.Validators
 			FieldDefinition fieldDefinition = field.FieldDefinition;
 			if (fieldDefinition.Maximum.HasValue)
 				if (FieldTypeExtensions.CompareTo(fieldDefinition.Type, field.Value, fieldDefinition.Maximum.Value) > 0)
-					return new FieldValidationResult(field, FieldValidationResult.ReasonForFailure.MaxOrMinValueExceeded);
+					return new FieldValidationResult(field, DatasetCellReasonForFailure.MaxOrMinValueExceeded);
 			if (fieldDefinition.Minimum.HasValue)
 				if (FieldTypeExtensions.CompareTo(fieldDefinition.Type, field.Value, fieldDefinition.Minimum.Value) < 0)
-					return new FieldValidationResult(field, FieldValidationResult.ReasonForFailure.MaxOrMinValueExceeded);
+					return new FieldValidationResult(field, DatasetCellReasonForFailure.MaxOrMinValueExceeded);
 			return null;
 		}
 	}

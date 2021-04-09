@@ -66,7 +66,7 @@ namespace CalculateFunding.Services.Datasets.Validators.FieldAndHeaderValidators
 		    // Assert
 		    result.Should().NotBeNull();
 		    result.ReasonOfFailure
-			    .Should().Be(FieldValidationResult.ReasonForFailure.ProviderIdValueMissing);
+			    .Should().Be(DatasetCellReasonForFailure.ProviderIdValueMissing);
 	    }
 
 	    [TestMethod]

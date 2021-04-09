@@ -1,96 +1,168 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Drawing;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Services.DataImporter.ExcelFormatter;
+using CalculateFunding.Services.DataImporter.Validators.Extension;
 using CalculateFunding.Services.DataImporter.Validators.Models;
+using CalculateFunding.Services.Datasets.Validators.FieldAndHeaderValidators;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
 using OfficeOpenXml;
+using OfficeOpenXml.Style;
 
 namespace CalculateFunding.Services.Datasets.ExcelFormatter
 {
-	[TestClass]
-	public class ExcelHeaderErrorFormatterTests
-	{
-		[TestMethod]
-		public void FormatExcelSheetBasedOnErrors_GivenSomeMissingHeaders_ShouldFillInWorksheetWithTheErrors()
-		{
-            using ExcelPackage excelPackage = new ExcelPackage();
-            // Arrange
-            FieldDefinition fieldDefinitionParentRid = new FieldDefinition
+    [TestClass]
+    public class ExcelHeaderErrorFormatterTests
+    {
+        private ExcelPackage _excelPackage;
+        private DatasetUploadValidationResult _validationResult;
+
+        private ExcelHeaderErrorFormatter _formatter;
+
+        [TestInitialize]
+        public void SetUp()
+        {
+            _excelPackage = new ExcelPackage();
+            _validationResult = new DatasetUploadValidationResult();
+
+            _formatter = new ExcelHeaderErrorFormatter(_excelPackage);
+        }
+
+        [TestMethod]
+        public void FormatsBackgroundColourForHeaderValidationErrorsWithKeyColour()
+        {
+            Color duplicateColumnNameColour = ReasonForFailureColour.LightBlue;
+            
+            string headerOne = NewRandomString();
+            string headerTwo = NewRandomString();
+            string headerThree = NewRandomString();
+            
+            FieldDefinition fieldDefinitionTwo = NewFieldDefinition(_ => _.WithName(headerTwo));
+            
+            GivenTheHeaderValidationResults(NewHeaderValidationResult(_ => _.WithFieldDefinition(fieldDefinitionTwo)
+                .WithReasonForFailure(DatasetCellReasonForFailure.DuplicateColumnHeader)
+                .WithHasBackgroundKeyColour(true)));
+            AndTheExcelWorksheetHasTheHeaders(headerOne, headerTwo, headerThree, headerTwo);
+            
+            WhenTheHeaderResultsAreFormatted();
+            
+            ThenTheCellsShouldHaveTheBackgroundColour((2, duplicateColumnNameColour),
+                (4, duplicateColumnNameColour));
+        }
+        
+        [TestMethod]
+        public void FormatExcelSheetBasedOnErrors_GivenSomeMissingHeaders_ShouldFillInWorksheetWithTheErrors()
+        {
+            FieldDefinition fieldDefinitionParentRid = NewFieldDefinition();
+            FieldDefinition fieldDefinitionRid = NewFieldDefinition();
+
+            GivenTheHeaderValidationResults(NewHeaderValidationResult(_ => _.WithFieldDefinition(fieldDefinitionParentRid)),
+                NewHeaderValidationResult(_ => _.WithFieldDefinition(fieldDefinitionRid)));
+            
+            WhenTheHeaderResultsAreFormatted();
+            
+            ExcelWorksheet errorsWorkSheet = _excelPackage.Workbook.Worksheets["Errors"];
+            errorsWorkSheet
+                .Should()
+                .NotBeNull();
+
+            errorsWorkSheet.Cells[14, 1]
+                .Value
+                .Should()
+                .Be(fieldDefinitionParentRid.Name);
+            errorsWorkSheet.Cells[15, 1]
+                .Value
+                .Should()
+                .Be(fieldDefinitionRid.Name);
+
+            for (int rowIndex = 16; rowIndex < 26; rowIndex++)
             {
-                Description = "The Rid of the parent provider (from The Store)",
-                Id = "1100002",
-                IdentifierFieldType = null,
-                MatchExpression = null,
-                Maximum = null,
-                Minimum = null,
-                Name = "Parent Rid",
-                Required = false,
-                Type = FieldType.String
-            };
-
-            FieldDefinition fieldDefinitionRid = new FieldDefinition
-            {
-                Description = "Rid is the unique reference from The Store",
-                Id = "1100001",
-                IdentifierFieldType = null,
-                MatchExpression = null,
-                Maximum = null,
-                Minimum = null,
-                Name = "Rid",
-                Required = false,
-                Type = FieldType.String
-            };
-
-            List<HeaderValidationResult> headerValidationResultsToReturn = new List<HeaderValidationResult>
-                {
-                    new HeaderValidationResult(fieldDefinitionParentRid),
-                    new HeaderValidationResult(fieldDefinitionRid)
-                };
-
-            IDatasetUploadValidationResult mockUploadValidationResult = Substitute.For<IDatasetUploadValidationResult>();
-            mockUploadValidationResult.HeaderValitionFailures.Returns(headerValidationResultsToReturn);
-            mockUploadValidationResult.FieldValidationFailures.Returns(new List<FieldValidationResult>());
-
-            // Act
-            ExcelHeaderErrorFormatter formatterUnderTest = new ExcelHeaderErrorFormatter(excelPackage);
-            formatterUnderTest.FormatExcelSheetBasedOnErrors(mockUploadValidationResult);
-
-            // Assert
-            ExcelWorksheet errorsWorkSheet = excelPackage.Workbook.Worksheets["Errors"];
-            errorsWorkSheet.Should().NotBeNull();
-
-            errorsWorkSheet.Cells[13, 1].Value.Should().BeEquivalentTo(fieldDefinitionParentRid.Name);
-            errorsWorkSheet.Cells[14, 1].Value.Should().BeEquivalentTo(fieldDefinitionRid.Name);
-
-            for (int rowIndex = 15; rowIndex < 25; rowIndex++)
-            {
-                errorsWorkSheet.Cells[rowIndex, 1].Value.Should().BeNull();
+                errorsWorkSheet.Cells[rowIndex, 1]
+                    .Value
+                    .Should()
+                    .BeNull();
             }
         }
 
-		[TestMethod]
-		public void FormatExcelSheetBasedOnErrors_GivenNoErrorInResult_ShouldNotCreateAdditionalWorksheet()
-		{
-			using (var excelPackage = new ExcelPackage())
-			{
-				// Arrange
-				IDatasetUploadValidationResult mockUploadValidationResult = Substitute.For<IDatasetUploadValidationResult>();
-				mockUploadValidationResult.HeaderValitionFailures.Returns(new List<HeaderValidationResult>());
-				mockUploadValidationResult.FieldValidationFailures.Returns(new List<FieldValidationResult>());
-				mockUploadValidationResult.IsValid().Returns(true);
+        [TestMethod]
+        public void FormatExcelSheetBasedOnErrors_GivenNoErrorInResult_ShouldNotCreateAdditionalWorksheet()
+        {
+            WhenTheHeaderResultsAreFormatted();
 
-				// Act
-				ExcelHeaderErrorFormatter formatterUnderTest = new ExcelHeaderErrorFormatter(excelPackage);
-				formatterUnderTest.FormatExcelSheetBasedOnErrors(mockUploadValidationResult);
+            ExcelWorksheet errorsWorkSheet = _excelPackage.Workbook.Worksheets["Errors"];
+            
+            errorsWorkSheet
+                .Should()
+                .BeNull();
+        }
 
-				// Assert
-				ExcelWorksheet errorsWorkSheet = excelPackage.Workbook.Worksheets["Errors"];
-				errorsWorkSheet.Should().BeNull();
-			}
-		}
-	}
+        private void GivenTheHeaderValidationResults(params HeaderValidationResult[] validationResults)
+            => _validationResult.HeaderValidationFailures = validationResults;
+
+        private void AndTheExcelWorksheetHasTheHeaders(params string[] headers)
+        {
+            ExcelWorksheet workbookWorksheet = _excelPackage
+                .Workbook
+                .Worksheets
+                .Add("Sheet1");
+            
+            workbookWorksheet.InsertRow(1, 1);
+            workbookWorksheet.InsertColumn(1, headers.Length);
+
+            for (int column = 1; column <= headers.Length; column++)
+            {
+                workbookWorksheet.Cells[1, column].Value = headers[column - 1];
+            }
+        }
+
+        private void ThenTheCellsShouldHaveTheBackgroundColour(params (int column, Color colour)[] expectedFormattedCells)
+        {
+            ExcelWorksheet worksheet = _excelPackage.Workbook.Worksheets[1];
+            
+            foreach ((int column, Color colour) expectedFormattedCell in expectedFormattedCells)
+            {
+                ExcelFill style = worksheet?.Cells[1, expectedFormattedCell.column]?.Style.Fill;
+
+                style
+                    .Should()
+                    .NotBeNull();
+
+                style.PatternType
+                    .Should()
+                    .Be(ExcelFillStyle.Solid);
+
+                Color colour = expectedFormattedCell.colour;
+                
+                style.BackgroundColor
+                    .Rgb
+                    .Should()
+                    .Be($"FF{colour.R:X2}{colour.G:X2}{colour.B:X2}");
+            }
+        }
+
+        private void WhenTheHeaderResultsAreFormatted()
+            => _formatter.FormatExcelSheetBasedOnErrors(_validationResult);
+
+        private static HeaderValidationResult NewHeaderValidationResult(Action<HeaderValidationResultBuilder> setUp = null)
+        {
+            HeaderValidationResultBuilder headerValidationResultBuilder = new HeaderValidationResultBuilder();
+
+            setUp?.Invoke(headerValidationResultBuilder);
+            
+            return headerValidationResultBuilder.Build();
+        }
+
+        private static FieldDefinition NewFieldDefinition(Action<FieldDefinitionBuilder> setUp = null)
+        {
+            FieldDefinitionBuilder fieldDefinitionBuilder = new FieldDefinitionBuilder();
+
+            setUp?.Invoke(fieldDefinitionBuilder);
+
+            return fieldDefinitionBuilder.Build();
+        }
+
+        private string NewRandomString() => new RandomString();
+    }
 }

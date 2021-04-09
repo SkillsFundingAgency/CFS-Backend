@@ -29,7 +29,7 @@ namespace CalculateFunding.Services.DataImporter.ExcelFormatter
 			    cell.Style.Fill.BackgroundColor.SetColor(colorCodeForFailure);
 		    }
 
-			_excelPackage.Save();
+			_excelPackage.Save();	
 	    }
     }
 }

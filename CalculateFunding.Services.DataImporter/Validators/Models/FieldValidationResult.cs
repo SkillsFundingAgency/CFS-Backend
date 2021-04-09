@@ -2,7 +2,7 @@
 {
     public class FieldValidationResult
     {
-	    public FieldValidationResult(Field fieldValidated, ReasonForFailure reasonOfFailure)
+	    public FieldValidationResult(Field fieldValidated, DatasetCellReasonForFailure reasonOfFailure)
 	    {
 		    FieldValidated = fieldValidated;
 		    ReasonOfFailure = reasonOfFailure;
@@ -11,19 +11,6 @@
 	    public Field FieldValidated { get; set; }
 
 
-	    public ReasonForFailure ReasonOfFailure { get; set; }
-
-	    public enum ReasonForFailure
-	    {
-			None,
-			DataTypeMismatch,
-			MaxOrMinValueExceeded,
-			ProviderIdValueMissing,
-			DuplicateEntriesInTheProviderIdColumn,
-			ProviderIdMismatchWithServiceProvider,
-			NewProviderMissingAllDataSchemaFields,
-			ExtraHeaderField,
-			ProviderIdNotInCorrectFormat
-		}
-    }		
+	    public DatasetCellReasonForFailure ReasonOfFailure { get; set; }
+    }
 }     

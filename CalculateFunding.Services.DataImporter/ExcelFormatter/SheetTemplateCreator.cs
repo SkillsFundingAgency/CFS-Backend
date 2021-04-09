@@ -13,14 +13,15 @@ namespace CalculateFunding.Services.DataImporter.ExcelFormatter
 	    {
 		    List<CellLevelErrorKey> cellLevelErrorKeys = new List<CellLevelErrorKey>()
 		    {
-			    new CellLevelErrorKey(FieldValidationResult.ReasonForFailure.DataTypeMismatch, "Data type mismatch"),
-			    new CellLevelErrorKey(FieldValidationResult.ReasonForFailure.MaxOrMinValueExceeded, "Max. or Min. value exceeded"),
-			    new CellLevelErrorKey(FieldValidationResult.ReasonForFailure.ProviderIdValueMissing, "Provider ID value missing"),
-			    new CellLevelErrorKey(FieldValidationResult.ReasonForFailure.DuplicateEntriesInTheProviderIdColumn, "Duplicate entries in the provider ID column"),
-			    new CellLevelErrorKey(FieldValidationResult.ReasonForFailure.ProviderIdMismatchWithServiceProvider, "Provider ID does not exist in the current funding stream provider"),
-				new CellLevelErrorKey(FieldValidationResult.ReasonForFailure.NewProviderMissingAllDataSchemaFields, "New provider to be inserted. All data schema fields required on upload file for new providers."),
-				new CellLevelErrorKey(FieldValidationResult.ReasonForFailure.ExtraHeaderField, "Extra header fields that does not exists in the current data schema"),
-				new CellLevelErrorKey(FieldValidationResult.ReasonForFailure.ProviderIdNotInCorrectFormat, "Provider ID not in the correct format"),
+			    new CellLevelErrorKey(DatasetCellReasonForFailure.DataTypeMismatch, "Data type mismatch"),
+			    new CellLevelErrorKey(DatasetCellReasonForFailure.MaxOrMinValueExceeded, "Max. or Min. value exceeded"),
+			    new CellLevelErrorKey(DatasetCellReasonForFailure.ProviderIdValueMissing, "Provider ID value missing"),
+			    new CellLevelErrorKey(DatasetCellReasonForFailure.DuplicateEntriesInTheProviderIdColumn, "Duplicate entries in the provider ID column"),
+			    new CellLevelErrorKey(DatasetCellReasonForFailure.ProviderIdMismatchWithServiceProvider, "Provider ID does not exist in the current funding stream provider"),
+				new CellLevelErrorKey(DatasetCellReasonForFailure.NewProviderMissingAllDataSchemaFields, "New provider to be inserted. All data schema fields required on upload file for new providers."),
+				new CellLevelErrorKey(DatasetCellReasonForFailure.ExtraHeaderField, "Extra header fields that does not exists in the current data schema"),
+				new CellLevelErrorKey(DatasetCellReasonForFailure.ProviderIdNotInCorrectFormat, "Provider ID not in the correct format"),
+				new CellLevelErrorKey(DatasetCellReasonForFailure.DuplicateColumnHeader, "Duplicate column headers"),
 			};
 			
 			if(excelPackage.Workbook.Worksheets["Errors"] != null) excelPackage.Workbook.Worksheets.Delete("Errors");
@@ -51,14 +52,14 @@ namespace CalculateFunding.Services.DataImporter.ExcelFormatter
 
 		private class CellLevelErrorKey
 		{
-			public CellLevelErrorKey(FieldValidationResult.ReasonForFailure error, string errorMessage)
+			public CellLevelErrorKey(DatasetCellReasonForFailure error, string errorMessage)
 			{
 				Error = error;
 				Color = Error.GetColorCodeForFailure();
 				Errormessage = errorMessage;
 			}
 
-			public FieldValidationResult.ReasonForFailure Error { get; }
+			private DatasetCellReasonForFailure Error { get; }
 
 			public string Errormessage { get; }
 

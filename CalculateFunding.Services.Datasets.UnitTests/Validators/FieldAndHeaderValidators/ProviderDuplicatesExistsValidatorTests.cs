@@ -38,7 +38,7 @@ namespace CalculateFunding.Services.Datasets.Validators.FieldAndHeaderValidators
 			// Assert
 			result.Count.Should().Be(4);
 
-			result.All(e => e.ReasonOfFailure == FieldValidationResult.ReasonForFailure.DuplicateEntriesInTheProviderIdColumn).Should().BeTrue();
+			result.All(e => e.ReasonOfFailure == DatasetCellReasonForFailure.DuplicateEntriesInTheProviderIdColumn).Should().BeTrue();
 
 			List<FieldValidationResult> urnErrors = result.Where(r => r.FieldValidated.Value.ToString() == "12345678").ToList();
 			urnErrors.Count.Should().Be(2);

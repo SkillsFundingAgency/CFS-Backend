@@ -8,7 +8,7 @@ namespace CalculateFunding.Services.DataImporter.Validators
 	    {
 		    if (field.FieldDefinition.Required && string.IsNullOrEmpty(field.Value?.ToString()))
 		    {
-				return new FieldValidationResult(field, FieldValidationResult.ReasonForFailure.DataTypeMismatch);
+				return new FieldValidationResult(field, DatasetCellReasonForFailure.DataTypeMismatch);
 		    }
 		    return null;
 	    }

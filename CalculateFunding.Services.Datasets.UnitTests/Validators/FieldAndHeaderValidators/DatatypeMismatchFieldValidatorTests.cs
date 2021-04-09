@@ -72,7 +72,7 @@ namespace CalculateFunding.Services.Datasets.Validators.FieldAndHeaderValidators
 
 			result
 				.ReasonOfFailure
-				.Should().Be(FieldValidationResult.ReasonForFailure.DataTypeMismatch);
+				.Should().Be(DatasetCellReasonForFailure.DataTypeMismatch);
 		}
 
 		[TestMethod]

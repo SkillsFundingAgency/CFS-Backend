@@ -24,11 +24,6 @@ namespace CalculateFunding.Services.DataImporter.Validators
         private readonly ILogger _logger;
         private readonly IExcelDatasetReader _excelDatasetReader;
 
-        public IHeaderValidator HeaderValidator { private get; set; }
-        public IList<IFieldValidator> FieldValidators { private get; set; }
-        public IBulkFieldValidator BulkValidator { private get; set; }
-        public IList<IExcelErrorFormatter> ExcelFieldFormatters { get; set; }
-
         private bool _isValid = true;
 
         public DatasetUploadValidationModelValidator(
@@ -65,12 +60,14 @@ namespace CalculateFunding.Services.DataImporter.Validators
             IEnumerable<ProviderSummary> providerSummaries)
         {
             IList<FieldDefinition> fieldDefinitions = validationModel.DatasetDefinition.TableDefinitions.First().FieldDefinitions;
-            IHeaderValidator headerValidator = GetHeaderValidator(fieldDefinitions);
+            IHeaderValidator[] headerValidators = GetHeaderValidators(fieldDefinitions);
             IList<HeaderValidationResult> headerValidationFailures = new List<HeaderValidationResult>();
             ConcurrentBag<FieldValidationResult> fieldValidationFailures = new ConcurrentBag<FieldValidationResult>();
 
-            IList<HeaderValidationResult> headerValidationResults
-                = headerValidator.ValidateHeaders(validationModel.Data.RetrievedHeaderFields.Keys.ToList());
+            string[] headers = validationModel.Data.RetrievedHeaderFields.Keys.ToArray();
+
+            HeaderValidationResult[] headerValidationResults
+                = headerValidators.SelectMany(_ => _.ValidateHeaders(headers)).ToArray();
 
             if (validationModel.LatestBlobFileName != null)
             {
@@ -92,7 +89,7 @@ namespace CalculateFunding.Services.DataImporter.Validators
 
                 if (newRows.Length > 0)
                 {
-                    if (headerValidationResults.Count > 0)
+                    if (headerValidationResults.Length > 0)
                     {
                         headerValidationFailures.AddRange(headerValidationResults);
 
@@ -126,7 +123,7 @@ namespace CalculateFunding.Services.DataImporter.Validators
                     validationModel.ValidationResult = new DatasetUploadValidationResult
                     {
                         FieldValidationFailures = fieldValidationFailures,
-                        HeaderValitionFailures = headerValidationFailures
+                        HeaderValidationFailures = headerValidationFailures
                     };
                     return;
                 }
@@ -155,7 +152,7 @@ namespace CalculateFunding.Services.DataImporter.Validators
                 validationModel.ValidationResult = new DatasetUploadValidationResult
                 {
                     FieldValidationFailures = fieldValidationFailures,
-                    HeaderValitionFailures = headerValidationFailures
+                    HeaderValidationFailures = headerValidationFailures
                 };
                 return;
             }
@@ -163,14 +160,14 @@ namespace CalculateFunding.Services.DataImporter.Validators
             if (validationModel.DatasetEmptyFieldEvaluationOption == DatasetEmptyFieldEvaluationOption.AsNull)
             {
                 IEnumerable<HeaderValidationResult> requiredNullValueHeaderValidationFailures = 
-                    headerValidationResults.Where(_ => _.FieldDefinitionValidated.Required);
+                    headerValidationResults.Where(_ => _.FieldDefinition.Required);
 
-                if (requiredNullValueHeaderValidationFailures.Count() > 0)
+                if (requiredNullValueHeaderValidationFailures.Any())
                 {
                     validationModel.ValidationResult = new DatasetUploadValidationResult
                     {
                         FieldValidationFailures = fieldValidationFailures,
-                        HeaderValitionFailures = requiredNullValueHeaderValidationFailures
+                        HeaderValidationFailures = requiredNullValueHeaderValidationFailures
                     };
                     return;
                 }
@@ -202,7 +199,7 @@ namespace CalculateFunding.Services.DataImporter.Validators
             validationModel.ValidationResult = new DatasetUploadValidationResult
             {
                 FieldValidationFailures = fieldValidationFailures,
-                HeaderValitionFailures = headerValidationFailures
+                HeaderValidationFailures = headerValidationFailures
             };
         }
 
@@ -213,7 +210,7 @@ namespace CalculateFunding.Services.DataImporter.Validators
         {
             await Validate(validationModel, providerSummaries);
 
-            _isValid = validationModel.ValidationResult.IsValid();
+            _isValid = validationModel.ValidationResult.IsValid;
 
             IList<IExcelErrorFormatter> excelFormatters = GetAllExcelFormatters(excelPackage);
             foreach (IExcelErrorFormatter excelErrorFormatter in excelFormatters)
@@ -269,45 +266,43 @@ namespace CalculateFunding.Services.DataImporter.Validators
                 fieldDefinitions.FirstOrDefault(f => f.Name == keyValue.Key));
         }
 
-		private IList<IFieldValidator> GetFieldValidators(
-            IEnumerable<ProviderSummary> providerSummaries,
+        private IList<IFieldValidator> GetFieldValidators(IEnumerable<ProviderSummary> providerSummaries,
             bool validateProviders)
-		{
-			if (FieldValidators.IsNullOrEmpty())
-			{
-				IFieldValidator requiredValidator = new RequiredValidator();
-				IFieldValidator providerBlankValidator = new ProviderIdentifierBlankValidator();
-				IFieldValidator dataTypeMismatchFieldValidator = new DatatypeMismatchFieldValidator();
-				IFieldValidator maxAndMinFieldValidator = new MaxAndMinFieldValidator();
+        {
+            IFieldValidator requiredValidator = new RequiredValidator();
+            IFieldValidator providerBlankValidator = new ProviderIdentifierBlankValidator();
+            IFieldValidator dataTypeMismatchFieldValidator = new DatatypeMismatchFieldValidator();
+            IFieldValidator maxAndMinFieldValidator = new MaxAndMinFieldValidator();
 
-                List<IFieldValidator> fieldValidators = new List<IFieldValidator>
-                {
-                    providerBlankValidator,
-                    requiredValidator,
-                    dataTypeMismatchFieldValidator,
-                    maxAndMinFieldValidator,
-                };
+            List<IFieldValidator> fieldValidators = new List<IFieldValidator>
+            {
+                providerBlankValidator,
+                requiredValidator,
+                dataTypeMismatchFieldValidator,
+                maxAndMinFieldValidator,
+            };
 
-                if (validateProviders)
-                {
-                    IFieldValidator providerExistsValidator = new ProviderExistsValidator(providerSummaries.ToList());
-                    fieldValidators.Add(providerExistsValidator);
-                }
-                else
-                {
-                    IFieldValidator providerIdRangeValidator = new ProviderIdRangeValidator();
-                    fieldValidators.Add(providerIdRangeValidator);
-                }
-
-                return fieldValidators;
+            if (validateProviders)
+            {
+                IFieldValidator providerExistsValidator = new ProviderExistsValidator(providerSummaries.ToList());
+                fieldValidators.Add(providerExistsValidator);
+            }
+            else
+            {
+                IFieldValidator providerIdRangeValidator = new ProviderIdRangeValidator();
+                fieldValidators.Add(providerIdRangeValidator);
             }
 
-            return FieldValidators;
+            return fieldValidators;
         }
 
-        private IHeaderValidator GetHeaderValidator(IList<FieldDefinition> fieldDefinitions)
+        private IHeaderValidator[] GetHeaderValidators(IEnumerable<FieldDefinition> fieldDefinitions)
         {
-            return HeaderValidator ?? new RequiredHeaderExistsValidator(fieldDefinitions);
+            return  new IHeaderValidator[]
+            {
+                new RequiredHeaderExistsValidator(fieldDefinitions),
+                new DuplicateHeaderValidator(fieldDefinitions)
+            };
         }
 
         private IFieldValidator GetProviderIdentifierMissingAllDataSchemaFieldsValidator()
@@ -322,7 +317,7 @@ namespace CalculateFunding.Services.DataImporter.Validators
 
         private IBulkFieldValidator GetBulkFieldValidator()
         {
-            return BulkValidator ?? new ProviderDuplicatesExistsValidator();
+            return new ProviderDuplicatesExistsValidator();
         }
 
         private IList<IExcelErrorFormatter> GetAllExcelFormatters(ExcelPackage excelPackage)

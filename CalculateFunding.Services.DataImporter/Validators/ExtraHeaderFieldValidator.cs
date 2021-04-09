@@ -20,7 +20,7 @@ namespace CalculateFunding.Services.DataImporter.Validators
         {
             if(_fieldDefinitions.Where(x => MatchColumn(x, field.Value.ToString())).Count() == 0)
             {
-                return new FieldValidationResult(field, FieldValidationResult.ReasonForFailure.ExtraHeaderField);
+                return new FieldValidationResult(field, DatasetCellReasonForFailure.ExtraHeaderField);
             }
 
             return null;

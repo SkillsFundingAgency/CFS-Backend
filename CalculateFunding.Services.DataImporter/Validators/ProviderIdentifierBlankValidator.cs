@@ -13,7 +13,7 @@ namespace CalculateFunding.Services.DataImporter.Validators
 	    {
 		    if (PreValidate(field) && string.IsNullOrEmpty(field.Value?.ToString()))
 		    {
-				return new FieldValidationResult(field, FieldValidationResult.ReasonForFailure.ProviderIdValueMissing);
+				return new FieldValidationResult(field, DatasetCellReasonForFailure.ProviderIdValueMissing);
 		    }
 		    return null;
 	    }

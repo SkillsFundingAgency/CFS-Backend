@@ -60,7 +60,7 @@ namespace CalculateFunding.Services.Datasets.Validators.FieldAndHeaderValidators
 			// Assert
 			result.Should().NotBeNull();
 			result.ReasonOfFailure
-				.Should().Be(FieldValidationResult.ReasonForFailure.ProviderIdNotInCorrectFormat);
+				.Should().Be(DatasetCellReasonForFailure.ProviderIdNotInCorrectFormat);
 		}
 
 		[TestMethod]
@@ -86,7 +86,7 @@ namespace CalculateFunding.Services.Datasets.Validators.FieldAndHeaderValidators
 			// Assert
 			result.Should().NotBeNull();
 			result.ReasonOfFailure
-				.Should().Be(FieldValidationResult.ReasonForFailure.DataTypeMismatch);
+				.Should().Be(DatasetCellReasonForFailure.DataTypeMismatch);
 		}
 	}
 }

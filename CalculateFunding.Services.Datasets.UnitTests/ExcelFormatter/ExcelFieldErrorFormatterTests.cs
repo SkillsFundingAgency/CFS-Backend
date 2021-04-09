@@ -34,7 +34,7 @@ namespace CalculateFunding.Services.Datasets.ExcelFormatter
             List<FieldValidationResult> fieldValidationResults =
                 fieldsInvalidated
                     .Select(t => new FieldValidationResult(CreateField(t.Item1, t.Item2, anyString, anyFieldDefinition),
-                        FieldValidationResult.ReasonForFailure.ProviderIdMismatchWithServiceProvider))
+                        DatasetCellReasonForFailure.ProviderIdMismatchWithServiceProvider))
                     .ToList();
 
             DatasetUploadValidationResult datasetUploadValidationResult = new DatasetUploadValidationResult()

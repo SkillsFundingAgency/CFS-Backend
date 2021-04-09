@@ -27,20 +27,20 @@ namespace CalculateFunding.Services.Datasets.Validators.FieldAndHeaderValidators
 			RequiredHeaderExistsValidator requiredHeaderExistsValidator = new RequiredHeaderExistsValidator(fieldDefinitionsTestData);
 
 			// Act
-			IList<HeaderValidationResult> invalidResults = requiredHeaderExistsValidator.ValidateHeaders(headerFields);
+			IEnumerable<HeaderValidationResult> invalidResults = requiredHeaderExistsValidator.ValidateHeaders(headerFields);
 
 			// Assert
 			invalidResults
-				.Count
+				.Count()
 				.Should().Be(2);
 
 			invalidResults
 				.Should()
-				.Contain(vr => vr.FieldDefinitionValidated.Name == RequiredHeaderRid);
+				.Contain(vr => vr.FieldDefinition.Name == RequiredHeaderRid);
 
 			invalidResults
 				.Should()
-				.Contain(vr => vr.FieldDefinitionValidated.Name == RequiredHeaderUpin);
+				.Contain(vr => vr.FieldDefinition.Name == RequiredHeaderUpin);
 		}
 
 	    [TestMethod]
@@ -57,7 +57,7 @@ namespace CalculateFunding.Services.Datasets.Validators.FieldAndHeaderValidators
 		    RequiredHeaderExistsValidator requiredHeaderExistsValidator = new RequiredHeaderExistsValidator(fieldDefinitionsTestData);
 
 		    // Act
-		    IList<HeaderValidationResult> invalidResults = requiredHeaderExistsValidator.ValidateHeaders(headerFields);
+		    IEnumerable<HeaderValidationResult> invalidResults = requiredHeaderExistsValidator.ValidateHeaders(headerFields);
 
 		    // Assert
 		    invalidResults

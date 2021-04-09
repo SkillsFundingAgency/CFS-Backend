@@ -25,12 +25,12 @@ namespace CalculateFunding.Services.DataImporter.Validators
 
             if (!parsed)
             {
-                return new FieldValidationResult(field, FieldValidationResult.ReasonForFailure.DataTypeMismatch);
+                return new FieldValidationResult(field, DatasetCellReasonForFailure.DataTypeMismatch);
             }
 
             if(fieldValue < MinProviderIdValue || fieldValue > MaxProviderIdValue)
             {
-                return new FieldValidationResult(field, FieldValidationResult.ReasonForFailure.ProviderIdNotInCorrectFormat);
+                return new FieldValidationResult(field, DatasetCellReasonForFailure.ProviderIdNotInCorrectFormat);
             }
 
             return null;

@@ -29,7 +29,7 @@ namespace CalculateFunding.Services.DataImporter.Validators
 				
 				if (providerSummary == null)
 				{
-					return new FieldValidationResult(field, FieldValidationResult.ReasonForFailure.ProviderIdMismatchWithServiceProvider);
+					return new FieldValidationResult(field, DatasetCellReasonForFailure.ProviderIdMismatchWithServiceProvider);
 				}
 			}
 		    return null;

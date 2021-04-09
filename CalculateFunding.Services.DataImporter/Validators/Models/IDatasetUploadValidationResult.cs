@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace CalculateFunding.Services.DataImporter.Validators.Models
 {
@@ -8,8 +6,8 @@ namespace CalculateFunding.Services.DataImporter.Validators.Models
     {
 	    IEnumerable<FieldValidationResult> FieldValidationFailures { get; }
 
-		IEnumerable<HeaderValidationResult> HeaderValitionFailures { get; }
+		IEnumerable<HeaderValidationResult> HeaderValidationFailures { get; }
 
-	    bool IsValid();
+		bool IsValid { get; }
     }
 }

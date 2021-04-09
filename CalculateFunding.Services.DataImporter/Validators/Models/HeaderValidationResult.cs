@@ -4,11 +4,23 @@ namespace CalculateFunding.Services.DataImporter.Validators.Models
 {
 	public class HeaderValidationResult
 	{
-		public HeaderValidationResult(FieldDefinition fieldDefinitionValidated)
+		public HeaderValidationResult(FieldDefinition fieldDefinition)
 		{
-			FieldDefinitionValidated = fieldDefinitionValidated;
+			FieldDefinition = fieldDefinition;
 		}
 
-		public FieldDefinition FieldDefinitionValidated { get; set; }
+		public FieldDefinition FieldDefinition { get; set; }
+		
+		public DatasetCellReasonForFailure ReasonForFailure { get; set; }
+		
+		public bool HasBackgroundKeyColour { get; set; }
+
+		public static HeaderValidationResult CreateResultRequiringBackgroundColourKey(FieldDefinition fieldDefinition,
+			DatasetCellReasonForFailure reasonForFailure)
+			=> new HeaderValidationResult(fieldDefinition)
+			{
+				ReasonForFailure = reasonForFailure,
+				HasBackgroundKeyColour = true
+			};
 	}
 }

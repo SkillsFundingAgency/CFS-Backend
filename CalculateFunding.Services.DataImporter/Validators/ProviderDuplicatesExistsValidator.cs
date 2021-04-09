@@ -20,7 +20,7 @@ namespace CalculateFunding.Services.DataImporter.Validators
 		    List<FieldValidationResult> fieldValidationResults = 
 			    fieldGrouping
 				    .SelectMany(g => g.ToList())
-				    .Select(f => new FieldValidationResult(f, FieldValidationResult.ReasonForFailure.DuplicateEntriesInTheProviderIdColumn))
+				    .Select(f => new FieldValidationResult(f, DatasetCellReasonForFailure.DuplicateEntriesInTheProviderIdColumn))
 				    .ToList();
 
 		    return fieldValidationResults;

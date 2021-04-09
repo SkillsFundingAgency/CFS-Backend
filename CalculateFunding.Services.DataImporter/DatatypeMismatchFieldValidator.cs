@@ -33,7 +33,7 @@ namespace CalculateFunding.Services.DataImporter
 				return null;
 			}
 
-			return new FieldValidationResult(field, FieldValidationResult.ReasonForFailure.DataTypeMismatch);
+			return new FieldValidationResult(field, DatasetCellReasonForFailure.DataTypeMismatch);
 		}
 	}
 }
