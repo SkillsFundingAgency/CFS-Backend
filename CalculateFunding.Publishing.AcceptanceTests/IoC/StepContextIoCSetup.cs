@@ -20,7 +20,6 @@ using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Generators.OrganisationGroup;
 using CalculateFunding.Generators.OrganisationGroup.Interfaces;
-using CalculateFunding.Generators.Schema10;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Publishing.AcceptanceTests.Contexts;
 using CalculateFunding.Publishing.AcceptanceTests.Repositories;
@@ -51,6 +50,13 @@ using Polly;
 using Serilog;
 using TechTalk.SpecFlow;
 using PublishingResiliencePolicies = CalculateFunding.Services.Publishing.ResiliencePolicies;
+using PublishedProviderContentsGenerator10 = CalculateFunding.Generators.Schema10.PublishedProviderContentsGenerator;
+using PublishedProviderContentsGenerator11 = CalculateFunding.Generators.Schema11.PublishedProviderContentsGenerator;
+using PublishedProviderContentsGenerator12 = CalculateFunding.Generators.Schema12.PublishedProviderContentsGenerator;
+using PublishedFundingContentsGenerator10 = CalculateFunding.Generators.Schema10.PublishedFundingContentsGenerator;
+using PublishedFundingContentsGenerator11 = CalculateFunding.Generators.Schema11.PublishedFundingContentsGenerator;
+using PublishedFundingContentsGenerator12 = CalculateFunding.Generators.Schema12.PublishedFundingContentsGenerator;
+using CalculateFunding.Generators.Schema10;
 
 namespace CalculateFunding.Publishing.AcceptanceTests.IoC
 {
@@ -215,7 +221,9 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<PublishedProviderErrorDetection, IPublishedProviderErrorDetection>();
 
             PublishedProviderContentsGeneratorResolver providerContentsGeneratorResolver = new PublishedProviderContentsGeneratorResolver();
-            providerContentsGeneratorResolver.Register("1.0", new PublishedProviderContentsGenerator());
+            providerContentsGeneratorResolver.Register("1.0", new PublishedProviderContentsGenerator10());
+            providerContentsGeneratorResolver.Register("1.1", new PublishedProviderContentsGenerator11());
+            providerContentsGeneratorResolver.Register("1.2", new PublishedProviderContentsGenerator12());
             RegisterInstanceAs<IPublishedProviderContentsGeneratorResolver>(providerContentsGeneratorResolver);
 
             RegisterTypeAs<FundingLineTotalAggregator, IFundingLineTotalAggregator>();
@@ -255,20 +263,31 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<GenerateCsvJobsInMemoryClient, IGeneratePublishedFundingCsvJobsCreation>();
 
             PublishedFundingIdGeneratorResolver idGeneratorResolver = new PublishedFundingIdGeneratorResolver();
-            idGeneratorResolver.Register("1.0", new PublishedFundingIdGenerator());
+            PublishedFundingIdGenerator publishedFundingIdGenerator = new PublishedFundingIdGenerator();
+            idGeneratorResolver.Register("1.0", publishedFundingIdGenerator);
+            idGeneratorResolver.Register("1.1", publishedFundingIdGenerator);
+            idGeneratorResolver.Register("1.2", publishedFundingIdGenerator);
             RegisterTypeAs<PublishedFundingGenerator, IPublishedFundingGenerator>();
 
             RegisterInstanceAs<IPublishedFundingIdGeneratorResolver>(idGeneratorResolver);
 
             PublishedProviderContentsGeneratorResolver publishedProviderContentsGeneratorResolver = new PublishedProviderContentsGeneratorResolver();
-            IPublishedProviderContentsGenerator v10ProviderGenerator = new PublishedProviderContentsGenerator();
+            IPublishedProviderContentsGenerator v10ProviderGenerator = new PublishedProviderContentsGenerator10();
+            IPublishedProviderContentsGenerator v11ProviderGenerator = new PublishedProviderContentsGenerator11();
+            IPublishedProviderContentsGenerator v12ProviderGenerator = new PublishedProviderContentsGenerator12();
             publishedProviderContentsGeneratorResolver.Register("1.0", v10ProviderGenerator);
+            publishedProviderContentsGeneratorResolver.Register("1.1", v11ProviderGenerator);
+            publishedProviderContentsGeneratorResolver.Register("1.2", v12ProviderGenerator);
 
             RegisterInstanceAs<IPublishedProviderContentsGeneratorResolver>(publishedProviderContentsGeneratorResolver);
 
             PublishedFundingContentsGeneratorResolver publishedFundingContentsGeneratorResolver = new PublishedFundingContentsGeneratorResolver();
-            IPublishedFundingContentsGenerator v10Generator = new PublishedFundingContentsGenerator();
+            IPublishedFundingContentsGenerator v10Generator = new PublishedFundingContentsGenerator10();
+            IPublishedFundingContentsGenerator v11Generator = new PublishedFundingContentsGenerator11();
+            IPublishedFundingContentsGenerator v12Generator = new PublishedFundingContentsGenerator12();
             publishedFundingContentsGeneratorResolver.Register("1.0", v10Generator);
+            publishedFundingContentsGeneratorResolver.Register("1.1", v11Generator);
+            publishedFundingContentsGeneratorResolver.Register("1.2", v12Generator);
 
             RegisterInstanceAs<IPublishedFundingContentsGeneratorResolver>(publishedFundingContentsGeneratorResolver);
             

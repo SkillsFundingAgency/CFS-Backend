@@ -8,11 +8,9 @@
 
   <ItemGroup>
     <None Remove="Resources\16191.0.json" />
-    <None Remove="Resources\16192.0.json" />
     <None Remove="Resources\DSG1.0.json" />
-    <None Remove="Resources\DSG2.0.json" />
-    <None Remove="Resources\GAG1.0.json" />
-    <None Remove="Resources\GAG2.0.json" />
+    <None Remove="Resources\DSG1.0.Variations.json" />
+    <None Remove="Resources\GAG1.2.json" />
     <None Remove="Resources\Input\CalculationResults\1619-approve-all-funding-calculations.json" />
     <None Remove="Resources\Input\CalculationResults\gag-approve-all-funding-calculations.json" />
     <None Remove="Resources\Input\ProviderVersions\1619-providers-1_0.json" />
@@ -65,10 +63,8 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Resources\16191.0.json" />
-    <EmbeddedResource Include="Resources\16192.0.json" />
-    <EmbeddedResource Include="Resources\GAG2.0.json" />
-    <EmbeddedResource Include="Resources\GAG1.0.json" />
-    <EmbeddedResource Include="Resources\DSG2.0.json" />
+    <EmbeddedResource Include="Resources\GAG1.2.json" />
+    <EmbeddedResource Include="Resources\DSG1.0.Variations.json" />
     <EmbeddedResource Include="Resources\DSG1.0.json" />
     <EmbeddedResource Include="Resources\Input\CalculationResults\1619-approve-all-funding-calculations.json" />
     <EmbeddedResource Include="Resources\Input\CalculationResults\gag-approve-all-funding-calculations.json" />
@@ -107,6 +103,8 @@
 
   <ItemGroup>
     <PackageReference Include="CalculateFunding.Common.TemplateMetadata.Schema10" Version="2.1.1" />
+    <PackageReference Include="CalculateFunding.Common.TemplateMetadata.Schema11" Version="2.1.1" />
+    <PackageReference Include="CalculateFunding.Common.TemplateMetadata.Schema12" Version="1.0.0" />
     <PackageReference Include="FluentAssertions" Version="5.10.3" />
     <PackageReference Include="Microsoft.Azure.Storage.Blob" Version="11.2.2" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.4.0" />
@@ -119,6 +117,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CalculateFunding.Generators.Schema10\CalculateFunding.Generators.Schema10.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Generators.Schema11\CalculateFunding.Generators.Schema11.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Generators.Schema12\CalculateFunding.Generators.Schema12.csproj" />
     <ProjectReference Include="..\CalculateFunding.Models.Specs\CalculateFunding.Models.Specs.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Core\CalculateFunding.Services.Core.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Publishing\CalculateFunding.Services.Publishing.csproj" />
@@ -163,6 +163,9 @@
     </Compile>
     <Compile Update="Features\PublishingAllFundingDsg.feature.cs">
       <DependentUpon>PublishingAllFundingDsg.feature</DependentUpon>
+    </Compile>
+    <Compile Update="Features\RefreshGAG.feature.cs">
+      <DependentUpon>RefreshGAG.feature</DependentUpon>
     </Compile>
     <Compile Update="Features\RefreshDsgVariations.feature.cs">
       <DependentUpon>RefreshDsgVariations.feature</DependentUpon>
@@ -234,6 +237,10 @@
       <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
     </SpecFlowFeatureFiles>
     <SpecFlowFeatureFiles Update="Features\PublishingAllFundingDsg.feature">
+      <Visible>$(UsingMicrosoftNETSdk)</Visible>
+      <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
+    </SpecFlowFeatureFiles>
+    <SpecFlowFeatureFiles Update="Features\RefreshGAG.feature">
       <Visible>$(UsingMicrosoftNETSdk)</Visible>
       <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
     </SpecFlowFeatureFiles>

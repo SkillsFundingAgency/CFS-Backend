@@ -295,7 +295,7 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table56.AddRow(new string[] {
                             string.Format("{0}", fundingStreamId),
-                            "1.0"});
+                            "1.2"});
 #line 63
  testRunner.And("the specification has the following template versions for funding streams", ((string)(null)), table56, "And ");
 #line hidden
@@ -428,13 +428,13 @@ this.ScenarioInitialize(scenarioInfo);
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("VariantName", "GAG")]
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:FundingStreamId", "GAG")]
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:FundingPeriodId", "AC-2021")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:FundingPeriodName", "Financial Year 2020-21")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:TemplateVersion", "1.0")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:FundingPeriodName", "Academies Academic Year 2020-21")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:TemplateVersion", "1.2")]
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:ProviderVersionId", "gag-providers-1.0")]
         public virtual void SuccessfulApproveOfFunding_GAG()
         {
 #line 6
-this.SuccessfulApproveOfFunding("GAG", "AC-2021", "Financial Year 2020-21", "1.0", "gag-providers-1.0", ((string[])(null)));
+this.SuccessfulApproveOfFunding("GAG", "AC-2021", "Academies Academic Year 2020-21", "1.2", "gag-providers-1.0", ((string[])(null)));
 #line hidden
         }
     }

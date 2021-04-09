@@ -7,7 +7,7 @@ Scenario Outline: Successful approve of funding
 	Given a funding configuration exists for funding stream '<FundingStreamId>' in funding period '<FundingPeriodId>'
 		| Field                  | Value |
 		| DefaultTemplateVersion | 1.0   |
-	And the funding configuration has the following organisation group
+	And the funding configuration has the following organisation group and provider status list 'Open;Open, but proposed to close'
 		| Field                     | Value          |
 		| GroupTypeIdentifier       | UKPRN          |
 		| GroupingReason            | Payment        |
@@ -23,7 +23,7 @@ Scenario Outline: Successful approve of funding
 		| Special schools       | Community special school    |
 		| Special schools       | Foundation special school   |		
 	And the funding configuration is available in the policies repository	
-	And the funding configuration has the following organisation group
+	And the funding configuration has the following organisation group and provider status list 'Open;Open, but proposed to close'
 		| Field                     | Value        |
 		| GroupTypeIdentifier       | UKPRN        |
 		| GroupingReason            | Payment      |
@@ -45,7 +45,7 @@ Scenario Outline: Successful approve of funding
 		| Academies           | Academy 16 to 19 sponsor led              |
 		| Academies           | Academy 16-19 converter                   |
 	And the funding configuration is available in the policies repository
-	And the funding configuration has the following organisation group
+	And the funding configuration has the following organisation group and provider status list 'Open;Open, but proposed to close'
 		| Field                     | Value       |
 		| GroupTypeIdentifier       | UKPRN       |
 		| GroupingReason            | Information |
@@ -55,7 +55,7 @@ Scenario Outline: Successful approve of funding
 		| ProviderType    | ProviderSubtype               |
 		| Special schools | Non-maintained special school |
 	And the funding configuration is available in the policies repository
-	And the funding configuration has the following organisation group
+	And the funding configuration has the following organisation group and provider status list 'Open;Open, but proposed to close'
 		| Field                     | Value                |
 		| GroupTypeIdentifier       | LACode               |
 		| GroupingReason            | Information          |

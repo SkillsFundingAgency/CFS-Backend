@@ -42,8 +42,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             _policiesStepContext.Repo.SetFundingConfiguration(fundingPeriodId, fundingStreamId, fundingConfiguration);
         }
 
-        [Given(@"the funding configuration has the following organisation group")]
-        public void GivenTheFundingConfigurationHasTheFollowingOrganisationGroup(Table table)
+        [Given(@"the funding configuration has the following organisation group and provider status list '(.*)'")]
+        public void GivenTheFundingConfigurationHasTheFollowingOrganisationGroupAndProviderStatusList(string statusList, Table table)
         {
             _policiesStepContext.CreateFundingConfiguration.Should().NotBeNull();
 
@@ -55,9 +55,21 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
                 newGroupings.AddRange(_policiesStepContext.CreateFundingConfiguration.OrganisationGroupings);
             }
 
+            if (!string.IsNullOrWhiteSpace(statusList))
+            {
+                configuration.ProviderStatus = statusList.Split(';');
+            }
+
             newGroupings.Add(configuration);
 
             _policiesStepContext.CreateFundingConfiguration.OrganisationGroupings = newGroupings;
+        }
+
+
+        [Given(@"the funding configuration has the following organisation group")]
+        public void GivenTheFundingConfigurationHasTheFollowingOrganisationGroup(Table table)
+        {
+            GivenTheFundingConfigurationHasTheFollowingOrganisationGroupAndProviderStatusList(string.Empty, table);
         }
 
         [Given(@"the funding configuration has the following funding variations")]

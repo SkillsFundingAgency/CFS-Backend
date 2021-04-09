@@ -7,7 +7,7 @@
 Background:
 	Given a funding configuration exists for funding stream 'DSG' in funding period 'FY-2021'
 		| Field                  | Value |
-		| DefaultTemplateVersion | 2.0   |
+		| DefaultTemplateVersion | 1.0   |
 	And the funding configuration has the following organisation group
 		| Field                     | Value          |
 		| GroupTypeIdentifier       | UKPRN          |
@@ -63,7 +63,7 @@ Background:
 		| DSG  | DSG |
 	And the specification has the following template versions for funding streams
 		| Key | Value |
-		| DSG | 2.0   |
+		| DSG | 1.0.Variations   |
 	And the specification is approved
 	And the publishing dates for the specifcation are set as following
 		| Field                        | Value               |

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Extensions;
 using CalculateFunding.Common.Utility;
@@ -58,7 +59,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             string fundingId = $"funding-{lookupModel.FundingStreamId}-{lookupModel.FundingPeriodId}-{lookupModel.GroupingReason}-{lookupModel.OrganisationGroupTypeCode}-{lookupModel.OrganisationGroupIdentifierValue}";
 
             PublishedFunding publishedFunding = await _publishedFundingRepositoryStepContext.Repo
-                .GetPublishedFundingById(fundingId, "partitionNotUesd");
+                .GetPublishedFundingById(fundingId, "partitionNotUsed");
 
             publishedFunding
                 .Should()
@@ -288,6 +289,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
                 calValue.Value
                     .Should()
                     .Be(cals.Value);
+
+
             }
         }
 

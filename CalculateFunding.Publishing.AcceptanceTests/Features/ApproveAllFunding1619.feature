@@ -8,11 +8,24 @@ Scenario Outline: Successful approve of funding
 		| Field                  | Value |
 		| DefaultTemplateVersion | 1.0   |
 	And the funding configuration has the following organisation group
+		| Field                     | Value             |
+		| GroupTypeIdentifier       | UKPRN             |
+		| GroupingReason            | Contracting       |
+		| GroupTypeClassification   | LegalEntity       |
+		| OrganisationGroupTypeCode | LocalAuthoritySsf |
+	And the funding configuration has the following provider type matches
+		| ProviderType | ProviderSubtype |
+		| Schoo        | 08SSF           |
+	And the funding configuration is available in the policies repository
+	And the funding configuration has the following organisation group
 		| Field                     | Value          |
 		| GroupTypeIdentifier       | UKPRN          |
-		| GroupingReason            | Payment        |
+		| GroupingReason            | Contracting    |
 		| GroupTypeClassification   | LegalEntity    |
 		| OrganisationGroupTypeCode | LocalAuthority |
+	And the funding configuration has the following provider type matches
+		| ProviderType | ProviderSubtype |
+		| Local        | 10LAU           |
 	And the funding configuration is available in the policies repository
 	And the funding configuration has the following organisation group
 		| Field                     | Value                |
@@ -20,27 +33,68 @@ Scenario Outline: Successful approve of funding
 		| GroupingReason            | Information          |
 		| GroupTypeClassification   | GeographicalBoundary |
 		| OrganisationGroupTypeCode | LocalAuthority       |
+	And the funding configuration has the following provider type matches
+		| ProviderType | ProviderSubtype |
+		| Local        | 10LAU           |
+		| Furth        | 22OTH           |
+		| Schoo        | 08SSF           |
+		| Acade        | 11ACA           |
+		| Acade        | FSAP            |
+		| Acade        | 17NMF           |
+		| Acade        | 12FSC           |
+		| Acade        | 13SSA           |
+		| Acade        | 19FSS           |
+		| Acade        | 15UTC           |
+		| Acade        | 14CTC           |
+		| Acade        | FS1619          |
+		| Acade        | 22AAP           |
+		| Furth        | 01GFE           |
+		| Furth        | 02IPP           |
+		| Furth        | 18ISP           |
+		| Furth        | 03SFC           |
+		| Furth        | 04AHC           |
+		| Furth        | 07HEP           |
+		| Furth        | 05ADC           |
+		| Furth        | 06SDC           |
+		| N1618        | 16NPF           |
 	And the funding configuration is available in the policies repository
 	And the funding configuration has the following organisation group
-		| Field                     | Value                                |
-		| GroupTypeIdentifier       | LocalAuthorityClassificationTypeCode |
-		| GroupingReason            | Information                          |
-		| GroupTypeClassification   | GeographicalBoundary                 |
-		| OrganisationGroupTypeCode | LocalGovernmentGroup                 |
+		| Field                     | Value        |
+		| GroupTypeIdentifier       | UKPRN        |
+		| GroupingReason            | Payment      |
+		| GroupTypeClassification   | LegalEntity  |
+		| OrganisationGroupTypeCode | AcademyTrust |
+	And the funding configuration has the following provider type matches
+		| ProviderType | ProviderSubtype |
+		| Acade        | 11ACA           |
+		| Acade        | FSAP            |
+		| Acade        | 17NMF           |
+		| Acade        | 12FSC           |
+		| Acade        | 13SSA           |
+		| Acade        | 19FSS           |
+		| Acade        | 15UTC           |
+		| Acade        | 14CTC           |
+		| Acade        | FS1619          |
+		| Acade        | 22AAP           |
 	And the funding configuration is available in the policies repository
 	And the funding configuration has the following organisation group
-		| Field                     | Value                      |
-		| GroupTypeIdentifier       | GovernmentOfficeRegionCode |
-		| GroupingReason            | Information                |
-		| GroupTypeClassification   | GeographicalBoundary       |
-		| OrganisationGroupTypeCode | GovernmentOfficeRegion     |
-	And the funding configuration is available in the policies repository
-	And the funding configuration has the following organisation group
-		| Field                     | Value                |
-		| GroupTypeIdentifier       | CountryCode          |
-		| GroupingReason            | Information          |
-		| GroupTypeClassification   | GeographicalBoundary |
-		| OrganisationGroupTypeCode | Country              |
+		| Field                     | Value       |
+		| GroupTypeIdentifier       | UKPRN       |
+		| GroupingReason            | Contracting |
+		| GroupTypeClassification   | LegalEntity |
+		| OrganisationGroupTypeCode | Provider    |
+	And the funding configuration has the following provider type matches
+		| ProviderType | ProviderSubtype |
+		| Furth        | 01GFE           |
+		| Furth        | 02IPP           |
+		| Furth        | 18ISP           |
+		| Furth        | 03SFC           |
+		| Furth        | 04AHC           |
+		| Furth        | 07HEP           |
+		| Furth        | 05ADC           |
+		| Furth        | 06SDC           |
+		| N1618        | 16NPF           |
+		| Furth        | 22OTH           |
 	And the funding configuration is available in the policies repository
 	And the funding period exists in the policies service
 		| Field     | Value               |
@@ -59,7 +113,7 @@ Scenario Outline: Successful approve of funding
 	And the specification has the funding period with id '<FundingPeriodId>' and name '<FundingPeriodName>'
 	And the specification has the following funding streams
 		| Name | Id                |
-		| 1619  | <FundingStreamId> |
+		| 1619 | <FundingStreamId> |
 	And the specification has the following template versions for funding streams
 		| Key               | Value |
 		| <FundingStreamId> | 1.0   |
@@ -86,12 +140,13 @@ Scenario Outline: Successful approve of funding
 	And calculations '1619-approve-all-funding-calculations' exists
 	When funding is approved
 	Then the following published provider ids are upserted
-		| PublishedProviderId                                           | Status  |
-		| publishedprovider-1000000-<FundingPeriodId>-<FundingStreamId> | Approved|
-		| publishedprovider-1000002-<FundingPeriodId>-<FundingStreamId> | Approved|
+		| PublishedProviderId                                           | Status   |
+		| publishedprovider-1000000-<FundingPeriodId>-<FundingStreamId> | Approved |
+		| publishedprovider-1000002-<FundingPeriodId>-<FundingStreamId> | Approved |
 	And the following published provider search index items is produced for providerid with '<FundingStreamId>' and '<FundingPeriodId>'
-		| ID                   | ProviderType          | ProviderSubType  | LocalAuthority    | FundingStatus | ProviderName        | UKPRN   | FundingValue | SpecificationId   | FundingStreamId   | FundingPeriodId   | UPIN   | URN     | Errors | Indicative |
-		| 1619-AS-2021-1000002 | LA maintained schools | Community school | Local Authority 1 | Approved      | Maintained School 2 | 1000002 | 12000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> | 123456 | 1234567 |        | Hide indicative allocations | 
+		| ID                   | ProviderType          | ProviderSubType  | LocalAuthority    | FundingStatus | ProviderName        | UKPRN   | FundingValue | SpecificationId   | FundingStreamId   | FundingPeriodId   | UPIN   | URN     | Errors | Indicative                  |
+		| 1619-AS-2021-1000002 | LA maintained schools | Community school | Local Authority 1 | Approved      | Maintained School 2 | 1000002 | 12000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> | 123456 | 1234567 |        | Hide indicative allocations |
+
 	Examples:
 		| FundingStreamId | FundingPeriodId | FundingPeriodName      | TemplateVersion | ProviderVersionId  |
 		| 1619            | AS-2021         | Financial Year 2020-21 | 1.0             | 1619-providers-1.0 |

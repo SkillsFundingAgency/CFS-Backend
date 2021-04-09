@@ -6,41 +6,27 @@
 Scenario Outline: Successful approve of funding
 	Given a funding configuration exists for funding stream '<FundingStreamId>' in funding period '<FundingPeriodId>'
 		| Field                  | Value |
-		| DefaultTemplateVersion | 1.0   |
-	And the funding configuration has the following organisation group
-		| Field                     | Value          |
-		| GroupTypeIdentifier       | UKPRN          |
-		| GroupingReason            | Payment        |
-		| GroupTypeClassification   | LegalEntity    |
-		| OrganisationGroupTypeCode | LocalAuthority |
+		| DefaultTemplateVersion | 1.2   |
+	And the funding configuration has the following organisation group and provider status list 'Open;Open, but proposed to close'
+		| Field                     | Value        |
+		| GroupTypeIdentifier       | UKPRN        |
+		| GroupingReason            | Payment      |
+		| GroupTypeClassification   | LegalEntity  |
+		| OrganisationGroupTypeCode | AcademyTrust |
 	And the funding configuration is available in the policies repository
-	And the funding configuration has the following organisation group
-		| Field                     | Value                |
-		| GroupTypeIdentifier       | LACode               |
-		| GroupingReason            | Information          |
-		| GroupTypeClassification   | GeographicalBoundary |
-		| OrganisationGroupTypeCode | LocalAuthority       |
+	And the funding configuration has the following organisation group and provider status list 'Open;Open, but proposed to close'
+		| Field                     | Value        |
+		| GroupTypeIdentifier       | UKPRN        |
+		| GroupingReason            | Information  |
+		| GroupTypeClassification   | LegalEntity  |
+		| OrganisationGroupTypeCode | AcademyTrust |
 	And the funding configuration is available in the policies repository
-	And the funding configuration has the following organisation group
-		| Field                     | Value                                |
-		| GroupTypeIdentifier       | LocalAuthorityClassificationTypeCode |
-		| GroupingReason            | Information                          |
-		| GroupTypeClassification   | GeographicalBoundary                 |
-		| OrganisationGroupTypeCode | LocalGovernmentGroup                 |
-	And the funding configuration is available in the policies repository
-	And the funding configuration has the following organisation group
-		| Field                     | Value                      |
-		| GroupTypeIdentifier       | GovernmentOfficeRegionCode |
-		| GroupingReason            | Information                |
-		| GroupTypeClassification   | GeographicalBoundary       |
-		| OrganisationGroupTypeCode | GovernmentOfficeRegion     |
-	And the funding configuration is available in the policies repository
-	And the funding configuration has the following organisation group
-		| Field                     | Value                |
-		| GroupTypeIdentifier       | CountryCode          |
-		| GroupingReason            | Information          |
-		| GroupTypeClassification   | GeographicalBoundary |
-		| OrganisationGroupTypeCode | Country              |
+	And the funding configuration has the following organisation group and provider status list 'Proposed to open'
+		| Field                     | Value        |
+		| GroupTypeIdentifier       | UKPRN        |
+		| GroupingReason            | Indicative   |
+		| GroupTypeClassification   | LegalEntity  |
+		| OrganisationGroupTypeCode | AcademyTrust |
 	And the funding configuration is available in the policies repository
 	And the funding period exists in the policies service
 		| Field     | Value               |
@@ -62,7 +48,7 @@ Scenario Outline: Successful approve of funding
 		| GAG  | <FundingStreamId> |
 	And the specification has the following template versions for funding streams
 		| Key               | Value |
-		| <FundingStreamId> | 1.0   |
+		| <FundingStreamId> | 1.2   |
 	And the publishing dates for the specifcation are set as following
 		| Field                        | Value               |
 		| StatusChangedDate            | 2019-09-27 00:00:00 |
@@ -93,5 +79,5 @@ Scenario Outline: Successful approve of funding
 		| ID                  | ProviderType          | ProviderSubType  | LocalAuthority    | FundingStatus | ProviderName        | UKPRN   | FundingValue | SpecificationId   | FundingStreamId   | FundingPeriodId   | UPIN   | URN     | Errors | Indicative |
 		| GAG-AC-2021-1000002 | LA maintained schools | Community school | Local Authority 1 | Approved      | Maintained School 2 | 1000002 | 12000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> | 123456 | 1234567 |        | Hide indicative allocations |
 	Examples:
-		| FundingStreamId | FundingPeriodId | FundingPeriodName      | TemplateVersion | ProviderVersionId |
-		| GAG             | AC-2021         | Financial Year 2020-21 | 1.0             | gag-providers-1.0 |
+		| FundingStreamId | FundingPeriodId | FundingPeriodName				  | TemplateVersion | ProviderVersionId |
+		| GAG             | AC-2021         | Academies Academic Year 2020-21 | 1.2             | gag-providers-1.0 |

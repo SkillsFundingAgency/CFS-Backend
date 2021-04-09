@@ -102,7 +102,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
                         "Value"});
             table796.AddRow(new string[] {
                         "DefaultTemplateVersion",
-                        "2.0"});
+                        "1.0"});
 #line 8
  testRunner.Given("a funding configuration exists for funding stream \'DSG\' in funding period \'FY-202" +
                     "1\'", ((string)(null)), table796, "Given ");
@@ -272,7 +272,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
                         "Value"});
             table805.AddRow(new string[] {
                         "DSG",
-                        "2.0"});
+                        "1.0.Variations"});
 #line 64
  testRunner.And("the specification has the following template versions for funding streams", ((string)(null)), table805, "And ");
 #line hidden

@@ -8,11 +8,24 @@ Scenario Outline: Successful publishing of funding
 		| Field                  | Value |
 		| DefaultTemplateVersion | 1.0   |
 	And the funding configuration has the following organisation group
+		| Field                     | Value             |
+		| GroupTypeIdentifier       | UKPRN             |
+		| GroupingReason            | Contracting       |
+		| GroupTypeClassification   | LegalEntity       |
+		| OrganisationGroupTypeCode | LocalAuthoritySsf |
+	And the funding configuration has the following provider type matches
+		| ProviderType | ProviderSubtype |
+		| Schoo        | 08SSF           |
+	And the funding configuration is available in the policies repository
+	And the funding configuration has the following organisation group
 		| Field                     | Value          |
 		| GroupTypeIdentifier       | UKPRN          |
-		| GroupingReason            | Payment        |
+		| GroupingReason            | Contracting    |
 		| GroupTypeClassification   | LegalEntity    |
 		| OrganisationGroupTypeCode | LocalAuthority |
+	And the funding configuration has the following provider type matches
+		| ProviderType | ProviderSubtype |
+		| Local        | 10LAU           |
 	And the funding configuration is available in the policies repository
 	And the funding configuration has the following organisation group
 		| Field                     | Value                |
@@ -20,27 +33,68 @@ Scenario Outline: Successful publishing of funding
 		| GroupingReason            | Information          |
 		| GroupTypeClassification   | GeographicalBoundary |
 		| OrganisationGroupTypeCode | LocalAuthority       |
+	And the funding configuration has the following provider type matches
+		| ProviderType | ProviderSubtype |
+		| Local        | 10LAU           |
+		| Furth        | 22OTH           |
+		| Schoo        | 08SSF           |
+		| Acade        | 11ACA           |
+		| Acade        | FSAP            |
+		| Acade        | 17NMF           |
+		| Acade        | 12FSC           |
+		| Acade        | 13SSA           |
+		| Acade        | 19FSS           |
+		| Acade        | 15UTC           |
+		| Acade        | 14CTC           |
+		| Acade        | FS1619          |
+		| Acade        | 22AAP           |
+		| Furth        | 01GFE           |
+		| Furth        | 02IPP           |
+		| Furth        | 18ISP           |
+		| Furth        | 03SFC           |
+		| Furth        | 04AHC           |
+		| Furth        | 07HEP           |
+		| Furth        | 05ADC           |
+		| Furth        | 06SDC           |
+		| N1618        | 16NPF           |
 	And the funding configuration is available in the policies repository
 	And the funding configuration has the following organisation group
-		| Field                     | Value                                |
-		| GroupTypeIdentifier       | LocalAuthorityClassificationTypeCode |
-		| GroupingReason            | Information                          |
-		| GroupTypeClassification   | GeographicalBoundary                 |
-		| OrganisationGroupTypeCode | LocalGovernmentGroup                 |
+		| Field                     | Value        |
+		| GroupTypeIdentifier       | UKPRN        |
+		| GroupingReason            | Payment      |
+		| GroupTypeClassification   | LegalEntity  |
+		| OrganisationGroupTypeCode | AcademyTrust |
+	And the funding configuration has the following provider type matches
+		| ProviderType | ProviderSubtype |
+		| Acade        | 11ACA           |
+		| Acade        | FSAP            |
+		| Acade        | 17NMF           |
+		| Acade        | 12FSC           |
+		| Acade        | 13SSA           |
+		| Acade        | 19FSS           |
+		| Acade        | 15UTC           |
+		| Acade        | 14CTC           |
+		| Acade        | FS1619          |
+		| Acade        | 22AAP           |
 	And the funding configuration is available in the policies repository
 	And the funding configuration has the following organisation group
-		| Field                     | Value                      |
-		| GroupTypeIdentifier       | GovernmentOfficeRegionCode |
-		| GroupingReason            | Information                |
-		| GroupTypeClassification   | GeographicalBoundary       |
-		| OrganisationGroupTypeCode | GovernmentOfficeRegion     |
-	And the funding configuration is available in the policies repository
-	And the funding configuration has the following organisation group
-		| Field                     | Value                |
-		| GroupTypeIdentifier       | CountryCode          |
-		| GroupingReason            | Information          |
-		| GroupTypeClassification   | GeographicalBoundary |
-		| OrganisationGroupTypeCode | Country              |
+		| Field                     | Value       |
+		| GroupTypeIdentifier       | UKPRN       |
+		| GroupingReason            | Contracting |
+		| GroupTypeClassification   | LegalEntity |
+		| OrganisationGroupTypeCode | Provider    |
+	And the funding configuration has the following provider type matches
+		| ProviderType | ProviderSubtype |
+		| Furth        | 01GFE           |
+		| Furth        | 02IPP           |
+		| Furth        | 18ISP           |
+		| Furth        | 03SFC           |
+		| Furth        | 04AHC           |
+		| Furth        | 07HEP           |
+		| Furth        | 05ADC           |
+		| Furth        | 06SDC           |
+		| N1618        | 16NPF           |
+		| Furth        | 22OTH           |
 	And the funding configuration is available in the policies repository
 	And the funding period exists in the policies service
 		| Field     | Value               |

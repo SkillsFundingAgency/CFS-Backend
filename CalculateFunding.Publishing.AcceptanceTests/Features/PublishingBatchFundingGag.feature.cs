@@ -296,7 +296,7 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table634.AddRow(new string[] {
                             string.Format("{0}", fundingStreamId),
-                            "1.0"});
+                            "1.2"});
 #line 63
  testRunner.And("the specification has the following template versions for funding streams", ((string)(null)), table634, "And ");
 #line hidden
@@ -404,131 +404,781 @@ this.ScenarioInitialize(scenarioInfo);
                             "TemplateLineId",
                             "Type"});
                 table639.AddRow(new string[] {
-                            "Pupil Led Factors",
+                            "SBS Exceptional Factors",
                             "GAG-004",
                             "640",
-                            "5",
-                            "Information"});
+                            "49",
+                            "Payment"});
                 table639.AddRow(new string[] {
-                            "Funding Through Premises and Mobility Factors",
+                            "Post Opening Grant - Leadership Diseconomies",
                             "GAG-007",
                             "0",
-                            "6",
-                            "Information"});
+                            "303",
+                            "Payment"});
                 table639.AddRow(new string[] {
-                            "Growth funding",
+                            "Post Opening Grant - Per Pupil Resources",
                             "GAG-006",
                             "0",
-                            "7",
-                            "Information"});
+                            "302",
+                            "Payment"});
                 table639.AddRow(new string[] {
-                            "CSSB Pupil Led Funding",
+                            "Allocation protection",
                             "GAG-012",
                             "320",
+                            "300",
+                            "Payment"});
+                table639.AddRow(new string[] {
+                            "De-Delegated funding retained by the LA",
+                            "GAG-014",
+                            "320",
+                            "705",
+                            "Payment"});
+                table639.AddRow(new string[] {
+                            "SBS Other Factors",
+                            "GAG-003",
+                            "640",
+                            "40",
+                            "Payment"});
+                table639.AddRow(new string[] {
+                            "Start up Grant Part A",
+                            "GAG-008",
+                            "320",
+                            "304",
+                            "Payment"});
+                table639.AddRow(new string[] {
+                            "Start up Grant Part B",
+                            "GAG-009",
+                            "1600",
+                            "305",
+                            "Payment"});
+                table639.AddRow(new string[] {
+                            "Hospital Provision",
+                            "GAG-010",
+                            "1280",
+                            "306",
+                            "Payment"});
+                table639.AddRow(new string[] {
+                            "Pre-16 High Needs funding",
+                            "GAG-011",
+                            "14720",
+                            "307",
+                            "Payment"});
+                table639.AddRow(new string[] {
+                            "Minimum Funding Guarantee",
+                            "GAG-005",
+                            "640",
+                            "297",
+                            "Payment"});
+                table639.AddRow(new string[] {
+                            "SBS Pupil Led Factors",
+                            "GAG-001",
+                            "3840",
+                            "2",
+                            "Payment"});
+                table639.AddRow(new string[] {
+                            "PFI Front Loaded",
+                            "GAG-002",
+                            "15360",
+                            "39",
+                            "Payment"});
+                table639.AddRow(new string[] {
+                            "School Allocation Block With Notional SEN And DeDelegation",
+                            "",
+                            "0",
+                            "0",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "School Budget Share",
+                            "",
+                            "0",
+                            "1",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Primary IDACI Band C Funding",
+                            "",
+                            "0",
+                            "10",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Primary IDACI Band D Funding",
+                            "",
+                            "0",
+                            "11",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Primary IDACI Band E Funding",
+                            "",
+                            "0",
+                            "12",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Primary IDACI Band F Funding",
+                            "",
+                            "0",
+                            "13",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Secondary IDACI Band A Funding",
+                            "",
+                            "0",
+                            "14",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Secondary IDACI Band B Funding",
+                            "",
+                            "0",
+                            "15",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Secondary IDACI Band C Funding",
+                            "",
+                            "0",
+                            "16",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Secondary IDACI Band D Funding",
+                            "",
+                            "0",
+                            "17",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Secondary IDACI Band E Funding",
+                            "",
+                            "0",
+                            "18",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Secondary IDACI Band F Funding",
+                            "",
+                            "0",
+                            "19",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Primary Free School Meals FSM Funding",
+                            "",
+                            "0",
+                            "20",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Primary FSM6 Funding",
+                            "",
+                            "0",
+                            "21",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Secondary Free School Meals FSM Funding",
+                            "",
+                            "0",
+                            "22",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Secondary FSM6 Funding",
+                            "",
+                            "0",
                             "23",
                             "Information"});
                 table639.AddRow(new string[] {
-                            "Funding for Historic Commitments",
-                            "GAG-013",
+                            "Looked After Children LA C Funding",
+                            "",
+                            "0",
+                            "24",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "School Allocation Block",
+                            "",
+                            "0",
+                            "242",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Notional SEN Funding",
+                            "",
+                            "0",
+                            "243",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Basic Entitlement Age Weighted Pupil SEN",
+                            "",
+                            "0",
+                            "244",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Basic Entitlement Primary Including Reception SEN",
+                            "",
+                            "0",
+                            "245",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Basic Entitlement KS3 SEN",
+                            "",
+                            "0",
+                            "246",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Basic Entitlement KS4 SEN",
+                            "",
+                            "0",
+                            "247",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Deprivation SEN",
+                            "",
+                            "0",
+                            "248",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Primary IDACI Band A SEN",
+                            "",
+                            "0",
+                            "249",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Prior Attainment",
+                            "",
+                            "0",
+                            "25",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Primary IDACI Band B SEN",
+                            "",
+                            "0",
+                            "250",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Primary IDACI Band C SEN",
+                            "",
+                            "0",
+                            "251",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Primary IDACI Band D SEN",
+                            "",
+                            "0",
+                            "253",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Primary IDACI Band E SEN",
+                            "",
+                            "0",
+                            "254",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Primary IDACI Band F SEN",
+                            "",
+                            "0",
+                            "255",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Secondary IDACI Band A SEN",
+                            "",
+                            "0",
+                            "256",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Secondary IDACI Band B SEN",
+                            "",
+                            "0",
+                            "257",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Secondary IDACI Band C SEN",
+                            "",
+                            "0",
+                            "258",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Secondary IDACI Band D SEN",
+                            "",
+                            "0",
+                            "259",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Primary Attainment Low Primary Prior Attainment Funding",
+                            "",
+                            "0",
+                            "26",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Secondary IDACIBand E SEN",
+                            "",
+                            "0",
+                            "260",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Secondary IDACIBand F SEN",
+                            "",
+                            "0",
+                            "261",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Primary Free School Meals FSM SEN",
+                            "",
+                            "0",
+                            "262",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Primary FSM6 SEN",
+                            "",
+                            "0",
+                            "263",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Secondary Free School Meals FSM SEN",
+                            "",
+                            "0",
+                            "264",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Pupil Led Factors SEN",
+                            "",
+                            "0",
+                            "265",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Other Factors SEN",
+                            "",
+                            "0",
+                            "266",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Exceptional Factors SEN",
+                            "",
+                            "0",
+                            "267",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "MFG SEN",
+                            "",
+                            "0",
+                            "268",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Secondary FSM6 SEN",
+                            "",
+                            "0",
+                            "269",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Secondary Attainment Secondary Pupils Not Achieving The Expected Standards In KS2" +
+                                " Tests Funding",
+                            "",
                             "0",
                             "27",
                             "Information"});
                 table639.AddRow(new string[] {
-                            "Universal Entitlement for 3 and 4 Year Olds",
-                            "GAG-014",
-                            "320",
-                            "130",
-                            "Information"});
-                table639.AddRow(new string[] {
-                            "Funding for Additional Hours for working parents",
-                            "GAG-015",
-                            "320",
-                            "135",
-                            "Information"});
-                table639.AddRow(new string[] {
-                            "Participation Funding for Disadvantaged 2 Year Olds",
-                            "GAG-016",
-                            "320",
-                            "140",
-                            "Information"});
-                table639.AddRow(new string[] {
-                            "Funding Allocation for Early Years Pupil Premium",
-                            "GAG-017",
-                            "320",
-                            "145",
-                            "Information"});
-                table639.AddRow(new string[] {
-                            "Funding Allocation for Maintained Nursery Supplement",
-                            "GAG-018",
-                            "320",
-                            "150",
-                            "Information"});
-                table639.AddRow(new string[] {
-                            "Funding Allocation for Disability Access Fund",
-                            "GAG-019",
+                            "Prior Attainment SEN",
+                            "",
                             "0",
-                            "155",
+                            "270",
                             "Information"});
                 table639.AddRow(new string[] {
-                            "Schools Block before recoupment",
-                            "GAG-003",
-                            "640",
+                            "Primary Attainment LowPrimaryPriorAttainmentSEN",
+                            "",
+                            "0",
+                            "271",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Secondary Attainment Secondary Pupils Not Achieving The Expected Standards In KS2" +
+                                " Tests SEN",
+                            "",
+                            "0",
+                            "272",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "English As An Additional Language EAL SEN",
+                            "",
+                            "0",
+                            "273",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Primary EAL Band 1 SEN",
+                            "",
+                            "0",
+                            "274",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Primary EAL Band 2 SEN",
+                            "",
+                            "0",
+                            "275",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Primary EAL Band 3 SEN",
+                            "",
+                            "0",
+                            "276",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Secondary EAL Band 1 SEN",
+                            "",
+                            "0",
+                            "277",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Secondary EAL Band 2 SEN",
+                            "",
+                            "0",
+                            "278",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Secondary EAL Band 3 SEN",
+                            "",
+                            "0",
+                            "279",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "English As An Additional Language EAL Funding",
+                            "",
+                            "0",
+                            "28",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Mobility SEN",
+                            "",
+                            "0",
+                            "280",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Primary Mobility SEN",
+                            "",
+                            "0",
+                            "281",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Secondary Mobility SEN",
+                            "",
+                            "0",
+                            "282",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Sparsity SEN",
+                            "",
+                            "0",
+                            "283",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Lump Sum SEN",
+                            "",
+                            "0",
+                            "284",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Primary Lump Sum SEN",
+                            "",
+                            "0",
+                            "285",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Secondary Lump Sum SEN",
+                            "",
+                            "0",
+                            "286",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Split Sites SEN",
+                            "",
+                            "0",
+                            "287",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Standard PFI SEN",
+                            "",
+                            "0",
+                            "288",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "MFL SEN",
+                            "",
+                            "0",
+                            "289",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Primary EAL Band 1 Funding",
+                            "",
+                            "0",
+                            "29",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Exceptional Circumstance 1 SEN",
+                            "",
+                            "0",
+                            "290",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Exceptional Circumstance 2 SEN",
+                            "",
+                            "0",
+                            "291",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Exceptional Circumstance 3 SEN",
+                            "",
+                            "0",
+                            "292",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Exceptional Circumstance 4 SEN",
+                            "",
+                            "0",
+                            "293",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Exceptional Circumstance 5 SEN",
+                            "",
+                            "0",
+                            "294",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Exceptional Circumstance 6 SEN",
+                            "",
+                            "0",
+                            "295",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Exceptional Circumstance 7 SEN",
+                            "",
+                            "0",
+                            "296",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Total Post Opening Grant Start Up Grant Allocation",
+                            "",
+                            "0",
+                            "298",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Total High Needs Allocation",
+                            "",
+                            "0",
+                            "299",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Basic Entitlement Age Weighted Pupil Unit",
+                            "",
+                            "0",
+                            "3",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Primary EAL Band 2 Funding",
+                            "",
+                            "0",
+                            "30",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Special Unoccupied",
+                            "",
+                            "0",
+                            "308",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Special Occupied",
+                            "",
+                            "0",
+                            "309",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Primary EAL Band 3 Funding",
+                            "",
+                            "0",
+                            "31",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Alternative Provision",
+                            "",
+                            "0",
+                            "310",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Secondary EAL Band 1 Funding",
+                            "",
+                            "0",
+                            "32",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Secondary EAL Band 2 Funding",
+                            "",
+                            "0",
+                            "33",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Looked After Children LAC SEN",
+                            "",
+                            "0",
+                            "337",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Secondary EALBand3Funding",
+                            "",
+                            "0",
+                            "34",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Mobility Funding",
+                            "",
+                            "0",
+                            "35",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Primary Mobility Funding",
+                            "",
+                            "0",
+                            "36",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Secondary Mobility Funding",
+                            "",
+                            "0",
+                            "37",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "SBS Other Factors Summary",
+                            "",
+                            "0",
+                            "38",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Basic Entitlement Primary Funding",
+                            "",
+                            "0",
                             "4",
                             "Information"});
                 table639.AddRow(new string[] {
-                            "Central School Services Block",
-                            "GAG-008",
-                            "320",
+                            "Sparsity Funding",
+                            "",
+                            "0",
+                            "41",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Lump Sum",
+                            "",
+                            "0",
+                            "42",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Primary Lump Sum",
+                            "",
+                            "0",
+                            "43",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Secondary Lump Sum",
+                            "",
+                            "0",
+                            "44",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "SplitSite",
+                            "",
+                            "0",
+                            "45",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "PFI",
+                            "",
+                            "0",
+                            "46",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "London Fringe",
+                            "",
+                            "0",
+                            "47",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "MFL Adjustment",
+                            "",
+                            "0",
+                            "48",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Basic Entitlement KS3 Funding",
+                            "",
+                            "0",
+                            "5",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Exceptional Circumstance 1 Funding",
+                            "",
+                            "0",
+                            "50",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Exceptional Circumstance 2 Funding",
+                            "",
+                            "0",
+                            "51",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Exceptional Circumstance 3 Funding",
+                            "",
+                            "0",
+                            "52",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Exceptional Circumstance 4 Funding",
+                            "",
+                            "0",
+                            "53",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Exceptional Circumstance 5 Funding",
+                            "",
+                            "0",
+                            "54",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Exceptional Circumstance 6 Funding",
+                            "",
+                            "0",
+                            "55",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Exceptional Circumstance 7 Funding",
+                            "",
+                            "0",
+                            "56",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Prior Year Adjustment To SBS",
+                            "",
+                            "0",
+                            "57",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Basic Entitlement KS4 Funding",
+                            "",
+                            "0",
+                            "6",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Deprivation",
+                            "",
+                            "0",
+                            "7",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Funding Previously De Delegated",
+                            "",
+                            "0",
+                            "704",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Total School Allocation With High Needs",
+                            "",
+                            "0",
+                            "718",
+                            "Information"});
+                table639.AddRow(new string[] {
+                            "Primary IDACI Band A Funding",
+                            "",
+                            "0",
                             "8",
                             "Information"});
                 table639.AddRow(new string[] {
-                            "Early Years Block",
-                            "GAG-009",
-                            "1600",
+                            "Primary IDACI Band B Funding",
+                            "",
+                            "0",
                             "9",
                             "Information"});
-                table639.AddRow(new string[] {
-                            "High Needs Block before deductions",
-                            "GAG-010",
-                            "1280",
-                            "10",
-                            "Information"});
-                table639.AddRow(new string[] {
-                            "Total High Needs Block After Deductions",
-                            "GAG-011",
-                            "14720",
-                            "11",
-                            "Information"});
-                table639.AddRow(new string[] {
-                            "School Block After recoupment",
-                            "GAG-005",
-                            "640",
-                            "12",
-                            "Information"});
-                table639.AddRow(new string[] {
-                            "Provisional Schools Block Funding Excluding Growth",
-                            "GAG-020",
-                            "0",
-                            "239",
-                            "Information"});
-                table639.AddRow(new string[] {
-                            "LA Protection",
-                            "GAG-021",
-                            "0",
-                            "240",
-                            "Information"});
-                table639.AddRow(new string[] {
-                            "Total GAG before deductions and recoupment",
-                            "GAG-001",
-                            "3840",
-                            "2",
-                            "Information"});
-                table639.AddRow(new string[] {
-                            "Total GAG after deductions and recoupment",
-                            "GAG-002",
-                            "15360",
-                            "3",
-                            "Payment"});
 #line 99
  testRunner.And("the Published Provider has the following funding lines", ((string)(null)), table639, "And ");
 #line hidden
@@ -541,7 +1191,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table640.AddRow(new string[] {
                             "AC-2021",
                             "5000"});
-#line 122
+#line 230
  testRunner.And("the Published Provider has the following distribution period for funding line \'GA" +
                         "G-002\'", ((string)(null)), table640, "And ");
 #line hidden
@@ -566,7 +1216,7 @@ this.ScenarioInitialize(scenarioInfo);
                             "2021",
                             "1",
                             "5000"});
-#line 126
+#line 234
  testRunner.And("the Published Providers distribution period has the following profiles for fundin" +
                         "g line \'GAG-002\'", ((string)(null)), table641, "And ");
 #line hidden
@@ -1498,7 +2148,7 @@ this.ScenarioInitialize(scenarioInfo);
                             "5cfb28de-88d6-4faa-a936-d81a065fb596",
                             "219",
                             "16-19 Academies and Free Schools Total Post-16 Schools SEN Places"});
-#line 130
+#line 238
  testRunner.And("template mapping exists", ((string)(null)), table642, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table643 = new TechTalk.SpecFlow.Table(new string[] {
@@ -2020,7 +2670,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table643.AddRow(new string[] {
                             "219",
                             "320"});
-#line 304
+#line 412
  testRunner.And("the Published Provider contains the following calculation results", ((string)(null)), table643, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table644 = new TechTalk.SpecFlow.Table(new string[] {
@@ -2059,10 +2709,10 @@ this.ScenarioInitialize(scenarioInfo);
                 table644.AddRow(new string[] {
                             "UKPRN",
                             "1000000"});
-#line 478
+#line 586
  testRunner.And("the Published Provider has the following provider information", ((string)(null)), table644, "And ");
 #line hidden
-#line 491
+#line 599
  testRunner.And("the Published Provider is available in the repository for this specification", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table645 = new TechTalk.SpecFlow.Table(new string[] {
@@ -2101,11 +2751,11 @@ this.ScenarioInitialize(scenarioInfo);
                 table645.AddRow(new string[] {
                             "UKPRN",
                             "1000000"});
-#line 493
+#line 601
  testRunner.And(string.Format("the following provider exists within core provider data in provider version \'{0}\'" +
                             "", providerVersionId), ((string)(null)), table645, "And ");
 #line hidden
-#line 506
+#line 614
  testRunner.And(string.Format("the provider with id \'1000000\' should be a scoped provider in the current specifi" +
                             "cation in provider version \'{0}\'", providerVersionId), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
@@ -2136,7 +2786,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table646.AddRow(new string[] {
                             "MinorVersion",
                             "0"});
-#line 507
+#line 615
  testRunner.And("the following Published Provider has been previously generated for the current sp" +
                         "ecification", ((string)(null)), table646, "And ");
 #line hidden
@@ -2147,132 +2797,782 @@ this.ScenarioInitialize(scenarioInfo);
                             "TemplateLineId",
                             "Type"});
                 table647.AddRow(new string[] {
-                            "Pupil Led Factors",
+                            "SBS Exceptional Factors",
                             "GAG-004",
                             "640",
-                            "5",
-                            "Information"});
+                            "49",
+                            "Payment"});
                 table647.AddRow(new string[] {
-                            "Funding Through Premises and Mobility Factors",
+                            "Post Opening Grant - Leadership Diseconomies",
                             "GAG-007",
                             "0",
-                            "6",
-                            "Information"});
+                            "303",
+                            "Payment"});
                 table647.AddRow(new string[] {
-                            "Growth funding",
+                            "Post Opening Grant - Per Pupil Resources",
                             "GAG-006",
                             "0",
-                            "7",
-                            "Information"});
+                            "302",
+                            "Payment"});
                 table647.AddRow(new string[] {
-                            "CSSB Pupil Led Funding",
+                            "Allocation protection",
                             "GAG-012",
                             "320",
+                            "300",
+                            "Payment"});
+                table647.AddRow(new string[] {
+                            "De-Delegated funding retained by the LA",
+                            "GAG-014",
+                            "320",
+                            "705",
+                            "Payment"});
+                table647.AddRow(new string[] {
+                            "SBS Other Factors",
+                            "GAG-003",
+                            "640",
+                            "40",
+                            "Payment"});
+                table647.AddRow(new string[] {
+                            "Start up Grant Part A",
+                            "GAG-008",
+                            "320",
+                            "304",
+                            "Payment"});
+                table647.AddRow(new string[] {
+                            "Start up Grant Part B",
+                            "GAG-009",
+                            "1600",
+                            "305",
+                            "Payment"});
+                table647.AddRow(new string[] {
+                            "Hospital Provision",
+                            "GAG-010",
+                            "1280",
+                            "306",
+                            "Payment"});
+                table647.AddRow(new string[] {
+                            "Pre-16 High Needs funding",
+                            "GAG-011",
+                            "14720",
+                            "307",
+                            "Payment"});
+                table647.AddRow(new string[] {
+                            "Minimum Funding Guarantee",
+                            "GAG-005",
+                            "640",
+                            "297",
+                            "Payment"});
+                table647.AddRow(new string[] {
+                            "SBS Pupil Led Factors",
+                            "GAG-001",
+                            "3840",
+                            "2",
+                            "Payment"});
+                table647.AddRow(new string[] {
+                            "PFI Front Loaded",
+                            "GAG-002",
+                            "15360",
+                            "39",
+                            "Payment"});
+                table647.AddRow(new string[] {
+                            "School Allocation Block With Notional SEN And DeDelegation",
+                            "",
+                            "0",
+                            "0",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "School Budget Share",
+                            "",
+                            "0",
+                            "1",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Primary IDACI Band C Funding",
+                            "",
+                            "0",
+                            "10",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Primary IDACI Band D Funding",
+                            "",
+                            "0",
+                            "11",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Primary IDACI Band E Funding",
+                            "",
+                            "0",
+                            "12",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Primary IDACI Band F Funding",
+                            "",
+                            "0",
+                            "13",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Secondary IDACI Band A Funding",
+                            "",
+                            "0",
+                            "14",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Secondary IDACI Band B Funding",
+                            "",
+                            "0",
+                            "15",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Secondary IDACI Band C Funding",
+                            "",
+                            "0",
+                            "16",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Secondary IDACI Band D Funding",
+                            "",
+                            "0",
+                            "17",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Secondary IDACI Band E Funding",
+                            "",
+                            "0",
+                            "18",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Secondary IDACI Band F Funding",
+                            "",
+                            "0",
+                            "19",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Primary Free School Meals FSM Funding",
+                            "",
+                            "0",
+                            "20",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Primary FSM6 Funding",
+                            "",
+                            "0",
+                            "21",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Secondary Free School Meals FSM Funding",
+                            "",
+                            "0",
+                            "22",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Secondary FSM6 Funding",
+                            "",
+                            "0",
                             "23",
                             "Information"});
                 table647.AddRow(new string[] {
-                            "Funding for Historic Commitments",
-                            "GAG-013",
+                            "Looked After Children LA C Funding",
+                            "",
+                            "0",
+                            "24",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "School Allocation Block",
+                            "",
+                            "0",
+                            "242",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Notional SEN Funding",
+                            "",
+                            "0",
+                            "243",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Basic Entitlement Age Weighted Pupil SEN",
+                            "",
+                            "0",
+                            "244",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Basic Entitlement Primary Including Reception SEN",
+                            "",
+                            "0",
+                            "245",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Basic Entitlement KS3 SEN",
+                            "",
+                            "0",
+                            "246",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Basic Entitlement KS4 SEN",
+                            "",
+                            "0",
+                            "247",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Deprivation SEN",
+                            "",
+                            "0",
+                            "248",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Primary IDACI Band A SEN",
+                            "",
+                            "0",
+                            "249",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Prior Attainment",
+                            "",
+                            "0",
+                            "25",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Primary IDACI Band B SEN",
+                            "",
+                            "0",
+                            "250",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Primary IDACI Band C SEN",
+                            "",
+                            "0",
+                            "251",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Primary IDACI Band D SEN",
+                            "",
+                            "0",
+                            "253",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Primary IDACI Band E SEN",
+                            "",
+                            "0",
+                            "254",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Primary IDACI Band F SEN",
+                            "",
+                            "0",
+                            "255",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Secondary IDACI Band A SEN",
+                            "",
+                            "0",
+                            "256",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Secondary IDACI Band B SEN",
+                            "",
+                            "0",
+                            "257",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Secondary IDACI Band C SEN",
+                            "",
+                            "0",
+                            "258",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Secondary IDACI Band D SEN",
+                            "",
+                            "0",
+                            "259",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Primary Attainment Low Primary Prior Attainment Funding",
+                            "",
+                            "0",
+                            "26",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Secondary IDACIBand E SEN",
+                            "",
+                            "0",
+                            "260",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Secondary IDACIBand F SEN",
+                            "",
+                            "0",
+                            "261",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Primary Free School Meals FSM SEN",
+                            "",
+                            "0",
+                            "262",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Primary FSM6 SEN",
+                            "",
+                            "0",
+                            "263",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Secondary Free School Meals FSM SEN",
+                            "",
+                            "0",
+                            "264",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Pupil Led Factors SEN",
+                            "",
+                            "0",
+                            "265",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Other Factors SEN",
+                            "",
+                            "0",
+                            "266",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Exceptional Factors SEN",
+                            "",
+                            "0",
+                            "267",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "MFG SEN",
+                            "",
+                            "0",
+                            "268",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Secondary FSM6 SEN",
+                            "",
+                            "0",
+                            "269",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Secondary Attainment Secondary Pupils Not Achieving The Expected Standards In KS2" +
+                                " Tests Funding",
+                            "",
                             "0",
                             "27",
                             "Information"});
                 table647.AddRow(new string[] {
-                            "Universal Entitlement for 3 and 4 Year Olds",
-                            "GAG-014",
-                            "320",
-                            "130",
-                            "Information"});
-                table647.AddRow(new string[] {
-                            "Funding for Additional Hours for working parents",
-                            "GAG-015",
-                            "320",
-                            "135",
-                            "Information"});
-                table647.AddRow(new string[] {
-                            "Participation Funding for Disadvantaged 2 Year Olds",
-                            "GAG-016",
-                            "320",
-                            "140",
-                            "Information"});
-                table647.AddRow(new string[] {
-                            "Funding Allocation for Early Years Pupil Premium",
-                            "GAG-017",
-                            "320",
-                            "145",
-                            "Information"});
-                table647.AddRow(new string[] {
-                            "Funding Allocation for Maintained Nursery Supplement",
-                            "GAG-018",
-                            "320",
-                            "150",
-                            "Information"});
-                table647.AddRow(new string[] {
-                            "Funding Allocation for Disability Access Fund",
-                            "GAG-019",
+                            "Prior Attainment SEN",
+                            "",
                             "0",
-                            "155",
+                            "270",
                             "Information"});
                 table647.AddRow(new string[] {
-                            "Schools Block before recoupment",
-                            "GAG-003",
-                            "640",
+                            "Primary Attainment LowPrimaryPriorAttainmentSEN",
+                            "",
+                            "0",
+                            "271",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Secondary Attainment Secondary Pupils Not Achieving The Expected Standards In KS2" +
+                                " Tests SEN",
+                            "",
+                            "0",
+                            "272",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "English As An Additional Language EAL SEN",
+                            "",
+                            "0",
+                            "273",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Primary EAL Band 1 SEN",
+                            "",
+                            "0",
+                            "274",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Primary EAL Band 2 SEN",
+                            "",
+                            "0",
+                            "275",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Primary EAL Band 3 SEN",
+                            "",
+                            "0",
+                            "276",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Secondary EAL Band 1 SEN",
+                            "",
+                            "0",
+                            "277",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Secondary EAL Band 2 SEN",
+                            "",
+                            "0",
+                            "278",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Secondary EAL Band 3 SEN",
+                            "",
+                            "0",
+                            "279",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "English As An Additional Language EAL Funding",
+                            "",
+                            "0",
+                            "28",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Mobility SEN",
+                            "",
+                            "0",
+                            "280",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Primary Mobility SEN",
+                            "",
+                            "0",
+                            "281",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Secondary Mobility SEN",
+                            "",
+                            "0",
+                            "282",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Sparsity SEN",
+                            "",
+                            "0",
+                            "283",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Lump Sum SEN",
+                            "",
+                            "0",
+                            "284",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Primary Lump Sum SEN",
+                            "",
+                            "0",
+                            "285",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Secondary Lump Sum SEN",
+                            "",
+                            "0",
+                            "286",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Split Sites SEN",
+                            "",
+                            "0",
+                            "287",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Standard PFI SEN",
+                            "",
+                            "0",
+                            "288",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "MFL SEN",
+                            "",
+                            "0",
+                            "289",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Primary EAL Band 1 Funding",
+                            "",
+                            "0",
+                            "29",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Exceptional Circumstance 1 SEN",
+                            "",
+                            "0",
+                            "290",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Exceptional Circumstance 2 SEN",
+                            "",
+                            "0",
+                            "291",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Exceptional Circumstance 3 SEN",
+                            "",
+                            "0",
+                            "292",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Exceptional Circumstance 4 SEN",
+                            "",
+                            "0",
+                            "293",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Exceptional Circumstance 5 SEN",
+                            "",
+                            "0",
+                            "294",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Exceptional Circumstance 6 SEN",
+                            "",
+                            "0",
+                            "295",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Exceptional Circumstance 7 SEN",
+                            "",
+                            "0",
+                            "296",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Total Post Opening Grant Start Up Grant Allocation",
+                            "",
+                            "0",
+                            "298",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Total High Needs Allocation",
+                            "",
+                            "0",
+                            "299",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Basic Entitlement Age Weighted Pupil Unit",
+                            "",
+                            "0",
+                            "3",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Primary EAL Band 2 Funding",
+                            "",
+                            "0",
+                            "30",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Special Unoccupied",
+                            "",
+                            "0",
+                            "308",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Special Occupied",
+                            "",
+                            "0",
+                            "309",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Primary EAL Band 3 Funding",
+                            "",
+                            "0",
+                            "31",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Alternative Provision",
+                            "",
+                            "0",
+                            "310",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Secondary EAL Band 1 Funding",
+                            "",
+                            "0",
+                            "32",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Secondary EAL Band 2 Funding",
+                            "",
+                            "0",
+                            "33",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Looked After Children LAC SEN",
+                            "",
+                            "0",
+                            "337",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Secondary EALBand3Funding",
+                            "",
+                            "0",
+                            "34",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Mobility Funding",
+                            "",
+                            "0",
+                            "35",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Primary Mobility Funding",
+                            "",
+                            "0",
+                            "36",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Secondary Mobility Funding",
+                            "",
+                            "0",
+                            "37",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "SBS Other Factors Summary",
+                            "",
+                            "0",
+                            "38",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Basic Entitlement Primary Funding",
+                            "",
+                            "0",
                             "4",
                             "Information"});
                 table647.AddRow(new string[] {
-                            "Central School Services Block",
-                            "GAG-008",
-                            "320",
+                            "Sparsity Funding",
+                            "",
+                            "0",
+                            "41",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Lump Sum",
+                            "",
+                            "0",
+                            "42",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Primary Lump Sum",
+                            "",
+                            "0",
+                            "43",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Secondary Lump Sum",
+                            "",
+                            "0",
+                            "44",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "SplitSite",
+                            "",
+                            "0",
+                            "45",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "PFI",
+                            "",
+                            "0",
+                            "46",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "London Fringe",
+                            "",
+                            "0",
+                            "47",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "MFL Adjustment",
+                            "",
+                            "0",
+                            "48",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Basic Entitlement KS3 Funding",
+                            "",
+                            "0",
+                            "5",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Exceptional Circumstance 1 Funding",
+                            "",
+                            "0",
+                            "50",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Exceptional Circumstance 2 Funding",
+                            "",
+                            "0",
+                            "51",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Exceptional Circumstance 3 Funding",
+                            "",
+                            "0",
+                            "52",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Exceptional Circumstance 4 Funding",
+                            "",
+                            "0",
+                            "53",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Exceptional Circumstance 5 Funding",
+                            "",
+                            "0",
+                            "54",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Exceptional Circumstance 6 Funding",
+                            "",
+                            "0",
+                            "55",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Exceptional Circumstance 7 Funding",
+                            "",
+                            "0",
+                            "56",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Prior Year Adjustment To SBS",
+                            "",
+                            "0",
+                            "57",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Basic Entitlement KS4 Funding",
+                            "",
+                            "0",
+                            "6",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Deprivation",
+                            "",
+                            "0",
+                            "7",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Funding Previously De Delegated",
+                            "",
+                            "0",
+                            "704",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Total School Allocation With High Needs",
+                            "",
+                            "0",
+                            "718",
+                            "Information"});
+                table647.AddRow(new string[] {
+                            "Primary IDACI Band A Funding",
+                            "",
+                            "0",
                             "8",
                             "Information"});
                 table647.AddRow(new string[] {
-                            "Early Years Block",
-                            "GAG-009",
-                            "1600",
+                            "Primary IDACI Band B Funding",
+                            "",
+                            "0",
                             "9",
                             "Information"});
-                table647.AddRow(new string[] {
-                            "High Needs Block before deductions",
-                            "GAG-010",
-                            "1280",
-                            "10",
-                            "Information"});
-                table647.AddRow(new string[] {
-                            "Total High Needs Block After Deductions",
-                            "GAG-011",
-                            "14720",
-                            "11",
-                            "Information"});
-                table647.AddRow(new string[] {
-                            "School Block After recoupment",
-                            "GAG-005",
-                            "640",
-                            "12",
-                            "Information"});
-                table647.AddRow(new string[] {
-                            "Provisional Schools Block Funding Excluding Growth",
-                            "GAG-020",
-                            "0",
-                            "239",
-                            "Information"});
-                table647.AddRow(new string[] {
-                            "LA Protection",
-                            "GAG-021",
-                            "0",
-                            "240",
-                            "Information"});
-                table647.AddRow(new string[] {
-                            "Total GAG before deductions and recoupment",
-                            "GAG-001",
-                            "3840",
-                            "2",
-                            "Information"});
-                table647.AddRow(new string[] {
-                            "Total GAG after deductions and recoupment",
-                            "GAG-002",
-                            "15360",
-                            "3",
-                            "Payment"});
-#line 517
+#line 625
  testRunner.And("the Published Provider has the following funding lines", ((string)(null)), table647, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table648 = new TechTalk.SpecFlow.Table(new string[] {
@@ -2284,7 +3584,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table648.AddRow(new string[] {
                             "AC-2021",
                             "5000"});
-#line 540
+#line 756
  testRunner.And("the Published Provider has the following distribution period for funding line \'GA" +
                         "G-002\'", ((string)(null)), table648, "And ");
 #line hidden
@@ -2309,7 +3609,7 @@ this.ScenarioInitialize(scenarioInfo);
                             "2021",
                             "1",
                             "5000"});
-#line 544
+#line 760
  testRunner.And("the Published Providers distribution period has the following profiles for fundin" +
                         "g line \'GAG-002\'", ((string)(null)), table649, "And ");
 #line hidden
@@ -2832,7 +4132,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table650.AddRow(new string[] {
                             "219",
                             "320"});
-#line 548
+#line 764
  testRunner.And("the Published Provider contains the following calculation results", ((string)(null)), table650, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table651 = new TechTalk.SpecFlow.Table(new string[] {
@@ -2871,10 +4171,10 @@ this.ScenarioInitialize(scenarioInfo);
                 table651.AddRow(new string[] {
                             "UKPRN",
                             "1000002"});
-#line 722
+#line 938
  testRunner.And("the Published Provider has the following provider information", ((string)(null)), table651, "And ");
 #line hidden
-#line 735
+#line 951
  testRunner.And("the Published Provider is available in the repository for this specification", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table652 = new TechTalk.SpecFlow.Table(new string[] {
@@ -2913,11 +4213,11 @@ this.ScenarioInitialize(scenarioInfo);
                 table652.AddRow(new string[] {
                             "UKPRN",
                             "1000002"});
-#line 737
+#line 953
  testRunner.And(string.Format("the following provider exists within core provider data in provider version \'{0}\'" +
                             "", providerVersionId), ((string)(null)), table652, "And ");
 #line hidden
-#line 750
+#line 966
  testRunner.And(string.Format("the provider with id \'1000002\' should be a scoped provider in the current specifi" +
                             "cation in provider version \'{0}\'", providerVersionId), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
@@ -2957,7 +4257,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table653.AddRow(new string[] {
                             "UKPRN",
                             "9000000"});
-#line 752
+#line 968
  testRunner.And(string.Format("the following provider exists within core provider data in provider version \'{0}\'" +
                             "", providerVersionId), ((string)(null)), table653, "And ");
 #line hidden
@@ -3480,14 +4780,14 @@ this.ScenarioInitialize(scenarioInfo);
                 table654.AddRow(new string[] {
                             "320",
                             "5cfb28de-88d6-4faa-a936-d81a065fb596"});
-#line 765
+#line 981
  testRunner.And("calculations exists", ((string)(null)), table654, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table655 = new TechTalk.SpecFlow.Table(new string[] {
                             "Ids"});
                 table655.AddRow(new string[] {
                             string.Format("{0}-{1}-1000000", fundingStreamId, fundingPeriodId)});
-#line 939
+#line 1155
  testRunner.When("batch funding is published", ((string)(null)), table655, "When ");
 #line hidden
                 TechTalk.SpecFlow.Table table656 = new TechTalk.SpecFlow.Table(new string[] {
@@ -3508,10 +4808,10 @@ this.ScenarioInitialize(scenarioInfo);
                 table656.AddRow(new string[] {
                             "FundingStreamId",
                             string.Format("{0}", fundingStreamId)});
-#line 942
+#line 1158
  testRunner.Then("the following published funding is produced", ((string)(null)), table656, "Then ");
 #line hidden
-#line 949
+#line 1165
  testRunner.And("the total funding is \'24000\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table657 = new TechTalk.SpecFlow.Table(new string[] {
@@ -3520,14 +4820,14 @@ this.ScenarioInitialize(scenarioInfo);
                             string.Format("{0}-{1}-1000002-1_0", fundingStreamId, fundingPeriodId)});
                 table657.AddRow(new string[] {
                             string.Format("{0}-{1}-1000000-1_0", fundingStreamId, fundingPeriodId)});
-#line 950
+#line 1166
  testRunner.And("the published funding contains the following published provider ids", ((string)(null)), table657, "And ");
 #line hidden
-#line 954
+#line 1170
  testRunner.And("the published funding contains a distribution period in funding line \'GAG-002\' wi" +
                         "th id of \'AC-1920\' has the value of \'14000\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 955
+#line 1171
  testRunner.And("the published funding contains a distribution period in funding line \'GAG-002\' wi" +
                         "th id of \'AC-2021\' has the value of \'10000\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
@@ -3545,7 +4845,7 @@ this.ScenarioInitialize(scenarioInfo);
                             "1920",
                             "1",
                             "14000"});
-#line 956
+#line 1172
  testRunner.And("the published funding contains a distribution period in funding line \'GAG-002\' wi" +
                         "th id of \'AC-1920\' has the following profiles", ((string)(null)), table658, "And ");
 #line hidden
@@ -3563,7 +4863,7 @@ this.ScenarioInitialize(scenarioInfo);
                             "2021",
                             "1",
                             "10000"});
-#line 959
+#line 1175
  testRunner.And("the published funding contains a distribution period in funding line \'GAG-002\' wi" +
                         "th id of \'AC-2021\' has the following profiles", ((string)(null)), table659, "And ");
 #line hidden
@@ -3571,336 +4871,117 @@ this.ScenarioInitialize(scenarioInfo);
                             "Id",
                             "Value"});
                 table660.AddRow(new string[] {
-                            "238",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "15",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "17",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "13",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "14",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "19",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "20",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "26",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "24",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "28",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "133",
-                            "320"});
-                table660.AddRow(new string[] {
-                            "131",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "138",
-                            "320"});
-                table660.AddRow(new string[] {
-                            "136",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "143",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "141",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "148",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "146",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "153",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "151",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "32",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "34",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "37",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "29",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "237",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "30",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "33",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "36",
-                            "320"});
-                table660.AddRow(new string[] {
-                            "65",
-                            "640"});
-                table660.AddRow(new string[] {
                             "66",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "64",
                             "640"});
                 table660.AddRow(new string[] {
                             "70",
                             "640"});
                 table660.AddRow(new string[] {
-                            "71",
+                            "67",
                             "640"});
                 table660.AddRow(new string[] {
-                            "69",
+                            "71",
                             "640"});
                 table660.AddRow(new string[] {
                             "75",
                             "640"});
                 table660.AddRow(new string[] {
-                            "76",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "74",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "80",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "81",
-                            "640"});
-                table660.AddRow(new string[] {
                             "79",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "50",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "51",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "52",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "53",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "163",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "164",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "162",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "90",
                             "640"});
                 table660.AddRow(new string[] {
                             "91",
                             "640"});
                 table660.AddRow(new string[] {
-                            "89",
+                            "98",
                             "640"});
                 table660.AddRow(new string[] {
                             "95",
                             "640"});
                 table660.AddRow(new string[] {
-                            "96",
+                            "129",
                             "640"});
                 table660.AddRow(new string[] {
-                            "94",
+                            "134",
+                            "640"});
+                table660.AddRow(new string[] {
+                            "141",
+                            "640"});
+                table660.AddRow(new string[] {
+                            "138",
+                            "640"});
+                table660.AddRow(new string[] {
+                            "144",
+                            "640"});
+                table660.AddRow(new string[] {
+                            "153",
                             "640"});
                 table660.AddRow(new string[] {
                             "158",
                             "640"});
                 table660.AddRow(new string[] {
-                            "175",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "174",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "168",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "169",
+                            "162",
                             "640"});
                 table660.AddRow(new string[] {
                             "167",
                             "640"});
                 table660.AddRow(new string[] {
-                            "176",
+                            "175",
                             "640"});
                 table660.AddRow(new string[] {
-                            "177",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "232",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "182",
+                            "179",
                             "640"});
                 table660.AddRow(new string[] {
                             "183",
                             "640"});
                 table660.AddRow(new string[] {
-                            "234",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "159",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "161",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "233",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "189",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "190",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "186",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "195",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "196",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "192",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "185",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "191",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "202",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "203",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "199",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "198",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "209",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "210",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "206",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "205",
+                            "211",
                             "640"});
                 table660.AddRow(new string[] {
                             "214",
                             "640"});
                 table660.AddRow(new string[] {
-                            "215",
+                            "187",
                             "640"});
                 table660.AddRow(new string[] {
-                            "213",
+                            "217",
                             "640"});
                 table660.AddRow(new string[] {
-                            "223",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "224",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "220",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "212",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "128",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "129",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "227",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "226",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "42",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "156",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "157",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "184",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "197",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "204",
-                            "640"});
-                table660.AddRow(new string[] {
-                            "211",
+                            "221",
                             "640"});
                 table660.AddRow(new string[] {
                             "218",
                             "640"});
                 table660.AddRow(new string[] {
-                            "225",
+                            "83",
                             "640"});
                 table660.AddRow(new string[] {
-                            "40",
+                            "228",
                             "640"});
                 table660.AddRow(new string[] {
-                            "41",
+                            "236",
                             "640"});
                 table660.AddRow(new string[] {
-                            "39",
+                            "223",
                             "640"});
                 table660.AddRow(new string[] {
-                            "21",
+                            "227",
                             "640"});
                 table660.AddRow(new string[] {
-                            "22",
+                            "229",
                             "640"});
                 table660.AddRow(new string[] {
-                            "219",
+                            "232",
                             "640"});
-#line 962
+                table660.AddRow(new string[] {
+                            "233",
+                            "640"});
+                table660.AddRow(new string[] {
+                            "234",
+                            "640"});
+                table660.AddRow(new string[] {
+                            "222",
+                            "640"});
+#line 1178
  testRunner.And("the published funding contains a calculations in published provider with followin" +
                         "g calculation results", ((string)(null)), table660, "And ");
 #line hidden
@@ -3910,7 +4991,7 @@ this.ScenarioInitialize(scenarioInfo);
                             string.Format("{0}-{1}-Information-LocalAuthority-200-1_0.json", fundingStreamId, fundingPeriodId)});
                 table661.AddRow(new string[] {
                             string.Format("{0}-{1}-Payment-LocalAuthority-9000000-1_0.json", fundingStreamId, fundingPeriodId)});
-#line 1074
+#line 1217
  testRunner.And("the published funding document produced is saved to blob storage for following fi" +
                         "le name", ((string)(null)), table661, "And ");
 #line hidden
@@ -3926,14 +5007,14 @@ this.ScenarioInitialize(scenarioInfo);
                             string.Format("{0}-{1}-Payment-LocalAuthority-9000000-1_0.json", fundingStreamId, fundingPeriodId),
                             "specification-id",
                             "specForPublishing"});
-#line 1078
+#line 1221
  testRunner.And("the published funding document produced has following metadata", ((string)(null)), table662, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table663 = new TechTalk.SpecFlow.Table(new string[] {
                             "PublishedProviderFiles"});
                 table663.AddRow(new string[] {
                             string.Format("{0}-{1}-1000000-1_0.json", fundingStreamId, fundingPeriodId)});
-#line 1082
+#line 1225
  testRunner.And("the published provider document produced is saved to blob storage for following f" +
                         "ile name", ((string)(null)), table663, "And ");
 #line hidden
@@ -3945,7 +5026,7 @@ this.ScenarioInitialize(scenarioInfo);
                             string.Format("{0}-{1}-1000000-1_0.json", fundingStreamId, fundingPeriodId),
                             "specification-id",
                             "specForPublishing"});
-#line 1085
+#line 1228
  testRunner.And("the published provider document produced has following metadata", ((string)(null)), table664, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table665 = new TechTalk.SpecFlow.Table(new string[] {
@@ -3976,7 +5057,7 @@ this.ScenarioInitialize(scenarioInfo);
                             string.Format("{0}", fundingPeriodId),
                             "",
                             "Hide indicative allocations"});
-#line 1088
+#line 1231
  testRunner.And(string.Format("the following published provider search index items is produced for providerid wi" +
                             "th \'{0}\' and \'{1}\'", fundingStreamId, fundingPeriodId), ((string)(null)), table665, "And ");
 #line hidden
@@ -3995,7 +5076,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table666.AddRow(new string[] {
                             "ParentJobId",
                             ""});
-#line 1091
+#line 1234
  testRunner.And("the following job is requested is completed for the current specification", ((string)(null)), table666, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table667 = new TechTalk.SpecFlow.Table(new string[] {
@@ -4007,7 +5088,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table667.AddRow(new string[] {
                             string.Format("publishedprovider-1000002-{0}-{1}", fundingPeriodId, fundingStreamId),
                             "Released"});
-#line 1097
+#line 1240
  testRunner.And("the following released published provider ids are upserted", ((string)(null)), table667, "And ");
 #line hidden
             }
@@ -4021,12 +5102,12 @@ this.ScenarioInitialize(scenarioInfo);
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:FundingStreamId", "GAG")]
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:FundingPeriodId", "AC-2021")]
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:FundingPeriodName", "Financial Year 2020-21")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:TemplateVersion", "1.0")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:TemplateVersion", "1.2")]
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:ProviderVersionId", "gag-providers-1.0")]
         public virtual void SuccessfulPublishingOfFunding_GAG()
         {
 #line 6
-this.SuccessfulPublishingOfFunding("GAG", "AC-2021", "Financial Year 2020-21", "1.0", "gag-providers-1.0", ((string[])(null)));
+this.SuccessfulPublishingOfFunding("GAG", "AC-2021", "Financial Year 2020-21", "1.2", "gag-providers-1.0", ((string[])(null)));
 #line hidden
         }
     }

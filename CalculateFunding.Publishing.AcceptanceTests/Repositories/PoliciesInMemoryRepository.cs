@@ -70,8 +70,32 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
                 return new ApiResponse<TemplateMetadataContents>(fundingSourceFile.StatusCode);
             }
 
-            Common.TemplateMetadata.Schema10.TemplateMetadataGenerator templateGenerator = new Common.TemplateMetadata.Schema10.TemplateMetadataGenerator(_logger);
-            return await Task.FromResult(new ApiResponse<TemplateMetadataContents>(System.Net.HttpStatusCode.OK, templateGenerator.GetMetadata(fundingSourceFile.Content)));
+            TemplateMetadataContents templateMetadataContents = null;
+
+            switch(templateVersion)
+            {
+                case "1.0":
+                case "1.0.Variations":
+                    {
+                        Common.TemplateMetadata.Schema10.TemplateMetadataGenerator templateGenerator = new Common.TemplateMetadata.Schema10.TemplateMetadataGenerator(_logger);
+                        templateMetadataContents = templateGenerator.GetMetadata(fundingSourceFile.Content);
+                        break;
+                    }
+                case "1.1":
+                    {
+                        Common.TemplateMetadata.Schema11.TemplateMetadataGenerator templateGenerator = new Common.TemplateMetadata.Schema11.TemplateMetadataGenerator(_logger);
+                        templateMetadataContents = templateGenerator.GetMetadata(fundingSourceFile.Content);
+                        break;
+                    }
+                case "1.2":
+                    {
+                        Common.TemplateMetadata.Schema12.TemplateMetadataGenerator templateGenerator = new Common.TemplateMetadata.Schema12.TemplateMetadataGenerator(_logger);
+                        templateMetadataContents = templateGenerator.GetMetadata(fundingSourceFile.Content);
+                        break;
+                    }
+            }
+
+            return await Task.FromResult(new ApiResponse<TemplateMetadataContents>(System.Net.HttpStatusCode.OK, templateMetadataContents));
         }
 
         public Task<ApiResponse<string>> GetFundingTemplateSourceFile(string fundingStreamId, string fundingPeriodid, string templateVersion)

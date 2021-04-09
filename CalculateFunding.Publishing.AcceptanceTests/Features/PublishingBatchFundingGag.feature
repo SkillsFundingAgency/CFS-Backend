@@ -6,41 +6,27 @@
 Scenario Outline: Successful publishing of funding
 	Given a funding configuration exists for funding stream '<FundingStreamId>' in funding period '<FundingPeriodId>'
 		| Field                  | Value |
-		| DefaultTemplateVersion | 1.0   |
-	And the funding configuration has the following organisation group
-		| Field                     | Value          |
-		| GroupTypeIdentifier       | UKPRN          |
-		| GroupingReason            | Payment        |
-		| GroupTypeClassification   | LegalEntity    |
-		| OrganisationGroupTypeCode | LocalAuthority |
+		| DefaultTemplateVersion | 1.2   |
+	And the funding configuration has the following organisation group and provider status list 'Open;Open, but proposed to close'
+		| Field                     | Value        |
+		| GroupTypeIdentifier       | UKPRN        |
+		| GroupingReason            | Payment      |
+		| GroupTypeClassification   | LegalEntity  |
+		| OrganisationGroupTypeCode | AcademyTrust |
 	And the funding configuration is available in the policies repository
-	And the funding configuration has the following organisation group
-		| Field                     | Value                |
-		| GroupTypeIdentifier       | LACode               |
-		| GroupingReason            | Information          |
-		| GroupTypeClassification   | GeographicalBoundary |
-		| OrganisationGroupTypeCode | LocalAuthority       |
+	And the funding configuration has the following organisation group and provider status list 'Open;Open, but proposed to close'
+		| Field                     | Value        |
+		| GroupTypeIdentifier       | UKPRN        |
+		| GroupingReason            | Information  |
+		| GroupTypeClassification   | LegalEntity  |
+		| OrganisationGroupTypeCode | AcademyTrust |
 	And the funding configuration is available in the policies repository
-	And the funding configuration has the following organisation group
-		| Field                     | Value                                |
-		| GroupTypeIdentifier       | LocalAuthorityClassificationTypeCode |
-		| GroupingReason            | Information                          |
-		| GroupTypeClassification   | GeographicalBoundary                 |
-		| OrganisationGroupTypeCode | LocalGovernmentGroup                 |
-	And the funding configuration is available in the policies repository
-	And the funding configuration has the following organisation group
-		| Field                     | Value                      |
-		| GroupTypeIdentifier       | GovernmentOfficeRegionCode |
-		| GroupingReason            | Information                |
-		| GroupTypeClassification   | GeographicalBoundary       |
-		| OrganisationGroupTypeCode | GovernmentOfficeRegion     |
-	And the funding configuration is available in the policies repository
-	And the funding configuration has the following organisation group
-		| Field                     | Value                |
-		| GroupTypeIdentifier       | CountryCode          |
-		| GroupingReason            | Information          |
-		| GroupTypeClassification   | GeographicalBoundary |
-		| OrganisationGroupTypeCode | Country              |
+	And the funding configuration has the following organisation group and provider status list 'Proposed to open'
+		| Field                     | Value        |
+		| GroupTypeIdentifier       | UKPRN        |
+		| GroupingReason            | Indicative   |
+		| GroupTypeClassification   | LegalEntity  |
+		| OrganisationGroupTypeCode | AcademyTrust |
 	And the funding configuration is available in the policies repository
 	And the funding period exists in the policies service
 		| Field     | Value               |
@@ -62,7 +48,7 @@ Scenario Outline: Successful publishing of funding
 		| GAG  | <FundingStreamId> |
 	And the specification has the following template versions for funding streams
 		| Key               | Value |
-		| <FundingStreamId> | 1.0   |
+		| <FundingStreamId> | 1.2   |
 	And the publishing dates for the specifcation are set as following
 		| Field                        | Value               |
 		| StatusChangedDate            | 2019-09-27 00:00:00 |
@@ -97,28 +83,136 @@ Scenario Outline: Successful publishing of funding
 		| MajorVersion    | 0                 |
 		| MinorVersion    | 1                 |
 	And the Published Provider has the following funding lines
-		| Name                                                 | FundingLineCode | Value | TemplateLineId | Type        |
-		| Pupil Led Factors                                    | GAG-004         | 640   | 5              | Information |
-		| Funding Through Premises and Mobility Factors        | GAG-007         | 0     | 6              | Information |
-		| Growth funding                                       | GAG-006         | 0     | 7              | Information |
-		| CSSB Pupil Led Funding                               | GAG-012         | 320   | 23             | Information |
-		| Funding for Historic Commitments                     | GAG-013         | 0     | 27             | Information |
-		| Universal Entitlement for 3 and 4 Year Olds          | GAG-014         | 320   | 130            | Information |
-		| Funding for Additional Hours for working parents     | GAG-015         | 320   | 135            | Information |
-		| Participation Funding for Disadvantaged 2 Year Olds  | GAG-016         | 320   | 140            | Information |
-		| Funding Allocation for Early Years Pupil Premium     | GAG-017         | 320   | 145            | Information |
-		| Funding Allocation for Maintained Nursery Supplement | GAG-018         | 320   | 150            | Information |
-		| Funding Allocation for Disability Access Fund        | GAG-019         | 0     | 155            | Information |
-		| Schools Block before recoupment                      | GAG-003         | 640   | 4              | Information |
-		| Central School Services Block                        | GAG-008         | 320   | 8              | Information |
-		| Early Years Block                                    | GAG-009         | 1600  | 9              | Information |
-		| High Needs Block before deductions                   | GAG-010         | 1280  | 10             | Information |
-		| Total High Needs Block After Deductions              | GAG-011         | 14720 | 11             | Information |
-		| School Block After recoupment                        | GAG-005         | 640   | 12             | Information |
-		| Provisional Schools Block Funding Excluding Growth   | GAG-020         | 0     | 239            | Information |
-		| LA Protection                                        | GAG-021         | 0     | 240            | Information |
-		| Total GAG before deductions and recoupment           | GAG-001         | 3840  | 2              | Information |
-		| Total GAG after deductions and recoupment            | GAG-002         | 15360 | 3              | Payment     |
+		| Name                                                                                            | FundingLineCode | Value | TemplateLineId | Type        |
+		| SBS Exceptional Factors                                                                         | GAG-004         | 640   | 49             | Payment     |
+		| Post Opening Grant - Leadership Diseconomies                                                    | GAG-007         | 0     | 303            | Payment     |
+		| Post Opening Grant - Per Pupil Resources                                                        | GAG-006         | 0     | 302            | Payment     |
+		| Allocation protection                                                                           | GAG-012         | 320   | 300            | Payment     |
+		| De-Delegated funding retained by the LA                                                         | GAG-014         | 320   | 705            | Payment     |
+		| SBS Other Factors                                                                               | GAG-003         | 640   | 40             | Payment     |
+		| Start up Grant Part A                                                                           | GAG-008         | 320   | 304            | Payment     |
+		| Start up Grant Part B                                                                           | GAG-009         | 1600  | 305            | Payment     |
+		| Hospital Provision                                                                              | GAG-010         | 1280  | 306            | Payment     |
+		| Pre-16 High Needs funding                                                                       | GAG-011         | 14720 | 307            | Payment     |
+		| Minimum Funding Guarantee                                                                       | GAG-005         | 640   | 297            | Payment     |
+		| SBS Pupil Led Factors                                                                           | GAG-001         | 3840  | 2              | Payment     |
+		| PFI Front Loaded                                                                                | GAG-002         | 15360 | 39             | Payment     |
+		| School Allocation Block With Notional SEN And DeDelegation                                      |                 | 0     | 0              | Information |
+		| School Budget Share                                                                             |                 | 0     | 1              | Information |
+		| Primary IDACI Band C Funding                                                                    |                 | 0     | 10             | Information |
+		| Primary IDACI Band D Funding                                                                    |                 | 0     | 11             | Information |
+		| Primary IDACI Band E Funding                                                                    |                 | 0     | 12             | Information |
+		| Primary IDACI Band F Funding                                                                    |                 | 0     | 13             | Information |
+		| Secondary IDACI Band A Funding                                                                  |                 | 0     | 14             | Information |
+		| Secondary IDACI Band B Funding                                                                  |                 | 0     | 15             | Information |
+		| Secondary IDACI Band C Funding                                                                  |                 | 0     | 16             | Information |
+		| Secondary IDACI Band D Funding                                                                  |                 | 0     | 17             | Information |
+		| Secondary IDACI Band E Funding                                                                  |                 | 0     | 18             | Information |
+		| Secondary IDACI Band F Funding                                                                  |                 | 0     | 19             | Information |
+		| Primary Free School Meals FSM Funding                                                           |                 | 0     | 20             | Information |
+		| Primary FSM6 Funding                                                                            |                 | 0     | 21             | Information |
+		| Secondary Free School Meals FSM Funding                                                         |                 | 0     | 22             | Information |
+		| Secondary FSM6 Funding                                                                          |                 | 0     | 23             | Information |
+		| Looked After Children LA C Funding                                                              |                 | 0     | 24             | Information |
+		| School Allocation Block                                                                         |                 | 0     | 242            | Information |
+		| Notional SEN Funding                                                                            |                 | 0     | 243            | Information |
+		| Basic Entitlement Age Weighted Pupil SEN                                                        |                 | 0     | 244            | Information |
+		| Basic Entitlement Primary Including Reception SEN                                               |                 | 0     | 245            | Information |
+		| Basic Entitlement KS3 SEN                                                                       |                 | 0     | 246            | Information |
+		| Basic Entitlement KS4 SEN                                                                       |                 | 0     | 247            | Information |
+		| Deprivation SEN                                                                                 |                 | 0     | 248            | Information |
+		| Primary IDACI Band A SEN                                                                        |                 | 0     | 249            | Information |
+		| Prior Attainment                                                                                |                 | 0     | 25             | Information |
+		| Primary IDACI Band B SEN                                                                        |                 | 0     | 250            | Information |
+		| Primary IDACI Band C SEN                                                                        |                 | 0     | 251            | Information |
+		| Primary IDACI Band D SEN                                                                        |                 | 0     | 253            | Information |
+		| Primary IDACI Band E SEN                                                                        |                 | 0     | 254            | Information |
+		| Primary IDACI Band F SEN                                                                        |                 | 0     | 255            | Information |
+		| Secondary IDACI Band A SEN                                                                      |                 | 0     | 256            | Information |
+		| Secondary IDACI Band B SEN                                                                      |                 | 0     | 257            | Information |
+		| Secondary IDACI Band C SEN                                                                      |                 | 0     | 258            | Information |
+		| Secondary IDACI Band D SEN                                                                      |                 | 0     | 259            | Information |
+		| Primary Attainment Low Primary Prior Attainment Funding                                         |                 | 0     | 26             | Information |
+		| Secondary IDACIBand E SEN                                                                       |                 | 0     | 260            | Information |
+		| Secondary IDACIBand F SEN                                                                       |                 | 0     | 261            | Information |
+		| Primary Free School Meals FSM SEN                                                               |                 | 0     | 262            | Information |
+		| Primary FSM6 SEN                                                                                |                 | 0     | 263            | Information |
+		| Secondary Free School Meals FSM SEN                                                             |                 | 0     | 264            | Information |
+		| Pupil Led Factors SEN                                                                           |                 | 0     | 265            | Information |
+		| Other Factors SEN                                                                               |                 | 0     | 266            | Information |
+		| Exceptional Factors SEN                                                                         |                 | 0     | 267            | Information |
+		| MFG SEN                                                                                         |                 | 0     | 268            | Information |
+		| Secondary FSM6 SEN                                                                              |                 | 0     | 269            | Information |
+		| Secondary Attainment Secondary Pupils Not Achieving The Expected Standards In KS2 Tests Funding |                 | 0     | 27             | Information |
+		| Prior Attainment SEN                                                                            |                 | 0     | 270            | Information |
+		| Primary Attainment LowPrimaryPriorAttainmentSEN                                                 |                 | 0     | 271            | Information |
+		| Secondary Attainment Secondary Pupils Not Achieving The Expected Standards In KS2 Tests SEN     |                 | 0     | 272            | Information |
+		| English As An Additional Language EAL SEN                                                       |                 | 0     | 273            | Information |
+		| Primary EAL Band 1 SEN                                                                          |                 | 0     | 274            | Information |
+		| Primary EAL Band 2 SEN                                                                          |                 | 0     | 275            | Information |
+		| Primary EAL Band 3 SEN                                                                          |                 | 0     | 276            | Information |
+		| Secondary EAL Band 1 SEN                                                                        |                 | 0     | 277            | Information |
+		| Secondary EAL Band 2 SEN                                                                        |                 | 0     | 278            | Information |
+		| Secondary EAL Band 3 SEN                                                                        |                 | 0     | 279            | Information |
+		| English As An Additional Language EAL Funding                                                   |                 | 0     | 28             | Information |
+		| Mobility SEN                                                                                    |                 | 0     | 280            | Information |
+		| Primary Mobility SEN                                                                            |                 | 0     | 281            | Information |
+		| Secondary Mobility SEN                                                                          |                 | 0     | 282            | Information |
+		| Sparsity SEN                                                                                    |                 | 0     | 283            | Information |
+		| Lump Sum SEN                                                                                    |                 | 0     | 284            | Information |
+		| Primary Lump Sum SEN                                                                            |                 | 0     | 285            | Information |
+		| Secondary Lump Sum SEN                                                                          |                 | 0     | 286            | Information |
+		| Split Sites SEN                                                                                 |                 | 0     | 287            | Information |
+		| Standard PFI SEN                                                                                |                 | 0     | 288            | Information |
+		| MFL SEN                                                                                         |                 | 0     | 289            | Information |
+		| Primary EAL Band 1 Funding                                                                      |                 | 0     | 29             | Information |
+		| Exceptional Circumstance 1 SEN                                                                  |                 | 0     | 290            | Information |
+		| Exceptional Circumstance 2 SEN                                                                  |                 | 0     | 291            | Information |
+		| Exceptional Circumstance 3 SEN                                                                  |                 | 0     | 292            | Information |
+		| Exceptional Circumstance 4 SEN                                                                  |                 | 0     | 293            | Information |
+		| Exceptional Circumstance 5 SEN                                                                  |                 | 0     | 294            | Information |
+		| Exceptional Circumstance 6 SEN                                                                  |                 | 0     | 295            | Information |
+		| Exceptional Circumstance 7 SEN                                                                  |                 | 0     | 296            | Information |
+		| Total Post Opening Grant Start Up Grant Allocation                                              |                 | 0     | 298            | Information |
+		| Total High Needs Allocation                                                                     |                 | 0     | 299            | Information |
+		| Basic Entitlement Age Weighted Pupil Unit                                                       |                 | 0     | 3              | Information |
+		| Primary EAL Band 2 Funding                                                                      |                 | 0     | 30             | Information |
+		| Special Unoccupied                                                                              |                 | 0     | 308            | Information |
+		| Special Occupied                                                                                |                 | 0     | 309            | Information |
+		| Primary EAL Band 3 Funding                                                                      |                 | 0     | 31             | Information |
+		| Alternative Provision                                                                           |                 | 0     | 310            | Information |
+		| Secondary EAL Band 1 Funding                                                                    |                 | 0     | 32             | Information |
+		| Secondary EAL Band 2 Funding                                                                    |                 | 0     | 33             | Information |
+		| Looked After Children LAC SEN                                                                   |                 | 0     | 337            | Information |
+		| Secondary EALBand3Funding                                                                       |                 | 0     | 34             | Information |
+		| Mobility Funding                                                                                |                 | 0     | 35             | Information |
+		| Primary Mobility Funding                                                                        |                 | 0     | 36             | Information |
+		| Secondary Mobility Funding                                                                      |                 | 0     | 37             | Information |
+		| SBS Other Factors Summary                                                                       |                 | 0     | 38             | Information |
+		| Basic Entitlement Primary Funding                                                               |                 | 0     | 4              | Information |
+		| Sparsity Funding                                                                                |                 | 0     | 41             | Information |
+		| Lump Sum                                                                                        |                 | 0     | 42             | Information |
+		| Primary Lump Sum                                                                                |                 | 0     | 43             | Information |
+		| Secondary Lump Sum                                                                              |                 | 0     | 44             | Information |
+		| SplitSite                                                                                       |                 | 0     | 45             | Information |
+		| PFI                                                                                             |                 | 0     | 46             | Information |
+		| London Fringe                                                                                   |                 | 0     | 47             | Information |
+		| MFL Adjustment                                                                                  |                 | 0     | 48             | Information |
+		| Basic Entitlement KS3 Funding                                                                   |                 | 0     | 5              | Information |
+		| Exceptional Circumstance 1 Funding                                                              |                 | 0     | 50             | Information |
+		| Exceptional Circumstance 2 Funding                                                              |                 | 0     | 51             | Information |
+		| Exceptional Circumstance 3 Funding                                                              |                 | 0     | 52             | Information |
+		| Exceptional Circumstance 4 Funding                                                              |                 | 0     | 53             | Information |
+		| Exceptional Circumstance 5 Funding                                                              |                 | 0     | 54             | Information |
+		| Exceptional Circumstance 6 Funding                                                              |                 | 0     | 55             | Information |
+		| Exceptional Circumstance 7 Funding                                                              |                 | 0     | 56             | Information |
+		| Prior Year Adjustment To SBS                                                                    |                 | 0     | 57             | Information |
+		| Basic Entitlement KS4 Funding                                                                   |                 | 0     | 6              | Information |
+		| Deprivation                                                                                     |                 | 0     | 7              | Information |
+		| Funding Previously De Delegated                                                                 |                 | 0     | 704            | Information |
+		| Total School Allocation With High Needs                                                         |                 | 0     | 718            | Information |
+		| Primary IDACI Band A Funding                                                                    |                 | 0     | 8              | Information |
+		| Primary IDACI Band B Funding                                                                    |                 | 0     | 9              | Information |
 	And the Published Provider has the following distribution period for funding line 'GAG-002'
 		| DistributionPeriodId | Value |
 		| AC-1920              | 7000  |
@@ -515,28 +609,136 @@ Scenario Outline: Successful publishing of funding
 		| MajorVersion    | 1                 |
 		| MinorVersion    | 0                 |
 	And the Published Provider has the following funding lines
-		| Name                                                 | FundingLineCode | Value | TemplateLineId | Type        |
-		| Pupil Led Factors                                    | GAG-004         | 640   | 5              | Information |
-		| Funding Through Premises and Mobility Factors        | GAG-007         | 0     | 6              | Information |
-		| Growth funding                                       | GAG-006         | 0     | 7              | Information |
-		| CSSB Pupil Led Funding                               | GAG-012         | 320   | 23             | Information |
-		| Funding for Historic Commitments                     | GAG-013         | 0     | 27             | Information |
-		| Universal Entitlement for 3 and 4 Year Olds          | GAG-014         | 320   | 130            | Information |
-		| Funding for Additional Hours for working parents     | GAG-015         | 320   | 135            | Information |
-		| Participation Funding for Disadvantaged 2 Year Olds  | GAG-016         | 320   | 140            | Information |
-		| Funding Allocation for Early Years Pupil Premium     | GAG-017         | 320   | 145            | Information |
-		| Funding Allocation for Maintained Nursery Supplement | GAG-018         | 320   | 150            | Information |
-		| Funding Allocation for Disability Access Fund        | GAG-019         | 0     | 155            | Information |
-		| Schools Block before recoupment                      | GAG-003         | 640   | 4              | Information |
-		| Central School Services Block                        | GAG-008         | 320   | 8              | Information |
-		| Early Years Block                                    | GAG-009         | 1600  | 9              | Information |
-		| High Needs Block before deductions                   | GAG-010         | 1280  | 10             | Information |
-		| Total High Needs Block After Deductions              | GAG-011         | 14720 | 11             | Information |
-		| School Block After recoupment                        | GAG-005         | 640   | 12             | Information |
-		| Provisional Schools Block Funding Excluding Growth   | GAG-020         | 0     | 239            | Information |
-		| LA Protection                                        | GAG-021         | 0     | 240            | Information |
-		| Total GAG before deductions and recoupment           | GAG-001         | 3840  | 2              | Information |
-		| Total GAG after deductions and recoupment            | GAG-002         | 15360 | 3              | Payment     |
+		| Name                                                                                            | FundingLineCode | Value | TemplateLineId | Type        |
+		| SBS Exceptional Factors                                                                         | GAG-004         | 640   | 49             | Payment     |
+		| Post Opening Grant - Leadership Diseconomies                                                    | GAG-007         | 0     | 303            | Payment     |
+		| Post Opening Grant - Per Pupil Resources                                                        | GAG-006         | 0     | 302            | Payment     |
+		| Allocation protection                                                                           | GAG-012         | 320   | 300            | Payment     |
+		| De-Delegated funding retained by the LA                                                         | GAG-014         | 320   | 705            | Payment     |
+		| SBS Other Factors                                                                               | GAG-003         | 640   | 40             | Payment     |
+		| Start up Grant Part A                                                                           | GAG-008         | 320   | 304            | Payment     |
+		| Start up Grant Part B                                                                           | GAG-009         | 1600  | 305            | Payment     |
+		| Hospital Provision                                                                              | GAG-010         | 1280  | 306            | Payment     |
+		| Pre-16 High Needs funding                                                                       | GAG-011         | 14720 | 307            | Payment     |
+		| Minimum Funding Guarantee                                                                       | GAG-005         | 640   | 297            | Payment     |
+		| SBS Pupil Led Factors                                                                           | GAG-001         | 3840  | 2              | Payment     |
+		| PFI Front Loaded                                                                                | GAG-002         | 15360 | 39             | Payment     |
+		| School Allocation Block With Notional SEN And DeDelegation                                      |                 | 0     | 0              | Information |
+		| School Budget Share                                                                             |                 | 0     | 1              | Information |
+		| Primary IDACI Band C Funding                                                                    |                 | 0     | 10             | Information |
+		| Primary IDACI Band D Funding                                                                    |                 | 0     | 11             | Information |
+		| Primary IDACI Band E Funding                                                                    |                 | 0     | 12             | Information |
+		| Primary IDACI Band F Funding                                                                    |                 | 0     | 13             | Information |
+		| Secondary IDACI Band A Funding                                                                  |                 | 0     | 14             | Information |
+		| Secondary IDACI Band B Funding                                                                  |                 | 0     | 15             | Information |
+		| Secondary IDACI Band C Funding                                                                  |                 | 0     | 16             | Information |
+		| Secondary IDACI Band D Funding                                                                  |                 | 0     | 17             | Information |
+		| Secondary IDACI Band E Funding                                                                  |                 | 0     | 18             | Information |
+		| Secondary IDACI Band F Funding                                                                  |                 | 0     | 19             | Information |
+		| Primary Free School Meals FSM Funding                                                           |                 | 0     | 20             | Information |
+		| Primary FSM6 Funding                                                                            |                 | 0     | 21             | Information |
+		| Secondary Free School Meals FSM Funding                                                         |                 | 0     | 22             | Information |
+		| Secondary FSM6 Funding                                                                          |                 | 0     | 23             | Information |
+		| Looked After Children LA C Funding                                                              |                 | 0     | 24             | Information |
+		| School Allocation Block                                                                         |                 | 0     | 242            | Information |
+		| Notional SEN Funding                                                                            |                 | 0     | 243            | Information |
+		| Basic Entitlement Age Weighted Pupil SEN                                                        |                 | 0     | 244            | Information |
+		| Basic Entitlement Primary Including Reception SEN                                               |                 | 0     | 245            | Information |
+		| Basic Entitlement KS3 SEN                                                                       |                 | 0     | 246            | Information |
+		| Basic Entitlement KS4 SEN                                                                       |                 | 0     | 247            | Information |
+		| Deprivation SEN                                                                                 |                 | 0     | 248            | Information |
+		| Primary IDACI Band A SEN                                                                        |                 | 0     | 249            | Information |
+		| Prior Attainment                                                                                |                 | 0     | 25             | Information |
+		| Primary IDACI Band B SEN                                                                        |                 | 0     | 250            | Information |
+		| Primary IDACI Band C SEN                                                                        |                 | 0     | 251            | Information |
+		| Primary IDACI Band D SEN                                                                        |                 | 0     | 253            | Information |
+		| Primary IDACI Band E SEN                                                                        |                 | 0     | 254            | Information |
+		| Primary IDACI Band F SEN                                                                        |                 | 0     | 255            | Information |
+		| Secondary IDACI Band A SEN                                                                      |                 | 0     | 256            | Information |
+		| Secondary IDACI Band B SEN                                                                      |                 | 0     | 257            | Information |
+		| Secondary IDACI Band C SEN                                                                      |                 | 0     | 258            | Information |
+		| Secondary IDACI Band D SEN                                                                      |                 | 0     | 259            | Information |
+		| Primary Attainment Low Primary Prior Attainment Funding                                         |                 | 0     | 26             | Information |
+		| Secondary IDACIBand E SEN                                                                       |                 | 0     | 260            | Information |
+		| Secondary IDACIBand F SEN                                                                       |                 | 0     | 261            | Information |
+		| Primary Free School Meals FSM SEN                                                               |                 | 0     | 262            | Information |
+		| Primary FSM6 SEN                                                                                |                 | 0     | 263            | Information |
+		| Secondary Free School Meals FSM SEN                                                             |                 | 0     | 264            | Information |
+		| Pupil Led Factors SEN                                                                           |                 | 0     | 265            | Information |
+		| Other Factors SEN                                                                               |                 | 0     | 266            | Information |
+		| Exceptional Factors SEN                                                                         |                 | 0     | 267            | Information |
+		| MFG SEN                                                                                         |                 | 0     | 268            | Information |
+		| Secondary FSM6 SEN                                                                              |                 | 0     | 269            | Information |
+		| Secondary Attainment Secondary Pupils Not Achieving The Expected Standards In KS2 Tests Funding |                 | 0     | 27             | Information |
+		| Prior Attainment SEN                                                                            |                 | 0     | 270            | Information |
+		| Primary Attainment LowPrimaryPriorAttainmentSEN                                                 |                 | 0     | 271            | Information |
+		| Secondary Attainment Secondary Pupils Not Achieving The Expected Standards In KS2 Tests SEN     |                 | 0     | 272            | Information |
+		| English As An Additional Language EAL SEN                                                       |                 | 0     | 273            | Information |
+		| Primary EAL Band 1 SEN                                                                          |                 | 0     | 274            | Information |
+		| Primary EAL Band 2 SEN                                                                          |                 | 0     | 275            | Information |
+		| Primary EAL Band 3 SEN                                                                          |                 | 0     | 276            | Information |
+		| Secondary EAL Band 1 SEN                                                                        |                 | 0     | 277            | Information |
+		| Secondary EAL Band 2 SEN                                                                        |                 | 0     | 278            | Information |
+		| Secondary EAL Band 3 SEN                                                                        |                 | 0     | 279            | Information |
+		| English As An Additional Language EAL Funding                                                   |                 | 0     | 28             | Information |
+		| Mobility SEN                                                                                    |                 | 0     | 280            | Information |
+		| Primary Mobility SEN                                                                            |                 | 0     | 281            | Information |
+		| Secondary Mobility SEN                                                                          |                 | 0     | 282            | Information |
+		| Sparsity SEN                                                                                    |                 | 0     | 283            | Information |
+		| Lump Sum SEN                                                                                    |                 | 0     | 284            | Information |
+		| Primary Lump Sum SEN                                                                            |                 | 0     | 285            | Information |
+		| Secondary Lump Sum SEN                                                                          |                 | 0     | 286            | Information |
+		| Split Sites SEN                                                                                 |                 | 0     | 287            | Information |
+		| Standard PFI SEN                                                                                |                 | 0     | 288            | Information |
+		| MFL SEN                                                                                         |                 | 0     | 289            | Information |
+		| Primary EAL Band 1 Funding                                                                      |                 | 0     | 29             | Information |
+		| Exceptional Circumstance 1 SEN                                                                  |                 | 0     | 290            | Information |
+		| Exceptional Circumstance 2 SEN                                                                  |                 | 0     | 291            | Information |
+		| Exceptional Circumstance 3 SEN                                                                  |                 | 0     | 292            | Information |
+		| Exceptional Circumstance 4 SEN                                                                  |                 | 0     | 293            | Information |
+		| Exceptional Circumstance 5 SEN                                                                  |                 | 0     | 294            | Information |
+		| Exceptional Circumstance 6 SEN                                                                  |                 | 0     | 295            | Information |
+		| Exceptional Circumstance 7 SEN                                                                  |                 | 0     | 296            | Information |
+		| Total Post Opening Grant Start Up Grant Allocation                                              |                 | 0     | 298            | Information |
+		| Total High Needs Allocation                                                                     |                 | 0     | 299            | Information |
+		| Basic Entitlement Age Weighted Pupil Unit                                                       |                 | 0     | 3              | Information |
+		| Primary EAL Band 2 Funding                                                                      |                 | 0     | 30             | Information |
+		| Special Unoccupied                                                                              |                 | 0     | 308            | Information |
+		| Special Occupied                                                                                |                 | 0     | 309            | Information |
+		| Primary EAL Band 3 Funding                                                                      |                 | 0     | 31             | Information |
+		| Alternative Provision                                                                           |                 | 0     | 310            | Information |
+		| Secondary EAL Band 1 Funding                                                                    |                 | 0     | 32             | Information |
+		| Secondary EAL Band 2 Funding                                                                    |                 | 0     | 33             | Information |
+		| Looked After Children LAC SEN                                                                   |                 | 0     | 337            | Information |
+		| Secondary EALBand3Funding                                                                       |                 | 0     | 34             | Information |
+		| Mobility Funding                                                                                |                 | 0     | 35             | Information |
+		| Primary Mobility Funding                                                                        |                 | 0     | 36             | Information |
+		| Secondary Mobility Funding                                                                      |                 | 0     | 37             | Information |
+		| SBS Other Factors Summary                                                                       |                 | 0     | 38             | Information |
+		| Basic Entitlement Primary Funding                                                               |                 | 0     | 4              | Information |
+		| Sparsity Funding                                                                                |                 | 0     | 41             | Information |
+		| Lump Sum                                                                                        |                 | 0     | 42             | Information |
+		| Primary Lump Sum                                                                                |                 | 0     | 43             | Information |
+		| Secondary Lump Sum                                                                              |                 | 0     | 44             | Information |
+		| SplitSite                                                                                       |                 | 0     | 45             | Information |
+		| PFI                                                                                             |                 | 0     | 46             | Information |
+		| London Fringe                                                                                   |                 | 0     | 47             | Information |
+		| MFL Adjustment                                                                                  |                 | 0     | 48             | Information |
+		| Basic Entitlement KS3 Funding                                                                   |                 | 0     | 5              | Information |
+		| Exceptional Circumstance 1 Funding                                                              |                 | 0     | 50             | Information |
+		| Exceptional Circumstance 2 Funding                                                              |                 | 0     | 51             | Information |
+		| Exceptional Circumstance 3 Funding                                                              |                 | 0     | 52             | Information |
+		| Exceptional Circumstance 4 Funding                                                              |                 | 0     | 53             | Information |
+		| Exceptional Circumstance 5 Funding                                                              |                 | 0     | 54             | Information |
+		| Exceptional Circumstance 6 Funding                                                              |                 | 0     | 55             | Information |
+		| Exceptional Circumstance 7 Funding                                                              |                 | 0     | 56             | Information |
+		| Prior Year Adjustment To SBS                                                                    |                 | 0     | 57             | Information |
+		| Basic Entitlement KS4 Funding                                                                   |                 | 0     | 6              | Information |
+		| Deprivation                                                                                     |                 | 0     | 7              | Information |
+		| Funding Previously De Delegated                                                                 |                 | 0     | 704            | Information |
+		| Total School Allocation With High Needs                                                         |                 | 0     | 718            | Information |
+		| Primary IDACI Band A Funding                                                                    |                 | 0     | 8              | Information |
+		| Primary IDACI Band B Funding                                                                    |                 | 0     | 9              | Information |
 	And the Published Provider has the following distribution period for funding line 'GAG-002'
 		| DistributionPeriodId | Value |
 		| AC-1920              | 7000  |
@@ -937,7 +1139,7 @@ Scenario Outline: Successful publishing of funding
 		| 320   | 8fdd4341-88ea-47f2-ba81-511951ca7efd |
 		| 320   | 5cfb28de-88d6-4faa-a936-d81a065fb596 |
 	When batch funding is published
-		| Ids     |
+		| Ids                                         |
 		| <FundingStreamId>-<FundingPeriodId>-1000000 |
 	Then the following published funding is produced
 		| Field                            | Value             |
@@ -961,116 +1163,43 @@ Scenario Outline: Successful publishing of funding
 		| AC-2021              | CalendarMonth | April     | 2021 | 1          | 10000         |
 	And  the published funding contains a calculations in published provider with following calculation results
 		| Id  | Value |
-		| 238 | 640   |
-		| 15  | 640   |
-		| 17  | 640   |
-		| 13  | 640   |
-		| 14  | 640   |
-		| 19  | 640   |
-		| 20  | 640   |
-		| 26  | 640   |
-		| 24  | 640   |
-		| 28  | 640   |
-		| 133 | 320   |
-		| 131 | 640   |
-		| 138 | 320   |
-		| 136 | 640   |
-		| 143 | 640   |
-		| 141 | 640   |
-		| 148 | 640   |
-		| 146 | 640   |
-		| 153 | 640   |
-		| 151 | 640   |
-		| 32  | 640   |
-		| 34  | 640   |
-		| 37  | 640   |
-		| 29  | 640   |
-		| 237 | 640   |
-		| 30  | 640   |
-		| 33  | 640   |
-		| 36  | 320   |
-		| 65  | 640   |
 		| 66  | 640   |
-		| 64  | 640   |
 		| 70  | 640   |
+		| 67  | 640   |
 		| 71  | 640   |
-		| 69  | 640   |
 		| 75  | 640   |
-		| 76  | 640   |
-		| 74  | 640   |
-		| 80  | 640   |
-		| 81  | 640   |
 		| 79  | 640   |
-		| 50  | 640   |
-		| 51  | 640   |
-		| 52  | 640   |
-		| 53  | 640   |
-		| 163 | 640   |
-		| 164 | 640   |
-		| 162 | 640   |
-		| 90  | 640   |
 		| 91  | 640   |
-		| 89  | 640   |
+		| 98  | 640   |
 		| 95  | 640   |
-		| 96  | 640   |
-		| 94  | 640   |
-		| 158 | 640   |
-		| 175 | 640   |
-		| 174 | 640   |
-		| 168 | 640   |
-		| 169 | 640   |
-		| 167 | 640   |
-		| 176 | 640   |
-		| 177 | 640   |
-		| 232 | 640   |
-		| 182 | 640   |
-		| 183 | 640   |
-		| 234 | 640   |
-		| 159 | 640   |
-		| 161 | 640   |
-		| 233 | 640   |
-		| 189 | 640   |
-		| 190 | 640   |
-		| 186 | 640   |
-		| 195 | 640   |
-		| 196 | 640   |
-		| 192 | 640   |
-		| 185 | 640   |
-		| 191 | 640   |
-		| 202 | 640   |
-		| 203 | 640   |
-		| 199 | 640   |
-		| 198 | 640   |
-		| 209 | 640   |
-		| 210 | 640   |
-		| 206 | 640   |
-		| 205 | 640   |
-		| 214 | 640   |
-		| 215 | 640   |
-		| 213 | 640   |
-		| 223 | 640   |
-		| 224 | 640   |
-		| 220 | 640   |
-		| 212 | 640   |
-		| 128 | 640   |
 		| 129 | 640   |
-		| 227 | 640   |
-		| 226 | 640   |
-		| 42  | 640   |
-		| 156 | 640   |
-		| 157 | 640   |
-		| 184 | 640   |
-		| 197 | 640   |
-		| 204 | 640   |
+		| 134 | 640   |
+		| 141 | 640   |
+		| 138 | 640   |
+		| 144 | 640   |
+		| 153 | 640   |
+		| 158 | 640   |
+		| 162 | 640   |
+		| 167 | 640   |
+		| 175 | 640   |
+		| 179 | 640   |
+		| 183 | 640   |
 		| 211 | 640   |
+		| 214 | 640   |
+		| 187 | 640   |
+		| 217 | 640   |
+		| 221 | 640   |
 		| 218 | 640   |
-		| 225 | 640   |
-		| 40  | 640   |
-		| 41  | 640   |
-		| 39  | 640   |
-		| 21  | 640   |
-		| 22  | 640   |
-		| 219 | 640   |
+		| 83  | 640   |
+		| 228 | 640   |
+		| 236 | 640   |
+		| 223 | 640   |
+		| 227 | 640   |
+		| 229 | 640   |
+		| 232 | 640   |
+		| 233 | 640   |
+		| 234 | 640   |
+		| 222 | 640   |
 	And the published funding document produced is saved to blob storage for following file name
 		| PublishedFundingFiles                                                       |
 		| <FundingStreamId>-<FundingPeriodId>-Information-LocalAuthority-200-1_0.json |
@@ -1086,8 +1215,8 @@ Scenario Outline: Successful publishing of funding
 		| PublishedFundingFiles                                | MetadataKey      | MetadataValue     |
 		| <FundingStreamId>-<FundingPeriodId>-1000000-1_0.json | specification-id | specForPublishing |
 	And the following published provider search index items is produced for providerid with '<FundingStreamId>' and '<FundingPeriodId>'
-		| ID                  | ProviderType          | ProviderSubType  | LocalAuthority    | FundingStatus | ProviderName        | UKPRN   | FundingValue | SpecificationId   | FundingStreamId   | FundingPeriodId   | Errors | Indicative |
-		| GAG-AC-2021-1000000 | LA maintained schools | Community school | Local Authority 1 | Released      | Maintained School 1 | 1000000 | 12000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> | | Hide indicative allocations |
+		| ID                  | ProviderType          | ProviderSubType  | LocalAuthority    | FundingStatus | ProviderName        | UKPRN   | FundingValue | SpecificationId   | FundingStreamId   | FundingPeriodId   | Errors | Indicative                  |
+		| GAG-AC-2021-1000000 | LA maintained schools | Community school | Local Authority 1 | Released      | Maintained School 1 | 1000000 | 12000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> |        | Hide indicative allocations |
 	And the following job is requested is completed for the current specification
 		| Field                  | Value             |
 		| JobDefinitionId        | PublishFundingJob |
@@ -1101,4 +1230,4 @@ Scenario Outline: Successful publishing of funding
 
 	Examples:
 		| FundingStreamId | FundingPeriodId | FundingPeriodName      | TemplateVersion | ProviderVersionId |
-		| GAG             | AC-2021         | Financial Year 2020-21 | 1.0             | gag-providers-1.0 |
+		| GAG             | AC-2021         | Financial Year 2020-21 | 1.2             | gag-providers-1.0 |
