@@ -5,8 +5,9 @@
 
 Scenario Outline: Successful publishing of funding
 	Given a funding configuration exists for funding stream '<FundingStreamId>' in funding period '<FundingPeriodId>'
-		| Field                  | Value |
-		| DefaultTemplateVersion | 1.2   |
+		| Field                     | Value                     |
+		| DefaultTemplateVersion    | 1.2                       |
+		| PaymentOrganisationSource | PaymentOrganisationFields |
 	And the funding configuration has the following organisation group and provider status list 'Open;Open, but proposed to close'
 		| Field                     | Value        |
 		| GroupTypeIdentifier       | UKPRN        |
@@ -1010,33 +1011,35 @@ Scenario Outline: Successful publishing of funding
 		| 733                   | 320   |
 		| 737                   | 320   |
 	And the Published Provider has the following provider information
-		| Field              | Value                    |
-		| ProviderId         | 1000000                  |
-		| Name               | Maintained School 1      |
-		| Authority          | Local Authority 1        |
-		| DateOpened         | 2012-03-15               |
-		| LACode             | 200                      |
-		| LocalAuthorityName | Maintained School 1      |
-		| ProviderType       | LA maintained schools    |
-		| ProviderSubType    | Community school         |
-		| ProviderVersionId  | <ProviderVersionId>      |
-		| TrustStatus        | Not Supported By A Trust |
-		| UKPRN              | 1000000                  |
+		| Field                         | Value                         |
+		| ProviderId                    | 1000000                       |
+		| Name                          | Academy 1           |
+		| Authority                     | Local Authority 1             |
+		| DateOpened                    | 2012-03-15                    |
+		| ProviderVersionId             | <ProviderVersionId>           |
+		| TrustStatus                   | Not Supported By A Trust      |
+		| UKPRN                         | 1000000                       |
+		| TrustStatus                   | SupportedByAMultiAcademyTrust |
+		| Status                        | Open                          |
+		| ProviderType                  | Academies                     |
+		| ProviderSubType               | Academy special sponsor led   |
+		| PaymentOrganisationIdentifier | 9000000                       |
 	And the Published Provider is available in the repository for this specification
 	# Maintained schools in Core Provider Data
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
-		| Field              | Value                    |
-		| ProviderId         | 1000000                  |
-		| Name               | Maintained School 1      |
-		| Authority          | Local Authority 1        |
-		| DateOpened         | 2012-03-15               |
-		| LACode             | 200                      |
-		| LocalAuthorityName | Maintained School 1      |
-		| ProviderType       | LA maintained schools    |
-		| ProviderSubType    | Community school         |
-		| ProviderVersionId  | <ProviderVersionId>      |
-		| TrustStatus        | Not Supported By A Trust |
-		| UKPRN              | 1000000                  |
+		| Field                         | Value                         |
+		| ProviderId                    | 1000000                       |
+		| Name                          | Academy 1           |
+		| Authority                     | Local Authority 1             |
+		| DateOpened                    | 2012-03-15                    |
+		| ProviderVersionId             | <ProviderVersionId>           |
+		| TrustStatus                   | Not Supported By A Trust      |
+		| UKPRN                         | 1000000                       |
+		| TrustStatus                   | SupportedByAMultiAcademyTrust |
+		| Status                        | Open                          |
+		| ProviderType                  | Academies                     |
+		| ProviderSubType               | Academy special sponsor led   |
+		| PaymentOrganisationIdentifier | 9000000                       |
 	And the provider with id '1000000' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
 	And the following Published Provider has been previously generated for the current specification
 		| Field           | Value             |
@@ -1049,7 +1052,7 @@ Scenario Outline: Successful publishing of funding
 		| MajorVersion    | 0                 |
 		| MinorVersion    | 1                 |
 	And the Published Provider has the following funding lines
-		| Name                                         | FundingLineCode | Value | TemplateLineId | Type    |
+		| Name                                                                                            | FundingLineCode | Value | TemplateLineId | Type        |
 		| SBS Exceptional Factors                                                                         | GAG-004         | 640   | 49             | Payment     |
 		| Post Opening Grant - Leadership Diseconomies                                                    | GAG-007         | 0     | 303            | Payment     |
 		| Post Opening Grant - Per Pupil Resources                                                        | GAG-006         | 0     | 302            | Payment     |
@@ -1582,48 +1585,40 @@ Scenario Outline: Successful publishing of funding
 		| 733                   | 320   |
 		| 737                   | 320   |
 	And the Published Provider has the following provider information
-		| Field              | Value                    |
-		| ProviderId         | 1000002                  |
-		| Name               | Maintained School 2      |
-		| Authority          | Local Authority 1        |
-		| DateOpened         | 2012-03-15               |
-		| LACode             | 200                      |
-		| LocalAuthorityName | Maintained School 2      |
-		| ProviderType       | LA maintained schools    |
-		| ProviderSubType    | Community school         |
-		| ProviderVersionId  | <ProviderVersionId>      |
-		| TrustStatus        | Not Supported By A Trust |
-		| UKPRN              | 1000002                  |
+		| Field                         | Value                         |
+		| ProviderId                    | 1000002                       |
+		| Name                          | Academy 2                     |
+		| Authority                     | Local Authority 1             |
+		| DateOpened                    | 2012-03-15                    |
+		| LACode                        | 200                           |
+		| LocalAuthorityName            | Local Authority 1             |
+		| ProviderVersionId             | <ProviderVersionId>           |
+		| TrustCode                     | 1001                          |
+		| TrustStatus                   | SupportedByAMultiAcademyTrust |
+		| UKPRN                         | 1000002                       |
+		| Status                        | Open                          |
+		| ProviderType                  | Academies                     |
+		| ProviderSubType               | Academy special sponsor led   |
+		| PaymentOrganisationIdentifier | 9000000                       |
 	And the Published Provider is available in the repository for this specification
 	# Maintained schools in Core Provider Data
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
-		| Field              | Value                    |
-		| ProviderId         | 1000002                  |
-		| Name               | Maintained School 2      |
-		| Authority          | Local Authority 1        |
-		| DateOpened         | 2012-03-15               |
-		| LocalAuthorityName | Maintained School 2      |
-		| LACode             | 200                      |
-		| ProviderType       | LA maintained schools    |
-		| ProviderSubType    | Community school         |
-		| ProviderVersionId  | <ProviderVersionId>      |
-		| TrustStatus        | Not Supported By A Trust |
-		| UKPRN              | 1000002                  |
+		| Field                         | Value                         |
+		| ProviderId                    | 1000002                       |
+		| Name                          | Academy 2                     |
+		| Authority                     | Local Authority 1             |
+		| DateOpened                    | 2012-03-15                    |
+		| LACode                        | 200                           |
+		| LocalAuthorityName            | Local Authority 1             |
+		| ProviderVersionId             | <ProviderVersionId>           |
+		| TrustCode                     | 1001                          |
+		| TrustStatus                   | SupportedByAMultiAcademyTrust |
+		| UKPRN                         | 1000002                       |
+		| Status                        | Open                          |
+		| ProviderType                  | Academies                     |
+		| ProviderSubType               | Academy special sponsor led   |
+		| PaymentOrganisationIdentifier | 9000000                       |
 	And the provider with id '1000002' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
-	# Local Authorities in Core Provider Data
-	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
-		| Field              | Value                    |
-		| ProviderId         | 9000000                  |
-		| Name               | Local Authority 1        |
-		| Authority          | Local Authority 1        |
-		| DateOpened         | 2012-03-15               |
-		| LACode             | 200                      |
-		| LocalAuthorityName | Local Authority 1        |
-		| ProviderType       | Local Authority          |
-		| ProviderSubType    | Local Authority          |
-		| ProviderVersionId  | <ProviderVersionId>      |
-		| TrustStatus        | Not Supported By A Trust |
-		| UKPRN              | 9000000                  |
 	And calculations exists
 		| Value | Id                                   |
 		| 320   | 9ed150c9-072d-4c32-be8a-d0ce83e2dd1a |
@@ -2022,7 +2017,7 @@ Scenario Outline: Successful publishing of funding
 	Then the following published funding is produced
 		| Field                            | Value             |
 		| GroupingReason                   | Payment           |
-		| OrganisationGroupTypeCode        | LocalAuthority    |
+		| OrganisationGroupTypeCode        | AcademyTrust      |
 		| OrganisationGroupIdentifierValue | 9000000           |
 		| FundingPeriodId                  | <FundingPeriodId> |
 		| FundingStreamId                  | <FundingStreamId> |
@@ -2260,8 +2255,8 @@ Scenario Outline: Successful publishing of funding
 		| <FundingStreamId>-<FundingPeriodId>-1000002-1_0.json | specification-id | specForPublishing |
 	And the following published provider search index items is produced for providerid with '<FundingStreamId>' and '<FundingPeriodId>'
 		| ID                  | ProviderType          | ProviderSubType  | LocalAuthority    | FundingStatus | ProviderName        | UKPRN   | FundingValue | SpecificationId   | FundingStreamId   | FundingPeriodId   | Errors | Indicative                  |
-		| GAG-AC-2021-1000000 | LA maintained schools | Community school | Local Authority 1 | Released      | Maintained School 1 | 1000000 | 12000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> |        | Hide indicative allocations |
-		| GAG-AC-2021-1000002 | LA maintained schools | Community school | Local Authority 1 | Released      | Maintained School 2 | 1000002 | 12000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> |        | Hide indicative allocations |
+		| GAG-AC-2021-1000000 | Academies			  | Academy special sponsor led | Local Authority 1 | Released      | Academy 1 | 1000000 | 12000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> |        | Hide indicative allocations |
+		| GAG-AC-2021-1000002 | Academies			  | Academy special sponsor led | Local Authority 1 | Released      | Academy 2 | 1000002 | 12000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> |        | Hide indicative allocations |
 	And the following job is requested is completed for the current specification
 		| Field                  | Value             |
 		| JobDefinitionId        | PublishFundingJob |

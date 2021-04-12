@@ -352,6 +352,19 @@ namespace CalculateFunding.Models.Publishing
             }
         }
 
+        public void VerifyProfileAmountsMatchFundingLineValue(string fundingLineCode, decimal? carryOver)
+        {
+            decimal reProfileFundingLineTotal = GetDistributionPeriods(fundingLineCode).SelectMany(_ => _.ProfilePeriods).Sum(_ => _.ProfiledValue);
+            decimal fundingLineTotal = GetFundingLineTotal(fundingLineCode).GetValueOrDefault();
+            decimal totalAmount = fundingLineTotal + carryOver.GetValueOrDefault();
+
+            if (totalAmount != reProfileFundingLineTotal)
+            {
+                throw new InvalidOperationException(
+                    $"Profile amounts ({fundingLineTotal}) and carry over amount ({carryOver.GetValueOrDefault()}) does not equal funding line total requested ({reProfileFundingLineTotal}) from strategy.");
+            }
+        }
+
         public void UpdateDistributionPeriodForFundingLine(string fundingLineCode,
             string distributionPeriodId,
             IEnumerable<ProfilePeriod> profilePeriods)
@@ -365,17 +378,22 @@ namespace CalculateFunding.Models.Publishing
             distributionPeriod.ProfilePeriods = profilePeriods.ToArray();
         }
 
+        private IEnumerable<DistributionPeriod> GetDistributionPeriods(string fundingLineCode)
+        {
+            FundingLine fundingLine = FundingLines.SingleOrDefault(fl => fl.FundingLineCode == fundingLineCode);
+            
+            Guard.Ensure(fundingLine != null, $"Did not locate a funding line with code {fundingLineCode}");
+
+            return fundingLine.DistributionPeriods;
+        }
+
         private DistributionPeriod GetDistributionPeriod(string fundingLineCode,
             string distributionPeriodId)
         {
             Guard.IsNullOrWhiteSpace(fundingLineCode, nameof(fundingLineCode));
             Guard.IsNullOrWhiteSpace(distributionPeriodId, nameof(distributionPeriodId));
 
-            FundingLine fundingLine = FundingLines.SingleOrDefault(fl => fl.FundingLineCode == fundingLineCode);
-
-            Guard.Ensure(fundingLine != null, $"Did not locate a funding line with code {fundingLineCode}");
-
-            DistributionPeriod distributionPeriod = fundingLine.DistributionPeriods?
+            DistributionPeriod distributionPeriod = GetDistributionPeriods(fundingLineCode)?
                 .SingleOrDefault(d => d.DistributionPeriodId == distributionPeriodId);
 
             Guard.Ensure(distributionPeriod != null, $"Distribution period {distributionPeriodId} not found for funding line {fundingLineCode}.");

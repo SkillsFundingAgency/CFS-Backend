@@ -5,8 +5,9 @@
 
 Scenario Outline: Successful publishing of funding
 	Given a funding configuration exists for funding stream '<FundingStreamId>' in funding period '<FundingPeriodId>'
-		| Field                  | Value |
-		| DefaultTemplateVersion | 1.0   |
+		| Field                     | Value                     |
+		| DefaultTemplateVersion    | 1.0                       |
+		| PaymentOrganisationSource | PaymentOrganisationFields |
 	And the funding configuration has the following organisation group
 		| Field                     | Value             |
 		| GroupTypeIdentifier       | UKPRN             |
@@ -113,7 +114,7 @@ Scenario Outline: Successful publishing of funding
 	And the specification has the funding period with id '<FundingPeriodId>' and name '<FundingPeriodName>'
 	And the specification has the following funding streams
 		| Name | Id                |
-		| 1619  | <FundingStreamId> |
+		| 1619 | <FundingStreamId> |
 	And the specification has the following template versions for funding streams
 		| Key               | Value |
 		| <FundingStreamId> | 1.0   |
@@ -130,15 +131,15 @@ Scenario Outline: Successful publishing of funding
 		| ParentJobId            |                   |
 	And the job is submitted to the job service
 	And the following provider version exists in the providers service
-		| Field             | Value                |
-		| ProviderVersionId | <ProviderVersionId>  |
-		| VersionType       | Custom               |
+		| Field             | Value                 |
+		| ProviderVersionId | <ProviderVersionId>   |
+		| VersionType       | Custom                |
 		| Name              | 1619 Provider Version |
-		| Description       | Acceptance Tests     |
-		| Version           | 1                    |
-		| TargetDate        | 2019-12-12 00:00     |
-		| FundingStream     | <FundingStreamId>    |
-		| Created           | 2019-12-11 00:00     |
+		| Description       | Acceptance Tests      |
+		| Version           | 1                     |
+		| TargetDate        | 2019-12-12 00:00      |
+		| FundingStream     | <FundingStreamId>     |
+		| Created           | 2019-12-11 00:00      |
 	# Maintained schools - PublishedProviders
 	And the following Published Provider has been previously generated for the current specification
 		| Field           | Value             |
@@ -152,27 +153,27 @@ Scenario Outline: Successful publishing of funding
 		| MinorVersion    | 1                 |
 	And the Published Provider has the following funding lines
 		| Name                                                 | FundingLineCode | Value | TemplateLineId | Type        |
-		| Pupil Led Factors                                    | 1619-004         | 640   | 5              | Information |
-		| Funding Through Premises and Mobility Factors        | 1619-007         | 0     | 6              | Information |
-		| Growth funding                                       | 1619-006         | 0     | 7              | Information |
-		| CSSB Pupil Led Funding                               | 1619-012         | 320   | 23             | Information |
-		| Funding for Historic Commitments                     | 1619-013         | 0     | 27             | Information |
-		| Universal Entitlement for 3 and 4 Year Olds          | 1619-014         | 320   | 130            | Information |
-		| Funding for Additional Hours for working parents     | 1619-015         | 320   | 135            | Information |
-		| Participation Funding for Disadvantaged 2 Year Olds  | 1619-016         | 320   | 140            | Information |
-		| Funding Allocation for Early Years Pupil Premium     | 1619-017         | 320   | 145            | Information |
-		| Funding Allocation for Maintained Nursery Supplement | 1619-018         | 320   | 150            | Information |
-		| Funding Allocation for Disability Access Fund        | 1619-019         | 0     | 155            | Information |
-		| Schools Block before recoupment                      | 1619-003         | 640   | 4              | Information |
-		| Central School Services Block                        | 1619-008         | 320   | 8              | Information |
-		| Early Years Block                                    | 1619-009         | 1600  | 9              | Information |
-		| High Needs Block before deductions                   | 1619-010         | 1280  | 10             | Information |
-		| Total High Needs Block After Deductions              | 1619-011         | 14720 | 11             | Information |
-		| School Block After recoupment                        | 1619-005         | 640   | 12             | Information |
-		| Provisional Schools Block Funding Excluding Growth   | 1619-020         | 0     | 239            | Information |
-		| LA Protection                                        | 1619-021         | 0     | 240            | Information |
-		| Total 1619 before deductions and recoupment           | 1619-001         | 3840  | 2              | Information |
-		| Total 1619 after deductions and recoupment            | 1619-002         | 15360 | 3              | Payment     |
+		| Pupil Led Factors                                    | 1619-004        | 640   | 5              | Information |
+		| Funding Through Premises and Mobility Factors        | 1619-007        | 0     | 6              | Information |
+		| Growth funding                                       | 1619-006        | 0     | 7              | Information |
+		| CSSB Pupil Led Funding                               | 1619-012        | 320   | 23             | Information |
+		| Funding for Historic Commitments                     | 1619-013        | 0     | 27             | Information |
+		| Universal Entitlement for 3 and 4 Year Olds          | 1619-014        | 320   | 130            | Information |
+		| Funding for Additional Hours for working parents     | 1619-015        | 320   | 135            | Information |
+		| Participation Funding for Disadvantaged 2 Year Olds  | 1619-016        | 320   | 140            | Information |
+		| Funding Allocation for Early Years Pupil Premium     | 1619-017        | 320   | 145            | Information |
+		| Funding Allocation for Maintained Nursery Supplement | 1619-018        | 320   | 150            | Information |
+		| Funding Allocation for Disability Access Fund        | 1619-019        | 0     | 155            | Information |
+		| Schools Block before recoupment                      | 1619-003        | 640   | 4              | Information |
+		| Central School Services Block                        | 1619-008        | 320   | 8              | Information |
+		| Early Years Block                                    | 1619-009        | 1600  | 9              | Information |
+		| High Needs Block before deductions                   | 1619-010        | 1280  | 10             | Information |
+		| Total High Needs Block After Deductions              | 1619-011        | 14720 | 11             | Information |
+		| School Block After recoupment                        | 1619-005        | 640   | 12             | Information |
+		| Provisional Schools Block Funding Excluding Growth   | 1619-020        | 0     | 239            | Information |
+		| LA Protection                                        | 1619-021        | 0     | 240            | Information |
+		| Total 1619 before deductions and recoupment          | 1619-001        | 3840  | 2              | Information |
+		| Total 1619 after deductions and recoupment           | 1619-002        | 15360 | 3              | Payment     |
 	And the Published Provider has the following distribution period for funding line '1619-002'
 		| DistributionPeriodId | Value |
 		| AS-1920              | 7000  |
@@ -236,14 +237,14 @@ Scenario Outline: Successful publishing of funding
 		| Calculation | 8f967c9a-40e2-4842-8c55-969abf5a350f | 235        | Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @Â£10k SEN places deduction April (Year 1) - August (Year 1) Top Up rate    |
 		| Calculation | 6bb71c56-818a-4ab1-b35f-ee497378ae3d | 236        | Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @Â£10k SEN places deduction September (Year 1) - March (Year 2) Top Up rate |
 		| Calculation | 42919210-5ab6-4f98-8cbd-36ea585bfc3e | 241        | Provisional Schools Block Funding Excluding Growth                                                                                                     |
-		| Calculation | 50d71379-e1e6-4f9a-8a82-8d8697049662 | 242        | Current Year School Block Pupil No                                                                                                 |
-		| Calculation | ac233126-aa00-470a-a2db-aed95c7bead5 | 243        | Current Year Local Authority Protection																												   |
-		| Calculation | b7fd2f32-1e43-4b3b-84f9-9754f71a0E9f | 244        | Percentage Change between Current Year and Previous Year per Pupil Funding																			   |
-		| Calculation | b5f7f814-e819-4efb-9c07-e6b973a5dc30 | 245        | Percentage Change between Current Year and Previous Year per Pupil Funding after local authority protection											   |
-		| Calculation | 1d05db55-d225-49a3-9240-fce6e9065de5 | 246        | Current Year Provisional Schools Block Excluding Growth Funding Per Pupil																			   |
-		| Calculation | c36e9b84-8c83-45e6-8ccf-1d06c83d96d1 | 247        | Previous Year Schools Block Excluding Growth Funding Per Pupil                                                                                                     |
-		| Calculation | 1f72e2d2-43fc-45df-b3e2-03a1d5E7d6d7 | 248        | Current Year Provisional Schools Block Funding Excluding Growth - NON CASH                                                                                                     |
-		| Calculation | b2fc456d-7191-4214-9db5-1561cd3f75fa | 249        | Previous Year Schools Block Pupil Numbers                                                                                                     |
+		| Calculation | 50d71379-e1e6-4f9a-8a82-8d8697049662 | 242        | Current Year School Block Pupil No                                                                                                                     |
+		| Calculation | ac233126-aa00-470a-a2db-aed95c7bead5 | 243        | Current Year Local Authority Protection                                                                                                                |
+		| Calculation | b7fd2f32-1e43-4b3b-84f9-9754f71a0E9f | 244        | Percentage Change between Current Year and Previous Year per Pupil Funding                                                                             |
+		| Calculation | b5f7f814-e819-4efb-9c07-e6b973a5dc30 | 245        | Percentage Change between Current Year and Previous Year per Pupil Funding after local authority protection                                            |
+		| Calculation | 1d05db55-d225-49a3-9240-fce6e9065de5 | 246        | Current Year Provisional Schools Block Excluding Growth Funding Per Pupil                                                                              |
+		| Calculation | c36e9b84-8c83-45e6-8ccf-1d06c83d96d1 | 247        | Previous Year Schools Block Excluding Growth Funding Per Pupil                                                                                         |
+		| Calculation | 1f72e2d2-43fc-45df-b3e2-03a1d5E7d6d7 | 248        | Current Year Provisional Schools Block Funding Excluding Growth - NON CASH                                                                             |
+		| Calculation | b2fc456d-7191-4214-9db5-1561cd3f75fa | 249        | Previous Year Schools Block Pupil Numbers                                                                                                              |
 		| Calculation | f8b65554-b578-4041-a9F6-116830cc0a2b | 250        | Previous Year Schools Block Excluding Growth Funding                                                                                                   |
 		| Calculation | bd4b64d4-f61f-4207-a493-73cb8d1e0db8 | 72         | Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @Â£10k SEN places deduction April (Year 1) - August (Year 1) rate           |
 		| Calculation | bd3ef104-827f-42a0-a1c0-365bc5c21156 | 73         | Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @Â£10k SEN places deduction September (Year 1) - March (Year 2) rate        |
@@ -355,7 +356,6 @@ Scenario Outline: Successful publishing of funding
 		| Calculation | 4afd7426-1787-4b71-a5f7-971db86811be | 216        | Hospital Academies Funding Total Hospital Education Deduction April (Year 1) - August (Year 1) rate                                                    |
 		| Calculation | 8fdd4341-88ea-47f2-ba81-511951ca7efd | 217        | Hospital Academies Funding Total Hospital Education Deduction September (Year 1) - March (Year 2) rate                                                 |
 		| Calculation | 5cfb28de-88d6-4faa-a936-d81a065fb596 | 219        | 16-19 Academies and Free Schools Total Post-16 Schools SEN Places                                                                                      |
-
 	And the Published Provider contains the following calculation results
 		| TemplateCalculationId | Value |
 		| 238                   | 320   |
@@ -531,33 +531,35 @@ Scenario Outline: Successful publishing of funding
 		| 217                   | 320   |
 		| 219                   | 320   |
 	And the Published Provider has the following provider information
-		| Field                         | Value                    |
-		| ProviderId                    | 1000000                  |
-		| Name                          | Maintained School 1      |
-		| Authority                     | Local Authority 1        |
-		| DateOpened                    | 2012-03-15               |
-		| LACode                        | 200                      |
-		| LocalAuthorityName            | Maintained School 1      |
-		| ProviderType                  | LA maintained schools    |
-		| ProviderSubType               | Community school         |
-		| ProviderVersionId             | <ProviderVersionId>      |
-		| TrustStatus                   | Not Supported By A Trust |
-		| UKPRN                         | 1000000                  |
+		| Field                         | Value                         |
+		| ProviderId                    | 1000000                       |
+		| Name                          | Academy 1                     |
+		| Authority                     | Local Authority 1             |
+		| DateOpened                    | 2012-03-15                    |
+		| ProviderVersionId             | <ProviderVersionId>           |
+		| TrustStatus                   | Not Supported By A Trust      |
+		| UKPRN                         | 1000000                       |
+		| TrustStatus                   | SupportedByAMultiAcademyTrust |
+		| Status                        | Open                          |
+		| ProviderType                  | Acade                         |
+		| ProviderSubType               | 11ACA                         |
+		| PaymentOrganisationIdentifier | 9000000                       |
 	And the Published Provider is available in the repository for this specification
 	# Maintained schools in Core Provider Data
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
-		| Field                         | Value                    |
-		| ProviderId                    | 1000000                  |
-		| Name                          | Maintained School 1      |
-		| Authority                     | Local Authority 1        |
-		| DateOpened                    | 2012-03-15               |
-		| LACode                        | 200                      |
-		| LocalAuthorityName            | Maintained School 1      |
-		| ProviderType                  | LA maintained schools    |
-		| ProviderSubType               | Community school         |
-		| ProviderVersionId             | <ProviderVersionId>      |
-		| TrustStatus                   | Not Supported By A Trust |
-		| UKPRN                         | 1000000                  |
+		| Field                         | Value                         |
+		| ProviderId                    | 1000000                       |
+		| Name                          | Academy 1                     |
+		| Authority                     | Local Authority 1             |
+		| DateOpened                    | 2012-03-15                    |
+		| ProviderVersionId             | <ProviderVersionId>           |
+		| TrustStatus                   | Not Supported By A Trust      |
+		| UKPRN                         | 1000000                       |
+		| TrustStatus                   | SupportedByAMultiAcademyTrust |
+		| Status                        | Open                          |
+		| ProviderType                  | Acade                         |
+		| ProviderSubType               | 11ACA                         |
+		| PaymentOrganisationIdentifier | 9000000                       |
 	And the provider with id '1000000' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
 	And the following Published Provider has been previously generated for the current specification
 		| Field           | Value             |
@@ -571,27 +573,27 @@ Scenario Outline: Successful publishing of funding
 		| MinorVersion    | 1                 |
 	And the Published Provider has the following funding lines
 		| Name                                                 | FundingLineCode | Value | TemplateLineId | Type        |
-		| Pupil Led Factors                                    | 1619-004         | 640   | 5              | Information |
-		| Funding Through Premises and Mobility Factors        | 1619-007         | 0     | 6              | Information |
-		| Growth funding                                       | 1619-006         | 0     | 7              | Information |
-		| CSSB Pupil Led Funding                               | 1619-012         | 320   | 23             | Information |
-		| Funding for Historic Commitments                     | 1619-013         | 0     | 27             | Information |
-		| Universal Entitlement for 3 and 4 Year Olds          | 1619-014         | 320   | 130            | Information |
-		| Funding for Additional Hours for working parents     | 1619-015         | 320   | 135            | Information |
-		| Participation Funding for Disadvantaged 2 Year Olds  | 1619-016         | 320   | 140            | Information |
-		| Funding Allocation for Early Years Pupil Premium     | 1619-017         | 320   | 145            | Information |
-		| Funding Allocation for Maintained Nursery Supplement | 1619-018         | 320   | 150            | Information |
-		| Funding Allocation for Disability Access Fund        | 1619-019         | 0     | 155            | Information |
-		| Schools Block before recoupment                      | 1619-003         | 640   | 4              | Information |
-		| Central School Services Block                        | 1619-008         | 320   | 8              | Information |
-		| Early Years Block                                    | 1619-009         | 1600  | 9              | Information |
-		| High Needs Block before deductions                   | 1619-010         | 1280  | 10             | Information |
-		| Total High Needs Block After Deductions              | 1619-011         | 14720 | 11             | Information |
-		| School Block After recoupment                        | 1619-005         | 640   | 12             | Information |
-		| Provisional Schools Block Funding Excluding Growth   | 1619-020         | 0     | 239            | Information |
-		| LA Protection                                        | 1619-021         | 0     | 240            | Information |
-		| Total 1619 before deductions and recoupment           | 1619-001         | 3840  | 2              | Information |
-		| Total 1619 after deductions and recoupment            | 1619-002         | 15360 | 3              | Payment     |
+		| Pupil Led Factors                                    | 1619-004        | 640   | 5              | Information |
+		| Funding Through Premises and Mobility Factors        | 1619-007        | 0     | 6              | Information |
+		| Growth funding                                       | 1619-006        | 0     | 7              | Information |
+		| CSSB Pupil Led Funding                               | 1619-012        | 320   | 23             | Information |
+		| Funding for Historic Commitments                     | 1619-013        | 0     | 27             | Information |
+		| Universal Entitlement for 3 and 4 Year Olds          | 1619-014        | 320   | 130            | Information |
+		| Funding for Additional Hours for working parents     | 1619-015        | 320   | 135            | Information |
+		| Participation Funding for Disadvantaged 2 Year Olds  | 1619-016        | 320   | 140            | Information |
+		| Funding Allocation for Early Years Pupil Premium     | 1619-017        | 320   | 145            | Information |
+		| Funding Allocation for Maintained Nursery Supplement | 1619-018        | 320   | 150            | Information |
+		| Funding Allocation for Disability Access Fund        | 1619-019        | 0     | 155            | Information |
+		| Schools Block before recoupment                      | 1619-003        | 640   | 4              | Information |
+		| Central School Services Block                        | 1619-008        | 320   | 8              | Information |
+		| Early Years Block                                    | 1619-009        | 1600  | 9              | Information |
+		| High Needs Block before deductions                   | 1619-010        | 1280  | 10             | Information |
+		| Total High Needs Block After Deductions              | 1619-011        | 14720 | 11             | Information |
+		| School Block After recoupment                        | 1619-005        | 640   | 12             | Information |
+		| Provisional Schools Block Funding Excluding Growth   | 1619-020        | 0     | 239            | Information |
+		| LA Protection                                        | 1619-021        | 0     | 240            | Information |
+		| Total 1619 before deductions and recoupment          | 1619-001        | 3840  | 2              | Information |
+		| Total 1619 after deductions and recoupment           | 1619-002        | 15360 | 3              | Payment     |
 	And the Published Provider has the following distribution period for funding line '1619-002'
 		| DistributionPeriodId | Value |
 		| AS-1920              | 7000  |
@@ -775,49 +777,41 @@ Scenario Outline: Successful publishing of funding
 		| 217                   | 320   |
 		| 219                   | 320   |
 	And the Published Provider has the following provider information
-		| Field                         | Value                    |
-		| ProviderId                    | 1000002                  |
-		| Name                          | Maintained School 2      |
-		| Authority                     | Local Authority 1        |
-		| DateOpened                    | 2012-03-15               |
-		| LACode                        | 200                      |
-		| LocalAuthorityName            | Maintained School 2      |
-		| ProviderType                  | LA maintained schools    |
-		| ProviderSubType               | Community school         |
-		| ProviderVersionId             | <ProviderVersionId>      |
-		| TrustStatus                   | Not Supported By A Trust |
-		| UKPRN                         | 1000002                  |
+		| Field                         | Value                         |
+		| ProviderId                    | 1000002                       |
+		| Name                          | Academy 2                     |
+		| Authority                     | Local Authority 1             |
+		| DateOpened                    | 2012-03-15                    |
+		| LACode                        | 200                           |
+		| LocalAuthorityName            | Local Authority 1             |
+		| ProviderVersionId             | <ProviderVersionId>           |
+		| TrustCode                     | 1001                          |
+		| TrustStatus                   | SupportedByAMultiAcademyTrust |
+		| UKPRN                         | 1000002                       |
+		| Status                        | Open                          |
+		| ProviderType                  | Acade                         |
+		| ProviderSubType               | FSAP                          |
+		| PaymentOrganisationIdentifier | 9000000                       |
 	And the Published Provider is available in the repository for this specification
 	# Maintained schools in Core Provider Data
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
-		| Field                         | Value                    |
-		| ProviderId                    | 1000002                  |
-		| Name                          | Maintained School 2      |
-		| Authority                     | Local Authority 1        |
-		| DateOpened                    | 2012-03-15               |
-		| LocalAuthorityName            | Maintained School 2      |
-		| LACode                        | 200                      |
-		| ProviderType                  | LA maintained schools    |
-		| ProviderSubType               | Community school         |
-		| ProviderVersionId             | <ProviderVersionId>      |
-		| TrustStatus                   | Not Supported By A Trust |
-		| UKPRN                         | 1000002                  |
-		
+		| Field                         | Value                         |
+		| ProviderId                    | 1000002                       |
+		| Name                          | Academy 2                     |
+		| Authority                     | Local Authority 1             |
+		| DateOpened                    | 2012-03-15                    |
+		| LACode                        | 200                           |
+		| LocalAuthorityName            | Local Authority 1             |
+		| ProviderVersionId             | <ProviderVersionId>           |
+		| TrustCode                     | 1001                          |
+		| TrustStatus                   | SupportedByAMultiAcademyTrust |
+		| UKPRN                         | 1000002                       |
+		| Status                        | Open                          |
+		| ProviderType                  | Acade                         |
+		| ProviderSubType               | FSAP                          |
+		| PaymentOrganisationIdentifier | 9000000                       |
 	And the provider with id '1000002' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
 	# Local Authorities in Core Provider Data
-	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
-		| Field                         | Value                    |
-		| ProviderId                    | 9000000                  |
-		| Name                          | Local Authority 1        |
-		| Authority                     | Local Authority 1        |
-		| DateOpened                    | 2012-03-15               |
-		| LACode                        | 200                      |
-		| LocalAuthorityName            | Local Authority 1        |
-		| ProviderType                  | Local Authority          |
-		| ProviderSubType               | Local Authority          |
-		| ProviderVersionId             | <ProviderVersionId>      |
-		| TrustStatus                   | Not Supported By A Trust |
-		| UKPRN                         | 9000000                  |
 	And calculations exists
 		| Value | Id                                   |
 		| 320   | e46c0b59-6900-4fae-90b5-da6e558d9491 |
@@ -996,7 +990,7 @@ Scenario Outline: Successful publishing of funding
 	Then the following published funding is produced
 		| Field                            | Value             |
 		| GroupingReason                   | Payment           |
-		| OrganisationGroupTypeCode        | LocalAuthority    |
+		| OrganisationGroupTypeCode        | AcademyTrust      |
 		| OrganisationGroupIdentifierValue | 9000000           |
 		| FundingPeriodId                  | <FundingPeriodId> |
 		| FundingStreamId                  | <FundingStreamId> |
@@ -1014,137 +1008,137 @@ Scenario Outline: Successful publishing of funding
 		| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
 		| AS-2021              | CalendarMonth | April     | 2021 | 1          | 10000         |
 	And  the published funding contains a calculations in published provider with following calculation results
-		| Id				    | Value |		
-		| 238                   | 640   |
-		| 15                    | 640   |
-		| 17                    | 640   |
-		| 13                    | 640   |
-		| 14                    | 640   |
-		| 19                    | 640   |
-		| 20                    | 640   |
-		| 26                    | 640   |
-		| 24                    | 640   |
-		| 28                    | 640   |
-		| 133                   | 320   |
-		| 131                   | 640   |
-		| 138                   | 320   |
-		| 136                   | 640   |
-		| 143                   | 640   |
-		| 141                   | 640   |
-		| 148                   | 640   |
-		| 146                   | 640   |
-		| 153                   | 640   |
-		| 151                   | 640   |
-		| 32                    | 640   |
-		| 34                    | 640   |
-		| 37                    | 640   |
-		| 29                    | 640   |
-		| 237                   | 640   |
-		| 30                    | 640   |
-		| 33                    | 640   |
-		| 36                    | 320   |
-		| 65                    | 640   |
-		| 66                    | 640   |
-		| 64                    | 640   |
-		| 70                    | 640   |
-		| 71                    | 640   |
-		| 69                    | 640   |
-		| 75                    | 640   |
-		| 76                    | 640   |
-		| 74                    | 640   |
-		| 80                    | 640   |
-		| 81                    | 640   |
-		| 79                    | 640   |
-		| 50                    | 640   |
-		| 51                    | 640   |
-		| 52                    | 640   |
-		| 53                    | 640   |
-		| 163                   | 640   |
-		| 164                   | 640   |
-		| 162                   | 640   |
-		| 90                    | 640   |
-		| 91                    | 640   |
-		| 89                    | 640   |
-		| 95                    | 640   |
-		| 96                    | 640   |
-		| 94                    | 640   |
-		| 158                   | 640   |
-		| 175                   | 640   |
-		| 174                   | 640   |
-		| 168                   | 640   |
-		| 169                   | 640   |
-		| 167                   | 640   |
-		| 176                   | 640   |
-		| 177                   | 640   |
-		| 232                   | 640   |
-		| 182                   | 640   |
-		| 183                   | 640   |
-		| 234                   | 640   |
-		| 159                   | 640   |
-		| 161                   | 640   |
-		| 233                   | 640   |
-		| 189                   | 640   |
-		| 190                   | 640   |
-		| 186                   | 640   |
-		| 195                   | 640   |
-		| 196                   | 640   |
-		| 192                   | 640   |
-		| 185                   | 640   |
-		| 191                   | 640   |
-		| 202                   | 640   |
-		| 203                   | 640   |
-		| 199                   | 640   |
-		| 198                   | 640   |
-		| 209                   | 640   |
-		| 210                   | 640   |
-		| 206                   | 640   |
-		| 205                   | 640   |
-		| 214                   | 640   |
-		| 215                   | 640   |
-		| 213                   | 640   |
-		| 223                   | 640   |
-		| 224                   | 640   |
-		| 220                   | 640   |
-		| 212                   | 640   |
-		| 128                   | 640   |
-		| 129                   | 640   |
-		| 227                   | 640   |
-		| 226                   | 640   |
-		| 42                    | 640   |
-		| 156                   | 640   |
-		| 157                   | 640   |
-		| 184                   | 640   |
-		| 197                   | 640   |
-		| 204                   | 640   |
-		| 211                   | 640   |
-		| 218                   | 640   |
-		| 225                   | 640   |
-		| 40                    | 640   |
-		| 41                    | 640   |
-		| 39                    | 640   |
-		| 21                    | 640   |
-		| 22                    | 640   |
-		| 219                   | 640   |
+		| Id  | Value |
+		| 238 | 640   |
+		| 15  | 640   |
+		| 17  | 640   |
+		| 13  | 640   |
+		| 14  | 640   |
+		| 19  | 640   |
+		| 20  | 640   |
+		| 26  | 640   |
+		| 24  | 640   |
+		| 28  | 640   |
+		| 133 | 320   |
+		| 131 | 640   |
+		| 138 | 320   |
+		| 136 | 640   |
+		| 143 | 640   |
+		| 141 | 640   |
+		| 148 | 640   |
+		| 146 | 640   |
+		| 153 | 640   |
+		| 151 | 640   |
+		| 32  | 640   |
+		| 34  | 640   |
+		| 37  | 640   |
+		| 29  | 640   |
+		| 237 | 640   |
+		| 30  | 640   |
+		| 33  | 640   |
+		| 36  | 320   |
+		| 65  | 640   |
+		| 66  | 640   |
+		| 64  | 640   |
+		| 70  | 640   |
+		| 71  | 640   |
+		| 69  | 640   |
+		| 75  | 640   |
+		| 76  | 640   |
+		| 74  | 640   |
+		| 80  | 640   |
+		| 81  | 640   |
+		| 79  | 640   |
+		| 50  | 640   |
+		| 51  | 640   |
+		| 52  | 640   |
+		| 53  | 640   |
+		| 163 | 640   |
+		| 164 | 640   |
+		| 162 | 640   |
+		| 90  | 640   |
+		| 91  | 640   |
+		| 89  | 640   |
+		| 95  | 640   |
+		| 96  | 640   |
+		| 94  | 640   |
+		| 158 | 640   |
+		| 175 | 640   |
+		| 174 | 640   |
+		| 168 | 640   |
+		| 169 | 640   |
+		| 167 | 640   |
+		| 176 | 640   |
+		| 177 | 640   |
+		| 232 | 640   |
+		| 182 | 640   |
+		| 183 | 640   |
+		| 234 | 640   |
+		| 159 | 640   |
+		| 161 | 640   |
+		| 233 | 640   |
+		| 189 | 640   |
+		| 190 | 640   |
+		| 186 | 640   |
+		| 195 | 640   |
+		| 196 | 640   |
+		| 192 | 640   |
+		| 185 | 640   |
+		| 191 | 640   |
+		| 202 | 640   |
+		| 203 | 640   |
+		| 199 | 640   |
+		| 198 | 640   |
+		| 209 | 640   |
+		| 210 | 640   |
+		| 206 | 640   |
+		| 205 | 640   |
+		| 214 | 640   |
+		| 215 | 640   |
+		| 213 | 640   |
+		| 223 | 640   |
+		| 224 | 640   |
+		| 220 | 640   |
+		| 212 | 640   |
+		| 128 | 640   |
+		| 129 | 640   |
+		| 227 | 640   |
+		| 226 | 640   |
+		| 42  | 640   |
+		| 156 | 640   |
+		| 157 | 640   |
+		| 184 | 640   |
+		| 197 | 640   |
+		| 204 | 640   |
+		| 211 | 640   |
+		| 218 | 640   |
+		| 225 | 640   |
+		| 40  | 640   |
+		| 41  | 640   |
+		| 39  | 640   |
+		| 21  | 640   |
+		| 22  | 640   |
+		| 219 | 640   |
 	And the published funding document produced is saved to blob storage for following file name
-		| PublishedFundingFiles												   |
+		| PublishedFundingFiles                                                       |
 		| <FundingStreamId>-<FundingPeriodId>-Information-LocalAuthority-200-1_0.json |
 		| <FundingStreamId>-<FundingPeriodId>-Payment-LocalAuthority-9000000-1_0.json |
 	And the published funding document produced has following metadata
-		| PublishedFundingFiles												   | MetadataKey | MetadataValue | 
+		| PublishedFundingFiles                                                       | MetadataKey      | MetadataValue     |
 		| <FundingStreamId>-<FundingPeriodId>-Information-LocalAuthority-200-1_0.json | specification-id | specForPublishing |
 		| <FundingStreamId>-<FundingPeriodId>-Payment-LocalAuthority-9000000-1_0.json | specification-id | specForPublishing |
 	And the published provider document produced is saved to blob storage for following file name
-		| PublishedProviderFiles							   |
+		| PublishedProviderFiles                               |
 		| <FundingStreamId>-<FundingPeriodId>-1000000-1_0.json |
 		| <FundingStreamId>-<FundingPeriodId>-1000002-1_0.json |
 	And the published provider document produced has following metadata
-		| PublishedFundingFiles												   | MetadataKey | MetadataValue | 
+		| PublishedFundingFiles                                | MetadataKey      | MetadataValue     |
 		| <FundingStreamId>-<FundingPeriodId>-1000000-1_0.json | specification-id | specForPublishing |
 		| <FundingStreamId>-<FundingPeriodId>-1000002-1_0.json | specification-id | specForPublishing |
 	And the following published provider search index items is produced for providerid with '<FundingStreamId>' and '<FundingPeriodId>'
-		| ID                  | ProviderType				| ProviderSubType | LocalAuthority		| FundingStatus | ProviderName			| UKPRN		 | FundingValue | SpecificationId   | FundingStreamId   | FundingPeriodId   | Errors | Indicative |
-		| 1619-AS-2021-1000000 | LA maintained schools		|Community school	|  Local Authority 1 |  Released      | Maintained School 1	| 1000000    | 12000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> | | Hide indicative allocations |
-		| 1619-AS-2021-1000002 | LA maintained schools		|Community school  | Local Authority 1	| Released      | Maintained School 2	| 1000002    | 12000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> | | Hide indicative allocations |
+		| ID                   | ProviderType | ProviderSubType | LocalAuthority    | FundingStatus | ProviderName | UKPRN   | FundingValue | SpecificationId   | FundingStreamId   | FundingPeriodId   | Errors | Indicative                  |
+		| 1619-AS-2021-1000000 | Acade        | 11ACA           | Local Authority 1 | Released      | Academy 1    | 1000000 | 12000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> |        | Hide indicative allocations |
+		| 1619-AS-2021-1000002 | Acade        | FSAP            | Local Authority 1 | Released      | Academy 2    | 1000002 | 12000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> |        | Hide indicative allocations |
 	And the following job is requested is completed for the current specification
 		| Field                  | Value             |
 		| JobDefinitionId        | PublishFundingJob |
@@ -1152,9 +1146,9 @@ Scenario Outline: Successful publishing of funding
 		| InvokerUserDisplayName | Invoker User      |
 		| ParentJobId            |                   |
 	And the following released published provider ids are upserted
-		| PublishedProviderId                                           | Status  |
-		| publishedprovider-1000000-<FundingPeriodId>-<FundingStreamId> | Released|	
-		| publishedprovider-1000002-<FundingPeriodId>-<FundingStreamId> | Released|
+		| PublishedProviderId                                           | Status   |
+		| publishedprovider-1000000-<FundingPeriodId>-<FundingStreamId> | Released |
+		| publishedprovider-1000002-<FundingPeriodId>-<FundingStreamId> | Released |
 	And the provider variation reasons were recorded
 		| ProviderId | VariationReason  |
 		| 1000000    | FundingUpdated   |
@@ -1163,5 +1157,5 @@ Scenario Outline: Successful publishing of funding
 		| 1000002    | ProfilingUpdated |
 
 	Examples:
-		| FundingStreamId | FundingPeriodId | FundingPeriodName      | TemplateVersion | ProviderVersionId |
-		| 1619             | AS-2021         | Financial Year 2020-21 | 1.0             | 1619-providers-1.0 |
+		| FundingStreamId | FundingPeriodId | FundingPeriodName      | TemplateVersion | ProviderVersionId  |
+		| 1619            | AS-2021         | Financial Year 2020-21 | 1.0             | 1619-providers-1.0 |

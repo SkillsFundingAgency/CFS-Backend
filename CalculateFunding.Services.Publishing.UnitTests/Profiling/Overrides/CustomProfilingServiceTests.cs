@@ -63,12 +63,60 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
         }
 
         [TestMethod]
-        [DataRow(PublishedProviderStatus.Draft, PublishedProviderStatus.Draft)]
-        [DataRow(PublishedProviderStatus.Updated, PublishedProviderStatus.Updated)]
-        [DataRow(PublishedProviderStatus.Approved, PublishedProviderStatus.Updated)]
-        [DataRow(PublishedProviderStatus.Released, PublishedProviderStatus.Updated)]
+        public void ExitsEarlyIfRequestDoesntPassVerifyProfileAmountsMatchFundingLineValue()
+        {
+            string fundingLineOne = NewRandomString();
+            decimal carryOver = 200;
+            decimal periodProfileAmount1 = 1000;
+            decimal periodProfileAmount2 = 2000;
+            decimal fundingLineTotal = periodProfileAmount1 + periodProfileAmount2;
+
+            ProfilePeriod profilePeriod1 = NewProfilePeriod(_ => _.WithDistributionPeriodId("FY-2021").WithAmount(periodProfileAmount1));
+            ProfilePeriod profilePeriod2 = NewProfilePeriod(_ => _.WithDistributionPeriodId("FY-2022").WithAmount(periodProfileAmount2));
+            
+            ApplyCustomProfileRequest request = NewApplyCustomProfileRequest(_ => _
+                .WithFundingLineCode(fundingLineOne)
+                .WithProfilePeriods(profilePeriod1, profilePeriod2)
+                .WithCarryOver(carryOver));
+
+            PublishedProvider publishedProvider = NewPublishedProvider(_ => _.WithCurrent(
+                NewPublishedProviderVersion(ppv =>
+                ppv.WithPublishedProviderStatus(PublishedProviderStatus.Draft)
+                    .WithFundingLines(NewFundingLine(fl =>
+                        fl.WithFundingLineCode(fundingLineOne)
+                            .WithDistributionPeriods(NewDistributionPeriod(dp =>
+                                dp.WithDistributionPeriodId("FY-2021")
+                                    .WithProfilePeriods(profilePeriod1)),
+                                    NewDistributionPeriod(dp =>
+                                dp.WithDistributionPeriodId("FY-2022")
+                                    .WithProfilePeriods(profilePeriod2)))
+                            .WithValue(profilePeriod1.ProfiledValue + profilePeriod2.ProfiledValue)))
+                        )));
+
+            Reference author = NewAuthor();
+
+            GivenTheValidationResultForTheRequest(NewValidationResult(), request);
+            AndThePublishedProvider(request.PublishedProviderId, publishedProvider);
+
+            Func<Task> Invocation = () => WhenTheCustomProfileIsApplied(request, author);
+
+            decimal reProfileFundingLineTotal = fundingLineTotal;
+
+            Invocation
+                .Should()
+                .Throw<InvalidOperationException>()
+                .WithMessage($"Profile amounts ({fundingLineTotal}) and carry over amount ({carryOver}) does not equal funding line total requested ({reProfileFundingLineTotal}) from strategy.");
+        }
+
+        [TestMethod]
+        [DataRow(PublishedProviderStatus.Draft, PublishedProviderStatus.Draft, null)]
+        [DataRow(PublishedProviderStatus.Draft, PublishedProviderStatus.Draft, 2)]
+        [DataRow(PublishedProviderStatus.Updated, PublishedProviderStatus.Updated, null)]
+        [DataRow(PublishedProviderStatus.Approved, PublishedProviderStatus.Updated, null)]
+        [DataRow(PublishedProviderStatus.Released, PublishedProviderStatus.Updated, null)]
         public async Task OverridesProfilePeriodsOnPublishedProviderVersionAndGeneratesNewVersion(PublishedProviderStatus currentStatus,
-            PublishedProviderStatus expectedRequestedStatus)
+            PublishedProviderStatus expectedRequestedStatus,
+            int? carryOver)
         {
             string fundingLineOne = NewRandomString();
             ProfilePeriod profilePeriod1 = NewProfilePeriod(_ => _.WithDistributionPeriodId("FY-2021"));
@@ -76,7 +124,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
 
             ApplyCustomProfileRequest request = NewApplyCustomProfileRequest(_ => _
                 .WithFundingLineCode(fundingLineOne)
-                .WithProfilePeriods(profilePeriod1, profilePeriod2));
+                .WithProfilePeriods(profilePeriod1, profilePeriod2)
+                .WithCarryOver(carryOver));
 
             PublishedProvider publishedProvider = NewPublishedProvider(_ => _.WithCurrent(
                 NewPublishedProviderVersion(ppv =>
@@ -88,7 +137,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
                                     .WithProfilePeriods(profilePeriod1)),
                                     NewDistributionPeriod(dp =>
                                 dp.WithDistributionPeriodId("FY-2022")
-                                    .WithProfilePeriods(profilePeriod2))))
+                                    .WithProfilePeriods(profilePeriod2)))
+                            .WithValue(profilePeriod1.ProfiledValue + (profilePeriod2.ProfiledValue - carryOver.GetValueOrDefault())))
                         ))));
 
             Reference author = NewAuthor();
