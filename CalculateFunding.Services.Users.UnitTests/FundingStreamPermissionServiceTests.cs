@@ -25,7 +25,8 @@ namespace CalculateFunding.Services.Users
             ICacheProvider cacheProvider = null,
             IMapper mapper = null,
             ILogger logger = null,
-            IUsersResiliencePolicies policies = null)
+            IUsersResiliencePolicies policies = null,
+            IUsersCsvGenerator usersCsvGenerator = null)
         {
             return new FundingStreamPermissionService(
                 userRepository ?? CreateUserRepository(),
@@ -34,8 +35,8 @@ namespace CalculateFunding.Services.Users
                 cacheProvider ?? CreateCacheProvider(),
                 mapper ?? CreateMappingConfiguration(),
                 logger ?? CreateLogger(),
-                policies ?? CreatePoliciesNoOp()
-                );
+                policies ?? CreatePoliciesNoOp(),
+                usersCsvGenerator ?? CreateUsersCsvGenerator());
         }
 
         public IUserRepository CreateUserRepository()
@@ -73,6 +74,11 @@ namespace CalculateFunding.Services.Users
         public IUsersResiliencePolicies CreatePoliciesNoOp()
         {
             return UsersResilienceTestHelper.GenerateTestPolicies();
+        }
+
+        public IUsersCsvGenerator CreateUsersCsvGenerator()
+        {
+            return Substitute.For<IUsersCsvGenerator>();
         }
     }
 }

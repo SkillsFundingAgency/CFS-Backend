@@ -12,5 +12,6 @@ namespace CalculateFunding.Services.Users
         public AsyncPolicy FundingStreamPermissionVersionRepositoryPolicy { get; set; }
 
         public AsyncPolicy CacheProviderPolicy { get; set; }
+        public AsyncPolicy BlobClient { get; set; }
     }
 }

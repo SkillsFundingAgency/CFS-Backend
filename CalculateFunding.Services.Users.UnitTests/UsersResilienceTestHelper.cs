@@ -13,6 +13,7 @@ namespace CalculateFunding.Services.Users
                 FundingStreamPermissionVersionRepositoryPolicy = Policy.NoOpAsync(),
                 SpecificationApiClient = Policy.NoOpAsync(),
                 UserRepositoryPolicy = Policy.NoOpAsync(),
+                BlobClient = Policy.NoOpAsync()
             };
         }
     }

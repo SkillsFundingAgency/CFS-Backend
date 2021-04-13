@@ -64,5 +64,13 @@ namespace CalculateFunding.Api.Users.Controllers
         {
             return await _fundingStreamPermissionService.GetEffectivePermissionsForUser(userId, specificationId);
         }
+
+        [Route("api/users/effectivepermissions/generate-report/{fundingStreamId}")]
+        [HttpGet]
+        [Produces(typeof(FundingStreamPermissionCurrentDownloadModel))]
+        public async Task<IActionResult> DownloadEffectivePermissionsForFundingStream([FromRoute] string fundingStreamId)
+        {
+            return await _fundingStreamPermissionService.DownloadEffectivePermissionsForFundingStream(fundingStreamId);
+        }
     }
 }

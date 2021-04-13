@@ -86,6 +86,9 @@
             public const string DetectObsoleteFundingLinesJob = nameof(DetectObsoleteFundingLinesJob);
 
             public const string RunConverterDatasetMergeJob = nameof(RunConverterDatasetMergeJob);
+
+            public const string GenerateFundingStreamPermissionsCsvJob = nameof(GenerateFundingStreamPermissionsCsvJob);
+
         }
 
         public static class NotificationChannels

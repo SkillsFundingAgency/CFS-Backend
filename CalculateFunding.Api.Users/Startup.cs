@@ -3,12 +3,14 @@ using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Users;
 using CalculateFunding.Services.Core.AspNet.Extensions;
 using CalculateFunding.Services.Core.AspNet.HealthChecks;
+using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
@@ -42,6 +44,8 @@ namespace CalculateFunding.Api.Users
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton(Configuration);
+
             services.AddControllers()
                 .AddNewtonsoftJson();
 
@@ -108,6 +112,28 @@ namespace CalculateFunding.Api.Users
                .AddSingleton<IFundingStreamPermissionService, FundingStreamPermissionService>()
                .AddSingleton<IHealthChecker, FundingStreamPermissionService>();
 
+            builder
+                .AddSingleton<ICsvUtils, CsvUtils>()
+                .AddSingleton<IFileSystemAccess, FileSystemAccess>()
+                .AddSingleton<IFileSystemCacheSettings, FileSystemCacheSettings>();
+
+            builder.AddSingleton<IBlobClient>(ctx =>
+            {
+                BlobStorageOptions options = new BlobStorageOptions();
+
+                Configuration.Bind("AzureStorageSettings", options);
+
+                options.ContainerName = "userreports";
+
+                IBlobContainerRepository blobContainerRepository = new BlobContainerRepository(options);
+                return new BlobClient(blobContainerRepository);
+            });
+
+            builder
+                .AddSingleton<IUsersCsvTransformServiceLocator, FundingStreamPermissionsUsersCsvTransformServiceLocator>()
+                .AddSingleton<IUsersCsvTransform, FundingStreamUserPermissionsCsvTransform>()
+                .AddSingleton<IUsersCsvGenerator, FundingStreamPermissionsUsersCsvGenerator>();
+
             builder.AddSingleton<IValidator<UserCreateModel>, UserCreateModelValidator>();
 
             builder.AddSingleton<IUserRepository, UserRepository>((ctx) =>
@@ -154,6 +180,7 @@ namespace CalculateFunding.Api.Users
                     CacheProviderPolicy = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy),
                     SpecificationApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     UserRepositoryPolicy = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                    BlobClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
 

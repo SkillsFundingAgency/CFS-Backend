@@ -4,9 +4,11 @@ using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.Storage;
 using CalculateFunding.Functions.Users.ServiceBus;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Users;
+using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Functions.Extensions;
 using CalculateFunding.Services.Core.Helpers;
@@ -66,6 +68,29 @@ namespace CalculateFunding.Functions.Users
                .AddSingleton<IFundingStreamPermissionService, FundingStreamPermissionService>()
                .AddSingleton<IHealthChecker, FundingStreamPermissionService>();
 
+            builder.AddSingleton<IBlobClient>(ctx =>
+            {
+                BlobStorageOptions options = new BlobStorageOptions();
+
+                config.Bind("AzureStorageSettings", options);
+
+                options.ContainerName = "userreports";
+
+                IBlobContainerRepository blobContainerRepository = new BlobContainerRepository(options);
+                return new BlobClient(blobContainerRepository);
+            });
+
+            builder
+                .AddSingleton<ICsvUtils, CsvUtils>()
+                .AddSingleton<IFileSystemAccess, FileSystemAccess>()
+                .AddSingleton<IFileSystemCacheSettings, FileSystemCacheSettings>();
+
+
+            builder
+                .AddSingleton<IUsersCsvTransformServiceLocator, FundingStreamPermissionsUsersCsvTransformServiceLocator>()
+                .AddSingleton<IUsersCsvTransform, FundingStreamUserPermissionsCsvTransform>()
+                .AddSingleton<IUsersCsvGenerator, FundingStreamPermissionsUsersCsvGenerator>();
+
             builder.AddSingleton<IValidator<UserCreateModel>, UserCreateModelValidator>();
 
             builder.AddSingleton<IUserRepository, UserRepository>((ctx) =>
@@ -112,6 +137,7 @@ namespace CalculateFunding.Functions.Users
                     CacheProviderPolicy = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy),
                     SpecificationApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     UserRepositoryPolicy = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                    BlobClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
 

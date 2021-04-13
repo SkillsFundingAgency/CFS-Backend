@@ -19,6 +19,6 @@ namespace CalculateFunding.Services.Users.Interfaces
 
         Task<HttpStatusCode> UpdateFundingStreamPermission(FundingStreamPermission fundingStreamPermission);
 
-
+        Task<IEnumerable<User>> GetAllUsers();
     }
 }

@@ -2,7 +2,6 @@
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces;
@@ -12,7 +11,6 @@ using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.Storage.Blob;
 using Polly;
 using Serilog;
-using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.IO;

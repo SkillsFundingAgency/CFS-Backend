@@ -30,5 +30,13 @@ namespace CalculateFunding.Services.Users.Interfaces
         /// <param name="userId">User ID</param>
         /// <returns>IEnumerable of Funding Stream Permissions</returns>
         Task<IActionResult> GetFundingStreamPermissionsForUser(string userId);
+
+        /// <summary>
+        /// Gets the download URL for users on given a funding stream
+        /// </summary>
+        /// <param name="fundingStreamId">Funding Stream ID</param>
+        /// <returns></returns>
+        Task<IActionResult> DownloadEffectivePermissionsForFundingStream(string fundingStreamId);
+
     }
 }

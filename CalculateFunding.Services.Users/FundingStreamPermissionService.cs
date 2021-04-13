@@ -37,6 +37,7 @@ namespace CalculateFunding.Services.Users
         private readonly Polly.AsyncPolicy _specificationsApiClientPolicy;
         private readonly Polly.AsyncPolicy _fundingStreamPermissionVersionRepositoryPolicy;
         private readonly Polly.AsyncPolicy _cacheProviderPolicy;
+        private readonly IUsersCsvGenerator _usersCsvGenerator;
 
         public FundingStreamPermissionService(
             IUserRepository userRepository,
@@ -45,7 +46,8 @@ namespace CalculateFunding.Services.Users
             ICacheProvider cacheProvider,
             IMapper mapper,
             ILogger logger,
-            IUsersResiliencePolicies policies)
+            IUsersResiliencePolicies policies,
+            IUsersCsvGenerator usersCsvGenerator)
         {
             Guard.ArgumentNotNull(userRepository, nameof(userRepository));
             Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
@@ -57,6 +59,7 @@ namespace CalculateFunding.Services.Users
             Guard.ArgumentNotNull(policies?.SpecificationApiClient, nameof(policies.SpecificationApiClient));
             Guard.ArgumentNotNull(policies?.FundingStreamPermissionVersionRepositoryPolicy, nameof(policies.FundingStreamPermissionVersionRepositoryPolicy));
             Guard.ArgumentNotNull(policies?.CacheProviderPolicy, nameof(policies.CacheProviderPolicy));
+            Guard.ArgumentNotNull(usersCsvGenerator, nameof(usersCsvGenerator));
 
             _userRepository = userRepository;
             _specificationsApiClient = specificationsApiClient;
@@ -64,6 +67,7 @@ namespace CalculateFunding.Services.Users
             _cacheProvider = cacheProvider;
             _mapper = mapper;
             _logger = logger;
+            _usersCsvGenerator = usersCsvGenerator;
 
             _userRepositoryPolicy = policies.UserRepositoryPolicy;
             _specificationsApiClientPolicy = policies.SpecificationApiClient;
@@ -306,6 +310,25 @@ namespace CalculateFunding.Services.Users
 
                 return new OkObjectResult(specificationPermissions);
             }
+        }
+
+        public async Task<IActionResult> DownloadEffectivePermissionsForFundingStream(string fundingStreamId)
+        {
+            if (string.IsNullOrWhiteSpace(fundingStreamId))
+            {
+                return new BadRequestObjectResult($"{nameof(fundingStreamId)} is empty or null");
+            }
+
+            UserPermissionCsvGenerationMessage message = new UserPermissionCsvGenerationMessage
+            {
+                FundingStreamId = fundingStreamId,
+                ReportRunTime = DateTime.UtcNow,
+                Environment = "DEV"
+            };
+
+            FundingStreamPermissionCurrentDownloadModel downloadModel = await _usersCsvGenerator.Generate(message);
+
+            return new OkObjectResult(downloadModel);
         }
 
         private EffectiveSpecificationPermission GeneratePermissions(IEnumerable<FundingStreamPermission> permissionsForUser, string specificationId, string userId)

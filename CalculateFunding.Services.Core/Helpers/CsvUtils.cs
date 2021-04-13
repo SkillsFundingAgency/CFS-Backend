@@ -15,18 +15,16 @@ namespace CalculateFunding.Services.Core.Helpers
         public string AsCsv(IEnumerable<dynamic> documents, bool outputHeaders)
         {
             if (!documents.AnyWithNullCheck()) return null;
-            
-            using (StringWriter writer = new StringWriter())
-            using (CsvWriter csvWriter = new CsvWriter(writer))
-            {
-                csvWriter.Configuration.ShouldQuote = (value, context) => true;
-                csvWriter.Configuration.Quote = '\"';
-                csvWriter.Configuration.HasHeaderRecord = outputHeaders;
 
-                csvWriter.WriteRecords(documents);
-                
-                return writer.ToString();
-            }
+            using StringWriter writer = new StringWriter();
+            using CsvWriter csvWriter = new CsvWriter(writer);
+            csvWriter.Configuration.ShouldQuote = (value, context) => true;
+            csvWriter.Configuration.Quote = '\"';
+            csvWriter.Configuration.HasHeaderRecord = outputHeaders;
+
+            csvWriter.WriteRecords(documents);
+
+            return writer.ToString();
         }
 
         public IEnumerable<TPoco> AsPocos<TPoco>(string csv, string dateTimeFormat = "dd/MM/yyyy")

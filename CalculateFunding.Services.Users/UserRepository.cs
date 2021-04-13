@@ -129,5 +129,22 @@ namespace CalculateFunding.Services.Users
             };
             return await _cosmosRepository.QuerySql<FundingStreamPermission>(cosmosDbQuery);
         }
+
+        public async Task<IEnumerable<User>> GetAllUsers()
+        {
+            CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
+            {
+                QueryText = "SELECT * FROM Root r WHERE r.documentType = @DocumentType AND r.deleted = false",
+                Parameters = new[]
+                {
+                    new CosmosDbQueryParameter("@DocumentType", nameof(User))
+                }
+            };
+            IEnumerable<User> users = await _cosmosRepository.QuerySql<User>(cosmosDbQuery);
+
+            if (!users.AnyWithNullCheck()) return null;
+
+            return users;
+        }
     }
 }
