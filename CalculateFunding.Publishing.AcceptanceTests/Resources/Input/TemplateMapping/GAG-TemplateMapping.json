@@ -1,979 +1,2359 @@
 {
-  "id": "templatemapping-9dfe77f0-f112-4368-8d24-63c7df062c08-GAG",
-  "specificationId": null,
-  "fundingStreamId": null,
+  "id": "templatemapping-acaebdc0-c535-4876-9733-25ebd0b3474c-GAG",
+  "specificationId": "acaebdc0-c535-4876-9733-25ebd0b3474c",
+  "fundingStreamId": "GAG",
   "templateMappingItems": [
     {
-      "EntityType": "Calculation",
-      "Name": "Primary Pupil Number",
-      "TemplateId": 15,
-      "CalculationId": "e46c0b59-6900-4fae-90b5-da6e558d9491"
+      "entityType": 0,
+      "name": "Reception Uplift pupil numbers",
+      "templateId": 703,
+      "calculationId": "28a0579f-b420-4004-b520-d1d68622851c"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Primary Unit of Funding",
-      "TemplateId": 16,
-      "CalculationId": "dd54d574-f9ef-4bef-bf82-1cb31c526f36"
+      "entityType": 0,
+      "name": "Primary Basic Entitlement Rate",
+      "templateId": 59,
+      "calculationId": "065b22de-d74b-4a85-a459-b684eb61adf2"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Secondary Pupil Number",
-      "TemplateId": 17,
-      "CalculationId": "ff97843a-5fa9-4435-81c3-c44785611b01"
+      "entityType": 0,
+      "name": "Primary Basic Entitlement Factor",
+      "templateId": 60,
+      "calculationId": "aa6d9a2d-641a-4924-87c4-44b29fb9714c"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Secondary Unit of Funding",
-      "TemplateId": 18,
-      "CalculationId": "b7c8bac7-c470-4b9b-af8f-0e4bd9886742"
+      "entityType": 0,
+      "name": "Primary Pupil Count  SBS",
+      "templateId": 61,
+      "calculationId": "be92454a-717e-4242-9279-362c83da9118"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Primary pupil sub-total",
-      "TemplateId": 13,
-      "CalculationId": "f43ba392-bf58-4677-a2c4-87ac114498fe"
+      "entityType": 0,
+      "name": "Fringe Factor",
+      "templateId": 238,
+      "calculationId": "0ef36fbd-7bff-4ec0-88cc-98ad7d38db19"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Secondary pupil sub-total",
-      "TemplateId": 14,
-      "CalculationId": "54dea110-7fb7-41c0-bf87-2050ad54a042"
+      "entityType": 0,
+      "name": "Basic Entitlement - Primary Funding",
+      "templateId": 58,
+      "calculationId": "0225b477-d69a-483d-aab8-72e93e1cd722"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Premises and Mobility Factors",
-      "TemplateId": 19,
-      "CalculationId": "c71aa30e-73a4-4b5e-b1f3-61856b92b1fd"
+      "entityType": 0,
+      "name": "Basic Entitlement - Primary SEN %",
+      "templateId": 314,
+      "calculationId": "7e992497-172c-44b3-af2e-a8f287b56332"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Growth",
-      "TemplateId": 20,
-      "CalculationId": "21c65d92-31a8-4b08-9a78-caada398b8d2"
+      "entityType": 0,
+      "name": "London Fringe Factor",
+      "templateId": 237,
+      "calculationId": "b451b557-e2af-4114-9d8a-e9add78af529"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "CSSB per Pupil Rate",
-      "TemplateId": 25,
-      "CalculationId": "a130170a-b70e-463c-960d-639e2155ca3e"
+      "entityType": 0,
+      "name": "Basic Entitlement - Primary SEN Total",
+      "templateId": 312,
+      "calculationId": "f745ae00-f5cb-4f68-82ea-f2427d48c8f3"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "CSSB Pupil Number",
-      "TemplateId": 26,
-      "CalculationId": "fcd312aa-c9bb-4b1f-97b2-2efeaccc6c5a"
+      "entityType": 0,
+      "name": "KS3 Basic Entitlement Rate",
+      "templateId": 63,
+      "calculationId": "232a0625-e078-48c5-af5a-2075e4da1a3c"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "CSSB Pupil Led Total",
-      "TemplateId": 24,
-      "CalculationId": "bd784ee0-e837-4859-8891-1f991d429657"
+      "entityType": 0,
+      "name": "KS3 Basic Entitlement Factor",
+      "templateId": 64,
+      "calculationId": "bd54938b-02be-44b6-8294-18e91b96946d"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Actual CSSB Funding for Historic Commitments",
-      "TemplateId": 28,
-      "CalculationId": "e79438f4-be66-4653-b61b-a2f7233c4549"
+      "entityType": 0,
+      "name": "KS3 Pupil Count  SBS",
+      "templateId": 66,
+      "calculationId": "fea55d50-c890-4684-92bc-61d3f163777a"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Universal Entitlement for 3 and 4 Year Olds total Early Years Universal Entitlement for 3 and 4 Year Olds Rate",
-      "TemplateId": 132,
-      "CalculationId": "7709b5c0-699f-455e-8773-7b258d801792"
+      "entityType": 0,
+      "name": "Basic Entitlement - KS3 Funding",
+      "templateId": 62,
+      "calculationId": "8d26ba95-d543-4c2c-a4d2-e85c7767a747"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Total 3 and 4 Year Olds (PTE)",
-      "TemplateId": 133,
-      "CalculationId": "6d1c482b-6df9-4ba4-842e-704aa5f6100f"
+      "entityType": 0,
+      "name": "Basic Entitlement - KS3 SEN %",
+      "templateId": 317,
+      "calculationId": "3596d9c7-d378-4392-b11d-003ba5e19169"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Universal Entitlement for 3 and 4 Year Olds total PTE Funded hours",
-      "TemplateId": 134,
-      "CalculationId": "771727d2-61a7-4928-b9c5-71e80ace0c4d"
+      "entityType": 0,
+      "name": "Basic Entitlement - KS3 SEN Total",
+      "templateId": 315,
+      "calculationId": "9bf19273-f636-4ddb-a01f-39b2791fb7d6"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Universal Entitlement for 3 and 4 Year Olds total",
-      "TemplateId": 131,
-      "CalculationId": "f5afea39-d21c-443b-859a-595c78789989"
+      "entityType": 0,
+      "name": "KS4 Basic Entitlement Rate",
+      "templateId": 68,
+      "calculationId": "a2e2c433-a9cf-4515-a275-d47e68a9b8a9"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Funding for Additional Hours for working parents total Early Years Universal Entitlement for 3 and 4 Year Olds Rate",
-      "TemplateId": 137,
-      "CalculationId": "36df4068-f3e0-4040-a73f-40dc66e1bad0"
+      "entityType": 0,
+      "name": "KS4 Basic Entitlement Factor",
+      "templateId": 69,
+      "calculationId": "a8eb2067-be61-43f3-87bb-54d3b6732fb5"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Total 3 and 4 Year Old for Additional Hours for Working Parents (PTE)",
-      "TemplateId": 138,
-      "CalculationId": "989fe1d5-9913-49d8-ba07-5685052e818f"
+      "entityType": 0,
+      "name": "KS4 Pupil Count  SBS",
+      "templateId": 70,
+      "calculationId": "9c06d5c4-1e1b-47e1-8cb2-e941c7d95177"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Funding for Additional Hours for working parents total PTE Funded hours",
-      "TemplateId": 139,
-      "CalculationId": "704db23d-cf70-4a14-93b4-c966727cedb0"
+      "entityType": 0,
+      "name": "Basic Entitlement - KS4 Funding",
+      "templateId": 67,
+      "calculationId": "eac2722f-4a9c-4de7-9389-5ef0ded39444"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Funding for Additional Hours for working parents total",
-      "TemplateId": 136,
-      "CalculationId": "df645907-2cf0-4f25-99a4-4147ac62e1df"
+      "entityType": 0,
+      "name": "Basic Entitlement - KS4 SEN %",
+      "templateId": 321,
+      "calculationId": "69a8320e-e8e6-4444-9259-dfbfc5ca96d3"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Early Years Participation Funding for 2 Year Olds Rate",
-      "TemplateId": 142,
-      "CalculationId": "300dbe4d-b008-4ede-a189-4b456fac6870"
+      "entityType": 0,
+      "name": "Basic Entitlement - KS4 SEN Total",
+      "templateId": 319,
+      "calculationId": "7bf7d78f-ab66-4d58-bcff-60caaabd8694"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Total 2 Year Olds (PTE)",
-      "TemplateId": 143,
-      "CalculationId": "96d3e984-ccf5-440e-960a-fcbea5034e74"
+      "entityType": 0,
+      "name": "Primary IDACI Band A Rate",
+      "templateId": 72,
+      "calculationId": "17525f91-225e-44c4-b3da-0034d8b15d4c"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Participation Funding for Disadvantaged 2 Year Olds total PTE Funded hours",
-      "TemplateId": 144,
-      "CalculationId": "ddfdaf6f-0d81-4655-b71e-2c8b9320329c"
+      "entityType": 0,
+      "name": "Primary IDACI Band A factor",
+      "templateId": 73,
+      "calculationId": "e7eac67b-982c-4f00-84e6-c0dfed8341a7"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Participation Funding for Disadvantaged 2 Year Olds total",
-      "TemplateId": 141,
-      "CalculationId": "030997f5-38c6-453e-a40a-5f640d2bf223"
+      "entityType": 0,
+      "name": "Primary IDACI Band A funding",
+      "templateId": 71,
+      "calculationId": "d7289c9d-7a77-4f27-b6aa-417842588b3e"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Early Years Pupil Premium",
-      "TemplateId": 147,
-      "CalculationId": "e616e94c-bdf9-4746-aba9-cbe3ee7b27cf"
+      "entityType": 0,
+      "name": "Primary IDACI Band A SEN %",
+      "templateId": 324,
+      "calculationId": "877a9d84-0424-46ac-8632-7bb64f940c6e"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Pupil Premium Pupil Count for 3 to 4 Year Olds (PTE)",
-      "TemplateId": 148,
-      "CalculationId": "ccacff9b-1767-4045-82ff-669d56c018ca"
+      "entityType": 0,
+      "name": "Primary IDACI Band A SEN Total",
+      "templateId": 322,
+      "calculationId": "4b5155c2-d624-4747-beac-410d02f7d3e8"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Funding Allocation for Early Years Pupil Premium total PTE Funded hours",
-      "TemplateId": 149,
-      "CalculationId": "18274db3-2c2d-4c2d-a46c-17cc5d98737d"
+      "entityType": 0,
+      "name": "Primary IDACI Band B Rate",
+      "templateId": 76,
+      "calculationId": "c6109bcc-565c-4276-b1fd-661206f6275f"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Funding Allocation for Early Years Pupil Premium total",
-      "TemplateId": 146,
-      "CalculationId": "644667cc-c636-47b9-ade8-e2f7af501388"
+      "entityType": 0,
+      "name": "Primary IDACI Band B Factor",
+      "templateId": 77,
+      "calculationId": "83ddf11d-94b2-436d-b21e-641d3eae6fe7"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Maintained Nursery Schools Supplement Hourly Rate",
-      "TemplateId": 152,
-      "CalculationId": "c14a47a0-3a88-4dd9-9bd1-a5935e0cb49b"
+      "entityType": 0,
+      "name": "Primary IDACI Band B funding",
+      "templateId": 75,
+      "calculationId": "863bfe53-b251-4d3b-adb2-bd58054ef58b"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Maintained Nursery Schools Supplement (PTE)",
-      "TemplateId": 153,
-      "CalculationId": "4a4a6b45-a540-4efa-be10-8188d04460fe"
+      "entityType": 0,
+      "name": "Primary IDACI Band B SEN %",
+      "templateId": 327,
+      "calculationId": "96bfdfa5-cdc8-4032-b336-19add0727a66"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "PTE Funded hours",
-      "TemplateId": 154,
-      "CalculationId": "a53c47a9-b181-4158-902c-abe74efeccfa"
+      "entityType": 0,
+      "name": "Primary IDACI Band B SEN Total",
+      "templateId": 325,
+      "calculationId": "07d13dfb-7b4b-4120-9753-bd346482c8ac"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Funding Allocation for Maintained Nursery Supplement total",
-      "TemplateId": 151,
-      "CalculationId": "67e747b8-1d25-4de0-8101-7f81e8d7c051"
+      "entityType": 0,
+      "name": "Primary IDACI Band C Rate",
+      "templateId": 80,
+      "calculationId": "ac894bc6-8f41-47b9-aae0-5fb0e149c21e"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Basic Entitlement Per Pupil Rate",
-      "TemplateId": 31,
-      "CalculationId": "b7ec40dc-1f24-4b69-b0dc-ecc4a7f9eb5c"
+      "entityType": 0,
+      "name": "Primary IDACI Band C Factor",
+      "templateId": 81,
+      "calculationId": "924cd642-5605-4488-afe7-e98fa49ba5a0"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Basic Entitlement Per Pupil Number",
-      "TemplateId": 32,
-      "CalculationId": "b64dbf4f-5ac4-4ad3-91cd-c98ce40c606a"
+      "entityType": 0,
+      "name": "Primary IDACI Band C funding",
+      "templateId": 79,
+      "calculationId": "a091d1de-d018-4aca-84f8-5e6115e2b70c"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Import/Export Adjustment per pupil number",
-      "TemplateId": 34,
-      "CalculationId": "d3704649-3119-42e1-ab69-b1758f2c0fd5"
+      "entityType": 0,
+      "name": "Primary IDACI Band C SEN %",
+      "templateId": 330,
+      "calculationId": "6a842993-9bc7-45ee-9e6f-c522d3ed3911"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Import/Export Adjustment per pupil rate",
-      "TemplateId": 35,
-      "CalculationId": "3647fb00-31d9-4c3a-a20a-e8631810dd55"
+      "entityType": 0,
+      "name": "Primary IDACI Band C SEN Total",
+      "templateId": 328,
+      "calculationId": "44389821-c3e3-41f1-b9f6-24780ccbf0d5"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Mid 2019 Age 2-18 ONS Population Projection",
-      "TemplateId": 37,
-      "CalculationId": "49494307-c1a1-40a5-a2d5-38d88bca8ede"
+      "entityType": 0,
+      "name": "Primary IDACI Band D SEN %",
+      "templateId": 340,
+      "calculationId": "30cadb2d-732d-4ca6-a2de-2e1a5ec05a11"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Additional High Needs Funding Quantum",
-      "TemplateId": 38,
-      "CalculationId": "5f19e35b-f532-43e7-9133-638a29324815"
+      "entityType": 0,
+      "name": "Primary IDACI Band D SEN Total",
+      "templateId": 338,
+      "calculationId": "06683b77-71b8-4a74-a61c-eac1efcd2167"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "HN Block Baseline",
-      "TemplateId": 29,
-      "CalculationId": "9c0f0435-5268-49c0-a0a7-74f8d477a52a"
+      "entityType": 0,
+      "name": "Primary IDACI Band E Rate",
+      "templateId": 88,
+      "calculationId": "dc16d606-e907-4ce9-b682-84fd593a95e0"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Additional Funding For free Schools",
-      "TemplateId": 237,
-      "CalculationId": "fae774f5-f73c-4bd1-8fc8-aee66fb51c0c"
+      "entityType": 0,
+      "name": "Primary IDACI Band E Factor",
+      "templateId": 89,
+      "calculationId": "c222a69b-addf-4d3c-acdc-9fc6500a13d5"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Basic Entitlement",
-      "TemplateId": 30,
-      "CalculationId": "61709649-863e-4a1f-b03b-ddcac25625a4"
+      "entityType": 0,
+      "name": "Primary IDACI Band E funding",
+      "templateId": 87,
+      "calculationId": "08371eae-e8f8-4e5d-8e9e-d275ff1944a5"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Import/Export Adjustment",
-      "TemplateId": 33,
-      "CalculationId": "b9dd905a-8aa4-41ee-8f90-f0d655f3553f"
+      "entityType": 0,
+      "name": "Primary IDACI Band E SEN %",
+      "templateId": 343,
+      "calculationId": "568fc46f-e588-453c-aefa-fbe43c2995d8"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Additonal High Needs Funding",
-      "TemplateId": 36,
-      "CalculationId": "9756e012-9f5e-47c9-a5b8-c1c7188b6829"
+      "entityType": 0,
+      "name": "Primary IDACI Band E SEN Total",
+      "templateId": 341,
+      "calculationId": "08e0355b-bd21-4939-8da3-1194a38f547d"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @£6k SEN places deduction April (Year 1) - August (Year 1)",
-      "TemplateId": 65,
-      "CalculationId": "d95c681b-66f4-49e5-bf6e-22f330afe3b4"
+      "entityType": 0,
+      "name": "Primary IDACI Band F Rate",
+      "templateId": 92,
+      "calculationId": "495b973d-a69b-4e89-a465-29285115fef7"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @£6k SEN places deduction September (Year 1) - March (Year 2)",
-      "TemplateId": 66,
-      "CalculationId": "0b643470-b859-4a5e-b2cd-f45a33657466"
+      "entityType": 0,
+      "name": "Primary IDACI Band F Factor",
+      "templateId": 93,
+      "calculationId": "0d747d02-3d1b-40bb-8f0a-4d66524a91f0"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @£6k SEN places deduction April (Year 1) - August (Year 1) rate",
-      "TemplateId": 67,
-      "CalculationId": "4c0eaa57-642e-4fba-9c75-4174c4be0ab4"
+      "entityType": 0,
+      "name": "Primary IDACI Band F funding",
+      "templateId": 91,
+      "calculationId": "a2ea88b5-153e-4982-87c2-edc16c5dd934"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @£6k SEN places deduction September (Year 1) - March (Year 2) rate",
-      "TemplateId": 68,
-      "CalculationId": "4543e33f-8b40-4335-901d-834ab84b761f"
+      "entityType": 0,
+      "name": "Primary IDACI Band F SEN %",
+      "templateId": 346,
+      "calculationId": "5c249a35-8ea7-4fb0-8830-8aa2ec33c9d0"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @£6k SEN places deduction",
-      "TemplateId": 64,
-      "CalculationId": "2375efb5-4275-4f64-96bf-01c35b4dfc54"
+      "entityType": 0,
+      "name": "Primary IDACI Band F SEN Total",
+      "templateId": 344,
+      "calculationId": "61c929ba-d354-4640-b59f-01cbaa4a6e15"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @£10k SEN places deduction April (Year 1) - August (Year 1)",
-      "TemplateId": 70,
-      "CalculationId": "07400efc-cd8a-4062-bdde-3dac44bce704"
+      "entityType": 0,
+      "name": "Secondary IDACI Band A Rate",
+      "templateId": 96,
+      "calculationId": "b550ae82-0284-46a5-9117-7fe99dccb498"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @£10k SEN places deduction September (Year 1) - March (Year 2)",
-      "TemplateId": 71,
-      "CalculationId": "b4290464-36ed-42ca-9df9-822003200b9d"
+      "entityType": 0,
+      "name": "Secondary IDACI Band A factor",
+      "templateId": 97,
+      "calculationId": "70a96c02-c95d-4995-874b-0adb33c7c9a9"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @£10k SEN places deduction April (Year 1) - August (Year 1) Top Up rate",
-      "TemplateId": 235,
-      "CalculationId": "8f967c9a-40e2-4842-8c55-969abf5a350f"
+      "entityType": 0,
+      "name": "Secondary Pupil Count SBS",
+      "templateId": 98,
+      "calculationId": "b68410c9-476c-4240-ae8c-50285af8ffd1"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @£10k SEN places deduction September (Year 1) - March (Year 2) Top Up rate",
-      "TemplateId": 236,
-      "CalculationId": "6bb71c56-818a-4ab1-b35f-ee497378ae3d"
+      "entityType": 0,
+      "name": "Secondary IDACI Band A funding",
+      "templateId": 95,
+      "calculationId": "87f173a0-234e-4b66-9e9f-1af0d7ff8192"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @£10k SEN places deduction April (Year 1) - August (Year 1) rate",
-      "TemplateId": 72,
-      "CalculationId": "bd4b64d4-f61f-4207-a493-73cb8d1e0db8"
+      "entityType": 0,
+      "name": "Secondary IDACI Band A SEN %",
+      "templateId": 349,
+      "calculationId": "215b92c0-6feb-416f-a64b-4785088d3131"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @£10k SEN places deduction September (Year 1) - March (Year 2) rate",
-      "TemplateId": 73,
-      "CalculationId": "bd3ef104-827f-42a0-a1c0-365bc5c21156"
+      "entityType": 0,
+      "name": "Secondary IDACI Band A SEN Total",
+      "templateId": 347,
+      "calculationId": "e013e09d-fdf1-4317-9a1a-8e9d8266840d"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @£10k SEN places deduction",
-      "TemplateId": 69,
-      "CalculationId": "2794481e-5514-49fd-bcb7-0a91b0d40647"
+      "entityType": 0,
+      "name": "Secondary IDACI Band B Rate",
+      "templateId": 100,
+      "calculationId": "f188e8f7-8020-4709-8d02-6b9c1a89f76d"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Mainstream Academies (SEN units and Resourced provision) Post-16 SEN Places Deduction April (Year 1) - July (Year 1)",
-      "TemplateId": 75,
-      "CalculationId": "16225034-ba94-4ecd-bb26-703c1ed4df29"
+      "entityType": 0,
+      "name": "Secondary IDACI Band B Factor",
+      "templateId": 101,
+      "calculationId": "7b828ac0-88a2-4c74-a7bb-5613c6531d6c"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Mainstream Academies (SEN units and Resourced provision) Post-16 SEN Places Deduction August (Year 1) - March (Year 2)",
-      "TemplateId": 76,
-      "CalculationId": "a9072025-e28a-4302-94d7-46e5a48acf38"
+      "entityType": 0,
+      "name": "Secondary IDACI Band B funding",
+      "templateId": 99,
+      "calculationId": "37fba1e3-1087-485f-9d05-5f6b903dab34"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Mainstream Academies (SEN units and Resourced provision) Post-16 SEN Places Deduction April (Year 1) - July (Year 1) rate",
-      "TemplateId": 77,
-      "CalculationId": "01b34a35-4929-4896-8a25-6e9ccdf38607"
+      "entityType": 0,
+      "name": "Secondary IDACI Band B SEN %",
+      "templateId": 352,
+      "calculationId": "7483c9f4-3950-4b0c-b520-72ab5422d5fa"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Mainstream Academies (SEN units and Resourced provision) Post-16 SEN Places Deduction August (Year 1) - March (Year 2) rate",
-      "TemplateId": 78,
-      "CalculationId": "e7c1cedf-254f-4635-8f71-e2c6688eb7f0"
+      "entityType": 0,
+      "name": "Secondary IDACI Band B SEN Total",
+      "templateId": 350,
+      "calculationId": "b1e558b3-7d0a-472b-bbb7-21bc2fb65435"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Mainstream Academies (SEN units and Resourced provision) Post-16 SEN Places Deduction",
-      "TemplateId": 74,
-      "CalculationId": "d7219481-eb38-48f4-a6c2-5775b6d8833e"
+      "entityType": 0,
+      "name": "Secondary IDACI Band C Rate",
+      "templateId": 104,
+      "calculationId": "018a5b64-1fbe-49df-ab6f-a87a14e2ac37"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 AP Places Deduction April (Year 1) - August (Year 1)",
-      "TemplateId": 80,
-      "CalculationId": "fdc6128c-4dca-456d-807d-252e93a2bdca"
+      "entityType": 0,
+      "name": "Secondary IDACI Band C Factor",
+      "templateId": 105,
+      "calculationId": "43ef2f8a-01e9-4651-91d9-8da5bc852777"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 AP Places Deduction September (Year 1) - March (Year 2)",
-      "TemplateId": 81,
-      "CalculationId": "7b9dd9be-e63c-4223-ba2d-2a7593e4b3ee"
+      "entityType": 0,
+      "name": "Secondary IDACI Band C funding",
+      "templateId": 103,
+      "calculationId": "0ae460ba-075a-4bb2-b0c2-bbcf575e0033"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 AP Places Deduction April (Year 1) - August (Year 1) rate",
-      "TemplateId": 82,
-      "CalculationId": "d53b992a-5484-4d9f-91d7-aa4cf297e9b5"
+      "entityType": 0,
+      "name": "Secondary IDACI Band C SEN %",
+      "templateId": 356,
+      "calculationId": "85224c37-c05f-4f1e-ba4d-d4e327fd82dc"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 AP Places Deduction September (Year 1) - March (Year 2) rate",
-      "TemplateId": 83,
-      "CalculationId": "766fd82c-bea2-476f-805f-ede2d6a662f0"
+      "entityType": 0,
+      "name": "Secondary IDACI Band C SEN Total",
+      "templateId": 354,
+      "calculationId": "7c4301fd-3dbb-4503-b86f-1d42e055a193"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 AP Places Deduction",
-      "TemplateId": 79,
-      "CalculationId": "1972f183-a4ea-4f91-b064-1a2f9d11eb71"
+      "entityType": 0,
+      "name": "Secondary IDACI Band D Rate",
+      "templateId": 108,
+      "calculationId": "c5c42198-c3ac-4eb3-968c-45f7845399df"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @£6k",
-      "TemplateId": 50,
-      "CalculationId": "b8601c5c-f3eb-45d3-abfe-84120b8ff371"
+      "entityType": 0,
+      "name": "Secondary IDACI Band D Factor",
+      "templateId": 109,
+      "calculationId": "cd76e9c1-d189-4232-b7d5-1659cd0913eb"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @£10k",
-      "TemplateId": 51,
-      "CalculationId": "47b47407-00c2-4888-9c3d-cb22b6e62384"
+      "entityType": 0,
+      "name": "Secondary IDACI Band D funding",
+      "templateId": 107,
+      "calculationId": "785edcd5-8b21-41da-b0b9-c710c5f17c3c"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Post-16 SEN Places Main Stream Academies",
-      "TemplateId": 52,
-      "CalculationId": "3ba563a7-4611-4c2e-9951-1595969bf9d2"
+      "entityType": 0,
+      "name": "Secondary IDACI Band D SEN %",
+      "templateId": 359,
+      "calculationId": "b8db00e1-0568-4a44-b6f8-4b6a814913ee"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 AP Places",
-      "TemplateId": 53,
-      "CalculationId": "ca896c28-5b68-4f36-a699-42da4640a36d"
+      "entityType": 0,
+      "name": "Secondary IDACI Band D SEN Total",
+      "templateId": 357,
+      "calculationId": "b905e346-03ca-43f3-8833-f85e8bc1bf79"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Special Academies Pre-16 SEN Places Deduction April (Year 1) - July (Year 1)",
-      "TemplateId": 163,
-      "CalculationId": "f68fa739-4eea-4ba3-9e49-5e96d23731bc"
+      "entityType": 0,
+      "name": "Secondary IDACI Band E Rate",
+      "templateId": 112,
+      "calculationId": "fd9048d8-ff47-43ac-a149-227b506de9c1"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Special Academies Pre-16 SEN Places Deduction August (Year 1) - March (Year 2)",
-      "TemplateId": 164,
-      "CalculationId": "33b8ea92-2344-4429-b28a-1cff65745e6f"
+      "entityType": 0,
+      "name": "Secondary IDACI Band E Factor",
+      "templateId": 113,
+      "calculationId": "772ccbc1-2e98-4f04-9831-53462a2daabb"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Special Academies Pre-16 SEN Places Deduction April (Year 1)  - July (Year 1) rate",
-      "TemplateId": 165,
-      "CalculationId": "108caf20-de82-49e1-8779-48f0326807dc"
+      "entityType": 0,
+      "name": "Secondary IDACI Band E funding",
+      "templateId": 111,
+      "calculationId": "7188a92b-448c-46dd-8535-cefe57c4b6aa"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Special Academies Pre-16 SEN Places Deduction August (Year 1) - March (Year 2) rate",
-      "TemplateId": 166,
-      "CalculationId": "ddb3eb07-917a-4080-b338-98e985c21ec8"
+      "entityType": 0,
+      "name": "Secondary IDACI Band E SEN %",
+      "templateId": 362,
+      "calculationId": "e3dbf3f9-d5e2-4b60-be90-17caf3ab4e33"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Special Academies Deduction",
-      "TemplateId": 162,
-      "CalculationId": "f89336ae-1ae7-44b1-8b21-306697c8a2ad"
+      "entityType": 0,
+      "name": "Secondary IDACI Band E SEN Total",
+      "templateId": 360,
+      "calculationId": "8d168dc8-37fc-4cdb-b695-4115224a33f9"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Special Academies Post-16 SEN Places Deduction April (Year 1) - July (Year 1)",
-      "TemplateId": 90,
-      "CalculationId": "f9c77603-cc44-497c-8ba4-3d41dbd14c26"
+      "entityType": 0,
+      "name": "Secondary IDACI Band F Rate",
+      "templateId": 116,
+      "calculationId": "75d64ef2-7e88-41f1-8adf-548fd26a6829"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Special Academies Post-16 SEN Places Deduction August (Year 1) - March (Year 2)",
-      "TemplateId": 91,
-      "CalculationId": "f2b7cf2a-495d-4157-ac97-789f86a9073a"
+      "entityType": 0,
+      "name": "Secondary IDACI Band F Factor",
+      "templateId": 117,
+      "calculationId": "42b920f6-e431-4e8d-a90a-821691f6ac38"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Special Academies Post-16 SEN Places Deduction April (Year 1)  - July (Year 1) rate",
-      "TemplateId": 92,
-      "CalculationId": "9491613b-b7a2-42ef-b590-51dd003d55c4"
+      "entityType": 0,
+      "name": "Secondary IDACI Band F funding`",
+      "templateId": 115,
+      "calculationId": "0a31927b-389a-44ed-88ba-ad9bf389763a"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Special Academies Post-16 SEN Places Deduction August (Year 1) - March (Year 2) rate",
-      "TemplateId": 93,
-      "CalculationId": "d896cdd6-4b3f-4136-81e5-e892b8468b02"
+      "entityType": 0,
+      "name": "Secondary IDACI Band F SEN %",
+      "templateId": 365,
+      "calculationId": "7f562157-2daa-4c59-9d78-d0c1a784c880"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Special Academies Post-16 SEN Places Deduction",
-      "TemplateId": 89,
-      "CalculationId": "49ac5375-2c3f-4d5e-88f9-6f35be9e251b"
+      "entityType": 0,
+      "name": "Secondary IDACI Band F SEN Total",
+      "templateId": 363,
+      "calculationId": "5c2d0373-bba6-4634-8b43-11528f1db74e"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Special Academies Pre-16 AP Places Deduction April (Year 1) - July (Year 1)",
-      "TemplateId": 95,
-      "CalculationId": "f8bdcb90-cfdc-424f-bfab-6e829cfe9140"
+      "entityType": 0,
+      "name": "Primary FSM Rate",
+      "templateId": 120,
+      "calculationId": "55a0b149-444e-4ff9-bdd0-96fa9fd3976e"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Special Academies Pre-16 AP Places Deduction August (Year 1) - March (Year 2)",
-      "TemplateId": 96,
-      "CalculationId": "746b26a3-9077-4bc5-8b3e-6a562ccb66de"
+      "entityType": 0,
+      "name": "Primary FSM Factor",
+      "templateId": 121,
+      "calculationId": "33eb8c91-e4dc-4d3d-b8c2-010310904cee"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Special Academies Pre-16 AP Places Deduction April (Year 1)  - July (Year 1) rate",
-      "TemplateId": 97,
-      "CalculationId": "d0e4f8b7-1fba-4edd-9ed6-30c92e509584"
+      "entityType": 0,
+      "name": "Primary free school meals (FSM) Funding",
+      "templateId": 119,
+      "calculationId": "cfd1fd60-2401-46f8-9127-42b4e17fcf9b"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Special Academies Pre-16 AP Places Deduction August (Year 1) - March (Year 2) rate",
-      "TemplateId": 98,
-      "CalculationId": "a4ec12da-02ba-4103-816d-296e7156c5b0"
+      "entityType": 0,
+      "name": "Primary free school meals (FSM) SEN %",
+      "templateId": 368,
+      "calculationId": "d6205501-fffa-4a35-a1ef-5c0047f5c8e5"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Special Academies Pre-16 AP Places Deduction",
-      "TemplateId": 94,
-      "CalculationId": "d758185f-b7b3-4ddf-a63f-3f68c1ceb18e"
+      "entityType": 0,
+      "name": "Primary free school meals (FSM) SEN Total",
+      "templateId": 366,
+      "calculationId": "bd71da3d-fab2-45a4-961f-9072d788ba1b"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Special Academies Pre-16 SEN Places",
-      "TemplateId": 158,
-      "CalculationId": "da3f8c8b-9d51-4ac2-89bf-ce3875e6c073"
+      "entityType": 0,
+      "name": "Primary FSM6 Rate",
+      "templateId": 124,
+      "calculationId": "d7e3f4a9-b349-4eba-99b3-1252a2ad0f20"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Special Academies Post-16 SEN Places",
-      "TemplateId": 175,
-      "CalculationId": "3973e082-7248-44c0-89b1-7a1939927ab6"
+      "entityType": 0,
+      "name": "Primary FSM6 Factor",
+      "templateId": 125,
+      "calculationId": "d8e04cbc-fd34-41a5-812a-e0cf66be0c6f"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Special Academies Pre-16 AP Places",
-      "TemplateId": 174,
-      "CalculationId": "1d818411-fb19-4589-b541-d3fb3b941d52"
+      "entityType": 0,
+      "name": "Primary FSM6 Funding",
+      "templateId": 123,
+      "calculationId": "6770452e-1845-4896-b6cf-bbf76f5a0d4e"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Special Free Schools Pre-16 SEN Places Deduction April (Year 1) - August (Year 1)",
-      "TemplateId": 168,
-      "CalculationId": "161c81cc-1412-4c9d-aecf-0688f6075323"
+      "entityType": 0,
+      "name": "Primary FSM6 SEN %",
+      "templateId": 371,
+      "calculationId": "1428adf0-d645-4b24-a540-a4c1987660e0"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Special Free Schools Pre-16 SEN Places Deduction August (Year 1) - March (Year 2)",
-      "TemplateId": 169,
-      "CalculationId": "deddfe8a-6f21-405d-8f8e-b3d77004785b"
+      "entityType": 0,
+      "name": "Primary FSM6 SEN Total",
+      "templateId": 369,
+      "calculationId": "bb82890a-0a6f-48f3-94a8-c42dc8b79355"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Special Free Schools Pre-16 SEN Places Deduction April (Year 1) - August (Year 1) rate",
-      "TemplateId": 170,
-      "CalculationId": "c93608d3-58d7-4a6d-89ec-ba2c1fb77fb6"
+      "entityType": 0,
+      "name": "Secondary FSM Rate",
+      "templateId": 130,
+      "calculationId": "0c3fff2a-f08c-453a-b387-36ade5f78487"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Special Free Schools Pre-16 SEN Places Deduction August (Year 1) - March (Year 2) rate",
-      "TemplateId": 171,
-      "CalculationId": "85d6df27-22b5-4172-ac63-c03edb954ea6"
+      "entityType": 0,
+      "name": "Secondary FSM Factor",
+      "templateId": 131,
+      "calculationId": "6f775241-c2ea-44fc-b824-e315d6afd842"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Special Free Schools Deduction",
-      "TemplateId": 167,
-      "CalculationId": "a0320c8b-9dae-4719-9708-70076cb240f1"
+      "entityType": 0,
+      "name": "Secondary free school meals (FSM) Funding",
+      "templateId": 129,
+      "calculationId": "c239ed85-df00-4e0e-a4fa-bbe081e99dfe"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Special Free Schools Post-16 SEN Places Deduction April (Year 1) - July (Year 1)",
-      "TemplateId": 176,
-      "CalculationId": "c437b189-b105-469f-b3a0-2e2ccbddc989"
+      "entityType": 0,
+      "name": "Secondary free school meals (FSM) SEN %",
+      "templateId": 374,
+      "calculationId": "bdab1a0b-99eb-42da-937a-5d0b6e1c9d03"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Special Free Schools Post-16 SEN Places Deduction August (Year 1) - March (Year 2)",
-      "TemplateId": 177,
-      "CalculationId": "89167b75-49b1-4d2a-b3ee-70bae9242317"
+      "entityType": 0,
+      "name": "Secondary free school meals (FSM) SEN Total",
+      "templateId": 372,
+      "calculationId": "a7ff8068-ec79-4cb3-b2c6-e4b3ef71314f"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Special Free Schools Post-16 SEN Places Deduction April (Year 1) - July (Year 1) rate",
-      "TemplateId": 178,
-      "CalculationId": "0be04e61-d828-46df-b903-20f1e7d49a0d"
+      "entityType": 0,
+      "name": "Secondary FSM6 Rate",
+      "templateId": 135,
+      "calculationId": "d7fe9e88-46c9-4e49-a5e2-2de657b0a328"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Special Free Schools Post-16 SEN Places Deduction August (Year 1) - March (Year 2) rate",
-      "TemplateId": 179,
-      "CalculationId": "0ade4f3f-8ce0-4a1a-8499-52272d673b74"
+      "entityType": 0,
+      "name": "Secondary FSM6 Factor",
+      "templateId": 136,
+      "calculationId": "30ccfa1b-b6b0-4a40-8576-666e56f7b8e1"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Special Free Schools Post-16 SEN Places Deduction",
-      "TemplateId": 232,
-      "CalculationId": "9c2a3458-9c47-4634-8b01-c61aef671c65"
+      "entityType": 0,
+      "name": "Secondary FSM6 Funding",
+      "templateId": 134,
+      "calculationId": "3d16b871-e7ff-4fe5-a4b7-797bf03345af"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Special Free Schools Pre-16 AP Places Deduction April (Year 1) - August (Year 1)",
-      "TemplateId": 182,
-      "CalculationId": "fe1d36c8-4d60-45e0-afd9-25e81d4de265"
+      "entityType": 0,
+      "name": "Secondary FSM6 SEN %",
+      "templateId": 377,
+      "calculationId": "1b66a693-f6df-4baf-b348-0cee9b8ce63e"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Special Free Schools Pre-16 AP Places Deduction September (Year 1) - March (Year 2)",
-      "TemplateId": 183,
-      "CalculationId": "54ae55fe-5c09-4393-a9ef-83a13d45439e"
+      "entityType": 0,
+      "name": "Secondary FSM6 SEN Total",
+      "templateId": 375,
+      "calculationId": "c0fcb595-1f06-4f7c-88c7-be8b3071bf3b"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Special Free Schools Pre-16 AP Places Deduction April (Year 1) - August (Year 1) rate",
-      "TemplateId": 180,
-      "CalculationId": "6e8bb519-2f0a-4e43-98c6-cb8a4b0e438c"
+      "entityType": 0,
+      "name": "Looked After Children Rate",
+      "templateId": 139,
+      "calculationId": "59a680aa-6ea4-448f-a3d3-2bb9ba689a3c"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Special Free Schools Pre-16 AP Places Deduction September (Year 1) - March (Year 2) rate",
-      "TemplateId": 181,
-      "CalculationId": "870b5a27-4217-4b6e-bce3-9e5c823adbe1"
+      "entityType": 0,
+      "name": "Looked After Children Factor",
+      "templateId": 140,
+      "calculationId": "517cedc4-1241-4f8e-a482-a1a8eb2174d3"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Special Free Schools Pre-16 AP Places Deduction",
-      "TemplateId": 234,
-      "CalculationId": "f55b3de5-55e6-443e-8aa3-0e14f1f38eda"
+      "entityType": 0,
+      "name": "Total Pupil Count SBS",
+      "templateId": 141,
+      "calculationId": "2d454d23-39ff-4b52-b443-3d39f392a40e"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Special Free Schools Pre-16 SEN Places",
-      "TemplateId": 159,
-      "CalculationId": "4d661833-9e57-4535-81fc-6de279af494f"
+      "entityType": 0,
+      "name": "Looked After Children Funding",
+      "templateId": 138,
+      "calculationId": "60e12363-ceef-4586-9010-93c57c3bb059"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Special Free Schools Post-16 SEN Places",
-      "TemplateId": 161,
-      "CalculationId": "e92d3c27-3d11-45ce-aaf5-dbbdd9f672c5"
+      "entityType": 0,
+      "name": "Looked After Children SEN %",
+      "templateId": 380,
+      "calculationId": "23c69ec4-8f4a-4c37-9a54-64f9e9675cde"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Special Free Schools Pre-16 AP Places",
-      "TemplateId": 233,
-      "CalculationId": "8dbc440e-5cef-45ec-ba6c-c7625f118136"
+      "entityType": 0,
+      "name": "Looked After Children SEN Total",
+      "templateId": 378,
+      "calculationId": "f91cd19c-ce3e-4687-9436-fc84923266d9"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "AP Academies and Free Schools* Pre-16 SEN Places April (Year 1) - August (Year 1)",
-      "TemplateId": 189,
-      "CalculationId": "95eb6ce5-caad-478d-bbc6-2e913e4dd727"
+      "entityType": 0,
+      "name": "Primary Prior attainment rate",
+      "templateId": 145,
+      "calculationId": "4f68bc2c-e5af-403c-9bfd-0289b149c63e"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "AP Academies and Free Schools* Pre-16 SEN Places Sept (Year 1) - March (Year 2)",
-      "TemplateId": 190,
-      "CalculationId": "c3962fe9-9545-427e-ae69-0719c87971eb"
+      "entityType": 0,
+      "name": "Primary Prior attainment factor",
+      "templateId": 146,
+      "calculationId": "29c07036-3a81-4a35-99ed-488049317e6a"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "AP Academies and Free Schools* April (Year 1) - August (Year 1) rate",
-      "TemplateId": 187,
-      "CalculationId": "841dd7e3-c39a-40eb-a80e-b380be8b5459"
+      "entityType": 0,
+      "name": "Primary Attainment - Low Primary Prior Attainment Funding",
+      "templateId": 144,
+      "calculationId": "908fbde1-bc2f-4eb8-9dac-1fb6305e0cdb"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "AP Academies and Free Schools* September (Year 1) - March (Year 2) rate",
-      "TemplateId": 188,
-      "CalculationId": "17ba6093-fc27-4d08-8e41-981e1a910bda"
+      "entityType": 0,
+      "name": "Primary Attainment - Low Primary Prior Attainment SEN %",
+      "templateId": 383,
+      "calculationId": "879fcd8a-e1dc-40da-8c4f-0f2291bd73ec"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "AP Academies and Free Schools* Pre-16 SEN Places Deduction",
-      "TemplateId": 186,
-      "CalculationId": "aabee9ce-4e36-461d-b166-b8b794bac007"
+      "entityType": 0,
+      "name": "Primary Attainment - Low Primary Prior Attainment SEN Total",
+      "templateId": 381,
+      "calculationId": "142b0ec6-e86a-4b65-b465-c3118b47b219"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "AP Academies & Free schools * Pre-16 AP Places Deduction April (Year 1) - August (Year 1)",
-      "TemplateId": 195,
-      "CalculationId": "b700cbcd-5594-4bac-ae2e-07a179f40830"
+      "entityType": 0,
+      "name": "Secondary Prior Attainment Rate",
+      "templateId": 150,
+      "calculationId": "dfd23d72-f827-4979-bf3e-fa4e5ad76ded"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "AP Academies & Free schools * Pre-16 AP Places Deduction September (Year 1) - March (Year 2)",
-      "TemplateId": 196,
-      "CalculationId": "1993ff13-6371-4d78-8e23-cf8e37f051db"
+      "entityType": 0,
+      "name": "Secondary Prior Attainment Factor",
+      "templateId": 151,
+      "calculationId": "27ed5113-b42a-4ae7-9d7c-8556ea4b21e4"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "AP Academies & Free schools * Pre-16 AP Places Deduction April (Year 1) - August (Year 1) rate",
-      "TemplateId": 193,
-      "CalculationId": "83e7f9cb-fff2-43b7-a81e-c8af459d4e54"
+      "entityType": 0,
+      "name": "Secondary Attainment - Secondary Pupils not achieving the expected standards in KS2 Tests Funding",
+      "templateId": 149,
+      "calculationId": "d93d516f-fab3-4a81-83ef-4c7c218a8ab3"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "AP Academies & Free schools * Pre-16 AP Places Deduction September (Year 1) - March (Year 2) rate",
-      "TemplateId": 194,
-      "CalculationId": "ea07237f-3f20-4590-9184-2f9426a31c0a"
+      "entityType": 0,
+      "name": "Secondary Attainment - Secondary Pupils Not Achieving the expected standards in KS2 Tests SEN %",
+      "templateId": 386,
+      "calculationId": "423ce53c-7b5a-4ed9-9a53-b2cacfaefc8a"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "AP Academies & Free schools * Pre-16 AP Places Deduction",
-      "TemplateId": 192,
-      "CalculationId": "0ca7fdb5-b1ba-4cb3-80a9-c71f541c3802"
+      "entityType": 0,
+      "name": "Secondary Attainment - Secondary Pupils Not Achieving the expected standards in KS2 Tests SEN Total",
+      "templateId": 384,
+      "calculationId": "74609d7d-71ff-4ea3-a3f8-51072e03bf2b"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "AP Academies & Free schools * Pre- 16 SEN places",
-      "TemplateId": 185,
-      "CalculationId": "bf3a8703-e7f9-4f91-8466-b7e367cf6a3e"
+      "entityType": 0,
+      "name": "Primary EAL1 Rate",
+      "templateId": 154,
+      "calculationId": "c1a9a223-31d8-4812-8ffc-7f43e3d33a2a"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "AP Academies & Free schools * Pre-16 AP Places",
-      "TemplateId": 191,
-      "CalculationId": "7226a3f2-e085-45d4-bfad-3d424d81644f"
+      "entityType": 0,
+      "name": "Primary EAL1 Factor",
+      "templateId": 155,
+      "calculationId": "69da971d-def3-4ab5-b98d-114eb0fc85d7"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Maintained Special Schools Post-16 SEN Places Deduction April (Year 1) - July (Year 1)",
-      "TemplateId": 202,
-      "CalculationId": "778ab5d8-c374-49b1-893e-9542e4b2c682"
+      "entityType": 0,
+      "name": "Primary EAL Band 1 Funding",
+      "templateId": 153,
+      "calculationId": "08047f08-8261-46e0-869a-5e2b506d6744"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Maintained Special Schools Post-16 SEN Places Deduction August (Year 1) - March (Year 2)",
-      "TemplateId": 203,
-      "CalculationId": "008e0d05-2aa1-4ea8-b609-c929654bf864"
+      "entityType": 0,
+      "name": "Primary EAL Band 1 SEN %",
+      "templateId": 389,
+      "calculationId": "3df58ea4-6152-44e7-a0c1-2270b64995e5"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Maintained Special Schools Post-16 SEN Places Deduction April (Year 1) - July (Year 1) rate",
-      "TemplateId": 200,
-      "CalculationId": "67d4c440-649c-4c41-ad02-42b0f2d2d2f3"
+      "entityType": 0,
+      "name": "Primary EAL Band 1 SEN Total",
+      "templateId": 387,
+      "calculationId": "968696ab-b2dc-4bac-b0e8-70570e5a3797"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Maintained Special Schools Post-16 SEN Places Deduction August (Year 1) - March (Year 1) rate",
-      "TemplateId": 201,
-      "CalculationId": "07e3104b-43b4-43cb-9cd3-15a696847603"
+      "entityType": 0,
+      "name": "Primary EAL2 Rate",
+      "templateId": 159,
+      "calculationId": "c91eec6c-60a3-4bb3-ba9d-a20d8ff0c1da"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Maintained Special Schools Post-16 SEN Places deduction",
-      "TemplateId": 199,
-      "CalculationId": "1edc3242-5e80-4e2e-808f-eb73545daaee"
+      "entityType": 0,
+      "name": "Primary EAL2 Factor",
+      "templateId": 160,
+      "calculationId": "ba45e4e4-3649-4b72-9632-3d797bcdc30e"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Maintained Special Schools Post-16 SEN Places",
-      "TemplateId": 198,
-      "CalculationId": "420dd58c-cf5e-4d36-9dd2-8f3118011333"
+      "entityType": 0,
+      "name": "Primary EAL Band 2 Funding",
+      "templateId": 158,
+      "calculationId": "493654b7-7293-49a0-856d-852f0d819852"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Maintained Mainstream Schools Post-16 SEN Places Deduction April (Year 1) - July (Year 1)",
-      "TemplateId": 209,
-      "CalculationId": "8389a997-4145-43e5-94d6-d1cb4c72e6ef"
+      "entityType": 0,
+      "name": "Primary EAL Band 2 SEN %",
+      "templateId": 392,
+      "calculationId": "fbfb6547-ab37-4e20-afaf-dd91e13726c0"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Maintained Mainstream Schools Post-16 SEN Places Deduction August (Year 1) - March (Year 2)",
-      "TemplateId": 210,
-      "CalculationId": "df34bbaf-09ca-49df-8b64-d49d90bd1523"
+      "entityType": 0,
+      "name": "Primary EAL Band 2 SEN Total",
+      "templateId": 390,
+      "calculationId": "e0813e55-0530-4c7e-9f60-7caa021175ef"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Maintained Mainstream Schools Post-16 SEN Places Deduction April (Year 1) - July (Year 1) rate",
-      "TemplateId": 207,
-      "CalculationId": "9567eecd-f7a7-48b5-b11e-38877ccc6603"
+      "entityType": 0,
+      "name": "Primary EAL3 Rate",
+      "templateId": 163,
+      "calculationId": "7a85e954-f633-490e-aeb3-ef3c4602185c"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Maintained Mainstream Schools Post-16 SEN Places Deduction August (Year 1) - March (Year 2) rate",
-      "TemplateId": 208,
-      "CalculationId": "57d5a373-0f6e-43d0-9164-d780316fef9a"
+      "entityType": 0,
+      "name": "Primary EAL3 Factor",
+      "templateId": 164,
+      "calculationId": "35505bd0-769a-4262-a379-a5623acb5bcb"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Maintained Mainstream Schools Post-16 SEN Places Deduction",
-      "TemplateId": 206,
-      "CalculationId": "ee2011d2-864d-47d3-b19f-fadd4f9d21be"
+      "entityType": 0,
+      "name": "Primary EAL Band 3 Funding",
+      "templateId": 162,
+      "calculationId": "a70987e5-441d-4322-ad56-a4cb277eeb52"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Maintained Mainstream Schools Post-16 SEN Places",
-      "TemplateId": 205,
-      "CalculationId": "8618821c-e21f-47e5-a97d-65973459fbab"
+      "entityType": 0,
+      "name": "Primary EAL Band 3 SEN %",
+      "templateId": 396,
+      "calculationId": "0790cdb4-6d5c-4e68-84dc-c844ee06b78b"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Hospital Academies Funding Total Hospital Education Deduction April (Year 1) - August (Year 1)",
-      "TemplateId": 214,
-      "CalculationId": "7556232a-1ad7-42ad-b766-a27ce3dba4e2"
+      "entityType": 0,
+      "name": "Primary EAL Band 3 SEN Total",
+      "templateId": 394,
+      "calculationId": "8ce4dfdc-ee85-450e-9271-31cecb090c65"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Hospital Academies Funding Total Hospital Education Deduction September (Year 1) - March (Year 2)",
-      "TemplateId": 215,
-      "CalculationId": "a7e1682f-8004-4bc8-a720-2f564416a725"
+      "entityType": 0,
+      "name": "Secondary EAL1 Factor",
+      "templateId": 169,
+      "calculationId": "23163109-c60b-4c37-9943-04b338617d2b"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Hospital Academies Funding Total Hospital Education Deduction",
-      "TemplateId": 213,
-      "CalculationId": "e47315c0-2114-4756-9ee8-0d0ec44c5771"
+      "entityType": 0,
+      "name": "Secondary EAL1 Rate",
+      "templateId": 168,
+      "calculationId": "49cbd5fa-59c3-43de-83cb-789e1da0b190"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Hospital Academies Funding Total Hospital Education",
-      "TemplateId": 212,
-      "CalculationId": "0da63f9a-d7cd-4cf2-8db3-0b5a678040ab"
+      "entityType": 0,
+      "name": "Secondary EAL Band 1 Funding",
+      "templateId": 167,
+      "calculationId": "12a0573a-7a0b-4524-ab1e-8ce388940c1e"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "16-19 Academies and Free Schools Total Post-16 Schools SEN Places Deduction April (Year 1) to July (Year 1)",
-      "TemplateId": 223,
-      "CalculationId": "01e00072-a670-4bee-b0c8-53454460027e"
+      "entityType": 0,
+      "name": "Secondary EAL Band 1 SEN %",
+      "templateId": 401,
+      "calculationId": "4dd385d1-db0d-4055-be38-96c94f01fa3d"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "16-19 Academies and Free Schools Total Post-16 Schools SEN Places Deduction August (Year 1) to March (Year 2)",
-      "TemplateId": 224,
-      "CalculationId": "4a47a382-cb38-4bcc-9b22-897c092084c7"
+      "entityType": 0,
+      "name": "Secondary EAL Band 1 SEN Total",
+      "templateId": 398,
+      "calculationId": "9cdec397-728d-45d6-96c8-a9e9cb7b141e"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "16-19 Academies and Free Schools Total Post-16 Schools SEN Places Deduction April (Year 1) to July (Year 1) rate",
-      "TemplateId": 221,
-      "CalculationId": "f41f06bc-6717-4791-bfc7-aa4fe8981b7d"
+      "entityType": 0,
+      "name": "Secondary EAL2 Rate",
+      "templateId": 172,
+      "calculationId": "3357b740-00a6-4b33-89bc-aa3eb03a7aa5"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "16-19 Academies and Free Schools Total Post-16 Schools SEN Places Deduction August (Year 1) to March (Year 2) rate",
-      "TemplateId": 222,
-      "CalculationId": "e539ecee-8ae6-4ce1-9e1f-453a888940f0"
+      "entityType": 0,
+      "name": "Secondary EAL2 Factor",
+      "templateId": 173,
+      "calculationId": "bfe19d35-4357-4f0f-b4f7-c6cda4879946"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "16-19 Academies and Free Schools Total Post-16 Schools SEN Places Deduction",
-      "TemplateId": 220,
-      "CalculationId": "a44ba971-8d73-4d65-85ff-8f04aa963f3d"
+      "entityType": 0,
+      "name": "Secondary EAL Band 2 Funding",
+      "templateId": 171,
+      "calculationId": "605b6d86-03a6-474b-a9fc-f2c82d4c90cc"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "FE and ILP Places April 2019 - July 2019",
-      "TemplateId": 128,
-      "CalculationId": "ca6d0788-8c26-4e02-be57-52b47ef72267"
+      "entityType": 0,
+      "name": "Secondary EAL Band 2 SEN %",
+      "templateId": 404,
+      "calculationId": "f00885a1-cc61-4780-8d45-1e524e5b76a5"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "FE and ILP Places August 2019- March 2020",
-      "TemplateId": 129,
-      "CalculationId": "c1faf3ac-759e-4455-8b01-bef377274e08"
+      "entityType": 0,
+      "name": "Secondary EAL Band 2 SEN Total",
+      "templateId": 402,
+      "calculationId": "1a5f97c5-e159-4a03-9fdb-bc430a51e07b"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "FE and ILP Places Deduction April (Year 1) - July (Year 1) rate",
-      "TemplateId": 228,
-      "CalculationId": "8e2364b5-258f-4955-88ea-a5db1c958cad"
+      "entityType": 0,
+      "name": "Secondary EAL3 Rate",
+      "templateId": 176,
+      "calculationId": "8cf65e56-6a4a-43f1-8b16-85c00901eb0d"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "FE and ILP Places Deduction August (Year 1) - March (Year 2) rate",
-      "TemplateId": 229,
-      "CalculationId": "a78dac8f-3ccf-42af-a137-719202a52730"
+      "entityType": 0,
+      "name": "Secondary EAL3 Factor",
+      "templateId": 177,
+      "calculationId": "a403e263-6e0a-42b9-aa93-7c99eff99d5a"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "FE and ILP Deduction",
-      "TemplateId": 227,
-      "CalculationId": "1b91566c-ccab-42b5-84fc-b71b47c9e7bc"
+      "entityType": 0,
+      "name": "Secondary EAL Band 3 Funding",
+      "templateId": 175,
+      "calculationId": "a5a2e4c9-2f50-4571-beca-1a41f639ea83"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "FE and ILP Places",
-      "TemplateId": 226,
-      "CalculationId": "2c245fa9-a9d6-46e6-a03a-41e2123f40d1"
+      "entityType": 0,
+      "name": "Secondary EAL Band 3 SEN %",
+      "templateId": 408,
+      "calculationId": "405e62ca-75e4-4fd5-9d99-e50b9510790b"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Mainstream Academies (SEN units and Resourced provision)",
-      "TemplateId": 42,
-      "CalculationId": "413ffcef-bb79-41a6-8c9a-bd11c7db9f70"
+      "entityType": 0,
+      "name": "Secondary EAL Band 3 SEN Total",
+      "templateId": 406,
+      "calculationId": "4ebcf42f-1b58-464a-a407-d3cf4da5ec9b"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Special Academies",
-      "TemplateId": 156,
-      "CalculationId": "372b42ed-5e9e-4e7b-99be-6c14b9def29b"
+      "entityType": 0,
+      "name": "Primary Mobility Rate",
+      "templateId": 180,
+      "calculationId": "714bb423-73d3-49e1-86ed-f091b3053d47"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Special Free Schools",
-      "TemplateId": 157,
-      "CalculationId": "28ffe367-6171-43a5-830c-24925ff63d06"
+      "entityType": 0,
+      "name": "Primary Mobility Factor",
+      "templateId": 181,
+      "calculationId": "5e053d4f-9651-40f4-abfd-621f99836dee"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "AP Academies & Free schools *",
-      "TemplateId": 184,
-      "CalculationId": "d04fbcf8-4221-462c-b045-9e124b3775c2"
+      "entityType": 0,
+      "name": "Primary Mobility Funding",
+      "templateId": 179,
+      "calculationId": "ef13a21a-d532-44b3-98ef-94d3d11734df"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Maintained Special Schools",
-      "TemplateId": 197,
-      "CalculationId": "18376b64-620a-4c34-ad44-6579013a58e6"
+      "entityType": 0,
+      "name": "Primary Mobility SEN %",
+      "templateId": 412,
+      "calculationId": "f8a6841b-4f4f-4225-9991-71298cec1518"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Maintained Mainstream Schools",
-      "TemplateId": 204,
-      "CalculationId": "11f6832f-5abb-45cb-9afe-539788754a72"
+      "entityType": 0,
+      "name": "Primary Mobility SEN Total",
+      "templateId": 410,
+      "calculationId": "d5fc7953-1539-4952-bc9b-7c6da038d421"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Hospital Academies",
-      "TemplateId": 211,
-      "CalculationId": "780d80b5-38e3-421f-90fc-9f4a351df76f"
+      "entityType": 0,
+      "name": "Secondary Mobility Rate",
+      "templateId": 184,
+      "calculationId": "9674b22a-395c-4949-b9f4-1e52f474181c"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "16-19 Academies and Free Schools",
-      "TemplateId": 218,
-      "CalculationId": "c4f37785-819b-4680-9427-ce8f887285f4"
+      "entityType": 0,
+      "name": "Secondary Mobility Factor",
+      "templateId": 185,
+      "calculationId": "c5308173-e726-4b56-bac8-c358cd65ee7c"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "FE and ILP",
-      "TemplateId": 225,
-      "CalculationId": "dfe0db99-6652-46fd-8a90-6efe74642f55"
+      "entityType": 0,
+      "name": "Secondary Mobility Funding",
+      "templateId": 183,
+      "calculationId": "9280e02b-0a4f-4dd9-addd-52eedcfec56c"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "HN Deductions",
-      "TemplateId": 40,
-      "CalculationId": "683d948a-1aa5-4e90-b5fc-205d040772b8"
+      "entityType": 0,
+      "name": "Secondary Mobility SEN %",
+      "templateId": 416,
+      "calculationId": "a4f5175c-5e30-4a81-96ef-51f5e45471d6"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "HN before deductions",
-      "TemplateId": 41,
-      "CalculationId": "58a67753-b104-455d-ae5d-fd303fe5b18d"
+      "entityType": 0,
+      "name": "Secondary Mobility SEN Total",
+      "templateId": 414,
+      "calculationId": "ef26740d-9a79-42ce-86ae-163c0a883af7"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "HN after deductions",
-      "TemplateId": 39,
-      "CalculationId": "b03fbd41-8454-4a4e-a9d1-e6cdfd4eeb60"
+      "entityType": 0,
+      "name": "Primary Lump Sum Value",
+      "templateId": 212,
+      "calculationId": "45d40fa1-9400-4c53-819e-45c02f81acd0"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Recoupment",
-      "TemplateId": 21,
-      "CalculationId": "8277b567-6d82-4760-95d3-56e26d31704e"
+      "entityType": 0,
+      "name": "Primary Lump Sum Factor",
+      "templateId": 213,
+      "calculationId": "ba686f7f-7359-492d-b8a2-fc9960d4e868"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "School Block After Recoupment",
-      "TemplateId": 22,
-      "CalculationId": "82a82df7-a4e3-4d5d-b378-23af3607ceec"
+      "entityType": 0,
+      "name": "Primary Lump Sum Funding",
+      "templateId": 211,
+      "calculationId": "5c1d677e-e316-426c-a319-65705d293b14"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Disability Access Fund",
-      "TemplateId": 238,
-      "CalculationId": "1c066b09-3e98-48fc-966f-ea3f09401b54"
+      "entityType": 0,
+      "name": "Primary Lump Sum SEN %",
+      "templateId": 422,
+      "calculationId": "a64a4336-25f0-4e3e-a061-77259a3d3d82"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Hospital Academies Funding Total Hospital Education Deduction April (Year 1) - August (Year 1) rate",
-      "TemplateId": 216,
-      "CalculationId": "4afd7426-1787-4b71-a5f7-971db86811be"
+      "entityType": 0,
+      "name": "Primary Lump Sum SEN Total",
+      "templateId": 420,
+      "calculationId": "13464515-8201-475d-a440-b4aa1def5c93"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "Hospital Academies Funding Total Hospital Education Deduction September (Year 1) - March (Year 2) rate",
-      "TemplateId": 217,
-      "CalculationId": "8fdd4341-88ea-47f2-ba81-511951ca7efd"
+      "entityType": 0,
+      "name": "Secondary Lump Sum Factor",
+      "templateId": 215,
+      "calculationId": "52c03cdf-88e9-4ad4-9e2e-b5de934e0105"
     },
     {
-      "EntityType": "Calculation",
-      "Name": "16-19 Academies and Free Schools Total Post-16 Schools SEN Places",
-      "TemplateId": 219,
-      "CalculationId": "5cfb28de-88d6-4faa-a936-d81a065fb596"
+      "entityType": 0,
+      "name": "Secondary Lump Sum Value",
+      "templateId": 216,
+      "calculationId": "82b1b7f9-2cf5-43e1-9a14-ddfeaa29b765"
+    },
+    {
+      "entityType": 0,
+      "name": "Secondary Lump Sum Funding",
+      "templateId": 214,
+      "calculationId": "b1ba6df1-2254-45e5-864e-8f7c4a8cb40e"
+    },
+    {
+      "entityType": 0,
+      "name": "Secondary Lump Sum SEN %",
+      "templateId": 425,
+      "calculationId": "89bd9f45-90e7-4219-bed7-73719dd7ba67"
+    },
+    {
+      "entityType": 0,
+      "name": "Secondary Lump Sum SEN Total",
+      "templateId": 423,
+      "calculationId": "7d036367-1276-495b-9a8f-e616d62c9450"
+    },
+    {
+      "entityType": 0,
+      "name": "Sparsity Distance",
+      "templateId": 191,
+      "calculationId": "3f0aa89a-0b5b-4787-a51c-63be2050bf2b"
+    },
+    {
+      "entityType": 0,
+      "name": "Sparsity Distance Threshold",
+      "templateId": 192,
+      "calculationId": "377d9b42-7e83-450a-bd42-d65e6034a2fa"
+    },
+    {
+      "entityType": 0,
+      "name": "No of Primary Year Groups",
+      "templateId": 196,
+      "calculationId": "e1e25e27-b97e-4d2d-a1f2-52256c92d9c5"
+    },
+    {
+      "entityType": 0,
+      "name": "No of Secondary Year Groups",
+      "templateId": 197,
+      "calculationId": "d33147d0-bf2e-4876-9a31-776ec9637a01"
+    },
+    {
+      "entityType": 0,
+      "name": "Average year group size",
+      "templateId": 194,
+      "calculationId": "60b85d73-f923-418d-b73e-2874200b14f0"
+    },
+    {
+      "entityType": 0,
+      "name": "Sparsity Distance Evaluation",
+      "templateId": 190,
+      "calculationId": "58b6cc49-167b-422c-9b83-b0ec830752a7"
+    },
+    {
+      "entityType": 0,
+      "name": "Average year group size evaluation",
+      "templateId": 193,
+      "calculationId": "b2332799-660b-488a-9f0e-d80692687dfb"
+    },
+    {
+      "entityType": 0,
+      "name": "Sparsity Criteria Evaluation",
+      "templateId": 189,
+      "calculationId": "ae1b2c9d-72fe-47d4-aff0-09622a0d6233"
+    },
+    {
+      "entityType": 0,
+      "name": "Sparsity Average Year Group Size Threshold",
+      "templateId": 207,
+      "calculationId": "8ab0dad4-65ba-4a38-9535-f6833733a09d"
+    },
+    {
+      "entityType": 0,
+      "name": "NFF Weighting evaluation",
+      "templateId": 209,
+      "calculationId": "7e2e2806-0631-45c5-8400-568de5d5105b"
+    },
+    {
+      "entityType": 0,
+      "name": "Sparsity NFF Taper",
+      "templateId": 210,
+      "calculationId": "f1649a15-a87d-4552-96c7-c10d86a98468"
+    },
+    {
+      "entityType": 0,
+      "name": "Sparsity Methodology",
+      "templateId": 202,
+      "calculationId": "56ef0795-c45a-45c1-8bd1-2a6e7008e378"
+    },
+    {
+      "entityType": 0,
+      "name": "Lump Sum Weighting",
+      "templateId": 203,
+      "calculationId": "1d5230d9-0f2b-4770-b607-1033234544fe"
+    },
+    {
+      "entityType": 0,
+      "name": "Sparsity Taper Weighting",
+      "templateId": 204,
+      "calculationId": "2275238c-acf4-40ec-8337-66e5c0ab6b99"
+    },
+    {
+      "entityType": 0,
+      "name": "Sparsity NFF Weighting",
+      "templateId": 208,
+      "calculationId": "19971187-580d-47da-b3a9-1e9c03d153d2"
+    },
+    {
+      "entityType": 0,
+      "name": "Sparsity Methodology Weighting Selection",
+      "templateId": 201,
+      "calculationId": "c8b7e2b0-7d31-470a-a6f4-dfc8cfbf1297"
+    },
+    {
+      "entityType": 0,
+      "name": "Sparsity Evaluation",
+      "templateId": 188,
+      "calculationId": "3fb0fa42-6c5e-4b89-b6e9-c4b4efcc1d43"
+    },
+    {
+      "entityType": 0,
+      "name": "Sparsity Lump Sum",
+      "templateId": 199,
+      "calculationId": "898666a4-e50f-4670-a5a8-55def78bdb86"
+    },
+    {
+      "entityType": 0,
+      "name": "Sparsity Weighting",
+      "templateId": 200,
+      "calculationId": "638918c0-8c81-4630-a775-bf4dd4a90090"
+    },
+    {
+      "entityType": 0,
+      "name": "Sparsity Funding",
+      "templateId": 187,
+      "calculationId": "fd7424e7-fd40-4beb-8d74-eea3af291f91"
+    },
+    {
+      "entityType": 0,
+      "name": "Sparsity SEN %",
+      "templateId": 419,
+      "calculationId": "30ff257c-1d62-4c85-b0ba-f50dabf51e46"
+    },
+    {
+      "entityType": 0,
+      "name": "Sparsity SEN Total",
+      "templateId": 417,
+      "calculationId": "d44ac7fe-0172-4302-82db-cb2292c64e23"
+    },
+    {
+      "entityType": 0,
+      "name": "Split site weighting",
+      "templateId": 564,
+      "calculationId": "18c40ed2-b5b8-4eb9-808d-2294e869253b"
+    },
+    {
+      "entityType": 0,
+      "name": "Split Site total",
+      "templateId": 217,
+      "calculationId": "32d39b77-02e2-4bbf-8a81-16ac4ccc7e66"
+    },
+    {
+      "entityType": 0,
+      "name": "Split Site Full year SEN %",
+      "templateId": 428,
+      "calculationId": "4cdd9780-b514-42b1-8f02-6019d145308f"
+    },
+    {
+      "entityType": 0,
+      "name": "Split Site Full year SEN Total",
+      "templateId": 426,
+      "calculationId": "2163f574-4396-471a-b070-0d1fc93d9809"
+    },
+    {
+      "entityType": 0,
+      "name": "Front Loaded PFI Indicator",
+      "templateId": 220,
+      "calculationId": "7a0a872d-a171-4b09-93df-da7c2603e8d8"
+    },
+    {
+      "entityType": 0,
+      "name": "PFI APT Data",
+      "templateId": 221,
+      "calculationId": "c4c41701-407d-4f8d-b142-bb2d1de7bb97"
+    },
+    {
+      "entityType": 0,
+      "name": "PFI Type value selection",
+      "templateId": 219,
+      "calculationId": "ed3f2a53-c4f1-45a3-b291-b1fe8419d312"
+    },
+    {
+      "entityType": 0,
+      "name": "PFI weighting",
+      "templateId": 565,
+      "calculationId": "eea62a39-54dc-4ed7-a89c-c6ac9fa4d935"
+    },
+    {
+      "entityType": 0,
+      "name": "Standard PFI",
+      "templateId": 218,
+      "calculationId": "83d17f4b-104e-4ebf-b72e-e32cd23bb73a"
+    },
+    {
+      "entityType": 0,
+      "name": "Standard PFI SEN %",
+      "templateId": 431,
+      "calculationId": "1936f5a7-8d7e-48f7-be17-f938bdfdd916"
+    },
+    {
+      "entityType": 0,
+      "name": "Standard PFI SEN Total",
+      "templateId": 429,
+      "calculationId": "f7e10186-7e9f-474f-b2b8-b477be5bdd3d"
+    },
+    {
+      "entityType": 0,
+      "name": "Primary IDACI Band D Rate",
+      "templateId": 84,
+      "calculationId": "e1f41ab1-f624-4329-a9ab-4a8e717f3f71"
+    },
+    {
+      "entityType": 0,
+      "name": "Primary IDACI Band D Factor",
+      "templateId": 85,
+      "calculationId": "48780483-4041-476b-8370-729d4a6340b5"
+    },
+    {
+      "entityType": 0,
+      "name": "Primary IDACI Band D funding",
+      "templateId": 83,
+      "calculationId": "0d1331cb-91de-488d-84bd-8a4050e51bf8"
+    },
+    {
+      "entityType": 0,
+      "name": "Exceptional Circumstance 1 Funding",
+      "templateId": 228,
+      "calculationId": "a18642d6-68db-4fa2-8454-9400f45626a0"
+    },
+    {
+      "entityType": 0,
+      "name": "London Fringe Eligible Funding",
+      "templateId": 236,
+      "calculationId": "31f7ba84-1148-4113-a3a9-39b710872c2e"
+    },
+    {
+      "entityType": 0,
+      "name": "London Fringe Funding",
+      "templateId": 223,
+      "calculationId": "fbdeaf34-400d-4e75-892b-fa3df1847e12"
+    },
+    {
+      "entityType": 0,
+      "name": "Prior Year Adjustment to SBS",
+      "templateId": 235,
+      "calculationId": "5af4452a-43d6-43d4-af31-898fcc1cf215"
+    },
+    {
+      "entityType": 0,
+      "name": "APT NEWISB Rates",
+      "templateId": 511,
+      "calculationId": "d3728fec-8f44-4785-9caf-ee0b95c314ea"
+    },
+    {
+      "entityType": 0,
+      "name": "APT Approved Additional Premises costs to exclude",
+      "templateId": 512,
+      "calculationId": "30a47c51-ff76-4b33-81c7-a0d655392ed7"
+    },
+    {
+      "entityType": 0,
+      "name": "SBS Base Allocation",
+      "templateId": 241,
+      "calculationId": "87df007a-8e46-4dcd-a1d7-e43e81315b03"
+    },
+    {
+      "entityType": 0,
+      "name": "MFL Rate",
+      "templateId": 239,
+      "calculationId": "a2a82cc5-65d2-4183-9eeb-a1c708db2043"
+    },
+    {
+      "entityType": 0,
+      "name": "SBS Per Pupil Allocation",
+      "templateId": 240,
+      "calculationId": "4b2d6007-5af5-46cb-a843-35e544aa9b60"
+    },
+    {
+      "entityType": 0,
+      "name": "MFL Evaluation",
+      "templateId": 226,
+      "calculationId": "7ad0b405-bddc-4f7b-9f96-fc897b8784a3"
+    },
+    {
+      "entityType": 0,
+      "name": "MFL Uplift per pupil",
+      "templateId": 225,
+      "calculationId": "329f8e40-5cec-4774-8c5b-2e5420b0f71e"
+    },
+    {
+      "entityType": 0,
+      "name": "MFL Adjustment",
+      "templateId": 227,
+      "calculationId": "34c21168-fbc7-4bcf-9ed0-2887f9e060a3"
+    },
+    {
+      "entityType": 0,
+      "name": "MFL Adjustment SEN %",
+      "templateId": 560,
+      "calculationId": "337892e5-0cb3-4d5b-afb1-4a94095b12ce"
+    },
+    {
+      "entityType": 0,
+      "name": "MFL Adjustment SEN Total",
+      "templateId": 738,
+      "calculationId": "afbc0dfa-8674-4bda-aa9e-c865e065b10a"
+    },
+    {
+      "entityType": 0,
+      "name": "Exceptional Circumstances 1 SEN %",
+      "templateId": 434,
+      "calculationId": "c4d176a5-3fe6-47a5-8601-55177671c8ac"
+    },
+    {
+      "entityType": 0,
+      "name": "Exceptional Circumstances 1 SEN Total",
+      "templateId": 432,
+      "calculationId": "a734df47-6e65-43bc-bab1-71a6aa85bf4a"
+    },
+    {
+      "entityType": 0,
+      "name": "Exceptional Circumstance 2 Funding",
+      "templateId": 229,
+      "calculationId": "a6904da5-c72f-43f6-a2cd-e837bde9b6a0"
+    },
+    {
+      "entityType": 0,
+      "name": "Exceptional Circumstances 2 SEN %",
+      "templateId": 438,
+      "calculationId": "9acaeec7-034f-4a7a-ba20-983a1b842ee9"
+    },
+    {
+      "entityType": 0,
+      "name": "Exceptional Circumstances 2 SEN Total",
+      "templateId": 436,
+      "calculationId": "c8021499-1dbc-47d6-9ebc-82d1e23e4dcf"
+    },
+    {
+      "entityType": 0,
+      "name": "Exceptional Circumstances 3 Funding",
+      "templateId": 230,
+      "calculationId": "16e7199a-00c1-4d51-88e6-acfd48788790"
+    },
+    {
+      "entityType": 0,
+      "name": "Exceptional Circumstances 3 SEN %",
+      "templateId": 442,
+      "calculationId": "f876e9cc-ccf0-4b2f-ad97-4b613f2511c8"
+    },
+    {
+      "entityType": 0,
+      "name": "Exceptional Circumstances 3 SEN Total",
+      "templateId": 440,
+      "calculationId": "5809f8a8-94d8-44a6-b10f-30d554ed2992"
+    },
+    {
+      "entityType": 0,
+      "name": "Exceptional Circumstance 4 Funding",
+      "templateId": 231,
+      "calculationId": "4e976204-2f87-4016-9178-575cf0ee114d"
+    },
+    {
+      "entityType": 0,
+      "name": "Exceptional Circumstances 4 SEN %",
+      "templateId": 446,
+      "calculationId": "1f175393-c55d-4d9e-9e1d-97b4ed010c3a"
+    },
+    {
+      "entityType": 0,
+      "name": "Exceptional Circumstances 4 SEN Total",
+      "templateId": 444,
+      "calculationId": "4ecedd5b-31e0-4cc5-8849-a0c20faa8a2a"
+    },
+    {
+      "entityType": 0,
+      "name": "Exceptional Circumstance 5 Funding",
+      "templateId": 232,
+      "calculationId": "b6882c6b-9aee-483b-9169-d20d4e7a7b7d"
+    },
+    {
+      "entityType": 0,
+      "name": "Exceptional Circumstances 5 SEN %",
+      "templateId": 451,
+      "calculationId": "a6ccc644-acae-40d7-8459-1eeb05ee8245"
+    },
+    {
+      "entityType": 0,
+      "name": "Exceptional Circumstances 5 SEN Total",
+      "templateId": 448,
+      "calculationId": "a68f5371-56b6-4e6d-9061-834ee824a008"
+    },
+    {
+      "entityType": 0,
+      "name": "Exceptional Circumstances 6 Funding",
+      "templateId": 233,
+      "calculationId": "ec711a91-4da4-4cbc-9202-d231ff065379"
+    },
+    {
+      "entityType": 0,
+      "name": "Exceptional Circumstances 6 SEN %",
+      "templateId": 454,
+      "calculationId": "0da21f44-ce66-4b95-92b0-2c2dba441669"
+    },
+    {
+      "entityType": 0,
+      "name": "Exceptional Circumstances 6 SEN Total",
+      "templateId": 452,
+      "calculationId": "7a2662fa-c3bb-4b65-ad7b-cf5a0aad4a4d"
+    },
+    {
+      "entityType": 0,
+      "name": "Exceptional Circumstance 7 Funding",
+      "templateId": 234,
+      "calculationId": "96bd1d57-b391-41ec-b79a-90f94d739d33"
+    },
+    {
+      "entityType": 0,
+      "name": "Exceptional Circumstances 7 SEN %",
+      "templateId": 458,
+      "calculationId": "06caca83-c915-4e21-a462-e6917bf14514"
+    },
+    {
+      "entityType": 0,
+      "name": "Exceptional Circumstances 7 SEN Total",
+      "templateId": 456,
+      "calculationId": "afc7e723-42a8-4acb-b436-1052c3beb982"
+    },
+    {
+      "entityType": 0,
+      "name": "Previous Full Year SBS Total",
+      "templateId": 520,
+      "calculationId": "eaca229a-c00f-41dc-ba71-7f031f2d6cbf"
+    },
+    {
+      "entityType": 0,
+      "name": "Current Year Lump Sum Including Fringe",
+      "templateId": 521,
+      "calculationId": "0cab603d-efae-40c1-b42d-4c3a376659bf"
+    },
+    {
+      "entityType": 0,
+      "name": "Current Year Sparsity Total",
+      "templateId": 522,
+      "calculationId": "4f3f00b3-0b10-4e62-9c3d-b117250ff5d8"
+    },
+    {
+      "entityType": 0,
+      "name": "Previous Year Approved MFG Exclusions Total",
+      "templateId": 523,
+      "calculationId": "7c0be032-e8c3-46d4-b050-fdf8d4d46f9f"
+    },
+    {
+      "entityType": 0,
+      "name": "Total Technical Adjustment to Baseline Year Funding",
+      "templateId": 524,
+      "calculationId": "fd8baf5a-9c0a-41b7-9f70-759502acde98"
+    },
+    {
+      "entityType": 0,
+      "name": "Baseline Current Year Lump Sum Including Fringe",
+      "templateId": 712,
+      "calculationId": "693ac7a5-7c33-4788-b164-6ffad0df8a46"
+    },
+    {
+      "entityType": 0,
+      "name": "Teachers' pay and pension grant",
+      "templateId": 734,
+      "calculationId": "b24d7307-33ee-4cee-9f2f-579a2ce1c0a7"
+    },
+    {
+      "entityType": 0,
+      "name": "Adjusted Previous Year School Budget Share",
+      "templateId": 519,
+      "calculationId": "b61d060b-4fd4-430f-8c3f-af02e6dbac8c"
+    },
+    {
+      "entityType": 0,
+      "name": "Previous Year Total Pupil Count MFG",
+      "templateId": 525,
+      "calculationId": "dc604873-323b-4086-a40e-e4a66bcdd88f"
+    },
+    {
+      "entityType": 0,
+      "name": "Previous Year MFG Unit Value",
+      "templateId": 518,
+      "calculationId": "48817951-42a0-4728-b10c-1f1c12e5ee11"
+    },
+    {
+      "entityType": 0,
+      "name": "MFG Floor",
+      "templateId": 526,
+      "calculationId": "a23e8d6e-4f01-400d-985f-aeefabd95ffe"
+    },
+    {
+      "entityType": 0,
+      "name": "MFG Floor Constant",
+      "templateId": 527,
+      "calculationId": "4a7b8a35-9a8d-4a38-ba07-58ccbd7c07ea"
+    },
+    {
+      "entityType": 0,
+      "name": "Current year MFG Primary pupil count",
+      "templateId": 693,
+      "calculationId": "97104906-9bd3-4512-965c-7ca45c0641da"
+    },
+    {
+      "entityType": 0,
+      "name": "Current year MFG secondary pupil count",
+      "templateId": 694,
+      "calculationId": "9d0299c1-2014-44c0-abf9-9c221e6a4369"
+    },
+    {
+      "entityType": 0,
+      "name": "Minimum Value Per pupil",
+      "templateId": 517,
+      "calculationId": "b0a9e7e7-fff7-492b-bd92-c3410f1a8a4b"
+    },
+    {
+      "entityType": 0,
+      "name": "Current Year Total MFG Pupil Count",
+      "templateId": 528,
+      "calculationId": "bd27150d-bc07-499c-8f5e-27604f1795e3"
+    },
+    {
+      "entityType": 0,
+      "name": "Current Year SBS Total",
+      "templateId": 530,
+      "calculationId": "612ca006-798c-4ace-90e1-0560d25bbe26"
+    },
+    {
+      "entityType": 0,
+      "name": "Current Year Approved MFG Exclusions Total",
+      "templateId": 533,
+      "calculationId": "7313294e-cdc2-42ed-9e42-d2bec812786c"
+    },
+    {
+      "entityType": 0,
+      "name": "Total Current Year Technical Adjustments",
+      "templateId": 534,
+      "calculationId": "5d85e7af-5404-4e3d-b062-f6100d47f2c1"
+    },
+    {
+      "entityType": 0,
+      "name": "Current year Guaranteed level of funding",
+      "templateId": 516,
+      "calculationId": "c59d4ba1-e5f2-472a-ac78-0fd4cc201956"
+    },
+    {
+      "entityType": 0,
+      "name": "Total Current Year MFG Budget",
+      "templateId": 529,
+      "calculationId": "e921da66-7439-41d7-af34-3bcf830677af"
+    },
+    {
+      "entityType": 0,
+      "name": "MFG Adjustment evaluation",
+      "templateId": 515,
+      "calculationId": "1aa00df9-c3f3-4f74-8856-2c14cf236f4d"
+    },
+    {
+      "entityType": 0,
+      "name": "Extent to which percentage change falls below MFG floor",
+      "templateId": 692,
+      "calculationId": "2b4abcff-44e1-4695-b1e1-7ba2f6db25b6"
+    },
+    {
+      "entityType": 0,
+      "name": "Current Year MFG unit Value",
+      "templateId": 541,
+      "calculationId": "c36f108e-210f-41f8-b478-bcf2462d7038"
+    },
+    {
+      "entityType": 0,
+      "name": "Change in MFG Unit Value",
+      "templateId": 540,
+      "calculationId": "2280a412-c7b1-41e7-8346-821afa057d96"
+    },
+    {
+      "entityType": 0,
+      "name": "Growing School Check",
+      "templateId": 544,
+      "calculationId": "23dd14e4-7a0b-4552-975a-4dd0fc052f63"
+    },
+    {
+      "entityType": 0,
+      "name": "Percentage change in MFG unit value",
+      "templateId": 539,
+      "calculationId": "62e7099c-0841-462c-9e2a-37d8fa66c141"
+    },
+    {
+      "entityType": 0,
+      "name": "LA Capping Factor",
+      "templateId": 542,
+      "calculationId": "de46c8e1-3861-48d8-971d-33cb4f9f9d4b"
+    },
+    {
+      "entityType": 0,
+      "name": "Growing School Evaluation",
+      "templateId": 543,
+      "calculationId": "7dfb8ddd-5fa9-4943-ad3b-491fa82a13bd"
+    },
+    {
+      "entityType": 0,
+      "name": "Does the LA apply capping and scaling",
+      "templateId": 713,
+      "calculationId": "1b7b84d0-a4ba-425c-91c6-2d29f84f417c"
+    },
+    {
+      "entityType": 0,
+      "name": "Cap percentage change evaluation",
+      "templateId": 538,
+      "calculationId": "670d7dd7-a0cf-47a1-ae19-3532fec36d42"
+    },
+    {
+      "entityType": 0,
+      "name": "Extent to which percentage change exceed the cap",
+      "templateId": 537,
+      "calculationId": "93c56f42-9c09-4aa3-8192-ead2a2030b12"
+    },
+    {
+      "entityType": 0,
+      "name": "LA Scaling Factor",
+      "templateId": 545,
+      "calculationId": "53cc86ea-48eb-4529-af06-d53dc56e8fc1"
+    },
+    {
+      "entityType": 0,
+      "name": "Scaled Factor Applied to Excess Above Cap",
+      "templateId": 536,
+      "calculationId": "bf1c57d0-9f92-4e27-9fa3-f481f2e6c0e0"
+    },
+    {
+      "entityType": 0,
+      "name": "Affordability Adjustment Value",
+      "templateId": 535,
+      "calculationId": "3105023c-904b-4e89-98a4-7c117098bfd7"
+    },
+    {
+      "entityType": 0,
+      "name": "MFL Funding",
+      "templateId": 554,
+      "calculationId": "2561420d-5ac9-4338-9159-fcdb007747df"
+    },
+    {
+      "entityType": 0,
+      "name": "APT Premises Exceptions",
+      "templateId": 555,
+      "calculationId": "5ae0be5e-45ba-4d54-b491-953d5f6d70ca"
+    },
+    {
+      "entityType": 0,
+      "name": "PFI",
+      "templateId": 556,
+      "calculationId": "0424a7ad-7813-4a60-9d7d-decf5ae03301"
+    },
+    {
+      "entityType": 0,
+      "name": "MFL Check Value Constant",
+      "templateId": 552,
+      "calculationId": "d5a010af-e354-4a53-adc4-5899e6d346ce"
+    },
+    {
+      "entityType": 0,
+      "name": "Minimum Funding",
+      "templateId": 553,
+      "calculationId": "b0b88238-aad1-43e6-92fd-d480bccf3e32"
+    },
+    {
+      "entityType": 0,
+      "name": "MFL To check if I can clone",
+      "templateId": 558,
+      "calculationId": "de95f43a-cd5c-4e16-92e3-b53ff3d3d68d"
+    },
+    {
+      "entityType": 0,
+      "name": "MFL Check Value Evaluation",
+      "templateId": 550,
+      "calculationId": "f113034a-b8a0-4fdf-9d02-15740213fc77"
+    },
+    {
+      "entityType": 0,
+      "name": "Actual MFL Eligible Funding",
+      "templateId": 557,
+      "calculationId": "870d0951-e1eb-410f-9f3b-ae37a7879f1f"
+    },
+    {
+      "entityType": 0,
+      "name": "Affordability Adjustment evaluation",
+      "templateId": 547,
+      "calculationId": "bcf95c96-8570-430c-b1c8-76e348cec589"
+    },
+    {
+      "entityType": 0,
+      "name": "MFL Check Value",
+      "templateId": 548,
+      "calculationId": "3489d779-c541-4638-a04b-c80ac311833f"
+    },
+    {
+      "entityType": 0,
+      "name": "MFG Adjustment Value",
+      "templateId": 514,
+      "calculationId": "62658884-54fe-4430-ab4f-5a65d01aceb5"
+    },
+    {
+      "entityType": 0,
+      "name": "Minimum Funding Level Adjustment post cap and scaling",
+      "templateId": 546,
+      "calculationId": "1e965d7d-03bb-42f3-915b-31c479a2968a"
+    },
+    {
+      "entityType": 0,
+      "name": "MFG Overall Net Cash SEN %",
+      "templateId": 562,
+      "calculationId": "f8c70082-3680-4f50-bed8-cfb61542a4ef"
+    },
+    {
+      "entityType": 0,
+      "name": "MFG Overall Net Cash Adjustment",
+      "templateId": 513,
+      "calculationId": "80535f15-50be-4be8-b569-aa94234fd01f"
+    },
+    {
+      "entityType": 0,
+      "name": "MFG Overall Net Cash SEN Total",
+      "templateId": 739,
+      "calculationId": "13e8a8e7-477b-4a4a-afcb-79dd5db11d41"
+    },
+    {
+      "entityType": 0,
+      "name": "Rate Unoccupied Place Rate",
+      "templateId": 466,
+      "calculationId": "58cb61d8-de5c-4748-afc8-00e416b838a8"
+    },
+    {
+      "entityType": 0,
+      "name": "Special Unoccupied Pre 16 Places",
+      "templateId": 467,
+      "calculationId": "a1a1505d-e874-406b-b734-1a6a31dbf156"
+    },
+    {
+      "entityType": 0,
+      "name": "Days in the year",
+      "templateId": 733,
+      "calculationId": "02a8e541-d980-48e5-bd2e-b9479703309b"
+    },
+    {
+      "entityType": 0,
+      "name": "Proportion of year open",
+      "templateId": 732,
+      "calculationId": "b585bce5-601b-4035-8364-d1af9f5857e5"
+    },
+    {
+      "entityType": 0,
+      "name": "Days open in year",
+      "templateId": 567,
+      "calculationId": "7862928c-fc94-4bed-a4cf-3a174f8423ce"
+    },
+    {
+      "entityType": 0,
+      "name": "Special Unoccupied Total",
+      "templateId": 465,
+      "calculationId": "e07f5d3b-a551-4b8f-9b49-7233845639e4"
+    },
+    {
+      "entityType": 0,
+      "name": "Special unoccupied - Full year subtotal",
+      "templateId": 654,
+      "calculationId": "9e5f5875-1d9e-4896-9e74-3342b2cecaf7"
+    },
+    {
+      "entityType": 0,
+      "name": "Rate Occupied Place Rate",
+      "templateId": 469,
+      "calculationId": "cb2022b5-1149-47b9-9846-d08e2b7a26cc"
+    },
+    {
+      "entityType": 0,
+      "name": "Special Occupied Pre 16 Places",
+      "templateId": 470,
+      "calculationId": "f04e5116-ca7d-4c07-b19f-52f58dc9013c"
+    },
+    {
+      "entityType": 0,
+      "name": "Special Occupied Total",
+      "templateId": 468,
+      "calculationId": "15044da3-3a8f-4cee-8402-40249529ae55"
+    },
+    {
+      "entityType": 0,
+      "name": "Special Occupied - Full year subtotal",
+      "templateId": 656,
+      "calculationId": "2e6f6234-ea00-4eda-bd58-799a8ec8111d"
+    },
+    {
+      "entityType": 0,
+      "name": "Alternative Provision Rate",
+      "templateId": 477,
+      "calculationId": "e671e5e0-c294-4720-a8ef-0f2666ae616e"
+    },
+    {
+      "entityType": 0,
+      "name": "Alternative Provision Pre 16 Places",
+      "templateId": 478,
+      "calculationId": "a5a158e8-073c-46e1-a2e2-e319709966fd"
+    },
+    {
+      "entityType": 0,
+      "name": "Alternative Provision Total",
+      "templateId": 476,
+      "calculationId": "c8e99fb6-a0d5-40a1-aaa4-2d2eff60d9e3"
+    },
+    {
+      "entityType": 0,
+      "name": "Alternative Provision - Full year subtotal",
+      "templateId": 658,
+      "calculationId": "557407b9-887c-4f1b-b873-e5f2bad80dfb"
+    },
+    {
+      "entityType": 0,
+      "name": "Hospital Places",
+      "templateId": 730,
+      "calculationId": "7947f6e3-cd12-4c48-a42f-5a09a0458e6f"
+    },
+    {
+      "entityType": 0,
+      "name": "Hospital Provision Funding",
+      "templateId": 464,
+      "calculationId": "8188a525-d86f-466c-85c9-c906e66f7c39"
+    },
+    {
+      "entityType": 0,
+      "name": "Hospital Provision - Full year subtotal",
+      "templateId": 662,
+      "calculationId": "9d18cf22-2a98-4f6d-9491-b63bbc32c63a"
+    },
+    {
+      "entityType": 0,
+      "name": "Pre-16 High Needs - Full year subtotal",
+      "templateId": 659,
+      "calculationId": "f4bc7ea4-4851-4077-9d86-0c6fbeba731a"
+    },
+    {
+      "entityType": 0,
+      "name": "Post Opening Grant - Per Pupil Resources",
+      "templateId": 459,
+      "calculationId": "53017e81-2a6f-473f-a704-df28d20bd4c3"
+    },
+    {
+      "entityType": 0,
+      "name": "Post Opening Grant - Leadership Diseconomies",
+      "templateId": 460,
+      "calculationId": "170e92a1-a5c6-4b0c-8ac4-c94417838cdb"
+    },
+    {
+      "entityType": 0,
+      "name": "Start up Grant Part A",
+      "templateId": 461,
+      "calculationId": "73a363fc-89fc-4623-9e6e-b89c930e3061"
+    },
+    {
+      "entityType": 0,
+      "name": "Start up Grant Part B",
+      "templateId": 462,
+      "calculationId": "f93ac1b2-f0a4-4a32-b39e-566854d1760a"
+    },
+    {
+      "entityType": 0,
+      "name": "Basic Entitlement - Primary Full Year subtotal",
+      "templateId": 566,
+      "calculationId": "52ff31b0-da05-4185-954b-3f49f197fcc7"
+    },
+    {
+      "entityType": 0,
+      "name": "Basic Entitlement KS3 full year subtotal",
+      "templateId": 568,
+      "calculationId": "a83bb3ce-317c-443c-9b97-c857fec9d81f"
+    },
+    {
+      "entityType": 0,
+      "name": "Basic Entitlement - KS4 Full Year Subtotal",
+      "templateId": 570,
+      "calculationId": "b4d00a2d-cbae-4bd0-b6ea-fdf18f4eb874"
+    },
+    {
+      "entityType": 0,
+      "name": "Primary IDACI Band A Full Year Subtotal",
+      "templateId": 571,
+      "calculationId": "cc9e49c3-574b-4502-807f-9474f59cef3d"
+    },
+    {
+      "entityType": 0,
+      "name": "Primary IDACI Band B - Full Year Subtotal",
+      "templateId": 572,
+      "calculationId": "fa0f5c79-f34f-4c2f-bbaf-47336b102e3f"
+    },
+    {
+      "entityType": 0,
+      "name": "Primary IDACI Band C - Full Year Subtotal",
+      "templateId": 573,
+      "calculationId": "ebac7df7-1618-45aa-97f2-6fdd93deb926"
+    },
+    {
+      "entityType": 0,
+      "name": "Primary IDACI Band D - Full Year Subtotal",
+      "templateId": 575,
+      "calculationId": "26aa725f-016f-48b4-85bb-5c44e90ffb99"
+    },
+    {
+      "entityType": 0,
+      "name": "Primary IDACI Band E - Full year subtotal",
+      "templateId": 576,
+      "calculationId": "3213e24e-3564-4287-ae33-3f5192878948"
+    },
+    {
+      "entityType": 0,
+      "name": "Primary IDACI Band F - Full year subtotal",
+      "templateId": 577,
+      "calculationId": "7a4cfa3a-2850-4d62-83fb-7a16bc4c93dc"
+    },
+    {
+      "entityType": 0,
+      "name": "Secondary IDACI Band A - Full year subtotal",
+      "templateId": 583,
+      "calculationId": "b7a1116f-36c9-4169-b8c4-34ab165f0603"
+    },
+    {
+      "entityType": 0,
+      "name": "Secondary IDACI Band B - Full year subtotal",
+      "templateId": 585,
+      "calculationId": "0fd6ccd0-faa8-48ce-b50e-34ebb0167885"
+    },
+    {
+      "entityType": 0,
+      "name": "Secondary IDACI Band C - Full year subtotal",
+      "templateId": 587,
+      "calculationId": "bc327bd8-852e-4d19-adcc-7df793a79fd0"
+    },
+    {
+      "entityType": 0,
+      "name": "Secondary IDACI Band D - Full Year Subtotal",
+      "templateId": 588,
+      "calculationId": "d8bf295e-4ff2-4b94-8296-294824e0e3bd"
+    },
+    {
+      "entityType": 0,
+      "name": "Secondary IDACI Band E - Full year subtotal",
+      "templateId": 590,
+      "calculationId": "6e4997ce-8763-4c6c-9df7-e6b717345d27"
+    },
+    {
+      "entityType": 0,
+      "name": "Secondary IDACI Band F - Full year subtotal",
+      "templateId": 592,
+      "calculationId": "5554070e-008a-4bbe-86ef-540249879f25"
+    },
+    {
+      "entityType": 0,
+      "name": "Primary free school meals - Full year subtotal",
+      "templateId": 593,
+      "calculationId": "aafc70db-293a-4ac0-b5a5-270f0930ebeb"
+    },
+    {
+      "entityType": 0,
+      "name": "Primary FSM6 - Full year subtotal",
+      "templateId": 596,
+      "calculationId": "5f4d145e-8781-441a-b820-cdc06c4846f0"
+    },
+    {
+      "entityType": 0,
+      "name": "Secondary Free School meals - Full year subtotal",
+      "templateId": 598,
+      "calculationId": "ed2a99a4-9e08-4e71-b1bf-da80048e0363"
+    },
+    {
+      "entityType": 0,
+      "name": "Secondary FSM6 - Full year subtotal",
+      "templateId": 601,
+      "calculationId": "adb36b14-fc5a-4192-9e6a-0f9c3b024586"
+    },
+    {
+      "entityType": 0,
+      "name": "Primary prior attainment - Full year subtotal",
+      "templateId": 616,
+      "calculationId": "0b030c2a-2bc4-4f15-a86d-6edf64fc53ac"
+    },
+    {
+      "entityType": 0,
+      "name": "Secondary prior attainment - Full year subtotal",
+      "templateId": 620,
+      "calculationId": "feb99b61-9724-4773-9eb4-9387ebe40c39"
+    },
+    {
+      "entityType": 0,
+      "name": "Primary EAL Band 1 - Full Year Subtotal",
+      "templateId": 621,
+      "calculationId": "3cc8b781-f690-4a14-93c2-a66a04fb3c09"
+    },
+    {
+      "entityType": 0,
+      "name": "Primary EAL Band 2 - Full year subtotal",
+      "templateId": 623,
+      "calculationId": "57abdf6e-ffb2-48c9-a6c4-1cb608d48b13"
+    },
+    {
+      "entityType": 0,
+      "name": "Primary EAL Band 3 - Full year subtotal",
+      "templateId": 625,
+      "calculationId": "8d62903f-5f0f-4e51-9a16-0ee22155c037"
+    },
+    {
+      "entityType": 0,
+      "name": "Secondary EAL Band 1 - Full year subtotal",
+      "templateId": 628,
+      "calculationId": "a18e075e-6450-4b2f-88cb-a34a11b012d9"
+    },
+    {
+      "entityType": 0,
+      "name": "Secondary EAL Band 2 - Full year subtotal",
+      "templateId": 630,
+      "calculationId": "c14f634a-7a38-48a9-8093-e21e252564dd"
+    },
+    {
+      "entityType": 0,
+      "name": "Secondary EAL Band 3 - Full year subtotal",
+      "templateId": 632,
+      "calculationId": "5263aef9-c3f0-4405-901f-e448607bbf84"
+    },
+    {
+      "entityType": 0,
+      "name": "Primary Mobility - Full year subtotal",
+      "templateId": 634,
+      "calculationId": "8b17fb1e-144c-4d43-807e-53c3126107b2"
+    },
+    {
+      "entityType": 0,
+      "name": "Secondary Mobility - Full year subtotal",
+      "templateId": 636,
+      "calculationId": "c6a499d5-c77c-4ce0-9f2a-d5edc975d48b"
+    },
+    {
+      "entityType": 0,
+      "name": "Basic Entitlement - Full Year Subtotal",
+      "templateId": 579,
+      "calculationId": "aa3b8516-c6fa-4e77-9bd0-8d9a99b0d7cc"
+    },
+    {
+      "entityType": 0,
+      "name": "Deprivation - Full Year Subtotal",
+      "templateId": 581,
+      "calculationId": "ea3cf0a8-23fa-40d1-a2a3-f6a0d13bd5af"
+    },
+    {
+      "entityType": 0,
+      "name": "Looked After Children - Full year subtotal",
+      "templateId": 603,
+      "calculationId": "a006e328-636d-4107-9520-1275d4dd30d0"
+    },
+    {
+      "entityType": 0,
+      "name": "Prior attainment - Full year subbtotal",
+      "templateId": 614,
+      "calculationId": "0b739615-ca29-4ac5-8c39-340b0c22d16e"
+    },
+    {
+      "entityType": 0,
+      "name": "EAL Funding - Full year subtotal",
+      "templateId": 633,
+      "calculationId": "b1c92328-03c4-4f83-8844-f37146e77e04"
+    },
+    {
+      "entityType": 0,
+      "name": "Mobility Funding - Full year subtotal",
+      "templateId": 638,
+      "calculationId": "ab5a05a1-faff-47c6-a924-a09fada04758"
+    },
+    {
+      "entityType": 0,
+      "name": "Primary Lump Sum - Full year subtotal",
+      "templateId": 645,
+      "calculationId": "c5f529a4-6f34-4845-b7f2-971c938e2d99"
+    },
+    {
+      "entityType": 0,
+      "name": "Secondary Lump Sum - Full year subtotal",
+      "templateId": 688,
+      "calculationId": "9bc7eb57-b8f5-4e58-8652-e7d60fe86a89"
+    },
+    {
+      "entityType": 0,
+      "name": "Sparsity Funding - Full year subtotal",
+      "templateId": 643,
+      "calculationId": "c340815c-b7df-4254-92b2-cc08dca08ad3"
+    },
+    {
+      "entityType": 0,
+      "name": "Lump sum - Full Year subtotal",
+      "templateId": 686,
+      "calculationId": "144e2d6a-5328-4456-a269-39d0b875d151"
+    },
+    {
+      "entityType": 0,
+      "name": "Split Site - Full Year subtotal",
+      "templateId": 723,
+      "calculationId": "eb33951f-b7dd-4dd2-bceb-ca0ec801d402"
+    },
+    {
+      "entityType": 0,
+      "name": "PFI - Full year subtotal",
+      "templateId": 725,
+      "calculationId": "ddf48a9c-8e1a-40ff-8ffb-2eb885dd5353"
+    },
+    {
+      "entityType": 0,
+      "name": "London Fringe - Full year subtotal",
+      "templateId": 721,
+      "calculationId": "ad1345bc-168a-4a3d-a54a-35d80184b1ff"
+    },
+    {
+      "entityType": 0,
+      "name": "MFL - Full year subtotal",
+      "templateId": 726,
+      "calculationId": "70e329da-2165-4a8e-8a8c-674ce0fa5784"
+    },
+    {
+      "entityType": 0,
+      "name": "Front Loaded PFI",
+      "templateId": 222,
+      "calculationId": "f5bd123a-1fe5-4ecc-8302-c66e7e775fd1"
+    },
+    {
+      "entityType": 0,
+      "name": "PFI Funding - Full year subtotal",
+      "templateId": 641,
+      "calculationId": "81ea0899-cf54-4e56-9c8b-4eeeae1378a8"
+    },
+    {
+      "entityType": 0,
+      "name": "Exceptional Circumstance 1 - Full year subtotal",
+      "templateId": 647,
+      "calculationId": "f4c096d0-99e5-4d63-a2d1-7f822c6bbd59"
+    },
+    {
+      "entityType": 0,
+      "name": "Exceptional Circumstances 2 - Full year subtotal",
+      "templateId": 649,
+      "calculationId": "9a51a7e7-51dd-45dd-abb1-bc37ee5d50ca"
+    },
+    {
+      "entityType": 0,
+      "name": "Exceptional Circumstances 3 - Full year subtotal",
+      "templateId": 651,
+      "calculationId": "9ee49d80-6ac6-47e8-9bd1-78f781e0a4b8"
+    },
+    {
+      "entityType": 0,
+      "name": "Exceptional Circumstance 4 - Full year subtotal",
+      "templateId": 674,
+      "calculationId": "01715965-9e51-401d-9a3c-432f9656d640"
+    },
+    {
+      "entityType": 0,
+      "name": "Exceptional Circumstance 5  - Full year subtotal ",
+      "templateId": 714,
+      "calculationId": "598ca74d-f29c-43dc-b1fe-ef30f1b09727"
+    },
+    {
+      "entityType": 0,
+      "name": "Exceptional Circumstances 6 - Full year subtotal",
+      "templateId": 716,
+      "calculationId": "f2950d41-0e52-4242-b32d-7bc90e8487a5"
+    },
+    {
+      "entityType": 0,
+      "name": "Exceptional Circumstance 7 - Full year subtotal",
+      "templateId": 715,
+      "calculationId": "362d59a2-a79b-4f07-a423-d8c6c040264f"
+    },
+    {
+      "entityType": 0,
+      "name": "Prior year adjustment to SBS - Full year subtotal",
+      "templateId": 683,
+      "calculationId": "31457b09-6188-405c-98ce-1dd563914c35"
+    },
+    {
+      "entityType": 0,
+      "name": "Pupil Led Factors - Full year subtotal",
+      "templateId": 640,
+      "calculationId": "fc4498d0-fd60-4b79-8e82-c1be1a3bcd0a"
+    },
+    {
+      "entityType": 0,
+      "name": "Other Factors excluding MFL - Full year subtotal",
+      "templateId": 727,
+      "calculationId": "1848ddb8-140d-4a5d-a13f-1fc50e7048b7"
+    },
+    {
+      "entityType": 0,
+      "name": "Other Factors excluding MFL",
+      "templateId": 720,
+      "calculationId": "4965b844-d03d-44b0-837b-4a8ffab21128"
+    },
+    {
+      "entityType": 0,
+      "name": "Total Exceptional Circumstances Full year subtotal",
+      "templateId": 735,
+      "calculationId": "649409d4-decd-4298-bdac-69c827dd31d5"
+    },
+    {
+      "entityType": 0,
+      "name": "APT MFG Funded Pupil Numbers",
+      "templateId": 696,
+      "calculationId": "36037858-6f26-423d-a1c2-787c13f9eb84"
+    },
+    {
+      "entityType": 0,
+      "name": "Original APT MFG adjustment value",
+      "templateId": 698,
+      "calculationId": "480f1528-186d-4420-a8d0-33e9381b536e"
+    },
+    {
+      "entityType": 0,
+      "name": "MFG Pupil Adjustment multiplier",
+      "templateId": 737,
+      "calculationId": "a1d058a9-0c4a-4765-b5cd-df67362a0e21"
+    },
+    {
+      "entityType": 0,
+      "name": "Current Year MFG after MFG and affordability adjustment",
+      "templateId": 702,
+      "calculationId": "4ede186f-7fbd-4212-bc62-0b1982a92ce3"
+    },
+    {
+      "entityType": 0,
+      "name": "Current Year MFG Unit Value after MFG and affordability adjustment",
+      "templateId": 701,
+      "calculationId": "0166e911-5426-42ae-8281-7fc370f1e0e9"
+    },
+    {
+      "entityType": 0,
+      "name": "In year opener overall net adjustment",
+      "templateId": 695,
+      "calculationId": "d182d915-5f2f-425e-90b0-f39c889d48af"
+    },
+    {
+      "entityType": 0,
+      "name": "School budget share including MFG",
+      "templateId": 699,
+      "calculationId": "39d4bf0e-b371-49c2-ab23-e6bc837aedcd"
+    },
+    {
+      "entityType": 0,
+      "name": "Percentage Change in MFG Unit Value after Adjustment",
+      "templateId": 700,
+      "calculationId": "1315f44a-10c4-43ac-ba8c-99b69cb16f0e"
+    },
+    {
+      "entityType": 0,
+      "name": "Previous Year SUG POG Funding",
+      "templateId": 731,
+      "calculationId": "3bc79bf7-2bb3-4962-83e1-c357e5817138"
+    },
+    {
+      "entityType": 0,
+      "name": "LA overall per pupil rate Current year",
+      "templateId": 610,
+      "calculationId": "d211d8fa-47dd-4259-af28-622198a36997"
+    },
+    {
+      "entityType": 0,
+      "name": "LA overall per pupil rate Previous year",
+      "templateId": 611,
+      "calculationId": "89888621-30ce-4a8a-8e4f-97c733b0e31b"
+    },
+    {
+      "entityType": 0,
+      "name": "Funding Protection floor",
+      "templateId": 607,
+      "calculationId": "e7fd8500-4988-4b03-8f07-18746f899b6b"
+    },
+    {
+      "entityType": 0,
+      "name": "Extent below funding protection floor",
+      "templateId": 608,
+      "calculationId": "ce0848d4-bbea-4114-b68d-b637fec01202"
+    },
+    {
+      "entityType": 0,
+      "name": "Percentage change in LA per pupil rates",
+      "templateId": 609,
+      "calculationId": "cf5dac29-826d-49f1-ac25-0d1e3a4566e7"
+    },
+    {
+      "entityType": 0,
+      "name": "Funding protection Evaluation",
+      "templateId": 606,
+      "calculationId": "35751829-faeb-461d-ab8e-3bfedf5ce974"
+    },
+    {
+      "entityType": 0,
+      "name": "Difference per pupil",
+      "templateId": 613,
+      "calculationId": "2d8e96a7-e9a4-4967-a23b-a9ca8154847c"
+    },
+    {
+      "entityType": 0,
+      "name": "Free School Protection",
+      "templateId": 463,
+      "calculationId": "dc887610-c1e3-4264-9a88-87e7617bc93e"
+    },
+    {
+      "entityType": 0,
+      "name": "Free school protection - Full year subtotal",
+      "templateId": 604,
+      "calculationId": "f08c836c-fece-42f5-943c-7ac17c918504"
+    },
+    {
+      "entityType": 0,
+      "name": "School Budget Share - Full year subtotal",
+      "templateId": 728,
+      "calculationId": "1ff64d18-5c14-4c64-b82e-719ccb2cef86"
+    },
+    {
+      "entityType": 0,
+      "name": "De-Delegated funding retained by the LA",
+      "templateId": 706,
+      "calculationId": "3c82adf5-5c3d-420d-9c41-99d33531a23c"
+    },
+    {
+      "entityType": 0,
+      "name": "De-Delegated funding retained by the LA - Full year subtotal",
+      "templateId": 707,
+      "calculationId": "af603715-238f-40d2-856f-a9828fbb6f8d"
+    },
+    {
+      "entityType": 0,
+      "name": "Total High Needs - Full Year subtotal",
+      "templateId": 661,
+      "calculationId": "a9b6201f-0801-42ef-bc2b-2b03b88e2c64"
+    },
+    {
+      "entityType": 0,
+      "name": "Notional SEN funding - Full year subtotal",
+      "templateId": 729,
+      "calculationId": "e8817a98-dd26-43a7-a0cb-52f3295ab8f8"
+    },
+    {
+      "entityType": 0,
+      "name": "Funding previously De-Delegated - Full year subtotal",
+      "templateId": 709,
+      "calculationId": "ff600202-3f1e-4038-ac8a-3f506bcae118"
+    },
+    {
+      "entityType": 0,
+      "name": "Funding previously de-delegated",
+      "templateId": 719,
+      "calculationId": "49df2c85-9903-4ad0-90af-85a22fdc2432"
+    },
+    {
+      "entityType": 0,
+      "name": "Funding Basis",
+      "templateId": 710,
+      "calculationId": "b46c3db7-c604-4ce2-8702-00c916abe6fe"
+    },
+    {
+      "entityType": 0,
+      "name": "Phase of education",
+      "templateId": 711,
+      "calculationId": "1fb6745d-b6f6-43c1-987a-249a63f2de5b"
     }
   ]
 }

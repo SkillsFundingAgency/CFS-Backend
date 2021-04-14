@@ -5,8 +5,9 @@
 
 Scenario Outline: Successful approve of funding
 	Given a funding configuration exists for funding stream '<FundingStreamId>' in funding period '<FundingPeriodId>'
-		| Field                  | Value |
-		| DefaultTemplateVersion | 1.0   |
+		| Field                     | Value                     |
+		| DefaultTemplateVersion    | 1.2                       |
+		| PaymentOrganisationSource | PaymentOrganisationFields |
 	And the funding configuration has the following organisation group
 		| Field                     | Value             |
 		| GroupTypeIdentifier       | UKPRN             |
@@ -116,7 +117,7 @@ Scenario Outline: Successful approve of funding
 		| 1619 | <FundingStreamId> |
 	And the specification has the following template versions for funding streams
 		| Key               | Value |
-		| <FundingStreamId> | 1.0   |
+		| <FundingStreamId> | 1.2   |
 	And the publishing dates for the specifcation are set as following
 		| Field                        | Value               |
 		| StatusChangedDate            | 2019-09-27 00:00:00 |
@@ -144,9 +145,9 @@ Scenario Outline: Successful approve of funding
 		| publishedprovider-1000000-<FundingPeriodId>-<FundingStreamId> | Approved |
 		| publishedprovider-1000002-<FundingPeriodId>-<FundingStreamId> | Approved |
 	And the following published provider search index items is produced for providerid with '<FundingStreamId>' and '<FundingPeriodId>'
-		| ID                   | ProviderType          | ProviderSubType  | LocalAuthority    | FundingStatus | ProviderName        | UKPRN   | FundingValue | SpecificationId   | FundingStreamId   | FundingPeriodId   | UPIN   | URN     | Errors | Indicative                  |
-		| 1619-AS-2021-1000002 | LA maintained schools | Community school | Local Authority 1 | Approved      | Maintained School 2 | 1000002 | 12000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> | 123456 | 1234567 |        | Hide indicative allocations |
+		| ID                   | ProviderType | ProviderSubType | LocalAuthority | FundingStatus | ProviderName            | UKPRN   | FundingValue | SpecificationId   | FundingStreamId   | FundingPeriodId   | UPIN   | URN    | Errors | Indicative                  |
+		| 1619-AS-2021-1000002 | Acade        | 11ACA           | West Sussex    | Approved      | Midhurst Rother College | 1000002 | 566380.82    | specForPublishing | <FundingStreamId> | <FundingPeriodId> | 118907 | 135760 |        | Hide indicative allocations |
 
 	Examples:
 		| FundingStreamId | FundingPeriodId | FundingPeriodName      | TemplateVersion | ProviderVersionId  |
-		| 1619            | AS-2021         | Financial Year 2020-21 | 1.0             | 1619-providers-1.0 |
+		| 1619            | AS-2021         | Financial Year 2020-21 | 1.2             | 1619-providers-1.0 |

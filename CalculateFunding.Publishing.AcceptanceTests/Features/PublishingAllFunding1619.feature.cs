@@ -127,7 +127,7 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table321.AddRow(new string[] {
                             "DefaultTemplateVersion",
-                            "1.0"});
+                            "1.2"});
                 table321.AddRow(new string[] {
                             "PaymentOrganisationSource",
                             "PaymentOrganisationFields"});
@@ -460,7 +460,7 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table335.AddRow(new string[] {
                             string.Format("{0}", fundingStreamId),
-                            "1.0"});
+                            "1.2"});
 #line 118
  testRunner.And("the specification has the following template versions for funding streams", ((string)(null)), table335, "And ");
 #line hidden
@@ -550,7 +550,7 @@ this.ScenarioInitialize(scenarioInfo);
                             "Approved"});
                 table339.AddRow(new string[] {
                             "TotalFunding",
-                            "12000"});
+                            "566380.82"});
                 table339.AddRow(new string[] {
                             "MajorVersion",
                             "0"});
@@ -568,131 +568,499 @@ this.ScenarioInitialize(scenarioInfo);
                             "TemplateLineId",
                             "Type"});
                 table340.AddRow(new string[] {
-                            "Pupil Led Factors",
+                            "Total Funding Allocation",
+                            "",
+                            "566380.82",
+                            "0",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Programme Funding",
+                            "1619-001",
+                            "528304.24",
+                            "1",
+                            "Payment"});
+                table340.AddRow(new string[] {
+                            "Retention Factor Funding",
+                            "",
+                            "-4006.55",
+                            "108",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Programme Cost Weighting Funding",
+                            "",
+                            "16697.84",
+                            "109",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Level 3 Maths And English Funding",
+                            "",
+                            "3564",
+                            "110",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Student Funding",
+                            "",
+                            "500818.22",
+                            "12",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Level 3 Maths And English One Year Funding",
+                            "",
+                            "0",
+                            "122",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Level 3 Maths And English Two Year Funding",
+                            "",
+                            "3564",
+                            "123",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Total Mainstream Bands Funding",
+                            "",
+                            "500818.22",
+                            "13",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Disadvantage Funding",
+                            "",
+                            "6000",
+                            "134",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Disadvantage Block 1 And Block 2 Total",
+                            "",
+                            "4562.5",
+                            "136",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Disadvantage Block 1 Total Funding",
+                            "",
+                            "0",
+                            "137",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Economic Deprivation Funding",
+                            "",
+                            "0",
+                            "138",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Total T Level Bands Funding",
+                            "",
+                            "0",
+                            "14",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Care Leaver Funding",
+                            "",
+                            "0",
+                            "144",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Disadvantage Block 2 Total Funding",
+                            "",
+                            "4562.5",
+                            "148",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Disadvantage Block 2 Lower Funding",
+                            "",
+                            "0",
+                            "149",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Band 5 Student Funding",
+                            "",
+                            "492608.32",
+                            "15",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Disadvantage Block 2 FTE Funding",
+                            "",
+                            "0",
+                            "150",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Disadvantage Block 2 T Level Funding",
+                            "",
+                            "0",
+                            "151",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Band 4 Student Funding",
+                            "",
+                            "8209.9",
+                            "16",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Minimum Top Up Funding",
+                            "",
+                            "1437.5",
+                            "168",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Band 3 Student Funding",
+                            "",
+                            "0",
+                            "17",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Total Large Programme Funding",
+                            "",
+                            "0",
+                            "173",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Large Programme Funding Uplift At 20 Percent National Rate",
+                            "",
+                            "0",
+                            "174",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Large Programme Funding Uplift At 10 Percent National Rate",
+                            "",
+                            "0",
+                            "179",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Band 2 Student Funding",
+                            "",
+                            "0",
+                            "18",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Programme Funding Without Area Cost Applied",
+                            "",
+                            "523073.51",
+                            "184",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Band 1 FTE Student Funding",
+                            "",
+                            "0",
+                            "19",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Total Care Standards Funding",
+                            "",
+                            "0",
+                            "2",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "T Level Band 9 Funding",
+                            "",
+                            "0",
+                            "21",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "T Level Band 8 Funding",
+                            "",
+                            "0",
+                            "22",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "T Level Band 7 Funding",
+                            "",
+                            "0",
+                            "23",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Area Cost Allowance Adjustment",
+                            "",
+                            "5230.74",
+                            "236",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "T Level B and 6 Funding",
+                            "",
+                            "0",
+                            "24",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Student Financial Support Funding",
+                            "",
+                            "15476.57",
+                            "241",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Discretionary Bursary Fund Total",
+                            "1619-002",
+                            "15476.57",
+                            "242",
+                            "Payment"});
+                table340.AddRow(new string[] {
+                            "Discretionary Bursary Fund",
+                            "",
+                            "15476.57",
+                            "243",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Exceptional Adjustment To Discretionary Bursary Fund",
+                            "",
+                            "0",
+                            "244",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Financial Disadvantage Funding",
+                            "",
+                            "0",
+                            "246",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Student Costs Travel Funding",
+                            "",
+                            "15476.57",
+                            "247",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Student Costs Industry Placement Funding",
+                            "",
+                            "0",
+                            "248",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Bursary Adjustment In Respect Of FreeMeals",
+                            "",
+                            "0",
+                            "249",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Residential Funding Total",
+                            "",
+                            "0",
+                            "268",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Total Free Meals Funding",
+                            "1619-005",
+                            "0",
+                            "271",
+                            "Payment"});
+                table340.AddRow(new string[] {
+                            "Free Meals Administration",
+                            "",
+                            "0",
+                            "272",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Free Meals Total Including Exception",
+                            "",
+                            "0",
+                            "276",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Free Meals Higher Funding",
+                            "",
+                            "0",
+                            "277",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Free Meals Lower Funding",
+                            "",
+                            "0",
+                            "278",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Free Meals FTE Funding",
+                            "",
+                            "0",
+                            "279",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Free Meals Exceptional Adjustment",
+                            "",
+                            "0",
+                            "287",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "High Needs Element 2 Student Funding",
+                            "1619-006",
+                            "0",
+                            "299",
+                            "Payment"});
+                table340.AddRow(new string[] {
+                            "Industry Placements Funding",
+                            "1619-007",
+                            "0",
+                            "300",
+                            "Payment"});
+                table340.AddRow(new string[] {
+                            "Advanced Maths Premium Funding",
+                            "1619-008",
+                            "11400",
+                            "301",
+                            "Payment"});
+                table340.AddRow(new string[] {
+                            "High Value Courses Premium Funding",
+                            "1619-009",
+                            "11200",
+                            "302",
+                            "Payment"});
+                table340.AddRow(new string[] {
+                            "Teachers Pension Scheme Grant",
+                            "1619-010",
+                            "0",
+                            "303",
+                            "Payment"});
+                table340.AddRow(new string[] {
+                            "Alternative Completions Funding",
+                            "",
+                            "0",
+                            "304",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Residential Bursary Fund",
+                            "1619-003",
+                            "0",
+                            "309",
+                            "Payment"});
+                table340.AddRow(new string[] {
+                            "Residential Support Scheme",
                             "1619-004",
-                            "640",
+                            "0",
+                            "310",
+                            "Payment"});
+                table340.AddRow(new string[] {
+                            "Industry Placements T Level Funding",
+                            "",
+                            "0",
+                            "318",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Disadvantage Accommodation Costs",
+                            "1619-012",
+                            "0",
+                            "353",
+                            "Payment"});
+                table340.AddRow(new string[] {
+                            "Disadvantage Block 2 Higher Funding",
+                            "",
+                            "4562.5",
+                            "373",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Cummulative Programme Funding Without Total Large Programme And Disadvantage Fund" +
+                                "ing",
+                            "",
+                            "517073.51",
+                            "381",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Cummulative Programme Funding With Disadvantage Funding",
+                            "",
+                            "523073.51",
+                            "382",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Total Start Up And Post Opening Grant",
+                            "",
+                            "0",
+                            "389",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Post Opening Grant Per Pupil Resources",
+                            "1619-017",
+                            "0",
+                            "390",
+                            "Payment"});
+                table340.AddRow(new string[] {
+                            "Post Opening Grant - Leadership Diseconomies",
+                            "1619-018",
+                            "0",
+                            "391",
+                            "Payment"});
+                table340.AddRow(new string[] {
+                            "Maths Top Up",
+                            "1619-019",
+                            "0",
+                            "394",
+                            "Payment"});
+                table340.AddRow(new string[] {
+                            "Industry Placements Capacity And Delivery Funding",
+                            "",
+                            "0",
+                            "396",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Programme Funding Without Care Standards Or Condition Of Funding Adjustment",
+                            "",
+                            "528304.24",
+                            "4",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Discretionary Bursary Transition Adjustment",
+                            "",
+                            "0",
+                            "408",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "Alternative Completions Sporting Excellence",
+                            "1619-011",
+                            "0",
+                            "410",
+                            "Payment"});
+                table340.AddRow(new string[] {
+                            "Alternative Completions - Sea Fishing",
+                            "1619-020",
+                            "0",
+                            "412",
+                            "Payment"});
+                table340.AddRow(new string[] {
+                            "Start Up Grant Part A",
+                            "1619-022",
+                            "0",
+                            "419",
+                            "Payment"});
+                table340.AddRow(new string[] {
+                            "Start Up Grant Part B",
+                            "1619-023",
+                            "0",
+                            "420",
+                            "Payment"});
+                table340.AddRow(new string[] {
+                            "Offset High Value Courses For School And College Leavers In Year Programme Fundin" +
+                                "g",
+                            "",
+                            "0",
+                            "423",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "High Value Courses For School And College Leavers Total",
+                            "1619-024",
+                            "0",
+                            "425",
+                            "Payment"});
+                table340.AddRow(new string[] {
+                            "Total Funding Allocation And LAMSS Bursary Funding",
+                            "",
+                            "566380.82",
+                            "438",
+                            "Information"});
+                table340.AddRow(new string[] {
+                            "LA Maintained Special School Bursary Funding",
+                            "1619-013",
+                            "0",
+                            "439",
+                            "Payment"});
+                table340.AddRow(new string[] {
+                            "Condition Of Funding Adjustment",
+                            "",
+                            "0",
                             "5",
                             "Information"});
                 table340.AddRow(new string[] {
-                            "Funding Through Premises and Mobility Factors",
-                            "1619-007",
+                            "Care Standards Student Funding",
+                            "",
                             "0",
                             "6",
                             "Information"});
                 table340.AddRow(new string[] {
-                            "Growth funding",
-                            "1619-006",
+                            "Care Standards Institution Lump Sum Funding",
+                            "",
                             "0",
                             "7",
                             "Information"});
-                table340.AddRow(new string[] {
-                            "CSSB Pupil Led Funding",
-                            "1619-012",
-                            "320",
-                            "23",
-                            "Information"});
-                table340.AddRow(new string[] {
-                            "Funding for Historic Commitments",
-                            "1619-013",
-                            "0",
-                            "27",
-                            "Information"});
-                table340.AddRow(new string[] {
-                            "Universal Entitlement for 3 and 4 Year Olds",
-                            "1619-014",
-                            "320",
-                            "130",
-                            "Information"});
-                table340.AddRow(new string[] {
-                            "Funding for Additional Hours for working parents",
-                            "1619-015",
-                            "320",
-                            "135",
-                            "Information"});
-                table340.AddRow(new string[] {
-                            "Participation Funding for Disadvantaged 2 Year Olds",
-                            "1619-016",
-                            "320",
-                            "140",
-                            "Information"});
-                table340.AddRow(new string[] {
-                            "Funding Allocation for Early Years Pupil Premium",
-                            "1619-017",
-                            "320",
-                            "145",
-                            "Information"});
-                table340.AddRow(new string[] {
-                            "Funding Allocation for Maintained Nursery Supplement",
-                            "1619-018",
-                            "320",
-                            "150",
-                            "Information"});
-                table340.AddRow(new string[] {
-                            "Funding Allocation for Disability Access Fund",
-                            "1619-019",
-                            "0",
-                            "155",
-                            "Information"});
-                table340.AddRow(new string[] {
-                            "Schools Block before recoupment",
-                            "1619-003",
-                            "640",
-                            "4",
-                            "Information"});
-                table340.AddRow(new string[] {
-                            "Central School Services Block",
-                            "1619-008",
-                            "320",
-                            "8",
-                            "Information"});
-                table340.AddRow(new string[] {
-                            "Early Years Block",
-                            "1619-009",
-                            "1600",
-                            "9",
-                            "Information"});
-                table340.AddRow(new string[] {
-                            "High Needs Block before deductions",
-                            "1619-010",
-                            "1280",
-                            "10",
-                            "Information"});
-                table340.AddRow(new string[] {
-                            "Total High Needs Block After Deductions",
-                            "1619-011",
-                            "14720",
-                            "11",
-                            "Information"});
-                table340.AddRow(new string[] {
-                            "School Block After recoupment",
-                            "1619-005",
-                            "640",
-                            "12",
-                            "Information"});
-                table340.AddRow(new string[] {
-                            "Provisional Schools Block Funding Excluding Growth",
-                            "1619-020",
-                            "0",
-                            "239",
-                            "Information"});
-                table340.AddRow(new string[] {
-                            "LA Protection",
-                            "1619-021",
-                            "0",
-                            "240",
-                            "Information"});
-                table340.AddRow(new string[] {
-                            "Total 1619 before deductions and recoupment",
-                            "1619-001",
-                            "3840",
-                            "2",
-                            "Information"});
-                table340.AddRow(new string[] {
-                            "Total 1619 after deductions and recoupment",
-                            "1619-002",
-                            "15360",
-                            "3",
-                            "Payment"});
 #line 154
  testRunner.And("the Published Provider has the following funding lines", ((string)(null)), table340, "And ");
 #line hidden
@@ -704,10 +1072,10 @@ this.ScenarioInitialize(scenarioInfo);
                             "7000"});
                 table341.AddRow(new string[] {
                             "AS-2021",
-                            "5000"});
-#line 177
+                            "566380.82"});
+#line 238
  testRunner.And("the Published Provider has the following distribution period for funding line \'16" +
-                        "19-002\'", ((string)(null)), table341, "And ");
+                        "19-001\'", ((string)(null)), table341, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table342 = new TechTalk.SpecFlow.Table(new string[] {
                             "DistributionPeriodId",
@@ -729,10 +1097,10 @@ this.ScenarioInitialize(scenarioInfo);
                             "April",
                             "2021",
                             "1",
-                            "5000"});
-#line 181
+                            "566380.82"});
+#line 242
  testRunner.And("the Published Providers distribution period has the following profiles for fundin" +
-                        "g line \'1619-002\'", ((string)(null)), table342, "And ");
+                        "g line \'1619-001\'", ((string)(null)), table342, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table343 = new TechTalk.SpecFlow.Table(new string[] {
                             "EntityType",
@@ -741,1450 +1109,1535 @@ this.ScenarioInitialize(scenarioInfo);
                             "Name"});
                 table343.AddRow(new string[] {
                             "Calculation",
-                            "e46c0b59-6900-4fae-90b5-da6e558d9491",
-                            "15",
-                            "Primary Pupil Number"});
+                            "553a3ad7-a41a-4dc7-95e2-de31a59ce28d",
+                            "11",
+                            "Care Standards Eligible Students"});
                 table343.AddRow(new string[] {
                             "Calculation",
-                            "dd54d574-f9ef-4bef-bf82-1cb31c526f36",
-                            "16",
-                            "Primary Unit of Funding"});
+                            "7528010c-3fcb-4de6-beaf-d347dbb8a9b1",
+                            "372",
+                            "Care standards funding rate"});
                 table343.AddRow(new string[] {
                             "Calculation",
-                            "ff97843a-5fa9-4435-81c3-c44785611b01",
-                            "17",
-                            "Secondary Pupil Number"});
+                            "19dcc38f-592c-4f53-a546-1e4b61ef8df1",
+                            "9",
+                            "Care Standards Student funding"});
                 table343.AddRow(new string[] {
                             "Calculation",
-                            "b7c8bac7-c470-4b9b-af8f-0e4bd9886742",
-                            "18",
-                            "Secondary Unit of Funding"});
+                            "2401d781-458c-456a-8ca8-ce8541c85c67",
+                            "10",
+                            "Care Standards Lump Sum"});
                 table343.AddRow(new string[] {
                             "Calculation",
-                            "f43ba392-bf58-4677-a2c4-87ac114498fe",
-                            "13",
-                            "Primary pupil sub-total"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "54dea110-7fb7-41c0-bf87-2050ad54a042",
-                            "14",
-                            "Secondary pupil sub-total"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "c71aa30e-73a4-4b5e-b1f3-61856b92b1fd",
-                            "19",
-                            "Premises and Mobility Factors"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "21c65d92-31a8-4b08-9a78-caada398b8d2",
-                            "20",
-                            "Growth"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "a130170a-b70e-463c-960d-639e2155ca3e",
-                            "25",
-                            "CSSB per Pupil Rate"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "fcd312aa-c9bb-4b1f-97b2-2efeaccc6c5a",
-                            "26",
-                            "CSSB Pupil Number"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "bd784ee0-e837-4859-8891-1f991d429657",
-                            "24",
-                            "CSSB Pupil Led Total"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "e79438f4-be66-4653-b61b-a2f7233c4549",
-                            "28",
-                            "Actual CSSB Funding for Historic Commitments"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "7709b5c0-699f-455e-8773-7b258d801792",
-                            "132",
-                            "Universal Entitlement for 3 and 4 Year Olds total Early Years Universal Entitleme" +
-                                "nt for 3 and 4 Year Olds Rate"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "6d1c482b-6df9-4ba4-842e-704aa5f6100f",
-                            "133",
-                            "Total 3 and 4 Year Olds (PTE)"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "771727d2-61a7-4928-b9c5-71e80ace0c4d",
-                            "134",
-                            "Universal Entitlement for 3 and 4 Year Olds total PTE Funded hours"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "f5afea39-d21c-443b-859a-595c78789989",
-                            "131",
-                            "Universal Entitlement for 3 and 4 Year Olds total"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "36df4068-f3e0-4040-a73f-40dc66e1bad0",
-                            "137",
-                            "Funding for Additional Hours for working parents total Early Years Universal Enti" +
-                                "tlement for 3 and 4 Year Olds Rate"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "989fe1d5-9913-49d8-ba07-5685052e818f",
-                            "138",
-                            "Total 3 and 4 Year Old for Additional Hours for Working Parents (PTE)"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "704db23d-cf70-4a14-93b4-c966727cedb0",
-                            "139",
-                            "Funding for Additional Hours for working parents total PTE Funded hours"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "df645907-2cf0-4f25-99a4-4147ac62e1df",
-                            "136",
-                            "Funding for Additional Hours for working parents total"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "300dbe4d-b008-4ede-a189-4b456fac6870",
-                            "142",
-                            "Early Years Participation Funding for 2 Year Olds Rate"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "96d3e984-ccf5-440e-960a-fcbea5034e74",
-                            "143",
-                            "Total 2 Year Olds (PTE)"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "ddfdaf6f-0d81-4655-b71e-2c8b9320329c",
-                            "144",
-                            "Participation Funding for Disadvantaged 2 Year Olds total PTE Funded hours"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "030997f5-38c6-453e-a40a-5f640d2bf223",
-                            "141",
-                            "Participation Funding for Disadvantaged 2 Year Olds total"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "e616e94c-bdf9-4746-aba9-cbe3ee7b27cf",
-                            "147",
-                            "Early Years Pupil Premium"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "ccacff9b-1767-4045-82ff-669d56c018ca",
-                            "148",
-                            "Pupil Premium Pupil Count for 3 to 4 Year Olds (PTE)"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "18274db3-2c2d-4c2d-a46c-17cc5d98737d",
-                            "149",
-                            "Funding Allocation for Early Years Pupil Premium total PTE Funded hours"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "644667cc-c636-47b9-ade8-e2f7af501388",
-                            "146",
-                            "Funding Allocation for Early Years Pupil Premium total"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "c14a47a0-3a88-4dd9-9bd1-a5935e0cb49b",
-                            "152",
-                            "Maintained Nursery Schools Supplement Hourly Rate"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "4a4a6b45-a540-4efa-be10-8188d04460fe",
-                            "153",
-                            "Maintained Nursery Schools Supplement (PTE)"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "a53c47a9-b181-4158-902c-abe74efeccfa",
-                            "154",
-                            "PTE Funded hours"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "67e747b8-1d25-4de0-8101-7f81e8d7c051",
-                            "151",
-                            "Funding Allocation for Maintained Nursery Supplement total"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "b7ec40dc-1f24-4b69-b0dc-ecc4a7f9eb5c",
-                            "31",
-                            "Basic Entitlement Per Pupil Rate"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "b64dbf4f-5ac4-4ad3-91cd-c98ce40c606a",
-                            "32",
-                            "Basic Entitlement Per Pupil Number"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "d3704649-3119-42e1-ab69-b1758f2c0fd5",
-                            "34",
-                            "Import/Export Adjustment per pupil number"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "3647fb00-31d9-4c3a-a20a-e8631810dd55",
-                            "35",
-                            "Import/Export Adjustment per pupil rate"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "49494307-c1a1-40a5-a2d5-38d88bca8ede",
-                            "37",
-                            "Mid 2019 Age 2-18 ONS Population Projection"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "5f19e35b-f532-43e7-9133-638a29324815",
-                            "38",
-                            "Additional High Needs Funding Quantum"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "9c0f0435-5268-49c0-a0a7-74f8d477a52a",
-                            "29",
-                            "HN Block Baseline"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "fae774f5-f73c-4bd1-8fc8-aee66fb51c0c",
-                            "237",
-                            "Additional Funding For free Schools"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "61709649-863e-4a1f-b03b-ddcac25625a4",
-                            "30",
-                            "Basic Entitlement"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "b9dd905a-8aa4-41ee-8f90-f0d655f3553f",
-                            "33",
-                            "Import/Export Adjustment"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "9756e012-9f5e-47c9-a5b8-c1c7188b6829",
-                            "36",
-                            "Additonal High Needs Funding"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "d95c681b-66f4-49e5-bf6e-22f330afe3b4",
-                            "65",
-                            "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @Â£6k " +
-                                "SEN places deduction April (Year 1) - August (Year 1)"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "0b643470-b859-4a5e-b2cd-f45a33657466",
-                            "66",
-                            "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @Â£6k " +
-                                "SEN places deduction September (Year 1) - March (Year 2)"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "4c0eaa57-642e-4fba-9c75-4174c4be0ab4",
-                            "67",
-                            "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @Â£6k " +
-                                "SEN places deduction April (Year 1) - August (Year 1) rate"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "4543e33f-8b40-4335-901d-834ab84b761f",
-                            "68",
-                            "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @Â£6k " +
-                                "SEN places deduction September (Year 1) - March (Year 2) rate"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "2375efb5-4275-4f64-96bf-01c35b4dfc54",
-                            "64",
-                            "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @Â£6k " +
-                                "SEN places deduction"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "07400efc-cd8a-4062-bdde-3dac44bce704",
-                            "70",
-                            "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @Â£10k" +
-                                " SEN places deduction April (Year 1) - August (Year 1)"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "b4290464-36ed-42ca-9df9-822003200b9d",
-                            "71",
-                            "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @Â£10k" +
-                                " SEN places deduction September (Year 1) - March (Year 2)"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "8f967c9a-40e2-4842-8c55-969abf5a350f",
-                            "235",
-                            "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @Â£10k" +
-                                " SEN places deduction April (Year 1) - August (Year 1) Top Up rate"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "6bb71c56-818a-4ab1-b35f-ee497378ae3d",
-                            "236",
-                            "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @Â£10k" +
-                                " SEN places deduction September (Year 1) - March (Year 2) Top Up rate"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "42919210-5ab6-4f98-8cbd-36ea585bfc3e",
-                            "241",
-                            "Provisional Schools Block Funding Excluding Growth"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "50d71379-e1e6-4f9a-8a82-8d8697049662",
-                            "242",
-                            "Current Year School Block Pupil No"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "ac233126-aa00-470a-a2db-aed95c7bead5",
-                            "243",
-                            "Current Year Local Authority Protection"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "b7fd2f32-1e43-4b3b-84f9-9754f71a0E9f",
-                            "244",
-                            "Percentage Change between Current Year and Previous Year per Pupil Funding"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "b5f7f814-e819-4efb-9c07-e6b973a5dc30",
-                            "245",
-                            "Percentage Change between Current Year and Previous Year per Pupil Funding after " +
-                                "local authority protection"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "1d05db55-d225-49a3-9240-fce6e9065de5",
-                            "246",
-                            "Current Year Provisional Schools Block Excluding Growth Funding Per Pupil"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "c36e9b84-8c83-45e6-8ccf-1d06c83d96d1",
-                            "247",
-                            "Previous Year Schools Block Excluding Growth Funding Per Pupil"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "1f72e2d2-43fc-45df-b3e2-03a1d5E7d6d7",
-                            "248",
-                            "Current Year Provisional Schools Block Funding Excluding Growth - NON CASH"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "b2fc456d-7191-4214-9db5-1561cd3f75fa",
-                            "249",
-                            "Previous Year Schools Block Pupil Numbers"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "f8b65554-b578-4041-a9F6-116830cc0a2b",
-                            "250",
-                            "Previous Year Schools Block Excluding Growth Funding"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "bd4b64d4-f61f-4207-a493-73cb8d1e0db8",
-                            "72",
-                            "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @Â£10k" +
-                                " SEN places deduction April (Year 1) - August (Year 1) rate"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "bd3ef104-827f-42a0-a1c0-365bc5c21156",
-                            "73",
-                            "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @Â£10k" +
-                                " SEN places deduction September (Year 1) - March (Year 2) rate"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "2794481e-5514-49fd-bcb7-0a91b0d40647",
-                            "69",
-                            "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @Â£10k" +
-                                " SEN places deduction"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "16225034-ba94-4ecd-bb26-703c1ed4df29",
-                            "75",
-                            "Mainstream Academies (SEN units and Resourced provision) Post-16 SEN Places Deduc" +
-                                "tion April (Year 1) - July (Year 1)"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "a9072025-e28a-4302-94d7-46e5a48acf38",
-                            "76",
-                            "Mainstream Academies (SEN units and Resourced provision) Post-16 SEN Places Deduc" +
-                                "tion August (Year 1) - March (Year 2)"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "01b34a35-4929-4896-8a25-6e9ccdf38607",
-                            "77",
-                            "Mainstream Academies (SEN units and Resourced provision) Post-16 SEN Places Deduc" +
-                                "tion April (Year 1) - July (Year 1) rate"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "e7c1cedf-254f-4635-8f71-e2c6688eb7f0",
-                            "78",
-                            "Mainstream Academies (SEN units and Resourced provision) Post-16 SEN Places Deduc" +
-                                "tion August (Year 1) - March (Year 2) rate"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "d7219481-eb38-48f4-a6c2-5775b6d8833e",
-                            "74",
-                            "Mainstream Academies (SEN units and Resourced provision) Post-16 SEN Places Deduc" +
-                                "tion"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "fdc6128c-4dca-456d-807d-252e93a2bdca",
-                            "80",
-                            "Mainstream Academies (SEN units and Resourced provision) Pre-16 AP Places Deducti" +
-                                "on April (Year 1) - August (Year 1)"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "7b9dd9be-e63c-4223-ba2d-2a7593e4b3ee",
-                            "81",
-                            "Mainstream Academies (SEN units and Resourced provision) Pre-16 AP Places Deducti" +
-                                "on September (Year 1) - March (Year 2)"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "d53b992a-5484-4d9f-91d7-aa4cf297e9b5",
-                            "82",
-                            "Mainstream Academies (SEN units and Resourced provision) Pre-16 AP Places Deducti" +
-                                "on April (Year 1) - August (Year 1) rate"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "766fd82c-bea2-476f-805f-ede2d6a662f0",
-                            "83",
-                            "Mainstream Academies (SEN units and Resourced provision) Pre-16 AP Places Deducti" +
-                                "on September (Year 1) - March (Year 2) rate"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "1972f183-a4ea-4f91-b064-1a2f9d11eb71",
-                            "79",
-                            "Mainstream Academies (SEN units and Resourced provision) Pre-16 AP Places Deducti" +
-                                "on"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "b8601c5c-f3eb-45d3-abfe-84120b8ff371",
-                            "50",
-                            "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @Â£6k"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "47b47407-00c2-4888-9c3d-cb22b6e62384",
-                            "51",
-                            "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @Â£10k" +
-                                ""});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "3ba563a7-4611-4c2e-9951-1595969bf9d2",
-                            "52",
-                            "Post-16 SEN Places Main Stream Academies"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "ca896c28-5b68-4f36-a699-42da4640a36d",
-                            "53",
-                            "Mainstream Academies (SEN units and Resourced provision) Pre-16 AP Places"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "f68fa739-4eea-4ba3-9e49-5e96d23731bc",
-                            "163",
-                            "Special Academies Pre-16 SEN Places Deduction April (Year 1) - July (Year 1)"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "33b8ea92-2344-4429-b28a-1cff65745e6f",
-                            "164",
-                            "Special Academies Pre-16 SEN Places Deduction August (Year 1) - March (Year 2)"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "108caf20-de82-49e1-8779-48f0326807dc",
-                            "165",
-                            "Special Academies Pre-16 SEN Places Deduction April (Year 1)Â Â - July (Year 1) r" +
-                                "ate"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "ddb3eb07-917a-4080-b338-98e985c21ec8",
-                            "166",
-                            "Special Academies Pre-16 SEN Places Deduction August (Year 1) - March (Year 2) ra" +
-                                "te"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "f89336ae-1ae7-44b1-8b21-306697c8a2ad",
-                            "162",
-                            "Special Academies Deduction"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "f9c77603-cc44-497c-8ba4-3d41dbd14c26",
-                            "90",
-                            "Special Academies Post-16 SEN Places Deduction April (Year 1) - July (Year 1)"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "f2b7cf2a-495d-4157-ac97-789f86a9073a",
-                            "91",
-                            "Special Academies Post-16 SEN Places Deduction August (Year 1) - March (Year 2)"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "9491613b-b7a2-42ef-b590-51dd003d55c4",
-                            "92",
-                            "Special Academies Post-16 SEN Places Deduction April (Year 1)Â Â - July (Year 1) " +
-                                "rate"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "d896cdd6-4b3f-4136-81e5-e892b8468b02",
-                            "93",
-                            "Special Academies Post-16 SEN Places Deduction August (Year 1) - March (Year 2) r" +
-                                "ate"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "49ac5375-2c3f-4d5e-88f9-6f35be9e251b",
-                            "89",
-                            "Special Academies Post-16 SEN Places Deduction"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "f8bdcb90-cfdc-424f-bfab-6e829cfe9140",
-                            "95",
-                            "Special Academies Pre-16 AP Places Deduction April (Year 1) - July (Year 1)"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "746b26a3-9077-4bc5-8b3e-6a562ccb66de",
-                            "96",
-                            "Special Academies Pre-16 AP Places Deduction August (Year 1) - March (Year 2)"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "d0e4f8b7-1fba-4edd-9ed6-30c92e509584",
-                            "97",
-                            "Special Academies Pre-16 AP Places Deduction April (Year 1)Â Â - July (Year 1) ra" +
-                                "te"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "a4ec12da-02ba-4103-816d-296e7156c5b0",
-                            "98",
-                            "Special Academies Pre-16 AP Places Deduction August (Year 1) - March (Year 2) rat" +
-                                "e"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "d758185f-b7b3-4ddf-a63f-3f68c1ceb18e",
-                            "94",
-                            "Special Academies Pre-16 AP Places Deduction"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "da3f8c8b-9d51-4ac2-89bf-ce3875e6c073",
-                            "158",
-                            "Special Academies Pre-16 SEN Places"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "3973e082-7248-44c0-89b1-7a1939927ab6",
-                            "175",
-                            "Special Academies Post-16 SEN Places"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "1d818411-fb19-4589-b541-d3fb3b941d52",
-                            "174",
-                            "Special AcademiesÂ Pre-16 AP Places"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "161c81cc-1412-4c9d-aecf-0688f6075323",
-                            "168",
-                            "Special Free Schools Pre-16 SEN Places Deduction April (Year 1) - August (Year 1)" +
-                                ""});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "deddfe8a-6f21-405d-8f8e-b3d77004785b",
-                            "169",
-                            "Special Free Schools Pre-16 SEN Places Deduction August (Year 1) - March (Year 2)" +
-                                ""});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "c93608d3-58d7-4a6d-89ec-ba2c1fb77fb6",
-                            "170",
-                            "Special Free Schools Pre-16 SEN Places Deduction April (Year 1)Â - August (Year 1" +
-                                ") rate"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "85d6df27-22b5-4172-ac63-c03edb954ea6",
-                            "171",
-                            "Special Free Schools Pre-16 SEN Places Deduction August (Year 1) - March (Year 2)" +
-                                " rate"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "a0320c8b-9dae-4719-9708-70076cb240f1",
-                            "167",
-                            "Special Free Schools Deduction"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "c437b189-b105-469f-b3a0-2e2ccbddc989",
+                            "1c9abadf-5c56-4e23-9ee7-225e6879e505",
                             "176",
-                            "Special Free Schools Post-16 SEN Places Deduction April (Year 1) - July (Year 1)"});
+                            "Students meeting programme uplift 20% criteria"});
                 table343.AddRow(new string[] {
                             "Calculation",
-                            "89167b75-49b1-4d2a-b3ee-70bae9242317",
+                            "85d61ce7-e406-4eb0-a21f-367c1c5bc4e6",
                             "177",
-                            "Special Free Schools Post-16 SEN Places Deduction August (Year 1) - March (Year 2" +
-                                ")"});
+                            "Uplift per student at 20% national rate"});
                 table343.AddRow(new string[] {
                             "Calculation",
-                            "0be04e61-d828-46df-b903-20f1e7d49a0d",
+                            "af9884e3-44d8-487c-92bc-0e6f79ea1db9",
                             "178",
-                            "Special Free Schools Post-16 SEN Places Deduction April (Year 1) - July (Year 1) " +
-                                "rate"});
+                            "Length of programme"});
                 table343.AddRow(new string[] {
                             "Calculation",
-                            "0ade4f3f-8ce0-4a1a-8499-52272d673b74",
-                            "179",
-                            "Special Free Schools Post-16 SEN Places Deduction August (Year 1) - March (Year 2" +
-                                ") rate"});
+                            "9cfc3fdf-d785-45ef-a1b6-364b5d1f3444",
+                            "175",
+                            "Large programme funding uplift at 20% National rate"});
                 table343.AddRow(new string[] {
                             "Calculation",
-                            "9c2a3458-9c47-4634-8b01-c61aef671c65",
-                            "232",
-                            "Special Free Schools Post-16 SEN Places Deduction"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "fe1d36c8-4d60-45e0-afd9-25e81d4de265",
-                            "182",
-                            "Special Free Schools Pre-16 AP Places Deduction April (Year 1) - August (Year 1)"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "54ae55fe-5c09-4393-a9ef-83a13d45439e",
-                            "183",
-                            "Special Free Schools Pre-16 AP Places Deduction September (Year 1) - March (Year " +
-                                "2)"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "6e8bb519-2f0a-4e43-98c6-cb8a4b0e438c",
-                            "180",
-                            "Special Free Schools Pre-16 AP Places Deduction April (Year 1)Â - August (Year 1)" +
-                                " rate"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "870b5a27-4217-4b6e-bce3-9e5c823adbe1",
+                            "703a342f-70c2-4bcf-bed4-a3b83e1980ac",
                             "181",
-                            "Special Free Schools Pre-16 AP Places Deduction September (Year 1) - March (Year " +
-                                "2) rate"});
+                            "Students meeting programme uplift 10% criteria"});
                 table343.AddRow(new string[] {
                             "Calculation",
-                            "f55b3de5-55e6-443e-8aa3-0e14f1f38eda",
-                            "234",
-                            "Special Free Schools Pre-16 AP Places Deduction"});
+                            "99947b7d-4e46-43ab-829f-9fae386970c6",
+                            "182",
+                            "Uplift per student at 10% national rate"});
                 table343.AddRow(new string[] {
                             "Calculation",
-                            "4d661833-9e57-4535-81fc-6de279af494f",
-                            "159",
-                            "Special Free Schools Pre-16 SEN Places"});
+                            "bc9e531f-0c47-4457-8771-8316c70993e9",
+                            "180",
+                            "Large programme funding uplift at 10% National rate"});
                 table343.AddRow(new string[] {
                             "Calculation",
-                            "e92d3c27-3d11-45ce-aaf5-dbbdd9f672c5",
+                            "6157c1a7-cf0c-46f0-9ff2-21c8a85835b8",
+                            "53",
+                            "Students R46 total for RATIO"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "ac4fdeac-5874-4b48-b2ed-d95ebf66b8cf",
+                            "49",
+                            "Students R04 Total for RATIO"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "d3b4a791-a6fe-4ae4-b1a0-334bad7638e8",
+                            "51",
+                            "R46 to R14 Ratio"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "18c4958a-03b5-4bad-8100-f3cb08c57c23",
+                            "48",
+                            "R04 to R14 Ratio"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "56641418-45fa-4417-ad15-2c266d526d2a",
+                            "433",
+                            "Ratio Exception"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "841be5a6-8184-4d81-878d-e53a9fdfd851",
+                            "45",
+                            "ILR R14 Full Year Students"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "e39a3f89-c5f9-4eb2-8069-7532b8cb19ba",
+                            "58",
+                            "ILR Rolling 12 months Students"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "41c36a55-0702-47fe-bdc3-14e102ed10a5",
+                            "57",
+                            "ILR Hybrid Students"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "523063b2-56fb-491e-b433-2cbbc8dc2f66",
+                            "55",
+                            "Autumn Census"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "03b1b69d-62e9-4465-aafb-8386586b61ea",
+                            "54",
+                            "R46 Students"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "de27e3f0-ccf1-458e-ae87-44dac0868c6f",
+                            "46",
+                            "R04 Students"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "eadf49dc-c4b0-47fb-a0f6-b069446b61e5",
+                            "385",
+                            "Ratio"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "1c3dcf69-6f11-439c-b5b4-2f7a36c051c3",
+                            "418",
+                            "R06 Students"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "9890b97b-4241-449a-9d50-31e4fab8d9be",
+                            "384",
+                            "Academy Estimates"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "1c864d19-fb3b-4497-bc07-416d98438732",
+                            "59",
+                            "Year 1 Business Case Students"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "5a758ba8-f24b-4d44-92a5-214487325e73",
+                            "60",
+                            "Year 2 Business Case Students"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "a7c3d41f-56d5-44ac-bf99-d80537c6f70a",
+                            "386",
+                            "Lagged students"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "1ee652fa-1f8b-48f2-81b7-7f66fd05e1f8",
+                            "44",
+                            "Student Number Methodology Used"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "d3cedf1c-5c3e-45db-b9ae-582eca959ce6",
+                            "47",
+                            "Total Baseline (lagged) Student Number"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "3aa8c250-13ab-45a2-bf8f-8bb9895d5611",
+                            "56",
+                            "Exceptional Variations to Baseline Student Number"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "689900d0-7e65-4092-8e9a-aca6e8f6469e",
+                            "39",
+                            "Band 4a students full year data"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "af0a982b-519f-4bce-b422-73d7493fdaf8",
+                            "40",
+                            "Band 4b students full year data"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "2dad9dca-4c9e-48c5-97d5-0fbfbb526cbf",
+                            "35",
+                            "Band 5 students full year data"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "f8be8202-09b6-43a1-8b26-4b0352f559c9",
+                            "38",
+                            "Total Band 4 students full year data"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "f33a870c-1723-4620-b961-6bf919b83219",
+                            "41",
+                            "Band 3 students full year data"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "fdf310a4-97d4-4fa7-839c-7f85d41c2eb4",
+                            "42",
+                            "Band 2 students full year data"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "f92211c7-2a92-4372-bfdd-2c98857c3809",
+                            "43",
+                            "Band 1 students full year data"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "13d185c1-d927-4898-9334-9ab07a50b181",
+                            "36",
+                            "Total students full year data"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "fa729035-54ca-4c47-8ce9-b4c9613a3382",
+                            "33",
+                            "Total Funded Student number or Academy Estimates"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "f5b823a2-3492-44ae-8e7c-cfce96ad4c64",
+                            "34",
+                            "Band 5 Student proportion"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "b81eae80-560c-44fd-a330-7f3ef94e0a9f",
+                            "95",
+                            "Band 9 Funded students current year"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "683c125a-3b98-40ab-b667-a11ad4b17919",
+                            "98",
+                            "Band 8 Funded students current year"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "ed30f797-2bc6-412c-a0c7-01a79f33c753",
+                            "102",
+                            "Band 7 Funded students current year"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "44f6c2bc-9e2c-4794-9751-67480cabed62",
+                            "105",
+                            "Band 6 Funded students current year"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "cb06f25c-c0f0-4af1-9d6a-e06607e81b65",
+                            "30",
+                            "Band 5 Funded Students"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "ec48dff0-7598-4bcc-bce4-afd916438b58",
+                            "25",
+                            "Total T-Level Funded students"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "0389cb82-f910-468f-8421-c962ad47b012",
+                            "27",
+                            "Band 5 students less T-Level students"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "89632558-d0c2-4b3b-9d22-6031e75d81a6",
+                            "28",
+                            "Band 5 Rate current year"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "abcd282c-d508-4919-ad57-faffaf6de204",
+                            "26",
+                            "Band 5 Student funding"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "2e5ec4f8-26ca-48ef-9777-dfe8221ce042",
+                            "69",
+                            "Band 4a student proportion"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "7a5ed641-41e3-439e-8c65-fedb67cb500d",
+                            "72",
+                            "Band 4b student proportion"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "9ba52699-283f-4ea8-bcda-c571399a6778",
+                            "77",
+                            "Band 4 total proportion"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "c967dd74-156c-495e-ae0e-b519bed7d164",
+                            "73",
+                            "Band 4 Funded Students"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "987b226a-d1dc-4b79-ab37-f4613fa4dc9e",
+                            "68",
+                            "Band 4 rate current year"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "ab823493-460a-43a5-a6d7-e489ae35b11f",
+                            "432",
+                            "Band 4 Student Funding"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "be1ed4a6-676e-4b0b-ab41-f14270b2a19d",
+                            "81",
+                            "Band 3 student proportion"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "e0ab7d11-b550-42a7-a2a0-9d5bb76df796",
+                            "80",
+                            "Band 3 Funded students"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "7adf1bdc-cec2-4452-b0a4-a95a9735a82f",
+                            "82",
+                            "Band 3 rate current year"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "31a31d04-64e6-4dec-8482-c3d24c9c7565",
+                            "78",
+                            "Band 3 Student funding"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "745f0997-c675-4bc9-be95-31953c5798e7",
+                            "86",
+                            "Band 2 student proportion"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "a1e3b3e7-de49-43ff-89a7-932a8c13ccbc",
+                            "84",
+                            "Band 2 Funded students"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "49471705-7aaf-4308-9a2b-ef316cead192",
+                            "85",
+                            "Band 2 rate current year"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "72a8ac10-bc57-4057-8907-a0dbda260f5c",
+                            "83",
+                            "Band 2 Student funding"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "6024bf9d-246a-4d54-ad0e-94ff38ec22bd",
+                            "90",
+                            "Band 1 FTE full year data"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "ea82c1ae-aa28-4a14-b5c9-e5aa7dd96100",
+                            "88",
+                            "Band 1 FTE Funded students"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "9895b991-9933-40be-93bb-5f77b89ee5ba",
+                            "93",
+                            "Band 1 Student proportion"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "f3332d77-a051-40ba-a883-f0fc134713ce",
+                            "87",
+                            "Band 1 FTE Student Funding"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "2a81fe81-18f3-4d11-bab0-8c0a746e279a",
+                            "92",
+                            "Band 1 Funded Students"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "dc5b2ffe-8d48-452d-87bc-29e483b86b64",
+                            "96",
+                            "Band 9 Rate current year"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "f9c11de5-9e6e-4b73-9986-ab067a7bc0ab",
+                            "94",
+                            "T-Level Band 9 Student funding"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "6c3f69c1-9596-49c7-af84-cb4451033a79",
+                            "99",
+                            "Band 8 Rate current year"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "66f880f2-9ee1-4f42-a8fe-3d1f3589351e",
+                            "97",
+                            "T-Level Band 8 Student funding"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "5acf6d2f-b1c0-4dae-a170-8ebf1aae6097",
+                            "103",
+                            "Band 7 Rate current year"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "de4925bc-b320-42b5-909a-f545450ef16b",
+                            "101",
+                            "T-Level Band 7 Student funding"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "0d3756e6-288b-4891-aaef-a79cf57b48b9",
+                            "106",
+                            "Band 6 Rate current year"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "d53204a5-cd76-45f2-8bcb-a6a078a788cc",
+                            "104",
+                            "T-Level Band 6 Student funding"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "3a88a844-f40e-4f55-b0c2-0079c0a5f064",
+                            "107",
+                            "Total Mainstream band funded students"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "ca229fec-a815-417c-b680-8dfa0bc7fff3",
+                            "127",
+                            "Level 3 Maths and English One Year instances per student"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "5cee8980-d752-4c03-9cde-1aa1409195fa",
+                            "129",
+                            "Total Student Funded students"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "2ac24e50-4203-4c23-b510-94dea87d42e8",
+                            "125",
+                            "Level 3 Maths and English One Year number of instances"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "af4934a6-19db-4dae-bfcb-ea395f9d4ef1",
+                            "126",
+                            "Level 3 Maths and English One Year Rate"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "3018962a-6355-4dbb-aa99-e141e4763a51",
+                            "124",
+                            "Level 3 Maths and English One Year Funding Total"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "95583d82-0803-4797-9cca-7ae036f48924",
+                            "133",
+                            "Level 3 Maths and English Two Year instances per student"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "60441015-d128-4e8c-a442-5603571d7d9a",
+                            "131",
+                            "Level 3 Maths and English Two Year number of instances"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "57506711-b246-446a-bd21-34a091a81bcf",
+                            "132",
+                            "Level 3 Maths and English Two Year Rate"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "90c4af52-b6ff-4a32-a4ba-7de2aa259873",
+                            "130",
+                            "Level 3 Maths and English Two Year Funding Total"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "436e47cd-4cc4-4f13-a0ca-8b5ca5b580d9",
+                            "113",
+                            "Student Funding"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "9d75300c-c3fd-45f1-9aaf-329e4a656d1d",
+                            "116",
+                            "Retention Factor"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "d75578b7-e178-4b6e-8339-63693af83d4e",
+                            "114",
+                            "Student Funding with retention factor applied"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "0f26909b-e18a-408a-95bd-284d40012cd4",
+                            "111",
+                            "Retention Factor Adjustment"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "b945fe90-d97a-4d5c-a356-04eba8f64593",
+                            "121",
+                            "Programme Cost Weighting"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "fc28a81d-ac92-44e4-9019-749d0bbb3537",
+                            "118",
+                            "Student funding with retention factor and programme cost weighting applied"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "a0c9f82b-d505-4706-b268-17eca2cc57c2",
+                            "117",
+                            "Programme cost weighting funding adjustment"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "b4bb26dd-e7a5-4237-a788-b899848a18cb",
+                            "141",
+                            "Student funding with retention programme cost weighting and L3 Maths and English"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "da4a1622-3ee1-4da2-b234-399a7f670f99",
+                            "143",
+                            "Block 1 Factor"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "a6747aa9-0c9f-484b-8014-27d95e5c1afd",
+                            "139",
+                            "Block 1 Funding payment"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "80441694-000f-4e73-8c93-5916a9a3c86d",
+                            "146",
+                            "Number of qualifying care leaver students"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "043f26b9-04c4-44ab-8f30-02ad59651c3c",
+                            "147",
+                            "Care leaver rate per qualifying student"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "ebb3445a-5273-4062-87ae-ecc415060e84",
+                            "145",
+                            "Care leaver funding"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "83f74d71-3681-4931-9dfb-e55c3b807c47",
+                            "158",
+                            "Instances per student"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "540e3af3-5913-4124-a4bf-a7112f6c2ceb",
+                            "156",
+                            "Total funded instances current year"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "25643e61-1bd2-46cf-9ee6-85214cde47bc",
+                            "154",
+                            "Student instances attracting the lower rate"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "bc9af8f8-1cab-4860-8f0f-3460dae55105",
+                            "155",
+                            "Disadvantage Block 2 funding lower rate"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "67e6521a-42e4-4226-a3c7-5033e4861a54",
+                            "153",
+                            "Disadvantage Block 2 lower funding"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "2f011352-0a2f-4ce6-9a16-7014a1037bd3",
+                            "164",
+                            "Students attracting the disadvantage block 2 FTE Rate"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "0324416b-2724-4996-8eb1-a04f799ec1d9",
+                            "376",
+                            "Disadvantage block 2 higher rate"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "f224bbde-85f8-4981-9908-d01e8fb62787",
                             "161",
-                            "Special Free Schools Post-16 SEN Places"});
+                            "Band 1 Funded student instances"});
                 table343.AddRow(new string[] {
                             "Calculation",
-                            "8dbc440e-5cef-45ec-ba6c-c7625f118136",
-                            "233",
-                            "Special Free SchoolsÂ Pre-16 AP Places"});
+                            "0debb6c2-f189-40c9-8420-b43147a7bdb3",
+                            "162",
+                            "Disadvantage Block 2 FTE Funding"});
                 table343.AddRow(new string[] {
                             "Calculation",
-                            "95eb6ce5-caad-478d-bbc6-2e913e4dd727",
-                            "189",
-                            "AP Academies and Free Schools* Pre-16 SEN Places April (Year 1) - August (Year 1)" +
+                            "2cf180d6-94b6-436c-b20d-ab458b772db0",
+                            "166",
+                            "Disadvantage Block 2 T-Level rate"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "4cd7f32e-16cf-41a0-b766-648f6f686eed",
+                            "167",
+                            "Students attracting the T-Level rate"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "67974b2c-7068-4920-a8de-632b7f428148",
+                            "165",
+                            "Disadvantage Block 2 T-Level Funding"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "eeb98d36-dea1-4fa4-a692-67c1c218c82b",
+                            "375",
+                            "Students attracting disadvantage block 2 higher rate"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "b16e19ee-352b-4959-978c-0789f0530c0e",
+                            "374",
+                            "Disadvantage block 2 Higher Funding"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "01b96a4a-688e-4396-8904-f882f09fbb62",
+                            "169",
+                            "Minimum Funding Top up"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "c5a3b0a2-fc1e-4a7c-8be8-fea57cb5d71d",
+                            "379",
+                            "Total large programme students"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "da7ec136-2fb9-4778-9e40-78de3fe2c73f",
+                            "239",
+                            "Programme funding without area cost allowance applied"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "65c5fbf0-5699-4d9f-a303-1fc55e41df24",
+                            "240",
+                            "Area cost factor"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "d398f89d-be0c-4834-8b90-5811e207a558",
+                            "238",
+                            "Programme funding with area cost allowance applied"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "4a7b9179-b264-4495-867e-5de3fd5bbed7",
+                            "237",
+                            "Area cost allowance"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "27b4bbf3-7aef-4e62-bc55-8d9c954cfc65",
+                            "216",
+                            "Band 5 Students not meeting condition of funding"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "15d349b5-584c-4bfe-9650-42e9476a0175",
+                            "217",
+                            "Band 4 Students not meeting condition of funding"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "56a9b23b-87ba-4853-91d7-b01c95637fdd",
+                            "218",
+                            "Band 3 Students not meeting condition of funding"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "3068f1c5-15fc-46ca-b688-61f8c7910551",
+                            "219",
+                            "Band 2 Students not meeting condition of funding"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "d574bee3-d494-4733-b2f4-febcaa69dbe2",
+                            "220",
+                            "Band 1 Students not meeting condition of funding"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "76fe5221-e365-4d4e-a96c-7c5fe97c1b86",
+                            "205",
+                            "Band 5 National Funding Lagged Rate"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "b3f4e188-f938-4f69-8385-725928f51021",
+                            "211",
+                            "Band 4 National Funding Lagged Rate"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "3f30d2c4-abf3-4839-b1db-d97982b2e217",
+                            "212",
+                            "Band 3 National Funding Lagged Rate"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "74c1002d-e3e9-450e-8e2d-9b951c050765",
+                            "213",
+                            "Band 2 National Funding Lagged Rate"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "e1bf7483-9e52-44e3-aba7-0c72e9e20a5c",
+                            "235",
+                            "Band 1 FTE not meeting condition of funding"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "d9889c0e-498a-42af-b89d-01518040f7e9",
+                            "215",
+                            "Total Students not meeting Condition of funding"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "734604c6-c68c-4b16-8d12-4f1071f79ecb",
+                            "221",
+                            "Band 5 Funding for CoF Non Compliant students"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "c4eca2d2-0596-4e37-839a-2315773f3514",
+                            "222",
+                            "Band 4 Funding for CoF Non Compliant students"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "70f45ad0-7119-4d02-9acd-238779df6735",
+                            "223",
+                            "Band 3 Funding for CoF Non Compliant students"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "c4bcbc74-1750-4654-888e-9bff582bb06b",
+                            "224",
+                            "Band 2 Funding for CoF Non Compliant students"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "7b2c84a6-62f3-4f82-a1d1-b235b24b6e94",
+                            "225",
+                            "Band 1 FTE Funding for CoF non compliant students"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "964f3e3b-f89c-4510-8856-72c63986a41e",
+                            "199",
+                            "Band 5 Students excluding 19+ Full year data"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "5804bc28-4301-41b0-a622-759f2c6be887",
+                            "200",
+                            "Band 4 Students excluding 19+ full year data"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "47fbb66a-ab86-4edf-a109-280a5ba6aacb",
+                            "201",
+                            "Band 3 Students excluding 19+ full year data"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "2886704a-8534-4740-802d-831498acfc5e",
+                            "202",
+                            "Band 2 Students excluding 19+ full year data"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "a159261d-cc3b-49d8-9609-da5eb164a9bf",
+                            "203",
+                            "Band 1 Students excluding 19+ full year data"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "2b8aae02-5d4c-49fa-8158-6f069c395e65",
+                            "434",
+                            "Data Source"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "857d0cbd-1ba4-4593-9a93-1b3ad58f97d4",
+                            "214",
+                            "Band 1 FTE excluding 19+ full year data"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "0e81d9bf-1da8-40f9-b8fb-73e1ed6e6c0a",
+                            "198",
+                            "Total Students Excluding 19+ Full year data"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "df2d07f9-c90c-4699-8f7a-7fc07d0644e2",
+                            "204",
+                            "Band 5 Funding Full Year Students excluding 19+"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "5806c9dd-7066-4fcc-adc0-da062dc2ef4e",
+                            "207",
+                            "Band 4 Funding Full Year Students excluding 19+"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "091cba13-2258-48b2-a85b-4ae55be28c29",
+                            "208",
+                            "Band 3 Funding Full Year Students excluding 19+"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "58c66937-8093-4168-bf4f-eccb2e3aacbf",
+                            "209",
+                            "Band 2 Funding Full Year Students excluding 19+"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "d544c44e-b6b5-431e-ae4a-5c8ed92dae65",
+                            "210",
+                            "Band 1 FTE Funding Full Year Students excluding 19+"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "bccbb3b8-0abd-4194-b659-734803ec7fe4",
+                            "196",
+                            "Total Funding Full Year excluding 19+"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "dad22e0a-1025-45b8-980a-44eb30700e88",
+                            "197",
+                            "Condition of funding tolerance"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "7995d48f-935f-4190-bf37-8102a0538f2e",
+                            "192",
+                            "Condition of funding adjustment above tolerance"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "f73b383d-9147-4cb8-a277-49a1e90820cf",
+                            "193",
+                            "Condition of funding Reduced Rate"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "fff084e0-24ee-47e6-9b3c-eddca35f2e24",
+                            "194",
+                            "Total funding for CoF non compliant students"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "c9f6dafe-d65f-4bc3-b468-af96a07723ae",
+                            "195",
+                            "Tolerance applied to Total Funding Full Year Students excluding 19+"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "2fa7ba90-686a-4f46-9078-e913e1eb7e7a",
+                            "191",
+                            "Condition of funding adjustment"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "d15867ca-0e79-457d-a964-d1f935e3ab7c",
+                            "424",
+                            "Offset high value courses for school and college leavers in year programme fundin" +
+                                "g"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "14a82c4d-802d-4f67-926f-81de92cab917",
+                            "255",
+                            "Financial Disadvantage instances per student"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "ea2b0af5-85f1-4b3b-9a5c-93df58f847ab",
+                            "437",
+                            "Funded Students Lagged Or High Needs"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "28d1745f-f977-4a3b-8e96-6a97d782c78c",
+                            "252",
+                            "Financial Disadvantage Number of instances"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "e3f049d6-22fa-435e-88e9-093fecc5eca1",
+                            "253",
+                            "Financial Disadvantage instance Rate"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "39378dbe-c5e5-4882-9a46-a4f8606c5d8e",
+                            "251",
+                            "Financial Disadvantage Funding"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "12a78abb-070b-45fe-8432-ea38d4d09232",
+                            "260",
+                            "Student Costs Travel Instances per student"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "e0b79abc-5609-4236-a049-d5d28b549d37",
+                            "257",
+                            "Student Costs Travel Number of instances"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "d7265454-922e-4dc5-83f9-d82983bf76be",
+                            "258",
+                            "Student Costs Travel Funding instance Rate"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "2587e2ec-0280-4e3f-9161-fb5e62932468",
+                            "256",
+                            "Student Costs Travel Funding"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "cf051bc2-16e2-465d-a71f-a49118209762",
+                            "262",
+                            "Student Costs Industry placement Number of instances"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "5070f082-8f7a-4648-aad3-dd31387acbed",
+                            "264",
+                            "Student Costs Industry Placements rate"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "f1148e18-d82b-4ef6-9320-b29104a89e4d",
+                            "261",
+                            "Student Costs Industry Placements funding"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "3d1dbda3-ee02-45bd-8dc5-d76b1fa666cc",
+                            "250",
+                            "Bursary adjustment in respect of Free meals"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "6727fea3-d6ca-4e2d-8618-b209a919eeda",
+                            "245",
+                            "Exceptional adjustment to Discretionary Bursary Fund"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "b2fd937f-1367-420a-a25d-2379fd71a410",
+                            "265",
+                            "Transition Lower Limit"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "df678971-68b4-4c6b-88e4-362718c71a42",
+                            "266",
+                            "Transition upper limit"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "4a4745b7-4241-4b63-99ee-4f0c0482d6fd",
+                            "267",
+                            "Baseline for Discretionary bursary Transition fixed 2019 to 2020"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "32e5bf02-1e9f-4b98-a06a-e4f49c531d23",
+                            "409",
+                            "Discretionary bursary transition adjustment"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "d851dc56-9e36-4afc-8551-179055e1995c",
+                            "269",
+                            "Residential Bursary Fund"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "93d68f09-a0c2-42fe-baf9-0276433e8de7",
+                            "270",
+                            "Residential Support Scheme"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "94a3b3e4-c24a-438e-a6c4-23935da28bf3",
+                            "290",
+                            "Free Meals Students"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "626cc08a-25a0-4f4f-a373-6b97afbf419c",
+                            "363",
+                            "Total Students full year data for use in free meals"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "5e5d1249-e8da-44e7-8aa7-a96024e93c2d",
+                            "289",
+                            "Proportion of students on Free Meals"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "95e94909-df15-446e-bbb5-2a796353d29b",
+                            "286",
+                            "Total Students Funded for Free Meals for Current Year"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "01fb7c9d-ec74-4f43-b404-c918f7fe7fe5",
+                            "282",
+                            "Free Meals Students attracting the Higher Rate"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "5419db0b-d463-4c97-a0db-2c2f679a0e24",
+                            "283",
+                            "Free Meals Higher Rate"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "be43e79d-e36d-49f9-8fd8-8f2c7bc3d0bd",
+                            "281",
+                            "Free meals Higher Funding"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "ecf19c2a-6373-429c-a8de-2f4a7322e84f",
+                            "292",
+                            "Free Meals Students attracting the Lower Rate"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "881ea2c3-997e-463a-b316-398bd9d833ba",
+                            "293",
+                            "Free Meals Lower Rate"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "a1f45664-cd06-4572-a580-f5afd1996b89",
+                            "291",
+                            "Free Meals Lower Funding"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "2d5d37f5-faea-48b4-b033-a60a2544b031",
+                            "296",
+                            "Free Meals Students attracting the FTE Rate"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "d7c65add-6884-45c8-8353-c3857f98b3cf",
+                            "295",
+                            "Free Meals FTE Funding"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "34836ed7-3953-4c3f-8f56-1d410c716fdf",
+                            "275",
+                            "Free meals administration cost"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "18a9f732-944a-4d23-b713-43be830ea9b6",
+                            "298",
+                            "Free Meals Exceptional Adjustment"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "0b6a65dc-8449-4643-bf30-07690dbeee1c",
+                            "354",
+                            "Disadvantage Accommodation Costs"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "02b55a1e-685d-4524-a0ff-097a795932c5",
+                            "321",
+                            "Industry placements T-Level Rate"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "99ca3111-a417-4bbf-aa9e-006c697375bf",
+                            "319",
+                            "Industry Placements T-Level Funding"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "ca034370-fb4c-4073-8b05-97fe7b5f0857",
+                            "401",
+                            "Industry Placements Capacity and Delivery Qualifying Students"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "648948e3-58e6-4592-8424-adeb24fc0581",
+                            "402",
+                            "Industry Placements Capacity and Delivery rate"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "d20f9bed-4032-491c-9300-aeb41915dcf1",
+                            "399",
+                            "Industry Placements Capacity and Delivery Funding"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "1ead4132-fbb5-4bc9-8506-33b08e10e587",
+                            "316",
+                            "Alternative Completions - Sporting Excellence"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "5b59fdd2-60ab-4127-822b-fa81c3962f8d",
+                            "414",
+                            "Alternative Completions - Sea Fishing"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "f99102a3-5024-48db-b9e4-db1fc9a69043",
+                            "392",
+                            "Post Opening Grant - Per Pupil Resources"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "7ba82116-0fcc-4e7d-9f88-ae21744d2651",
+                            "393",
+                            "Post Opening Grant - Leadership Diseconomies"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "62156712-8463-4630-a76f-13b461711ab9",
+                            "421",
+                            "Start Up Grant Part A"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "7d68e00b-b7c2-477f-b4fe-5b8cff4e229a",
+                            "422",
+                            "Start Up Grant Part B"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "deb8cc38-c170-4567-8f14-20b5dcad8922",
+                            "380",
+                            "Current year Total Programme funding per student - SPI"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "90d9f82d-0524-4db8-9cfa-f14cabceda02",
+                            "330",
+                            "16-19 High needs students"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "b7b2ff6f-a347-4853-b051-fc128913776c",
+                            "331",
+                            "19-24 High Needs students"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "3f437067-7ef1-481c-a631-db5d33031241",
+                            "387",
+                            "R06 16-19 High needs students"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "5d9983ac-8748-4780-95d9-16f877c299da",
+                            "388",
+                            "R06 19-24 High needs students"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "9c6540c4-5d9a-4655-a24d-560ead889e68",
+                            "334",
+                            "Total R06 High Needs Student Number"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "45550274-958a-4042-be9d-775a996946d4",
+                            "328",
+                            "Total High Needs Students"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "03d0227b-7a19-456f-b0fa-23048026e96a",
+                            "329",
+                            "High Needs Rate"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "17df4975-f739-4574-8f06-6aafd3a28ad8",
+                            "332",
+                            "16-19 High Needs Student Proportion"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "0fe3fa89-8361-46d9-b584-e415dfc5675a",
+                            "335",
+                            "19-24 High Needs Student proportion"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "fadc2ef0-417c-4cde-a8d7-04cad69647b1",
+                            "383",
+                            "Exceptional variations to High Needs student number"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "de1bd71b-29e0-4f48-b4d2-71384e92b9f5",
+                            "327",
+                            "High Needs Element 2 Student Funding"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "8159aafd-095a-4e3d-a580-d005a5ad52d4",
+                            "314",
+                            "Advanced Maths Baseline Students"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "7ad71f61-14aa-49b5-8101-0885d1767f42",
+                            "315",
+                            "Advanced Maths Eligible Students"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "ffc2ed9a-98ee-44e0-af6f-b782b9bcd76a",
+                            "312",
+                            "Advanced Maths Rate"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "8953b6c3-6fed-4a27-b2ed-9c854b5f5a90",
+                            "313",
+                            "Advanced Maths Eligible Students minus baseline students"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "518951bb-0002-4ddc-80ce-8ee039398d91",
+                            "311",
+                            "Advanced Maths Premium Funding"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "e32aeb34-427f-404c-9867-43a178d991c3",
+                            "307",
+                            "Number of qualifying High Value Course Students"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "d34132de-0abf-4126-b552-9d65024a450f",
+                            "308",
+                            "High Value Course Premium Rate"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "3bbfa0fc-0380-4903-b57d-804176d9f65e",
+                            "306",
+                            "High Value Course Premium Funding"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "61fd3afc-d74a-450b-a6c3-0858260112df",
+                            "340",
+                            "Teachers Pension Annual Payments for previous full financial year"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "91f7a24a-67e7-4743-a727-28ada5333bc2",
+                            "347",
+                            "Employer contribution rate included"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "0aa77eef-37cc-4879-809b-5f3a204af156",
+                            "348",
+                            "Employer contribution rate previous FY"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "91841fdd-7f62-4f19-bc07-f72f45c53ae2",
+                            "349",
+                            "OBR Wage growth forecast previous Year"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "25d5b084-4274-4edb-ae49-699197eb6eee",
+                            "343",
+                            "Teachers Pension Annual payments including Employer contributions increase for pr" +
+                                "evious year"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "c1575687-5bb1-4604-a524-dcbed3a3e3f0",
+                            "351",
+                            "Teachers Pension annual pay with increase with OBR previous year applied"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "b99d7944-1874-497b-90ff-5590039a7d96",
+                            "352",
+                            "OBR Wage Growth Forecast current year"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "5a628ba1-94ac-440e-b78d-296f5f2b5da7",
+                            "344",
+                            "Teachers Pension uplift for previous FY OBR wage growth"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "c8204022-f046-4606-ad8d-d9683bfb25a6",
+                            "345",
+                            "Teacher Pension uplift for current FY OBR wage growth"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "d89bf663-2ed8-44d2-935c-b0cf9a9a84f2",
+                            "341",
+                            "Teachers Pension Revised Annual Cost"});
+                table343.AddRow(new string[] {
+                            "Calculation",
+                            "83a4a011-ac69-4213-95e3-395aa6a6bfe0",
+                            "339",
+                            "Difference between Teachers Pension available FY payments and Revised Annual Cost" +
                                 ""});
                 table343.AddRow(new string[] {
                             "Calculation",
-                            "c3962fe9-9545-427e-ae69-0719c87971eb",
-                            "190",
-                            "AP Academies and Free Schools* Pre-16 SEN Places Sept (Year 1) - March (Year 2)"});
+                            "8643d35e-e326-4628-9e52-96908c53e2d9",
+                            "395",
+                            "Maths Top Up"});
                 table343.AddRow(new string[] {
                             "Calculation",
-                            "841dd7e3-c39a-40eb-a80e-b380be8b5459",
-                            "187",
-                            "AP Academies and Free Schools* April (Year 1) - August (Year 1) rate"});
+                            "b09f67a1-343f-4359-ae43-7e324858381d",
+                            "430",
+                            "High value courses for school and college leavers eligible students"});
                 table343.AddRow(new string[] {
                             "Calculation",
-                            "17ba6093-fc27-4d08-8e41-981e1a910bda",
-                            "188",
-                            "AP Academies and Free Schools* September (Year 1) - March (Year 2) rate"});
+                            "e87eae67-5495-451e-a531-9abebd2f23e0",
+                            "431",
+                            "High value courses for school and college leavers baseline"});
                 table343.AddRow(new string[] {
                             "Calculation",
-                            "aabee9ce-4e36-461d-b166-b8b794bac007",
-                            "186",
-                            "AP Academies and Free Schools* Pre-16 SEN Places Deduction"});
+                            "ac4d0e5d-1afe-410f-a65b-4913ba85ce92",
+                            "427",
+                            "High value courses for school and college leavers students above baseline"});
                 table343.AddRow(new string[] {
                             "Calculation",
-                            "b700cbcd-5594-4bac-ae2e-07a179f40830",
-                            "195",
-                            "AP Academies & Free schools * Pre-16 AP Places Deduction April (Year 1) - August " +
-                                "(Year 1)"});
+                            "8e0335fd-2d7b-44ea-9c20-ffa7803cf75b",
+                            "428",
+                            "High value courses for school and college leavers rate"});
                 table343.AddRow(new string[] {
                             "Calculation",
-                            "1993ff13-6371-4d78-8e23-cf8e37f051db",
-                            "196",
-                            "AP Academies & Free schools * Pre-16 AP Places Deduction September (Year 1) - Mar" +
-                                "ch (Year 2)"});
+                            "6d5a0965-470e-4794-a0ac-4e1d80a18736",
+                            "435",
+                            "High value courses for school and college leavers previously funded"});
                 table343.AddRow(new string[] {
                             "Calculation",
-                            "83e7f9cb-fff2-43b7-a81e-c8af459d4e54",
-                            "193",
-                            "AP Academies & Free schools * Pre-16 AP Places Deduction April (Year 1) - August " +
-                                "(Year 1) rate"});
+                            "e5105ca6-3ef2-443e-830a-b915cb8a42dd",
+                            "436",
+                            "High value courses for school and college leavers additional students"});
                 table343.AddRow(new string[] {
                             "Calculation",
-                            "ea07237f-3f20-4590-9184-2f9426a31c0a",
-                            "194",
-                            "AP Academies & Free schools * Pre-16 AP Places Deduction September (Year 1) - Mar" +
-                                "ch (Year 2) rate"});
+                            "c6ab4f61-cd95-4596-ac74-47ce66ff997b",
+                            "426",
+                            "High value courses for school and college leavers uplift funding"});
                 table343.AddRow(new string[] {
                             "Calculation",
-                            "0ca7fdb5-b1ba-4cb3-80a9-c71f541c3802",
-                            "192",
-                            "AP Academies & Free schools * Pre-16 AP Places Deduction"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "bf3a8703-e7f9-4f91-8466-b7e367cf6a3e",
-                            "185",
-                            "AP Academies & Free schools * Pre- 16 SEN places"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "7226a3f2-e085-45d4-bfad-3d424d81644f",
-                            "191",
-                            "AP Academies & Free schools * Pre-16 AP Places"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "778ab5d8-c374-49b1-893e-9542e4b2c682",
-                            "202",
-                            "Maintained Special Schools Post-16 SEN Places Deduction April (Year 1) - July (Ye" +
-                                "ar 1)"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "008e0d05-2aa1-4ea8-b609-c929654bf864",
-                            "203",
-                            "Maintained Special Schools Post-16 SEN Places Deduction August (Year 1) - March (" +
-                                "Year 2)"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "67d4c440-649c-4c41-ad02-42b0f2d2d2f3",
-                            "200",
-                            "Maintained Special Schools Post-16 SEN Places Deduction April (Year 1) - July (Ye" +
-                                "ar 1) rate"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "07e3104b-43b4-43cb-9cd3-15a696847603",
-                            "201",
-                            "Maintained Special Schools Post-16 SEN Places Deduction August (Year 1) - March (" +
-                                "Year 1) rate"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "1edc3242-5e80-4e2e-808f-eb73545daaee",
-                            "199",
-                            "Maintained Special Schools Post-16 SEN Places deduction"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "420dd58c-cf5e-4d36-9dd2-8f3118011333",
-                            "198",
-                            "Maintained Special Schools Post-16 SEN Places"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "8389a997-4145-43e5-94d6-d1cb4c72e6ef",
-                            "209",
-                            "Maintained Mainstream Schools Post-16 SEN Places Deduction April (Year 1) - July " +
-                                "(Year 1)"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "df34bbaf-09ca-49df-8b64-d49d90bd1523",
-                            "210",
-                            "Maintained Mainstream Schools Post-16 SEN Places Deduction August (Year 1) - Marc" +
-                                "h (Year 2)"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "9567eecd-f7a7-48b5-b11e-38877ccc6603",
-                            "207",
-                            "Maintained Mainstream Schools Post-16 SEN Places Deduction April (Year 1) - July " +
-                                "(Year 1) rate"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "57d5a373-0f6e-43d0-9164-d780316fef9a",
-                            "208",
-                            "Maintained Mainstream Schools Post-16 SEN Places Deduction August (Year 1) - Marc" +
-                                "h (Year 2) rate"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "ee2011d2-864d-47d3-b19f-fadd4f9d21be",
-                            "206",
-                            "Maintained Mainstream Schools Post-16 SEN Places Deduction"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "8618821c-e21f-47e5-a97d-65973459fbab",
-                            "205",
-                            "Maintained Mainstream Schools Post-16 SEN Places"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "7556232a-1ad7-42ad-b766-a27ce3dba4e2",
-                            "214",
-                            "Hospital Academies Funding Total Hospital Education Deduction April (Year 1) - Au" +
-                                "gust (Year 1)"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "a7e1682f-8004-4bc8-a720-2f564416a725",
-                            "215",
-                            "Hospital Academies Funding Total Hospital Education Deduction September (Year 1) " +
-                                "- March (Year 2)"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "e47315c0-2114-4756-9ee8-0d0ec44c5771",
-                            "213",
-                            "Hospital Academies Funding Total Hospital Education Deduction"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "0da63f9a-d7cd-4cf2-8db3-0b5a678040ab",
-                            "212",
-                            "Hospital Academies Funding Total Hospital Education"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "01e00072-a670-4bee-b0c8-53454460027e",
-                            "223",
-                            "16-19 Academies and Free Schools Total Post-16 Schools SEN Places Deduction April" +
-                                " (Year 1) to July (Year 1)"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "4a47a382-cb38-4bcc-9b22-897c092084c7",
-                            "224",
-                            "16-19 Academies and Free Schools Total Post-16 Schools SEN Places Deduction Augus" +
-                                "t (Year 1) to March (Year 2)"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "f41f06bc-6717-4791-bfc7-aa4fe8981b7d",
-                            "221",
-                            "16-19 Academies and Free Schools Total Post-16 Schools SEN Places Deduction April" +
-                                " (Year 1) to July (Year 1) rate"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "e539ecee-8ae6-4ce1-9e1f-453a888940f0",
-                            "222",
-                            "16-19 Academies and Free Schools Total Post-16 Schools SEN Places Deduction Augus" +
-                                "t (Year 1) to March (Year 2) rate"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "a44ba971-8d73-4d65-85ff-8f04aa963f3d",
-                            "220",
-                            "16-19 Academies and Free Schools Total Post-16 Schools SEN Places Deduction"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "ca6d0788-8c26-4e02-be57-52b47ef72267",
-                            "128",
-                            "FE and ILP Places April 2019 - July 2019"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "c1faf3ac-759e-4455-8b01-bef377274e08",
-                            "129",
-                            "FE and ILP Places August 2019- March 2020"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "8e2364b5-258f-4955-88ea-a5db1c958cad",
-                            "228",
-                            "FE and ILP Places Deduction April (Year 1) - July (Year 1) rate"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "a78dac8f-3ccf-42af-a137-719202a52730",
-                            "229",
-                            "FE and ILP Places Deduction August (Year 1) - March (Year 2) rate"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "1b91566c-ccab-42b5-84fc-b71b47c9e7bc",
-                            "227",
-                            "FE and ILP Deduction"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "2c245fa9-a9d6-46e6-a03a-41e2123f40d1",
-                            "226",
-                            "FE and ILP Places"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "413ffcef-bb79-41a6-8c9a-bd11c7db9f70",
-                            "42",
-                            "Mainstream Academies (SEN units and Resourced provision)"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "372b42ed-5e9e-4e7b-99be-6c14b9def29b",
-                            "156",
-                            "Special Academies"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "28ffe367-6171-43a5-830c-24925ff63d06",
-                            "157",
-                            "Special Free Schools"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "d04fbcf8-4221-462c-b045-9e124b3775c2",
-                            "184",
-                            "AP Academies & Free schools *"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "18376b64-620a-4c34-ad44-6579013a58e6",
-                            "197",
-                            "Maintained Special Schools"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "11f6832f-5abb-45cb-9afe-539788754a72",
-                            "204",
-                            "Maintained Mainstream Schools"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "780d80b5-38e3-421f-90fc-9f4a351df76f",
-                            "211",
-                            "Hospital Academies"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "c4f37785-819b-4680-9427-ce8f887285f4",
-                            "218",
-                            "16-19 Academies and Free Schools"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "dfe0db99-6652-46fd-8a90-6efe74642f55",
-                            "225",
-                            "FE and ILP"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "683d948a-1aa5-4e90-b5fc-205d040772b8",
-                            "40",
-                            "HN Deductions"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "58a67753-b104-455d-ae5d-fd303fe5b18d",
-                            "41",
-                            "HN before deductions"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "b03fbd41-8454-4a4e-a9d1-e6cdfd4eeb60",
-                            "39",
-                            "HN after deductions"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "8277b567-6d82-4760-95d3-56e26d31704e",
-                            "21",
-                            "Recoupment"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "82a82df7-a4e3-4d5d-b378-23af3607ceec",
-                            "22",
-                            "School Block After Recoupment"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "1c066b09-3e98-48fc-966f-ea3f09401b54",
-                            "238",
-                            "Disability Access Fund"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "4afd7426-1787-4b71-a5f7-971db86811be",
-                            "216",
-                            "Hospital Academies Funding Total Hospital Education Deduction April (Year 1) - Au" +
-                                "gust (Year 1) rate"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "8fdd4341-88ea-47f2-ba81-511951ca7efd",
-                            "217",
-                            "Hospital Academies Funding Total Hospital Education Deduction September (Year 1) " +
-                                "- March (Year 2) rate"});
-                table343.AddRow(new string[] {
-                            "Calculation",
-                            "5cfb28de-88d6-4faa-a936-d81a065fb596",
-                            "219",
-                            "16-19 Academies and Free Schools Total Post-16 Schools SEN Places"});
-#line 185
+                            "bb72366d-e7ab-40f9-9fc6-f62ec41c9cc9",
+                            "440",
+                            "LA Maintained Special School Bursary Funding"});
+#line 246
  testRunner.And("template mapping exists", ((string)(null)), table343, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table344 = new TechTalk.SpecFlow.Table(new string[] {
                             "TemplateCalculationId",
                             "Value"});
                 table344.AddRow(new string[] {
-                            "238",
-                            "320"});
+                            "169",
+                            "1437.5"});
                 table344.AddRow(new string[] {
-                            "15",
-                            "320"});
+                            "321",
+                            "275"});
                 table344.AddRow(new string[] {
-                            "16",
-                            "320"});
+                            "376",
+                            "480"});
                 table344.AddRow(new string[] {
-                            "17",
-                            "320"});
+                            "27",
+                            "117.6237624"});
                 table344.AddRow(new string[] {
-                            "18",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "13",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "14",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "19",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "20",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "25",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "26",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "24",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "28",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "132",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "133",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "134",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "131",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "137",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "138",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "139",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "136",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "142",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "143",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "144",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "141",
-                            "320"});
+                            "329",
+                            "6000"});
                 table344.AddRow(new string[] {
                             "147",
-                            "320"});
+                            "480"});
                 table344.AddRow(new string[] {
-                            "148",
-                            "320"});
+                            "348",
+                            "23.6"});
                 table344.AddRow(new string[] {
-                            "149",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "146",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "152",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "153",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "154",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "151",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "31",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "32",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "34",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "35",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "37",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "38",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "29",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "237",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "30",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "33",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "36",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "65",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "66",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "67",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "68",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "64",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "70",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "71",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "235",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "236",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "241",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "242",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "243",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "244",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "245",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "246",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "247",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "248",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "249",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "250",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "72",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "73",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "69",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "75",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "76",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "77",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "78",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "74",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "80",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "81",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "82",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "83",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "79",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "50",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "51",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "52",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "53",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "163",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "164",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "165",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "166",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "162",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "90",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "91",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "92",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "93",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "89",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "95",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "96",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "97",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "98",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "94",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "158",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "175",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "174",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "168",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "169",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "170",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "171",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "167",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "176",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "177",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "178",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "179",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "232",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "182",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "183",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "180",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "181",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "234",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "159",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "161",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "233",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "189",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "190",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "187",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "188",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "186",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "195",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "196",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "193",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "194",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "192",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "185",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "191",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "202",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "203",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "200",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "201",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "199",
-                            "320"});
+                            "106",
+                            "4363"});
                 table344.AddRow(new string[] {
                             "198",
-                            "320"});
+                            "101"});
                 table344.AddRow(new string[] {
-                            "209",
-                            "320"});
+                            "111",
+                            "-4006.545735"});
                 table344.AddRow(new string[] {
-                            "210",
-                            "320"});
+                            "260",
+                            "0.27558"});
                 table344.AddRow(new string[] {
-                            "207",
-                            "320"});
+                            "36",
+                            "101"});
                 table344.AddRow(new string[] {
-                            "208",
-                            "320"});
+                            "44",
+                            "Census S02"});
                 table344.AddRow(new string[] {
-                            "206",
-                            "320"});
+                            "256",
+                            "15476.5728"});
                 table344.AddRow(new string[] {
-                            "205",
-                            "320"});
+                            "434",
+                            "Census"});
                 table344.AddRow(new string[] {
-                            "214",
-                            "320"});
+                            "166",
+                            "650"});
                 table344.AddRow(new string[] {
-                            "215",
-                            "320"});
+                            "35",
+                            "99"});
                 table344.AddRow(new string[] {
-                            "213",
-                            "320"});
+                            "69",
+                            "0.00990099"});
                 table344.AddRow(new string[] {
-                            "223",
-                            "320"});
+                            "107",
+                            "120"});
                 table344.AddRow(new string[] {
-                            "224",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "221",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "222",
-                            "320"});
-                table344.AddRow(new string[] {
-                            "220",
-                            "320"});
+                            "306",
+                            "11200"});
                 table344.AddRow(new string[] {
                             "212",
-                            "320"});
+                            "2700"});
                 table344.AddRow(new string[] {
-                            "128",
-                            "320"});
+                            "113",
+                            "500818.2168"});
                 table344.AddRow(new string[] {
-                            "129",
-                            "320"});
+                            "85",
+                            "2234"});
                 table344.AddRow(new string[] {
-                            "228",
-                            "320"});
+                            "267",
+                            "15046.02"});
                 table344.AddRow(new string[] {
-                            "229",
-                            "320"});
+                            "237",
+                            "5230.7351"});
                 table344.AddRow(new string[] {
-                            "227",
-                            "320"});
+                            "264",
+                            "48"});
                 table344.AddRow(new string[] {
-                            "226",
-                            "320"});
+                            "311",
+                            "11400"});
                 table344.AddRow(new string[] {
-                            "42",
-                            "320"});
+                            "55",
+                            "120"});
                 table344.AddRow(new string[] {
                             "156",
-                            "320"});
+                            "9.5052"});
                 table344.AddRow(new string[] {
-                            "157",
-                            "320"});
+                            "283",
+                            "358"});
                 table344.AddRow(new string[] {
-                            "184",
-                            "320"});
+                            "132",
+                            "750"});
                 table344.AddRow(new string[] {
-                            "197",
-                            "320"});
+                            "200",
+                            "2"});
                 table344.AddRow(new string[] {
-                            "204",
-                            "320"});
+                            "207",
+                            "6600"});
                 table344.AddRow(new string[] {
-                            "211",
-                            "320"});
+                            "103",
+                            "5061"});
                 table344.AddRow(new string[] {
-                            "218",
-                            "320"});
+                            "129",
+                            "120"});
                 table344.AddRow(new string[] {
-                            "225",
-                            "320"});
+                            "131",
+                            "4.752"});
                 table344.AddRow(new string[] {
-                            "40",
-                            "320"});
+                            "402",
+                            "210"});
                 table344.AddRow(new string[] {
-                            "41",
-                            "320"});
+                            "240",
+                            "1.01"});
                 table344.AddRow(new string[] {
                             "39",
-                            "320"});
+                            "1"});
                 table344.AddRow(new string[] {
-                            "21",
-                            "320"});
+                            "99",
+                            "5584"});
                 table344.AddRow(new string[] {
-                            "22",
-                            "320"});
+                            "213",
+                            "2133"});
                 table344.AddRow(new string[] {
-                            "216",
-                            "320"});
+                            "372",
+                            "817"});
                 table344.AddRow(new string[] {
-                            "217",
-                            "320"});
+                            "205",
+                            "4000"});
                 table344.AddRow(new string[] {
-                            "219",
-                            "320"});
-#line 359
+                            "72",
+                            "0.00990099"});
+                table344.AddRow(new string[] {
+                            "315",
+                            "51"});
+                table344.AddRow(new string[] {
+                            "82",
+                            "2827"});
+                table344.AddRow(new string[] {
+                            "314",
+                            "32"});
+                table344.AddRow(new string[] {
+                            "158",
+                            "0.07921"});
+                table344.AddRow(new string[] {
+                            "177",
+                            "838"});
+                table344.AddRow(new string[] {
+                            "293",
+                            "179"});
+                table344.AddRow(new string[] {
+                            "313",
+                            "19"});
+                table344.AddRow(new string[] {
+                            "28",
+                            "4188"});
+                table344.AddRow(new string[] {
+                            "428",
+                            "400"});
+                table344.AddRow(new string[] {
+                            "130",
+                            "3564"});
+                table344.AddRow(new string[] {
+                            "349",
+                            "0.012"});
+                table344.AddRow(new string[] {
+                            "347",
+                            "16.4"});
+                table344.AddRow(new string[] {
+                            "133",
+                            "0.0396"});
+                table344.AddRow(new string[] {
+                            "199",
+                            "99"});
+                table344.AddRow(new string[] {
+                            "68",
+                            "3455"});
+                table344.AddRow(new string[] {
+                            "182",
+                            "419"});
+                table344.AddRow(new string[] {
+                            "77",
+                            "0.01980198"});
+                table344.AddRow(new string[] {
+                            "116",
+                            "0.992"});
+                table344.AddRow(new string[] {
+                            "117",
+                            "16697.84023"});
+                table344.AddRow(new string[] {
+                            "386",
+                            "120"});
+                table344.AddRow(new string[] {
+                            "432",
+                            "8209.90099"});
+                table344.AddRow(new string[] {
+                            "26",
+                            "492608.3168"});
+                table344.AddRow(new string[] {
+                            "40",
+                            "1"});
+                table344.AddRow(new string[] {
+                            "126",
+                            "375"});
+                table344.AddRow(new string[] {
+                            "178",
+                            "2"});
+                table344.AddRow(new string[] {
+                            "374",
+                            "4562.496"});
+                table344.AddRow(new string[] {
+                            "265",
+                            "7523.01"});
+                table344.AddRow(new string[] {
+                            "211",
+                            "3300"});
+                table344.AddRow(new string[] {
+                            "141",
+                            "517073.5113"});
+                table344.AddRow(new string[] {
+                            "121",
+                            "1.03361"});
+                table344.AddRow(new string[] {
+                            "352",
+                            "0.021"});
+                table344.AddRow(new string[] {
+                            "155",
+                            "292"});
+                table344.AddRow(new string[] {
+                            "196",
+                            "402600"});
+                table344.AddRow(new string[] {
+                            "73",
+                            "2.376237624"});
+                table344.AddRow(new string[] {
+                            "195",
+                            "20130"});
+                table344.AddRow(new string[] {
+                            "30",
+                            "117.6237624"});
+                table344.AddRow(new string[] {
+                            "308",
+                            "400"});
+                table344.AddRow(new string[] {
+                            "238",
+                            "528304.2451"});
+                table344.AddRow(new string[] {
+                            "47",
+                            "120"});
+                table344.AddRow(new string[] {
+                            "258",
+                            "468"});
+                table344.AddRow(new string[] {
+                            "114",
+                            "496811.6711"});
+                table344.AddRow(new string[] {
+                            "143",
+                            "1"});
+                table344.AddRow(new string[] {
+                            "239",
+                            "517073.51"});
+                table344.AddRow(new string[] {
+                            "197",
+                            "0.05"});
+                table344.AddRow(new string[] {
+                            "96",
+                            "6108"});
+                table344.AddRow(new string[] {
+                            "204",
+                            "396000"});
+                table344.AddRow(new string[] {
+                            "266",
+                            "22569.03"});
+                table344.AddRow(new string[] {
+                            "257",
+                            "33.0696"});
+                table344.AddRow(new string[] {
+                            "307",
+                            "28"});
+                table344.AddRow(new string[] {
+                            "253",
+                            "243"});
+                table344.AddRow(new string[] {
+                            "437",
+                            "120"});
+                table344.AddRow(new string[] {
+                            "375",
+                            "9.5052"});
+                table344.AddRow(new string[] {
+                            "34",
+                            "0.98019802"});
+                table344.AddRow(new string[] {
+                            "193",
+                            "0.5"});
+                table344.AddRow(new string[] {
+                            "38",
+                            "2"});
+                table344.AddRow(new string[] {
+                            "33",
+                            "120"});
+                table344.AddRow(new string[] {
+                            "118",
+                            "513509.5113"});
+                table344.AddRow(new string[] {
+                            "312",
+                            "600"});
+#line 491
  testRunner.And("the Published Provider contains the following calculation results", ((string)(null)), table344, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table345 = new TechTalk.SpecFlow.Table(new string[] {
@@ -2226,10 +2679,10 @@ this.ScenarioInitialize(scenarioInfo);
                 table345.AddRow(new string[] {
                             "PaymentOrganisationIdentifier",
                             "9000000"});
-#line 533
+#line 595
  testRunner.And("the Published Provider has the following provider information", ((string)(null)), table345, "And ");
 #line hidden
-#line 547
+#line 609
  testRunner.And("the Published Provider is available in the repository for this specification", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table346 = new TechTalk.SpecFlow.Table(new string[] {
@@ -2271,11 +2724,11 @@ this.ScenarioInitialize(scenarioInfo);
                 table346.AddRow(new string[] {
                             "PaymentOrganisationIdentifier",
                             "9000000"});
-#line 549
+#line 611
  testRunner.And(string.Format("the following provider exists within core provider data in provider version \'{0}\'" +
                             "", providerVersionId), ((string)(null)), table346, "And ");
 #line hidden
-#line 563
+#line 625
  testRunner.And(string.Format("the provider with id \'1000000\' should be a scoped provider in the current specifi" +
                             "cation in provider version \'{0}\'", providerVersionId), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
@@ -2299,14 +2752,14 @@ this.ScenarioInitialize(scenarioInfo);
                             "Approved"});
                 table347.AddRow(new string[] {
                             "TotalFunding",
-                            "12000"});
+                            "566380.82"});
                 table347.AddRow(new string[] {
                             "MajorVersion",
                             "0"});
                 table347.AddRow(new string[] {
                             "MinorVersion",
                             "1"});
-#line 564
+#line 626
  testRunner.And("the following Published Provider has been previously generated for the current sp" +
                         "ecification", ((string)(null)), table347, "And ");
 #line hidden
@@ -2317,132 +2770,500 @@ this.ScenarioInitialize(scenarioInfo);
                             "TemplateLineId",
                             "Type"});
                 table348.AddRow(new string[] {
-                            "Pupil Led Factors",
+                            "Total Funding Allocation",
+                            "",
+                            "566380.82",
+                            "0",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Programme Funding",
+                            "1619-001",
+                            "528304.24",
+                            "1",
+                            "Payment"});
+                table348.AddRow(new string[] {
+                            "Retention Factor Funding",
+                            "",
+                            "-4006.55",
+                            "108",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Programme Cost Weighting Funding",
+                            "",
+                            "16697.84",
+                            "109",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Level 3 Maths And English Funding",
+                            "",
+                            "3564",
+                            "110",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Student Funding",
+                            "",
+                            "500818.22",
+                            "12",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Level 3 Maths And English One Year Funding",
+                            "",
+                            "0",
+                            "122",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Level 3 Maths And English Two Year Funding",
+                            "",
+                            "3564",
+                            "123",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Total Mainstream Bands Funding",
+                            "",
+                            "500818.22",
+                            "13",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Disadvantage Funding",
+                            "",
+                            "6000",
+                            "134",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Disadvantage Block 1 And Block 2 Total",
+                            "",
+                            "4562.5",
+                            "136",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Disadvantage Block 1 Total Funding",
+                            "",
+                            "0",
+                            "137",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Economic Deprivation Funding",
+                            "",
+                            "0",
+                            "138",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Total T Level Bands Funding",
+                            "",
+                            "0",
+                            "14",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Care Leaver Funding",
+                            "",
+                            "0",
+                            "144",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Disadvantage Block 2 Total Funding",
+                            "",
+                            "4562.5",
+                            "148",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Disadvantage Block 2 Lower Funding",
+                            "",
+                            "0",
+                            "149",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Band 5 Student Funding",
+                            "",
+                            "492608.32",
+                            "15",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Disadvantage Block 2 FTE Funding",
+                            "",
+                            "0",
+                            "150",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Disadvantage Block 2 T Level Funding",
+                            "",
+                            "0",
+                            "151",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Band 4 Student Funding",
+                            "",
+                            "8209.9",
+                            "16",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Minimum Top Up Funding",
+                            "",
+                            "1437.5",
+                            "168",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Band 3 Student Funding",
+                            "",
+                            "0",
+                            "17",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Total Large Programme Funding",
+                            "",
+                            "0",
+                            "173",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Large Programme Funding Uplift At 20 Percent National Rate",
+                            "",
+                            "0",
+                            "174",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Large Programme Funding Uplift At 10 Percent National Rate",
+                            "",
+                            "0",
+                            "179",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Band 2 Student Funding",
+                            "",
+                            "0",
+                            "18",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Programme Funding Without Area Cost Applied",
+                            "",
+                            "523073.51",
+                            "184",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Band 1 FTE Student Funding",
+                            "",
+                            "0",
+                            "19",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Total Care Standards Funding",
+                            "",
+                            "0",
+                            "2",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "T Level Band 9 Funding",
+                            "",
+                            "0",
+                            "21",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "T Level Band 8 Funding",
+                            "",
+                            "0",
+                            "22",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "T Level Band 7 Funding",
+                            "",
+                            "0",
+                            "23",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Area Cost Allowance Adjustment",
+                            "",
+                            "5230.74",
+                            "236",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "T Level B and 6 Funding",
+                            "",
+                            "0",
+                            "24",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Student Financial Support Funding",
+                            "",
+                            "15476.57",
+                            "241",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Discretionary Bursary Fund Total",
+                            "1619-002",
+                            "15476.57",
+                            "242",
+                            "Payment"});
+                table348.AddRow(new string[] {
+                            "Discretionary Bursary Fund",
+                            "",
+                            "15476.57",
+                            "243",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Exceptional Adjustment To Discretionary Bursary Fund",
+                            "",
+                            "0",
+                            "244",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Financial Disadvantage Funding",
+                            "",
+                            "0",
+                            "246",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Student Costs Travel Funding",
+                            "",
+                            "15476.57",
+                            "247",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Student Costs Industry Placement Funding",
+                            "",
+                            "0",
+                            "248",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Bursary Adjustment In Respect Of FreeMeals",
+                            "",
+                            "0",
+                            "249",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Residential Funding Total",
+                            "",
+                            "0",
+                            "268",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Total Free Meals Funding",
+                            "1619-005",
+                            "0",
+                            "271",
+                            "Payment"});
+                table348.AddRow(new string[] {
+                            "Free Meals Administration",
+                            "",
+                            "0",
+                            "272",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Free Meals Total Including Exception",
+                            "",
+                            "0",
+                            "276",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Free Meals Higher Funding",
+                            "",
+                            "0",
+                            "277",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Free Meals Lower Funding",
+                            "",
+                            "0",
+                            "278",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Free Meals FTE Funding",
+                            "",
+                            "0",
+                            "279",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Free Meals Exceptional Adjustment",
+                            "",
+                            "0",
+                            "287",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "High Needs Element 2 Student Funding",
+                            "1619-006",
+                            "0",
+                            "299",
+                            "Payment"});
+                table348.AddRow(new string[] {
+                            "Industry Placements Funding",
+                            "1619-007",
+                            "0",
+                            "300",
+                            "Payment"});
+                table348.AddRow(new string[] {
+                            "Advanced Maths Premium Funding",
+                            "1619-008",
+                            "11400",
+                            "301",
+                            "Payment"});
+                table348.AddRow(new string[] {
+                            "High Value Courses Premium Funding",
+                            "1619-009",
+                            "11200",
+                            "302",
+                            "Payment"});
+                table348.AddRow(new string[] {
+                            "Teachers Pension Scheme Grant",
+                            "1619-010",
+                            "0",
+                            "303",
+                            "Payment"});
+                table348.AddRow(new string[] {
+                            "Alternative Completions Funding",
+                            "",
+                            "0",
+                            "304",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Residential Bursary Fund",
+                            "1619-003",
+                            "0",
+                            "309",
+                            "Payment"});
+                table348.AddRow(new string[] {
+                            "Residential Support Scheme",
                             "1619-004",
-                            "640",
+                            "0",
+                            "310",
+                            "Payment"});
+                table348.AddRow(new string[] {
+                            "Industry Placements T Level Funding",
+                            "",
+                            "0",
+                            "318",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Disadvantage Accommodation Costs",
+                            "1619-012",
+                            "0",
+                            "353",
+                            "Payment"});
+                table348.AddRow(new string[] {
+                            "Disadvantage Block 2 Higher Funding",
+                            "",
+                            "4562.5",
+                            "373",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Cummulative Programme Funding Without Total Large Programme And Disadvantage Fund" +
+                                "ing",
+                            "",
+                            "517073.51",
+                            "381",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Cummulative Programme Funding With Disadvantage Funding",
+                            "",
+                            "523073.51",
+                            "382",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Total Start Up And Post Opening Grant",
+                            "",
+                            "0",
+                            "389",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Post Opening Grant Per Pupil Resources",
+                            "1619-017",
+                            "0",
+                            "390",
+                            "Payment"});
+                table348.AddRow(new string[] {
+                            "Post Opening Grant - Leadership Diseconomies",
+                            "1619-018",
+                            "0",
+                            "391",
+                            "Payment"});
+                table348.AddRow(new string[] {
+                            "Maths Top Up",
+                            "1619-019",
+                            "0",
+                            "394",
+                            "Payment"});
+                table348.AddRow(new string[] {
+                            "Industry Placements Capacity And Delivery Funding",
+                            "",
+                            "0",
+                            "396",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Programme Funding Without Care Standards Or Condition Of Funding Adjustment",
+                            "",
+                            "528304.24",
+                            "4",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Discretionary Bursary Transition Adjustment",
+                            "",
+                            "0",
+                            "408",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "Alternative Completions Sporting Excellence",
+                            "1619-011",
+                            "0",
+                            "410",
+                            "Payment"});
+                table348.AddRow(new string[] {
+                            "Alternative Completions - Sea Fishing",
+                            "1619-020",
+                            "0",
+                            "412",
+                            "Payment"});
+                table348.AddRow(new string[] {
+                            "Start Up Grant Part A",
+                            "1619-022",
+                            "0",
+                            "419",
+                            "Payment"});
+                table348.AddRow(new string[] {
+                            "Start Up Grant Part B",
+                            "1619-023",
+                            "0",
+                            "420",
+                            "Payment"});
+                table348.AddRow(new string[] {
+                            "Offset High Value Courses For School And College Leavers In Year Programme Fundin" +
+                                "g",
+                            "",
+                            "0",
+                            "423",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "High Value Courses For School And College Leavers Total",
+                            "1619-024",
+                            "0",
+                            "425",
+                            "Payment"});
+                table348.AddRow(new string[] {
+                            "Total Funding Allocation And LAMSS Bursary Funding",
+                            "",
+                            "566380.82",
+                            "438",
+                            "Information"});
+                table348.AddRow(new string[] {
+                            "LA Maintained Special School Bursary Funding",
+                            "1619-013",
+                            "0",
+                            "439",
+                            "Payment"});
+                table348.AddRow(new string[] {
+                            "Condition Of Funding Adjustment",
+                            "",
+                            "0",
                             "5",
                             "Information"});
                 table348.AddRow(new string[] {
-                            "Funding Through Premises and Mobility Factors",
-                            "1619-007",
+                            "Care Standards Student Funding",
+                            "",
                             "0",
                             "6",
                             "Information"});
                 table348.AddRow(new string[] {
-                            "Growth funding",
-                            "1619-006",
+                            "Care Standards Institution Lump Sum Funding",
+                            "",
                             "0",
                             "7",
                             "Information"});
-                table348.AddRow(new string[] {
-                            "CSSB Pupil Led Funding",
-                            "1619-012",
-                            "320",
-                            "23",
-                            "Information"});
-                table348.AddRow(new string[] {
-                            "Funding for Historic Commitments",
-                            "1619-013",
-                            "0",
-                            "27",
-                            "Information"});
-                table348.AddRow(new string[] {
-                            "Universal Entitlement for 3 and 4 Year Olds",
-                            "1619-014",
-                            "320",
-                            "130",
-                            "Information"});
-                table348.AddRow(new string[] {
-                            "Funding for Additional Hours for working parents",
-                            "1619-015",
-                            "320",
-                            "135",
-                            "Information"});
-                table348.AddRow(new string[] {
-                            "Participation Funding for Disadvantaged 2 Year Olds",
-                            "1619-016",
-                            "320",
-                            "140",
-                            "Information"});
-                table348.AddRow(new string[] {
-                            "Funding Allocation for Early Years Pupil Premium",
-                            "1619-017",
-                            "320",
-                            "145",
-                            "Information"});
-                table348.AddRow(new string[] {
-                            "Funding Allocation for Maintained Nursery Supplement",
-                            "1619-018",
-                            "320",
-                            "150",
-                            "Information"});
-                table348.AddRow(new string[] {
-                            "Funding Allocation for Disability Access Fund",
-                            "1619-019",
-                            "0",
-                            "155",
-                            "Information"});
-                table348.AddRow(new string[] {
-                            "Schools Block before recoupment",
-                            "1619-003",
-                            "640",
-                            "4",
-                            "Information"});
-                table348.AddRow(new string[] {
-                            "Central School Services Block",
-                            "1619-008",
-                            "320",
-                            "8",
-                            "Information"});
-                table348.AddRow(new string[] {
-                            "Early Years Block",
-                            "1619-009",
-                            "1600",
-                            "9",
-                            "Information"});
-                table348.AddRow(new string[] {
-                            "High Needs Block before deductions",
-                            "1619-010",
-                            "1280",
-                            "10",
-                            "Information"});
-                table348.AddRow(new string[] {
-                            "Total High Needs Block After Deductions",
-                            "1619-011",
-                            "14720",
-                            "11",
-                            "Information"});
-                table348.AddRow(new string[] {
-                            "School Block After recoupment",
-                            "1619-005",
-                            "640",
-                            "12",
-                            "Information"});
-                table348.AddRow(new string[] {
-                            "Provisional Schools Block Funding Excluding Growth",
-                            "1619-020",
-                            "0",
-                            "239",
-                            "Information"});
-                table348.AddRow(new string[] {
-                            "LA Protection",
-                            "1619-021",
-                            "0",
-                            "240",
-                            "Information"});
-                table348.AddRow(new string[] {
-                            "Total 1619 before deductions and recoupment",
-                            "1619-001",
-                            "3840",
-                            "2",
-                            "Information"});
-                table348.AddRow(new string[] {
-                            "Total 1619 after deductions and recoupment",
-                            "1619-002",
-                            "15360",
-                            "3",
-                            "Payment"});
-#line 574
+#line 636
  testRunner.And("the Published Provider has the following funding lines", ((string)(null)), table348, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table349 = new TechTalk.SpecFlow.Table(new string[] {
@@ -2453,10 +3274,10 @@ this.ScenarioInitialize(scenarioInfo);
                             "7000"});
                 table349.AddRow(new string[] {
                             "AS-2021",
-                            "5000"});
-#line 597
+                            "566380.82"});
+#line 720
  testRunner.And("the Published Provider has the following distribution period for funding line \'16" +
-                        "19-002\'", ((string)(null)), table349, "And ");
+                        "19-001\'", ((string)(null)), table349, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table350 = new TechTalk.SpecFlow.Table(new string[] {
                             "DistributionPeriodId",
@@ -2478,531 +3299,321 @@ this.ScenarioInitialize(scenarioInfo);
                             "April",
                             "2021",
                             "1",
-                            "5000"});
-#line 601
+                            "566380.82"});
+#line 724
  testRunner.And("the Published Providers distribution period has the following profiles for fundin" +
-                        "g line \'1619-002\'", ((string)(null)), table350, "And ");
+                        "g line \'1619-001\'", ((string)(null)), table350, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table351 = new TechTalk.SpecFlow.Table(new string[] {
                             "TemplateCalculationId",
                             "Value"});
                 table351.AddRow(new string[] {
-                            "238",
-                            "320"});
+                            "169",
+                            "1437.5"});
                 table351.AddRow(new string[] {
-                            "15",
-                            "320"});
+                            "321",
+                            "275"});
                 table351.AddRow(new string[] {
-                            "16",
-                            "320"});
+                            "376",
+                            "480"});
                 table351.AddRow(new string[] {
-                            "17",
-                            "320"});
+                            "27",
+                            "117.6237624"});
                 table351.AddRow(new string[] {
-                            "18",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "13",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "14",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "19",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "20",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "25",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "26",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "24",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "28",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "132",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "133",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "134",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "131",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "137",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "138",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "139",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "136",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "142",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "143",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "144",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "141",
-                            "320"});
+                            "329",
+                            "6000"});
                 table351.AddRow(new string[] {
                             "147",
-                            "320"});
+                            "480"});
                 table351.AddRow(new string[] {
-                            "148",
-                            "320"});
+                            "348",
+                            "23.6"});
                 table351.AddRow(new string[] {
-                            "149",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "146",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "152",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "153",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "154",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "151",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "31",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "32",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "34",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "35",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "37",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "38",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "29",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "237",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "30",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "33",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "36",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "65",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "66",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "67",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "68",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "64",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "70",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "71",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "235",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "236",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "241",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "242",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "243",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "244",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "245",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "246",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "247",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "248",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "249",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "250",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "72",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "73",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "69",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "75",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "76",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "77",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "78",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "74",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "80",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "81",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "82",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "83",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "79",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "50",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "51",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "52",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "53",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "163",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "164",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "165",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "166",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "162",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "90",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "91",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "92",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "93",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "89",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "95",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "96",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "97",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "98",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "94",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "158",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "175",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "174",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "168",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "169",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "170",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "171",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "167",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "176",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "177",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "178",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "179",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "232",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "182",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "183",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "180",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "181",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "234",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "159",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "161",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "233",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "189",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "190",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "187",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "188",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "186",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "195",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "196",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "193",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "194",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "192",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "185",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "191",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "202",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "203",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "200",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "201",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "199",
-                            "320"});
+                            "106",
+                            "4363"});
                 table351.AddRow(new string[] {
                             "198",
-                            "320"});
+                            "101"});
                 table351.AddRow(new string[] {
-                            "209",
-                            "320"});
+                            "111",
+                            "-4006.545735"});
                 table351.AddRow(new string[] {
-                            "210",
-                            "320"});
+                            "260",
+                            "0.27558"});
                 table351.AddRow(new string[] {
-                            "207",
-                            "320"});
+                            "36",
+                            "101"});
                 table351.AddRow(new string[] {
-                            "208",
-                            "320"});
+                            "44",
+                            "Census S02"});
                 table351.AddRow(new string[] {
-                            "206",
-                            "320"});
+                            "256",
+                            "15476.5728"});
                 table351.AddRow(new string[] {
-                            "205",
-                            "320"});
+                            "434",
+                            "Census"});
                 table351.AddRow(new string[] {
-                            "214",
-                            "320"});
+                            "166",
+                            "650"});
                 table351.AddRow(new string[] {
-                            "215",
-                            "320"});
+                            "35",
+                            "99"});
                 table351.AddRow(new string[] {
-                            "213",
-                            "320"});
+                            "69",
+                            "0.00990099"});
                 table351.AddRow(new string[] {
-                            "223",
-                            "320"});
+                            "107",
+                            "120"});
                 table351.AddRow(new string[] {
-                            "224",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "221",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "222",
-                            "320"});
-                table351.AddRow(new string[] {
-                            "220",
-                            "320"});
+                            "306",
+                            "11200"});
                 table351.AddRow(new string[] {
                             "212",
-                            "320"});
+                            "2700"});
                 table351.AddRow(new string[] {
-                            "128",
-                            "320"});
+                            "113",
+                            "500818.2168"});
                 table351.AddRow(new string[] {
-                            "129",
-                            "320"});
+                            "85",
+                            "2234"});
                 table351.AddRow(new string[] {
-                            "228",
-                            "320"});
+                            "267",
+                            "15046.02"});
                 table351.AddRow(new string[] {
-                            "229",
-                            "320"});
+                            "237",
+                            "5230.7351"});
                 table351.AddRow(new string[] {
-                            "227",
-                            "320"});
+                            "264",
+                            "48"});
                 table351.AddRow(new string[] {
-                            "226",
-                            "320"});
+                            "311",
+                            "11400"});
                 table351.AddRow(new string[] {
-                            "42",
-                            "320"});
+                            "55",
+                            "120"});
                 table351.AddRow(new string[] {
                             "156",
-                            "320"});
+                            "9.5052"});
                 table351.AddRow(new string[] {
-                            "157",
-                            "320"});
+                            "283",
+                            "358"});
                 table351.AddRow(new string[] {
-                            "184",
-                            "320"});
+                            "132",
+                            "750"});
                 table351.AddRow(new string[] {
-                            "197",
-                            "320"});
+                            "200",
+                            "2"});
                 table351.AddRow(new string[] {
-                            "204",
-                            "320"});
+                            "207",
+                            "6600"});
                 table351.AddRow(new string[] {
-                            "211",
-                            "320"});
+                            "103",
+                            "5061"});
                 table351.AddRow(new string[] {
-                            "218",
-                            "320"});
+                            "129",
+                            "120"});
                 table351.AddRow(new string[] {
-                            "225",
-                            "320"});
+                            "131",
+                            "4.752"});
                 table351.AddRow(new string[] {
-                            "40",
-                            "320"});
+                            "402",
+                            "210"});
                 table351.AddRow(new string[] {
-                            "41",
-                            "320"});
+                            "240",
+                            "1.01"});
                 table351.AddRow(new string[] {
                             "39",
-                            "320"});
+                            "1"});
                 table351.AddRow(new string[] {
-                            "21",
-                            "320"});
+                            "99",
+                            "5584"});
                 table351.AddRow(new string[] {
-                            "22",
-                            "320"});
+                            "213",
+                            "2133"});
                 table351.AddRow(new string[] {
-                            "216",
-                            "320"});
+                            "372",
+                            "817"});
                 table351.AddRow(new string[] {
-                            "217",
-                            "320"});
+                            "205",
+                            "4000"});
                 table351.AddRow(new string[] {
-                            "219",
-                            "320"});
-#line 605
+                            "72",
+                            "0.00990099"});
+                table351.AddRow(new string[] {
+                            "315",
+                            "51"});
+                table351.AddRow(new string[] {
+                            "82",
+                            "2827"});
+                table351.AddRow(new string[] {
+                            "314",
+                            "32"});
+                table351.AddRow(new string[] {
+                            "158",
+                            "0.07921"});
+                table351.AddRow(new string[] {
+                            "177",
+                            "838"});
+                table351.AddRow(new string[] {
+                            "293",
+                            "179"});
+                table351.AddRow(new string[] {
+                            "313",
+                            "19"});
+                table351.AddRow(new string[] {
+                            "28",
+                            "4188"});
+                table351.AddRow(new string[] {
+                            "428",
+                            "400"});
+                table351.AddRow(new string[] {
+                            "130",
+                            "3564"});
+                table351.AddRow(new string[] {
+                            "349",
+                            "0.012"});
+                table351.AddRow(new string[] {
+                            "347",
+                            "16.4"});
+                table351.AddRow(new string[] {
+                            "133",
+                            "0.0396"});
+                table351.AddRow(new string[] {
+                            "199",
+                            "99"});
+                table351.AddRow(new string[] {
+                            "68",
+                            "3455"});
+                table351.AddRow(new string[] {
+                            "182",
+                            "419"});
+                table351.AddRow(new string[] {
+                            "77",
+                            "0.01980198"});
+                table351.AddRow(new string[] {
+                            "116",
+                            "0.992"});
+                table351.AddRow(new string[] {
+                            "117",
+                            "16697.84023"});
+                table351.AddRow(new string[] {
+                            "386",
+                            "120"});
+                table351.AddRow(new string[] {
+                            "432",
+                            "8209.90099"});
+                table351.AddRow(new string[] {
+                            "26",
+                            "492608.3168"});
+                table351.AddRow(new string[] {
+                            "40",
+                            "1"});
+                table351.AddRow(new string[] {
+                            "126",
+                            "375"});
+                table351.AddRow(new string[] {
+                            "178",
+                            "2"});
+                table351.AddRow(new string[] {
+                            "374",
+                            "4562.496"});
+                table351.AddRow(new string[] {
+                            "265",
+                            "7523.01"});
+                table351.AddRow(new string[] {
+                            "211",
+                            "3300"});
+                table351.AddRow(new string[] {
+                            "141",
+                            "517073.5113"});
+                table351.AddRow(new string[] {
+                            "121",
+                            "1.03361"});
+                table351.AddRow(new string[] {
+                            "352",
+                            "0.021"});
+                table351.AddRow(new string[] {
+                            "155",
+                            "292"});
+                table351.AddRow(new string[] {
+                            "196",
+                            "402600"});
+                table351.AddRow(new string[] {
+                            "73",
+                            "2.376237624"});
+                table351.AddRow(new string[] {
+                            "195",
+                            "20130"});
+                table351.AddRow(new string[] {
+                            "30",
+                            "117.6237624"});
+                table351.AddRow(new string[] {
+                            "308",
+                            "400"});
+                table351.AddRow(new string[] {
+                            "238",
+                            "528304.2451"});
+                table351.AddRow(new string[] {
+                            "47",
+                            "120"});
+                table351.AddRow(new string[] {
+                            "258",
+                            "468"});
+                table351.AddRow(new string[] {
+                            "114",
+                            "496811.6711"});
+                table351.AddRow(new string[] {
+                            "143",
+                            "1"});
+                table351.AddRow(new string[] {
+                            "239",
+                            "517073.51"});
+                table351.AddRow(new string[] {
+                            "197",
+                            "0.05"});
+                table351.AddRow(new string[] {
+                            "96",
+                            "6108"});
+                table351.AddRow(new string[] {
+                            "204",
+                            "396000"});
+                table351.AddRow(new string[] {
+                            "266",
+                            "22569.03"});
+                table351.AddRow(new string[] {
+                            "257",
+                            "33.0696"});
+                table351.AddRow(new string[] {
+                            "307",
+                            "28"});
+                table351.AddRow(new string[] {
+                            "253",
+                            "243"});
+                table351.AddRow(new string[] {
+                            "437",
+                            "120"});
+                table351.AddRow(new string[] {
+                            "375",
+                            "9.5052"});
+                table351.AddRow(new string[] {
+                            "34",
+                            "0.98019802"});
+                table351.AddRow(new string[] {
+                            "193",
+                            "0.5"});
+                table351.AddRow(new string[] {
+                            "38",
+                            "2"});
+                table351.AddRow(new string[] {
+                            "33",
+                            "120"});
+                table351.AddRow(new string[] {
+                            "118",
+                            "513509.5113"});
+                table351.AddRow(new string[] {
+                            "312",
+                            "600"});
+#line 728
  testRunner.And("the Published Provider contains the following calculation results", ((string)(null)), table351, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table352 = new TechTalk.SpecFlow.Table(new string[] {
@@ -3050,10 +3661,10 @@ this.ScenarioInitialize(scenarioInfo);
                 table352.AddRow(new string[] {
                             "PaymentOrganisationIdentifier",
                             "9000000"});
-#line 779
+#line 832
  testRunner.And("the Published Provider has the following provider information", ((string)(null)), table352, "And ");
 #line hidden
-#line 795
+#line 848
  testRunner.And("the Published Provider is available in the repository for this specification", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table353 = new TechTalk.SpecFlow.Table(new string[] {
@@ -3101,11 +3712,11 @@ this.ScenarioInitialize(scenarioInfo);
                 table353.AddRow(new string[] {
                             "PaymentOrganisationIdentifier",
                             "9000000"});
-#line 797
+#line 850
  testRunner.And(string.Format("the following provider exists within core provider data in provider version \'{0}\'" +
                             "", providerVersionId), ((string)(null)), table353, "And ");
 #line hidden
-#line 813
+#line 866
  testRunner.And(string.Format("the provider with id \'1000002\' should be a scoped provider in the current specifi" +
                             "cation in provider version \'{0}\'", providerVersionId), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
@@ -3113,525 +3724,315 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value",
                             "Id"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "e46c0b59-6900-4fae-90b5-da6e558d9491"});
+                            "1437.5",
+                            "01b96a4a-688e-4396-8904-f882f09fbb62"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "dd54d574-f9ef-4bef-bf82-1cb31c526f36"});
+                            "275",
+                            "02b55a1e-685d-4524-a0ff-097a795932c5"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "ff97843a-5fa9-4435-81c3-c44785611b01"});
+                            "480",
+                            "0324416b-2724-4996-8eb1-a04f799ec1d9"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "b7c8bac7-c470-4b9b-af8f-0e4bd9886742"});
+                            "117.6237624",
+                            "0389cb82-f910-468f-8421-c962ad47b012"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "f43ba392-bf58-4677-a2c4-87ac114498fe"});
+                            "6000",
+                            "03d0227b-7a19-456f-b0fa-23048026e96a"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "54dea110-7fb7-41c0-bf87-2050ad54a042"});
+                            "480",
+                            "043f26b9-04c4-44ab-8f30-02ad59651c3c"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "c71aa30e-73a4-4b5e-b1f3-61856b92b1fd"});
+                            "23.6",
+                            "0aa77eef-37cc-4879-809b-5f3a204af156"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "21c65d92-31a8-4b08-9a78-caada398b8d2"});
+                            "4363",
+                            "0d3756e6-288b-4891-aaef-a79cf57b48b9"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "a130170a-b70e-463c-960d-639e2155ca3e"});
+                            "101",
+                            "0e81d9bf-1da8-40f9-b8fb-73e1ed6e6c0a"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "fcd312aa-c9bb-4b1f-97b2-2efeaccc6c5a"});
+                            "-4006.545735",
+                            "0f26909b-e18a-408a-95bd-284d40012cd4"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "bd784ee0-e837-4859-8891-1f991d429657"});
+                            "0.27558",
+                            "12a78abb-070b-45fe-8432-ea38d4d09232"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "e79438f4-be66-4653-b61b-a2f7233c4549"});
+                            "101",
+                            "13d185c1-d927-4898-9334-9ab07a50b181"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "7709b5c0-699f-455e-8773-7b258d801792"});
+                            "Census S02",
+                            "1ee652fa-1f8b-48f2-81b7-7f66fd05e1f8"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "6d1c482b-6df9-4ba4-842e-704aa5f6100f"});
+                            "15476.5728",
+                            "2587e2ec-0280-4e3f-9161-fb5e62932468"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "771727d2-61a7-4928-b9c5-71e80ace0c4d"});
+                            "Census",
+                            "2b8aae02-5d4c-49fa-8158-6f069c395e65"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "f5afea39-d21c-443b-859a-595c78789989"});
+                            "650",
+                            "2cf180d6-94b6-436c-b20d-ab458b772db0"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "36df4068-f3e0-4040-a73f-40dc66e1bad0"});
+                            "99",
+                            "2dad9dca-4c9e-48c5-97d5-0fbfbb526cbf"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "989fe1d5-9913-49d8-ba07-5685052e818f"});
+                            "0.00990099",
+                            "2e5ec4f8-26ca-48ef-9777-dfe8221ce042"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "704db23d-cf70-4a14-93b4-c966727cedb0"});
+                            "120",
+                            "3a88a844-f40e-4f55-b0c2-0079c0a5f064"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "df645907-2cf0-4f25-99a4-4147ac62e1df"});
+                            "11200",
+                            "3bbfa0fc-0380-4903-b57d-804176d9f65e"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "300dbe4d-b008-4ede-a189-4b456fac6870"});
+                            "2700",
+                            "3f30d2c4-abf3-4839-b1db-d97982b2e217"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "96d3e984-ccf5-440e-960a-fcbea5034e74"});
+                            "500818.2168",
+                            "436e47cd-4cc4-4f13-a0ca-8b5ca5b580d9"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "ddfdaf6f-0d81-4655-b71e-2c8b9320329c"});
+                            "2234",
+                            "49471705-7aaf-4308-9a2b-ef316cead192"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "030997f5-38c6-453e-a40a-5f640d2bf223"});
+                            "15046.02",
+                            "4a4745b7-4241-4b63-99ee-4f0c0482d6fd"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "e616e94c-bdf9-4746-aba9-cbe3ee7b27cf"});
+                            "5230.7351",
+                            "4a7b9179-b264-4495-867e-5de3fd5bbed7"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "ccacff9b-1767-4045-82ff-669d56c018ca"});
+                            "48",
+                            "5070f082-8f7a-4648-aad3-dd31387acbed"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "18274db3-2c2d-4c2d-a46c-17cc5d98737d"});
+                            "11400",
+                            "518951bb-0002-4ddc-80ce-8ee039398d91"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "644667cc-c636-47b9-ade8-e2f7af501388"});
+                            "120",
+                            "523063b2-56fb-491e-b433-2cbbc8dc2f66"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "c14a47a0-3a88-4dd9-9bd1-a5935e0cb49b"});
+                            "9.5052",
+                            "540e3af3-5913-4124-a4bf-a7112f6c2ceb"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "4a4a6b45-a540-4efa-be10-8188d04460fe"});
+                            "358",
+                            "5419db0b-d463-4c97-a0db-2c2f679a0e24"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "a53c47a9-b181-4158-902c-abe74efeccfa"});
+                            "750",
+                            "57506711-b246-446a-bd21-34a091a81bcf"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "67e747b8-1d25-4de0-8101-7f81e8d7c051"});
+                            "2",
+                            "5804bc28-4301-41b0-a622-759f2c6be887"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "b7ec40dc-1f24-4b69-b0dc-ecc4a7f9eb5c"});
+                            "6600",
+                            "5806c9dd-7066-4fcc-adc0-da062dc2ef4e"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "b64dbf4f-5ac4-4ad3-91cd-c98ce40c606a"});
+                            "5061",
+                            "5acf6d2f-b1c0-4dae-a170-8ebf1aae6097"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "d3704649-3119-42e1-ab69-b1758f2c0fd5"});
+                            "120",
+                            "5cee8980-d752-4c03-9cde-1aa1409195fa"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "3647fb00-31d9-4c3a-a20a-e8631810dd55"});
+                            "4.752",
+                            "60441015-d128-4e8c-a442-5603571d7d9a"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "49494307-c1a1-40a5-a2d5-38d88bca8ede"});
+                            "210",
+                            "648948e3-58e6-4592-8424-adeb24fc0581"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "5f19e35b-f532-43e7-9133-638a29324815"});
+                            "1.01",
+                            "65c5fbf0-5699-4d9f-a303-1fc55e41df24"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "9c0f0435-5268-49c0-a0a7-74f8d477a52a"});
+                            "1",
+                            "689900d0-7e65-4092-8e9a-aca6e8f6469e"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "fae774f5-f73c-4bd1-8fc8-aee66fb51c0c"});
+                            "5584",
+                            "6c3f69c1-9596-49c7-af84-cb4451033a79"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "61709649-863e-4a1f-b03b-ddcac25625a4"});
+                            "2133",
+                            "74c1002d-e3e9-450e-8e2d-9b951c050765"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "b9dd905a-8aa4-41ee-8f90-f0d655f3553f"});
+                            "817",
+                            "7528010c-3fcb-4de6-beaf-d347dbb8a9b1"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "9756e012-9f5e-47c9-a5b8-c1c7188b6829"});
+                            "4000",
+                            "76fe5221-e365-4d4e-a96c-7c5fe97c1b86"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "d95c681b-66f4-49e5-bf6e-22f330afe3b4"});
+                            "0.00990099",
+                            "7a5ed641-41e3-439e-8c65-fedb67cb500d"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "0b643470-b859-4a5e-b2cd-f45a33657466"});
+                            "51",
+                            "7ad71f61-14aa-49b5-8101-0885d1767f42"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "4c0eaa57-642e-4fba-9c75-4174c4be0ab4"});
+                            "2827",
+                            "7adf1bdc-cec2-4452-b0a4-a95a9735a82f"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "4543e33f-8b40-4335-901d-834ab84b761f"});
+                            "32",
+                            "8159aafd-095a-4e3d-a580-d005a5ad52d4"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "2375efb5-4275-4f64-96bf-01c35b4dfc54"});
+                            "0.07921",
+                            "83f74d71-3681-4931-9dfb-e55c3b807c47"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "07400efc-cd8a-4062-bdde-3dac44bce704"});
+                            "838",
+                            "85d61ce7-e406-4eb0-a21f-367c1c5bc4e6"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "b4290464-36ed-42ca-9df9-822003200b9d"});
+                            "179",
+                            "881ea2c3-997e-463a-b316-398bd9d833ba"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "8f967c9a-40e2-4842-8c55-969abf5a350f"});
+                            "19",
+                            "8953b6c3-6fed-4a27-b2ed-9c854b5f5a90"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "6bb71c56-818a-4ab1-b35f-ee497378ae3d"});
+                            "4188",
+                            "89632558-d0c2-4b3b-9d22-6031e75d81a6"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "42919210-5ab6-4f98-8cbd-36ea585bfc3e"});
+                            "400",
+                            "8e0335fd-2d7b-44ea-9c20-ffa7803cf75b"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "50d71379-e1e6-4f9a-8a82-8d8697049662"});
+                            "3564",
+                            "90c4af52-b6ff-4a32-a4ba-7de2aa259873"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "ac233126-aa00-470a-a2db-aed95c7bead5"});
+                            "0.012",
+                            "91841fdd-7f62-4f19-bc07-f72f45c53ae2"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "b7fd2f32-1e43-4b3b-84f9-9754f71a0E9f"});
+                            "16.4",
+                            "91f7a24a-67e7-4743-a727-28ada5333bc2"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "b5f7f814-e819-4efb-9c07-e6b973a5dc30"});
+                            "0.0396",
+                            "95583d82-0803-4797-9cca-7ae036f48924"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "c36e9b84-8c83-45e6-8ccf-1d06c83d96d1"});
+                            "99",
+                            "964f3e3b-f89c-4510-8856-72c63986a41e"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "1f72e2d2-43fc-45df-b3e2-03a1d5E7d6d7"});
+                            "3455",
+                            "987b226a-d1dc-4b79-ab37-f4613fa4dc9e"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "b2fc456d-7191-4214-9db5-1561cd3f75fa"});
+                            "419",
+                            "99947b7d-4e46-43ab-829f-9fae386970c6"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "f8b65554-b578-4041-a9F6-116830cc0a2b"});
+                            "0.01980198",
+                            "9ba52699-283f-4ea8-bcda-c571399a6778"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "1d05db55-d225-49a3-9240-fce6e9065de5"});
+                            "0.992",
+                            "9d75300c-c3fd-45f1-9aaf-329e4a656d1d"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "bd4b64d4-f61f-4207-a493-73cb8d1e0db8"});
+                            "16697.84023",
+                            "a0c9f82b-d505-4706-b268-17eca2cc57c2"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "bd3ef104-827f-42a0-a1c0-365bc5c21156"});
+                            "120",
+                            "a7c3d41f-56d5-44ac-bf99-d80537c6f70a"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "2794481e-5514-49fd-bcb7-0a91b0d40647"});
+                            "8209.90099",
+                            "ab823493-460a-43a5-a6d7-e489ae35b11f"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "16225034-ba94-4ecd-bb26-703c1ed4df29"});
+                            "492608.3168",
+                            "abcd282c-d508-4919-ad57-faffaf6de204"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "a9072025-e28a-4302-94d7-46e5a48acf38"});
+                            "1",
+                            "af0a982b-519f-4bce-b422-73d7493fdaf8"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "01b34a35-4929-4896-8a25-6e9ccdf38607"});
+                            "375",
+                            "af4934a6-19db-4dae-bfcb-ea395f9d4ef1"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "e7c1cedf-254f-4635-8f71-e2c6688eb7f0"});
+                            "2",
+                            "af9884e3-44d8-487c-92bc-0e6f79ea1db9"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "d7219481-eb38-48f4-a6c2-5775b6d8833e"});
+                            "4562.496",
+                            "b16e19ee-352b-4959-978c-0789f0530c0e"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "fdc6128c-4dca-456d-807d-252e93a2bdca"});
+                            "7523.01",
+                            "b2fd937f-1367-420a-a25d-2379fd71a410"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "7b9dd9be-e63c-4223-ba2d-2a7593e4b3ee"});
+                            "3300",
+                            "b3f4e188-f938-4f69-8385-725928f51021"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "d53b992a-5484-4d9f-91d7-aa4cf297e9b5"});
+                            "517073.5113",
+                            "b4bb26dd-e7a5-4237-a788-b899848a18cb"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "766fd82c-bea2-476f-805f-ede2d6a662f0"});
+                            "1.03361",
+                            "b945fe90-d97a-4d5c-a356-04eba8f64593"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "1972f183-a4ea-4f91-b064-1a2f9d11eb71"});
+                            "0.021",
+                            "b99d7944-1874-497b-90ff-5590039a7d96"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "b8601c5c-f3eb-45d3-abfe-84120b8ff371"});
+                            "292",
+                            "bc9af8f8-1cab-4860-8f0f-3460dae55105"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "47b47407-00c2-4888-9c3d-cb22b6e62384"});
+                            "402600",
+                            "bccbb3b8-0abd-4194-b659-734803ec7fe4"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "3ba563a7-4611-4c2e-9951-1595969bf9d2"});
+                            "2.376237624",
+                            "c967dd74-156c-495e-ae0e-b519bed7d164"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "ca896c28-5b68-4f36-a699-42da4640a36d"});
+                            "20130",
+                            "c9f6dafe-d65f-4bc3-b468-af96a07723ae"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "f68fa739-4eea-4ba3-9e49-5e96d23731bc"});
+                            "117.6237624",
+                            "cb06f25c-c0f0-4af1-9d6a-e06607e81b65"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "33b8ea92-2344-4429-b28a-1cff65745e6f"});
+                            "400",
+                            "d34132de-0abf-4126-b552-9d65024a450f"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "108caf20-de82-49e1-8779-48f0326807dc"});
+                            "528304.2451",
+                            "d398f89d-be0c-4834-8b90-5811e207a558"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "ddb3eb07-917a-4080-b338-98e985c21ec8"});
+                            "120",
+                            "d3cedf1c-5c3e-45db-b9ae-582eca959ce6"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "f89336ae-1ae7-44b1-8b21-306697c8a2ad"});
+                            "468",
+                            "d7265454-922e-4dc5-83f9-d82983bf76be"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "f9c77603-cc44-497c-8ba4-3d41dbd14c26"});
+                            "496811.6711",
+                            "d75578b7-e178-4b6e-8339-63693af83d4e"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "f2b7cf2a-495d-4157-ac97-789f86a9073a"});
+                            "1",
+                            "da4a1622-3ee1-4da2-b234-399a7f670f99"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "9491613b-b7a2-42ef-b590-51dd003d55c4"});
+                            "517073.51",
+                            "da7ec136-2fb9-4778-9e40-78de3fe2c73f"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "d896cdd6-4b3f-4136-81e5-e892b8468b02"});
+                            "0.05",
+                            "dad22e0a-1025-45b8-980a-44eb30700e88"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "49ac5375-2c3f-4d5e-88f9-6f35be9e251b"});
+                            "6108",
+                            "dc5b2ffe-8d48-452d-87bc-29e483b86b64"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "f8bdcb90-cfdc-424f-bfab-6e829cfe9140"});
+                            "396000",
+                            "df2d07f9-c90c-4699-8f7a-7fc07d0644e2"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "746b26a3-9077-4bc5-8b3e-6a562ccb66de"});
+                            "22569.03",
+                            "df678971-68b4-4c6b-88e4-362718c71a42"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "d0e4f8b7-1fba-4edd-9ed6-30c92e509584"});
+                            "33.0696",
+                            "e0b79abc-5609-4236-a049-d5d28b549d37"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "a4ec12da-02ba-4103-816d-296e7156c5b0"});
+                            "28",
+                            "e32aeb34-427f-404c-9867-43a178d991c3"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "d758185f-b7b3-4ddf-a63f-3f68c1ceb18e"});
+                            "243",
+                            "e3f049d6-22fa-435e-88e9-093fecc5eca1"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "da3f8c8b-9d51-4ac2-89bf-ce3875e6c073"});
+                            "120",
+                            "ea2b0af5-85f1-4b3b-9a5c-93df58f847ab"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "3973e082-7248-44c0-89b1-7a1939927ab6"});
+                            "9.5052",
+                            "eeb98d36-dea1-4fa4-a692-67c1c218c82b"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "1d818411-fb19-4589-b541-d3fb3b941d52"});
+                            "0.98019802",
+                            "f5b823a2-3492-44ae-8e7c-cfce96ad4c64"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "161c81cc-1412-4c9d-aecf-0688f6075323"});
+                            "0.5",
+                            "f73b383d-9147-4cb8-a277-49a1e90820cf"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "deddfe8a-6f21-405d-8f8e-b3d77004785b"});
+                            "2",
+                            "f8be8202-09b6-43a1-8b26-4b0352f559c9"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "c93608d3-58d7-4a6d-89ec-ba2c1fb77fb6"});
+                            "120",
+                            "fa729035-54ca-4c47-8ce9-b4c9613a3382"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "85d6df27-22b5-4172-ac63-c03edb954ea6"});
+                            "513509.5113",
+                            "fc28a81d-ac92-44e4-9019-749d0bbb3537"});
                 table354.AddRow(new string[] {
-                            "320",
-                            "a0320c8b-9dae-4719-9708-70076cb240f1"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "c437b189-b105-469f-b3a0-2e2ccbddc989"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "89167b75-49b1-4d2a-b3ee-70bae9242317"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "0be04e61-d828-46df-b903-20f1e7d49a0d"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "0ade4f3f-8ce0-4a1a-8499-52272d673b74"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "9c2a3458-9c47-4634-8b01-c61aef671c65"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "fe1d36c8-4d60-45e0-afd9-25e81d4de265"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "54ae55fe-5c09-4393-a9ef-83a13d45439e"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "6e8bb519-2f0a-4e43-98c6-cb8a4b0e438c"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "870b5a27-4217-4b6e-bce3-9e5c823adbe1"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "f55b3de5-55e6-443e-8aa3-0e14f1f38eda"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "4d661833-9e57-4535-81fc-6de279af494f"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "e92d3c27-3d11-45ce-aaf5-dbbdd9f672c5"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "8dbc440e-5cef-45ec-ba6c-c7625f118136"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "95eb6ce5-caad-478d-bbc6-2e913e4dd727"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "c3962fe9-9545-427e-ae69-0719c87971eb"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "841dd7e3-c39a-40eb-a80e-b380be8b5459"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "17ba6093-fc27-4d08-8e41-981e1a910bda"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "aabee9ce-4e36-461d-b166-b8b794bac007"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "b700cbcd-5594-4bac-ae2e-07a179f40830"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "1993ff13-6371-4d78-8e23-cf8e37f051db"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "83e7f9cb-fff2-43b7-a81e-c8af459d4e54"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "ea07237f-3f20-4590-9184-2f9426a31c0a"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "0ca7fdb5-b1ba-4cb3-80a9-c71f541c3802"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "bf3a8703-e7f9-4f91-8466-b7e367cf6a3e"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "7226a3f2-e085-45d4-bfad-3d424d81644f"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "778ab5d8-c374-49b1-893e-9542e4b2c682"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "008e0d05-2aa1-4ea8-b609-c929654bf864"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "67d4c440-649c-4c41-ad02-42b0f2d2d2f3"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "07e3104b-43b4-43cb-9cd3-15a696847603"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "1edc3242-5e80-4e2e-808f-eb73545daaee"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "420dd58c-cf5e-4d36-9dd2-8f3118011333"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "8389a997-4145-43e5-94d6-d1cb4c72e6ef"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "df34bbaf-09ca-49df-8b64-d49d90bd1523"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "9567eecd-f7a7-48b5-b11e-38877ccc6603"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "57d5a373-0f6e-43d0-9164-d780316fef9a"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "ee2011d2-864d-47d3-b19f-fadd4f9d21be"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "8618821c-e21f-47e5-a97d-65973459fbab"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "7556232a-1ad7-42ad-b766-a27ce3dba4e2"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "a7e1682f-8004-4bc8-a720-2f564416a725"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "e47315c0-2114-4756-9ee8-0d0ec44c5771"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "0da63f9a-d7cd-4cf2-8db3-0b5a678040ab"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "01e00072-a670-4bee-b0c8-53454460027e"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "4a47a382-cb38-4bcc-9b22-897c092084c7"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "f41f06bc-6717-4791-bfc7-aa4fe8981b7d"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "e539ecee-8ae6-4ce1-9e1f-453a888940f0"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "a44ba971-8d73-4d65-85ff-8f04aa963f3d"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "ca6d0788-8c26-4e02-be57-52b47ef72267"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "c1faf3ac-759e-4455-8b01-bef377274e08"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "8e2364b5-258f-4955-88ea-a5db1c958cad"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "a78dac8f-3ccf-42af-a137-719202a52730"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "1b91566c-ccab-42b5-84fc-b71b47c9e7bc"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "2c245fa9-a9d6-46e6-a03a-41e2123f40d1"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "413ffcef-bb79-41a6-8c9a-bd11c7db9f70"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "372b42ed-5e9e-4e7b-99be-6c14b9def29b"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "28ffe367-6171-43a5-830c-24925ff63d06"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "d04fbcf8-4221-462c-b045-9e124b3775c2"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "18376b64-620a-4c34-ad44-6579013a58e6"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "11f6832f-5abb-45cb-9afe-539788754a72"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "780d80b5-38e3-421f-90fc-9f4a351df76f"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "c4f37785-819b-4680-9427-ce8f887285f4"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "dfe0db99-6652-46fd-8a90-6efe74642f55"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "683d948a-1aa5-4e90-b5fc-205d040772b8"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "58a67753-b104-455d-ae5d-fd303fe5b18d"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "b03fbd41-8454-4a4e-a9d1-e6cdfd4eeb60"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "8277b567-6d82-4760-95d3-56e26d31704e"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "82a82df7-a4e3-4d5d-b378-23af3607ceec"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "1c066b09-3e98-48fc-966f-ea3f09401b54"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "4afd7426-1787-4b71-a5f7-971db86811be"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "8fdd4341-88ea-47f2-ba81-511951ca7efd"});
-                table354.AddRow(new string[] {
-                            "320",
-                            "5cfb28de-88d6-4faa-a936-d81a065fb596"});
-#line 815
+                            "600",
+                            "ffc2ed9a-98ee-44e0-af6f-b782b9bcd76a"});
+#line 868
  testRunner.And("calculations exists", ((string)(null)), table354, "And ");
 #line hidden
-#line 989
+#line 972
  testRunner.When("funding is published", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
                 TechTalk.SpecFlow.Table table355 = new TechTalk.SpecFlow.Table(new string[] {
@@ -3652,11 +4053,11 @@ this.ScenarioInitialize(scenarioInfo);
                 table355.AddRow(new string[] {
                             "FundingStreamId",
                             string.Format("{0}", fundingStreamId)});
-#line 990
+#line 973
  testRunner.Then("the following published funding is produced", ((string)(null)), table355, "Then ");
 #line hidden
-#line 997
- testRunner.And("the total funding is \'24000\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line 980
+ testRunner.And("the total funding is \'1132761.64\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table356 = new TechTalk.SpecFlow.Table(new string[] {
                             "FundingIds"});
@@ -3664,16 +4065,16 @@ this.ScenarioInitialize(scenarioInfo);
                             string.Format("{0}-{1}-1000000-1_0", fundingStreamId, fundingPeriodId)});
                 table356.AddRow(new string[] {
                             string.Format("{0}-{1}-1000002-1_0", fundingStreamId, fundingPeriodId)});
-#line 998
+#line 981
  testRunner.And("the published funding contains the following published provider ids", ((string)(null)), table356, "And ");
 #line hidden
-#line 1002
- testRunner.And("the published funding contains a distribution period in funding line \'1619-002\' w" +
+#line 985
+ testRunner.And("the published funding contains a distribution period in funding line \'1619-001\' w" +
                         "ith id of \'AS-1920\' has the value of \'14000\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 1003
- testRunner.And("the published funding contains a distribution period in funding line \'1619-002\' w" +
-                        "ith id of \'AS-2021\' has the value of \'10000\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line 986
+ testRunner.And("the published funding contains a distribution period in funding line \'1619-001\' w" +
+                        "ith id of \'AS-2021\' has the value of \'1132761.64\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table357 = new TechTalk.SpecFlow.Table(new string[] {
                             "DistributionPeriodId",
@@ -3689,8 +4090,8 @@ this.ScenarioInitialize(scenarioInfo);
                             "1920",
                             "1",
                             "14000"});
-#line 1004
- testRunner.And("the published funding contains a distribution period in funding line \'1619-002\' w" +
+#line 987
+ testRunner.And("the published funding contains a distribution period in funding line \'1619-001\' w" +
                         "ith id of \'AS-1920\' has the following profiles", ((string)(null)), table357, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table358 = new TechTalk.SpecFlow.Table(new string[] {
@@ -3706,345 +4107,132 @@ this.ScenarioInitialize(scenarioInfo);
                             "April",
                             "2021",
                             "1",
-                            "10000"});
-#line 1007
- testRunner.And("the published funding contains a distribution period in funding line \'1619-002\' w" +
+                            "1132761.64"});
+#line 990
+ testRunner.And("the published funding contains a distribution period in funding line \'1619-001\' w" +
                         "ith id of \'AS-2021\' has the following profiles", ((string)(null)), table358, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table359 = new TechTalk.SpecFlow.Table(new string[] {
                             "Id",
                             "Value"});
                 table359.AddRow(new string[] {
-                            "238",
-                            "640"});
+                            "169",
+                            "2875"});
                 table359.AddRow(new string[] {
-                            "15",
-                            "640"});
+                            "27",
+                            "235.2475248"});
                 table359.AddRow(new string[] {
-                            "17",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "13",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "14",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "19",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "20",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "26",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "24",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "28",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "133",
-                            "320"});
-                table359.AddRow(new string[] {
-                            "131",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "138",
-                            "320"});
-                table359.AddRow(new string[] {
-                            "136",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "143",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "141",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "148",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "146",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "153",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "151",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "32",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "34",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "37",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "29",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "237",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "30",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "33",
-                            "640"});
+                            "111",
+                            "-8013.09147"});
                 table359.AddRow(new string[] {
                             "36",
-                            "320"});
+                            "202"});
                 table359.AddRow(new string[] {
-                            "65",
-                            "640"});
+                            "256",
+                            "30953.1456"});
                 table359.AddRow(new string[] {
-                            "66",
-                            "640"});
+                            "35",
+                            "198"});
                 table359.AddRow(new string[] {
-                            "64",
-                            "640"});
+                            "107",
+                            "240"});
                 table359.AddRow(new string[] {
-                            "70",
-                            "640"});
+                            "306",
+                            "22400"});
                 table359.AddRow(new string[] {
-                            "71",
-                            "640"});
+                            "113",
+                            "1001636.4336"});
                 table359.AddRow(new string[] {
-                            "69",
-                            "640"});
+                            "237",
+                            "10461.4702"});
                 table359.AddRow(new string[] {
-                            "75",
-                            "640"});
+                            "311",
+                            "22800"});
                 table359.AddRow(new string[] {
-                            "76",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "74",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "80",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "81",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "79",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "50",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "51",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "52",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "53",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "163",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "164",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "162",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "90",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "91",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "89",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "95",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "96",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "94",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "158",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "175",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "174",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "168",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "169",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "167",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "176",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "177",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "232",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "182",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "183",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "234",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "159",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "161",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "233",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "189",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "190",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "186",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "195",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "196",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "192",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "185",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "191",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "202",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "203",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "199",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "198",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "209",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "210",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "206",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "205",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "214",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "215",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "213",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "223",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "224",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "220",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "212",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "128",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "129",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "227",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "226",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "42",
-                            "640"});
+                            "55",
+                            "240"});
                 table359.AddRow(new string[] {
                             "156",
-                            "640"});
+                            "19.0104"});
                 table359.AddRow(new string[] {
-                            "157",
-                            "640"});
+                            "129",
+                            "240"});
                 table359.AddRow(new string[] {
-                            "184",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "197",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "204",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "211",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "218",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "225",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "40",
-                            "640"});
-                table359.AddRow(new string[] {
-                            "41",
-                            "640"});
+                            "131",
+                            "9.504"});
                 table359.AddRow(new string[] {
                             "39",
-                            "640"});
+                            "2"});
                 table359.AddRow(new string[] {
-                            "21",
-                            "640"});
+                            "72",
+                            "0"});
                 table359.AddRow(new string[] {
-                            "22",
-                            "640"});
+                            "315",
+                            "102"});
                 table359.AddRow(new string[] {
-                            "219",
-                            "640"});
-#line 1010
+                            "314",
+                            "64"});
+                table359.AddRow(new string[] {
+                            "313",
+                            "38"});
+                table359.AddRow(new string[] {
+                            "130",
+                            "7128"});
+                table359.AddRow(new string[] {
+                            "133",
+                            "0.0792"});
+                table359.AddRow(new string[] {
+                            "116",
+                            "1.984"});
+                table359.AddRow(new string[] {
+                            "117",
+                            "33395.68046"});
+                table359.AddRow(new string[] {
+                            "386",
+                            "240"});
+                table359.AddRow(new string[] {
+                            "432",
+                            "16419.80198"});
+                table359.AddRow(new string[] {
+                            "26",
+                            "985216.6336"});
+                table359.AddRow(new string[] {
+                            "40",
+                            "2"});
+                table359.AddRow(new string[] {
+                            "374",
+                            "9124.992"});
+                table359.AddRow(new string[] {
+                            "73",
+                            "4.752475248"});
+                table359.AddRow(new string[] {
+                            "30",
+                            "235.2475248"});
+                table359.AddRow(new string[] {
+                            "238",
+                            "1056608.4902"});
+                table359.AddRow(new string[] {
+                            "114",
+                            "993623.3422"});
+                table359.AddRow(new string[] {
+                            "239",
+                            "1034147.02"});
+                table359.AddRow(new string[] {
+                            "257",
+                            "66.1392"});
+                table359.AddRow(new string[] {
+                            "307",
+                            "56"});
+                table359.AddRow(new string[] {
+                            "375",
+                            "19.0104"});
+                table359.AddRow(new string[] {
+                            "38",
+                            "4"});
+                table359.AddRow(new string[] {
+                            "33",
+                            "240"});
+#line 993
  testRunner.And("the published funding contains a calculations in published provider with followin" +
                         "g calculation results", ((string)(null)), table359, "And ");
 #line hidden
@@ -4054,7 +4242,7 @@ this.ScenarioInitialize(scenarioInfo);
                             string.Format("{0}-{1}-Information-LocalAuthority-200-1_0.json", fundingStreamId, fundingPeriodId)});
                 table360.AddRow(new string[] {
                             string.Format("{0}-{1}-Payment-LocalAuthority-9000000-1_0.json", fundingStreamId, fundingPeriodId)});
-#line 1122
+#line 1034
  testRunner.And("the published funding document produced is saved to blob storage for following fi" +
                         "le name", ((string)(null)), table360, "And ");
 #line hidden
@@ -4070,7 +4258,7 @@ this.ScenarioInitialize(scenarioInfo);
                             string.Format("{0}-{1}-Payment-LocalAuthority-9000000-1_0.json", fundingStreamId, fundingPeriodId),
                             "specification-id",
                             "specForPublishing"});
-#line 1126
+#line 1038
  testRunner.And("the published funding document produced has following metadata", ((string)(null)), table361, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table362 = new TechTalk.SpecFlow.Table(new string[] {
@@ -4079,7 +4267,7 @@ this.ScenarioInitialize(scenarioInfo);
                             string.Format("{0}-{1}-1000000-1_0.json", fundingStreamId, fundingPeriodId)});
                 table362.AddRow(new string[] {
                             string.Format("{0}-{1}-1000002-1_0.json", fundingStreamId, fundingPeriodId)});
-#line 1130
+#line 1042
  testRunner.And("the published provider document produced is saved to blob storage for following f" +
                         "ile name", ((string)(null)), table362, "And ");
 #line hidden
@@ -4095,7 +4283,7 @@ this.ScenarioInitialize(scenarioInfo);
                             string.Format("{0}-{1}-1000002-1_0.json", fundingStreamId, fundingPeriodId),
                             "specification-id",
                             "specForPublishing"});
-#line 1134
+#line 1046
  testRunner.And("the published provider document produced has following metadata", ((string)(null)), table363, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table364 = new TechTalk.SpecFlow.Table(new string[] {
@@ -4120,7 +4308,7 @@ this.ScenarioInitialize(scenarioInfo);
                             "Released",
                             "Academy 1",
                             "1000000",
-                            "12000",
+                            "566380.82",
                             "specForPublishing",
                             string.Format("{0}", fundingStreamId),
                             string.Format("{0}", fundingPeriodId),
@@ -4134,13 +4322,13 @@ this.ScenarioInitialize(scenarioInfo);
                             "Released",
                             "Academy 2",
                             "1000002",
-                            "12000",
+                            "566380.82",
                             "specForPublishing",
                             string.Format("{0}", fundingStreamId),
                             string.Format("{0}", fundingPeriodId),
                             "",
                             "Hide indicative allocations"});
-#line 1138
+#line 1050
  testRunner.And(string.Format("the following published provider search index items is produced for providerid wi" +
                             "th \'{0}\' and \'{1}\'", fundingStreamId, fundingPeriodId), ((string)(null)), table364, "And ");
 #line hidden
@@ -4159,7 +4347,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table365.AddRow(new string[] {
                             "ParentJobId",
                             ""});
-#line 1142
+#line 1054
  testRunner.And("the following job is requested is completed for the current specification", ((string)(null)), table365, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table366 = new TechTalk.SpecFlow.Table(new string[] {
@@ -4171,7 +4359,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table366.AddRow(new string[] {
                             string.Format("publishedprovider-1000002-{0}-{1}", fundingPeriodId, fundingStreamId),
                             "Released"});
-#line 1148
+#line 1060
  testRunner.And("the following released published provider ids are upserted", ((string)(null)), table366, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table367 = new TechTalk.SpecFlow.Table(new string[] {
@@ -4189,7 +4377,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table367.AddRow(new string[] {
                             "1000002",
                             "ProfilingUpdated"});
-#line 1152
+#line 1064
  testRunner.And("the provider variation reasons were recorded", ((string)(null)), table367, "And ");
 #line hidden
             }
@@ -4203,12 +4391,12 @@ this.ScenarioInitialize(scenarioInfo);
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:FundingStreamId", "1619")]
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:FundingPeriodId", "AS-2021")]
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:FundingPeriodName", "Financial Year 2020-21")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:TemplateVersion", "1.0")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:TemplateVersion", "1.2")]
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:ProviderVersionId", "1619-providers-1.0")]
         public virtual void SuccessfulPublishingOfFunding_1619()
         {
 #line 6
-this.SuccessfulPublishingOfFunding("1619", "AS-2021", "Financial Year 2020-21", "1.0", "1619-providers-1.0", ((string[])(null)));
+this.SuccessfulPublishingOfFunding("1619", "AS-2021", "Financial Year 2020-21", "1.2", "1619-providers-1.0", ((string[])(null)));
 #line hidden
         }
     }

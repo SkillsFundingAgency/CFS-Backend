@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Resources\16191.0.json" />
+    <None Remove="Resources\16191.2.json" />
     <None Remove="Resources\DSG1.0.json" />
     <None Remove="Resources\DSG1.0.Variations.json" />
     <None Remove="Resources\GAG1.2.json" />
@@ -57,12 +57,13 @@
     <SpecFlowObsoleteCodeBehindFiles Remove="Features\PublishingBatchFundingDsg - Copy.feature.cs" />
     <SpecFlowObsoleteCodeBehindFiles Remove="Features\PublishingPsg - Copy.feature.cs" />
     <SpecFlowObsoleteCodeBehindFiles Remove="Features\RefreshDsg - Copy.feature.cs" />
+    <SpecFlowObsoleteCodeBehindFiles Remove="Features\RefreshGAG - Copy.feature.cs" />
     <SpecFlowObsoleteCodeBehindFiles Remove="Features\RefreshPsg - Copy.feature.cs" />
     <SpecFlowObsoleteCodeBehindFiles Remove="Features\RefreshPsgVariations - Copy.feature.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Resources\16191.0.json" />
+    <EmbeddedResource Include="Resources\16191.2.json" />
     <EmbeddedResource Include="Resources\GAG1.2.json" />
     <EmbeddedResource Include="Resources\DSG1.0.Variations.json" />
     <EmbeddedResource Include="Resources\DSG1.0.json" />
@@ -164,6 +165,9 @@
     <Compile Update="Features\PublishingAllFundingDsg.feature.cs">
       <DependentUpon>PublishingAllFundingDsg.feature</DependentUpon>
     </Compile>
+    <Compile Update="Features\Refresh1619.feature.cs">
+      <DependentUpon>Refresh1619.feature</DependentUpon>
+    </Compile>
     <Compile Update="Features\RefreshGAG.feature.cs">
       <DependentUpon>RefreshGAG.feature</DependentUpon>
     </Compile>
@@ -237,6 +241,10 @@
       <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
     </SpecFlowFeatureFiles>
     <SpecFlowFeatureFiles Update="Features\PublishingAllFundingDsg.feature">
+      <Visible>$(UsingMicrosoftNETSdk)</Visible>
+      <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
+    </SpecFlowFeatureFiles>
+    <SpecFlowFeatureFiles Update="Features\Refresh1619.feature">
       <Visible>$(UsingMicrosoftNETSdk)</Visible>
       <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
     </SpecFlowFeatureFiles>

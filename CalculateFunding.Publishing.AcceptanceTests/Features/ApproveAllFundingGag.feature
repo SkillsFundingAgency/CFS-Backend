@@ -5,8 +5,9 @@
 
 Scenario Outline: Successful approve of funding
 	Given a funding configuration exists for funding stream '<FundingStreamId>' in funding period '<FundingPeriodId>'
-		| Field                  | Value |
-		| DefaultTemplateVersion | 1.2   |
+		| Field                     | Value                     |
+		| DefaultTemplateVersion    | 1.2                       |
+		| PaymentOrganisationSource | PaymentOrganisationFields |
 	And the funding configuration has the following organisation group and provider status list 'Open;Open, but proposed to close'
 		| Field                     | Value        |
 		| GroupTypeIdentifier       | UKPRN        |
@@ -72,12 +73,13 @@ Scenario Outline: Successful approve of funding
 	And calculations 'gag-approve-all-funding-calculations' exists
 	When funding is approved
 	Then the following published provider ids are upserted
-		| PublishedProviderId                                           | Status  |
-		| publishedprovider-1000000-<FundingPeriodId>-<FundingStreamId> | Approved|
-		| publishedprovider-1000002-<FundingPeriodId>-<FundingStreamId> | Approved|
+		| PublishedProviderId                                           | Status   |
+		| publishedprovider-1000000-<FundingPeriodId>-<FundingStreamId> | Approved |
+		| publishedprovider-1000002-<FundingPeriodId>-<FundingStreamId> | Approved |
 	And the following published provider search index items is produced for providerid with '<FundingStreamId>' and '<FundingPeriodId>'
-		| ID                  | ProviderType          | ProviderSubType  | LocalAuthority    | FundingStatus | ProviderName        | UKPRN   | FundingValue | SpecificationId   | FundingStreamId   | FundingPeriodId   | UPIN   | URN     | Errors | Indicative |
-		| GAG-AC-2021-1000002 | LA maintained schools | Community school | Local Authority 1 | Approved      | Maintained School 2 | 1000002 | 12000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> | 123456 | 1234567 |        | Hide indicative allocations |
+		| ID                  | ProviderType | ProviderSubType     | LocalAuthority | FundingStatus | ProviderName            | UKPRN   | FundingValue | SpecificationId   | FundingStreamId   | FundingPeriodId   | UPIN   | URN    | Errors | Indicative                  |
+		| GAG-AC-2021-1000002 | Academies    | Academy sponsor led | West Sussex    | Approved      | Midhurst Rother College | 1000002 | 5555790.01   | specForPublishing | <FundingStreamId> | <FundingPeriodId> | 118907 | 135760 |        | Hide indicative allocations |
+
 	Examples:
-		| FundingStreamId | FundingPeriodId | FundingPeriodName				  | TemplateVersion | ProviderVersionId |
+		| FundingStreamId | FundingPeriodId | FundingPeriodName               | TemplateVersion | ProviderVersionId |
 		| GAG             | AC-2021         | Academies Academic Year 2020-21 | 1.2             | gag-providers-1.0 |

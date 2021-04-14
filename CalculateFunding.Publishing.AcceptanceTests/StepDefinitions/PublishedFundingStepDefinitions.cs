@@ -127,15 +127,27 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             publishedProviders
                 .ToList().ForEach(_ =>
                 {
+                    StringBuilder stringBuilder = new StringBuilder();
+
+                    _.Current.Calculations.ForEach(_ => {
+                        if(_.Value == null)
+                        {
+                            stringBuilder.AppendLine("|" + _.TemplateCalculationId + "||");
+                        }
+                        });
+
+                    string test = stringBuilder.ToString();
+
                     _.Current.Calculations.Select(calc => new CalculationResult
-                    {
-                        Id = _publishFundingStepContext.CalculationsInMemoryClient.Mapping.TemplateMappingItems.FirstOrDefault(cm => cm.TemplateId == calc.TemplateCalculationId)?.CalculationId,
-                        Value = decimal.Parse(calc.Value.ToString())
-                    })
+                        {
+                            Id = _publishFundingStepContext.CalculationsInMemoryClient.Mapping.TemplateMappingItems.FirstOrDefault(cm => cm.TemplateId == calc.TemplateCalculationId)?.CalculationId,
+                            Value = calc.Value
+                        })
                     .Should()
                     .BeEquivalentTo(providerCalculationResults.ContainsKey(_.Current.ProviderId) ?
                         providerCalculationResults[_.Current.ProviderId] :
                         calculationsInMemoryRepository.Results);
+
 
                     // Already approved one's will not be re-approved / saved, so jobid or correleationid will not be populated for them
                     if (_.Current.JobId != null)
@@ -289,8 +301,6 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
                 calValue.Value
                     .Should()
                     .Be(cals.Value);
-
-
             }
         }
 

@@ -7,6 +7,7 @@ Scenario Outline: Successful refresh of funding
 	Given a funding configuration exists for funding stream '<FundingStreamId>' in funding period '<FundingPeriodId>'
 		| Field                  | Value |
 		| DefaultTemplateVersion | 1.2   |
+		| PaymentOrganisationSource | PaymentOrganisationFields |
 	And the funding configuration has the following organisation group and provider status list 'Open;Open, but proposed to close'
 		| Field                     | Value        |
 		| GroupTypeIdentifier       | UKPRN        |
