@@ -1,6 +1,7 @@
 ﻿using System;
 using AutoMapper;
 using CalculateFunding.Common.Config.ApiClient.Specifications;
+using CalculateFunding.Common.Config.ApiClient.Jobs;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
@@ -23,6 +24,9 @@ using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
+using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Repositories.Common.Search;
+using ServiceCollectionExtensions = CalculateFunding.Services.Core.Extensions.ServiceCollectionExtensions;
 
 [assembly: FunctionsStartup(typeof(CalculateFunding.Functions.Users.Startup))]
 
@@ -56,6 +60,7 @@ namespace CalculateFunding.Functions.Users
             if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
             {
                 builder.AddScoped<OnEditSpecificationEvent>();
+                builder.AddScoped<OnReIndexUsersEvent>();
             }
 
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
@@ -67,6 +72,17 @@ namespace CalculateFunding.Functions.Users
             builder
                .AddSingleton<IFundingStreamPermissionService, FundingStreamPermissionService>()
                .AddSingleton<IHealthChecker, FundingStreamPermissionService>();
+
+            builder
+              .AddSingleton<IUserIndexingService, UserIndexingService>();
+
+            builder
+               .AddSingleton<IJobManagement, JobManagement>();
+
+            builder.AddSearch(config);
+
+            builder
+             .AddSingleton<ISearchRepository<UserIndex>, SearchRepository<UserIndex>>();
 
             builder.AddSingleton<IBlobClient>(ctx =>
             {
@@ -125,21 +141,33 @@ namespace CalculateFunding.Functions.Users
 
             builder.AddPolicySettings(config);
 
+            PolicySettings policySettings = ServiceCollectionExtensions.GetPolicySettings(config);
+
+            AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+
             builder.AddSingleton<IUsersResiliencePolicies>((ctx) =>
             {
-                PolicySettings policySettings = ctx.GetService<PolicySettings>();
-
-                AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
-
                 return new UsersResiliencePolicies
                 {
                     FundingStreamPermissionVersionRepositoryPolicy = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     CacheProviderPolicy = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy),
                     SpecificationApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     UserRepositoryPolicy = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                    UsersSearchRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     BlobClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
+
+            builder.AddSingleton<IJobManagementResiliencePolicies>((ctx) =>
+            {
+                return new JobManagementResiliencePolicies()
+                {
+                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                };
+
+            });
+
+            builder.AddServiceBus(config);
 
             builder.AddCaching(config);
 
@@ -151,6 +179,7 @@ namespace CalculateFunding.Functions.Users
             builder.AddTelemetry();
 
             builder.AddSpecificationsInterServiceClient(config);
+            builder.AddJobsInterServiceClient(config);
 
             builder.AddScoped<IUserProfileProvider, UserProfileProvider>();
 

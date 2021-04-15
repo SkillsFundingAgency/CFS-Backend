@@ -77,11 +77,11 @@ namespace CalculateFunding.Functions.DebugQueue
                 }
             }
 
-            using (IServiceScope scope = Users.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
+            using (IServiceScope scope = Functions.Users.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
             {
                 try
                 {
-                    Users.ServiceBus.OnEditSpecificationEvent function = scope.ServiceProvider.GetService<Users.ServiceBus.OnEditSpecificationEvent>();
+                    Functions.Users.ServiceBus.OnEditSpecificationEvent function = scope.ServiceProvider.GetService<Functions.Users.ServiceBus.OnEditSpecificationEvent>();
 
                     await function.Run(message);
                 }

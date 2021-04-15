@@ -12,6 +12,7 @@ namespace CalculateFunding.Models.MappingProfiles
                 .ForMember(m => m.FundingStreamId, opt => opt.Ignore());
 
             CreateMap<FundingStreamPermission, FundingStreamPermissionCurrent>();
+            CreateMap<User, UserIndex>();
         }
     }
 }

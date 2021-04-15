@@ -132,5 +132,37 @@ namespace CalculateFunding.Models.Users
                 fundingStreamPermission.CanRefreshPublishedQa == CanRefreshPublishedQa &&
                 fundingStreamPermission.CanUploadDataSourceFiles == CanUploadDataSourceFiles;
         }
+
+        public bool HasAnyPermissions()
+        {
+            return CanCreateSpecification
+                || CanEditSpecification
+                || CanEditCalculations
+                || CanMapDatasets
+                || CanChooseFunding
+                || CanRefreshFunding
+                || CanApproveFunding
+                || CanReleaseFunding
+                || CanAdministerFundingStream
+                || CanCreateQaTests
+                || CanEditQaTests
+                || CanApproveSpecification
+                || CanDeleteCalculations
+                || CanDeleteQaTests
+                || CanCreateTemplates
+                || CanEditTemplates
+                || CanDeleteTemplates
+                || CanApproveTemplates
+                || CanCreateProfilePattern
+                || CanEditProfilePattern
+                || CanDeleteProfilePattern
+                || CanAssignProfilePattern
+                || CanApplyCustomProfilePattern
+                || CanApproveCalculations
+                || CanApproveAnyCalculations
+                || CanApproveAllCalculations
+                || CanRefreshPublishedQa
+                || CanUploadDataSourceFiles;
+        }
     }
 }

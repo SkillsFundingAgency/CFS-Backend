@@ -22,6 +22,7 @@ namespace CalculateFunding.Functions.Users.SmokeTests
         private static ILogger _logger;
         private static IFundingStreamPermissionService _fundingStreamPermissionService;
         private static IUserProfileProvider _userProfileProvider;
+        private static IUserIndexingService _userIndexingService;
 
         [ClassInitialize]
         public static void SetupTests(TestContext tc)
@@ -31,6 +32,7 @@ namespace CalculateFunding.Functions.Users.SmokeTests
             _logger = CreateLogger();
             _fundingStreamPermissionService = CreateFundingStreamPermissionService();
             _userProfileProvider = CreateUserProfileProvider();
+            _userIndexingService = CreateUserIndexingService();
         }
 
         [TestMethod]
@@ -52,6 +54,25 @@ namespace CalculateFunding.Functions.Users.SmokeTests
                 .NotBeNull();
         }
 
+        [TestMethod]
+        public async Task OnReIndexUsersEvent_SmokeTestSucceeds()
+        {
+            OnReIndexUsersEvent onReIndexUsersEvent = new OnReIndexUsersEvent(_logger,
+                _userIndexingService,
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                 _userProfileProvider,
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
+                 IsDevelopment);
+
+            SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.UsersReIndexUsers,
+                async (Message smokeResponse) => await onReIndexUsersEvent.Run(smokeResponse),
+                ServiceBusConstants.QueueNames.UsersReIndexUsers);
+
+            response
+                .Should()
+                .NotBeNull();
+        }
+
         private static ILogger CreateLogger()
         {
             return Substitute.For<ILogger>();
@@ -65,6 +86,11 @@ namespace CalculateFunding.Functions.Users.SmokeTests
         private static IUserProfileProvider CreateUserProfileProvider()
         {
             return Substitute.For<IUserProfileProvider>();
+        }
+
+        private static IUserIndexingService CreateUserIndexingService()
+        {
+            return Substitute.For<IUserIndexingService>();
         }
     }
 }

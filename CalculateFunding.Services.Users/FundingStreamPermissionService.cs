@@ -130,7 +130,7 @@ namespace CalculateFunding.Services.Users
                 return new PreconditionFailedResult("userId not found");
             }
 
-            FundingStreamPermission existingPermissions = await _userRepositoryPolicy.ExecuteAsync(() => _userRepository.GetFundingStreamPermission(userId, fundingStreamId));
+            FundingStreamPermission existingPermissions = await _userRepositoryPolicy.ExecuteAsync(() => _userRepository.GetFundingStreamPermission(userId, fundingStreamId, true));
 
             FundingStreamPermission newPermissions = _mapper.Map<FundingStreamPermissionUpdateModel, FundingStreamPermission>(updateModel);
             newPermissions.FundingStreamId = fundingStreamId;
@@ -138,7 +138,10 @@ namespace CalculateFunding.Services.Users
 
             if (existingPermissions == null || !existingPermissions.HasSamePermissions(newPermissions))
             {
-                HttpStatusCode saveResult = await _userRepositoryPolicy.ExecuteAsync(() => _userRepository.UpdateFundingStreamPermission(newPermissions));
+                HttpStatusCode saveResult = newPermissions.HasAnyPermissions()
+                    ? await _userRepositoryPolicy.ExecuteAsync(() => _userRepository.UpdateFundingStreamPermission(newPermissions))
+                    : await _userRepositoryPolicy.ExecuteAsync(() => _userRepository.DeleteFundingStreamPermission(newPermissions));
+
                 if (saveResult != HttpStatusCode.OK && saveResult != HttpStatusCode.Created)
                 {
                     return new InternalServerErrorResult($"Saving funding stream permission to repository returned '{saveResult}'");

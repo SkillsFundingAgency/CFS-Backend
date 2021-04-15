@@ -236,6 +236,8 @@
             public const string RunConverterDatasetMergePoisoned = "datasets-converter-dataset-merge/$DeadLetterQueue";
             
             public const string RunConverterDatasetMergePoisonedLocal = "datasets-converter-dataset-merge-poisoned";
+
+            public const string UsersReIndexUsers = "users-reindex-users";
         }
 
         public static class TopicNames

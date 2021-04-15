@@ -59,7 +59,7 @@ namespace CalculateFunding.Services.Users
             return _cosmosRepository.UpsertAsync(user, user.UserId);
         }
 
-        public async Task<FundingStreamPermission> GetFundingStreamPermission(string userId, string fundingStreamId)
+        public async Task<FundingStreamPermission> GetFundingStreamPermission(string userId, string fundingStreamId, bool includeDeleted = false)
         {
             Guard.IsNullOrWhiteSpace(userId, nameof(userId));
             Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
@@ -69,8 +69,8 @@ namespace CalculateFunding.Services.Users
                 QueryText = @"SELECT *
                             FROM    Root r
                             WHERE   r.content.fundingStreamId = @FundingStreamID
-                                    AND r.documentType = @DocumentType
-                                    AND r.deleted = false",
+                                    AND r.documentType = @DocumentType" +
+                                    (includeDeleted ? string.Empty : " AND r.deleted = false"),
                 Parameters = new[]
                 {
                     new CosmosDbQueryParameter("@FundingStreamID", fundingStreamId),
@@ -92,7 +92,16 @@ namespace CalculateFunding.Services.Users
         {
             Guard.ArgumentNotNull(fundingStreamPermission, nameof(fundingStreamPermission));
 
-            return await _cosmosRepository.UpsertAsync(fundingStreamPermission, fundingStreamPermission.UserId);
+            return await _cosmosRepository.UpsertAsync(fundingStreamPermission, fundingStreamPermission.UserId, undelete: true);
+        }
+
+        public async Task<HttpStatusCode> DeleteFundingStreamPermission(FundingStreamPermission fundingStreamPermission)
+        {
+            Guard.ArgumentNotNull(fundingStreamPermission, nameof(fundingStreamPermission));
+            
+            //keep getting a bad request when I use this delete path so using bulk delete method for now
+            await _cosmosRepository.BulkDeleteAsync(new[] { new KeyValuePair<string, FundingStreamPermission>(fundingStreamPermission.UserId, fundingStreamPermission) });
+            return HttpStatusCode.OK;
         }
 
         public async Task<IEnumerable<FundingStreamPermission>> GetFundingStreamPermissions(string userId)
@@ -128,6 +137,12 @@ namespace CalculateFunding.Services.Users
                 }
             };
             return await _cosmosRepository.QuerySql<FundingStreamPermission>(cosmosDbQuery);
+        }
+
+
+        public async Task<IEnumerable<User>> GetUsers()
+        {
+            return await _cosmosRepository.Query<User>();
         }
 
         public async Task<IEnumerable<User>> GetAllUsers()

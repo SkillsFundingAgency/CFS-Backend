@@ -18,7 +18,9 @@ namespace CalculateFunding.Api.Users.UnitTests
                 { "SearchServiceKey", "test" },
                 { "CosmosDbSettings:ContainerName", "users" },
                 { "CosmosDbSettings:DatabaseName", "calculate-funding" },
-                { "CosmosDbSettings:ConnectionString", "AccountEndpoint=https://test.documents.azure.com:443/;AccountKey=dGVzdA==;" }
+                { "CosmosDbSettings:ConnectionString", "AccountEndpoint=https://test.documents.azure.com:443/;AccountKey=dGVzdA==;" },
+                { "jobsClient:ApiEndpoint", "https://localhost:7010/api/"},
+                { "jobsClient:ApiKey", "Local"},
             };
 
             return configData;

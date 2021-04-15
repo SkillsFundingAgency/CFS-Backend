@@ -1,0 +1,52 @@
+{
+	"name": "userindex",
+  "fields": [
+    {
+      "name": "id",
+      "type": "Edm.String",
+      "key": true,
+      "facetable": false,
+      "filterable": false,
+      "retrievable": true,
+      "searchable": false,
+      "sortable": false,
+      "analyzer": null,
+      "searchAnalyzer": null,
+      "indexAnalyzer": null
+    },
+    {
+      "name": "name",
+      "type": "Edm.String",
+      "key": false,
+      "facetable": true,
+      "filterable": true,
+      "retrievable": true,
+      "searchable": true,
+      "sortable": true,
+      "analyzer": null,
+      "searchAnalyzer": null,
+      "indexAnalyzer": null
+    },
+    {
+        "name": "userName",
+        "type": "Edm.String",
+        "key": false,
+        "facetable": true,
+        "filterable": true,
+        "retrievable": true,
+        "searchable": true,
+        "sortable": true,
+        "analyzer": null,
+        "searchAnalyzer": null,
+        "indexAnalyzer": null
+      }
+],
+"scoringProfiles": [],
+"suggesters": [],
+"corsOptions": null,
+"defaultScoringProfile": null,
+"analyzers": [],
+"charFilters": [],
+"tokenizers": [],
+"tokenFilters": []
+}

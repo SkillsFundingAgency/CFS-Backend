@@ -11,7 +11,7 @@ namespace CalculateFunding.Services.Users.Interfaces
 
         Task<HttpStatusCode> SaveUser(User user);
 
-        Task<FundingStreamPermission> GetFundingStreamPermission(string userId, string fundingStreamId);
+        Task<FundingStreamPermission> GetFundingStreamPermission(string userId, string fundingStreamId, bool includeDeleted = false);
 
         Task<IEnumerable<FundingStreamPermission>> GetFundingStreamPermissions(string userId);
 
@@ -19,6 +19,8 @@ namespace CalculateFunding.Services.Users.Interfaces
 
         Task<HttpStatusCode> UpdateFundingStreamPermission(FundingStreamPermission fundingStreamPermission);
 
+        Task<HttpStatusCode> DeleteFundingStreamPermission(FundingStreamPermission fundingStreamPermission);
+        Task<IEnumerable<User>> GetUsers();
         Task<IEnumerable<User>> GetAllUsers();
     }
 }

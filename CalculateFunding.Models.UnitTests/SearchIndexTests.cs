@@ -10,6 +10,7 @@ using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.UnitTests.SearchIndexModels;
+using CalculateFunding.Models.Users;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 
@@ -87,6 +88,7 @@ namespace CalculateFunding.Models.UnitTests
             PublishedProviderIndex publishedProviderIndex = new PublishedProviderIndex();
             SpecificationIndex specificationindex = new SpecificationIndex();
             TemplateIndex templateIndex = new TemplateIndex();
+            UserIndex userIndex = new UserIndex();
 
             IEnumerable<Type> searchIndexTypes = GetTypesWithSearchIndexAttribute();
 
@@ -180,6 +182,7 @@ namespace CalculateFunding.Models.UnitTests
             PublishedProviderIndex publishedProviderIndex = new PublishedProviderIndex();
             SpecificationIndex specificationindex = new SpecificationIndex();
             TemplateIndex templateIndex = new TemplateIndex();
+            UserIndex userIndex = new UserIndex();
 
             IEnumerable<Type> searchIndexTypes = GetTypesWithSearchIndexAttribute();
 

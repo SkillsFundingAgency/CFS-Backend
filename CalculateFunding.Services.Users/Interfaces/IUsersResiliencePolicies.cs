@@ -12,6 +12,9 @@ namespace CalculateFunding.Services.Users.Interfaces
 
         AsyncPolicy CacheProviderPolicy { get; set; }
 
+        AsyncPolicy UsersSearchRepository { get; set; }
+
         AsyncPolicy BlobClient { get; set; }
+
     }
 }

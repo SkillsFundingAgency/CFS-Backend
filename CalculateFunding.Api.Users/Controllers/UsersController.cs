@@ -13,14 +13,17 @@ namespace CalculateFunding.Api.Users.Controllers
     {
         private readonly IUserService _userService;
         private readonly IFundingStreamPermissionService _fundingStreamPermissionService;
+        private readonly IUserIndexingService _userIndexingService;
 
-        public UsersController(IUserService userService, IFundingStreamPermissionService fundingStreamPermissionService)
+        public UsersController(IUserService userService, IFundingStreamPermissionService fundingStreamPermissionService, IUserIndexingService userIndexingService)
         {
             Guard.ArgumentNotNull(userService, nameof(userService));
             Guard.ArgumentNotNull(fundingStreamPermissionService, nameof(fundingStreamPermissionService));
+            Guard.ArgumentNotNull(userIndexingService, nameof(userIndexingService));
 
             _userService = userService;
             _fundingStreamPermissionService = fundingStreamPermissionService;
+            _userIndexingService = userIndexingService;
         }
 
         [Route("api/users/confirm-skills")]
@@ -63,6 +66,15 @@ namespace CalculateFunding.Api.Users.Controllers
         public async Task<IActionResult> RunGetEffectivePermissionsForUser([FromRoute]string userId, [FromRoute]string specificationId)
         {
             return await _fundingStreamPermissionService.GetEffectivePermissionsForUser(userId, specificationId);
+        }
+
+
+        [Route("api/users/reindex")]
+        [HttpGet]
+        [ProducesResponseType(204)]
+        public async Task<IActionResult> ReIndex()
+        {
+            return await _userIndexingService.ReIndex(Request.GetUser(), Request.GetCorrelationId());
         }
 
         [Route("api/users/effectivepermissions/generate-report/{fundingStreamId}")]

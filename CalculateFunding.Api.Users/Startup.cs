@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using CalculateFunding.Common.Config.ApiClient.Specifications;
+using CalculateFunding.Common.Config.ApiClient.Jobs;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
@@ -27,6 +28,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Polly.Bulkhead;
 using System;
+using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Repositories.Common.Search;
+using ServiceCollectionExtensions = CalculateFunding.Services.Core.Extensions.ServiceCollectionExtensions;
 
 namespace CalculateFunding.Api.Users
 {
@@ -113,6 +117,17 @@ namespace CalculateFunding.Api.Users
                .AddSingleton<IHealthChecker, FundingStreamPermissionService>();
 
             builder
+                .AddSingleton<IUserIndexingService, UserIndexingService>();
+
+            builder
+               .AddSingleton<IJobManagement, JobManagement>();
+
+            builder.AddSearch(Configuration);
+
+            builder
+             .AddSingleton<ISearchRepository<UserIndex>, SearchRepository<UserIndex>>();
+
+            builder
                 .AddSingleton<ICsvUtils, CsvUtils>()
                 .AddSingleton<IFileSystemAccess, FileSystemAccess>()
                 .AddSingleton<IFileSystemCacheSettings, FileSystemCacheSettings>();
@@ -133,6 +148,7 @@ namespace CalculateFunding.Api.Users
                 .AddSingleton<IUsersCsvTransformServiceLocator, FundingStreamPermissionsUsersCsvTransformServiceLocator>()
                 .AddSingleton<IUsersCsvTransform, FundingStreamUserPermissionsCsvTransform>()
                 .AddSingleton<IUsersCsvGenerator, FundingStreamPermissionsUsersCsvGenerator>();
+
 
             builder.AddSingleton<IValidator<UserCreateModel>, UserCreateModelValidator>();
 
@@ -168,21 +184,33 @@ namespace CalculateFunding.Api.Users
 
             builder.AddPolicySettings(Configuration);
 
+            PolicySettings policySettings = ServiceCollectionExtensions.GetPolicySettings(Configuration);
+
+            AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+
             builder.AddSingleton<IUsersResiliencePolicies>((ctx) =>
             {
-                PolicySettings policySettings = ctx.GetService<PolicySettings>();
-
-                AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
-
                 return new UsersResiliencePolicies
                 {
                     FundingStreamPermissionVersionRepositoryPolicy = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     CacheProviderPolicy = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy),
                     SpecificationApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     UserRepositoryPolicy = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                    UsersSearchRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     BlobClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
+
+            builder.AddSingleton<IJobManagementResiliencePolicies>((ctx) =>
+            {
+                return new JobManagementResiliencePolicies()
+                {
+                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                };
+
+            });
+
+            builder.AddServiceBus(Configuration);
 
             builder.AddCaching(Configuration);
 
@@ -197,6 +225,7 @@ namespace CalculateFunding.Api.Users
             builder.AddHealthCheckMiddleware();
 
             builder.AddSpecificationsInterServiceClient(Configuration);
+            builder.AddJobsInterServiceClient(Configuration);
 
             if (Configuration.IsSwaggerEnabled())
             {

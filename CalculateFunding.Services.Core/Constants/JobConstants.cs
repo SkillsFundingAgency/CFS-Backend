@@ -87,6 +87,8 @@
 
             public const string RunConverterDatasetMergeJob = nameof(RunConverterDatasetMergeJob);
 
+            public const string ReIndexUsersJob = nameof(ReIndexUsersJob);
+
             public const string GenerateFundingStreamPermissionsCsvJob = nameof(GenerateFundingStreamPermissionsCsvJob);
 
         }

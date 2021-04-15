@@ -405,7 +405,7 @@ namespace CalculateFunding.Services.Users
             };
 
             userRepository
-                .GetFundingStreamPermission(Arg.Is(UserId), Arg.Is(FundingStreamId))
+                .GetFundingStreamPermission(Arg.Is(UserId), Arg.Is(FundingStreamId), Arg.Is(true))
                 .Returns(existingPermission);
 
             userRepository
@@ -575,6 +575,128 @@ namespace CalculateFunding.Services.Users
             await cacheProvider
                 .Received(0)
                 .DeleteHashSet(Arg.Is($"{CacheKeys.EffectivePermissions}:{UserId}"));
+        }
+
+        [TestMethod]
+        public async Task UpdatePermissionForUser_WhenPermissionsAreSetOnAFundingStreamAndRemoveAllExistingPermissions_ThenPermissionsDeleteInRepository()
+        {
+            // Arrange
+            IUserRepository userRepository = CreateUserRepository();
+            User user = new User()
+            {
+                UserId = UserId
+            };
+
+            userRepository
+                .GetUserById(Arg.Is(UserId))
+                .Returns(user);
+
+            FundingStreamPermission existingPermission = new FundingStreamPermission()
+            {
+                UserId = UserId,
+                FundingStreamId = FundingStreamId,
+                CanApproveFunding = true,
+                CanChooseFunding = true,
+                CanCreateSpecification = false,
+                CanEditCalculations = false,
+                CanEditSpecification = false,
+                CanMapDatasets = false,
+                CanReleaseFunding = false,
+                CanApproveTemplates = true,
+                CanCreateProfilePattern = false,
+                CanEditProfilePattern = false,
+                CanDeleteProfilePattern = false,
+                CanAssignProfilePattern = false,
+                CanApplyCustomProfilePattern = false,
+                CanApproveCalculations = false,
+                CanApproveAnyCalculations = true,
+                CanApproveAllCalculations = true
+            };
+
+            userRepository
+                .GetFundingStreamPermission(Arg.Is(UserId), Arg.Is(FundingStreamId), Arg.Is(true))
+                .Returns(existingPermission);
+
+            userRepository
+                .DeleteFundingStreamPermission(Arg.Any<FundingStreamPermission>())
+                .Returns(HttpStatusCode.OK);
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
+            FundingStreamPermissionUpdateModel updateModel = new FundingStreamPermissionUpdateModel()
+            {
+                CanApproveFunding = false,
+                CanChooseFunding = false,
+                CanCreateSpecification = false,
+                CanEditCalculations = false,
+                CanEditSpecification = false,
+                CanMapDatasets = false,
+                CanReleaseFunding = false,
+                CanApproveTemplates = false,
+                CanCreateProfilePattern = false,
+                CanEditProfilePattern = false,
+                CanDeleteProfilePattern = false,
+                CanAssignProfilePattern = false,
+                CanApplyCustomProfilePattern = false,
+                CanApproveCalculations = false,
+                CanApproveAnyCalculations = false,
+                CanApproveAllCalculations = false
+            };
+
+            IVersionRepository<FundingStreamPermissionVersion> versionRepository = CreateFundingStreamPermissionRepository();
+
+            FundingStreamPermissionService service = CreateService(
+                userRepository,
+                fundingStreamPermissionVersionRepository: versionRepository,
+                cacheProvider: cacheProvider);
+
+            // Act
+            IActionResult result = await service.UpdatePermissionForUser(UserId, FundingStreamId, updateModel, null);
+
+            // Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .BeEquivalentTo<FundingStreamPermissionCurrent>(new FundingStreamPermissionCurrent()
+                {
+                    UserId = UserId,
+                    FundingStreamId = FundingStreamId,
+                    CanApproveFunding = false,
+                    CanChooseFunding = false,
+                    CanCreateSpecification = false,
+                    CanEditCalculations = false,
+                    CanEditSpecification = false,
+                    CanMapDatasets = false,
+                    CanReleaseFunding = false,
+                    CanApproveTemplates = false,
+                    CanCreateProfilePattern = false,
+                    CanEditProfilePattern = false,
+                    CanDeleteProfilePattern = false,
+                    CanAssignProfilePattern = false,
+                    CanApplyCustomProfilePattern = false,
+                    CanApproveCalculations = false,
+                    CanApproveAnyCalculations = false,
+                    CanApproveAllCalculations = false
+                });
+
+            await userRepository
+               .Received(1)
+               .DeleteFundingStreamPermission(Arg.Is<FundingStreamPermission>(x => x.UserId == UserId && x.FundingStreamId == FundingStreamId));
+
+            await cacheProvider
+                .Received(1)
+                .DeleteHashSet(Arg.Is($"{CacheKeys.EffectivePermissions}:{UserId}"));
+
+            await versionRepository
+               .Received(1)
+               .SaveVersion(Arg.Any<FundingStreamPermissionVersion>(), Arg.Is(UserId));
+
+            await versionRepository
+               .Received(1)
+               .GetNextVersionNumber(Arg.Any<FundingStreamPermissionVersion>(), 0, Arg.Is(UserId));
         }
     }
 }

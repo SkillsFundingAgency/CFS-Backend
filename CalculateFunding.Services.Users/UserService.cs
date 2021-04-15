@@ -1,10 +1,15 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Users;
 using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Users.Interfaces;
 using FluentValidation;
@@ -144,5 +149,6 @@ namespace CalculateFunding.Services.Users
 
             return user;
         }
+
     }
 }
