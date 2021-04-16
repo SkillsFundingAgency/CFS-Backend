@@ -1214,13 +1214,140 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
+        public async Task CreateOrUpdateDatasetDefinition_GivenTemplateMetadataWithNonNullableCalculationDefinition_ShouldFailSaveDatasetDefinitionSuccessfuly()
+        {
+            //Arrange
+            string fundingStreamId = NewRandomString();
+            string fundingStreamName = NewRandomString();
+            string fundingPeriodId = NewRandomString();
+            string templateVersion = $"{NewRandomNumberBetween(0, 100)}.{NewRandomNumberBetween(0, 100)}";
+            int definitionId = NewRandomNumberBetween(0, int.MaxValue);
+            string definitionName = $"{fundingStreamName}-{templateVersion}";
+
+            CreateDatasetDefinitionFromTemplateModel model = new CreateDatasetDefinitionFromTemplateModel()
+            {
+                FundingStreamId = fundingStreamId,
+                FundingPeriodId = fundingPeriodId,
+                TemplateVersion = templateVersion,
+                DatasetDefinitionId = definitionId
+            };
+            string correlationId = NewRandomString();
+            Reference user = new Reference(NewRandomString(), NewRandomString());
+            FundingStream fundingStream = NewApiFundingStream(_ => _.WithId(fundingStreamId).WithName(fundingStreamName));
+
+            string templateMetadataCalculationBooleanId = $"2_{NewRandomString()}";
+
+            TemplateMetadataDistinctCalculationsContents contents = new TemplateMetadataDistinctCalculationsContents()
+            {
+                FundingStreamId = fundingStreamId,
+                FundingPeriodId = fundingPeriodId,
+                TemplateVersion = templateVersion,
+                Calculations = new List<TemplateMetadataCalculation>()
+                {
+                    new TemplateMetadataCalculation()
+                    {
+                        Name = templateMetadataCalculationBooleanId,
+                        Type = Common.TemplateMetadata.Enums.CalculationType.Boolean,
+                        AggregationType = Common.TemplateMetadata.Enums.AggregationType.None
+                    }
+                }
+            };
+
+            ILogger logger = CreateLogger();
+
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingStreams()
+                .Returns(new[] { fundingStream });
+            policyRepository
+                .GetFundingStream(Arg.Is(fundingStreamId))
+                .Returns(fundingStream);
+            policyRepository
+                .GetDistinctTemplateMetadataCalculationsContents(Arg.Is(fundingStreamId), Arg.Is(fundingPeriodId), Arg.Is(templateVersion))
+                .Returns(contents);
+
+            HttpStatusCode statusCode = HttpStatusCode.Created;
+
+            DatasetDefinitionIndex existingIndex = new DatasetDefinitionIndex()
+            {
+                Description = definitionName,
+                Id = definitionId.ToString(),
+                LastUpdatedDate = new DateTimeOffset(2018, 6, 19, 14, 10, 2, TimeSpan.Zero),
+                ModelHash = "OLDHASH",
+                Name = definitionName,
+                ProviderIdentifier = "None",
+            };
+
+            IDatasetRepository datasetsRepository = CreateDataSetsRepository();
+            datasetsRepository
+                .SaveDefinition(Arg.Any<DatasetDefinition>())
+                .Returns(statusCode);
+
+            ISearchRepository<DatasetDefinitionIndex> searchRepository = CreateDatasetDefinitionSearchRepository();
+            searchRepository
+                .SearchById(Arg.Is(definitionId.ToString()))
+                .Returns(existingIndex);
+
+            byte[] excelAsBytes = new byte[100];
+
+            IExcelDatasetWriter excelWriter = CreateExcelWriter();
+            excelWriter
+                .Write(Arg.Any<DatasetDefinition>())
+                .Returns(excelAsBytes);
+
+            ICloudBlob blob = Substitute.For<ICloudBlob>();
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .GetBlockBlobReference(Arg.Any<string>())
+                .Returns(blob);
+
+            DatasetDefinitionChanges datasetDefinitionChanges = new DatasetDefinitionChanges();
+
+            IDefinitionChangesDetectionService definitionChangesDetectionService = CreateChangesDetectionService();
+            definitionChangesDetectionService
+                .DetectChanges(Arg.Any<DatasetDefinition>(), Arg.Any<DatasetDefinition>())
+                .Returns(datasetDefinitionChanges);
+
+            DefinitionsService service = CreateDefinitionsService(
+                logger,
+                datasetsRepository,
+                searchRepository,
+                excelWriter: excelWriter,
+                blobClient: blobClient,
+                definitionChangesDetectionService: definitionChangesDetectionService,
+                policyRepository: policyRepository);
+
+            //Act
+            IActionResult result = await service.CreateOrUpdateDatasetDefinition(model, correlationId, user);
+
+            //Assert
+
+            string errorMessage = @$"Unable to upload dataset definition as there are field definitions which should not be null. Here are the fields
+Name: {templateMetadataCalculationBooleanId} Type: Boolean
+";
+
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .Be(errorMessage);
+
+            logger
+                .Received(1)
+                .Error(Arg.Is(errorMessage));
+        }
+
+        [TestMethod]
         public async Task CreateOrUpdateDatasetDefinition_GivenFundingTemplate_ShouldSaveDatasetDefinitionSuccessfuly()
         {
             //Arrange
             string fundingStreamId = NewRandomString();
             string fundingStreamName = NewRandomString();
             string fundingPeriodId = NewRandomString();
-            string templateVersion = $"{NewRandomNumberBetween(0, 100).ToString()}.{NewRandomNumberBetween(0, 100).ToString()}";
+            string templateVersion = $"{NewRandomNumberBetween(0, 100)}.{NewRandomNumberBetween(0, 100)}";
             int definitionId = NewRandomNumberBetween(0, int.MaxValue);
             string definitionName = $"{fundingStreamName}-{templateVersion}";
 
@@ -1247,12 +1374,6 @@ namespace CalculateFunding.Services.Datasets.Services
                         Name = $"1_{NewRandomString()}",
                         Type = Common.TemplateMetadata.Enums.CalculationType.Number,
                         AggregationType = Common.TemplateMetadata.Enums.AggregationType.Sum
-                    },
-                    new TemplateMetadataCalculation()
-                    {
-                        Name = $"2_{NewRandomString()}",
-                        Type = Common.TemplateMetadata.Enums.CalculationType.Boolean,
-                        AggregationType = Common.TemplateMetadata.Enums.AggregationType.None
                     },
                     new TemplateMetadataCalculation()
                     {
@@ -1367,10 +1488,6 @@ namespace CalculateFunding.Services.Datasets.Services
                     i.TableDefinitions[0].FieldDefinitions.Single(x => x.Name.StartsWith("1")).Required == false &&
                     i.TableDefinitions[0].FieldDefinitions.Single(x => x.Name.StartsWith("1")).Type == FieldType.NullableOfDecimal &&
                     i.TableDefinitions[0].FieldDefinitions.Single(x => x.Name.StartsWith("1")).IsAggregable == true &&
-
-                    i.TableDefinitions[0].FieldDefinitions.Single(x => x.Name.StartsWith("2")).Required == false &&
-                    i.TableDefinitions[0].FieldDefinitions.Single(x => x.Name.StartsWith("2")).Type == FieldType.Boolean &&
-                    i.TableDefinitions[0].FieldDefinitions.Single(x => x.Name.StartsWith("2")).IsAggregable == false &&
 
                     i.TableDefinitions[0].FieldDefinitions.Single(x => x.Name.StartsWith("3")).Required == false &&
                     i.TableDefinitions[0].FieldDefinitions.Single(x => x.Name.StartsWith("3")).Type == FieldType.String &&
@@ -1508,6 +1625,7 @@ namespace CalculateFunding.Services.Datasets.Services
             yaml.AppendLine(@"  fieldDefinitions:");
             yaml.AppendLine(@"  - id: 9189");
             yaml.AppendLine(@"    name: 14/15");
+            yaml.AppendLine(@"    type: String");
             yaml.AppendLine(@"    description: 14/15");
 
             return yaml.ToString();

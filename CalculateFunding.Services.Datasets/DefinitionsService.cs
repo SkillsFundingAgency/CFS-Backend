@@ -105,14 +105,14 @@ namespace CalculateFunding.Services.Datasets
         public async Task<ServiceHealth> IsHealthOk()
         {
             ServiceHealth datasetsRepoHealth = await ((IHealthChecker)_datasetsRepository).IsHealthOk();
-            var searchRepoHealth = await _datasetDefinitionSearchRepository.IsHealthOk();
+            (bool Ok, string Message) = await _datasetDefinitionSearchRepository.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
                 Name = nameof(DefinitionsService)
             };
             health.Dependencies.AddRange(datasetsRepoHealth.Dependencies);
-            health.Dependencies.Add(new DependencyHealth { HealthOk = searchRepoHealth.Ok, DependencyName = _datasetDefinitionSearchRepository.GetType().GetFriendlyName(), Message = searchRepoHealth.Message });
+            health.Dependencies.Add(new DependencyHealth { HealthOk = Ok, DependencyName = _datasetDefinitionSearchRepository.GetType().GetFriendlyName(), Message = Message });
 
             return health;
         }
@@ -127,12 +127,11 @@ namespace CalculateFunding.Services.Datasets
                 return new BadRequestObjectResult($"Invalid yaml was provided for file: {fileName}");
             }
 
-            var deserializer = new DeserializerBuilder()
+            IDeserializer deserializer = new DeserializerBuilder()
                 .WithNamingConvention(new CamelCaseNamingConvention())
                 .Build();
 
-            DatasetDefinition definition = null;
-
+            DatasetDefinition definition;
             try
             {
                 definition = deserializer.Deserialize<DatasetDefinition>(yaml);
@@ -459,6 +458,35 @@ namespace CalculateFunding.Services.Datasets
                     }
                 }
             }
+            else
+            {
+                List<FieldDefinition> errorFieldDefinitions = new List<FieldDefinition>();
+                IEnumerable<FieldDefinition> fieldDefinitions = definition.TableDefinitions?.SelectMany(_ => _.FieldDefinitions);
+                
+                foreach (FieldDefinition fieldDefinition in fieldDefinitions)
+                {
+                    if (!fieldDefinition.Required && IsNonNullableFieldType(fieldDefinition.Type))
+                    {
+                        errorFieldDefinitions.Add(fieldDefinition);
+                    }   
+                }
+
+                if (errorFieldDefinitions.Count > 0)
+                {
+                    StringBuilder errorMessageBuilder = new StringBuilder();
+                    errorMessageBuilder.AppendLine("Unable to upload dataset definition as there are field definitions which should not be null. Here are the fields");
+
+                    foreach (FieldDefinition fieldDefinition in errorFieldDefinitions)
+                    {
+                        errorMessageBuilder.AppendLine($"Name: {fieldDefinition.Name} Type: {fieldDefinition.Type}");
+                    }
+
+                    string errorMessage = errorMessageBuilder.ToString();
+
+                    _logger.Error(errorMessage);
+                    return new BadRequestObjectResult(errorMessage);
+                }
+            }
 
             try
             {
@@ -472,8 +500,8 @@ namespace CalculateFunding.Services.Datasets
                     return new StatusCodeResult(statusCode);
                 }
 
-                IEnumerable<PoliciesApiModels.FundingStream> fundingStreams = await _policyRepository.GetFundingStreams();
-                PoliciesApiModels.FundingStream fundingStream = fundingStreams.SingleOrDefault(_ => _.Id == definition.FundingStreamId);
+                IEnumerable<FundingStream> fundingStreams = await _policyRepository.GetFundingStreams();
+                FundingStream fundingStream = fundingStreams.SingleOrDefault(_ => _.Id == definition.FundingStreamId);
 
                 await IndexDatasetDefinition(definition, fundingStream);
             }
@@ -522,5 +550,14 @@ namespace CalculateFunding.Services.Datasets
 
             return new OkResult();
         }
+
+        private static bool IsNonNullableFieldType(FieldType fieldType) =>
+            fieldType == FieldType.Boolean ||
+            fieldType == FieldType.Char ||
+            fieldType == FieldType.Byte ||
+            fieldType == FieldType.Integer ||
+            fieldType == FieldType.Float ||
+            fieldType == FieldType.Decimal ||
+            fieldType == FieldType.DateTime;
     }
 }
