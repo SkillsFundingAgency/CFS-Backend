@@ -3,15 +3,11 @@ using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.DataImporter;
 using Microsoft.Azure.Storage.Blob;
-using Serilog;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.DataImporter.Models;
-using NSubstitute;
-using Newtonsoft.Json.Linq;
-using CalculateFunding.Services.Datasets.Interfaces;
 using FluentAssertions;
 using Moq;
 using OfficeOpenXml;
@@ -40,9 +36,9 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [DataTestMethod]
-        [DataRow("PE_and_Sports_Grant_Data_v1.xlsx", "PE_and_Sports_Grant_Data_v2.xlsx", "PE_and_Sports_Grant_Data_result.xlsx", "TestDatasetDefinition_PSG.json")]
-        [DataRow("DSG_Rate_and_Baselines_data_V1.xlsx", "DSG_Rate_and_Baselines_data_V2.xlsx", "DSG_Rate_and_Baselines_data_result.xlsx", "TestDatasetDefinition_DSG.json")]
-        public async Task Merge_ShouldGetTheNewAndUpdatedData(string latestBlobFileName, string blobFileNameToMerge, string resultsFile, string definitionFileName)
+        [DataRow("PE_and_Sports_Grant_Data_v1.xlsx", "PE_and_Sports_Grant_Data_v2.xlsx", "PE_and_Sports_Grant_Data_v2.xlsx", "PE_and_Sports_Grant_Data_result.xlsx", "TestDatasetDefinition_PSG.json")]
+        [DataRow("DSG_Rate_and_Baselines_data_V1.xlsx", "DSG_Rate_and_Baselines_data_V2.xlsx", "DSG_Rate_and_Baselines_data_V2.xlsx", "DSG_Rate_and_Baselines_data_result.xlsx", "TestDatasetDefinition_DSG.json")]
+        public async Task Merge_ShouldGetTheNewAndUpdatedData(string latestBlobFileName, string blobFileNameToMerge, string blobFileNameFinal, string resultsFile, string definitionFileName)
         {
             DatasetDefinition datasetDefinition = GetDatasetDefinitionByName(definitionFileName);
 
@@ -78,7 +74,7 @@ namespace CalculateFunding.Services.Datasets.Services
                     _?.CopyTo(uploadedStream);
                 });
 
-            DatasetDataMergeResult result = await _service.Merge(datasetDefinition, latestBlobFileName, blobFileNameToMerge, DatasetEmptyFieldEvaluationOption.NA);
+            DatasetDataMergeResult result = await _service.Merge(datasetDefinition, latestBlobFileName, blobFileNameToMerge, blobFileNameFinal, DatasetEmptyFieldEvaluationOption.NA);
 
             result.TablesMergeResults.Count().Should().Be(1);
 

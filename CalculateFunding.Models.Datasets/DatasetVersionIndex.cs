@@ -29,6 +29,10 @@ namespace CalculateFunding.Models.Datasets
         [IsRetrievable(true)]
         public string ChangeNote { get; set; }
 
+        [JsonProperty("changeType")]
+        [IsRetrievable(true)]
+        public string ChangeType { get; set; }
+
         [JsonProperty("version")]
         [IsSortable, IsRetrievable(true)]
         public int Version { get; set; }

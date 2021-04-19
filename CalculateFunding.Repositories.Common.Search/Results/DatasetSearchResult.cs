@@ -24,6 +24,7 @@ namespace CalculateFunding.Repositories.Common.Search.Results
         public int Version { get; set; }
 
         public string ChangeNote { get; set; }
+        public string ChangeType { get; set; }
 
         public string LastUpdatedByName { get; set; }
 

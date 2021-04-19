@@ -28,6 +28,16 @@ namespace CalculateFunding.Services.Core.Extensions
             return new UserProfile(message.GetUserDetails());
         }
 
+        public static string GetOperationId(this Message message)
+        {
+            string operationId = null;
+            if (message.UserProperties.ContainsKey("operation-id"))
+            {
+                operationId = message.UserProperties["operation-id"]?.ToString();
+            }
+            return operationId;
+        }
+
         public static T GetPayloadAsInstanceOf<T>(this Message message)
         {
             if (message.Body == null)

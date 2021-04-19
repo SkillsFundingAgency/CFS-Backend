@@ -26,9 +26,5 @@
 
         public DatasetEmptyFieldEvaluationOption EmptyFieldEvaluationOption { get; set; }
 
-        public override string ToString()
-        {
-            return $"{DatasetId}/v{Version}/{Filename}";
-        }
     }
 }

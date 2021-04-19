@@ -209,6 +209,14 @@ namespace CalculateFunding.Api.Datasets.Controllers
             return _datasetService.DownloadDatasetFile(datasetId, datasetVersion);
         }
 
+        [Route("api/datasets/download-dataset-merge-file")]
+        [HttpGet]
+        [Produces(typeof(DatasetDownloadModel))]
+        public Task<IActionResult> DownloadDatasetMergeFile([FromQuery] string datasetId, [FromQuery] string datasetVersion)
+        {
+            return _datasetService.DownloadOriginalDatasetUploadFile(datasetId, datasetVersion);
+        }
+
         [HttpPost("api/datasets/upload-dataset-file/{filename}")]
         [DisableRequestSizeLimit]
         [ProducesResponseType(200)]

@@ -26,8 +26,10 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         Task<IActionResult> GetDatasetsByDefinitionId(string definitionId);
 
         Task<IActionResult> DownloadDatasetFile(string datasetId, string datasetVersion);
+        
+        Task<IActionResult> DownloadOriginalDatasetUploadFile(string datasetId, string datasetVersion);
 
-        Task<IActionResult> UploadDatasetFile(string filename, DatasetMetadataViewModel datasetMetadataViewModel);
+        Task<IActionResult> UploadDatasetFile(string filename, DatasetMetadataViewModel model);
 
         Task<IActionResult> Reindex();
 

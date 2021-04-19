@@ -11,6 +11,7 @@ namespace CalculateFunding.Services.Datasets.Interfaces
             DatasetDefinition datasetDefinition, 
             string latestBlobFileName, 
             string blobFileNameToMerge,
+            string mergedBlobFilePath,
             DatasetEmptyFieldEvaluationOption emptyFieldEvaluationOption);
     }
 }

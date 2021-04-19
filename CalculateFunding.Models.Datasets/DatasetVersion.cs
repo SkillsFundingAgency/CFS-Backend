@@ -7,10 +7,8 @@ namespace CalculateFunding.Models.Datasets
     public class DatasetVersion : VersionedItem
     {
         //AB: These 2 properties are not required yet, will be updated during the story
-        [JsonProperty("id")]
         public override string Id => "";
 
-        [JsonProperty("entityId")]
         public override string EntityId => "";
 
         public string BlobName { get; set; }
@@ -20,6 +18,11 @@ namespace CalculateFunding.Models.Datasets
         public int NewRowCount { get; set; }
 
         public int AmendedRowCount { get; set; }
+        
+        public string UploadedBlobFilePath { get; set; }
+        public string MergeBlobFilePath { get; set; }
+
+        public DatasetChangeType ChangeType { get; set; }
 
         public Reference FundingStream { get; set; }
 
@@ -36,7 +39,8 @@ namespace CalculateFunding.Models.Datasets
                 BlobName = BlobName,
                 FundingStream = FundingStream,
                 NewRowCount = NewRowCount,
-                AmendedRowCount = AmendedRowCount
+                AmendedRowCount = AmendedRowCount,
+                ChangeType = ChangeType
             };
         }
     }

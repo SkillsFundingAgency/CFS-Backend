@@ -249,6 +249,7 @@ namespace CalculateFunding.Services.Datasets
                     Description = m.Result.Description,
                     Version = m.Result.Version,
                     ChangeNote = m.Result.ChangeNote,
+                    ChangeType = m.Result.ChangeType,
                     LastUpdatedByName = m.Result.LastUpdatedByName,
                     LastUpdatedById = m.Result.LastUpdatedById,
                     FundingStreamId = m.Result.FundingStreamId,

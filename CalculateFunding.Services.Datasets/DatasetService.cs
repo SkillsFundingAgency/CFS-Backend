@@ -142,7 +142,7 @@ namespace CalculateFunding.Services.Datasets
         public async Task<ServiceHealth> IsHealthOk()
         {
             (bool Ok, string Message) blobHealth = await _blobClient.IsHealthOk();
-            ServiceHealth datasetsRepoHealth = await ((IHealthChecker)_datasetRepository).IsHealthOk();
+            ServiceHealth datasetsRepoHealth = await ((IHealthChecker) _datasetRepository).IsHealthOk();
             (bool Ok, string Message) searchRepoHealth = await _datasetIndexSearchRepository.IsHealthOk();
             (bool Ok, string Message) searchIndexVersionHealth = await _datasetVersionIndexRepository.IsHealthOk();
             (bool Ok, string Message) cacheHealth = await _cacheProvider.IsHealthOk();
@@ -151,11 +151,11 @@ namespace CalculateFunding.Services.Datasets
             {
                 Name = nameof(DatasetService)
             };
-            health.Dependencies.Add(new DependencyHealth { HealthOk = blobHealth.Ok, DependencyName = _blobClient.GetType().GetFriendlyName(), Message = blobHealth.Message });
+            health.Dependencies.Add(new DependencyHealth {HealthOk = blobHealth.Ok, DependencyName = _blobClient.GetType().GetFriendlyName(), Message = blobHealth.Message});
             health.Dependencies.AddRange(datasetsRepoHealth.Dependencies);
-            health.Dependencies.Add(new DependencyHealth { HealthOk = searchRepoHealth.Ok, DependencyName = _datasetIndexSearchRepository.GetType().GetFriendlyName(), Message = searchRepoHealth.Message });
-            health.Dependencies.Add(new DependencyHealth { HealthOk = searchIndexVersionHealth.Ok, DependencyName = _datasetVersionIndexRepository.GetType().GetFriendlyName(), Message = searchIndexVersionHealth.Message });
-            health.Dependencies.Add(new DependencyHealth { HealthOk = cacheHealth.Ok, DependencyName = _cacheProvider.GetType().GetFriendlyName(), Message = cacheHealth.Message });
+            health.Dependencies.Add(new DependencyHealth {HealthOk = searchRepoHealth.Ok, DependencyName = _datasetIndexSearchRepository.GetType().GetFriendlyName(), Message = searchRepoHealth.Message});
+            health.Dependencies.Add(new DependencyHealth {HealthOk = searchIndexVersionHealth.Ok, DependencyName = _datasetVersionIndexRepository.GetType().GetFriendlyName(), Message = searchIndexVersionHealth.Message});
+            health.Dependencies.Add(new DependencyHealth {HealthOk = cacheHealth.Ok, DependencyName = _cacheProvider.GetType().GetFriendlyName(), Message = cacheHealth.Message});
 
             return health;
         }
@@ -167,6 +167,7 @@ namespace CalculateFunding.Services.Datasets
                 _logger.Error("Null model name was provided to CreateNewDataset");
                 return new BadRequestObjectResult("Null model name was provided");
             }
+
             BadRequestObjectResult validationResult = (await _createNewDatasetModelValidator.ValidateAsync(model)).PopulateModelState();
 
             if (validationResult != null)
@@ -174,19 +175,17 @@ namespace CalculateFunding.Services.Datasets
                 return validationResult;
             }
 
-            string version = "v1";
-
             string datasetId = Guid.NewGuid().ToString();
 
-            string fileName = $"{datasetId}/{version}/{model.Filename}";
-
-            string blobUrl = _blobClient.GetBlobSasUrl(fileName,
+            string filePath = GetUploadedBlobFilepath(model.Filename, datasetId, 1);
+            string blobUrl = _blobClient.GetBlobSasUrl(filePath,
                 DateTimeOffset.Now.AddDays(1), SharedAccessBlobPermissions.Read | SharedAccessBlobPermissions.Write);
 
             NewDatasetVersionResponseModel responseModel = _mapper.Map<NewDatasetVersionResponseModel>(model);
 
             responseModel.DatasetId = datasetId;
             responseModel.BlobUrl = blobUrl;
+            responseModel.Filename = model.Filename;
             responseModel.Author = author;
             responseModel.DefinitionId = model.DefinitionId;
             responseModel.FundingStreamId = model.FundingStreamId;
@@ -202,6 +201,7 @@ namespace CalculateFunding.Services.Datasets
                 _logger.Warning($"Null model was provided to {nameof(DatasetVersionUpdate)}");
                 return new BadRequestObjectResult("Null model name was provided");
             }
+
             BadRequestObjectResult validationResult = (await _datasetVersionUpdateModelValidator.ValidateAsync(model)).PopulateModelState();
 
             if (validationResult != null)
@@ -217,13 +217,9 @@ namespace CalculateFunding.Services.Datasets
                 return new PreconditionFailedResult($"Dataset was not found with ID {model.DatasetId} when trying to add new dataset version");
             }
 
-            int nextVersion = dataset.GetNextVersion();
-
-            string version = $"{nextVersion}";
-
-            string fileName = $"{dataset.Id}/v{version}/{model.Filename}";
-
-            string blobUrl = _blobClient.GetBlobSasUrl(fileName,
+            int version = dataset.GetNextVersion();
+            
+            string blobUrl = _blobClient.GetBlobSasUrl(GetUploadedBlobFilepath(model.Filename, model.DatasetId, version),
                 DateTimeOffset.Now.AddDays(1), SharedAccessBlobPermissions.Read | SharedAccessBlobPermissions.Write);
 
             NewDatasetVersionResponseModel responseModel = _mapper.Map<NewDatasetVersionResponseModel>(model);
@@ -234,7 +230,7 @@ namespace CalculateFunding.Services.Datasets
             responseModel.DefinitionId = dataset.Definition.Id;
             responseModel.Name = dataset.Name;
             responseModel.Description = dataset.Description;
-            responseModel.Version = nextVersion;
+            responseModel.Version = version;
             responseModel.FundingStreamId = model.FundingStreamId;
             responseModel.ConverterWizard = model.ConverterWizard;
 
@@ -301,7 +297,7 @@ namespace CalculateFunding.Services.Datasets
             }
 
             IEnumerable<Dataset> datasets = await _datasetRepository.GetDatasetsByQuery(m => m.Content.Definition.Id == definitionId.ToLower());
-            
+
             IEnumerable<DatasetViewModel> result = datasets?.Select(_mapper.Map<DatasetViewModel>).ToArraySafe();
 
             return new OkObjectResult(result ?? Enumerable.Empty<DatasetViewModel>());
@@ -333,7 +329,7 @@ namespace CalculateFunding.Services.Datasets
                 return new BadRequestObjectResult("Null model name was provided");
             }
 
-            ValidationResult validationResult = (await _getDatasetBlobModelValidator.ValidateAsync(model));
+            ValidationResult validationResult = await _getDatasetBlobModelValidator.ValidateAsync(model);
 
             if (validationResult != null && (!validationResult.IsValid || validationResult.Errors.Count > 0))
             {
@@ -342,36 +338,42 @@ namespace CalculateFunding.Services.Datasets
                 return validationResult.PopulateModelState();
             }
 
-            string fullBlobName = model.ToString();
-
-            ICloudBlob blob = await _blobClient.GetBlobReferenceFromServerAsync(fullBlobName);
-
-            if (blob == null)
+            string uploadedBlobFilepath = GetUploadedBlobFilepath(model.Filename, model.DatasetId, model.Version);
+            bool exists = await _blobClient.BlobExistsAsync(uploadedBlobFilepath);
+            if (!exists)
             {
-                _logger.Error($"Failed to find blob with path: {fullBlobName}");
-                return new PreconditionFailedResult($"Failed to find blob with path: {fullBlobName}");
+                _logger.Error($"Blob '{uploadedBlobFilepath}' does not exist.");
+
+                return new NotFoundResult();
+            }
+            
+            ICloudBlob uploadedBlob = await _blobClient.GetBlobReferenceFromServerAsync(uploadedBlobFilepath);
+            if (uploadedBlob == null)
+            {
+                _logger.Error($"Failed to find blob with path: {uploadedBlobFilepath}");
+                return new PreconditionFailedResult($"Failed to find blob with path: {uploadedBlobFilepath}");
             }
 
-            await blob.FetchAttributesAsync();
-            using (Stream datasetStream = await _blobClient.DownloadToStreamAsync(blob))
+            await uploadedBlob.FetchAttributesAsync();
+            using (Stream datasetStream = await _blobClient.DownloadToStreamAsync(uploadedBlob))
             {
                 if (datasetStream == null || datasetStream.Length == 0)
                 {
-                    _logger.Error($"Blob {blob.Name} contains no data");
-                    return new PreconditionFailedResult($"Blob {blob.Name} contains no data");
+                    _logger.Error($"Blob {uploadedBlob.Name} contains no data");
+                    return new PreconditionFailedResult($"Blob {uploadedBlob.Name} contains no data");
                 }
             }
 
-            string dataDefinitionId = blob.Metadata["dataDefinitionId"];
+            string dataDefinitionId = uploadedBlob.Metadata["dataDefinitionId"];
 
             DocumentEntity<DatasetDefinition> datasetDefinitionDocumentEntity =
                 await _datasetRepository.GetDatasetDefinitionDocumentByDatasetDefinitionId(dataDefinitionId);
 
             if (datasetDefinitionDocumentEntity?.Content == null)
             {
-                _logger.Error($"Unable to find a data definition for id: {dataDefinitionId}, for blob: {fullBlobName}");
+                _logger.Error($"Unable to find a data definition for id: {dataDefinitionId}, for blob: {uploadedBlobFilepath}");
 
-                return new PreconditionFailedResult($"Unable to find a data definition for id: {dataDefinitionId}, for blob: {fullBlobName}");
+                return new PreconditionFailedResult($"Unable to find a data definition for id: {dataDefinitionId}, for blob: {uploadedBlobFilepath}");
             }
 
             if (model.MergeExistingVersion)
@@ -380,18 +382,19 @@ namespace CalculateFunding.Services.Datasets
 
                 if (datasetDocumentEntity?.Content == null)
                 {
-                    _logger.Error($"Unable to find a dataset for id: {dataDefinitionId}, for blob: {fullBlobName}");
+                    _logger.Error($"Unable to find a dataset for id: {dataDefinitionId}, for blob: {uploadedBlobFilepath}");
 
-                    return new PreconditionFailedResult($"Unable to find a dataset for id: {dataDefinitionId}, for blob: {fullBlobName}");
+                    return new PreconditionFailedResult($"Unable to find a dataset for id: {dataDefinitionId}, for blob: {uploadedBlobFilepath}");
                 }
 
-                if (datasetDefinitionDocumentEntity.Content.Version > datasetDocumentEntity.Content.Definition.Version) {
+                if (datasetDefinitionDocumentEntity.Content.Version > datasetDocumentEntity.Content.Definition.Version)
+                {
                     string errorMessage =
                         "There has been data schema change since the last version of this data source file was uploaded. Retry uploading with the create new version option";
 
                     _logger.Error(errorMessage);
 
-                    string[] errors = new[] { errorMessage };
+                    string[] errors = new[] {errorMessage};
 
                     return new BadRequestObjectResult(errors.ToModelStateDictionary());
                 }
@@ -402,18 +405,18 @@ namespace CalculateFunding.Services.Datasets
                 OperationId = Guid.NewGuid().ToString(),
             };
 
-            if (blob.Metadata.ContainsKey("datasetId"))
+            if (uploadedBlob.Metadata.ContainsKey("datasetId"))
             {
-                responseModel.DatasetId = blob.Metadata["datasetId"];
-                model.DatasetId = blob.Metadata["datasetId"];
+                responseModel.DatasetId = uploadedBlob.Metadata["datasetId"];
+                model.DatasetId = uploadedBlob.Metadata["datasetId"];
             }
 
             Reference user = new Reference();
 
-            if (blob.Metadata.ContainsKey("authorId") && blob.Metadata.ContainsKey("authorName"))
+            if (uploadedBlob.Metadata.ContainsKey("authorId") && uploadedBlob.Metadata.ContainsKey("authorName"))
             {
-                user.Id = blob.Metadata["authorId"];
-                user.Name = blob.Metadata["authorName"];
+                user.Id = uploadedBlob.Metadata["authorId"];
+                user.Name = uploadedBlob.Metadata["authorName"];
             }
             else
             {
@@ -438,7 +441,7 @@ namespace CalculateFunding.Services.Datasets
                 MessageBody = JsonConvert.SerializeObject(model),
                 Properties = new Dictionary<string, string>
                 {
-                    { "operation-id", responseModel.OperationId }
+                    {"operation-id", responseModel.OperationId}
                 },
                 Trigger = trigger,
                 CorrelationId = correlationId
@@ -457,11 +460,7 @@ namespace CalculateFunding.Services.Datasets
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
-            string operationId = null;
-            if (message.UserProperties.ContainsKey("operation-id"))
-            {
-                operationId = message.UserProperties["operation-id"]?.ToString();
-            }
+            string operationId = message.GetOperationId();
 
             if (string.IsNullOrWhiteSpace(operationId))
             {
@@ -501,12 +500,12 @@ namespace CalculateFunding.Services.Datasets
                 throw new NonRetriableException("Failed Validation - model errors");
             }
 
-            string fullBlobName = model.ToString();
-
-            ICloudBlob blob = await _blobClient.GetBlobReferenceFromServerAsync(fullBlobName);
+            string uploadedBlobFilepath = GetUploadedBlobFilepath(model.Filename, model.DatasetId, model.Version);
+            
+            ICloudBlob blob = await _blobClient.GetBlobReferenceFromServerAsync(uploadedBlobFilepath);
             if (blob == null)
             {
-                string errorMessage = $"Failed to find blob with path: {fullBlobName}";
+                string errorMessage = $"Failed to find blob with path: {uploadedBlobFilepath}";
 
                 _logger.Error(errorMessage);
                 await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, errorMessage);
@@ -548,7 +547,7 @@ namespace CalculateFunding.Services.Datasets
 
             if (datasetDefinition == null)
             {
-                string errorMessage = $"Unable to find a data definition for id: {dataDefinitionId}, for blob: {fullBlobName}";
+                string errorMessage = $"Unable to find a data definition for id: {dataDefinitionId}, for blob: {uploadedBlobFilepath}";
                 _logger.Error(errorMessage);
 
                 await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, errorMessage);
@@ -560,7 +559,7 @@ namespace CalculateFunding.Services.Datasets
 
             if (!fundingStreams.Select(_ => _.Id).Contains(fundingStreamId))
             {
-                string errorMessage = $"Unable to valdate given funding stream ID: {fundingStreamId}";
+                string errorMessage = $"Unable to validate given funding stream ID: {fundingStreamId}";
                 _logger.Error(errorMessage);
 
                 await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, errorMessage);
@@ -585,7 +584,7 @@ namespace CalculateFunding.Services.Datasets
                     await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, null, ConvertToErrorDictionary(validationResult));
                     throw new NonRetriableException($"Failed validation - {GetValidationResultErrors(validationResult)}"); 
                 }
-                else if(model.MergeExistingVersion && dataset != null)
+                else if (model.MergeExistingVersion && dataset != null)
                 {
                     (validationFailures, _) = await ValidateTableResults(datasetDefinition, datasetStream, model.EmptyFieldEvaluationOption, dataset.Current.BlobName);
                     if (validationFailures.Count > 0)
@@ -597,13 +596,21 @@ namespace CalculateFunding.Services.Datasets
                     await NotifyPercentComplete(35);
                     await SetValidationStatus(operationId, DatasetValidationStatus.MergeInprogress);
 
-                    mergeResult = await _datasetDataMergeService.Merge(datasetDefinition, dataset.Current.BlobName, fullBlobName, model.EmptyFieldEvaluationOption);
+                    string mergedBlobFilepath = GetMergedBlobFilepath(model.Filename, model.DatasetId, model.Version);
+                    mergeResult = await _datasetDataMergeService.Merge(datasetDefinition, 
+                        dataset.Current.BlobName, 
+                        uploadedBlobFilepath, 
+                        mergedBlobFilepath, 
+                        model.EmptyFieldEvaluationOption);
 
                     if (!mergeResult.HasChanges)
                     {
                         // no need to update index as we are just saving the merge results
                         dataset.Current.NewRowCount = mergeResult.TotalRowsCreated;
                         dataset.Current.AmendedRowCount = mergeResult.TotalRowsAmended;
+                        dataset.Current.UploadedBlobFilePath = uploadedBlobFilepath;
+                        dataset.Current.MergeBlobFilePath = mergedBlobFilepath;
+                        dataset.Current.ChangeType = model.MergeExistingVersion ? DatasetChangeType.Merge : DatasetChangeType.NewVersion;
 
                         HttpStatusCode statusCode = await _datasetRepository.SaveDataset(dataset);
 
@@ -665,8 +672,7 @@ namespace CalculateFunding.Services.Datasets
                 throw new NonRetriableException($"Failed validation - {GetValidationFailuresValues(validationFailures)}");
             }
 
-            await onValidatedTableResults(message, operationId, datasetDefinition, blob, model, fundingStream,
-                mergeResult, validationRowCount);
+            await SaveDataset(message, operationId, datasetDefinition, blob, model, fundingStream, mergeResult, validationRowCount);
         }
 
         private static string GetValidationResultErrors(ValidationResult validationResult) =>
@@ -675,7 +681,7 @@ namespace CalculateFunding.Services.Datasets
         private static StringBuilder GetValidationFailuresValues(IDictionary<string, IEnumerable<string>> validationFailures)
         {
             StringBuilder errors = new StringBuilder();
-            validationFailures.ForEach(validationFailure => validationFailure.Value.Where(failure=>!string.IsNullOrEmpty(failure)).ForEach(e =>
+            validationFailures.ForEach(validationFailure => validationFailure.Value.Where(failure => !string.IsNullOrEmpty(failure)).ForEach(e =>
             {
                 errors.Append(e);
                 errors.Append(";");
@@ -683,7 +689,7 @@ namespace CalculateFunding.Services.Datasets
             return errors;
         }
 
-        private async Task onValidatedTableResults(Message message, string operationId, DatasetDefinition datasetDefinition,
+        private async Task SaveDataset(Message message, string operationId, DatasetDefinition datasetDefinition,
             ICloudBlob blob, GetDatasetBlobModel model, PoliciesApiModels.FundingStream fundingStream, DatasetDataMergeResult mergeResult, int rowCount)
         {
             Dataset dataset;
@@ -710,8 +716,7 @@ namespace CalculateFunding.Services.Datasets
                         user = message.GetUserDetails();
                     }
 
-                    dataset = await UpdateExistingDatasetAndAddVersion(blob, model, user, rowCount, fundingStream,
-                        mergeResult);
+                    dataset = await UpdateExistingDatasetAndAddVersion(blob, model, user, rowCount, fundingStream, mergeResult);
                 }
 
                 await SetValidationStatus(operationId, DatasetValidationStatus.Validated, datasetId: dataset.Id);
@@ -767,10 +772,10 @@ namespace CalculateFunding.Services.Datasets
         }
 
         private async Task SetValidationStatus(
-            string operationId, 
-            DatasetValidationStatus currentOperation, 
-            string errorMessage = null, 
-            IDictionary<string, IEnumerable<string>> validationFailures = null, 
+            string operationId,
+            DatasetValidationStatus currentOperation,
+            string errorMessage = null,
+            IDictionary<string, IEnumerable<string>> validationFailures = null,
             string datasetId = null)
         {
             DatasetValidationStatusModel status = new DatasetValidationStatusModel
@@ -786,25 +791,24 @@ namespace CalculateFunding.Services.Datasets
             await _cacheProvider.SetAsync($"{CacheKeys.DatasetValidationStatus}:{status.OperationId}", status);
         }
 
-        public async Task<IActionResult> UploadDatasetFile(string filename, DatasetMetadataViewModel datasetMetadataViewModel)
+        public async Task<IActionResult> UploadDatasetFile(string filename, DatasetMetadataViewModel model)
         {
-            string datasetVerion = "v1";
+            string uploadedBlobFilepath = GetUploadedBlobFilepath(filename, model.DatasetId, 1);
+            ICloudBlob blob = _blobClient.GetBlockBlobReference(uploadedBlobFilepath);
 
-            ICloudBlob blob = _blobClient.GetBlockBlobReference($"{datasetMetadataViewModel.DatasetId}/{datasetVerion}/{filename}");
-
-            using (MemoryStream stream = new MemoryStream(datasetMetadataViewModel.Stream))
+            using (MemoryStream stream = new MemoryStream(model.Stream))
             {
                 await blob.UploadFromStreamAsync(stream);
             }
 
-            blob.Metadata["dataDefinitionId"] = datasetMetadataViewModel.DataDefinitionId;
-            blob.Metadata["datasetId"] = datasetMetadataViewModel.DatasetId;
-            blob.Metadata["authorId"] = datasetMetadataViewModel.AuthorId;
-            blob.Metadata["authorName"] = datasetMetadataViewModel.AuthorName;
-            blob.Metadata["name"] = datasetMetadataViewModel.Name;
-            blob.Metadata["description"] = datasetMetadataViewModel.Description;
-            blob.Metadata["fundingStreamId"] = datasetMetadataViewModel.FundingStreamId;
-            blob.Metadata["converterWizard"] = datasetMetadataViewModel.ConverterWizard.ToString();
+            blob.Metadata["dataDefinitionId"] = model.DataDefinitionId;
+            blob.Metadata["datasetId"] = model.DatasetId;
+            blob.Metadata["authorId"] = model.AuthorId;
+            blob.Metadata["authorName"] = model.AuthorName;
+            blob.Metadata["name"] = model.Name;
+            blob.Metadata["description"] = model.Description;
+            blob.Metadata["fundingStreamId"] = model.FundingStreamId;
+            blob.Metadata["converterWizard"] = model.ConverterWizard.ToString();
             blob.SetMetadata();
 
             return new OkResult();
@@ -838,12 +842,51 @@ namespace CalculateFunding.Services.Datasets
 
                 return new StatusCodeResult(412);
             }
-
+            
             string fullBlobName = datasetVersion == -1 ? dataset.Current?.BlobName : dataset.History?.FirstOrDefault(dh => dh.Version == datasetVersion)?.BlobName;
 
+            return await DownloadDatasetFile(currentDatasetId, fullBlobName, datasetVersion);
+        }
+
+        public async Task<IActionResult> DownloadOriginalDatasetUploadFile(string datasetId, string datasetVersionStr)
+        {
+            int datasetVersion = -1;
+
+            if (!string.IsNullOrWhiteSpace(datasetVersionStr))
+            {
+                bool successfullyParsed = int.TryParse(datasetVersionStr, out datasetVersion);
+                if (!successfullyParsed)
+                {
+                    return new BadRequestObjectResult("Invalid value was provided to datasetVersion");
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(datasetId))
+            {
+                _logger.Error($"No {nameof(datasetId)} was provided to {nameof(DownloadDatasetFile)}");
+
+                return new BadRequestObjectResult($"Null or empty {nameof(datasetId)} provided");
+            }
+
+            Dataset dataset = await _datasetRepository.GetDatasetByDatasetId(datasetId);
+
+            if (dataset == null)
+            {
+                _logger.Error($"A dataset could not be found for dataset id: {datasetId}");
+
+                return new StatusCodeResult(412);
+            }
+
+            string fullBlobName = datasetVersion == -1 ? dataset.Current?.UploadedBlobFilePath : dataset.History?.FirstOrDefault(dh => dh.Version == datasetVersion)?.UploadedBlobFilePath;
+
+            return await DownloadDatasetFile(datasetId, fullBlobName, datasetVersion);
+        }
+
+        private async Task<IActionResult> DownloadDatasetFile(string datasetId, string fullBlobName, int datasetVersion)
+        {
             if (string.IsNullOrWhiteSpace(fullBlobName))
             {
-                string errorLog = $"A blob name could not be found for dataset id: {currentDatasetId}";
+                string errorLog = $"A blob name could not be found for dataset id: {datasetId}";
                 if (datasetVersion != -1)
                 {
                     errorLog = $"{errorLog} version: {datasetVersion}";
@@ -864,7 +907,7 @@ namespace CalculateFunding.Services.Datasets
 
             string blobUrl = _blobClient.GetBlobSasUrl(fullBlobName, DateTimeOffset.Now.AddDays(1), SharedAccessBlobPermissions.Read);
 
-            DatasetDownloadModel downloadModel = new DatasetDownloadModel { Url = blobUrl };
+            DatasetDownloadModel downloadModel = new DatasetDownloadModel {Url = blobUrl};
 
             return new OkObjectResult(downloadModel);
         }
@@ -891,11 +934,11 @@ namespace CalculateFunding.Services.Datasets
                     Description = dataset.Content.Description,
                     Version = dataset.Content.Current.Version,
                     ChangeNote = dataset.Content.Current.Comment,
-                    LastUpdatedByName = dataset.Content.Current.Author?.Name,
+                    ChangeType = dataset.Content.Current.ChangeType == DatasetChangeType.Unknown ? DatasetChangeType.NewVersion.ToString() : dataset.Content.Current.ChangeType.ToString(),
                     LastUpdatedById = dataset.Content.Current.Author?.Id,
                     FundingStreamId = dataset.Content.Current.FundingStream?.Id,
                     FundingStreamName = dataset.Content.Current.FundingStream?.Name,
-                    ConverterWizard =dataset.Content.ConverterWizard
+                    ConverterWizard = dataset.Content.ConverterWizard
                 };
 
                 searchEntries.Add(datasetIndex);
@@ -907,6 +950,7 @@ namespace CalculateFunding.Services.Datasets
                         await _datasetIndexSearchRepository.Index(datasetVersionIndexBatch);
                         totalInserts += searchEntries.Count;
                     }
+
                     searchEntries.Clear();
                 }
             }
@@ -933,7 +977,7 @@ namespace CalculateFunding.Services.Datasets
             {
                 foreach (DatasetVersion datasetVersion in dataset.Content.History)
                 {
-                    DatasetVersionIndex datasetVersionIndex = new DatasetVersionIndex()
+                    DatasetVersionIndex datasetVersionIndex = new DatasetVersionIndex
                     {
                         Id = $"{dataset.Id}-{datasetVersion.Version}",
                         DatasetId = dataset.Id,
@@ -957,6 +1001,7 @@ namespace CalculateFunding.Services.Datasets
                             await _datasetVersionIndexRepository.Index(datasetVersionIndexBatch);
                             totalInserts += searchEntries.Count;
                         }
+
                         searchEntries.Clear();
                     }
                 }
@@ -977,7 +1022,8 @@ namespace CalculateFunding.Services.Datasets
 
             if (string.IsNullOrWhiteSpace(specificationId))
             {
-                relationships = await _datasetRepository.GetAllDefinitionSpecificationsRelationships(); ;
+                relationships = await _datasetRepository.GetAllDefinitionSpecificationsRelationships();
+                ;
             }
             else
             {
@@ -1014,9 +1060,9 @@ namespace CalculateFunding.Services.Datasets
                     MessageBody = JsonConvert.SerializeObject(dataset),
                     Properties = new Dictionary<string, string>
                     {
-                        { "specification-id", relationship.Specification.Id },
-                        { "relationship-id", relationship.Id },
-                        { "session-id", relationship.Specification.Id }
+                        {"specification-id", relationship.Specification.Id},
+                        {"relationship-id", relationship.Id},
+                        {"session-id", relationship.Specification.Id}
                     },
                     SpecificationId = relationship.Specification.Id,
                     Trigger = trigger,
@@ -1186,9 +1232,12 @@ namespace CalculateFunding.Services.Datasets
                 Id = metadataModel.DatasetId,
                 Name = metadataModel.Name,
                 Description = metadataModel.Description,
-                Definition = new DatasetDefinitionVersion { Id = datasetDefinition.Id, 
-                                                            Name = datasetDefinition.Name,
-                                                            Version = datasetDefinition.Version },
+                Definition = new DatasetDefinitionVersion
+                {
+                    Id = datasetDefinition.Id,
+                    Name = datasetDefinition.Name,
+                    Version = datasetDefinition.Version
+                },
                 Current = newVersion,
                 History = new List<DatasetVersion>
                 {
@@ -1261,7 +1310,8 @@ namespace CalculateFunding.Services.Datasets
                 RowCount = rowCount,
                 FundingStream = fundingStream,
                 NewRowCount = mergeResult.TotalRowsCreated,
-                AmendedRowCount = mergeResult.TotalRowsAmended
+                AmendedRowCount = mergeResult.TotalRowsAmended,
+                ChangeType = model.Version > 1 && model.MergeExistingVersion ? DatasetChangeType.Merge : DatasetChangeType.NewVersion
             };
 
             dataset.Description = model.Description;
@@ -1310,6 +1360,7 @@ namespace CalculateFunding.Services.Datasets
                     Description = dataset.Description,
                     Version = dataset.Current.Version,
                     ChangeNote = dataset.Current.Comment,
+                    ChangeType = dataset.Current.ChangeType.ToString(),
                     LastUpdatedById = dataset.Current.Author?.Id,
                     LastUpdatedByName = dataset.Current.Author?.Name,
                     FundingStreamId = dataset.Current.FundingStream?.Id,
@@ -1325,7 +1376,7 @@ namespace CalculateFunding.Services.Datasets
 
             return _datasetVersionIndexRepository.Index(new List<DatasetVersionIndex>
             {
-                new DatasetVersionIndex()
+                new DatasetVersionIndex
                 {
                     Id = $"{dataset.Id}-{datasetVersion.Version}",
                     DatasetId = dataset.Id,
@@ -1333,6 +1384,7 @@ namespace CalculateFunding.Services.Datasets
                     Version = datasetVersion.Version,
                     BlobName = datasetVersion.BlobName,
                     ChangeNote = datasetVersion.Comment,
+                    ChangeType = datasetVersion.ChangeType.ToString(),
                     DefinitionName = dataset.Definition.Name,
                     Description = dataset.Description,
                     LastUpdatedDate = datasetVersion.Date,
@@ -1354,8 +1406,8 @@ namespace CalculateFunding.Services.Datasets
 
             ConcurrentBag<ProviderSummary> summaries = new ConcurrentBag<ProviderSummary>();
 
-            ApiResponse<ApiClientProviders.Models.ProviderVersion> providerVersionResponse 
-                = await _providersApiClientPolicy.ExecuteAsync(() => 
+            ApiResponse<ApiClientProviders.Models.ProviderVersion> providerVersionResponse
+                = await _providersApiClientPolicy.ExecuteAsync(() =>
                     _providersApiClient.GetCurrentProvidersForFundingStream(datasetDefinition.FundingStreamId));
 
             if (!providerVersionResponse.StatusCode.IsSuccess() && providerVersionResponse.StatusCode != HttpStatusCode.NotFound)
@@ -1370,15 +1422,12 @@ namespace CalculateFunding.Services.Datasets
             if (providerVersionResponse.StatusCode == HttpStatusCode.NotFound || providerVersionResponse.Content == null || providerVersionResponse.Content.Providers.IsNullOrEmpty())
             {
                 _logger.Error($"No provider version for the funding stream {datasetDefinition.FundingStreamId}");
-                validationFailures.Add(nameof(datasetDefinition.FundingStreamId), new string[] { $"No provider version for the funding stream {datasetDefinition.FundingStreamId}" });
+                validationFailures.Add(nameof(datasetDefinition.FundingStreamId), new string[] {$"No provider version for the funding stream {datasetDefinition.FundingStreamId}"});
 
                 return (validationFailures, rowCount);
             }
 
-            Parallel.ForEach(providerVersionResponse.Content.Providers, (provider) =>
-            {
-                summaries.Add(_mapper.Map<ProviderSummary>(provider));
-            });
+            Parallel.ForEach(providerVersionResponse.Content.Providers, (provider) => { summaries.Add(_mapper.Map<ProviderSummary>(provider)); });
 
             using ExcelPackage excelPackage = new ExcelPackage(datasetStream);
             DatasetUploadValidationModel uploadModel = new DatasetUploadValidationModel(
@@ -1392,6 +1441,7 @@ namespace CalculateFunding.Services.Datasets
             {
                 rowCount = uploadModel.Data.TableLoadResult.Rows.Count;
             }
+
             if (!validationResult.IsValid)
             {
                 excelPackage.Save();
@@ -1403,8 +1453,8 @@ namespace CalculateFunding.Services.Datasets
 
                 await FailValidation(excelPackage.Stream);
 
-                validationFailures.Add("excel-validation-error", new string[] { string.Empty });
-                validationFailures.Add("error-message", new string[] { "The data source file does not match the schema rules" });
+                validationFailures.Add("excel-validation-error", new string[] {string.Empty});
+                validationFailures.Add("error-message", new string[] {"The data source file does not match the schema rules"});
             }
 
             return (validationFailures, rowCount);
@@ -1466,7 +1516,7 @@ namespace CalculateFunding.Services.Datasets
         {
             int totalUpdatedDatasets = 0;
             IEnumerable<Dataset> datasetDocuments = await _datasetRepository.GetDatasetsByQuery(_ => !_.Content.Current.FundingStream.IsDefined() || !_.Content.Definition.Version.IsDefined());
-            
+
             if (datasetDocuments.AnyWithNullCheck())
             {
                 foreach (Dataset dataset in datasetDocuments)
@@ -1475,7 +1525,7 @@ namespace CalculateFunding.Services.Datasets
 
                     if (dataset.Current.FundingStream == null)
                     {
-                        dataset.Current.FundingStream = new Reference { Id = definition.FundingStreamId, Name = definition.FundingStreamId };
+                        dataset.Current.FundingStream = new Reference {Id = definition.FundingStreamId, Name = definition.FundingStreamId};
                     }
 
                     // version has never been set so need to set it here
@@ -1483,6 +1533,7 @@ namespace CalculateFunding.Services.Datasets
                     {
                         dataset.Definition.Version = definition.Version;
                     }
+
                     totalUpdatedDatasets++;
                 }
 
@@ -1510,7 +1561,23 @@ namespace CalculateFunding.Services.Datasets
 
             string blobUrl = _blobClient.GetBlobSasUrl(blobName, DateTimeOffset.UtcNow.AddDays(1), SharedAccessBlobPermissions.Read);
 
-            return new OkObjectResult(new DatasetValidationErrorSasUrlResponseModel { ValidationErrorFileUrl = blobUrl });
+            return new OkObjectResult(new DatasetValidationErrorSasUrlResponseModel {ValidationErrorFileUrl = blobUrl});
+        }
+        
+        private string GetUploadedBlobFilepath(string filename, string datasetId, int version = 1)
+        {
+            string nameWithoutExtension = filename.Substring(0, filename.LastIndexOf('.'));
+            string fileExtension = filename.Substring(filename.LastIndexOf('.'));
+
+            return $"{datasetId}/v{version}/{nameWithoutExtension}.uploaded{fileExtension}";
+        }
+
+        private string GetMergedBlobFilepath(string filename, string datasetId, int version = 1)
+        {
+            string nameWithoutExtension = filename.Substring(0, filename.LastIndexOf('.'));
+            string fileExtension = filename.Substring(filename.LastIndexOf('.'));
+
+            return $"{datasetId}/v{version}/{nameWithoutExtension}.merged{fileExtension}";
         }
     }
 }

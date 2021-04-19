@@ -22,7 +22,7 @@ namespace CalculateFunding.Models.UnitTests
     [TestClass]
     public class SearchIndexTests
     {
-        private string searchIndexDirectoryPath = $@"{AppDomain.CurrentDomain.BaseDirectory}..\..\..\..\DevOps\search-indexes\";
+        private string searchIndexDirectoryPath = $@"{AppDomain.CurrentDomain.BaseDirectory}..\..\..\..\DevOps\search-indexes";
 
         [TestMethod]
         public void SearchIndexTest_GivenSearchModels_EnsureCorrespondingJsonSchemaExists()
@@ -82,14 +82,14 @@ namespace CalculateFunding.Models.UnitTests
         {
             // Arrange
             IList<string> ErrorLog = new List<string>();
+            UserIndex userIndex = new UserIndex();
             DatasetDefinitionIndex datasetDefinitionIndex = new DatasetDefinitionIndex();
             ProvidersIndex providersIndex = new ProvidersIndex();
             PublishedFundingIndex publishedfundingindex = new PublishedFundingIndex();
             PublishedProviderIndex publishedProviderIndex = new PublishedProviderIndex();
             SpecificationIndex specificationindex = new SpecificationIndex();
             TemplateIndex templateIndex = new TemplateIndex();
-            UserIndex userIndex = new UserIndex();
-
+            
             IEnumerable<Type> searchIndexTypes = GetTypesWithSearchIndexAttribute();
 
             IEnumerable<string> indexNames = Directory
@@ -176,13 +176,13 @@ namespace CalculateFunding.Models.UnitTests
         {
             //Arrange
             IList<string> ErrorLog = new List<string>();
+            UserIndex userIndex = new UserIndex();
             DatasetDefinitionIndex datasetDefinitionIndex = new DatasetDefinitionIndex();
             ProvidersIndex providersIndex = new ProvidersIndex();
             PublishedFundingIndex publishedfundingindex = new PublishedFundingIndex();
             PublishedProviderIndex publishedProviderIndex = new PublishedProviderIndex();
             SpecificationIndex specificationindex = new SpecificationIndex();
             TemplateIndex templateIndex = new TemplateIndex();
-            UserIndex userIndex = new UserIndex();
 
             IEnumerable<Type> searchIndexTypes = GetTypesWithSearchIndexAttribute();
 

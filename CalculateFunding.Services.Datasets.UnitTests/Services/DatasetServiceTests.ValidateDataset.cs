@@ -97,9 +97,12 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task ValidateDataset_GivenModelButBlobNotFound_ReturnsPreConditionFailed()
         {
             //Arrange
-            GetDatasetBlobModel getDatasetBlobModel = NewGetDatasetBlobModel();
+            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _
+                .WithDefinitionId(DataDefinitionId)
+                .WithDatasetId(DatasetId)
+                .WithFileName("blah.xlsx"));
 
-            string blobPath = $"{getDatasetBlobModel.DatasetId}/v{getDatasetBlobModel.Version}/{getDatasetBlobModel.Filename}";
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
 
             ILogger logger = CreateLogger();
 
@@ -107,11 +110,15 @@ namespace CalculateFunding.Services.Datasets.Services
             blobClient
                 .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
                 .Returns((ICloudBlob)null);
+            
+            blobClient
+                .BlobExistsAsync(Arg.Any<string>())
+                .Returns(true);
 
             DatasetService service = CreateDatasetService(logger: logger, blobClient: blobClient);
 
             // Act
-            IActionResult result = await service.ValidateDataset(getDatasetBlobModel, null, null);
+            IActionResult result = await service.ValidateDataset(model, null, null);
 
             // Assert
             result
@@ -131,9 +138,12 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task ValidateDataset_GivenModelButAndBlobFoundButBlobHasNoData_ReturnsPreConditionFailed()
         {
             //Arrange
-            GetDatasetBlobModel getDatasetBlobModel = NewGetDatasetBlobModel();
+            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _
+                .WithDefinitionId(DataDefinitionId)
+                .WithDatasetId(DatasetId)
+                .WithFileName("blah.xlsx"));
 
-            string blobPath = $"{getDatasetBlobModel.DatasetId}/v{getDatasetBlobModel.Version}/{getDatasetBlobModel.Filename}";
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
 
             ILogger logger = CreateLogger();
 
@@ -153,6 +163,9 @@ namespace CalculateFunding.Services.Datasets.Services
             MemoryStream memoryStream = new MemoryStream(new byte[0]);
 
             IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .BlobExistsAsync(Arg.Is(blobPath))
+                .Returns(true);
             blobClient
                 .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
                 .Returns(blob);
@@ -179,7 +192,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetService service = CreateDatasetService(logger: logger, blobClient: blobClient, datasetRepository: datasetRepository);
 
             // Act
-            IActionResult result = await service.ValidateDataset(getDatasetBlobModel, null, null);
+            IActionResult result = await service.ValidateDataset(model, null, null);
 
             // Assert
             result
@@ -199,9 +212,12 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task ValidateDataset_GivenModelButAndBlobDataDefinitionNotFound_ReturnsPreConditionFailed()
         {
             // Arrange
-            GetDatasetBlobModel getDatasetBlobModel = NewGetDatasetBlobModel();
+            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _
+                .WithDefinitionId(DataDefinitionId)
+                .WithDatasetId(DatasetId)
+                .WithFileName("blah.xlsx"));
 
-            string blobPath = $"{getDatasetBlobModel.DatasetId}/v{getDatasetBlobModel.Version}/{getDatasetBlobModel.Filename}";
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
 
             ILogger logger = CreateLogger();
 
@@ -219,6 +235,9 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
+                .BlobExistsAsync(Arg.Is(blobPath))
+                .Returns(true);
+            blobClient
                 .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
                 .Returns(blob);
             blobClient
@@ -235,7 +254,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetService service = CreateDatasetService(logger: logger, blobClient: blobClient, datasetRepository: datasetRepository);
 
             // Act
-            IActionResult result = await service.ValidateDataset(getDatasetBlobModel, null, null);
+            IActionResult result = await service.ValidateDataset(model, null, null);
 
             // Assert
             result
@@ -255,11 +274,14 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task OnValidateDataset_GivenTableResultsContainsOneError_EnsuresDatasetValidationModelIsWrittenToCache()
         {
             //Arrange
-            GetDatasetBlobModel getDatasetBlobModel = NewGetDatasetBlobModel();
+            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _
+                .WithDefinitionId(DataDefinitionId)
+                .WithDatasetId(DatasetId)
+                .WithFileName("blah.xlsx"));
 
-            Message message = GetValidateDatasetMessage(getDatasetBlobModel);
-
-            string blobPath = $"{getDatasetBlobModel.DatasetId}/v{getDatasetBlobModel.Version}/{getDatasetBlobModel.Filename}";
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            
+            Message message = GetValidateDatasetMessage(model);
 
             ILogger logger = CreateLogger();
 
@@ -368,9 +390,12 @@ namespace CalculateFunding.Services.Datasets.Services
             //Arrange
             string errorMessage = $"Failed to fetch current providers for funding stream {FundingStreamId} with status code: BadRequest";
 
-            GetDatasetBlobModel model = NewGetDatasetBlobModel();
+            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _
+                .WithDefinitionId(DataDefinitionId)
+                .WithDatasetId(DatasetId)
+                .WithFileName("blah.xlsx"));
 
-            string blobPath = $"{model.DatasetId}/v{model.Version}/{model.Filename}";
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
 
             Message message = GetValidateDatasetMessage(model);
 
@@ -467,9 +492,12 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task OnValidateDataset_GivenNoProvidersForFundingStream_ShouldFailValidationAndLogError()
         {
             //Arrange
-            GetDatasetBlobModel model = NewGetDatasetBlobModel();
+            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _
+                .WithDefinitionId(DataDefinitionId)
+                .WithDatasetId(DatasetId)
+                .WithFileName("blah.xlsx"));
 
-            string blobPath = $"{model.DatasetId}/v{model.Version}/{model.Filename}";
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
 
             Message message = GetValidateDatasetMessage(model);
 
@@ -580,9 +608,10 @@ namespace CalculateFunding.Services.Datasets.Services
             GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _
                 .WithDefinitionId(DataDefinitionId)
                 .WithMergeExistingVersion(true)
-                .WithDatasetId(DatasetId));
+                .WithDatasetId(DatasetId)
+                .WithFileName("blah.xlsx"));
 
-            string blobPath = $"{model.DatasetId}/v{model.Version}/{model.Filename}";
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
 
             ILogger logger = CreateLogger();
 
@@ -599,6 +628,9 @@ namespace CalculateFunding.Services.Datasets.Services
             MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
 
             IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .BlobExistsAsync(Arg.Is(blobPath))
+                .Returns(true);
             blobClient
                 .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
                 .Returns(blob);
@@ -665,9 +697,10 @@ namespace CalculateFunding.Services.Datasets.Services
             // Arrange
             GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _
                 .WithDefinitionId(DataDefinitionId)
-                .WithDatasetId(DatasetId));
+                .WithDatasetId(DatasetId)
+                .WithFileName("blah.xlsx"));
 
-            string blobPath = $"{model.DatasetId}/v{model.Version}/{model.Filename}";
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
 
             ILogger logger = CreateLogger();
 
@@ -684,6 +717,9 @@ namespace CalculateFunding.Services.Datasets.Services
             MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
 
             IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .BlobExistsAsync(Arg.Is(blobPath))
+                .Returns(true);
             blobClient
                 .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
                 .Returns(blob);
@@ -776,9 +812,10 @@ namespace CalculateFunding.Services.Datasets.Services
 
             GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _
                 .WithDefinitionId(DataDefinitionId)
-                .WithDatasetId(DatasetId));
+                .WithDatasetId(DatasetId)
+                .WithFileName("blah.xlsx"));
 
-            string blobPath = $"{model.DatasetId}/v{model.Version}/{model.Filename}";
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
 
             ILogger logger = CreateLogger();
 
@@ -797,6 +834,9 @@ namespace CalculateFunding.Services.Datasets.Services
             MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
 
             IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .BlobExistsAsync(Arg.Is(blobPath))
+                .Returns(true);
             blobClient
                 .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
                 .Returns(blob);
@@ -888,9 +928,11 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task OnValidateDataset_GivenInvalidFundingStreamId_EnsuresFundingStreamIdErrorReturned()
         {
             //Arrange
-            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _.WithDefinitionId(DataDefinitionId));
+            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _
+                .WithDefinitionId(DataDefinitionId)
+                .WithFileName("blah.xlsx"));
 
-            string blobPath = $"{model.DatasetId}/v{model.Version}/{model.Filename}";
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
 
             Message message = GetValidateDatasetMessage(model);
 
@@ -912,6 +954,9 @@ namespace CalculateFunding.Services.Datasets.Services
             MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
 
             IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .BlobExistsAsync(Arg.Is(blobPath))
+                .Returns(true);
             blobClient
                 .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
                 .Returns(blob);
@@ -996,7 +1041,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             logger
                 .Received(1)
-                .Error($"Unable to valdate given funding stream ID: {FundingStreamId}");
+                .Error($"Unable to validate given funding stream ID: {FundingStreamId}");
 
             await cacheProvider
                 .Received(1)
@@ -1005,7 +1050,7 @@ namespace CalculateFunding.Services.Datasets.Services
                     Arg.Is<DatasetValidationStatusModel>(v =>
                         v.OperationId == message.UserProperties["operation-id"].ToString() &&
                         v.CurrentOperation == DatasetValidationStatus.FailedValidation &&
-                        v.ErrorMessage == $"Unable to valdate given funding stream ID: {FundingStreamId}"));
+                        v.ErrorMessage == $"Unable to validate given funding stream ID: {FundingStreamId}"));
             await jobManagement
                 .Received(1)
                 .UpdateJobStatus("job1", 0, 0, false, "Failed Validation - invalid funding stream ID");
@@ -1015,9 +1060,12 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task OnValidateDataset_GivenTableResultsContainsThreeErrors_EnsuresValidationResultModelIsWrittenToCache()
         {
             //Arrange
-            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _.WithDefinitionId(DataDefinitionId));
+            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _
+                .WithDefinitionId(DataDefinitionId)
+                .WithDatasetId(DatasetId)
+                .WithFileName("blah.xlsx"));
 
-            string blobPath = $"{model.DatasetId}/v{model.Version}/{model.Filename}";
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
 
             Message message = GetValidateDatasetMessage(model);
 
@@ -1042,6 +1090,9 @@ namespace CalculateFunding.Services.Datasets.Services
             MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
 
             IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .BlobExistsAsync(Arg.Is(blobPath))
+                .Returns(true);
             blobClient
                 .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
                 .Returns(blob);
@@ -1125,7 +1176,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        public void OnValidateDataset_GivenTableResultsAndMetadatValidatesButFailsToSave_ThrowsInValidOperationException()
+        public void OnValidateDataset_GivenTableResultsAndMetadataValidatesButFailsToSave_ThrowsInValidOperationException()
         {
             //Arrange
             const string authorId = "author-id";
@@ -1133,11 +1184,14 @@ namespace CalculateFunding.Services.Datasets.Services
             const string name = "name";
             const string description = "test description";
 
-            GetDatasetBlobModel model = NewGetDatasetBlobModel();
+            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _
+                .WithDefinitionId(DataDefinitionId)
+                .WithDatasetId(DatasetId)
+                .WithFileName("blah.xlsx"));
+
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
 
             Message message = GetValidateDatasetMessage(model);
-
-            string blobPath = $"{model.DatasetId}/v{model.Version}/{model.Filename}";
 
             IDictionary<string, string> metaData = new Dictionary<string, string>
                 {
@@ -1165,6 +1219,9 @@ namespace CalculateFunding.Services.Datasets.Services
             MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
 
             IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .BlobExistsAsync(Arg.Is(blobPath))
+                .Returns(true);
             blobClient
                 .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
                 .Returns(blob);
@@ -1242,9 +1299,12 @@ namespace CalculateFunding.Services.Datasets.Services
             const string name = "name";
             const bool converterWizard = true;
 
-            GetDatasetBlobModel model = NewGetDatasetBlobModel();
+            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _
+                .WithDefinitionId(DataDefinitionId)
+                .WithDatasetId(DatasetId)
+                .WithFileName("blah.xlsx"));
 
-            string blobPath = $"{model.DatasetId}/v{model.Version}/{model.Filename}";
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
 
             Message message = GetValidateDatasetMessage(model);
 
@@ -1362,9 +1422,13 @@ namespace CalculateFunding.Services.Datasets.Services
             const string authorName = "author-name";
             const string name = "name";
 
-            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _.WithFundingStreamId(FundingStreamId));
+            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _
+                .WithDefinitionId(DataDefinitionId)
+                .WithDatasetId(DatasetId)
+                .WithFundingStreamId(FundingStreamId)
+                .WithFileName("blah.xlsx"));
 
-            string blobPath = $"{model.DatasetId}/v{model.Version}/{model.Filename}";
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
 
             Message message = GetValidateDatasetMessage(model);
 
@@ -1527,6 +1591,9 @@ namespace CalculateFunding.Services.Datasets.Services
             const string updateComment = "Update comment";
 
             GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _
+                .WithDefinitionId(DataDefinitionId)
+                .WithDatasetId(DatasetId)
+                .WithFileName("blah.xlsx")
                 .WithDescription(updatedDescription)
                 .WithComment(updateComment)
                 .WithVersion(2)
@@ -1536,7 +1603,7 @@ namespace CalculateFunding.Services.Datasets.Services
                         .WithId(authorId)
                         .WithName(authorName)));
 
-            string blobPath = $"{model.DatasetId}/v{model.Version}/{model.Filename}";
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
 
             Message message = GetValidateDatasetMessage(model);
 
@@ -1698,7 +1765,7 @@ namespace CalculateFunding.Services.Datasets.Services
                     d.First().Status == "Draft" &&
                     d.First().Version == 2 &&
                     d.First().Description == updatedDescription &&
-                     d.First().LastUpdatedById == authorId &&
+                    d.First().LastUpdatedById == authorId &&
                     d.First().LastUpdatedByName == authorName &&
                     d.First().ChangeNote == updateComment &&
                     d.First().FundingStreamId == model.FundingStreamId &&
@@ -1728,9 +1795,16 @@ namespace CalculateFunding.Services.Datasets.Services
             const string updatedDescription = "Updated description";
             const string updateComment = "Update comment";
 
-            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _.WithDescription(updatedDescription).WithComment(updateComment).WithVersion(2).WithLastUpdatedBy(new ReferenceBuilder().WithId(authorId).WithName(authorName)));
+            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _
+                .WithDefinitionId(DataDefinitionId)
+                .WithDatasetId(DatasetId)
+                .WithFileName("blah.xlsx")
+                .WithDescription(updatedDescription)
+                .WithComment(updateComment)
+                .WithVersion(2)
+                .WithLastUpdatedBy(new ReferenceBuilder().WithId(authorId).WithName(authorName)));
 
-            string blobPath = $"{model.DatasetId}/v{model.Version}/{model.Filename}";
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
 
             Message message = GetValidateDatasetMessage(model);
 
@@ -1873,9 +1947,16 @@ namespace CalculateFunding.Services.Datasets.Services
             const string updatedDescription = "Updated description";
             const string updateComment = "Update comment";
 
-            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _.WithDescription(updatedDescription).WithComment(updateComment).WithVersion(2).WithLastUpdatedBy(new ReferenceBuilder().WithId(authorId).WithName(authorName)));
-
-            string blobPath = $"{model.DatasetId}/v{model.Version}/{model.Filename}";
+            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _
+                .WithDefinitionId(DataDefinitionId)
+                .WithDatasetId(DatasetId)
+                .WithFileName("blah.xlsx")
+                .WithDescription(updatedDescription)
+                .WithComment(updateComment)
+                .WithVersion(2)
+                .WithLastUpdatedBy(new ReferenceBuilder().WithId(authorId).WithName(authorName)));
+            
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
 
             Message message = GetValidateDatasetMessage(model);
 
@@ -2005,9 +2086,16 @@ namespace CalculateFunding.Services.Datasets.Services
             const string updatedDescription = "Updated description";
             const string updateComment = "Update comment";
 
-            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _.WithDescription(updatedDescription).WithComment(updateComment).WithVersion(2).WithLastUpdatedBy(new ReferenceBuilder().WithId(authorId).WithName(authorName)));
-
-            string blobPath = $"{model.DatasetId}/v{model.Version}/{model.Filename}";
+            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _
+                .WithDefinitionId(DataDefinitionId)
+                .WithDatasetId(DatasetId)
+                .WithFileName("blah.xlsx")
+                .WithDescription(updatedDescription)
+                .WithComment(updateComment)
+                .WithVersion(2)
+                .WithLastUpdatedBy(new ReferenceBuilder().WithId(authorId).WithName(authorName)));
+            
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
 
             Message message = GetValidateDatasetMessage(model);
 
@@ -2141,9 +2229,16 @@ namespace CalculateFunding.Services.Datasets.Services
             const string updatedDescription = "Updated description";
             const string updateComment = "Update comment";
 
-            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _.WithDescription(updatedDescription).WithComment(updateComment).WithVersion(2).WithLastUpdatedBy(new ReferenceBuilder().WithId(authorId).WithName(authorName)));
-
-            string blobPath = $"{model.DatasetId}/v{model.Version}/{model.Filename}";
+            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _
+                .WithDefinitionId(DataDefinitionId)
+                .WithDatasetId(DatasetId)
+                .WithFileName("blah.xlsx")
+                .WithDescription(updatedDescription)
+                .WithComment(updateComment)
+                .WithVersion(2)
+                .WithLastUpdatedBy(new ReferenceBuilder().WithId(authorId).WithName(authorName)));
+            
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
 
             Message message = GetValidateDatasetMessage(model);
 
@@ -2506,9 +2601,14 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task OnValidateDataset_WhenGetBlobReferenceFromServerAsyncReturnsNull_ThenErrorLogged()
         {
             // Arrange
-            GetDatasetBlobModel getDatasetBlobModel = NewGetDatasetBlobModel();
+            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _
+                .WithDefinitionId(DataDefinitionId)
+                .WithDatasetId(DatasetId)
+                .WithFileName("blah.xlsx"));
 
-            Message message = GetValidateDatasetMessage(getDatasetBlobModel);
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            
+            Message message = GetValidateDatasetMessage(model);
 
             ILogger logger = CreateLogger();
 
@@ -2545,7 +2645,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             logger
                 .Received(1)
-                .Error(Arg.Is($"Failed to find blob with path: {getDatasetBlobModel.DatasetId}/v{getDatasetBlobModel.Version}/{getDatasetBlobModel.Filename}"));
+                .Error(Arg.Is($"Failed to find blob with path: {blobPath}"));
 
             await cacheProvider
                 .Received(1)
@@ -2562,7 +2662,7 @@ namespace CalculateFunding.Services.Datasets.Services
                  Arg.Is<string>(a => a.StartsWith(CacheKeys.DatasetValidationStatus)),
                  Arg.Is<DatasetValidationStatusModel>(s =>
                      s.CurrentOperation == DatasetValidationStatus.FailedValidation &&
-                     s.ErrorMessage == $"Failed to find blob with path: {getDatasetBlobModel.DatasetId}/v{getDatasetBlobModel.Version}/{getDatasetBlobModel.Filename}" &&
+                     s.ErrorMessage == $"Failed to find blob with path: {blobPath}" &&
                      s.OperationId == message.UserProperties["operation-id"].ToString()
                      ));
         }
@@ -2571,9 +2671,14 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task OnValidateDataset_WhenDownloadToStreamAsyncReturnsNull_ThenErrorLogged()
         {
             // Arrange
-            GetDatasetBlobModel getDatasetBlobModel = NewGetDatasetBlobModel();
+            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _
+                .WithDefinitionId(DataDefinitionId)
+                .WithDatasetId(DatasetId)
+                .WithFileName("blah.xlsx"));
 
-            Message message = GetValidateDatasetMessage(getDatasetBlobModel);
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            
+            Message message = GetValidateDatasetMessage(model);
 
             ILogger logger = CreateLogger();
 
@@ -2589,11 +2694,10 @@ namespace CalculateFunding.Services.Datasets.Services
                 .ValidateAsync(Arg.Any<GetDatasetBlobModel>())
                 .Returns(validationResult);
 
-
             ICloudBlob cloubBlob = Substitute.For<ICloudBlob>();
             cloubBlob
                 .Name
-                .Returns($"{getDatasetBlobModel.DatasetId}/v{getDatasetBlobModel.Version}/{getDatasetBlobModel.Filename}");
+                .Returns(blobPath);
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
@@ -2616,7 +2720,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             logger
                 .Received(1)
-                .Error(Arg.Is($"Blob {getDatasetBlobModel.DatasetId}/v{getDatasetBlobModel.Version}/{getDatasetBlobModel.Filename} contains no data"));
+                .Error(Arg.Is($"Blob {blobPath} contains no data"));
 
             await cacheProvider
                 .Received(1)
@@ -2633,7 +2737,7 @@ namespace CalculateFunding.Services.Datasets.Services
                  Arg.Is<string>(a => a.StartsWith(CacheKeys.DatasetValidationStatus)),
                  Arg.Is<DatasetValidationStatusModel>(s =>
                      s.CurrentOperation == DatasetValidationStatus.FailedValidation &&
-                     s.ErrorMessage == $"Blob {getDatasetBlobModel.DatasetId}/v{getDatasetBlobModel.Version}/{getDatasetBlobModel.Filename} contains no data" &&
+                     s.ErrorMessage == $"Blob {blobPath} contains no data" &&
                      s.OperationId == message.UserProperties["operation-id"].ToString()
                      ));
         }
@@ -2644,8 +2748,15 @@ namespace CalculateFunding.Services.Datasets.Services
             // Arrange
             string dataSetId1 = "id-1";
             string dataSetId2 = "id-2";
+            
+            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _
+                .WithDefinitionId(DataDefinitionId)
+                .WithDatasetId(dataSetId1)
+                .WithFileName("blah.xlsx"));
 
-            Message message = GetValidateDatasetMessage(NewGetDatasetBlobModel(x=>x.WithDatasetId(dataSetId1)));
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+
+            Message message = GetValidateDatasetMessage(model);
 
             ILogger logger = CreateLogger();
 
@@ -2735,7 +2846,15 @@ namespace CalculateFunding.Services.Datasets.Services
             int oldVersionId = 2;
             int newVersionId = 1;
 
-            Message message = GetValidateDatasetMessage(NewGetDatasetBlobModel(x => x.WithDatasetId(dataSetId).WithVersion(newVersionId)));
+            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _
+                .WithDefinitionId(DataDefinitionId)
+                .WithDatasetId(dataSetId)
+                .WithVersion(newVersionId)
+                .WithFileName("blah.xlsx"));
+
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            
+            Message message = GetValidateDatasetMessage(model);
 
             ILogger logger = CreateLogger();
 
@@ -2754,7 +2873,7 @@ namespace CalculateFunding.Services.Datasets.Services
             ICloudBlob cloubBlob = Substitute.For<ICloudBlob>();
             cloubBlob
                 .Name
-                .Returns("dsid/v1/filename.xlsx");
+                .Returns(blobPath);
 
             cloubBlob
                 .Metadata["name"]
@@ -2825,10 +2944,16 @@ namespace CalculateFunding.Services.Datasets.Services
             const string initialDescription = "Initial description";
 
             // Arrange
-            GetDatasetBlobModel getDatasetBlobModel = NewGetDatasetBlobModel(_ => _.WithVersion(2)
-            .WithFundingStreamId(FundingStreamId));
+            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _
+                .WithDefinitionId(DataDefinitionId)
+                .WithDatasetId(DatasetId)
+                .WithFundingStreamId(FundingStreamId)
+                .WithVersion(2)
+                .WithFileName("blah.xlsx"));
 
-            Message message = GetValidateDatasetMessage(getDatasetBlobModel);
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+
+            Message message = GetValidateDatasetMessage(model);
 
             ILogger logger = CreateLogger();
 
@@ -2848,11 +2973,11 @@ namespace CalculateFunding.Services.Datasets.Services
             ICloudBlob cloudBlob = Substitute.For<ICloudBlob>();
             cloudBlob
                 .Name
-                .Returns($"{getDatasetBlobModel.DatasetId}/v{getDatasetBlobModel.Version}/{getDatasetBlobModel.Filename}");
+                .Returns(blobPath);
 
             Dictionary<string, string> blobMetadata = new Dictionary<string, string>();
-            blobMetadata.Add("fundingStreamId", getDatasetBlobModel.FundingStreamId);
-            blobMetadata.Add("dataDefinitionId", getDatasetBlobModel.DefinitionId);
+            blobMetadata.Add("fundingStreamId", model.FundingStreamId);
+            blobMetadata.Add("dataDefinitionId", model.DefinitionId);
 
             cloudBlob
                 .Metadata
@@ -2887,7 +3012,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetDefinition datasetDefinition = new DatasetDefinition
             {
-                Id = getDatasetBlobModel.DefinitionId,
+                Id = model.DefinitionId,
                 Name = "Dataset Definition Name",
                 FundingStreamId = FundingStreamId
             };
@@ -2909,7 +3034,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             Dataset existingDataset = new Dataset()
             {
-                Id = getDatasetBlobModel.DatasetId,
+                Id = model.DatasetId,
                 Current = existingDatasetVersion,
                 History = new List<DatasetVersion>() { existingDatasetVersion },
                 Definition = new DatasetDefinitionVersion { Id = datasetDefinition.Id, Name = datasetDefinition.Name },
@@ -3119,8 +3244,14 @@ namespace CalculateFunding.Services.Datasets.Services
             const string testXlsxLocation = @"TestItems/TestCheck.xlsx";
 
             // Arrange
-            GetDatasetBlobModel getDatasetBlobModel = NewGetDatasetBlobModel();
-            Message message = GetValidateDatasetMessage(getDatasetBlobModel);
+            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _
+                .WithDefinitionId(DataDefinitionId)
+                .WithDatasetId(DatasetId)
+                .WithFileName("blah.xlsx"));
+
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            
+            Message message = GetValidateDatasetMessage(model);
 
             ILogger logger = CreateLogger();
 
@@ -3143,7 +3274,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Returns("dsid/v1/filename.xlsx");
 
             Dictionary<string, string> blobMetadata = new Dictionary<string, string>();
-            blobMetadata.Add("dataDefinitionId", getDatasetBlobModel.DefinitionId);
+            blobMetadata.Add("dataDefinitionId", model.DefinitionId);
 
             cloudBlob
                 .Metadata
@@ -3165,9 +3296,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IValidator<ExcelPackage> excelPackageValidator = CreateDataWorksheetValidator();
 
-            List<ValidationFailure> excelValidationFailures = new List<ValidationFailure>()
-            {
-            };
+            List<ValidationFailure> excelValidationFailures = new List<ValidationFailure>();
 
             ValidationResult excelValidationResult = new ValidationResult(excelValidationFailures);
 
@@ -3198,7 +3327,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             logger
                 .Received(1)
-                .Error(Arg.Is($"Unable to find a data definition for id: {getDatasetBlobModel.DefinitionId}, for blob: {getDatasetBlobModel.DatasetId}/v{getDatasetBlobModel.Version}/{getDatasetBlobModel.Filename}"));
+                .Error(Arg.Is($"Unable to find a data definition for id: {model.DefinitionId}, for blob: {blobPath}"));
 
             await cacheProvider
                 .Received(1)
@@ -3215,7 +3344,7 @@ namespace CalculateFunding.Services.Datasets.Services
                  Arg.Is<string>(a => a.StartsWith(CacheKeys.DatasetValidationStatus)),
                  Arg.Is<DatasetValidationStatusModel>(s =>
                      s.CurrentOperation == DatasetValidationStatus.FailedValidation &&
-                     s.ErrorMessage == $"Unable to find a data definition for id: {getDatasetBlobModel.DefinitionId}, for blob: {getDatasetBlobModel.DatasetId}/v{getDatasetBlobModel.Version}/{getDatasetBlobModel.Filename}" &&
+                     s.ErrorMessage == $"Unable to find a data definition for id: {model.DefinitionId}, for blob: {blobPath}" &&
                      s.OperationId == message.UserProperties["operation-id"].ToString()
                      ));
         }
@@ -3224,8 +3353,6 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task OnValidateDataset_GivenValidDatasetBlobModel_ThenUpdatesJobServiceWithProgress()
         {
             //Arrange
-            const string blobPath = "dataset-id/v1/ds.xlsx";
-
             const string dataDefinitionId = "definition-id";
             const string authorId = "author-id";
             const string authorName = "author-name";
@@ -3250,12 +3377,12 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetFundingStreams()
                 .Returns(NewFundingStreams());
 
-            GetDatasetBlobModel model = new GetDatasetBlobModel
-            {
-                DatasetId = "dataset-id",
-                Version = 1,
-                Filename = "ds.xlsx",
-            };
+            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _
+                .WithDefinitionId(dataDefinitionId)
+                .WithDatasetId(datasetId)
+                .WithFileName("blah.xlsx"));
+
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
             Message message = new Message(byteArray);
@@ -3430,14 +3557,16 @@ namespace CalculateFunding.Services.Datasets.Services
             GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _.WithVersion(2)
                                                                     .WithFundingStreamId(FundingStreamId)
                                                                     .WithDatasetId(DatasetId)
-                                                                    .WithFileName("ds.xlsx")
+                                                                    .WithFileName("blah.xlsx")
                                                                     .WithMergeExistingVersion(true)
                                                                     .WithComment("MergeTest")
                                                                     .WithLastUpdatedBy(new ReferenceBuilder()
                                                                     .WithId(authorId)
                                                                     .WithName(authorName))
                                                                     .WithDescription(description));
-
+            
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            
             Message message = GetValidateDatasetMessage(model);
 
             ILogger logger = CreateLogger();
@@ -3451,7 +3580,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
-                .GetBlobReferenceFromServerAsync(Arg.Is(model.ToString()))
+                .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
                 .Returns(blob);
             blobClient
                 .DownloadToStreamAsync(Arg.Is(blob))
@@ -3483,7 +3612,7 @@ namespace CalculateFunding.Services.Datasets.Services
             {
                 Id = model.DatasetId,
                 Current = existingDatasetVersion,
-                History = new List<DatasetVersion>() { existingDatasetVersion },
+                History = new List<DatasetVersion> { existingDatasetVersion },
                 Definition = new DatasetDefinitionVersion { Id = datasetDefinition.Id, Name = datasetDefinition.Name },
                 Description = "description",
                 Name = name,
@@ -3500,11 +3629,6 @@ namespace CalculateFunding.Services.Datasets.Services
             datasetRepository
                 .SaveDataset(Arg.Any<Dataset>())
                 .Returns(HttpStatusCode.OK);
-
-            IEnumerable<TableLoadResult> tableLoadResults = new[]
-            {
-                new TableLoadResult{ GlobalErrors = new List<DatasetValidationError>() }
-            };
 
             ISearchRepository<DatasetIndex> searchRepository = CreateSearchRepository();
 
@@ -3532,6 +3656,7 @@ namespace CalculateFunding.Services.Datasets.Services
             datasetDataMergeService.Merge(
                 Arg.Is<DatasetDefinition>(_ => _.Id == DataDefinitionId), 
                 Arg.Any<string>(), 
+                Arg.Any<string>(),
                 Arg.Any<string>(),
                 Arg.Any<DatasetEmptyFieldEvaluationOption>())
                 .Returns(mergeResult);
@@ -3601,13 +3726,14 @@ namespace CalculateFunding.Services.Datasets.Services
             GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _.WithVersion(2)
                                                                     .WithFundingStreamId(FundingStreamId)
                                                                     .WithDatasetId(DatasetId)
-                                                                    .WithFileName("ds.xlsx")
+                                                                    .WithFileName("blah.xlsx")
                                                                     .WithMergeExistingVersion(true)
                                                                     .WithComment("MergeTest")
                                                                     .WithLastUpdatedBy(new ReferenceBuilder()
                                                                     .WithId(authorId)
                                                                     .WithName(authorName))
                                                                     .WithDescription(description));
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
 
             Message message = GetValidateDatasetMessage(model);
 
@@ -3622,7 +3748,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
-                .GetBlobReferenceFromServerAsync(Arg.Is(model.ToString()))
+                .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
                 .Returns(blob);
             blobClient
                 .DownloadToStreamAsync(Arg.Is(blob))
@@ -3710,6 +3836,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Merge(
                 Arg.Is<DatasetDefinition>(_ => _.Id == DataDefinitionId), 
                 Arg.Any<string>(), 
+                Arg.Any<string>(),
                 Arg.Any<string>(),
                 Arg.Any<DatasetEmptyFieldEvaluationOption>())
                 .Returns(mergeResult);

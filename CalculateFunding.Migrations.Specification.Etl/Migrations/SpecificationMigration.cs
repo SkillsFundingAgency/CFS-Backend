@@ -545,6 +545,7 @@ namespace CalculateFunding.Migrations.Specifications.Etl.Migrations
                                         Description = item.content.description,
                                         Version = item.content.current.version,
                                         ChangeNote = item.content.current.comment,
+                                        ChangeType = string.IsNullOrEmpty(item.content.current.changeType) ? DatasetChangeType.NewVersion.ToString() : item.content.current.changeType,
                                         LastUpdatedByName = item.content.current.author?.name,
                                         LastUpdatedById = item.content.current.author?.id
                                     };
