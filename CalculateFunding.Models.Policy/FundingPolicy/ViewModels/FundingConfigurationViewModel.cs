@@ -56,5 +56,7 @@ namespace CalculateFunding.Models.Policy.FundingPolicy.ViewModels
         public bool EnableConverterDataMerge { get; set; }
 
         public IEnumerable<string> IndicativeOpenerProviderStatus { get; set; }
+
+        public bool RunCalculationEngineAfterCoreProviderUpdate { get; set; }
     }
 }

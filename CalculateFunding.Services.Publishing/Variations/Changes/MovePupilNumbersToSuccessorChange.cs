@@ -39,9 +39,9 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
             Dictionary<uint, FundingCalculation> predecessorCalculations = predecessor
                 .Calculations
                 .ToDictionary(_ => _.TemplateCalculationId);
-            Dictionary<uint, FundingCalculation> successorCalculations = SuccessorRefreshState
-                .Calculations
-                .ToDictionary(_ => _.TemplateCalculationId);
+
+            Dictionary<uint, FundingCalculation> successorCalculations = (SuccessorRefreshState
+                .Calculations ?? pupilNumberTemplateCalculationIds?.Select(_ => new FundingCalculation { TemplateCalculationId = _ })).ToDictionary(_ => _.TemplateCalculationId);
 
             foreach (uint templateCalculationId in pupilNumberTemplateCalculationIds)
             {
@@ -51,11 +51,29 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
                    throw new InvalidOperationException("Cannot move pupil numbers to successor.\n" +
                                  $"Could not locate both FundingCalculations for id {templateCalculationId}");
                 }
-
-                int totalPupilNumber = Convert.ToInt32(successorCalculation.Value) + Convert.ToInt32(predecessorCalculation.Value);
+                
+                int? totalPupilNumber = AddValueIfNotNull(successorCalculation.Value, predecessorCalculation.Value);
 
                 successorCalculation.Value = totalPupilNumber;
             }
+        }
+
+        public static int? AddValueIfNotNull(object value1, object value2)
+        {
+            if (value1 == null)
+            {
+                if (value2 == null)
+                {
+                    return null;
+                }
+
+                return Convert.ToInt32(value2);
+            }
+
+            if (value2 == null)
+                return Convert.ToInt32(value1);
+
+            return Convert.ToInt32(value2) + Convert.ToInt32(value1);
         }
 
         private class PupilNumberCalculationIdProvider
