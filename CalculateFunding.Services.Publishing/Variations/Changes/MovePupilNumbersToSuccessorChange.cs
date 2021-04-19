@@ -55,10 +55,10 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
                 if (!predecessorCalculations.TryGetValue(templateCalculationId, out FundingCalculation predecessorCalculation) ||
                     !successorCalculations.TryGetValue(templateCalculationId, out FundingCalculation successorCalculation))
                 {
-                   throw new InvalidOperationException("Cannot move pupil numbers to successor.\n" +
-                                 $"Could not locate both FundingCalculations for id {templateCalculationId}");
+                    throw new InvalidOperationException("Cannot move pupil numbers to successor.\n" +
+                                  $"Could not locate both FundingCalculations for id {templateCalculationId}");
                 }
-                
+
                 int? totalPupilNumber = AddValueIfNotNull(successorCalculation.Value, predecessorCalculation.Value);
 
                 successorCalculation.Value = totalPupilNumber;
@@ -93,7 +93,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
             public PupilNumberCalculationIdProvider(IApplyProviderVariations variationsApplication)
             {
                 IPublishingResiliencePolicies resiliencePolicies = variationsApplication.ResiliencePolicies;
-                
+
                 Guard.ArgumentNotNull(variationsApplication.CacheProvider, nameof(variationsApplication.CacheProvider));
                 Guard.ArgumentNotNull(variationsApplication.PoliciesApiClient, nameof(variationsApplication.PoliciesApiClient));
                 Guard.ArgumentNotNull(resiliencePolicies?.CacheProvider, nameof(resiliencePolicies.CacheProvider));
@@ -111,18 +111,18 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
             {
                 string cacheKey = new PupilNumberCalculationIdCacheKey(fundingStreamId, fundingPeriodId, templateVersion);
 
-                if (!await _cachingResilience.ExecuteAsync(() => _caching.KeyExists<IEnumerable<uint>>(cacheKey)))
+                if (!await _cachingResilience.ExecuteAsync(() => _caching.KeyExists<List<uint>>(cacheKey)))
                 {
-                    await TryCachePupilNumberTemplateCalculationIds(cacheKey,
-                        fundingStreamId,
-                        fundingPeriodId,
-                        templateVersion);
+                    return await TryCachePupilNumberTemplateCalculationIds(cacheKey,
+                         fundingStreamId,
+                         fundingPeriodId,
+                         templateVersion);
                 }
 
-                return await _cachingResilience.ExecuteAsync(() => _caching.GetAsync<IEnumerable<uint>>(cacheKey));
+                return await _cachingResilience.ExecuteAsync(() => _caching.GetAsync<List<uint>>(cacheKey));
             }
 
-            private async Task TryCachePupilNumberTemplateCalculationIds(string cacheKey,
+            private async Task<List<uint>> TryCachePupilNumberTemplateCalculationIds(string cacheKey,
                 string fundingStreamId, string fundingPeriodId,
                 string templateVersion)
             {
@@ -140,17 +140,19 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
                 IEnumerable<FundingLine> flattenedFundingLines = templateMetadataContents.RootFundingLines
                     .Flatten(_ => _.FundingLines) ?? new FundingLine[0];
 
-                IEnumerable<uint> pupilNumberTemplateCalculationIds = flattenedFundingLines.SelectMany(_ =>
+                List<uint> pupilNumberTemplateCalculationIds = flattenedFundingLines.SelectMany(_ =>
                         _.Calculations.Flatten(cal => cal.Calculations))
                     .Where(_ => _.Type == CalculationType.PupilNumber)
                     .Select(_ => _.TemplateCalculationId)
                     .Distinct()
-                    .ToArray();
+                    .ToList();
 
-                await _cachingResilience.ExecuteAsync(() => _caching.SetAsync(cacheKey, 
-                    pupilNumberTemplateCalculationIds, 
-                    TimeSpan.FromHours(24), 
+                await _cachingResilience.ExecuteAsync(() => _caching.SetAsync(cacheKey,
+                    pupilNumberTemplateCalculationIds,
+                    TimeSpan.FromHours(24),
                     false));
+
+                return pupilNumberTemplateCalculationIds;
             }
 
             private class PupilNumberCalculationIdCacheKey
