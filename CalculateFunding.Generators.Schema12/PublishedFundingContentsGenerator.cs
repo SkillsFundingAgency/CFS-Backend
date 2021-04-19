@@ -94,7 +94,7 @@ namespace CalculateFunding.Generators.Schema12
 
             SchemaJson contents = new SchemaJson
             {
-                Schema = "https://fundingschemas.blob.core.windows.net/schemas/logicalmodel-1.1.json#schema",
+                Schema = "https://fundingschemas.blob.core.windows.net/schemas/funding-schema-1.2.json#schema",
                 SchemaVersion = publishedFundingVersion.SchemaVersion,
                 Funding = new
                 {
