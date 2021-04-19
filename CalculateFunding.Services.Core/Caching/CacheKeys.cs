@@ -94,5 +94,7 @@
         public const string CodeContext = "code-contexts:";
 
         public const string CircularDependencies = "circular-dependencies:";
+
+        public const string PupilNumberTemplateCalculationIds = "pupil-number-template-calculation-ids:";
     }
 }

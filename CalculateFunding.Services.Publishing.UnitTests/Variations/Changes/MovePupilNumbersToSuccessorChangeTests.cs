@@ -18,6 +18,7 @@ using NSubstitute;
 using TemplateFundingLine = CalculateFunding.Common.TemplateMetadata.Models.FundingLine;
 using TemplateCalculation = CalculateFunding.Common.TemplateMetadata.Models.Calculation;
 using TemplateCalculationType = CalculateFunding.Common.TemplateMetadata.Enums.CalculationType;
+using CalculateFunding.Services.Core.Caching;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
 {
@@ -38,7 +39,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
             _fundingPeriodId = NewRandomString();
             _templateVersion = NewRandomString();
 
-            _cacheKey = $"PupilNumberTemplateCalculationIds:{_fundingStreamId}:{_fundingPeriodId}:{_templateVersion}";
+            _cacheKey = $"{CacheKeys.PupilNumberTemplateCalculationIds}{_fundingStreamId}:{_fundingPeriodId}:{_templateVersion}";
             
             PublishedProviderVersion refreshState = VariationContext.RefreshState;
             

@@ -8,6 +8,7 @@ using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
@@ -35,6 +36,12 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 
             IEnumerable<uint> pupilNumberTemplateCalculationIds = await new PupilNumberCalculationIdProvider(variationsApplications)
                 .GetPupilNumberCalculationIds(fundingStreamId, fundingPeriodId, templateVersion);
+
+            if (pupilNumberTemplateCalculationIds == null)
+            {
+                throw new InvalidOperationException("Cannot move pupil numbers to successor.\n" +
+                                 $"Could not locate any pupil number template calculation ids for funding stream id:{fundingStreamId}, funding period id:{fundingPeriodId} and template version:{templateVersion}.");
+            }
 
             Dictionary<uint, FundingCalculation> predecessorCalculations = predecessor
                 .Calculations
@@ -154,7 +161,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
                     Guard.IsNullOrWhiteSpace(templateVersion, nameof(templateVersion));
                     Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
 
-                    Value = $"PupilNumberTemplateCalculationIds:{fundingStreamId}:{fundingPeriodId}:{templateVersion}";
+                    Value = $"{CacheKeys.PupilNumberTemplateCalculationIds}{fundingStreamId}:{fundingPeriodId}:{templateVersion}";
                 }
 
                 private string Value { get; }
