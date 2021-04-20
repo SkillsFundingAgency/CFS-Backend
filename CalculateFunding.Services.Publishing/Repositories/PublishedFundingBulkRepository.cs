@@ -183,7 +183,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                             {
                                 concurrentTasks.Add(
                                     _publishedFundingRepositoryPolicy.ExecuteAsync(() =>
-                                    _repository.UpsertAsync(publishedFunding, publishedFunding.ParitionKey)
+                                    _repository.UpsertAsync(publishedFunding, publishedFunding.ParitionKey, undelete: true)
                                         .ContinueWith((task) => continueAction(task, publishedFunding))
                                     ));
                             }
@@ -220,7 +220,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                             {
                                 concurrentTasks.Add(
                                     _publishedFundingRepositoryPolicy.ExecuteAsync(() =>
-                                        _repository.UpsertAsync(publishedProvider, publishedProvider.PartitionKey)
+                                        _repository.UpsertAsync(publishedProvider, publishedProvider.PartitionKey, undelete:true)
                                             .ContinueWith((task) => continueAction(task))
                                     ));
                             }

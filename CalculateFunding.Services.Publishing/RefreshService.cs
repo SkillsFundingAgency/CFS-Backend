@@ -295,10 +295,6 @@ namespace CalculateFunding.Services.Publishing
 
             FundingLine[] flattenedTemplateFundingLines = templateMetadataContents.RootFundingLines.Flatten(_ => _.FundingLines).ToArray();
             
-
-
-            
-
             _logger.Information("Profiling providers for refresh");
 
             try
@@ -388,7 +384,11 @@ namespace CalculateFunding.Services.Publishing
                     }
                 }
 
-                generatedPublishedProviderData.TryGetValue(publishedProvider.Key, out GeneratedProviderResult generatedProviderResult);
+                // this could be a retry and the key may not exist as the provider has been created as a successor so we need to skip
+                if (!generatedPublishedProviderData.TryGetValue(publishedProvider.Key, out GeneratedProviderResult generatedProviderResult) && providerExists)
+                {
+                    continue;
+                }
 
                 PublishedProviderExclusionCheckResult exclusionCheckResult =
                     _providerExclusionCheck.ShouldBeExcluded(publishedProvider.Key, generatedProviderResult, flattenedTemplateFundingLines);

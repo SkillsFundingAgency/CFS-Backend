@@ -377,11 +377,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                         NewPublishedProviderVersion(ppv => ppv
                             .WithPublishedProviderStatus(PublishedProviderStatus.Updated)
                             .WithProviderId(outOfScopeProviderId)
+                            .WithProvider(NewProvider(_ => _.WithName("Out of scope")))
                             .WithFundingStreamId(FundingStreamId)))
                     .WithReleased(
                         NewPublishedProviderVersion(ppv => ppv
                             .WithPublishedProviderStatus(PublishedProviderStatus.Updated)
                             .WithProviderId(outOfScopeProviderId)
+                            .WithProvider(NewProvider(_ => _.WithName("Out of scope")))
                             .WithFundingStreamId(FundingStreamId)))));
             AndPublishedProviders(publishedProviders);
             AndNewMissingPublishedProviders();
