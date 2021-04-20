@@ -77,8 +77,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
         }
 
         [TestMethod]
-        [Ignore("Template IDs not matching")]
-        public async Task CachesPupilNumberTemplateCalculationsIfNotCachedForContext()
+        [DataRow(true)]
+        [DataRow(false)]
+        public async Task CachesPupilNumberTemplateCalculationsIfNotCachedForContext(bool existingSuccessor)
         {
             uint calculationOneId = NewRandomUint();
             uint calculationTwoId = NewRandomUint();
@@ -98,16 +99,18 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
                                         .WithType(TemplateCalculationType.PupilNumber))))))));
 
             GivenTheTemplateMetadataContents(templateMapping);
-            AndTheFundingCalculations(NewFundingCalculation(_ => _.WithTemplateCalculationId(calculationOneId)
-                    .WithValue(calculationOneId)),
-                NewFundingCalculation(),
-                NewFundingCalculation(_ => _.WithTemplateCalculationId(calculationTwoId)
-                    .WithValue(calculationThreeId)));
-            AndTheSuccessorFundingCalculations(NewFundingCalculation(_ => _.WithTemplateCalculationId(calculationOneId)
-                    .WithValue(calculationOneId)),
-                NewFundingCalculation(),
-                NewFundingCalculation(_ => _.WithTemplateCalculationId(calculationTwoId)
-                    .WithValue(calculationThreeId)));
+
+            FundingCalculation[] fundingCalculations = { NewFundingCalculation(_ => _.WithTemplateCalculationId(calculationOneId)
+                .WithValue(calculationOneId)),
+            NewFundingCalculation(_ => _.WithTemplateCalculationId(calculationTwoId)
+                .WithValue(calculationTwoId)),
+            NewFundingCalculation(_ => _.WithTemplateCalculationId(calculationThreeId)
+                .WithValue(calculationThreeId)) };
+
+            AndTheFundingCalculations(fundingCalculations);
+
+            // if the successor does not previously exist then there will be no funding calculations
+            AndTheSuccessorFundingCalculations(existingSuccessor ? fundingCalculations : null);
 
             await WhenTheChangeIsApplied();
 

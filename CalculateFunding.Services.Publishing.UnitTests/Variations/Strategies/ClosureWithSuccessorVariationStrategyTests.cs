@@ -51,7 +51,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             VariationContext
                 .ErrorMessages
                 .Should()
-                .BeEquivalentTo("Unable to run Closure with Successor variation as TotalFunding has changed during the refresh funding");
+                .BeEquivalentTo($"Unable to run Closure with Successor variation as TotalFunding has changed during the refresh funding for provider with id:{VariationContext.RefreshState.ProviderId}");
 
             VariationContext
                 .QueuedChanges

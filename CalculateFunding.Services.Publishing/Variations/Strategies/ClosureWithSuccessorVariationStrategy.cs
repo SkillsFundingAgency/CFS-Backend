@@ -39,7 +39,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
             
             if (providerVariationContext.UpdatedTotalFunding != priorState.TotalFunding)
             {
-                providerVariationContext.RecordErrors("Unable to run Closure with Successor variation as TotalFunding has changed during the refresh funding");
+                providerVariationContext.RecordErrors($"Unable to run Closure with Successor variation as TotalFunding has changed during the refresh funding for provider with id:{providerVariationContext.ProviderId}");
 
                 return;
             }
