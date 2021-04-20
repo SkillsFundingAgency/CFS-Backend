@@ -167,9 +167,13 @@ namespace CalculateFunding.Services.Datasets
             // if it contains a parent job id then this is a child job of the map scoped datasets Job which means it is a scoped provider job
             bool isScopedJob = !string.IsNullOrWhiteSpace(parentJobId);
             // if this is a scoped job or it's a child job of the scoped dataset job then we don't want to trigger an instruct
-            bool queueCalculationJob = !isScopedJob &&
-                !(message.UserProperties.ContainsKey("disableQueueCalculationJob") && bool.Parse(message.UserProperties["disableQueueCalculationJob"].ToString()));
-            
+            bool queueCalculationJob = !isScopedJob;
+
+            if (message.UserProperties.ContainsKey("disableQueueCalculationJob") && message.UserProperties["disableQueueCalculationJob"] != null)
+            {
+                queueCalculationJob = !bool.Parse(message.UserProperties["disableQueueCalculationJob"].ToString());
+            }
+
             if (dataset == null)
             {
                 _logger.Error("A null dataset was provided to ProcessData");
