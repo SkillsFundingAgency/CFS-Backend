@@ -38,7 +38,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
         {
             Guard.ArgumentNotNull(publishedProvider, nameof(publishedProvider));
 
-            return await _repository.UpsertAsync(publishedProvider, publishedProvider.PartitionKey);
+            return await _repository.UpsertAsync(publishedProvider, publishedProvider.PartitionKey, undelete: true);
         }
 
         public async Task<IEnumerable<HttpStatusCode>> UpsertPublishedProviders(IEnumerable<PublishedProvider> publishedProviders)
@@ -304,7 +304,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
         {
             Guard.ArgumentNotNull(publishedFunding, nameof(publishedFunding));
 
-            return await _repository.UpsertAsync(publishedFunding, publishedFunding.ParitionKey);
+            return await _repository.UpsertAsync(publishedFunding, publishedFunding.ParitionKey, undelete: true);
         }
 
         public async Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedProviderIdsForApproval(string fundingStreamId, string fundingPeriodId, string[] publishedProviderIds = null)
@@ -1433,7 +1433,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                 AND (c.content.status = 'Updated' OR c.content.status = 'Released')
                                 AND c.deleted = false
                                 ORDER BY c.content.providerId",
-                Parameters = new []
+                Parameters = new[]
                 {
                     new CosmosDbQueryParameter("@specificationId", specificationId)
                 }
