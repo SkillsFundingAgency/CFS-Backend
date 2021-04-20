@@ -65,8 +65,7 @@ namespace CalculateFunding.Functions.Users.SmokeTests
                  IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.UsersReIndexUsers,
-                async (Message smokeResponse) => await onReIndexUsersEvent.Run(smokeResponse),
-                ServiceBusConstants.QueueNames.UsersReIndexUsers);
+                async (Message smokeResponse) => await onReIndexUsersEvent.Run(smokeResponse));
 
             response
                 .Should()
