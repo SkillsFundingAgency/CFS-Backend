@@ -324,6 +324,7 @@ namespace CalculateFunding.Services.Datasets.Services
             expectedNewVersion.Author = author;
             expectedNewVersion.RowCount = datasetTable.Rows.Count;
             expectedNewVersion.Version++;
+            expectedNewVersion.ChangeType = DatasetChangeType.ConverterWizard;
             
             newVersion
                 .Should()

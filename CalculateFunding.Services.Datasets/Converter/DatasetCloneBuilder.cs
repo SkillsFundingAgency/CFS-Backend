@@ -153,7 +153,7 @@ namespace CalculateFunding.Services.Datasets.Converter
             Reference author,
             int rowCount)
         {
-            dataset.CreateNewVersion(author, rowCount);
+            dataset.CreateNewVersion(author, rowCount, DatasetChangeType.ConverterWizard);
 
             HttpStatusCode statusCode = await DatasetsResilience.ExecuteAsync(() => Datasets.SaveDataset(dataset));
 

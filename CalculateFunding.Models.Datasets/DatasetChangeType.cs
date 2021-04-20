@@ -8,6 +8,7 @@ namespace CalculateFunding.Models.Datasets
     {
         Unknown,
         NewVersion,
-        Merge
+        Merge,
+        ConverterWizard
     }
 }

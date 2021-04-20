@@ -1,6 +1,5 @@
 ﻿using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Versioning;
-using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Datasets
 {
@@ -20,6 +19,7 @@ namespace CalculateFunding.Models.Datasets
         public int AmendedRowCount { get; set; }
         
         public string UploadedBlobFilePath { get; set; }
+        
         public string MergeBlobFilePath { get; set; }
 
         public DatasetChangeType ChangeType { get; set; }
