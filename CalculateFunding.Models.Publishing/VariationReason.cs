@@ -34,6 +34,9 @@ namespace CalculateFunding.Models.Publishing
         [EnumMember(Value = nameof(ProfilingUpdated))]
         ProfilingUpdated,
 
+        [EnumMember(Value = nameof(CalculationValuesUpdated))]
+        CalculationValuesUpdated,
+
         [EnumMember(Value = nameof(URNFieldUpdated))]
         URNFieldUpdated,
 

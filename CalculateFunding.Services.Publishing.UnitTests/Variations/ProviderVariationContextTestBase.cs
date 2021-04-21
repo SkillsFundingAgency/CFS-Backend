@@ -6,7 +6,6 @@ using CalculateFunding.Services.Publishing.UnitTests.Profiling;
 using CalculateFunding.Services.Publishing.Variations.Strategies;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
-using Microsoft.AspNetCore.DataProtection.XmlEncryption;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Variations
@@ -29,10 +28,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
             decimal totalFunding = new RandomNumberBetween(100, 100000);
             string profilePatternKey = NewRandomString();
             string fundingLineCode = NewRandomString();
+            uint templateCalculationId = (uint) new RandomNumberBetween(1, 1000);
+            string valueOne = NewRandomString();
+            string valueTwo = NewRandomString();
 
             ProviderVariationContextBuilder variationContextBuilder = new ProviderVariationContextBuilder()
-                .WithPublishedProvider(NewPublishedProvider(_ => _.WithReleased(NewPublishedProviderVersion(ppv =>
-                    ppv.WithTotalFunding(totalFunding)))))
+                .WithPublishedProvider(NewPublishedProvider(_ => _
+                    .WithReleased(NewPublishedProviderVersion(ppv => ppv
+                        .WithTotalFunding(totalFunding)
+                        .WithFundingCalculations(NewFundingCalculation(fc => fc.WithTemplateCalculationId(templateCalculationId).WithValue(valueOne)))))
+                    ))
                 .WithCurrentState(NewProvider(_ => _.WithStatus(Variation.Closed)))
                 .WithUpdatedTotalFunding(totalFunding);
 
