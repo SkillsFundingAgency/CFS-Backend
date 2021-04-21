@@ -28,5 +28,7 @@ namespace CalculateFunding.Services.Core.Interfaces.AzureStorage
         Task UploadAsync(ICloudBlob blob, Stream data);
 
         Task AddMetadataAsync(ICloudBlob blob, IDictionary<string, string> metadata);
+
+        Task<ICloudBlob> CopyBlobAsync(string sourcePath, string destinationPath);
     }
 }

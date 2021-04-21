@@ -47,7 +47,6 @@ namespace CalculateFunding.Services.Datasets
         public async Task<DatasetDataMergeResult> Merge(DatasetDefinition datasetDefinition,
             string latestBlobFileName,
             string blobFileNameToMerge,
-            string mergedBlobFilePath,
             DatasetEmptyFieldEvaluationOption emptyFieldEvaluationOption)
         {
             DatasetDataMergeResult result = new DatasetDataMergeResult();
@@ -95,11 +94,8 @@ namespace CalculateFunding.Services.Datasets
             {
                 // NOTE: If any new / updated rows after merge (rows merged into latest (previous version) dataset), then the merge file will be replaced with latest merge data. 
                 byte[] excelAsBytes = _excelDatasetWriter.Write(datasetDefinition, latestTableLoadResults);
-                
-                string blobUrl = _blobClient.GetBlobSasUrl(mergedBlobFilePath,
-                    DateTimeOffset.Now.AddDays(1), 
-                    SharedAccessBlobPermissions.Read | SharedAccessBlobPermissions.Write);
-                ICloudBlob blob = _blobClient.GetBlockBlobReference(blobUrl);
+
+                ICloudBlob blob = await _blobClient.GetBlobReferenceFromServerAsync(blobFileNameToMerge);
 
                 try
                 {

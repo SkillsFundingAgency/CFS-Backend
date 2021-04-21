@@ -14,7 +14,6 @@ using CalculateFunding.Common.ApiClient.Providers.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
-using CalculateFunding.Common.Storage;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Repositories.Common.Search;
@@ -22,6 +21,7 @@ using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.DataImporter.Models;
 using CalculateFunding.Services.DataImporter.Validators.Models;
@@ -279,7 +279,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 .WithDatasetId(DatasetId)
                 .WithFileName("blah.xlsx"));
 
-            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            string uploadedBlobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.v{model.Version}.xlsx";
             
             Message message = GetValidateDatasetMessage(model);
 
@@ -305,7 +306,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
-                .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
+                .CopyBlobAsync(Arg.Is(uploadedBlobPath), Arg.Is(blobPath))
                 .Returns(blob);
             blobClient
                 .DownloadToStreamAsync(Arg.Is(blob))
@@ -395,7 +396,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 .WithDatasetId(DatasetId)
                 .WithFileName("blah.xlsx"));
 
-            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            string uploadedBlobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.v{model.Version}.xlsx";
 
             Message message = GetValidateDatasetMessage(model);
 
@@ -421,7 +423,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
-                .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
+                .CopyBlobAsync(Arg.Is(uploadedBlobPath), Arg.Is(blobPath))
                 .Returns(blob);
             blobClient
                 .DownloadToStreamAsync(Arg.Is(blob))
@@ -932,7 +934,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 .WithDefinitionId(DataDefinitionId)
                 .WithFileName("blah.xlsx"));
 
-            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            string uploadedBlobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.v{model.Version}.xlsx";
 
             Message message = GetValidateDatasetMessage(model);
 
@@ -958,7 +961,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .BlobExistsAsync(Arg.Is(blobPath))
                 .Returns(true);
             blobClient
-                .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
+                .CopyBlobAsync(Arg.Is(uploadedBlobPath), Arg.Is(blobPath))
                 .Returns(blob);
             blobClient
                 .DownloadToStreamAsync(Arg.Is(blob))
@@ -1065,7 +1068,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 .WithDatasetId(DatasetId)
                 .WithFileName("blah.xlsx"));
 
-            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            string uploadedBlobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.v{model.Version}.xlsx"; 
 
             Message message = GetValidateDatasetMessage(model);
 
@@ -1094,7 +1098,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .BlobExistsAsync(Arg.Is(blobPath))
                 .Returns(true);
             blobClient
-                .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
+                .CopyBlobAsync(Arg.Is(uploadedBlobPath), Arg.Is(blobPath))
                 .Returns(blob);
             blobClient
                 .DownloadToStreamAsync(Arg.Is(blob))
@@ -1189,7 +1193,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 .WithDatasetId(DatasetId)
                 .WithFileName("blah.xlsx"));
 
-            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            string uploadedBlobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.v{model.Version}.xlsx";
 
             Message message = GetValidateDatasetMessage(model);
 
@@ -1223,7 +1228,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .BlobExistsAsync(Arg.Is(blobPath))
                 .Returns(true);
             blobClient
-                .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
+                .CopyBlobAsync(Arg.Is(uploadedBlobPath), Arg.Is(blobPath))
                 .Returns(blob);
             blobClient
                 .DownloadToStreamAsync(Arg.Is(blob))
@@ -1304,7 +1309,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 .WithDatasetId(DatasetId)
                 .WithFileName("blah.xlsx"));
 
-            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            string uploadedBlobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.v{model.Version}.xlsx";
 
             Message message = GetValidateDatasetMessage(model);
 
@@ -1336,7 +1342,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
-                .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
+                .CopyBlobAsync(Arg.Is(uploadedBlobPath), Arg.Is(blobPath))
                 .Returns(blob);
             blobClient
                 .DownloadToStreamAsync(Arg.Is(blob))
@@ -1428,7 +1434,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 .WithFundingStreamId(FundingStreamId)
                 .WithFileName("blah.xlsx"));
 
-            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            string uploadedBlobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.v{model.Version}.xlsx";
 
             Message message = GetValidateDatasetMessage(model);
 
@@ -1459,7 +1466,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
-                .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
+                .CopyBlobAsync(Arg.Is(uploadedBlobPath), Arg.Is(blobPath))
                 .Returns(blob);
             blobClient
                 .DownloadToStreamAsync(Arg.Is(blob))
@@ -1603,7 +1610,8 @@ namespace CalculateFunding.Services.Datasets.Services
                         .WithId(authorId)
                         .WithName(authorName)));
 
-            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            string uploadedBlobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.v{model.Version}.xlsx";
 
             Message message = GetValidateDatasetMessage(model);
 
@@ -1639,7 +1647,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
-                .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
+                .CopyBlobAsync(Arg.Is(uploadedBlobPath), Arg.Is(blobPath))
                 .Returns(blob);
             blobClient
                 .DownloadToStreamAsync(Arg.Is(blob))
@@ -1804,7 +1812,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 .WithVersion(2)
                 .WithLastUpdatedBy(new ReferenceBuilder().WithId(authorId).WithName(authorName)));
 
-            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            string uploadedBlobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.v{model.Version}.xlsx";
 
             Message message = GetValidateDatasetMessage(model);
 
@@ -1840,7 +1849,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
-                .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
+                .CopyBlobAsync(Arg.Is(uploadedBlobPath), Arg.Is(blobPath))
                 .Returns(blob);
             blobClient
                 .DownloadToStreamAsync(Arg.Is(blob))
@@ -1955,8 +1964,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 .WithComment(updateComment)
                 .WithVersion(2)
                 .WithLastUpdatedBy(new ReferenceBuilder().WithId(authorId).WithName(authorName)));
-            
-            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+
+            string uploadedBlobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.v{model.Version}.xlsx";
 
             Message message = GetValidateDatasetMessage(model);
 
@@ -1992,7 +2002,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
-                .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
+                .CopyBlobAsync(Arg.Is(uploadedBlobPath), Arg.Is(blobPath))
                 .Returns(blob);
             blobClient
                 .DownloadToStreamAsync(Arg.Is(blob))
@@ -2094,8 +2104,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 .WithComment(updateComment)
                 .WithVersion(2)
                 .WithLastUpdatedBy(new ReferenceBuilder().WithId(authorId).WithName(authorName)));
-            
-            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+
+            string uploadedBlobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.v{model.Version}.xlsx";
 
             Message message = GetValidateDatasetMessage(model);
 
@@ -2131,7 +2142,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
-                .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
+                .CopyBlobAsync(Arg.Is(uploadedBlobPath), Arg.Is(blobPath))
                 .Returns(blob);
             blobClient
                 .DownloadToStreamAsync(Arg.Is(blob))
@@ -2237,8 +2248,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 .WithComment(updateComment)
                 .WithVersion(2)
                 .WithLastUpdatedBy(new ReferenceBuilder().WithId(authorId).WithName(authorName)));
-            
-            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+
+            string uploadedBlobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.v{model.Version}.xlsx";
 
             Message message = GetValidateDatasetMessage(model);
 
@@ -2274,7 +2286,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
-                .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
+                .CopyBlobAsync(Arg.Is(uploadedBlobPath), Arg.Is(blobPath))
                 .Returns(blob);
             blobClient
                 .DownloadToStreamAsync(Arg.Is(blob))
@@ -2606,8 +2618,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 .WithDatasetId(DatasetId)
                 .WithFileName("blah.xlsx"));
 
-            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
-            
+            string uploadedBlobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.v{model.Version}.xlsx";
+
             Message message = GetValidateDatasetMessage(model);
 
             ILogger logger = CreateLogger();
@@ -2626,7 +2639,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
-                .GetBlobReferenceFromServerAsync(Arg.Any<string>())
+                .CopyBlobAsync(Arg.Is(uploadedBlobPath), Arg.Is(blobPath))
                 .Returns((ICloudBlob)null);
 
             DatasetService service = CreateDatasetService(
@@ -2645,7 +2658,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             logger
                 .Received(1)
-                .Error(Arg.Is($"Failed to find blob with path: {blobPath}"));
+                .Error(Arg.Is($"Failed to find blob with path: {uploadedBlobPath}"));
 
             await cacheProvider
                 .Received(1)
@@ -2662,7 +2675,7 @@ namespace CalculateFunding.Services.Datasets.Services
                  Arg.Is<string>(a => a.StartsWith(CacheKeys.DatasetValidationStatus)),
                  Arg.Is<DatasetValidationStatusModel>(s =>
                      s.CurrentOperation == DatasetValidationStatus.FailedValidation &&
-                     s.ErrorMessage == $"Failed to find blob with path: {blobPath}" &&
+                     s.ErrorMessage == $"Failed to find blob with path: {uploadedBlobPath}" &&
                      s.OperationId == message.UserProperties["operation-id"].ToString()
                      ));
         }
@@ -2676,8 +2689,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 .WithDatasetId(DatasetId)
                 .WithFileName("blah.xlsx"));
 
-            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
-            
+            string uploadedBlobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.v{model.Version}.xlsx";
+
             Message message = GetValidateDatasetMessage(model);
 
             ILogger logger = CreateLogger();
@@ -2701,7 +2715,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
-                .GetBlobReferenceFromServerAsync(Arg.Any<string>())
+                .CopyBlobAsync(Arg.Is(uploadedBlobPath), Arg.Is(blobPath))
                 .Returns(cloubBlob);
 
             DatasetService service = CreateDatasetService(
@@ -2754,7 +2768,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 .WithDatasetId(dataSetId1)
                 .WithFileName("blah.xlsx"));
 
-            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            string uploadedBlobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.v{model.Version}.xlsx";
 
             Message message = GetValidateDatasetMessage(model);
 
@@ -2785,7 +2800,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
-                .GetBlobReferenceFromServerAsync(Arg.Any<string>())
+                .CopyBlobAsync(Arg.Is(uploadedBlobPath), Arg.Is(blobPath))
                 .Returns(cloubBlob);
 
             blobClient
@@ -2852,8 +2867,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 .WithVersion(newVersionId)
                 .WithFileName("blah.xlsx"));
 
-            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
-            
+            string uploadedBlobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.v{model.Version}.xlsx";
+
             Message message = GetValidateDatasetMessage(model);
 
             ILogger logger = CreateLogger();
@@ -2883,7 +2899,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
-                .GetBlobReferenceFromServerAsync(Arg.Any<string>())
+                .CopyBlobAsync(Arg.Is(uploadedBlobPath), Arg.Is(blobPath))
                 .Returns(cloubBlob);
 
             blobClient
@@ -2951,7 +2967,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 .WithVersion(2)
                 .WithFileName("blah.xlsx"));
 
-            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            string uploadedBlobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.v{model.Version}.xlsx";
 
             Message message = GetValidateDatasetMessage(model);
 
@@ -2985,7 +3002,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
-                .GetBlobReferenceFromServerAsync(Arg.Any<string>())
+                .CopyBlobAsync(Arg.Is(uploadedBlobPath), Arg.Is(blobPath))
                 .Returns(cloudBlob);
 
             File.Copy(@"TestItems/1718HNStudNumbers.xlsx", testXlsxLocation, true);
@@ -3140,7 +3157,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
-                .GetBlobReferenceFromServerAsync(Arg.Any<string>())
+                .CopyBlobAsync(Arg.Any<string>(), Arg.Any<string>())
                 .Returns(cloudBlob);
 
             MemoryStream stream = new MemoryStream(new byte[] { 0 });
@@ -3249,8 +3266,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 .WithDatasetId(DatasetId)
                 .WithFileName("blah.xlsx"));
 
-            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
-            
+            string uploadedBlobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.v{model.Version}.xlsx";
+
             Message message = GetValidateDatasetMessage(model);
 
             ILogger logger = CreateLogger();
@@ -3282,7 +3300,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
-                .GetBlobReferenceFromServerAsync(Arg.Any<string>())
+                .CopyBlobAsync(Arg.Is(uploadedBlobPath), Arg.Is(blobPath))
                 .Returns(cloudBlob);
 
             File.Copy(@"TestItems/1718HNStudNumbers.xlsx", testXlsxLocation, true);
@@ -3327,7 +3345,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             logger
                 .Received(1)
-                .Error(Arg.Is($"Unable to find a data definition for id: {model.DefinitionId}, for blob: {blobPath}"));
+                .Error(Arg.Is($"Unable to find a data definition for id: {model.DefinitionId}, for blob: {uploadedBlobPath}"));
 
             await cacheProvider
                 .Received(1)
@@ -3344,7 +3362,7 @@ namespace CalculateFunding.Services.Datasets.Services
                  Arg.Is<string>(a => a.StartsWith(CacheKeys.DatasetValidationStatus)),
                  Arg.Is<DatasetValidationStatusModel>(s =>
                      s.CurrentOperation == DatasetValidationStatus.FailedValidation &&
-                     s.ErrorMessage == $"Unable to find a data definition for id: {model.DefinitionId}, for blob: {blobPath}" &&
+                     s.ErrorMessage == $"Unable to find a data definition for id: {model.DefinitionId}, for blob: {uploadedBlobPath}" &&
                      s.OperationId == message.UserProperties["operation-id"].ToString()
                      ));
         }
@@ -3382,7 +3400,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 .WithDatasetId(datasetId)
                 .WithFileName("blah.xlsx"));
 
-            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            string uploadedBlobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.v{model.Version}.xlsx";
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
             Message message = new Message(byteArray);
@@ -3401,7 +3420,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
-                .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
+                .CopyBlobAsync(Arg.Is(uploadedBlobPath), Arg.Is(blobPath))
                 .Returns(blob);
             blobClient
                 .DownloadToStreamAsync(Arg.Is(blob))
@@ -3564,9 +3583,10 @@ namespace CalculateFunding.Services.Datasets.Services
                                                                     .WithId(authorId)
                                                                     .WithName(authorName))
                                                                     .WithDescription(description));
-            
-            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
-            
+
+            string uploadedBlobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.v{model.Version}.xlsx";
+
             Message message = GetValidateDatasetMessage(model);
 
             ILogger logger = CreateLogger();
@@ -3580,7 +3600,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
-                .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
+                .CopyBlobAsync(Arg.Is(uploadedBlobPath), Arg.Is(blobPath))
                 .Returns(blob);
             blobClient
                 .DownloadToStreamAsync(Arg.Is(blob))
@@ -3657,7 +3677,6 @@ namespace CalculateFunding.Services.Datasets.Services
                 Arg.Is<DatasetDefinition>(_ => _.Id == DataDefinitionId), 
                 Arg.Any<string>(), 
                 Arg.Any<string>(),
-                Arg.Any<string>(),
                 Arg.Any<DatasetEmptyFieldEvaluationOption>())
                 .Returns(mergeResult);
 
@@ -3733,7 +3752,8 @@ namespace CalculateFunding.Services.Datasets.Services
                                                                     .WithId(authorId)
                                                                     .WithName(authorName))
                                                                     .WithDescription(description));
-            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            string uploadedBlobPath = $"{model.DatasetId}/v{model.Version}/blah.uploaded.xlsx";
+            string blobPath = $"{model.DatasetId}/v{model.Version}/blah.v{model.Version}.xlsx";
 
             Message message = GetValidateDatasetMessage(model);
 
@@ -3748,7 +3768,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
-                .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
+                .CopyBlobAsync(Arg.Is(uploadedBlobPath), Arg.Is(blobPath))
                 .Returns(blob);
             blobClient
                 .DownloadToStreamAsync(Arg.Is(blob))
@@ -3836,7 +3856,6 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Merge(
                 Arg.Is<DatasetDefinition>(_ => _.Id == DataDefinitionId), 
                 Arg.Any<string>(), 
-                Arg.Any<string>(),
                 Arg.Any<string>(),
                 Arg.Any<DatasetEmptyFieldEvaluationOption>())
                 .Returns(mergeResult);

@@ -74,7 +74,7 @@ namespace CalculateFunding.Services.Datasets.Services
                     _?.CopyTo(uploadedStream);
                 });
 
-            DatasetDataMergeResult result = await _service.Merge(datasetDefinition, latestBlobFileName, blobFileNameToMerge, blobFileNameFinal, DatasetEmptyFieldEvaluationOption.NA);
+            DatasetDataMergeResult result = await _service.Merge(datasetDefinition, latestBlobFileName, blobFileNameFinal, DatasetEmptyFieldEvaluationOption.NA);
 
             result.TablesMergeResults.Count().Should().Be(1);
 

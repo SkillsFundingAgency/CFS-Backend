@@ -47,7 +47,7 @@ using PoliciesApiModels = CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Services.Processing;
 using CalculateFunding.Services.DataImporter.Models;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
-using CalculateFunding.Common.Storage;
+using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using Microsoft.Azure.Cosmos.Linq;
 
 namespace CalculateFunding.Services.Datasets
@@ -355,6 +355,7 @@ namespace CalculateFunding.Services.Datasets
             }
 
             await uploadedBlob.FetchAttributesAsync();
+
             using (Stream datasetStream = await _blobClient.DownloadToStreamAsync(uploadedBlob))
             {
                 if (datasetStream == null || datasetStream.Length == 0)
@@ -500,12 +501,13 @@ namespace CalculateFunding.Services.Datasets
                 throw new NonRetriableException("Failed Validation - model errors");
             }
 
-            string uploadedBlobFilepath = GetUploadedBlobFilepath(model.Filename, model.DatasetId, model.Version);
-            
-            ICloudBlob blob = await _blobClient.GetBlobReferenceFromServerAsync(uploadedBlobFilepath);
+            string uploadedBlobPath = GetUploadedBlobFilepath(model.Filename, model.DatasetId, model.Version);
+            string blobPath = GetMergedBlobFilepath(model.Filename, model.DatasetId, model.Version);
+            ICloudBlob blob = await _blobClient.CopyBlobAsync(uploadedBlobPath, blobPath);
+
             if (blob == null)
             {
-                string errorMessage = $"Failed to find blob with path: {uploadedBlobFilepath}";
+                string errorMessage = $"Failed to find blob with path: {uploadedBlobPath}";
 
                 _logger.Error(errorMessage);
                 await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, errorMessage);
@@ -547,7 +549,7 @@ namespace CalculateFunding.Services.Datasets
 
             if (datasetDefinition == null)
             {
-                string errorMessage = $"Unable to find a data definition for id: {dataDefinitionId}, for blob: {uploadedBlobFilepath}";
+                string errorMessage = $"Unable to find a data definition for id: {dataDefinitionId}, for blob: {uploadedBlobPath}";
                 _logger.Error(errorMessage);
 
                 await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, errorMessage);
@@ -596,21 +598,20 @@ namespace CalculateFunding.Services.Datasets
                     await NotifyPercentComplete(35);
                     await SetValidationStatus(operationId, DatasetValidationStatus.MergeInprogress);
 
-                    string mergedBlobFilepath = GetMergedBlobFilepath(model.Filename, model.DatasetId, model.Version);
                     mergeResult = await _datasetDataMergeService.Merge(datasetDefinition, 
                         dataset.Current.BlobName, 
-                        uploadedBlobFilepath, 
-                        mergedBlobFilepath, 
+                        blobPath, 
                         model.EmptyFieldEvaluationOption);
+
+                    dataset.Current.BlobName = blobPath;
+                    dataset.Current.UploadedBlobFilePath = uploadedBlobPath;
+                    dataset.Current.ChangeType = model.MergeExistingVersion ? DatasetChangeType.Merge : DatasetChangeType.NewVersion;
 
                     if (!mergeResult.HasChanges)
                     {
                         // no need to update index as we are just saving the merge results
                         dataset.Current.NewRowCount = mergeResult.TotalRowsCreated;
                         dataset.Current.AmendedRowCount = mergeResult.TotalRowsAmended;
-                        dataset.Current.UploadedBlobFilePath = uploadedBlobFilepath;
-                        dataset.Current.MergeBlobFilePath = mergedBlobFilepath;
-                        dataset.Current.ChangeType = model.MergeExistingVersion ? DatasetChangeType.Merge : DatasetChangeType.NewVersion;
 
                         HttpStatusCode statusCode = await _datasetRepository.SaveDataset(dataset);
 
@@ -672,8 +673,9 @@ namespace CalculateFunding.Services.Datasets
                 throw new NonRetriableException($"Failed validation - {GetValidationFailuresValues(validationFailures)}");
             }
 
-            await SaveDataset(message, operationId, datasetDefinition, blob, model, fundingStream, mergeResult, validationRowCount);
+            await SaveDataset(message, operationId, datasetDefinition, blob, uploadedBlobPath, model, fundingStream, mergeResult, validationRowCount);
         }
+        
 
         private static string GetValidationResultErrors(ValidationResult validationResult) =>
             string.Join(";", validationResult.Errors.Select(m => m.ErrorMessage).ToArraySafe());
@@ -689,8 +691,14 @@ namespace CalculateFunding.Services.Datasets
             return errors;
         }
 
-        private async Task SaveDataset(Message message, string operationId, DatasetDefinition datasetDefinition,
-            ICloudBlob blob, GetDatasetBlobModel model, PoliciesApiModels.FundingStream fundingStream, DatasetDataMergeResult mergeResult, int rowCount)
+        private async Task SaveDataset(Message message, 
+            string operationId, 
+            DatasetDefinition datasetDefinition,
+            ICloudBlob blob, 
+            string uploadedBlobFilePath,
+            GetDatasetBlobModel model, 
+            PoliciesApiModels.FundingStream fundingStream, 
+            DatasetDataMergeResult mergeResult, int rowCount)
         {
             Dataset dataset;
             try
@@ -700,7 +708,7 @@ namespace CalculateFunding.Services.Datasets
 
                 if (model.Version == 1)
                 {
-                    dataset = await SaveNewDatasetAndVersion(blob, datasetDefinition, rowCount, fundingStream);
+                    dataset = await SaveNewDatasetAndVersion(blob, datasetDefinition, rowCount, uploadedBlobFilePath, fundingStream);
                 }
                 else
                 {
@@ -716,7 +724,7 @@ namespace CalculateFunding.Services.Datasets
                         user = message.GetUserDetails();
                     }
 
-                    dataset = await UpdateExistingDatasetAndAddVersion(blob, model, user, rowCount, fundingStream, mergeResult);
+                    dataset = await UpdateExistingDatasetAndAddVersion(blob, model, user, rowCount, uploadedBlobFilePath, fundingStream, mergeResult);
                 }
 
                 await SetValidationStatus(operationId, DatasetValidationStatus.Validated, datasetId: dataset.Id);
@@ -1183,6 +1191,7 @@ namespace CalculateFunding.Services.Datasets
             ICloudBlob blob,
             DatasetDefinition datasetDefinition,
             int rowCount,
+            string uploadedBlobFilePath,
             PoliciesApiModels.FundingStream fundingStream)
         {
             Guard.ArgumentNotNull(blob, nameof(blob));
@@ -1222,6 +1231,8 @@ namespace CalculateFunding.Services.Datasets
                 Date = DateTimeOffset.Now,
                 PublishStatus = Models.Versioning.PublishStatus.Draft,
                 BlobName = blob.Name,
+                UploadedBlobFilePath = uploadedBlobFilePath,
+                ChangeType = DatasetChangeType.NewVersion,
                 RowCount = rowCount,
                 Comment = metadataModel.Comment,
                 FundingStream = fundingStream
@@ -1275,6 +1286,7 @@ namespace CalculateFunding.Services.Datasets
             GetDatasetBlobModel model,
             Reference author,
             int rowCount,
+            string uploadedBlobFilePath,
             PoliciesApiModels.FundingStream fundingStream,
             DatasetDataMergeResult mergeResult)
         {
@@ -1306,6 +1318,7 @@ namespace CalculateFunding.Services.Datasets
                 Date = DateTimeOffset.Now,
                 PublishStatus = Models.Versioning.PublishStatus.Draft,
                 BlobName = blob.Name,
+                UploadedBlobFilePath = uploadedBlobFilePath,
                 Comment = model.Comment,
                 RowCount = rowCount,
                 FundingStream = fundingStream,
@@ -1577,7 +1590,7 @@ namespace CalculateFunding.Services.Datasets
             string nameWithoutExtension = filename.Substring(0, filename.LastIndexOf('.'));
             string fileExtension = filename.Substring(filename.LastIndexOf('.'));
 
-            return $"{datasetId}/v{version}/{nameWithoutExtension}.merged{fileExtension}";
+            return $"{datasetId}/v{version}/{nameWithoutExtension}.v{version}{fileExtension}";
         }
     }
 }

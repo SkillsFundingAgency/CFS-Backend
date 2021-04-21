@@ -80,6 +80,37 @@ namespace CalculateFunding.Services.Core.AzureStorage
             return stream;
         }
 
+        public async Task<ICloudBlob> CopyBlobAsync(string sourcePath, string destinationPath)
+        {
+            CloudBlockBlob sourceBlob = _container.Value.GetBlockBlobReference(sourcePath);
+
+            if (sourceBlob.Exists())
+            {
+                CloudBlockBlob destBlob = _container.Value.GetBlockBlobReference(destinationPath);
+
+                var policy = new SharedAccessBlobPolicy
+                {
+                    Permissions = SharedAccessBlobPermissions.Read,
+                    SharedAccessStartTime = DateTime.UtcNow.AddMinutes(-15),
+                    SharedAccessExpiryTime = DateTime.UtcNow.AddDays(7)
+                };
+
+                // Get SAS of that policy.
+                var sourceBlobToken = sourceBlob.GetSharedAccessSignature(policy);
+
+                // Make a full uri with the sas for the blob.
+                var sourceBlobSAS = string.Format("{0}{1}", sourceBlob.Uri, sourceBlobToken);
+
+                await destBlob.StartCopyAsync(new Uri(sourceBlobSAS));
+                
+                return destBlob;
+
+                // return await _container.Value.GetBlobReferenceFromServerAsync(destinationPath);
+            }
+
+            return null;
+        }
+
         public void Initialize()
         {
             _container = new Lazy<CloudBlobContainer>(() =>

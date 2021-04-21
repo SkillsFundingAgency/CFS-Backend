@@ -96,5 +96,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
             return Task.FromResult(true);
         }
+
+        public async Task<ICloudBlob> CopyBlobAsync(string sourcePath, string destinationPath)
+        {
+            return new CloudBlobInMemory(destinationPath);
+        }
     }
 }

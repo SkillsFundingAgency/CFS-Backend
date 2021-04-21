@@ -22,7 +22,7 @@ using PoliciesApiModels = CalculateFunding.Common.ApiClient.Policies.Models;
 using System;
 using System.Collections.Generic;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
-using CalculateFunding.Common.Storage;
+using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 
 namespace CalculateFunding.Services.Datasets.Services
 {

@@ -130,13 +130,14 @@ namespace CalculateFunding.Services.Datasets
 
         private DatasetVersionSearchResult ConvertToDatasetVersionSearchResult(Repositories.Common.Search.SearchResult<DatasetVersionIndex> sr)
         {
-            return new DatasetVersionSearchResult()
+            return new DatasetVersionSearchResult
             {
                 Name = sr.Result.Name,
                 Id = sr.Result.Id,
                 Version = sr.Result.Version,
                 BlobName = sr.Result.BlobName,
                 ChangeNote = sr.Result.ChangeNote,
+                ChangeType = sr.Result.ChangeType,
                 Description = sr.Result.Description,
                 DatasetId = sr.Result.DatasetId,
                 LastUpdatedByName = sr.Result.LastUpdatedByName,

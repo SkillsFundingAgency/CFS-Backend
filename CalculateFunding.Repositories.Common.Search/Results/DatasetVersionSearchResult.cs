@@ -13,6 +13,8 @@ namespace CalculateFunding.Repositories.Common.Search.Results
 		public string Description { get; set; }
 
 		public string ChangeNote { get; set; }
+		
+		public string ChangeType { get; set; }
 
 		public int Version { get; set; }
 

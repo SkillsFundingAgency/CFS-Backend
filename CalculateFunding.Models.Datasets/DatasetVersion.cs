@@ -20,8 +20,6 @@ namespace CalculateFunding.Models.Datasets
         
         public string UploadedBlobFilePath { get; set; }
         
-        public string MergeBlobFilePath { get; set; }
-
         public DatasetChangeType ChangeType { get; set; }
 
         public Reference FundingStream { get; set; }
