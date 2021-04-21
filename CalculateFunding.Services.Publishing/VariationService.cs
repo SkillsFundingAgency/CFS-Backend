@@ -61,7 +61,7 @@ namespace CalculateFunding.Services.Publishing
 
         }
 
-        public async Task<IDictionary<string, PublishedProvider>> PrepareVariedProviders(decimal? updatedTotalFunding,
+        public async Task<ProviderVariationContext> PrepareVariedProviders(decimal? updatedTotalFunding,
             IDictionary<string, PublishedProvider> allPublishedProviderRefreshStates,
             PublishedProvider existingPublishedProvider,
             Provider updatedProvider,
@@ -99,14 +99,9 @@ namespace CalculateFunding.Services.Publishing
             if (variationContext.HasVariationChanges)
             {
                 _applyProviderVariations.AddVariationContext(variationContext);
-
-                if (variationContext.NewProvidersToAdd.Any())
-                {
-                    return variationContext.NewProvidersToAdd.ToDictionary(_ => _.Current.ProviderId);
-                }
             }
 
-            return null;
+            return variationContext;
         }
 
         public async Task<bool> ApplyVariations(IDictionary<string, PublishedProvider> publishedProvidersToUpdate,

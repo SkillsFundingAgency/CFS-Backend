@@ -60,7 +60,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
                 return;
             }
 
-            providerVariationContext.SuccessorRefreshState = successorProvider.Current;
+            providerVariationContext.Successor = successorProvider;
             
             successorProvider.AddPredecessor(providerId);
             

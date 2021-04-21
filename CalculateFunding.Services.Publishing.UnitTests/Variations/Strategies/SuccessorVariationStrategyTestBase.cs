@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Variations.Strategies;
@@ -18,7 +19,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
         {
             ProviderService = new Mock<IProviderService>();
 
-            VariationContext.SuccessorRefreshState = VariationContext.RefreshState.DeepCopy();
+            VariationContext.Successor = new PublishedProvider { Current = VariationContext.RefreshState.DeepCopy() };
 
             VariationContext.UpdatedProvider.Status = Variation.Closed;
         }
@@ -62,7 +63,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
 
         protected void AndThePredecessorWasAddedToTheSuccessor(string successorId)
         {
-            VariationContext.SuccessorRefreshState.Predecessors
+            VariationContext.Successor.Current.Predecessors
                 .Should()
                 .BeEquivalentTo(successorId);
         }

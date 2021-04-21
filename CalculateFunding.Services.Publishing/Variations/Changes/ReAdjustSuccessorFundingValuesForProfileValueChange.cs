@@ -10,6 +10,6 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
         {
         }
 
-        protected override PublishedProviderVersion PublishedProviderToAdjust => VariationContext.SuccessorRefreshState;
+        protected override PublishedProviderVersion PublishedProviderToAdjust => VariationContext.Successor.Current;
     }
 }

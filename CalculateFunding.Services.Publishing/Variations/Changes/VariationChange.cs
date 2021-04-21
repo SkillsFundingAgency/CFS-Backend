@@ -19,7 +19,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 
         protected PublishedProviderVersion RefreshState => VariationContext.RefreshState;
 
-        protected PublishedProviderVersion SuccessorRefreshState => VariationContext.SuccessorRefreshState;
+        protected PublishedProviderVersion SuccessorRefreshState => VariationContext.Successor.Current;
 
         protected string ProviderId => VariationContext.ProviderId;
         
@@ -28,6 +28,12 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
             await ApplyChanges(variationsApplication);
             
             variationsApplication.AddPublishedProviderToUpdate(VariationContext.PublishedProvider);
+
+            // if there is a successor then we need to add it to existing providers to update
+            if (VariationContext.Successor != null)
+            {
+                variationsApplication.AddPublishedProviderToUpdate(VariationContext.Successor);
+            }
         }
 
         protected abstract Task ApplyChanges(IApplyProviderVariations variationsApplications);

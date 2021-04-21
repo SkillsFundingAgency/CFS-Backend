@@ -49,7 +49,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
             string providerId = providerVariationContext.ProviderId;
 
-            providerVariationContext.SuccessorRefreshState = successorProvider.Current;
+            providerVariationContext.Successor = successorProvider;
             
             successorProvider.AddPredecessor(providerId);
             

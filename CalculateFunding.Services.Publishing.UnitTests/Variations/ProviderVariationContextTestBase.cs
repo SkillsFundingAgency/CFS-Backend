@@ -107,7 +107,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
 
         protected void GivenTheSuccessorFundingLines(params FundingLine[] fundingLines)
         {
-            VariationContext.SuccessorRefreshState.FundingLines = fundingLines;
+            VariationContext.Successor.Current.FundingLines = fundingLines;
         }
 
         protected void AndTheFundingLines(params FundingLine[] fundingLines)
@@ -142,7 +142,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
 
         protected void AndTheSuccessorFundingCalculations(params FundingCalculation[] fundingCalculations)
         {
-            VariationContext.SuccessorRefreshState.Calculations = fundingCalculations;
+            VariationContext.Successor.Current.Calculations = fundingCalculations;
         }
     }
 }

@@ -45,7 +45,7 @@ namespace CalculateFunding.Services.Publishing.Models
         public PublishedProviderVersion RefreshState => PublishedProvider?.Current;
 
 
-        public PublishedProviderVersion SuccessorRefreshState { get; set; }
+        public PublishedProvider Successor { get; set; }
 
         /// <summary>
         /// The variation detection should compare the updated provider with the last published details

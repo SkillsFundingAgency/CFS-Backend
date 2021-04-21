@@ -3,6 +3,7 @@ using CalculateFunding.Models.Publishing;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalculateFunding.Services.Publishing.Models;
 
 namespace CalculateFunding.Services.Publishing.Interfaces
 {
@@ -11,7 +12,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         int ErrorCount { get; }
         string SnapShot(IDictionary<string, PublishedProvider> publishedProviders,
             string snapshotId = null);
-        Task<IDictionary<string, PublishedProvider>> PrepareVariedProviders(decimal? updatedTotalFunding,
+        Task<ProviderVariationContext> PrepareVariedProviders(decimal? updatedTotalFunding,
             IDictionary<string, PublishedProvider> allPublishedProviderRefreshStates,
             PublishedProvider existingPublishedProvider,
             Provider updatedProvider,

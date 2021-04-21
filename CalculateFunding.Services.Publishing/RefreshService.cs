@@ -436,7 +436,7 @@ namespace CalculateFunding.Services.Publishing
 
                 if (publishedProviderUpdated && existingPublishedProviders.AnyWithNullCheck() && scopedProviders.ContainsKey(providerId))
                 {
-                    IDictionary<string, PublishedProvider> newPublishedProviders = await _variationService.PrepareVariedProviders(generatedProviderResult.TotalFunding ?? 0,
+                    ProviderVariationContext context = await _variationService.PrepareVariedProviders(generatedProviderResult.TotalFunding ?? 0,
                         publishedProviders,
                         publishedProvider.Value,
                         scopedProviders[providerId],
@@ -445,9 +445,20 @@ namespace CalculateFunding.Services.Publishing
                         fundingStream.Id,
                         specification.ProviderVersionId);
 
-                    if (!newPublishedProviders.IsNullOrEmpty())
+                    if (context != null && context.HasNewProvidersToAdd)
                     {
-                        newProviders.AddRange(newPublishedProviders);
+                        newProviders.AddRange(context.NewProvidersToAdd.ToDictionary(_ => _.Current.ProviderId));
+                    }
+
+                    if (context != null && context.Successor != null)
+                    {
+                        // if the successor already exists then we still need to add it to existing providers to update
+                        if (!newProviders.ContainsKey(context.Successor.Current.ProviderId))
+                        {
+                            existingPublishedProvidersToUpdate.TryAdd(context.Successor.Current.ProviderId, context.Successor);
+                        }
+
+                        publishedProvidersToUpdate.TryAdd(context.Successor.Current.ProviderId, context.Successor);
                     }
                 }
 

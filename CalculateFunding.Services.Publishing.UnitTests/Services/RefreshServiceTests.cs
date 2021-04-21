@@ -407,8 +407,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task RefreshResults_WhenAnUpdatePublishStatusCompletesWithoutErrorAndVariationsEnabled_PublishedProviderUpdatedAndVariationReasonSet()
+        [DataRow(true)]
+        [DataRow(false)]
+        public async Task RefreshResults_WhenAnUpdatePublishStatusCompletesWithoutErrorAndVariationsEnabled_PublishedProviderUpdatedAndVariationReasonSet(bool successorAlreadyExists)
         {
+            PublishedProvider successor = NewPublishedProvider(_ => _.WithCurrent(NewPublishedProviderVersion(ppv => ppv.WithProvider(NewProvider()))));
             GivenJobCanBeProcessed();
             AndSpecification();
             AndCalculationResultsBySpecificationId();
@@ -416,19 +419,39 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndScopedProviders((_) =>
             {
                 _.Name = "New name";
-            });
-            AndScopedProviderCalculationResults();
+                _.Status = "Closed";
+                _.Successor = successor.Current.ProviderId;
+            }, scopedProviders: new[] { successor.Current.Provider });
+
+            if (successorAlreadyExists)
+            {
+                AndScopedProviderCalculationResults();
+            }
+            else
+            {
+                // if successor doesn't exist in calc results then it has been added via refresh
+                AndScopedProviderCalculationResults(successor.Current.Provider);
+            }
+
             AndTemplateMapping();
             AndPublishedProviders();
             AndNewMissingPublishedProviders();
             AndProfilePatternsForFundingStreamAndFundingPeriod();
 
-            GivenFundingConfiguration(new ProviderMetadataVariationStrategy());
+            GivenFundingConfiguration(new ProviderMetadataVariationStrategy(), new ClosureWithSuccessorVariationStrategy(_providerService.Object));
 
             await WhenMessageReceivedWithJobIdAndCorrelationId();
 
             _publishedProviderStatusUpdateService
-                .Verify(_ => _.UpdatePublishedProviderStatus(It.Is<IEnumerable<PublishedProvider>>(_ => _.Count() == 1 && _.Single().Current.ProviderId == _publishedProviders.Last().Current.ProviderId && _.Single().Current.VariationReasons.Single().Equals(VariationReason.NameFieldUpdated)),
+                .Verify(_ => _.UpdatePublishedProviderStatus(It.Is<IEnumerable<PublishedProvider>>(_ => _.Where(pp => pp.Current.ProviderId == _publishedProviders.Last().Current.ProviderId && pp.Current.VariationReasons.Single().Equals(VariationReason.NameFieldUpdated)).Count() == 1),
+                    It.IsAny<Reference>(),
+                    PublishedProviderStatus.Updated,
+                    JobId,
+                    CorrelationId,
+                    It.IsAny<bool>()), Times.Once);
+
+            _publishedProviderStatusUpdateService
+                .Verify(_ => _.UpdatePublishedProviderStatus(It.Is<IEnumerable<PublishedProvider>>(_ => _.Where(pp => pp.Current.ProviderId == successor.Current.ProviderId).Count() == 1),
                     It.IsAny<Reference>(),
                     PublishedProviderStatus.Updated,
                     JobId,
@@ -755,9 +778,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Be($"Could not find the job with id: '{JobId}'");
         }
 
-        private void AndScopedProviderCalculationResults()
+        private void AndScopedProviderCalculationResults(params Provider[] skipProviders)
         {
-            _providerCalculationResults = _scopedProviders.Select(_ =>
+            _providerCalculationResults = _scopedProviders.Where(_ => !skipProviders.Any(sp => sp.ProviderId == _.ProviderId)).Select(_ =>
                 NewProviderCalculationResult(pcr =>
                     pcr.WithProviderId(_.ProviderId)
                     .WithResults(_calculationResults)));
@@ -869,9 +892,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             Action<Provider> variationAction = null, 
             string profilePatternKeyPrefix = null, 
             bool includeTemplateContents = true,
-            PublishedProviderStatus publishedProviderStatus = PublishedProviderStatus.Updated)
+            PublishedProviderStatus publishedProviderStatus = PublishedProviderStatus.Updated,
+            Provider[] scopedProviders = null)
         {
             _scopedProviders = new[] { NewProvider(), NewProvider(), NewProvider() };
+
+            if (scopedProviders != null)
+            {
+                _scopedProviders = scopedProviders
+                    .Concat(_scopedProviders);
+            }
 
             _publishedProviders = _scopedProviders.DeepCopy().Select(_ =>
                     NewPublishedProvider(pp => pp.WithCurrent(

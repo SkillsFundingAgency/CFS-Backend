@@ -14,9 +14,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
         {
             Change = new ReAdjustSuccessorFundingValuesForProfileValueChange(VariationContext);
 
-            VariationContext.SuccessorRefreshState = VariationContext.RefreshState.DeepCopy();
+            VariationContext.Successor = new PublishedProvider { Current = VariationContext.RefreshState.DeepCopy() };
 
-            TargetPublishedProviderVersion = VariationContext.SuccessorRefreshState;
+            TargetPublishedProviderVersion = VariationContext.Successor.Current;
         }
 
         [TestMethod]
