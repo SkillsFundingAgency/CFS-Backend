@@ -124,32 +124,39 @@ namespace CalculateFunding.Services.Publishing
 
             return string.Empty;
         }
-
-        private PublishedProviderIndex CreatePublishedProviderIndex(PublishedProviderVersion publishedProviderVersion) =>
-            new PublishedProviderIndex
+        
+        private PublishedProviderIndex CreatePublishedProviderIndex(PublishedProviderVersion publishedProviderVersion)
+        {
+            Provider provider = publishedProviderVersion.Provider;
+            
+            return new PublishedProviderIndex
             {
                 Id = publishedProviderVersion.PublishedProviderId,
-                ProviderType = publishedProviderVersion.Provider.ProviderType,
-                ProviderSubType = publishedProviderVersion.Provider.ProviderSubType,
-                LocalAuthority = publishedProviderVersion.Provider.Authority,
+                ProviderType = provider.ProviderType,
+                ProviderSubType = provider.ProviderSubType,
+                LocalAuthority = provider.Authority,
                 FundingStatus = publishedProviderVersion.Status.ToString(),
-                ProviderName = publishedProviderVersion.Provider.Name,
-                UKPRN = publishedProviderVersion.Provider.UKPRN,
+                ProviderName = provider.Name,
+                UKPRN = provider.UKPRN,
                 FundingValue = Convert.ToDouble(publishedProviderVersion.TotalFunding),
                 SpecificationId = publishedProviderVersion.SpecificationId,
                 FundingStreamId = publishedProviderVersion.FundingStreamId,
                 FundingPeriodId = publishedProviderVersion.FundingPeriodId,
                 HasErrors = publishedProviderVersion.HasErrors,
-                UPIN = publishedProviderVersion.Provider.UPIN,
-                URN = publishedProviderVersion.Provider.URN,
+                UPIN = provider.UPIN,
+                URN = provider.URN,
+                DateOpened = provider.DateOpened,
+                MonthYearOpened = provider.DateOpened?.ToString("MMMM yyyy"),
                 Indicative = publishedProviderVersion.IsIndicative ? "Only indicative allocations" : "Hide indicative allocations",
-                Errors = publishedProviderVersion.Errors != null ? publishedProviderVersion
-                    .Errors
-                    .Select(_ => _.SummaryErrorMessage)
-                    .Where(_ => !string.IsNullOrEmpty(_))
-                    .Distinct()
-                    .ToArraySafe()
-                : Array.Empty<string>()
+                Errors = publishedProviderVersion.Errors != null
+                    ? publishedProviderVersion
+                        .Errors
+                        .Select(_ => _.SummaryErrorMessage)
+                        .Where(_ => !string.IsNullOrEmpty(_))
+                        .Distinct()
+                        .ToArraySafe()
+                    : Array.Empty<string>()
             };
+        }
     }
 }

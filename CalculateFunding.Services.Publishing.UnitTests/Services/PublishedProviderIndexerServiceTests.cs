@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -23,15 +24,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         public void IndexPublishedProvider_GivenANullDefinitionPublishedProviderSupplied_LogsAndThrowsException()
         {
             //Arrange
-            PublishedProviderVersion publishedProviderVersion = null;
 
             ILogger logger = CreateLogger();
-            ISearchRepository<PublishedProviderIndex> searchRepository = CreateSearchRepository();
 
             PublishedProviderIndexerService publishedProviderIndexerService = CreatePublishedProviderIndexerService(logger: logger);
 
             //Act
-            Func<Task> test = () => publishedProviderIndexerService.IndexPublishedProvider(publishedProviderVersion);
+            Func<Task> test = () => publishedProviderIndexerService.IndexPublishedProvider(null);
 
             //Assert
             test
@@ -123,24 +122,37 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             await searchRepository
                 .Received(1)
                 .Index(Arg.Is<IEnumerable<PublishedProviderIndex>>(
-                    d => d.First().Id == publishedProviderVersion.PublishedProviderId &&
-                    d.First().ProviderType == publishedProviderVersion.Provider.ProviderType &&
-                    d.First().ProviderSubType == publishedProviderVersion.Provider.ProviderSubType &&
-                    d.First().LocalAuthority == publishedProviderVersion.Provider.Authority &&
-                    d.First().FundingStatus == publishedProviderVersion.Status.ToString() &&
-                    d.First().ProviderName == publishedProviderVersion.Provider.Name &&
-                    d.First().UKPRN == publishedProviderVersion.Provider.UKPRN &&
-                    d.First().UPIN == publishedProviderVersion.Provider.UPIN &&
-                    d.First().URN == publishedProviderVersion.Provider.URN &&
-                    d.First().FundingValue == Convert.ToDouble(publishedProviderVersion.TotalFunding) &&
-                    d.First().SpecificationId == publishedProviderVersion.SpecificationId &&
-                    d.First().FundingStreamId == "PSG" &&
-                    d.First().FundingPeriodId == publishedProviderVersion.FundingPeriodId &&
-                    d.First().Indicative == indicativeIndexText &&
-                    d.First().HasErrors == publishedProviderVersion.HasErrors &&
-                    d.First().Errors.Any() == publishedProviderVersion.HasErrors &&
-                    (!hasErrors || d.First().Errors.First() == "summary error message")
+                    _ => MatchesExpectedPublishedProviderIndex(hasErrors, indicativeIndexText, _, publishedProviderVersion)
               ));
+        }
+
+        private static bool MatchesExpectedPublishedProviderIndex(bool hasErrors,
+            string indicativeIndexText,
+            IEnumerable<PublishedProviderIndex> d,
+            PublishedProviderVersion publishedProviderVersion)
+        {
+            Provider provider = publishedProviderVersion.Provider;
+            PublishedProviderIndex publishedProviderIndex = d.First();
+            
+            return publishedProviderIndex.Id == publishedProviderVersion.PublishedProviderId &&
+                   publishedProviderIndex.ProviderType == provider.ProviderType &&
+                   publishedProviderIndex.ProviderSubType == provider.ProviderSubType &&
+                   publishedProviderIndex.LocalAuthority == provider.Authority &&
+                   publishedProviderIndex.FundingStatus == publishedProviderVersion.Status.ToString() &&
+                   publishedProviderIndex.ProviderName == provider.Name &&
+                   publishedProviderIndex.UKPRN == provider.UKPRN &&
+                   publishedProviderIndex.UPIN == provider.UPIN &&
+                   publishedProviderIndex.URN == provider.URN &&
+                   publishedProviderIndex.FundingValue == Convert.ToDouble(publishedProviderVersion.TotalFunding) &&
+                   publishedProviderIndex.SpecificationId == publishedProviderVersion.SpecificationId &&
+                   publishedProviderIndex.FundingStreamId == "PSG" &&
+                   publishedProviderIndex.FundingPeriodId == publishedProviderVersion.FundingPeriodId &&
+                   publishedProviderIndex.Indicative == indicativeIndexText &&
+                   publishedProviderIndex.HasErrors == publishedProviderVersion.HasErrors &&
+                   publishedProviderIndex.Errors.Any() == publishedProviderVersion.HasErrors &&
+                   (!hasErrors || publishedProviderIndex.Errors.First() == "summary error message") &&
+                   publishedProviderIndex.DateOpened == provider.DateOpened &&
+                   publishedProviderIndex.MonthYearOpened == provider.DateOpened?.ToString("MMMM yyyy");
         }
 
         private Provider GetProvider(int index)
@@ -155,7 +167,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 URN = "123453",
                 UKPRN = "12345678",
                 UPIN = "123454",
-                DateOpened = DateTime.Parse("2012-12-02T00:00:00+00:00"),
+                DateOpened = new RandomDateTime(),
                 DateClosed = null,
                 Status = "Open",
                 PhaseOfEducation = "Secondary",

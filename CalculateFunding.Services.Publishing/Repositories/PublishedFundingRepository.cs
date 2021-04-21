@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -1327,12 +1328,13 @@ namespace CalculateFunding.Services.Publishing.Repositories
 
             return results;
         }
-
+        
         public async Task<IEnumerable<PublishedProviderFundingStreamStatus>> GetPublishedProviderStatusCounts(string specificationId,
             string providerType,
             string localAuthority,
             string status,
-            bool? isIndicative = null)
+            bool? isIndicative = null,
+            string monthYearOpened = null)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
@@ -1364,6 +1366,16 @@ namespace CalculateFunding.Services.Publishing.Repositories
             {
                 additionalFilter.Append(" and f.content.current.isIndicative = @isIndicative");
                 cosmosDbQueryParameters.Add(new CosmosDbQueryParameter("@isIndicative", isIndicative.Value));
+            }
+
+            if (monthYearOpened.IsNotNullOrWhitespace())
+            {
+                DateTimeOffset openDateStart = DateTimeOffset.ParseExact($"1 {monthYearOpened}", "d MMMM yyyy", CultureInfo.InvariantCulture);
+                DateTimeOffset openDateEnd = openDateStart.AddMonths(1);
+
+                additionalFilter.Append(" and f.content.current.provider.dateOpened >= @openDateStart and f.content.current.provider.dateOpened < @openDateEnd");
+                cosmosDbQueryParameters.Add(new CosmosDbQueryParameter("@openDateStart", openDateStart));
+                cosmosDbQueryParameters.Add(new CosmosDbQueryParameter("@openDateEnd", openDateEnd));
             }
 
             CosmosDbQuery query = new CosmosDbQuery

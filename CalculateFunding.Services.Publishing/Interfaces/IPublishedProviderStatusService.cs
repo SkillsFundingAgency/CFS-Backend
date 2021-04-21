@@ -10,7 +10,8 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             string providerType,
             string localAuthority,
             string status,
-            bool? isIndicative = null);
+            bool? isIndicative = null,
+            string monthYearOpened = null);
 
         Task<IActionResult> GetProviderBatchCountForApproval(PublishedProviderIdsRequest providerIds, string specificationId);
         

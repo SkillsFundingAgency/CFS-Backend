@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using Microsoft.Azure.Search;
 using Newtonsoft.Json;
 
@@ -71,5 +72,13 @@ namespace CalculateFunding.Models.Publishing
         [IsFilterable, IsFacetable, IsRetrievable(true)]
         [JsonProperty("indicative")]
         public string Indicative { get; set; }
+        
+        [JsonProperty("dateOpened")]
+        [IsRetrievable(true)]
+        public DateTimeOffset? DateOpened { get; set; }
+        
+        [JsonProperty("monthYearOpened")]
+        [IsFilterable, IsSearchable, IsFacetable, IsRetrievable(true)]
+        public string MonthYearOpened { get; set; }
     }
 }

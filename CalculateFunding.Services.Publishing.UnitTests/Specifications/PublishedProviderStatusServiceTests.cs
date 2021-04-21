@@ -97,6 +97,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             const string releasedStatus = "Released";
             const string updatedStatus = "Updated";
 
+            string monthYearOpened = NewRandomString();
+
             int fs1ApprovedCount = NewRandomNumber();
             int fs1DraftCount = NewRandomNumber();
             int fs1ReleasedCount = NewRandomNumber();
@@ -134,6 +136,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 .WithTotalFunding(fs2ApprovedTotalFunding + fs2DraftTotalFunding + fs2ReleasedTotalFunding + fs2UpdatedTotalFunding));
 
             GivenThePublishedProvidersForTheSpecificationId(isIndicative,
+                monthYearOpened,
                 NewPublishedProviderFundingStreamStatus(_ => _.WithFundingStreamId(fundingStreamId1).WithCount(fs1ApprovedCount).WithStatus(approvedStatus).WithTotalFunding(fs1ApprovedTotalFunding)),
                 NewPublishedProviderFundingStreamStatus(_ => _.WithFundingStreamId(fundingStreamId1).WithCount(fs1DraftCount).WithStatus(draftStatus).WithTotalFunding(fs1DraftTotalFunding)),
                 NewPublishedProviderFundingStreamStatus(_ => _.WithFundingStreamId(fundingStreamId1).WithCount(fs1ReleasedCount).WithStatus(releasedStatus).WithTotalFunding(fs1ReleasedTotalFunding)),
@@ -146,10 +149,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             AndTheSpecificationSummaryIsRetrieved(NewSpecificationSummary(s =>
             {
                 s.WithId(_specificationId);
-                s.WithFundingStreamIds(new[] { fundingStreamId1, fundingStreamId2 });
+                s.WithFundingStreamIds(fundingStreamId1, fundingStreamId2);
             }));
 
-            await WhenThePublishedProvidersStatusAreQueried(isIndicative);
+            await WhenThePublishedProvidersStatusAreQueried(isIndicative, monthYearOpened);
 
             ThenTheResponseShouldBe<OkObjectResult>(_ =>
                 ((IEnumerable<ProviderFundingStreamStatusResponse>)_.Value).SequenceEqual(new[]
@@ -645,11 +648,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         }
 
         private void GivenThePublishedProvidersForTheSpecificationId(bool? isIndicative,
-            params PublishedProviderFundingStreamStatus[] publishedProviderFundingStreamStatuses)
-        {
-            _publishedFundingRepository.GetPublishedProviderStatusCounts(_specificationId, string.Empty, string.Empty, string.Empty, isIndicative)
+            string monthYearOpened,
+            params PublishedProviderFundingStreamStatus[] publishedProviderFundingStreamStatuses) =>
+            _publishedFundingRepository.GetPublishedProviderStatusCounts(_specificationId,
+                    string.Empty,
+                    string.Empty,
+                    string.Empty,
+                    isIndicative,
+                    monthYearOpened)
                 .Returns(publishedProviderFundingStreamStatuses);
-        }
 
         private void GivenThePublishedProviderIdsForTheSpecificationId(IEnumerable<string> publishedProviderIds)
         {
@@ -657,13 +664,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 .Returns(publishedProviderIds);
         }
 
-        private async Task WhenThePublishedProvidersStatusAreQueried(bool? isIndicative = null)
+        private async Task WhenThePublishedProvidersStatusAreQueried(bool? isIndicative = null,
+            string monthYearOpened = null)
         {
             _actionResult = await _service.GetProviderStatusCounts(_specificationId,
                 string.Empty,
                 string.Empty,
                 string.Empty,
-                isIndicative);
+                isIndicative,
+                monthYearOpened);
         }
 
         private void GivenTheValidationErrors(params string[] errors)

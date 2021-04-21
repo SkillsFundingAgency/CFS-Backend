@@ -1,4 +1,6 @@
-﻿namespace CalculateFunding.Repositories.Common.Search.Results
+﻿using System;
+
+namespace CalculateFunding.Repositories.Common.Search.Results
 {    
     public class PublishedSearchResult
     {
@@ -18,5 +20,6 @@
         public string Indicative { get; set; }
         public bool HasErrors { get; set; }
         public string[] Errors { get; set; }
+        public DateTimeOffset? OpenedDate { get; set; }
     }
 }

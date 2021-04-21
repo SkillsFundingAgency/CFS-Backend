@@ -208,6 +208,28 @@
 			"analyzer": null,
 			"searchAnalyzer": null,
 			"indexAnalyzer": null
+		  },
+		  {
+		  	 "name": "dateOpened",
+		  	 "type": "Edm.DateTimeOffset",
+		  	 "searchable": false,
+		  	 "filterable": false,
+		  	 "sortable": false,
+		  	 "facetable": false,
+		  	 "retrievable": true
+		  },
+		  {
+		  	"name": "monthYearOpened",
+		  	"type": "Edm.String",
+		  	"key": false,
+		  	"facetable": true,
+		  	"filterable": true,
+		  	"retrievable": true,
+		  	"searchable": true,
+		  	"sortable": false,
+		  	"analyzer": null,
+		  	"searchAnalyzer": null,
+		  	"indexAnalyzer": null
 		  }
 	],
 	"scoringProfiles": [],

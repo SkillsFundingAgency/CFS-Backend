@@ -252,7 +252,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             string providerType,
             string localAuthority,
             string status,
-            bool? isIndicative = null)
+            bool? isIndicative = null,
+            string monthYearOpened = null)
         {
             IEnumerable<PublishedFunding> publishedFundings = _repo.PublishedFunding
                 .SelectMany(c => c.Value)

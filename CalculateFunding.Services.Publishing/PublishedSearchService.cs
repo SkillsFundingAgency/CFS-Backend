@@ -28,6 +28,8 @@ namespace CalculateFunding.Services.Publishing
             new FacetFilterType("providerSubType"),
             new FacetFilterType("localAuthority"),
             new FacetFilterType("fundingStatus"),
+            new FacetFilterType("indicative"),
+            new FacetFilterType("monthYearOpened"),
             new FacetFilterType("hasErrors", fieldType: SearchFieldType.Boolean)
         };
 
@@ -212,7 +214,7 @@ namespace CalculateFunding.Services.Publishing
 
                 await TaskHelper.WhenAllAndThrow(searchTasks.ToArraySafe());
 
-                foreach (var searchTask in searchTasks)
+                foreach (Task<SearchResults<PublishedProviderIndex>> searchTask in searchTasks)
                 {
                     SearchResults<PublishedProviderIndex> searchResult = searchTask.Result;
 
@@ -222,8 +224,8 @@ namespace CalculateFunding.Services.Publishing
                     }
                     else
                     {
-                        results.TotalCount = (int)(searchResult?.TotalCount ?? 0);
-                        results.Results = searchResult?.Results?.Select(m => new PublishedSearchResult
+                        results.TotalCount = (int)(searchResult.TotalCount ?? 0);
+                        results.Results = searchResult.Results?.Select(m => new PublishedSearchResult
                         {
                             Id = m.Result.Id,
                             ProviderType = m.Result.ProviderType,
@@ -240,7 +242,8 @@ namespace CalculateFunding.Services.Publishing
                             FundingPeriodId = m.Result.FundingPeriodId,
                             Indicative = m.Result.Indicative,
                             HasErrors = m.Result.HasErrors,
-                            Errors = m.Result.Errors
+                            Errors = m.Result.Errors,
+                            OpenedDate = m.Result.DateOpened
                         });
                     }
                 }

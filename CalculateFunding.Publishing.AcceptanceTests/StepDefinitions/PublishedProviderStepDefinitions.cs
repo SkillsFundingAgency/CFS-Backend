@@ -80,7 +80,9 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
 
                 actual
                 .Should()
-                .BeEquivalentTo(pubProvider);
+                .BeEquivalentTo(pubProvider,
+                    opt => opt.Excluding(_ => _.DateOpened)
+                        .Excluding(_ => _.MonthYearOpened));
             }
         }
 
