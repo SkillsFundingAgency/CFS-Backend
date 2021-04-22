@@ -104,13 +104,11 @@ namespace CalculateFunding.Services.Publishing
             return variationContext;
         }
 
-        public async Task<bool> ApplyVariations(IDictionary<string, PublishedProvider> publishedProvidersToUpdate,
-            IDictionary<string, PublishedProvider> newProviders,
+        public async Task<bool> ApplyVariations(IRefreshStateService refreshStateService,
             string specificationId,
             string jobId)
         {
-            Guard.ArgumentNotNull(publishedProvidersToUpdate, nameof(publishedProvidersToUpdate));
-            Guard.ArgumentNotNull(newProviders, nameof(newProviders));
+            Guard.ArgumentNotNull(refreshStateService, nameof(refreshStateService));
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
             if (_applyProviderVariations.HasVariations)
@@ -128,12 +126,12 @@ namespace CalculateFunding.Services.Publishing
 
                 foreach (PublishedProvider publishedProvider in _applyProviderVariations.ProvidersToUpdate)
                 {
-                    publishedProvidersToUpdate[publishedProvider.Current.ProviderId] = publishedProvider;
+                    refreshStateService.Update(publishedProvider);
                 }
 
                 foreach (PublishedProvider publishedProvider in _applyProviderVariations.NewProvidersToAdd)
                 {
-                    newProviders[publishedProvider.Current.ProviderId] = publishedProvider;
+                    refreshStateService.Add(publishedProvider);
                 }
             }
 

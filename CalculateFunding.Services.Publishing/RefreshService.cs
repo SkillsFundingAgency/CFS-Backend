@@ -29,7 +29,6 @@ namespace CalculateFunding.Services.Publishing
     {
         private const string SfaCorrelationId = "sfa-correlationId";
 
-        private readonly IPublishedProviderStatusUpdateService _publishedProviderStatusUpdateService;
         private readonly IPublishedFundingDataService _publishedFundingDataService;
         private readonly ISpecificationService _specificationService;
         private readonly IProviderService _providerService;
@@ -44,7 +43,6 @@ namespace CalculateFunding.Services.Publishing
         private readonly AsyncPolicy _calculationsApiClientPolicy;
         private readonly IPublishProviderExclusionCheck _providerExclusionCheck;
         private readonly IFundingLineValueOverride _fundingLineValueOverride;
-        private readonly IPublishedProviderIndexerService _publishedProviderIndexerService;
         private readonly IJobManagement _jobManagement;
         private readonly ITransactionFactory _transactionFactory;
         private readonly IPublishedProviderVersionService _publishedProviderVersionService;
@@ -53,9 +51,9 @@ namespace CalculateFunding.Services.Publishing
         private readonly IReApplyCustomProfiles _reApplyCustomProfiles;
         private readonly IPublishedProviderErrorDetection _detection;
         private readonly IPublishedFundingCsvJobsService _publishFundingCsvJobsService;
+        private readonly IRefreshStateService _refreshStateService;
 
-        public RefreshService(IPublishedProviderStatusUpdateService publishedProviderStatusUpdateService,
-            IPublishedFundingDataService publishedFundingDataService,
+        public RefreshService(IPublishedFundingDataService publishedFundingDataService,
             IPublishingResiliencePolicies publishingResiliencePolicies,
             ISpecificationService specificationService,
             IProviderService providerService,
@@ -68,7 +66,6 @@ namespace CalculateFunding.Services.Publishing
             IPublishProviderExclusionCheck providerExclusionCheck,
             IFundingLineValueOverride fundingLineValueOverride,
             IJobManagement jobManagement,
-            IPublishedProviderIndexerService publishedProviderIndexerService,
             IVariationService variationService,
             ITransactionFactory transactionFactory,
             IPublishedProviderVersionService publishedProviderVersionService,
@@ -76,9 +73,9 @@ namespace CalculateFunding.Services.Publishing
             IReApplyCustomProfiles reApplyCustomProfiles,
             IPublishedProviderErrorDetection detection,
             IBatchProfilingService batchProfilingService,
-            IPublishedFundingCsvJobsService publishFundingCsvJobsService) : base(jobManagement, logger)
+            IPublishedFundingCsvJobsService publishFundingCsvJobsService,
+            IRefreshStateService refreshStateService) : base(jobManagement, logger)
         {
-            Guard.ArgumentNotNull(publishedProviderStatusUpdateService, nameof(publishedProviderStatusUpdateService));
             Guard.ArgumentNotNull(publishedFundingDataService, nameof(publishedFundingDataService));
             Guard.ArgumentNotNull(publishingResiliencePolicies, nameof(publishingResiliencePolicies));
             Guard.ArgumentNotNull(specificationService, nameof(specificationService));
@@ -90,7 +87,6 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(providerExclusionCheck, nameof(providerExclusionCheck));
             Guard.ArgumentNotNull(fundingLineValueOverride, nameof(fundingLineValueOverride));
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
-            Guard.ArgumentNotNull(publishedProviderIndexerService, nameof(publishedProviderIndexerService));
             Guard.ArgumentNotNull(variationService, nameof(variationService));
             Guard.ArgumentNotNull(transactionFactory, nameof(transactionFactory));
             Guard.ArgumentNotNull(publishedProviderVersionService, nameof(publishedProviderVersionService));
@@ -103,8 +99,8 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(publishingResiliencePolicies.PublishedFundingRepository, nameof(publishingResiliencePolicies.PublishedFundingRepository));
             Guard.ArgumentNotNull(batchProfilingService, nameof(batchProfilingService));
             Guard.ArgumentNotNull(publishFundingCsvJobsService, nameof(publishFundingCsvJobsService));
+            Guard.ArgumentNotNull(refreshStateService, nameof(refreshStateService));
 
-            _publishedProviderStatusUpdateService = publishedProviderStatusUpdateService;
             _publishedFundingDataService = publishedFundingDataService;
             _specificationService = specificationService;
             _providerService = providerService;
@@ -120,7 +116,6 @@ namespace CalculateFunding.Services.Publishing
             _reApplyCustomProfiles = reApplyCustomProfiles;
             _detection = detection;
             _batchProfilingService = batchProfilingService;
-            _publishedProviderIndexerService = publishedProviderIndexerService;
 
             _publishingResiliencePolicy = publishingResiliencePolicies.PublishedFundingRepository;
             _calculationsApiClientPolicy = publishingResiliencePolicies.CalculationsApiClient;
@@ -129,6 +124,7 @@ namespace CalculateFunding.Services.Publishing
             _publishedProviderVersionService = publishedProviderVersionService;
             _policiesService = policiesService;
             _publishFundingCsvJobsService = publishFundingCsvJobsService;
+            _refreshStateService = refreshStateService;
         }
 
         public override async Task Process(Message message)
@@ -260,8 +256,9 @@ namespace CalculateFunding.Services.Publishing
             }
 
             // Create PublishedProvider for providers which don't already have a record (eg ProviderID-FundingStreamId-FundingPeriodId)
-            IDictionary<string, PublishedProvider> newProviders = await _providerService.GenerateMissingPublishedProviders(scopedProviders.Values, specification, fundingStream, publishedProviders);
-            publishedProviders.AddRange(newProviders);
+
+            _refreshStateService.AddRange(await _providerService.GenerateMissingPublishedProviders(scopedProviders.Values, specification, fundingStream, publishedProviders));
+            publishedProviders.AddRange(_refreshStateService.NewProviders);
 
             // Get TemplateMapping for calcs from Calcs API client nuget
             ApiResponse<Common.ApiClient.Calcs.Models.TemplateMapping> calculationMappingResult = await _calculationsApiClientPolicy.ExecuteAsync(() => _calculationsApiClient.GetTemplateMapping(specification.Id, fundingStream.Id));
@@ -287,19 +284,13 @@ namespace CalculateFunding.Services.Publishing
             }
             _logger.Information("Populated PublishedProviders for refresh");
 
-            Dictionary<string, PublishedProvider> publishedProvidersToUpdate = new Dictionary<string, PublishedProvider>();
-
-            Dictionary<string, PublishedProvider> existingPublishedProvidersToUpdate = new Dictionary<string, PublishedProvider>();
-
-            Dictionary<string, PublishedProvider> existingPublishedProvidersToRemove = new Dictionary<string, PublishedProvider>();
-
             FundingLine[] flattenedTemplateFundingLines = templateMetadataContents.RootFundingLines.Flatten(_ => _.FundingLines).ToArray();
-            
+
             _logger.Information("Profiling providers for refresh");
 
             try
             {
-                await ProfileProviders(publishedProviders, newProviders, generatedPublishedProviderData);
+                await ProfileProviders(publishedProviders, _refreshStateService.NewProviders, generatedPublishedProviderData);
             }
             catch (Exception ex)
             {
@@ -327,12 +318,12 @@ namespace CalculateFunding.Services.Publishing
             // set up the published providers context for error detection laterawait 
             FundingConfiguration fundingConfiguration = await _policiesService.GetFundingConfiguration(fundingStream.Id, specification.FundingPeriod.Id);
             _logger.Information($"Retrieved funding stream configuration for '{fundingStream.Id}'");
-            
+
             _logger.Information("Updating IsIndicative flag on published providers");
-            
+
             HashSet<string> indicativeStatus = new HashSet<string>(fundingConfiguration?.IndicativeOpenerProviderStatus ?? ArraySegment<string>.Empty);
-            
-            foreach ((string _, PublishedProvider publishedProvider) in newProviders)
+
+            foreach ((string _, PublishedProvider publishedProvider) in _refreshStateService.NewProviders)
             {
                 publishedProvider.Current.SetIsIndicative(indicativeStatus);
             }
@@ -370,17 +361,15 @@ namespace CalculateFunding.Services.Publishing
                 // but when refresh funding is run, it's now no longer in the specification's scoped provider list
                 if (!providerExists)
                 {
-                    publishedProvidersToUpdate.Add(publishedProvider.Key, publishedProvider.Value);
-
                     // When there is no released funding for this provider
                     if (publishedProvider.Value.Released == null)
                     {
-                        existingPublishedProvidersToRemove.Add(publishedProvider.Key, publishedProvider.Value);
+                        _refreshStateService.Delete(publishedProvider.Value);
                         continue;
                     }
                     else
                     {
-                        existingPublishedProvidersToUpdate.Add(publishedProvider.Key, publishedProvider.Value);
+                        _refreshStateService.Update(publishedProvider.Value);
                     }
                 }
 
@@ -394,23 +383,21 @@ namespace CalculateFunding.Services.Publishing
                     // this can be the case for a successor that has been created through a refresh run 
                     if (generatedProviderResult.HasCalculations)
                     {
-                        PublishedProviderExclusionCheckResult exclusionCheckResult = _providerExclusionCheck.ShouldBeExcluded(publishedProvider.Key, 
-                                generatedProviderResult, 
+                        PublishedProviderExclusionCheckResult exclusionCheckResult = _providerExclusionCheck.ShouldBeExcluded(publishedProvider.Key,
+                                generatedProviderResult,
                                 flattenedTemplateFundingLines);
 
                         if (exclusionCheckResult.ShouldBeExcluded)
                         {
-                            if (newProviders.ContainsKey(publishedProvider.Key))
+                            if (_refreshStateService.Exclude(publishedProvider.Value))
                             {
-                                newProviders.Remove(publishedProvider.Key);
                                 continue;
                             }
 
                             // if there is no previous funding for the generated funding lines then remove
                             if (publishedProvider.Value.Released == null || !_fundingLineValueOverride.HasPreviousFunding(generatedProviderResult, publishedProviderVersion))
                             {
-                                existingPublishedProvidersToRemove.Add(publishedProvider.Key, publishedProvider.Value);
-                                publishedProvidersToUpdate.Add(publishedProvider.Key, publishedProvider.Value);
+                                _refreshStateService.Delete(publishedProvider.Value);
                                 continue;
                             }
                         }
@@ -422,7 +409,7 @@ namespace CalculateFunding.Services.Publishing
                         generatedProviderResult,
                         scopedProviders[providerId],
                         specification.TemplateIds[fundingStream.Id],
-                        newProviders.ContainsKey(publishedProvider.Key));
+                        _refreshStateService.IsNewProvider(publishedProvider.Value));
 
                     _logger.Verbose($"Published provider '{publishedProvider.Key}' updated: '{publishedProviderUpdated}'");
 
@@ -449,18 +436,13 @@ namespace CalculateFunding.Services.Publishing
 
                     if (context != null && context.HasNewProvidersToAdd)
                     {
-                        newProviders.AddRange(context.NewProvidersToAdd.ToDictionary(_ => _.Current.ProviderId));
+                        _refreshStateService.AddRange(context.NewProvidersToAdd.ToDictionary(_ => _.Current.ProviderId));
                     }
 
                     if (context != null && context.Successor != null)
                     {
                         // if the successor already exists then we still need to add it to existing providers to update
-                        if (!newProviders.ContainsKey(context.Successor.Current.ProviderId))
-                        {
-                            existingPublishedProvidersToUpdate.TryAdd(context.Successor.Current.ProviderId, context.Successor);
-                        }
-
-                        publishedProvidersToUpdate.TryAdd(context.Successor.Current.ProviderId, context.Successor);
+                        _refreshStateService.Update(context.Successor);
                     }
                 }
 
@@ -469,23 +451,18 @@ namespace CalculateFunding.Services.Publishing
                     continue;
                 }
 
-                if (!newProviders.ContainsKey(publishedProvider.Key))
-                {
-                    existingPublishedProvidersToUpdate.TryAdd(publishedProvider.Key, publishedProvider.Value);
-                }
-
-                publishedProvidersToUpdate.TryAdd(publishedProvider.Key, publishedProvider.Value);
+                _refreshStateService.Update(publishedProvider.Value);
             }
 
             _logger.Information("Finished processing providers for variations and exclusions");
 
             _logger.Information("Adding additional variation reasons");
-            AddInitialPublishVariationReasons(newProviders.Values);
+            AddInitialPublishVariationReasons(_refreshStateService.NewProviders.Values);
             _logger.Information("Finished adding additional variation reasons");
 
             _logger.Information("Starting to apply variations");
 
-            if (!await _variationService.ApplyVariations(publishedProvidersToUpdate, newProviders, specification.Id, jobId))
+            if (!await _variationService.ApplyVariations(_refreshStateService, specification.Id, jobId))
             {
                 await _jobManagement.UpdateJobStatus(jobId, 0, 0, false, "Refresh job failed with variations errors.");
 
@@ -494,75 +471,41 @@ namespace CalculateFunding.Services.Publishing
 
             _logger.Information("Finished applying variations");
 
-            _logger.Information($"Updating a total of {publishedProvidersToUpdate.Count} published providers");
+            _logger.Information($"Adding or updating a total of {_refreshStateService.Count} published providers");
 
             //apply any post variation error detection that we also need to run
-            foreach (PublishedProvider publishedProvider in publishedProvidersToUpdate.Values)
+            foreach (PublishedProvider publishedProvider in _refreshStateService.UpdatedProviders)
             {
                 await _detection.ApplyRefreshPostVariationsErrorDetection(publishedProvider, publishedProvidersContext);
             }
 
-            if (publishedProvidersToUpdate.Count > 0)
+            if (_refreshStateService.Count > 0)
             {
-                if (existingPublishedProvidersToUpdate.Count > 0 || newProviders.Count > 0 || existingPublishedProvidersToRemove.Count > 0)
+                using (Transaction transaction = _transactionFactory.NewTransaction<RefreshService>())
                 {
-                    using (Transaction transaction = _transactionFactory.NewTransaction<RefreshService>())
+                    try
                     {
-                        try
+                        // if any error occurs while updating or indexing then we need to re-index all published providers for consistency
+                        transaction.Enroll(async () =>
                         {
-                            // if any error occurs while updating or indexing then we need to re-index all published providers for consistency
-                            transaction.Enroll(async () =>
-                            {
-                                await _publishedProviderVersionService.CreateReIndexJob(author, correlationId, specification.Id, jobId);
-                            });
+                            await _publishedProviderVersionService.CreateReIndexJob(author, correlationId, specification.Id, jobId);
+                        });
 
-                            // Save updated PublishedProviders to cosmos and increment version status
-                            if (existingPublishedProvidersToUpdate.Count > 0)
-                            {
-                                _logger.Information($"Saving updates to existing published providers. Total={existingPublishedProvidersToUpdate.Count}");
+                        await _refreshStateService.Persist(jobId, author, correlationId);
 
-                                IEnumerable<PublishedProvider> draftPublishedProviders = existingPublishedProvidersToUpdate.Values.Where(_ => _.Current.Status == PublishedProviderStatus.Draft);
-                                IEnumerable<PublishedProvider> nonDraftPublishedProviders = existingPublishedProvidersToUpdate.Values.Except(draftPublishedProviders);
-
-                                await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(nonDraftPublishedProviders, author, PublishedProviderStatus.Updated, jobId, correlationId);
-                                await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(draftPublishedProviders, author, PublishedProviderStatus.Draft, jobId, correlationId);
-
-                                _logger.Information("Indexing existing PublishedProviders");
-                                await _publishedProviderIndexerService.IndexPublishedProviders(existingPublishedProvidersToUpdate.Values.Select(_ => _.Current));
-                            }
-
-                            if (newProviders.Count > 0)
-                            {
-                                _logger.Information($"Saving new published providers. Total={newProviders.Count}");
-                                await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(newProviders.Values, author, PublishedProviderStatus.Draft, jobId, correlationId);
-
-                                _logger.Information("Indexing newly added PublishedProviders");
-                                await _publishedProviderIndexerService.IndexPublishedProviders(newProviders.Values.Select(_ => _.Current));
-                            }
-
-                            if (existingPublishedProvidersToRemove.Count > 0)
-                            {
-                                _logger.Information($"Deleting existing published providers. Total={existingPublishedProvidersToRemove.Count}");
-                                await _publishedFundingDataService.DeletePublishedProviders(existingPublishedProvidersToRemove.Values);
-
-                                _logger.Information("Removing index of existing PublishedProviders");
-                                await _publishedProviderIndexerService.Remove(existingPublishedProvidersToRemove.Values.Select(_ => _.Current));
-                            }
-
-                            transaction.Complete();
-                        }
-                        catch (Exception ex)
-                        {
-                            await transaction.Compensate();
-
-                            throw;
-                        }
+                        transaction.Complete();
                     }
+                    catch (Exception ex)
+                    {
+                        await transaction.Compensate();
 
-                    _logger.Information("Creating generate Csv jobs");
-
-                    await _publishFundingCsvJobsService.GenerateCsvJobs(GeneratePublishingCsvJobsCreationAction.Refresh, specification.Id, specification.FundingPeriod.Id, specification.FundingStreams.Select(_ => _.Id) , correlationId, author);
+                        throw;
+                    }
                 }
+
+                _logger.Information("Creating generate Csv jobs");
+
+                await _publishFundingCsvJobsService.GenerateCsvJobs(GeneratePublishingCsvJobsCreationAction.Refresh, specification.Id, specification.FundingPeriod.Id, specification.FundingStreams.Select(_ => _.Id), correlationId, author);
             }
         }
 

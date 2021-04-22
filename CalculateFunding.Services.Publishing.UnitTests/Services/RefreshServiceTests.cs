@@ -105,6 +105,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private ArraySegment<ProfileVariationPointer> _profileVariationPointers;
         private Mock<IBatchProfilingService> _batchProfilingService;
         private Mock<ICalculationsService> _calculationsService;
+        private IRefreshStateService _refreshStateService;
 
         [TestInitialize]
         public void Setup()
@@ -124,7 +125,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             };
             _specificationsApiClient = new Mock<ISpecificationsApiClient>();
             _specificationService = new SpecificationService(_specificationsApiClient.Object, _publishingResiliencePolicies);
-
+            
             _profileVariationPointers = ArraySegment<ProfileVariationPointer>.Empty;
 
             _specificationsApiClient.Setup(_ =>
@@ -202,8 +203,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 new Mock<IReProfilingResponseMapper>().Object);
             _recordVariationErrors = new Mock<IRecordVariationErrors>();
             _variationService = new VariationService(_detectProviderVariation, _applyProviderVariation, _recordVariationErrors.Object, _logger.Object);
-            _refreshService = new RefreshService(_publishedProviderStatusUpdateService.Object,
-                _publishedFundingDataService.Object,
+            _refreshStateService = new RefreshStateService(_logger.Object, _publishedProviderStatusUpdateService.Object, _publishedProviderIndexerService.Object, _publishedFundingDataService.Object);
+            _refreshService = new RefreshService(_publishedFundingDataService.Object,
                 _publishingResiliencePolicies,
                 _specificationService,
                 _providerService.Object,
@@ -216,7 +217,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 _providerExclusionCheck,
                 _fundingLineValueOverride.Object,
                 _jobManagement.Object,
-                _publishedProviderIndexerService.Object,
                 _variationService,
                 _transactionFactory,
                 _publishedProviderVersionService.Object,
@@ -224,7 +224,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 _reApplyCustomProfiles.Object,
                 _detection,
                 _batchProfilingService.Object,
-                _publishFundingCsvJobsService.Object);
+                _publishFundingCsvJobsService.Object,
+                _refreshStateService);
         }
 
         [TestMethod]

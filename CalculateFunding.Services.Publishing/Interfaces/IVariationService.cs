@@ -21,8 +21,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             string snapshotId,
             string specificationProviderVersionId);
         
-        Task<bool> ApplyVariations(IDictionary<string, PublishedProvider> publishedProvidersToUpdate, 
-            IDictionary<string, PublishedProvider> newProviders, 
+        Task<bool> ApplyVariations(IRefreshStateService refreshStateService, 
             string specificaitonId,
             string jobId);
         void ClearSnapshots();

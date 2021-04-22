@@ -262,6 +262,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
 
             RegisterTypeAs<GenerateCsvJobsInMemoryClient, IGeneratePublishedFundingCsvJobsCreation>();
 
+            RegisterTypeAs<RefreshStateService, IRefreshStateService>();
+
             PublishedFundingIdGeneratorResolver idGeneratorResolver = new PublishedFundingIdGeneratorResolver();
             PublishedFundingIdGenerator publishedFundingIdGenerator = new PublishedFundingIdGenerator();
             idGeneratorResolver.Register("1.0", publishedFundingIdGenerator);
