@@ -10,5 +10,7 @@ namespace CalculateFunding.Services.DataImporter.Validators.Models
 	    public TableLoadResult TableLoadResult { get; set; }
 
 	    public IDictionary<string, int> RetrievedHeaderFields { get; set; }
+	    
+	    public string[] RawHeaderFields { get; set; }
     }
 }

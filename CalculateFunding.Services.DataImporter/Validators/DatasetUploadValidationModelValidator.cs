@@ -64,10 +64,14 @@ namespace CalculateFunding.Services.DataImporter.Validators
             IList<HeaderValidationResult> headerValidationFailures = new List<HeaderValidationResult>();
             ConcurrentBag<FieldValidationResult> fieldValidationFailures = new ConcurrentBag<FieldValidationResult>();
 
-            string[] headers = validationModel.Data.RetrievedHeaderFields.Keys.ToArray();
+            string[] headers = validationModel.Data.RawHeaderFields;
 
             HeaderValidationResult[] headerValidationResults
                 = headerValidators.SelectMany(_ => _.ValidateHeaders(headers)).ToArray();
+            
+            //I am assuming that we will ALWAYS want duplicate
+            //header errors so adding range as the first thing to do for all scenarios
+            headerValidationFailures.AddRange(headerValidationResults.Where(_ => _.ReasonForFailure == DatasetCellReasonForFailure.DuplicateColumnHeader));
 
             if (validationModel.LatestBlobFileName != null)
             {

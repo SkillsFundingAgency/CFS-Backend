@@ -21,7 +21,8 @@ namespace CalculateFunding.Services.DataImporter.Validators
                 .Where(_ => _.Count() > 1 &&
                             _fieldDefinitions.ContainsKey(_.Key))
                 .Select(_ => CreateResultRequiringBackgroundColourKey(_fieldDefinitions[_.Key], 
-                    DatasetCellReasonForFailure.DuplicateColumnHeader));
+                    DatasetCellReasonForFailure.DuplicateColumnHeader))
+                .ToArray();
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Security.Policy;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Services.DataImporter.Validators.Models;
 
@@ -16,10 +17,14 @@ namespace CalculateFunding.Services.DataImporter.Validators
 		
 	    public IEnumerable<HeaderValidationResult> ValidateHeaders(IEnumerable<string> headerFields)
 	    {
-		    return
-			    _fieldDefinitions
-				    .Where(f => headerFields.All(h => h != f.Name))
-					.Select(f => new HeaderValidationResult(f));
+		    HashSet<string> headerFieldNames = headerFields
+			    .Select(_ => _.ToLowerInvariant())
+			    .ToHashSet();
+		    
+		    return _fieldDefinitions
+			    .Where(f => !headerFieldNames.Contains(f.Name.ToLowerInvariant()))
+			    .Select(f => new HeaderValidationResult(f))
+			    .ToArray();
 	    }
     }
 }

@@ -62,19 +62,21 @@ namespace CalculateFunding.Services.DataImporter
                 .Distinct()
                 .OrderBy(x => x);
 
-            var headerDictionary = MatchHeaderColumns(worksheet, tableDefinition, includeUnmatchingColumn);
+            (string[] rawHeaders, Dictionary<string, int> headerDictionary) columns = MatchHeaderColumns(worksheet, tableDefinition, includeUnmatchingColumn);
 
-            foreach (var row in rows.Skip(1))
+            foreach (int row in rows.Skip(1))
             {
-                RowLoadResult rowResult = LoadRow(worksheet, tableDefinition, headerDictionary, row, parse);
+                RowLoadResult rowResult = LoadRow(worksheet, tableDefinition, columns.headerDictionary, row, parse);
 
                 result.TableLoadResult.Rows.Add(rowResult);
             }
 
-	        if (!headerDictionary.IsNullOrEmpty())
+	        if (!columns.headerDictionary.IsNullOrEmpty())
 	        {
-		        result.RetrievedHeaderFields = headerDictionary;
+		        result.RetrievedHeaderFields = columns.headerDictionary;
 	        }
+
+	        result.RawHeaderFields = columns.rawHeaders;
 
 	        return result;
         }
@@ -165,11 +167,13 @@ namespace CalculateFunding.Services.DataImporter
 	        }
         }
 
-        private static Dictionary<string, int> MatchHeaderColumns(ExcelWorksheet worksheet, TableDefinition tableDefinition, bool includeUnmatchingColumn)
+        private static (string[] rawHeaders, Dictionary<string, int>) MatchHeaderColumns(ExcelWorksheet worksheet, TableDefinition tableDefinition, bool includeUnmatchingColumn)
         {
             ExcelCellAddress start = worksheet.Dimension.Start;
             ExcelCellAddress end = worksheet.Dimension.End;
 
+            List<string> rawHeaders = new List<string>();
+            
             Dictionary<string, int> headerDictionary = new Dictionary<string, int>();
             for (int col = start.Column; col <= end.Column; col++)
             {
@@ -179,9 +183,10 @@ namespace CalculateFunding.Services.DataImporter
                 {
                     AddToDictionary(headerDictionary, tableDefinition, valAsString, col, includeUnmatchingColumn);
                 }
+                rawHeaders.Add(valAsString);
             }
 
-            return headerDictionary;
+            return (rawHeaders.ToArray(), headerDictionary);
         }
 
         public static void AddToDictionary(IDictionary<string, int> headers, TableDefinition tableDefinition, string headerCellValue, int colIndex, bool includeUnmatchingColumn)
@@ -201,7 +206,10 @@ namespace CalculateFunding.Services.DataImporter
 
             if (includeUnmatchingColumn && (columns == null || columns.Count == 0))
             {
-                headers.Add(headerCellValue, colIndex);
+	            if (!headers.ContainsKey(headerCellValue))
+	            {
+		            headers.Add(headerCellValue, colIndex);
+	            }
             }
         }
 
