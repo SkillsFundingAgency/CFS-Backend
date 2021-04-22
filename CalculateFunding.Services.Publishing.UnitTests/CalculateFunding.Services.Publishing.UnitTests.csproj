@@ -62,6 +62,7 @@
   <ItemGroup>
     <ProjectReference Include="..\CalculateFunding.Services.Publishing\CalculateFunding.Services.Publishing.csproj" />
     <ProjectReference Include="..\CalculateFunding.Tests.Common\CalculateFunding.Tests.Common.csproj" />
+    <ProjectReference Include="..\CalculateFunding.UnitTests.ApiClientHelpers.Jobs\CalculateFunding.UnitTests.ApiClientHelpers.Jobs.csproj" />
   </ItemGroup>
 
 </Project>

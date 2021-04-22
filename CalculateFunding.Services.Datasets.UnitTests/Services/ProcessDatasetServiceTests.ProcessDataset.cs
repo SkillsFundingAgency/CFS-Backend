@@ -45,6 +45,7 @@ using ApiProviderSummary = CalculateFunding.Common.ApiClient.Providers.Models.Pr
 using ApiProviderVersion = CalculateFunding.Common.ApiClient.Providers.Models.ProviderVersion;
 using FieldDefinition = CalculateFunding.Models.Datasets.Schema.FieldDefinition;
 using VersionReference = CalculateFunding.Models.VersionReference;
+using CalculateFunding.UnitTests.ApiClientHelpers.Jobs;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
@@ -2051,9 +2052,9 @@ namespace CalculateFunding.Services.Datasets.Services
             return referenceBuilder.Build();
         }
 
-        private Job NewJob(Action<ApiJobBuilder> setUp = null)
+        private Job NewJob(Action<JobBuilder> setUp = null)
         {
-            ApiJobBuilder jobBuilder = new ApiJobBuilder();
+            JobBuilder jobBuilder = new JobBuilder();
 
             setUp?.Invoke(jobBuilder);
 

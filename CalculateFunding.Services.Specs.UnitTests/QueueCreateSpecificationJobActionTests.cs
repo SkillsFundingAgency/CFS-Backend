@@ -12,6 +12,7 @@ using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Tests.Common.Helpers;
+using CalculateFunding.UnitTests.ApiClientHelpers.Jobs;
 using CalculateFunding.UnitTests.ApiClientHelpers.Policies;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;

@@ -3,9 +3,9 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
-using CalculateFunding.Services.Calcs;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Tests.Common.Helpers;
+using CalculateFunding.UnitTests.ApiClientHelpers.Jobs;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
@@ -19,7 +19,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests
     {
         private const string ApproveAllCalculationsJob = JobConstants.DefinitionNames.ApproveAllCalculationsJob;
         private const string SpecificationId = "specification-id";
-        
+
         private IJobManagement _jobs;
         private ApproveAllCalculationsJobAction _action;
         private Reference _user;
@@ -92,8 +92,8 @@ namespace CalculateFunding.Services.Calcs.UnitTests
         }
 
         private async Task WhenTheApproveAllCalculationsJobActionIsRun(
-            string specificationId, 
-            Reference user, 
+            string specificationId,
+            Reference user,
             string correlationId)
         {
             await _action.Run(specificationId, user, correlationId);
@@ -125,7 +125,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests
 
         private static string NewRandomString() => new RandomString();
 
-        private bool HasProperty(JobCreateModel jobCreateModel, string key, string value) => 
+        private bool HasProperty(JobCreateModel jobCreateModel, string key, string value) =>
             jobCreateModel.Properties.TryGetValue(key, out string matchValue1) && matchValue1 == value;
     }
 }

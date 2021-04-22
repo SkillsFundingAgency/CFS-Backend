@@ -2,15 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Messages;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Tests.Common.Helpers;
+using CalculateFunding.UnitTests.ApiClientHelpers.Jobs;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using Polly;
 using Serilog;
 using Job = CalculateFunding.Common.ApiClient.Jobs.Models.Job;
 using JobCreateModel = CalculateFunding.Common.ApiClient.Jobs.Models.JobCreateModel;
@@ -139,9 +138,9 @@ namespace CalculateFunding.Services.Specs.UnitTests
         }
 
         private async Task WhenTheQueueDeleteSpecificationJobActionIsRun(
-            string specificationId, 
-            Reference user, 
-            string correlationId, 
+            string specificationId,
+            Reference user,
+            string correlationId,
             DeletionType deletionType)
         {
             await _action.Run(specificationId, user, correlationId, deletionType);
@@ -173,7 +172,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
 
         private static string NewRandomString() => new RandomString();
 
-        private bool HasProperty(JobCreateModel jobCreateModel, string key, string value) => 
+        private bool HasProperty(JobCreateModel jobCreateModel, string key, string value) =>
             jobCreateModel.Properties.TryGetValue(key, out string matchValue1) && matchValue1 == value;
     }
 }

@@ -15,6 +15,7 @@ using CalculateFunding.Services.Publishing.Batches;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Tests.Common.Builders;
 using CalculateFunding.Tests.Common.Helpers;
+using CalculateFunding.UnitTests.ApiClientHelpers.Jobs;
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
@@ -101,7 +102,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Batches
                 .WithFundingPeriodId(NewRandomString())
                 .WithFundingStreamId(NewRandomString())
                 .WithSpecificationId(NewRandomString()));
-            
+
             Job job = NewJob();
 
             GivenTheValidationResultForTheRequest(request, NewValidationResult());

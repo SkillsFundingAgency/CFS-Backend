@@ -10,8 +10,8 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         Task<IActionResult> GetPublishedProviderVersionBody(string publishedProviderVersionId);
 
         Task SavePublishedProviderVersionBody(string publishedProviderVersionId, string publishedProviderVersionBody, string specificationId);
-        
-        Task<IActionResult> ReIndex(Reference user, string correlationId);
+
+        Task<ActionResult<Job>> ReIndex(Reference user, string correlationId);
 
         Task<Job> CreateReIndexJob(Reference user, string correlationId, string specificationId = null, string parentJobId = null);
     }

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
 using CalculateFunding.Repositories.Common.Search.Results;
@@ -59,7 +60,7 @@ namespace CalculateFunding.Api.Publishing.Controllers
         /// <returns></returns>
         [HttpGet("api/publishedprovider/reindex")]
         [ProducesResponseType(204)]
-        public async Task<IActionResult> ReIndex()
+        public async Task<ActionResult<Job>> ReIndex()
         {
             return await _publishedProviderVersionService.ReIndex(
                 Request.GetUser(),

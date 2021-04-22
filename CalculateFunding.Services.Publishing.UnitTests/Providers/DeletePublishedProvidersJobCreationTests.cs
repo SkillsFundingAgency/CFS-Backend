@@ -1,13 +1,12 @@
 using System;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Services.Core.Constants;
-using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Providers;
 using CalculateFunding.Tests.Common.Helpers;
+using CalculateFunding.UnitTests.ApiClientHelpers.Jobs;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -42,7 +41,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
             string fundingPeriodId = NewRandomString();
             string correlationId = NewRandomString();
 
-            GivenTheJobCreatedForDetails(fundingPeriodId, fundingStreamId, correlationId,  expectedJob);
+            GivenTheJobCreatedForDetails(fundingPeriodId, fundingStreamId, correlationId, expectedJob);
 
             Job actualJob = await WhenTheSpecificationsJobIsCreated(fundingPeriodId, fundingStreamId, correlationId);
 
@@ -55,7 +54,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
         public void DoesNotSwallowExceptions()
         {
             InvalidOperationException expectedException = new InvalidOperationException(NewRandomString());
-            
+
             GivenTheCreateJobThrowsException(expectedException);
 
             Func<Task<Job>> invocation

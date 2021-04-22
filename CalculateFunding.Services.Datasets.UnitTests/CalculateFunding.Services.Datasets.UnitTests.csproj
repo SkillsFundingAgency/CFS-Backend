@@ -22,6 +22,7 @@
     <ProjectReference Include="..\CalculateFunding.Services.Core\CalculateFunding.Services.Core.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Datasets\CalculateFunding.Services.Datasets.csproj" />
     <ProjectReference Include="..\CalculateFunding.Tests.Common\CalculateFunding.Tests.Common.csproj" />
+    <ProjectReference Include="..\CalculateFunding.UnitTests.ApiClientHelpers.Jobs\CalculateFunding.UnitTests.ApiClientHelpers.Jobs.csproj" />
     <ProjectReference Include="..\CalculateFunding.UnitTests.ApiClientHelpers.Policies\CalculateFunding.UnitTests.ApiClientHelpers.Policies.csproj" />
   </ItemGroup>
 

@@ -22,6 +22,7 @@ using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Results.Models;
 using CalculateFunding.Tests.Common.Builders;
 using CalculateFunding.Tests.Common.Helpers;
+using CalculateFunding.UnitTests.ApiClientHelpers.Jobs;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
@@ -123,7 +124,7 @@ namespace CalculateFunding.Services.Results.UnitTests
             string newFundingStreamIdOne = NewRandomString();
             string newFundingStreamIdTwo = NewRandomString();
 
-            SpecificationInformation specificationInformation = NewSpecificationInformation(_ => 
+            SpecificationInformation specificationInformation = NewSpecificationInformation(_ =>
                 _.WithFundingStreamIds(newFundingStreamIdOne, newFundingStreamIdTwo));
             MergeSpecificationInformationRequest mergeRequest = NewMergeSpecificationInformationRequest(_ => _.WithSpecificationInformation(specificationInformation)
                 .WithProviderIds(providerOneId, providerTwoId));
@@ -131,9 +132,9 @@ namespace CalculateFunding.Services.Results.UnitTests
             SpecificationInformation informationWithoutFundingStreams = specificationInformation.DeepCopy();
             informationWithoutFundingStreams.FundingStreamIds = null;
 
-            ProviderWithResultsForSpecifications providerWithResultsForSpecificationsOne = NewProviderWithResultsForSpecifications(_ => 
+            ProviderWithResultsForSpecifications providerWithResultsForSpecificationsOne = NewProviderWithResultsForSpecifications(_ =>
                 _.WithSpecifications(informationWithoutFundingStreams));
-            ProviderWithResultsForSpecifications providerWithResultsForSpecificationsTwo = NewProviderWithResultsForSpecifications(_ => 
+            ProviderWithResultsForSpecifications providerWithResultsForSpecificationsTwo = NewProviderWithResultsForSpecifications(_ =>
                 _.WithSpecifications(informationWithoutFundingStreams));
 
             GivenTheProviderWithResultsForSpecificationsByProviderId(providerWithResultsForSpecificationsOne, providerOneId);
@@ -269,7 +270,7 @@ namespace CalculateFunding.Services.Results.UnitTests
                 providerWithResultsForSpecification
                     .Specifications
                     .Should()
-                    .BeEquivalentTo(new [] { specificationInformation },
+                    .BeEquivalentTo(new[] { specificationInformation },
                         opt => opt.Excluding(_ => _.IsDirty));
             }
         }
@@ -321,7 +322,7 @@ namespace CalculateFunding.Services.Results.UnitTests
                     results.SequenceEqual(providerWithResultsForSpecifications))),
                 Times.Once);
         }
-        
+
         private void AndTheProviderWithResultsForSpecificationsWereNotUpserted(ProviderWithResultsForSpecifications providerWithResultsForSpecification)
         {
             _calculationResults.Verify(_ => _.UpsertSpecificationWithProviderResults(It.Is<ProviderWithResultsForSpecifications[]>(results =>
@@ -411,7 +412,7 @@ namespace CalculateFunding.Services.Results.UnitTests
         private string NewRandomString() => new RandomString();
 
         private Job NewJob() => new JobBuilder()
-            .NewJob();
+            .Build();
 
         private FundingPeriod NewFundingPeriod(Action<FundingPeriodBuilder> setUp = null)
         {

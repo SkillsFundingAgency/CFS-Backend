@@ -8,6 +8,7 @@ using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Specs.Interfaces;
 using CalculateFunding.Tests.Common.Helpers;
+using CalculateFunding.UnitTests.ApiClientHelpers.Jobs;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
@@ -27,7 +28,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
         private Mock<ISpecificationsRepository> _specifications;
 
         private SpecificationIndexingService _service;
-        
+
         [TestInitialize]
         public void SetUp()
         {
@@ -54,9 +55,9 @@ namespace CalculateFunding.Services.Specs.UnitTests
             string correlationId = NewRandomString();
 
             Job expectedJob = NewJob();
-            
+
             GivenTheJob(expectedJob, specificationId, user.Id, correlationId);
-            
+
             OkObjectResult result = await WhenTheSpecificationIndexJobIsQueued(specificationId, user, correlationId) as OkObjectResult;
 
             result?.Value
@@ -89,10 +90,10 @@ namespace CalculateFunding.Services.Specs.UnitTests
             string jobId = NewRandomString();
 
             GivenTheSpecification(specificationId, specification);
-            
+
             await WhenTheIndexingJobIsRun(NewMessage(("specification-id", specificationId),
                 ("jobId", jobId)));
-            
+
             ThenTheJobTrackingWasStarted(jobId);
             AndTheSpecificationWasIndexed(specification);
             AndTheJobTrackingWasCompleted(jobId);
@@ -102,7 +103,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
         [DynamicData(nameof(InvalidIds), DynamicDataSourceType.Method)]
         public void GuardsAgainstNotSupplyingASpecificationId(string invalidSpecificationId)
         {
-            Func<Task> invocation = () => WhenTheSpecificationIndexJobIsQueued(invalidSpecificationId, 
+            Func<Task> invocation = () => WhenTheSpecificationIndexJobIsQueued(invalidSpecificationId,
                 NewUser(),
                 NewRandomString());
 
@@ -142,7 +143,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
             bool? completed = null)
         {
             _jobs.Verify(_ => _.UpdateJobStatus(jobId, 0, 0, completed, null),
-                Times.Once);    
+                Times.Once);
         }
 
         private void GivenTheJob(Job job,
@@ -169,25 +170,25 @@ namespace CalculateFunding.Services.Specs.UnitTests
             Reference user,
             string correlationId)
             => await _service.QueueSpecificationIndexJob(specificationId, user, correlationId);
-        
+
         private static Reference NewUser() => new ReferenceBuilder()
             .Build();
-        
+
         private static Job NewJob() => new JobBuilder()
             .Build();
-        
+
         private static Specification NewSpecification() => new SpecificationBuilder()
             .Build();
 
         private static Message NewMessage(params (string, string)[] userProperties)
         {
             Message message = new Message();
-            
+
             message.AddUserProperties(userProperties);
 
             return message;
         }
-        
+
         private static string NewRandomString() => new RandomString();
 
         private static IEnumerable<object[]> InvalidIds()
@@ -205,6 +206,6 @@ namespace CalculateFunding.Services.Specs.UnitTests
                 "   "
             };
         }
-        
+
     }
 }

@@ -12,6 +12,7 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Tests.Common.Helpers;
+using CalculateFunding.UnitTests.ApiClientHelpers.Jobs;
 using FluentAssertions;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
@@ -46,7 +47,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         public void TestBaseSetUp()
         {
             _validationResult = new ValidationResult();
-            
+
             SpecificationId = NewRandomString();
             string providerId = NewRandomString();
             ProviderIds = new[] { providerId };
@@ -61,7 +62,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 
             SpecificationIdValidator.Validate(SpecificationId)
                 .Returns(_validationResult);
-            ProviderIdsValidator.Validate(Arg.Is<string[]>(_=>_.SequenceEqual(ProviderIds)) )
+            ProviderIdsValidator.Validate(Arg.Is<string[]>(_ => _.SequenceEqual(ProviderIds)))
                 .Returns(_validationResult);
 
             Specifications = Substitute.For<ISpecificationsApiClient>();

@@ -1,21 +1,20 @@
 ﻿using System;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Tests.Common.Helpers;
+using CalculateFunding.UnitTests.ApiClientHelpers.Jobs;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Serilog;
-using Policy = Polly.Policy;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 {
-    public abstract class JobCreationForSpecificationTestBase<TJobCreation> 
+    public abstract class JobCreationForSpecificationTestBase<TJobCreation>
         where TJobCreation : ICreateJobsForSpecifications
     {
         protected IJobManagement Jobs;
@@ -61,7 +60,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             invocation
                 .Should()
                 .Throw<Exception>()
-                .Where(_ => 
+                .Where(_ =>
                     _.Message == $"Failed to queue publishing of specification with id: {specificationId}");
         }
 

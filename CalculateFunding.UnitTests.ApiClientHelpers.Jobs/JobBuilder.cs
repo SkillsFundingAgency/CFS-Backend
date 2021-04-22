@@ -1,33 +1,33 @@
-using CalculateFunding.Common.ApiClient.Jobs.Models;
+﻿using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Tests.Common.Helpers;
 
-namespace CalculateFunding.Services.Datasets.Services
+namespace CalculateFunding.UnitTests.ApiClientHelpers.Jobs
 {
-    public class ApiJobBuilder : TestEntityBuilder
+    public class JobBuilder : TestEntityBuilder
     {
         private string _id;
         private string _definitionId;
 
-        public ApiJobBuilder WithId(string id)
+        public JobBuilder WithId(string id)
         {
             _id = id;
 
             return this;
         }
-        public ApiJobBuilder WithDefinitionId(string definitionId)
+
+        public JobBuilder WithDefinitionId(string definitionId)
         {
             _definitionId = definitionId;
 
             return this;
         }
-        
 
         public Job Build()
         {
             return new Job
             {
                 Id = _id ?? NewRandomString(),
-                JobDefinitionId = _definitionId ?? NewRandomString(),
+                JobDefinitionId = _definitionId,
             };
         }
     }

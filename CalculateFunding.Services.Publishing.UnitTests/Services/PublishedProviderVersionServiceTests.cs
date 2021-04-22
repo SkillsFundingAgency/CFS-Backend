@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
@@ -11,6 +10,7 @@ using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Tests.Common.Helpers;
+using CalculateFunding.UnitTests.ApiClientHelpers.Jobs;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Storage.Blob;
@@ -34,6 +34,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private IBlobClient _blobClient;
         private IJobManagement _jobManagement;
         private ILogger _logger;
+        private Job _job;
 
         [TestInitialize]
         public void SetUp()
@@ -233,7 +234,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         [TestMethod]
         public void ReIndex_ThrowsExceptionIfNoUserSupplied()
         {
-            Func<Task<IActionResult>> invocation = () => WhenThePublishedProviderVersionsAreReIndexed(correlationId: NewRandomString());
+            Func<Task<ActionResult<Job>>> invocation = () => WhenThePublishedProviderVersionsAreReIndexed(correlationId: NewRandomString());
 
             invocation
                 .Should()
@@ -247,7 +248,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         [TestMethod]
         public void ReIndex_ThrowsExceptionIfNoCorrelationIdSupplied()
         {
-            Func<Task<IActionResult>> invocation = () => WhenThePublishedProviderVersionsAreReIndexed(NewUser());
+            Func<Task<ActionResult<Job>>> invocation = () => WhenThePublishedProviderVersionsAreReIndexed(NewUser());
 
             invocation
                 .Should()
@@ -265,11 +266,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .WithName(NewRandomString()));
             string correlationId = NewRandomString();
 
-            IActionResult result = await WhenThePublishedProviderVersionsAreReIndexed(user, correlationId);
+            AndJobIsCreated();
+
+            ActionResult<Job> result = await WhenThePublishedProviderVersionsAreReIndexed(user, correlationId);
 
             result
+                .Result
                 .Should()
-                .BeOfType<NoContentResult>();
+                .BeNull();
+
+            result
+               .Value
+               .Should()
+               .NotBeNull();
 
             await _jobManagement
                 .Received(1)
@@ -280,7 +289,23 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                     _.JobDefinitionId == JobConstants.DefinitionNames.ReIndexPublishedProvidersJob));
         }
 
-        private async Task<IActionResult> WhenThePublishedProviderVersionsAreReIndexed(Reference user = null,
+        private void AndJobIsCreated()
+        {
+            _job = NewJob();
+
+            _jobManagement.QueueJob(Arg.Any<JobCreateModel>()).Returns(_job);
+        }
+
+        private Job NewJob(Action<JobBuilder> setUp = null)
+        {
+            JobBuilder jobBuilder = new JobBuilder();
+
+            setUp?.Invoke(jobBuilder);
+
+            return jobBuilder.Build();
+        }
+
+        private async Task<ActionResult<Job>> WhenThePublishedProviderVersionsAreReIndexed(Reference user = null,
             string correlationId = null)
         {
             return await _service.ReIndex(user, correlationId);
@@ -291,10 +316,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             ReferenceBuilder userBuilder = new ReferenceBuilder();
 
             setUp?.Invoke(userBuilder);
-            
+
             return userBuilder.Build();
         }
-        
+
         private string NewRandomString() => new RandomString();
 
         private static ICloudBlob CreateBlob()

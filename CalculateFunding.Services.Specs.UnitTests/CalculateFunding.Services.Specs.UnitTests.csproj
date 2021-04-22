@@ -21,6 +21,7 @@
   <ItemGroup>
     <ProjectReference Include="..\CalculateFunding.Services.Specs\CalculateFunding.Services.Specs.csproj" />
     <ProjectReference Include="..\CalculateFunding.Tests.Common\CalculateFunding.Tests.Common.csproj" />
+    <ProjectReference Include="..\CalculateFunding.UnitTests.ApiClientHelpers.Jobs\CalculateFunding.UnitTests.ApiClientHelpers.Jobs.csproj" />
     <ProjectReference Include="..\CalculateFunding.UnitTests.ApiClientHelpers.Policies\CalculateFunding.UnitTests.ApiClientHelpers.Policies.csproj" />
   </ItemGroup>
 

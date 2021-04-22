@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.JobManagement;
@@ -30,7 +29,7 @@ namespace CalculateFunding.Services.Publishing
         public PublishedProviderVersionService(
             ILogger logger,
             IBlobClient blobClient,
-            IPublishingResiliencePolicies resiliencePolicies, 
+            IPublishingResiliencePolicies resiliencePolicies,
             IJobManagement jobManagement)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -48,13 +47,13 @@ namespace CalculateFunding.Services.Publishing
         public async Task<ServiceHealth> IsHealthOk()
         {
             (bool Ok, string Message) = await _blobClient.IsHealthOk();
-         
+
             ServiceHealth health = new ServiceHealth()
             {
                 Name = nameof(PublishedProviderVersionService)
             };
             health.Dependencies.Add(new DependencyHealth { HealthOk = Ok, DependencyName = _blobClient.GetType().GetFriendlyName(), Message = Message });
-         
+
             return health;
         }
 
@@ -88,7 +87,7 @@ namespace CalculateFunding.Services.Publishing
 
                 template = await streamReader.ReadToEndAsync();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string errorMessage = $"Failed to fetch blob '{blobName}' from azure storage";
 
@@ -101,8 +100,8 @@ namespace CalculateFunding.Services.Publishing
         }
 
         public async Task SavePublishedProviderVersionBody(
-            string publishedProviderVersionId, 
-            string publishedProviderVersionBody, 
+            string publishedProviderVersionId,
+            string publishedProviderVersionBody,
             string specificationId)
         {
             Guard.IsNullOrWhiteSpace(publishedProviderVersionId, nameof(publishedProviderVersionId));
@@ -141,14 +140,12 @@ namespace CalculateFunding.Services.Publishing
             };
         }
 
-        public async Task<IActionResult> ReIndex(Reference user, string correlationId)
+        public async Task<ActionResult<Job>> ReIndex(Reference user, string correlationId)
         {
             Guard.ArgumentNotNull(user, nameof(user));
             Guard.IsNullOrWhiteSpace(correlationId, nameof(correlationId));
 
-            await CreateReIndexJob(user, correlationId);
-
-            return new NoContentResult();
+            return await CreateReIndexJob(user, correlationId);
         }
 
         public async Task<Job> CreateReIndexJob(Reference user, string correlationId, string specificationId = null, string parentJobId = null)
