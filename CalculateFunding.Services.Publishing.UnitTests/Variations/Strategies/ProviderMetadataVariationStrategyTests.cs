@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Services.Publishing.Variations;
 using CalculateFunding.Services.Publishing.Variations.Changes;
@@ -10,6 +12,7 @@ using CalculateFunding.Services.Publishing.Variations.Strategies;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
 {
@@ -30,7 +33,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             VariationReason[] expectedVariationReasons)
         {
             expectedVariationReasons ??= new VariationReason[0];
-            
             await _metadataVariationStrategy.DetermineVariations(variationContext, null);
 
             variationContext
@@ -90,7 +92,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             yield return VariationExample(_ => _.LocalGovernmentGroupTypeName = NewRandomString());
             yield return VariationExample(_ => _.ProviderVersionId = NewRandomString());
             yield return VariationExample(_ => _.ProviderId = NewRandomString());
-            yield return VariationExample(_ => _.TrustStatus = new RandomEnum<ProviderTrustStatus>());
+            yield return VariationExample(_ => _.TrustStatus = new RandomEnum<ProviderTrustStatus>(ProviderTrustStatus.NotApplicable), VariationReason.TrustStatusFieldUpdated);
             yield return VariationExample(_ => _.UKPRN = NewRandomString());
             yield return VariationExample(_ => _.UPIN = NewRandomString());
             yield return VariationExample(_ => _.ProviderType = NewRandomString());
@@ -98,13 +100,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             yield return VariationExample(_ => _.ProviderProfileIdType = NewRandomString());
             yield return VariationExample(_ => _.NavVendorNo = NewRandomString());
             yield return VariationExample(_ => _.CrmAccountId = NewRandomString());
-            yield return VariationExample(_ => _.Status = NewRandomString());
-            yield return VariationExample(_ => _.PhaseOfEducation = NewRandomString());
-            yield return VariationExample(_ => _.ReasonEstablishmentOpened = NewRandomString());
-            yield return VariationExample(_ => _.ReasonEstablishmentClosed = NewRandomString());
+            yield return VariationExample(_ => _.Status = NewRandomString(), VariationReason.ProviderStatusFieldUpdated);
+            yield return VariationExample(_ => _.PhaseOfEducation = NewRandomString(), VariationReason.PhaseOfEducationFieldUpdated);
+            yield return VariationExample(_ => _.ReasonEstablishmentOpened = NewRandomString(), VariationReason.ReasonEstablishmentOpenedFieldUpdated);
+            yield return VariationExample(_ => _.ReasonEstablishmentClosed = NewRandomString(), VariationReason.ReasonEstablishmentClosedFieldUpdated);
             yield return VariationExample(_ => _.Successor = NewRandomString());
-            yield return VariationExample(_ => _.Town = NewRandomString());
-            yield return VariationExample(_ => _.Postcode = NewRandomString());
+            yield return VariationExample(_ => _.Town = NewRandomString(), VariationReason.TownFieldUpdated);
+            yield return VariationExample(_ => _.Postcode = NewRandomString(), VariationReason.PostcodeFieldUpdated);
+            yield return VariationExample(_ => _.DateOpened = NewRandomDateTimeOffset(), VariationReason.DateOpenedFieldUpdated);
+            yield return VariationExample(_ => _.DateClosed = NewRandomDateTimeOffset(), VariationReason.DateClosedFieldUpdated);
             yield return VariationExample(_ =>
             {
                 _.Authority = NewRandomString();
@@ -121,14 +125,21 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             params VariationReason[] variationReasons)
         {
             Provider priorState = NewProvider();
-            
-            return new object[] { NewProviderVariationContext(_ => _.WithPublishedProvider(NewPublishedProvider(pp => 
+            Mock<IPoliciesService> policiesService = new Mock<IPoliciesService>();
+            ProviderVariationContext variationContext = NewProviderVariationContext(_ => _.WithPublishedProvider(NewPublishedProvider(pp =>
                     pp.WithReleased(NewPublishedProviderVersion(ppv => ppv.WithProvider(priorState)))))
-                    .WithCurrentState(ProviderCopy(priorState, differences))),
-                variationReasons};    
+                    .WithPoliciesService(policiesService.Object)
+                    .WithCurrentState(ProviderCopy(priorState, differences)));
+
+            policiesService.Setup(x => x.GetTemplateMetadataContents(variationContext.ReleasedState.FundingStreamId, variationContext.ReleasedState.FundingPeriodId, variationContext.ReleasedState.TemplateVersion))
+                .ReturnsAsync(new TemplateMetadataContents() { SchemaVersion = "1.2" });
+
+            return new object[] { variationContext, variationReasons};    
         }
         
         private static string NewRandomString() => new RandomString();
+
+        private static DateTimeOffset NewRandomDateTimeOffset() => new DateTimeOffset(new RandomDateTime());
 
         private static Provider NewProvider()
         {

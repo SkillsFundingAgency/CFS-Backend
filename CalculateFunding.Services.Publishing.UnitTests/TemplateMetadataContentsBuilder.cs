@@ -8,6 +8,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
     public class TemplateMetadataContentsBuilder : TestEntityBuilder
     {
         private IEnumerable<FundingLine> _fundingLines = Enumerable.Empty<FundingLine>();
+        private string _schemaVersion;
 
         public TemplateMetadataContentsBuilder WithFundingLines(params FundingLine[] fundingLines)
         {
@@ -15,12 +16,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             return this;
         }
-        
+
+        public TemplateMetadataContentsBuilder WithSchemeVersion(string schemaVersion)
+        {
+            _schemaVersion = schemaVersion;
+
+            return this;
+        }
+
         public TemplateMetadataContents Build()
         {
             return new TemplateMetadataContents
             {
-                RootFundingLines = _fundingLines.ToArray()
+                RootFundingLines = _fundingLines.ToArray(),
+                SchemaVersion = _schemaVersion
             };
         }
     }

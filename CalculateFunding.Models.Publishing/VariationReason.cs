@@ -104,6 +104,39 @@ namespace CalculateFunding.Models.Publishing
         PaymentOrganisationIdentifierFieldUpdated,
 
         [EnumMember(Value = nameof(PaymentOrganisationNameFieldUpdated))]
-        PaymentOrganisationNameFieldUpdated
+        PaymentOrganisationNameFieldUpdated,
+
+        [EnumMember(Value = nameof(DateOpenedFieldUpdated))]
+        DateOpenedFieldUpdated,
+
+        [EnumMember(Value = nameof(DateClosedFieldUpdated))]
+        DateClosedFieldUpdated,
+
+        [EnumMember(Value = nameof(ProviderStatusFieldUpdated))]
+        ProviderStatusFieldUpdated,
+
+        [EnumMember(Value = nameof(PhaseOfEducationFieldUpdated))]
+        PhaseOfEducationFieldUpdated,
+
+        [EnumMember(Value = nameof(ReasonEstablishmentOpenedFieldUpdated))]
+        ReasonEstablishmentOpenedFieldUpdated,
+
+        [EnumMember(Value = nameof(ReasonEstablishmentClosedFieldUpdated))]
+        ReasonEstablishmentClosedFieldUpdated,
+
+        [EnumMember(Value = nameof(TrustStatusFieldUpdated))]
+        TrustStatusFieldUpdated,
+
+        [EnumMember(Value = nameof(TownFieldUpdated))]
+        TownFieldUpdated,
+
+        [EnumMember(Value = nameof(PostcodeFieldUpdated))]
+        PostcodeFieldUpdated,
+
+        [EnumMember(Value = nameof(TemplateUpdated))]
+        TemplateUpdated,
+
+        [EnumMember(Value = nameof(FundingSchemaUpdated))]
+        FundingSchemaUpdated
     }
 }

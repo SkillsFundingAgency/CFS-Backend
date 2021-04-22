@@ -88,8 +88,8 @@ namespace CalculateFunding.Models.UnitTests
             PublishedFundingIndex publishedfundingindex = new PublishedFundingIndex();
             PublishedProviderIndex publishedProviderIndex = new PublishedProviderIndex();
             SpecificationIndex specificationindex = new SpecificationIndex();
-            TemplateIndex templateIndex = new TemplateIndex();
-            
+            TemplateIndex templateIndex = new TemplateIndex();           
+
             IEnumerable<Type> searchIndexTypes = GetTypesWithSearchIndexAttribute();
 
             IEnumerable<string> indexNames = Directory
@@ -183,6 +183,7 @@ namespace CalculateFunding.Models.UnitTests
             PublishedProviderIndex publishedProviderIndex = new PublishedProviderIndex();
             SpecificationIndex specificationindex = new SpecificationIndex();
             TemplateIndex templateIndex = new TemplateIndex();
+           
 
             IEnumerable<Type> searchIndexTypes = GetTypesWithSearchIndexAttribute();
 

@@ -1,25 +1,28 @@
 using System;
 using System.Linq;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Services.Publishing.UnitTests.Profiling;
 using CalculateFunding.Services.Publishing.Variations.Strategies;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NSubstitute;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Variations
 {
     public abstract class ProviderVariationContextTestBase : ProfilingTestBase
     {
         protected ProviderVariationContext VariationContext;
+        protected IPoliciesService _policiesService;
         private int _queuedChangeIndex;
 
         [TestInitialize]
         public void ProviderVariationContextTestBaseSetUp()
         {
             _queuedChangeIndex = 0;
-            
+            _policiesService = Substitute.For<IPoliciesService>();
             VariationContext = NewVariationContext();
         }
 
@@ -33,6 +36,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
             string valueTwo = NewRandomString();
 
             ProviderVariationContextBuilder variationContextBuilder = new ProviderVariationContextBuilder()
+                .WithPoliciesService(_policiesService)
                 .WithPublishedProvider(NewPublishedProvider(_ => _
                     .WithReleased(NewPublishedProviderVersion(ppv => ppv
                         .WithTotalFunding(totalFunding)

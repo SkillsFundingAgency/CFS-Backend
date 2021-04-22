@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -18,13 +19,13 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
     {
         private class VariationCheck
         {
-            private static readonly PropertyInfo[] UpdatedStateProperties 
+            private static readonly PropertyInfo[] UpdatedStateProperties
                 = typeof(Provider).GetProperties();
-        
+
             private readonly VariationReason _variationReason;
             private readonly PropertyInfo _priorStateAccessor;
             private readonly PropertyInfo _updatedStateAccessor;
-            
+
             public VariationCheck(PropertyInfo priorStateAccessor)
             {
                 _variationReason = ((VariationReasonValueAttribute)priorStateAccessor
@@ -32,20 +33,44 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
                     .Value;
                 _priorStateAccessor = priorStateAccessor;
                 _updatedStateAccessor = UpdatedStateProperties.FirstOrDefault(_ => _.Name == priorStateAccessor.Name);
-                
+
                 Guard.ArgumentNotNull(_updatedStateAccessor, nameof(priorStateAccessor.Name));
             }
 
             public void Run(ProviderVariationContext providerVariationContext)
             {
-                string priorValue = (string)_priorStateAccessor.GetValue(providerVariationContext.PriorState.Provider);
-                string currentValue = (string)_updatedStateAccessor.GetValue(providerVariationContext.UpdatedProvider);
-
-                if (priorValue != currentValue)
+                if (!AreEqual(_priorStateAccessor.PropertyType, _priorStateAccessor.GetValue(providerVariationContext.PriorState.Provider), _updatedStateAccessor.GetValue(providerVariationContext.UpdatedProvider)))
                 {
                     providerVariationContext.AddVariationReasons(_variationReason);
-                }        
+                }
             }
+
+            private bool AreEqual(Type typeOfValue, object? priorValue, object? updatedValue)
+            {
+                if (typeOfValue.IsEnum)
+                {
+                    return (int)priorValue == (int)updatedValue;
+                }
+
+                if (typeOfValue == typeof(DateTimeOffset) || typeOfValue == typeof(DateTimeOffset?))
+                {
+                    return (DateTimeOffset?)priorValue == (DateTimeOffset?)updatedValue;
+                }
+
+                return (string)priorValue == (string)updatedValue;
+            }
+        }
+
+        private class VariationCheckWithSchemaVersions
+        {
+            public VariationCheckWithSchemaVersions(VariationCheck variationCheck, List<string> applicableSchemaVersions)
+            {
+                VariationCheck = variationCheck;
+                ApplicableSchemaVersions = applicableSchemaVersions ?? new List<string>();
+            }
+
+            public VariationCheck VariationCheck { get; }
+            public List<string> ApplicableSchemaVersions { get; }
         }
 
         static ProviderMetadataVariationStrategy()
@@ -53,22 +78,32 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
             VariationChecks = typeof(Provider)
                 .GetProperties()
                 .Where(_ => _.GetCustomAttributes(typeof(VariationReasonValueAttribute)).Any())
-                .Select(_ => new VariationCheck(_))
+                .Select(_ => new VariationCheckWithSchemaVersions(new VariationCheck(_), 
+                                                                ((VariationReasonValueAttribute)_.GetCustomAttributes(typeof(VariationReasonValueAttribute)).First()).ApplicableSchemaVersions?.ToList()))
                 .ToArray();
         }
 
-        private static readonly VariationCheck[] VariationChecks;
+        private static readonly VariationCheckWithSchemaVersions[] VariationChecks;
 
         public string Name => "ProviderMetadata";
 
-        public Task DetermineVariations(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
+        public async Task DetermineVariations(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
         {
-            if (providerVariationContext.PriorState == null || providerVariationContext.UpdatedProvider == null)
+            if (providerVariationContext.PriorState == null || providerVariationContext.UpdatedProvider == null || providerVariationContext.ReleasedState == null)
             {
-                return Task.CompletedTask;
+                return;
             }
 
-            foreach (VariationCheck variationCheck in VariationChecks)
+            string schemaVersion = await providerVariationContext.GetReleasedStateSchemaVersion();
+
+            if (string.IsNullOrWhiteSpace(schemaVersion))
+                return;
+
+            IList<VariationCheck> variationChecksToPerform = VariationChecks.Where(x => !x.ApplicableSchemaVersions.Any()).Select(x => x.VariationCheck) // No applicable schema versions
+                                                            .Concat(VariationChecks.Where(x => x.ApplicableSchemaVersions.Contains(schemaVersion)).Select(x => x.VariationCheck)) // specific schema versions
+                                                            .ToList();
+
+            foreach (VariationCheck variationCheck in variationChecksToPerform)
             {
                 variationCheck.Run(providerVariationContext);
             }
@@ -77,8 +112,6 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
             {
                 providerVariationContext.QueueVariationChange(new MetaDataVariationsChange(providerVariationContext));
             }
-
-            return Task.CompletedTask;
         }
     }
 }

@@ -21,14 +21,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
         private IVariationStrategyServiceLocator _variationStrategyServiceLocator;
         private ProviderVariationsDetection _factory;
         private IVariationStrategy _variationStrategy;
+        private IPoliciesService _policiesService;
 
         [TestInitialize]
         public void SetUp()
         {
             _variationStrategyServiceLocator = Substitute.For<IVariationStrategyServiceLocator>();
             _variationStrategy = Substitute.For<IVariationStrategy>();
-            
-            _factory = new ProviderVariationsDetection(_variationStrategyServiceLocator);
+            _policiesService = Substitute.For<IPoliciesService>();
+
+            _factory = new ProviderVariationsDetection(_variationStrategyServiceLocator, _policiesService);
             
             _variationStrategyServiceLocator
                 .GetService(Arg.Any<string>())

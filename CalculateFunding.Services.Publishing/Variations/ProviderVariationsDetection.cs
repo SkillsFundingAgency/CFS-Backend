@@ -13,11 +13,14 @@ namespace CalculateFunding.Services.Publishing.Variations
     public class ProviderVariationsDetection : IDetectProviderVariations
     {
         private readonly IVariationStrategyServiceLocator _variationStrategyServiceLocator;
+        private readonly IPoliciesService _policiesService;
 
-        public ProviderVariationsDetection(IVariationStrategyServiceLocator variationStrategyServiceLocator)
+        public ProviderVariationsDetection(IVariationStrategyServiceLocator variationStrategyServiceLocator, IPoliciesService policiesService)
         {
             Guard.ArgumentNotNull(variationStrategyServiceLocator, nameof(variationStrategyServiceLocator));
+            Guard.ArgumentNotNull(policiesService, nameof(policiesService));
 
+            _policiesService = policiesService;
             _variationStrategyServiceLocator = variationStrategyServiceLocator;
         }
 
@@ -37,7 +40,7 @@ namespace CalculateFunding.Services.Publishing.Variations
             Guard.ArgumentNotNull(allPublishedProviderRefreshStates, nameof(allPublishedProviderRefreshStates));
             Guard.ArgumentNotNull(allPublishedProviderSnapShots, nameof(allPublishedProviderSnapShots));
             
-            ProviderVariationContext providerVariationContext = new ProviderVariationContext
+            ProviderVariationContext providerVariationContext = new ProviderVariationContext (_policiesService)
             {
                 PublishedProvider = existingPublishedProvider,
                 UpdatedProvider = provider,

@@ -14,6 +14,7 @@ namespace CalculateFunding.Models.Publishing
         public string ProviderId { get; set; }
 
         [JsonProperty("trustStatus")]
+        [VariationReasonValue(VariationReason.TrustStatusFieldUpdated, ApplicableSchemaVersions = new string[] { "1.2" })]
         public ProviderTrustStatus TrustStatus { get; set; }
 
         [JsonProperty("name")]
@@ -49,9 +50,11 @@ namespace CalculateFunding.Models.Publishing
         public string ProviderSubType { get; set; }
 
         [JsonProperty("dateOpened")]
+        [VariationReasonValue(VariationReason.DateOpenedFieldUpdated, ApplicableSchemaVersions = new string[] { "1.2" })]
         public DateTimeOffset? DateOpened { get; set; }
 
         [JsonProperty("dateClosed")]
+        [VariationReasonValue(VariationReason.DateClosedFieldUpdated, ApplicableSchemaVersions = new string[] { "1.2" })]
         public DateTimeOffset? DateClosed { get; set; }
 
         [JsonProperty("providerProfileIdType")]
@@ -72,15 +75,19 @@ namespace CalculateFunding.Models.Publishing
         public string LegalName { get; set; }
 
         [JsonProperty("status")]
+        [VariationReasonValue(VariationReason.ProviderStatusFieldUpdated, ApplicableSchemaVersions = new string[] { "1.2" })]
         public string Status { get; set; }
 
         [JsonProperty("phaseOfEducation")]
+        [VariationReasonValue(VariationReason.PhaseOfEducationFieldUpdated, ApplicableSchemaVersions = new string[] { "1.2" })]
         public string PhaseOfEducation { get; set; }
 
         [JsonProperty("reasonEstablishmentOpened")]
+        [VariationReasonValue(VariationReason.ReasonEstablishmentOpenedFieldUpdated, ApplicableSchemaVersions = new string[] { "1.2" })]
         public string ReasonEstablishmentOpened { get; set; }
 
         [JsonProperty("reasonEstablishmentClosed")]
+        [VariationReasonValue(VariationReason.ReasonEstablishmentClosedFieldUpdated, ApplicableSchemaVersions = new string[] { "1.2" })]
         public string ReasonEstablishmentClosed { get; set; }
 
         [JsonProperty("successor")]
@@ -112,9 +119,11 @@ namespace CalculateFunding.Models.Publishing
         public string TrustCode { get; set; }
 
         [JsonProperty("town")]
+        [VariationReasonValue(VariationReason.TownFieldUpdated, ApplicableSchemaVersions = new string[] { "1.2" })]
         public string Town { get; set; }
 
         [JsonProperty("postcode")]
+        [VariationReasonValue(VariationReason.PostcodeFieldUpdated, ApplicableSchemaVersions = new string[] { "1.2" })]
         public string Postcode { get; set; }
 
         [JsonProperty("companiesHouseNumber")]
@@ -122,7 +131,7 @@ namespace CalculateFunding.Models.Publishing
         public string CompaniesHouseNumber { get; set; }
 
         [JsonProperty("groupIdNumber")]
-        [VariationReasonValue(VariationReason.GroupIDFieldUpdated)]
+        [VariationReasonValue(VariationReason.GroupIDFieldUpdated, ApplicableSchemaVersions = new string[] { "1.2" })]
         public string GroupIdNumber { get; set; }
 
         [JsonProperty("rscRegionName")]

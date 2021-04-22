@@ -3,6 +3,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalculateFunding.Common.TemplateMetadata.Models;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
@@ -13,7 +15,14 @@ namespace CalculateFunding.Services.Publishing.Models
     // ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
     public class ProviderVariationContext
     {
+        private readonly IPoliciesService _policiesService;
         private readonly Queue<IVariationChange> _variationChanges = new Queue<IVariationChange>();
+
+        public ProviderVariationContext(IPoliciesService policiesService)
+        {
+            Guard.ArgumentNotNull(policiesService, nameof(policiesService));
+            _policiesService = policiesService;
+        }
 
         public string ProviderId => RefreshState?.ProviderId;
 
@@ -176,5 +185,28 @@ namespace CalculateFunding.Services.Publishing.Models
         /// The funding configuration for this spec-funding stream-provider combination
         /// </summary>
         public FundingConfiguration FundingConfiguration { get; set; }
+
+        public async Task<string> GetPriorStateSchemaVersion() => PriorState == null ? null : await GetSchemaVersion(PriorState.FundingStreamId, PriorState.FundingPeriodId, PriorState.TemplateVersion);
+        public async Task<string> GetReleasedStateSchemaVersion() => ReleasedState == null ? null : await GetSchemaVersion(ReleasedState.FundingStreamId, ReleasedState.FundingPeriodId, ReleasedState.TemplateVersion);
+
+        private readonly IDictionary<string, string> schemaVersions = new Dictionary<string, string>();
+
+        private async Task<string> GetSchemaVersion(string fundingStreamId, string fundingPeriodId, string templateVersion)
+        {
+            if(string.IsNullOrWhiteSpace(fundingStreamId) && string.IsNullOrWhiteSpace(fundingPeriodId) && string.IsNullOrWhiteSpace(templateVersion))
+            {
+                return null;
+            }
+
+            string schemaVersionKey = $"{fundingStreamId}-{fundingPeriodId}-{templateVersion}".ToLower();
+
+            if (!schemaVersions.ContainsKey(schemaVersionKey))
+            {
+                TemplateMetadataContents templateContents = await _policiesService.GetTemplateMetadataContents(fundingStreamId, fundingPeriodId, templateVersion);
+                schemaVersions[schemaVersionKey] = templateContents?.SchemaVersion;
+            }
+
+            return schemaVersions[schemaVersionKey];
+        }
     }
 }

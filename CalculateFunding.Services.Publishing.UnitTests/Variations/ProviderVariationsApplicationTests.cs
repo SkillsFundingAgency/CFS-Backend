@@ -169,11 +169,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
             await ThenTheVariationsWereApplied(variationContext);
         }
 
-        private static ProviderVariationContext NewVariationContext() => Substitute.ForPartsOf<ProviderVariationContext>();
+        private static IPoliciesService _policiesService = Substitute.For<IPoliciesService>();
+        private static ProviderVariationContext NewVariationContext() => Substitute.ForPartsOf<ProviderVariationContext>(_policiesService);
 
         private static ProviderVariationContext NewVariationContext(Action<ProviderVariationContextBuilder> setUp)
         {
             ProviderVariationContextBuilder variationContextBuilder = new ProviderVariationContextBuilder();
+            variationContextBuilder.WithPoliciesService(_policiesService);
 
             setUp(variationContextBuilder);
             

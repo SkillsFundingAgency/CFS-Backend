@@ -187,12 +187,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Select(_ => (IVariationStrategy)Activator.CreateInstance(_))
                 .ToArray();
 
-            variationStrategies = variationStrategies.Concat(new[] { new ClosureWithSuccessorVariationStrategy(_providerService.Object) }).ToArray();
+            variationStrategies = variationStrategies.Concat(new[] {(IVariationStrategy) new ClosureWithSuccessorVariationStrategy(_providerService.Object) }).ToArray();
 
             _batchProfilingService = new Mock<IBatchProfilingService>();
 
             _variationStrategyServiceLocator = new VariationStrategyServiceLocator(variationStrategies);
-            _detectProviderVariation = new ProviderVariationsDetection(_variationStrategyServiceLocator);
+            _detectProviderVariation = new ProviderVariationsDetection(_variationStrategyServiceLocator, _policiesService.Object);
             _applyProviderVariation = new ProviderVariationsApplication(_publishingResiliencePolicies,
                 _specificationsApiClient.Object,
                 _policiesApiClient.Object,
@@ -443,7 +443,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             await WhenMessageReceivedWithJobIdAndCorrelationId();
 
             _publishedProviderStatusUpdateService
-                .Verify(_ => _.UpdatePublishedProviderStatus(It.Is<IEnumerable<PublishedProvider>>(_ => _.Where(pp => pp.Current.ProviderId == _publishedProviders.Last().Current.ProviderId && pp.Current.VariationReasons.Single().Equals(VariationReason.NameFieldUpdated)).Count() == 1),
+                .Verify(_ => _.UpdatePublishedProviderStatus(It.Is<IEnumerable<PublishedProvider>>(_ => _.Where(pp => pp.Current.ProviderId == _publishedProviders.Last().Current.ProviderId && pp.Current.VariationReasons.Contains(VariationReason.NameFieldUpdated)).Count() == 1),
                     It.IsAny<Reference>(),
                     PublishedProviderStatus.Updated,
                     JobId,
@@ -818,7 +818,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         {
             _calculationTemplateIds = new[] { new TemplateCalculationBuilder().Build(), new TemplateCalculationBuilder().Build(), new TemplateCalculationBuilder().Build() };
             _fundingLines = new[] { NewTemplateFundingLine(fl => fl.WithCalculations(_calculationTemplateIds)) };
-            _templateMetadataContents = NewTemplateMetadataContents(_ => _.WithFundingLines(_fundingLines));
+            _templateMetadataContents = NewTemplateMetadataContents(_ => _.WithFundingLines(_fundingLines).WithSchemeVersion("1.2"));
 
             _policiesService
                 .Setup(_ => _.GetTemplateMetadataContents(FundingStreamId, _specificationSummary.FundingPeriod.Id, _specificationSummary.TemplateIds[FundingStreamId]))
@@ -907,6 +907,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                     NewPublishedProvider(pp => pp.WithCurrent(
                         NewPublishedProviderVersion(ppv => ppv.WithProvider(_.DeepCopy())
                             .WithFundingStreamId(FundingStreamId)
+                            .WithFundingPeriodId(_specificationSummary.FundingPeriod.Id)
                             .WithProviderId(_.ProviderId)
                             .WithTotalFunding(9)
                             .WithPublishedProviderStatus(publishedProviderStatus)
@@ -919,6 +920,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                                 .WithFundingStreamId(FundingStreamId)
                                 .WithProviderId(_.ProviderId)
                                 .WithTotalFunding(9)
+                                .WithFundingPeriodId(_specificationSummary.FundingPeriod.Id)
                                 .WithFundingLines(includeTemplateContents ? new[] { new FundingLine { FundingLineCode = _fundingLines[0].FundingLineCode, TemplateLineId = _fundingLines[0].TemplateLineId, Value = 9 } } : null)
                                 .WithFundingCalculations(includeTemplateContents ? new[] {new FundingCalculation { Value = _calculationResults[0].Value, TemplateCalculationId = _calculationTemplateIds[0].TemplateCalculationId },
                                     new FundingCalculation { Value = _calculationResults[1].Value, TemplateCalculationId = _calculationTemplateIds[1].TemplateCalculationId },

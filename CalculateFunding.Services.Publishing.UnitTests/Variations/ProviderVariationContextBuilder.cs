@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Tests.Common.Helpers;
 
@@ -13,6 +14,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
         private PublishedProvider _publishedProvider;
         private decimal? _updatedTotalFunding;
         private IEnumerable<string> _errors;
+        private IPoliciesService _policiesService;
 
         public ProviderVariationContextBuilder WithUpdatedTotalFunding(decimal? updatedTotalFunding)
         {
@@ -27,7 +29,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
 
             return this;
         }
-       
+
         public ProviderVariationContextBuilder WithPublishedProvider(PublishedProvider publishedProvider)
         {
             _publishedProvider = publishedProvider;
@@ -41,10 +43,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
 
             return this;
         }
-        
+
+        public ProviderVariationContextBuilder WithPoliciesService(IPoliciesService policiesService)
+        {
+            _policiesService = policiesService;
+
+            return this;
+        }
+
         public ProviderVariationContext Build()
         {
-            ProviderVariationContext providerVariationContext = new ProviderVariationContext
+            ProviderVariationContext providerVariationContext = new ProviderVariationContext(_policiesService)
             {
                 UpdatedProvider = _currentState,
                 PublishedProvider = _publishedProvider,
@@ -55,7 +64,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
             {
                 providerVariationContext.ErrorMessages.AddRange(_errors);
             }
-            
+
             return providerVariationContext;
         }
     }
