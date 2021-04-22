@@ -139,7 +139,6 @@ namespace CalculateFunding.Services.Users
             return await _cosmosRepository.QuerySql<FundingStreamPermission>(cosmosDbQuery);
         }
 
-
         public async Task<IEnumerable<User>> GetUsers()
         {
             return await _cosmosRepository.Query<User>();
@@ -160,6 +159,25 @@ namespace CalculateFunding.Services.Users
             if (!users.AnyWithNullCheck()) return null;
 
             return users;
+        }
+
+        public async Task<IEnumerable<FundingStreamPermission>> GetAdminFundingStreamPermissionsWithFundingStream(string fundingStreamId)
+        {
+            CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
+            {
+                QueryText = @"SELECT * 
+                            FROM    Root r 
+                            WHERE   r.content.fundingStreamId = @FundingStreamID 
+                                    AND r.documentType = @DocumentType
+                                    AND r.content.canAdministerFundingStream = true
+                                    AND r.deleted = false",
+                Parameters = new[]
+                {
+                    new CosmosDbQueryParameter("@FundingStreamID", fundingStreamId),
+                    new CosmosDbQueryParameter("@DocumentType", nameof(FundingStreamPermission))
+                }
+            };
+            return await _cosmosRepository.QuerySql<FundingStreamPermission>(cosmosDbQuery);
         }
     }
 }

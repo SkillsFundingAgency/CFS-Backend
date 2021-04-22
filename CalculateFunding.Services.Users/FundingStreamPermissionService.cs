@@ -334,6 +334,28 @@ namespace CalculateFunding.Services.Users
             return new OkObjectResult(downloadModel);
         }
 
+        public async Task<IActionResult> GetAdminUsersForFundingStream(string fundingStreamId)
+        {
+            if (string.IsNullOrWhiteSpace(fundingStreamId))
+            {
+                return new BadRequestObjectResult($"{nameof(fundingStreamId)} is empty or null");
+            }
+
+            IEnumerable<FundingStreamPermission> adminUsersPermissions 
+                = await _userRepositoryPolicy.ExecuteAsync(() => _userRepository.GetAdminFundingStreamPermissionsWithFundingStream(fundingStreamId));
+
+            List<User> adminUsers = new List<User>();
+
+            foreach (FundingStreamPermission adminUsersPermission in adminUsersPermissions)
+            {
+                User adminUser = await _userRepositoryPolicy.ExecuteAsync(() => _userRepository.GetUserById(adminUsersPermission.UserId));
+
+                adminUsers.Add(adminUser);
+            }
+
+            return new OkObjectResult(adminUsers);
+        }
+
         private EffectiveSpecificationPermission GeneratePermissions(IEnumerable<FundingStreamPermission> permissionsForUser, string specificationId, string userId)
         {
             if (!permissionsForUser.AnyWithNullCheck())

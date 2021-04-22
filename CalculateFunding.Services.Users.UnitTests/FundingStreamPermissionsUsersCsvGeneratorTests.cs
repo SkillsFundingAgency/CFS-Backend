@@ -90,7 +90,7 @@ namespace CalculateFunding.Services.Users
         }
 
         [TestMethod]
-        public async Task ThrowsNonRetriableExceptionWhenGetUsersWithFundingStreamPermissionsReturnsNull()
+        public void ThrowsNonRetriableExceptionWhenGetUsersWithFundingStreamPermissionsReturnsNull()
         {
             string environment = NewRandomString();
             string fundingStreamId = NewRandomString();

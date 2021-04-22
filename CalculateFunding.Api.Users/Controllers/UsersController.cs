@@ -84,5 +84,13 @@ namespace CalculateFunding.Api.Users.Controllers
         {
             return await _fundingStreamPermissionService.DownloadEffectivePermissionsForFundingStream(fundingStreamId);
         }
+
+        [Route("api/users/permissions/{fundingStreamId}/admin")]
+        [HttpGet]
+        [Produces(typeof(FundingStreamPermissionCurrent))]
+        public async Task<IActionResult> GetAdminUsersForFundingStream([FromRoute] string fundingStreamId)
+        {
+            return await _fundingStreamPermissionService.GetAdminUsersForFundingStream(fundingStreamId);
+        }
     }
 }

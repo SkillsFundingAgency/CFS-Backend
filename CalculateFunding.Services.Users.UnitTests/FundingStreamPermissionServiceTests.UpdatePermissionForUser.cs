@@ -1,6 +1,4 @@
-﻿using System.IO;
-using System.Net;
-using System.Text;
+﻿using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Users;
 using CalculateFunding.Services.Core.Caching;
@@ -9,10 +7,8 @@ using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Services.Users.Interfaces;
 using FluentAssertions;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Newtonsoft.Json;
 using NSubstitute;
 
 namespace CalculateFunding.Services.Users
