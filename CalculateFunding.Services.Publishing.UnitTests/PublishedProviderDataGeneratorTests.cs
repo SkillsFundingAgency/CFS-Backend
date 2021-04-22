@@ -22,7 +22,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
     public class PublishedProviderDataGeneratorTests
     {
         [TestMethod]
-        public async Task GenerateTotals_GivenValidTemplateMetadataContentsCalculationsAndProviders_ReturnsFundingLines()
+        public async Task GeneratedProviderResults_GivenValidTemplateMetadataContentsCalculationsAndProviders_ReturnsFundingLines()
         {
             //Arrange
             ILogger logger = CreateLogger();
@@ -118,7 +118,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         }
 
         [TestMethod]
-        public async Task GenerateTotals_GivenValidTemplateMetadataContentsAndProvidersButMissingCalculations_EmptyGeneratedProviderResultsReturned()
+        public async Task GeneratedProviderResults_GivenValidTemplateMetadataContentsAndProvidersButNoProviderCalculationResults_NoCalcsFlagReturned()
         {
             //Arrange
             ILogger logger = CreateLogger();
@@ -140,7 +140,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             IDictionary<string, GeneratedProviderResult> generatedProviderResult = publishedProviderDataGenerator.Generate(contents, mapping, GetProviders(), providerCalculationResults);
 
-            generatedProviderResult.Any()
+            generatedProviderResult.First().Value.HasCalculations
                 .Should()
                 .BeFalse();
         }

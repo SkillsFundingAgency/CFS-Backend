@@ -41,7 +41,7 @@ namespace CalculateFunding.Services.Publishing
         /// <param name="scopedProviders">Scoped providers for a specification</param>
         /// <param name="calculationResults">Calculation Results</param>
         /// <returns>Dictionary of Generated Provider Results, keyed on ProviderId</returns>
-        public IDictionary<string, GeneratedProviderResult> Generate(TemplateMetadataContents templateMetadata, Common.ApiClient.Calcs.Models.TemplateMapping templateMapping, IEnumerable<Provider> scopedProviders, IDictionary<string, ProviderCalculationResult> calculationResults)
+        public IDictionary<string, GeneratedProviderResult> Generate(TemplateMetadataContents templateMetadata, TemplateMapping templateMapping, IEnumerable<Provider> scopedProviders, IDictionary<string, ProviderCalculationResult> calculationResults)
         {
             Guard.ArgumentNotNull(templateMetadata, nameof(templateMetadata));
             Guard.ArgumentNotNull(templateMapping, nameof(templateMapping));
@@ -97,6 +97,12 @@ namespace CalculateFunding.Services.Publishing
                     }).ToList();
 
                     // Set Provider information
+                    generatedProviderResult.Provider = _mapper.Map<Provider>(provider);
+
+                    results.TryAdd(provider.ProviderId, generatedProviderResult);
+                }
+                else
+                {
                     generatedProviderResult.Provider = _mapper.Map<Provider>(provider);
 
                     results.TryAdd(provider.ProviderId, generatedProviderResult);

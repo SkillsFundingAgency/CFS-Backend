@@ -53,16 +53,23 @@ namespace CalculateFunding.Services.Publishing
             // if this is a new provider then it will always need to be updated
             bool equal = !isNewProvider;
 
+            PublishedProviderVersion providerVersionGenerated = new PublishedProviderVersion
+            {
+                TemplateVersion = templateVersion,
+                Provider = mappedProvider
+            };
+
+            // if there are no calculations to action then there is nothing to compare against or to override
+            if (generatedProviderResult.HasCalculations)
+            {
+                providerVersionGenerated.FundingLines = generatedProviderResult.FundingLines;
+                providerVersionGenerated.Calculations = generatedProviderResult.Calculations;
+                providerVersionGenerated.ReferenceData = generatedProviderResult.ReferenceData;
+            }
+
             if (equal)
             {
-                equal = publishedProviderVersionComparer.Equals(publishedProviderVersion, new PublishedProviderVersion
-                {
-                    FundingLines = generatedProviderResult.FundingLines,
-                    Calculations = generatedProviderResult.Calculations,
-                    ReferenceData = generatedProviderResult.ReferenceData,
-                    TemplateVersion = templateVersion,
-                    Provider = mappedProvider
-                });
+                equal = publishedProviderVersionComparer.Equals(publishedProviderVersion, providerVersionGenerated);
 
                 if (!equal)
                 {
@@ -70,15 +77,18 @@ namespace CalculateFunding.Services.Publishing
                 }
             }
 
-            publishedProviderVersion.FundingLines = generatedProviderResult.FundingLines;
+            if (generatedProviderResult.HasCalculations)
+            {
+                publishedProviderVersion.FundingLines = generatedProviderResult.FundingLines;
 
-            publishedProviderVersion.Calculations = generatedProviderResult.Calculations;
+                publishedProviderVersion.Calculations = generatedProviderResult.Calculations;
 
-            publishedProviderVersion.ReferenceData = generatedProviderResult.ReferenceData;
+                publishedProviderVersion.ReferenceData = generatedProviderResult.ReferenceData;
+
+                publishedProviderVersion.TotalFunding = generatedProviderResult.TotalFunding;
+            }
 
             publishedProviderVersion.TemplateVersion = templateVersion;
-
-            publishedProviderVersion.TotalFunding = generatedProviderResult.TotalFunding;
 
             publishedProviderVersion.Provider = mappedProvider;
 

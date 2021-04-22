@@ -238,7 +238,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndTemplateMetadataContents();
             AndScopedProviders((_) =>
             {
-                _.Name = "New name";
+                _.Last().Name = "New name";
             });
             AndScopedProviderCalculationResults();
             AndTemplateMapping();
@@ -270,7 +270,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndTemplateMetadataContents();
             AndScopedProviders((_) =>
             {
-                _.Name = "New name";
+                _.Last().Name = "New name";
             });
             AndScopedProviderCalculationResults();
             AndTemplateMapping();
@@ -301,7 +301,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndTemplateMetadataContents();
             AndScopedProviders((_) =>
             {
-                _.Name = "New name";
+                _.Last().Name = "New name";
             },
             publishedProviderStatus: PublishedProviderStatus.Draft);
             AndScopedProviderCalculationResults();
@@ -407,9 +407,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         }
 
         [TestMethod]
-        [DataRow(true)]
-        [DataRow(false)]
-        public async Task RefreshResults_WhenAnUpdatePublishStatusCompletesWithoutErrorAndVariationsEnabled_PublishedProviderUpdatedAndVariationReasonSet(bool successorAlreadyExists)
+        [DataRow(true, true)]
+        [DataRow(false, true)]
+        [DataRow(false, false)]
+        [DataRow(false, false)]
+        public async Task RefreshResults_WhenAnUpdatePublishStatusCompletesWithoutErrorAndVariationsEnabled_PublishedProviderUpdatedAndVariationReasonSet(bool successorAlreadyExists, bool withSuccessorVariation)
         {
             PublishedProvider successor = NewPublishedProvider(_ => _.WithCurrent(NewPublishedProviderVersion(ppv => ppv.WithProvider(NewProvider()))));
             GivenJobCanBeProcessed();
@@ -418,9 +420,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndTemplateMetadataContents();
             AndScopedProviders((_) =>
             {
-                _.Name = "New name";
-                _.Status = "Closed";
-                _.Successor = successor.Current.ProviderId;
+                _.Last().Name = "New name";
+                _.Last().Status = "Closed";
+                _.Last().Successor = successor.Current.ProviderId;
+                if (withSuccessorVariation)
+                {
+                    _.First().Name = "Successor name";
+                }
             }, scopedProviders: new[] { successor.Current.Provider });
 
             if (successorAlreadyExists)
@@ -606,7 +612,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndCalculationResultsBySpecificationId();
             AndScopedProviders((_) =>
             {
-                _.Name = "New name";
+                _.Last().Name = "New name";
             }, includeTemplateContents: false);
             AndScopedProviderCalculationResults();
             AndProfilePatternsForFundingStreamAndFundingPeriod();
@@ -889,7 +895,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         }
 
         private void AndScopedProviders(
-            Action<Provider> variationAction = null, 
+            Action<Provider[]> variationAction = null, 
             string profilePatternKeyPrefix = null, 
             bool includeTemplateContents = true,
             PublishedProviderStatus publishedProviderStatus = PublishedProviderStatus.Updated,
@@ -926,10 +932,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                                     new FundingCalculation { Value = _calculationResults[1].Value, TemplateCalculationId = _calculationTemplateIds[1].TemplateCalculationId },
                                     new FundingCalculation { Value = _calculationResults[2].Value, TemplateCalculationId = _calculationTemplateIds[2].TemplateCalculationId } } : null))))).ToList();
 
-            Provider providerToVary = _scopedProviders.Last();
-            _providerIdVaried = providerToVary.ProviderId;
-
-            variationAction?.Invoke(providerToVary);
+            variationAction?.Invoke(_scopedProviders.ToArray());
 
             _providerService.Setup(_ => _.GetScopedProvidersForSpecification(_specificationSummary.Id, _specificationSummary.ProviderVersionId))
                 .ReturnsAsync(_scopedProviders.ToDictionary(_ => _.ProviderId));

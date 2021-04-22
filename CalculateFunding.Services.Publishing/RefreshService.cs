@@ -384,37 +384,39 @@ namespace CalculateFunding.Services.Publishing
                     }
                 }
 
-                // this could be a retry and the key may not exist as the provider has been created as a successor so we need to skip
-                if (!generatedPublishedProviderData.TryGetValue(publishedProvider.Key, out GeneratedProviderResult generatedProviderResult) && providerExists)
-                {
-                    continue;
-                }
+                generatedPublishedProviderData.TryGetValue(publishedProvider.Key, out GeneratedProviderResult generatedProviderResult);
 
-                PublishedProviderExclusionCheckResult exclusionCheckResult =
-                    _providerExclusionCheck.ShouldBeExcluded(publishedProvider.Key, generatedProviderResult, flattenedTemplateFundingLines);
-                
                 bool publishedProviderUpdated = false;
 
                 if (providerExists)
                 {
-                    if (exclusionCheckResult.ShouldBeExcluded)
+                    // need to bypass exclusion check if there are no calculations as this is written for when calcs are written to exclude certain providers
+                    // this can be the case for a successor that has been created through a refresh run 
+                    if (generatedProviderResult.HasCalculations)
                     {
-                        if (newProviders.ContainsKey(publishedProvider.Key))
+                        PublishedProviderExclusionCheckResult exclusionCheckResult = _providerExclusionCheck.ShouldBeExcluded(publishedProvider.Key, 
+                                generatedProviderResult, 
+                                flattenedTemplateFundingLines);
+
+                        if (exclusionCheckResult.ShouldBeExcluded)
                         {
-                            newProviders.Remove(publishedProvider.Key);
-                            continue;
+                            if (newProviders.ContainsKey(publishedProvider.Key))
+                            {
+                                newProviders.Remove(publishedProvider.Key);
+                                continue;
+                            }
+
+                            // if there is no previous funding for the generated funding lines then remove
+                            if (publishedProvider.Value.Released == null || !_fundingLineValueOverride.HasPreviousFunding(generatedProviderResult, publishedProviderVersion))
+                            {
+                                existingPublishedProvidersToRemove.Add(publishedProvider.Key, publishedProvider.Value);
+                                publishedProvidersToUpdate.Add(publishedProvider.Key, publishedProvider.Value);
+                                continue;
+                            }
                         }
 
-                        // if there is no previous funding for the generated funding lines then remove
-                        if (publishedProvider.Value.Released == null || !_fundingLineValueOverride.HasPreviousFunding(generatedProviderResult, publishedProviderVersion))
-                        {
-                            existingPublishedProvidersToRemove.Add(publishedProvider.Key, publishedProvider.Value);
-                            publishedProvidersToUpdate.Add(publishedProvider.Key, publishedProvider.Value);
-                            continue;
-                        }
+                        _fundingLineValueOverride.OverridePreviousFundingLineValues(publishedProvider.Value, generatedProviderResult);
                     }
-
-                    _fundingLineValueOverride.OverridePreviousFundingLineValues(publishedProvider.Value, generatedProviderResult);
 
                     publishedProviderUpdated = _publishedProviderDataPopulator.UpdatePublishedProvider(publishedProviderVersion,
                         generatedProviderResult,
