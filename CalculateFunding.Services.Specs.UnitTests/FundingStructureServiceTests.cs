@@ -44,7 +44,6 @@ namespace CalculateFunding.Services.Specifictions.UnitTests
         private const string aValidCalculationId1 = "aValidCalculationId-1";
         private const string aValidCalculationId2 = "aValidCalculationId-2";
         private const string aValidCalculationId3 = "aValidCalculationId-3";
-        private const string ProviderId = "aValidProviderId";
 
         private const PublishStatus CalculationExpectedPublishStatus = PublishStatus.Approved;
 
@@ -270,9 +269,23 @@ namespace CalculateFunding.Services.Specifictions.UnitTests
             => await _service.UpdateFundingStructureLastModified(request);
 
         [TestMethod]
+        public async Task GetFundingStructures_GivenTemplateMappingsIncompleteReturnsException()
+        {
+            ScenarioSetup(FundingStreamId, true);
+
+            IActionResult apiResponseResult = await _service.GetFundingStructure(FundingStreamId, FundingPeriodId, SpecificationId);
+
+            apiResponseResult.Should().BeOfType<InternalServerErrorResult>();
+            InternalServerErrorResult typedResult = apiResponseResult as InternalServerErrorResult;
+            typedResult.Value.ToString()
+                .Should()
+                .Be($"Template mappings missing for specification '{SpecificationId}' and funding stream '{FundingStreamId}'");
+        }
+
+        [TestMethod]
         public async Task GetFundingStructures_ReturnsFlatStructureWithCorrectLevelsAndInCorrectOrder()
         {
-            ValidScenarioSetup(FundingStreamId);
+            ScenarioSetup(FundingStreamId);
 
             IActionResult apiResponseResult = await _service.GetFundingStructure(FundingStreamId, FundingPeriodId, SpecificationId);
 
@@ -287,14 +300,14 @@ namespace CalculateFunding.Services.Specifictions.UnitTests
         [TestMethod]
         public async Task GetFundingStructures_ThrowsInternalErrorIfTemplateIdNotSet()
         {
-            ValidScenarioSetup(FundingStreamId.ToLowerInvariant());
+            ScenarioSetup(FundingStreamId.ToLowerInvariant());
 
             IActionResult apiResponseResult = await _service.GetFundingStructure(FundingStreamId, FundingPeriodId, SpecificationId);
 
             apiResponseResult.Should().BeOfType<InternalServerErrorResult>();
         }
 
-        private void ValidScenarioSetup(string fundingStreamId)
+        private void ScenarioSetup(string fundingStreamId, bool missingTemplateMapping = false)
         {
             SpecificationSummary specificationSummary = new SpecificationSummary
             {
@@ -422,7 +435,7 @@ namespace CalculateFunding.Services.Specifictions.UnitTests
                             new TemplateMappingItem
                             {
                                 TemplateId = 10,
-                                CalculationId = aValidCalculationId3
+                                CalculationId = missingTemplateMapping ? null : aValidCalculationId3
                             }
                         }
                     }));

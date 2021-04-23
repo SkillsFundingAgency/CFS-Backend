@@ -142,6 +142,12 @@ namespace CalculateFunding.Services.Specifications
                 return templateMappingResponseErrorResult;
             }
 
+            if (templateMappingResponse.Content.TemplateMappingItems.Any(_ => string.IsNullOrWhiteSpace(_.CalculationId)))
+            {
+                return new InternalServerErrorResult(
+                    $"Template mappings missing for specification '{specificationId}' and funding stream '{fundingStreamId}'");
+            }
+
             ApiResponse<IEnumerable<CalculationMetadata>> calculationMetadata =
                 await _calculationsResilience.ExecuteAsync(() => _calculationsApiClient.GetCalculationMetadataForSpecification(specificationId));
             IActionResult calculationMetadataErrorResult =
