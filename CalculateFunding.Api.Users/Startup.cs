@@ -110,6 +110,7 @@ namespace CalculateFunding.Api.Users
 
             builder
                .AddSingleton<IUserService, UserService>()
+               .AddSingleton<IUserSearchService, UserSearchService>()
                .AddSingleton<IHealthChecker, UserService>();
 
             builder

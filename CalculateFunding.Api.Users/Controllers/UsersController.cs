@@ -2,7 +2,9 @@
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Models;
 using CalculateFunding.Models.Users;
+using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Users.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -12,16 +14,19 @@ namespace CalculateFunding.Api.Users.Controllers
     public class UsersController : ControllerBase
     {
         private readonly IUserService _userService;
+        private readonly IUserSearchService _userSearchService;
         private readonly IFundingStreamPermissionService _fundingStreamPermissionService;
         private readonly IUserIndexingService _userIndexingService;
 
-        public UsersController(IUserService userService, IFundingStreamPermissionService fundingStreamPermissionService, IUserIndexingService userIndexingService)
+        public UsersController(IUserService userService, IFundingStreamPermissionService fundingStreamPermissionService, IUserIndexingService userIndexingService, IUserSearchService userSearchService)
         {
             Guard.ArgumentNotNull(userService, nameof(userService));
+            Guard.ArgumentNotNull(userSearchService, nameof(userSearchService));
             Guard.ArgumentNotNull(fundingStreamPermissionService, nameof(fundingStreamPermissionService));
             Guard.ArgumentNotNull(userIndexingService, nameof(userIndexingService));
 
             _userService = userService;
+            _userSearchService = userSearchService;
             _fundingStreamPermissionService = fundingStreamPermissionService;
             _userIndexingService = userIndexingService;
         }
@@ -75,6 +80,14 @@ namespace CalculateFunding.Api.Users.Controllers
         public async Task<IActionResult> ReIndex()
         {
             return await _userIndexingService.ReIndex(Request.GetUser(), Request.GetCorrelationId());
+        }
+
+        [Route("api/users/users-search")]
+        [HttpPost]
+        [Produces(typeof(UserSearchResults))]
+        public Task<ActionResult> UsersSearch([FromBody] SearchModel searchModel)
+        {
+            return _userSearchService.SearchUsers(searchModel);
         }
 
         [Route("api/users/effectivepermissions/generate-report/{fundingStreamId}")]
