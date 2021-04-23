@@ -71,7 +71,7 @@ namespace CalculateFunding.Services.Graph.UnitTests
 
             GivenCircularDependencies(AttributeConstants.CalculationACalculationBRelationship, AttributeConstants.CalculationId, specificationId, entity);
 
-            IEnumerable<Entity<Calculation, IRelationship>> entities = await _calculationRepository.GetCalculationCircularDependencies(specificationId);
+            IEnumerable<Entity<Calculation, Relationship>> entities = await _calculationRepository.GetCalculationCircularDependencies(specificationId);
 
             entities
                 .Should()

@@ -56,27 +56,27 @@ namespace CalculateFunding.Services.Graph
                 .ToArray());
         }
 
-        public async Task<IEnumerable<Entity<Calculation, IRelationship>>> GetCalculationCircularDependencies(string calculationId)
+        public async Task<IEnumerable<Entity<Calculation, Relationship>>> GetCalculationCircularDependencies(string calculationId)
         {
             IEnumerable<Entity<Calculation>> entities = await GetCircularDependencies<Calculation>(AttributeConstants.CalculationACalculationBRelationship,
                 AttributeConstants.CalculationId,
                 calculationId);
-            return entities?.Select(_ => new Entity<Calculation, IRelationship>
+            return entities?.Select(_ => new Entity<Calculation, Relationship>
             {
                 Node = _.Node,
-                Relationships = _.Relationships
+                Relationships = _.Relationships.Select(_ => new Relationship { One = _.One, Two = _.Two, Type = _.Type })
             });
         }
 
-        public async Task<IEnumerable<Entity<Calculation, IRelationship>>> GetCalculationCircularDependencies(string[] calculationIds)
+        public async Task<IEnumerable<Entity<Calculation, Relationship>>> GetCalculationCircularDependencies(string[] calculationIds)
         {
             IEnumerable<Entity<Calculation>> entities = await GetCircularDependencies<Calculation>(AttributeConstants.CalculationACalculationBRelationship,
                 AttributeConstants.CalculationId,
                 calculationIds);
-            return entities?.Select(_ => new Entity<Calculation, IRelationship>
+            return entities?.Select(_ => new Entity<Calculation, Relationship>
             {
                 Node = _.Node,
-                Relationships = _.Relationships
+                Relationships = _.Relationships.Select(_ => new Relationship { One = _.One, Two = _.Two, Type = _.Type })
             });
         }
 

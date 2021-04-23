@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Graph.Interfaces;
+using CalculateFunding.Common.Graph;
 
 namespace CalculateFunding.Services.Graph.Interfaces
 {
@@ -17,8 +18,8 @@ namespace CalculateFunding.Services.Graph.Interfaces
         Task DeleteCalculationSpecificationRelationship(string calculationId, string specificationId);
         Task DeleteCalculationCalculationRelationship(string calculationIdA, string calculationIdB);
 
-        Task<IEnumerable<Entity<Calculation, IRelationship>>> GetCalculationCircularDependencies(string calculationId);
-        Task<IEnumerable<Entity<Calculation, IRelationship>>> GetCalculationCircularDependencies(string[] calculationIds);
+        Task<IEnumerable<Entity<Calculation, Relationship>>> GetCalculationCircularDependencies(string calculationId);
+        Task<IEnumerable<Entity<Calculation, Relationship>>> GetCalculationCircularDependencies(string[] calculationIds);
 
         Task<IEnumerable<Entity<Calculation, IRelationship>>> GetAllEntities(string calculationId);
 

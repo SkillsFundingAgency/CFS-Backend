@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Threading;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.Graph;
 
 namespace CalculateFunding.Services.Graph
 {
@@ -350,7 +351,7 @@ namespace CalculateFunding.Services.Graph
         {
             string cacheKey = $"{CacheKeys.CircularDependencies}{specificationId}";
 
-            List<Entity<Calculation, IRelationship>> circularDependencies = await _cachePolicy.ExecuteAsync(() => _cacheProvider.GetAsync<List<Entity<Calculation, IRelationship>>>(cacheKey));
+            List<Entity<Calculation, Relationship>> circularDependencies = await _cachePolicy.ExecuteAsync(() => _cacheProvider.GetAsync<List<Entity<Calculation, Relationship>>>(cacheKey));
             
             if (circularDependencies != null)
             {
@@ -363,7 +364,7 @@ namespace CalculateFunding.Services.Graph
                     .Select(_ => _.Node.CalculationId),
                 PageSize);
 
-            circularDependencies = new List<Entity<Calculation, IRelationship>>();
+            circularDependencies = new List<Entity<Calculation, Relationship>>();
 
             if (calculations.AnyWithNullCheck())
             {

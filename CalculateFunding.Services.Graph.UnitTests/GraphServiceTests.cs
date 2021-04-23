@@ -730,7 +730,7 @@ namespace CalculateFunding.Services.Graph.UnitTests
 
             await _cacheProvider
                 .Received(1)
-                .SetAsync(cacheKey, Arg.Any<List<Entity<Calculation, IRelationship>>>(), Arg.Any<TimeSpan>(), true);
+                .SetAsync(cacheKey, Arg.Any<List<Entity<Calculation, Relationship>>>(), Arg.Any<TimeSpan>(), true);
 
             result?.Value
                 .Should()
@@ -1173,7 +1173,11 @@ namespace CalculateFunding.Services.Graph.UnitTests
                 .Returns(calculations);
 
             _calculationRepository.GetCalculationCircularDependencies(Arg.Is<string[]>(_ => _.SequenceEqual(calculations.Select(_ => _.Node.CalculationId).ToArray())))
-                .Returns(calculations);
+                .Returns(calculations.Select(_ => new Entity<Calculation, Relationship>
+                {
+                    Node = _.Node,
+                    Relationships = _.Relationships?.Select(_ => new Relationship { One = _.One, Two = _.Two, Type = _.Type })
+                }));
         }
 
         private string NewRandomString() => new RandomString();
