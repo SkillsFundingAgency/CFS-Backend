@@ -157,6 +157,34 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
             AndCalculationValueShouldBe(successorCalculationFour, successorPupilNumberFour);
         }
 
+        [TestMethod]
+        public async Task MovesPredecessorPupilNumbersOntoNewlyCreatedSuccessor()
+        {
+            uint calculationOneId = NewRandomUint();
+            uint calculationTwoId = NewRandomUint();
+
+            int predecessorPupilNumberOne = NewRandomPupilNumber();
+            int predecessorPupilNumberTwo = NewRandomPupilNumber();
+
+            GivenThePupilNumberCalculationIds(calculationOneId, calculationTwoId);
+            AndTheFundingCalculations(NewFundingCalculation(_ => _.WithTemplateCalculationId(calculationOneId)
+                    .WithValue(predecessorPupilNumberOne)),
+                NewFundingCalculation(),
+                NewFundingCalculation(_ => _.WithTemplateCalculationId(calculationTwoId)
+                    .WithValue(predecessorPupilNumberTwo)));
+
+            FundingCalculation predecessorCalculationOne = NewFundingCalculation(_ => _.WithTemplateCalculationId(calculationOneId)
+                .WithValue(predecessorPupilNumberOne));
+            FundingCalculation predecessorCalculationTwo = NewFundingCalculation(_ => _.WithValue(predecessorPupilNumberTwo));
+
+            AndTheSuccessorFundingCalculations(null);
+
+            await WhenTheChangeIsApplied();
+
+            ThenCalculationValueShouldBe(predecessorCalculationOne, predecessorPupilNumberOne);
+            AndCalculationValueShouldBe(predecessorCalculationTwo, predecessorPupilNumberTwo);
+        }
+
         private void ThenCalculationValueShouldBe(FundingCalculation fundingCalculation, int expectedValue)
         {
             fundingCalculation

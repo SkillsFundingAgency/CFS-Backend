@@ -266,10 +266,9 @@ namespace CalculateFunding.Services.Publishing.Providers
                 predecessorProviderVersion.FundingStreamId,
                 predecessorProviderVersion.SpecificationId,
                 "Created by the system as not in scope but referenced as a successor provider",
-                predecessorProviderVersion.FundingLines.DeepCopy(),
-                predecessorProviderVersion.Calculations.DeepCopy());
+                predecessorProviderVersion.FundingLines.DeepCopy());
 
-            foreach (ProfilePeriod profilePeriod in missingProvider.Current.FundingLines.SelectMany(_ =>
+            foreach (ProfilePeriod profilePeriod in missingProvider.Current.FundingLines.SelectMany(_ => 
                 _.DistributionPeriods.SelectMany(dp => dp.ProfilePeriods)))
             {
                 profilePeriod.ProfiledValue = 0;
@@ -283,8 +282,7 @@ namespace CalculateFunding.Services.Publishing.Providers
             string fundingStreamId, 
             string specificationId, 
             string comment,
-            IEnumerable<FundingLine> fundingLines = null,
-            IEnumerable<FundingCalculation> fundingCalculations = null)
+            IEnumerable<FundingLine> fundingLines = null)
         {
             return new PublishedProvider
             {
@@ -299,8 +297,7 @@ namespace CalculateFunding.Services.Publishing.Providers
                     Provider = provider,
                     SpecificationId = specificationId,
                     Comment = comment,
-                    FundingLines = fundingLines,
-                    Calculations = fundingCalculations
+                    FundingLines = fundingLines
                 }
             };
         }

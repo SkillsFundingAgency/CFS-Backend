@@ -47,8 +47,11 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
                 .Calculations
                 .ToDictionary(_ => _.TemplateCalculationId);
 
-            Dictionary<uint, FundingCalculation> successorCalculations = (SuccessorRefreshState
-                .Calculations ?? pupilNumberTemplateCalculationIds?.Select(_ => new FundingCalculation { TemplateCalculationId = _ })).ToDictionary(_ => _.TemplateCalculationId);
+            SuccessorRefreshState.Calculations = SuccessorRefreshState.Calculations.AnyWithNullCheck() ?
+                    SuccessorRefreshState.Calculations :
+                    pupilNumberTemplateCalculationIds?.Select(_ => new FundingCalculation { TemplateCalculationId = _ });
+
+            Dictionary<uint, FundingCalculation> successorCalculations = SuccessorRefreshState.Calculations.ToDictionary(_ => _.TemplateCalculationId);
 
             foreach (uint templateCalculationId in pupilNumberTemplateCalculationIds)
             {
@@ -59,9 +62,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
                                   $"Could not locate both FundingCalculations for id {templateCalculationId}");
                 }
 
-                int? totalPupilNumber = AddValueIfNotNull(successorCalculation.Value, predecessorCalculation.Value);
-
-                successorCalculation.Value = totalPupilNumber;
+                successorCalculation.Value = AddValueIfNotNull(successorCalculation.Value, predecessorCalculation.Value);
             }
         }
 
