@@ -24,7 +24,7 @@ namespace CalculateFunding.Models.Datasets
 
         public bool HasDifferentFieldValues(RowLoadResult other)
         {
-            return Fields.Any(x => other.Fields.Any(y => y.Key == x.Key && y.Value?.Equals(x.Value) == false));
+            return Fields.Any(x => other.Fields.Any(y => y.Key == x.Key && y.Value?.Equals(x.Value) != true));
         }
 
         public RowLoadResult CopyRow(string identifier, IdentifierFieldType identifierFieldType,
