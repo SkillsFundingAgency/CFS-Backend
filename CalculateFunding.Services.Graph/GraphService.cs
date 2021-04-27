@@ -351,7 +351,7 @@ namespace CalculateFunding.Services.Graph
         {
             string cacheKey = $"{CacheKeys.CircularDependencies}{specificationId}";
 
-            List<Entity<Calculation, Relationship>> circularDependencies = await _cachePolicy.ExecuteAsync(() => _cacheProvider.GetAsync<List<Entity<Calculation, Relationship>>>(cacheKey));
+            IEnumerable<Entity<Calculation, Relationship>> circularDependencies = await _cachePolicy.ExecuteAsync(() => _cacheProvider.GetAsync<List<Entity<Calculation, Relationship>>>(cacheKey));
             
             if (circularDependencies != null)
             {
@@ -364,7 +364,7 @@ namespace CalculateFunding.Services.Graph
                     .Select(_ => _.Node.CalculationId),
                 PageSize);
 
-            circularDependencies = new List<Entity<Calculation, Relationship>>();
+            circularDependencies = new Entity<Calculation, Relationship>[0];
 
             if (calculations.AnyWithNullCheck())
             {
@@ -373,12 +373,12 @@ namespace CalculateFunding.Services.Graph
                     
                     while (pagedRequests.HasPages)
                     {
-                        circularDependencies.AddRange(await _calcRepository.GetCalculationCircularDependencies(pagedRequests
+                        circularDependencies = circularDependencies.Concat(await _calcRepository.GetCalculationCircularDependencies(pagedRequests
                         .NextPage()
                         .ToArray()));
                     }
 
-                    await _cachePolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, circularDependencies, TimeSpan.FromDays(7), true));
+                    await _cachePolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, circularDependencies.DistinctBy(_ => _.Node.CalculationId).ToList(), TimeSpan.FromDays(7), true));
                         
                     return circularDependencies;
                 }, $"Unable to retrieve calculation circular dependencies for specification {specificationId}.");
