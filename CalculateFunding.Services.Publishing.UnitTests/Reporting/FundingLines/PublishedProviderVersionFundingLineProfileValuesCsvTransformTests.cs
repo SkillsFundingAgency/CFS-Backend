@@ -49,6 +49,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                                 .WithUKPRN("ukprn1")
                                 .WithProviderType("pt1")
                                 .WithProviderSubType("pst1")))
+                        .WithIsIndicative(true)
                         .WithFundingLines(NewFundingLine(fl => fl.WithValue(999M)
                                 .WithDistributionPeriods(NewDistributionPeriod(dp => dp.WithProfilePeriods(
                                     NewProfilePeriod(pp => pp.WithAmount(123)
@@ -131,6 +132,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                     {"Allocation Minor Version", "11"},
                     {"Allocation Author", "author1"},
                     {"Allocation DateTime", "2020-01-05T20:05:44"},
+                    {"Is Indicative", "True"},
                     {"Total Funding", 999M}, 
                     {"2020 January 1", 123M}, 
                     {"2020 January 2", 456M}, 
@@ -152,6 +154,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                     {"Allocation Minor Version", "21"},
                     {"Allocation Author", "author2"},
                     {"Allocation DateTime", "2020-02-05T20:03:55"},
+                    {"Is Indicative", "False"},
                     {"Total Funding", 666M},
                     {"2020 January 1", 234M}, 
                     {"2020 January 2", 567M}, 

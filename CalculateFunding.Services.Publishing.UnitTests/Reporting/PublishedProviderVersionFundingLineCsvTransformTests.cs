@@ -47,6 +47,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
                             .WithUKPRN("ukprn1")
                             .WithProviderType("pt1")
                             .WithProviderSubType("pst1")))
+                    .WithIsIndicative(true)
                     .WithFundingLines(NewFundingLine(fl => fl.WithName("bfl1")
                             .WithValue(999M)),
                         NewFundingLine(fl => fl.WithName("afl2")
@@ -90,6 +91,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
                     {"Allocation Minor Version", "11"},
                     {"Allocation Author", "author1"},
                     {"Allocation DateTime", "2020-01-05T20:05:44"},
+                    {"Is Indicative", "True"},
                     {"afl2", 666M.ToString(CultureInfo.InvariantCulture)}, //funding lines to be alpha numerically ordered on name
                     {"bfl1", 999M.ToString(CultureInfo.InvariantCulture)}
                 },
@@ -108,6 +110,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
                     {"Allocation Minor Version", "21"},
                     {"Allocation Author", "author2"},
                     {"Allocation DateTime", "2020-02-05T20:03:55"},
+                    {"Is Indicative", "False"},
                     {"zfl1", 123M.ToString(CultureInfo.InvariantCulture)}
                 }
             };

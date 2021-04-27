@@ -43,6 +43,7 @@ namespace CalculateFunding.Services.Publishing.Reporting
                 row["Allocation Minor Version"] = publishedProviderVersion.MinorVersion.ToString();
                 row["Allocation Author"] = publishedProviderVersion.Author?.Name;
                 row["Allocation DateTime"] = publishedProviderVersion.Date.ToString("s");
+                row["Is Indicative"] = publishedProviderVersion.IsIndicative.ToString();
 
                 TransformFundingLine(row, publishedProviderVersion, profilePatterns);
                 TransformProviderDetails(row, publishedProviderVersion);
