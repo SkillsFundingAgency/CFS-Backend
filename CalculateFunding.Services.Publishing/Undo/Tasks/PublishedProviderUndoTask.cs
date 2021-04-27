@@ -27,6 +27,8 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
 
         public bool IsHardDelete { get; }
 
+        public bool VersionDocuments => false;
+
         public async Task Run(PublishedFundingUndoTaskContext taskContext)
         {
             LogStartingTask();

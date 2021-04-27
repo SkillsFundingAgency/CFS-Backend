@@ -22,6 +22,7 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
             : base(cosmos, blobStore, producerConsumerFactory, logger, jobTracker)
         {
         }
+        public bool VersionDocuments => true;
 
         public async Task Run(PublishedFundingUndoTaskContext taskContext)
         {

@@ -48,9 +48,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
 
             _initialiseTask = NewMockTask();
             _undoPublishedFundingTask = NewMockTask();
-            _undoPublishedFundingVersionsTask = NewMockTask();
+            _undoPublishedFundingVersionsTask = NewMockTask(true);
             _undoPublishedProvidersTask = NewMockTask();
-            _undoPublishedProviderVersionsTask = NewMockTask();
+            _undoPublishedProviderVersionsTask = NewMockTask(true);
 
             _taskFactory.Setup(_ => _.CreateContextInitialisationTask())
                 .Returns(_initialiseTask.Object);
@@ -255,12 +255,30 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
                 .BeEquivalentTo(new[]
                 {
                     _initialiseTask,
-                    _undoPublishedFundingTask,
-                    _undoPublishedProvidersTask,
+                    _undoPublishedProviderVersionsTask,
                     _undoPublishedFundingVersionsTask,
-                    _undoPublishedProviderVersionsTask
+                    _undoPublishedProvidersTask,
+                    _undoPublishedFundingTask
                 }, opt
                     => opt.WithoutStrictOrdering());
+
+            // make sure the first tasks to run are the version documents
+            _invokedTasks.Skip(1).Take(2).Should()
+                .BeEquivalentTo(new[]
+                {
+                    _undoPublishedProviderVersionsTask,
+                    _undoPublishedFundingVersionsTask
+                }, opt
+                        => opt.WithoutStrictOrdering());
+
+            _invokedTasks.Skip(3).Take(2).Should()
+                .BeEquivalentTo(new[]
+                {
+                    _undoPublishedProvidersTask,
+                    _undoPublishedFundingTask
+                }, opt
+                        => opt.WithoutStrictOrdering());
+
         }
 
         private void AndTheJobCanBeTracked(string jobId)
@@ -276,7 +294,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
                 .Returns(Task.CompletedTask);
         }
 
-        private Mock<IPublishedFundingUndoJobTask> NewMockTask()
+        private Mock<IPublishedFundingUndoJobTask> NewMockTask(bool versionDocuments = false)
         {
             Mock<IPublishedFundingUndoJobTask> task = new Mock<IPublishedFundingUndoJobTask>();
 
@@ -284,6 +302,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
                     ctx.Parameters.ToString() == GetParametersString())))
                 .Callback(() => _invokedTasks.Add(task))
                 .Returns(Task.CompletedTask);
+
+            task.Setup(_ => _.VersionDocuments).Returns(versionDocuments);
 
             return task;
         }

@@ -23,6 +23,8 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
         {
         }
 
+        public bool VersionDocuments => true;
+
         public async Task Run(PublishedFundingUndoTaskContext taskContext)
         {
             LogStartingTask();

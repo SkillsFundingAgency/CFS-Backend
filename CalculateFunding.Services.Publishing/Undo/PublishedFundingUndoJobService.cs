@@ -71,14 +71,9 @@ namespace CalculateFunding.Services.Publishing.Undo
 
                 IEnumerable<IPublishedFundingUndoJobTask> undoTasksToExecute = taskFactory.CreateUndoTasks(taskContext);
 
-                List<Task> undoTasks = new List<Task>();
-
-                foreach (var tasktoExecute in undoTasksToExecute)
-                {
-                    undoTasks.Add(tasktoExecute.Run(taskContext));
-                }
-
-                await TaskHelper.WhenAllAndThrow(undoTasks.ToArray());
+                // make sure the versioned documents are deleted before we fixup the main documents so the current is set correctly
+                await ExecuteTasks(undoTasksToExecute.Where(_ => _.VersionDocuments == true), taskContext);
+                await ExecuteTasks(undoTasksToExecute.Where(_ => _.VersionDocuments == false), taskContext);
 
                 EnsureNoTaskErrors(taskContext);
             }
@@ -87,6 +82,18 @@ namespace CalculateFunding.Services.Publishing.Undo
                 string errorMessage = $"Unable to complete {PublishedFundingUndoJob} for correlationId: {parameters.ForCorrelationId}.\n{e.Message}";
                 throw new NonRetriableException(errorMessage, e);
             }
+        }
+
+        private async Task ExecuteTasks(IEnumerable<IPublishedFundingUndoJobTask> undoTasksToExecute, PublishedFundingUndoTaskContext taskContext)
+        {
+            List<Task> undoTasks = new List<Task>();
+
+            foreach (IPublishedFundingUndoJobTask tasktoExecute in undoTasksToExecute)
+            {
+                undoTasks.Add(tasktoExecute.Run(taskContext));
+            }
+
+            await TaskHelper.WhenAllAndThrow(undoTasks.ToArray());
         }
 
         private void EnsureNoTaskErrors(PublishedFundingUndoTaskContext taskContext)
