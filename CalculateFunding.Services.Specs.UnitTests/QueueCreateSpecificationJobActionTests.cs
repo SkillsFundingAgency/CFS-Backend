@@ -150,7 +150,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
         }
 
         [TestMethod]
-        public async Task ShouldQueueProviderSnapshotDataLoadJobWhenSpecificationProviverSoruceIsFDZ()
+        public async Task ShouldQueueProviderSnapshotDataLoadJobWhenSpecificationProviverSoruceIsFDZAndHasProviderSnapshotId()
         {
             string fundingStreamId = NewRandomString();
             string specificationId = NewRandomString();
@@ -177,6 +177,40 @@ namespace CalculateFunding.Services.Specs.UnitTests
             await WhenTheQueueCreateSpecificationJobActionIsRun(specificationVersion, _user, _correlationId);
 
             await ThenProviderSnapshotDataLoadJobWasCreated(
+                CreateJobModelMatching(_ => _.JobDefinitionId == JobConstants.DefinitionNames.ProviderSnapshotDataLoadJob &&
+                                            HasProperty(_, SpecificationId, specificationId) &&
+                                            HasProperty(_, FundingStreamId, fundingStreamId) &&
+                                            HasProperty(_, ProviderSnapshotId, providerSnapshotId.ToString()))
+                );
+        }
+
+        [TestMethod]
+        public async Task ShouldNotQueueProviderSnapshotDataLoadJobWhenSpecificationProviverSoruceIsFDZAndDoesNotHaveProviderSnapshotId()
+        {
+            string fundingStreamId = NewRandomString();
+            string specificationId = NewRandomString();
+            int providerSnapshotId = NewRandomInt();
+            string fundingPeriodId = NewRandomString();
+
+            string templateVersion1 = NewRandomString();
+            uint templateCalculationId1 = NewRandomUint();
+            uint templateCalculationId2 = NewRandomUint();
+            uint templateCalculationId3 = NewRandomUint();
+
+            SpecificationVersion specificationVersion = NewSpecificationVersion(_ => _.WithFundingStreamsIds(fundingStreamId)
+                                                                                      .WithSpecificationId(specificationId)
+                                                                                      .WithFundingPeriodId(fundingPeriodId)
+                                                                                      .WithProviderSource(Models.Providers.ProviderSource.FDZ));
+
+            GivenTheFundingTemplateContentsForPeriodAndStream(fundingPeriodId, fundingStreamId,
+                templateVersion1,
+                 NewTemplateMetadataContents(_ => _.WithFundingLines(
+                     NewFundingLine(fl => fl.WithCalculations(NewCalculation(cal => cal.WithReferenceData(NewReferenceData(), NewReferenceData()).WithTemplateCalculationId(templateCalculationId1)))),
+                     NewFundingLine(fl => fl.WithCalculations(NewCalculation(cal => cal.WithTemplateCalculationId(templateCalculationId2)), NewCalculation(cal => cal.WithTemplateCalculationId(templateCalculationId3))))))); //item count 5
+
+            await WhenTheQueueCreateSpecificationJobActionIsRun(specificationVersion, _user, _correlationId);
+
+            await ThenProviderSnapshotDataLoadJobWasNotCreated(
                 CreateJobModelMatching(_ => _.JobDefinitionId == JobConstants.DefinitionNames.ProviderSnapshotDataLoadJob &&
                                             HasProperty(_, SpecificationId, specificationId) &&
                                             HasProperty(_, FundingStreamId, fundingStreamId) &&
@@ -249,6 +283,12 @@ namespace CalculateFunding.Services.Specs.UnitTests
         private async Task ThenProviderSnapshotDataLoadJobWasCreated(Expression<Predicate<JobCreateModel>> expectedJob)
         {
             await _jobs.Received(1).QueueJob(
+                Arg.Is(expectedJob));
+        }
+
+        private async Task ThenProviderSnapshotDataLoadJobWasNotCreated(Expression<Predicate<JobCreateModel>> expectedJob)
+        {
+            await _jobs.Received(0).QueueJob(
                 Arg.Is(expectedJob));
         }
 

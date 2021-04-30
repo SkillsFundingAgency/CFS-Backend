@@ -77,7 +77,9 @@ namespace CalculateFunding.Services.Specs
             await TaskHelper.WhenAllAndThrow(createAssignTemplateJobTasks);
 
             Reference fundingStream = specificationVersion.FundingStreams.FirstOrDefault();
-            if (fundingStream != null && specificationVersion.ProviderSource == Models.Providers.ProviderSource.FDZ)
+            if (fundingStream != null 
+                && specificationVersion.ProviderSource == Models.Providers.ProviderSource.FDZ
+                && specificationVersion.ProviderSnapshotId.HasValue )
             {
                 await CreateProviderSnapshotDataLoadJob(new ProviderSnapshotDataLoadRequest()
                 {
