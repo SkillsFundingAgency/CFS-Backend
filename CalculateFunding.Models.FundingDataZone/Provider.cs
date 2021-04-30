@@ -165,5 +165,7 @@ namespace CalculateFunding.Models.FundingDataZone
         public IEnumerable<string> Predecessors { get; set; }
 
         public IEnumerable<string> Successors { get; set; }
+
+        public bool Indicative { get; set; }
     }
 }

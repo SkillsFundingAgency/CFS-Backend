@@ -21,6 +21,8 @@ namespace CalculateFunding.Migrations.DSG.RollBack.Migrations
         {
         }
 
+        public bool VersionDocuments => throw new System.NotImplementedException();
+
         public Task Run(PublishedFundingUndoTaskContext taskContext)
         {
             DsgRollBackParameters parameters = taskContext.Parameters as DsgRollBackParameters;

@@ -153,5 +153,7 @@ namespace CalculateFunding.Services.FundingDataZone.SqlModels
         public string Predecessors { get; set; }
 
         public string Successors { get; set; }
+
+        public bool Indicative { get; set; }
     }
 }
