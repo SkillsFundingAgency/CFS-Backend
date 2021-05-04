@@ -20,9 +20,6 @@ namespace CalculateFunding.Migrations.DSG.RollBack.Migrations
             : base(cosmos, blobStore, producerConsumerFactory, logger, jobTracker)
         {
         }
-
-        public bool VersionDocuments => throw new System.NotImplementedException();
-
         public Task Run(PublishedFundingUndoTaskContext taskContext)
         {
             DsgRollBackParameters parameters = taskContext.Parameters as DsgRollBackParameters;
@@ -41,9 +38,5 @@ namespace CalculateFunding.Migrations.DSG.RollBack.Migrations
             
             return Task.CompletedTask;
         }
-
-        //someone hacked this interface change into the code base
-        //by bypassing the PR gateways, no idea if this should be true or false??
-        public bool VersionDocuments { get; } = false;
     }
 }

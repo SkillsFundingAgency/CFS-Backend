@@ -21,8 +21,6 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
         {
         }
 
-        public bool VersionDocuments => throw new NotImplementedException();
-
         public async Task Run(PublishedFundingUndoTaskContext taskContext)
         {
             Guard.ArgumentNotNull(taskContext, nameof(taskContext));
