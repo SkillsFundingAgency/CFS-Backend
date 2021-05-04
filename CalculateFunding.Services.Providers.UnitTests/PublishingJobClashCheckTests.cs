@@ -51,9 +51,14 @@ namespace CalculateFunding.Services.Providers.UnitTests
         public async Task IsTrueIfJobsForSpecificationIdAndPublishingJobTypesAreRunning()
         {
             string specificationId = NewRandomString();
-            
-            GivenThePublishingJobSummariesForTheSpecificationId(specificationId, NewJobSummary(_ => _.WithRunningStatus(RunningStatus.InProgress)),
-                NewJobSummary(_ => _.WithRunningStatus(RunningStatus.Completing)));
+
+            IDictionary<string, JobSummary> latestJobs = new Dictionary<string, JobSummary>
+            {
+                { "job1", NewJobSummary(_ => _.WithRunningStatus(RunningStatus.InProgress)) },
+                { "job2", NewJobSummary(_ => _.WithRunningStatus(RunningStatus.Completing)) },
+            };
+
+            GivenThePublishingJobSummariesForTheSpecificationId(specificationId, latestJobs);
 
             bool specificationHasClash = await WhenJobClashesAreCheckedForTheSpecification(specificationId);
 
@@ -66,8 +71,13 @@ namespace CalculateFunding.Services.Providers.UnitTests
         public async Task IsFalseIfJobsForSpecificationIdAndPublishingJobTypesAreRunning()
         {
             string specificationId = NewRandomString();
-            
-            GivenThePublishingJobSummariesForTheSpecificationId(specificationId, NewJobSummary(_ => _.WithRunningStatus(RunningStatus.Completed)));
+
+            IDictionary<string, JobSummary> latestJobs = new Dictionary<string, JobSummary>
+            {
+                { "job1", NewJobSummary(_ => _.WithRunningStatus(RunningStatus.Completed)) },
+            };
+
+            GivenThePublishingJobSummariesForTheSpecificationId(specificationId, latestJobs);
 
             bool specificationHasClash = await WhenJobClashesAreCheckedForTheSpecification(specificationId);
 
@@ -110,7 +120,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
         }
 
         private void GivenThePublishingJobSummariesForTheSpecificationId(string specificationId,
-            params JobSummary[] jobSummaries)
+            IDictionary<string, JobSummary> jobSummaries)
             => _jobs.Setup(_ => _.GetLatestJobsForSpecification(It.Is<string>(id => id == specificationId),
                     It.Is<IEnumerable<string>>(types => types.SequenceEqual(new[]
                     {

@@ -1185,8 +1185,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .CreateJobs(Arg.Any<IEnumerable<JobCreateModel>>())
                 .Returns(new List<Job> { new Job { SpecificationId = specificationId } });
             jobsApiClient
-                .GetLatestJobsForSpecification(Arg.Is(specificationId), Arg.Is<IEnumerable<string>>(_ => _.First() == JobConstants.DefinitionNames.PopulateScopedProvidersJob))
-                .Returns(new ApiResponse<IEnumerable<JobSummary>>(HttpStatusCode.OK, new[] { new JobSummary { CompletionStatus = CompletionStatus.Succeeded, RunningStatus = RunningStatus.Completed } }));
+                .GetLatestJobsForSpecification(Arg.Is(specificationId), Arg.Is<string[]> (_ => _.First() == JobConstants.DefinitionNames.PopulateScopedProvidersJob))
+                .Returns(new ApiResponse<IDictionary<string, JobSummary>>(
+                    HttpStatusCode.OK, 
+                    new Dictionary<string, JobSummary> { { JobConstants.DefinitionNames.PopulateScopedProvidersJob, new JobSummary { CompletionStatus = CompletionStatus.Succeeded, RunningStatus = RunningStatus.Completed } } }));
 
             IMessengerService messengerService = CreateMessengerService();
 
@@ -1287,8 +1289,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .CreateJobs(Arg.Any<IEnumerable<JobCreateModel>>())
                 .Returns(new List<Job> { new Job { SpecificationId = specificationId } });
             jobsApiClient
-                .GetLatestJobsForSpecification(Arg.Is(specificationId), Arg.Is<IEnumerable<string>>(_ => _.First() == JobConstants.DefinitionNames.PopulateScopedProvidersJob))
-                .Returns(new ApiResponse<IEnumerable<JobSummary>>(HttpStatusCode.OK, new[] { new JobSummary { CompletionStatus = CompletionStatus.Succeeded, RunningStatus = RunningStatus.Completed } }));
+                .GetLatestJobsForSpecification(Arg.Is(specificationId), Arg.Is<string[]>(_ => _.First() == JobConstants.DefinitionNames.PopulateScopedProvidersJob))
+                .Returns(new ApiResponse<IDictionary<string, JobSummary>>(
+                    HttpStatusCode.OK, 
+                    new Dictionary<string, JobSummary> { { JobConstants.DefinitionNames.PopulateScopedProvidersJob, new JobSummary { CompletionStatus = CompletionStatus.Succeeded, RunningStatus = RunningStatus.Completed } } }));
 
             IMessengerService messengerService = CreateMessengerService();
 
@@ -3225,8 +3229,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .CreateJobs(Arg.Any<IEnumerable<JobCreateModel>>())
                 .Returns(new List<Job> { new Job { SpecificationId = specificationId } });
             jobsApiClient
-                .GetLatestJobsForSpecification(Arg.Is(specificationId), Arg.Is<IEnumerable<string>>(_ => _.First() == JobConstants.DefinitionNames.PopulateScopedProvidersJob))
-                .Returns(new ApiResponse<IEnumerable<JobSummary>>(HttpStatusCode.OK, new[] { new JobSummary { CompletionStatus = CompletionStatus.Succeeded, RunningStatus = RunningStatus.Completed } }));
+                .GetLatestJobsForSpecification(Arg.Is(specificationId), Arg.Is<string[]>(_ => _.First() == JobConstants.DefinitionNames.PopulateScopedProvidersJob))
+                .Returns(new ApiResponse<IDictionary<string, JobSummary>>(
+                    HttpStatusCode.OK,
+                    new Dictionary<string, JobSummary> { { JobConstants.DefinitionNames.PopulateScopedProvidersJob, new JobSummary { CompletionStatus = CompletionStatus.Succeeded, RunningStatus = RunningStatus.Completed } } }));
 
             IMessengerService messengerService = CreateMessengerService();
 
@@ -3362,8 +3368,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .CreateJobs(Arg.Any<IEnumerable<JobCreateModel>>())
                 .Returns(new List<Job> { new Job { SpecificationId = specificationId } });
             jobsApiClient
-                .GetLatestJobsForSpecification(Arg.Is(specificationId), Arg.Is<IEnumerable<string>>(_ => _.First() == JobConstants.DefinitionNames.PopulateScopedProvidersJob))
-                .Returns(new ApiResponse<IEnumerable<JobSummary>>(HttpStatusCode.OK, new[] { new JobSummary { CompletionStatus = CompletionStatus.Succeeded, RunningStatus = RunningStatus.Completed } }));
+                .GetLatestJobsForSpecification(Arg.Is(specificationId), Arg.Is<string[]>(_ => _.First() == JobConstants.DefinitionNames.PopulateScopedProvidersJob))
+                .Returns(new ApiResponse<IDictionary<string, JobSummary>>(
+                    HttpStatusCode.OK,
+                    new Dictionary<string, JobSummary> { { JobConstants.DefinitionNames.PopulateScopedProvidersJob, new JobSummary { CompletionStatus = CompletionStatus.Succeeded, RunningStatus = RunningStatus.Completed } } }));
 
             IMessengerService messengerService = CreateMessengerService();
 

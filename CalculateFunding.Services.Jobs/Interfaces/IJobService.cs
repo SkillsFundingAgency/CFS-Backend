@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Jobs;
 using Microsoft.AspNetCore.Mvc;
@@ -11,7 +12,7 @@ namespace CalculateFunding.Services.Jobs.Interfaces
 
         Task<IActionResult> GetJobs(string specificationId, string jobType, string entityId, RunningStatus? runningStatus, CompletionStatus? completionStatus, bool excludeChildJobs, int pageNumber);
 
-        Task<IActionResult> GetLatestJobs(string specificationId, string jobTypes);
+        Task<IActionResult> GetLatestJobs(string specificationId, IEnumerable<string> jobDefinitionIds);
 
         Task<IActionResult> GetJobLogs(string jobId);
 

@@ -36,9 +36,9 @@ namespace CalculateFunding.Services.Providers
 
             try
             {
-                IEnumerable<JobSummary> jobSummaries = await _jobManagement.GetLatestJobsForSpecification(specificationId, PublishingJobs);
+                IDictionary<string, JobSummary> jobSummaries = await _jobManagement.GetLatestJobsForSpecification(specificationId, PublishingJobs);
 
-                return jobSummaries?.Any(_ => _ != null && _.RunningStatus == RunningStatus.InProgress) == true;
+                return jobSummaries?.Values.Any(_ => _ != null && _.RunningStatus == RunningStatus.InProgress) == true;
             }
             catch (JobsNotRetrievedException ex)
             {

@@ -1,11 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core;
-using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Publishing.Interfaces;
 
 namespace CalculateFunding.Services.Publishing
@@ -27,9 +27,9 @@ namespace CalculateFunding.Services.Publishing
 
             try
             {
-                IEnumerable<JobSummary> jobSummaries = await _jobManagement.GetLatestJobsForSpecification(specificationId, jobTypes);
+                IDictionary<string, JobSummary> jobSummaries = await _jobManagement.GetLatestJobsForSpecification(specificationId, jobTypes);
 
-                return jobSummaries.Where(_ => _ != null && _.RunningStatus == RunningStatus.InProgress).Select(_ => _.JobType);
+                return jobSummaries.Values.Where(_ => _ != null && _.RunningStatus == RunningStatus.InProgress).Select(_ => _.JobType);
             }
             catch (JobsNotRetrievedException ex)
             {

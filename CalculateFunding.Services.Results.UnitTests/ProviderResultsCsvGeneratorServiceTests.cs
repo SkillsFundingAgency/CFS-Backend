@@ -115,12 +115,15 @@ namespace CalculateFunding.Services.Results.UnitTests
         {
             string specificationId = NewRandomString();
 
-            List<JobSummary> latestJobSummaries = new List<JobSummary>
+            Dictionary<string, JobSummary> latestJobSummaries = new Dictionary<string, JobSummary>
             {
-                new JobSummary
                 {
-                    RunningStatus = RunningStatus.InProgress,
-                    JobType = JobConstants.DefinitionNames.CreateInstructAllocationJob
+                    JobConstants.DefinitionNames.CreateInstructAllocationJob,
+                    new JobSummary
+                    {
+                        RunningStatus = RunningStatus.InProgress,
+                        JobType = JobConstants.DefinitionNames.CreateInstructAllocationJob
+                    }
                 }
             };
 
@@ -268,7 +271,7 @@ namespace CalculateFunding.Services.Results.UnitTests
         private void GivenGetLatestJobsForSpecification(
             string specificationId, 
             IEnumerable<string> jobTypes,
-            IEnumerable<JobSummary> latestJobs)
+            IDictionary<string, JobSummary> latestJobs)
         {
             _jobManagement
                 .GetLatestJobsForSpecification(

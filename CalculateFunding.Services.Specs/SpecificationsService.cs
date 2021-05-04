@@ -970,9 +970,14 @@ namespace CalculateFunding.Services.Specs
 
             try
             {
-                IEnumerable<JobSummary> latestSpecificationJobs = await _jobManagement.GetLatestJobsForSpecification(specificationId, specificationJobTypes);
+                IDictionary<string, JobSummary> jobSummaries = await _jobManagement.GetLatestJobsForSpecification(specificationId, specificationJobTypes);
 
-                return latestSpecificationJobs?.Any(job => job != null && job.RunningStatus == RunningStatus.InProgress) == true;
+                if (jobSummaries == null)
+                {
+                    return false;
+                }
+               
+                return jobSummaries.Values.Any(job => job != null && job.RunningStatus == RunningStatus.InProgress) == true;
             }
             catch (JobsNotRetrievedException ex)
             {

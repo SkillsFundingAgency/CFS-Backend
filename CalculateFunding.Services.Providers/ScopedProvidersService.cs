@@ -436,15 +436,18 @@ namespace CalculateFunding.Services.Providers
             if (setCachedProviders)
             {
                 IEnumerable<JobSummary> latestJob = Enumerable.Empty<JobSummary>();
+                JobSummary populateScopedProvidersJob = null;
 
                 try
                 {
-                    latestJob = await _jobManagement.GetLatestJobsForSpecification(
-                        specificationId,
-                        new[]
-                        {
-                                JobConstants.DefinitionNames.PopulateScopedProvidersJob
-                        });
+                    string[] jobDefinitionIds = new[] { JobConstants.DefinitionNames.PopulateScopedProvidersJob };
+
+                    IDictionary<string, JobSummary> jobSummaries = await _jobManagement.GetLatestJobsForSpecification(specificationId, jobDefinitionIds);
+
+                    if (jobSummaries != null)
+                    {
+                        jobSummaries.TryGetValue(JobConstants.DefinitionNames.PopulateScopedProvidersJob, out populateScopedProvidersJob);
+                    }
                 }
                 catch (JobsNotRetrievedException ex)
                 {
@@ -452,7 +455,7 @@ namespace CalculateFunding.Services.Providers
                 }
 
                 // the populate scoped providers job is already running so don't need to queue another job
-                if (latestJob?.FirstOrDefault()?.RunningStatus == RunningStatus.InProgress)
+                if (populateScopedProvidersJob?.RunningStatus == RunningStatus.InProgress)
                 {
                     return true;
                 }

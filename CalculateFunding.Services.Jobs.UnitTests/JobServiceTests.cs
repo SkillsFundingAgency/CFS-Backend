@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Models.Jobs;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Services.Jobs.Interfaces;
 using CalculateFunding.Tests.Common.Helpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using System;
 
 namespace CalculateFunding.Services.Jobs
 {

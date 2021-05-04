@@ -160,9 +160,9 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<ApiResponse<IEnumerable<JobSummary>>> GetLatestJobsForSpecification(string specificationId, IEnumerable<string> jobTypes)
+        public Task<ApiResponse<IDictionary<string, JobSummary>>> GetLatestJobsForSpecification(string specificationId, params string[] jobDefinitionIds)
         {
-            return Task.FromResult(new ApiResponse<IEnumerable<JobSummary>>(HttpStatusCode.OK, jobTypes.Select(x => new JobSummary())));
+            return Task.FromResult(new ApiResponse<IDictionary<string, JobSummary>>(HttpStatusCode.OK, jobDefinitionIds.ToDictionary(x => x, x => new JobSummary()) ));
         }
 
         public Task<ApiResponse<JobSummary>> GetLatestSuccessfulJobForSpecification(string specificationId, string jobDefinitionId)

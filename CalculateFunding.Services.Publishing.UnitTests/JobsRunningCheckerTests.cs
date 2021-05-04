@@ -107,7 +107,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _job = jobSummaryBuilder.Build();
 
             _jobs.GetLatestJobsForSpecification(_specificationId, Arg.Is<IEnumerable<string>>(_ => _.Single() == JobConstants.DefinitionNames.CreateInstructAllocationJob))
-                .Returns(_job);
+                .Returns(new Dictionary<string, JobSummary> { { JobConstants.DefinitionNames.CreateInstructAllocationJob, _job.FirstOrDefault() } });
         }
 
         private void GivenTheJobForTheJobIdThrowsException()

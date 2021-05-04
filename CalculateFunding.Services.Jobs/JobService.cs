@@ -165,14 +165,9 @@ namespace CalculateFunding.Services.Jobs
             return new OkObjectResult(jobQueryResponse);
         }
 
-        public async Task<IActionResult> GetLatestJobs(string specificationId, string jobTypes)
+        public async Task<IActionResult> GetLatestJobs(string specificationId, IEnumerable<string> jobDefinitionIds)
         {
             Guard.ArgumentNotNull(specificationId, nameof(specificationId));
-
-            string[] jobDefinitionIds =
-                !string.IsNullOrEmpty(jobTypes) ?
-                jobTypes.Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries)
-                : Array.Empty<string>();
 
             if (!jobDefinitionIds.Any())
             {
@@ -213,15 +208,9 @@ namespace CalculateFunding.Services.Jobs
 
             await TaskHelper.WhenAllAndThrow(allTasks.ToArray());
 
-            IEnumerable<JobSummary> jobSummaries = _mapper.Map<IEnumerable<JobSummary>>(jobsByDefinition.Values);
+            IDictionary<string, JobSummary> latestJobSummaries = jobsByDefinition.ToDictionary(_ => _.Key, _ => _mapper.Map<JobSummary>(jobsByDefinition[_.Key]));
 
-            JobSummary[] results = new JobSummary[jobDefinitionIds.Length];
-            for (int i = 0; i < jobDefinitionIds.Length; i++)
-            {
-                results[i] = jobSummaries.FirstOrDefault(x => string.Equals(x.JobDefinitionId, jobDefinitionIds[i], StringComparison.InvariantCultureIgnoreCase));
-            }
-
-            return new OkObjectResult(results);
+            return new OkObjectResult(latestJobSummaries);
         }
 
         public async Task<IActionResult> GetLatestJobByTriggerEntityId(string specificationId, string entityId)

@@ -88,18 +88,21 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         public async Task EditSpecification_ReturnsBadRequest_GivenSpecificationJobsAreRunning(string specificationJob)
         {
             SpecificationEditModel specificationEditModel = new SpecificationEditModel();
-            IEnumerable<JobSummary> aValidJobInprogress = new[]
+
+            Dictionary<string, JobSummary> latestJobs = new Dictionary<string, JobSummary>
             {
-                null,
-                new JobSummary
                 {
-                    RunningStatus = RunningStatus.InProgress
+                    specificationJob,
+                    new JobSummary
+                    {
+                        RunningStatus = RunningStatus.InProgress
+                    }
                 }
             };
             IJobManagement jobManagement = Substitute.For<IJobManagement>();
             jobManagement.GetLatestJobsForSpecification(SpecificationId, Arg.Is<IEnumerable<string>>(jobTypes =>
                     jobTypes.Contains(specificationJob)))
-                .Returns(aValidJobInprogress);
+                .Returns(latestJobs);
             SpecificationsService specificationsService = CreateService(jobManagement: jobManagement);
 
             IActionResult result = await specificationsService
@@ -537,17 +540,19 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 specificationEditModel.FundingPeriodId,
                 withRunCalculationEngineAfterCoreProviderUpdate: withRunCalculationEngineAfterCoreProviderUpdate);
 
-            IEnumerable<JobSummary> aValidJobInprogress = new[]
+            Dictionary<string, JobSummary> latestJobs = new Dictionary<string, JobSummary>
             {
-                null,
-                new JobSummary
                 {
-                    RunningStatus = RunningStatus.Completed
+                    "",
+                    new JobSummary
+                    {
+                        RunningStatus = RunningStatus.Completed
+                    }
                 }
             };
 
             _jobManagement.GetLatestJobsForSpecification(SpecificationId, Arg.Any<IEnumerable<string>>())
-                .Returns(aValidJobInprogress);
+                .Returns(latestJobs);
 
             SpecificationsService service = CreateSpecificationsService(newSpecVersion);
           

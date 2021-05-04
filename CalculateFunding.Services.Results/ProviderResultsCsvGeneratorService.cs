@@ -232,9 +232,9 @@ namespace CalculateFunding.Services.Results
 
             try
             {
-                IEnumerable<JobSummary> jobSummaries = await _jobManagement.GetLatestJobsForSpecification(specificationId, jobTypes);
+                IDictionary<string, JobSummary> jobSummaries = await _jobManagement.GetLatestJobsForSpecification(specificationId, jobTypes);
 
-                return jobSummaries.Where(_ => _ != null && _.RunningStatus == RunningStatus.InProgress).Select(_ => _.JobType);
+                return jobSummaries.Values.Where(_ => _ != null && _.RunningStatus == RunningStatus.InProgress).Select(_ => _.JobType);
             }
             catch (JobsNotRetrievedException ex)
             {
