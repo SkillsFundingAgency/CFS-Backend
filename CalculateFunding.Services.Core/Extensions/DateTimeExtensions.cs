@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 
 namespace CalculateFunding.Services.Core.Extensions
 {
@@ -22,6 +23,12 @@ namespace CalculateFunding.Services.Core.Extensions
         public static DateTimeOffset? TrimToTheMinute(this DateTimeOffset? dateTimeOffset)
         {
             return dateTimeOffset?.AddTicks(-(dateTimeOffset.Value.Ticks % TimeSpan.TicksPerMinute));
+        }
+
+        public static int ToMonthNumber(this string monthName)
+        {
+            return DateTime.ParseExact(monthName, "MMMM", CultureInfo.InvariantCulture)
+                .Month * 100;
         }
     }
 }

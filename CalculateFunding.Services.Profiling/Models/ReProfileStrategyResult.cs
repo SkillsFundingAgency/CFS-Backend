@@ -1,4 +1,4 @@
-﻿﻿namespace CalculateFunding.Services.Profiling.Models
+﻿namespace CalculateFunding.Services.Profiling.Models
 {
     public class ReProfileStrategyResult
     {

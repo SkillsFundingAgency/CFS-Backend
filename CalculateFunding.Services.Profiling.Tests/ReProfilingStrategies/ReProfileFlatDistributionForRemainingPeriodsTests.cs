@@ -27,6 +27,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
             //just need something in the refresh lines though we throw it all away during the re profiling
             GivenTheLatestProfiling(AsLatestProfiling(latestPeriodValues));
             AndTheExistingProfilePeriods(AsExistingProfilePeriods(originalPeriodValues.Take(variationPointerIndex).ToArray()));
+            AndTheProfilePattern(NewFundingStreamPeriodProfilePattern());
             
             AndThePreviousFundingTotal(previousTotalAllocation);
             AndTheLatestFundingTotal(totalAllocation);

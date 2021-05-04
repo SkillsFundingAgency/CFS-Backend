@@ -41,5 +41,9 @@ namespace CalculateFunding.Migrations.DSG.RollBack.Migrations
             
             return Task.CompletedTask;
         }
+
+        //someone hacked this interface change into the code base
+        //by bypassing the PR gateways, no idea if this should be true or false??
+        public bool VersionDocuments { get; } = false;
     }
 }
