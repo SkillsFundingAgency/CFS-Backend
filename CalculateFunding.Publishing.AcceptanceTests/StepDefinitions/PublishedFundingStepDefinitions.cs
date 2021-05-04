@@ -136,17 +136,18 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
                         }
                         });
 
-                    string test = stringBuilder.ToString();
-
-                    _.Current.Calculations.Select(calc => new CalculationResult
+                    if (_.Current.Calculations != null)
+                    {
+                        _.Current.Calculations.Select(calc => new CalculationResult
                         {
                             Id = _publishFundingStepContext.CalculationsInMemoryClient.Mapping.TemplateMappingItems.FirstOrDefault(cm => cm.TemplateId == calc.TemplateCalculationId)?.CalculationId,
                             Value = calc.Value
                         })
-                    .Should()
-                    .BeEquivalentTo(providerCalculationResults.ContainsKey(_.Current.ProviderId) ?
-                        providerCalculationResults[_.Current.ProviderId] :
-                        calculationsInMemoryRepository.Results);
+                        .Should()
+                        .BeEquivalentTo(providerCalculationResults.ContainsKey(_.Current.ProviderId) ?
+                            providerCalculationResults[_.Current.ProviderId] :
+                            calculationsInMemoryRepository.Results);
+                    }
 
 
                     // Already approved one's will not be re-approved / saved, so jobid or correleationid will not be populated for them

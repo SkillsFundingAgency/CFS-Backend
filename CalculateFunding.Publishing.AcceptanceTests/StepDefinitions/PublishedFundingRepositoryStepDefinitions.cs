@@ -50,6 +50,15 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             _publishedFundingRepositoryStepContext.CurrentPublishedProvider = publishedProvider;
         }
 
+        [Given(@"the provider with id '(.*)' is excluded")]
+        public void GivenTheProviderWithIdForAndIsExcluded(string publishedProviderId)
+        {
+            PublishedProvider publishedProvider = GetPublishedProvider(publishedProviderId);
+
+            publishedProvider.Current.FundingLines?.ForEach(_ => _.Value = null);
+            publishedProvider.Current.Calculations?.ForEach(_ => _.Value = null);
+        }
+
         [Given(@"the Published Provider '(.*)' has been been previously generated for the current specification")]
         public void GivenThePublishedProviderHasBeenBeenPreviouslyGeneratedForTheCurrentSpecification(string publishedProviderFilename)
         {

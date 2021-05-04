@@ -79,10 +79,10 @@ Background: Existing published funding
 		| Id                   | specForPublishing                 |
 		| Name                 | Test Specification for Publishing |
 		| IsSelectedForFunding | true                              |
-		| ProviderVersionId    | psg-providers-1.0               |
+		| ProviderVersionId    | psg-providers-1.0                 |
 	And the specification has the funding period with id 'AY-1920' and name 'Academic Year 2019-20'
 	And the specification has the following funding streams
-		| Name          | Id                |
+		| Name          | Id  |
 		| PE and Sports | PSG |
 	And the specification has the following template versions for funding streams
 		| Key | Value |
@@ -133,12 +133,12 @@ Background: Existing published funding
 		| FY-1920              | CalendarMonth | October   | 1920 | 1          | 7000          |
 		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 5000          |
 	And template mapping exists
-		| EntityType  | CalculationId | TemplateId | Name				|
-		| Calculation | calculation1 | 2		  | Total Allocation	|
-		| Calculation | calculation2 | 3		  | Eligible Pupils		|
-		| Calculation | calculation3 | 4	      | Pupil rate threshold|
-		| Calculation | calculation4 | 5		  | Rate				|
-		| Calculation | calculation5 | 6		  | Additional Rate		|
+		| EntityType  | CalculationId | TemplateId | Name                 |
+		| Calculation | calculation1  | 2          | Total Allocation     |
+		| Calculation | calculation2  | 3          | Eligible Pupils      |
+		| Calculation | calculation3  | 4          | Pupil rate threshold |
+		| Calculation | calculation4  | 5          | Rate                 |
+		| Calculation | calculation5  | 6          | Additional Rate      |
 	And the Published Provider contains the following calculation results
 		| TemplateCalculationId | Value |
 		| 2                     | 12000 |
@@ -547,21 +547,21 @@ Background: Existing published funding
 		| ProviderVersionId  | psg-providers-1.0        |
 		| TrustCode          | 1002                     |
 		| TrustStatus        | Not Supported By A Trust |
-		| UKPRN              | 8000001                  | 
+		| UKPRN              | 8000001                  |
 	And calculation meta data exists for 'PSG'
-	    | CalculationType | CalculationId | Name                 | PublishStatus |
-	    | Template        | calculation1  | Total Allocation     | Approved      |
-	    | Template        | calculation2  | Eligible Pupils      | Approved      |
-	    | Template        | calculation3  | Pupil rate threshold | Approved      |
-	    | Template        | calculation4  | Rate                 | Approved      |
-	    | Template        | calculation5  | Additional Rate      | Approved      |
+		| CalculationType | CalculationId | Name                 | PublishStatus |
+		| Template        | calculation1  | Total Allocation     | Approved      |
+		| Template        | calculation2  | Eligible Pupils      | Approved      |
+		| Template        | calculation3  | Pupil rate threshold | Approved      |
+		| Template        | calculation4  | Rate                 | Approved      |
+		| Template        | calculation5  | Additional Rate      | Approved      |
 	And calculations exists
-		| Value         | Id			   |
-		| 24000         | calculation1	   |
-		| 120			| calculation2	   |
-		| 500			| calculation3	   |
-		| 1000			| calculation4	   |
-		| 20			| calculation5	   |
+		| Value | Id           |
+		| 24000 | calculation1 |
+		| 120   | calculation2 |
+		| 500   | calculation3 |
+		| 1000  | calculation4 |
+		| 20    | calculation5 |
 	And the following distribution periods exist
 		| DistributionPeriodId | Value |
 		| FY-1920              | 14000 |
@@ -572,7 +572,7 @@ Background: Existing published funding
 		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 10000         |
 	And the following profile pattern exists
 		| FundingStreamId | FundingPeriodId |
-		| PSG | AY-1920 |
+		| PSG             | AY-1920         |
 
 Scenario: Successful refresh of funding
 	When funding is refreshed
@@ -587,6 +587,29 @@ Scenario: Successful refresh of funding
 		| publishedprovider-1000101-AY-1920-PSG | Updated |
 		| publishedprovider-1000102-AY-1920-PSG | Updated |
 		| publishedprovider-1000103-AY-1920-PSG | Draft   |
+
+Scenario: Exclude published providers
+	Given calculation meta data exists for 'PSG'
+		| CalculationType | CalculationId | Name                 | PublishStatus |
+		| Template        | calculation1  | Total Allocation     | Approved      |
+		| Template        | calculation2  | Eligible Pupils      | Approved      |
+		| Template        | calculation3  | Pupil rate threshold | Approved      |
+		| Template        | calculation4  | Rate                 | Approved      |
+		| Template        | calculation5  | Additional Rate      | Approved      |
+	And calculations exists
+		| Value | Id           |
+		|       | calculation1 |
+		|       | calculation2 |
+		|       | calculation3 |
+		|       | calculation4 |
+		|       | calculation5 |
+	When funding is refreshed
+	Then the following published provider ids are upserted
+		| PublishedProviderId                   | Status  |
+		| publishedprovider-1000000-AY-1920-PSG | Updated |
+		| publishedprovider-1000002-AY-1920-PSG | Updated |
+		| publishedprovider-1000101-AY-1920-PSG | Updated |
+		| publishedprovider-1000102-AY-1920-PSG | Updated |
 
 Scenario: No important change made to the providers in core should result in no changes to the published providers
 	Given the following provider exists within core provider data in provider version 'psg-providers-1.0'
@@ -636,11 +659,11 @@ Scenario: Add a new provider to the core provider data and then do a refresh
 		| publishedprovider-9000002-AY-1920-PSG | Draft   |
 		| publishedprovider-9000003-AY-1920-PSG | Draft   |
 	And the following funding lines are set against provider with id '1000000'
-		| FundingLineCode | Value  |
-		| TotalAllocation | 12000  |
+		| FundingLineCode | Value |
+		| TotalAllocation | 12000 |
 	And the following funding lines are set against provider with id '9000000'
-		| FundingLineCode | Value  |
-		| TotalAllocation | 24000  |
+		| FundingLineCode | Value |
+		| TotalAllocation | 24000 |
 
 Scenario: Provider name updated in core provider data and then do a refresh the 'Total Allocation' does not change
 	# Given provider name updated in core provider data and then do a refresh the 'Total Allocation' does not change
@@ -670,5 +693,5 @@ Scenario: Provider name updated in core provider data and then do a refresh the 
 		| publishedprovider-1000102-AY-1920-PSG | Updated |
 		| publishedprovider-1000103-AY-1920-PSG | Draft   |
 	And the following funding lines are set against provider with id '1000000'
-		| FundingLineCode | Value  |
-		| TotalAllocation | 12000  |
+		| FundingLineCode | Value |
+		| TotalAllocation | 12000 |

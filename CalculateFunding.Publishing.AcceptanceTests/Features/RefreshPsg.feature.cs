@@ -2015,15 +2015,13 @@ this.FeatureBackground();
         }
         
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("No important change made to the providers in core should result in no changes to " +
-            "the published providers")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Exclude published providers")]
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "RefreshPsg")]
-        public virtual void NoImportantChangeMadeToTheProvidersInCoreShouldResultInNoChangesToThePublishedProviders()
+        public virtual void ExcludePublishedProviders()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("No important change made to the providers in core should result in no changes to " +
-                    "the published providers", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Exclude published providers", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
 #line 591
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -2048,97 +2046,95 @@ this.ScenarioInitialize(scenarioInfo);
 this.FeatureBackground();
 #line hidden
                 TechTalk.SpecFlow.Table table1004 = new TechTalk.SpecFlow.Table(new string[] {
-                            "Field",
-                            "Value"});
-                table1004.AddRow(new string[] {
-                            "ProviderId",
-                            "9000000"});
-                table1004.AddRow(new string[] {
+                            "CalculationType",
+                            "CalculationId",
                             "Name",
-                            "Local Authority 1"});
+                            "PublishStatus"});
                 table1004.AddRow(new string[] {
-                            "Authority",
-                            "Local Authority 1"});
+                            "Template",
+                            "calculation1",
+                            "Total Allocation",
+                            "Approved"});
                 table1004.AddRow(new string[] {
-                            "DateOpened",
-                            "2012-03-15"});
+                            "Template",
+                            "calculation2",
+                            "Eligible Pupils",
+                            "Approved"});
                 table1004.AddRow(new string[] {
-                            "LACode",
-                            "200"});
+                            "Template",
+                            "calculation3",
+                            "Pupil rate threshold",
+                            "Approved"});
                 table1004.AddRow(new string[] {
-                            "LocalAuthorityName",
-                            "Local Authority 1"});
+                            "Template",
+                            "calculation4",
+                            "Rate",
+                            "Approved"});
                 table1004.AddRow(new string[] {
-                            "NavVendorNo",
-                            "1234"});
-                table1004.AddRow(new string[] {
-                            "ProviderType",
-                            "Local Authority"});
-                table1004.AddRow(new string[] {
-                            "ProviderSubType",
-                            "Local Authority"});
-                table1004.AddRow(new string[] {
-                            "ProviderVersionId",
-                            "psg-providers-1.0"});
-                table1004.AddRow(new string[] {
-                            "TrustStatus",
-                            "Not Supported By A Trust"});
-                table1004.AddRow(new string[] {
-                            "UKPRN",
-                            "9000000"});
+                            "Template",
+                            "calculation5",
+                            "Additional Rate",
+                            "Approved"});
 #line 592
- testRunner.Given("the following provider exists within core provider data in provider version \'psg-" +
-                        "providers-1.0\'", ((string)(null)), table1004, "Given ");
+ testRunner.Given("calculation meta data exists for \'PSG\'", ((string)(null)), table1004, "Given ");
+#line hidden
+                TechTalk.SpecFlow.Table table1005 = new TechTalk.SpecFlow.Table(new string[] {
+                            "Value",
+                            "Id"});
+                table1005.AddRow(new string[] {
+                            "",
+                            "calculation1"});
+                table1005.AddRow(new string[] {
+                            "",
+                            "calculation2"});
+                table1005.AddRow(new string[] {
+                            "",
+                            "calculation3"});
+                table1005.AddRow(new string[] {
+                            "",
+                            "calculation4"});
+                table1005.AddRow(new string[] {
+                            "",
+                            "calculation5"});
+#line 599
+ testRunner.And("calculations exists", ((string)(null)), table1005, "And ");
 #line hidden
 #line 606
  testRunner.When("funding is refreshed", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-                TechTalk.SpecFlow.Table table1005 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table1006 = new TechTalk.SpecFlow.Table(new string[] {
                             "PublishedProviderId",
                             "Status"});
-                table1005.AddRow(new string[] {
+                table1006.AddRow(new string[] {
                             "publishedprovider-1000000-AY-1920-PSG",
                             "Updated"});
-                table1005.AddRow(new string[] {
+                table1006.AddRow(new string[] {
                             "publishedprovider-1000002-AY-1920-PSG",
                             "Updated"});
-                table1005.AddRow(new string[] {
-                            "publishedprovider-1000003-AY-1920-PSG",
-                            "Draft"});
-                table1005.AddRow(new string[] {
-                            "publishedprovider-1000004-AY-1920-PSG",
-                            "Draft"});
-                table1005.AddRow(new string[] {
-                            "publishedprovider-1000005-AY-1920-PSG",
-                            "Draft"});
-                table1005.AddRow(new string[] {
-                            "publishedprovider-1000009-AY-1920-PSG",
-                            "Draft"});
-                table1005.AddRow(new string[] {
+                table1006.AddRow(new string[] {
                             "publishedprovider-1000101-AY-1920-PSG",
                             "Updated"});
-                table1005.AddRow(new string[] {
+                table1006.AddRow(new string[] {
                             "publishedprovider-1000102-AY-1920-PSG",
                             "Updated"});
-                table1005.AddRow(new string[] {
-                            "publishedprovider-1000103-AY-1920-PSG",
-                            "Draft"});
 #line 607
- testRunner.Then("the following published provider ids are upserted", ((string)(null)), table1005, "Then ");
+ testRunner.Then("the following published provider ids are upserted", ((string)(null)), table1006, "Then ");
 #line hidden
             }
             this.ScenarioCleanup();
         }
         
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Add a new provider to the core provider data and then do a refresh")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("No important change made to the providers in core should result in no changes to " +
+            "the published providers")]
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "RefreshPsg")]
-        public virtual void AddANewProviderToTheCoreProviderDataAndThenDoARefresh()
+        public virtual void NoImportantChangeMadeToTheProvidersInCoreShouldResultInNoChangesToThePublishedProviders()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Add a new provider to the core provider data and then do a refresh", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
-#line 619
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("No important change made to the providers in core should result in no changes to " +
+                    "the published providers", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 614
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -2161,80 +2157,194 @@ this.ScenarioInitialize(scenarioInfo);
 #line 10
 this.FeatureBackground();
 #line hidden
-#line 620
+                TechTalk.SpecFlow.Table table1007 = new TechTalk.SpecFlow.Table(new string[] {
+                            "Field",
+                            "Value"});
+                table1007.AddRow(new string[] {
+                            "ProviderId",
+                            "9000000"});
+                table1007.AddRow(new string[] {
+                            "Name",
+                            "Local Authority 1"});
+                table1007.AddRow(new string[] {
+                            "Authority",
+                            "Local Authority 1"});
+                table1007.AddRow(new string[] {
+                            "DateOpened",
+                            "2012-03-15"});
+                table1007.AddRow(new string[] {
+                            "LACode",
+                            "200"});
+                table1007.AddRow(new string[] {
+                            "LocalAuthorityName",
+                            "Local Authority 1"});
+                table1007.AddRow(new string[] {
+                            "NavVendorNo",
+                            "1234"});
+                table1007.AddRow(new string[] {
+                            "ProviderType",
+                            "Local Authority"});
+                table1007.AddRow(new string[] {
+                            "ProviderSubType",
+                            "Local Authority"});
+                table1007.AddRow(new string[] {
+                            "ProviderVersionId",
+                            "psg-providers-1.0"});
+                table1007.AddRow(new string[] {
+                            "TrustStatus",
+                            "Not Supported By A Trust"});
+                table1007.AddRow(new string[] {
+                            "UKPRN",
+                            "9000000"});
+#line 615
+ testRunner.Given("the following provider exists within core provider data in provider version \'psg-" +
+                        "providers-1.0\'", ((string)(null)), table1007, "Given ");
+#line hidden
+#line 629
+ testRunner.When("funding is refreshed", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+                TechTalk.SpecFlow.Table table1008 = new TechTalk.SpecFlow.Table(new string[] {
+                            "PublishedProviderId",
+                            "Status"});
+                table1008.AddRow(new string[] {
+                            "publishedprovider-1000000-AY-1920-PSG",
+                            "Updated"});
+                table1008.AddRow(new string[] {
+                            "publishedprovider-1000002-AY-1920-PSG",
+                            "Updated"});
+                table1008.AddRow(new string[] {
+                            "publishedprovider-1000003-AY-1920-PSG",
+                            "Draft"});
+                table1008.AddRow(new string[] {
+                            "publishedprovider-1000004-AY-1920-PSG",
+                            "Draft"});
+                table1008.AddRow(new string[] {
+                            "publishedprovider-1000005-AY-1920-PSG",
+                            "Draft"});
+                table1008.AddRow(new string[] {
+                            "publishedprovider-1000009-AY-1920-PSG",
+                            "Draft"});
+                table1008.AddRow(new string[] {
+                            "publishedprovider-1000101-AY-1920-PSG",
+                            "Updated"});
+                table1008.AddRow(new string[] {
+                            "publishedprovider-1000102-AY-1920-PSG",
+                            "Updated"});
+                table1008.AddRow(new string[] {
+                            "publishedprovider-1000103-AY-1920-PSG",
+                            "Draft"});
+#line 630
+ testRunner.Then("the following published provider ids are upserted", ((string)(null)), table1008, "Then ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Add a new provider to the core provider data and then do a refresh")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "RefreshPsg")]
+        public virtual void AddANewProviderToTheCoreProviderDataAndThenDoARefresh()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Add a new provider to the core provider data and then do a refresh", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 642
+this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 10
+this.FeatureBackground();
+#line hidden
+#line 643
  testRunner.Given("the provider with id \'9000000\' should be a scoped provider in the current specifi" +
                         "cation in provider version \'psg-providers-1.0\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 621
+#line 644
  testRunner.And("the provider with id \'9000002\' should be a scoped provider in the current specifi" +
                         "cation in provider version \'psg-providers-1.0\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 622
+#line 645
  testRunner.And("the provider with id \'9000003\' should be a scoped provider in the current specifi" +
                         "cation in provider version \'psg-providers-1.0\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 623
+#line 646
  testRunner.When("funding is refreshed", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-                TechTalk.SpecFlow.Table table1006 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table1009 = new TechTalk.SpecFlow.Table(new string[] {
                             "PublishedProviderId",
                             "Status"});
-                table1006.AddRow(new string[] {
+                table1009.AddRow(new string[] {
                             "publishedprovider-1000000-AY-1920-PSG",
                             "Updated"});
-                table1006.AddRow(new string[] {
+                table1009.AddRow(new string[] {
                             "publishedprovider-1000002-AY-1920-PSG",
                             "Updated"});
-                table1006.AddRow(new string[] {
+                table1009.AddRow(new string[] {
                             "publishedprovider-1000003-AY-1920-PSG",
                             "Draft"});
-                table1006.AddRow(new string[] {
+                table1009.AddRow(new string[] {
                             "publishedprovider-1000004-AY-1920-PSG",
                             "Draft"});
-                table1006.AddRow(new string[] {
+                table1009.AddRow(new string[] {
                             "publishedprovider-1000005-AY-1920-PSG",
                             "Draft"});
-                table1006.AddRow(new string[] {
+                table1009.AddRow(new string[] {
                             "publishedprovider-1000009-AY-1920-PSG",
                             "Draft"});
-                table1006.AddRow(new string[] {
+                table1009.AddRow(new string[] {
                             "publishedprovider-1000101-AY-1920-PSG",
                             "Updated"});
-                table1006.AddRow(new string[] {
+                table1009.AddRow(new string[] {
                             "publishedprovider-1000102-AY-1920-PSG",
                             "Updated"});
-                table1006.AddRow(new string[] {
+                table1009.AddRow(new string[] {
                             "publishedprovider-1000103-AY-1920-PSG",
                             "Draft"});
-                table1006.AddRow(new string[] {
+                table1009.AddRow(new string[] {
                             "publishedprovider-9000000-AY-1920-PSG",
                             "Draft"});
-                table1006.AddRow(new string[] {
+                table1009.AddRow(new string[] {
                             "publishedprovider-9000002-AY-1920-PSG",
                             "Draft"});
-                table1006.AddRow(new string[] {
+                table1009.AddRow(new string[] {
                             "publishedprovider-9000003-AY-1920-PSG",
                             "Draft"});
-#line 624
- testRunner.Then("the following published provider ids are upserted", ((string)(null)), table1006, "Then ");
+#line 647
+ testRunner.Then("the following published provider ids are upserted", ((string)(null)), table1009, "Then ");
 #line hidden
-                TechTalk.SpecFlow.Table table1007 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table1010 = new TechTalk.SpecFlow.Table(new string[] {
                             "FundingLineCode",
                             "Value"});
-                table1007.AddRow(new string[] {
+                table1010.AddRow(new string[] {
                             "TotalAllocation",
                             "12000"});
-#line 638
- testRunner.And("the following funding lines are set against provider with id \'1000000\'", ((string)(null)), table1007, "And ");
+#line 661
+ testRunner.And("the following funding lines are set against provider with id \'1000000\'", ((string)(null)), table1010, "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table1008 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table1011 = new TechTalk.SpecFlow.Table(new string[] {
                             "FundingLineCode",
                             "Value"});
-                table1008.AddRow(new string[] {
+                table1011.AddRow(new string[] {
                             "TotalAllocation",
                             "24000"});
-#line 641
- testRunner.And("the following funding lines are set against provider with id \'9000000\'", ((string)(null)), table1008, "And ");
+#line 664
+ testRunner.And("the following funding lines are set against provider with id \'9000000\'", ((string)(null)), table1011, "And ");
 #line hidden
             }
             this.ScenarioCleanup();
@@ -2250,7 +2360,7 @@ this.FeatureBackground();
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Provider name updated in core provider data and then do a refresh the \'Total Allo" +
                     "cation\' does not change", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
-#line 645
+#line 668
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -2273,90 +2383,90 @@ this.ScenarioInitialize(scenarioInfo);
 #line 10
 this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table1009 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table1012 = new TechTalk.SpecFlow.Table(new string[] {
                             "Field",
                             "Value"});
-                table1009.AddRow(new string[] {
+                table1012.AddRow(new string[] {
                             "ProviderId",
                             "1000000"});
-                table1009.AddRow(new string[] {
+                table1012.AddRow(new string[] {
                             "Name",
                             "Local Authority Updated 1"});
-                table1009.AddRow(new string[] {
+                table1012.AddRow(new string[] {
                             "Authority",
                             "Local Authority 1"});
-                table1009.AddRow(new string[] {
+                table1012.AddRow(new string[] {
                             "DateOpened",
                             "2012-03-15"});
-                table1009.AddRow(new string[] {
+                table1012.AddRow(new string[] {
                             "LACode",
                             "204"});
-                table1009.AddRow(new string[] {
+                table1012.AddRow(new string[] {
                             "LocalAuthorityName",
                             "Local Authority 1"});
-                table1009.AddRow(new string[] {
+                table1012.AddRow(new string[] {
                             "ProviderType",
                             "Local Authority"});
-                table1009.AddRow(new string[] {
+                table1012.AddRow(new string[] {
                             "ProviderSubType",
                             "Local Authority"});
-                table1009.AddRow(new string[] {
+                table1012.AddRow(new string[] {
                             "ProviderVersionId",
                             "psg-providers-1.0"});
-                table1009.AddRow(new string[] {
+                table1012.AddRow(new string[] {
                             "TrustStatus",
                             "Not Supported By A Trust"});
-                table1009.AddRow(new string[] {
+                table1012.AddRow(new string[] {
                             "UKPRN",
                             "9000000"});
-#line 647
+#line 670
  testRunner.Given("the following provider exists within core provider data in provider version \'psg-" +
-                        "providers-1.0\'", ((string)(null)), table1009, "Given ");
+                        "providers-1.0\'", ((string)(null)), table1012, "Given ");
 #line hidden
-#line 660
+#line 683
  testRunner.When("funding is refreshed", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-                TechTalk.SpecFlow.Table table1010 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table1013 = new TechTalk.SpecFlow.Table(new string[] {
                             "PublishedProviderId",
                             "Status"});
-                table1010.AddRow(new string[] {
+                table1013.AddRow(new string[] {
                             "publishedprovider-1000000-AY-1920-PSG",
                             "Updated"});
-                table1010.AddRow(new string[] {
+                table1013.AddRow(new string[] {
                             "publishedprovider-1000002-AY-1920-PSG",
                             "Updated"});
-                table1010.AddRow(new string[] {
+                table1013.AddRow(new string[] {
                             "publishedprovider-1000003-AY-1920-PSG",
                             "Draft"});
-                table1010.AddRow(new string[] {
+                table1013.AddRow(new string[] {
                             "publishedprovider-1000004-AY-1920-PSG",
                             "Draft"});
-                table1010.AddRow(new string[] {
+                table1013.AddRow(new string[] {
                             "publishedprovider-1000005-AY-1920-PSG",
                             "Draft"});
-                table1010.AddRow(new string[] {
+                table1013.AddRow(new string[] {
                             "publishedprovider-1000009-AY-1920-PSG",
                             "Draft"});
-                table1010.AddRow(new string[] {
+                table1013.AddRow(new string[] {
                             "publishedprovider-1000101-AY-1920-PSG",
                             "Updated"});
-                table1010.AddRow(new string[] {
+                table1013.AddRow(new string[] {
                             "publishedprovider-1000102-AY-1920-PSG",
                             "Updated"});
-                table1010.AddRow(new string[] {
+                table1013.AddRow(new string[] {
                             "publishedprovider-1000103-AY-1920-PSG",
                             "Draft"});
-#line 661
- testRunner.Then("the following published provider ids are upserted", ((string)(null)), table1010, "Then ");
+#line 684
+ testRunner.Then("the following published provider ids are upserted", ((string)(null)), table1013, "Then ");
 #line hidden
-                TechTalk.SpecFlow.Table table1011 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table1014 = new TechTalk.SpecFlow.Table(new string[] {
                             "FundingLineCode",
                             "Value"});
-                table1011.AddRow(new string[] {
+                table1014.AddRow(new string[] {
                             "TotalAllocation",
                             "12000"});
-#line 672
- testRunner.And("the following funding lines are set against provider with id \'1000000\'", ((string)(null)), table1011, "And ");
+#line 695
+ testRunner.And("the following funding lines are set against provider with id \'1000000\'", ((string)(null)), table1014, "And ");
 #line hidden
             }
             this.ScenarioCleanup();

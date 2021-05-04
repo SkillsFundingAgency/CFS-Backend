@@ -332,6 +332,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             }
 
             IEnumerable<(string Code, string Name)> fundingLines = publishedProviders
+                .Where(_ => _.Current.FundingLines.AnyWithNullCheck())
                 .SelectMany(x => x.Current.FundingLines)
                 .Select(x => (x.Name, x.FundingLineCode))
                 .DistinctBy(_ => _.FundingLineCode);

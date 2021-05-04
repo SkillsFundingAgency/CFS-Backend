@@ -53,7 +53,7 @@ namespace CalculateFunding.Services.Publishing
 
         public IEnumerable<PublishedProvider> UpdatedProviders => _providers.ContainsKey(ActionType.Update) ? _providers[ActionType.Update].Values : ArraySegment<PublishedProvider>.Empty;
 
-        public bool IsNewProvider(PublishedProvider publishedProvider) => _providers.ContainsKey(ActionType.Add) ? _providers[ActionType.Add].ContainsKey(publishedProvider.Current.Id) : false;
+        public bool IsNewProvider(PublishedProvider publishedProvider) => _providers.ContainsKey(ActionType.Add) ? _providers[ActionType.Add].ContainsKey(publishedProvider.Current.ProviderId) : false;
 
         public int Count => _providers.Values.SelectMany(_ => _.Values).Count();
 
@@ -76,9 +76,9 @@ namespace CalculateFunding.Services.Publishing
         {
             bool exclude = false;
 
-            if (NewProviders != null && NewProviders.ContainsKey(publishedProvider.Current.Id))
+            if (NewProviders != null && NewProviders.ContainsKey(publishedProvider.Current.ProviderId))
             {
-                NewProviders.Remove(publishedProvider.Current.Id);
+                NewProviders.Remove(publishedProvider.Current.ProviderId);
                 exclude = true;
             }
 
