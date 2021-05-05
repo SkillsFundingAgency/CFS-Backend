@@ -79,10 +79,28 @@
     <None Update="TestItems\jpgImage.xlsx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="TestItems\PE_and_Sports_Grant_Data_AsNull_result.xlsx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TestItems\PE_and_Sports_Grant_Data_Ignore_result.xlsx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TestItems\PE_and_Sports_Grant_Data_AsNull_v1.xlsx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TestItems\PE_and_Sports_Grant_Data_Ignore_v1.xlsx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TestItems\PE_and_Sports_Grant_Data_AsNull_v2.xlsx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="TestItems\PE_and_Sports_Grant_Data_result.xlsx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="TestItems\PE_and_Sports_Grant_Data_v1.xlsx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TestItems\PE_and_Sports_Grant_Data_Ignore_v2.xlsx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="TestItems\PE_and_Sports_Grant_Data_v2.xlsx">

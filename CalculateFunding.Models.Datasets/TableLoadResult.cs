@@ -65,7 +65,7 @@ namespace CalculateFunding.Models.Datasets
 
             foreach (KeyValuePair<string, object> field in match.Fields)
             {
-                if (rowLoadResult.Fields.ContainsKey(field.Key))
+                if (rowLoadResult.Fields.ContainsKey(field.Key) && rowLoadResult.Fields.GetValueOrDefault(field.Key) != null)
                 {
                     fields.Add(field.Key, rowLoadResult.Fields.GetValueOrDefault(field.Key));
                 }
