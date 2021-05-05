@@ -217,7 +217,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.ObsoleteItems
             IEnumerable<Relationship> calculationRelationships = calculationIds
                 .Select(c => new Relationship()
                 {
-                    Type = CalculationEnumRelationship.FromIdField,
+                    Type = CalculationEnumRelationship.ToIdField,
                     One = new Models.Graph.Calculation() { CalculationId = c, TemplateCalculationId = templateCalculationId }
                 });
 

@@ -97,23 +97,23 @@ namespace CalculateFunding.Services.Specs.ObsoleteItems
             Dictionary<uint, IEnumerable<string>> previousAllowedEnumValuesByTemplateCalculationId = previousTemplateMetadata.Calculations.Where(_ => _.Type == Common.TemplateMetadata.Enums.CalculationType.Enum)
                 .ToDictionary(_ => _.TemplateCalculationId, _ => _.AllowedEnumTypeValues);
 
-            IEnumerable<Enum> templateCalculationEnumValuesObsolete = templateMetadata.Calculations
+            IEnumerable<(Enum EnumObject, uint TemplateCalculationId)> templateCalculationEnumValuesObsolete = templateMetadata.Calculations
                 .Where(_ => _.Type == Common.TemplateMetadata.Enums.CalculationType.Enum &&
                                         previousAllowedEnumValuesByTemplateCalculationId.ContainsKey(_.TemplateCalculationId) &&
                                         !previousAllowedEnumValuesByTemplateCalculationId[_.TemplateCalculationId].SequenceEqual(_.AllowedEnumTypeValues))
                 .SelectMany(_ => previousAllowedEnumValuesByTemplateCalculationId[_.TemplateCalculationId]
                                         .Except(_.AllowedEnumTypeValues)
-                                        .Select(t => new Enum { FundingStreamId = fundingStreamId, 
+                                        .Select(t => (new Enum { FundingStreamId = fundingStreamId, 
                                                                 SpecificationId = specificationId, 
                                                                 EnumName = _typeIdentifierGenerator.GenerateIdentifier($"{_.Name}Options"), 
                                                                 EnumValue = _typeIdentifierGenerator.GenerateIdentifier(t),
-                                                                EnumValueName = t}))
-                .DistinctBy(_ => _.EnumId);
+                                                                EnumValueName = t},_.TemplateCalculationId)))
+                .DistinctBy<(Enum EnumObject, uint TemplateCalculationId), string>(_ => _.EnumObject.EnumId);
 
-            foreach(Enum enumObject in templateCalculationEnumValuesObsolete)
+            foreach((Enum EnumObject, uint TemplateCalculationId) enumTuple in templateCalculationEnumValuesObsolete)
             {
                 ApiResponse<IEnumerable<Entity<Enum>>> enumEntitiesApiResponse =
-                await _graph.GetAllEntitiesRelatedToEnum(enumObject.EnumId);
+                await _graph.GetAllEntitiesRelatedToEnum(enumTuple.EnumObject.EnumId);
 
                 if (enumEntitiesApiResponse?.Content != null)
                 {
@@ -121,7 +121,7 @@ namespace CalculateFunding.Services.Specs.ObsoleteItems
 
                     IEnumerable<Calculation> enumCalculations = enumEntities
                         .Where(_ => _.Relationships != null)
-                        .SelectMany(_ => _.Relationships.Where(rel => rel.Type.Equals(CalculationEnumRelationship.FromIdField, StringComparison.InvariantCultureIgnoreCase)))
+                        .SelectMany(_ => _.Relationships.Where(rel => rel.Type.Equals(CalculationEnumRelationship.ToIdField, StringComparison.InvariantCultureIgnoreCase)))
                         .Select(rel => ((object)rel.One).AsJson().AsPoco<Calculation>())
                         .Distinct();
 
@@ -129,9 +129,9 @@ namespace CalculateFunding.Services.Specs.ObsoleteItems
                     {
                         SpecificationId = specificationId,
                         FundingStreamId = fundingStreamId,
-                        CodeReference = enumObject.CodeReference,
-                        EnumValueName = enumObject.EnumValueName,
-                        TemplateCalculationId = Convert.ToUInt32(enumCalculations.First().TemplateCalculationId),
+                        CodeReference = enumTuple.EnumObject.CodeReference,
+                        EnumValueName = enumTuple.EnumObject.EnumValueName,
+                        TemplateCalculationId = enumTuple.TemplateCalculationId,
                         CalculationIds = enumCalculations.Select(_ => _.CalculationId).ToList(),
                         ItemType = ObsoleteItemType.EnumValue,
                         Id = _uniqueIdentifierProvider.CreateUniqueIdentifier()
@@ -142,7 +142,7 @@ namespace CalculateFunding.Services.Specs.ObsoleteItems
 
                     if (!obsoleteItemResponse.StatusCode.IsSuccess())
                     {
-                        string message = $"Unable to create obsolete item for enum - {enumObject.EnumId}.";
+                        string message = $"Unable to create obsolete item for enum - {enumTuple.EnumObject.EnumId}.";
 
                         LogInformation(message);
 
