@@ -24,11 +24,6 @@ namespace CalculateFunding.Services.Core.Options
         public int GetCurrentProviderTestResultsDegreeOfParallelism { get; set; } = 5;
 
         /// <summary>
-        /// Feature toggle to control queueing test engine run after calc batch completes
-        /// </summary>
-        public bool IsTestEngineEnabled { get; set; }
-
-        /// <summary>
         /// Number of parallel requests to lookup batches of calculation aggregations
         /// </summary>
         public int CalculationAggregationRetreivalParallelism { get; set; } = 15;

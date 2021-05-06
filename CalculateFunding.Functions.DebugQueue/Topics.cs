@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using CalculateFunding.Functions.Calcs.ServiceBus;
 using CalculateFunding.Functions.CosmosDbScaling.ServiceBus;
 using CalculateFunding.Functions.Results.ServiceBus;
-using CalculateFunding.Functions.TestEngine.ServiceBus;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Jobs;
 using CalculateFunding.Models.Messages;
@@ -41,20 +40,6 @@ namespace CalculateFunding.Functions.DebugQueue
                 }
             }
 
-            using (IServiceScope scope = Functions.TestEngine.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
-            {
-                try
-                {
-                    OnTestSpecificationProviderResultsCleanup function = scope.ServiceProvider.GetService<OnTestSpecificationProviderResultsCleanup>();
-
-                    await function.Run(message);
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, $"Error while executing TestEngine {nameof(RunOnProviderSourceDatasetCleanup)}");
-                }
-            }
-
             logger.LogInformation($"C# Queue trigger function processed: {item}");
         }
 
@@ -62,20 +47,6 @@ namespace CalculateFunding.Functions.DebugQueue
         public static async Task RunOnEditSpecificationEvent([QueueTrigger(ServiceBusConstants.TopicNames.EditSpecification, Connection = "AzureConnectionString")] string item, ILogger logger)
         {
             Message message = Helpers.ConvertToMessage<SpecificationVersionComparisonModel>(item);
-
-            using (IServiceScope scope = Functions.TestEngine.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
-            {
-                try
-                {
-                    Functions.TestEngine.ServiceBus.OnEditSpecificationEvent function = scope.ServiceProvider.GetService<Functions.TestEngine.ServiceBus.OnEditSpecificationEvent>();
-
-                    await function.Run(message);
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, $"Error while executing TestEngine {nameof(RunOnEditSpecificationEvent)}");
-                }
-            }
 
             using (IServiceScope scope = Functions.Users.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
             {

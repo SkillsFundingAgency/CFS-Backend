@@ -1365,11 +1365,6 @@ namespace CalculateFunding.Services.Scenarios.Services
                 cacheProvider
                 .Received(1)
                 .RemoveAsync<List<TestScenario>>(Arg.Is($"{CacheKeys.TestScenarios}{comparison.SpecificationId}"));
-
-            await
-                cacheProvider
-                .Received(1)
-                .RemoveAsync<GherkinParseResult>(Arg.Is($"{CacheKeys.GherkinParseResult}{testScenarios[0].Id}"));
         }
 
         [TestMethod]
@@ -1468,16 +1463,6 @@ namespace CalculateFunding.Services.Scenarios.Services
                 cacheProvider
                 .Received(1)
                 .RemoveAsync<List<TestScenario>>(Arg.Is($"{CacheKeys.TestScenarios}{comparison.SpecificationId}"));
-
-            await
-                cacheProvider
-                .Received(1)
-                .RemoveAsync<GherkinParseResult>(Arg.Is($"{CacheKeys.GherkinParseResult}{testScenarios[0].Id}"));
-
-            await
-                cacheProvider
-                .Received(1)
-                .RemoveAsync<GherkinParseResult>(Arg.Is($"{CacheKeys.GherkinParseResult}{testScenarios[2].Id}"));
         }
 
         [TestMethod]
@@ -1558,11 +1543,6 @@ namespace CalculateFunding.Services.Scenarios.Services
                 cacheProvider
                 .Received(1)
                 .RemoveAsync<List<TestScenario>>(Arg.Is($"{CacheKeys.TestScenarios}{comparison.SpecificationId}"));
-
-            await
-                cacheProvider
-                .Received(1)
-                .RemoveAsync<GherkinParseResult>(Arg.Is($"{CacheKeys.GherkinParseResult}{testScenarios[0].Id}"));
         }
 
         [TestMethod]
@@ -1632,11 +1612,6 @@ namespace CalculateFunding.Services.Scenarios.Services
                 cacheProvider
                 .Received(0)
                 .RemoveAsync<List<TestScenario>>($"{CacheKeys.TestScenarios}{comparison.SpecificationId}");
-
-            await
-                cacheProvider
-                .Received(0)
-                .RemoveAsync<GherkinParseResult>($"{CacheKeys.GherkinParseResult}{testScenarios[0].Id}");
         }
 
         [TestMethod]
@@ -1675,11 +1650,6 @@ namespace CalculateFunding.Services.Scenarios.Services
                 cacheProvider
                 .Received(0)
                 .RemoveAsync<List<TestScenario>>(Arg.Is($"{CacheKeys.TestScenarios}{comparison.SpecificationId}"));
-
-            await
-                cacheProvider
-                .Received(0)
-                .RemoveAsync<GherkinParseResult>(Arg.Any<string>());
         }
 
         [TestMethod]
@@ -1953,11 +1923,6 @@ namespace CalculateFunding.Services.Scenarios.Services
                versionRepository
                    .Received(1)
                    .SaveVersion(Arg.Any<TestScenarioVersion>());
-
-            await
-                cacheProvider
-                    .Received(1)
-                    .RemoveAsync<GherkinParseResult>(Arg.Is($"{CacheKeys.GherkinParseResult}{scenarioId}"));
         }
 
         static ScenariosService CreateScenariosService(

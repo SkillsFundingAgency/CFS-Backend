@@ -30,7 +30,6 @@
     <!--<ProjectReference Include="..\CalculateFunding.Functions.Results\CalculateFunding.Functions.Results.csproj" />-->
     <ProjectReference Include="..\CalculateFunding.Functions.Scenarios\CalculateFunding.Functions.Scenarios.csproj" />
     <ProjectReference Include="..\CalculateFunding.Functions.Specs\CalculateFunding.Functions.Specs.csproj" />
-    <ProjectReference Include="..\CalculateFunding.Functions.TestEngine\CalculateFunding.Functions.TestEngine.csproj" />
     <ProjectReference Include="..\CalculateFunding.Functions.Users\CalculateFunding.Functions.Users.csproj" />
   </ItemGroup>
 

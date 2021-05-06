@@ -30,8 +30,6 @@
 
             public const string CalcEngineGenerateAllocationResultsPoisonedLocal = "calc-events-generate-allocations-results-poison";
 
-            public const string TestEngineExecuteTests = "test-events-execute-tests";
-
             public const string AddDefinitionRelationshipToSpecification = "spec-events-add-definition-relationship";
 
             public const string ProcessDataset = "dataset-events-datasets";
@@ -142,12 +140,6 @@
             public const string DeleteDatasetsPoisoned = "datasets-delete/$DeadLetterQueue";
 
             public const string DeleteDatasetsPoisonedLocal = "datasets-delete-poison";
-
-            public const string DeleteTestResults = "test-results-delete";
-
-            public const string DeleteTestResultsPoisoned = "test-results-delete/$DeadLetterQueue";
-
-            public const string DeleteTestResultsPoisonedLocal = "test-results-delete-poison";
 
             public const string DeleteTests = "tests-delete";
 

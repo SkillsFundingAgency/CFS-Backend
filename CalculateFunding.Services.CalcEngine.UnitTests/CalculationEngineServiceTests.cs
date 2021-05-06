@@ -42,13 +42,7 @@ namespace CalculateFunding.Services.Calculator
         [TestInitialize]
         public void SetUp()
         {
-            _calculationEngineServiceTestsHelper = new CalculationEngineServiceTestsHelper
-            {
-                MockEngineSettings =
-                {
-                    IsTestEngineEnabled = true
-                }
-            };
+            _calculationEngineServiceTestsHelper = new CalculationEngineServiceTestsHelper();
 
             _specificationSummary = new ApiClientSpecificationSummary
             {

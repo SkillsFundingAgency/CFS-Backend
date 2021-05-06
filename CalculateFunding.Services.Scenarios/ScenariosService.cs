@@ -212,8 +212,6 @@ namespace CalculateFunding.Services.Scenarios
 
             await _cacheProvider.RemoveAsync<List<TestScenario>>($"{CacheKeys.TestScenarios}{testScenario.SpecificationId}");
 
-            await _cacheProvider.RemoveAsync<GherkinParseResult>($"{CacheKeys.GherkinParseResult}{testScenario.Id}");
-
             IEnumerable<Common.ApiClient.Calcs.Models.Calculation> calculations = await _calcsRepositoryPolicy.ExecuteAsync(() => _calcsRepository.GetCurrentCalculationsBySpecificationId(specification.Id));
 
             if (calculations.IsNullOrEmpty())
@@ -524,8 +522,6 @@ namespace CalculateFunding.Services.Scenarios
             await _scenariosRepositoryPolicy.ExecuteAsync(() => _scenariosRepository.SaveTestScenario(testScenario));
 
             await _versionRepository.SaveVersion(testScenarioVersion);
-
-            await _cacheProvider.RemoveAsync<GherkinParseResult>($"{CacheKeys.GherkinParseResult}{testScenario.Id}");
         }
 
         private async Task<JobsModels.Job> SendInstructAllocationsToJobService(string specificationId, Reference user, JobsModels.Trigger trigger, string correlationId, bool generateAggregations = false)
