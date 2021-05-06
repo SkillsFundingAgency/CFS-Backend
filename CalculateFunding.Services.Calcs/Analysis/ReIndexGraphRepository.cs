@@ -191,7 +191,7 @@ namespace CalculateFunding.Services.Calcs.Analysis
                 return fundingLines;
             }
 
-            return fundingLines.Where(_ => !fundingLineCalculationRelationships.Any(rel => rel.FundingLine.FundingLineId == _.FundingLineId));
+            return fundingLines.Where(_ => !fundingLineCalculationRelationships.Any(rel => rel.FundingLine.SpecificationFundingLineId == _.SpecificationFundingLineId));
         }
         
         private async Task<IEnumerable<CalculationEnumRelationship>> RemoveCalculationEnumRelationships(IEnumerable<CalculationEnumRelationship> enumReferences,
@@ -665,7 +665,7 @@ namespace CalculateFunding.Services.Calcs.Analysis
                     .Select(_ => new AmendRelationshipRequestModel
                     {
                         IdA = _.CalculationOneId,
-                        IdB = _.FundingLine.FundingLineId
+                        IdB = _.FundingLine.SpecificationFundingLineId
                     }),
                 PageSize);
 
@@ -682,7 +682,7 @@ namespace CalculateFunding.Services.Calcs.Analysis
             requestPages = new PagedContext<AmendRelationshipRequestModel>(fundingLineCalculationRelationships
                     .Select(_ => new AmendRelationshipRequestModel
                     {
-                        IdA = _.FundingLine.FundingLineId,
+                        IdA = _.FundingLine.SpecificationFundingLineId,
                         IdB = _.CalculationTwoId
                     }),
                 PageSize);

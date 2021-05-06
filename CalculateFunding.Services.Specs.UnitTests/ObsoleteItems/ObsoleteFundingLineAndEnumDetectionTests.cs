@@ -163,9 +163,10 @@ namespace CalculateFunding.Services.Specs.UnitTests.ObsoleteItems
                     }
                 })));
             AndGraphEntitiesForSpecification(specificationId, templateCalculationId.ToString(), templateCalculationName, calculationIdOne, calculationIdTwo);
-            AndGraphEntitiesForEnum(enumId, templateCalculationId.ToString(), calculationIdOne);
-            AndGraphEntitiesForFundingLine(specificationId, fundingLineTwo.ToString(), calculationIdTwo);
+            AndGraphEntitiesForEnum(enumId, calculationIdOne);
+            AndGraphEntitiesForFundingLine(specificationId, fundingLineTwo.ToString(), fundingStreamId, calculationIdTwo);
             AndTheObsoleteItemsAreRemovedSuccessfully(specificationId, existingObsoleteItems);
+            AndTheTemplateMapping(specificationId, fundingStreamId, GetTemplateMapping(templateCalculationId, new[] { calculationIdOne, calculationIdTwo }));
             AndTheObsoleteItemIsCreatedSuccessfully(obsoleteItems);
 
             await WhenTheFundingLineDetectionIsRun(specificationId,
@@ -176,6 +177,15 @@ namespace CalculateFunding.Services.Specs.UnitTests.ObsoleteItems
 
             ThenTheObsoleteItemsAreRemoved(existingObsoleteItems);
             ThenTheObsoleteItemCreated(obsoleteItems);
+        }
+
+        private TemplateMapping GetTemplateMapping(uint templatecalculationId, string[] calculationIds)
+        {
+            List<TemplateMappingItem> items = new List<TemplateMappingItem>();
+
+            calculationIds.ForEach(_ => items.Add(new TemplateMappingItem { TemplateId = templatecalculationId, CalculationId = _ }));
+
+            return new TemplateMapping { TemplateMappingItems = items };
         }
 
         private Message NewMessage(Action<MessageBuilder> setUp = null)
@@ -204,7 +214,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.ObsoleteItems
                 .Select(c => new Relationship()
                 {
                     Type = SpecificationCalculationRelationships.FromIdField,
-                    One = new Models.Graph.Calculation() { CalculationId = c, TemplateCalculationId = templateCalculationId, CalculationName = templatCalculationName }
+                    One = new Models.Graph.Calculation() { CalculationId = c, CalculationName = templatCalculationName }
                 });
 
             _graphApiClient.Setup(x => x.GetAllEntitiesRelatedToSpecification(specificationId))
@@ -212,13 +222,13 @@ namespace CalculateFunding.Services.Specs.UnitTests.ObsoleteItems
                     new[] { new Entity<Specification>() { Relationships = calculationRelationships } }));
         }
 
-        private void AndGraphEntitiesForEnum(string enumId, string templateCalculationId, params string[] calculationIds)
+        private void AndGraphEntitiesForEnum(string enumId, params string[] calculationIds)
         {
             IEnumerable<Relationship> calculationRelationships = calculationIds
                 .Select(c => new Relationship()
                 {
                     Type = CalculationEnumRelationship.ToIdField,
-                    One = new Models.Graph.Calculation() { CalculationId = c, TemplateCalculationId = templateCalculationId }
+                    One = new Models.Graph.Calculation() { CalculationId = c}
                 });
 
             _graphApiClient.Setup(x => x.GetAllEntitiesRelatedToEnum(enumId))
@@ -226,7 +236,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.ObsoleteItems
                     new[] { new Entity<Enum>() { Relationships = calculationRelationships } }));
         }
 
-        private void AndGraphEntitiesForFundingLine(string specificationId, string fundingLineCode, params string[] calculationIds)
+        private void AndGraphEntitiesForFundingLine(string specificationId, string fundingLineId, string fundingStreamId, params string[] calculationIds)
         {
             IEnumerable<Relationship> calculationRelationships = calculationIds
                 .Select(c => new Relationship()
@@ -235,7 +245,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.ObsoleteItems
                     Two = new Models.Graph.Calculation() { CalculationId = c }
                 });
 
-            _graphApiClient.Setup(x => x.GetAllEntitiesRelatedToFundingLine($"{specificationId}-{fundingLineCode}"))
+            _graphApiClient.Setup(x => x.GetAllEntitiesRelatedToFundingLine($"{specificationId}-{fundingStreamId}_{fundingLineId}"))
                 .ReturnsAsync(new ApiResponse<IEnumerable<Entity<FundingLine>>>(HttpStatusCode.OK,
                     new[] { new Entity<FundingLine>() { Relationships = calculationRelationships } }));
         }
@@ -271,6 +281,13 @@ namespace CalculateFunding.Services.Specs.UnitTests.ObsoleteItems
                         _.CreateObsoleteItem(It.Is<ObsoleteItem>(_ => _.ItemType == obsoleteItem.ItemType)))
                     .ReturnsAsync(new ApiResponse<ObsoleteItem>(HttpStatusCode.OK, obsoleteItem));
             }
+        }
+
+        private void AndTheTemplateMapping(string specificationId, string fundingStreamId, TemplateMapping templateMapping)
+        {
+            _calculations.Setup(_ =>
+                _.GetTemplateMapping(specificationId, fundingStreamId))
+                .ReturnsAsync(new ApiResponse<TemplateMapping>(HttpStatusCode.OK, templateMapping));
         }
 
         private void ThenTheObsoleteItemCreated(params ObsoleteItem[] obsoleteItems)

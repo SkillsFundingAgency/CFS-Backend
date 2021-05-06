@@ -324,7 +324,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
                 calculationIdThree,
                 calculationIdFour
             });
-            AndTheFundingLineCalculationRelationshipsWereCreated(calculationIdOne, fundingLines.Select(_ => _.FundingLineId).ToArray(), calculations.Select(_ => _.CalculationId).ToArray());
+            AndTheFundingLineCalculationRelationshipsWereCreated(calculationIdOne, fundingLines.Select(_ => $"{specificationId}-{_.FundingLineId}").ToArray(), calculations.Select(_ => _.CalculationId).ToArray());
             AndTheExistingRelationships(specificationId, existingEntities);
             AndTheExistingCalculationRelationships(specificationCalculationRelationships.Calculations.Select(_ => _.CalculationId).ToArray(), existingCalculationEntities);
             AndTheExistingFundingLines(specificationCalculationRelationships.FundingLines.Select(_ => $"{specificationId}-{_.FundingLineId}").ToArray(), existingFundingLines);

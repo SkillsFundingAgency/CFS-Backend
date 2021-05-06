@@ -13,8 +13,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
                 CalculationName = NewRandomString(),
                 CalculationType = NewRandomEnum<CalculationType>(),
                 FundingStream = NewRandomString(),
-                SpecificationId = NewRandomString(),
-                TemplateCalculationId = NewRandomString()
+                SpecificationId = NewRandomString()
             };
         }        
     }

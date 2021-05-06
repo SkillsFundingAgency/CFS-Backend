@@ -19,8 +19,5 @@ namespace CalculateFunding.Models.Graph
 
         [JsonProperty("fundingstream")]
         public string FundingStream { get; set; }
-
-        [JsonProperty("templatecalculationid", NullValueHandling = NullValueHandling.Ignore)]
-        public string TemplateCalculationId { get; set; }
     }
 }

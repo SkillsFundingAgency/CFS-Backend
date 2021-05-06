@@ -127,7 +127,7 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
             string calcFourName = nameof(calcFourName);
             string calcFourId = NewRandomString();
             string @namespace = "fundingStreamId";
-            Models.Graph.FundingLine fundingLine2 = new Models.Graph.FundingLine { FundingLineId = $"{@namespace}_{fundingLineTwoId}", FundingLineName = fundingLineTwoName };
+            Models.Graph.FundingLine fundingLine2 = new Models.Graph.FundingLine { SpecificationId = specificationId, FundingLineId = $"{@namespace}_{fundingLineTwoId}", FundingLineName = fundingLineTwoName };
 
             Dictionary<string, Funding> fundings = new Dictionary<string, Funding> {
                             {@namespace, new Funding{

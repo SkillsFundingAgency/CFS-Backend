@@ -191,7 +191,7 @@ namespace CalculateFunding.Services.Specs.ObsoleteItems
             foreach (TemplateMetadataFundingLine fundingLine in missingFundingLines)
             {
                 ApiResponse<IEnumerable<Entity<FundingLine>>> fundingLineEntitiesApiResponse =
-                    await _graph.GetAllEntitiesRelatedToFundingLine($"{specificationId}-{fundingLine.FundingLineCode}");
+                    await _graph.GetAllEntitiesRelatedToFundingLine($"{specificationId}-{fundingStreamId}_{fundingLine.TemplateLineId}");
 
                 if (fundingLineEntitiesApiResponse?.Content == null)
                 {
@@ -208,49 +208,83 @@ namespace CalculateFunding.Services.Specs.ObsoleteItems
                     .SelectMany(_ => _.Relationships.Where(rel => rel.Type.Equals(FundingLineCalculationRelationship.FromIdField, StringComparison.InvariantCultureIgnoreCase)))
                     .Select(rel => ((object) rel.Two).AsJson().AsPoco<Calculation>().CalculationId)
                     .Distinct();
+
+                if (!fundingLineCalculationIds.Any())
+                {
+                    continue;
+                }
                 
                 //TODO; refactor out all of these dictionaries everywhere into a more of a model
 
-                // Calculations in specification and in missing funding line
-                IDictionary<string, IEnumerable<string>> fundingLineCalculationIdsByTemplateCalculationId
+                ApiResponse<TemplateMapping> apiTemplateMappingResponse = await _calculationsPolicy.ExecuteAsync(() => _calculations.GetTemplateMapping(specificationId, fundingStreamId));
+
+                if (apiTemplateMappingResponse?.Content == null)
+                {
+                    string message = $"Unable to retrieve template mapping for specification - {specificationId} and funding stream - {fundingStreamId}.";
+
+                    LogError(message);
+
+                    throw new Exception(message);
+                }
+
+                Dictionary<string, TemplateMappingItem> templateMappingItems = apiTemplateMappingResponse.Content.TemplateMappingItems.Where(_ => _.CalculationId != null).ToDictionary(_ => _.CalculationId);
+
+                // Template calculations in specification that reference missing funding line
+                IDictionary<uint, IEnumerable<string>> fundingLineCalculationIdsByTemplateCalculationId
                     = specificationCalculations
-                        .Where(_ => fundingLineCalculationIds.Contains(_.CalculationId))
-                        .GroupBy(_ => _.TemplateCalculationId)
+                        .Where(_ => fundingLineCalculationIds.Contains(_.CalculationId) && templateMappingItems.ContainsKey(_.CalculationId))
+                        .GroupBy(_ => templateMappingItems[_.CalculationId].TemplateId)
                         .ToDictionary(_ => _.Key,
                             _ => _.Select(calc => calc.CalculationId)
                                 .Distinct());
 
+                // Additional calculations in specification that reference missing funding line
+                IEnumerable<string> fundingLineAdditionalCalculationIds = specificationCalculations
+                        .Where(_ => fundingLineCalculationIds.Contains(_.CalculationId) && !templateMappingItems.ContainsKey(_.CalculationId))
+                        .Select(_ => _.CalculationId);
+
+                // create single additional calculations obsolete item
+                if (fundingLineAdditionalCalculationIds.Any())
+                {
+                    await CreateObsoleteItem(specificationId, fundingStreamId, fundingLine, fundingLineAdditionalCalculationIds);   
+                }
+
                 if (fundingLineCalculationIdsByTemplateCalculationId.Any())
                 {
-                    foreach (KeyValuePair<string, IEnumerable<string>> calculationsByTemplateId in fundingLineCalculationIdsByTemplateCalculationId
+                    foreach (KeyValuePair<uint, IEnumerable<string>> calculationsByTemplateId in fundingLineCalculationIdsByTemplateCalculationId
                         .Where(_ => _.Value.Any()))
                     {
-                        ObsoleteItem obsoleteItem = new ObsoleteItem
-                        {
-                            SpecificationId = specificationId,
-                            FundingLineId = fundingLine.TemplateLineId,
-                            FundingStreamId = fundingStreamId,
-                            CodeReference = _typeIdentifierGenerator.GenerateIdentifier(fundingLine.Name),
-                            TemplateCalculationId = Convert.ToUInt32(calculationsByTemplateId.Key),
-                            CalculationIds = calculationsByTemplateId.Value.ToList(),
-                            ItemType = ObsoleteItemType.FundingLine,
-                            Id = _uniqueIdentifierProvider.CreateUniqueIdentifier(),
-                            FundingLineName = fundingLine.Name
-                        };
-
-                        ApiResponse<ObsoleteItem> obsoleteItemResponse = await _calculationsPolicy.ExecuteAsync(() =>
-                            _calculations.CreateObsoleteItem(obsoleteItem));
-
-                        if (!obsoleteItemResponse.StatusCode.IsSuccess())
-                        {
-                            string message = $"Unable to create obsolete item for funding line template id - {fundingLine}.";
-                            
-                            LogInformation(message);
-                            
-                            throw new Exception(message);
-                        }
+                        await CreateObsoleteItem(specificationId, fundingStreamId, fundingLine, calculationsByTemplateId.Value, Convert.ToUInt32(calculationsByTemplateId.Key));
                     }
                 }
+            }
+        }
+
+        private async Task CreateObsoleteItem(string specificationId, string fundingStreamId, TemplateMetadataFundingLine fundingLine, IEnumerable<string> calculationIds, uint? templateCalculationId = null)
+        {
+            ObsoleteItem obsoleteItem = new ObsoleteItem
+            {
+                SpecificationId = specificationId,
+                FundingLineId = fundingLine.TemplateLineId,
+                FundingStreamId = fundingStreamId,
+                CodeReference = _typeIdentifierGenerator.GenerateIdentifier(fundingLine.Name),
+                TemplateCalculationId = templateCalculationId,
+                CalculationIds = calculationIds,
+                ItemType = ObsoleteItemType.FundingLine,
+                Id = _uniqueIdentifierProvider.CreateUniqueIdentifier(),
+                FundingLineName = fundingLine.Name
+            };
+
+            ApiResponse<ObsoleteItem> obsoleteItemResponse = await _calculationsPolicy.ExecuteAsync(() =>
+                _calculations.CreateObsoleteItem(obsoleteItem));
+
+            if (!obsoleteItemResponse.StatusCode.IsSuccess())
+            {
+                string message = $"Unable to create obsolete item for funding line template id - {fundingLine}.";
+
+                LogInformation(message);
+
+                throw new Exception(message);
             }
         }
 

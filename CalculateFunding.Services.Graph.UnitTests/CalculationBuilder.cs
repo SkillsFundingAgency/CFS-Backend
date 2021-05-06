@@ -11,7 +11,6 @@ namespace CalculateFunding.Services.Graph.UnitTests
         private CalculationType? _calculationType;
         private string _fundingStream;
         private string _specificationId;
-        private string _templateCalculationId;
 
         public CalculationBuilder WithCalculationId(string calculationId)
         {
@@ -43,12 +42,6 @@ namespace CalculateFunding.Services.Graph.UnitTests
 
             return this;
         }
-        public CalculationBuilder WithTemplateCalculationId(string templateCalculationId)
-        {
-            _templateCalculationId = templateCalculationId;
-
-            return this;
-        }
 
         public Calculation Build()
         {
@@ -58,8 +51,7 @@ namespace CalculateFunding.Services.Graph.UnitTests
                 CalculationName = _calculationName ?? new RandomString(),
                 CalculationType = _calculationType ?? CalculationType.Template,
                 FundingStream = _fundingStream ?? new RandomString(),
-                SpecificationId = _specificationId ?? new RandomString(),
-                TemplateCalculationId = _templateCalculationId ?? new RandomString()
+                SpecificationId = _specificationId ?? new RandomString()
             };
         }
     }

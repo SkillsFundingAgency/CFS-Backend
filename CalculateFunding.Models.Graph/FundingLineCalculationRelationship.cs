@@ -26,7 +26,7 @@ namespace CalculateFunding.Models.Graph
         [SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
         public override int GetHashCode()
         {
-            return HashCode.Combine(CalculationOneId, CalculationTwoId, FundingLine.FundingLineId);
+            return HashCode.Combine(CalculationOneId, CalculationTwoId, FundingLine.SpecificationFundingLineId);
         }
     }
 }
