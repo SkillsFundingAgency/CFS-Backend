@@ -50,11 +50,32 @@ namespace CalculateFunding.Models.Datasets
                 {
                     UpdateMatchingRowsWithFieldsValuesFromByIgnoringEmptyFields(rowLoadResult, match);
                 }
-                else
+                else if (emptyFieldEvaluationOption == DatasetEmptyFieldEvaluationOption.AsNull)
                 {
-                    match.Fields = rowLoadResult.Fields;
+                    UpdateMatchingRowsWithFieldsValuesFromBySettingEmptyFieldsAsNull(rowLoadResult, match);
                 }
             }
+        }
+
+        private void UpdateMatchingRowsWithFieldsValuesFromBySettingEmptyFieldsAsNull(
+            RowLoadResult rowLoadResult,
+            RowLoadResult match)
+        {
+            Dictionary<string, object> fields = new Dictionary<string, object>();
+
+            foreach (KeyValuePair<string, object> field in match.Fields)
+            {
+                if (rowLoadResult.Fields.ContainsKey(field.Key))
+                {
+                    fields.Add(field.Key, rowLoadResult.Fields.GetValueOrDefault(field.Key));
+                }
+                else
+                {
+                    fields.Add(field.Key, field.Value);
+                }
+            }
+
+            match.Fields = fields;
         }
 
         private void UpdateMatchingRowsWithFieldsValuesFromByIgnoringEmptyFields(
