@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Profiling.Models;
 
 namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
@@ -44,7 +43,7 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
                 variationPointerIndex);
         }
 
-        private ReProfileStrategyResult FlatDistributionSkippingZeroPercentPeriods(IProfilePeriod[] orderedRefreshProfilePeriods,
+        private static ReProfileStrategyResult FlatDistributionSkippingZeroPercentPeriods(IProfilePeriod[] orderedRefreshProfilePeriods,
             IExistingProfilePeriod[] orderedExistingProfilePeriods,
             ProfilePeriodPattern[] orderedProfilePatternPeriods,
             ReProfileRequest reProfileRequest,
@@ -68,7 +67,7 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
             };
         }
 
-        protected void DistributeRemainingFundingLineValueEvenlySkippingZeroPercentPeriods(IExistingProfilePeriod[] orderedExistingProfilePeriods,
+        protected static void DistributeRemainingFundingLineValueEvenlySkippingZeroPercentPeriods(IExistingProfilePeriod[] orderedExistingProfilePeriods,
             int variationPointerIndex,
             ReProfileRequest reProfileRequest,
             IProfilePeriod[] orderedRefreshProfilePeriods,
@@ -79,13 +78,37 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
             decimal remainingFundingLineProfiledToPay = orderedRefreshProfilePeriods.Skip(variationPointerIndex).Sum(_ => _.GetProfileValue());
             decimal differenceToDistribute = remainingFundingLineValueToPay - remainingFundingLineProfiledToPay;
 
-            DistributeRemainingBalanceSkippingZeroPercentPeriods(variationPointerIndex, orderedRefreshProfilePeriods, differenceToDistribute, orderedProfilePatternPeriods);
+            int finalNonZeroProfilePeriodIndex = orderedProfilePatternPeriods.ToList().FindLastIndex(_ => _.PeriodPatternPercentage > 0);
+
+            MoveRoundingRemainderToFinalNoneZeroPercentPeriod(orderedRefreshProfilePeriods, finalNonZeroProfilePeriodIndex);
+            DistributeRemainingBalanceSkippingZeroPercentPeriods(variationPointerIndex,
+                orderedRefreshProfilePeriods,
+                differenceToDistribute,
+                orderedProfilePatternPeriods,
+                finalNonZeroProfilePeriodIndex);
         }
 
-        protected void DistributeRemainingBalanceSkippingZeroPercentPeriods(int variationPointerIndex,
+        private static void MoveRoundingRemainderToFinalNoneZeroPercentPeriod(IProfilePeriod[] orderedRefreshProfilePeriods,
+            int finalNonZeroProfilePeriodIndex)
+        {
+            IProfilePeriod finalRefreshPeriod = orderedRefreshProfilePeriods.Last();
+            decimal finalProfiledPeriodValue = finalRefreshPeriod.GetProfileValue();
+
+            if (finalProfiledPeriodValue > 0)
+            {
+                finalRefreshPeriod.SetProfiledValue(0);
+
+                IProfilePeriod finalNoneZeroRefreshPeriod = orderedRefreshProfilePeriods[finalNonZeroProfilePeriodIndex];
+
+                finalNoneZeroRefreshPeriod.SetProfiledValue(finalNoneZeroRefreshPeriod.GetProfileValue() + finalProfiledPeriodValue);
+            }
+        }
+
+        protected static void DistributeRemainingBalanceSkippingZeroPercentPeriods(int variationPointerIndex,
             IProfilePeriod[] orderedRefreshProfilePeriods,
             decimal differenceToDistribute,
-            ProfilePeriodPattern[] orderedProfilePatternPeriods)
+            ProfilePeriodPattern[] orderedProfilePatternPeriods,
+            int finalNonZeroProfilePeriodIndex)
         {
             int remainingPeriodsToPay = orderedProfilePatternPeriods.Skip(variationPointerIndex).Count(_ => _.PeriodPatternPercentage > 0);
 
@@ -107,8 +130,6 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
 
                 profilePeriod.SetProfiledValue(Math.Max(adjustedProfileValue, 0));
             }
-
-            int finalNonZeroProfilePeriodIndex = orderedProfilePatternPeriods.ToList().FindLastIndex(_ => _.PeriodPatternPercentage > 0);
 
             IProfilePeriod finalProfilePeriod = orderedRefreshProfilePeriods[finalNonZeroProfilePeriodIndex];
 

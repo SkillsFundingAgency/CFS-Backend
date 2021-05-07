@@ -9,7 +9,7 @@ resources:
   - repository: funding-blocks
     type: github
     name: SkillsFundingAgency/funding-platform-building-blocks
-    ref: refs/heads/master
+    ref: refs/heads/ma/features/cfs-unit-integrationtests
     endpoint: 'Github (ESFA)'
 
 trigger:

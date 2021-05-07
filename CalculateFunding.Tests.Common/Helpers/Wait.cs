@@ -18,7 +18,7 @@ namespace CalculateFunding.Tests.Common.Helpers
                 if (Environment.TickCount - startTime >= timeoutMilliseconds)
                     throw new TimeoutException(timeOutMessage);
 
-                await Task.Delay(retryDelayMilliseconds);
+                await Task.Delay(retryDelayMilliseconds); 
             }
         }
 

@@ -6,10 +6,10 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
 {
     public abstract class FlatDistributionReProfilingStrategy : ReProfilingStrategy
     {
-        protected decimal CalculateCarryOverAmount(ReProfileRequest reProfileRequest,
+        protected static decimal CalculateCarryOverAmount(ReProfileRequest reProfileRequest,
             IProfilePeriod[] orderedRefreshProfilePeriods)
         {
-            return Math.Abs(reProfileRequest.FundingLineTotal - orderedRefreshProfilePeriods.Sum(_ => _.GetProfileValue()));
+            return reProfileRequest.FundingLineTotal - orderedRefreshProfilePeriods.Sum(_ => _.GetProfileValue());
         }
 
         protected void DistributeRemainingFundingLineValueEvenly(IExistingProfilePeriod[] orderedExistingProfilePeriods,

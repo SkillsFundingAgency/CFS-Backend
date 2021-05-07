@@ -1,0 +1,29 @@
+{
+  "id": "<ID>",
+  "documentType": "FundingStreamPeriodProfilePattern",
+  "content": {
+    "fundingPeriodId": "<FUNDINGPERIODID>",
+    "fundingStreamId": "<FUNDINGSTREAM>",
+    "roundingStrategy": "RoundUp",
+    "fundingLineId": "<FUNDINGLINEID>",
+    "profilePatternKey": null,
+    "fundingStreamPeriodStartDate": "<FUNDINGSTREAMPERIODSTARTDATE>",
+    "fundingStreamPeriodEndDate": "<FUNDINGSTREAMPERIODENDDATE>",
+    "allowUserToEditProfilePattern": false,
+    "profilePattern": <PROFILEPATTERN>,
+    "profilePatternDisplayName": "<DISPLAYNAME>",
+    "profilePatternDescription": null,
+    "providerTypeSubTypes": null,
+    "reProfilingConfiguration": {
+      "reProfilingEnabled": <REPROFILINGENABLED>,
+      "increasedAmountStrategyKey": "<INCREASEDAMOUNTSTRATEGYKEY>",
+      "decreasedAmountStrategyKey": "<DECREASEDAMOUNTSTRATEGYKEY>",
+      "sameAmountStrategyKey": "<SAMEAMOUNTSTRATEGYKEY>",
+      "initialFundingStrategyKey": null
+    },
+    "id": "<ID>"
+  },
+  "createdAt": "<NOW>",
+  "updatedAt": "<NOW>",
+  "deleted": false
+}

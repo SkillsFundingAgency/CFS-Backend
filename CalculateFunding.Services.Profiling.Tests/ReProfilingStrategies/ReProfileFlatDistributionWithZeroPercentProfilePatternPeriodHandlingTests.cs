@@ -62,7 +62,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 22000M,
                 36000M,
                 NewDecimals(3000, 3000, 3000, 3000, 3000, 3000, 3000, 3000, 0, 0, 0, 0),
-                2000M
+                -2000M
             };
             //Examples where it skips unpaid periods which have 0% in the profile pattern periods
             yield return new object[]
@@ -96,6 +96,20 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 20500M,
                 24000M,
                 NewDecimals(2000, 2000, 2000, 2000, 2000, 1499.99M, 1499.99M, 1499.99M, 1499.99M, 1499.99M, 1499.99M, 1500.06M, 0),
+                null
+            };
+            //example showing that we move remainder from final period to final none zero period to account for profiling code being incorrect for none zero periods
+            yield return new object[]
+            {
+                5,
+                NewDecimals(2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 0),
+                //the final period from the profiling code here illustrates a case where the remainder is dumped in the final period where it is zer0 % (so incorrectly)
+                NewDecimals(1708.33M, 1708.33M, 1708.33M, 1708.33M, 1708.33M, 1708.33M, 1708.33M, 1708.33M, 1708.33M, 1708.33M, 1708.33M, 1708.37M, 2),
+                NewDecimals(1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M, 1M, 0M),
+                20502M,
+                24000M,
+                //the re profiling code locates the remainder in the final period as incorrect and moves it to the final none zero percent period
+                NewDecimals(2000, 2000, 2000, 2000, 2000, 1499.99M, 1499.99M, 1499.99M, 1499.99M, 1499.99M, 1499.99M, 1502.06M, 0),
                 null
             };
         }

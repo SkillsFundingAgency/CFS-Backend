@@ -84,7 +84,7 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 22000M,
                 36000M,
                 NewDecimals(3000, 3000, 3000, 3000, 3000, 3000, 3000, 3000, 0, 0, 0, 0),
-                2000M
+                -2000M
             };
             #endregion
             
