@@ -39,9 +39,9 @@ steps:
    inputs:
      command: test
      projects: |
-      !**/CalculateFunding.Api.Profiling.IntegrationTests/*.csproj
-      **/CalculateFunding.Api.Profiling.Tests/*.csproj
-      **/CalculateFunding.Services.Profiling.*Tests/*.csproj     
+      **/CalculateFunding.Api.Profiling.*Tests/*.csproj
+      **/CalculateFunding.Services.Profiling.*Tests/*.csproj
+      !**/CalculateFunding.Api.Profiling.IntegrationTests/*.csproj     
 
      arguments: '--configuration Release /p:AssemblyVersion=$(Build.BuildNumber)'
   
