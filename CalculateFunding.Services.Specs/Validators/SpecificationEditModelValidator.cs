@@ -89,6 +89,11 @@ namespace CalculateFunding.Services.Specs.Validators
                                     context.AddFailure("Null or empty provider snapshot id");
                                 }
 
+                                if (fundingConfigResponse.Content.UpdateCoreProviderVersion == PolicyModels.UpdateCoreProviderVersion.Manual && specModel.CoreProviderVersionUpdates != CoreProviderVersionUpdates.Manual)
+                                {
+                                    context.AddFailure("Only able to use latest if the configuration allows it.");
+                                }
+
                                 break;
                             }
                     }

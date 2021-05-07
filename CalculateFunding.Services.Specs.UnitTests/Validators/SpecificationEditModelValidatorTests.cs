@@ -308,6 +308,10 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
 
             ISpecificationsRepository repository = CreateSpecificationsRepository();
             IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient(providerSource:ProviderSource.FDZ);
+            
+            policiesApiClient
+            .GetFundingConfiguration(Arg.Any<string>(), Arg.Any<string>())
+            .Returns(new ApiResponse<PolicyModels.FundingConfig.FundingConfiguration>(HttpStatusCode.OK, new PolicyModels.FundingConfig.FundingConfiguration { ProviderSource = ProviderSource.FDZ, UpdateCoreProviderVersion = PolicyModels.UpdateCoreProviderVersion.ToLatest }));
 
             SpecificationEditModelValidator validator = CreateValidator(repository, policiesApiClient: policiesApiClient);
 
@@ -320,6 +324,42 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
                 .Should()
                 .BeTrue();
         }
+
+        [TestMethod]
+        public void Validate_GivenCoreProviderVersionUpdatesUseLatestForFDZProviderSourceButConfigDisallowsIt_ValidIsFalse()
+        {
+            //Arrange
+            SpecificationEditModel model = CreateModel();
+            model.SpecificationId = "specId";
+            model.CoreProviderVersionUpdates = CoreProviderVersionUpdates.UseLatest;
+            model.ProviderSnapshotId = 1;
+
+            ISpecificationsRepository repository = CreateSpecificationsRepository();
+            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient(providerSource: ProviderSource.FDZ);
+
+            SpecificationEditModelValidator validator = CreateValidator(repository, policiesApiClient: policiesApiClient);
+
+            //Act
+            ValidationResult result = validator.Validate(model);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .BeFalse();
+
+            result
+                .Errors
+                .Count
+                .Should()
+                .Be(1);
+
+            result
+                .Errors.Select(x => x.ErrorMessage)
+                .Should()
+                .Contain("Only able to use latest if the configuration allows it.");
+        }
+
 
         private static SpecificationEditModel CreateModel()
         {
