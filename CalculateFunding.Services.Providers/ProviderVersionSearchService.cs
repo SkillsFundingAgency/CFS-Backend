@@ -431,7 +431,9 @@ namespace CalculateFunding.Services.Providers
                     ProviderSubTypeCode = m.Result.ProviderSubTypeCode,
                     PreviousLACode = m.Result.PreviousLACode,
                     PreviousLAName = m.Result.PreviousLAName,
-                    PreviousEstablishmentNumber = m.Result.PreviousEstablishmentNumber
+                    PreviousEstablishmentNumber = m.Result.PreviousEstablishmentNumber,
+                    Predecessors = m.Result.Predecessors,
+                    Successors = m.Result.Successors
                 });
             }
         }

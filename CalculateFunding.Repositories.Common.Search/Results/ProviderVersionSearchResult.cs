@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace CalculateFunding.Repositories.Common.Search.Results
 {
@@ -127,5 +128,9 @@ namespace CalculateFunding.Repositories.Common.Search.Results
         public string PreviousLAName { get; set; }
 
         public string PreviousEstablishmentNumber { get; set; }
+
+        public IEnumerable<string> Predecessors { get; set; }
+
+        public IEnumerable<string> Successors { get; set; }
     }
 }
