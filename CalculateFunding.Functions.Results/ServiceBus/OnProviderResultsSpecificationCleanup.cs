@@ -32,7 +32,7 @@ namespace CalculateFunding.Functions.Results.ServiceBus
             ServiceBusConstants.TopicSubscribers.CleanupCalculationResultsForSpecificationProviders,
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            await Run(message);
+            await base.Run(message);
         }
     }
 }
