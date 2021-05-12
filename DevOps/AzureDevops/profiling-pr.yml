@@ -14,7 +14,15 @@ variables:
    value: '1'
  - name: DOTNET_CLI_TELEMETRY_OPTOUT
    value: '1'
+ - name: ApiFrameworkVersion
+   value: 'netcoreapp3.1'
+ - name: BuildConfiguration
+   value: 'Release'
  - group: 'Dotnet Core SDK Version'
+ - group: 'Azure Settings Integration-v2'
+ - group: 'Smoke Test - Profiling - Integration-v2'
+ - group: 'Smoke Test - Profiling KV - Integration-v2'
+
 
 steps:
  - task: UseDotNet@2
@@ -68,3 +76,50 @@ steps:
      zipAfterPublish: false
      modifyOutputPath: false
      workingDirectory: CalculateFunding.Profiling.ConsoleConfig
+
+ - task: ArchiveFiles@2
+   displayName: 'Zip CalculateFunding.Api.Profiling.zip'
+   inputs:
+    rootFolderOrFile: 'CalculateFunding.Api.Profiling\bin\$(BuildConfiguration)\$(ApiFrameworkVersion)\publish'
+    includeRootFolder: false
+    archiveFile: '$(Build.ArtifactStagingDirectory)/CalculateFunding.Api.Profiling.zip'
+
+ - task: CopyFiles@2
+   displayName: "Copy DevOps Scripts"
+   inputs:
+    SourceFolder: DevOps
+    Contents: |
+      *.ps1
+      **/*.json
+      *.json
+    TargetFolder: '$(Build.ArtifactStagingDirectory)/DevOps'  
+
+ - task: AzureCLI@1
+   displayName: 'Deploy Profiling Api to Staging Slot'
+   inputs:
+     azureSubscription: 'dfe-gov-uk ADO to CFS in Azure Test'
+     scriptLocation: inlineScript
+     inlineScript: 'az webapp deployment source config-zip --resource-group $(ResourceGroup) --name app-$(EnvironmentKey)-profiling-$(productVersion) --src "$(Build.ArtifactStagingDirectory)/CalculateFunding.Api.Profiling.zip" --slot Staging'
+
+ - task: AzureCLI@2
+   displayName: 'Restart web app'
+   inputs:
+    azureSubscription: 'dfe-gov-uk ADO to CFS in Azure Test'
+    scriptType: pscore
+    scriptLocation: inlineScript
+    inlineScript: 'az webapp restart --name app-$(EnvironmentKey)-profiling-$(productVersion) --resource-group $(ResourceGroup)  --slot Staging'
+
+ - task: PowerShell@2
+   displayName: 'Run Smoke Test'
+   inputs:
+    targetType: filePath
+    filePath: '$(Build.ArtifactStagingDirectory)/DevOps/run-smoke-test-azure-ad.ps1'
+    arguments: '-url "https://app-$(EnvironmentKey)-profiling-$(productVersion)-staging.azurewebsites.net" -tokenServiceUrl "https://login.microsoftonline.com/$(SmokeTestTenantId)/oauth2/v2.0/token" -Scope "$(SmokeTestApplicationUrl)/.default" -ClientId $(SmokeTestClientID) -ClientSecret $(ProfilingAzureAdClientSecret) -httpVerb POST'
+
+ - task: PowerShell@2
+   displayName: 'Run PowerShell script to check API is secure'
+   inputs:
+    targetType: filePath
+    filePath: '$(Build.ArtifactStagingDirectory)/DevOps/checkApiSecureAzureAd.ps1'
+    arguments: '-url "https://app-$(EnvironmentKey)-profiling-$(productVersion)-staging.azurewebsites.net" -tokenServiceUrl "https://login.microsoftonline.com/$(SmokeTestTenantId)/oauth2/v2.0/token" -Scope "$(SmokeTestApplicationUrl)/.default" -ClientId $(SmokeTestClientID) -ClientSecret $(ProfilingAzureAdClientSecret) -httpVerb POST'
+
