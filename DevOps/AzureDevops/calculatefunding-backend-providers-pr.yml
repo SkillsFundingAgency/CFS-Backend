@@ -35,7 +35,8 @@ steps:
      **/*.*AcceptanceTests/*.csproj
      **/*.Api.*Tests/*.csproj
      **/*.Generators.*Tests/*.csproj
-    arguments: '--configuration Release /p:AssemblyVersion=$(Build.BuildNumber) --collect "Code coverage"'
+     !**/*.IntegrationTests/*.csproj
+    arguments: '--configuration Release --filter CategoryName!IntegrationTest --collect "Code coverage"'
 
 - task: DotNetCoreCLI@2
   displayName: 'dotnet publish'

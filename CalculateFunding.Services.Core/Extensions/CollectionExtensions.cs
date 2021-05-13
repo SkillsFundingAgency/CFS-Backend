@@ -27,6 +27,27 @@ namespace CalculateFunding.Services.Core.Extensions
             }
         }
 
+        public static void AddOrUpdateRange<TKey, TItem>(this IDictionary<TKey, TItem> dictionary,
+            IEnumerable<KeyValuePair<TKey, TItem>> itemsToAddOrUpdate)
+        {
+            Guard.ArgumentNotNull(dictionary, nameof(dictionary));
+            Guard.ArgumentNotNull(itemsToAddOrUpdate, nameof(itemsToAddOrUpdate));
+
+            foreach (KeyValuePair<TKey,TItem> keyValuePair in itemsToAddOrUpdate)
+            {
+                TKey key = keyValuePair.Key;
+                
+                if (dictionary.ContainsKey(key))
+                {
+                    dictionary[key] = keyValuePair.Value;
+                }
+                else
+                {
+                    dictionary.Add(keyValuePair);
+                }
+            }
+        }
+
         public static int IndexOf<T>(this IEnumerable<T> collection, Func<T, bool> predicate)
         {
             int index = 0;

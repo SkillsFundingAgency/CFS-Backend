@@ -258,7 +258,7 @@ namespace CalculateFunding.Services.Publishing
             // Create PublishedProvider for providers which don't already have a record (eg ProviderID-FundingStreamId-FundingPeriodId)
 
             _refreshStateService.AddRange(await _providerService.GenerateMissingPublishedProviders(scopedProviders.Values, specification, fundingStream, publishedProviders));
-            publishedProviders.AddRange(_refreshStateService.NewProviders);
+            publishedProviders.AddOrUpdateRange(_refreshStateService.NewProviders);
 
             // Get TemplateMapping for calcs from Calcs API client nuget
             ApiResponse<Common.ApiClient.Calcs.Models.TemplateMapping> calculationMappingResult = await _calculationsApiClientPolicy.ExecuteAsync(() => _calculationsApiClient.GetTemplateMapping(specification.Id, fundingStream.Id));
