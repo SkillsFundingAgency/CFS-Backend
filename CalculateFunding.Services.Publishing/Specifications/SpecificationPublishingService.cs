@@ -167,7 +167,13 @@ namespace CalculateFunding.Services.Publishing.Specifications
             }
             catch (JobPrereqFailedException ex)
             {
-                return new BadRequestObjectResult(new [] {$"Prerequisite check for refresh failed {ex.Message}"}.ToModelStateDictionary());
+                List<string> errorMessages = new List<string>() { $"Prerequisite check for refresh failed {ex.Message}" };
+                if (ex.Errors.AnyWithNullCheck())
+                {
+                    errorMessages.AddRange(ex.Errors);
+                }
+
+                return new BadRequestObjectResult(errorMessages.ToArray().ToModelStateDictionary());
             }
 
             ApiJob refreshFundingJob = await _refreshFundingJobs.CreateJob(specificationId, user, correlationId);

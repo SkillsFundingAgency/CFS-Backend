@@ -207,7 +207,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         {
             string fundingPeriodId = NewRandomString();
             string exceptionErrorMessage = "Error in the application.";
-            string preReqCheckFailedErrorMessage = $"Prerequisite check for refresh failed {exceptionErrorMessage}";
+            string preReqErrorMessage = "Profiling configuration missing";
+            string preReqCheckFailedExpectedErrorMessage = $"Prerequisite check for refresh failed {exceptionErrorMessage}";
 
             ApiSpecificationSummary specificationSummary =
                 NewApiSpecificationSummary(_ => _
@@ -220,19 +221,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             GivenTheApiResponseDetailsForTheSuppliedId(specificationSummary);
             AndTheApiResponseDetailsForTheFundingPeriodId(fundingPeriodId);
             AndGetPreReqCheckerLocatorReturnsRefreshPreReqChecker();
-            AndPrereqChecksFails(specificationSummary, message: exceptionErrorMessage);
+            AndPrereqChecksFails(specificationSummary, message: exceptionErrorMessage, errors: new[] { preReqErrorMessage});
 
             await WhenTheSpecificationIsPublished();
 
-            var result = ActionResult
+            ActionResult
                 .Should()
                 .BeOfType<BadRequestObjectResult>()
                 .Which
-                .Value;
-
-            ((result as ICollection<KeyValuePair<string, object>>).First().Value as string[]).First()
+                .Value
+                .As<ICollection<KeyValuePair<string, object>>>()
+                .First()
+                .Value
                 .Should()
-                .Be(preReqCheckFailedErrorMessage);
+                .BeEquivalentTo(new[] { preReqCheckFailedExpectedErrorMessage, preReqErrorMessage });
         }
 
         [TestMethod]
