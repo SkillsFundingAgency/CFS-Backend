@@ -2,23 +2,23 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Providers;
+using CalculateFunding.Common.ApiClient.Providers.Models.Search;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
+using CalculateFunding.Services.Core.Constants;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
-using Serilog;
 using Polly;
-using AutoMapper;
+using Serilog;
 using ApiProviderVersion = CalculateFunding.Common.ApiClient.Providers.Models.ProviderVersion;
 using PublishedProvider = CalculateFunding.Models.Publishing.PublishedProvider;
-using CalculateFunding.Models.Publishing;
-using CalculateFunding.Common.ApiClient.Providers.Models.Search;
-using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Common.JobManagement;
-using CalculateFunding.Services.Core.Constants;
 
 namespace CalculateFunding.Services.Publishing.Providers
 {
@@ -150,13 +150,13 @@ namespace CalculateFunding.Services.Publishing.Providers
             return scopedProvidersInVersion;
         }
 
-        public async Task<IDictionary<string, PublishedProvider>> GenerateMissingPublishedProviders(IEnumerable<Provider> scopedProviders,
+        public IDictionary<string, PublishedProvider> GenerateMissingPublishedProviders(IEnumerable<Provider> scopedProviders,
             SpecificationSummary specification,
             Reference fundingStream,
             IDictionary<string, PublishedProvider> publishedProviders)
         {
             string specificationId = specification?.Id;
-            string specificationFundingPeriodId = await _policiesService.GetFundingPeriodId( specification?.FundingPeriod?.Id);
+            string specificationFundingPeriodId = specification?.FundingPeriod?.Id;
             string fundingStreamId = fundingStream?.Id;
 
             if (specificationId.IsNullOrWhitespace())
@@ -186,7 +186,7 @@ namespace CalculateFunding.Services.Publishing.Providers
                 .ToDictionary(_ => _.Current.ProviderId, _ => _);
         }
 
-        public async Task<(IDictionary<string, PublishedProvider> PublishedProvidersForFundingStream, IDictionary<string, PublishedProvider> ScopedPublishedProviders)> 
+        public async Task<(IDictionary<string, PublishedProvider> PublishedProvidersForFundingStream, IDictionary<string, PublishedProvider> ScopedPublishedProviders)>
             GetPublishedProviders(Reference fundingStream, SpecificationSummary specification)
         {
             IDictionary<string, PublishedProvider> publishedProvidersForFundingStream = await GetPublishedProvidersForFundingStream(fundingStream, specification);
@@ -221,7 +221,7 @@ namespace CalculateFunding.Services.Publishing.Providers
                             _logger.Error(error);
                             throw new ArgumentOutOfRangeException("Successor");
                         }
-                    }    
+                    }
                 }
             }
 
@@ -232,7 +232,7 @@ namespace CalculateFunding.Services.Publishing.Providers
             Reference fundingStream, SpecificationSummary specification)
         {
             _logger.Information($"Retrieving published provider results for {fundingStream.Id} in specification {specification.Id}");
-            
+
             IEnumerable<PublishedProvider> publishedProvidersResult =
                 await _publishedFundingDataService.GetCurrentPublishedProviders(fundingStream.Id, specification.FundingPeriod.Id);
 
@@ -268,7 +268,7 @@ namespace CalculateFunding.Services.Publishing.Providers
                 "Created by the system as not in scope but referenced as a successor provider",
                 predecessorProviderVersion.FundingLines.DeepCopy());
 
-            foreach (ProfilePeriod profilePeriod in missingProvider.Current.FundingLines.SelectMany(_ => 
+            foreach (ProfilePeriod profilePeriod in missingProvider.Current.FundingLines.SelectMany(_ =>
                 _.DistributionPeriods.SelectMany(dp => dp.ProfilePeriods)))
             {
                 profilePeriod.ProfiledValue = 0;
@@ -277,10 +277,10 @@ namespace CalculateFunding.Services.Publishing.Providers
             return missingProvider;
         }
 
-        private PublishedProvider CreatePublishedProvider(Provider provider, 
-            string fundingPeriod, 
-            string fundingStreamId, 
-            string specificationId, 
+        private PublishedProvider CreatePublishedProvider(Provider provider,
+            string fundingPeriod,
+            string fundingStreamId,
+            string specificationId,
             string comment,
             IEnumerable<FundingLine> fundingLines = null)
         {

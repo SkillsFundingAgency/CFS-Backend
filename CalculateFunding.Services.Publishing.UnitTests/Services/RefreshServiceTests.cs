@@ -32,7 +32,6 @@ using CalculateFunding.Services.Publishing.Variations.Strategies;
 using FluentAssertions;
 using FluentAssertions.Common;
 using Microsoft.Azure.ServiceBus;
-using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Polly;
@@ -125,7 +124,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             };
             _specificationsApiClient = new Mock<ISpecificationsApiClient>();
             _specificationService = new SpecificationService(_specificationsApiClient.Object, _publishingResiliencePolicies);
-            
+
             _profileVariationPointers = ArraySegment<ProfileVariationPointer>.Empty;
 
             _specificationsApiClient.Setup(_ =>
@@ -155,10 +154,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _prerequisiteCheckerLocator.Setup(_ => _.GetPreReqChecker(PrerequisiteCheckerType.Refresh))
                 .Returns(new RefreshPrerequisiteChecker(
                     _specificationFundingStatusService.Object,
-                _specificationService, 
-                _jobsRunning.Object, 
-                _calculationApprovalCheckerService.Object, 
-                _jobManagement.Object, 
+                _specificationService,
+                _jobsRunning.Object,
+                _calculationApprovalCheckerService.Object,
+                _jobManagement.Object,
                 _logger.Object,
                 _policiesService.Object,
                 _profilingService.Object,
@@ -188,7 +187,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Select(_ => (IVariationStrategy)Activator.CreateInstance(_))
                 .ToArray();
 
-            variationStrategies = variationStrategies.Concat(new[] {(IVariationStrategy) new ClosureWithSuccessorVariationStrategy(_providerService.Object) }).ToArray();
+            variationStrategies = variationStrategies.Concat(new[] { (IVariationStrategy)new ClosureWithSuccessorVariationStrategy(_providerService.Object) }).ToArray();
 
             _batchProfilingService = new Mock<IBatchProfilingService>();
 
@@ -393,7 +392,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             await WhenMessageReceivedWithJobIdAndCorrelationId();
 
             _publishedProviderStatusUpdateService
-                .Verify(_ => _.UpdatePublishedProviderStatus(It.Is<IEnumerable<PublishedProvider>>(_ => _.Count() == 1 
+                .Verify(_ => _.UpdatePublishedProviderStatus(It.Is<IEnumerable<PublishedProvider>>(_ => _.Count() == 1
                         && _.Single().Current.ProviderId == outOfScopeProviderId
                         && _.Single().Current.Errors.Single().Type.Equals(PublishedProviderErrorType.PostPaymentOutOfScopeProvider)),
                     It.IsAny<Reference>(),
@@ -654,7 +653,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         public async Task RefreshResults_WhenProfilingExistingProvider_ShouldUseProfilePatternKeySavedInTheProvider()
         {
             string profilePatternKey = NewRandomString();
-            
+
             GivenJobCanBeProcessed();
             AndSpecification();
             AndCalculationResultsBySpecificationId();
@@ -896,8 +895,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         }
 
         private void AndScopedProviders(
-            Action<Provider[]> variationAction = null, 
-            string profilePatternKeyPrefix = null, 
+            Action<Provider[]> variationAction = null,
+            string profilePatternKeyPrefix = null,
             bool includeTemplateContents = true,
             PublishedProviderStatus publishedProviderStatus = PublishedProviderStatus.Updated,
             Provider[] scopedProviders = null)
@@ -950,7 +949,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         {
             _providerService
                 .Setup(_ => _.GenerateMissingPublishedProviders(It.IsAny<IEnumerable<Provider>>(), It.IsAny<SpecificationSummary>(), It.IsAny<Reference>(), It.IsAny<IDictionary<string, PublishedProvider>>()))
-                .ReturnsAsync((publishedProviders ?? new List<PublishedProvider>()).ToDictionary(x => x.Current.ProviderId));
+                .Returns((publishedProviders ?? new List<PublishedProvider>()).ToDictionary(x => x.Current.ProviderId));
         }
 
         private void AndJobsRunning()

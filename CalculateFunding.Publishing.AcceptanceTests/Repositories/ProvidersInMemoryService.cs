@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using CalculateFunding.Models.Publishing;
-using CalculateFunding.Common.Utility;
-using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Publishing.Interfaces;
 
 namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 {
@@ -80,13 +80,13 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             return Task.FromResult(_scopedProviders[specificationId].Keys.AsEnumerable());
         }
 
-        public Task<(IDictionary<string, PublishedProvider> PublishedProvidersForFundingStream, IDictionary<string, PublishedProvider> ScopedPublishedProviders)> 
+        public Task<(IDictionary<string, PublishedProvider> PublishedProvidersForFundingStream, IDictionary<string, PublishedProvider> ScopedPublishedProviders)>
             GetPublishedProviders(Reference fundingStream, SpecificationSummary specification)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<IDictionary<string, PublishedProvider>> GenerateMissingPublishedProviders(IEnumerable<Provider> scopedProviders, SpecificationSummary specification, Reference fundingStream, IDictionary<string, PublishedProvider> publishedProviders)
+        public IDictionary<string, PublishedProvider> GenerateMissingPublishedProviders(IEnumerable<Provider> scopedProviders, SpecificationSummary specification, Reference fundingStream, IDictionary<string, PublishedProvider> publishedProviders)
         {
             throw new NotImplementedException();
         }

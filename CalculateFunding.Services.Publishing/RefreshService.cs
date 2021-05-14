@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Models;
@@ -257,7 +256,7 @@ namespace CalculateFunding.Services.Publishing
 
             // Create PublishedProvider for providers which don't already have a record (eg ProviderID-FundingStreamId-FundingPeriodId)
 
-            _refreshStateService.AddRange(await _providerService.GenerateMissingPublishedProviders(scopedProviders.Values, specification, fundingStream, publishedProviders));
+            _refreshStateService.AddRange(_providerService.GenerateMissingPublishedProviders(scopedProviders.Values, specification, fundingStream, publishedProviders));
             publishedProviders.AddOrUpdateRange(_refreshStateService.NewProviders);
 
             // Get TemplateMapping for calcs from Calcs API client nuget
