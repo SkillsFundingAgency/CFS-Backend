@@ -1,0 +1,36 @@
+﻿@page
+@model CalculateFunding.Editor.FundingDataZone.Pages.ProviderStatusOptions.IndexModel
+@{
+}
+
+<div class="text-right spacing-m">
+    <a class="btn btn-info" asp-page="/ProviderStatusOptions/CreateProviderStatus">Add provider status</a>
+</div>
+
+
+@if (Model.Statuses.Any())
+{
+    <table class="table">
+        <thead>
+            <tr>
+
+                <th>Status</th>
+                <th>Id</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var fundingStream in Model.Statuses)
+            {
+                <tr>
+                    <td>@fundingStream.ProviderStatusName</td>
+                    <td>@fundingStream.ProviderStatusId</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+}
+else
+{
+    <p class="alert alert-info">No provider status items exist in this environment</p>
+}

@@ -1,0 +1,19 @@
+﻿@page
+@model CalculateFunding.Editor.FundingDataZone.Pages.FundingStreams.CreateFundingStreamModel
+@{
+}
+
+<form method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="mb-3">
+        <label asp-for="Name"></label>
+        <input type="text" class="form-control" asp-for="Name">
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label for="fundingStreamCode">Code</label>
+        <input type="text" class="form-control" id="fundingStreamCode" asp-for="Code">
+        <span asp-validation-for="Code" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">Add funding stream</button>
+</form>

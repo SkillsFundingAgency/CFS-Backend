@@ -1,0 +1,378 @@
+﻿@page "/providers/{providerSnapshotId:int}/{providerId:int}"
+@model CalculateFunding.Editor.FundingDataZone.Pages.Provider.ProviderDetailModel
+@{
+}
+
+<nav class="nav">
+    <a class="nav-link" asp-page="/Providers/ProvidersInSnapshot" asp-route-providerSnapshotId="@Model.RouteData.Values["ProviderSnapshotId"]">Providers</a>
+    <a class="nav-link" asp-page="/PaymentOrganisations/Index" asp-route-providerSnapshotId="@Model.RouteData.Values["ProviderSnapshotId"]">Payment organisations</a>
+</nav>
+
+<h2>Edit provider details</h2>
+<datalist id="organisations">
+    @foreach (var organisation in Model.PaymentOrganisations)
+    {
+        <option value="@organisation.Ukprn"></option>
+    }
+</datalist>
+<datalist id="providers">
+    @foreach (var provider in Model.Providers)
+    {
+        <option value="@provider.UKPRN"></option>
+    }
+</datalist>
+<datalist id="statuses">
+    @foreach (var status in Model.Statuses)
+    {
+        <option value="@status.ProviderStatusName"></option>
+    }
+</datalist>
+<form method="post" autocomplete="off">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="mb-3">
+        <label asp-for="Provider.Name"></label>
+        <input asp-for="Provider.Name" type="text" class="form-control">
+        <span asp-validation-for="Provider.Name" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.URN"></label>
+        <input asp-for="Provider.URN" type="text" class="form-control">
+        <span asp-validation-for="Provider.URN" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.UKPRN"></label>
+        <input asp-for="Provider.UKPRN" type="text" class="form-control">
+        <span asp-validation-for="Provider.UKPRN" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.UPIN"></label>
+        <input asp-for="Provider.UPIN" type="text" class="form-control">
+        <span asp-validation-for="Provider.UPIN" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.EstablishmentNumber"></label>
+        <input asp-for="Provider.EstablishmentNumber" type="text" class="form-control">
+        <span asp-validation-for="Provider.EstablishmentNumber" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.DfeEstablishmentNumber"></label>
+        <input asp-for="Provider.DfeEstablishmentNumber" type="text" class="form-control">
+        <span asp-validation-for="Provider.DfeEstablishmentNumber" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.DfeEstablishmentNumber"></label>
+        <input asp-for="Provider.DfeEstablishmentNumber" type="text" class="form-control">
+        <span asp-validation-for="Provider.DfeEstablishmentNumber" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.Authority"></label>
+        <input asp-for="Provider.Authority" type="text" class="form-control">
+        <span asp-validation-for="Provider.Authority" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.ProviderType"></label>
+        <input asp-for="Provider.ProviderType" type="text" class="form-control">
+        <span asp-validation-for="Provider.ProviderType" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.ProviderSubType"></label>
+        <input asp-for="Provider.ProviderSubType" type="text" class="form-control">
+        <span asp-validation-for="Provider.ProviderSubType" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.StatusCode"></label>
+        <input asp-for="Provider.StatusCode" type="text" class="form-control">
+        <span asp-validation-for="Provider.StatusCode" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.DateOpened"></label>
+        <input asp-for="Provider.DateOpened" type="date" class="form-control">
+        <span asp-validation-for="Provider.DateOpened" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.DateClosed"></label>
+        <input asp-for="Provider.DateClosed" type="date" class="form-control">
+        <span asp-validation-for="Provider.DateClosed" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.LACode"></label>
+        <input asp-for="Provider.LACode" type="text" class="form-control">
+        <span asp-validation-for="Provider.LACode" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.NavVendorNo"></label>
+        <input asp-for="Provider.NavVendorNo" type="text" class="form-control">
+        <span asp-validation-for="Provider.NavVendorNo" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.CrmAccountId"></label>
+        <input asp-for="Provider.CrmAccountId" type="text" class="form-control">
+        <span asp-validation-for="Provider.CrmAccountId" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.LegalName"></label>
+        <input asp-for="Provider.LegalName" type="text" class="form-control">
+        <span asp-validation-for="Provider.LegalName" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.Status"></label>
+        <input asp-for="Provider.Status" list="statuses" type="text" class="form-control">
+        <span asp-validation-for="Provider.Status" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.PhaseOfEducation"></label>
+        <input asp-for="Provider.PhaseOfEducation" type="text" class="form-control">
+        <span asp-validation-for="Provider.PhaseOfEducation" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.ReasonEstablishmentOpened"></label>
+        <input asp-for="Provider.ReasonEstablishmentOpened" type="text" class="form-control">
+        <span asp-validation-for="Provider.ReasonEstablishmentOpened" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.ReasonEstablishmentClosed"></label>
+        <input asp-for="Provider.ReasonEstablishmentClosed" type="text" class="form-control">
+        <span asp-validation-for="Provider.ReasonEstablishmentClosed" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.Successor"></label>
+        <input asp-for="Provider.Successor" type="text" class="form-control">
+        <span asp-validation-for="Provider.Successor" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.Town"></label>
+        <input asp-for="Provider.Town" type="text" class="form-control">
+        <span asp-validation-for="Provider.Town" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.Postcode"></label>
+        <input asp-for="Provider.Postcode" type="text" class="form-control">
+        <span asp-validation-for="Provider.Postcode" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Provider.TrustName"></label>
+        <input asp-for="Provider.TrustName" type="text" class="form-control">
+        <span asp-validation-for="Provider.TrustName" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Provider.TrustCode"></label>
+        <input asp-for="Provider.TrustCode" type="text" class="form-control">
+        <span asp-validation-for="Provider.TrustCode" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Provider.LocalAuthorityName"></label>
+        <input asp-for="Provider.LocalAuthorityName" type="text" class="form-control">
+        <span asp-validation-for="Provider.LocalAuthorityName" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Provider.CompaniesHouseNumber"></label>
+        <input asp-for="Provider.CompaniesHouseNumber" type="text" class="form-control">
+        <span asp-validation-for="Provider.CompaniesHouseNumber" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.GroupIdNumber"></label>
+        <input asp-for="Provider.GroupIdNumber" type="text" class="form-control">
+        <span asp-validation-for="Provider.GroupIdNumber" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Provider.RscRegionName"></label>
+        <input asp-for="Provider.RscRegionName" type="text" class="form-control">
+        <span asp-validation-for="Provider.RscRegionName" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.RscRegionCode"></label>
+        <input asp-for="Provider.RscRegionCode" type="text" class="form-control">
+        <span asp-validation-for="Provider.RscRegionCode" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Provider.GovernmentOfficeRegionName"></label>
+        <input asp-for="Provider.GovernmentOfficeRegionName" type="text" class="form-control">
+        <span asp-validation-for="Provider.GovernmentOfficeRegionName" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.GovernmentOfficeRegionCode"></label>
+        <input asp-for="Provider.GovernmentOfficeRegionCode" type="text" class="form-control">
+        <span asp-validation-for="Provider.GovernmentOfficeRegionCode" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.DistrictName"></label>
+        <input asp-for="Provider.DistrictName" type="text" class="form-control">
+        <span asp-validation-for="Provider.DistrictName" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.DistrictCode"></label>
+        <input asp-for="Provider.DistrictCode" type="text" class="form-control">
+        <span asp-validation-for="Provider.DistrictCode" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.WardName"></label>
+        <input asp-for="Provider.WardName" type="text" class="form-control">
+        <span asp-validation-for="Provider.WardName" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.WardCode"></label>
+        <input asp-for="Provider.WardCode" type="text" class="form-control">
+        <span asp-validation-for="Provider.WardCode" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.CensusWardName"></label>
+        <input asp-for="Provider.CensusWardName" type="text" class="form-control">
+        <span asp-validation-for="Provider.CensusWardName" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.CensusWardCode"></label>
+        <input asp-for="Provider.CensusWardCode" type="text" class="form-control">
+        <span asp-validation-for="Provider.CensusWardCode" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.MiddleSuperOutputAreaName"></label>
+        <input asp-for="Provider.MiddleSuperOutputAreaName" type="text" class="form-control">
+        <span asp-validation-for="Provider.MiddleSuperOutputAreaName" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.MiddleSuperOutputAreaCode"></label>
+        <input asp-for="Provider.MiddleSuperOutputAreaCode" type="text" class="form-control">
+        <span asp-validation-for="Provider.MiddleSuperOutputAreaCode" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.LowerSuperOutputAreaName"></label>
+        <input asp-for="Provider.LowerSuperOutputAreaName" type="text" class="form-control">
+        <span asp-validation-for="Provider.LowerSuperOutputAreaName" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.LowerSuperOutputAreaCode"></label>
+        <input asp-for="Provider.LowerSuperOutputAreaCode" type="text" class="form-control">
+        <span asp-validation-for="Provider.LowerSuperOutputAreaCode" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.ParliamentaryConstituencyName"></label>
+        <input asp-for="Provider.ParliamentaryConstituencyName" type="text" class="form-control">
+        <span asp-validation-for="Provider.ParliamentaryConstituencyName" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.ParliamentaryConstituencyCode"></label>
+        <input asp-for="Provider.ParliamentaryConstituencyCode" type="text" class="form-control">
+        <span asp-validation-for="Provider.ParliamentaryConstituencyCode" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.CountryCode"></label>
+        <input asp-for="Provider.CountryCode" type="text" class="form-control">
+        <span asp-validation-for="Provider.CountryCode" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.CountryName"></label>
+        <input asp-for="Provider.CountryName" type="text" class="form-control">
+        <span asp-validation-for="Provider.CountryName" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.LocalGovernmentGroupTypeCode"></label>
+        <input asp-for="Provider.LocalGovernmentGroupTypeCode" type="text" class="form-control">
+        <span asp-validation-for="Provider.LocalGovernmentGroupTypeCode" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.LocalGovernmentGroupTypeName"></label>
+        <input asp-for="Provider.LocalGovernmentGroupTypeName" type="text" class="form-control">
+        <span asp-validation-for="Provider.LocalGovernmentGroupTypeName" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.TrustStatus"></label>
+        <input asp-for="Provider.TrustStatus" type="text" class="form-control">
+        <span asp-validation-for="Provider.TrustStatus" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.ProviderTypeCode"></label>
+        <input asp-for="Provider.ProviderTypeCode" type="text" class="form-control">
+        <span asp-validation-for="Provider.ProviderTypeCode" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.ProviderSubTypeCode"></label>
+        <input asp-for="Provider.ProviderSubTypeCode" type="text" class="form-control">
+        <span asp-validation-for="Provider.ProviderSubTypeCode" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.ReasonEstablishmentOpenedCode"></label>
+        <input asp-for="Provider.ReasonEstablishmentOpenedCode" type="text" class="form-control">
+        <span asp-validation-for="Provider.ReasonEstablishmentOpenedCode" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.ReasonEstablishmentClosedCode"></label>
+        <input asp-for="Provider.ReasonEstablishmentClosedCode" type="text" class="form-control">
+        <span asp-validation-for="Provider.ReasonEstablishmentClosedCode" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.PhaseOfEducationCode"></label>
+        <input asp-for="Provider.PhaseOfEducationCode" type="text" class="form-control">
+        <span asp-validation-for="Provider.PhaseOfEducationCode" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.StatutoryLowAge"></label>
+        <input asp-for="Provider.StatutoryLowAge" type="text" class="form-control">
+        <span asp-validation-for="Provider.StatutoryLowAge" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.StatutoryHighAge"></label>
+        <input asp-for="Provider.StatutoryHighAge" type="text" class="form-control">
+        <span asp-validation-for="Provider.StatutoryHighAge" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.OfficialSixthFormCode"></label>
+        <input asp-for="Provider.OfficialSixthFormCode" type="text" class="form-control">
+        <span asp-validation-for="Provider.OfficialSixthFormCode" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.OfficialSixthFormName"></label>
+        <input asp-for="Provider.OfficialSixthFormName" type="text" class="form-control">
+        <span asp-validation-for="Provider.OfficialSixthFormName" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.PreviousLaCode"></label>
+        <input asp-for="Provider.PreviousLaCode" type="text" class="form-control">
+        <span asp-validation-for="Provider.PreviousLaCode" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.PreviousLaName"></label>
+        <input asp-for="Provider.PreviousLaName" type="text" class="form-control">
+        <span asp-validation-for="Provider.PreviousLaName" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.PreviousEstablishmentNumber"></label>
+        <input asp-for="Provider.PreviousEstablishmentNumber" type="text" class="form-control">
+        <span asp-validation-for="Provider.PreviousEstablishmentNumber" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.PaymentOrganisationUkprn"></label>
+        <input asp-for="Provider.PaymentOrganisationUkprn" type="text" list="organisations" class="form-control">
+        <span asp-validation-for="Provider.PaymentOrganisationUkprn" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.Predecessors"></label>
+        <input class="form-control flexdatalist" asp-for="Provider.Predecessors" type="text" multiple="multiple" list="providers">
+        <span asp-validation-for="Provider.Predecessors" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provider.Successors"></label>
+        <input class="form-control flexdatalist" asp-for="Provider.Successors" type="text" multiple="multiple" list="providers">
+        <span asp-validation-for="Provider.Successors" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <div class="form-check">
+            <input class="form-check-input" asp-for="Provider.Indicative" type="checkbox">
+            <label asp-for="Provider.Indicative"></label>
+            <span asp-validation-for="Provider.Indicative" class="text-danger"></span>
+        </div>
+    </div>
+    <input asp-for="ProviderId" type="hidden" class="form-control">
+    <input asp-for="ProviderSnapshotId" type="hidden" class="form-control">
+    <button type="submit" class="btn btn-primary">Save provider details</button>
+</form>
+<script>
+    $('.flexdatalist').flexdatalist({
+        minLength: 1
+    });
+</script>

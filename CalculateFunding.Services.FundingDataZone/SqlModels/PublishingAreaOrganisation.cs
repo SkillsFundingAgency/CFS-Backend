@@ -1,7 +1,11 @@
-﻿namespace CalculateFunding.Services.FundingDataZone.SqlModels
+﻿using Dapper.Contrib.Extensions;
+
+namespace CalculateFunding.Services.FundingDataZone.SqlModels
 {
+    [Table("PaymentOrganisation")]
     public class PublishingAreaOrganisation
     {
+        [Key]
         public int PaymentOrganisationId { get; set; }
 
         public int ProviderSnapshotId { get; set; }

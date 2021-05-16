@@ -1,0 +1,36 @@
+﻿@page
+@model CalculateFunding.Editor.FundingDataZone.Pages.FundingStreams.IndexModel
+@{
+}
+
+<div class="text-right spacing-m">
+    <a class="btn btn-info" asp-page="/FundingStreams/CreateFundingStream">Add funding stream</a>
+</div>
+
+
+@if (Model.FundingStreams.Any())
+{
+    <table class="table">
+        <thead>
+            <tr>
+
+                <th>Name</th>
+                <th>Code</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var fundingStream in Model.FundingStreams)
+            {
+                <tr>
+                    <td>@fundingStream.FundingStreamName</td>
+                    <td>@fundingStream.FundingStreamCode</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+}
+else
+{
+    <p class="alert alert-info">No funding streams exist in this environment</p>
+}

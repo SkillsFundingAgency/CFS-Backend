@@ -1,0 +1,37 @@
+﻿@page
+@model CalculateFunding.Editor.FundingDataZone.Pages.ProviderSnapshots.CreateProviderSnapshotModel
+@{
+}
+
+<h2>Create provider snapshot</h2>
+<form method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="mb-3">
+        <label asp-for="ProviderSnapshot.Name"></label>
+        <input asp-for="ProviderSnapshot.Name" type="text" class="form-control">
+        <span asp-validation-for="ProviderSnapshot.Name" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="ProviderSnapshot.Description"></label>
+        <input asp-for="ProviderSnapshot.Description" type="text" class="form-control">
+        <span asp-validation-for="ProviderSnapshot.Description" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="ProviderSnapshot.Version"></label>
+        <input asp-for="ProviderSnapshot.Version" type="number" class="form-control" value="1">
+        <span asp-validation-for="ProviderSnapshot.Version" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="ProviderSnapshot.TargetDate"></label>
+        <input asp-for="ProviderSnapshot.TargetDate" type="date" class="form-control">
+        <span asp-validation-for="ProviderSnapshot.TargetDate" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="ProviderSnapshot.FundingStreamId"></label>
+        <select asp-for="ProviderSnapshot.FundingStreamId" asp-items="Model.FundingStreams" class="form-control">
+            <option></option>
+        </select>
+        <span asp-validation-for="ProviderSnapshot.FundingStreamId" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">Create provider snapshot</button>
+</form>

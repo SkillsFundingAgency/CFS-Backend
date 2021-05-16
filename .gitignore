@@ -320,3 +320,4 @@ __pycache__/
 
 **/Properties/serviceDependencies.json
 **/Properties/serviceDependencies.local.json
+CalculateFunding.Editor.FundingDataZone/wwwroot/lib/

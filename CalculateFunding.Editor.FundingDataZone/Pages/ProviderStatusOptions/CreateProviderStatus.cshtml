@@ -1,0 +1,19 @@
+﻿@page
+@model CalculateFunding.Editor.FundingDataZone.Pages.ProviderStatusOptions.CreateProviderStatusModel
+@{
+}
+
+<form method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="mb-3">
+        <label asp-for="Id">Id</label>
+        <input type="text" class="form-control" asp-for="Id">
+        <span asp-validation-for="Id" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Name">Name</label>
+        <input type="text" class="form-control" aria-describedby="fundingStreamNameHelp" asp-for="Name">
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">Add provider status</button>
+</form>

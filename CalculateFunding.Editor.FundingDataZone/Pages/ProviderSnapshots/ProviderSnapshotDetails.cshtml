@@ -1,0 +1,44 @@
+﻿@page "/providersnapshots/{providerSnapshotId:int}"
+@model CalculateFunding.Editor.FundingDataZone.Pages.ProviderSnapshots.ProviderSnapshotDetailsModel
+@{
+}
+
+<nav class="nav">
+    <a class="nav-link" asp-page="/Providers/ProvidersInSnapshot" asp-route-providerSnapshotId="@Model.RouteData.Values["ProviderSnapshotId"]">Providers</a>
+    <a class="nav-link" asp-page="/PaymentOrganisations/Index" asp-route-providerSnapshotId="@Model.RouteData.Values["ProviderSnapshotId"]">Payment organisations</a>
+</nav>
+
+<h2>Edit provider snapshot</h2>
+<form method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="mb-3">
+        <label asp-for="ProviderSnapshot.Name"></label>
+        <input asp-for="ProviderSnapshot.Name" type="text" class="form-control">
+        <span asp-validation-for="ProviderSnapshot.Name" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="ProviderSnapshot.Description"></label>
+        <input asp-for="ProviderSnapshot.Description" type="text" class="form-control">
+        <span asp-validation-for="ProviderSnapshot.Description" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="ProviderSnapshot.Version"></label>
+        <input asp-for="ProviderSnapshot.Version" type="number" class="form-control" value="1">
+        <span asp-validation-for="ProviderSnapshot.Version" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="ProviderSnapshot.TargetDate"></label>
+        <input asp-for="ProviderSnapshot.TargetDate" type="date" class="form-control">
+        <span asp-validation-for="ProviderSnapshot.TargetDate" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="ProviderSnapshot.FundingStreamId"></label>
+        <select asp-for="ProviderSnapshot.FundingStreamId" asp-items="Model.FundingStreams" class="form-control">
+            <option></option>
+        </select>
+        <span asp-validation-for="ProviderSnapshot.FundingStreamId" class="text-danger"></span>
+    </div>
+    <input asp-for="ProviderSnapshotId" type="hidden" class="form-control">
+    <input asp-for="Created" type="hidden" class="form-control">
+    <button type="submit" class="btn btn-primary">Save provider snapshot</button>
+</form>

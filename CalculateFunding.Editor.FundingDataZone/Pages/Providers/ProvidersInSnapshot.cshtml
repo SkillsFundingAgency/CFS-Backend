@@ -1,0 +1,73 @@
+﻿@page "/providersnapshots/{providerSnapshotId:int}/providers"
+@model CalculateFunding.Editor.FundingDataZone.Pages.Providers.ProvidersInSnapshotModel
+@{
+}
+
+<nav class="nav">
+    <a class="nav-link active" asp-page="/Providers/ProvidersInSnapshot" asp-route-providerSnapshotId="@Model.RouteData.Values["ProviderSnapshotId"]">Providers</a>
+    <a class="nav-link" asp-page="/PaymentOrganisations/Index" asp-route-providerSnapshotId="@Model.RouteData.Values["ProviderSnapshotId"]">Payment organisations</a>
+</nav>
+
+@if (Model.Providers.Any())
+{
+    <table class="table">
+        <thead>
+            <tr>
+
+                <th>Ukprn</th>
+                <th>Name</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var provider in Model.Providers)
+            {
+                <tr>
+                    <td>@provider.Ukprn</td>
+                    <td>@provider.Name</td>
+                    <td><a asp-page="/Providers/ProviderDetail" asp-route-providerSnapShotId="@Model.RouteData.Values["ProviderSnapshotId"]" asp-route-providerId="@provider.Ukprn">Edit</a></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (Model.TotalPages > 1)
+    {
+        <!-- pager -->
+        <nav class="table-responsive">
+            <ul class="pagination justify-content-center d-flex flex-wrap">
+                @if (Model.CurrentPage > 1)
+                {
+                    <li class="page-item">
+                        <a class="page-link" asp-page="/Providers/ProvidersInSnapshot" asp-route-providerSnapshotId="@Model.RouteData.Values["ProviderSnapshotId"]">First</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" asp-page="/Providers/ProvidersInSnapshot" asp-route-providerSnapshotId="@Model.RouteData.Values["ProviderSnapshotId"]" asp-route-pageNumber="@(Model.CurrentPage - 1)">Previous</a>
+                    </li>
+                }
+
+                @for (int pageNumber = 1; pageNumber <= Model.TotalPages; pageNumber++)
+                {
+                    <li class="page-item @(pageNumber == Model.CurrentPage ? "active" : "")">
+                        <a class="page-link" asp-page="/Providers/ProvidersInSnapshot" asp-route-providerSnapshotId="@Model.RouteData.Values["ProviderSnapshotId"]" asp-route-pageNumber="@pageNumber">@pageNumber</a>
+                    </li>
+                }
+
+                @if (Model.CurrentPage < Model.TotalPages)
+                {
+                    <li class="page-item">
+                        <a class="page-link" asp-page="/Providers/ProvidersInSnapshot" asp-route-providerSnapshotId="@Model.RouteData.Values["ProviderSnapshotId"]" asp-route-pageNumber="@(Model.CurrentPage + 1)">Next</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" asp-page="/Providers/ProvidersInSnapshot" asp-route-providerSnapshotId="@Model.RouteData.Values["ProviderSnapshotId"]" asp-route-pageNumber="@Model.TotalPages">Last</a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
+
+}
+else
+{
+    <p class="alert alert-info">No providers exist in this snapshot</p>
+}

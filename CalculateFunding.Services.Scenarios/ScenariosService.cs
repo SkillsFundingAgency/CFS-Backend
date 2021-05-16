@@ -84,8 +84,7 @@ namespace CalculateFunding.Services.Scenarios
             _specificationsApiClient = specificationsApiClient;
             _createNewTestScenarioVersionValidator = createNewTestScenarioVersionValidator;
             _searchRepository = searchRepository;
-            _cacheProvider = cacheProvider;          
-            _cacheProvider = cacheProvider;
+            _cacheProvider = cacheProvider;  
             _versionRepository = versionRepository;
             _jobManagement = jobManagement;
             _calcsRepository = calcsRepository;

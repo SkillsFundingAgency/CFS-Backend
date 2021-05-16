@@ -381,9 +381,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.UnitTests.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.UnitTests.ApiClientHelpers.Jobs", "CalculateFunding.UnitTests.ApiClientHelpers.Jobs\CalculateFunding.UnitTests.ApiClientHelpers.Jobs.csproj", "{53461E84-94CF-43A7-ABEE-817241AFD1AE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Api.Profiling.IntegrationTests", "CalculateFunding.Api.Profiling.IntegrationTests\CalculateFunding.Api.Profiling.IntegrationTests.csproj", "{24059AE4-1244-4FBE-A2C9-A39F06C8DFEC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Api.Profiling.IntegrationTests", "CalculateFunding.Api.Profiling.IntegrationTests\CalculateFunding.Api.Profiling.IntegrationTests.csproj", "{24059AE4-1244-4FBE-A2C9-A39F06C8DFEC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.IntegrationTests.Common", "CalculateFunding.IntegrationTests.Common\CalculateFunding.IntegrationTests.Common.csproj", "{FF33ECA4-A789-44B3-94C8-3DA0E7089822}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.IntegrationTests.Common", "CalculateFunding.IntegrationTests.Common\CalculateFunding.IntegrationTests.Common.csproj", "{FF33ECA4-A789-44B3-94C8-3DA0E7089822}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Editors", "Editors", "{7026BB4A-C4F1-4259-AAEE-00EFAE15846F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Editor.FundingDataZone", "CalculateFunding.Editor.FundingDataZone\CalculateFunding.Editor.FundingDataZone.csproj", "{55BF019B-9537-4BAD-8F5B-C44E8926F981}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Api.CalcEngine.IntegrationTests", "CalculateFunding.Api.CalcEngine.IntegrationTests\CalculateFunding.Api.CalcEngine.IntegrationTests.csproj", "{9E0A7858-3A79-4CA0-A188-977BC965647D}"
 EndProject
@@ -1765,6 +1769,16 @@ Global
 		{FF33ECA4-A789-44B3-94C8-3DA0E7089822}.Release|Any CPU.Build.0 = Release|Any CPU
 		{FF33ECA4-A789-44B3-94C8-3DA0E7089822}.Release|x64.ActiveCfg = Release|Any CPU
 		{FF33ECA4-A789-44B3-94C8-3DA0E7089822}.Release|x64.Build.0 = Release|Any CPU
+<<<<<<< HEAD
+		{55BF019B-9537-4BAD-8F5B-C44E8926F981}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{55BF019B-9537-4BAD-8F5B-C44E8926F981}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{55BF019B-9537-4BAD-8F5B-C44E8926F981}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{55BF019B-9537-4BAD-8F5B-C44E8926F981}.Debug|x64.Build.0 = Debug|Any CPU
+		{55BF019B-9537-4BAD-8F5B-C44E8926F981}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{55BF019B-9537-4BAD-8F5B-C44E8926F981}.Release|Any CPU.Build.0 = Release|Any CPU
+		{55BF019B-9537-4BAD-8F5B-C44E8926F981}.Release|x64.ActiveCfg = Release|Any CPU
+		{55BF019B-9537-4BAD-8F5B-C44E8926F981}.Release|x64.Build.0 = Release|Any CPU
+=======
 		{9E0A7858-3A79-4CA0-A188-977BC965647D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9E0A7858-3A79-4CA0-A188-977BC965647D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9E0A7858-3A79-4CA0-A188-977BC965647D}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -1877,6 +1891,7 @@ Global
 		{8A33CBD5-F4F0-43A9-82E1-5D68FCE42716}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8A33CBD5-F4F0-43A9-82E1-5D68FCE42716}.Release|x64.ActiveCfg = Release|Any CPU
 		{8A33CBD5-F4F0-43A9-82E1-5D68FCE42716}.Release|x64.Build.0 = Release|Any CPU
+>>>>>>> providers
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -2058,6 +2073,9 @@ Global
 		{53461E84-94CF-43A7-ABEE-817241AFD1AE} = {E8029936-103D-4D3C-AABD-298BEFA1213A}
 		{24059AE4-1244-4FBE-A2C9-A39F06C8DFEC} = {C03B53AE-5975-4A18-B784-ABDF3C4E0A5D}
 		{FF33ECA4-A789-44B3-94C8-3DA0E7089822} = {9C582181-AD03-4FC6-B026-5145B199E86D}
+<<<<<<< HEAD
+		{55BF019B-9537-4BAD-8F5B-C44E8926F981} = {7026BB4A-C4F1-4259-AAEE-00EFAE15846F}
+=======
 		{9E0A7858-3A79-4CA0-A188-977BC965647D} = {C03B53AE-5975-4A18-B784-ABDF3C4E0A5D}
 		{C5653642-5E24-4059-BDC6-E7068FA134D0} = {C03B53AE-5975-4A18-B784-ABDF3C4E0A5D}
 		{4CBCB584-9766-4C3D-B85A-34CF9B31B201} = {C03B53AE-5975-4A18-B784-ABDF3C4E0A5D}
@@ -2072,6 +2090,7 @@ Global
 		{40922543-0552-4CE4-82B8-003E44DF1074} = {C03B53AE-5975-4A18-B784-ABDF3C4E0A5D}
 		{F5FC3883-B071-4057-A5B9-349BFD49860F} = {C03B53AE-5975-4A18-B784-ABDF3C4E0A5D}
 		{8A33CBD5-F4F0-43A9-82E1-5D68FCE42716} = {C03B53AE-5975-4A18-B784-ABDF3C4E0A5D}
+>>>>>>> providers
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2FA36A0A-CA20-41CF-9BC2-FA6545720009}

@@ -1,7 +1,9 @@
-﻿using System;
+﻿using Dapper.Contrib.Extensions;
+using System;
 
 namespace CalculateFunding.Services.FundingDataZone.SqlModels
 {
+    [Table("Provider")]
     public class PublishingAreaProvider
     {
         public int Id { get; set; }
@@ -106,22 +108,30 @@ namespace CalculateFunding.Services.FundingDataZone.SqlModels
 
         public string TrustStatus { get; set; }
 
-        public int PaymentOrganisationId { get; set; }
+        public int? PaymentOrganisationId { get; set; }
 
+        [Computed]
         public string PaymentOrganisationName { get; set; }
 
+        [Computed]
         public string PaymentOrganisationUpin { get; set; }
 
+        [Computed]
         public string PaymentOrganisationTrustCode { get; set; }
 
+        [Computed]
         public string PaymentOrganisationLaCode { get; set; }
 
+        [Computed]
         public string PaymentOrganisationUrn { get; set; }
 
+        [Computed]
         public string PaymentOrganisationCompanyHouseNumber { get; set; }
 
+        [Computed]
         public string PaymentOrganisationOrganisationType { get; set; }
 
+        [Computed]
         public string PaymentOrganisationUkprn { get; set; }
 
         public string ProviderTypeCode { get; set; }
@@ -150,8 +160,12 @@ namespace CalculateFunding.Services.FundingDataZone.SqlModels
 
         public string PreviousEstablishmentNumber { get; set; }
 
+        public int? ProviderStatusId { get; set; }
+
+        [Computed]
         public string Predecessors { get; set; }
 
+        [Computed]
         public string Successors { get; set; }
 
         public bool Indicative { get; set; }
