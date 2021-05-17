@@ -250,6 +250,9 @@ namespace CalculateFunding.Api.Datasets
                .AddSingleton<ICalcsRepository, CalcsRepository>();
 
             builder
+                .AddSingleton<IReportService, ReportService>();
+
+            builder
                 .AddSingleton<IProviderSourceDatasetVersionKeyProvider, ProviderSourceDatasetVersionKeyProvider>();
 
             builder

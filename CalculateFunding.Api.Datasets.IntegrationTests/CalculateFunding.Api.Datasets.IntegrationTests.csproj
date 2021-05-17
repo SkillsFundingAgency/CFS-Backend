@@ -8,7 +8,7 @@
 
 
     <ItemGroup>
-        <PackageReference Include="CalculateFunding.Common.ApiClient.Datasets" Version="6.6.1" />
+        <PackageReference Include="CalculateFunding.Common.ApiClient.Datasets" Version="6.7.1" />
         <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Datasets" Version="5.9.0" />
         <PackageReference Include="FluentAssertions" Version="5.10.3" />
         <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="5.0.0" />
