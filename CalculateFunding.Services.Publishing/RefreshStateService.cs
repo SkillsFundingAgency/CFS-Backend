@@ -140,7 +140,7 @@ namespace CalculateFunding.Services.Publishing
 
         private void AddRange(ActionType actionType, IDictionary<string, PublishedProvider> publishedProviders)
         {
-            Get(actionType).AddRange(publishedProviders);
+            Get(actionType).AddOrUpdateRange(publishedProviders);
         }
         
         private void Add(ActionType actionType, PublishedProvider publishedProvider)
