@@ -1,0 +1,85 @@
+name: $(Rev:r)
+
+pool:
+  vmImage: windows-2019
+
+trigger:
+  branches:
+    include:
+    - master
+    - providers
+    - fdps
+
+variables:
+- name: BuildConfiguration
+  value: release
+- name: BuildPlatform
+  value: 'any cpu'
+- name: DOTNET_SKIP_FIRST_TIME_EXPERIENCE
+  value: '1'
+- name: 'projectFolder'
+  value: 'CalculateFunding.Editor.FundingDataZone'
+- name: vstsFeed
+  value: 'ecf37bc0-472b-47bf-91e3-6774809fd194' 
+- group: 'Dotnet Core SDK Version'
+
+steps:
+- task: UseDotNet@2
+  displayName: 'Use .NET Core sdk $(DotnetCoreSdkVersion)'
+  inputs:
+    version: '$(DotnetCoreSdkVersion)'
+
+- task: Npm@1
+  inputs:
+    command: 'install'
+    workingDir: '$(projectFolder)'
+
+- task: Npm@1
+  displayName: 'Install gulp CLI'
+  inputs:
+    command: custom
+    verbose: false
+    customCommand: 'install -g gulp-cli'
+
+- task: gulp@0
+  displayName: 'gulp release'
+  inputs:
+    gulpFile: '$(projectFolder)/gulpfile.js'
+    targets: 'copyfiles'
+    
+- task: DotNetCoreCLI@2
+  displayName: Restore
+  inputs:
+    command: restore
+    projects: '$(projectFolder)/*.csproj'
+    vstsFeed: '$(vstsFeed)'
+
+- task: DotNetCoreCLI@2
+  displayName: Test
+  inputs:
+    command: test
+    projects: '$(projectFolder)/*Tests/*.csproj'
+    arguments: '--configuration $(BuildConfiguration) --collect "Code coverage"'
+
+- task: DotNetCoreCLI@2
+  displayName: Publish
+  inputs:
+    command: publish
+    publishWebProjects: false
+    projects: |
+     $(projectFolder)\*.csproj
+    arguments: '--configuration $(BuildConfiguration) --output $(build.artifactstagingdirectory) /p:AssemblyVersion=$(Build.BuildNumber)'
+
+- task: CopyFiles@2
+  displayName: 'Copy DevOps Files to: $(build.artifactstagingdirectory)/DevOps'
+  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+  inputs:
+    SourceFolder: DevOps
+    Contents: '**/*.*'
+    TargetFolder: '$(build.artifactstagingdirectory)/DevOps'
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifact'
+  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+  inputs:
+    PathtoPublish: '$(build.artifactstagingdirectory)'
