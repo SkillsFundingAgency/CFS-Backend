@@ -356,7 +356,7 @@ namespace CalculateFunding.Functions.Publishing
 
             builder
                 .AddSingleton<IPublishedProviderStatusUpdateService, PublishedProviderStatusUpdateService>()
-                .AddSingleton<IRefreshStateService, RefreshStateService>()
+                .AddScoped<IRefreshStateService, RefreshStateService>()
                 .AddSingleton<IHealthChecker, PublishedProviderStatusUpdateService>();
 
             builder

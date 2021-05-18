@@ -251,7 +251,7 @@ namespace CalculateFunding.Api.Publishing
             builder.AddScoped<ICustomProfileService, CustomProfilingService>();
             builder.AddScoped<IValidator<ApplyCustomProfileRequest>, ApplyCustomProfileRequestValidator>();
             builder.AddSingleton<IPublishedProviderStatusUpdateService, PublishedProviderStatusUpdateService>();
-            builder.AddSingleton<IRefreshStateService, RefreshStateService>();
+            builder.AddScoped<IRefreshStateService, RefreshStateService>();
             builder.AddSingleton<IPublishedProviderVersioningService, PublishedProviderVersioningService>();
             builder.AddScoped<IGeneratePublishedFundingCsvJobsCreationLocator, GeneratePublishedFundingCsvJobsCreationLocator>();
             builder.AddScoped<IGeneratePublishedFundingCsvJobsCreation, GenerateRefreshPublishedFundingCsvJobsCreation>();
