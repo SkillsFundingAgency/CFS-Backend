@@ -62,6 +62,12 @@
 
             public const string PublishIntegrityCheckPoisonedLocal = "publish-integrity-check-poison";
 
+            public const string PublishingDatasetsDataCopy = "publishing-datasets-data-copy";
+
+            public const string PublishingDatasetsDataCopyPoisoned = "publishing-datasets-data-copy/$DeadLetterQueue";
+
+            public const string PublishingDatasetsDataCopyPoisonedLocal = "publishing-datasets-data-copy-poison";
+
             public const string PublishingApproveAllProviderFundingPoisoned = "publishing-approve-all-provider-funding/$DeadLetterQueue";
 
             public const string PublishingApproveAllProviderFundingPoisonedLocal = "publishing-approve-all-provider-funding-poison";

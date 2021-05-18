@@ -11,7 +11,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Services.Publishing.SqlExport;
 using CalculateFunding.Tests.Common.Helpers;
@@ -30,6 +29,8 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
         private static IDeletePublishedProvidersService _deletePublishedProvidersService;
         private static IUserProfileProvider _userProfileProvider;
         private static ISqlImportService _sqlImportService;
+        private static IDatasetsDataCopyService _datasetsDataCopyService;
+
 
         [ClassInitialize]
         public static void SetupTests(TestContext tc)
@@ -44,6 +45,7 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
             _deletePublishedProvidersService = CreateDeletePublishedProvidersService();
             _userProfileProvider = CreateUserProfileProvider();
             _sqlImportService = Substitute.For<ISqlImportService>();
+            _datasetsDataCopyService = CreateDatasetsDataCopyService();
         }
         
         [TestMethod]
@@ -131,6 +133,24 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingPublishBatchProviderFunding,
                 async(Message smokeResponse) => await onPublishFunding.Run(smokeResponse), useSession: true);
+
+            response
+                .Should()
+                .NotBeNull();
+        }
+
+        [TestMethod]
+        public async Task OnDatasetsDataCopy_SmokeTestSucceeds()
+        {
+            OnPublishDatasetsCopy onPublishDatasetsCopy = new OnPublishDatasetsCopy(_logger,
+                _datasetsDataCopyService,
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                _userProfileProvider,
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
+                IsDevelopment);
+
+            SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingDatasetsDataCopy,
+                async (Message smokeResponse) => await onPublishDatasetsCopy.Run(smokeResponse), useSession: true);
 
             response
                 .Should()
@@ -227,7 +247,12 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
         {
             return Substitute.For<IPublishService>();
         }
-        
+
+        private static IDatasetsDataCopyService CreateDatasetsDataCopyService()
+        {
+            return Substitute.For<IDatasetsDataCopyService>();
+        }
+
         private static IPublishedProviderReIndexerService CreatePublishedProviderReIndexerService()
         {
             return Substitute.For<IPublishedProviderReIndexerService>();

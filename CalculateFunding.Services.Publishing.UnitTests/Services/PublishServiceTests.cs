@@ -77,7 +77,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private ISpecificationFundingStatusService _specificationFundingStatusService;
         private ICreatePublishIntegrityJob _createPublishIntegrityJob;
         private IJobsRunning _jobsRunning;
-        
+        private ICreatePublishDatasetsDataCopyJob _createPublishDatasetsDataCopyJob;
+
         private const string SpecificationId = "SpecificationId";
         private const string FundingPeriodId = "AY-2020";
         private const string JobId = "JobId";
@@ -126,13 +127,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _mapper = Substitute.For<IMapper>();
             _transactionFactory = new TransactionFactory(_logger, new TransactionResiliencePolicies { TransactionPolicy = Policy.NoOpAsync() });
             _publishedProviderVersionService = Substitute.For<IPublishedProviderVersionService>();
-            _publishedFundingDataService = Substitute.For<IPublishedFundingDataService>();
             _policiesService = Substitute.For<IPoliciesService>();
             _organisationGroupGenerator = Substitute.For<IOrganisationGroupGenerator>();
             _publishedFundingChangeDetectorService = Substitute.For<IPublishedFundingChangeDetectorService>();
             _publishedFundingDateService = Substitute.For<IPublishedFundingDateService>();
             _publishedFundingDataService = Substitute.For<IPublishedFundingDataService>();
             _createPublishIntegrityJob = Substitute.For<ICreatePublishIntegrityJob>();
+            _createPublishDatasetsDataCopyJob = Substitute.For<ICreatePublishDatasetsDataCopyJob>();
 
             _publishedFundingService = new PublishedFundingService(_publishedFundingDataService,
                 _publishingResiliencePolicies,
@@ -162,7 +163,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 _publishedProviderVersionService,
                 _publishedFundingService,
                 _createPublishIntegrityJob,
-                _publishFundingCsvJobsService
+                _publishFundingCsvJobsService,
+                _createPublishDatasetsDataCopyJob
             );
         }
 
@@ -180,6 +182,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             ThenEachProviderVersionHasTheFollowingVariationReasons(VariationReason.FundingUpdated, VariationReason.ProfilingUpdated, VariationReason.AuthorityFieldUpdated);
             AndTheCsvGenerationJobsWereCreated(SpecificationId, FundingPeriodId, FundingStreamId);
+            AndThePublishDatasetsDataCopyJobsWereCreated(SpecificationId);
         }
         
         [TestMethod]
@@ -567,6 +570,18 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                         Arg.Is<IEnumerable<string>>(_ => _.First() == fundingStreamId),
                         Arg.Any<string>(),
                         Arg.Any<Reference>());
+        }
+
+        private void AndThePublishDatasetsDataCopyJobsWereCreated(string specificationId)
+        {
+            _createPublishDatasetsDataCopyJob.Received(1)
+                .CreateJob(Arg.Is(specificationId),
+                        Arg.Any<Reference>(),
+                        Arg.Is(CorrelationId),
+                        Arg.Any<Dictionary<string, string>>(),
+                        Arg.Any<string>(),
+                        Arg.Any<string>(),
+                        Arg.Any<bool>());
         }
 
         private void AndSpecification(bool isSelectedForFunding = false)

@@ -336,5 +336,31 @@ namespace CalculateFunding.Functions.DebugQueue
 
             log.LogInformation($"C# Queue trigger function processed: {item}");
         }
+
+        [FunctionName(FunctionConstants.PublishingDatasetsDataCopy)]
+        public static async Task RunDatasetsDataCopy([QueueTrigger(ServiceBusConstants.QueueNames.PublishingDatasetsDataCopy, Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+            Message message = Helpers.ConvertToMessage<string>(item);
+
+            OnPublishDatasetsCopy function = scope.ServiceProvider.GetService<OnPublishDatasetsCopy>();
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
+
+        [FunctionName(FunctionConstants.PublishingDatasetsDataCopyPoisoned)]
+        public static async Task RunDatasetsDataCopyFailure([QueueTrigger(ServiceBusConstants.QueueNames.PublishingDatasetsDataCopyPoisonedLocal, Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+            Message message = Helpers.ConvertToMessage<string>(item);
+
+            OnPublishDatasetsCopyFailure function = scope.ServiceProvider.GetService<OnPublishDatasetsCopyFailure>();
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
     }
 }

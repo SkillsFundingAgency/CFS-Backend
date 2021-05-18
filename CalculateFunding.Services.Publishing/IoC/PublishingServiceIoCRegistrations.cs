@@ -9,6 +9,7 @@ using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Providers;
+using CalculateFunding.Services.Publishing.Reporting;
 using CalculateFunding.Services.Publishing.Specifications;
 using CalculateFunding.Services.Publishing.Validators;
 using Microsoft.Extensions.Configuration;
@@ -49,6 +50,7 @@ namespace CalculateFunding.Services.Publishing.IoC
             serviceCollection.AddSingleton<ICreateApproveBatchFundingJobs, ApproveBatchFundingJobCreation>();
             serviceCollection.AddSingleton<ICreateAllPublishProviderFundingJobs, AllPublishProviderFundingJobCreation>();
             serviceCollection.AddSingleton<ICreatePublishIntegrityJob, PublishIntegrityCheckJobCreation>();
+            serviceCollection.AddSingleton<ICreatePublishDatasetsDataCopyJob, PublishingDatasetsDataCopyJobCreation>();
             serviceCollection.AddSingleton<ICreateBatchPublishProviderFundingJobs, BatchPublishProviderFundingJobCreation>();
             serviceCollection.AddSingleton<ICreateDeleteSpecificationJobs, DeleteSpecificationJobCreation>();
             serviceCollection.AddSingleton<ICreateDeletePublishedProvidersJobs, DeletePublishedProvidersJobCreation>();

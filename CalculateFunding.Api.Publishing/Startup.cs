@@ -259,6 +259,8 @@ namespace CalculateFunding.Api.Publishing
             builder.AddScoped<IGeneratePublishedFundingCsvJobsCreation, GenerateReleasePublishedFundingCsvJobsCreation>();
             builder.AddScoped<ICreateGeneratePublishedProviderEstateCsvJobs, CreateGeneratePublishedProviderEstateCsvJobs>();
             builder.AddTransient<ICreateGeneratePublishedFundingCsvJobs, GeneratePublishedFundingCsvJobCreation>();
+            builder.AddTransient<ICreatePublishDatasetsDataCopyJob, PublishingDatasetsDataCopyJobCreation>();
+
             builder.AddScoped<IPublishedFundingCsvJobsService, PublishedFundingCsvJobsService>();
             builder.AddSingleton<IJobTracker, JobTracker>();
             builder.AddSingleton<IJobManagement, JobManagement>();

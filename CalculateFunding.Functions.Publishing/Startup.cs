@@ -273,6 +273,13 @@ namespace CalculateFunding.Functions.Publishing
                 builder.AddScoped<OnPublishedFundingUndo>();
                 builder.AddScoped<OnBatchPublishedProviderValidation>();
                 builder.AddScoped<OnBatchPublishedProviderValidationFailure>();
+                builder.AddScoped(_ => new OnPublishDatasetsCopy(_.GetService<ILogger>(),
+                    _.GetService<IDatasetsDataCopyService>(),
+                    _.GetService<IMessengerService>(),
+                    _.GetService<IUserProfileProvider>(),
+                    _.GetService<IConfigurationRefresherProvider>(),
+                    true));
+                builder.AddScoped<OnPublishDatasetsCopyFailure>();
             }
 
             builder.AddSingleton<ISpecificationService, SpecificationService>();
@@ -302,6 +309,7 @@ namespace CalculateFunding.Functions.Publishing
 
             builder.AddSingleton<IReProfilingResponseMapper, ReProfilingResponseMapper>();
             builder.AddScoped<IApproveService, ApproveService>();
+            builder.AddScoped<IDatasetsDataCopyService, DatasetsDataCopyService>();
             builder.AddSingleton<IJobTracker, JobTracker>();
             builder.AddScoped<IPublishService, PublishService>();
             builder.AddSingleton<IJobManagement, JobManagement>();

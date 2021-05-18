@@ -20,6 +20,10 @@
 
         public const string PublishingPublishAllProviderFunding = "on-publishing-publish-all-provider-funding";
 
+        public const string PublishingDatasetsDataCopy = "on-publishing-datasets-data-copy";
+
+        public const string PublishingDatasetsDataCopyPoisoned = "on-publishing-datasets-data-copy-poisoned";
+
         public const string PublishingPublishAllProviderFundingPoisoned = "on-publishing-publish-all-provider-funding-poisoned";
 
         public const string PublishingPublishBatchProviderFunding = "on-publishing-publish-batch-provider-funding";
