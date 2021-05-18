@@ -13,7 +13,7 @@
   <ItemGroup>
 	  <PackageReference Include="CacheCow.Server" Version="2.7.4" />
 	  <PackageReference Include="CalculateFunding.Common.ApiClient.Bearer" Version="2.3.1" />
-	  <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="6.8.0" />
+	  <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="6.9.0" />
 	  <PackageReference Include="CalculateFunding.Common.ApiClient.Calcs" Version="7.2.0" />
 	  <PackageReference Include="CalculateFunding.Common.ApiClient.Profiling" Version="4.2.1" />
 	  <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="6.19.0" />

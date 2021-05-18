@@ -57,5 +57,8 @@ namespace CalculateFunding.Models.Policy.FundingPolicy
 
         [JsonProperty("indicativeOpenerProviderStatus")]
         public IEnumerable<string> IndicativeOpenerProviderStatus { get; set; }
+
+        [JsonProperty("allowedPublishedFundingStreamsIdsToReference")]
+        public IEnumerable<string> AllowedPublishedFundingStreamsIdsToReference { get; set; }
     }
 }

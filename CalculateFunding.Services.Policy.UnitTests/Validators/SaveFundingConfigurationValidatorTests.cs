@@ -20,24 +20,23 @@ namespace CalculateFunding.Services.Policy.Validators
 
         private IFundingTemplateService _fundingTemplateService;
         private SaveFundingConfigurationValidator _validator;
+        private IPolicyRepository _policyRepository;
 
         [TestInitialize]
         public void SetUp()
         {
             _fundingTemplateService = Substitute.For<IFundingTemplateService>();
+            _policyRepository = Substitute.For<IPolicyRepository>();
 
-            IPolicyRepository policyRepository = Substitute.For<IPolicyRepository>();
-
-            _validator = new SaveFundingConfigurationValidator(policyRepository,
+            _validator = new SaveFundingConfigurationValidator(_policyRepository,
                 new PolicyResiliencePolicies
                 {
                     PolicyRepository = Polly.Policy.NoOpAsync()
                 },
                 _fundingTemplateService);
 
-            policyRepository.GetFundingStreamById(Arg.Any<string>())
-                .Returns(new FundingStream());
-            policyRepository.GetFundingPeriodById(Arg.Any<string>())
+           
+            _policyRepository.GetFundingPeriodById(Arg.Any<string>())
                 .Returns(new FundingPeriod());
         }
 
@@ -52,7 +51,8 @@ namespace CalculateFunding.Services.Policy.Validators
                 .WithFundingStreamId(fundingStreamId)
                 .WithDefaultTemplateVersion(defaultTemplateVersion));
             AndTheTemplateExistsCheck(fundingStreamId, fundingPeriodId, defaultTemplateVersion, true);
-            
+            AndTheFundingStreamExists(fundingStreamId);
+
             WhenTheFundingConfigurationIsValidated();
             
             ThenTheValidationResultShouldBe(false);
@@ -70,6 +70,7 @@ namespace CalculateFunding.Services.Policy.Validators
                 .WithFundingPeriodId(fundingPeriodId)
                 .WithDefaultTemplateVersion(defaultTemplateVersion));
             AndTheTemplateExistsCheck(fundingStreamId, fundingPeriodId, defaultTemplateVersion, expectedFlag);
+            AndTheFundingStreamExists(fundingStreamId);
 
             WhenTheFundingConfigurationIsValidated();
 
@@ -90,11 +91,36 @@ namespace CalculateFunding.Services.Policy.Validators
                 .WithUpdateCoreProviderVersion(UpdateCoreProviderVersion.ToLatest)
                 .WithProviderSource(CalculateFunding.Models.Providers.ProviderSource.CFS));
             AndTheTemplateExistsCheck(fundingStreamId, fundingPeriodId, defaultTemplateVersion, true);
+            AndTheFundingStreamExists(fundingStreamId);
 
             WhenTheFundingConfigurationIsValidated();
 
             ThenTheValidationResultShouldBe(false);
             AndTheValiationMessageShouldContain("UpdateCoreProviderVersion - ToLastet is not valid for provider source - CFS");
+        }
+
+        [TestMethod]
+        public void FailValidationIfAllowedFundingSteamNotExists()
+        {
+            string defaultTemplateVersion = NewRandomString();
+            string fundingStreamId = NewRandomString();
+            string fundingPeriodId = NewRandomString();
+            string allowedPublishedFundingStreamsIdsToReference = NewRandomString();
+
+            GivenTheFundingConfiguration(_ => _.WithApprovalMode(ApprovalMode.All)
+                .WithFundingStreamId(fundingStreamId)
+                .WithFundingPeriodId(fundingPeriodId)
+                .WithDefaultTemplateVersion(defaultTemplateVersion)
+                .WithUpdateCoreProviderVersion(UpdateCoreProviderVersion.ToLatest)
+                .WithProviderSource(CalculateFunding.Models.Providers.ProviderSource.FDZ)
+                .WithAllowedPublishedFundingStreamsIdsToReference(allowedPublishedFundingStreamsIdsToReference));
+            AndTheTemplateExistsCheck(fundingStreamId, fundingPeriodId, defaultTemplateVersion, true);
+            AndTheFundingStreamExists(fundingStreamId);
+
+            WhenTheFundingConfigurationIsValidated();
+
+            ThenTheValidationResultShouldBe(false);
+            AndTheValiationMessageShouldContain($"Funding stream {allowedPublishedFundingStreamsIdsToReference} not found for AllowedPublishedFundingStreamsIdsToReference");
         }
 
         [TestMethod]
@@ -111,6 +137,7 @@ namespace CalculateFunding.Services.Policy.Validators
                 .WithUpdateCoreProviderVersion(UpdateCoreProviderVersion.ToLatest)
                 .WithProviderSource(CalculateFunding.Models.Providers.ProviderSource.FDZ));
             AndTheTemplateExistsCheck(fundingStreamId, fundingPeriodId, defaultTemplateVersion, true);
+            AndTheFundingStreamExists(fundingStreamId);
 
             WhenTheFundingConfigurationIsValidated();
 
@@ -161,6 +188,12 @@ namespace CalculateFunding.Services.Policy.Validators
         {
             _fundingTemplateService.TemplateExists(fundingStreamId, fundingPeriodId, templateVersion)
                 .Returns(templateExistsFlag);
+        }
+
+        private void AndTheFundingStreamExists(string fundingStreamId)
+        {
+            _policyRepository.GetFundingStreamById(fundingStreamId)
+                .Returns(new FundingStream());
         }
     }
 }

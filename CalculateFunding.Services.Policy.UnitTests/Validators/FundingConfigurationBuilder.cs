@@ -15,6 +15,7 @@ namespace CalculateFunding.Services.Policy.Validators
         private PaymentOrganisationSource? _paymentOrganisationSource;
         private UpdateCoreProviderVersion? _updateCoreProviderVersion;
         private IEnumerable<string> _errorDetectors;
+        private IEnumerable<string> _allowedPublishedFundingStreamsIdsToReference;
 
         public FundingConfigurationBuilder WithApprovalMode(ApprovalMode approvalMode)
         {
@@ -72,6 +73,12 @@ namespace CalculateFunding.Services.Policy.Validators
             return this;
         }
 
+        public FundingConfigurationBuilder WithAllowedPublishedFundingStreamsIdsToReference(params string[] allowedPublishedFundingStreamsIdsToReference)
+        {
+            _allowedPublishedFundingStreamsIdsToReference = allowedPublishedFundingStreamsIdsToReference;
+            return this;
+        }
+
         public FundingConfiguration Build()
         {
             return new FundingConfiguration
@@ -83,7 +90,8 @@ namespace CalculateFunding.Services.Policy.Validators
                 ErrorDetectors = _errorDetectors,
                 ProviderSource = _providerSource.GetValueOrDefault(NewRandomEnum(ProviderSource.CFS)),
                 PaymentOrganisationSource = _paymentOrganisationSource.GetValueOrDefault(NewRandomEnum(PaymentOrganisationSource.PaymentOrganisationAsProvider)),
-                UpdateCoreProviderVersion = _updateCoreProviderVersion.GetValueOrDefault(NewRandomEnum(UpdateCoreProviderVersion.Manual))
+                UpdateCoreProviderVersion = _updateCoreProviderVersion.GetValueOrDefault(NewRandomEnum(UpdateCoreProviderVersion.Manual)),
+                AllowedPublishedFundingStreamsIdsToReference = _allowedPublishedFundingStreamsIdsToReference
             };
         }
     }

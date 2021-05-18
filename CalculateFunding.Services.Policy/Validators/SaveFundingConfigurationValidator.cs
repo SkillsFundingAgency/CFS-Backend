@@ -3,6 +3,8 @@ using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Policy.FundingPolicy;
 using CalculateFunding.Services.Policy.Interfaces;
 using FluentValidation;
+using System.Collections.Generic;
+using System.Linq;
 using ResiliencePolicy = Polly.AsyncPolicy;
 
 namespace CalculateFunding.Services.Policy.Validators
@@ -67,6 +69,30 @@ namespace CalculateFunding.Services.Policy.Validators
                 .Must(v => v == UpdateCoreProviderVersion.Manual)
                 .When(_ => _.ProviderSource != CalculateFunding.Models.Providers.ProviderSource.FDZ, ApplyConditionTo.CurrentValidator)
                 .WithMessage(x => $"UpdateCoreProviderVersion - {x.UpdateCoreProviderVersion.ToString()} is not valid for provider source - {x.ProviderSource}");
+
+            RuleFor(model => model.AllowedPublishedFundingStreamsIdsToReference)
+                .CustomAsync(async (name, context, cancellationToken) =>
+                {
+                    FundingConfiguration model = context.ParentContext.InstanceToValidate as FundingConfiguration;
+
+                    IEnumerable<string> allowedPublishedFundingStreamsIdsToReference = model.AllowedPublishedFundingStreamsIdsToReference;
+
+                    if(allowedPublishedFundingStreamsIdsToReference.AnyWithNullCheck())
+                    {
+                        foreach (string fundingStreamId in allowedPublishedFundingStreamsIdsToReference)
+                        {
+                            if(string.IsNullOrWhiteSpace(fundingStreamId))
+                            {
+                                context.AddFailure($"Null or empty funding stream id not allowed for {nameof(model.AllowedPublishedFundingStreamsIdsToReference)}");
+                            }
+                            else
+                            {
+                                FundingStream fundingStream = await policyRepositoryPolicy.ExecuteAsync(() => policyRepository.GetFundingStreamById(fundingStreamId));
+                                if (fundingStream == null) context.AddFailure($"Funding stream {fundingStreamId} not found for {nameof(model.AllowedPublishedFundingStreamsIdsToReference)}");
+                            }
+                        }
+                    }
+                });
         }
     }
 }

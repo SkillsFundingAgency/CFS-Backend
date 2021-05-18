@@ -58,5 +58,10 @@ namespace CalculateFunding.Models.Policy.FundingPolicy.ViewModels
         public IEnumerable<string> IndicativeOpenerProviderStatus { get; set; }
 
         public bool RunCalculationEngineAfterCoreProviderUpdate { get; set; }
+
+        /// <summary>
+        /// Funding stream IDs which this funding stream can reference for published funding
+        /// </summary>
+        public IEnumerable<string> AllowedPublishedFundingStreamsIdsToReference { get; set; }
     }
 }
