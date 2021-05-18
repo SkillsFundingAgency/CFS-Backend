@@ -168,6 +168,7 @@ namespace CalculateFunding.Services.FundingDataZone.SqlModels
         [Computed]
         public string Successors { get; set; }
 
+        [Computed]
         public bool Indicative { get; set; }
     }
 }

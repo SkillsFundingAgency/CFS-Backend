@@ -99,7 +99,6 @@ namespace CalculateFunding.Editor.FundingDataZone.Pages.Provider
             provider.PreviousLaCode = Provider.PreviousLaCode;
             provider.PreviousLaName = Provider.PreviousLaName;
             provider.PreviousEstablishmentNumber = Provider.PreviousEstablishmentNumber;
-            provider.Indicative = Provider.Indicative;
             provider.Status = Provider.Status;
             provider.StatusCode = Provider.StatusCode;
             

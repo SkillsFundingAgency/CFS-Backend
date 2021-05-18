@@ -360,13 +360,6 @@
         <input class="form-control flexdatalist" asp-for="Provider.Successors" type="text" multiple="multiple" list="providers">
         <span asp-validation-for="Provider.Successors" class="text-danger"></span>
     </div>
-    <div class="mb-3">
-        <div class="form-check">
-            <input class="form-check-input" asp-for="Provider.Indicative" type="checkbox">
-            <label asp-for="Provider.Indicative"></label>
-            <span asp-validation-for="Provider.Indicative" class="text-danger"></span>
-        </div>
-    </div>
     <input asp-for="Provider.ProviderSnapshotId" type="hidden" value="@Model.RouteData.Values["ProviderSnapshotId"]" class="form-control">
     <button type="submit" class="btn btn-primary">Save provider details</button>
 </form>

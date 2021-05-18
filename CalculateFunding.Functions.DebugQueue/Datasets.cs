@@ -104,7 +104,7 @@ namespace CalculateFunding.Functions.DebugQueue
         {
             using (IServiceScope scope = Functions.Datasets.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
             {
-                Message message = Helpers.ConvertToMessage<string>(item);
+                Message message = Helpers.ConvertToMessage<Dataset>(item);
 
                 OnMapFdzDatasetsEventFired function = scope.ServiceProvider.GetService<OnMapFdzDatasetsEventFired>();
 
