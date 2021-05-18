@@ -1,0 +1,56 @@
+﻿@page "/organisations/{providerSnapshotId:int}"
+@model CalculateFunding.Editor.FundingDataZone.Pages.Provider.CreatePaymentOrganisationDetailModel
+@{
+}
+
+<nav class="nav">
+    <a class="nav-link" asp-page="/Providers/ProvidersInSnapshot" asp-route-providerSnapshotId="@Model.RouteData.Values["ProviderSnapshotId"]">Providers</a>
+    <a class="nav-link" asp-page="/PaymentOrganisations/Index" asp-route-providerSnapshotId="@Model.RouteData.Values["ProviderSnapshotId"]">Payment organisations</a>
+</nav>
+
+<h2>Create organisation details</h2>
+<form method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="mb-3">
+        <label asp-for="Organisation.Name"></label>
+        <input asp-for="Organisation.Name" type="text" class="form-control">
+        <span asp-validation-for="Organisation.Name" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Organisation.PaymentOrganisationType"></label>
+        <input asp-for="Organisation.PaymentOrganisationType" type="text" class="form-control">
+        <span asp-validation-for="Organisation.PaymentOrganisationType" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Organisation.Ukprn"></label>
+        <input asp-for="Organisation.Ukprn" type="text" class="form-control">
+        <span asp-validation-for="Organisation.Ukprn" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Organisation.Upin"></label>
+        <input asp-for="Organisation.Upin" type="text" class="form-control">
+        <span asp-validation-for="Organisation.Upin" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Organisation.Urn"></label>
+        <input asp-for="Organisation.Urn" type="text" class="form-control">
+        <span asp-validation-for="Organisation.Urn" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Organisation.TrustCode"></label>
+        <input asp-for="Organisation.TrustCode" type="text" class="form-control">
+        <span asp-validation-for="Organisation.TrustCode" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Organisation.CompanyHouseNumber"></label>
+        <input asp-for="Organisation.CompanyHouseNumber" type="text" class="form-control">
+        <span asp-validation-for="Organisation.CompanyHouseNumber" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Organisation.LaCode"></label>
+        <input asp-for="Organisation.LaCode" type="text" class="form-control">
+        <span asp-validation-for="Organisation.LaCode" class="text-danger"></span>
+    </div>
+    <input asp-for="Organisation.ProviderSnapshotId" type="hidden" value="@Model.RouteData.Values["ProviderSnapshotId"]" class="form-control">
+    <button type="submit" class="btn btn-primary">Save organisation details</button>
+</form>

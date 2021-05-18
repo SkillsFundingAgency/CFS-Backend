@@ -27,11 +27,14 @@ namespace CalculateFunding.Editor.FundingDataZone.Pages.PaymentOrganisations
         {
             int pageSize = 100;
             CurrentPage = pageNumber;
-            TotalPages = Convert.ToInt32(Math.Ceiling(decimal.Divide(await _repo.GetCountPaymentOrganisationsInSnapshot(providerSnapshotId.Value), pageSize)));
+            SearchTerm = searchTerm;
+            TotalPages = Convert.ToInt32(Math.Ceiling(decimal.Divide(await _repo.GetCountPaymentOrganisationsInSnapshot(providerSnapshotId.Value, searchTerm), pageSize)));
 
             Organisations = await _repo.GetPaymentOrganisationsInSnapshot(providerSnapshotId.Value, pageNumber, pageSize, searchTerm);
 
             return new PageResult();
         }
+
+        public string SearchTerm { get; set; }
     }
 }

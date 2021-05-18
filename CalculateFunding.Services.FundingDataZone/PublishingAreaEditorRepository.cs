@@ -29,12 +29,24 @@ namespace CalculateFunding.Services.FundingDataZone
             return await Update(publishingAreaProvider);
         }
 
-        public async Task<bool> UpdateOrganisation(PublishingAreaOrganisation publishingAreaOrganisation)
+		public async Task<PublishingAreaProvider> InsertProvider(PublishingAreaProvider publishingAreaProvider)
+		{
+			publishingAreaProvider.Id = await Insert(publishingAreaProvider);
+			return publishingAreaProvider;
+		}
+
+		public async Task<bool> UpdateOrganisation(PublishingAreaOrganisation publishingAreaOrganisation)
         {
             return await Update(publishingAreaOrganisation);
         }
 
-        public async Task<bool> UpdateProviderSnapshot(ProviderSnapshotTableModel providerSnapshotTableModel)
+		public async Task<PublishingAreaOrganisation> InsertOrganisation(PublishingAreaOrganisation publishingAreaOrganisation)
+		{
+			publishingAreaOrganisation.PaymentOrganisationId = await Insert(publishingAreaOrganisation);
+			return publishingAreaOrganisation;
+		}
+
+		public async Task<bool> UpdateProviderSnapshot(ProviderSnapshotTableModel providerSnapshotTableModel)
         {
             return await Update(providerSnapshotTableModel);
         }
@@ -383,30 +395,41 @@ ORDER BY ps.targetDate DESC", new { fundingStreamId = fundingStreamId });
             return providerSnapshot;
         }
 
-        public async Task<int> GetCountPaymentOrganisationsInSnapshot(int providerSnapshotId)
+        public async Task<int> GetCountPaymentOrganisationsInSnapshot(int providerSnapshotId, string searchTerm = null)
         {
-            return await QuerySingleSql<int>(@"SELECT Count(*) FROM PaymentOrganisation
-WHERE ProviderSnapshotId = @ProviderSnapshotId",
+			searchTerm ??= "";
+			searchTerm += "%";
+
+			return await QuerySingleSql<int>(@"SELECT Count(*) FROM PaymentOrganisation
+WHERE ProviderSnapshotId = @ProviderSnapshotId and UkPrn like @searchTerm",
             new
             {
-                providerSnapshotId = providerSnapshotId
-            });
+                providerSnapshotId = providerSnapshotId,
+				searchTerm = searchTerm
+			});
         }
 
-        public async Task<int> GetCountProvidersInSnapshot(int providerSnapshotId)
+        public async Task<int> GetCountProvidersInSnapshot(int providerSnapshotId, string searchTerm = null)
         {
-            return await QuerySingleSql<int>(@"SELECT Count(*) FROM Provider
-WHERE ProviderSnapshotId = @ProviderSnapshotId",
+			searchTerm ??= "";
+			searchTerm += "%";
+
+			return await QuerySingleSql<int>(@"SELECT Count(*) FROM Provider
+WHERE ProviderSnapshotId = @ProviderSnapshotId and UkPrn like @searchTerm",
             new
             {
-                providerSnapshotId = providerSnapshotId
-            });
+                providerSnapshotId = providerSnapshotId,
+				searchTerm = searchTerm
+			});
         }
 
         public async Task<IEnumerable<PublishingAreaOrganisation>> GetPaymentOrganisationsInSnapshot(int providerSnapshotId, int pageNumber, int pageSize, string searchTerm)
-        {
-            return await QuerySql<PublishingAreaOrganisation>(@"SELECT @PageSize ProviderId, Name, Ukprn, PaymentOrganisationId FROM PaymentOrganisation
-WHERE ProviderSnapshotId = @ProviderSnapshotId
+		{
+			searchTerm ??= "";
+			searchTerm += "%";
+
+			return await QuerySql<PublishingAreaOrganisation>(@"SELECT @PageSize ProviderId, Name, Ukprn, PaymentOrganisationId FROM PaymentOrganisation
+WHERE ProviderSnapshotId = @ProviderSnapshotId and UkPrn like @searchTerm
 ORDER BY Name
 OFFSET ((@PageNumber - 1) * @RowspPage) ROWS
 FETCH NEXT @RowspPage ROWS ONLY;
@@ -414,7 +437,8 @@ FETCH NEXT @RowspPage ROWS ONLY;
             new
             {
                 providerSnapshotId = providerSnapshotId,
-                RowspPage = pageSize,
+				searchTerm = searchTerm,
+				RowspPage = pageSize,
                 PageNumber = pageNumber,
                 PageSize = pageSize,
             });
@@ -422,8 +446,11 @@ FETCH NEXT @RowspPage ROWS ONLY;
 
         public async Task<IEnumerable<ProviderSummary>> GetProvidersInSnapshot(int providerSnapshotId, int pageNumber, int pageSize, string searchTerm)
         {
-            return await QuerySql<ProviderSummary>(@"SELECT @PageSize ProviderId, Name, Ukprn, ProviderType, ProviderSubType FROM Provider
-WHERE ProviderSnapshotId = @ProviderSnapshotId
+			searchTerm ??= "";
+			searchTerm += "%";
+
+			return await QuerySql<ProviderSummary>(@"SELECT @PageSize ProviderId, Name, Ukprn, ProviderType, ProviderSubType FROM Provider
+WHERE ProviderSnapshotId = @ProviderSnapshotId and UkPrn like @searchTerm
 ORDER BY Name
 OFFSET ((@PageNumber - 1) * @RowspPage) ROWS
 FETCH NEXT @RowspPage ROWS ONLY;
@@ -431,7 +458,8 @@ FETCH NEXT @RowspPage ROWS ONLY;
             new
             {
                 providerSnapshotId = providerSnapshotId,
-                RowspPage = pageSize,
+				searchTerm = searchTerm,
+				RowspPage = pageSize,
                 PageNumber = pageNumber,
                 PageSize = pageSize,
             });

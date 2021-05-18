@@ -24,13 +24,16 @@ namespace CalculateFunding.Editor.FundingDataZone.Pages.Providers
         {
             int pageSize = 100;
             CurrentPage = pageNumber;
-            TotalPages = Convert.ToInt32(Math.Ceiling(decimal.Divide(await _repo.GetCountProvidersInSnapshot(providerSnapshotId),pageSize)));
+            SearchTerm = searchTerm;
+            TotalPages = Convert.ToInt32(Math.Ceiling(decimal.Divide(await _repo.GetCountProvidersInSnapshot(providerSnapshotId, SearchTerm), pageSize)));
 
-            Providers = await _repo.GetProvidersInSnapshot(providerSnapshotId, pageNumber, pageSize, searchTerm);
+            Providers = await _repo.GetProvidersInSnapshot(providerSnapshotId, pageNumber, pageSize, SearchTerm);
 
             return Page();
         }
 
         public IEnumerable<ProviderSummary> Providers { get; set; }
+
+        public string SearchTerm { get; set; }
     }
 }

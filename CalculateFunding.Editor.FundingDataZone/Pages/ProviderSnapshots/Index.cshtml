@@ -3,7 +3,7 @@
 @{
 }
 
-<div class="text-right spacing-m">
+<div class="d-grid gap-2 d-md-flex justify-content-md-end spacing-m">
     <a class="btn btn-info" asp-page="/ProviderSnapshots/CreateProviderSnapshot">Add provider snapshot</a>
 </div>
 
@@ -28,19 +28,19 @@
         <tbody>
             @foreach (var snapshot in Model.Snapshots)
             {
-            <tr>
-                <td>@snapshot.ProviderSnapshotId</td>
-                <td>@snapshot.Name</td>
-                <td>@snapshot.TargetDate.ToString("dd MMMM yyyy")</td>
-                <td>@snapshot.Version</td>
-                @if (!Model.FilteredByFundingStream)
-                {
-                    <td>@snapshot.FundingStreamCode</td>
+                <tr>
+                    <td>@snapshot.ProviderSnapshotId</td>
+                    <td>@snapshot.Name</td>
+                    <td>@snapshot.TargetDate.ToString("dd MMMM yyyy")</td>
+                    <td>@snapshot.Version</td>
+                    @if (!Model.FilteredByFundingStream)
+                    {
+                        <td>@snapshot.FundingStreamCode</td>
 
-                }
-                <td><a asp-page="/ProviderSnapshots/ProviderSnapshotDetails" asp-route-providerSnapshotId="@snapshot.ProviderSnapshotId">Edit</a></td>
-                <td><a asp-controller="Clone" asp-action="Clone" asp-route-providerSnapshotId="@snapshot.ProviderSnapshotId" asp-route-cloneName="@(snapshot.Name + @"_Clone")">Clone</a></td>
-            </tr>
+                    }
+                    <td><a asp-page="/ProviderSnapshots/ProviderSnapshotDetails" asp-route-providerSnapshotId="@snapshot.ProviderSnapshotId">Edit</a></td>
+                    <td><a asp-controller="Clone" asp-action="Clone" asp-route-providerSnapshotId="@snapshot.ProviderSnapshotId" asp-route-cloneName="@(snapshot.Name + @"_Clone")">Clone</a></td>
+                </tr>
             }
         </tbody>
     </table>

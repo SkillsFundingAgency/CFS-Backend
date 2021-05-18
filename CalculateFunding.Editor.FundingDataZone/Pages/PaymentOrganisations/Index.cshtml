@@ -8,12 +8,22 @@
     <a class="nav-link active" asp-page="/PaymentOrganisations/Index" asp-route-providerSnapshotId="@Model.RouteData.Values["ProviderSnapshotId"]">Payment organisations</a>
 </nav>
 
+<div class="d-grid gap-2 d-md-flex justify-content-md-end spacing-m">
+    <a class="btn btn-info" asp-page="/PaymentOrganisations/CreatePaymentOrganisationDetail" asp-route-providerSnapshotId="@Model.RouteData.Values["ProviderSnapshotId"]">Add payment organisation</a>
+</div>
+
+<div>
+    <form method="get" autocomplete="off">
+        <input name="searchterm" value="@Model.SearchTerm" asp-for="@Model.SearchTerm" />
+        <button type="submit" class="btn btn-primary">Search</button>
+    </form>
+</div>
+
 @if (Model.Organisations.Any())
 {
     <table class="table">
         <thead>
             <tr>
-
                 <th>Ukprn</th>
                 <th>Name</th>
                 <th></th>
@@ -39,27 +49,27 @@
                 @if (Model.CurrentPage > 1)
                 {
                     <li class="page-item">
-                        <a class="page-link" asp-page="/PaymentOrganisations/Index" asp-route-providerSnapshotId="@Model.RouteData.Values["ProviderSnapshotId"]">First</a>
+                        <a class="page-link" asp-page="/PaymentOrganisations/Index" asp-route-providerSnapshotId="@Model.RouteData.Values["ProviderSnapshotId"]" asp-route-searchTerm="@Model.SearchTerm">First</a>
                     </li>
                     <li class="page-item">
-                        <a class="page-link" asp-page="/PaymentOrganisations/Index" asp-route-providerSnapshotId="@Model.RouteData.Values["ProviderSnapshotId"]" asp-route-pageNumber="@(Model.CurrentPage - 1)">Previous</a>
+                        <a class="page-link" asp-page="/PaymentOrganisations/Index" asp-route-providerSnapshotId="@Model.RouteData.Values["ProviderSnapshotId"]" asp-route-pageNumber="@(Model.CurrentPage - 1)" asp-route-searchTerm="@Model.SearchTerm">Previous</a>
                     </li>
                 }
 
                 @for (int pageNumber = 1; pageNumber <= Model.TotalPages; pageNumber++)
                 {
                     <li class="page-item @(pageNumber == Model.CurrentPage ? "active" : "")">
-                        <a class="page-link" asp-page="/PaymentOrganisations/Index" asp-route-providerSnapshotId="@Model.RouteData.Values["ProviderSnapshotId"]" asp-route-pageNumber="@pageNumber">@pageNumber</a>
+                        <a class="page-link" asp-page="/PaymentOrganisations/Index" asp-route-providerSnapshotId="@Model.RouteData.Values["ProviderSnapshotId"]" asp-route-pageNumber="@pageNumber" asp-route-searchTerm="@Model.SearchTerm">@pageNumber</a>
                     </li>
                 }
 
                 @if (Model.CurrentPage < Model.TotalPages)
                 {
                     <li class="page-item">
-                        <a class="page-link" asp-page="/PaymentOrganisations/Index" asp-route-providerSnapshotId="@Model.RouteData.Values["ProviderSnapshotId"]" asp-route-pageNumber="@(Model.CurrentPage + 1)">Next</a>
+                        <a class="page-link" asp-page="/PaymentOrganisations/Index" asp-route-providerSnapshotId="@Model.RouteData.Values["ProviderSnapshotId"]" asp-route-pageNumber="@(Model.CurrentPage + 1)" asp-route-searchTerm="@Model.SearchTerm">Next</a>
                     </li>
                     <li class="page-item">
-                        <a class="page-link" asp-page="/PaymentOrganisations/Index" asp-route-providerSnapshotId="@Model.RouteData.Values["ProviderSnapshotId"]" asp-route-pageNumber="@(Model.TotalPages)">Last</a>
+                        <a class="page-link" asp-page="/PaymentOrganisations/Index" asp-route-providerSnapshotId="@Model.RouteData.Values["ProviderSnapshotId"]" asp-route-pageNumber="@(Model.TotalPages)" asp-route-searchTerm="@Model.SearchTerm">Last</a>
                     </li>
                 }
             </ul>

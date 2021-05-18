@@ -9,9 +9,9 @@ namespace CalculateFunding.Services.FundingDataZone
     public interface IPublishingAreaEditorRepository : IPublishingAreaRepository
     {
         Task<IEnumerable<FundingStream>> GetFundingStreams();
-        Task<int> GetCountPaymentOrganisationsInSnapshot(int providerSnapshotId);
+        Task<int> GetCountPaymentOrganisationsInSnapshot(int providerSnapshotId, string searchTerm = null);
 
-        Task<int> GetCountProvidersInSnapshot(int providerSnapshotId);
+        Task<int> GetCountProvidersInSnapshot(int providerSnapshotId, string searchTerm = null);
 
         Task<IEnumerable<ProviderStatus>> GetProviderStatuses();
 
@@ -19,7 +19,11 @@ namespace CalculateFunding.Services.FundingDataZone
 
         Task<bool> UpdateProvider(PublishingAreaProvider publishingAreaProvider);
 
+        Task<PublishingAreaProvider> InsertProvider(PublishingAreaProvider publishingAreaProvider);
+
         Task<bool> UpdateOrganisation(PublishingAreaOrganisation publishingAreaOrganisation);
+
+        Task<PublishingAreaOrganisation> InsertOrganisation(PublishingAreaOrganisation organisation);
 
         Task<bool> UpdateProviderSnapshot(ProviderSnapshotTableModel providerSnapshotTableModel);
 
