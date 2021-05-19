@@ -30,7 +30,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             OrganisationGroupResult organisationGroupResult2 = NewOrganisationGroupResult(_ => _.WithGroupTypeClassification(OrganisationGroupTypeClassification.LegalEntity)
             .WithGroupTypeCode(OrganisationGroupTypeCode.AcademyTrust).WithGroupTypeIdentifier(OrganisationGroupTypeIdentifier.AcademyTrustCode).WithIdentifierValue("102").WithProviders(scopedProviders.Where(p => p.TrustCode == "102")));
 
-            PublishedFundingPeriod publishedFundingPeriod = new PublishedFundingPeriod { Type = PublishedFundingPeriodType.AY, Period = "123" };
+            PublishedFundingPeriod publishedFundingPeriod = new PublishedFundingPeriod { Id = $"{PublishedFundingPeriodType.AY}-123" ,Type = PublishedFundingPeriodType.AY, Period = "123" };
 
             PublishedFunding publishedFunding1 = NewPublishedFunding(_ => _.WithCurrent(NewPublishedFundingVersion(version => version.WithFundingId("funding1")
             .WithProviderFundings(new string[] { "PSG-AY-123-provider1-1_0", "PSG-AY-123-provider2-1_0" })
@@ -88,7 +88,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             OrganisationGroupResult organisationGroupResult3 = NewOrganisationGroupResult(_ => _.WithGroupTypeClassification(OrganisationGroupTypeClassification.LegalEntity)
             .WithGroupTypeCode(OrganisationGroupTypeCode.AcademyTrust).WithGroupTypeIdentifier(OrganisationGroupTypeIdentifier.AcademyTrustCode).WithIdentifierValue("103").WithProviders(scopedProviders.Where(p => p.TrustCode == "103")));
 
-            PublishedFundingPeriod publishedFundingPeriod = new PublishedFundingPeriod { Type = PublishedFundingPeriodType.AY, Period = "123" };
+            PublishedFundingPeriod publishedFundingPeriod = new PublishedFundingPeriod { Id = $"{PublishedFundingPeriodType.AY}-123", Type = PublishedFundingPeriodType.AY, Period = "123" };
 
             PublishedFunding publishedFunding1 = NewPublishedFunding(_ => _.WithCurrent(NewPublishedFundingVersion(version => version.WithFundingId("funding1")
             .WithProviderFundings(new string[] { "DSG-AY-123-provider1-1_0", "DSG-AY-123-provider2-1_0" })
@@ -165,7 +165,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             OrganisationGroupResult organisationGroupResult3 = NewOrganisationGroupResult(_ => _.WithGroupTypeClassification(OrganisationGroupTypeClassification.LegalEntity)
             .WithGroupTypeCode(OrganisationGroupTypeCode.AcademyTrust).WithGroupTypeIdentifier(OrganisationGroupTypeIdentifier.AcademyTrustCode).WithIdentifierValue("103").WithProviders(scopedProviders.Where(p => p.TrustCode == "103" && p.ProviderType == "ProviderType")));
 
-            PublishedFundingPeriod publishedFundingPeriod = new PublishedFundingPeriod { Type = PublishedFundingPeriodType.AY, Period = "123" };
+            PublishedFundingPeriod publishedFundingPeriod = new PublishedFundingPeriod { Id = $"{PublishedFundingPeriodType.AY}-123", Type = PublishedFundingPeriodType.AY, Period = "123" };
 
             PublishedFunding publishedFunding1 = NewPublishedFunding(_ => _.WithCurrent(NewPublishedFundingVersion(version => version.WithFundingId("funding1")
             .WithProviderFundings(new string[] { "DSG-AY-123-provider1-1_0", "DSG-AY-123-provider2-1_0" })
@@ -250,7 +250,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             OrganisationGroupResult organisationGroupResult3 = NewOrganisationGroupResult(_ => _.WithGroupTypeClassification(OrganisationGroupTypeClassification.LegalEntity)
             .WithGroupTypeCode(OrganisationGroupTypeCode.AcademyTrust).WithGroupTypeIdentifier(OrganisationGroupTypeIdentifier.AcademyTrustCode).WithIdentifierValue("103").WithProviders(scopedProviders.Where(p => p.TrustCode == "103" && p.ProviderType == "ProviderType")));
 
-            PublishedFundingPeriod publishedFundingPeriod = new PublishedFundingPeriod { Type = PublishedFundingPeriodType.AY, Period = "123" };
+            PublishedFundingPeriod publishedFundingPeriod = new PublishedFundingPeriod { Id = $"{PublishedFundingPeriodType.AY}-123", Type = PublishedFundingPeriodType.AY, Period = "123" };
 
             PublishedFunding publishedFunding1 = NewPublishedFunding(_ => _.WithCurrent(NewPublishedFundingVersion(version => version.WithFundingId("funding1")
             .WithProviderFundings(new string[] { "DSG-AY-123-provider1-1_0", "DSG-AY-123-provider2-1_0" })

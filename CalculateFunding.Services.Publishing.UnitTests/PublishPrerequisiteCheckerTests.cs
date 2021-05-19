@@ -36,7 +36,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             _publishPrerequisiteChecker = new PublishAllPrerequisiteChecker(_specificationFundingStatusService, _jobsRunning, _jobManagement, _logger);
 
-            _publishedFundingPeriod = new PublishedFundingPeriod { Type = PublishedFundingPeriodType.AY, Period = "123" };
+            _publishedFundingPeriod = new PublishedFundingPeriod { Id = $"{PublishedFundingPeriodType.AY}-123", Type = PublishedFundingPeriodType.AY, Period = "123" };
 
             _specification = new SpecificationSummary { Id = "specification" };
         }

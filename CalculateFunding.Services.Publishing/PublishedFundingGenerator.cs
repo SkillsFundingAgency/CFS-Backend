@@ -95,6 +95,7 @@ namespace CalculateFunding.Services.Publishing
                     TotalFunding = totalFunding,
                     FundingPeriod = new PublishedFundingPeriod
                     {
+                        Id = fundingPeriod.Id,
                         Type = Enum.Parse<PublishedFundingPeriodType>(fundingPeriod.Type.GetValueOrDefault().ToString()),
                         Period = fundingPeriod.Period,
                         EndDate = fundingPeriod.EndDate,

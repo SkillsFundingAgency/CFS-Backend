@@ -105,6 +105,7 @@ namespace CalculateFunding.Generators.NavFeed.Providers.v1
                 FundingStreamName = anyProvider?.FundingStreamName,
                 FundingPeriod = new PublishedFundingPeriod
                 {
+                    Id = $"{anyProvider?.FundingStreamPeriodTypeId}-{anyProvider?.FundingPeriodId}",
                     Type = (PublishedFundingPeriodType)Enum.Parse(typeof(PublishedFundingPeriodType), anyProvider?.FundingStreamPeriodTypeId),
                     Period = anyProvider?.FundingPeriodId,
                     Name = anyProvider?.FundingStreamPeriodTypeName,

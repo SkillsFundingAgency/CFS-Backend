@@ -49,7 +49,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                                                                                            _publishedFundingVersionBulkRepository,
                                                                                            _publishedFundingBulkRepository);
 
-            _publishedFundingPeriod = new PublishedFundingPeriod { Type = PublishedFundingPeriodType.AY, Period = "123" };
+            _publishedFundingPeriod = new PublishedFundingPeriod { Id = $"{PublishedFundingPeriodType.AY}-123", Type = PublishedFundingPeriodType.AY, Period = "123" };
         }
 
         [TestMethod]

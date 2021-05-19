@@ -13,7 +13,7 @@ namespace CalculateFunding.Models.Publishing
         /// Funding Period ID eg AY-2021
         /// </summary>
         [JsonProperty("id")]
-        public string Id => $"{Type}-{Period}";
+        public string Id { get; set; }
 
         /// <summary> 
         /// The code for the period (e.g. 1920 or 2021).

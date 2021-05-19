@@ -9,6 +9,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
         {
             return new PublishedFundingPeriod
             {
+                Id = NewRandomString(),
                 Name = NewRandomString(),
                 Period = NewRandomString(),
                 Type = NewRandomEnum<PublishedFundingPeriodType>()
