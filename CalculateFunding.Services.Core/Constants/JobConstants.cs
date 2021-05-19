@@ -88,6 +88,8 @@
             public const string DetectObsoleteFundingLinesJob = nameof(DetectObsoleteFundingLinesJob);
 
             public const string RunConverterDatasetMergeJob = nameof(RunConverterDatasetMergeJob);
+            
+            public const string QueueConverterDatasetMergeJob = nameof(QueueConverterDatasetMergeJob);
 
             public const string ReIndexUsersJob = nameof(ReIndexUsersJob);
 

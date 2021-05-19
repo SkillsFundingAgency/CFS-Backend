@@ -120,7 +120,8 @@ namespace CalculateFunding.Api.Datasets
         public void RegisterComponents(IServiceCollection builder)
         {
             builder.AddAppConfiguration();
-            
+
+            builder.AddSingleton<ISpecificationConverterDataMerge, SpecificationConverterDataMerge>();
             builder.AddSingleton<IConverterDataMergeService, ConverterDataMergeService>();
             builder.AddSingleton<IDatasetCloneBuilderFactory, DatasetCloneBuilderFactory>();
             builder.AddSingleton<IConverterDataMergeLogger, ConverterDataMergeLogger>();

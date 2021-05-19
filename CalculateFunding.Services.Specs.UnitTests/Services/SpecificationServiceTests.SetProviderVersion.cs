@@ -12,6 +12,8 @@ using NSubstitute;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.DataSets.Models;
+using Moq;
 
 namespace CalculateFunding.Services.Specs.UnitTests.Services
 {
@@ -31,10 +33,12 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             IActionResult result = await service.SetProviderVersion(new AssignSpecificationProviderVersionModel(SpecificationId, NewRandomString()), new Reference());
 
-            //Arrange
+            //Arrange (rofl arrange huh??)
             result
                 .Should()
                 .BeOfType<BadRequestObjectResult>();
+            
+            _datasets.Verify(_ => _.QueueSpecificationConverterMergeJob(It.IsAny<SpecificationConverterMergeRequest>()), Times.Never);
         }
 
         [TestMethod]
@@ -66,8 +70,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             Specification specification = CreateSpecification();
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-
             specificationsRepository
                 .GetSpecificationById(Arg.Is(SpecificationId))
                 .Returns(specification);
@@ -88,12 +90,18 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             SpecificationsService service = CreateService(assignSpecificationProviderVersionModelValidator: validator, specificationsRepository: specificationsRepository, specificationVersionRepository: versionRepository);
 
             //Act
-            IActionResult result = await service.SetProviderVersion(new AssignSpecificationProviderVersionModel(SpecificationId, providerVersionId), new Reference());
+            Reference user = new Reference();
+            
+            IActionResult result = await service.SetProviderVersion(new AssignSpecificationProviderVersionModel(SpecificationId, providerVersionId), user);
 
             //Arrange
             result
                 .Should()
                 .BeOfType<OkResult>();
+            
+            _datasets.Verify(_ => _.QueueSpecificationConverterMergeJob(It.Is<SpecificationConverterMergeRequest>(req
+            => req.SpecificationId == SpecificationId &&
+               ReferenceEquals(user, req.Author))), Times.Once);
         }
     }
 }

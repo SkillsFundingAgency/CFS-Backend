@@ -1,3 +1,5 @@
+using System;
+using System.Linq.Expressions;
 using FluentAssertions;
 
 namespace CalculateFunding.Tests.Common.Helpers
@@ -20,5 +22,9 @@ namespace CalculateFunding.Tests.Common.Helpers
                 return false;
             }
         }
+
+        public static bool BooleanExpressionMatches<TItem>(Expression<Func<TItem, bool>> expression,
+            TItem shouldMatchForExpression)
+            => expression.Compile()(shouldMatchForExpression);
     }
 }

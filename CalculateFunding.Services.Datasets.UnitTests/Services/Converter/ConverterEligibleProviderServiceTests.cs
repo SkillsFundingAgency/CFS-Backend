@@ -17,7 +17,7 @@ using Polly;
 using ApiProviderVersion = CalculateFunding.Common.ApiClient.Providers.Models.ProviderVersion;
 using ApiProvider = CalculateFunding.Common.ApiClient.Providers.Models.Provider;
 
-namespace CalculateFunding.Services.Datasets.Services
+namespace CalculateFunding.Services.Datasets.Services.Converter
 {
     [TestClass]
     public class ConverterEligibleProviderServiceTests
@@ -208,11 +208,11 @@ namespace CalculateFunding.Services.Datasets.Services
         
         private static FundingConfiguration NewFundingConfiguration(Action<FundingConfigurationBuilder> setUp = null)
         {
-            FundingConfigurationBuilder fundingConfigurationBuilder = new FundingConfigurationBuilder();
+            FundingConfigurationBuilder apiFundingConfigurationBuilder = new FundingConfigurationBuilder();
 
-            setUp?.Invoke(fundingConfigurationBuilder);
+            setUp?.Invoke(apiFundingConfigurationBuilder);
             
-            return fundingConfigurationBuilder.Build();
+            return apiFundingConfigurationBuilder.Build();
         }
 
         private static EligibleConverter NewEligibleConverter(Action<EligibleConverterBuilder> setUp = null)

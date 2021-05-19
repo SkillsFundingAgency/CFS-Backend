@@ -35,7 +35,7 @@ using Polly;
 using Serilog.Core;
 using static CalculateFunding.Tests.Common.Helpers.ConstraintHelpers;
 
-namespace CalculateFunding.Services.Datasets.Services
+namespace CalculateFunding.Services.Datasets.Services.Converter
 {
     [TestClass]
     public class ConverterDataMergeServiceTests

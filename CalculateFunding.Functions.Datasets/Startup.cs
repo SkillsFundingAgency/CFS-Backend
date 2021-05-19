@@ -91,8 +91,11 @@ namespace CalculateFunding.Functions.Datasets
                 builder.AddScoped<OnDeleteDatasetsFailure>();
                 builder.AddScoped<OnRunConverterDataMerge>();
                 builder.AddScoped<OnRunConverterDataMergeFailure>();
+                builder.AddScoped<OnCreateSpecificationConverterDatasetsMerge>();
+                builder.AddScoped<OnCreateSpecificationConverterDatasetsMergeFailure>();
             }
 
+            builder.AddSingleton<ISpecificationConverterDataMerge, SpecificationConverterDataMerge>();
             builder.AddSingleton<IConverterDataMergeService, ConverterDataMergeService>();
             builder.AddSingleton<IDatasetCloneBuilderFactory, DatasetCloneBuilderFactory>();
             builder.AddSingleton<IConverterDataMergeLogger, ConverterDataMergeLogger>();

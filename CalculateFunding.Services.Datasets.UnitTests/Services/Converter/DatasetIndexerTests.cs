@@ -15,7 +15,7 @@ using Moq;
 using Polly;
 using Serilog.Core;
 
-namespace CalculateFunding.Services.Datasets.Services
+namespace CalculateFunding.Services.Datasets.Services.Converter
 {
     [TestClass]
     public class DatasetIndexerTests

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Calcs;
+using CalculateFunding.Common.ApiClient.DataSets;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Policies.Models;
@@ -63,6 +64,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         private readonly IMessengerService _messengerService;
         private readonly IJobManagement _jobManagement;
         private readonly IVersionRepository<Models.Specs.SpecificationVersion> _versionRepository;
+        private Mock<IDatasetsApiClient> _datasets;
 
         private ISpecificationTemplateVersionChangedHandler _templateVersionChangedHandler;
         private IResultsApiClient _resultsApiClient;
@@ -104,6 +106,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             _specificationIndexer = Substitute.For<ISpecificationIndexer>();
             _resultsApiClient = Substitute.For<IResultsApiClient>();
             _templateVersionChangedHandler = Substitute.For<ISpecificationTemplateVersionChangedHandler>();
+
+            _datasets = new Mock<IDatasetsApiClient>();
         }
 
         private SpecificationsService CreateService(
@@ -152,7 +156,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 _resultsApiClient,
                 _templateVersionChangedHandler,
                 assignSpecificationProviderVersionModelValidator ?? CreateAssignSpecificationProviderVersionModelValidator(),
-                jobManagement ?? CreateJobManagement());
+                jobManagement ?? CreateJobManagement(),
+                _datasets.Object);
         }
 
         protected IVersionRepository<Models.Specs.SpecificationVersion> CreateVersionRepository()

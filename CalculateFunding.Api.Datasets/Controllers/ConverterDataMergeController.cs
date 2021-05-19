@@ -13,6 +13,7 @@ namespace CalculateFunding.Api.Datasets.Controllers
     public class ConverterDataMergeController : ControllerBase
     {
         private readonly IConverterDataMergeService _converterDataMergeService;
+        private readonly ISpecificationConverterDataMerge _specificationConverterDataMerge;
 
         /// <inheritdoc />
         public ConverterDataMergeController(IConverterDataMergeService converterDataMergeService)
@@ -30,5 +31,14 @@ namespace CalculateFunding.Api.Datasets.Controllers
         [HttpPost("api/datasets/converter/merge")]
         public async Task<IActionResult> QueueJob([FromBody] ConverterMergeRequest request)
             => await _converterDataMergeService.QueueJob(request);
+        
+        /// <summary>
+        ///     Queues job to run converter data merge per supplied request
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        [HttpPost("api/specifications/datasets/converter/merge")]
+        public async Task<IActionResult> QueueSpecificationParentJob([FromBody] SpecificationConverterMergeRequest request)
+            => await _specificationConverterDataMerge.QueueJob(request);
     }
 }

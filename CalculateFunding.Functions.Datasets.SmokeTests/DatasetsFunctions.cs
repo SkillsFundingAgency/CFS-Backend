@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Functions.Datasets.ServiceBus;
@@ -6,13 +7,10 @@ using CalculateFunding.Services.Datasets.Interfaces;
 using CalculateFunding.Tests.Common;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
-using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Functions.Datasets.SmokeTests
 {
@@ -37,7 +35,26 @@ namespace CalculateFunding.Functions.Datasets.SmokeTests
             _datasetService = CreateDatasetService();
             _userProfileProvider = CreateUserProfileProvider();
         }
-        
+
+        [TestMethod]
+        public async Task OnCreateSpecificationConverterDatasetsMerge_SmokeTestSucceeds()
+        {
+            OnCreateSpecificationConverterDatasetsMerge onRunConverterDataMerge = new OnCreateSpecificationConverterDatasetsMerge(_logger,
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                _userProfileProvider,
+                Substitute.For<ISpecificationConverterDataMerge>(),
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
+                IsDevelopment);
+
+            SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.RunConverterDatasetMerge,
+                async smokeResponse => await onRunConverterDataMerge.Run(smokeResponse),
+                useSession: true);
+
+            response
+                .Should()
+                .NotBeNull();
+        }
+
         [TestMethod]
         public async Task OnRunConverterDataMerge_SmokeTestSucceeds()
         {
@@ -49,7 +66,8 @@ namespace CalculateFunding.Functions.Datasets.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.RunConverterDatasetMerge,
-                async(Message smokeResponse) => await onRunConverterDataMerge.Run(smokeResponse), useSession: true);
+                async smokeResponse => await onRunConverterDataMerge.Run(smokeResponse),
+                useSession: true);
 
             response
                 .Should()
@@ -67,7 +85,7 @@ namespace CalculateFunding.Functions.Datasets.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.UpdateDataDefinitionName,
-                async(Message smokeResponse) => await onDataDefinitionChanges.Run(smokeResponse),
+                async smokeResponse => await onDataDefinitionChanges.Run(smokeResponse),
                 ServiceBusConstants.TopicNames.DataDefinitionChanges);
 
             response
@@ -86,7 +104,8 @@ namespace CalculateFunding.Functions.Datasets.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.MapFdzDatasets,
-                async(Message smokeResponse) => await onMapFdzDatasetsEventFired.Run(smokeResponse), useSession: true);
+                async smokeResponse => await onMapFdzDatasetsEventFired.Run(smokeResponse),
+                useSession: true);
 
             response
                 .Should()
@@ -104,7 +123,8 @@ namespace CalculateFunding.Functions.Datasets.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.ProcessDataset,
-                async(Message smokeResponse) => await onDatasetEvent.Run(smokeResponse), useSession: true);
+                async smokeResponse => await onDatasetEvent.Run(smokeResponse),
+                useSession: true);
 
             response
                 .Should()
@@ -122,7 +142,7 @@ namespace CalculateFunding.Functions.Datasets.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.ValidateDataset,
-                async(Message smokeResponse) => await onDatasetValidationEvent.Run(smokeResponse));
+                async smokeResponse => await onDatasetValidationEvent.Run(smokeResponse));
 
             response
                 .Should()
@@ -140,37 +160,21 @@ namespace CalculateFunding.Functions.Datasets.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.DeleteDatasets,
-                async(Message smokeResponse) => await onDeleteDatasets.Run(smokeResponse));
+                async smokeResponse => await onDeleteDatasets.Run(smokeResponse));
 
             response
                 .Should()
                 .NotBeNull();
         }
 
-        private static ILogger CreateLogger()
-        {
-            return Substitute.For<ILogger>();
-        }
-        
-        private static IDatasetDefinitionNameChangeProcessor CreateDatasetDefinitionNameChangeProcessor()
-        {
-            return Substitute.For<IDatasetDefinitionNameChangeProcessor>();
-        }
-        
-        private static IProcessDatasetService CreateProcessDatasetService()
-        {
-            return Substitute.For<IProcessDatasetService>();
-        }
+        private static ILogger CreateLogger() => Substitute.For<ILogger>();
 
-        private static IDatasetService CreateDatasetService()
-        {
-            return Substitute.For<IDatasetService>();
-        }
+        private static IDatasetDefinitionNameChangeProcessor CreateDatasetDefinitionNameChangeProcessor() => Substitute.For<IDatasetDefinitionNameChangeProcessor>();
 
-        private static IUserProfileProvider CreateUserProfileProvider()
-        {
-            return Substitute.For<IUserProfileProvider>();
-        }
+        private static IProcessDatasetService CreateProcessDatasetService() => Substitute.For<IProcessDatasetService>();
 
+        private static IDatasetService CreateDatasetService() => Substitute.For<IDatasetService>();
+
+        private static IUserProfileProvider CreateUserProfileProvider() => Substitute.For<IUserProfileProvider>();
     }
 }

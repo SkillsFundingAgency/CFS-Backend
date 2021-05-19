@@ -234,6 +234,12 @@
             public const string RunConverterDatasetMergePoisoned = "datasets-converter-dataset-merge/$DeadLetterQueue";
             
             public const string RunConverterDatasetMergePoisonedLocal = "datasets-converter-dataset-merge-poisoned";
+            
+            public const string SpecificationConverterDatasetsMerge = "datasets-specification-converter-datasets-merge";
+            
+            public const string SpecificationConverterDatasetsMergePoisoned = "datasets-specification-converter-datasets-merge/$DeadLetterQueue";
+            
+            public const string SpecificationConverterDatasetsMergePoisonedLocal = "datasets-specification-converter-datasets-merge-poisoned";
 
             public const string UsersReIndexUsers = "users-reindex-users";
         }

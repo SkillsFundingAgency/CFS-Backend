@@ -18,7 +18,7 @@ namespace CalculateFunding.Services.Processing
         private readonly ILogger _logger;
         private const string JobIdKey = "jobId";
 
-        public JobViewModel Job { get; private set; }
+        public JobViewModel Job { get; set; }
 
         public int? ItemsProcessed { get; set; }
 
@@ -100,25 +100,34 @@ namespace CalculateFunding.Services.Processing
             catch(JobNotFoundException)
             {
                 string errorMessage = $"Could not find the job with id: '{jobId}'";
-                _logger.Error(errorMessage);
+                
+                Error(errorMessage);
 
                 throw new NonRetriableException(errorMessage);
             }
             catch (JobAlreadyCompletedException jobCompletedException)
             {
                 string errorMessage = $"Received job with id: '{jobId}' is already in a completed state with status '{jobCompletedException.Job.CompletionStatus}'";
-                _logger.Error(errorMessage);
+                
+                Error(errorMessage);
 
                 throw new NonRetriableException(errorMessage);
             }
             catch
             {
                 string errorMessage = $"Job can not be run '{jobId}'";
-                _logger.Error(errorMessage);
+                
+                Error(errorMessage);
 
                 throw new NonRetriableException(errorMessage);
             }
         }
+
+        protected void Error(string errorMessage) 
+            => _logger.Error(errorMessage);
+
+        protected void Information(string information)
+            => _logger.Information(information);
 
         private async Task StartTrackingJob(string jobId)
                 => await UpdateJobStatus(jobId);

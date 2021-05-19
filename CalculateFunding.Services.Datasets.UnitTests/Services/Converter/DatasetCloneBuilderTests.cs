@@ -21,7 +21,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Polly;
 
-namespace CalculateFunding.Services.Datasets.Services
+namespace CalculateFunding.Services.Datasets.Services.Converter
 {
     [TestClass]
     public class DatasetCloneBuilderTests

@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Processing.Functions;
 using CalculateFunding.Services.Processing.Interfaces;
@@ -9,12 +9,12 @@ using Serilog;
 
 namespace CalculateFunding.Functions.Datasets.ServiceBus
 {
-    public class OnRunConverterDataMergeFailure : Failure
+    public class OnCreateSpecificationConverterDatasetsMergeFailure : Failure
     {
-        public const string FunctionName = "on-run-converter-data-merge-failure";
-        private const string QueueName = ServiceBusConstants.QueueNames.RunConverterDatasetMergePoisoned;
+        public const string FunctionName = "on-create-specification-converter-data-merge-failure";
+        private const string QueueName = ServiceBusConstants.QueueNames.SpecificationConverterDatasetsMergePoisoned;
 
-        public OnRunConverterDataMergeFailure(
+        public OnCreateSpecificationConverterDatasetsMergeFailure(
             ILogger logger,
             IDeadletterService jobHelperService,
             IConfigurationRefresherProvider refresherProvider) : base(logger, jobHelperService, QueueName, refresherProvider)
@@ -22,6 +22,7 @@ namespace CalculateFunding.Functions.Datasets.ServiceBus
         }
 
         [FunctionName(FunctionName)]
-        public async Task Run([ServiceBusTrigger(QueueName, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message) => await Process(message);
+        public async Task Run([ServiceBusTrigger(QueueName, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message) 
+            => await Process(message);
     }
 }

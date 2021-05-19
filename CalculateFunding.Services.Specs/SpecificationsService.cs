@@ -7,6 +7,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Calcs;
+using CalculateFunding.Common.ApiClient.DataSets;
+using CalculateFunding.Common.ApiClient.DataSets.Models;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
@@ -76,6 +78,8 @@ namespace CalculateFunding.Services.Specs
         private readonly IResultsApiClient _results;
         private readonly AsyncPolicy _resultsApiClientPolicy;
         private readonly IJobManagement _jobManagement;
+        private readonly IDatasetsApiClient _datasets;
+        private AsyncPolicy _datasetsResilience;
 
         public SpecificationsService(
             IMapper mapper,
@@ -101,7 +105,8 @@ namespace CalculateFunding.Services.Specs
             IResultsApiClient results,
             ISpecificationTemplateVersionChangedHandler templateVersionChangedHandler,
             IValidator<AssignSpecificationProviderVersionModel> assignSpecificationProviderVersionModelValidator,
-            IJobManagement jobManagement) : base(jobManagement, logger)
+            IJobManagement jobManagement,
+            IDatasetsApiClient datasets) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
@@ -132,6 +137,8 @@ namespace CalculateFunding.Services.Specs
             Guard.ArgumentNotNull(templateVersionChangedHandler, nameof(templateVersionChangedHandler));
             Guard.ArgumentNotNull(assignSpecificationProviderVersionModelValidator, nameof(assignSpecificationProviderVersionModelValidator));
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
+            Guard.ArgumentNotNull(datasets, nameof(datasets));
+            Guard.ArgumentNotNull(resiliencePolicies.DatasetsApiClient, nameof(resiliencePolicies.DatasetsApiClient));
 
             _mapper = mapper;
             _specificationsRepository = specificationsRepository;
@@ -160,6 +167,8 @@ namespace CalculateFunding.Services.Specs
             _providersApiClientPolicy = resiliencePolicies.ProvidersApiClient;
             _resultsApiClientPolicy = resiliencePolicies.ResultsApiClient;
             _jobManagement = jobManagement;
+            _datasets = datasets;
+            _datasetsResilience = resiliencePolicies.DatasetsApiClient;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -1753,7 +1762,9 @@ WHERE   s.documentType = @DocumentType",
                 return validationResult.PopulateModelState();
             }
 
-            Specification specification = await _specificationsRepository.GetSpecificationById(assignSpecificationProviderVersionModel.SpecificationId);
+            string specificationId = assignSpecificationProviderVersionModel.SpecificationId;
+            
+            Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
             SpecificationVersion previousSpecificationVersion = specification.Current;
             SpecificationVersion specificationVersion = specification.Current.DeepCopy(useCamelCase: false);
 
@@ -1762,7 +1773,18 @@ WHERE   s.documentType = @DocumentType",
 
             HttpStatusCode statusCode = await UpdateSpecification(specification, specificationVersion, previousSpecificationVersion);
 
-            return statusCode.IsSuccess() ? new OkResult() : new StatusCodeResult((int)statusCode);
+            bool updatedSpecification = statusCode.IsSuccess();
+
+            if (updatedSpecification)
+            {
+                await _datasetsResilience.ExecuteAsync(() => _datasets.QueueSpecificationConverterMergeJob(new SpecificationConverterMergeRequest
+                {
+                    SpecificationId = specificationId,
+                    Author = user
+                }));
+            }
+
+            return updatedSpecification ? new OkResult() : new StatusCodeResult((int)statusCode);
         }
 
         public async Task<IActionResult> GetSpecificationsWithProviderVersionUpdatesAsUseLatest()

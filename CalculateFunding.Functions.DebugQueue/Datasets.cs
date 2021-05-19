@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Functions.Datasets;
 using CalculateFunding.Functions.Datasets.ServiceBus;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Services.Core.Constants;
@@ -14,123 +15,204 @@ namespace CalculateFunding.Functions.DebugQueue
     public static class Datasets
     {
         [FunctionName("on-dataset-event")]
-        public static async Task RunPublishProviderResults([QueueTrigger(ServiceBusConstants.QueueNames.ProcessDataset, Connection = "AzureConnectionString")] string item, ILogger log)
+        public static async Task RunPublishProviderResults([QueueTrigger(ServiceBusConstants.QueueNames.ProcessDataset, Connection = "AzureConnectionString")]
+            string item,
+            ILogger log)
         {
-            using (IServiceScope scope = Functions.Datasets.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
-            {
-                CultureInfo.CurrentCulture = new CultureInfo("en-GB");
-                Message message = Helpers.ConvertToMessage<Dataset>(item);
+            using IServiceScope scope = Startup.RegisterComponents(new ServiceCollection()).CreateScope();
 
-                OnDatasetEvent function = scope.ServiceProvider.GetService<OnDatasetEvent>();
+            CultureInfo.CurrentCulture = new CultureInfo("en-GB");
+            Message message = Helpers.ConvertToMessage<Dataset>(item);
 
-                Guard.ArgumentNotNull(function, nameof(OnDatasetEvent));
-                
-                await function.Run(message);
+            OnDatasetEvent function = scope.ServiceProvider.GetService<OnDatasetEvent>();
 
-                log.LogInformation($"C# Queue trigger function processed: {item}");
-            }
+            Guard.ArgumentNotNull(function, nameof(OnDatasetEvent));
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
         }
 
         [FunctionName("on-delete-datasets")]
-        public static async Task RunDeleteDatasets([QueueTrigger(ServiceBusConstants.QueueNames.DeleteDatasets, Connection = "AzureConnectionString")] string item, ILogger log)
+        public static async Task RunDeleteDatasets([QueueTrigger(ServiceBusConstants.QueueNames.DeleteDatasets, Connection = "AzureConnectionString")]
+            string item,
+            ILogger log)
         {
-            using (IServiceScope scope = Functions.Datasets.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
-            {
-                CultureInfo.CurrentCulture = new CultureInfo("en-GB");
-                Message message = Helpers.ConvertToMessage<string>(item);
+            using IServiceScope scope = Startup.RegisterComponents(new ServiceCollection()).CreateScope();
 
-                OnDeleteDatasets function = scope.ServiceProvider.GetService<OnDeleteDatasets>();
+            CultureInfo.CurrentCulture = new CultureInfo("en-GB");
+            Message message = Helpers.ConvertToMessage<string>(item);
 
-                await function.Run(message);
+            OnDeleteDatasets function = scope.ServiceProvider.GetService<OnDeleteDatasets>();
 
-                log.LogInformation($"C# Queue trigger function processed: {item}");
-            }
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
         }
 
         [FunctionName("on-dataset-event-poisoned")]
-        public static async Task RunPublishProviderResultsFailure([QueueTrigger(ServiceBusConstants.QueueNames.ProcessDatasetPoisonedLocal, Connection = "AzureConnectionString")] string item, ILogger log)
+        public static async Task RunPublishProviderResultsFailure([QueueTrigger(ServiceBusConstants.QueueNames.ProcessDatasetPoisonedLocal, Connection = "AzureConnectionString")]
+            string item,
+            ILogger log)
         {
-            using (IServiceScope scope = Functions.Datasets.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
-            {
-                Message message = Helpers.ConvertToMessage<string>(item);
+            using IServiceScope scope = Startup.RegisterComponents(new ServiceCollection()).CreateScope();
 
-                OnDatasetEventFailure function = scope.ServiceProvider.GetService<OnDatasetEventFailure>();
-                
-                Guard.ArgumentNotNull(function, nameof(OnDatasetEventFailure));
+            Message message = Helpers.ConvertToMessage<string>(item);
 
-                await function.Run(message);
+            OnDatasetEventFailure function = scope.ServiceProvider.GetService<OnDatasetEventFailure>();
 
-                log.LogInformation($"C# Queue trigger function processed: {item}");
-            }
+            Guard.ArgumentNotNull(function, nameof(OnDatasetEventFailure));
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
         }
 
         [FunctionName("on-dataset-validation-event")]
-        public static async Task RunValidateDatasetEvent([QueueTrigger(ServiceBusConstants.QueueNames.ValidateDataset, Connection = "AzureConnectionString")] string item, ILogger log)
+        public static async Task RunValidateDatasetEvent([QueueTrigger(ServiceBusConstants.QueueNames.ValidateDataset, Connection = "AzureConnectionString")]
+            string item,
+            ILogger log)
         {
-            using (IServiceScope scope = Functions.Datasets.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
-            {
-                CultureInfo.CurrentCulture = new CultureInfo("en-GB");
-                Message message = Helpers.ConvertToMessage<GetDatasetBlobModel>(item);
+            using IServiceScope scope = Startup.RegisterComponents(new ServiceCollection()).CreateScope();
 
-                OnDatasetValidationEvent function = scope.ServiceProvider.GetService<OnDatasetValidationEvent>();
-                
-                Guard.ArgumentNotNull(function, nameof(OnDatasetValidationEvent));
+            CultureInfo.CurrentCulture = new CultureInfo("en-GB");
+            Message message = Helpers.ConvertToMessage<GetDatasetBlobModel>(item);
 
-                await function.Run(message);
+            OnDatasetValidationEvent function = scope.ServiceProvider.GetService<OnDatasetValidationEvent>();
 
-                log.LogInformation($"C# Queue trigger function processed: {item}");
-            }
+            Guard.ArgumentNotNull(function, nameof(OnDatasetValidationEvent));
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
         }
 
         [FunctionName("on-dataset-validation-event-poisoned")]
-        public static async Task RunOnValidateDatasetsFailure([QueueTrigger(ServiceBusConstants.QueueNames.ValidateDatasetPoisonedLocal, Connection = "AzureConnectionString")] string item, ILogger log)
+        public static async Task RunOnValidateDatasetsFailure([QueueTrigger(ServiceBusConstants.QueueNames.ValidateDatasetPoisonedLocal, Connection = "AzureConnectionString")]
+            string item,
+            ILogger log)
         {
-            using (IServiceScope scope = Functions.Datasets.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
-            {
-                Message message = Helpers.ConvertToMessage<string>(item);
+            using IServiceScope scope = Startup.RegisterComponents(new ServiceCollection()).CreateScope();
 
-                OnDatasetValidationEventFailure function = scope.ServiceProvider.GetService<OnDatasetValidationEventFailure>();
+            Message message = Helpers.ConvertToMessage<string>(item);
 
-                Guard.ArgumentNotNull(function, nameof(OnDatasetValidationEventFailure));
+            OnDatasetValidationEventFailure function = scope.ServiceProvider.GetService<OnDatasetValidationEventFailure>();
 
-                await function.Run(message);
+            Guard.ArgumentNotNull(function, nameof(OnDatasetValidationEventFailure));
 
-                log.LogInformation($"C# Queue trigger function processed: {item}");
-            }
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
         }
 
         [FunctionName(FunctionConstants.MapFdzDatasets)]
-        public static async Task RunOnMapFdzDatasetsEventFired([QueueTrigger(ServiceBusConstants.QueueNames.MapFdzDatasets, Connection = "AzureConnectionString")] string item, ILogger log)
+        public static async Task RunOnMapFdzDatasetsEventFired([QueueTrigger(ServiceBusConstants.QueueNames.MapFdzDatasets, Connection = "AzureConnectionString")]
+            string item,
+            ILogger log)
         {
-            using (IServiceScope scope = Functions.Datasets.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
-            {
-                Message message = Helpers.ConvertToMessage<Dataset>(item);
+            using IServiceScope scope = Startup.RegisterComponents(new ServiceCollection()).CreateScope();
 
-                OnMapFdzDatasetsEventFired function = scope.ServiceProvider.GetService<OnMapFdzDatasetsEventFired>();
+            Message message = Helpers.ConvertToMessage<Dataset>(item);
 
-                Guard.ArgumentNotNull(function, nameof(OnMapFdzDatasetsEventFired));
+            OnMapFdzDatasetsEventFired function = scope.ServiceProvider.GetService<OnMapFdzDatasetsEventFired>();
 
-                await function.Run(message);
+            Guard.ArgumentNotNull(function, nameof(OnMapFdzDatasetsEventFired));
 
-                log.LogInformation($"C# Queue trigger function processed: {item}");
-            }
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
         }
 
         [FunctionName(FunctionConstants.MapFdzDatasetsPoisoned)]
-        public static async Task RunOnMapFdzDatasetsEventFiredFailure([QueueTrigger(ServiceBusConstants.QueueNames.MapFdzDatasetsPoisonedLocal, Connection = "AzureConnectionString")] string item, ILogger log)
+        public static async Task RunOnMapFdzDatasetsEventFiredFailure([QueueTrigger(ServiceBusConstants.QueueNames.MapFdzDatasetsPoisonedLocal, Connection = "AzureConnectionString")]
+            string item,
+            ILogger log)
         {
-            using (IServiceScope scope = Functions.Datasets.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
-            {
-                Message message = Helpers.ConvertToMessage<string>(item);
+            using IServiceScope scope = Startup.RegisterComponents(new ServiceCollection()).CreateScope();
 
-                OnMapFdzDatasetsEventFiredFailure function = scope.ServiceProvider.GetService<OnMapFdzDatasetsEventFiredFailure>();
+            Message message = Helpers.ConvertToMessage<string>(item);
 
-                Guard.ArgumentNotNull(function, nameof(OnMapFdzDatasetsEventFiredFailure));
+            OnMapFdzDatasetsEventFiredFailure function = scope.ServiceProvider.GetService<OnMapFdzDatasetsEventFiredFailure>();
 
-                await function.Run(message);
+            Guard.ArgumentNotNull(function, nameof(OnMapFdzDatasetsEventFiredFailure));
 
-                log.LogInformation($"C# Queue trigger function processed: {item}");
-            }
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
+
+        [FunctionName(OnRunConverterDataMerge.FunctionName)]
+        public static async Task RunOnRunConverterDataMerge([QueueTrigger(ServiceBusConstants.QueueNames.RunConverterDatasetMerge, Connection = "AzureConnectionString")]
+            string item,
+            ILogger log)
+        {
+            using IServiceScope scope = Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+
+            Message message = Helpers.ConvertToMessage<string>(item);
+
+            OnRunConverterDataMerge function = scope.ServiceProvider.GetService<OnRunConverterDataMerge>();
+
+            Guard.ArgumentNotNull(function, nameof(OnMapFdzDatasetsEventFired));
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
+
+        [FunctionName(OnRunConverterDataMergeFailure.FunctionName)]
+        public static async Task RunOnRunConverterDataMergeFailure(
+            [QueueTrigger(ServiceBusConstants.QueueNames.RunConverterDatasetMergePoisonedLocal, Connection = "AzureConnectionString")]
+            string item,
+            ILogger log)
+        {
+            using IServiceScope scope = Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+
+            Message message = Helpers.ConvertToMessage<string>(item);
+
+            OnRunConverterDataMergeFailure function = scope.ServiceProvider.GetService<OnRunConverterDataMergeFailure>();
+
+            Guard.ArgumentNotNull(function, nameof(OnMapFdzDatasetsEventFiredFailure));
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
+
+        [FunctionName(OnCreateSpecificationConverterDatasetsMerge.FunctionName)]
+        public static async Task RunOnCreateSpecificationConverterDatasetsMerge([QueueTrigger(ServiceBusConstants.QueueNames.SpecificationConverterDatasetsMerge, Connection = "AzureConnectionString")]
+            string item,
+            ILogger log)
+        {
+            using IServiceScope scope = Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+
+            Message message = Helpers.ConvertToMessage<string>(item);
+
+            OnCreateSpecificationConverterDatasetsMerge function = scope.ServiceProvider.GetService<OnCreateSpecificationConverterDatasetsMerge>();
+
+            Guard.ArgumentNotNull(function, nameof(OnMapFdzDatasetsEventFired));
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
+
+        [FunctionName(OnCreateSpecificationConverterDatasetsMergeFailure.FunctionName)]
+        public static async Task RunOnCreateSpecificationConverterDatasetsMergeFailure(
+            [QueueTrigger(ServiceBusConstants.QueueNames.SpecificationConverterDatasetsMergePoisonedLocal, Connection = "AzureConnectionString")]
+            string item,
+            ILogger log)
+        {
+            using IServiceScope scope = Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+
+            Message message = Helpers.ConvertToMessage<string>(item);
+
+            OnCreateSpecificationConverterDatasetsMergeFailure function = scope.ServiceProvider.GetService<OnCreateSpecificationConverterDatasetsMergeFailure>();
+
+            Guard.ArgumentNotNull(function, nameof(OnMapFdzDatasetsEventFiredFailure));
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
         }
     }
 }
