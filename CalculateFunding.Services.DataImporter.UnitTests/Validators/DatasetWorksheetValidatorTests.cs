@@ -5,7 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using OfficeOpenXml;
 using System.Linq;
 
-namespace CalculateFunding.Services.Scenarios.Validators
+namespace CalculateFunding.Services.DataImporter.UnitTests.Validators
 {
     [TestClass]
     public class DatasetWorksheetValidatorTests

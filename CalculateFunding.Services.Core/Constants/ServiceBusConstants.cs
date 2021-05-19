@@ -147,12 +147,6 @@
 
             public const string DeleteDatasetsPoisonedLocal = "datasets-delete-poison";
 
-            public const string DeleteTests = "tests-delete";
-
-            public const string DeleteTestsPoisoned = "tests-delete/$DeadLetterQueue";
-
-            public const string DeleteTestsPoisonedLocal = "tests-delete-poison";
-
             public const string DeleteSpecifications = "specifications-delete";
 
             public const string DeleteSpecificationsPoisoned = "specifications-delete/$DeadLetterQueue";
@@ -263,15 +257,9 @@
         {
             public const string UpdateCalculationsForEditSpecification = "calculation-update";
 
-            public const string UpdateScenariosForEditSpecification = "test-scenario-update";
-
-            public const string UpdateScenarioResultsForEditSpecification = "test-scenario-result-update";
-
             public const string CleanupTestResultsForSpecificationProviders = "test-specification-provider-results-cleanup";
 
             public const string UpdateUsersForEditSpecification = "users-update";
-
-            public const string UpdateScenariosForEditCalculation = "test-scenario-update";
 
             public const string UpdateCalculationsForEditCalculation = "calcs-calculation-update";
 
@@ -286,8 +274,6 @@
             public const string UpdateDataDefinitionName = "data-definition-name-update";
 
             public const string UpdateCalculationFieldDefinitionProperties = "calculation-field-definition-properties-update";
-
-            public const string UpdateScenarioFieldDefinitionProperties = "scenario-field-definition-properties-update";
 
             public const string ScaleUpCosmosdbCollection = "scale-up-cosmosdb-collection";
         }

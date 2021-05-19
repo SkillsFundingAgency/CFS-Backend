@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <RootNamespace>CalculateFunding.Services.Scenarios</RootNamespace>
+    <RootNamespace>CalculateFunding.Services.DataImporter.UnitTests</RootNamespace>
     <DebugType>full</DebugType>
     <ApplicationIcon />
     <OutputType>Library</OutputType>

@@ -1,15 +1,12 @@
 ﻿using CalculateFunding.Models.Datasets.Schema;
-using CalculateFunding.Services.DataImporter;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using OfficeOpenXml;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 
-namespace CalculateFunding.Services.Scenarios
+namespace CalculateFunding.Services.DataImporter.UnitTests
 {
     [TestClass]
     public class DataDefinitionExcelWriterTests

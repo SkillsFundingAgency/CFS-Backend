@@ -6,8 +6,6 @@ using CalculateFunding.Functions.Results.ServiceBus;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Jobs;
 using CalculateFunding.Models.Messages;
-using CalculateFunding.Models.Scenarios;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using Microsoft.Azure.ServiceBus;
@@ -81,20 +79,6 @@ namespace CalculateFunding.Functions.DebugQueue
                 catch (Exception ex)
                 {
                     logger.LogError(ex, $"Error while executing Datasets {nameof(OnDataDefinitionChanges)}");
-                }
-            }
-
-            using (IServiceScope scope = Functions.Scenarios.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
-            {
-                try
-                {
-                    Functions.Scenarios.ServiceBus.OnDataDefinitionChanges function = scope.ServiceProvider.GetService<Functions.Scenarios.ServiceBus.OnDataDefinitionChanges>();
-
-                    await function.Run(message);
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, $"Error while executing Scenarios {nameof(OnDataDefinitionChanges)}");
                 }
             }
 

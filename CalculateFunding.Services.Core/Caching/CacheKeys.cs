@@ -2,8 +2,6 @@
 {
     public static class CacheKeys
     {
-        public const string TestScenarios = "test-scenarios:";
-
         public const string GherkinParseResult = "gherkin-parse-result:";
 
         public const string ProviderResultBatch = "provider-results-batch:";

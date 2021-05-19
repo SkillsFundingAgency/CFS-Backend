@@ -23,8 +23,6 @@
     "graphClient:ApiKey": "Local",
     "resultsClient:ApiEndpoint": "https://localhost:7005/api/",
     "resultsClient:ApiKey": "Local",
-    "scenariosClient:ApiEndpoint": "https://localhost:7006/api/",
-    "scenariosClient:ApiKey": "Local",
     "datasetsClient:ApiEndpoint": "https://localhost:7004/api/",
     "datasetsClient:ApiKey": "Local",
     "jobsClient:ApiEndpoint": "https://localhost:7010/api/",

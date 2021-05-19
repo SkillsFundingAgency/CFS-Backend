@@ -1,4 +1,4 @@
-﻿namespace CalculateFunding.Models.Scenarios
+﻿namespace CalculateFunding.Services.Publishing.SqlExport
 {
     public class UniqueTemplateContents
     {

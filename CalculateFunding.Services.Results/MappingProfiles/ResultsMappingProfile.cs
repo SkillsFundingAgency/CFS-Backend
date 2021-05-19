@@ -1,7 +1,5 @@
-﻿using System;
-using AutoMapper;
+﻿using AutoMapper;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Scenarios;
 using ApiModels = CalculateFunding.Common.ApiClient.Calcs.Models;
 
 namespace CalculateFunding.Models.MappingProfiles
