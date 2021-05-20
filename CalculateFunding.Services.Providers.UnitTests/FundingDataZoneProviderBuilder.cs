@@ -37,7 +37,6 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 PhaseOfEducation = NewRandomString(),
                 ReasonEstablishmentClosed = NewRandomString(),
                 ReasonEstablishmentOpened = NewRandomString(),
-                Successor = NewRandomString(),
                 TrustStatus = NewRandomEnum<TrustStatus>().ToString(),
                 TrustName = NewRandomString(),
                 TrustCode = NewRandomString(),

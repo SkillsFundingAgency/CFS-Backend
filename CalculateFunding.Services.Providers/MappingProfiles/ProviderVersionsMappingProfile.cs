@@ -38,7 +38,8 @@ namespace CalculateFunding.Services.Providers.MappingProfiles
                 .ForMember(c => c.PaymentOrganisationIdentifier, opt => opt.MapFrom(c => c.PaymentOrganisationUkprn))
                 .ForMember(c => c.ProviderVersionIdProviderId, opt => opt.Ignore())
                 .ForMember(c => c.ProviderVersionId, opt => opt.Ignore())
-                .ForMember(c => c.TrustStatusViewModelString, opt => opt.Ignore());
+                .ForMember(c => c.TrustStatusViewModelString, opt => opt.Ignore())
+                .ForMember(c => c.Successor, opt => opt.Ignore());
 
             CreateMap<CurrentProviderVersion, CurrentProviderVersionMetadata>()
                 .ForMember(d => d.FundingStreamId, opt => opt.MapFrom(s => s.Id.Replace("Current_", string.Empty)))

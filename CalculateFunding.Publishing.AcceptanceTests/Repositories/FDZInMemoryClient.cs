@@ -60,7 +60,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<ApiResponse<IEnumerable<Provider>>> GetProvidersInSnapshot(int providerSnapshotId, string providerId)
+        public Task<ApiResponse<Provider>> GetProviderInSnapshot(int providerSnapshotId, string providerId)
         {
             throw new NotImplementedException();
         }
