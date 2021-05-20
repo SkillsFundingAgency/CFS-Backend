@@ -147,8 +147,7 @@ this.ScenarioInitialize(scenarioInfo);
                             "OrganisationGroupTypeCode",
                             "LocalAuthority"});
 #line 10
- testRunner.And("the funding configuration has the following organisation group and provider statu" +
-                        "s list \'Open;Open, but proposed to close\'", ((string)(null)), table369, "And ");
+ testRunner.And("the funding configuration has the following organisation group", ((string)(null)), table369, "And ");
 #line hidden
 #line 16
  testRunner.And("the funding configuration is available in the policies repository", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
@@ -169,8 +168,7 @@ this.ScenarioInitialize(scenarioInfo);
                             "OrganisationGroupTypeCode",
                             "LocalAuthority"});
 #line 17
- testRunner.And("the funding configuration has the following organisation group and provider statu" +
-                        "s list \'Open;Open, but proposed to close\'", ((string)(null)), table370, "And ");
+ testRunner.And("the funding configuration has the following organisation group", ((string)(null)), table370, "And ");
 #line hidden
 #line 23
  testRunner.And("the funding configuration is available in the policies repository", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
@@ -191,8 +189,7 @@ this.ScenarioInitialize(scenarioInfo);
                             "OrganisationGroupTypeCode",
                             "LocalGovernmentGroup"});
 #line 24
- testRunner.And("the funding configuration has the following organisation group and provider statu" +
-                        "s list \'Open;Open, but proposed to close\'", ((string)(null)), table371, "And ");
+ testRunner.And("the funding configuration has the following organisation group", ((string)(null)), table371, "And ");
 #line hidden
 #line 30
  testRunner.And("the funding configuration is available in the policies repository", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
@@ -213,8 +210,7 @@ this.ScenarioInitialize(scenarioInfo);
                             "OrganisationGroupTypeCode",
                             "GovernmentOfficeRegion"});
 #line 31
- testRunner.And("the funding configuration has the following organisation group and provider statu" +
-                        "s list \'Open;Open, but proposed to close\'", ((string)(null)), table372, "And ");
+ testRunner.And("the funding configuration has the following organisation group", ((string)(null)), table372, "And ");
 #line hidden
 #line 37
  testRunner.And("the funding configuration is available in the policies repository", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
@@ -235,8 +231,7 @@ this.ScenarioInitialize(scenarioInfo);
                             "OrganisationGroupTypeCode",
                             "Country"});
 #line 38
- testRunner.And("the funding configuration has the following organisation group and provider statu" +
-                        "s list \'Open;Open, but proposed to close\'", ((string)(null)), table373, "And ");
+ testRunner.And("the funding configuration has the following organisation group", ((string)(null)), table373, "And ");
 #line hidden
 #line 44
  testRunner.And("the funding configuration is available in the policies repository", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");

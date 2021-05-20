@@ -22,7 +22,7 @@
 
     <PackageReference Include="CalculateFunding.Common" Version="2.2.2" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Providers" Version="4.8.0" />
-    <PackageReference Include="CalculateFunding.Generators.OrganisationGroup" Version="2.4.1" />
+    <PackageReference Include="CalculateFunding.Generators.OrganisationGroup" Version="2.4.2" />
     <PackageReference Include="CommandLineParser" Version="2.8.0" />
     <PackageReference Include="CsvHelper" Version="12.1.2" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.3" />
