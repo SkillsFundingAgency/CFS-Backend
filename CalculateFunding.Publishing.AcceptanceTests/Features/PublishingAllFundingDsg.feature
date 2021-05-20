@@ -7,35 +7,35 @@ Scenario Outline: Successful publishing of funding
 	Given a funding configuration exists for funding stream '<FundingStreamId>' in funding period '<FundingPeriodId>'
 		| Field                  | Value |
 		| DefaultTemplateVersion | 1.0   |
-	And the funding configuration has the following organisation group and provider status list 'Open;Open, but proposed to close'
+	And the funding configuration has the following organisation group
 		| Field                     | Value          |
 		| GroupTypeIdentifier       | UKPRN          |
 		| GroupingReason            | Payment        |
 		| GroupTypeClassification   | LegalEntity    |
 		| OrganisationGroupTypeCode | LocalAuthority |
 	And the funding configuration is available in the policies repository
-	And the funding configuration has the following organisation group and provider status list 'Open;Open, but proposed to close'
+	And the funding configuration has the following organisation group
 		| Field                     | Value                |
 		| GroupTypeIdentifier       | LACode               |
 		| GroupingReason            | Information          |
 		| GroupTypeClassification   | GeographicalBoundary |
 		| OrganisationGroupTypeCode | LocalAuthority       |
 	And the funding configuration is available in the policies repository
-	And the funding configuration has the following organisation group and provider status list 'Open;Open, but proposed to close'
+	And the funding configuration has the following organisation group
 		| Field                     | Value                                |
 		| GroupTypeIdentifier       | LocalAuthorityClassificationTypeCode |
 		| GroupingReason            | Information                          |
 		| GroupTypeClassification   | GeographicalBoundary                 |
 		| OrganisationGroupTypeCode | LocalGovernmentGroup                 |
 	And the funding configuration is available in the policies repository
-	And the funding configuration has the following organisation group and provider status list 'Open;Open, but proposed to close'
+	And the funding configuration has the following organisation group
 		| Field                     | Value                      |
 		| GroupTypeIdentifier       | GovernmentOfficeRegionCode |
 		| GroupingReason            | Information                |
 		| GroupTypeClassification   | GeographicalBoundary       |
 		| OrganisationGroupTypeCode | GovernmentOfficeRegion     |
 	And the funding configuration is available in the policies repository
-	And the funding configuration has the following organisation group and provider status list 'Open;Open, but proposed to close'
+	And the funding configuration has the following organisation group
 		| Field                     | Value                |
 		| GroupTypeIdentifier       | CountryCode          |
 		| GroupingReason            | Information          |

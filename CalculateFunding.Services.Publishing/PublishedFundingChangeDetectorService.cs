@@ -52,7 +52,7 @@ namespace CalculateFunding.Services.Publishing
                     // get all new funding where the funding id does not exist in the current funding
                     IEnumerable<string> currentFundingProviderMissing = publishedFunding.Current.ProviderFundings.IsNullOrEmpty() ? currentProviderFundings : currentProviderFundings?.Where(_ => !publishedFunding.Current.ProviderFundings.Any(current => _ == current));
 
-                    if ((fundingProviderMissing?.Any() ?? false) || (currentFundingProviderMissing?.Any() ?? false))
+                    if (fundingProviderMissing.AnyWithNullCheck() || currentFundingProviderMissing.AnyWithNullCheck())
                     {
                         results.Add((publishedFunding, organisationGroup));
                         return;
