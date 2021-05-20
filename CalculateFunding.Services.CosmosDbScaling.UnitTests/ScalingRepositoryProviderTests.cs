@@ -23,8 +23,6 @@ namespace CalculateFunding.Services.CosmosDbScaling
         [DataRow(CosmosCollectionType.Datasets, nameof(DatasetsScalingRepository))]
         [DataRow(CosmosCollectionType.Profiling, nameof(ProfilingScalingRepository))]
         [DataRow(CosmosCollectionType.Specifications, nameof(SpecificationsScalingRepository))]
-        [DataRow(CosmosCollectionType.TestResults, nameof(TestResultsScalingRepository))]
-        [DataRow(CosmosCollectionType.Tests, nameof(TestsScalingRepository))]
         [DataRow(CosmosCollectionType.Users, nameof(UsersScalingRepository))]
         public void GetRepository_GivenRepositoryType_ReturnsInstanceOfCorrectRepository(CosmosCollectionType cosmosRepositoryType, string repositoryTypeName)
         {
@@ -111,14 +109,6 @@ namespace CalculateFunding.Services.CosmosDbScaling
             serviceProvider
                 .GetService<SpecificationsScalingRepository>()
                 .Returns(new SpecificationsScalingRepository(cosmosRepository));
-
-            serviceProvider
-                .GetService<TestResultsScalingRepository>()
-                .Returns(new TestResultsScalingRepository(cosmosRepository));
-
-            serviceProvider
-                .GetService<TestsScalingRepository>()
-                .Returns(new TestsScalingRepository(cosmosRepository));
 
             serviceProvider
                 .GetService<UsersScalingRepository>()

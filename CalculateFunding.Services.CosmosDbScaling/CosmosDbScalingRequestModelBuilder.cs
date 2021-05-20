@@ -56,15 +56,15 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 {
                     CosmosCollectionType.Calculations
                 },
-                JobDefinitions.DeleteDatasetsJob => new []
+                JobDefinitions.DeleteDatasetsJob => new[]
                 {
-                    CosmosCollectionType.Datasets   
+                    CosmosCollectionType.Datasets
                 },
-                JobDefinitions.PublishBatchProviderFundingJob => new []
+                JobDefinitions.PublishBatchProviderFundingJob => new[]
                 {
                     CosmosCollectionType.PublishedFunding
                 },
-                JobDefinitions.ApproveBatchProviderFundingJob => new []
+                JobDefinitions.ApproveBatchProviderFundingJob => new[]
                 {
                     CosmosCollectionType.PublishedFunding
                 },
@@ -72,35 +72,27 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 {
                     CosmosCollectionType.PublishedFunding
                 },
-                JobDefinitions.DeletePublishedProvidersJob => new []
+                JobDefinitions.DeletePublishedProvidersJob => new[]
                 {
                     CosmosCollectionType.PublishedFunding
                 },
-                JobDefinitions.PublishedFundingUndoJob => new []
+                JobDefinitions.PublishedFundingUndoJob => new[]
                 {
                     CosmosCollectionType.PublishedFunding
                 },
-                JobDefinitions.DeleteSpecificationJob => new []
+                JobDefinitions.DeleteSpecificationJob => new[]
                 {
                     CosmosCollectionType.Specifications
                 },
-                JobDefinitions.DeleteTestResultsJob => new []
-                {
-                    CosmosCollectionType.TestResults
-                },
-                JobDefinitions.DeleteTestsJob => new []
-                {
-                    CosmosCollectionType.Tests
-                },
-                JobDefinitions.ApproveAllCalculationsJob => new []
+                JobDefinitions.ApproveAllCalculationsJob => new[]
                 {
                     CosmosCollectionType.Calculations
                 },
-                JobDefinitions.GenerateCalcCsvResultsJob => new []
+                JobDefinitions.GenerateCalcCsvResultsJob => new[]
                 {
                     CosmosCollectionType.CalculationProviderResults
                 },
-                JobDefinitions.RunSqlImportJob => new []
+                JobDefinitions.RunSqlImportJob => new[]
                 {
                     CosmosCollectionType.PublishedFunding
                 },

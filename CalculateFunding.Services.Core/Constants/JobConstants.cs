@@ -46,8 +46,6 @@
             public const string DeleteCalculationResultsJob = nameof(DeleteCalculationResultsJob);
             public const string DeleteCalculationsJob = nameof(DeleteCalculationsJob);
             public const string DeleteDatasetsJob = nameof(DeleteDatasetsJob);
-            public const string DeleteTestResultsJob = nameof(DeleteTestResultsJob);
-            public const string DeleteTestsJob = nameof(DeleteTestsJob);
 
             public const string DeletePublishedProvidersJob = nameof(DeletePublishedProvidersJob);
 
@@ -66,9 +64,9 @@
             public const string PopulateScopedProvidersJob = nameof(PopulateScopedProvidersJob);
 
             public const string PublishedFundingUndoJob = nameof(PublishedFundingUndoJob);
-            
+
             public const string ReIndexTemplatesJob = nameof(ReIndexTemplatesJob);
-            
+
             public const string ReIndexSpecificationJob = nameof(ReIndexSpecificationJob);
 
             public const string MergeSpecificationInformationForProviderJob = nameof(MergeSpecificationInformationForProviderJob);
@@ -82,13 +80,13 @@
             public const string RunSqlImportJob = nameof(RunSqlImportJob);
 
             public const string GenerateCalcCsvResultsJob = nameof(GenerateCalcCsvResultsJob);
-            
+
             public const string BatchPublishedProviderValidationJob = nameof(BatchPublishedProviderValidationJob);
 
             public const string DetectObsoleteFundingLinesJob = nameof(DetectObsoleteFundingLinesJob);
 
             public const string RunConverterDatasetMergeJob = nameof(RunConverterDatasetMergeJob);
-            
+
             public const string QueueConverterDatasetMergeJob = nameof(QueueConverterDatasetMergeJob);
 
             public const string ReIndexUsersJob = nameof(ReIndexUsersJob);

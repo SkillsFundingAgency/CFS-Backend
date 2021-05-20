@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
@@ -10,8 +9,6 @@ using CalculateFunding.Models.Messages;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Specs.Interfaces;
-using Polly;
 using Serilog;
 using Job = CalculateFunding.Common.ApiClient.Jobs.Models.Job;
 using JobCreateModel = CalculateFunding.Common.ApiClient.Jobs.Models.JobCreateModel;
@@ -24,12 +21,10 @@ namespace CalculateFunding.Services.Specs
         private readonly IJobManagement _jobManagement;
         private readonly ILogger _logger;
         private readonly Dictionary<string, string> _specificationChildJobDefinitions = new Dictionary<string, string>
-        { 
+        {
             [JobConstants.DefinitionNames.DeleteCalculationResultsJob] = "Deleting Calculation Results",
             [JobConstants.DefinitionNames.DeleteCalculationsJob] = "Deleting Calculations",
             [JobConstants.DefinitionNames.DeleteDatasetsJob] = "Deleting Datasets",
-            [JobConstants.DefinitionNames.DeleteTestResultsJob] = "Deleting Test Results",
-            [JobConstants.DefinitionNames.DeleteTestsJob] = "Deleting Tests"
         };
 
         public QueueDeleteSpecificationJobAction(
@@ -104,14 +99,14 @@ namespace CalculateFunding.Services.Specs
             try
             {
                 var job = await _jobManagement.QueueJob(createModel);
-                
+
                 GuardAgainstNullJob(job, createModel);
 
                 return job;
             }
             catch (Exception ex)
             {
-                _logger.Error( $"Failed to create job of type '{createModel.JobDefinitionId}' on specification '{createModel.Trigger.EntityId}'. {ex}");
+                _logger.Error($"Failed to create job of type '{createModel.JobDefinitionId}' on specification '{createModel.Trigger.EntityId}'. {ex}");
                 throw;
             }
         }

@@ -45,12 +45,6 @@ namespace CalculateFunding.Services.CosmosDbScaling.Repositories
                 case CosmosCollectionType.Specifications:
                     return _serviceProvider.GetService<SpecificationsScalingRepository>();
 
-                case CosmosCollectionType.TestResults:
-                    return _serviceProvider.GetService<TestResultsScalingRepository>();
-
-                case CosmosCollectionType.Tests:
-                    return _serviceProvider.GetService<TestsScalingRepository>();
-
                 case CosmosCollectionType.Users:
                     return _serviceProvider.GetService<UsersScalingRepository>();
 

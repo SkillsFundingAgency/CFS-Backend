@@ -65,10 +65,6 @@ namespace CalculateFunding.Services.CosmosDbScaling
             new[] { CosmosCollectionType.PublishedFunding })]
         [DataRow(JobConstants.DefinitionNames.DeleteSpecificationJob,
             new[] { CosmosCollectionType.Specifications })]
-        [DataRow(JobConstants.DefinitionNames.DeleteTestResultsJob,
-            new[] { CosmosCollectionType.TestResults })]
-        [DataRow(JobConstants.DefinitionNames.DeleteTestsJob,
-            new[] { CosmosCollectionType.Tests })]
         [DataRow(JobConstants.DefinitionNames.ApproveAllCalculationsJob,
             new[] { CosmosCollectionType.Calculations })]
         public void BuildRequestModel_GivenJobWithDefinitions_EnsuresCorrectRepositoryTypes(string jobDefinitionId,

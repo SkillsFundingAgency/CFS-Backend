@@ -34,12 +34,6 @@ namespace CalculateFunding.Models.CosmosDbScaling
         [Description("specs")]
         Specifications,
 
-        [Description("testresults")]
-        TestResults,
-
-        [Description("tests")]
-        Tests,
-
         [Description("users")]
         Users
     }
