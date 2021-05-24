@@ -12,6 +12,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace CalculateFunding.Services.Users
 {
@@ -87,7 +89,7 @@ namespace CalculateFunding.Services.Users
             {
                 Username = UserId
             };
-            
+
             ILogger logger = CreateLogger();
 
             ICacheProvider cacheProvider = CreateCacheProvider();
@@ -206,8 +208,9 @@ namespace CalculateFunding.Services.Users
                 .ValidateAsync(Arg.Any<UserCreateModel>())
                 .Returns(new ValidationResult());
 
+            IUserIndexingService userIndexingService = CreateUserIndexingService();
 
-            UserService userService = CreateUserService(userRepository, logger, cacheProvider, validator);
+            UserService userService = CreateUserService(userRepository, logger, cacheProvider, validator, userIndexingService);
 
             //Act
             IActionResult result = await userService.ConfirmSkills(UserId, userCreateModel);
@@ -220,6 +223,69 @@ namespace CalculateFunding.Services.Users
                  .Value
                  .Should()
                  .BeOfType<User>();
+
+            await userIndexingService
+                 .Received(1)
+                 .IndexUsers(Arg.Is<IEnumerable<User>>(x => x.All(u => u.UserId == UserId && u.Username == Username && u.Name == Name)));
+        }
+
+        [TestMethod]
+        public async Task ConfirmSkills_GivenExistingUserNameUpdated_UpdateUsersAndSearchIndexAndReturnsOkWithUser()
+        {
+            //Arrange
+            User user = new User()
+            {
+                UserId = UserId,
+                Name = Name,
+                Username = Username
+            };
+
+            UserCreateModel userCreateModel = new UserCreateModel()
+            {
+                Name = Name + "-updated",
+                Username = Username
+            };
+
+            ILogger logger = CreateLogger();
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .GetAsync<User>(Arg.Any<string>())
+                .Returns((User)null);
+
+            IUserRepository userRepository = CreateUserRepository();
+            userRepository
+                .GetUserById(Arg.Is(UserId))
+                .Returns(user);
+
+            userRepository
+                .SaveUser(Arg.Is<User>(u => u.Name == userCreateModel.Name))
+                .Returns(HttpStatusCode.OK);
+
+            IValidator<UserCreateModel> validator = CreateUserCreateModelValidator();
+            validator
+                .ValidateAsync(Arg.Any<UserCreateModel>())
+                .Returns(new ValidationResult());
+
+            IUserIndexingService userIndexingService = CreateUserIndexingService();
+
+            UserService userService = CreateUserService(userRepository, logger, cacheProvider, validator, userIndexingService);
+
+            //Act
+            IActionResult result = await userService.ConfirmSkills(UserId, userCreateModel);
+
+            //Assert
+            result
+                 .Should()
+                 .BeOfType<OkObjectResult>()
+                 .Which
+                 .Value
+                 .Should()
+                 .BeOfType<User>();
+
+            await userIndexingService
+                 .Received(1)
+                 .IndexUsers(Arg.Is<IEnumerable<User>>(x => x.All(u => u.UserId == UserId && u.Username == userCreateModel.Username && u.Name == userCreateModel.Name)));
         }
 
         [TestMethod]
@@ -347,7 +413,7 @@ namespace CalculateFunding.Services.Users
                 Name = Name,
                 Username = Username
             };
-            
+
             ILogger logger = CreateLogger();
 
             ICacheProvider cacheProvider = CreateCacheProvider();
@@ -514,13 +580,15 @@ namespace CalculateFunding.Services.Users
             IUserRepository userRepository = null,
             ILogger logger = null,
             ICacheProvider cacheProvider = null,
-            IValidator<UserCreateModel> userCreateModelValidator = null)
+            IValidator<UserCreateModel> userCreateModelValidator = null,
+            IUserIndexingService userIndexingService = null)
         {
             return new UserService(
                 userRepository ?? CreateUserRepository(),
                 logger ?? CreateLogger(),
                 cacheProvider ?? CreateCacheProvider(),
-                userCreateModelValidator ?? CreateUserCreateModelValidator());
+                userCreateModelValidator ?? CreateUserCreateModelValidator(),
+                userIndexingService ?? CreateUserIndexingService());
         }
 
         public static IUserRepository CreateUserRepository()
@@ -541,6 +609,11 @@ namespace CalculateFunding.Services.Users
         public static IValidator<UserCreateModel> CreateUserCreateModelValidator()
         {
             return Substitute.For<IValidator<UserCreateModel>>();
+        }
+
+        public static IUserIndexingService CreateUserIndexingService()
+        {
+            return Substitute.For<IUserIndexingService>();
         }
     }
 }

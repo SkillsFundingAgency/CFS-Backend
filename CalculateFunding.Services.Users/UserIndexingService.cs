@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
-using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
@@ -14,7 +13,6 @@ using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Processing;
 using CalculateFunding.Services.Users.Interfaces;
-using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Polly;
@@ -54,32 +52,32 @@ namespace CalculateFunding.Services.Users
             _usersSearchPolicy = usersResiliencePolicies.UsersSearchRepository;
         }
 
-        public async Task<IActionResult> ReIndex(Reference user, string correlationId)
+        public async Task<IActionResult> ReIndex(Reference invokedUser, string correlationId)
         {
-            Guard.ArgumentNotNull(user, nameof(user));
+            Guard.ArgumentNotNull(invokedUser, nameof(invokedUser));
             Guard.IsNullOrWhiteSpace(correlationId, nameof(correlationId));
 
             try
             {
-                await CreateReIndexJob(user, correlationId);
+                await CreateReIndexJob(invokedUser, correlationId);
             }
             catch (Exception ex)
             {
                 return new InternalServerErrorResult(ex.Message);
             }
-            
+
 
             return new NoContentResult();
         }
 
-        public async Task<Job> CreateReIndexJob(Reference user, string correlationId)
+        public async Task<Job> CreateReIndexJob(Reference invokedUser, string correlationId)
         {
             try
             {
                 Job job = await _jobManagement.QueueJob(new JobCreateModel
                 {
                     JobDefinitionId = JobConstants.DefinitionNames.ReIndexUsersJob,
-                    InvokerUserId = user?.Id,
+                    InvokerUserId = invokedUser?.Id,
                     CorrelationId = correlationId,
                     Trigger = new Trigger
                     {
@@ -114,6 +112,11 @@ namespace CalculateFunding.Services.Users
             Guard.ArgumentNotNull(message, nameof(message));
 
             IEnumerable<User> users = await _userRepository.GetUsers();
+            await IndexUsers(users);
+        }
+
+        public async Task IndexUsers(IEnumerable<User> users)
+        {
             IEnumerable<UserIndex> userIndexes = _mapper.Map<IEnumerable<UserIndex>>(users);
 
             IEnumerable<IndexError> indexingErrors = await _usersSearchPolicy.ExecuteAsync(() => _userSearch.Index(userIndexes));

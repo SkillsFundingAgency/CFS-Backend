@@ -1,15 +1,10 @@
-﻿using System;
-using System.Net;
+﻿using System.Net;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.Caching;
-using CalculateFunding.Common.JobManagement;
-using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Users;
 using CalculateFunding.Services.Core.Caching;
-using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Users.Interfaces;
 using FluentValidation;
@@ -24,22 +19,26 @@ namespace CalculateFunding.Services.Users
         private readonly ILogger _logger;
         private readonly ICacheProvider _cacheProvider;
         private readonly IValidator<UserCreateModel> _userCreateModelValidator;
+        private readonly IUserIndexingService _userIndexingService;
 
         public UserService(
             IUserRepository userRepository,
             ILogger logger,
             ICacheProvider cacheProvider,
-            IValidator<UserCreateModel> userCreateModelValidator)
+            IValidator<UserCreateModel> userCreateModelValidator,
+            IUserIndexingService userIndexingService)
         {
             Guard.ArgumentNotNull(userRepository, nameof(userRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(userCreateModelValidator, nameof(userCreateModelValidator));
+            Guard.ArgumentNotNull(userIndexingService, nameof(userIndexingService));
 
             _userRepository = userRepository;
             _logger = logger;
             _cacheProvider = cacheProvider;
             _userCreateModelValidator = userCreateModelValidator;
+            _userIndexingService = userIndexingService;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -108,7 +107,6 @@ namespace CalculateFunding.Services.Users
                 }
             }
 
-            user.HasConfirmedSkills = true;
             user.UserId = id;
             user.Name = userCreateModel.Name;
             user.Username = userCreateModel.Username;
@@ -124,7 +122,7 @@ namespace CalculateFunding.Services.Users
             }
 
             await _cacheProvider.SetAsync($"{CacheKeys.UserById}:{id}", user);
-
+            await _userIndexingService.IndexUsers(new[] { user });
 
             return new OkObjectResult(user);
         }
