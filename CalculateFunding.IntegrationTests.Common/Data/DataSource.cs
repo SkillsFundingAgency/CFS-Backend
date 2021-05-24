@@ -85,7 +85,7 @@ namespace CalculateFunding.IntegrationTests.Common.Data
         protected virtual string GetPartitionKey(JsonElement content) => GetElement(content, "partitionKey")
             .GetString();
 
-        private JsonElement GetContent(JsonDocument document) => GetContent(document.RootElement);
+        protected JsonElement GetContent(JsonDocument document) => GetContent(document.RootElement);
 
         protected JsonElement GetContent(JsonElement root) => GetElement(root, "content");
 

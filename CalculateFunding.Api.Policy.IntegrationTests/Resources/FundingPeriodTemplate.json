@@ -1,0 +1,17 @@
+{
+  "id": "<ID>",
+  "documentType": "FundingPeriod",
+  "content": {
+    "startDate": "2020-04-01T00:00:00+00:00",
+    "endDate": "2021-03-31T00:00:00+00:00",
+    "period": "2021",
+    "type": "FY",
+    "startYear": 2020,
+    "endYear": 2021,
+    "id": "<ID>",
+    "name": "<NAME>"
+  },
+  "createdAt": "<NOW>",
+  "updatedAt": "<NOW>",
+  "deleted": false
+}

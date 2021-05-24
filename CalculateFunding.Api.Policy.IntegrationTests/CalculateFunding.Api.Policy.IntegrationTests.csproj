@@ -6,6 +6,20 @@
         <LangVersion>8</LangVersion>
     </PropertyGroup>
 
+    <ItemGroup>
+      <None Remove="Resources\FundingConfigurationTemplate.json" />
+      <None Remove="Resources\FundingPeriodTemplate.json" />
+      <None Remove="Resources\FundingStreamTemplate.json" />
+      <None Remove="Resources\FundingTemplateTemplate.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Include="Resources\FundingConfigurationTemplate.json" />
+      <EmbeddedResource Include="Resources\FundingPeriodTemplate.json" />
+      <EmbeddedResource Include="Resources\FundingStreamTemplate.json" />
+      <EmbeddedResource Include="Resources\FundingTemplateTemplate.json" />
+    </ItemGroup>
+
 
     <ItemGroup>
         <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="6.9.0" />

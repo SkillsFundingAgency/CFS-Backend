@@ -1,0 +1,12 @@
+{
+  "id": "<ID>",
+  "documentType": "FundingStream",
+  "content": {
+    "shortName": "<SHORTNAME>",
+    "id": "<ID>",
+    "name": "<NAME>"
+  },
+  "createdAt": "<NOW>",
+  "updatedAt": "<NOW>",
+  "deleted": false
+}
