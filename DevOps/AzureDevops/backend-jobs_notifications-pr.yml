@@ -3,15 +3,6 @@ name: $(Rev:r)
 pool:
   vmImage: windows-2019
 
-resources:
-  repositories:
-  - repository: self
-  - repository: funding-blocks
-    type: github
-    name: SkillsFundingAgency/funding-platform-building-blocks
-    ref: refs/heads/master
-    endpoint: 'Github (ESFA)'
-
 trigger: none
 
 variables:
@@ -21,14 +12,31 @@ variables:
    value: true
  - name: DOTNET_CLI_TELEMETRY_OPTOUT 
    value: true
+ - name: BuildApi
+   value: true
+ - name: BuildFunction
+   value: false
+ - name: SecureSmokeTest
+   value: false
  - group: 'Dotnet Core SDK Version'
+ - group: 'Smoke Test Info - Integration-v2' 
+ - group: 'Smoke Test KV - Integration-v2'
 
 steps:
-  - template: azure-pipelines-templates/cfs/standard-service-pr-build.yml@funding-blocks
+  - template: templates\standard-service-pr-build.yml
     parameters:
       ProjectName: Jobs
+      DotnetCoreSdkVersion: $(DotnetCoreSdkVersion)
+      ResourceGroup: $(ResourceGroup)
+      BuildApi: true
+      BuildFunction: true
+      SecureSmokeTest: ${{ variables.SecureSmokeTest }}
+      APIKey: $(svcapijobs)
 
-  - template: azure-pipelines-templates/cfs/standard-service-function-pr-build.yml@funding-blocks
+  - template: templates\standard-service-pr-build.yml
     parameters:
       ProjectName: Notifications
       DotnetCoreSdkVersion: $(DotnetCoreSdkVersion)
+      BuildApi: false
+      BuildFunction: true
+      SecureSmokeTest: ${{ variables.SecureSmokeTest }}
