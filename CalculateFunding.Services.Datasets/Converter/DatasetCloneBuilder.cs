@@ -57,10 +57,10 @@ namespace CalculateFunding.Services.Datasets.Converter
 
             RowLoadResult sourceRow = datasetTable.GetRowWithMatchingFieldValue(fieldNameOfIdentifier, sourceProviderId);
 
-            EligibleConverter eligibleConverter = new EligibleConverter
+            ProviderConverter eligibleConverter = new ProviderConverter
             {
                 PreviousProviderIdentifier = sourceProviderId,
-                ProviderId = destinationProviderId
+                TargetProviderId = destinationProviderId
             };
             
             if (sourceRow == null)

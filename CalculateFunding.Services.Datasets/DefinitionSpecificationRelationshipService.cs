@@ -192,29 +192,19 @@ namespace CalculateFunding.Services.Datasets
             return new OkObjectResult(relationship);
         }
 
-        public async Task<IActionResult> GetRelationshipsBySpecificationId(string specificationId)
+        public async Task<IEnumerable<DatasetSpecificationRelationshipViewModel>> GetRelationshipsBySpecificationId(string specificationId)
         {
-            if (string.IsNullOrWhiteSpace(specificationId))
-            {
-                _logger.Error("No specification id was provided to GetRelationshipsBySpecificationId");
-
-                return new BadRequestObjectResult("No specification id was provided to GetRelationshipsBySpecificationId");
-            }
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
             IEnumerable<DefinitionSpecificationRelationship> relationships =
                 await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(m => m.Content.Specification.Id == specificationId);
 
             if (relationships.IsNullOrEmpty())
             {
-                relationships = new DefinitionSpecificationRelationship[0];
+                return new DatasetSpecificationRelationshipViewModel[0];
             }
 
             IList<DatasetSpecificationRelationshipViewModel> relationshipViewModels = new List<DatasetSpecificationRelationshipViewModel>();
-
-            if (relationships.IsNullOrEmpty())
-            {
-                return new OkObjectResult(relationshipViewModels);
-            }
 
             IList<Task<DatasetSpecificationRelationshipViewModel>> tasks = new List<Task<DatasetSpecificationRelationshipViewModel>>();
 
@@ -231,12 +221,21 @@ namespace CalculateFunding.Services.Datasets
 
             await Task.WhenAll(tasks);
 
-            foreach (Task<DatasetSpecificationRelationshipViewModel> task in tasks)
+            return tasks.Select(m => m.Result);
+        }
+
+        public async Task<IActionResult> GetRelationshipsBySpecificationIdResult(string specificationId)
+        {
+            if (string.IsNullOrWhiteSpace(specificationId))
             {
-                relationshipViewModels.Add(task.Result);
+                _logger.Error("No specification id was provided to GetRelationshipsBySpecificationId");
+
+                return new BadRequestObjectResult("No specification id was provided to GetRelationshipsBySpecificationId");
             }
 
-            return new OkObjectResult(tasks.Select(m => m.Result));
+            IEnumerable<DatasetSpecificationRelationshipViewModel> relationshipsBySpecification = await GetRelationshipsBySpecificationId(specificationId);
+
+            return new OkObjectResult(relationshipsBySpecification);
         }
 
         public async Task<IActionResult> GetDataSourcesByRelationshipId(string relationshipId)
@@ -665,6 +664,7 @@ namespace CalculateFunding.Services.Datasets
                 {
                     relationshipViewModel.DatasetId = relationship.DatasetVersion.Id;
                     relationshipViewModel.DatasetName = dataset.Name;
+                    relationshipViewModel.ConverterWizard = dataset.ConverterWizard;
                     relationshipViewModel.Version = relationship.DatasetVersion.Version;
                     relationshipViewModel.IsLatestVersion = relationship.DatasetVersion.Version == datasetLatestVersion.Value;
                 }

@@ -8,7 +8,11 @@ namespace CalculateFunding.Services.Datasets.Interfaces
     {
         Task SaveLogs(IEnumerable<RowCopyResult> results,
             ConverterMergeRequest request,
+            string parentId,
             string jobId,
             int datasetVersionCreated);
+
+        Task<IEnumerable<ConverterDataMergeLog>> GetLogs(string parentJobId);
+        Task<ConverterDataMergeLog> GetLog(string jobId);
     }
 }

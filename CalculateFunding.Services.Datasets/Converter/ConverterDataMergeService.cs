@@ -58,7 +58,7 @@ namespace CalculateFunding.Services.Datasets.Converter
             Guard.ArgumentNotNull(resiliencePolicies?.PoliciesApiClient, nameof(_policiesResilience));
             Guard.ArgumentNotNull(resiliencePolicies.DatasetRepository, nameof(_datasetsResilience));
             Guard.ArgumentNotNull(resiliencePolicies.SpecificationsApiClient, nameof(_specificationsResilience));
-
+            
             _datasets = datasets;
             _eligibleProviderConverter = eligibleProviderConverter;
             _policies = policies;
@@ -113,13 +113,14 @@ namespace CalculateFunding.Services.Datasets.Converter
             EnsureIsNotNull(message, nameof(message));
 
             string jobId = message.GetUserProperty<string>("jobId");
+            string parentJobId = message.GetUserProperty<string>("parentJobId");
 
             ConverterMergeRequest request = message.GetPayloadAsInstanceOf<ConverterMergeRequest>();
 
-            await MergeDatasetForConverters(request, jobId);
+            await MergeDatasetForConverters(request, parentJobId, jobId);
         }
 
-        private async Task MergeDatasetForConverters(ConverterMergeRequest request, string jobId)
+        private async Task MergeDatasetForConverters(ConverterMergeRequest request, string parentJobId, string jobId)
         {
             EnsureRequestIsValid(request);
 
@@ -134,7 +135,7 @@ namespace CalculateFunding.Services.Datasets.Converter
 
             EnsureConvertersAreEnabledForFundingConfiguration(fundingConfiguration);
 
-            EligibleConverter[] eligibleProviders = (await GetEligibleProviders(request, fundingConfiguration)).ToArray();
+            ProviderConverter[] eligibleProviders = (await GetEligibleProviders(request, fundingConfiguration)).ToArray();
 
             if (eligibleProviders.Length == 0) return;
 
@@ -142,15 +143,15 @@ namespace CalculateFunding.Services.Datasets.Converter
 
             await datasetCloneBuilder.LoadOriginalDataset(dataset, datasetDefinition);
 
-           (string identifierFieldName, EligibleConverter[] convertersToProcess) =
+           (string identifierFieldName, ProviderConverter[] convertersToProcess) =
                  DetectProvidersToProcess(eligibleProviders, datasetDefinition, datasetCloneBuilder);
 
             if (!convertersToProcess.Any()) return;
 
             List<RowCopyResult> results = new List<RowCopyResult>(convertersToProcess.Count());
 
-            foreach (EligibleConverter converter in convertersToProcess)
-            { 
+            foreach (ProviderConverter converter in convertersToProcess)
+            {
                 CopyRowInDataset(results, converter, datasetCloneBuilder, identifierFieldName);
             }
 
@@ -160,9 +161,7 @@ namespace CalculateFunding.Services.Datasets.Converter
                 datasetDefinition, 
                 datasetCloneBuilder);
 
-            if (createdDatasetVersion == null) return;
-
-            await SaveOutcomesAsLog(results, request, createdDatasetVersion, jobId);
+            await SaveOutcomesAsLog(results, request, createdDatasetVersion ?? dataset.Current, parentJobId, jobId);
         }
 
         private static void EnsureConvertersAreEnabledForFundingConfiguration(FundingConfiguration fundingConfiguration)
@@ -197,9 +196,10 @@ namespace CalculateFunding.Services.Datasets.Converter
         private async Task SaveOutcomesAsLog(IEnumerable<RowCopyResult> results,
             ConverterMergeRequest request,
             DatasetVersion createdDatasetVersion,
+            string parentJobId,
             string jobId)
         {
-            await _converterDataMergeLogger.SaveLogs(results, request, jobId, createdDatasetVersion.Version);
+            await _converterDataMergeLogger.SaveLogs(results, request, parentJobId, jobId, createdDatasetVersion.Version);
         }
 
         private async Task EnsureConverterCanBeRunAgainstDataset(DatasetDefinition datasetDefinition,
@@ -225,10 +225,10 @@ namespace CalculateFunding.Services.Datasets.Converter
             return relationship;
         }
 
-        private async Task<IEnumerable<EligibleConverter>> GetEligibleProviders(ConverterMergeRequest request,
+        private async Task<IEnumerable<ProviderConverterDetail>> GetEligibleProviders(ConverterMergeRequest request,
             FundingConfiguration fundingConfiguration)
         {
-            IEnumerable<EligibleConverter> eligibleProviders =
+            IEnumerable<ProviderConverterDetail> eligibleProviders =
                 await _eligibleProviderConverter.GetEligibleConvertersForProviderVersion(request.ProviderVersionId, fundingConfiguration);
 
             EnsureIsNotNull(eligibleProviders, "Eligible providers returned null");
@@ -246,15 +246,15 @@ namespace CalculateFunding.Services.Datasets.Converter
                 null;
 
         private void CopyRowInDataset(ICollection<RowCopyResult> results,
-            EligibleConverter converter,
+            ProviderConverter converter,
             IDatasetCloneBuilder datasetCloneBuilder,
             string identifierFieldName)
         {
             RowCopyResult result = datasetCloneBuilder.CopyRow(identifierFieldName,
                 converter.PreviousProviderIdentifier, 
-                converter.ProviderId);
+                converter.TargetProviderId);
 
-            EnsureIsNotNull(result, $"Copy row result was null when processing {converter.PreviousProviderIdentifier} to {converter.ProviderId}");
+            EnsureIsNotNull(result, $"Copy row result was null when processing {converter.PreviousProviderIdentifier} to {converter.TargetProviderId}");
 
             results.Add(result);
         }
@@ -300,7 +300,7 @@ namespace CalculateFunding.Services.Datasets.Converter
             EnsureIsNotNullOrWhitespace(request.DatasetRelationshipId, "Empty or null datasetRelationshipId");
         }
 
-        private (string fieldNameIdentifier, EligibleConverter[]) DetectProvidersToProcess(IEnumerable<EligibleConverter> eligibleProviders,
+        private (string fieldNameIdentifier, ProviderConverter[]) DetectProvidersToProcess(IEnumerable<ProviderConverter> eligibleProviders,
             DatasetDefinition datasetDefinition,
             IDatasetCloneBuilder datasetCloneBuilder)
         {
@@ -314,12 +314,12 @@ namespace CalculateFunding.Services.Datasets.Converter
             
             IEnumerable<string> existingProviderIdentifiers = datasetCloneBuilder.GetExistingIdentifierValues(identifierFieldName);
 
-            IEnumerable<EligibleConverter> providersWithPreviousDatasetSources = eligibleProviders
+            IEnumerable<ProviderConverter> providersWithPreviousDatasetSources = eligibleProviders
                 .Where(_ => existingProviderIdentifiers.Contains(_.PreviousProviderIdentifier));
 
             return (identifierFieldName, providersWithPreviousDatasetSources
                 .Where(_ => !existingProviderIdentifiers
-                    .Contains(_.ProviderId)).ToArray());
+                    .Contains(_.TargetProviderId)).ToArray());
         }
     }
 }

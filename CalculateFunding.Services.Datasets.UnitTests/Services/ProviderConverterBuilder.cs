@@ -3,31 +3,31 @@ using CalculateFunding.Tests.Common.Helpers;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
-    public class EligibleConverterBuilder : TestEntityBuilder
+    public class ProviderConverterBuilder : TestEntityBuilder
     {
         private string _previousProviderIdentifier;
-        private string _providerId;
+        private string _targetProviderId;
 
-        public EligibleConverterBuilder WithProviderId(string providerId)
+        public ProviderConverterBuilder WithTargetProviderId(string targetProviderId)
         {
-            _providerId = providerId;
+            _targetProviderId = targetProviderId;
 
             return this;
         }
 
-        public EligibleConverterBuilder WithPreviousProviderIdentifier(string previousProviderIdentifier)
+        public ProviderConverterBuilder WithPreviousProviderIdentifier(string previousProviderIdentifier)
         {
             _previousProviderIdentifier = previousProviderIdentifier;
 
             return this;
         }
 
-        public EligibleConverter Build()
+        public ProviderConverter Build()
         {
-            return new EligibleConverter
+            return new ProviderConverter
             {
                 PreviousProviderIdentifier = _previousProviderIdentifier ?? NewRandomString(),
-                ProviderId = _providerId ?? NewRandomString(),
+                TargetProviderId = _targetProviderId ?? NewRandomString()
             };
         }
     }

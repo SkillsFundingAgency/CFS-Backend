@@ -53,6 +53,7 @@ using CalculateFunding.Common.Storage;
 using System;
 using CalculateFunding.Models.Datasets.Converter;
 using CalculateFunding.Services.Datasets.Converter;
+using CalculateFunding.Services.Core.Caching.FileSystem;
 
 namespace CalculateFunding.Api.Datasets
 {
@@ -126,6 +127,11 @@ namespace CalculateFunding.Api.Datasets
             builder.AddSingleton<IDatasetCloneBuilderFactory, DatasetCloneBuilderFactory>();
             builder.AddSingleton<IConverterDataMergeLogger, ConverterDataMergeLogger>();
             builder.AddSingleton<IConverterEligibleProviderService, ConverterEligibleProviderService>();
+            builder.AddSingleton<IConverterWizardActivityCsvGenerationGeneratorService, ConverterWizardActivityCsvGenerationGeneratorService>();
+            builder.AddSingleton<IConverterWizardActivityToCsvRowsTransformation, ConverterWizardActivityToCsvRowsTransformation>();
+            builder.AddSingleton<IFileSystemAccess, FileSystemAccess>();
+            builder.AddSingleton<IFileSystemCacheSettings, FileSystemCacheSettings>();
+            builder.AddSingleton<ICsvUtils, CsvUtils>();
             builder.AddSingleton<IValidator<ConverterMergeRequest>, ConverterMergeRequestValidation>();
             builder.AddSingleton<IDatasetIndexer, DatasetIndexer>();
 

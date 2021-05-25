@@ -344,7 +344,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger);
 
             //Act
-            IActionResult result = await service.GetRelationshipsBySpecificationId(null);
+            IActionResult result = await service.GetRelationshipsBySpecificationIdResult(null);
 
             //Assert
             result
@@ -367,7 +367,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger);
 
             //Act
-            IActionResult result = await service.GetRelationshipsBySpecificationId(specificationId);
+            IActionResult result = await service.GetRelationshipsBySpecificationIdResult(specificationId);
 
             //Assert
             result
@@ -435,7 +435,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
 
             //Act
-            IActionResult result = await service.GetRelationshipsBySpecificationId(specificationId);
+            IActionResult result = await service.GetRelationshipsBySpecificationIdResult(specificationId);
 
             //Assert
             result

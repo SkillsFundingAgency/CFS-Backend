@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.FundingDataZone;
@@ -106,6 +107,7 @@ namespace CalculateFunding.Services.Providers
 
                 CurrentProviderVersionMetadata currentProviderVersionMetadata =
                     metadataForAllFundingStreams.SingleOrDefault(_ => _.FundingStreamId == fundingStreamId);
+                
                 if (currentProviderVersionMetadata == null)
                 {
                     string errorMessage = $"Unable to retrieve provider snapshots for funding stream with ID: {fundingStream?.Id}";
@@ -129,10 +131,17 @@ namespace CalculateFunding.Services.Providers
                 int latestProviderSnapshotId = latestProviderSnapshot.ProviderSnapshotId;
                 int? currentProviderSnapshotId = currentProviderVersionMetadata.ProviderSnapshotId;
 
-
-
                 if (currentProviderSnapshotId != latestProviderSnapshotId)
                 {
+                    HttpStatusCode httpStatusCode = await UpdateCurrentProviderVersionMetadata(latestProviderSnapshot);
+
+                    if (!httpStatusCode.IsSuccess())
+                    {
+                        string errorMessage = $"Unable to set current provider for funding stream with ID: {fundingStream?.Id}";
+                        _logger.Error(errorMessage);
+                        continue;
+                    }
+
                     fundingStreamsLatestProviderSnapshotIds.Add(fundingStreamId, latestProviderSnapshotId);
 
                     LogInformation($"Triggering Update Specification Provider Version for funding stream ID: {fundingStreamId}. " +
@@ -163,6 +172,18 @@ namespace CalculateFunding.Services.Providers
                     _providerVersionMetadata.GetAllCurrentProviderVersions());
 
             return _mapper.Map<IEnumerable<CurrentProviderVersionMetadata>>(currentProviderVersions);
+        }
+
+        private async Task<HttpStatusCode> UpdateCurrentProviderVersionMetadata(ProviderSnapshot providerSnapshot)
+        {
+            string providerVersionId = $"{providerSnapshot.FundingStreamCode}-{providerSnapshot.TargetDate:yyyy}-{providerSnapshot.TargetDate:MM}-{providerSnapshot.TargetDate:dd}-{providerSnapshot.ProviderSnapshotId}";
+
+            return await _providerVersionMetadataPolicy.ExecuteAsync(() =>
+                    _providerVersionMetadata.UpsertCurrentProviderVersion(
+                        new CurrentProviderVersion { Id = $"Current_{providerSnapshot.FundingStreamCode}",
+                                                    ProviderSnapshotId = providerSnapshot.ProviderSnapshotId, 
+                                                    ProviderVersionId = providerVersionId
+                        }));
         }
 
         private async Task<IEnumerable<ProviderSnapshot>> GetLatestProviderSnapshots()
@@ -247,12 +268,12 @@ namespace CalculateFunding.Services.Providers
             {
                 string fundingStreamId = specificationSummary.FundingStreams.FirstOrDefault().Id;
 
+                int latestProviderSnapshotId = fundingStreamsLatestProviderSnapshotIds[fundingStreamId];
+
                 if (updateLatestFundingConfigurations.Any(_ =>
                     _.FundingPeriodId == specificationSummary.FundingPeriod.Id &&
-                    _.FundingStreamId == fundingStreamId))
+                    _.FundingStreamId == fundingStreamId) && specificationSummary.ProviderSnapshotId != latestProviderSnapshotId)
                 {
-                    int latestProviderSnapshotId = fundingStreamsLatestProviderSnapshotIds[fundingStreamId];
-
                     if (await _publishingJobClashCheck.PublishingJobsClashWithFundingStreamCoreProviderUpdate(specificationSummary.GetSpecificationId()))
                     {
                         LogInformation($"Skipping Update Specification Provider Version for funding stream ID: {fundingStreamId}. " +

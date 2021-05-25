@@ -16,6 +16,7 @@ using Moq;
 using Polly;
 using ApiProviderVersion = CalculateFunding.Common.ApiClient.Providers.Models.ProviderVersion;
 using ApiProvider = CalculateFunding.Common.ApiClient.Providers.Models.Provider;
+using System.Linq;
 
 namespace CalculateFunding.Services.Datasets.Services.Converter
 {
@@ -41,7 +42,7 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
         [TestMethod]
         public void GuardsAgainstNotProviderVersionIdBeingSupplied()
         {
-            Func<Task<IEnumerable<EligibleConverter>>> invocation = 
+            Func<Task<IEnumerable<ProviderConverterDetail>>> invocation = 
                 () => WhenTheEligibleConvertersAreQueried(null, NewFundingConfiguration());
 
             invocation
@@ -58,8 +59,8 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
         public void GuardsAgainstNoProviderVersionLocatedWithSuppliedId()
         {
             string providerVersionId = NewRandomString();
-            
-            Func<Task<IEnumerable<EligibleConverter>>> invocation = 
+
+            Func<Task<IEnumerable<ProviderConverterDetail>>> invocation = 
                 () => WhenTheEligibleConvertersAreQueried(providerVersionId, NewFundingConfiguration());
 
             invocation
@@ -75,7 +76,7 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
         [TestMethod]
         public void GuardsAgainstNotFundingConfigurationBeingSupplied()
         {
-            Func<Task<IEnumerable<EligibleConverter>>> invocation = 
+            Func<Task<IEnumerable<ProviderConverterDetail>>> invocation = 
                 () => WhenTheEligibleConvertersAreQueried(NewRandomString(), null);
 
             invocation
@@ -92,8 +93,8 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
         public void GuardsAgainstNotIndicativeStatusListOnSuppliedFundingConfiguration()
         {
             string providerVersionId = NewRandomString();
-            
-            Func<Task<IEnumerable<EligibleConverter>>> invocation = 
+
+            Func<Task<IEnumerable<ProviderConverterDetail>>> invocation = 
                 () => WhenTheEligibleConvertersAreQueried(providerVersionId, NewFundingConfiguration());
             
             GivenTheProviderVersion(providerVersionId, NewApiProviderVersion());
@@ -113,20 +114,20 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
         public async Task ProjectsProvidersWithIndicativeStatusAndASinglePredecessorInNoOtherProvider(
             ApiProviderVersion providerVersion,
             FundingConfiguration fundingConfiguration,
-            IEnumerable<EligibleConverter> expectedEligibleConverters)
+            IEnumerable<ProviderConverter> expectedEligibleConverters)
         {
             string providerVersionId = NewRandomString();
             
             GivenTheProviderVersion(providerVersionId, providerVersion);
 
-            IEnumerable<EligibleConverter> eligibleConverters = await WhenTheEligibleConvertersAreQueried(providerVersionId, fundingConfiguration);
+            IEnumerable<ProviderConverter> eligibleConverters = await WhenTheEligibleConvertersAreQueried(providerVersionId, fundingConfiguration);
 
             eligibleConverters
                 .Should()
                 .BeEquivalentTo(expectedEligibleConverters);
         }
 
-        private async Task<IEnumerable<EligibleConverter>> WhenTheEligibleConvertersAreQueried(string providerVersionId,
+        private async Task<IEnumerable<ProviderConverterDetail>> WhenTheEligibleConvertersAreQueried(string providerVersionId,
             FundingConfiguration fundingConfiguration)
             => await _eligibleProviders.GetEligibleConvertersForProviderVersion(providerVersionId, fundingConfiguration);
 
@@ -165,7 +166,7 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
                         .WithPredecessors(providerIdTwo)),
                     NewApiProvider(prov => prov.WithPredecessors(NewRandomString())))),
                 NewFundingConfiguration(_ => _.WithIndicativeOpenerProviderStatus(indicativeStatusTwo)),
-                EligibleConverters(NewEligibleConverter(_ => _.WithProviderId(providerIdOne)
+                EligibleConverters(NewEligibleConverter(_ => _.WithTargetProviderId(providerIdOne)
                     .WithPreviousProviderIdentifier(providerIdTwo)))
             };
             yield return new object []
@@ -179,14 +180,14 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
                         .WithPredecessors(providerIdFour)),
                     NewApiProvider(prov => prov.WithPredecessors(NewRandomString())))),
                 NewFundingConfiguration(_ => _.WithIndicativeOpenerProviderStatus(indicativeStatusOne, indicativeStatusTwo)),
-                EligibleConverters(NewEligibleConverter(_ => _.WithProviderId(providerIdOne)
+                EligibleConverters(NewEligibleConverter(_ => _.WithTargetProviderId(providerIdOne)
                     .WithPreviousProviderIdentifier(providerIdTwo)),
-                    NewEligibleConverter(_ => _.WithProviderId(providerIdThree)
+                    NewEligibleConverter(_ => _.WithTargetProviderId(providerIdThree)
                         .WithPreviousProviderIdentifier(providerIdFour)))
             };
         }
 
-        private static EligibleConverter[] EligibleConverters(params EligibleConverter[] eligibleConverters) => eligibleConverters;
+        private static ProviderConverter[] EligibleConverters(params ProviderConverter[] eligibleConverters) => eligibleConverters;
 
         private static ApiProviderVersion NewApiProviderVersion(Action<ApiProviderVersionBuilder> setUp = null)
         {
@@ -215,9 +216,9 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
             return apiFundingConfigurationBuilder.Build();
         }
 
-        private static EligibleConverter NewEligibleConverter(Action<EligibleConverterBuilder> setUp = null)
+        private static ProviderConverter NewEligibleConverter(Action<ProviderConverterBuilder> setUp = null)
         {
-            EligibleConverterBuilder eligibleConverterBuilder = new EligibleConverterBuilder();
+            ProviderConverterBuilder eligibleConverterBuilder = new ProviderConverterBuilder();
 
             setUp?.Invoke(eligibleConverterBuilder);
             

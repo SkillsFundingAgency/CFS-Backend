@@ -566,7 +566,7 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
                 .WithFundingStreamId(fundingStreamId));
 
             AndTheFundingConfiguration(fundingStreamId, fundingPeriodId, fundingConfiguration);
-            AndTheEligibleProviders(request.ProviderVersionId, fundingConfiguration, new EligibleConverter[0]);
+            AndTheEligibleProviders(request.ProviderVersionId, fundingConfiguration, new ProviderConverterDetail[0]);
 
             await WhenTheMergeJobIsRun(NewMessage(_ => _
                 .WithMessageBody(request
@@ -616,23 +616,23 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
 
             AndTheFundingConfiguration(fundingStreamId, fundingPeriodId, fundingConfiguration);
 
-            EligibleConverter eligibleProviderOne = NewEligibleConverter();
-            EligibleConverter eligibleProviderTwo = NewEligibleConverter();
-            EligibleConverter eligibleProviderThree = NewEligibleConverter();
-            EligibleConverter eligibleProviderFour = NewEligibleConverter();
+            ProviderConverterDetail providerOne = NewConverter();
+            ProviderConverterDetail providerTwo = NewConverter();
+            ProviderConverterDetail providerThree = NewConverter();
+            ProviderConverterDetail providerFour = NewConverter();
 
             AndTheEligibleProviders(request.ProviderVersionId,
                 fundingConfiguration,
                 new[]
                 {
-                    eligibleProviderOne,
-                    eligibleProviderTwo,
-                    eligibleProviderThree,
-                    eligibleProviderFour
+                    providerOne,
+                    providerTwo,
+                    providerThree,
+                    providerFour
                 });
 
-            string existingIdentifierTwo = eligibleProviderTwo.PreviousProviderIdentifier;
-            string existingIdentifierFour = eligibleProviderFour.PreviousProviderIdentifier;
+            string existingIdentifierTwo = providerTwo.PreviousProviderIdentifier;
+            string existingIdentifierFour = providerFour.PreviousProviderIdentifier;
 
             AndTheExistingIdentifierValues(identifierName,
                 new[]
@@ -644,23 +644,25 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
             RowCopyResult rowCopyResultOne = NewRowCopyResult();
             RowCopyResult rowCopyResultTwo = NewRowCopyResult(_ => _.WithOutcome(RowCopyOutcome.Copied));
 
-            AndTheRowCopyResult(identifierName, eligibleProviderTwo, rowCopyResultOne);
-            AndTheRowCopyResult(identifierName, eligibleProviderFour, rowCopyResultTwo);
+            AndTheRowCopyResult(identifierName, providerTwo, rowCopyResultOne);
+            AndTheRowCopyResult(identifierName, providerFour, rowCopyResultTwo);
 
             DatasetVersion createdDatasetVersion = NewDatasetVersion();
 
             AndTheNewDatasetVersion(createdDatasetVersion, dataset, datasetDefinition, author);
 
+            string parentJobId = NewRandomString();
             string jobId = NewRandomString();
 
             await WhenTheMergeJobIsRun(NewMessage(_ => _
                 .WithMessageBody(request
                     .AsJsonBytes())
-                .WithUserProperty("jobId", jobId)));
+                .WithUserProperty("jobId", jobId)
+                .WithUserProperty("parentJobId", parentJobId)));
 
             ThenTheOriginalDatasetWasLoaded(dataset, datasetDefinition);
             AndTheRowCopyResultsAreSaved(author, datasetDefinition, dataset);
-            AndTheMergeWasLogged(createdDatasetVersion, request, jobId, rowCopyResultOne, rowCopyResultTwo);
+            AndTheMergeWasLogged(createdDatasetVersion, request, parentJobId, jobId, rowCopyResultOne, rowCopyResultTwo);
         }
 
         [TestMethod]
@@ -669,7 +671,8 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
             Reference author = NewReference();
             ConverterMergeRequest request = NewConverterMergeRequest(_ => _.WithAuthor(author));
             DatasetDefinitionVersion datasetDefinitionVersion = NewDatasetDefinitionVersion();
-            Dataset dataset = NewDataset(_ => _.WithDefinition(datasetDefinitionVersion));
+            Dataset dataset = NewDataset(_ => _.WithDefinition(datasetDefinitionVersion)
+                                               .WithCurrent(NewDatasetVersion()));
 
             GivenTheDataset(request.DatasetId, dataset);
 
@@ -704,23 +707,23 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
 
             AndTheFundingConfiguration(fundingStreamId, fundingPeriodId, fundingConfiguration);
 
-            EligibleConverter eligibleProviderOne = NewEligibleConverter();
-            EligibleConverter eligibleProviderTwo = NewEligibleConverter();
-            EligibleConverter eligibleProviderThree = NewEligibleConverter();
-            EligibleConverter eligibleProviderFour = NewEligibleConverter();
+            ProviderConverterDetail providerOne = NewConverter();
+            ProviderConverterDetail providerTwo = NewConverter();
+            ProviderConverterDetail providerThree = NewConverter();
+            ProviderConverterDetail providerFour = NewConverter();
 
             AndTheEligibleProviders(request.ProviderVersionId,
                 fundingConfiguration,
                 new[]
                 {
-                    eligibleProviderOne,
-                    eligibleProviderTwo,
-                    eligibleProviderThree,
-                    eligibleProviderFour
+                    providerOne,
+                    providerTwo,
+                    providerThree,
+                    providerFour
                 });
 
-            string existingIdentifierTwo = eligibleProviderTwo.PreviousProviderIdentifier;
-            string existingIdentifierFour = eligibleProviderFour.PreviousProviderIdentifier;
+            string existingIdentifierTwo = providerTwo.PreviousProviderIdentifier;
+            string existingIdentifierFour = providerFour.PreviousProviderIdentifier;
 
             AndTheExistingIdentifierValues(identifierName,
                 new[]
@@ -732,8 +735,8 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
             RowCopyResult rowCopyResultOne = NewRowCopyResult();
             RowCopyResult rowCopyResultThree = NewRowCopyResult();
 
-            AndTheRowCopyResult(identifierName, eligibleProviderTwo, rowCopyResultOne);
-            AndTheRowCopyResult(identifierName, eligibleProviderFour, rowCopyResultThree);
+            AndTheRowCopyResult(identifierName, providerTwo, rowCopyResultOne);
+            AndTheRowCopyResult(identifierName, providerFour, rowCopyResultThree);
 
             string jobId = NewRandomString();
 
@@ -811,11 +814,13 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
 
         private void AndTheMergeWasLogged(DatasetVersion createdVersion,
             ConverterMergeRequest request,
+            string parentJobId,
             string jobId,
             params RowCopyResult[] results)
             => _logs.Verify(_ => _.SaveLogs(It.Is<IEnumerable<RowCopyResult>>(res =>
                         res.SequenceEqual(results)),
                     It.Is<ConverterMergeRequest>(req => AreEquivalent(req, request)),
+                    parentJobId,
                     jobId,
                     createdVersion.Version),
                 Times.Once);
@@ -848,7 +853,7 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
 
         private void AndTheEligibleProviders(string providerVersionId,
             FundingConfiguration fundingConfiguration,
-            IEnumerable<EligibleConverter> eligibleProviders)
+            IEnumerable<ProviderConverterDetail> eligibleProviders)
             => _eligibleProviders.Setup(_ => _.GetEligibleConvertersForProviderVersion(providerVersionId, fundingConfiguration))
                 .ReturnsAsync(eligibleProviders);
 
@@ -858,11 +863,11 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
                 .Returns(existingIdentifiers);
 
         private void AndTheRowCopyResult(string identifierFieldName,
-            EligibleConverter eligibleConverter,
+            ProviderConverter eligibleConverter,
             RowCopyResult rowCopyResult)
             => _datasetCloneBuilder.Setup(_ => _.CopyRow(identifierFieldName,
                     eligibleConverter.PreviousProviderIdentifier, 
-                    eligibleConverter.ProviderId))
+                    eligibleConverter.TargetProviderId))
                 .Returns(rowCopyResult);
 
         private void GivenTheValidationResult(ConverterMergeRequest converterMergeRequest,
@@ -919,9 +924,9 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
             return builder.Build();
         }
 
-        private EligibleConverter NewEligibleConverter(Action<EligibleConverterBuilder> setUp = null)
+        private ProviderConverterDetail NewConverter(Action<ProviderConverterDetailBuilder> setUp = null)
         {
-            EligibleConverterBuilder builder = new EligibleConverterBuilder();
+            ProviderConverterDetailBuilder builder = new ProviderConverterDetailBuilder();
 
             setUp?.Invoke(builder);
 

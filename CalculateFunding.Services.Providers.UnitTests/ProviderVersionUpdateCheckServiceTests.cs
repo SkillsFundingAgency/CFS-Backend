@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -161,7 +162,8 @@ namespace CalculateFunding.Services.Providers.UnitTests
                     },
                     Name = _specificationName,
                     Description = _specificationDescription,
-                    ProviderVersionId = _specificationProviderVersionId
+                    ProviderVersionId = _specificationProviderVersionId,
+                    ProviderSnapshotId = 1
                 }
             };
         }
@@ -185,8 +187,13 @@ namespace CalculateFunding.Services.Providers.UnitTests
         [TestMethod]
         public void CheckProviderVersionUpdate_GivenGetSpecificationsWithProviderVersionUpdatesAsUseLatestReturnsBadRequest_ThrowsError()
         {
+            ProviderSnapshot providerSnapshot = _providerSnapshots.Single(_ => _.Version == 1);
+            string providerVersionId = $"{providerSnapshot.FundingStreamCode}-{providerSnapshot.TargetDate:yyyy}-{providerSnapshot.TargetDate:MM}-{providerSnapshot.TargetDate:dd}-{providerSnapshot.ProviderSnapshotId}";
+            string currentProviderId = $"Current_{providerSnapshot.FundingStreamCode}";
+
             GivenTheFundingStreams(_fundingStreams);
             AndTheCurrentProviderVersions(_currentProviderVersions);
+            AndTheCurrentProviderVersionSaved(currentProviderId, providerVersionId, providerSnapshot.ProviderSnapshotId);
             AndTheFundingConfigurationsForTheFundingStreamId(_fundingConfigurations, _fundingStreamOneId);
             AndTheProviderSnapshotsForFundingStream(_providerSnapshots);
             AndErrorGetSpecificationsWithProviderVersionUpdatesAsUseLatest();
@@ -205,8 +212,13 @@ namespace CalculateFunding.Services.Providers.UnitTests
         [TestMethod]
         public async Task CheckProviderVersionUpdate_GivenGetSpecificationsWithProviderVersionUpdatesAsUseLatest_UpdatesSpecification()
         {
+            ProviderSnapshot providerSnapshot = _providerSnapshots.Single(_ => _.Version == 1);
+            string providerVersionId = $"{providerSnapshot.FundingStreamCode}-{providerSnapshot.TargetDate:yyyy}-{providerSnapshot.TargetDate:MM}-{providerSnapshot.TargetDate:dd}-{providerSnapshot.ProviderSnapshotId}";
+            string currentProviderId = $"Current_{providerSnapshot.FundingStreamCode}";
+
             GivenTheFundingStreams(_fundingStreams);
             AndTheCurrentProviderVersions(_currentProviderVersions);
+            AndTheCurrentProviderVersionSaved(currentProviderId, providerVersionId, providerSnapshot.ProviderSnapshotId);
             AndTheFundingConfigurationsForTheFundingStreamId(_fundingConfigurations, _fundingStreamOneId);
             AndTheProviderSnapshotsForFundingStream(_providerSnapshots);
             AndTheSpecificationsUseTheLatestProviderSnapshot(_specificationSummaries);
@@ -278,6 +290,13 @@ namespace CalculateFunding.Services.Providers.UnitTests
             _providerVersionsMetadataRepository
                 .Setup(_ => _.GetAllCurrentProviderVersions())
                 .ReturnsAsync(new List<CurrentProviderVersion>(currentProviderVersions));
+
+        private void AndTheCurrentProviderVersionSaved(string id, string providerVersionId, int providerSnapshotId) =>
+            _providerVersionsMetadataRepository
+                .Setup(_ => _.UpsertCurrentProviderVersion(It.Is<CurrentProviderVersion>(cpv => cpv.Id == id && 
+                                                                                                cpv.ProviderVersionId == providerVersionId &&
+                                                                                                cpv.ProviderSnapshotId == providerSnapshotId)))
+                .ReturnsAsync(HttpStatusCode.OK);
 
         private void AndTheProviderSnapshotsForFundingStream(IEnumerable<ProviderSnapshot> providerSnapshots) =>
             _fundingDataZoneApiClient

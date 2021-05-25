@@ -881,6 +881,7 @@ namespace CalculateFunding.Services.Jobs
             string sessionId = null;
 
             const string jobId = "jobId";
+            const string parentJobId = "parentJobId";
 
             if (messageProperties == null)
             {
@@ -889,12 +890,22 @@ namespace CalculateFunding.Services.Jobs
                     { jobId, job.Id },
                     { SfaCorrelationId, job.CorrelationId }
                 };
+
+                if (!string.IsNullOrWhiteSpace(job.ParentJobId))
+                {
+                    messageProperties.Add(parentJobId, job.ParentJobId);
+                }
             }
             else
             {
                 if (!messageProperties.ContainsKey(jobId))
                 {
                     messageProperties.Add(jobId, job.Id);
+                }
+
+                if (!string.IsNullOrWhiteSpace(job.ParentJobId) && !messageProperties.ContainsKey(parentJobId))
+                {
+                    messageProperties.Add(parentJobId, job.ParentJobId);
                 }
 
                 if (!messageProperties.ContainsKey(SfaCorrelationId))

@@ -204,7 +204,7 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
                 .BeEquivalentTo(NewRowCopyResult(_ => _.WithOutcome(RowCopyOutcome.SourceRowNotFound)
                     .WithEligibleConverter(NewEligibleConverter(ec => 
                         ec.WithPreviousProviderIdentifier(sourceProviderId)
-                        .WithProviderId(destinationProviderId)))));
+                        .WithTargetProviderId(destinationProviderId)))));
 
             datasetTable.Rows
                 .Count
@@ -234,7 +234,7 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
                 .BeEquivalentTo(NewRowCopyResult(_ => _.WithOutcome(RowCopyOutcome.DestinationRowAlreadyExists)
                     .WithEligibleConverter(NewEligibleConverter(ec => 
                         ec.WithPreviousProviderIdentifier(sourceProviderId)
-                            .WithProviderId(destinationProviderId)))));
+                            .WithTargetProviderId(destinationProviderId)))));
             
             datasetTable.Rows
                 .Count
@@ -268,7 +268,7 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
                 .BeEquivalentTo(NewRowCopyResult(_ => _.WithOutcome(RowCopyOutcome.Copied)
                     .WithEligibleConverter(NewEligibleConverter(ec => 
                         ec.WithPreviousProviderIdentifier(sourceProviderId)
-                            .WithProviderId(destinationProviderId)))));
+                            .WithTargetProviderId(destinationProviderId)))));
             
             datasetTable.Rows
                 .Count
@@ -534,9 +534,9 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
             return tableLoadResultBuilder.Build();
         }
 
-        private EligibleConverter NewEligibleConverter(Action<EligibleConverterBuilder> setUp = null)
+        private ProviderConverter NewEligibleConverter(Action<ProviderConverterBuilder> setUp = null)
         {
-            EligibleConverterBuilder eligibleConverterBuilder = new EligibleConverterBuilder();
+            ProviderConverterBuilder eligibleConverterBuilder = new ProviderConverterBuilder();
 
             setUp?.Invoke(eligibleConverterBuilder);
 

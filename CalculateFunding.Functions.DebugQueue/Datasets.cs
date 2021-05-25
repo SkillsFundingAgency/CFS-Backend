@@ -133,7 +133,7 @@ namespace CalculateFunding.Functions.DebugQueue
         {
             using IServiceScope scope = Startup.RegisterComponents(new ServiceCollection()).CreateScope();
 
-            Message message = Helpers.ConvertToMessage<string>(item);
+            Message message = Helpers.ConvertToMessage<Dataset>(item);
 
             OnMapFdzDatasetsEventFiredFailure function = scope.ServiceProvider.GetService<OnMapFdzDatasetsEventFiredFailure>();
 
@@ -192,7 +192,7 @@ namespace CalculateFunding.Functions.DebugQueue
 
             OnCreateSpecificationConverterDatasetsMerge function = scope.ServiceProvider.GetService<OnCreateSpecificationConverterDatasetsMerge>();
 
-            Guard.ArgumentNotNull(function, nameof(OnMapFdzDatasetsEventFired));
+            Guard.ArgumentNotNull(function, nameof(OnCreateSpecificationConverterDatasetsMerge));
 
             await function.Run(message);
 
@@ -211,7 +211,44 @@ namespace CalculateFunding.Functions.DebugQueue
 
             OnCreateSpecificationConverterDatasetsMergeFailure function = scope.ServiceProvider.GetService<OnCreateSpecificationConverterDatasetsMergeFailure>();
 
-            Guard.ArgumentNotNull(function, nameof(OnMapFdzDatasetsEventFiredFailure));
+            Guard.ArgumentNotNull(function, nameof(OnCreateSpecificationConverterDatasetsMergeFailure));
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
+
+        [FunctionName(OnConverterWizardActivityCsvGeneration.FunctionName)]
+        public static async Task RunOnConverterWizardActivityCsvGeneration([QueueTrigger(ServiceBusConstants.QueueNames.ConverterWizardActivityCsvGeneration, Connection = "AzureConnectionString")]
+            string item,
+            ILogger log)
+        {
+            using IServiceScope scope = Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+
+            Message message = Helpers.ConvertToMessage<ConverterMergeRequest>(item);
+
+            OnConverterWizardActivityCsvGeneration function = scope.ServiceProvider.GetService<OnConverterWizardActivityCsvGeneration>();
+
+            Guard.ArgumentNotNull(function, nameof(OnConverterWizardActivityCsvGeneration));
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
+
+        [FunctionName(OnConverterWizardActivityCsvGenerationFailure.FunctionName)]
+        public static async Task RunOnConverterWizardActivityCsvGenerationFailure(
+            [QueueTrigger(ServiceBusConstants.QueueNames.ConverterWizardActivityCsvGenerationPoisonedLocal, Connection = "AzureConnectionString")]
+            string item,
+            ILogger log)
+        {
+            using IServiceScope scope = Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+
+            Message message = Helpers.ConvertToMessage<ConverterMergeRequest>(item);
+
+            OnConverterWizardActivityCsvGenerationFailure function = scope.ServiceProvider.GetService<OnConverterWizardActivityCsvGenerationFailure>();
+
+            Guard.ArgumentNotNull(function, nameof(OnConverterWizardActivityCsvGenerationFailure));
 
             await function.Run(message);
 

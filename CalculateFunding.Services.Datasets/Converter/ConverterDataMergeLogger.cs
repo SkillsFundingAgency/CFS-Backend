@@ -24,6 +24,7 @@ namespace CalculateFunding.Services.Datasets.Converter
 
         public async Task SaveLogs(IEnumerable<RowCopyResult> results,
             ConverterMergeRequest request,
+            string parentJobId,
             string jobId,
             int datasetVersionCreated)
         {
@@ -32,10 +33,21 @@ namespace CalculateFunding.Services.Datasets.Converter
                 Request = request,
                 Results = results,
                 JobId = jobId,
+                ParentJobId = parentJobId,
                 DatasetVersionCreated = datasetVersionCreated
             };
             
             await _datasetsResilience.ExecuteAsync(() => _datasets.SaveConverterDataMergeLog(log));
+        }
+
+        public async Task<ConverterDataMergeLog> GetLog(string jobId)
+        {
+            return await _datasetsResilience.ExecuteAsync(() => _datasets.GetConverterDataMergeLog(jobId));
+        }
+
+        public async Task<IEnumerable<ConverterDataMergeLog>> GetLogs(string parentJobId)
+        {
+            return await _datasetsResilience.ExecuteAsync(() => _datasets.GetConverterDataMergeLogsByParentJobId(parentJobId));
         }
     }
 }

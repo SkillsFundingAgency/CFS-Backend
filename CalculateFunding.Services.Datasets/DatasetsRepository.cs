@@ -214,6 +214,10 @@ namespace CalculateFunding.Services.Datasets
         public async Task<ConverterDataMergeLog> GetConverterDataMergeLog(string id) 
             => (await _cosmosRepository.ReadDocumentByIdAsync<ConverterDataMergeLog>(id))?.Content;
 
+        public async Task<IEnumerable<ConverterDataMergeLog>> GetConverterDataMergeLogsByParentJobId(string parentJobId) => await GetConverterDataMergeLogsByQuery(m => m.Id == parentJobId);
+
+        public async Task<IEnumerable<ConverterDataMergeLog>> GetConverterDataMergeLogsByQuery(Expression<Func<DocumentEntity<ConverterDataMergeLog>, bool>> query) => await _cosmosRepository.Query(query);
+    
         public async Task<IEnumerable<DefinitionSpecificationRelationship>> GetAllDefinitionSpecificationsRelationships()
         {
             return await _cosmosRepository.Query<DefinitionSpecificationRelationship>();

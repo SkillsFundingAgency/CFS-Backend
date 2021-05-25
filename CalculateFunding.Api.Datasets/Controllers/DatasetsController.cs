@@ -155,7 +155,7 @@ namespace CalculateFunding.Api.Datasets.Controllers
         [Produces(typeof(IEnumerable<DatasetSpecificationRelationshipViewModel>))]
         public Task<IActionResult> GetDefinitionRelationships([FromQuery] string specificationId)
         {
-            return _definitionSpecificationRelationshipService.GetRelationshipsBySpecificationId(specificationId);
+            return _definitionSpecificationRelationshipService.GetRelationshipsBySpecificationIdResult(specificationId);
         }
 
         [Route("api/datasets/get-definition-relationship-by-specificationid-name")]

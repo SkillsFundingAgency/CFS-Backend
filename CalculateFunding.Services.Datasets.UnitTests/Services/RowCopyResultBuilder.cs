@@ -5,11 +5,11 @@ namespace CalculateFunding.Services.Datasets.Services
 {
     public class RowCopyResultBuilder : TestEntityBuilder
     {
-        private EligibleConverter _eligibleConverter;
+        private ProviderConverter _eligibleConverter;
         private RowCopyOutcome _outcome;
         private string _validationMessage;
 
-        public RowCopyResultBuilder WithEligibleConverter(EligibleConverter eligibleConverter)
+        public RowCopyResultBuilder WithEligibleConverter(ProviderConverter eligibleConverter)
         {
             _eligibleConverter = eligibleConverter;
 

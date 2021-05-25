@@ -38,10 +38,12 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
                 NewRowCopyResult(),
                 NewRowCopyResult());
             ConverterMergeRequest expectedRequest = NewConverterMergeRequest();
+            string expectedParentJobId = NewRandomString();
             string expectedJobId = NewRandomString();
 
             await WhenTheOutcomeIsLogged(expectedResults,
                 expectedRequest,
+                expectedParentJobId,
                 expectedJobId,
                 expectedVersion);
             
@@ -54,9 +56,10 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
 
         private async Task WhenTheOutcomeIsLogged(IEnumerable<RowCopyResult> results,
             ConverterMergeRequest request,
+            string parentJobId,
             string jobId,
             int versionCreated)
-            => await _logger.SaveLogs(results, request, jobId, versionCreated);
+            => await _logger.SaveLogs(results, request, parentJobId, jobId, versionCreated);
 
         private int NewRandomVersion() => new RandomNumberBetween(1, int.MaxValue);
         

@@ -1,7 +1,9 @@
 ﻿using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.Datasets.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace CalculateFunding.Services.Datasets.Interfaces
 {
@@ -9,7 +11,9 @@ namespace CalculateFunding.Services.Datasets.Interfaces
     {
         Task<IActionResult> CreateRelationship(CreateDefinitionSpecificationRelationshipModel createDefinitionSpecificationRelationshipModel, Reference user, string correlationId);
 
-        Task<IActionResult> GetRelationshipsBySpecificationId(string specificationId);
+        Task<IEnumerable<DatasetSpecificationRelationshipViewModel>> GetRelationshipsBySpecificationId(string specificationId);
+
+        Task<IActionResult> GetRelationshipsBySpecificationIdResult(string specificationId);
 
         Task<IActionResult> GetRelationshipBySpecificationIdAndName(string specificationId, string name);
 

@@ -49,6 +49,7 @@ using LocalIBlobClient = CalculateFunding.Services.Core.Interfaces.AzureStorage.
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Models.Datasets.Converter;
 using CalculateFunding.Services.Datasets.Converter;
+using CalculateFunding.Services.Core.Caching.FileSystem;
 
 [assembly: FunctionsStartup(typeof(CalculateFunding.Functions.Datasets.Startup))]
 
@@ -93,6 +94,8 @@ namespace CalculateFunding.Functions.Datasets
                 builder.AddScoped<OnRunConverterDataMergeFailure>();
                 builder.AddScoped<OnCreateSpecificationConverterDatasetsMerge>();
                 builder.AddScoped<OnCreateSpecificationConverterDatasetsMergeFailure>();
+                builder.AddScoped<OnConverterWizardActivityCsvGeneration>();
+                builder.AddScoped<OnConverterWizardActivityCsvGenerationFailure>();
             }
 
             builder.AddSingleton<ISpecificationConverterDataMerge, SpecificationConverterDataMerge>();
@@ -100,6 +103,11 @@ namespace CalculateFunding.Functions.Datasets
             builder.AddSingleton<IDatasetCloneBuilderFactory, DatasetCloneBuilderFactory>();
             builder.AddSingleton<IConverterDataMergeLogger, ConverterDataMergeLogger>();
             builder.AddSingleton<IConverterEligibleProviderService, ConverterEligibleProviderService>();
+            builder.AddSingleton<IConverterWizardActivityCsvGenerationGeneratorService, ConverterWizardActivityCsvGenerationGeneratorService>();
+            builder.AddSingleton<IFileSystemAccess, FileSystemAccess>();
+            builder.AddSingleton<IFileSystemCacheSettings, FileSystemCacheSettings>();
+            builder.AddSingleton<ICsvUtils, CsvUtils>();
+            builder.AddSingleton<IConverterWizardActivityToCsvRowsTransformation, ConverterWizardActivityToCsvRowsTransformation>();
             builder.AddSingleton<IValidator<ConverterMergeRequest>, ConverterMergeRequestValidation>();
             builder.AddSingleton<IDatasetIndexer, DatasetIndexer>();
 

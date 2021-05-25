@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
@@ -14,6 +15,8 @@ namespace CalculateFunding.Services.Datasets.Converter
 {
     public class ConverterEligibleProviderService : IConverterEligibleProviderService
     {
+        private const string MultiplePredecessors = "Multiple predecessors";
+        private const string OneOfMultipleSuccessors = "One of multiple successors";
         private readonly IProvidersApiClient _providers;
         private AsyncPolicy _providersResilience;
 
@@ -27,8 +30,15 @@ namespace CalculateFunding.Services.Datasets.Converter
             _providersResilience = resiliencePolicies.ProvidersApiClient;
         }
 
-        public async Task<IEnumerable<EligibleConverter>> GetEligibleConvertersForProviderVersion(string providerVersionId,
+        public async Task<IEnumerable<ProviderConverterDetail>> GetEligibleConvertersForProviderVersion(string providerVersionId,
             FundingConfiguration fundingConfiguration)
+        {
+            return await GetConvertersForProviderVersion(providerVersionId, fundingConfiguration, (_) => _.IsEligible);
+        }
+
+        public async Task<IEnumerable<ProviderConverterDetail>> GetConvertersForProviderVersion(string providerVersionId,
+            FundingConfiguration fundingConfiguration,
+            Func<ProviderConverterDetail, bool> predicate = null)
         {
             EnsureIsNotNullOrWhitespace(providerVersionId, "Must supply a provider version id to query eligible providers");
             EnsureIsNotNull(fundingConfiguration, "Must supply a funding configuration to query eligible providers");
@@ -53,32 +63,37 @@ namespace CalculateFunding.Services.Datasets.Converter
                     .ToDictionary(_ => _.ProviderId, _ => _.Predecessors.ToHashSet())
                 ?? new Dictionary<string, HashSet<string>>();
 
-            Dictionary<string, Provider> indicativeProvidersWithSinglePredecessor =
-                providerVersion.Providers?
-                    .Where(_ => HasIndicativeStatus(indicativeStatusList, _) &&
-                               HasSinglePredecessor(_))
-                    .ToDictionary(_ => _.ProviderId)
-                ?? new Dictionary<string, Provider>();
+            IEnumerable<Provider> indicativeProviders = providerVersion.Providers?
+                    .Where(_ => HasIndicativeStatus(indicativeStatusList, _));
 
             HashSet<string> notEligibleProviderIds = new HashSet<string>();
 
-            foreach ((string providerId, Provider value) in indicativeProvidersWithSinglePredecessor)
-            {
-                string predecessorProviderId = value.Predecessors.Single();
-
-                if (IsForMerger(providerId, predecessorProviderId, allProvidersWithPredecessorsMap))
+            return indicativeProviders.Select(_ => {
+                ProviderConverterDetail providerConverter = new ProviderConverterDetail
                 {
-                    notEligibleProviderIds.Add(providerId);
+                    TargetProviderId = _.ProviderId,
+                    TargetProviderName = _.Name,
+                    TargetOpeningDate = _.DateOpened,
+                    TargetStatus = _.Status,
+                    PreviousProviderIdentifier = _.Predecessors.FirstOrDefault()
+                };
+
+                if (!HasSinglePredecessor(_))
+                {
+                    providerConverter.ProviderInEligible = MultiplePredecessors;
                 }
-            }
-
-            return indicativeProvidersWithSinglePredecessor
-                .Where(_ => !notEligibleProviderIds.Contains(_.Key))
-                .Select(_ => new EligibleConverter
+                else
                 {
-                    ProviderId = _.Key,
-                    PreviousProviderIdentifier = _.Value.Predecessors.Single()
-                });
+                    string predecessorProviderId = _.Predecessors.Single();
+
+                    if (IsForMerger(_.ProviderId, predecessorProviderId, allProvidersWithPredecessorsMap))
+                    {
+                        providerConverter.ProviderInEligible = OneOfMultipleSuccessors;
+                    }
+                }
+
+                return providerConverter;
+            }).Where(_ => predicate == null || predicate(_));
         }
 
         private static bool HasIndicativeStatus(ICollection<string> indicativeStatusList,

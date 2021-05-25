@@ -108,7 +108,13 @@
 
             public const string CalculationResultsCsvGenerationPoisoned = "calculation-results-csv-generation/$DeadLetterQueue";
             
-            public const string CalculationResultsCsvGenerationPoisonedLocal = "calculation-results-csv-generation-poisoned";
+            public const string CalculationResultsCsvGenerationPoisonedLocal = "calculation-results-csv-generation-poison";
+            
+            public const string ConverterWizardActivityCsvGeneration = "converter-wizard-activity-csv-generation";
+            
+            public const string ConverterWizardActivityCsvGenerationPoisoned = "converter-wizard-activity-csv-generation/$DeadLetterQueue";
+
+            public const string ConverterWizardActivityCsvGenerationPoisonedLocal = "converter-wizard-activity-csv-generation-poison";
 
             //For debug queue only as its on a timer
             public const string ScaleDownCosmosdbCollection = "scale-down-cosmosdb-collection";

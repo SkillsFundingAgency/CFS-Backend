@@ -11,6 +11,8 @@ namespace CalculateFunding.Models.Datasets.Converter
         
         public ConverterMergeRequest Request { get; set; }
         
+        public string ParentJobId { get; set; }
+
         public string JobId { get; set; }
         
         public int DatasetVersionCreated { get; set; }  

@@ -56,6 +56,25 @@ namespace CalculateFunding.Functions.Datasets.SmokeTests
         }
 
         [TestMethod]
+        public async Task OnConverterWizardActivityCsvGeneration_SmokeTestSucceeds()
+        {
+            OnConverterWizardActivityCsvGeneration onConverterWizardActivityCsvGeneration = new OnConverterWizardActivityCsvGeneration(_logger,
+                Substitute.For<IConverterWizardActivityCsvGenerationGeneratorService>(),
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                _userProfileProvider,
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
+                IsDevelopment);
+
+            SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.ConverterWizardActivityCsvGeneration,
+                async smokeResponse => await onConverterWizardActivityCsvGeneration.Run(smokeResponse),
+                useSession: true);
+
+            response
+                .Should()
+                .NotBeNull();
+        }
+
+        [TestMethod]
         public async Task OnRunConverterDataMerge_SmokeTestSucceeds()
         {
             OnRunConverterDataMerge onRunConverterDataMerge = new OnRunConverterDataMerge(_logger,

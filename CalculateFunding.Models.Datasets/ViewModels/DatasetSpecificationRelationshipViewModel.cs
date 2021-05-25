@@ -13,6 +13,8 @@ namespace CalculateFunding.Models.Datasets.ViewModels
 
         public string DatasetId { get; set; }
 
+        public bool ConverterWizard { get; set; }
+
         public string RelationshipDescription { get; set; }
 
         public bool IsProviderData { get; set; }

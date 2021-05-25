@@ -2,7 +2,7 @@
 {
     public class RowCopyResult
     {
-        public EligibleConverter EligibleConverter { get; set; }
+        public ProviderConverter EligibleConverter { get; set; }
 
         public RowCopyOutcome Outcome { get; set; }
 

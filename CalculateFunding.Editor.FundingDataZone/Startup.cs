@@ -60,6 +60,7 @@ namespace CalculateFunding.Editor.FundingDataZone
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
