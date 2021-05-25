@@ -62,5 +62,6 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         Task<DocumentEntity<DatasetDefinition>> GetDatasetDefinitionDocumentByDatasetDefinitionId(string datasetDefinitionId);
 
         Task SaveConverterDataMergeLog(ConverterDataMergeLog log);
+        Task<ConverterDataMergeLog> GetConverterDataMergeLog(string id);
     }
 }

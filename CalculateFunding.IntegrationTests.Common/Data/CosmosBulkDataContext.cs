@@ -13,7 +13,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace CalculateFunding.IntegrationTests.Common.Data
 {
-    public abstract class CosmosBulkDataContext : DataSource<CosmosIdentity>
+    public abstract class CosmosBulkDataContext : JsonDataSource<CosmosIdentity>
     {
         private readonly CosmosClient _cosmosClient;
 

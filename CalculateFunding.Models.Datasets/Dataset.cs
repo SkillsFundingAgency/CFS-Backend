@@ -1,4 +1,6 @@
-﻿using CalculateFunding.Common.Models;
+﻿using System.Collections.Generic;
+using System.IO;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Versioning;
 
 namespace CalculateFunding.Models.Datasets
@@ -9,14 +11,15 @@ namespace CalculateFunding.Models.Datasets
             int rowCount,
             DatasetChangeType changeType)
         {
-            Current = (DatasetVersion)Current.Clone();
-            Current.Version = GetNextVersion();
+            Current = (DatasetVersion) Current.Clone();
             Current.Author = author;
             Current.RowCount = rowCount;
             Current.ChangeType = changeType;
-            History.Add(Current);
+            (History ??= new List<DatasetVersion>()).Add(Current);
+            Current.Version = GetNextVersion();
+            Current.BlobName = $"{Id}/v{Current.Version}/{Path.GetFileName(Current.BlobName)}";
         }
-        
+
         public DatasetDefinitionVersion Definition { get; set; }
 
         public string Description { get; set; }

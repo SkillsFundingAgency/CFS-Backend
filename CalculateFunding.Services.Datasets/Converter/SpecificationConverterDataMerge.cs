@@ -68,7 +68,7 @@ namespace CalculateFunding.Services.Datasets.Converter
 
             Reference author = request.Author;
 
-            return new OkObjectResult(await QueueJob(new JobCreateModel
+            Job job = await QueueJob(new JobCreateModel
             {
                 JobDefinitionId = QueueConverterDatasetMergeJob,
                 SpecificationId = specificationId,
@@ -84,7 +84,12 @@ namespace CalculateFunding.Services.Datasets.Converter
                     EntityId = specificationId,
                     EntityType = "Specification"
                 }
-            }));
+            });
+            
+            return new OkObjectResult(new JobCreationResponse
+            {
+                JobId = job.Id
+            });
         }
 
         public override async Task Process(Message message)
@@ -125,6 +130,11 @@ namespace CalculateFunding.Services.Datasets.Converter
 
             foreach (DefinitionSpecificationRelationship specificationDatasetRelationship in specificationDatasetRelationships)
             {
+                if (!specificationDatasetRelationship.ConverterEnabled)
+                {
+                    continue;
+                }
+                
                 string datasetRelationshipId = specificationDatasetRelationship.Id;
                 
                 await QueueJob(new JobCreateModel
@@ -143,8 +153,8 @@ namespace CalculateFunding.Services.Datasets.Converter
                     MessageBody = new ConverterMergeRequest
                     {
                         DatasetRelationshipId = datasetRelationshipId,
-                        DatasetId = specificationDatasetRelationship.DatasetDefinition.Id,
-                        Version = specificationDatasetRelationship.DatasetVersion.Id,
+                        DatasetId = specificationDatasetRelationship.DatasetVersion.Id,
+                        Version = specificationDatasetRelationship.DatasetVersion.Version.ToString(),
                         ProviderVersionId = providerVersionId,
                         Author = author
                     }.AsJson()

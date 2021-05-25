@@ -102,7 +102,10 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
             SpecificationConverterMergeRequest request = NewSpecificationMergeRequest(_ => _.WithSpecificationId(specificationId)
                 .WithAuthor(author));
 
-            Job expectedJob = new Job();
+            Job expectedJob = new Job
+            {
+                Id = NewRandomString()
+            };
 
             GivenTheJobIsQueued(new JobCreateModel
                 {
@@ -123,11 +126,11 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
                 },
                 expectedJob);
 
-            OkObjectResult result = await WhenTheJobIsQueued(request) as OkObjectResult;
+            JobCreationResponse result = (await WhenTheJobIsQueued(request) as OkObjectResult).Value as JobCreationResponse;
 
-            result?.Value
+            result?.JobId
                 .Should()
-                .BeSameAs(expectedJob);
+                .Be(expectedJob.Id);
         }
 
         [TestMethod]
@@ -256,7 +259,7 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
                 => _.WithSpecificationId(specificationId)
                     .WithAuthor(author));
 
-            DefinitionSpecificationRelationship relationshipOne = NewDefinitionSpecificationRelationship();
+            DefinitionSpecificationRelationship relationshipOne = NewDefinitionSpecificationRelationship(_ => _.WithConverterEnabled(false));
             DefinitionSpecificationRelationship relationshipTwo = NewDefinitionSpecificationRelationship();
             DefinitionSpecificationRelationship relationshipThree = NewDefinitionSpecificationRelationship();
 
@@ -265,9 +268,9 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
             await WhenTheMessageIsProcessed(NewMessage(_ =>
                 _.WithMessageBody(specificationMergeRequest.AsJsonBytes())));
 
-            ThenTheJobsWereQueued(NewConverterMergeJobCreateModel(parentJobId, relationshipOne, specificationSummary, author),
-                NewConverterMergeJobCreateModel(parentJobId, relationshipTwo, specificationSummary, author),
+            ThenTheJobsWereQueued(NewConverterMergeJobCreateModel(parentJobId, relationshipTwo, specificationSummary, author),
                 NewConverterMergeJobCreateModel(parentJobId, relationshipThree, specificationSummary, author));
+            AndTheJobsWereNotQueued(NewConverterMergeJobCreateModel(parentJobId, relationshipOne, specificationSummary, author));
         }
 
         private static JobCreateModel NewConverterMergeJobCreateModel(string parentJobId,
@@ -290,8 +293,8 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
                 MessageBody = new ConverterMergeRequest
                 {
                     DatasetRelationshipId = relationship.Id,
-                    DatasetId = relationship.DatasetDefinition.Id,
-                    Version = relationship.DatasetVersion.Id,
+                    DatasetId = relationship.DatasetVersion.Id,
+                    Version = relationship.DatasetVersion.Version.ToString(),
                     ProviderVersionId = specificationSummary.ProviderVersionId,
                     Author = author
                 }.AsJson()
@@ -320,6 +323,16 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
                 _jobs.Verify(_ => _.QueueJob(It.Is<JobCreateModel>(actualJob =>
                         AreEquivalent(actualJob, expectedJob))),
                     Times.Once);
+            }
+        }
+        
+        private void AndTheJobsWereNotQueued(params JobCreateModel[] jobs)
+        {
+            foreach (JobCreateModel expectedJob in jobs)
+            {
+                _jobs.Verify(_ => _.QueueJob(It.Is<JobCreateModel>(actualJob =>
+                        AreEquivalent(actualJob, expectedJob))),
+                    Times.Never);
             }
         }
 
@@ -388,7 +401,8 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
             DefinitionSpecificationRelationshipBuilder specificationRelationshipBuilder = new DefinitionSpecificationRelationshipBuilder()
                 .WithSpecification(NewReference())
                 .WithDatasetDefinition(NewReference())
-                .WithDatasetVersion(NewDatasetRelationshipVersion());
+                .WithDatasetVersion(NewDatasetRelationshipVersion())
+                .WithConverterEnabled(true);
 
             setUp?.Invoke(specificationRelationshipBuilder);
 
@@ -400,7 +414,7 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
             DatasetRelationshipVersionBuilder datasetRelationshipVersionBuilder = new DatasetRelationshipVersionBuilder();
 
             setUp?.Invoke(datasetRelationshipVersionBuilder);
-            
+
             return datasetRelationshipVersionBuilder.Build();
         }
 

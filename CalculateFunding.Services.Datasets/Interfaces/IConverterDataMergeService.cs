@@ -8,5 +8,6 @@ namespace CalculateFunding.Services.Datasets.Interfaces
     public interface IConverterDataMergeService : IJobProcessingService
     {
         Task<IActionResult> QueueJob(ConverterMergeRequest request);
+        Task<IActionResult> GetConverterDataMergeLog(string id);
     }
 }

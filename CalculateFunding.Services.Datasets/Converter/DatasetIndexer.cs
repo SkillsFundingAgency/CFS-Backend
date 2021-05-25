@@ -109,7 +109,7 @@ namespace CalculateFunding.Services.Datasets.Converter
                     DefinitionName = dataset.Definition.Name,
                     Description = dataset.Description,
                     LastUpdatedDate = datasetVersion.Date,
-                    LastUpdatedByName = datasetVersion.Author.Name,
+                    LastUpdatedByName = datasetVersion.Author?.Name,
                     FundingStreamId = datasetVersion.FundingStream?.Id,
                     FundingStreamName = datasetVersion.FundingStream?.Name
                 }

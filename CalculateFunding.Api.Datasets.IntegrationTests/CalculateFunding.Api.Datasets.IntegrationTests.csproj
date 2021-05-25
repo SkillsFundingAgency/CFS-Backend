@@ -8,8 +8,9 @@
 
 
     <ItemGroup>
-        <PackageReference Include="CalculateFunding.Common.ApiClient.Datasets" Version="6.8.0" />
-        <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Datasets" Version="5.10.0" />
+        <PackageReference Include="CalculateFunding.Common.ApiClient.Datasets" Version="6.9.0" />
+        <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Datasets" Version="5.11.0" />
+        <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="4.1.1" />
         <PackageReference Include="FluentAssertions" Version="5.10.3" />
         <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="5.0.0" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.4.0" />
@@ -20,6 +21,18 @@
     <ItemGroup>
         <ProjectReference Include="..\CalculateFunding.IntegrationTests.Common\CalculateFunding.IntegrationTests.Common.csproj" />
         <ProjectReference Include="..\CalculateFunding.Services.Datasets\CalculateFunding.Services.Datasets.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Include="Resources\ConverterDataMergeLog.json" />
+      <EmbeddedResource Include="Resources\DatasetTemplate.json" />
+      <EmbeddedResource Include="Resources\DefinitionSpecificationRelationship.json" />
+      <EmbeddedResource Include="Resources\ProviderVersionBlobTemplate.json" />
+      <EmbeddedResource Include="Resources\SpecificationTemplate.json" />
+      <None Remove="Resources\FundingConfigurationTemplate.json" />
+      <EmbeddedResource Include="Resources\FundingConfigurationTemplate.json" />
+      <None Remove="Resources\DatasetDefinitionTemplate.json" />
+      <EmbeddedResource Include="Resources\DatasetDefinitionTemplate.json" />
     </ItemGroup>
 
 </Project>

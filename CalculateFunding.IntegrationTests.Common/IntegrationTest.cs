@@ -7,6 +7,7 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.IntegrationTests.Common.Configuration;
 using CalculateFunding.IntegrationTests.Common.IoC;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Tests.Common.Helpers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -57,8 +58,8 @@ namespace CalculateFunding.IntegrationTests.Common
             });
         }
 
-        protected void TrackForTeardown(IDisposable disposable)
-            => TrackedForTearDown.Add(disposable);
+        protected void TrackForTeardown(params IDisposable[] disposableComponents)
+            => TrackedForTearDown.AddRange(disposableComponents);
 
         protected static void SetUpServices(params Action<IServiceCollection, IConfiguration>[] setUps)
             => ServiceLocator = ServiceLocator.Create(Configuration, setUps);
@@ -87,5 +88,9 @@ namespace CalculateFunding.IntegrationTests.Common
             serviceCollection.AddSingleton<IUserProfileProvider, UserProfileProvider>();
 
         protected IEnumerable<TItem> AsEnumerable<TItem>(params TItem[] items) => items;
+
+        protected static string NewRandomString() => new RandomString();
+
+        protected static int NewRandomInteger() => new RandomNumberBetween(1, int.MaxValue - 1);
     }
 }

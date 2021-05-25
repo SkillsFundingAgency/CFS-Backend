@@ -210,6 +210,9 @@ namespace CalculateFunding.Services.Datasets
         }
 
         public async Task SaveConverterDataMergeLog(ConverterDataMergeLog log) => await _cosmosRepository.CreateAsync(log);
+        
+        public async Task<ConverterDataMergeLog> GetConverterDataMergeLog(string id) 
+            => (await _cosmosRepository.ReadDocumentByIdAsync<ConverterDataMergeLog>(id))?.Content;
 
         public async Task<IEnumerable<DefinitionSpecificationRelationship>> GetAllDefinitionSpecificationsRelationships()
         {

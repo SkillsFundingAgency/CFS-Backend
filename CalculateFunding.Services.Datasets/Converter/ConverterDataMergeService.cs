@@ -72,6 +72,15 @@ namespace CalculateFunding.Services.Datasets.Converter
             _specificationsResilience = resiliencePolicies.SpecificationsApiClient;
         }
 
+        public async Task<IActionResult> GetConverterDataMergeLog(string id)
+        {
+            Guard.IsNullOrWhiteSpace(id, nameof(id));
+
+            ConverterDataMergeLog log = await _datasetsResilience.ExecuteAsync(() => _datasets.GetConverterDataMergeLog(id));
+
+            return log != null ? new OkObjectResult(log) : (IActionResult) new NotFoundResult();
+        }
+
         public async Task<IActionResult> QueueJob(ConverterMergeRequest request)
         {
             Guard.ArgumentNotNull(request, nameof(request));

@@ -11,6 +11,14 @@ namespace CalculateFunding.Services.Datasets.Services
         private DatasetRelationshipVersion _datasetVersion;
         private bool _isSetAsProviderData;
         private string _id;
+        private bool? _converterEnabled;
+        
+        public DefinitionSpecificationRelationshipBuilder WithConverterEnabled(bool converterEnabled)
+        {
+            _converterEnabled = converterEnabled;
+
+            return this;
+        }
         
         public DefinitionSpecificationRelationshipBuilder WithSpecification(Reference specification)
         {
@@ -51,6 +59,7 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             return new DefinitionSpecificationRelationship
             {
+                ConverterEnabled = _converterEnabled.GetValueOrDefault(NewRandomFlag()),
                 DatasetDefinition = _datasetDefinition,
                 DatasetVersion = _datasetVersion,
                 IsSetAsProviderData = _isSetAsProviderData,

@@ -79,7 +79,7 @@ namespace CalculateFunding.Services.Specs
         private readonly AsyncPolicy _resultsApiClientPolicy;
         private readonly IJobManagement _jobManagement;
         private readonly IDatasetsApiClient _datasets;
-        private AsyncPolicy _datasetsResilience;
+        private readonly AsyncPolicy _datasetsResilience;
 
         public SpecificationsService(
             IMapper mapper,

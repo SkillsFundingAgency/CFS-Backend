@@ -1,0 +1,41 @@
+{
+  //TODO: placeholder for when we need to sort out setup
+  "id": "db9b33e8-1f8c-4109-a879-c78b4d70952d",
+  "documentType": "ConverterDataMergeLog",
+  "content": {
+  "Id": "db9b33e8-1f8c-4109-a879-c78b4d70952d",
+  "Results": [
+  {
+  "EligibleConverter": {
+  "ProviderId": "e1dfc21a-703e-4be6-b978-93610f4be6e9",
+  "PreviousProviderIdentifier": "52bf8e2c-1856-4a31-b390-cd3ce324224d"
+  },
+  "Outcome": "Copied",
+  "ValidationMessage": null
+  },
+  {
+  "EligibleConverter": {
+  "ProviderId": "4ca74541-7604-4add-a3ca-663220f8caf1",
+  "PreviousProviderIdentifier": "ba9543d8-6708-48eb-9eda-aed638298bd3"
+  },
+  "Outcome": "Copied",
+  "ValidationMessage": null
+  }
+  ],
+  "Request": {
+  "ProviderVersionId": "74b42351-61cd-4c66-ae25-60dbc3584f6e",
+  "DatasetId": "ad40507b-7b15-4a97-b83e-185910a3d459",
+  "Version": "0",
+  "Author": {
+  "id": "fe4dc260-985c-45f8-9284-d15f6f1e952b",
+  "name": "6b8af560-6232-4a1b-bb13-857c00e3deb3"
+  },
+  "DatasetRelationshipId": "313ddcf6-1163-4401-93cf-d22e917b9ae9"
+  },
+  "JobId": "db9b33e8-1f8c-4109-a879-c78b4d70952d",
+  "DatasetVersionCreated": 2
+  },
+  "createdAt": "2021-05-25T09:54:39.5397899+01:00",
+  "updatedAt": "2021-05-25T09:54:39.5397944+01:00",
+  "deleted": false
+}

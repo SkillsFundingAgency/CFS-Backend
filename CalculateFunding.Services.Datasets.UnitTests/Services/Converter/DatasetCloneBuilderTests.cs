@@ -110,7 +110,7 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
 
             ICloudBlob blob = NewBlob().Object;
 
-            GivenTheBlob($"{dataset.Id}/v{dataset.Current.Version}/{dataset.Current.BlobName}", blob);
+            GivenTheBlob(dataset.Current.BlobName, blob);
             AndTheBlobStream(blob, new MemoryStream());
 
             Func<Task> invocation = () => WhenTheOriginalDatasetIsLoaded(dataset, datasetDefinition);
@@ -133,7 +133,7 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
 
             ICloudBlob blob = NewBlob().Object;
 
-            GivenTheBlob($"{dataset.Id}/v{dataset.Current.Version}/{dataset.Current.BlobName}", blob);
+            GivenTheBlob(dataset.Current.BlobName, blob);
 
             MemoryStream excelStream = new MemoryStream(new byte[10]);
 
@@ -154,7 +154,7 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
             _builder
                 .DatasetData
                 .Should()
-                .BeSameAs(expectedData);
+                .BeEquivalentTo(expectedData);
         }
 
         [TestMethod]
@@ -309,7 +309,9 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
 
             Mock<ICloudBlob> blob = NewBlob();
 
-            AndTheBlobReference($"{dataset.Id}/v100/{dataset.Current.BlobName}", blob.Object);
+            string currentBlobName = dataset.Current.BlobName;
+            
+            AndTheBlobReference($"{dataset.Id}/v100/{currentBlobName}", blob.Object);
 
             await WhenTheContentsAreSaved(author, datasetDefinition, dataset);
 
@@ -325,6 +327,7 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
             expectedNewVersion.RowCount = datasetTable.Rows.Count;
             expectedNewVersion.Version++;
             expectedNewVersion.ChangeType = DatasetChangeType.ConverterWizard;
+            expectedNewVersion.BlobName = $"{dataset.Id}/v100/{currentBlobName}";
             
             newVersion
                 .Should()

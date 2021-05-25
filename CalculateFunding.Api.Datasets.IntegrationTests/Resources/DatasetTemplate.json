@@ -1,0 +1,43 @@
+{
+  "id": "<ID>",
+  "documentType": "Dataset",
+  "content": {
+    "Definition": {
+      "version": null,
+      "id": "<DEFINITIONID>",
+      "name": "<DEFINITIONNAME>"
+    },
+    "Description": "<DESCRIPTION>",
+    "ConverterWizard": <CONVERTERWIZARD>,
+    "current": {
+      "id": "",
+      "entityId": "",
+      "BlobName": "<BLOBNAME>",
+      "RowCount": <ROWCOUNT>,
+      "NewRowCount": <NEWROWCOUNT>,
+      "AmendedRowCount": <AMENDEDROWCOUNT>,
+      "UploadedBlobFilePath": "<UPLOADEDBLOBFILEPATH>",
+      "ChangeType": "<CHANGETYPE>",
+      "FundingStream": {
+        "ShortName": "<FUNDINGSTREAMSHORTNAME>",
+        "id": "<FUNDINGSTREAMID>",
+        "name": "<FUNDINGSTREAMNAME>"
+      },
+      "version": <VERSION>,
+      "date": "<NOW>",
+      "author": {
+        "id": "<AUTHORID>",
+        "name": "<AUTHORNAME>"
+      },
+      "comment": "",
+      "publishStatus": "<PUBLISHSTATUS>"
+    },
+    "published": null,
+    "history": null,
+    "id": "<ID>",
+    "name": "<NAME>"
+  },
+  "createdAt": "<NOW>",
+  "updatedAt": "<NOW>",
+  "deleted": false
+}

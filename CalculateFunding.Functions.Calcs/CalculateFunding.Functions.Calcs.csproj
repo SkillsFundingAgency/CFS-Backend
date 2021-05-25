@@ -11,7 +11,7 @@
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="9.0.0" />
 
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Datasets" Version="5.10.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Datasets" Version="5.11.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Graph" Version="2.5.8" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.CalcEngine" Version="2.0.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="4.7.0" />

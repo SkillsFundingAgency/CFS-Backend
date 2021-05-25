@@ -1,0 +1,26 @@
+{
+  "id": "<ID>",
+  "documentType": "FundingConfiguration",
+  "content": {
+    "organisationGroupings": [],
+    "id": "<ID>",
+    "fundingStreamId": "<FUNDINGSTREAMID>",
+    "fundingPeriodId": "<FUNDINGPERIODID>",
+    "defaultTemplateVersion": "<DEFAULTTEMPLATEVERSION>",
+    "variations": [],
+    "errorDetectors": [],
+    "approvalMode": "All",
+    "providerSource": "<PROVIDERSOURCE>",
+    "paymentOrganisationSource": "PaymentOrganisationAsProvider",
+    "updateCoreProviderVersion": "Manual",
+    "enableUserEditableCustomProfiles": false,
+    "enableUserEditableRuleBasedProfiles": false,
+    "runCalculationEngineAfterCoreProviderUpdate": false,
+    "enableConverterDataMerge": <ENABLECONVERTERDATAMERGE>,
+    "indicativeOpenerProviderStatus": <INDICATIVEOPENERPROVIDERSTATUS>,
+    "allowedPublishedFundingStreamsIdsToReference": []
+  },
+  "createdAt": "<NOW>",
+  "updatedAt": "<NOW>",
+  "deleted": false
+}

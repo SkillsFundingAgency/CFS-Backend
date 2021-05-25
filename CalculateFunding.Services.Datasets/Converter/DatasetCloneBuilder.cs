@@ -111,27 +111,22 @@ namespace CalculateFunding.Services.Datasets.Converter
             EnsureIsNotNull(dataset, "No dataset supplied to load excel blob data from.");
             EnsureIsNotNull(datasetDefinition, "No dataset definition supplied to load excel blob data from.");
 
-            string blobPath = GetDatasetVersionExcelBlobName(dataset);
-
-            ICloudBlob blob = await BlobsResilience.ExecuteAsync(() => Blobs.GetBlobReferenceFromServerAsync(blobPath));
-
-            EnsureIsNotNull(blob, $"No blob located with path {blobPath}");
-
-            (blobPath, blob) = await GetExcelBlob(dataset);
+            (string blobPath, ICloudBlob blob) = await GetExcelBlob(dataset);
 
             await using Stream excelStream = await BlobsResilience.ExecuteAsync(() => Blobs.DownloadToStreamAsync(blob));
 
             Ensure(excelStream?.Length > 0, $"Blob {blob.Name} contains no data.");
 
-            DatasetData = Reader.Read(excelStream, datasetDefinition);
+            DatasetData = Reader.Read(excelStream, datasetDefinition).ToArray();
             
             EnsureIsNotNull(DatasetData?.FirstOrDefault(), $"No dataset table located for xls {blobPath}");
         }
 
         private static string GetDatasetVersionExcelBlobName(Dataset dataset)
-        {
-            return $"{dataset.Id}/v{dataset.Current?.Version}/{dataset.Current?.BlobName}";
-        }
+            => $"{dataset.Id}/v{dataset.Current?.Version}/{GetFileNameFromBlobPath(dataset.Current?.BlobName)}";
+
+        private static string GetFileNameFromBlobPath(string blobPath)
+            => Path.GetFileName(blobPath);
 
         public async Task<DatasetVersion> SaveContents(Reference author, 
             DatasetDefinition datasetDefinition, 
@@ -180,14 +175,14 @@ namespace CalculateFunding.Services.Datasets.Converter
             blob.Metadata["name"] = dataset.Current.BlobName;
             blob.Metadata["description"] = dataset.Description;
             blob.Metadata["fundingStreamId"] = datasetDefinition.FundingStreamId;
-            blob.Metadata["converterWizard"] = true.ToString();
+            blob.Metadata["converterWizard"] = true.ToString().ToLower();
             
             blob.SetMetadata();
         }
 
         private async Task<(string path, ICloudBlob blob)> GetExcelBlob(Dataset dataset)
         {
-            string blobPath = GetDatasetVersionExcelBlobName(dataset);
+            string blobPath = dataset.Current.BlobName;
 
             ICloudBlob blob = await BlobsResilience.ExecuteAsync(() => Blobs.GetBlobReferenceFromServerAsync(blobPath));
 

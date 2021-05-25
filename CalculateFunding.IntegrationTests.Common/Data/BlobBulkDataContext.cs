@@ -11,7 +11,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace CalculateFunding.IntegrationTests.Common.Data
 {
-    public abstract class BlobBulkDataContext : DataSource<BlobIdentity>
+    public abstract class BlobBulkDataContext : JsonDataSource<BlobIdentity>
     {
         protected BlobContainerClient BlobContainerClient;
 
@@ -23,15 +23,18 @@ namespace CalculateFunding.IntegrationTests.Common.Data
                 resourceAssembly)
         {
             Guard.ArgumentNotNull(configuration, nameof(configuration));
-            Guard.IsNullOrWhiteSpace(blobContainerName, nameof(blobContainerName));
 
             IConfigurationSection storageConfiguration = configuration.GetSection("CommonStorageSettings");
-            Guard.ArgumentNotNull(storageConfiguration, nameof(storageConfiguration));
-            
-            string connectionString = storageConfiguration["ConnectionString"];
-            Guard.IsNullOrWhiteSpace(connectionString, nameof(connectionString));
 
-            BlobServiceClient blobServiceClient = new BlobServiceClient(connectionString);
+            Guard.ArgumentNotNull(storageConfiguration, nameof(storageConfiguration));
+
+            string blobStoreUri = storageConfiguration["ConnectionString"];
+
+            Guard.IsNullOrWhiteSpace(blobStoreUri, nameof(blobStoreUri));
+            Guard.IsNullOrWhiteSpace(blobContainerName, nameof(blobContainerName));
+
+
+            BlobServiceClient blobServiceClient = new BlobServiceClient(blobStoreUri);
 
             BlobContainerClient = blobServiceClient.GetBlobContainerClient(blobContainerName);
         }
@@ -88,21 +91,17 @@ namespace CalculateFunding.IntegrationTests.Common.Data
         {
             string blobName = documentIdentity.Name;
 
-            try
-            {
-                Response<bool> blobResponse = BlobContainerClient.DeleteBlobIfExistsAsync(blobName)
+            Response<bool> blobResponse = BlobContainerClient.DeleteBlobIfExistsAsync(blobName)
                 .GetAwaiter()
                 .GetResult();
 
-                bool requestSucceeded = blobResponse.Value;
-                TraceInformation(requestSucceeded? $"Deleted blob store json document {blobName}" : $"Blob {blobName} not exists.");
-            }
-            catch (Exception ex)
-            {
-                string failedMessage = $"Failed to delete blob store json document {blobName}. {ex.Message}";
-                TraceInformation(failedMessage);
-                ThrowExceptionIfRequestFailed(false, failedMessage);
-            }
+            bool requestSucceeded = blobResponse.Value;
+
+            string failedMessage = $"Failed to delete blob store json document {blobName}";
+
+            TraceInformation(requestSucceeded
+                ? $"Deleted blob store json document {blobName}"
+                : failedMessage);
         }
     }
 }

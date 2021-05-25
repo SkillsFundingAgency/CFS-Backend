@@ -4,11 +4,14 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Functions.Datasets;
 using CalculateFunding.Functions.Datasets.ServiceBus;
 using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.Datasets.Converter;
 using CalculateFunding.Services.Core.Constants;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using GetDatasetBlobModel = CalculateFunding.Models.Datasets.GetDatasetBlobModel;
+using SpecificationConverterMergeRequest = CalculateFunding.Common.ApiClient.DataSets.Models.SpecificationConverterMergeRequest;
 
 namespace CalculateFunding.Functions.DebugQueue
 {
@@ -148,7 +151,7 @@ namespace CalculateFunding.Functions.DebugQueue
         {
             using IServiceScope scope = Startup.RegisterComponents(new ServiceCollection()).CreateScope();
 
-            Message message = Helpers.ConvertToMessage<string>(item);
+            Message message = Helpers.ConvertToMessage<ConverterMergeRequest>(item);
 
             OnRunConverterDataMerge function = scope.ServiceProvider.GetService<OnRunConverterDataMerge>();
 
@@ -167,7 +170,7 @@ namespace CalculateFunding.Functions.DebugQueue
         {
             using IServiceScope scope = Startup.RegisterComponents(new ServiceCollection()).CreateScope();
 
-            Message message = Helpers.ConvertToMessage<string>(item);
+            Message message = Helpers.ConvertToMessage<ConverterMergeRequest>(item);
 
             OnRunConverterDataMergeFailure function = scope.ServiceProvider.GetService<OnRunConverterDataMergeFailure>();
 
@@ -185,7 +188,7 @@ namespace CalculateFunding.Functions.DebugQueue
         {
             using IServiceScope scope = Startup.RegisterComponents(new ServiceCollection()).CreateScope();
 
-            Message message = Helpers.ConvertToMessage<string>(item);
+            Message message = Helpers.ConvertToMessage<SpecificationConverterMergeRequest>(item);
 
             OnCreateSpecificationConverterDatasetsMerge function = scope.ServiceProvider.GetService<OnCreateSpecificationConverterDatasetsMerge>();
 
@@ -204,7 +207,7 @@ namespace CalculateFunding.Functions.DebugQueue
         {
             using IServiceScope scope = Startup.RegisterComponents(new ServiceCollection()).CreateScope();
 
-            Message message = Helpers.ConvertToMessage<string>(item);
+            Message message = Helpers.ConvertToMessage<SpecificationConverterMergeRequest>(item);
 
             OnCreateSpecificationConverterDatasetsMergeFailure function = scope.ServiceProvider.GetService<OnCreateSpecificationConverterDatasetsMergeFailure>();
 

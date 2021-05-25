@@ -1,0 +1,17 @@
+{
+  "id": "<ID>",
+  "documentType": "DatasetDefinition",
+  "content": {
+    "description": "<DESCRIPTION>",
+    "fundingStreamId": "<FUNDINGSTREAMID>",
+    "version": <VERSION>,
+    "tableDefinitions": <TABLEDEFINITIONS>,
+    "converterEnabled": <CONVERTERENABLED>,
+    "validateProviders": false,
+    "id": "<ID>",
+    "name": "<NAME>"
+  },
+  "createdAt": "<NOW>",
+  "updatedAt": "<NOW>",
+  "deleted": false
+}

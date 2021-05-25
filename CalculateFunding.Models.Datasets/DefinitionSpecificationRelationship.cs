@@ -14,6 +14,8 @@ namespace CalculateFunding.Models.Datasets
         public DatasetRelationshipVersion DatasetVersion { get; set; }
 
         public bool IsSetAsProviderData { get; set; }
+        
+        public bool ConverterEnabled { get; set; }
 
         public bool UsedInDataAggregations { get; set; }
        
