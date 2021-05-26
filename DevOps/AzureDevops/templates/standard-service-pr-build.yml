@@ -8,6 +8,9 @@ parameters:
 - name: ProjectName
   type: string
   default: ''
+- name: ServiceName
+  type: string
+  default: ''
 - name: buildconfiguration
   type: string
   default: 'Release'
@@ -133,7 +136,7 @@ steps:
    inputs:
      azureSubscription: 'dfe-gov-uk ADO to CFS in Azure Test'
      scriptLocation: inlineScript
-     inlineScript: 'az webapp deployment source config-zip --resource-group ${{ parameters.ResourceGroup }} --name app-${{ parameters.EnvironmentKey }}-${{ parameters.ProjectName }}-${{ parameters.productVersion }} --src "$(Build.ArtifactStagingDirectory)/CalculateFunding.Api.${{ parameters.ProjectName }}.zip" --slot Staging'
+     inlineScript: 'az webapp deployment source config-zip --resource-group ${{ parameters.ResourceGroup }} --name app-${{ parameters.EnvironmentKey }}-${{ parameters.ServiceName }}-${{ parameters.productVersion }} --src "$(Build.ArtifactStagingDirectory)/CalculateFunding.Api.${{ parameters.ProjectName }}.zip" --slot Staging'
 
  - task: AzureCLI@2
    condition: and(succeeded(), eq( '${{ parameters.BuildApi }}', true))
@@ -142,7 +145,7 @@ steps:
     azureSubscription: 'dfe-gov-uk ADO to CFS in Azure Test'
     scriptType: pscore
     scriptLocation: inlineScript
-    inlineScript: 'az webapp restart --name app-${{ parameters.EnvironmentKey }}-${{ parameters.ProjectName }}-${{ parameters.productVersion }} --resource-group ${{ parameters.ResourceGroup }}  --slot Staging'
+    inlineScript: 'az webapp restart --name app-${{ parameters.EnvironmentKey }}-${{ parameters.ServiceName }}-${{ parameters.productVersion }} --resource-group ${{ parameters.ResourceGroup }}  --slot Staging'
 
  - task: PowerShell@2
    condition: and(succeeded(), eq( '${{ parameters.SecureSmokeTest }}', true), eq( '${{ parameters.BuildApi }}', true))
@@ -150,7 +153,7 @@ steps:
    inputs:
     targetType: filePath
     filePath: '$(System.DefaultWorkingDirectory)/DevOps/run-smoke-test-azure-ad.ps1'
-    arguments: '-url "https://app-${{ parameters.EnvironmentKey }}-${{ parameters.ProjectName }}-${{ parameters.productVersion }}-staging.azurewebsites.net" -tokenServiceUrl "https://login.microsoftonline.com/${{ parameters.SmokeTestTenantId }}/oauth2/v2.0/token" -Scope "${{ parameters.SmokeTestApplicationUrl }}/.default" -ClientId ${{ parameters.SmokeTestClientID }} -ClientSecret ${{ parameters.SmokeTestClientSecret }} -httpVerb POST'
+    arguments: '-url "https://app-${{ parameters.EnvironmentKey }}-${{ parameters.ServiceName }}-${{ parameters.productVersion }}-staging.azurewebsites.net" -tokenServiceUrl "https://login.microsoftonline.com/${{ parameters.SmokeTestTenantId }}/oauth2/v2.0/token" -Scope "${{ parameters.SmokeTestApplicationUrl }}/.default" -ClientId ${{ parameters.SmokeTestClientID }} -ClientSecret ${{ parameters.SmokeTestClientSecret }} -httpVerb POST'
 
  - task: PowerShell@2
    condition: and(succeeded(), eq( '${{ parameters.SecureSmokeTest }}', true), eq( '${{ parameters.BuildApi }}', true))
@@ -158,7 +161,7 @@ steps:
    inputs:
     targetType: filePath
     filePath: '$(System.DefaultWorkingDirectory)/DevOps/checkApiSecureAzureAd.ps1'
-    arguments: '-url "https://app-${{ parameters.EnvironmentKey }}-${{ parameters.ProjectName }}-${{ parameters.productVersion }}-staging.azurewebsites.net" -tokenServiceUrl "https://login.microsoftonline.com/${{ parameters.SmokeTestTenantId }}/oauth2/v2.0/token" -Scope "${{ parameters.SmokeTestApplicationUrl }}/.default" -ClientId ${{ parameters.SmokeTestClientID }} -ClientSecret ${{ parameters.SmokeTestClientSecret }} -httpVerb POST'
+    arguments: '-url "https://app-${{ parameters.EnvironmentKey }}-${{ parameters.ServiceName }}-${{ parameters.productVersion }}-staging.azurewebsites.net" -tokenServiceUrl "https://login.microsoftonline.com/${{ parameters.SmokeTestTenantId }}/oauth2/v2.0/token" -Scope "${{ parameters.SmokeTestApplicationUrl }}/.default" -ClientId ${{ parameters.SmokeTestClientID }} -ClientSecret ${{ parameters.SmokeTestClientSecret }} -httpVerb POST'
 
  - task: PowerShell@2
    condition: and(succeeded(), eq( '${{ parameters.SecureSmokeTest }}', false), eq( '${{ parameters.BuildApi }}', true))
@@ -166,7 +169,7 @@ steps:
    inputs:
     targetType: filePath
     filePath: '$(System.DefaultWorkingDirectory)/DevOps/run-smoke-test.ps1'
-    arguments: '-url "https://app-${{ parameters.EnvironmentKey }}-${{ parameters.ProjectName }}-${{ parameters.productVersion }}-staging.azurewebsites.net" -apiKey ${{ parameters.apiKey }}'
+    arguments: '-url "https://app-${{ parameters.EnvironmentKey }}-${{ parameters.ServiceName }}-${{ parameters.productVersion }}-staging.azurewebsites.net" -apiKey ${{ parameters.apiKey }}'
     failOnStderr: true
  
  - task: PowerShell@2
@@ -175,4 +178,4 @@ steps:
    inputs:
     targetType: filePath
     filePath: '$(System.DefaultWorkingDirectory)/DevOps/checkApiSecure.ps1'
-    arguments: '-url "https://app-${{ parameters.EnvironmentKey }}-${{ parameters.ProjectName }}-${{ parameters.productVersion }}-staging.azurewebsites.net" -apiKey ${{ parameters.apiKey }}' 
+    arguments: '-url "https://app-${{ parameters.EnvironmentKey }}-${{ parameters.ServiceName }}-${{ parameters.productVersion }}-staging.azurewebsites.net" -apiKey ${{ parameters.apiKey }}' 
