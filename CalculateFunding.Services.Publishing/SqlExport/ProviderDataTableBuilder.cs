@@ -26,7 +26,8 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                 NewDataColumn<string>("TrustCode", 32, allowNull: true),
                 NewDataColumn<string>("TrustName", 128, allowNull: true),
                 NewDataColumn<string>("PaymentOrganisationIdentifier", 32, true),
-                NewDataColumn<string>("PaymentOrganisationName", 256, true)
+                NewDataColumn<string>("PaymentOrganisationName", 256, true),
+                NewDataColumn<bool>("IsIndicative", defaultValue: true)
             };
 
         protected override void AddDataRowToDataTable(PublishedProviderVersion dto)
@@ -49,7 +50,8 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                 DbNullSafe(provider.TrustCode),
                 DbNullSafe(provider.TrustName),
                 DbNullSafe(provider.PaymentOrganisationIdentifier),
-                DbNullSafe(provider.PaymentOrganisationName));
+                DbNullSafe(provider.PaymentOrganisationName),
+                dto.IsIndicative);
         }
 
         protected override void EnsureTableNameIsSet(PublishedProviderVersion dto)

@@ -17,11 +17,13 @@ namespace CalculateFunding.Services.Publishing.SqlExport
 
         protected DataColumn NewDataColumn<T>(string name,
             int maxLength = -1,
-            bool allowNull = false)
+            bool allowNull = false,
+            object defaultValue = null)
             => new DataColumn(name, typeof(T))
             {
                 AllowDBNull = allowNull,
-                MaxLength = maxLength
+                MaxLength = maxLength,
+                DefaultValue = defaultValue
             };
 
         public void AddRows(params TDto[] rows)

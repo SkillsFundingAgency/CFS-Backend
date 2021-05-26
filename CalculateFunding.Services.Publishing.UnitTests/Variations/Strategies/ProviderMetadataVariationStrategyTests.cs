@@ -20,6 +20,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
     public class ProviderMetadataVariationStrategyTests
     {
         private ProviderMetadataVariationStrategy _metadataVariationStrategy;
+        private static Mock<IPoliciesService> _policiesService = new Mock<IPoliciesService>();
 
         [TestInitialize]
         public void SetUp()
@@ -32,6 +33,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
         public async Task TracksConfiguredPropertiesForVariationReasons(ProviderVariationContext variationContext,
             VariationReason[] expectedVariationReasons)
         {
+            _policiesService.Setup(x => x.GetTemplateMetadataContents(variationContext.ReleasedState.FundingStreamId, 
+                                                                      variationContext.ReleasedState.FundingPeriodId, 
+                                                                      variationContext.ReleasedState.TemplateVersion))
+            .ReturnsAsync(new TemplateMetadataContents() { SchemaVersion = "1.2" });
+
             expectedVariationReasons ??= new VariationReason[0];
             await _metadataVariationStrategy.DetermineVariations(variationContext, null);
 
@@ -125,14 +131,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             params VariationReason[] variationReasons)
         {
             Provider priorState = NewProvider();
-            Mock<IPoliciesService> policiesService = new Mock<IPoliciesService>();
+            
             ProviderVariationContext variationContext = NewProviderVariationContext(_ => _.WithPublishedProvider(NewPublishedProvider(pp =>
                     pp.WithReleased(NewPublishedProviderVersion(ppv => ppv.WithProvider(priorState)))))
-                    .WithPoliciesService(policiesService.Object)
+                    .WithPoliciesService(_policiesService.Object)
                     .WithCurrentState(ProviderCopy(priorState, differences)));
-
-            policiesService.Setup(x => x.GetTemplateMetadataContents(variationContext.ReleasedState.FundingStreamId, variationContext.ReleasedState.FundingPeriodId, variationContext.ReleasedState.TemplateVersion))
-                .ReturnsAsync(new TemplateMetadataContents() { SchemaVersion = "1.2" });
 
             return new object[] { variationContext, variationReasons};    
         }
