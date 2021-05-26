@@ -20,8 +20,8 @@ variables:
    value: 'Release'
  - group: 'Dotnet Core SDK Version'
  - group: 'Azure Settings Integration-v2'
- - group: 'Smoke Test - Profiling - Integration-v2'
- - group: 'Smoke Test - Profiling KV - Integration-v2'
+ - group: 'Smoke Test Info - Integration-v2' 
+ - group: 'Smoke Test KV - Integration-v2'
 
 
 steps:
@@ -114,12 +114,12 @@ steps:
    inputs:
     targetType: filePath
     filePath: '$(Build.ArtifactStagingDirectory)/DevOps/run-smoke-test-azure-ad.ps1'
-    arguments: '-url "https://app-$(EnvironmentKey)-profiling-$(productVersion)-staging.azurewebsites.net" -tokenServiceUrl "https://login.microsoftonline.com/$(SmokeTestTenantId)/oauth2/v2.0/token" -Scope "$(SmokeTestApplicationUrl)/.default" -ClientId $(SmokeTestClientID) -ClientSecret $(ProfilingAzureAdClientSecret) -httpVerb POST'
+    arguments: '-url "https://app-$(EnvironmentKey)-profiling-$(productVersion)-staging.azurewebsites.net" -tokenServiceUrl "https://login.microsoftonline.com/$(SmokeTestTenantId)/oauth2/v2.0/token" -Scope "$(SmokeTestApplicationUrl-profiling)/.default" -ClientId $(SmokeTestClientId-profiling) -ClientSecret $(ProfilingAzureAdClientSecret) -httpVerb POST'
 
  - task: PowerShell@2
    displayName: 'Run PowerShell script to check API is secure'
    inputs:
     targetType: filePath
     filePath: '$(Build.ArtifactStagingDirectory)/DevOps/checkApiSecureAzureAd.ps1'
-    arguments: '-url "https://app-$(EnvironmentKey)-profiling-$(productVersion)-staging.azurewebsites.net" -tokenServiceUrl "https://login.microsoftonline.com/$(SmokeTestTenantId)/oauth2/v2.0/token" -Scope "$(SmokeTestApplicationUrl)/.default" -ClientId $(SmokeTestClientID) -ClientSecret $(ProfilingAzureAdClientSecret) -httpVerb POST'
+    arguments: '-url "https://app-$(EnvironmentKey)-profiling-$(productVersion)-staging.azurewebsites.net" -tokenServiceUrl "https://login.microsoftonline.com/$(SmokeTestTenantId)/oauth2/v2.0/token" -Scope "$(SmokeTestApplicationUrl-profiling)/.default" -ClientId $(SmokeTestClientId-profiling) -ClientSecret $(ProfilingAzureAdClientSecret) -httpVerb POST'
 
