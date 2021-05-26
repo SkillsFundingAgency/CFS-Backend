@@ -3,28 +3,37 @@ name: $(Rev:r)
 pool:
   vmImage: windows-2019
 
-resources:
-  repositories:
-  - repository: self
-  - repository: funding-blocks
-    type: github
-    name: SkillsFundingAgency/funding-platform-building-blocks
-    ref: refs/heads/master
-    endpoint: 'Github (ESFA)'
-
 trigger: none
 
 variables:
+ - name: ProjectName
+   value: 'publishing'
+ - name: ServiceName
+   value: 'publishing'
  - name: releaseconfiguration
    value: 'release'
  - name: DOTNET_SKIP_FIRST_TIME_EXPERIENCE
    value: true
  - name: DOTNET_CLI_TELEMETRY_OPTOUT 
    value: true
+ - name: BuildApi
+   value: true
+ - name: BuildFunction
+   value: true
+ - name: SecureSmokeTest
+   value: false
  - group: 'Dotnet Core SDK Version'
+ - group: 'Smoke Test Info - Integration-v2' 
+ - group: 'Smoke Test KV - Integration-v2'
 
 steps:
-  - template: azure-pipelines-templates/cfs/standard-service-pr-build.yml@funding-blocks
+  - template: templates\standard-service-pr-build.yml
     parameters:
-      ProjectName: Publishing
+      ProjectName: ${{ variables.ProjectName }}
+      ServiceName: ${{ variables.ServiceName }} 
       DotnetCoreSdkVersion: $(DotnetCoreSdkVersion)
+      ResourceGroup: $(ResourceGroup)
+      BuildApi: ${{ variables.BuildApi }}
+      BuildFunction: ${{ variables.BuildFunction }}
+      SecureSmokeTest: ${{ variables.SecureSmokeTest }}
+      APIKey: $(svcapipublishing)
