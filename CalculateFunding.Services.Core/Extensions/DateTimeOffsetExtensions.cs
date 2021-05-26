@@ -14,5 +14,8 @@
         {
             return theDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.sssK");
         }
+        
+        public static DateTimeOffset ToDateTimeOffset(this string literal)
+        => DateTimeOffset.Parse(literal);
     }
 }

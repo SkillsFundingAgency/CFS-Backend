@@ -1,14 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Policies;
+using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core;
+using CalculateFunding.Services.Processing.Functions;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
+using Microsoft.Azure.Cosmos.Core.Networking;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using NSubstitute;
 using Polly;
 using Serilog;
@@ -19,6 +26,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
     public class PublishedProviderIndexerServiceTests
     {
         private ResiliencePolicies _resiliencePolicies;
+        private Mock<IPoliciesApiClient> _policies;
+
+        [TestInitialize]
+        public void SetUp()
+        {
+            _policies = new Mock<IPoliciesApiClient>();
+        }
 
         [TestMethod]
         public void IndexPublishedProvider_GivenANullDefinitionPublishedProviderSupplied_LogsAndThrowsException()
@@ -82,11 +96,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         }
 
         [TestMethod]
-        [DataRow(true, false, "Hide indicative allocations")]
-        [DataRow(false, true, "Only indicative allocations")]
+        [DataRow(true, false, "Hide indicative allocations", "20 September 2021", "1 September 2021", "28 September 2022", "September 2021")]
+        [DataRow(false, true, "Only indicative allocations",  "20 August 2021", "1 September 2021", "28 September 2021", null)]
         public async Task IndexPublishedProvider_GivenSearchRepository_NoExceptionThrownAsync(bool hasErrors,
             bool isIndicative,
-            string indicativeIndexText)
+            string indicativeIndexText,
+            string dateOpenedLiteral,
+            string fundingPeriodStartLiteral,
+            string fundingPeriodEndLiteral,
+            string expectedMonthYearOpen)
         {
             //Arrange           
             PublishedProviderVersion publishedProviderVersion = new PublishedProviderVersion
@@ -109,12 +127,18 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 } : null
             };
 
+            publishedProviderVersion.Provider.DateOpened = dateOpenedLiteral.ToDateTimeOffset();
+
             ILogger logger = CreateLogger();
             ISearchRepository<PublishedProviderIndex> searchRepository = CreateSearchRepository();
 
 
             PublishedProviderIndexerService publishedProviderIndexerService = CreatePublishedProviderIndexerService(logger: logger,
                                                                                     searchRepository: searchRepository);
+            
+            GivenTheFundingPeriod(publishedProviderVersion.FundingPeriodId, NewFundingPeriod(_ 
+                => _.WithStartDate(fundingPeriodStartLiteral.ToDateTimeOffset())
+                .WithEndDate(fundingPeriodEndLiteral.ToDateTimeOffset())));
 
             //Act
             await publishedProviderIndexerService.IndexPublishedProvider(publishedProviderVersion);
@@ -122,14 +146,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             await searchRepository
                 .Received(1)
                 .Index(Arg.Is<IEnumerable<PublishedProviderIndex>>(
-                    _ => MatchesExpectedPublishedProviderIndex(hasErrors, indicativeIndexText, _, publishedProviderVersion)
+                    _ => MatchesExpectedPublishedProviderIndex(hasErrors, indicativeIndexText, _, publishedProviderVersion, expectedMonthYearOpen)
               ));
         }
 
         private static bool MatchesExpectedPublishedProviderIndex(bool hasErrors,
             string indicativeIndexText,
             IEnumerable<PublishedProviderIndex> d,
-            PublishedProviderVersion publishedProviderVersion)
+            PublishedProviderVersion publishedProviderVersion,
+            string expectedMonthYearOpened)
         {
             Provider provider = publishedProviderVersion.Provider;
             PublishedProviderIndex publishedProviderIndex = d.First();
@@ -152,7 +177,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                    publishedProviderIndex.Errors.Any() == publishedProviderVersion.HasErrors &&
                    (!hasErrors || publishedProviderIndex.Errors.First() == "summary error message") &&
                    publishedProviderIndex.DateOpened == provider.DateOpened &&
-                   publishedProviderIndex.MonthYearOpened == provider.DateOpened?.ToString("MMMM yyyy");
+                   publishedProviderIndex.MonthYearOpened == expectedMonthYearOpened;
         }
 
         private Provider GetProvider(int index)
@@ -202,6 +227,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             };
         }
 
+        private void GivenTheFundingPeriod(string fundingPeriodId,
+            FundingPeriod fundingPeriod)
+            => _policies.Setup(_ => _.GetFundingPeriodById(fundingPeriodId))
+                .ReturnsAsync(new ApiResponse<FundingPeriod>(HttpStatusCode.OK, fundingPeriod));
+
         private ILogger CreateLogger()
         {
             return Substitute.For<ILogger>();
@@ -213,6 +243,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _resiliencePolicies = new ResiliencePolicies()
             {
                 PublishedProviderSearchRepository = Policy.NoOpAsync(),
+                PoliciesApiClient = Policy.NoOpAsync()
             };
 
             IConfiguration configuration = Substitute.For<IConfiguration>();
@@ -221,12 +252,22 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 logger ?? CreateLogger(),
                 searchRepository ?? CreateSearchRepository(),
                 _resiliencePolicies,
-                new PublishingEngineOptions(configuration));
+                new PublishingEngineOptions(configuration),
+                _policies.Object);
         }
 
         private ISearchRepository<PublishedProviderIndex> CreateSearchRepository()
         {
             return Substitute.For<ISearchRepository<PublishedProviderIndex>>();
+        }
+
+        private FundingPeriod NewFundingPeriod(Action<ApiFundingPeriodBuilder> setUp = null)
+        {
+            ApiFundingPeriodBuilder apiFundingPeriodBuilder = new ApiFundingPeriodBuilder();
+
+            setUp?.Invoke(apiFundingPeriodBuilder);
+            
+            return apiFundingPeriodBuilder.Build();
         }
     }
 }
