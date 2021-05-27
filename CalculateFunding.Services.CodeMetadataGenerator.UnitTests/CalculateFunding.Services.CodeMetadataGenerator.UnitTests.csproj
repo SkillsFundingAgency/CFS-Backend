@@ -25,6 +25,10 @@
     <Content Include="out.dll.dat">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <None Remove="obsolete_enum_and_funding_lines.dll.dat" />
+    <Content Include="obsolete_enum_and_funding_lines.dll.dat">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>

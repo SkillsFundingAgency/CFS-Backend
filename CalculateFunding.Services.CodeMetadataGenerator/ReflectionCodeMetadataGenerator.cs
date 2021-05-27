@@ -10,7 +10,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
 {
     public class ReflectionCodeMetadataGenerator : ICodeMetadataGeneratorService
     {
-        private static readonly Regex regex = new Regex("^System\\.Func`1\\[\\[System\\.Nullable`1\\[\\[(([a-z]|[A-Z]|\\+|\\.)+),");
+        private static readonly Regex regex = new Regex(@"^System\.Func`1\[\[System\.Nullable`1\[\[(([a-z]|[A-Z]|[0-9]|\+|\.)+),");
 
         private static readonly string[] filteredPropertyNames = {
                                 "Dictionary",
@@ -146,7 +146,8 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                                     ReturnTypeIsNullable = isNullable,
                                     Parameters = parameters,
                                     EntityId = entityId,
-                                    IsCustom = isCustom
+                                    IsCustom = isCustom,
+                                    IsObsolete = GetIsObsolete(methodInfo)
                                 };
 
                                 if (string.IsNullOrWhiteSpace(methodInformation.FriendlyName))
@@ -235,6 +236,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                         Type = returnDetails.fullReturnType,
                         TypeClass = returnDetails.directType,
                         IsNullable = returnDetails.isNullable,
+                        IsObsolete = GetIsObsolete(property)
                     };
 
                     if (string.IsNullOrWhiteSpace(propertyInformation.FriendlyName))
@@ -281,7 +283,11 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                 {
                     if (fieldInfo.IsLiteral)
                     {
-                        enumValues.Add(new EnumValue() { Name = fieldInfo.Name });
+                        enumValues.Add(new EnumValue
+                        {
+                            Name = fieldInfo.Name,
+                            IsObsolete = GetIsObsolete(fieldInfo)
+                        });
                         continue;
                     }
 
@@ -300,7 +306,8 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                         ReturnTypeClass = returnDetails.directType,
                         ReturnTypeIsNullable = returnDetails.isNullable,
                         EntityId = entityId,
-                        IsCustom = isCustom
+                        IsCustom = isCustom,
+                        IsObsolete = GetIsObsolete(fieldInfo)
                     };
 
                     if (string.IsNullOrWhiteSpace(methodInformation.FriendlyName))
@@ -412,13 +419,13 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
         {
             if (type.IsGenericType && type.GenericTypeArguments != null && type.GenericTypeArguments.Length > 0)
             {
-                return GenerateGenericReturnType(type);
+                return GetGenericReturnType(type);
             }
 
             return GenerateNonGenericReturnType(type);
         }
 
-        private (string fullReturnType, string directType, bool isNullable) GenerateGenericReturnType(Type type)
+        private (string fullReturnType, string directType, bool isNullable) GetGenericReturnType(Type type)
         {
             if (regex.IsMatch(type.FullName))
             {
@@ -452,9 +459,10 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
 
         private string ConvertTypeName(string typeFriendlyName)
         {
-            if (typeFriendlyName.StartsWith("CalculationContext+"))
+            if (typeFriendlyName.Contains("+"))
             {
-                typeFriendlyName = typeFriendlyName.Substring(19, typeFriendlyName.Length - 19);
+                string[] parts = typeFriendlyName.Split("+");
+                typeFriendlyName = parts[1];
             }
 
             switch (typeFriendlyName)
@@ -559,5 +567,8 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                 new TypeInformation("If-Then-ElseIf-Then"),
             };
         }
+
+        private bool GetIsObsolete(MemberInfo memberInfo)
+            => memberInfo.CustomAttributes.Any(_ => _.AttributeType.Name == "ObsoleteItemAttribute");
     }
 }

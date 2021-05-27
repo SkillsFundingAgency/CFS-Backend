@@ -3,24 +3,22 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using CalculateFunding.Models.Code;
-using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.FeatureToggles;
 using FluentAssertions;
+using Microsoft.Azure.WebJobs.Host.Bindings;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
 
 namespace CalculateFunding.Services.CodeMetadataGenerator.UnitTests
 {
     [TestClass]
     public class ReflectionCodeMetadataGeneratorTests
     {
-        private ICodeMetadataGeneratorService generator;
+        private ReflectionCodeMetadataGenerator _generator;
 
         [TestInitialize]
         public void SetUp()
         {
-            generator = GetCodeGenerator();
+            _generator = GetCodeGenerator();
         }
 
         [TestMethod]
@@ -436,16 +434,6 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.UnitTests
         [TestMethod]
         public void GetTypeInformation_WhenCompiledAssembly_EnsuresCalculationContextPlusTextNotPresent()
         {
-            // Arrange
-            string[] filteredMethodNames = new[]{
-                                                    "ToString",
-                                                    "GetHashCode",
-                                                    "Equals",
-                                                    "GetType",
-                                                    "Initialise",
-                                                    "GetTypeCode"
-                                                };
-
             // Act
             IEnumerable<TypeInformation> result = WhenTypeInformationForTheAssemblyIsCreated(GetCalculationsWithEnumsExampleAssembly());
 
@@ -478,42 +466,84 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.UnitTests
             propertyNames.Should().NotContain(filteredPropertyNames);
         }
 
+        [TestMethod]
+        public void GetTypeInformation_WhenCompiledAssembly_EnsuresObsoleteItemsMarkedAsSuch()
+        {
+            IEnumerable<TypeInformation> result = WhenTypeInformationForTheAssemblyIsCreated(GetObsoleteItemsAssembly());
+
+            MethodInformation enumTypeCalculation = result.SingleOrDefault(_ => _.Name == "AUTOTRACKCalculations")?
+                .Methods?.SingleOrDefault(_ => _.Name == "Calculation4");
+
+            enumTypeCalculation
+                .Should()
+                .NotBeNull();
+
+            enumTypeCalculation
+                .ReturnType
+                .Should()
+                .Be("Nullable(Of Calculation4Options)");
+
+            TypeInformation obsoleteEnum = result.SingleOrDefault(_ => _.Name == "Calculation4Options");
+            
+            obsoleteEnum
+                .EnumValues
+                .Should()
+                .BeEquivalentTo(new object[]
+                {
+                    NewEnumValue("First", false),
+                    NewEnumValue("Third", false),
+                    NewEnumValue("Second", true)
+                }, opt => opt.WithoutStrictOrdering());
+
+            MethodInformation obsoleteFundingLine = result.SingleOrDefault(_ => _.Name == "AUTOTRACKFundingLines")?
+                .Methods?.SingleOrDefault(_ => _.Name == "FundingLine0");
+
+            obsoleteFundingLine
+                .Should()
+                .NotBeNull();
+
+            obsoleteFundingLine
+                .IsObsolete
+                .Should()
+                .BeTrue();
+        }
+
+        private EnumValue NewEnumValue(string name,
+            bool isObsolete)
+            => new EnumValue
+            {
+                Name = name,
+                IsObsolete = isObsolete
+            };
+
         private IEnumerable<TypeInformation> WhenTypeInformationForTheAssemblyIsCreated(byte[] assembly)
-            => generator.GetTypeInformation(assembly);
+            => _generator.GetTypeInformation(assembly);
 
-        private static ICodeMetadataGeneratorService GetCodeGenerator()
-        {
-            return new ReflectionCodeMetadataGenerator();
-        }
+        private byte[] GetObsoleteItemsAssembly() =>
+            GetAssemblyBytes("obsolete_enum_and_funding_lines.dll.dat");
 
-        private byte[] GetEmptyDatasetExampleAssembly()
-        {
+        private static ReflectionCodeMetadataGenerator GetCodeGenerator() => new ReflectionCodeMetadataGenerator();
+
+        private byte[] GetEmptyDatasetExampleAssembly() =>
             // Read this generated DLL as example input, it should be copied to the output directory to be read by the tests
-            return File.ReadAllBytes(Path.Combine(Environment.CurrentDirectory, "out.dll.dat"));
-        }
+            GetAssemblyBytes("out.dll.dat");
 
-        private byte[] GetCalculationClassWithListDatasetsExampleAssembly()
-        {
+        private byte[] GetCalculationClassWithListDatasetsExampleAssembly() =>
             // Read this generated DLL as example input, it should be copied to the output directory to be read by the tests
-            return File.ReadAllBytes(Path.Combine(Environment.CurrentDirectory, "calculationsWithListDatasets.dll.dat"));
-        }
+            GetAssemblyBytes("calculationsWithListDatasets.dll.dat");
 
-        private byte[] GetCalculationClassWithListDescriptionsExampleAssembly()
-        {
+        private byte[] GetCalculationClassWithListDescriptionsExampleAssembly() =>
             // Read this generated DLL as example input, it should be copied to the output directory to be read by the tests
-            return File.ReadAllBytes(Path.Combine(Environment.CurrentDirectory, "calculationsWithDescriptions.dll.dat"));
-        }
+            GetAssemblyBytes( "calculationsWithDescriptions.dll.dat");
 
-        private byte[] GetTestNewProviderPropertiesAssembly()
-        {
+        private byte[] GetTestNewProviderPropertiesAssembly() =>
             // Read this generated DLL as example input, it should be copied to the output directory to be read by the tests
-            return File.ReadAllBytes(Path.Combine(Environment.CurrentDirectory, "TestNewProviderProperties.dll.dat"));
-        }
+            GetAssemblyBytes("TestNewProviderProperties.dll.dat");
 
-        private byte[] GetCalculationsWithEnumsExampleAssembly()
-        {
+        private byte[] GetCalculationsWithEnumsExampleAssembly() =>
             // Read this generated DLL as example input, it should be copied to the output directory to be read by the tests
-            return File.ReadAllBytes(Path.Combine(Environment.CurrentDirectory, "calculationsWithEnums.dll.dat"));
-        }
+            GetAssemblyBytes("calculationsWithEnums.dll.dat");
+
+        private static byte[] GetAssemblyBytes(string assemblyName) => File.ReadAllBytes(Path.Combine(Environment.CurrentDirectory, assemblyName));
     }
 }
