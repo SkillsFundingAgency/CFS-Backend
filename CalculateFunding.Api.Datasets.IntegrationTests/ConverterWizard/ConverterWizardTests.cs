@@ -72,6 +72,7 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
             TrackForTeardown(_fundingConfigurationDataContext,
                 _specificationDataContext,
                 _providerDatasetExcelBlobContext,
+                _converterActivityReportExcelBlobContext,
                 _providerVersionBlobContext,
                 _datasetDataContext,
                 _datasetDefinitionDataContext,
