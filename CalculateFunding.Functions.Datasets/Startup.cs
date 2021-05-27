@@ -50,6 +50,7 @@ using CalculateFunding.Common.Storage;
 using CalculateFunding.Models.Datasets.Converter;
 using CalculateFunding.Services.Datasets.Converter;
 using CalculateFunding.Services.Core.Caching.FileSystem;
+using Serilog;
 
 [assembly: FunctionsStartup(typeof(CalculateFunding.Functions.Datasets.Startup))]
 
@@ -104,6 +105,17 @@ namespace CalculateFunding.Functions.Datasets
             builder.AddSingleton<IConverterDataMergeLogger, ConverterDataMergeLogger>();
             builder.AddSingleton<IConverterEligibleProviderService, ConverterEligibleProviderService>();
             builder.AddSingleton<IConverterWizardActivityCsvGenerationGeneratorService, ConverterWizardActivityCsvGenerationGeneratorService>();
+            builder.AddSingleton<IConverterActivityReportRepository>(ctx =>
+            {
+                AzureStorageSettings storageSettings = new AzureStorageSettings();
+
+                config.Bind("AzureStorageSettings", storageSettings);
+
+                storageSettings.ContainerName = "converterwizardreports";
+
+                return new ConverterActivityReportRepository(new LocalBlobClient(storageSettings),
+                    ctx.GetService<IDatasetsResiliencePolicies>());
+            });
             builder.AddSingleton<IFileSystemAccess, FileSystemAccess>();
             builder.AddSingleton<IFileSystemCacheSettings, FileSystemCacheSettings>();
             builder.AddSingleton<ICsvUtils, CsvUtils>();

@@ -129,6 +129,17 @@ namespace CalculateFunding.Api.Datasets
             builder.AddSingleton<IConverterEligibleProviderService, ConverterEligibleProviderService>();
             builder.AddSingleton<IConverterWizardActivityCsvGenerationGeneratorService, ConverterWizardActivityCsvGenerationGeneratorService>();
             builder.AddSingleton<IConverterWizardActivityToCsvRowsTransformation, ConverterWizardActivityToCsvRowsTransformation>();
+            builder.AddSingleton<IConverterActivityReportRepository>(ctx =>
+            {
+                AzureStorageSettings storageSettings = new AzureStorageSettings();
+
+                Configuration.Bind("AzureStorageSettings", storageSettings);
+
+                storageSettings.ContainerName = "converterwizardreports";
+
+                return new ConverterActivityReportRepository(new LocalBlobClient(storageSettings),
+                    ctx.GetService<IDatasetsResiliencePolicies>());
+            });
             builder.AddSingleton<IFileSystemAccess, FileSystemAccess>();
             builder.AddSingleton<IFileSystemCacheSettings, FileSystemCacheSettings>();
             builder.AddSingleton<ICsvUtils, CsvUtils>();

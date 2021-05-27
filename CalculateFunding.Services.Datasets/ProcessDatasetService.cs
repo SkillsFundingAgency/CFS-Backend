@@ -377,6 +377,8 @@ namespace CalculateFunding.Services.Datasets
         public async Task MapFdzDatasets(Message message)
         {
             Guard.ArgumentNotNull(message, nameof(message));
+
+            AutoComplete = false;
             
             string specificationId = message.GetUserProperty<string>("specification-id");
             string relationshipId = message.GetUserProperty<string>("relationship-id");

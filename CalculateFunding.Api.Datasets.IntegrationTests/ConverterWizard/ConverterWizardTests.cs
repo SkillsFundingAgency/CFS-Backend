@@ -28,12 +28,14 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
     [TestCategory(nameof(IntegrationTest))]
     public class ConverterWizardTests : IntegrationTestWithJobMonitoring
     {
+        private const string ConverterWizardActivityCsvGenerationJob = JobConstants.DefinitionNames.ConverterWizardActivityCsvGenerationJob;
         private const string RunConverterDatasetMergeJob = JobConstants.DefinitionNames.RunConverterDatasetMergeJob;
         private static readonly Assembly ResourceAssembly = typeof(ConverterWizardTests).Assembly;
 
         private FundingConfigurationDataContext _fundingConfigurationDataContext;
         private SpecificationDataContext _specificationDataContext;
         private ProviderDatasetExcelBlobContext _providerDatasetExcelBlobContext;
+        private ConverterWizardActivityExcelBlobContext _converterActivityReportExcelBlobContext;
         private ProviderVersionBlobContext _providerVersionBlobContext;
         private DatasetDataContext _datasetDataContext;
         private DatasetDefinitionDataContext _datasetDefinitionDataContext;
@@ -60,6 +62,7 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
             _fundingConfigurationDataContext = new FundingConfigurationDataContext(Configuration, ResourceAssembly);
             _specificationDataContext = new SpecificationDataContext(Configuration, ResourceAssembly);
             _providerDatasetExcelBlobContext = new ProviderDatasetExcelBlobContext(Configuration);
+            _converterActivityReportExcelBlobContext = new ConverterWizardActivityExcelBlobContext(Configuration);
             _providerVersionBlobContext = new ProviderVersionBlobContext(Configuration, ResourceAssembly);
             _datasetDataContext = new DatasetDataContext(Configuration, ResourceAssembly);
             _datasetDefinitionDataContext = new DatasetDefinitionDataContext(Configuration, ResourceAssembly);
@@ -157,6 +160,18 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
                 NewProviderDatasetRowParameters(pr => pr.WithUkprn(ukprnSeven))
             };
 
+            ConverterActivityReportRowParameters[] converterActivityReportRowParameters =
+            {
+                NewConverterActivityReportRowParameters(pr =>
+                    pr.WithStatus(indicativeStatusOne)
+                        .WithUkprn(ukprnOne)
+                        .WithSourceProviderUKPRN(ukprnTwo)),
+                NewConverterActivityReportRowParameters(pr => 
+                    pr.WithUkprn(ukprnThree)
+                        .WithStatus(indicativeStatusTwo)
+                        .WithSourceProviderUKPRN(ukprnFour))
+            };
+
             HashSet<string> ukprnsToConvert = new HashSet<string>
             {
                 ukprnOne,
@@ -175,6 +190,8 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
             string definitionId = NewRandomString();
             int definitionVersion = NewRandomInteger();
 
+            string converterReportName = $"converter-wizard-activity-{specificationId}";
+
             await AndTheDefinitionSpecificationRelationships(NewDefinitionSpecificationRelationshipTemplateParameters(_ =>
                     _.WithSpecificationId(specificationId)
                         .WithConverterEnabled(false)),
@@ -187,6 +204,11 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
             await AndTheProviderDatasetExcelDocument(NewProviderDatasetParameters(_ => _.WithPath(datasetPath)
                 .WithRows(datasetRows)));
 
+            ConverterActivityReportParameters converterActivityReportParameters = NewConverterActivityReportParameters(_ => _.WithName(converterReportName)
+                .WithRows(converterActivityReportRowParameters));
+
+            await AndTheConverterActivityReportExcelDocument(converterActivityReportParameters);
+
             DatasetTemplateParameters datasetTemplateParameters = NewDatasetTemplateParameters(_ => _.WithId(datasetId)
                 .WithDefinitionId(definitionId)
                 .WithVersion(1)
@@ -197,6 +219,8 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
             await AndTheDatasetDocument(datasetTemplateParameters);
 
             AndTheNextVersionOfTheExcelDocumentIsTrackedForCleanup(datasetTemplateParameters, datasetPath);
+
+            AndTheNextVersionOfTheConverterActivityReportExcelDocumentIsTrackedForCleanup(converterActivityReportParameters.Path);
 
             await AndTheDatasetDefinition(NewDatasetDefinitionTemplateParameters(_ => _.WithId(definitionId)
                 .WithVersion(definitionVersion)
@@ -236,9 +260,18 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
                     "Expected a job to have been created for the queue SpecificationConverterDataMergeJob request");
 
             await AndTheJobAndAllItsChildJobsSucceed(jobId, "Expected SpecificationConverterDataMergeJob to complete and succeed.");
+            
+            string convertActivityReportJobId = await AndTheConvertActivityJobWasQueud(jobId);
+
+            convertActivityReportJobId
+                .Should()
+                .NotBeNullOrWhiteSpace(
+                    $"Expected a {ConverterWizardActivityCsvGenerationJob} to have been created for the queue");
+
             await AndConverterWizardLogsShouldHaveBeenCreatedForJob(jobId,
                 (ukprnOne, RowCopyOutcome.Copied),
                 (ukprnThree, RowCopyOutcome.Copied));
+
             await AndANewDatasetVersionWasCreatedFor(datasetTemplateParameters,
                 datasetPath,
                 ukprnTwo,
@@ -246,6 +279,10 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
                 ukprnFive,
                 ukprnSix,
                 ukprnSeven,
+                ukprnOne,
+                ukprnThree);
+
+            await AndAConverterActivityReportWasCreatedFor(converterActivityReportParameters.Path,
                 ukprnOne,
                 ukprnThree);
         }
@@ -296,6 +333,33 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
                     "Expected new dataset version excel document to contain all expected ukprns");
         }
 
+        private async Task AndAConverterActivityReportWasCreatedFor(string blobPath, params string[] expectedUkprns)
+        {
+            ExcelPackage newConverterActivityReport = await _converterActivityReportExcelBlobContext.GetExcelDocument(blobPath, true);
+
+            newConverterActivityReport
+                .Should()
+                .NotBeNull();
+
+            ExcelWorksheet worksheet = newConverterActivityReport.Workbook.Worksheets[1];
+
+            int expectedUkprnsLength = expectedUkprns.Length;
+
+            string[] actualUkprns = new string[expectedUkprnsLength];
+
+            for (int ukprnRow = 0; ukprnRow < expectedUkprnsLength; ukprnRow++)
+            {
+                actualUkprns[ukprnRow] = worksheet.Cells[ukprnRow + 2, 1]
+                    .Value.ToString().Trim('"');
+            }
+
+            actualUkprns
+                .Should()
+                .BeEquivalentTo(expectedUkprns,
+                    opt => opt.WithoutStrictOrdering(),
+                    "Expected new dataset version excel document to contain all expected ukprns");
+        }
+
         private async Task AndConverterWizardLogsShouldHaveBeenCreatedForJob(string parentJobId,
             params (string ukprn, RowCopyOutcome outcome)[] outcomes)
         {
@@ -313,7 +377,7 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
                 .Results
                 .Select(_ => new
                 {
-                    ukprn = _.EligibleConverter.ProviderId,
+                    ukprn = _.EligibleConverter.TargetProviderId,
                     outcome = _.Outcome
                 })
                 .ToArray()
@@ -334,10 +398,17 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
         private async Task AndTheProviderDatasetExcelDocument(ProviderDatasetParameters parameters)
             => await _providerDatasetExcelBlobContext.CreateContextData(parameters);
 
+        private async Task AndTheConverterActivityReportExcelDocument(ConverterActivityReportParameters parameters)
+            => await _converterActivityReportExcelBlobContext.CreateContextData(parameters);
+
         private void AndTheNextVersionOfTheExcelDocumentIsTrackedForCleanup(DatasetTemplateParameters datasetTemplateParameters,
             string path)
             => _providerDatasetExcelBlobContext.TrackDocumentIdentity(
                 new BlobIdentity(GetExpectedBlobPath(datasetTemplateParameters, path)));
+
+        private void AndTheNextVersionOfTheConverterActivityReportExcelDocumentIsTrackedForCleanup(string path)
+            => _converterActivityReportExcelBlobContext.TrackDocumentIdentity(
+                new BlobIdentity(path));
 
         private static string GetExpectedBlobPath(DatasetTemplateParameters datasetTemplateParameters,
             string path) =>
@@ -357,6 +428,9 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
 
         private async Task<string> WhenTheSpecificationConverterDataMergeJobIsQueued(SpecificationConverterMergeRequest request)
             => (await _datasets.QueueSpecificationConverterMergeJob(request))?.Content?.JobId;
+
+        private async Task<string> AndTheConvertActivityJobWasQueud(string JobId)
+            => (await GetChildJobIds(JobId, ConverterWizardActivityCsvGenerationJob)).Single();
 
         private SpecificationTemplateParameters NewSpecification(Action<SpecificationTemplateParametersBuilder> setUp = null)
         {
@@ -408,6 +482,24 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
             setUp?.Invoke(providerDatasetParameterBuilder);
 
             return providerDatasetParameterBuilder.Build();
+        }
+
+        private ConverterActivityReportRowParameters NewConverterActivityReportRowParameters(Action<ConverterActivityReportRowParametersBuilder> setUp = null)
+        {
+            ConverterActivityReportRowParametersBuilder converterActivityReportRowParametersBuilder = new ConverterActivityReportRowParametersBuilder();
+
+            setUp?.Invoke(converterActivityReportRowParametersBuilder);
+
+            return converterActivityReportRowParametersBuilder.Build();
+        }
+
+        private ConverterActivityReportParameters NewConverterActivityReportParameters(Action<ConverterActivityReportParametersBuilder> setUp = null)
+        {
+            ConverterActivityReportParametersBuilder converterActivityReportParametersBuilder = new ConverterActivityReportParametersBuilder();
+
+            setUp?.Invoke(converterActivityReportParametersBuilder);
+
+            return converterActivityReportParametersBuilder.Build();
         }
 
         private ProviderVersionTemplateParameters NewProviderVersionTemplateParameters(Action<ProviderVersionTemplateParametersBuilder> setUp = null)

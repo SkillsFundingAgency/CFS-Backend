@@ -26,7 +26,7 @@ namespace CalculateFunding.IntegrationTests.Common
 
         protected new static void SetUpServices(params Action<IServiceCollection, IConfiguration>[] setUps)
         {
-            setUps = setUps.Concat(new Action<IServiceCollection, IConfiguration>[] {AddJobsClient})
+            setUps = setUps.Concat(new Action<IServiceCollection, IConfiguration>[] { AddJobsClient })
                 .ToArray();
 
             ServiceLocator = ServiceLocator.Create(Configuration, setUps);

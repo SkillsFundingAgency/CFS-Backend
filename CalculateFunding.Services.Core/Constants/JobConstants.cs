@@ -93,6 +93,7 @@
 
             public const string GenerateFundingStreamPermissionsCsvJob = nameof(GenerateFundingStreamPermissionsCsvJob);
 
+            public const string ConverterWizardActivityCsvGenerationJob = nameof(ConverterWizardActivityCsvGenerationJob);
         }
 
         public static class NotificationChannels

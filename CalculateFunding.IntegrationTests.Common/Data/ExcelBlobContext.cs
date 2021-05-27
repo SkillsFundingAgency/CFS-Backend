@@ -147,7 +147,7 @@ namespace CalculateFunding.IntegrationTests.Common.Data
                 : failedMessage);
         }
 
-        public async Task<ExcelPackage> GetExcelDocument(string path)
+        public async Task<ExcelPackage> GetExcelDocument(string path, bool csvContent = false)
         {
             ExcelPackage excelPackage = new ExcelPackage();
 
@@ -163,7 +163,19 @@ namespace CalculateFunding.IntegrationTests.Common.Data
 
             stream.Seek(0, SeekOrigin.Begin);
 
-            excelPackage.Load(stream);
+            if (csvContent)
+            {
+                ExcelWorksheet ws = excelPackage.Workbook.Worksheets.Add("Sheet1");
+                ExcelTextFormat format = new ExcelTextFormat()
+                {
+                    Delimiter = ','
+                };
+                ws.Cells[1, 1].LoadFromText(new StreamReader(stream).ReadToEnd(), format);
+            }
+            else
+            {
+                excelPackage.Load(stream);
+            }
 
             await response.Value.Content.DisposeAsync();
 

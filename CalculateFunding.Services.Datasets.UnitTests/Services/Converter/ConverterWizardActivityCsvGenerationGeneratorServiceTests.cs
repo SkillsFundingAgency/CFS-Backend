@@ -38,7 +38,7 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
     {
         private ConverterWizardActivityCsvGenerationGeneratorService _service;
         private Mock<ICsvUtils> _csvUtils;
-        private Mock<IBlobClient> _blobClient;
+        private Mock<IConverterActivityReportRepository> _converterActivityReportRepository;
         private Mock<ISpecificationsApiClient> _specsApiClient;
         private Mock<IPoliciesApiClient> _policiesApiClient;
         private Mock<ICloudBlob> _cloudBlob;
@@ -57,7 +57,7 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
         [TestInitialize]
         public void SetUp()
         {
-            _blobClient = new Mock<IBlobClient>();
+            _converterActivityReportRepository = new Mock<IConverterActivityReportRepository>();
             _csvUtils = new Mock<ICsvUtils>();
             _transformation = new Mock<IConverterWizardActivityToCsvRowsTransformation>();
             _converterEligibleProviderService = new Mock<IConverterEligibleProviderService>();
@@ -77,7 +77,7 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
                 _converterEligibleProviderService.Object,
                 _specsApiClient.Object,
                 _policiesApiClient.Object,
-                _blobClient.Object,
+                _converterActivityReportRepository.Object,
                 new DatasetsResiliencePolicies
                 {
                     BlobClient = Policy.NoOpAsync(),
@@ -126,7 +126,17 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
             string fundingPeriod = NewRandomString();
             string specificationName = NewRandomString();
             string providerVersionId = NewRandomString();
-            string expectedInterimFilePath = Path.Combine(_rootPath, $"converter-wizard-activity-{specificationId}.csv");
+            string filename = $"converter-wizard-activity-{specificationId}.csv";
+            string prettyFilename = $"Converter wizard activity report {specificationName} {DateTimeOffset.UtcNow:s}.csv";
+            string expectedInterimFilePath = Path.Combine(_rootPath, filename);
+
+            IDictionary<string, string> metadata = new Dictionary<string, string>
+            {
+                { "specification-id", specificationId },
+                { "specification-name", specificationName },
+                { "file-name", prettyFilename },
+                { "job-type", "ConverterWizardActivityCsvGenerationGenerator" }
+            };
 
             List<ProviderConverterDetail> providerConverterDetails = new List<ProviderConverterDetail>()
             {
@@ -158,7 +168,6 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
                 expectedCsv, true);
             AndTheMessageProperties(("specification-id", specificationId));
             AndTheMessageProperties(("specification-name", specificationName));
-            AndTheCloudBlobForSpecificationId(specificationId);
             AndTheFileStream(expectedInterimFilePath, incrementalFileStream);
             AndTheFileExists(expectedInterimFilePath);
 
@@ -170,25 +179,8 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
             _fileSystemAccess
                 .Verify(_ => _.Append(expectedInterimFilePath, expectedCsv, It.IsAny<CancellationToken>()), Times.Once);
 
-            _blobClient
-                .Verify(_ => _.UploadAsync(_cloudBlob.Object, incrementalFileStream), Times.Once);
-
-            _blobClient
-                .Verify(_ => _.AddMetadataAsync(
-                _cloudBlob.Object,
-                It.Is<IDictionary<string, string>>(_ =>
-                    _["specification-id"] == specificationId &&
-                    _["specification-name"] == specificationName &&
-                    _["file-name"].StartsWith($"Converter wizard activity report {specificationName} {DateTimeOffset.UtcNow:yyyy-MM-dd}") &&
-                    _["job-type"] == "ConverterWizardActivityCsvGenerationGenerator")
-                ), Times.Once);
-        }
-
-        private void AndTheCloudBlobForSpecificationId(string specificationId)
-        {
-            _blobClient
-                .Setup(_ => _.GetBlockBlobReference($"converter-wizard-activity-{specificationId}.csv"))
-                .Returns(_cloudBlob.Object);
+            _converterActivityReportRepository
+                .Verify(_ => _.UploadReport(filename, prettyFilename, incrementalFileStream, metadata), Times.Once);
         }
 
         private void AndTheFileStream(string path, Stream stream)

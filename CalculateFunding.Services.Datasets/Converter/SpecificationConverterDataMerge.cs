@@ -95,6 +95,8 @@ namespace CalculateFunding.Services.Datasets.Converter
         public override async Task Process(Message message)
         {
             EnsureIsNotNull(message, "No message to process");
+
+            AutoComplete = false;
             
             Guard.ArgumentNotNull(message, nameof(message));
 

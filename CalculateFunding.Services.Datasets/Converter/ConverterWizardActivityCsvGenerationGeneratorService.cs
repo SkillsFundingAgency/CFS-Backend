@@ -43,8 +43,7 @@ namespace CalculateFunding.Services.Datasets.Converter
         private readonly AsyncPolicy _policiesApiClientPolicy;
         private readonly IDefinitionSpecificationRelationshipService _definitionSpecificationRelationshipService;
         private readonly IConverterDataMergeLogger _converterDataMergeLogger;
-        private readonly IBlobClient _blobClient;
-        private readonly AsyncPolicy _blobClientPolicy;
+        private readonly IConverterActivityReportRepository _converterActivityReportRepository;
 
         public ConverterWizardActivityCsvGenerationGeneratorService(
             IFileSystemAccess fileSystemAccess,
@@ -54,7 +53,7 @@ namespace CalculateFunding.Services.Datasets.Converter
             IConverterEligibleProviderService converterEligibleProviderService,
             ISpecificationsApiClient specificationsApiClient,
             IPoliciesApiClient policiesApiClient,
-            IBlobClient blobClient,
+            IConverterActivityReportRepository converterActivityReportRepository,
             IDatasetsResiliencePolicies datasetsResiliencePolicies,
             IDefinitionSpecificationRelationshipService definitionSpecificationRelationshipService,
             IConverterDataMergeLogger converterDataMergeLogger,
@@ -67,10 +66,9 @@ namespace CalculateFunding.Services.Datasets.Converter
             Guard.ArgumentNotNull(converterEligibleProviderService, nameof(converterEligibleProviderService));
             Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
             Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
-            Guard.ArgumentNotNull(blobClient, nameof(blobClient));
+            Guard.ArgumentNotNull(converterActivityReportRepository, nameof(converterActivityReportRepository));
             Guard.ArgumentNotNull(datasetsResiliencePolicies.SpecificationsApiClient, nameof(datasetsResiliencePolicies.SpecificationsApiClient));
             Guard.ArgumentNotNull(datasetsResiliencePolicies.PoliciesApiClient, nameof(datasetsResiliencePolicies.PoliciesApiClient));
-            Guard.ArgumentNotNull(datasetsResiliencePolicies.BlobClient, nameof(datasetsResiliencePolicies.BlobClient));
             Guard.ArgumentNotNull(definitionSpecificationRelationshipService, nameof(definitionSpecificationRelationshipService));
             Guard.ArgumentNotNull(converterDataMergeLogger, nameof(converterDataMergeLogger));
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -83,10 +81,9 @@ namespace CalculateFunding.Services.Datasets.Converter
             _converterEligibleProviderService = converterEligibleProviderService;
             _specificationsApiClient = specificationsApiClient;
             _policiesApiClient = policiesApiClient;
-            _blobClient = blobClient;
+            _converterActivityReportRepository = converterActivityReportRepository;
             _specificationsApiClientPolicy = datasetsResiliencePolicies.SpecificationsApiClient;
             _policiesApiClientPolicy = datasetsResiliencePolicies.PoliciesApiClient;
-            _blobClientPolicy = datasetsResiliencePolicies.BlobClient;
             _definitionSpecificationRelationshipService = definitionSpecificationRelationshipService;
             _converterDataMergeLogger = converterDataMergeLogger;
             _csvUtils = csvUtils;
@@ -137,27 +134,14 @@ namespace CalculateFunding.Services.Datasets.Converter
                 await _fileSystemAccess.Append(temporaryFilePath, csv);
             }
 
-            ICloudBlob blob = _blobClient.GetBlockBlobReference(new CsvFileName(specificationId));
-            blob.Properties.ContentDisposition = $"attachment; filename={GetPrettyFileName(specificationSummary.Name)}";
-
             await using Stream csvFileStream = _fileSystemAccess.OpenRead(temporaryFilePath);
 
-            await _blobClientPolicy.ExecuteAsync(() => UploadBlob(blob, csvFileStream, GetMetadata(specificationId, specificationSummary.Name)));
+            await _converterActivityReportRepository.UploadReport(new CsvFileName(specificationId),
+                GetPrettyFileName(specificationSummary.Name),
+                csvFileStream, 
+                GetMetadata(specificationId, specificationSummary.Name));
         }
 
-        private async Task UploadBlob(ICloudBlob blob, Stream csvFileStream, IDictionary<string, string> metadata)
-        {
-            await _blobClient.UploadAsync(blob, csvFileStream);
-            await _blobClient.AddMetadataAsync(blob, metadata);
-        }
-
-        private void EnsureFileIsNew(string path)
-        {
-            if (_fileSystemAccess.Exists(path))
-            {
-                _fileSystemAccess.Delete(path);
-            }
-        }
         private IDictionary<string, string> GetMetadata(string specificationId, string specificationName)
         {
             return new Dictionary<string, string>
@@ -167,6 +151,14 @@ namespace CalculateFunding.Services.Datasets.Converter
                 { "file-name", GetPrettyFileName(specificationName) },
                 { "job-type", "ConverterWizardActivityCsvGenerationGenerator" }
             };
+        }
+
+        private void EnsureFileIsNew(string path)
+        {
+            if (_fileSystemAccess.Exists(path))
+            {
+                _fileSystemAccess.Delete(path);
+            }
         }
 
         private static void EnsureConvertersAreEnabledForFundingConfiguration(FundingConfiguration fundingConfiguration)
