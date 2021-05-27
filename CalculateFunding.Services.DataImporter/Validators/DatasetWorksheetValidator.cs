@@ -27,6 +27,12 @@ namespace CalculateFunding.Services.DataImporter.Validators
                         return;
                     }
 
+                    if (EmptyHeaderColumn(firstWorkSheet))
+                    {
+                        context.AddFailure("Excel file contains empty columns");
+                        return;
+                    }
+
                     MergeCellsCollection mergedCells = firstWorkSheet.MergedCells;
 
                     if (mergedCells.Count > 0)
@@ -38,8 +44,23 @@ namespace CalculateFunding.Services.DataImporter.Validators
                     }
 
               });
+        }
 
-            
+        private static bool EmptyHeaderColumn(ExcelWorksheet worksheet)
+        {
+            ExcelCellAddress start = worksheet.Dimension.Start;
+            ExcelCellAddress end = worksheet.Dimension.End;
+
+            for (int col = start.Column; col <= end.Column; col++)
+            {
+                ExcelRange val = worksheet.Cells[1, col];
+                if (val.GetValue<string>() == null)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

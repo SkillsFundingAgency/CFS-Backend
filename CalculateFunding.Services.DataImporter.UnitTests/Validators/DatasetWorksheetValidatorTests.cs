@@ -15,8 +15,8 @@ namespace CalculateFunding.Services.DataImporter.UnitTests.Validators
         {
             //Arrange
             ExcelPackage package = new ExcelPackage();
-            
-            ExcelWorksheet workSheet = package.Workbook.Worksheets.Add("Test Worksheet");
+
+            _ = package.Workbook.Worksheets.Add("Test Worksheet");
 
             DatasetWorksheetValidator validator = new DatasetWorksheetValidator();
 
@@ -71,6 +71,39 @@ namespace CalculateFunding.Services.DataImporter.UnitTests.Validators
                 .ErrorMessage
                 .Should()
                 .Be("Excel file contains merged cells");
+        }
+
+        [TestMethod]
+        public void Validate_GivenWorksheetWithEmptyColumnHeaders_ValidIsFalse()
+        {
+            //Arrange
+            ExcelPackage package = new ExcelPackage();
+
+            ExcelWorksheet workSheet = package.Workbook.Worksheets.Add("Test Worksheet");
+
+            workSheet.Cells["A1"].Value = "1";
+            workSheet.Cells["B1"].Value = "2";
+            workSheet.Cells["C1"].Value = "3";
+            workSheet.Cells["E1"].Value = "2";
+            workSheet.Cells["F1"].Value = "3";
+
+            DatasetWorksheetValidator validator = new DatasetWorksheetValidator();
+
+            //Act
+            ValidationResult result = validator.Validate(package);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .Be(false);
+
+            result
+                .Errors
+                .First()
+                .ErrorMessage
+                .Should()
+                .Be("Excel file contains empty columns");
         }
 
         [TestMethod]

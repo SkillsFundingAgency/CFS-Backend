@@ -17,7 +17,8 @@ namespace CalculateFunding.Services.DataImporter.Validators
 		
         public IEnumerable<HeaderValidationResult> ValidateHeaders(IEnumerable<string> headerFields)
         {
-            return headerFields.GroupBy(_ => _.ToLowerInvariant())
+            return headerFields
+                .GroupBy(_ => _.ToLowerInvariant())
                 .Where(_ => _.Count() > 1 &&
                             _fieldDefinitions.ContainsKey(_.Key))
                 .Select(_ => CreateResultRequiringBackgroundColourKey(_fieldDefinitions[_.Key], 
