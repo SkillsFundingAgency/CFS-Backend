@@ -103,30 +103,11 @@ namespace CalculateFunding.Services.Specs.ObsoleteItems
         private async Task<IEnumerable<ObsoleteItem>> DetectEnumObsoleteItems(TemplateMetadataDistinctContents previousTemplateMetadata, TemplateMetadataDistinctContents templateMetadata, string specificationId, string fundingStreamId)
         {
             List<ObsoleteItem> obsoleteItems = new List<ObsoleteItem>();
-
-            Dictionary<uint, IEnumerable<string>> previousAllowedEnumValuesByTemplateCalculationId = previousTemplateMetadata.Calculations.Where(_ => _.Type == Common.TemplateMetadata.Enums.CalculationType.Enum)
-                .ToDictionary(_ => _.TemplateCalculationId, _ => _.AllowedEnumTypeValues);
-
-            IEnumerable<(Enum EnumObject, uint TemplateCalculationId)> templateCalculationEnumValuesObsolete = templateMetadata.Calculations
-                .Where(_ => _.Type == Common.TemplateMetadata.Enums.CalculationType.Enum &&
-                                        previousAllowedEnumValuesByTemplateCalculationId.ContainsKey(_.TemplateCalculationId) &&
-                                        !previousAllowedEnumValuesByTemplateCalculationId[_.TemplateCalculationId].SequenceEqual(_.AllowedEnumTypeValues))
-                .SelectMany(_ => previousAllowedEnumValuesByTemplateCalculationId[_.TemplateCalculationId]
-                                        .Except(_.AllowedEnumTypeValues)
-                                        .Select(t => (new Enum
-                                        {
-                                            FundingStreamId = fundingStreamId,
-                                            SpecificationId = specificationId,
-                                            EnumName = _typeIdentifierGenerator.GenerateIdentifier($"{_.Name}Options"),
-                                            EnumValue = _typeIdentifierGenerator.GenerateIdentifier(t),
-                                            EnumValueName = t
-                                        }, _.TemplateCalculationId)))
-                .DistinctBy<(Enum EnumObject, uint TemplateCalculationId), string>(_ => _.EnumObject.EnumId);
-
-            foreach ((Enum EnumObject, uint TemplateCalculationId) enumTuple in templateCalculationEnumValuesObsolete)
+            
+            foreach (TemplateCalculationEnumDetail templateCalculationEnum in GetTemplateCalculationEnumNamesObsolete(previousTemplateMetadata, templateMetadata, specificationId, fundingStreamId))
             {
                 ApiResponse<IEnumerable<Entity<Enum>>> enumEntitiesApiResponse =
-                    await _graph.GetAllEntitiesRelatedToEnum(enumTuple.EnumObject.EnumId);
+                    await _graph.GetAllEntitiesRelatedToEnum(templateCalculationEnum.Enum.EnumId);
 
                 if (enumEntitiesApiResponse?.Content != null)
                 {
@@ -142,9 +123,9 @@ namespace CalculateFunding.Services.Specs.ObsoleteItems
                     {
                         SpecificationId = specificationId,
                         FundingStreamId = fundingStreamId,
-                        CodeReference = enumTuple.EnumObject.CodeReference,
-                        EnumValueName = enumTuple.EnumObject.EnumValueName,
-                        TemplateCalculationId = enumTuple.TemplateCalculationId,
+                        CodeReference = templateCalculationEnum.Enum.CodeReference,
+                        EnumValueName = templateCalculationEnum.Enum.EnumValueName,
+                        TemplateCalculationId = templateCalculationEnum.TemplateCalculation.TemplateCalculationId,
                         CalculationIds = enumCalculations.Select(_ => _.CalculationId).ToList(),
                         ItemType = ObsoleteItemType.EnumValue,
                         Id = _uniqueIdentifierProvider.CreateUniqueIdentifier()
@@ -153,6 +134,43 @@ namespace CalculateFunding.Services.Specs.ObsoleteItems
             }
 
             return obsoleteItems;
+        }
+
+        private IEnumerable<TemplateCalculationEnumDetail> GetTemplateCalculationEnumNamesObsolete(TemplateMetadataDistinctContents previousTemplateMetadata, TemplateMetadataDistinctContents templateMetadata, string specificationId, string fundingStreamId)
+        {
+            Dictionary<uint, IEnumerable<string>> previousAllowedEnumValuesByTemplateCalculationId = previousTemplateMetadata.Calculations.Where(_ => _.Type == Common.TemplateMetadata.Enums.CalculationType.Enum)
+                .ToDictionary(_ => _.TemplateCalculationId, _ => _.AllowedEnumTypeValues);
+
+            // get all enum template calculations where the allowed enum values don't match with the previous template enum calculation
+            IEnumerable<TemplateMetadataCalculation> unMatchedEnumCalculations = templateMetadata.Calculations
+                .Where(_ => _.Type == Common.TemplateMetadata.Enums.CalculationType.Enum &&
+                                        previousAllowedEnumValuesByTemplateCalculationId.ContainsKey(_.TemplateCalculationId) &&
+                                        !previousAllowedEnumValuesByTemplateCalculationId[_.TemplateCalculationId].SequenceEqual(_.AllowedEnumTypeValues));
+
+            // get all enum names which have been removed against the template calculation
+            IEnumerable<TemplateCalculationEnum> templateCalculationWithMissingEnums = unMatchedEnumCalculations.SelectMany(_ => previousAllowedEnumValuesByTemplateCalculationId[_.TemplateCalculationId]
+                                        .Except(_.AllowedEnumTypeValues)
+                                        .Select(t => new TemplateCalculationEnum { 
+                                            TemplateCalculation = _,
+                                            EnumName = t
+                                        }))
+                                        .DistinctBy(_ => _.EnumName);
+
+            foreach (TemplateCalculationEnum templateCalculationMissingEnum in templateCalculationWithMissingEnums)
+            {
+                yield return new TemplateCalculationEnumDetail
+                {
+                    Enum = new Enum
+                    {
+                        FundingStreamId = fundingStreamId,
+                        SpecificationId = specificationId,
+                        EnumName = _typeIdentifierGenerator.GenerateIdentifier($"{templateCalculationMissingEnum.TemplateCalculation.Name}Options"),
+                        EnumValue = _typeIdentifierGenerator.GenerateIdentifier(templateCalculationMissingEnum.EnumName),
+                        EnumValueName = templateCalculationMissingEnum.EnumName
+                    },
+                    TemplateCalculation = templateCalculationMissingEnum.TemplateCalculation
+                };
+            }
         }
 
         private async Task<IEnumerable<ObsoleteItem>> DetectFundingLineObsoleteItems(TemplateMetadataDistinctContents previousTemplateMetadata, TemplateMetadataDistinctContents templateMetadata, string specificationId, string fundingStreamId)
@@ -222,30 +240,8 @@ namespace CalculateFunding.Services.Specs.ObsoleteItems
                     continue;
                 }
 
-                //TODO; refactor out all of these dictionaries everywhere into a more of a model
-
-                ApiResponse<TemplateMapping> apiTemplateMappingResponse = await _calculationsPolicy.ExecuteAsync(() => _calculations.GetTemplateMapping(specificationId, fundingStreamId));
-
-                if (apiTemplateMappingResponse?.Content == null)
-                {
-                    string message = $"Unable to retrieve template mapping for specification - {specificationId} and funding stream - {fundingStreamId}.";
-
-                    LogError(message);
-
-                    throw new Exception(message);
-                }
-
-                Dictionary<string, TemplateMappingItem> templateMappingItems = apiTemplateMappingResponse.Content.TemplateMappingItems.Where(_ => _.CalculationId != null).ToDictionary(_ => _.CalculationId);
-
-                // Template calculations in specification that reference missing funding line
-                IDictionary<uint, IEnumerable<string>> fundingLineCalculationIdsByTemplateCalculationId
-                    = specificationCalculations
-                        .Where(_ => fundingLineCalculationIds.Contains(_.CalculationId) && templateMappingItems.ContainsKey(_.CalculationId))
-                        .GroupBy(_ => templateMappingItems[_.CalculationId].TemplateId)
-                        .ToDictionary(_ => _.Key,
-                            _ => _.Select(calc => calc.CalculationId)
-                                .Distinct());
-
+                IDictionary<string, TemplateMappingItem> templateMappingItems = await GetTemplateMappings(specificationId, fundingStreamId);
+                
                 // Additional calculations in specification that reference missing funding line
                 IEnumerable<string> fundingLineAdditionalCalculationIds = specificationCalculations
                         .Where(_ => fundingLineCalculationIds.Contains(_.CalculationId) && !templateMappingItems.ContainsKey(_.CalculationId))
@@ -267,28 +263,60 @@ namespace CalculateFunding.Services.Specs.ObsoleteItems
                     });
                 }
 
-                if (fundingLineCalculationIdsByTemplateCalculationId.Any())
+                // Template calculations in specification that reference missing funding line
+                foreach (FundingLineCalculation calculationsByTemplateId in
+                    GetMissingFundingLineTemplateCalculations(templateMappingItems, 
+                                                                            specificationCalculations, 
+                                                                            fundingLineCalculationIds))
                 {
-                    foreach (KeyValuePair<uint, IEnumerable<string>> calculationsByTemplateId in fundingLineCalculationIdsByTemplateCalculationId
-                        .Where(_ => _.Value.Any()))
+                    obsoleteItems.Add(new ObsoleteItem
                     {
-                        obsoleteItems.Add(new ObsoleteItem
-                        {
-                            SpecificationId = specificationId,
-                            FundingLineId = fundingLine.TemplateLineId,
-                            FundingStreamId = fundingStreamId,
-                            CodeReference = _typeIdentifierGenerator.GenerateIdentifier(fundingLine.Name),
-                            CalculationIds = calculationsByTemplateId.Value,
-                            TemplateCalculationId = Convert.ToUInt32(calculationsByTemplateId.Key),
-                            ItemType = ObsoleteItemType.FundingLine,
-                            Id = _uniqueIdentifierProvider.CreateUniqueIdentifier(),
-                            FundingLineName = fundingLine.Name
-                        });
-                    }
+                        SpecificationId = specificationId,
+                        FundingLineId = fundingLine.TemplateLineId,
+                        FundingStreamId = fundingStreamId,
+                        CodeReference = _typeIdentifierGenerator.GenerateIdentifier(fundingLine.Name),
+                        CalculationIds = calculationsByTemplateId.CalculationIds,
+                        TemplateCalculationId = Convert.ToUInt32(calculationsByTemplateId.FundingLineId),
+                        ItemType = ObsoleteItemType.FundingLine,
+                        Id = _uniqueIdentifierProvider.CreateUniqueIdentifier(),
+                        FundingLineName = fundingLine.Name
+                    });
                 }
             }
 
             return obsoleteItems;
+        }
+
+        private IEnumerable<FundingLineCalculation> GetMissingFundingLineTemplateCalculations(IDictionary<string, TemplateMappingItem> templateMappingItems,
+            IEnumerable<Calculation> specificationCalculations,
+            IEnumerable<string> fundingLineCalculationIds)
+        {
+            foreach(IGrouping<uint, Calculation> grouping in specificationCalculations
+                        .Where(_ => fundingLineCalculationIds.Contains(_.CalculationId) && templateMappingItems.ContainsKey(_.CalculationId))
+                        .GroupBy(_ => templateMappingItems[_.CalculationId].TemplateId))
+            {
+                yield return new FundingLineCalculation
+                {
+                    FundingLineId = grouping.Key,
+                    CalculationIds = grouping.Select(calc => calc.CalculationId)
+                };
+            }   
+        }
+
+        private async Task<IDictionary<string, TemplateMappingItem>> GetTemplateMappings(string specificationId, string fundingStreamId)
+        {
+            ApiResponse<TemplateMapping> apiTemplateMappingResponse = await _calculationsPolicy.ExecuteAsync(() => _calculations.GetTemplateMapping(specificationId, fundingStreamId));
+
+            if (apiTemplateMappingResponse?.Content == null)
+            {
+                string message = $"Unable to retrieve template mapping for specification - {specificationId} and funding stream - {fundingStreamId}.";
+
+                LogError(message);
+
+                throw new Exception(message);
+            }
+
+            return apiTemplateMappingResponse.Content.TemplateMappingItems.Where(_ => _.CalculationId != null).ToDictionary(_ => _.CalculationId);
         }
 
         private async Task CreateObsoleteItem(ObsoleteItem obsoleteItem, string failureMessage)
