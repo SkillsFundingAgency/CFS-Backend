@@ -119,7 +119,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
                 .Returns(calculationVersion);
 
-            Build build = new Build();
+            Build build = new Build
+            {
+                Success = true
+            };
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
@@ -252,7 +255,8 @@ namespace CalculateFunding.Services.Calcs.Services
 
             Build build = new Build
             {
-                SourceFiles = new List<SourceFile> { new SourceFile() }
+                SourceFiles = new List<SourceFile> { new SourceFile() },
+                Success = true
             };
 
             ICacheProvider cacheProvider = CreateCacheProvider();
@@ -373,7 +377,8 @@ namespace CalculateFunding.Services.Calcs.Services
 
             Build build = new Build
             {
-                SourceFiles = new List<SourceFile> { new SourceFile() }
+                SourceFiles = new List<SourceFile> { new SourceFile() },
+                Success = true
             };
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
@@ -499,7 +504,8 @@ namespace CalculateFunding.Services.Calcs.Services
 
             Build build = new Build
             {
-                SourceFiles = new List<SourceFile> { new SourceFile() }
+                SourceFiles = new List<SourceFile> { new SourceFile() },
+                Success = true
             };
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
@@ -634,7 +640,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
                 .Returns(calculationVersion);
 
-            Build build = new Build();
+            Build build = new Build
+            {
+                Success = true
+            };
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
@@ -733,7 +742,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
                 .Returns(calculationVersion);
 
-            Build build = new Build();
+            Build build = new Build
+            {
+                Success = true
+            };
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
@@ -952,7 +964,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
                 .Returns(calculationVersion);
 
-            Build build = new Build();
+            Build build = new Build
+            {
+                Success = true
+            };
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
@@ -1067,7 +1082,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
                 .Returns(calculationVersion);
 
-            Build build = new Build();
+            Build build = new Build
+            {
+                Success = true
+            };
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
@@ -1188,7 +1206,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .QueueJob(Arg.Any<JobCreateModel>())
                 .Returns(new Job { Id = "job-id-1" });
 
-            Build build = new Build();
+            Build build = new Build
+            {
+                Success = true
+            };
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
@@ -1317,7 +1338,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .QueueJob(Arg.Any<JobCreateModel>())
                 .Returns((Job)null);
 
-            Build build = new Build();
+            Build build = new Build
+            {
+                Success = true
+            };
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
@@ -1530,7 +1554,8 @@ namespace CalculateFunding.Services.Calcs.Services
 
             Build build = new Build
             {
-                SourceFiles = new List<SourceFile> { new SourceFile() }
+                SourceFiles = new List<SourceFile> { new SourceFile() },
+                Success = true
             };
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
@@ -1680,7 +1705,8 @@ namespace CalculateFunding.Services.Calcs.Services
 
             Build build = new Build
             {
-                SourceFiles = new List<SourceFile> { new SourceFile() }
+                SourceFiles = new List<SourceFile> { new SourceFile() },
+                Success = true
             };
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
@@ -1878,7 +1904,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .ReturnsAsync(calculationVersion);
 
 
-            Build build = new Build();
+            Build build = new Build
+            {
+                Success = true
+            };
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
@@ -2024,7 +2053,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .ReturnsAsync(calculationVersion);
 
 
-            Build build = new Build();
+            Build build = new Build
+            {
+                Success = true
+            };
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
@@ -2161,7 +2193,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .ReturnsAsync(calculationVersion);
 
 
-            Build build = new Build();
+            Build build = new Build
+            {
+                Success = true
+            };
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
@@ -2296,7 +2331,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .ReturnsAsync(calculationVersion);
 
 
-            Build build = new Build();
+            Build build = new Build
+            {
+                Success = true
+            };
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService

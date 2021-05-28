@@ -320,7 +320,11 @@ Return Datasets.{datasetRelationshipIdVisualBasicVariable}.{new VisualBasicTypeI
             {
                 Id = NewRandomString(),
                 SpecificationId = SpecificationId,
-                Build = new Build() { SourceFiles = new List<SourceFile>() }
+                Build = new Build()
+                {
+                    SourceFiles = new List<SourceFile>(),
+                    Success = true
+                }
             };
 
             IEnumerable<string> calculationNames = new[] { calcName1, calcName2 };
@@ -367,7 +371,11 @@ Return Datasets.{datasetRelationshipIdVisualBasicVariable}.{new VisualBasicTypeI
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService.Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<IEnumerable<ObsoleteItem>>(), Arg.Any<CompilerOptions>())
-                .Returns(new Build() { SourceFiles = new List<SourceFile>() });
+                .Returns(new Build()
+                {
+                    SourceFiles = new List<SourceFile>(),
+                    Success = true
+                });
 
             CalculationService service = CreateCalculationService(
                 calculationsRepository,
@@ -577,7 +585,11 @@ Return Datasets.{datasetRelationshipIdVisualBasicVariable}.{new VisualBasicTypeI
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService.Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<IEnumerable<ObsoleteItem>>(),Arg.Any<CompilerOptions>())
-                .Returns(new Build() { SourceFiles = new List<SourceFile>() });
+                .Returns(new Build()
+                {
+                    SourceFiles = new List<SourceFile>(),
+                    Success = true
+                });
 
             CalculationService service = CreateCalculationService(
                 calculationsRepository,

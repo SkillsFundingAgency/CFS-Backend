@@ -57,6 +57,7 @@ using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 using Trigger = CalculateFunding.Common.ApiClient.Jobs.Models.Trigger;
 using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
 using CalculateFunding.Services.CodeGeneration.VisualBasic.Type.Interfaces;
+using Microsoft.Net.Http.Headers;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -1431,6 +1432,14 @@ End Select");
             IEnumerable<ObsoleteItem> obsoleteItems = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetObsoleteItemsForSpecification(buildProject.SpecificationId));
 
             buildProject.Build = _sourceCodeService.Compile(buildProject, calculations, obsoleteItems, compilerOptions);
+            
+            if (!buildProject.Build.Success)
+            {
+                string compilerMessages = string.Join(Environment.NewLine, buildProject.Build.CompilerMessages?.Select(_ => _.Message) ?? ArraySegment<string>.Empty);
+
+                throw new NonRetriableException(
+                    $"Compilation failed during build for Specification {specificationSummary.Name}.{Environment.NewLine}{compilerMessages}");
+            }
 
             await _sourceCodeService.SaveSourceFiles(buildProject.Build.SourceFiles, specificationSummary.Id, SourceCodeType.Release);
 

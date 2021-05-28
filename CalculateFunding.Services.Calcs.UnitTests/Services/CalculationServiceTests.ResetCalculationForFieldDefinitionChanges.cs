@@ -187,7 +187,8 @@ namespace CalculateFunding.Services.Calcs.Services
 
             Build build = new Build
             {
-                SourceFiles = new List<SourceFile>()
+                SourceFiles = new List<SourceFile>(),
+                Success = true
             };
 
             SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary()
