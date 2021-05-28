@@ -66,6 +66,12 @@ namespace CalculateFunding.Models.Publishing
         
         Boolean,
         
-        Enum
+        Enum,
+        
+        /// <summary>
+        /// An adjustment figure to offset the cash figures against
+        /// in a funding line - can be a positive or negative adjustment
+        /// </summary>
+        Adjustment,
     }
 }
