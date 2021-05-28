@@ -1449,7 +1449,7 @@ namespace CalculateFunding.Services.Datasets
                 datasetDefinition, 
                 datasetEmptyFieldEvaluationOption,
                 currentBlobName);
-            ValidationResult validationResult = _datasetUploadValidator.Validate(uploadModel);
+            ValidationResult validationResult = await _datasetUploadValidator.ValidateAsync(uploadModel);
             if (uploadModel.Data != null)
             {
                 rowCount = uploadModel.Data.TableLoadResult.Rows.Count;

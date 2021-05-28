@@ -165,7 +165,7 @@ namespace CalculateFunding.Services.Datasets.Services
             IValidator<DatasetUploadValidationModel> validator = Substitute.For<IValidator<DatasetUploadValidationModel>>();
 
             validator
-                .Validate(Arg.Any<DatasetUploadValidationModel>())
+                .ValidateAsync(Arg.Any<DatasetUploadValidationModel>())
                 .Returns(validationResult);
 
             return validator;
