@@ -86,11 +86,11 @@ namespace CalculateFunding.Services.Graph.UnitTests
             await _datasetRepository.UpsertDataDefinitionDatasetRelationship(definitionId,
                 datasetId);
 
-            await ThenTheRelationshipWasCreated<DatasetDefinition, Dataset>(AttributeConstants.DatasetDefinitionDatasetRelationshipId,
+            await ThenTheRelationshipWasCreated<DatasetDefinition, Dataset>(DatasetDatasetDefinitionRelationship.ToIdField,
                 (AttributeConstants.DatasetDefinitionId, definitionId),
                 (AttributeConstants.DatasetId, datasetId));
 
-            await AndTheRelationshipWasCreated<Dataset, DatasetDefinition>(AttributeConstants.DatasetDatasetDefinitionRelationshipId,
+            await AndTheRelationshipWasCreated<Dataset, DatasetDefinition>(DatasetDatasetDefinitionRelationship.FromIdField,
                 (AttributeConstants.DatasetId, datasetId),
                 (AttributeConstants.DatasetDefinitionId, definitionId));
         }
@@ -104,11 +104,11 @@ namespace CalculateFunding.Services.Graph.UnitTests
             await _datasetRepository.DeleteDataDefinitionDatasetRelationship(definitionId,
                 datasetId);
 
-            await ThenTheRelationshipWasDeleted<DatasetDefinition, Dataset>(AttributeConstants.DatasetDefinitionDatasetRelationshipId,
+            await ThenTheRelationshipWasDeleted<DatasetDefinition, Dataset>(DatasetDatasetDefinitionRelationship.ToIdField,
                 (AttributeConstants.DatasetDefinitionId, definitionId),
                 (AttributeConstants.DatasetId, datasetId));
 
-            await AndTheRelationshipWasDeleted<Dataset, DatasetDefinition>(AttributeConstants.DatasetDatasetDefinitionRelationshipId,
+            await AndTheRelationshipWasDeleted<Dataset, DatasetDefinition>(DatasetDatasetDefinitionRelationship.FromIdField,
                 (AttributeConstants.DatasetId, datasetId),
                 (AttributeConstants.DatasetDefinitionId, definitionId));
         }
@@ -122,11 +122,11 @@ namespace CalculateFunding.Services.Graph.UnitTests
             await _datasetRepository.UpsertDatasetDataFieldRelationship(datasetId,
                 dataFieldId);
 
-            await ThenTheRelationshipWasCreated<Dataset, DataField>(AttributeConstants.DatasetDataFieldRelationshipId,
+            await ThenTheRelationshipWasCreated<Dataset, DataField>(DatasetDataFieldRelationship.ToIdField,
                 (AttributeConstants.DatasetId, datasetId),
                 (AttributeConstants.DataFieldId, dataFieldId));
 
-            await AndTheRelationshipWasCreated<DataField, Dataset>(AttributeConstants.DataFieldDatasetRelationshipId,
+            await AndTheRelationshipWasCreated<DataField, Dataset>(DatasetDataFieldRelationship.FromIdField,
                 (AttributeConstants.DataFieldId, dataFieldId),
                 (AttributeConstants.DatasetId, datasetId));
         }
@@ -140,11 +140,11 @@ namespace CalculateFunding.Services.Graph.UnitTests
             await _datasetRepository.DeleteDatasetDataFieldRelationship(datasetId,
                 dataFieldId);
 
-            await ThenTheRelationshipWasDeleted<Dataset, DataField>(AttributeConstants.DatasetDataFieldRelationshipId,
+            await ThenTheRelationshipWasDeleted<Dataset, DataField>(DatasetDataFieldRelationship.ToIdField,
                 (AttributeConstants.DatasetId, datasetId),
                 (AttributeConstants.DataFieldId, dataFieldId));
 
-            await AndTheRelationshipWasDeleted<DataField, Dataset>(AttributeConstants.DataFieldDatasetRelationshipId,
+            await AndTheRelationshipWasDeleted<DataField, Dataset>(DatasetDataFieldRelationship.FromIdField,
                 (AttributeConstants.DataFieldId, dataFieldId),
                 (AttributeConstants.DatasetId, datasetId));
         }
@@ -159,13 +159,13 @@ namespace CalculateFunding.Services.Graph.UnitTests
 
             await _datasetRepository.UpsertDataDefinitionDatasetRelationships((definitionIdOne, datasetIdOne), (definitionIdTwo, datasetIdTwo));
 
-            await ThenTheRelationshipsWereCreated<DatasetDefinition, Dataset>(AttributeConstants.DatasetDefinitionDatasetRelationshipId,
+            await ThenTheRelationshipsWereCreated<DatasetDefinition, Dataset>(DatasetDatasetDefinitionRelationship.ToIdField,
                 ((AttributeConstants.DatasetDefinitionId, definitionIdOne),
                     (AttributeConstants.DatasetId, datasetIdOne)),
                 ((AttributeConstants.DatasetDefinitionId, definitionIdTwo),
                     (AttributeConstants.DatasetId, datasetIdTwo)));
 
-            await AndTheRelationshipsWereCreated<Dataset, DatasetDefinition>(AttributeConstants.DatasetDatasetDefinitionRelationshipId,
+            await AndTheRelationshipsWereCreated<Dataset, DatasetDefinition>(DatasetDatasetDefinitionRelationship.FromIdField,
                 ((AttributeConstants.DatasetId, datasetIdOne),
                     (AttributeConstants.DatasetDefinitionId, definitionIdOne)),
                 ((AttributeConstants.DatasetId, datasetIdTwo),
@@ -181,13 +181,13 @@ namespace CalculateFunding.Services.Graph.UnitTests
 
             await _datasetRepository.UpsertDatasetDataFieldRelationships((datasetIdOne, datafieldIdOne), (datasetIdTwo, datafieldIdTwo));
 
-            await ThenTheRelationshipsWereCreated<Dataset, DataField>(AttributeConstants.DatasetDataFieldRelationshipId,
+            await ThenTheRelationshipsWereCreated<Dataset, DataField>(DatasetDataFieldRelationship.ToIdField,
                 ((AttributeConstants.DatasetId, datasetIdOne),
                     (AttributeConstants.DataFieldId, datafieldIdOne)),
                 ((AttributeConstants.DatasetId, datasetIdTwo),
                     (AttributeConstants.DataFieldId, datafieldIdTwo)));
 
-            await AndTheRelationshipsWereCreated<DataField, Dataset>(AttributeConstants.DataFieldDatasetRelationshipId,
+            await AndTheRelationshipsWereCreated<DataField, Dataset>(DatasetDataFieldRelationship.FromIdField,
                 ((AttributeConstants.DataFieldId, datafieldIdOne),
                     (AttributeConstants.DatasetId, datasetIdOne)),
                 ((AttributeConstants.DataFieldId, datafieldIdTwo),

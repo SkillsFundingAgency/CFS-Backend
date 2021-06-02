@@ -242,7 +242,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.ObsoleteItems
                 .Select(c => new Relationship()
                 {
                     Type = FundingLineCalculationRelationship.FromIdField,
-                    Two = new Models.Graph.Calculation() { CalculationId = c }
+                    One = new Models.Graph.Calculation() { CalculationId = c }
                 });
 
             _graphApiClient.Setup(x => x.GetAllEntitiesRelatedToFundingLine($"{specificationId}-{fundingStreamId}_{fundingLineId}"))

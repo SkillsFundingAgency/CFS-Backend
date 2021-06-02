@@ -42,7 +42,7 @@ namespace CalculateFunding.Services.Graph.UnitTests
 
             Entity<FundingLine> entity = new Entity<FundingLine> { Node = FundingLine1, Relationships = new[] { new Relationship { One = calculation2, Two = FundingLine1, Type = AttributeConstants.CalculationFundingLineRelationshipId } } };
 
-            GivenTheEntities(new[] { AttributeConstants.FundingLineCalculationRelationshipId, AttributeConstants.CalculationFundingLineRelationshipId }, AttributeConstants.FundingLineId, FundingLineId, entity);
+            GivenTheEntities(new[] { FundingLineCalculationRelationship.ToIdField, FundingLineCalculationRelationship.FromIdField }, AttributeConstants.FundingLineId, FundingLineId, entity);
 
             IEnumerable<Entity<FundingLine, IRelationship>> entities = await _FundingLineRepository.GetAllEntities(FundingLineId);
 
@@ -82,7 +82,7 @@ namespace CalculateFunding.Services.Graph.UnitTests
             await _FundingLineRepository.DeleteFundingLineCalculationRelationship(FundingLineId,
                 CalculationId);
 
-            await ThenTheRelationshipWasDeleted<FundingLine, Calculation>(AttributeConstants.FundingLineCalculationRelationshipId,
+            await ThenTheRelationshipWasDeleted<FundingLine, Calculation>(FundingLineCalculationRelationship.ToIdField,
                 (AttributeConstants.FundingLineId, FundingLineId),
                 (AttributeConstants.CalculationId, CalculationId));
         }
@@ -96,7 +96,7 @@ namespace CalculateFunding.Services.Graph.UnitTests
             await _FundingLineRepository.DeleteCalculationFundingLineRelationship(CalculationId,
                 FundingLineId);
 
-            await ThenTheRelationshipWasDeleted<Calculation, FundingLine>(AttributeConstants.CalculationFundingLineRelationshipId,
+            await ThenTheRelationshipWasDeleted<Calculation, FundingLine>(FundingLineCalculationRelationship.FromIdField,
                 (AttributeConstants.CalculationId, CalculationId),
                 (AttributeConstants.FundingLineId, FundingLineId));
         }
@@ -110,7 +110,7 @@ namespace CalculateFunding.Services.Graph.UnitTests
             await _FundingLineRepository.UpsertFundingLineCalculationRelationship(FundingLineId,
                 CalculationId);
 
-            await ThenTheRelationshipWasCreated<FundingLine, Calculation>(AttributeConstants.FundingLineCalculationRelationshipId,
+            await ThenTheRelationshipWasCreated<FundingLine, Calculation>(FundingLineCalculationRelationship.ToIdField,
                 (AttributeConstants.FundingLineId, FundingLineId),
                 (AttributeConstants.CalculationId, CalculationId));
         }
@@ -124,7 +124,7 @@ namespace CalculateFunding.Services.Graph.UnitTests
             await _FundingLineRepository.UpsertCalculationFundingLineRelationship(CalculationId,
                 FundingLineId);
 
-            await ThenTheRelationshipWasCreated<Calculation, FundingLine>(AttributeConstants.CalculationFundingLineRelationshipId,
+            await ThenTheRelationshipWasCreated<Calculation, FundingLine>(FundingLineCalculationRelationship.FromIdField,
                 (AttributeConstants.CalculationId, CalculationId),
                 (AttributeConstants.FundingLineId, FundingLineId));
         }
@@ -170,7 +170,7 @@ namespace CalculateFunding.Services.Graph.UnitTests
 
             await _FundingLineRepository.DeleteCalculationFundingLineRelationships((calculationIdOne, fundingLineIdOne), (calculationIdTwo, fundingLineIdTwo));
 
-            await ThenTheRelationshipsWereDeleted<Calculation, FundingLine>(AttributeConstants.CalculationFundingLineRelationshipId,
+            await ThenTheRelationshipsWereDeleted<Calculation, FundingLine>(FundingLineCalculationRelationship.FromIdField,
                 ((AttributeConstants.CalculationId, calculationIdOne),
                     (AttributeConstants.FundingLineId, fundingLineIdOne)),
                 ((AttributeConstants.CalculationId, calculationIdTwo),
@@ -187,7 +187,7 @@ namespace CalculateFunding.Services.Graph.UnitTests
 
             await _FundingLineRepository.DeleteFundingLineCalculationRelationships((fundingLineIdOne, calculationIdOne), (fundingLineIdTwo, calculationIdTwo));
 
-            await ThenTheRelationshipsWereDeleted<FundingLine, Calculation>(AttributeConstants.FundingLineCalculationRelationshipId,
+            await ThenTheRelationshipsWereDeleted<FundingLine, Calculation>(FundingLineCalculationRelationship.ToIdField,
                 ((AttributeConstants.FundingLineId, fundingLineIdOne),
                     (AttributeConstants.CalculationId, calculationIdOne)),
                 ((AttributeConstants.FundingLineId, fundingLineIdTwo),
@@ -204,7 +204,7 @@ namespace CalculateFunding.Services.Graph.UnitTests
 
             await _FundingLineRepository.UpsertCalculationFundingLineRelationships((calculationIdOne, fundingLineIdOne), (calculationIdTwo, fundingLineIdTwo));
 
-            await ThenTheRelationshipsWereCreated<Calculation, FundingLine>(AttributeConstants.CalculationFundingLineRelationshipId,
+            await ThenTheRelationshipsWereCreated<Calculation, FundingLine>(FundingLineCalculationRelationship.FromIdField,
                 ((AttributeConstants.CalculationId, calculationIdOne),
                     (AttributeConstants.FundingLineId, fundingLineIdOne)),
                 ((AttributeConstants.CalculationId, calculationIdTwo),
@@ -221,7 +221,7 @@ namespace CalculateFunding.Services.Graph.UnitTests
 
             await _FundingLineRepository.UpsertFundingLineCalculationRelationships((fundingLineIdOne, calculationIdOne), (fundingLineIdTwo, calculationIdTwo));
 
-            await ThenTheRelationshipsWereCreated<FundingLine, Calculation>(AttributeConstants.FundingLineCalculationRelationshipId,
+            await ThenTheRelationshipsWereCreated<FundingLine, Calculation>(FundingLineCalculationRelationship.ToIdField,
                 ((AttributeConstants.FundingLineId, fundingLineIdOne),
                     (AttributeConstants.CalculationId, calculationIdOne)),
                 ((AttributeConstants.FundingLineId, fundingLineIdTwo),

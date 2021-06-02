@@ -232,7 +232,7 @@ namespace CalculateFunding.Services.Specs.ObsoleteItems
 
                 IEnumerable<string> fundingLineCalculationIds = fundingLineGraphEntries.Where(_ => _.Relationships != null)
                     .SelectMany(_ => _.Relationships.Where(rel => rel.Type.Equals(FundingLineCalculationRelationship.FromIdField, StringComparison.InvariantCultureIgnoreCase)))
-                    .Select(rel => ((object)rel.Two).AsJson().AsPoco<Calculation>().CalculationId)
+                    .Select(rel => ((object)rel.One).AsJson().AsPoco<Calculation>().CalculationId)
                     .Distinct();
 
                 if (!fundingLineCalculationIds.Any())

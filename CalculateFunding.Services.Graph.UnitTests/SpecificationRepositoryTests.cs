@@ -40,9 +40,9 @@ namespace CalculateFunding.Services.Graph.UnitTests
             Specification specification1 = NewSpecification();
             Calculation calculation2 = NewCalculation();
 
-            Entity<Specification> entity = new Entity<Specification> { Node = specification1, Relationships = new[] { new Relationship { One = calculation2, Two = specification1, Type = AttributeConstants.CalculationSpecificationRelationshipId } } };
+            Entity<Specification> entity = new Entity<Specification> { Node = specification1, Relationships = new[] { new Relationship { One = calculation2, Two = specification1, Type = SpecificationCalculationRelationships.FromIdField } } };
 
-            GivenTheEntities(new[] { AttributeConstants.CalculationACalculationBRelationship, AttributeConstants.CalculationSpecificationRelationshipId }, AttributeConstants.SpecificationId, specificationId, entity);
+            GivenTheEntities(new[] { CalculationRelationship.ToIdField, SpecificationCalculationRelationships.FromIdField }, AttributeConstants.SpecificationId, specificationId, entity);
 
             IEnumerable<Entity<Specification, IRelationship>> entities = await _specificationRepository.GetAllEntities(specificationId);
 
@@ -82,11 +82,11 @@ namespace CalculateFunding.Services.Graph.UnitTests
             await _specificationRepository.DeleteSpecificationDatasetRelationship(specificationId,
                 datasetId);
 
-            await ThenTheRelationshipWasDeleted<Specification, Dataset>(AttributeConstants.SpecificationDatasetRelationship,
+            await ThenTheRelationshipWasDeleted<Specification, Dataset>("ReferencesDataset",
                 (AttributeConstants.SpecificationId, specificationId),
                 (AttributeConstants.DatasetId, datasetId));
 
-            await AndTheRelationshipWasDeleted<Dataset, Specification>(AttributeConstants.DatasetSpecificationRelationship,
+            await AndTheRelationshipWasDeleted<Dataset, Specification>("IsReferencedBySpecification",
                 (AttributeConstants.DatasetId, datasetId),
                 (AttributeConstants.SpecificationId, specificationId));
         }
@@ -100,11 +100,11 @@ namespace CalculateFunding.Services.Graph.UnitTests
             await _specificationRepository.CreateSpecificationDatasetRelationship(specificationId,
                 datasetId);
 
-            await ThenTheRelationshipWasCreated<Specification, Dataset>(AttributeConstants.SpecificationDatasetRelationship,
+            await ThenTheRelationshipWasCreated<Specification, Dataset>("ReferencesDataset",
                 (AttributeConstants.SpecificationId, specificationId),
                 (AttributeConstants.DatasetId, datasetId));
 
-            await AndTheRelationshipWasCreated<Dataset, Specification>(AttributeConstants.DatasetSpecificationRelationship,
+            await AndTheRelationshipWasCreated<Dataset, Specification>("IsReferencedBySpecification",
                 (AttributeConstants.DatasetId, datasetId),
                 (AttributeConstants.SpecificationId, specificationId));
         }
@@ -129,13 +129,13 @@ namespace CalculateFunding.Services.Graph.UnitTests
 
             await _specificationRepository.CreateSpecificationDatasetRelationships((specificationIdOne, datasetIdOne), (specificationIdTwo, datasetIdTwo));
 
-            await ThenTheRelationshipsWereCreated<Specification, Dataset>(AttributeConstants.SpecificationDatasetRelationship,
+            await ThenTheRelationshipsWereCreated<Specification, Dataset>("ReferencesDataset",
                 ((AttributeConstants.SpecificationId, specificationIdOne),
                     (AttributeConstants.DatasetId, datasetIdOne)),
                 ((AttributeConstants.SpecificationId, specificationIdTwo),
                     (AttributeConstants.DatasetId, datasetIdTwo)));
 
-            await AndTheRelationshipsWereCreated<Dataset, Specification>(AttributeConstants.DatasetSpecificationRelationship,
+            await AndTheRelationshipsWereCreated<Dataset, Specification>("IsReferencedBySpecification",
                 ((AttributeConstants.DatasetId, datasetIdOne),
                     (AttributeConstants.SpecificationId, specificationIdOne)),
                 ((AttributeConstants.DatasetId, datasetIdTwo),
@@ -152,13 +152,13 @@ namespace CalculateFunding.Services.Graph.UnitTests
 
             await _specificationRepository.DeleteSpecificationDatasetRelationships((specificationIdOne, datasetIdOne), (specificationIdTwo, datasetIdTwo));
 
-            await ThenTheRelationshipsWereDeleted<Specification, Dataset>(AttributeConstants.SpecificationDatasetRelationship,
+            await ThenTheRelationshipsWereDeleted<Specification, Dataset>("ReferencesDataset",
                 ((AttributeConstants.SpecificationId, specificationIdOne),
                     (AttributeConstants.DatasetId, datasetIdOne)),
                 ((AttributeConstants.SpecificationId, specificationIdTwo),
                     (AttributeConstants.DatasetId, datasetIdTwo)));
 
-            await AndTheRelationshipsWereDeleted<Dataset, Specification>(AttributeConstants.DatasetSpecificationRelationship,
+            await AndTheRelationshipsWereDeleted<Dataset, Specification>("IsReferencedBySpecification",
                 ((AttributeConstants.DatasetId, datasetIdOne),
                     (AttributeConstants.SpecificationId, specificationIdOne)),
                 ((AttributeConstants.DatasetId, datasetIdTwo),

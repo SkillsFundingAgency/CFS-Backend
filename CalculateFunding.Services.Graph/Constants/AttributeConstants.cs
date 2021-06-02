@@ -27,8 +27,8 @@ namespace CalculateFunding.Services.Graph.Constants
         public const string DatasetDefinitionDatasetRelationshipId = DatasetDatasetDefinitionRelationship.ToIdField;
         public const string DataFieldDatasetRelationshipId = DatasetDataFieldRelationship.FromIdField;
         public const string DatasetDataFieldRelationshipId = DatasetDataFieldRelationship.ToIdField; 
-        public const string FundingLineCalculationRelationshipId = FundingLineCalculationRelationship.FromIdField;
-        public const string CalculationFundingLineRelationshipId = FundingLineCalculationRelationship.ToIdField; 
+        public const string FundingLineCalculationRelationshipId = FundingLineCalculationRelationship.ToIdField;
+        public const string CalculationFundingLineRelationshipId = FundingLineCalculationRelationship.FromIdField; 
         public const string SpecificationDatasetRelationship = "ReferencesDataset";
         public const string DatasetSpecificationRelationship = "IsReferencedBySpecification";
     }
