@@ -10,6 +10,7 @@ namespace CalculateFunding.Common.TemplateMetadata.Enums
             {
                 case CalculationType.Boolean:
                     return CalculateFunding.Models.Calcs.CalculationDataType.Boolean;
+                case CalculationType.Adjustment:
                 case CalculationType.Cash:
                 case CalculationType.Drilldown:
                 case CalculationType.Information:
