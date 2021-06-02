@@ -19,26 +19,27 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
     [TestClass]
     public class ProviderMetadataVariationStrategyTests
     {
+        private Mock<IPoliciesService> _policiesService;
+
         private ProviderMetadataVariationStrategy _metadataVariationStrategy;
-        private static Mock<IPoliciesService> _policiesService = new Mock<IPoliciesService>();
 
         [TestInitialize]
         public void SetUp()
         {
+            _policiesService = new Mock<IPoliciesService>();
+
             _metadataVariationStrategy = new ProviderMetadataVariationStrategy();
         }
 
         [TestMethod]
         [DynamicData(nameof(VariationReasonExamples), DynamicDataSourceType.Method)]
-        public async Task TracksConfiguredPropertiesForVariationReasons(ProviderVariationContext variationContext,
+        public async Task TracksConfiguredPropertiesForVariationReasons(Action<Provider> differences,
             VariationReason[] expectedVariationReasons)
         {
-            _policiesService.Setup(x => x.GetTemplateMetadataContents(variationContext.ReleasedState.FundingStreamId, 
-                                                                      variationContext.ReleasedState.FundingPeriodId, 
-                                                                      variationContext.ReleasedState.TemplateVersion))
-            .ReturnsAsync(new TemplateMetadataContents() { SchemaVersion = "1.2" });
+            ProviderVariationContext variationContext = GivenTheVariationContextHasTheCurrentAndPriorStateDifferences(differences);
 
             expectedVariationReasons ??= new VariationReason[0];
+            
             await _metadataVariationStrategy.DetermineVariations(variationContext, null);
 
             variationContext
@@ -47,7 +48,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
                 .Should()
                 .BeEquivalentTo(expectedVariationReasons.OrderBy(_ => _));
 
-            if (expectedVariationReasons.AnyWithNullCheck())
+            if (expectedVariationReasons.Length > 0)
             {
                 variationContext.QueuedChanges
                     .FirstOrDefault()
@@ -60,6 +61,28 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
                     .Should()
                     .BeNullOrEmpty();
             }
+        }
+
+        private ProviderVariationContext GivenTheVariationContextHasTheCurrentAndPriorStateDifferences(Action<Provider> differences)
+        {
+            Provider priorState = NewProvider();
+
+            ProviderVariationContext variationContext = NewProviderVariationContext(_ =>
+                _.WithPublishedProvider(NewPublishedProvider(pp =>
+                        pp.WithReleased(NewPublishedProviderVersion(ppv =>
+                            ppv.WithProvider(priorState)))))
+                    .WithPoliciesService(_policiesService.Object)
+                    .WithCurrentState(ProviderCopy(priorState, differences)));
+
+            _policiesService.Setup(x => x.GetTemplateMetadataContents(variationContext.ReleasedState.FundingStreamId,
+                    variationContext.ReleasedState.FundingPeriodId,
+                    variationContext.ReleasedState.TemplateVersion))
+                .ReturnsAsync(new TemplateMetadataContents
+                {
+                    SchemaVersion = "1.2"
+                });
+
+            return variationContext;
         }
 
         private static IEnumerable<object[]> VariationReasonExamples()
@@ -116,73 +139,67 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             yield return VariationExample(_ => _.DateOpened = NewRandomDateTimeOffset(), VariationReason.DateOpenedFieldUpdated);
             yield return VariationExample(_ => _.DateClosed = NewRandomDateTimeOffset(), VariationReason.DateClosedFieldUpdated);
             yield return VariationExample(_ =>
-            {
-                _.Authority = NewRandomString();
-                _.CountryName = NewRandomString();
-            }, VariationReason.CountryNameFieldUpdated, VariationReason.AuthorityFieldUpdated);
+                {
+                    _.Authority = NewRandomString();
+                    _.CountryName = NewRandomString();
+                },
+                VariationReason.CountryNameFieldUpdated,
+                VariationReason.AuthorityFieldUpdated);
             yield return VariationExample(_ =>
-            {
-                _.DistrictName = NewRandomString();
-                _.Name = NewRandomString();
-            }, VariationReason.DistrictNameFieldUpdated, VariationReason.NameFieldUpdated);
+                {
+                    _.DistrictName = NewRandomString();
+                    _.Name = NewRandomString();
+                },
+                VariationReason.DistrictNameFieldUpdated,
+                VariationReason.NameFieldUpdated);
         }
 
-        private static object[] VariationExample(Action<Provider> differences, 
-            params VariationReason[] variationReasons)
-        {
-            Provider priorState = NewProvider();
-            
-            ProviderVariationContext variationContext = NewProviderVariationContext(_ => _.WithPublishedProvider(NewPublishedProvider(pp =>
-                    pp.WithReleased(NewPublishedProviderVersion(ppv => ppv.WithProvider(priorState)))))
-                    .WithPoliciesService(_policiesService.Object)
-                    .WithCurrentState(ProviderCopy(priorState, differences)));
+        private static object[] VariationExample(Action<Provider> differences,
+            params VariationReason[] variationReasons) =>
+            new object[] {differences, variationReasons};
 
-            return new object[] { variationContext, variationReasons};    
-        }
-        
         private static string NewRandomString() => new RandomString();
 
-        private static DateTimeOffset NewRandomDateTimeOffset() => new DateTimeOffset(new RandomDateTime());
+        private static DateTimeOffset NewRandomDateTimeOffset() => new RandomDateTime();
 
-        private static Provider NewProvider()
-        {
-            return new ProviderBuilder()
+        private static Provider NewProvider() =>
+            new ProviderBuilder()
                 .Build();
-        }
-        
+
         private static PublishedProvider NewPublishedProvider(Action<PublishedProviderBuilder> setUp = null)
         {
             PublishedProviderBuilder publishedProviderBuilder = new PublishedProviderBuilder();
 
             setUp?.Invoke(publishedProviderBuilder);
-            
+
             return publishedProviderBuilder.Build();
         }
 
-        private static Provider ProviderCopy(Provider provider, Action<Provider> differences = null)
+        private static Provider ProviderCopy(Provider provider,
+            Action<Provider> differences = null)
         {
             Provider copy = new ProviderBuilder()
                 .WithPropertiesFrom(provider)
                 .Build();
-            
+
             differences?.Invoke(copy);
-            
+
             return copy;
         }
 
         private static PublishedProviderVersion NewPublishedProviderVersion(Action<PublishedProviderVersionBuilder> setUp = null)
         {
             PublishedProviderVersionBuilder providerVersionBuilder = new PublishedProviderVersionBuilder();
-            
+
             setUp?.Invoke(providerVersionBuilder);
 
             return providerVersionBuilder.Build();
         }
 
         private static ProviderVariationContext NewProviderVariationContext(Action<ProviderVariationContextBuilder> setUp = null)
-        {   
+        {
             ProviderVariationContextBuilder variationContextBuilder = new ProviderVariationContextBuilder();
-            
+
             setUp?.Invoke(variationContextBuilder);
 
             ProviderVariationContext providerVariationContext = variationContextBuilder.Build();
@@ -193,13 +210,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             return providerVariationContext;
         }
 
-        private static IDictionary<string, PublishedProviderSnapShots> AsDictionary(params PublishedProviderSnapShots[] publishedProviders)
-        {
-            return publishedProviders.ToDictionary(_ => _.LatestSnapshot.Current.ProviderId);
-        }
-        private static IDictionary<string, PublishedProvider> AsDictionary(params PublishedProvider[] publishedProviders)
-        {
-            return publishedProviders.ToDictionary(_ => _.Current.ProviderId);
-        }
+        private static IDictionary<string, PublishedProviderSnapShots> AsDictionary(params PublishedProviderSnapShots[] publishedProviders) 
+            => publishedProviders.ToDictionary(_ => _.LatestSnapshot.Current.ProviderId);
+
+        private static IDictionary<string, PublishedProvider> AsDictionary(params PublishedProvider[] publishedProviders) 
+            => publishedProviders.ToDictionary(_ => _.Current.ProviderId);
     }
 }

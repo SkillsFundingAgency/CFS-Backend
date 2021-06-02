@@ -1386,6 +1386,12 @@ Name: {templateMetadataCalculationBooleanId} Type: Boolean
                         Name = $"4_{NewRandomString()}",
                         Type = Common.TemplateMetadata.Enums.CalculationType.Information,
                         AggregationType = Common.TemplateMetadata.Enums.AggregationType.None
+                    },
+                    new TemplateMetadataCalculation()
+                    {
+                        Name = $"5_{NewRandomString()}",
+                        Type = Common.TemplateMetadata.Enums.CalculationType.Adjustment,
+                        AggregationType = Common.TemplateMetadata.Enums.AggregationType.None
                     }
                 }
             };
@@ -1474,6 +1480,7 @@ Name: {templateMetadataCalculationBooleanId} Type: Boolean
                     i.First().Id == definitionId.ToString() &&
                     i.First().Name == definitionName));
 
+
             await datasetsRepository
                 .Received(1)
                 .SaveDefinition(Arg.Is<DatasetDefinition>(
@@ -1495,7 +1502,11 @@ Name: {templateMetadataCalculationBooleanId} Type: Boolean
 
                     i.TableDefinitions[0].FieldDefinitions.Single(x => x.Name.StartsWith("4")).Required == false &&
                     i.TableDefinitions[0].FieldDefinitions.Single(x => x.Name.StartsWith("4")).Type == FieldType.String &&
-                    i.TableDefinitions[0].FieldDefinitions.Single(x => x.Name.StartsWith("4")).IsAggregable == false
+                    i.TableDefinitions[0].FieldDefinitions.Single(x => x.Name.StartsWith("4")).IsAggregable == false &&
+                    
+                    i.TableDefinitions[0].FieldDefinitions.Single(x => x.Name.StartsWith("5")).Required == false &&
+                    i.TableDefinitions[0].FieldDefinitions.Single(x => x.Name.StartsWith("5")).Type == FieldType.NullableOfDecimal &&
+                    i.TableDefinitions[0].FieldDefinitions.Single(x => x.Name.StartsWith("5")).IsAggregable == false
                    ));
 
             logger

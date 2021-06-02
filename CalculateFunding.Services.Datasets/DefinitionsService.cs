@@ -406,6 +406,7 @@ namespace CalculateFunding.Services.Datasets
         {
             switch (calculationType)
             {
+                case CalculationType.Adjustment:
                 case CalculationType.Cash:
                 case CalculationType.Rate:
                 case CalculationType.PupilNumber:

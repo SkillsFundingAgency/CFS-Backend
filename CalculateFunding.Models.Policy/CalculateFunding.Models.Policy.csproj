@@ -8,7 +8,7 @@
   <ItemGroup>
 
     <PackageReference Include="CalculateFunding.Common.Models" Version="2.2.0" />
-    <PackageReference Include="CalculateFunding.Common.TemplateMetadata" Version="2.2.1" />
+    <PackageReference Include="CalculateFunding.Common.TemplateMetadata" Version="2.3.0" />
     <PackageReference Include="Microsoft.Azure.Search" Version="10.1.0" />
 
   </ItemGroup>
