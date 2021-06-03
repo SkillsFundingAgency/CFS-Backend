@@ -108,6 +108,32 @@ steps:
     scriptType: pscore
     scriptLocation: inlineScript
     inlineScript: 'az webapp restart --name app-$(EnvironmentKey)-profiling-$(productVersion) --resource-group $(ResourceGroup)  --slot Staging'
+ 
+ - task: DotNetCoreCLI@2
+   condition: and(succeeded(), eq(variables.runIntegrationTests, true))
+   displayName: 'dotnet test for Integration tests'
+   inputs:
+     command: 'test'
+     projects: |
+       **/*Api.Profiling.IntegrationTests/*.csproj
+     arguments: '--configuration Release /p:AssemblyVersion=$(Build.BuildNumber)'
+   env:
+     AzureAd:Audience: $(AzureAdAudienceprofiling) 
+     AzureAd:Authority: $(AzureAdAuthority)
+     AzureAd:TenantId: $(AzureAdTenantId)
+     AzureConfiguration:ConnectionString: $(AzureConfigurationConnectionString)
+     AzureStorageSettings:ConnectionString: $(AzureStorageSettings)
+     CosmosDbSettings:ConnectionString: $(CosmosDbSettings)
+     CosmosDbSettings:ContainerName: 'profiling'
+     CosmosDbSettings:DatabaseName: $(CosmosDbSettingsDatabaseName)
+     RedisSettings:CacheConnection: $(RedisSettings)
+     ResourceGroup: $(ResourceGroup)
+     ServiceBusSettings:ConnectionString: $(ServiceBusSettings)
+     storageConfiguration:ConnectionString: $(AzureStorageSettings)
+     cfsClient:ApiEndpoint: $(cfsClientApiEndpoint)
+     providerProfilingApiUrl: $(providerProfilingClientApiEndpoint)
+     ProfilingAzureAdClientID: $(SmokeTestClientId-profiling)
+     ProfilingAzureAdClientSecret: $(ProfilingAzureAdClientSecret)
 
  - task: PowerShell@2
    displayName: 'Run Smoke Test'

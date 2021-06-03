@@ -23,17 +23,58 @@ variables:
  - name: SecureSmokeTest
    value: false
  - group: 'Dotnet Core SDK Version'
+ - group: 'Azure Settings Integration-v2'
  - group: 'Smoke Test Info - Integration-v2' 
  - group: 'Smoke Test KV - Integration-v2'
 
 steps:
-  - template: templates\standard-service-pr-build.yml
-    parameters:
-      ProjectName: ${{ variables.ProjectName }}
-      ServiceName: ${{ variables.ServiceName }} 
-      DotnetCoreSdkVersion: $(DotnetCoreSdkVersion)
-      ResourceGroup: $(ResourceGroup)
-      BuildApi: ${{ variables.BuildApi }}
-      BuildFunction: ${{ variables.BuildFunction }}
-      SecureSmokeTest: ${{ variables.SecureSmokeTest }}
-      APIKey: $(svcapidatasets)
+ - template: templates\standard-service-pr-build.yml
+   parameters:
+     ProjectName: ${{ variables.ProjectName }}
+     ServiceName: ${{ variables.ServiceName }} 
+     DotnetCoreSdkVersion: $(DotnetCoreSdkVersion)
+     ResourceGroup: $(ResourceGroup)
+     BuildApi: ${{ variables.BuildApi }}
+     BuildFunction: ${{ variables.BuildFunction }}
+     SecureSmokeTest: ${{ variables.SecureSmokeTest }}
+     APIKey: $(svcapidatasets)
+
+ - task: DotNetCoreCLI@2
+   condition: and(succeeded(), eq(variables.runIntegrationTests, true))
+   displayName: 'dotnet test for Integration tests'
+   inputs:
+     command: 'test'
+     projects: |
+      **/*Api.${{ variables.ProjectName }}.IntegrationTests/*.csproj
+     arguments: '--configuration Release /p:AssemblyVersion=$(Build.BuildNumber)'
+   env:
+     AzureConfiguration:ConnectionString: $(AzureConfigurationConnectionString)
+     AzureStorageSettings:ConnectionString: $(AzureStorageSettings)
+     CommonStorageSettings:ConnectionString: $(AzureStorageSettings)
+     CosmosDbSettings:ConnectionString: $(CosmosDbSettings)
+     CosmosDbSettings:ContainerName: 'datasets'
+     CosmosDbSettings:DatabaseName: $(CosmosDbSettingsDatabaseName)
+     RedisSettings:CacheConnection: $(RedisSettings)
+     ResourceGroup: $(ResourceGroup)
+     SearchServiceKey: $(SearchServiceKey)
+     SearchServiceName: $(SearchServiceName)
+     ServiceBusSettings:ConnectionString: $(ServiceBusSettings)
+     storageConfiguration:ConnectionString: $(AzureStorageSettings)
+     WEBSITE_HTTPLOGGING_CONTAINER_URL: $(WEBSITE_HTTPLOGGING_CONTAINER_URL)
+     apiKeyMiddleware:apiKey: $(svcapidatasets)
+     cfsClient:ApiEndpoint: $(cfsClientApiEndpoint)
+     calcsClient:ApiEndpoint: $(calcsClientApiEndpoint)
+     calcsClient:ApiKey: $(svcapicalcs)
+     DatasetStorage: $(DatasetStorage)
+     datasetsClient:ApiEndpoint: $(datasetsClientApiEndpoint)
+     datasetsClient:ApiKey: $(svcapidatasets)
+     jobsClient:ApiEndpoint: $(jobsClientApiEndpoint)
+     jobsClient:ApiKey: $(svcapijobs)
+     policiesClient:ApiEndpoint: $(policiesClientApiEndpoint)
+     policiesClient:ApiKey: $(svcapipolicy)
+     providersClient:ApiEndpoint: $(providersClientApiEndpoint)
+     providersClient:ApiKey: $(svcapiproviders)
+     resultsClient:ApiEndpoint: $(resultsClientApiEndpoint)
+     resultsClient:ApiKey: $(svcapiresults)
+     specificationsClient:ApiEndpoint: $(specificationsClientApiEndpoint)
+     specificationsClient:ApiKey: $(svcapispecs)
