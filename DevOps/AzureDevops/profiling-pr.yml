@@ -131,7 +131,8 @@ steps:
      ServiceBusSettings:ConnectionString: $(ServiceBusSettings)
      storageConfiguration:ConnectionString: $(AzureStorageSettings)
      cfsClient:ApiEndpoint: $(cfsClientApiEndpoint)
-     providerProfilingClient:EndPoint: $(providerProfilingClientApiEndpoint)
+     providerProfilingClient:ApiEndpoint: $(providerProfilingClientApiEndpoint)
+     providerProfilingClient:ApiKey: $(svcapiprofiling)
      ProfilingAzureAdClientID: $(SmokeTestClientId-profiling)
      ProfilingAzureAdClientSecret: $(ProfilingAzureAdClientSecret)
 
