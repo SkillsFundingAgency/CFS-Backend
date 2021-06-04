@@ -19,26 +19,52 @@ variables:
  - name: SecureSmokeTest
    value: false
  - group: 'Dotnet Core SDK Version'
+ - group: 'Azure Settings Integration-v2'
  - group: 'Smoke Test Info - Integration-v2' 
  - group: 'Smoke Test KV - Integration-v2'
 
 steps:
-  - template: templates\standard-service-pr-build.yml
-    parameters:
-      ProjectName: Jobs
-      ServiceName: Jobs
-      DotnetCoreSdkVersion: $(DotnetCoreSdkVersion)
-      ResourceGroup: $(ResourceGroup)
-      BuildApi: true
-      BuildFunction: true
-      SecureSmokeTest: ${{ variables.SecureSmokeTest }}
-      APIKey: $(svcapijobs)
+ - template: templates\standard-service-pr-build.yml
+   parameters:
+     ProjectName: Jobs
+     ServiceName: Jobs
+     DotnetCoreSdkVersion: $(DotnetCoreSdkVersion)
+     ResourceGroup: $(ResourceGroup)
+     BuildApi: true
+     BuildFunction: true
+     SecureSmokeTest: ${{ variables.SecureSmokeTest }}
+     APIKey: $(svcapijobs)
 
-  - template: templates\standard-service-pr-build.yml
-    parameters:
-      ProjectName: Notifications
-      ServiceName: Notifications
-      DotnetCoreSdkVersion: $(DotnetCoreSdkVersion)
-      BuildApi: false
-      BuildFunction: true
-      SecureSmokeTest: ${{ variables.SecureSmokeTest }}
+ - task: DotNetCoreCLI@2
+   condition: and(succeeded(), eq(variables.runIntegrationTests, true))
+   displayName: 'dotnet test for Integration tests'
+   inputs:
+     command: 'test'
+     projects: |
+      **/*Api.jobs.IntegrationTests/*.csproj
+     arguments: '--configuration Release /p:AssemblyVersion=$(Build.BuildNumber)'
+   env:
+     AzureConfiguration:ConnectionString: $(AzureConfigurationConnectionString)
+     AzureStorageSettings:ConnectionString: $(AzureStorageSettings)
+     CommonStorageSettings:ConnectionString: $(AzureStorageSettings)
+     CosmosDbSettings:ConnectionString: $(CosmosDbSettings)
+     CosmosDbSettings:ContainerName: 'jobs'
+     CosmosDbSettings:DatabaseName: $(CosmosDbSettingsDatabaseName)
+     RedisSettings:CacheConnection: $(RedisSettings)
+     ResourceGroup: $(ResourceGroup)
+     ServiceBusSettings:ConnectionString: $(ServiceBusSettings)
+     storageConfiguration:ConnectionString: $(AzureStorageSettings)
+     WEBSITE_HTTPLOGGING_CONTAINER_URL: $(WEBSITE_HTTPLOGGING_CONTAINER_URL)
+     apiKeyMiddleware:apiKey: $(svcapijobs)
+     cfsClient:ApiEndpoint: $(cfsClientApiEndpoint)
+     jobsClient:ApiEndpoint: $(jobsClientApiEndpoint)
+     jobsClient:ApiKey: $(svcapijobs)   
+
+ - template: templates\standard-service-pr-build.yml
+   parameters:
+     ProjectName: Notifications
+     ServiceName: Notifications
+     DotnetCoreSdkVersion: $(DotnetCoreSdkVersion)
+     BuildApi: false
+     BuildFunction: true
+     SecureSmokeTest: ${{ variables.SecureSmokeTest }}
