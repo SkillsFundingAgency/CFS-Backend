@@ -28,17 +28,17 @@ variables:
 
 
 steps:
-  - template: templates\standard-service-pr-build.yml
-    parameters:
-      ProjectName: ${{ variables.ProjectName }}
-      ServiceName: ${{ variables.ServiceName }} 
-      DotnetCoreSdkVersion: $(DotnetCoreSdkVersion)
-      ResourceGroup: $(ResourceGroup)
-      BuildApi: ${{ variables.BuildApi }}
-      BuildFunction: ${{ variables.BuildFunction }}
-      SecureSmokeTest: ${{ variables.SecureSmokeTest }}
-      SmokeTestTenantId: $(SmokeTestTenantId)
-      SmokeTestApplicationUrl: $(SmokeTestApplicationUrl-external)
-      SmokeTestClientID: $(SmokeTestClientId-external)
-      SmokeTestClientSecret: $(ExternalAzureAdClientSecret)
-  
+ - template: templates\standard-service-pr-build.yml
+   parameters:
+     ProjectName: ${{ variables.ProjectName }}
+     ServiceName: ${{ variables.ServiceName }} 
+     DotnetCoreSdkVersion: $(DotnetCoreSdkVersion)
+     ResourceGroup: $(ResourceGroup)
+     BuildApi: ${{ variables.BuildApi }}
+     BuildFunction: ${{ variables.BuildFunction }}
+     SecureSmokeTest: ${{ variables.SecureSmokeTest }}
+     SmokeTestTenantId: $(SmokeTestTenantId)
+     SmokeTestApplicationUrl: $(SmokeTestApplicationUrl-external)
+     SmokeTestClientID: $(SmokeTestClientId-external)
+     SmokeTestClientSecret: $(ExternalAzureAdClientSecret)
+
