@@ -23,6 +23,7 @@ variables:
  - name: SecureSmokeTest
    value: true
  - group: 'Dotnet Core SDK Version'
+ - group: 'Azure Settings Integration-v2'
  - group: 'Smoke Test Info - Integration-v2' 
  - group: 'Smoke Test KV - Integration-v2'
 
@@ -42,3 +43,34 @@ steps:
      SmokeTestClientID: $(SmokeTestClientId-external)
      SmokeTestClientSecret: $(ExternalAzureAdClientSecret)
 
+ - task: DotNetCoreCLI@2
+   condition: and(succeeded(), eq(variables.runIntegrationTests, true))
+   displayName: 'dotnet test for Integration tests'
+   inputs:
+     command: 'test'
+     projects: |
+      **/*Api.${{ variables.ProjectName }}.IntegrationTests/*.csproj
+     arguments: '--configuration Release /p:AssemblyVersion=$(Build.BuildNumber)'
+   env:
+     AzureAd:Audience: $(AzureAdAudienceExternal) 
+     AzureAd:Authority: $(AzureAdAuthority)
+     AzureAd:TenantId: $(AzureAdTenantId)
+     AzureConfiguration:ConnectionString: $(AzureConfigurationConnectionString)
+     AzureStorageSettings:ConnectionString: $(AzureStorageSettings)
+     CommonStorageSettings:ConnectionString: $(AzureStorageSettings)
+     CosmosDbSettings:ConnectionString: $(CosmosDbSettings)
+     CosmosDbSettings:ContainerName: 'publishedfunding'
+     CosmosDbSettings:DatabaseName: $(CosmosDbSettingsDatabaseName)
+     RedisSettings:CacheConnection: $(RedisSettings)
+     ResourceGroup: $(ResourceGroup)
+     SearchServiceKey: $(SearchServiceKey)
+     SearchServiceName: $(SearchServiceName)
+     ServiceBusSettings:ConnectionString: $(ServiceBusSettings)
+     storageConfiguration:ConnectionString: $(AzureStorageSettings)
+     WEBSITE_HTTPLOGGING_CONTAINER_URL: $(WEBSITE_HTTPLOGGING_CONTAINER_URL)
+     apiKeyMiddleware:apiKey: $(svcapiexternal)
+     cfsClient:ApiEndpoint: $(cfsClientApiEndpoint)
+     policiesClient:ApiEndpoint: $(policiesClientApiEndpoint)
+     policiesClient:ApiKey: $(svcapipolicy)
+     providersClient:ApiEndpoint: $(providersClientApiEndpoint)
+     providersClient:ApiKey: $(svcapiproviders)
