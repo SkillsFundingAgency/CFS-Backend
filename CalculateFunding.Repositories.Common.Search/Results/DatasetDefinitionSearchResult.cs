@@ -18,6 +18,6 @@ namespace CalculateFunding.Repositories.Common.Search.Results
 
         public DateTimeOffset LastUpdatedDate { get; set; }
 
-        public bool ConverterEnabled { get; set; }
+        public bool ConverterEligible { get; set; }
     }
 }

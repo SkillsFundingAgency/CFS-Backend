@@ -62,12 +62,12 @@ namespace CalculateFunding.Services.Datasets
             return definitions.FirstOrDefault();
         }
 
-        public async Task<IEnumerable<DatasetDefinationByFundingStream>> GetDatasetDefinitionsByFundingStreamId(string fundingStreamId)
+        public async Task<IEnumerable<DatasetDefinitionByFundingStream>> GetDatasetDefinitionsByFundingStreamId(string fundingStreamId)
         {           
             CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
             {
                 QueryText = @"SELECT d.id AS id, d.content.name AS name, d.content.description as description,
-                                d.content.fundingStreamId as fundingStreamId
+                                d.content.fundingStreamId as fundingStreamId, d.content.converterEligible as converterEligible
                             FROM    datasets d
                             WHERE   d.deleted = false 
                                     AND d.documentType = ""DatasetDefinition"" 
@@ -80,7 +80,7 @@ namespace CalculateFunding.Services.Datasets
 
             IEnumerable<dynamic> results = await _cosmosRepository.DynamicQuery(cosmosDbQuery, 1000);
 
-            IList<DatasetDefinationByFundingStream> datasetDefinitions = new List<DatasetDefinationByFundingStream>();
+            IList<DatasetDefinitionByFundingStream> datasetDefinitions = new List<DatasetDefinitionByFundingStream>();
 
             if (results.IsNullOrEmpty())
             {
@@ -89,11 +89,12 @@ namespace CalculateFunding.Services.Datasets
 
             foreach (dynamic result in results)
             {
-                datasetDefinitions.Add(new DatasetDefinationByFundingStream
+                datasetDefinitions.Add(new DatasetDefinitionByFundingStream
                 {
                     Id = result.id,
                     Name = result.name,
-                    Description = result.description                   
+                    Description = result.description,
+                    ConverterEligible = result.converterEligible ?? false
                 });
             }
 
@@ -143,16 +144,16 @@ namespace CalculateFunding.Services.Datasets
 
         public async Task<IEnumerable<DatasetDefinition>> GetDatasetDefinitionsByQuery(Expression<Func<DocumentEntity<DatasetDefinition>, bool>> query)
         {
-            return await _cosmosRepository.Query<DatasetDefinition>(query);
+            return await _cosmosRepository.Query(query);
         }
 
         public async Task<IEnumerable<Dataset>> GetDatasetsByQuery(Expression<Func<DocumentEntity<Dataset>, bool>> query)
         {
-            return await _cosmosRepository.Query<Dataset>(query);
+            return await _cosmosRepository.Query(query);
         }
         public async Task<IEnumerable<DatasetVersion>> GetDatasetVersionsByQuery(Expression<Func<DocumentEntity<DatasetVersion>, bool>> query)
         {
-            return await _cosmosRepository.Query<DatasetVersion>(query);
+            return await _cosmosRepository.Query(query);
         }
 
         public Task<HttpStatusCode> SaveDefinitionSpecificationRelationship(DefinitionSpecificationRelationship relationship)
@@ -172,7 +173,7 @@ namespace CalculateFunding.Services.Datasets
 
         public async Task<IEnumerable<DefinitionSpecificationRelationship>> GetDefinitionSpecificationRelationshipsByQuery(Expression<Func<DocumentEntity<DefinitionSpecificationRelationship>, bool>> query)
         {
-            return await _cosmosRepository.Query<DefinitionSpecificationRelationship>(query);
+            return await _cosmosRepository.Query(query);
         }
 
         public async Task<DefinitionSpecificationRelationship> GetRelationshipBySpecificationIdAndName(string specificationId, string name)

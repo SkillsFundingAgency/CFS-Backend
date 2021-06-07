@@ -276,7 +276,7 @@ namespace CalculateFunding.Services.Datasets.Converter
             DatasetDefinition datasetDefinition = await _datasets.GetDatasetDefinition(definitionId);
 
             EnsureIsNotNull(datasetDefinition, $"Did not locate dataset definition {definitionId}");
-            Ensure(datasetDefinition.ConverterEnabled, "Dataset is not enabled for converters. Enable it in the dataset definition.");
+            Ensure(datasetDefinition.ConverterEligible, "Dataset is not enabled for converters. Enable it in the dataset definition.");
 
             return datasetDefinition;
         }

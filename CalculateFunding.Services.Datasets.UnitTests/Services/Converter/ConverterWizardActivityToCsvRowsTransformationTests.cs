@@ -85,7 +85,7 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
             {
                 new DatasetSpecificationRelationshipViewModel
                 {
-                    ConverterWizard = true,
+                    ConverterEnabled = true,
                     Id = datasetRelationshipId,
                     Name = datasetRelationshipName
                 }

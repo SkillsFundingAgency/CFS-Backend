@@ -119,7 +119,7 @@
 			"indexAnalyzer": null
 		  },
 		  {
-			"name": "converterEnabled",
+			"name": "converterEligible",
 			"type": "Edm.Boolean",
 			"key": false,
 			"facetable": false,

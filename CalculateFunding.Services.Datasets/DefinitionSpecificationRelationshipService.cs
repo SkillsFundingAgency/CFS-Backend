@@ -153,6 +153,7 @@ namespace CalculateFunding.Services.Datasets
                 UsedInDataAggregations = model.UsedInDataAggregations,
                 Author = author,
                 LastUpdated = _dateTimeProvider.UtcNow,
+                ConverterEnabled = model.ConverterEnabled
             };
 
             HttpStatusCode statusCode = await _datasetRepository.SaveDefinitionSpecificationRelationship(relationship);
@@ -296,6 +297,17 @@ namespace CalculateFunding.Services.Datasets
             }
 
             return new OkObjectResult(selectDatasourceModel);
+        }
+
+        public async Task<IActionResult> ToggleDatasetRelationship(string relationshipId, bool converterEnabled)
+        {
+            DefinitionSpecificationRelationship relationship = await _datasetRepository.GetDefinitionSpecificationRelationshipById(relationshipId);
+
+            relationship.ConverterEnabled = converterEnabled;
+
+            HttpStatusCode statusCode = await _datasetRepository.UpdateDefinitionSpecificationRelationship(relationship);
+
+            return new StatusCodeResult((int)statusCode);
         }
 
         public async Task<IActionResult> AssignDatasourceVersionToRelationship(AssignDatasourceModel model,
@@ -653,7 +665,8 @@ namespace CalculateFunding.Services.Datasets
                 RelationshipDescription = relationship.Description,
                 IsProviderData = relationship.IsSetAsProviderData,
                 LastUpdatedAuthor = relationship.Author,
-                LastUpdatedDate = relationship.LastUpdated
+                LastUpdatedDate = relationship.LastUpdated,
+                ConverterEnabled = relationship.ConverterEnabled
             };
 
             if (relationship.DatasetVersion != null)
@@ -664,7 +677,6 @@ namespace CalculateFunding.Services.Datasets
                 {
                     relationshipViewModel.DatasetId = relationship.DatasetVersion.Id;
                     relationshipViewModel.DatasetName = dataset.Name;
-                    relationshipViewModel.ConverterWizard = dataset.ConverterWizard;
                     relationshipViewModel.Version = relationship.DatasetVersion.Version;
                     relationshipViewModel.IsLatestVersion = relationship.DatasetVersion.Version == datasetLatestVersion.Value;
                 }
@@ -678,7 +690,7 @@ namespace CalculateFunding.Services.Datasets
             {
                 string definitionId = relationship.DatasetDefinition.Id;
 
-                Models.Datasets.Schema.DatasetDefinition definition = await _datasetRepository.GetDatasetDefinition(definitionId);
+                DatasetDefinition definition = await _datasetRepository.GetDatasetDefinition(definitionId);
 
                 if (definition != null)
                 {
@@ -688,6 +700,8 @@ namespace CalculateFunding.Services.Datasets
                         Name = definition.Name,
                         Description = definition.Description
                     };
+
+                    relationshipViewModel.ConverterEligible = definition.ConverterEligible;
                 }
             }
 

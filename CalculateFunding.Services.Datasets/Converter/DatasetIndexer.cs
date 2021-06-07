@@ -86,8 +86,7 @@ namespace CalculateFunding.Services.Datasets.Converter
                     LastUpdatedById = datasetVersion.Author?.Id,
                     LastUpdatedByName = datasetVersion.Author?.Name,
                     FundingStreamId = datasetVersion.FundingStream?.Id,
-                    FundingStreamName = datasetVersion.FundingStream?.Name,
-                    ConverterWizard = dataset.ConverterWizard
+                    FundingStreamName = datasetVersion.FundingStream?.Name
                 }
             }));
         }

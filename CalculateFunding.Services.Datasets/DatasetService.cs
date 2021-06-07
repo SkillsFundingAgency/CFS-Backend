@@ -189,7 +189,6 @@ namespace CalculateFunding.Services.Datasets
             responseModel.Author = author;
             responseModel.DefinitionId = model.DefinitionId;
             responseModel.FundingStreamId = model.FundingStreamId;
-            responseModel.ConverterWizard = model.ConverterWizard;
 
             return new OkObjectResult(responseModel);
         }
@@ -232,7 +231,6 @@ namespace CalculateFunding.Services.Datasets
             responseModel.Description = dataset.Description;
             responseModel.Version = version;
             responseModel.FundingStreamId = model.FundingStreamId;
-            responseModel.ConverterWizard = model.ConverterWizard;
 
             return new OkObjectResult(responseModel);
         }
@@ -816,7 +814,7 @@ namespace CalculateFunding.Services.Datasets
             blob.Metadata["name"] = model.Name;
             blob.Metadata["description"] = model.Description;
             blob.Metadata["fundingStreamId"] = model.FundingStreamId;
-            blob.Metadata["converterWizard"] = model.ConverterWizard.ToString();
+            blob.Metadata["converterWizard"] = model.ConverterEligible.ToString();
             blob.SetMetadata();
 
             return new OkResult();
@@ -945,8 +943,7 @@ namespace CalculateFunding.Services.Datasets
                     ChangeType = dataset.Content.Current.ChangeType == DatasetChangeType.Unknown ? DatasetChangeType.NewVersion.ToString() : dataset.Content.Current.ChangeType.ToString(),
                     LastUpdatedById = dataset.Content.Current.Author?.Id,
                     FundingStreamId = dataset.Content.Current.FundingStream?.Id,
-                    FundingStreamName = dataset.Content.Current.FundingStream?.Name,
-                    ConverterWizard = dataset.Content.ConverterWizard
+                    FundingStreamName = dataset.Content.Current.FundingStream?.Name
                 };
 
                 searchEntries.Add(datasetIndex);
@@ -1212,7 +1209,6 @@ namespace CalculateFunding.Services.Datasets
                 Description = metadata.ContainsKey("description") ? HttpUtility.UrlDecode(metadata["description"]) : string.Empty,
                 Comment = metadata.ContainsKey("comment") ? metadata["comment"] : string.Empty,
                 FundingStreamId = metadata.ContainsKey("fundingStreamId") ? metadata["fundingStreamId"] : string.Empty,
-                ConverterWizard = bool.Parse(metadata.ContainsKey("converterWizard") ? metadata["converterWizard"] : "false")
             };
 
             ValidationResult validationResult = await _datasetMetadataModelValidator.ValidateAsync(metadataModel);
@@ -1253,8 +1249,7 @@ namespace CalculateFunding.Services.Datasets
                 History = new List<DatasetVersion>
                 {
                     newVersion
-                },
-                ConverterWizard = metadataModel.ConverterWizard
+                }
             };
 
             HttpStatusCode statusCode = await _datasetRepository.SaveDataset(dataset);
@@ -1329,7 +1324,6 @@ namespace CalculateFunding.Services.Datasets
 
             dataset.Description = model.Description;
             dataset.Current = newVersion;
-            dataset.ConverterWizard = model.ConverterWizard;
             dataset.History.Add(newVersion);
 
             HttpStatusCode statusCode = await _datasetRepository.SaveDataset(dataset);
@@ -1377,8 +1371,7 @@ namespace CalculateFunding.Services.Datasets
                     LastUpdatedById = dataset.Current.Author?.Id,
                     LastUpdatedByName = dataset.Current.Author?.Name,
                     FundingStreamId = dataset.Current.FundingStream?.Id,
-                    FundingStreamName = dataset.Current.FundingStream?.Name,
-                    ConverterWizard = dataset.ConverterWizard
+                    FundingStreamName = dataset.Current.FundingStream?.Name
                 }
             });
         }

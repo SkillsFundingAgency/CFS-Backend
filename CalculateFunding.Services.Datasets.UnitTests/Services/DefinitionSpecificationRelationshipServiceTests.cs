@@ -1339,6 +1339,48 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
+        public async Task ToggleDatasetRelationship_GivenConverterEnabledOnDefintion_ReturnsOk()
+        {
+            string relationshipId = NewRandomString();
+
+            ILogger logger = CreateLogger();
+
+            DefinitionSpecificationRelationship relationship = new DefinitionSpecificationRelationship
+            {
+                Id = relationshipId,
+                Name = "rel name",
+                Specification = new Reference("spec-id", "spec name"),
+                DatasetDefinition = new Reference("def-id", "def name")
+            };
+
+            IDatasetRepository datasetRepository = CreateDatasetRepository();
+
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
+                .Returns(relationship);
+
+            datasetRepository
+                .UpdateDefinitionSpecificationRelationship(Arg.Is<DefinitionSpecificationRelationship>(x => x.Id == relationshipId))
+                .Returns(HttpStatusCode.OK);
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
+
+            //Act
+            IActionResult result = await service.ToggleDatasetRelationship(relationshipId, true);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<StatusCodeResult>();
+
+            StatusCodeResult statusCodeResult = result as StatusCodeResult;
+            statusCodeResult
+                .StatusCode
+                .Should()
+                .Be(200);
+        }
+
+        [TestMethod]
         public async Task GetDataSourcesByRelationshipId_GivenRelationshipFoundAndDatasetsFound_ReturnsOKResult()
         {
             string relationshipId = NewRandomString();

@@ -1571,8 +1571,7 @@ namespace CalculateFunding.Services.Datasets.Services
                     d.First().LastUpdatedByName == authorName &&
                     d.First().ChangeNote == "" &&
                     d.First().FundingStreamId == model.FundingStreamId &&
-                    d.First().FundingStreamName == FundingStreamName &&
-                    d.First().ConverterWizard == false
+                    d.First().FundingStreamName == FundingStreamName
               ));
 
             await cacheProvider
@@ -1777,13 +1776,12 @@ namespace CalculateFunding.Services.Datasets.Services
                     d.First().LastUpdatedByName == authorName &&
                     d.First().ChangeNote == updateComment &&
                     d.First().FundingStreamId == model.FundingStreamId &&
-                    d.First().FundingStreamName == FundingStreamName &&
-                    d.First().ConverterWizard == false
+                    d.First().FundingStreamName == FundingStreamName
                     ));
 
             await cacheProvider
                  .Received(1)
-                 .SetAsync<DatasetValidationStatusModel>(
+                 .SetAsync(
                  Arg.Is<string>(a => a.StartsWith(CacheKeys.DatasetValidationStatus)),
                  Arg.Is<DatasetValidationStatusModel>(s =>
                      s.CurrentOperation == DatasetValidationStatus.Validated &&

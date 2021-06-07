@@ -166,7 +166,7 @@ namespace CalculateFunding.Services.Datasets
                     ProviderIdentifier = m.Result.ProviderIdentifier,
                     FundingStreamId = m.Result.FundingStreamId,
                     FundingStreamName = m.Result.FundingStreamName,
-                    ConverterEnabled = m.Result.ConverterEnabled
+                    ConverterEligible = m.Result.ConverterEligible
                 });
             }
         }

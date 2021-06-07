@@ -13,7 +13,9 @@ namespace CalculateFunding.Models.Datasets.ViewModels
 
         public string DatasetId { get; set; }
 
-        public bool ConverterWizard { get; set; }
+        public bool ConverterEligible { get; set; }
+
+        public bool ConverterEnabled { get; set; }
 
         public string RelationshipDescription { get; set; }
 

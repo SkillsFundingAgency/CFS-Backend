@@ -38,21 +38,21 @@ namespace CalculateFunding.Services.Datasets.Validators
              });
 
             RuleFor(model => model.Name)
-            .Custom((name, context) =>
+            .CustomAsync(async (name, context, ct) =>
             {
                 CreateNewDatasetModel model = context.ParentContext.InstanceToValidate as CreateNewDatasetModel;
                 if (string.IsNullOrWhiteSpace(model.Name))
                     context.AddFailure("Use a descriptive unique name other users can understand");
                 else
                 {
-                    IEnumerable<Dataset> datasets = _datasetsRepository.GetDatasetsByQuery(m => m.Content.Name.ToLower() == model.Name.ToLower()).Result;
+                    IEnumerable<Dataset> datasets = await _datasetsRepository.GetDatasetsByQuery(m => m.Content.Name.ToLower() == model.Name.ToLower());
                     if (datasets != null && datasets.Any())
                         context.AddFailure("Use a descriptive unique name other users can understand");
                 }
             });
 
             RuleFor(model => model.FundingStreamId)
-            .Custom((name, context) =>
+            .CustomAsync(async (name, context, ct) =>
             {
                 CreateNewDatasetModel model = context.ParentContext.InstanceToValidate as CreateNewDatasetModel;
                 if (string.IsNullOrWhiteSpace(model.FundingStreamId))
@@ -61,7 +61,7 @@ namespace CalculateFunding.Services.Datasets.Validators
                 }
                 else
                 {
-                    IEnumerable<PoliciesApiModels.FundingStream> fundingStreams = _policyRepository.GetFundingStreams().Result;
+                    IEnumerable<PoliciesApiModels.FundingStream> fundingStreams = await _policyRepository.GetFundingStreams();
 
                     if (fundingStreams != null && !fundingStreams.Any(_ => _.Id == model.FundingStreamId))
                     {
@@ -71,7 +71,7 @@ namespace CalculateFunding.Services.Datasets.Validators
             });
 
             RuleFor(model => model.DefinitionId)
-            .Custom((name, context) =>
+            .CustomAsync(async (name, context, ct) =>
             {
                 CreateNewDatasetModel model = context.ParentContext.InstanceToValidate as CreateNewDatasetModel;
                 if (string.IsNullOrWhiteSpace(model.DefinitionId))
@@ -80,7 +80,7 @@ namespace CalculateFunding.Services.Datasets.Validators
                 }
                 else if(!string.IsNullOrWhiteSpace(model.FundingStreamId))
                 {
-                    IEnumerable<DatasetDefinationByFundingStream> datasetDefinitions = _datasetsRepository.GetDatasetDefinitionsByFundingStreamId(model.FundingStreamId).Result;
+                    IEnumerable<DatasetDefinitionByFundingStream> datasetDefinitions = await _datasetsRepository.GetDatasetDefinitionsByFundingStreamId(model.FundingStreamId);
 
                     if (datasetDefinitions?.Any(d => d.Id == model.DefinitionId) == false)
                     {

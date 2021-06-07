@@ -6,16 +6,18 @@ using System.Text;
 
 namespace CalculateFunding.Models.Datasets.Schema
 {
-    public class DatasetDefinationByFundingStream
+    public class DatasetDefinitionByFundingStream
     {
         [JsonProperty("id")]
         public string Id { get; set; }
-     
+
         [JsonProperty("name")]
         public string Name { get; set; }
 
-        [JsonProperty("description")]        
+        [JsonProperty("description")]
         public string Description { get; set; }
 
+        [JsonProperty("converterEligible")]
+        public bool ConverterEligible { get; set; }
     }
 }

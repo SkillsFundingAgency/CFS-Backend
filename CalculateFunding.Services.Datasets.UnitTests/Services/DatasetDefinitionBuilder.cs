@@ -47,7 +47,7 @@ namespace CalculateFunding.Services.Datasets.Services
             {
                 Id = _id,
                 TableDefinitions = _tableDefinitions?.ToList(),
-                ConverterEnabled = _converterEnabled,
+                ConverterEligible = _converterEnabled,
                 FundingStreamId = _fundingStreamId,
             };
         }

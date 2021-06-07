@@ -46,7 +46,7 @@ namespace CalculateFunding.Models.Datasets.Schema
         public DateTimeOffset LastUpdatedDate { get; set; }
 
         [IsFilterable, IsRetrievable(true)]
-        [JsonProperty("converterEnabled")]
-        public bool ConverterEnabled { get; set; }
+        [JsonProperty("converterEligible")]
+        public bool ConverterEligible { get; set; }
     }
 }

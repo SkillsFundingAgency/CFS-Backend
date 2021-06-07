@@ -7,6 +7,7 @@ using FluentValidation.Results;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using System;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -25,7 +26,7 @@ namespace CalculateFunding.Services.Datasets.Validators
         const string FundingStreamName = "funding-stream-name";
 
         [TestMethod]
-        public void Validate_GivenEmptyDefinitionId_ValidIsFalse()
+        public async Task Validate_GivenEmptyDefinitionId_ValidIsFalse()
         {
             //Arrange
             CreateNewDatasetModel model = CreateModel();
@@ -34,7 +35,7 @@ namespace CalculateFunding.Services.Datasets.Validators
             CreateNewDatasetModelValidator validator = CreateValidator();
 
             //Act
-            ValidationResult result = validator.Validate(model);
+            ValidationResult result = await validator.ValidateAsync(model);
 
             //Assert
             result
@@ -50,7 +51,33 @@ namespace CalculateFunding.Services.Datasets.Validators
         }
 
         [TestMethod]
-        public void Validate_GivenEmptyDescription_ValidIsFalse()
+        public async Task Validate_GivenDefinitionIdAndNotConverterEnabled_ValidIsFalse()
+        {
+            //Arrange
+            CreateNewDatasetModel model = CreateModel();
+
+            IDatasetRepository repository = CreateDatasetsRepository(true, true);
+
+            CreateNewDatasetModelValidator validator = CreateValidator(repository);
+
+            //Act
+            ValidationResult result = await validator.ValidateAsync(model);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .BeFalse();
+
+            result
+                .Errors
+                .Count
+                .Should()
+                .Be(1);
+        }
+
+        [TestMethod]
+        public async Task Validate_GivenEmptyDescription_ValidIsFalse()
         {
             //Arrange
             CreateNewDatasetModel model = CreateModel();
@@ -59,7 +86,7 @@ namespace CalculateFunding.Services.Datasets.Validators
             CreateNewDatasetModelValidator validator = CreateValidator();
 
             //Act
-            ValidationResult result = validator.Validate(model);
+            ValidationResult result = await validator.ValidateAsync(model);
 
             //Assert
             result
@@ -75,7 +102,7 @@ namespace CalculateFunding.Services.Datasets.Validators
         }
 
         [TestMethod]
-        public void Validate_GivenEmptyFundingStreamId_ValidIsFalse()
+        public async Task Validate_GivenEmptyFundingStreamId_ValidIsFalse()
         {
             //Arrange
             CreateNewDatasetModel model = CreateModel();
@@ -84,7 +111,7 @@ namespace CalculateFunding.Services.Datasets.Validators
             CreateNewDatasetModelValidator validator = CreateValidator();
 
             //Act
-            ValidationResult result = validator.Validate(model);
+            ValidationResult result = await validator.ValidateAsync(model);
 
             //Assert
             result
@@ -100,7 +127,7 @@ namespace CalculateFunding.Services.Datasets.Validators
         }
 
         [TestMethod]
-        public void Validate_GivenInvalidFundingStreamId_ValidIsFalse()
+        public async Task Validate_GivenInvalidFundingStreamId_ValidIsFalse()
         {
             //Arrange
             CreateNewDatasetModel model = CreateModel();
@@ -109,7 +136,7 @@ namespace CalculateFunding.Services.Datasets.Validators
             CreateNewDatasetModelValidator validator = CreateValidator();
 
             //Act
-            ValidationResult result = validator.Validate(model);
+            ValidationResult result = await validator.ValidateAsync(model);
 
             //Assert
             result
@@ -125,7 +152,7 @@ namespace CalculateFunding.Services.Datasets.Validators
         }
 
         [TestMethod]
-        public void Validate_GivenDefinitionNotFoundForFundingStreamId_ValidIsFalse()
+        public async Task Validate_GivenDefinitionNotFoundForFundingStreamId_ValidIsFalse()
         {
             //Arrange
             CreateNewDatasetModel model = CreateModel();
@@ -134,7 +161,7 @@ namespace CalculateFunding.Services.Datasets.Validators
             CreateNewDatasetModelValidator validator = CreateValidator(datasetRepository);
 
             //Act
-            ValidationResult result = validator.Validate(model);
+            ValidationResult result = await validator.ValidateAsync(model);
 
             //Assert
             result
@@ -150,7 +177,7 @@ namespace CalculateFunding.Services.Datasets.Validators
         }
 
         [TestMethod]
-        public void Validate_GivenEmptyFilename_ValidIsFalse()
+        public async Task Validate_GivenEmptyFilename_ValidIsFalse()
         {
             //Arrange
             CreateNewDatasetModel model = CreateModel();
@@ -159,7 +186,7 @@ namespace CalculateFunding.Services.Datasets.Validators
             CreateNewDatasetModelValidator validator = CreateValidator();
 
             //Act
-            ValidationResult result = validator.Validate(model);
+            ValidationResult result = await validator.ValidateAsync(model);
 
             //Assert
             result
@@ -175,7 +202,7 @@ namespace CalculateFunding.Services.Datasets.Validators
         }
 
         [TestMethod]
-        public void Validate_GivenFilenameWithIncorrectExtension_ValidIsFalse()
+        public async Task Validate_GivenFilenameWithIncorrectExtension_ValidIsFalse()
         {
             //Arrange
             CreateNewDatasetModel model = CreateModel();
@@ -184,7 +211,7 @@ namespace CalculateFunding.Services.Datasets.Validators
             CreateNewDatasetModelValidator validator = CreateValidator();
 
             //Act
-            ValidationResult result = validator.Validate(model);
+            ValidationResult result = await validator.ValidateAsync(model);
 
             //Assert
             result
@@ -200,7 +227,7 @@ namespace CalculateFunding.Services.Datasets.Validators
         }
 
         [TestMethod]
-        public void Validate_GivenEmptyName_ValidIsFalse()
+        public async Task Validate_GivenEmptyName_ValidIsFalse()
         {
             //Arrange
             CreateNewDatasetModel model = CreateModel();
@@ -209,7 +236,7 @@ namespace CalculateFunding.Services.Datasets.Validators
             CreateNewDatasetModelValidator validator = CreateValidator();
 
             //Act
-            ValidationResult result = validator.Validate(model);
+            ValidationResult result = await validator.ValidateAsync(model);
 
             //Assert
             result
@@ -225,7 +252,7 @@ namespace CalculateFunding.Services.Datasets.Validators
         }
 
         [TestMethod]
-        public void Validate_GivenNameAlreadyExists_ValidIsFalse()
+        public async Task Validate_GivenNameAlreadyExists_ValidIsFalse()
         {
             //Arrange
             CreateNewDatasetModel model = CreateModel();
@@ -243,7 +270,7 @@ namespace CalculateFunding.Services.Datasets.Validators
             CreateNewDatasetModelValidator validator = CreateValidator(repository);
 
             //Act
-            ValidationResult result = validator.Validate(model);
+            ValidationResult result = await validator.ValidateAsync(model);
 
             //Assert
             result
@@ -259,7 +286,7 @@ namespace CalculateFunding.Services.Datasets.Validators
         }
 
         [TestMethod]
-        public void Validate_GivenInvalidModelWithCsvFile_ValidIsFalse()
+        public async Task Validate_GivenInvalidModelWithCsvFile_ValidIsFalse()
         {
             //Arrange
             CreateNewDatasetModel model = CreateModel();
@@ -268,7 +295,7 @@ namespace CalculateFunding.Services.Datasets.Validators
             CreateNewDatasetModelValidator validator = CreateValidator();
 
             //Act
-            ValidationResult result = validator.Validate(model);
+            ValidationResult result = await validator.ValidateAsync(model);
 
             //Assert
             result
@@ -288,7 +315,7 @@ namespace CalculateFunding.Services.Datasets.Validators
         }
 
         [TestMethod]
-        public void Validate_GivenvalidModelWithXlsFile_ValidIsTrue()
+        public async Task Validate_GivenvalidModelWithXlsFile_ValidIsTrue()
         {
             //Arrange
             CreateNewDatasetModel model = CreateModel();
@@ -297,7 +324,7 @@ namespace CalculateFunding.Services.Datasets.Validators
             CreateNewDatasetModelValidator validator = CreateValidator();
 
             //Act
-            ValidationResult result = validator.Validate(model);
+            ValidationResult result = await validator.ValidateAsync(model);
 
             //Assert
             result
@@ -307,7 +334,7 @@ namespace CalculateFunding.Services.Datasets.Validators
         }
 
         [TestMethod]
-        public void Validate_GivenvalidModelWithXlsxFile_ValidIsTrue()
+        public async Task Validate_GivenvalidModelWithXlsxFile_ValidIsTrue()
         {
             //Arrange
             CreateNewDatasetModel model = CreateModel();
@@ -316,7 +343,7 @@ namespace CalculateFunding.Services.Datasets.Validators
             CreateNewDatasetModelValidator validator = CreateValidator();
 
             //Act
-            ValidationResult result = validator.Validate(model);
+            ValidationResult result = await validator.ValidateAsync(model);
 
             //Assert
             result
@@ -345,8 +372,14 @@ namespace CalculateFunding.Services.Datasets.Validators
             repository
                 .GetDatasetDefinitionsByFundingStreamId(Arg.Is(FundingStreamId))
                 .Returns(hasDatasetDefinitionForFundingStream ? 
-                new[] { new Models.Datasets.Schema.DatasetDefinationByFundingStream() { Id = DefinitionId } } 
-                : Enumerable.Empty<Models.Datasets.Schema.DatasetDefinationByFundingStream>());
+                new[] { new Models.Datasets.Schema.DatasetDefinitionByFundingStream() { Id = DefinitionId } } 
+                : Enumerable.Empty<Models.Datasets.Schema.DatasetDefinitionByFundingStream>());
+
+            repository
+                .GetDatasetDefinition(Arg.Is(DefinitionId))
+                .Returns(hasDatasetDefinitionForFundingStream ?
+                new Models.Datasets.Schema.DatasetDefinition() { Id = DefinitionId }
+                : null);
 
             return repository;
         }

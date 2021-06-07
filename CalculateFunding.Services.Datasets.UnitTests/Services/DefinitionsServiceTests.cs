@@ -568,7 +568,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 Name = "14/15",
                 ProviderIdentifier = "None",
                 Version = 1,
-                ConverterEnabled = true
+                ConverterEligible = true
             };
 
             IDatasetRepository datasetsRepository = CreateDataSetsRepository();
@@ -637,7 +637,7 @@ namespace CalculateFunding.Services.Datasets.Services
                     i.First().Name == "14/15" &&
                     i.First().ProviderIdentifier == "None" &&
                     i.First().Version == 1 &&
-                    i.First().ConverterEnabled == false
+                    i.First().ConverterEligible == false
                    ));
 
             await datasetsRepository
@@ -647,7 +647,7 @@ namespace CalculateFunding.Services.Datasets.Services
                     i.Id == "9183" &&
                     i.Name == "14/15" &&
                     i.Version == 1 &&
-                    i.ConverterEnabled == false
+                    i.ConverterEligible == false
                    ));
 
 
@@ -683,7 +683,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 ProviderIdentifier = "None",
                 FundingStreamId = FundingStreamId,
                 Version = 1,
-                ConverterEnabled = false
+                ConverterEligible = false
             };
 
             ISearchRepository<DatasetDefinitionIndex> searchRepository = CreateDatasetDefinitionSearchRepository();
@@ -1017,7 +1017,7 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task GetDatasetDefinitionsByFundingStream_GivenDefinitionsRequestedButContainsNoResults_ReturnsNotFound()
         {
             //Arrange
-            IEnumerable<DatasetDefinationByFundingStream> definitions = new DatasetDefinationByFundingStream[0];
+            IEnumerable<DatasetDefinitionByFundingStream> definitions = new DatasetDefinitionByFundingStream[0];
 
             IDatasetRepository repository = CreateDataSetsRepository();
             repository
@@ -1039,9 +1039,9 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task GetDatasetDefinitionsByFundingStream_GivenDefinitionsRequestedButContainsResults_ReturnsArray()
         {
             //Arrange
-            IEnumerable<DatasetDefinationByFundingStream> definitions = new[]
+            IEnumerable<DatasetDefinitionByFundingStream> definitions = new[]
             {
-                new DatasetDefinationByFundingStream(), new DatasetDefinationByFundingStream()
+                new DatasetDefinitionByFundingStream(), new DatasetDefinitionByFundingStream()
             };
 
             IDatasetRepository repository = CreateDataSetsRepository();
@@ -1061,7 +1061,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             OkObjectResult objResult = (OkObjectResult)result;
 
-            IEnumerable<DatasetDefinationByFundingStream> objValue = (IEnumerable<DatasetDefinationByFundingStream>)objResult.Value;
+            IEnumerable<DatasetDefinitionByFundingStream> objValue = (IEnumerable<DatasetDefinitionByFundingStream>)objResult.Value;
 
             objValue
                 .Count()
@@ -1628,7 +1628,7 @@ Name: {templateMetadataCalculationBooleanId} Type: Boolean
             yaml.AppendLine(@"version: 1");
             yaml.AppendLine(@"description: 14/15 description");
             yaml.AppendLine($"fundingStreamId: {FundingStreamId}");
-            yaml.AppendLine($"converterEnabled: false");
+            yaml.AppendLine($"converterEligible: false");
             yaml.AppendLine(@"tableDefinitions:");
             yaml.AppendLine(@"- id: 9189");
             yaml.AppendLine(@"  name: 14/15");

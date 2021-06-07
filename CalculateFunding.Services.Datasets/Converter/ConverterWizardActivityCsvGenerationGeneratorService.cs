@@ -116,7 +116,7 @@ namespace CalculateFunding.Services.Datasets.Converter
             
             if (providerConverters.IsNullOrEmpty()) return;
 
-            IEnumerable<DatasetSpecificationRelationshipViewModel> converterEnabledDatasets = (await _definitionSpecificationRelationshipService.GetRelationshipsBySpecificationId(specificationId)).Where(_ => _.ConverterWizard);
+            IEnumerable<DatasetSpecificationRelationshipViewModel> converterEnabledDatasets = (await _definitionSpecificationRelationshipService.GetRelationshipsBySpecificationId(specificationId)).Where(_ => _.ConverterEnabled);
 
             IEnumerable<ConverterDataMergeLog> outcomeLogs = await _converterDataMergeLogger.GetLogs(parentJobId);
 

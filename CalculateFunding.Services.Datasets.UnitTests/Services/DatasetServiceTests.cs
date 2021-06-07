@@ -205,8 +205,7 @@ namespace CalculateFunding.Services.Datasets.Services
             CreateNewDatasetModel model = new CreateNewDatasetModel
             {
                 Filename = "test.xlsx",
-                FundingStreamId = FundingStreamId,
-                ConverterWizard = true
+                FundingStreamId = FundingStreamId
             };
             NewDatasetVersionResponseModel responseModel = new NewDatasetVersionResponseModel
             {
@@ -263,11 +262,6 @@ namespace CalculateFunding.Services.Datasets.Services
                 .FundingStreamId
                 .Should()
                 .Be(FundingStreamId);
-
-            responseModel
-                .ConverterWizard
-                .Should()
-                .BeTrue();
         }
 
         [TestMethod]
@@ -1071,7 +1065,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 Name = datasetName,
                 Stream = byteArray,
                 FundingStreamId = fundingStreamId,
-                ConverterWizard = true
+                ConverterEligible = true
             };
 
             IBlobClient blobClient = CreateBlobClient();
@@ -1125,7 +1119,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             cloudBlob.Metadata["converterWizard"]
                 .Should()
-                .Be(datasetMetadataViewModel.ConverterWizard.ToString());
+                .Be(datasetMetadataViewModel.ConverterEligible.ToString());
 
             cloudBlob
                 .Received()

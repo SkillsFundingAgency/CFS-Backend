@@ -182,7 +182,7 @@ namespace CalculateFunding.Services.Datasets
                 ModelHash = hashCode,
                 FundingStreamId = fundingStream.Id,
                 FundingStreamName = fundingStream.Name,
-                ConverterEnabled = definition.ConverterEnabled
+                ConverterEligible = definition.ConverterEligible
             };
 
             if (string.IsNullOrWhiteSpace(datasetDefinitionIndex.ProviderIdentifier))
@@ -201,7 +201,7 @@ namespace CalculateFunding.Services.Datasets
                         existingIndex.Description == definition.Description &&
                         existingIndex.Name == definition.Name &&
                         existingIndex.ProviderIdentifier == datasetDefinitionIndex.ProviderIdentifier &&
-                        existingIndex.ConverterEnabled == datasetDefinitionIndex.ConverterEnabled)
+                        existingIndex.ConverterEligible == datasetDefinitionIndex.ConverterEligible)
                 {
                     updateIndex = false;
                 }
@@ -250,14 +250,14 @@ namespace CalculateFunding.Services.Datasets
                 return new BadRequestObjectResult("Null or empty fundingStreamId provided");
             }
 
-            IEnumerable<DatasetDefinationByFundingStream> defintions = await _datasetsRepositoryPolicy.ExecuteAsync(() => _datasetsRepository.GetDatasetDefinitionsByFundingStreamId(fundingStreamId));
+            IEnumerable<DatasetDefinitionByFundingStream> definitions = await _datasetsRepositoryPolicy.ExecuteAsync(() => _datasetsRepository.GetDatasetDefinitionsByFundingStreamId(fundingStreamId));
 
-            if (defintions?.Any() == false)
+            if (definitions?.Any() == false)
             {
                 return new NotFoundResult();
             }
 
-            return new OkObjectResult(defintions);
+            return new OkObjectResult(definitions);
         }
 
         public async Task<IActionResult> GetDatasetDefinitionsByIds(IEnumerable<string> definitionIds)
@@ -360,7 +360,7 @@ namespace CalculateFunding.Services.Datasets
                 Name = name,
                 Description = name,
                 FundingStreamId = fundingStream.Id,
-                ConverterEnabled = model.ConverterEnabled
+                ConverterEligible = model.ConverterEnabled
             };
 
             id += 1;

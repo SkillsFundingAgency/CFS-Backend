@@ -13,5 +13,7 @@
         public bool IsSetAsProviderData { get; set; }
 
         public bool UsedInDataAggregations { get; set; }
+
+        public bool ConverterEnabled { get; set; }
     }
 }

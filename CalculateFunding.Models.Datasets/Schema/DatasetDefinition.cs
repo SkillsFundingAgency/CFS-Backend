@@ -18,8 +18,8 @@ namespace CalculateFunding.Models.Datasets.Schema
         [JsonProperty("tableDefinitions")]
         public List<TableDefinition> TableDefinitions { get; set; }
 
-        [JsonProperty("converterEnabled")]
-        public bool ConverterEnabled { get; set; }
+        [JsonProperty("converterEligible")]
+        public bool ConverterEligible { get; set; }
 
         [JsonProperty("validateProviders")]
         public bool ValidateProviders { get; set; }

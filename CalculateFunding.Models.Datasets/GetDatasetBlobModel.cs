@@ -22,8 +22,6 @@
 
         public bool MergeExistingVersion { get; set; }
 
-        public bool ConverterWizard { get; set; }
-
         public DatasetEmptyFieldEvaluationOption EmptyFieldEvaluationOption { get; set; }
 
     }

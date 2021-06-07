@@ -1,9 +1,11 @@
 ﻿using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Services.Datasets.Interfaces;
 using FluentAssertions;
 using FluentValidation.Results;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Datasets.Validators
 {
@@ -11,7 +13,7 @@ namespace CalculateFunding.Services.Datasets.Validators
     public class CreateDefinitionSpecificationRelationshipModelValidatorTests
     {
         [TestMethod]
-        public void Validate_GivenMissingDatasetDefinitionId_ReturnsFalse()
+        public async Task Validate_GivenMissingDatasetDefinitionId_ReturnsFalse()
         {
             //Arrange
             CreateDefinitionSpecificationRelationshipModel model = CreateModel();
@@ -20,7 +22,7 @@ namespace CalculateFunding.Services.Datasets.Validators
             CreateDefinitionSpecificationRelationshipModelValidator validator = CreateValidator();
 
             //Act
-            ValidationResult result = validator.Validate(model);
+            ValidationResult result = await validator.ValidateAsync(model);
 
             //Assert
             result
@@ -36,7 +38,34 @@ namespace CalculateFunding.Services.Datasets.Validators
         }
 
         [TestMethod]
-        public void Validate_GivenMissingSpecificationId_ReturnsFalse()
+        public async Task Validate_GivenDatasetDefinitionIsNotCoverterEnabled_ReturnsFalse()
+        {
+            //Arrange
+            CreateDefinitionSpecificationRelationshipModel model = CreateModel();
+            model.ConverterEnabled = true;
+
+            IDatasetRepository repository = CreateDatasetRepository(true);
+
+            CreateDefinitionSpecificationRelationshipModelValidator validator = CreateValidator(repository);
+
+            //Act
+            ValidationResult result = await validator.ValidateAsync(model);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .BeFalse();
+
+            result
+                .Errors
+                .Count
+                .Should()
+                .Be(1);
+        }
+
+        [TestMethod]
+        public async Task Validate_GivenMissingSpecificationId_ReturnsFalse()
         {
             //Arrange
             CreateDefinitionSpecificationRelationshipModel model = CreateModel();
@@ -45,7 +74,7 @@ namespace CalculateFunding.Services.Datasets.Validators
             CreateDefinitionSpecificationRelationshipModelValidator validator = CreateValidator();
 
             //Act
-            ValidationResult result = validator.Validate(model);
+            ValidationResult result = await validator.ValidateAsync(model);
 
             //Assert
             result
@@ -61,7 +90,7 @@ namespace CalculateFunding.Services.Datasets.Validators
         }
 
         [TestMethod]
-        public void Validate_GivenMissingName_ReturnsFalse()
+        public async Task Validate_GivenMissingName_ReturnsFalse()
         {
             //Arrange
             CreateDefinitionSpecificationRelationshipModel model = CreateModel();
@@ -70,7 +99,7 @@ namespace CalculateFunding.Services.Datasets.Validators
             CreateDefinitionSpecificationRelationshipModelValidator validator = CreateValidator();
 
             //Act
-            ValidationResult result = validator.Validate(model);
+            ValidationResult result = await validator.ValidateAsync(model);
 
             //Assert
             result
@@ -86,7 +115,7 @@ namespace CalculateFunding.Services.Datasets.Validators
         }
 
         [TestMethod]
-        public void Validate_GivenMissingDescription_ReturnsFalse()
+        public async Task Validate_GivenMissingDescription_ReturnsFalse()
         {
             //Arrange
             CreateDefinitionSpecificationRelationshipModel model = CreateModel();
@@ -95,7 +124,7 @@ namespace CalculateFunding.Services.Datasets.Validators
             CreateDefinitionSpecificationRelationshipModelValidator validator = CreateValidator();
 
             //Act
-            ValidationResult result = validator.Validate(model);
+            ValidationResult result = await validator.ValidateAsync(model);
 
             //Assert
             result
@@ -111,7 +140,7 @@ namespace CalculateFunding.Services.Datasets.Validators
         }
 
         [TestMethod]
-        public void Validate_GivenNameAlreadyExistsn_ReturnsFalse()
+        public async Task Validate_GivenNameAlreadyExistsn_ReturnsFalse()
         {
             //Arrange
             CreateDefinitionSpecificationRelationshipModel model = CreateModel();
@@ -121,7 +150,7 @@ namespace CalculateFunding.Services.Datasets.Validators
             CreateDefinitionSpecificationRelationshipModelValidator validator = CreateValidator(repository);
 
             //Act
-            ValidationResult result = validator.Validate(model);
+            ValidationResult result = await validator.ValidateAsync(model);
 
             //Assert
             result
@@ -137,7 +166,7 @@ namespace CalculateFunding.Services.Datasets.Validators
         }
 
         [TestMethod]
-        public void Validate_GivenValidModel_ReturnsTrue()
+        public async Task Validate_GivenValidModel_ReturnsTrue()
         {
             //Arrange
             CreateDefinitionSpecificationRelationshipModel model = CreateModel();
@@ -145,7 +174,7 @@ namespace CalculateFunding.Services.Datasets.Validators
             CreateDefinitionSpecificationRelationshipModelValidator validator = CreateValidator();
 
             //Act
-            ValidationResult result = validator.Validate(model);
+            ValidationResult result = await validator.ValidateAsync(model);
 
             //Assert
             result
@@ -165,6 +194,9 @@ namespace CalculateFunding.Services.Datasets.Validators
             repository
                 .GetRelationshipBySpecificationIdAndName(Arg.Is("spec-id"), Arg.Is("test name"))
                 .Returns(isValid ? (DefinitionSpecificationRelationship)null: new DefinitionSpecificationRelationship());
+            repository
+                .GetDatasetDefinition(Arg.Is("data-def-id"))
+                .Returns(!isValid ? (DatasetDefinition)null : new DatasetDefinition());
 
             return repository;
         }

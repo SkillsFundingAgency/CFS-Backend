@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
@@ -177,7 +178,7 @@ namespace CalculateFunding.Api.Datasets.Controllers
         [Route("api/datasets/get-relationships-by-specificationId")]
         [HttpGet]
         [Produces(typeof(IEnumerable<DatasetSpecificationRelationshipViewModel>))]
-        public Task<IActionResult> GetRealtionshipsBySpecificationId([FromQuery] string specificationId)
+        public Task<IActionResult> GetRelationshipsBySpecificationId([FromQuery] string specificationId)
         {
             return _definitionSpecificationRelationshipService.GetCurrentRelationshipsBySpecificationId(specificationId);
         }
@@ -317,7 +318,7 @@ namespace CalculateFunding.Api.Datasets.Controllers
         {
             if (string.IsNullOrWhiteSpace(datasetDefinitionId))
             {
-                return new BadRequestObjectResult($"Misssing {nameof(datasetDefinitionId)}");
+                return new BadRequestObjectResult($"Missing {nameof(datasetDefinitionId)}");
             }
 
             return await _definitionSpecificationRelationshipService.GetSpecificationIdsForRelationshipDefinitionId(datasetDefinitionId);
@@ -330,12 +331,12 @@ namespace CalculateFunding.Api.Datasets.Controllers
         {
             if (string.IsNullOrWhiteSpace(specificationId))
             {
-                return new BadRequestObjectResult("Misssing specification id");
+                return new BadRequestObjectResult("Missing specification id");
             }
 
             if (string.IsNullOrWhiteSpace(datasetDefinitionId))
             {
-                return new BadRequestObjectResult("Misssing dataset definition id");
+                return new BadRequestObjectResult("Missing dataset definition id");
             }
 
             return await _definitionSpecificationRelationshipService.GetCurrentRelationshipsBySpecificationIdAndDatasetDefinitionId(specificationId, datasetDefinitionId);
@@ -381,6 +382,13 @@ namespace CalculateFunding.Api.Datasets.Controllers
             return _datasetService.GetValidateDatasetValidationErrorSasUrl(requestModel);
         }
 
+        [Route("api/datasets/toggleDatasetSchema/{relationshipId}")]
+        [HttpPut]
+        [Produces(typeof(HttpStatusCode))]
+        public Task<IActionResult> ToggleDatasetRelationship([FromRoute] string relationshipId, [FromBody] bool converterEnabled)
+        {
+            return _definitionSpecificationRelationshipService.ToggleDatasetRelationship(relationshipId, converterEnabled);
+        }
 
         [Route("api/datasets/fixup-datasets-fundingstream")]
         [HttpGet]

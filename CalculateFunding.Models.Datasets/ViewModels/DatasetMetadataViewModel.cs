@@ -10,6 +10,6 @@
         public string AuthorId { get; set; }
         public string AuthorName { get; set; }
         public byte[] Stream { get; set; }
-        public bool ConverterWizard { get; set; }
+        public bool ConverterEligible { get; set; }
     }
 }
