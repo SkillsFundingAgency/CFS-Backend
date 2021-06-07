@@ -207,6 +207,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
 
         private int NewRandomNumber() => new RandomNumberBetween(1, 10000);
 
+        private bool NewRandomFlag() => new RandomBoolean();
+
+
         private IEnumerable<string> EnumerableFor(params string[] items) => items;
 
         [TestMethod]
@@ -690,7 +693,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                                   c.content.current.totalFunding,
                                   c.content.current.provider.providerType,
                                   c.content.current.provider.providerSubType, 
-                                  c.content.current.provider.laCode
+                                  c.content.current.provider.laCode,
+                                  c.content.current.isIndicative
                               FROM publishedProvider c
                               WHERE c.documentType = 'PublishedProvider'
                               AND c.content.current.specificationId = @specificationId
@@ -892,6 +896,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
             string providerSubType = NewRandomString();
             string laCode = NewRandomString();
             decimal totalFunding = NewRandomNumber();
+            bool isIndicative = NewRandomFlag();
 
             dynamic result = new ExpandoObject();
             result.specificationId = specificationId;
@@ -901,6 +906,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
             result.providerType = providerType;
             result.providerSubType = providerSubType;
             result.laCode = laCode;
+            result.isIndicative = isIndicative;
 
             return result;
         }

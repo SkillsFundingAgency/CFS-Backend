@@ -116,7 +116,11 @@ namespace CalculateFunding.Services.Publishing.Specifications
                 => new PublishedProviderFundingCount
                 {
                     Count = _fundings.Count(),
+                    PaidProviderCount = _fundings.Count(_ => !_.IsIndicative),
+                    IndicativeProviderCount = _fundings.Count(_ => _.IsIndicative),
                     TotalFunding = _fundings.Sum(_ => _.TotalFunding.GetValueOrDefault()),
+                    PaidProvidersTotalFunding = _fundings.Where(_ => !_.IsIndicative).Sum(_ => _.TotalFunding.GetValueOrDefault()),
+                    IndicativeProviderTotalFunding = _fundings.Where(_ => _.IsIndicative).Sum(_ => _.TotalFunding.GetValueOrDefault()),
                     ProviderTypes = _fundings.Select(_ => _.ProviderTypeSubType).Distinct().ToArray(),
                     FundingStreamsFundings = _fundings.GroupBy(fundingStream => fundingStream.FundingStreamId)
                         .Select(fundingStream => new PublishedProivderFundingStreamFunding

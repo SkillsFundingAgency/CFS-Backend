@@ -79,6 +79,16 @@ namespace CalculateFunding.IntegrationTests.Common
             serviceCollection.AddSingleton<ICacheProvider, StackExchangeRedisClientCacheProvider>();
         }
 
+        protected static T GetConfigurationOptions<T>(string configurationPrefix)
+            where T : class, new()
+        {
+            T optionsClass = new T();
+
+            Configuration.Bind(configurationPrefix, optionsClass);
+
+            return optionsClass;
+        }
+
         protected static void AddNullLogger(IServiceCollection serviceCollection,
             IConfiguration configuration)
             => serviceCollection.AddSingleton(Logger.None);

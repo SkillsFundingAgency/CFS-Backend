@@ -10,5 +10,6 @@ namespace CalculateFunding.Services.Publishing.Models
         public string LaCode { get; set; }
         public string FundingStreamId { get; set; }
         public decimal? TotalFunding { get; set; }
+        public bool IsIndicative { get; set; }
     }
 }

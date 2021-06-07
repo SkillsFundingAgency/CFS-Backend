@@ -1227,7 +1227,8 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                   c.content.current.totalFunding,
                                   c.content.current.provider.providerType,
                                   c.content.current.provider.providerSubType, 
-                                  c.content.current.provider.laCode
+                                  c.content.current.provider.laCode,
+                                  c.content.current.isIndicative
                               FROM publishedProvider c
                               WHERE c.documentType = 'PublishedProvider'
                               AND c.content.current.specificationId = @specificationId
@@ -1251,6 +1252,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                 PublishedProviderId = (string)_.publishedProviderId,
                 FundingStreamId = (string)_.fundingStreamId,
                 TotalFunding = (decimal?)_.totalFunding,
+                IsIndicative = (bool)_.isIndicative,
                 ProviderTypeSubType = new ProviderTypeSubType()
                 {
                     ProviderType = (string)_.providerType,

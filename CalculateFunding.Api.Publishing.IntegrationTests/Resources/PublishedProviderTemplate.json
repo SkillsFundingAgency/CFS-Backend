@@ -1,0 +1,24 @@
+{
+  "id": "<ID>",
+  "documentType": "PublishedProvider",
+  "content": {
+    "current": {
+      "specificationId": "<SPECIFICATIONID>",
+      "publishedProviderId": "<PUBLISHEDPROVIDERID>",
+      "fundingStreamId": "<FUNDINGSTREAMID>",
+      "totalFunding": <TOTALFUNDING>,
+      "isIndicative": "<ISINDICATIVE>",
+      "status": "<STATUS>",
+      "errors": [],
+      "provider": {
+        "providerType": "<PROVIDERTYPE>",
+        "providerSubType": "<PROVIDERSUBTYPE>",
+        "laCode": "<LACODE>"
+      }
+    },
+    "id": "<ID>"
+  },
+  "createdAt": "<NOW>",
+  "updatedAt": "<NOW>",
+  "deleted": false
+}

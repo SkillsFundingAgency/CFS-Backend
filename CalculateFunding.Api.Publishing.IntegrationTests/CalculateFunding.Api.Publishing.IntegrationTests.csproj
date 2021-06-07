@@ -6,9 +6,17 @@
         <LangVersion>8</LangVersion>
     </PropertyGroup>
 
+    <ItemGroup>
+      <None Remove="Resources\PublishedProviderTemplate.json" />
+    </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="CalculateFunding.Common.ApiClient.Publishing" Version="5.5.0" />
+      <EmbeddedResource Include="Resources\PublishedProviderTemplate.json" />
+    </ItemGroup>
+
+
+    <ItemGroup>
+        <PackageReference Include="CalculateFunding.Common.ApiClient.Publishing" Version="5.6.0" />
         <PackageReference Include="FluentAssertions" Version="5.10.3" />
         <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="5.0.0" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.4.0" />
@@ -19,6 +27,10 @@
     <ItemGroup>
         <ProjectReference Include="..\CalculateFunding.IntegrationTests.Common\CalculateFunding.IntegrationTests.Common.csproj" />
         <ProjectReference Include="..\CalculateFunding.Services.Publishing\CalculateFunding.Services.Publishing.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Properties\" />
     </ItemGroup>
 
 </Project>
