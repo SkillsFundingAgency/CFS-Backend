@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
@@ -68,7 +69,8 @@ namespace CalculateFunding.Services.Publishing
             IEnumerable<FundingVariation> variations,
             IEnumerable<ProfileVariationPointer> variationPointers,
             string snapshotId,
-            string specificationProviderVersionId)
+            string specificationProviderVersionId,
+            IDictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResultsData)
         {
             Guard.ArgumentNotNull(updatedTotalFunding, nameof(updatedTotalFunding));
             Guard.ArgumentNotNull(allPublishedProviderRefreshStates, nameof(allPublishedProviderRefreshStates));
@@ -94,7 +96,8 @@ namespace CalculateFunding.Services.Publishing
                 publishedProviderSnapshots,
                 allPublishedProviderRefreshStates,
                 variationPointers,
-                specificationProviderVersionId);
+                specificationProviderVersionId,
+                organisationGroupResultsData);
 
             if (variationContext.HasVariationChanges)
             {

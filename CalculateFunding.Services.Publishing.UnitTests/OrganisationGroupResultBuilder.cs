@@ -13,6 +13,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private string _identifierValue;
         private IEnumerable<Common.ApiClient.Providers.Models.Provider> _providers;
         private IEnumerable<OrganisationIdentifier> _identifiers;
+        private OrganisationGroupingReason _organisationGroupingReason;
 
         public OrganisationGroupResultBuilder WithGroupTypeClassification(OrganisationGroupTypeClassification groupTypeClassification)
         {
@@ -56,6 +57,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return this;
         }
 
+        public OrganisationGroupResultBuilder WithGroupReason(OrganisationGroupingReason organisationGroupingReason)
+        {
+            _organisationGroupingReason = organisationGroupingReason;
+            return this;
+        }
+
         public OrganisationGroupResult Build()
         {
             return new OrganisationGroupResult
@@ -65,7 +72,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 GroupTypeIdentifier = _groupTypeIdentifier,
                 IdentifierValue = _identifierValue,
                 Identifiers = _identifiers,
-                Providers = _providers
+                Providers = _providers,
+                GroupReason = _organisationGroupingReason
             };
         }
     }

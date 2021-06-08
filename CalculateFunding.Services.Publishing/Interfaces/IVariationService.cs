@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Services.Publishing.Models;
+using CalculateFunding.Generators.OrganisationGroup.Models;
 
 namespace CalculateFunding.Services.Publishing.Interfaces
 {
@@ -19,7 +20,8 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             IEnumerable<FundingVariation> variations,
             IEnumerable<ProfileVariationPointer> variationPointers,
             string snapshotId,
-            string specificationProviderVersionId);
+            string specificationProviderVersionId,
+            IDictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResultsData);
         
         Task<bool> ApplyVariations(IRefreshStateService refreshStateService, 
             string specificaitonId,

@@ -12,8 +12,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
     public class FundingUpdatedVariationStrategy : Variation, IVariationStrategy
     {
         public string Name => "FundingUpdated";
-        
-        public Task DetermineVariations(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
+
+        public Task<VariationStrategyResult> DetermineVariations(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
         {
             Guard.ArgumentNotNull(providerVariationContext, nameof(providerVariationContext));
 
@@ -24,14 +24,14 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
                 providerVariationContext.UpdatedProvider.Status == Closed ||
                 providerVariationContext.UpdatedTotalFunding == priorState.TotalFunding)
             {
-                return Task.CompletedTask;
+                return Task.FromResult(StrategyResult);
             }
 
             providerVariationContext.AddVariationReasons(VariationReason.FundingUpdated);
             
             providerVariationContext.QueueVariationChange(new MetaDataVariationsChange(providerVariationContext));
             
-            return Task.CompletedTask;
+            return Task.FromResult(StrategyResult);
         }
     }
 }

@@ -137,6 +137,9 @@ namespace CalculateFunding.Models.Publishing
         TemplateUpdated,
 
         [EnumMember(Value = nameof(FundingSchemaUpdated))]
-        FundingSchemaUpdated
+        FundingSchemaUpdated,
+
+        [EnumMember(Value = nameof(DistributionProfileUpdated))]
+        DistributionProfileUpdated
     }
 }

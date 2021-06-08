@@ -13,7 +13,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
     {
         public string Name => "MidYearReProfiling";
 
-        public Task DetermineVariations(ProviderVariationContext providerVariationContext,
+        public Task<VariationStrategyResult> DetermineVariations(ProviderVariationContext providerVariationContext,
             IEnumerable<string> fundingLineCodes)
         {
             Guard.ArgumentNotNull(providerVariationContext, nameof(providerVariationContext));
@@ -27,12 +27,12 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
                 IsNotNewOpener(providerVariationContext, priorCurrent, refreshState) && 
                 HasNoNewAllocations(providerVariationContext, priorCurrent, refreshState))
             {
-                return Task.CompletedTask;
+                return Task.FromResult(StrategyResult);
             }
 
             providerVariationContext.QueueVariationChange(new MidYearReProfileVariationChange(providerVariationContext));
 
-            return Task.CompletedTask;
+            return Task.FromResult(StrategyResult);
         }
 
         private bool IsNotNewOpener(ProviderVariationContext providerVariationContext,

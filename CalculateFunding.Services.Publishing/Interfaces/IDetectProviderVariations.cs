@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Services.Publishing.Variations;
@@ -17,6 +18,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             IDictionary<string, PublishedProviderSnapShots> allPublishedProviderSnapShots,
             IDictionary<string, PublishedProvider> allPublishedProviderRefreshStates,
             IEnumerable<ProfileVariationPointer> variationPointers,
-            string providerVersionId);
+            string providerVersionId,
+            IDictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResultsData);
     }
 }

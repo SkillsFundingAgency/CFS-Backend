@@ -1,9 +1,11 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
@@ -31,7 +33,8 @@ namespace CalculateFunding.Services.Publishing.Variations
             IDictionary<string, PublishedProviderSnapShots> allPublishedProviderSnapShots,
             IDictionary<string, PublishedProvider> allPublishedProviderRefreshStates,
             IEnumerable<ProfileVariationPointer> variationPointers,
-            string providerVersionId)
+            string providerVersionId,
+            IDictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResultsData)
         {
             Guard.ArgumentNotNull(existingPublishedProvider, nameof(existingPublishedProvider));
             Guard.ArgumentNotNull(updatedTotalFunding, nameof(updatedTotalFunding));
@@ -48,14 +51,20 @@ namespace CalculateFunding.Services.Publishing.Variations
                 AllPublishedProviderSnapShots = allPublishedProviderSnapShots,
                 AllPublishedProvidersRefreshStates = allPublishedProviderRefreshStates,
                 ProviderVersionId = providerVersionId,
-                VariationPointers = variationPointers
+                VariationPointers = variationPointers,
+                OrganisationGroupResultsData = organisationGroupResultsData
             };
 
             foreach (FundingVariation configuredVariation in variations.OrderBy(_ => _.Order))
             {
                 IVariationStrategy variationStrategy = _variationStrategyServiceLocator.GetService(configuredVariation.Name);
 
-                await variationStrategy.DetermineVariations(providerVariationContext, configuredVariation.FundingLineCodes);
+                VariationStrategyResult variationStrategyResult = await variationStrategy.DetermineVariations(providerVariationContext, configuredVariation.FundingLineCodes);
+
+                if(variationStrategyResult.StopSubsequentStrategies)
+                {
+                    break;
+                }
             }
 
             return providerVariationContext;

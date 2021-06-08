@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Services.Publishing.UnitTests.Profiling;
+using CalculateFunding.Services.Publishing.Variations;
 using CalculateFunding.Services.Publishing.Variations.Strategies;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
@@ -43,7 +45,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
                         .WithFundingCalculations(NewFundingCalculation(fc => fc.WithTemplateCalculationId(templateCalculationId).WithValue(valueOne)))))
                     ))
                 .WithCurrentState(NewProvider(_ => _.WithStatus(Variation.Closed)))
-                .WithUpdatedTotalFunding(totalFunding);
+                .WithUpdatedTotalFunding(totalFunding)
+                .WithAllPublishedProviderSnapShots(new Dictionary<string, PublishedProviderSnapShots>());
 
             setUp?.Invoke(variationContextBuilder);
 
@@ -147,6 +150,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
         protected void AndTheSuccessorFundingCalculations(params FundingCalculation[] fundingCalculations)
         {
             VariationContext.Successor.Current.Calculations = fundingCalculations;
+        }
+
+        public void GivenThePublishedProviderOriginalSnapshot(string providerId, PublishedProviderSnapShots publishedProviderSnapShots)
+        {
+            VariationContext.AllPublishedProviderSnapShots.Add(providerId, publishedProviderSnapShots);
         }
     }
 }

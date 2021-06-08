@@ -117,6 +117,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
                     .WithProviders(new[] { new ApiProvider { ProviderId = providerId2 } }))
             };
 
+            IDictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResultsData
+                = new Dictionary<string, IEnumerable<OrganisationGroupResult>> { { $"{fundingStreamId}:{fundingPeriodId}", organisationGroupResults } };
+
             IEnumerable<PublishedFunding> publishedFundings = new[]
             {
                 NewPublishedFunding(_ => _
@@ -141,10 +144,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
 
             FundingConfiguration fundingConfiguration = NewFundingConfiguration(_ => _.WithId(fundingConfigurationId));
             GivenTheCurrentPublishedFundingForTheSpecification(specificationId, publishedFundings);
-            GivenTheOrganisationGroupsForTheFundingConfiguration(fundingConfiguration, providers, providerVersionId, organisationGroupResults);
 
             // Act
-            await WhenErrorsAreDetectedOnThePublishedProvider(publishedProvider, providers, specificationId, providerVersionId, fundingConfiguration, publishedFundings);
+            await WhenErrorsAreDetectedOnThePublishedProvider(publishedProvider, 
+                                                              providers, 
+                                                              specificationId, 
+                                                              providerVersionId, 
+                                                              fundingConfiguration, 
+                                                              publishedFundings,
+                                                              organisationGroupResultsData);
 
             publishedProvider.Current
                 .Errors
@@ -173,7 +181,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
             string specificationId,
             string providerVersionId,
             FundingConfiguration fundingConfiguration,
-            IEnumerable<PublishedFunding> publishedFundings)
+            IEnumerable<PublishedFunding> publishedFundings,
+            IDictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResults)
         {
             PublishedProvidersContext publishedProvidersContext = new PublishedProvidersContext
             {
@@ -181,7 +190,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
                 SpecificationId = specificationId,
                 ProviderVersionId = providerVersionId,
                 CurrentPublishedFunding = publishedFundings,
-                OrganisationGroupResultsData = new Dictionary<string, IEnumerable<OrganisationGroupResult>>(),
+                OrganisationGroupResultsData = organisationGroupResults,
                 FundingConfiguration = fundingConfiguration
             };
 
@@ -193,19 +202,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
         {
             _publishedFundingDataService.GetCurrentPublishedFunding(specificationId, GroupingReason.Payment)
                 .Returns(publishedFundings);
-        }
-
-        private void GivenTheOrganisationGroupsForTheFundingConfiguration(FundingConfiguration fundingConfiguration,
-            IEnumerable<Provider> scopedProviders,
-            string providerVersionId,
-            IEnumerable<OrganisationGroupResult> organisationGroupResults)
-        {
-            _organisationGroupGenerator.GenerateOrganisationGroup(
-                    Arg.Is<FundingConfiguration>(f => f.Id == fundingConfiguration.Id),
-                    Arg.Is<IEnumerable<Common.ApiClient.Providers.Models.Provider>>(p =>
-                        p.All(i => scopedProviders.Any(sp => sp.ProviderId == i.ProviderId))),
-                    providerVersionId)
-                .Returns(organisationGroupResults);
         }
 
         private static PublishedProviderVersion NewPublishedProviderVersion(Action<PublishedProviderVersionBuilder> setUp = null)

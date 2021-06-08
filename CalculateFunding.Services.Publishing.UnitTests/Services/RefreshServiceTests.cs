@@ -203,6 +203,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _recordVariationErrors = new Mock<IRecordVariationErrors>();
             _variationService = new VariationService(_detectProviderVariation, _applyProviderVariation, _recordVariationErrors.Object, _logger.Object);
             _refreshStateService = new RefreshStateService(_logger.Object, _publishedProviderStatusUpdateService.Object, _publishedProviderIndexerService.Object, _publishedFundingDataService.Object);
+
+            var mapper = new MapperConfiguration(_ =>
+            {
+                _.AddProfile<PublishingServiceMappingProfile>();
+            }).CreateMapper();
+
             _refreshService = new RefreshService(_publishedFundingDataService.Object,
                 _publishingResiliencePolicies,
                 _specificationService,
@@ -224,7 +230,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 _detection,
                 _batchProfilingService.Object,
                 _publishFundingCsvJobsService.Object,
-                _refreshStateService);
+                _refreshStateService,
+                mapper,
+                _organisationGroupGenerator.Object);
         }
 
         [TestMethod]

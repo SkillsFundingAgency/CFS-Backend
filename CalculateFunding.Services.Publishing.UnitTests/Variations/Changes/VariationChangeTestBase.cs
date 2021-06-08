@@ -9,6 +9,7 @@ using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
+using CalculateFunding.Services.Publishing.Variations;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -88,6 +89,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
             }
         }
 
+        
         protected PublishedProviderVersion RefreshState => VariationContext.RefreshState;
     }
 }

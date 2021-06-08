@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
@@ -10,6 +11,7 @@ using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Generators.OrganisationGroup.Interfaces;
 using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
@@ -51,6 +53,8 @@ namespace CalculateFunding.Services.Publishing
         private readonly IPublishedProviderErrorDetection _detection;
         private readonly IPublishedFundingCsvJobsService _publishFundingCsvJobsService;
         private readonly IRefreshStateService _refreshStateService;
+        private readonly IMapper _mapper;
+        private readonly IOrganisationGroupGenerator _organisationGroupGenerator;
 
         public RefreshService(IPublishedFundingDataService publishedFundingDataService,
             IPublishingResiliencePolicies publishingResiliencePolicies,
@@ -73,7 +77,9 @@ namespace CalculateFunding.Services.Publishing
             IPublishedProviderErrorDetection detection,
             IBatchProfilingService batchProfilingService,
             IPublishedFundingCsvJobsService publishFundingCsvJobsService,
-            IRefreshStateService refreshStateService) : base(jobManagement, logger)
+            IRefreshStateService refreshStateService,
+            IMapper mapper,
+            IOrganisationGroupGenerator organisationGroupGenerator) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(publishedFundingDataService, nameof(publishedFundingDataService));
             Guard.ArgumentNotNull(publishingResiliencePolicies, nameof(publishingResiliencePolicies));
@@ -99,6 +105,8 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(batchProfilingService, nameof(batchProfilingService));
             Guard.ArgumentNotNull(publishFundingCsvJobsService, nameof(publishFundingCsvJobsService));
             Guard.ArgumentNotNull(refreshStateService, nameof(refreshStateService));
+            Guard.ArgumentNotNull(mapper, nameof(mapper));
+            Guard.ArgumentNotNull(organisationGroupGenerator, nameof(organisationGroupGenerator));
 
             _publishedFundingDataService = publishedFundingDataService;
             _specificationService = specificationService;
@@ -124,6 +132,8 @@ namespace CalculateFunding.Services.Publishing
             _policiesService = policiesService;
             _publishFundingCsvJobsService = publishFundingCsvJobsService;
             _refreshStateService = refreshStateService;
+            _mapper = mapper;
+            _organisationGroupGenerator = organisationGroupGenerator;
         }
 
         public override async Task Process(Message message)
@@ -332,6 +342,13 @@ namespace CalculateFunding.Services.Publishing
                 publishedProvider.Current.SetIsIndicative(indicativeStatus);
             }
 
+            
+            Dictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResultsData = await GenerateOrganisationGroups(
+                scopedProviders.Values,
+                publishedProvidersReadonlyDictionary.Values,
+                fundingConfiguration,
+                specification.ProviderVersionId);
+
             PublishedProvidersContext publishedProvidersContext = new PublishedProvidersContext
             {
                 ScopedProviders = scopedProviders.Values,
@@ -339,7 +356,7 @@ namespace CalculateFunding.Services.Publishing
                 ProviderVersionId = specification.ProviderVersionId,
                 CurrentPublishedFunding = (await _publishingResiliencePolicy.ExecuteAsync(() => _publishedFundingDataService.GetCurrentPublishedFunding(specification.Id, GroupingReason.Payment)))
                     .Where(x => x.Current.GroupingReason == CalculateFunding.Models.Publishing.GroupingReason.Payment),
-                OrganisationGroupResultsData = new Dictionary<string, IEnumerable<OrganisationGroupResult>>(),
+                OrganisationGroupResultsData = organisationGroupResultsData,
                 FundingConfiguration = fundingConfiguration
             };
 
@@ -431,8 +448,9 @@ namespace CalculateFunding.Services.Publishing
                         fundingConfiguration?.Variations,
                         variationPointers,
                         fundingStream.Id,
-                        specification.ProviderVersionId);
-
+                        specification.ProviderVersionId,
+                        organisationGroupResultsData);
+                    
                     if (context != null && context.HasNewProvidersToAdd)
                     {
                         _refreshStateService.AddRange(context.NewProvidersToAdd.ToDictionary(_ => _.Current.ProviderId));
@@ -539,6 +557,41 @@ namespace CalculateFunding.Services.Publishing
             {
                 publishedProvider.Current.AddVariationReasons(VariationReason.FundingUpdated, VariationReason.ProfilingUpdated);
             }
+        }
+
+        private async Task<Dictionary<string, IEnumerable<OrganisationGroupResult>>> GenerateOrganisationGroups(
+            IEnumerable<Provider> scopedProviders,
+            IEnumerable<PublishedProvider> publishedProviders,
+            FundingConfiguration fundingConfiguration, 
+            string providerVersionId)
+        {
+            Dictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResultsData = new Dictionary<string, IEnumerable<OrganisationGroupResult>>();
+
+            IEnumerable<Common.ApiClient.Providers.Models.Provider> apiClientProviders = _mapper.Map<IEnumerable<Common.ApiClient.Providers.Models.Provider>>(scopedProviders);
+
+            foreach (PublishedProvider publishedProvider in publishedProviders)
+            {
+                IEnumerable<OrganisationGroupResult> organisationGroups;
+
+                string keyForOrganisationGroups = OrganisationGroupsKey(publishedProvider.Current.FundingStreamId, publishedProvider.Current.FundingPeriodId);
+
+                if (!organisationGroupResultsData.ContainsKey(keyForOrganisationGroups))
+                {
+                    organisationGroups = await _organisationGroupGenerator.GenerateOrganisationGroup(
+                        fundingConfiguration,
+                        apiClientProviders,
+                        providerVersionId);
+
+                    organisationGroupResultsData.Add(keyForOrganisationGroups, organisationGroups);
+                }
+            }
+
+            return organisationGroupResultsData;
+        }
+
+        static string OrganisationGroupsKey(string fundingStreamId, string fundingPeriodId)
+        {
+            return $"{fundingStreamId}:{fundingPeriodId}";
         }
     }
 }

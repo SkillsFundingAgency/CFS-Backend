@@ -5,6 +5,7 @@ using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
@@ -22,6 +23,7 @@ namespace CalculateFunding.Services.Publishing.Models
         {
             Guard.ArgumentNotNull(policiesService, nameof(policiesService));
             _policiesService = policiesService;
+            OrganisationGroupResultsData = new Dictionary<string, IEnumerable<OrganisationGroupResult>>();
         }
 
         public string ProviderId => RefreshState?.ProviderId;
@@ -188,6 +190,10 @@ namespace CalculateFunding.Services.Publishing.Models
 
         public async Task<string> GetPriorStateSchemaVersion() => PriorState == null ? null : await GetSchemaVersion(PriorState.FundingStreamId, PriorState.FundingPeriodId, PriorState.TemplateVersion);
         public async Task<string> GetReleasedStateSchemaVersion() => ReleasedState == null ? null : await GetSchemaVersion(ReleasedState.FundingStreamId, ReleasedState.FundingPeriodId, ReleasedState.TemplateVersion);
+
+        public IDictionary<string, IEnumerable<OrganisationGroupResult>> OrganisationGroupResultsData { get; set; }
+
+        public static string OrganisationGroupsKey(string fundingStreamId, string fundingPeriodId) => $"{fundingStreamId}:{fundingPeriodId}";
 
         private readonly IDictionary<string, string> schemaVersions = new Dictionary<string, string>();
 

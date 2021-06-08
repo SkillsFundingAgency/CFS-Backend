@@ -11,8 +11,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
     public class DsgTotalAllocationChangeVariationStrategy : Variation, IVariationStrategy
     {
         public string Name => "DsgTotalAllocationChange";
-        
-        public Task DetermineVariations(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
+
+        public Task<VariationStrategyResult> DetermineVariations(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
         {
             Guard.ArgumentNotNull(providerVariationContext, nameof(providerVariationContext));
 
@@ -22,13 +22,13 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
                 priorState.Provider.Status == Closed || 
                 providerVariationContext.UpdatedProvider.Status == Closed)
             {
-                return Task.CompletedTask;
+                return Task.FromResult(StrategyResult);
             }
 
             providerVariationContext.QueueVariationChange(new AdjustDsgProfilesForUnderOverPaymentChange(providerVariationContext));
             providerVariationContext.QueueVariationChange(new ReAdjustFundingValuesForProfileValuesChange(providerVariationContext));
             
-            return Task.CompletedTask;
+            return Task.FromResult(StrategyResult);
         }
     }
 }

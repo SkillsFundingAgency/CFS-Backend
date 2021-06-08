@@ -8,6 +8,6 @@ namespace CalculateFunding.Services.Publishing.Interfaces
     {
         string Name { get; }
         
-        Task DetermineVariations(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes);
+        Task<VariationStrategyResult> DetermineVariations(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes);
     }
 }

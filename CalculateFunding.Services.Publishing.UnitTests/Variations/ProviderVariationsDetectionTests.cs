@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
@@ -48,7 +49,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
             decimal updatedTotalFunding = new RandomNumberBetween(0, 1000);
             IDictionary<string, PublishedProviderSnapShots> allPublishedProviderSnapShots = new Dictionary<string, PublishedProviderSnapShots>();
             IDictionary<string, PublishedProvider> allPublishedProviderRefreshStates = new Dictionary<string, PublishedProvider>();
+            IDictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResultsData = new Dictionary<string, IEnumerable<OrganisationGroupResult>>(); 
             string providerVersionId = NewRandomString();
+
+            _variationStrategy.DetermineVariations(Arg.Is<ProviderVariationContext>(ctx => ctx.ProviderVersionId == providerVersionId), Arg.Any<IEnumerable<string>>())
+                .Returns(new VariationStrategyResult());
 
             ProviderVariationContext providerVariationContext = await _factory.CreateRequiredVariationChanges(existingPublishedProvider,
                 updatedTotalFunding,
@@ -57,7 +62,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
                 allPublishedProviderSnapShots,
                 allPublishedProviderRefreshStates,
                 variationPointers,
-                providerVersionId);
+                providerVersionId,
+                organisationGroupResultsData);
 
             providerVariationContext
                 .UpdatedTotalFunding
@@ -91,10 +97,100 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
                                ReferenceEquals(ctx.UpdatedProvider, updatedProvider) &&
                                ReferenceEquals(ctx.AllPublishedProviderSnapShots, allPublishedProviderSnapShots) &&
                                ReferenceEquals(ctx.AllPublishedProvidersRefreshStates, allPublishedProviderRefreshStates) &&
-                               ctx.ProviderVersionId == providerVersionId), 
+                               ctx.ProviderVersionId == providerVersionId &&
+                               ReferenceEquals(ctx.OrganisationGroupResultsData, organisationGroupResultsData)), 
                         fundingVariation.FundingLineCodes);
                 }   
             });
+        }
+
+        [TestMethod]
+        public async Task StopSubsequentVariationStrategiesInSuppliedFundingVariationsWhenOneVariationResultWithStopSubsequentStrategy()
+        {
+            IEnumerable<ProfileVariationPointer> variationPointers = ArraySegment<ProfileVariationPointer>.Empty;
+            PublishedProvider existingPublishedProvider = NewPublishedProvider();
+            Provider updatedProvider = NewApiProvider();
+            decimal updatedTotalFunding = new RandomNumberBetween(0, 1000);
+            IDictionary<string, PublishedProviderSnapShots> allPublishedProviderSnapShots = new Dictionary<string, PublishedProviderSnapShots>();
+            IDictionary<string, PublishedProvider> allPublishedProviderRefreshStates = new Dictionary<string, PublishedProvider>();
+            IDictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResultsData = new Dictionary<string, IEnumerable<OrganisationGroupResult>>();
+            string providerVersionId = NewRandomString();
+
+            string variationOne = NewRandomString();
+            string fundingLineCodeOne = NewRandomString();
+            string variationTwo = NewRandomString();
+            IVariationStrategy variationStrategyOne = Substitute.For<IVariationStrategy>();
+            VariationStrategyResult variationStrategyResultOne = new VariationStrategyResult() { StopSubsequentStrategies = true };
+
+
+            FundingVariation[] fundingVariations = new[] {NewFundingVariation(fv => fv.WithName(variationOne)
+                                                            .WithOrder(1)
+                                                            .WithFundingLineCodes(NewFundingLineCodes(fundingLineCodeOne))),
+                                                          NewFundingVariation(fv => fv.WithName(variationTwo)
+                                                            .WithOrder(2)
+                                                            .WithFundingLineCodes(NewFundingLineCodes(NewRandomString())))};
+
+            _variationStrategyServiceLocator
+                .GetService(variationOne)
+                .Returns(variationStrategyOne);
+
+            variationStrategyOne.DetermineVariations(Arg.Is<ProviderVariationContext>(ctx => ctx.ProviderVersionId == providerVersionId), Arg.Is<IEnumerable<string>>(f => f.Any(x => x == fundingLineCodeOne)))
+                .Returns(variationStrategyResultOne);
+
+            ProviderVariationContext providerVariationContext = await _factory.CreateRequiredVariationChanges(existingPublishedProvider,
+                updatedTotalFunding,
+                updatedProvider,
+                fundingVariations,
+                allPublishedProviderSnapShots,
+                allPublishedProviderRefreshStates,
+                variationPointers,
+                providerVersionId,
+                organisationGroupResultsData);
+
+            providerVariationContext
+                .UpdatedTotalFunding
+                .Should()
+                .Be(updatedTotalFunding);
+
+            providerVariationContext
+                .ReleasedState
+                .Should()
+                .BeSameAs(existingPublishedProvider.Released);
+
+            providerVariationContext
+                .UpdatedProvider
+                .Should()
+                .BeSameAs(updatedProvider);
+
+            providerVariationContext
+                .ProviderVersionId
+                .Should()
+                .BeSameAs(providerVersionId);
+
+            Received.InOrder(() =>
+            {
+                foreach (FundingVariation fundingVariation in fundingVariations.Where(x => x.Order == 1))
+                {
+                    _variationStrategyServiceLocator.GetService(fundingVariation.Name);
+                    variationStrategyOne.DetermineVariations(Arg.Is<ProviderVariationContext>(
+                        ctx => ctx.UpdatedTotalFunding == updatedTotalFunding &&
+                               ReferenceEquals(ctx.ReleasedState, existingPublishedProvider.Released) &&
+                               ctx.ProviderId == existingPublishedProvider.Current.ProviderId &&
+                               ReferenceEquals(ctx.UpdatedProvider, updatedProvider) &&
+                               ReferenceEquals(ctx.AllPublishedProviderSnapShots, allPublishedProviderSnapShots) &&
+                               ReferenceEquals(ctx.AllPublishedProvidersRefreshStates, allPublishedProviderRefreshStates) &&
+                               ctx.ProviderVersionId == providerVersionId &&
+                               ReferenceEquals(ctx.OrganisationGroupResultsData, organisationGroupResultsData)),
+                        fundingVariation.FundingLineCodes);
+                }
+            });
+
+            _variationStrategyServiceLocator
+                .Received(1)
+                .GetService(variationOne);
+            _variationStrategyServiceLocator
+                .Received(0)
+                .GetService(variationTwo);
         }
 
         private Provider NewApiProvider()

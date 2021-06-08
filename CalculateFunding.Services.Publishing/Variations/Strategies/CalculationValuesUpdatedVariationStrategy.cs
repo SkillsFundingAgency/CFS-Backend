@@ -9,11 +9,11 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing.Variations.Strategies
 {
-    public class CalculationValuesUpdatedVariationStrategy : IVariationStrategy
+    public class CalculationValuesUpdatedVariationStrategy : Variation, IVariationStrategy
     {
         public string Name => "CalculationValuesUpdated";
 
-        public Task DetermineVariations(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
+        public Task<VariationStrategyResult> DetermineVariations(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
         {
             Guard.ArgumentNotNull(providerVariationContext, nameof(providerVariationContext));
 
@@ -24,7 +24,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
             if(priorState?.Calculations == null || refreshState?.Calculations == null)
             {
-                return Task.CompletedTask;
+                return Task.FromResult(StrategyResult);
             }
 
             foreach (FundingCalculation priorFundingCalculation in priorState.Calculations)
@@ -42,14 +42,14 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
             if (!calculationValuesUpdated)
             {
-                return Task.CompletedTask;
+                return Task.FromResult(StrategyResult);
             }
 
             providerVariationContext.AddVariationReasons(VariationReason.CalculationValuesUpdated);
 
             providerVariationContext.QueueVariationChange(new MetaDataVariationsChange(providerVariationContext));
 
-            return Task.CompletedTask;
+            return Task.FromResult(StrategyResult);
         }
     }
 }

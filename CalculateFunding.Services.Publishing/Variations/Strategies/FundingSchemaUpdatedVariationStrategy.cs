@@ -8,11 +8,11 @@ using CalculateFunding.Services.Publishing.Variations.Changes;
 
 namespace CalculateFunding.Services.Publishing.Variations.Strategies
 {
-    public class FundingSchemaUpdatedVariationStrategy : IVariationStrategy
+    public class FundingSchemaUpdatedVariationStrategy : Variation, IVariationStrategy
     {
         public string Name => "FundingSchemaUpdated";
 
-        public async Task DetermineVariations(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
+        public async Task<VariationStrategyResult> DetermineVariations(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
         {
             Guard.ArgumentNotNull(providerVariationContext, nameof(providerVariationContext));
 
@@ -22,11 +22,13 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
             if ((string.IsNullOrWhiteSpace(priorSchemaVersion) && string.IsNullOrWhiteSpace(updatedSchemaVersion)) ||
                 priorSchemaVersion == updatedSchemaVersion)
             {
-                return;
+                return StrategyResult;
             }
 
             providerVariationContext.AddVariationReasons(VariationReason.FundingSchemaUpdated);
             providerVariationContext.QueueVariationChange(new MetaDataVariationsChange(providerVariationContext));
+
+            return StrategyResult;
         }
     }
 }

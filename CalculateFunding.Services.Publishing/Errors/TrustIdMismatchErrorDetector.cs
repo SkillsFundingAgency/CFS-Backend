@@ -32,7 +32,7 @@ namespace CalculateFunding.Services.Publishing.Errors
             _mapper = mapper;
         }
 
-        protected override async Task<ErrorCheck> HasErrors(
+        protected override Task<ErrorCheck> HasErrors(
             PublishedProvider publishedProvider,
             PublishedProvidersContext publishedProvidersContext)
         {
@@ -43,57 +43,43 @@ namespace CalculateFunding.Services.Publishing.Errors
             // if there is no released version then we don't need to do the check
             if (publishedProvider.Released == null)
             {
-                return errorCheck;
+                return Task.FromResult(errorCheck);
             }
-
-            IEnumerable<Provider> apiClientProviders =
-                _mapper.Map<IEnumerable<Provider>>(publishedProvidersContext.ScopedProviders);
-
+            
             static string OrganisationGroupsKey(string fundingStreamId,
                 string fundingPeriodId)
             {
                 return $"{fundingStreamId}:{fundingPeriodId}";
             }
 
-            IEnumerable<OrganisationGroupResult> organisationGroups;
-
             string keyForOrganisationGroups = OrganisationGroupsKey(publishedProvider.Current.FundingStreamId, publishedProvider.Current.FundingPeriodId);
 
             if (publishedProvidersContext.OrganisationGroupResultsData.ContainsKey(keyForOrganisationGroups))
             {
-                organisationGroups = publishedProvidersContext.OrganisationGroupResultsData[keyForOrganisationGroups];
-            }
-            else
-            {
-                organisationGroups = await _organisationGroupGenerator.GenerateOrganisationGroup(
-                    publishedProvidersContext.FundingConfiguration,
-                    apiClientProviders,
-                    publishedProvidersContext.ProviderVersionId);
-                publishedProvidersContext.OrganisationGroupResultsData.Add(keyForOrganisationGroups, organisationGroups);
-            }
+                IEnumerable<OrganisationGroupResult> organisationGroups = publishedProvidersContext.OrganisationGroupResultsData[keyForOrganisationGroups];
 
-            HashSet<string> organisationGroupsHashSet = organisationGroups
-                                            .Where(_ => _.Providers.AnyWithNullCheck()
-                                                        && _.Providers.Any(p => p.ProviderId == publishedProvider.Current.ProviderId))
-                                            .SelectMany(_ => _.Identifiers.Select(_ => $"{_.Type}-{_.Value}")).Distinct().ToHashSet();
+                HashSet<string> organisationGroupsHashSet = organisationGroups
+                                                .Where(_ => _.Providers.AnyWithNullCheck()
+                                                            && _.Providers.Any(p => p.ProviderId == publishedProvider.Current.ProviderId))
+                                                .SelectMany(_ => _.Identifiers.Select(_ => $"{_.Type}-{_.Value}")).Distinct().ToHashSet();
 
-            publishedProvidersContext.CurrentPublishedFunding
-                .ForEach(x =>
-                {
-                    if (organisationGroupsHashSet.Contains($"{x.Current.OrganisationGroupTypeIdentifier}-{x.Current.OrganisationGroupIdentifierValue}")
-                        && x.Current.ProviderFundings.All(pv => pv != publishedProvider.Released.FundingId))
+                publishedProvidersContext.CurrentPublishedFunding
+                    .ForEach(x =>
                     {
-                        errorCheck.AddError(new PublishedProviderError
+                        if (organisationGroupsHashSet.Contains($"{x.Current.OrganisationGroupTypeIdentifier}-{x.Current.OrganisationGroupIdentifierValue}")
+                            && x.Current.ProviderFundings.All(pv => pv != publishedProvider.Released.FundingId))
                         {
-                            Type = PublishedProviderErrorType.TrustIdMismatch,
-                            DetailedErrorMessage = $"TrustId {x.Current.OrganisationGroupTypeIdentifier}-{x.Current.OrganisationGroupIdentifierValue} not matched.",
-                            SummaryErrorMessage = "TrustId  not matched",
-                            FundingStreamId = publishedProvider.Current.FundingStreamId
-                        });
-                    }
-                });
-
-            return errorCheck;
+                            errorCheck.AddError(new PublishedProviderError
+                            {
+                                Type = PublishedProviderErrorType.TrustIdMismatch,
+                                DetailedErrorMessage = $"TrustId {x.Current.OrganisationGroupTypeIdentifier}-{x.Current.OrganisationGroupIdentifierValue} not matched.",
+                                SummaryErrorMessage = "TrustId  not matched",
+                                FundingStreamId = publishedProvider.Current.FundingStreamId
+                            });
+                        }
+                    });
+            }
+            return Task.FromResult(errorCheck);
         }
     }
 }

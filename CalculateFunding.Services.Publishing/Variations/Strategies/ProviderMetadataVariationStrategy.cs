@@ -15,7 +15,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
     /// Detects changes in provider metadata between the current saved and the current state of the provider.
     /// Add a variation reason for the relevant field if it has changed.
     /// </summary>
-    public class ProviderMetadataVariationStrategy : IVariationStrategy
+    public class ProviderMetadataVariationStrategy : Variation, IVariationStrategy
     {
         private class VariationCheck
         {
@@ -87,17 +87,17 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
         public string Name => "ProviderMetadata";
 
-        public async Task DetermineVariations(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
+        public async Task<VariationStrategyResult> DetermineVariations(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
         {
             if (providerVariationContext.PriorState == null || providerVariationContext.UpdatedProvider == null || providerVariationContext.ReleasedState == null)
             {
-                return;
+                return StrategyResult;
             }
 
             string schemaVersion = await providerVariationContext.GetReleasedStateSchemaVersion();
 
             if (string.IsNullOrWhiteSpace(schemaVersion))
-                return;
+                return StrategyResult;
 
             IList<VariationCheck> variationChecksToPerform = VariationChecks.Where(x => !x.ApplicableSchemaVersions.Any()).Select(x => x.VariationCheck) // No applicable schema versions
                                                             .Concat(VariationChecks.Where(x => x.ApplicableSchemaVersions.Contains(schemaVersion)).Select(x => x.VariationCheck)) // specific schema versions
@@ -112,6 +112,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
             {
                 providerVariationContext.QueueVariationChange(new MetaDataVariationsChange(providerVariationContext));
             }
+
+            return StrategyResult;
         }
     }
 }
