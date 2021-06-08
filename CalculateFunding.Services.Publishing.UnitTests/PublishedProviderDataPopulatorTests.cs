@@ -66,7 +66,23 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             _logger
                 .Received(1)
-                .Information($"changes for new published provider version : {_publishedProviderVersion.Id} : [\"TemplateVersion: {newTemplateVersion} != {initialTemplateVersion}\"]");
+                .Information($"changes for published provider version : {_publishedProviderVersion.Id} : [\"TemplateVersion: {newTemplateVersion} != {initialTemplateVersion}\"]");
+        }
+
+        [TestMethod]
+        public void UpdatePublishedProvider_GivenIsIndicativeChange_ReturnsTrue()
+        {
+            _publishedProviderVersion.IsIndicative = true;
+
+            bool result = WhenThePublishedProviderIsUpdated();
+
+            result
+                .Should()
+                .BeTrue();
+
+            _logger
+                .Received(1)
+                .Information($"changes for published provider version : {_publishedProviderVersion.Id} : [\"IsIndicative: {true} != {false}\"]");
         }
 
         [TestMethod]
@@ -96,7 +112,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             _logger
                  .Received(1)
-                 .Information($"changes for new published provider version : {_publishedProviderVersion.Id} : [\"Provider: Name: {initialProviderName} != {newProviderName}\"]");
+                 .Information($"changes for published provider version : {_publishedProviderVersion.Id} : [\"Provider: Name: {initialProviderName} != {newProviderName}\"]");
         }
 
         [TestMethod]
@@ -114,7 +130,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             _logger
                  .Received(1)
-                 .Information($"changes for new published provider version : {_publishedProviderVersion.Id} : [\"FundingLine:{_generatedProviderResult.FundingLines.First().FundingLineCode}\"]");
+                 .Information($"changes for published provider version : {_publishedProviderVersion.Id} : [\"FundingLine:{_generatedProviderResult.FundingLines.First().FundingLineCode}\"]");
         }
 
         [TestMethod]
@@ -132,7 +148,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             _logger
                  .Received(1)
-                 .Information($"changes for new published provider version : {_publishedProviderVersion.Id} : [\"Calculation:{_generatedProviderResult.Calculations.First().TemplateCalculationId}\"]");
+                 .Information($"changes for published provider version : {_publishedProviderVersion.Id} : [\"Calculation:{_generatedProviderResult.Calculations.First().TemplateCalculationId}\"]");
         }
 
         [TestMethod]
@@ -148,7 +164,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             _logger
                  .Received(1)
-                 .Information($"changes for new published provider version : {_publishedProviderVersion.Id} : [\"Calculation:{_generatedProviderResult.Calculations.First().TemplateCalculationId}\"]");
+                 .Information($"changes for published provider version : {_publishedProviderVersion.Id} : [\"Calculation:{_generatedProviderResult.Calculations.First().TemplateCalculationId}\"]");
         }
 
         [TestMethod]
@@ -166,7 +182,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             _logger
                  .Received(1)
-                 .Information($"changes for new published provider version : {_publishedProviderVersion.Id} : [\"ReferenceData:{_generatedProviderResult.ReferenceData.First().TemplateReferenceId}\"]");
+                 .Information($"changes for published provider version : {_publishedProviderVersion.Id} : [\"ReferenceData:{_generatedProviderResult.ReferenceData.First().TemplateReferenceId}\"]");
         }
 
         private bool WhenThePublishedProviderIsUpdated()

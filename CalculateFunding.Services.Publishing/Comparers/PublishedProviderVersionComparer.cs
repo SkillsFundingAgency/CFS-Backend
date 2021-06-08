@@ -82,6 +82,12 @@ namespace CalculateFunding.Services.Publishing.Comparers
                 equals = false;
             }
 
+            if (x.IsIndicative != y.IsIndicative)
+            {
+                _variances.Add($"IsIndicative: {x.IsIndicative} != {y.IsIndicative}");
+                equals = false;
+            }
+
             ProviderComparer providerComparer = new ProviderComparer();
 
             if (!providerComparer.Equals(x.Provider, y.Provider))

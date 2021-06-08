@@ -73,7 +73,7 @@ namespace CalculateFunding.Services.Publishing
 
                 if (!equal)
                 {
-                    _logger.Information($"changes for new published provider version : {publishedProviderVersion.Id} : {publishedProviderVersionComparer.Variances.AsJson()}");
+                    _logger.Information($"changes for published provider version : {publishedProviderVersion.Id} : {publishedProviderVersionComparer.Variances.AsJson()}");
                 }
             }
 
