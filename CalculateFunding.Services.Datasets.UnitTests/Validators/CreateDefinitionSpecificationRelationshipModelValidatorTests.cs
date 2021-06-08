@@ -61,7 +61,7 @@ namespace CalculateFunding.Services.Datasets.Validators
                 .Errors
                 .Count
                 .Should()
-                .Be(1);
+                .Be(2);
         }
 
         [TestMethod]

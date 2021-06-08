@@ -980,34 +980,37 @@ namespace CalculateFunding.Services.Datasets
 
             foreach (DocumentEntity<Dataset> dataset in datasets)
             {
-                foreach (DatasetVersion datasetVersion in dataset.Content.History)
+                if (dataset.Content.History.AnyWithNullCheck())
                 {
-                    DatasetVersionIndex datasetVersionIndex = new DatasetVersionIndex
+                    foreach (DatasetVersion datasetVersion in dataset.Content.History)
                     {
-                        Id = $"{dataset.Id}-{datasetVersion.Version}",
-                        DatasetId = dataset.Id,
-                        Name = dataset.Content.Name,
-                        Version = datasetVersion.Version,
-                        BlobName = datasetVersion.BlobName,
-                        ChangeNote = datasetVersion.Comment,
-                        DefinitionName = dataset.Content.Definition.Name,
-                        Description = dataset.Content.Description,
-                        LastUpdatedDate = datasetVersion.Date,
-                        LastUpdatedByName = datasetVersion.Author.Name,
-                        FundingStreamId = datasetVersion.FundingStream?.Id,
-                        FundingStreamName = datasetVersion.FundingStream?.Name
-                    };
-                    searchEntries.Add(datasetVersionIndex);
-
-                    if (searchEntries.Count >= searchBatchSize)
-                    {
-                        foreach (IEnumerable<DatasetVersionIndex> datasetVersionIndexBatch in searchEntries.ToBatches(searchBatchSize))
+                        DatasetVersionIndex datasetVersionIndex = new DatasetVersionIndex
                         {
-                            await _datasetVersionIndexRepository.Index(datasetVersionIndexBatch);
-                            totalInserts += searchEntries.Count;
-                        }
+                            Id = $"{dataset.Id}-{datasetVersion.Version}",
+                            DatasetId = dataset.Id,
+                            Name = dataset.Content.Name,
+                            Version = datasetVersion.Version,
+                            BlobName = datasetVersion.BlobName,
+                            ChangeNote = datasetVersion.Comment,
+                            DefinitionName = dataset.Content.Definition.Name,
+                            Description = dataset.Content.Description,
+                            LastUpdatedDate = datasetVersion.Date,
+                            LastUpdatedByName = datasetVersion.Author.Name,
+                            FundingStreamId = datasetVersion.FundingStream?.Id,
+                            FundingStreamName = datasetVersion.FundingStream?.Name
+                        };
+                        searchEntries.Add(datasetVersionIndex);
 
-                        searchEntries.Clear();
+                        if (searchEntries.Count >= searchBatchSize)
+                        {
+                            foreach (IEnumerable<DatasetVersionIndex> datasetVersionIndexBatch in searchEntries.ToBatches(searchBatchSize))
+                            {
+                                await _datasetVersionIndexRepository.Index(datasetVersionIndexBatch);
+                                totalInserts += searchEntries.Count;
+                            }
+
+                            searchEntries.Clear();
+                        }
                     }
                 }
             }

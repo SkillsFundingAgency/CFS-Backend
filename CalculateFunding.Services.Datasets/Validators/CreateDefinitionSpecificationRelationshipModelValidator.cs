@@ -30,6 +30,21 @@ namespace CalculateFunding.Services.Datasets.Validators
                    }
                });
 
+            RuleFor(model => model.ConverterEnabled)
+                .CustomAsync(async (name, context, ct) =>
+                {
+                    CreateDefinitionSpecificationRelationshipModel relationshipModel = context.ParentContext.InstanceToValidate as CreateDefinitionSpecificationRelationshipModel;
+                    if (relationshipModel.ConverterEnabled && !string.IsNullOrWhiteSpace(relationshipModel.DatasetDefinitionId))
+                    {
+                        DatasetDefinition datasetDefinition = await _datasetRepository.GetDatasetDefinition(relationshipModel.DatasetDefinitionId);
+
+                        if (!datasetDefinition.ConverterEligible)
+                        {
+                            context.AddFailure("You cannot enable the relationship as converter enabled as the dataset definition does not allow it");
+                        }
+                    }
+                });
+
             RuleFor(model => model.SpecificationId)
               .NotEmpty()
               .WithMessage("Missing specification id.");
