@@ -3,7 +3,25 @@ name: $(Rev:r)
 pool:
   vmImage: windows-2019
 
-trigger: none
+trigger:
+  branches:
+    include:
+    - master
+    - providers
+    - fdps
+  paths:
+    include:
+    - CalculateFunding.Api.External
+    - CalculateFunding.Functions.External
+    - CalculateFunding.Services.External
+    - CalculateFunding.Services.External.UnitTests
+    - CalculateFunding.Services.Core
+    - CalculateFunding.Api.External.UnitTests
+    - DevOps/search-indexers/publishedfundingindexer
+    - DevOps/search-indexes/publishedfundingindex
+    - CalculateFunding.Models.Publishing
+    - CalculateFunding.Services.Publishing
+    - CalculateFunding.Models.Search
 
 variables:
  - name: ProjectName
@@ -29,7 +47,7 @@ variables:
 
 
 steps:
- - template: templates\standard-service-pr-build.yml
+ - template: templates\standard-service-pr-ci-build.yml
    parameters:
      ProjectName: ${{ variables.ProjectName }}
      ServiceName: ${{ variables.ServiceName }} 
@@ -44,7 +62,7 @@ steps:
      SmokeTestClientSecret: $(ExternalAzureAdClientSecret)
 
  - task: DotNetCoreCLI@2
-   condition: and(succeeded(), eq(variables.runIntegrationTests, true))
+   condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'), eq(variables.runIntegrationTests, true))
    displayName: 'dotnet test for Integration tests'
    inputs:
      command: 'test'
