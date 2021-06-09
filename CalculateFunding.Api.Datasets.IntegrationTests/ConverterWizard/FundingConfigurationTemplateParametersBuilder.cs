@@ -1,5 +1,6 @@
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Tests.Common.Helpers;
+using System;
 
 namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
 {
@@ -11,6 +12,7 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
         private ProviderSource? _providerSource;
         private bool? _enableConverterDataMerge;
         private string[] _indicativeOpenerProviderStatus;
+        private string[] _allowedPublishedFundingStreamsIdsToReference;
 
         public FundingConfigurationTemplateParametersBuilder WithFundingStreamId(string fundingStreamId)
         {
@@ -54,6 +56,12 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
             return this;
         }
 
+        public FundingConfigurationTemplateParametersBuilder WithAllowedPublishedFundingStreamsIdsToReference(params string[] allowedPublishedFundingStreamsIdsToReference)
+        {
+            _allowedPublishedFundingStreamsIdsToReference = allowedPublishedFundingStreamsIdsToReference;
+
+            return this;
+        }
 
         public FundingConfigurationTemplateParameters Build() =>
             new FundingConfigurationTemplateParameters
@@ -61,9 +69,10 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
                 FundingStreamId = _fundingStreamId ?? NewRandomString(),
                 FundingPeriodId = _fundingPeriodId ?? NewRandomString(),
                 DefaultTemplateVersion = _defaultTemplateVersion ?? NewRandomString(),
-                IndicativeOpenerProviderStatus = _indicativeOpenerProviderStatus ?? new string[0],
+                IndicativeOpenerProviderStatus = _indicativeOpenerProviderStatus ?? Array.Empty<string>(),
                 EnableConverterDataMerge = _enableConverterDataMerge.GetValueOrDefault(NewRandomFlag()),
-                ProviderSource = _providerSource.GetValueOrDefault(NewRandomEnum<ProviderSource>())
+                ProviderSource = _providerSource.GetValueOrDefault(NewRandomEnum<ProviderSource>()),
+                AllowedPublishedFundingStreamsIdsToReference = _allowedPublishedFundingStreamsIdsToReference ?? Array.Empty<string>()
             };
     }
 }

@@ -27,7 +27,8 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.Data
                 INDICATIVEOPENERPROVIDERSTATUS = ((string[]) documentData.IndicativeOpenerProviderStatus).AsJson(),
                 ENABLECONVERTERDATAMERGE = documentData.EnableConverterDataMerge.ToString().ToLower(),
                 PROVIDERSOURCE = documentData.ProviderSource.ToString(),
-                NOW = now
+                NOW = now,
+                ALLOWEDPUBLISHEDFUNDINGSTREAMIDSTOREFERENCE = ((string[])documentData.AllowedPublishedFundingStreamsIdsToReference).AsJson(),
             };
 
         protected override string GetPartitionKey(JsonElement content)

@@ -378,7 +378,7 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
                 .Results
                 .Select(_ => new
                 {
-                    ukprn = _.EligibleConverter.TargetProviderId,
+                    ukprn = _.EligibleConverter.ProviderId,
                     outcome = _.Outcome
                 })
                 .ToArray()

@@ -2,7 +2,7 @@
   "id": "<ID>",
   "documentType": "Specification",
   "content": {
-    "isSelectedForFunding": false,
+    "isSelectedForFunding": <ISSELECTEDFORFUNDING>,
     "current": {
       "id": "<SPECIFICATIONVERSIONID>",
       "entityId": "<ID>",

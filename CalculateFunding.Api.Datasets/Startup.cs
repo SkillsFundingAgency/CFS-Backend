@@ -206,6 +206,9 @@ namespace CalculateFunding.Api.Datasets
                .AddSingleton<IDefinitionChangesDetectionService, DefinitionChangesDetectionService>();
 
             builder
+               .AddSingleton<ISpecificationsService, SpecificationsService >();
+
+            builder
               .AddSingleton<IDatasetDefinitionNameChangeProcessor, DatasetDefinitionNameChangeProcessor>();
 
             builder

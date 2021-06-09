@@ -37,5 +37,7 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
         public string AuthorName { get; set; }
 
         public PublishStatus PublishStatus { get; set; }
+
+        public bool IsSelectedForFunding { get; set; }
     }
 }

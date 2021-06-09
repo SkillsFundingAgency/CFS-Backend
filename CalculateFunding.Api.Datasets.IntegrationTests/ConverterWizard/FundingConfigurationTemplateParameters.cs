@@ -17,5 +17,7 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
         public bool EnableConverterDataMerge { get; set; }
 
         public ProviderSource ProviderSource { get; set; }
+
+        public string[] AllowedPublishedFundingStreamsIdsToReference { get; set; }
     }
 }

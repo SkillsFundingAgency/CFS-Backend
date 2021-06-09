@@ -24,6 +24,7 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
         private string _authorId;
         private string _authorName;
         private PublishStatus? _publishStatus;
+        private bool? _isSelectedForFunding;
 
         public SpecificationTemplateParametersBuilder WithId(string id)
         {
@@ -144,6 +145,13 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
             return this;
         }
 
+        public SpecificationTemplateParametersBuilder WithIsSelectedForFunding(bool isSelectedForFunding)
+        {
+            _isSelectedForFunding = isSelectedForFunding;
+
+            return this;
+        }
+
         public SpecificationTemplateParameters Build() =>
             new SpecificationTemplateParameters
             {
@@ -162,7 +170,8 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
                 ProviderSnapshotId = _providerSnapshotId,
                 ProviderVersionId = _providerVersionId ?? NewRandomString(),
                 SpecificationVersionId = _specificationVersionId ?? NewRandomString(),
-                DataDefinitionRelationshipIds = _dataDefinitionRelationshipIds ?? new string[0]
+                DataDefinitionRelationshipIds = _dataDefinitionRelationshipIds ?? new string[0],
+                IsSelectedForFunding = _isSelectedForFunding ?? false
             };
     }
 }

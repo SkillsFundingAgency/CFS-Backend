@@ -38,7 +38,8 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.Data
                 PUBLISHSTATUS = documentData.PublishStatus,
                 FUNDINGSTREAMS = ((Reference[])documentData.FundingStreams).AsJson(),
                 NOW = now,
-                PROVIDERVERSIONID = documentData.ProviderVersionId
+                PROVIDERVERSIONID = documentData.ProviderVersionId,
+                ISSELECTEDFORFUNDING = documentData.IsSelectedForFunding.ToString().ToLower()
             };
     }
 }
