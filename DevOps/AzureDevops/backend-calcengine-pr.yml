@@ -3,7 +3,23 @@ name: $(Rev:r)
 pool:
   vmImage: windows-2019
 
-trigger: none
+trigger:
+  branches:
+    include:
+    - master
+    - providers
+    - fdps
+  paths:
+    include:
+    - CalculateFunding.Services.CalcEngine
+    - CalculateFunding.Services.CalcEngine.UnitTests
+    - CalculateFunding.Services.Core
+    - CalculateFunding.Functions.CalcEngine
+    - CalculateFunding.Models.CalcEngine
+    - CalculateFunding.Models.Search
+    - CalculateFunding.Models.Versioning
+    - CalculateFunding.Models.ProviderLegacy
+    - CalculateFunding.Api.CalcEngine
 
 variables:
  - name: ProjectName
@@ -28,7 +44,7 @@ variables:
  - group: 'Smoke Test KV - Integration-v2'
 
 steps:
- - template: templates\standard-service-pr-build.yml
+ - template: templates\standard-service-pr-ci-build.yml
    parameters:
      ProjectName: ${{ variables.ProjectName }}
      ServiceName: ${{ variables.ServiceName }} 
@@ -40,7 +56,7 @@ steps:
      APIKey: $(svcapicalcengine)
 
  - task: DotNetCoreCLI@2
-   condition: and(succeeded(), eq(variables.runIntegrationTests, true))
+   condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'), eq(variables.runIntegrationTests, true))
    displayName: 'dotnet test for Integration tests'
    inputs:
      command: 'test'
