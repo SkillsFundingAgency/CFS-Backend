@@ -9,6 +9,12 @@ trigger:
     - master
     - providers
     - fdps
+  paths:
+    include:
+    - CalculateFunding.Services.Core
+    - CalculateFunding.Services.Core.AspNet
+    - CalculateFunding.Editor.FundingDataZone
+    - CalculateFunding.Services.FundingDataZone
 
 variables:
 - name: BuildConfiguration
