@@ -347,7 +347,8 @@ namespace CalculateFunding.Services.Publishing
                 scopedProviders.Values,
                 publishedProvidersReadonlyDictionary.Values,
                 fundingConfiguration,
-                specification.ProviderVersionId);
+                specification.ProviderVersionId,
+                specification.ProviderSnapshotId);
 
             PublishedProvidersContext publishedProvidersContext = new PublishedProvidersContext
             {
@@ -563,7 +564,8 @@ namespace CalculateFunding.Services.Publishing
             IEnumerable<Provider> scopedProviders,
             IEnumerable<PublishedProvider> publishedProviders,
             FundingConfiguration fundingConfiguration, 
-            string providerVersionId)
+            string providerVersionId,
+            int? providerSnapshotId = null)
         {
             Dictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResultsData = new Dictionary<string, IEnumerable<OrganisationGroupResult>>();
 
@@ -580,7 +582,8 @@ namespace CalculateFunding.Services.Publishing
                     organisationGroups = await _organisationGroupGenerator.GenerateOrganisationGroup(
                         fundingConfiguration,
                         apiClientProviders,
-                        providerVersionId);
+                        providerVersionId,
+                        providerSnapshotId);
 
                     organisationGroupResultsData.Add(keyForOrganisationGroups, organisationGroups);
                 }
