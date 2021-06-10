@@ -201,7 +201,7 @@ steps:
 
  - task: PublishPipelineArtifact@1
    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
-   displayName: 'Publish Artifact'
+   displayName: 'Publish Drop Artifact'
    inputs:
     targetPath: $(build.artifactstagingdirectory)
     artifactName: drop
@@ -234,7 +234,7 @@ steps:
 
  - task: PublishPipelineArtifact@1
    condition: and(succeeded(), eq(variables['ExecuteMyTask'], 'True'), ne(variables['Build.Reason'], 'PullRequest'))
-   displayName: 'Publish Artifact'
+   displayName: 'Publish Smoketest Artifact'
    inputs:
     targetPath: ' $(build.artifactstagingdirectory)/CalculateFunding.Functions.${{ parameters.ProjectName }}.SmokeTests'
     artifactName: Smoketest    
