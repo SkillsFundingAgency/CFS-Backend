@@ -167,7 +167,7 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
                     pr.WithStatus(indicativeStatusOne)
                         .WithUkprn(ukprnOne)
                         .WithSourceProviderUKPRN(ukprnTwo)),
-                NewConverterActivityReportRowParameters(pr => 
+                NewConverterActivityReportRowParameters(pr =>
                     pr.WithUkprn(ukprnThree)
                         .WithStatus(indicativeStatusTwo)
                         .WithSourceProviderUKPRN(ukprnFour))
@@ -261,7 +261,7 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
                     "Expected a job to have been created for the queue SpecificationConverterDataMergeJob request");
 
             await AndTheJobAndAllItsChildJobsSucceed(jobId, "Expected SpecificationConverterDataMergeJob to complete and succeed.");
-            
+
             string convertActivityReportJobId = await AndTheConvertActivityJobWasQueud(jobId);
 
             convertActivityReportJobId

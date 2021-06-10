@@ -8,6 +8,7 @@ using CalculateFunding.Common.ApiClient.DataSets;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
+using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
@@ -212,6 +213,7 @@ namespace CalculateFunding.Services.Calcs
                 $"{CacheKeys.SpecificationSummaryById}{specificationId}";
 
             bool specificationSummaryExists = await _cacheProvider.KeyExists<Models.Specs.SpecificationSummary>(specificationSummaryCachekey);
+            Models.Specs.SpecificationSummary specificationSummary;
             if (!specificationSummaryExists)
             {
                 ApiResponse<SpecificationSummary> specificationSummaryResponse = await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId));
@@ -221,7 +223,24 @@ namespace CalculateFunding.Services.Calcs
                     _logger.Error(errorMessage);
                     throw new NonRetriableException(errorMessage);
                 }
+
+                specificationSummary = _mapper.Map<Models.Specs.SpecificationSummary>(specificationSummaryResponse.Content);
             }
+            else
+            {
+                specificationSummary = await _cacheProvider.GetAsync<Models.Specs.SpecificationSummary>(specificationSummaryCachekey);
+            }
+
+            ApiResponse<FundingConfiguration> fundingConfigurationResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingConfiguration(specificationSummary.FundingStreams.First().Id, specificationSummary.FundingPeriod.Id));
+
+            if (!fundingConfigurationResponse.StatusCode.IsSuccess())
+            {
+                string errorMessage = $"Unable to get funding configuration for funding stream id: '{specificationSummary.FundingStreams.First().Id}' and funding period id: '{specificationSummary.FundingPeriod.Id}' with status code: {fundingConfigurationResponse.StatusCode}";
+                _logger.Error(errorMessage);
+                throw new NonRetriableException(errorMessage);
+            }
+
+            FundingConfiguration fundingConfiguration = fundingConfigurationResponse.Content;
 
             string providerCacheKey = message.UserProperties.ContainsKey("provider-cache-key") ?
                 message.UserProperties["provider-cache-key"].ToString() :
@@ -305,6 +324,8 @@ namespace CalculateFunding.Services.Calcs
             properties.Add("specification-id", specificationId);
 
             properties.Add("specification-summary-cache-key", specificationSummaryCachekey);
+
+            properties.Add("funding-config-indicative-opener-provider-status", string.Join(",", fundingConfiguration.IndicativeOpenerProviderStatus ?? new string[0]));
 
             string assemblyETag = await _sourceFileRepository.GetAssemblyETag(specificationId);
 

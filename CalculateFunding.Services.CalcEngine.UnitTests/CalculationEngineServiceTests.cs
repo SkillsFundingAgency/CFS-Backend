@@ -207,7 +207,8 @@ namespace CalculateFunding.Services.Calculator
                 .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                     Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
                     Arg.Any<IDictionary<string, ProviderSourceDataset>>(),
-                    Arg.Any<IEnumerable<CalculationAggregation>>())
+                    Arg.Any<IEnumerable<CalculationAggregation>>(),
+                    Arg.Any<IEnumerable<string>>())
                 .Returns(new ProviderResult()
                 {
 
@@ -264,7 +265,8 @@ namespace CalculateFunding.Services.Calculator
                 .Received(providerSummaries.Count)
                 .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                     Arg.Any<ProviderSummary>(), Arg.Any<IDictionary<string, ProviderSourceDataset>>(),
-                    Arg.Any<IEnumerable<CalculationAggregation>>());
+                    Arg.Any<IEnumerable<CalculationAggregation>>(),
+                    Arg.Any<IEnumerable<string>>());
 
             await
             _calculationEngineServiceTestsHelper
@@ -329,7 +331,8 @@ namespace CalculateFunding.Services.Calculator
                 .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                     Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
                     Arg.Any<IDictionary<string, ProviderSourceDataset>>(),
-                    Arg.Any<IEnumerable<CalculationAggregation>>())
+                    Arg.Any<IEnumerable<CalculationAggregation>>(),
+                    Arg.Any<IEnumerable<string>>())
                 .Returns(new ProviderResult()
                 { });
 
@@ -370,7 +373,8 @@ namespace CalculateFunding.Services.Calculator
                 .Received(providerSummaries.Count)
                 .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                     Arg.Any<ProviderSummary>(), Arg.Any<IDictionary<string, ProviderSourceDataset>>(),
-                    Arg.Any<IEnumerable<CalculationAggregation>>());
+                    Arg.Any<IEnumerable<CalculationAggregation>>(),
+                    Arg.Any<IEnumerable<string>>());
 
             await
             _calculationEngineServiceTestsHelper
@@ -429,7 +433,8 @@ namespace CalculateFunding.Services.Calculator
                 .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                     Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
                     Arg.Any<IDictionary<string, ProviderSourceDataset>>(),
-                    Arg.Any<IEnumerable<CalculationAggregation>>())
+                    Arg.Any<IEnumerable<CalculationAggregation>>(),
+                    Arg.Any<IEnumerable<string>>())
                 .Returns(new ProviderResult());
 
             _calculationEngineServiceTestsHelper
@@ -469,7 +474,8 @@ namespace CalculateFunding.Services.Calculator
                 .Received(providerSummaries.Count)
                 .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                     Arg.Any<ProviderSummary>(), Arg.Any<IDictionary<string, ProviderSourceDataset>>(),
-                    Arg.Any<IEnumerable<CalculationAggregation>>());
+                    Arg.Any<IEnumerable<CalculationAggregation>>(),
+                    Arg.Any<IEnumerable<string>>());
 
             //Assert
             await
@@ -530,7 +536,8 @@ namespace CalculateFunding.Services.Calculator
                 .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                     Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
                     Arg.Any<IDictionary<string, ProviderSourceDataset>>(),
-                    Arg.Any<IEnumerable<CalculationAggregation>>())
+                    Arg.Any<IEnumerable<CalculationAggregation>>(),
+                    Arg.Any<IEnumerable<string>>())
                 .Returns(new ProviderResult()
                 {
 
@@ -566,7 +573,8 @@ namespace CalculateFunding.Services.Calculator
                 .Received(providerSummaries.Count)
                 .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                     Arg.Any<ProviderSummary>(), Arg.Any<IDictionary<string, ProviderSourceDataset>>(),
-                    Arg.Any<IEnumerable<CalculationAggregation>>());
+                    Arg.Any<IEnumerable<CalculationAggregation>>(),
+                    Arg.Any<IEnumerable<string>>());
 
             //Assert
             await
@@ -633,7 +641,8 @@ namespace CalculateFunding.Services.Calculator
                 .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                     Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
                     Arg.Any<IDictionary<string, ProviderSourceDataset>>(),
-                    Arg.Any<IEnumerable<CalculationAggregation>>())
+                    Arg.Any<IEnumerable<CalculationAggregation>>(),
+                    Arg.Any<IEnumerable<string>>())
                 .Returns(new ProviderResult()
                 {
                     CalculationResults = new List<CalculationResult>
@@ -839,7 +848,8 @@ namespace CalculateFunding.Services.Calculator
                 .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                     Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
                     Arg.Any<IDictionary<string, ProviderSourceDataset>>(),
-                    Arg.Any<IEnumerable<CalculationAggregation>>())
+                    Arg.Any<IEnumerable<CalculationAggregation>>(),
+                    Arg.Any<IEnumerable<string>>())
                     .Returns(new ProviderResult
                     {
                         CalculationResults = new List<CalculationResult>
@@ -883,7 +893,8 @@ namespace CalculateFunding.Services.Calculator
                .Received(providerSummaries.Count)
                .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                    Arg.Any<ProviderSummary>(), Arg.Any<IDictionary<string, ProviderSourceDataset>>(),
-                   Arg.Any<IEnumerable<CalculationAggregation>>());
+                   Arg.Any<IEnumerable<CalculationAggregation>>(),
+                   Arg.Any<IEnumerable<string>>());
 
             await
                 _calculationEngineServiceTestsHelper
@@ -971,7 +982,8 @@ namespace CalculateFunding.Services.Calculator
                 .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                     Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
                     Arg.Any<IDictionary<string, ProviderSourceDataset>>(),
-                    Arg.Any<IEnumerable<CalculationAggregation>>())
+                    Arg.Any<IEnumerable<CalculationAggregation>>(),
+                    Arg.Any<IEnumerable<string>>())
                 .Returns(new ProviderResult()
                 {
 
@@ -1013,7 +1025,8 @@ namespace CalculateFunding.Services.Calculator
                     Arg.Any<IDictionary<string, ProviderSourceDataset>>(),
                     Arg.Is<IEnumerable<CalculationAggregation>>(m =>
                     m.SequenceEqual(calculationAggregations)
-                    ));
+                    ),
+                    Arg.Any<IEnumerable<string>>());
 
             //Assert
             await
@@ -1081,7 +1094,8 @@ namespace CalculateFunding.Services.Calculator
                 .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                     Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
                     Arg.Any<IDictionary<string, ProviderSourceDataset>>(),
-                    Arg.Any<IEnumerable<CalculationAggregation>>())
+                    Arg.Any<IEnumerable<CalculationAggregation>>(),
+                    Arg.Any<IEnumerable<string>>())
                 .Returns(new ProviderResult()
                 {
 
@@ -1121,7 +1135,8 @@ namespace CalculateFunding.Services.Calculator
                     Arg.Any<ProviderSummary>(), Arg.Any<IDictionary<string, ProviderSourceDataset>>(),
                     Arg.Is<IEnumerable<CalculationAggregation>>(m =>
                         !m.Any()
-                    ));
+                    ),
+                    Arg.Any<IEnumerable<string>>());
 
             //Assert
             await
@@ -1186,7 +1201,8 @@ namespace CalculateFunding.Services.Calculator
                 .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                     Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
                     Arg.Any<IDictionary<string, ProviderSourceDataset>>(),
-                    Arg.Any<IEnumerable<CalculationAggregation>>())
+                    Arg.Any<IEnumerable<CalculationAggregation>>(),
+                    Arg.Any<IEnumerable<string>>())
                 .Returns(new ProviderResult()
                 {
 
@@ -1282,7 +1298,8 @@ namespace CalculateFunding.Services.Calculator
                 .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                     Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
                     Arg.Any<IDictionary<string, ProviderSourceDataset>>(),
-                    Arg.Any<IEnumerable<CalculationAggregation>>())
+                    Arg.Any<IEnumerable<CalculationAggregation>>(),
+                    Arg.Any<IEnumerable<string>>())
                 .Returns(new ProviderResult());
 
             _calculationEngineServiceTestsHelper
@@ -1338,7 +1355,8 @@ namespace CalculateFunding.Services.Calculator
                     Arg.Any<ProviderSummary>(), Arg.Any<IDictionary<string, ProviderSourceDataset>>(),
                     Arg.Is<IEnumerable<CalculationAggregation>>(m =>
                         !m.Any()
-                    ));
+                    ),
+                    Arg.Any<IEnumerable<string>>());
         }
 
         private static IList<CalculationSummaryModel> CreateDummyCalculationSummaryModels()

@@ -173,5 +173,12 @@ namespace CalculateFunding.Models.Calcs
         [IsRetrievable(true)]
         [JsonProperty("fundingLineExceptionMessage")]
         public string[] FundingLineExceptionMessage { get; set; }
+
+        [IsFacetable]
+        [IsSearchable]
+        [IsFilterable]
+        [IsRetrievable(true)]
+        [JsonProperty("isIndicativeProvider")]
+        public bool IsIndicativeProvider { get; set; }
     }
 }

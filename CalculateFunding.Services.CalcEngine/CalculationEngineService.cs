@@ -233,7 +233,8 @@ namespace CalculateFunding.Services.CalcEngine
                     assembly,
                     messageProperties,
                     providerBatchSize,
-                    i);
+                    i,
+                    messageProperties.IndicativeOpenerProviderStatuses);
 
                 _logger.Information($"Calculating results complete for specification id {specificationId}");
 
@@ -410,7 +411,8 @@ namespace CalculateFunding.Services.CalcEngine
             byte[] assemblyForSpecification,
             GenerateAllocationMessageProperties messageProperties,
             int providerBatchSize,
-            int index)
+            int index,
+            IEnumerable<string> indicativeOpenerProviderStatuses)
         {
             ConcurrentBag<ProviderResult> providerResults = new ConcurrentBag<ProviderResult>();
 
@@ -465,7 +467,7 @@ namespace CalculateFunding.Services.CalcEngine
                                     throw new Exception($"Provider source dataset not found for {provider.Id}.");
                                 }
 
-                                ProviderResult result = _calculationEngine.CalculateProviderResults(allocationModel, specificationId, calculations, provider, providerDatasets, aggregations);
+                                ProviderResult result = _calculationEngine.CalculateProviderResults(allocationModel, specificationId, calculations, provider, providerDatasets, aggregations, indicativeOpenerProviderStatuses);
 
                                 if (result == null)
                                 {
@@ -547,6 +549,10 @@ namespace CalculateFunding.Services.CalcEngine
 
             properties.CalculationsToAggregate = message.UserProperties.ContainsKey("calculations-to-aggregate") && !string.IsNullOrWhiteSpace(message.UserProperties["calculations-to-aggregate"].ToString()) ? message.UserProperties["calculations-to-aggregate"].ToString().Split(',') : null;
 
+            properties.IndicativeOpenerProviderStatuses = message.UserProperties.ContainsKey("funding-config-indicative-opener-provider-status")
+                                                        && !string.IsNullOrWhiteSpace(message.UserProperties["funding-config-indicative-opener-provider-status"].ToString()) ?
+                                                        message.UserProperties["funding-config-indicative-opener-provider-status"].ToString().Split(',')
+                                                        : new string[0];
 
             properties.User = message.GetUserDetails();
             properties.CorrelationId = message.GetCorrelationId();

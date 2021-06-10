@@ -89,6 +89,7 @@ namespace CalculateFunding.Services.Calculator
             result.Provider.Should().Be(providerSummary);
             result.SpecificationId.Should().BeEquivalentTo(buildProject.SpecificationId);
             result.Id.Should().BeEquivalentTo(GenerateId(providerSummary.Id, buildProject.SpecificationId));
+            result.IsIndicativeProvider.Should().BeFalse();
         }
 
         [TestMethod]
@@ -158,9 +159,12 @@ namespace CalculateFunding.Services.Calculator
                 .Execute(Arg.Any<Dictionary<string, ProviderSourceDataset>>(), Arg.Any<ProviderSummary>())
                 .Returns(calculationResultContainer);
 
+            IEnumerable<string> indicativeOpenerProviderStatuses = new string[] { "StatusOne", "StatusTwo" };
+
             CalculationEngine calculationEngine = CreateCalculationEngine();
-            ProviderSummary providerSummary = CreateDummyProviderSummary();
+            ProviderSummary providerSummary = CreateDummyProviderSummary("StatusTwo");
             BuildProject buildProject = CreateBuildProject();
+
 
             var nonMatchingCalculationModel = new CalculationSummaryModel()
             {
@@ -197,7 +201,7 @@ namespace CalculateFunding.Services.Calculator
 
             // Act
             var calculateProviderResults = calculationEngine.CalculateProviderResults(mockAllocationModel, buildProject.SpecificationId, calculationSummaryModels,
-                providerSummary, new Dictionary<string, ProviderSourceDataset>());
+                providerSummary, new Dictionary<string, ProviderSourceDataset>(), indicativeOpenerProviderStatuses: indicativeOpenerProviderStatuses);
             ProviderResult result = calculateProviderResults;
 
             // Assert
@@ -206,6 +210,7 @@ namespace CalculateFunding.Services.Calculator
             result.Id.Should().BeEquivalentTo(GenerateId(providerSummary.Id, buildProject.SpecificationId));
             result.CalculationResults.Should().HaveCount(3);
             result.FundingLineResults.Should().HaveCount(1);
+            result.IsIndicativeProvider.Should().BeTrue();
 
             CalculationResult fundingCalcResult = result.CalculationResults.First(cr => cr.Calculation.Id == fundingCalcReference.Id);
             fundingCalcResult.Calculation.Should().BeEquivalentTo(fundingCalcReference);
@@ -248,13 +253,14 @@ namespace CalculateFunding.Services.Calculator
                 CreateTelemetry());
         }
 
-        private static ProviderSummary CreateDummyProviderSummary()
+        private static ProviderSummary CreateDummyProviderSummary(string status = null)
         {
             return new ProviderSummary()
             {
                 Name = ProviderName,
                 UKPRN = ProviderId,
-                Id = "KH18778"
+                Id = "KH18778",
+                Status = status
             };
         }
 

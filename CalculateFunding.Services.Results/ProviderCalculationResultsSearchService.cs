@@ -318,6 +318,7 @@ namespace CalculateFunding.Services.Results
                             URN = result.Result.URN,
                             OpenDate = result.Result.OpenDate,
                             EstablishmentNumber = result.Result.EstablishmentNumber,
+                            IsIndicativeProvider = result.Result.IsIndicativeProvider
                         };
 
                         if(valueIndex >= 0)

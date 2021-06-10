@@ -42,10 +42,13 @@ namespace CalculateFunding.Services.CalcEngine
             IEnumerable<CalculationSummaryModel> calculations,
             ProviderSummary provider,
             IDictionary<string, ProviderSourceDataset> providerSourceDatasets,
-            IEnumerable<CalculationAggregation> aggregations = null)
+            IEnumerable<CalculationAggregation> aggregations = null,
+            IEnumerable<string> indicativeOpenerProviderStatuses = null)
         {
             var stopwatch = new Stopwatch();
             stopwatch.Start();
+
+            indicativeOpenerProviderStatuses ??= new string[0];
 
             CalculationResultContainer calculationResultContainer = model.Execute(providerSourceDatasets, provider, aggregations);
 
@@ -82,7 +85,8 @@ namespace CalculateFunding.Services.CalcEngine
             {
                 Id = Convert.ToBase64String(plainTextBytes),
                 Provider = provider,
-                SpecificationId = specificationId
+                SpecificationId = specificationId,
+                IsIndicativeProvider = indicativeOpenerProviderStatuses.Any(x => x == provider.Status)
             };
 
             if (calculationResultItems.AnyWithNullCheck())

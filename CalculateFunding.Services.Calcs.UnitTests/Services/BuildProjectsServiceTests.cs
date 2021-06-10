@@ -47,7 +47,9 @@ using Calculation = CalculateFunding.Models.Calcs.Calculation;
 using CalculationEntity = CalculateFunding.Models.Graph.Entity<CalculateFunding.Common.ApiClient.Graph.Models.Calculation, CalculateFunding.Common.ApiClient.Graph.Models.Relationship>;
 using GraphCalculation = CalculateFunding.Common.ApiClient.Graph.Models.Calculation;
 using GraphRelationship = CalculateFunding.Common.ApiClient.Graph.Models.Relationship;
-using SpecModels = CalculateFunding.Common.ApiClient.Specifications.Models;
+using ApiClientSpecModels = CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
+using CalculateFunding.Services.Calcs.UnitTests.Services;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -194,11 +196,11 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
 
-            SpecModels.SpecificationSummary specificationSummary = CreateSpecificationSummary(SpecificationId);
+            ApiClientSpecModels.SpecificationSummary specificationSummary = CreateApiClientSpecificationSummary(SpecificationId);
 
             specificationsApiClient
                 .GetSpecificationSummaryById(SpecificationId)
-                .Returns(new ApiResponse<SpecModels.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
+                .Returns(new ApiResponse<ApiClientSpecModels.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             TemplateMapping mapping = new TemplateMapping
             {
@@ -292,11 +294,11 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
 
-            SpecModels.SpecificationSummary specificationSummary = CreateSpecificationSummary(SpecificationId);
+            ApiClientSpecModels.SpecificationSummary specificationSummary = CreateApiClientSpecificationSummary(SpecificationId);
 
             specificationsApiClient
                 .GetSpecificationSummaryById(SpecificationId)
-                .Returns(new ApiResponse<SpecModels.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
+                .Returns(new ApiResponse<ApiClientSpecModels.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             TemplateMapping mapping = new TemplateMapping
             {
@@ -393,11 +395,11 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
 
-            SpecModels.SpecificationSummary specificationSummary = CreateSpecificationSummary(SpecificationId);
+            ApiClientSpecModels.SpecificationSummary specificationSummary = CreateApiClientSpecificationSummary(SpecificationId);
 
             specificationsApiClient
                 .GetSpecificationSummaryById(SpecificationId)
-                .Returns(new ApiResponse<SpecModels.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
+                .Returns(new ApiResponse<ApiClientSpecModels.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             TemplateMapping mapping = new TemplateMapping
             {
@@ -507,11 +509,11 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
 
-            SpecModels.SpecificationSummary specificationSummary = CreateSpecificationSummary(SpecificationId);
+            ApiClientSpecModels.SpecificationSummary specificationSummary = CreateApiClientSpecificationSummary(SpecificationId);
 
             specificationsApiClient
                 .GetSpecificationSummaryById(SpecificationId)
-                .Returns(new ApiResponse<SpecModels.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
+                .Returns(new ApiResponse<ApiClientSpecModels.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             TemplateMapping mapping = new TemplateMapping
             {
@@ -582,11 +584,11 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
 
-            SpecModels.SpecificationSummary specificationSummary = CreateSpecificationSummary(SpecificationId);
+            ApiClientSpecModels.SpecificationSummary specificationSummary = CreateApiClientSpecificationSummary(SpecificationId);
 
             specificationsApiClient
                 .GetSpecificationSummaryById(SpecificationId)
-                .Returns(new ApiResponse<SpecModels.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
+                .Returns(new ApiResponse<ApiClientSpecModels.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             TemplateMapping mapping = new TemplateMapping
             {
@@ -665,11 +667,11 @@ namespace CalculateFunding.Services.Calcs.Services
             //Arrange
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
 
-            SpecModels.SpecificationSummary specificationSummary = CreateSpecificationSummary(SpecificationId);
+            ApiClientSpecModels.SpecificationSummary specificationSummary = CreateApiClientSpecificationSummary(SpecificationId);
 
             specificationsApiClient
                 .GetSpecificationSummaryById(SpecificationId)
-                .Returns(new ApiResponse<SpecModels.SpecificationSummary>(HttpStatusCode.NotFound, null));
+                .Returns(new ApiResponse<ApiClientSpecModels.SpecificationSummary>(HttpStatusCode.NotFound, null));
 
 
 
@@ -692,11 +694,11 @@ namespace CalculateFunding.Services.Calcs.Services
             //Arrange
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
 
-            SpecModels.SpecificationSummary specificationSummary = CreateSpecificationSummary(SpecificationId);
+            ApiClientSpecModels.SpecificationSummary specificationSummary = CreateApiClientSpecificationSummary(SpecificationId);
 
             specificationsApiClient
                 .GetSpecificationSummaryById(SpecificationId)
-                .Returns(new ApiResponse<SpecModels.SpecificationSummary>(HttpStatusCode.OK, null));
+                .Returns(new ApiResponse<ApiClientSpecModels.SpecificationSummary>(HttpStatusCode.OK, null));
 
 
 
@@ -719,11 +721,11 @@ namespace CalculateFunding.Services.Calcs.Services
             //Arrange
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
 
-            SpecModels.SpecificationSummary specificationSummary = CreateSpecificationSummary(SpecificationId);
+            ApiClientSpecModels.SpecificationSummary specificationSummary = CreateApiClientSpecificationSummary(SpecificationId);
 
             specificationsApiClient
                 .GetSpecificationSummaryById(SpecificationId)
-                .Returns(new ApiResponse<SpecModels.SpecificationSummary>(HttpStatusCode.InternalServerError, null));
+                .Returns(new ApiResponse<ApiClientSpecModels.SpecificationSummary>(HttpStatusCode.InternalServerError, null));
 
 
 
@@ -756,11 +758,11 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
 
-            SpecModels.SpecificationSummary specificationSummary = CreateSpecificationSummary(SpecificationId);
+            ApiClientSpecModels.SpecificationSummary specificationSummary = CreateApiClientSpecificationSummary(SpecificationId);
 
             specificationsApiClient
                 .GetSpecificationSummaryById(SpecificationId)
-                .Returns(new ApiResponse<SpecModels.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
+                .Returns(new ApiResponse<ApiClientSpecModels.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             TemplateMapping mapping = new TemplateMapping
             {
@@ -830,11 +832,11 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
 
-            SpecModels.SpecificationSummary specificationSummary = CreateSpecificationSummary(SpecificationId);
+            ApiClientSpecModels.SpecificationSummary specificationSummary = CreateApiClientSpecificationSummary(SpecificationId);
 
             specificationsApiClient
                 .GetSpecificationSummaryById(SpecificationId)
-                .Returns(new ApiResponse<SpecModels.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
+                .Returns(new ApiResponse<ApiClientSpecModels.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             TemplateMapping mapping = new TemplateMapping
             {
@@ -897,11 +899,11 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
 
-            SpecModels.SpecificationSummary specificationSummary = CreateSpecificationSummary(SpecificationId);
+            ApiClientSpecModels.SpecificationSummary specificationSummary = CreateApiClientSpecificationSummary(SpecificationId);
 
             specificationsApiClient
                 .GetSpecificationSummaryById(SpecificationId)
-                .Returns(new ApiResponse<SpecModels.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
+                .Returns(new ApiResponse<ApiClientSpecModels.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             TemplateMapping mapping = new TemplateMapping
             {
@@ -992,13 +994,13 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetDatasetDefinitionById(Arg.Is("111"))
                 .Returns(new ApiResponse<Common.ApiClient.DataSets.Models.DatasetDefinition>(HttpStatusCode.OK, CreateDatsetDefinition()));
 
-            SpecModels.SpecificationSummary specificationSummary = CreateSpecificationSummary(specificationId);
+            ApiClientSpecModels.SpecificationSummary specificationSummary = CreateApiClientSpecificationSummary(specificationId);
 
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
 
             specificationsApiClient
                 .GetSpecificationSummaryById(specificationId)
-                .Returns(new ApiResponse<SpecModels.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
+                .Returns(new ApiResponse<ApiClientSpecModels.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             TemplateMapping mapping = new TemplateMapping
             {
@@ -1069,12 +1071,12 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetDatasetDefinitionById(Arg.Is("111"))
                 .Returns(new ApiResponse<Common.ApiClient.DataSets.Models.DatasetDefinition>(HttpStatusCode.OK, CreateDatsetDefinition()));
 
-            SpecModels.SpecificationSummary specificationSummary = CreateSpecificationSummary(specificationId);
+            ApiClientSpecModels.SpecificationSummary specificationSummary = CreateApiClientSpecificationSummary(specificationId);
 
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
             specificationsApiClient
                 .GetSpecificationSummaryById(specificationId)
-                .Returns(new ApiResponse<SpecModels.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
+                .Returns(new ApiResponse<ApiClientSpecModels.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             TemplateMapping mapping = new TemplateMapping
             {
@@ -1143,10 +1145,19 @@ namespace CalculateFunding.Services.Calcs.Services
             cacheProvider
                 .KeyExists<SpecificationSummary>(Arg.Any<string>())
                 .Returns(true);
+            SpecificationSummary specificationSummary = CreateSpecificationSummary(specificationId);
+            cacheProvider
+                .GetAsync<SpecificationSummary>(Arg.Any<string>())
+                .Returns(specificationSummary);
             IProvidersApiClient providersApiClient = CreateProvidersApiClient();
             providersApiClient
                 .RegenerateProviderSummariesForSpecification(Arg.Is(specificationId), Arg.Is(true))
                 .Returns(new ApiResponse<bool>(HttpStatusCode.OK, true));
+            IPoliciesApiClient policiesApiClient = CreatePolicyApiClient();
+            policiesApiClient
+                .GetFundingConfiguration(specificationSummary.FundingStreams.First().Id, specificationSummary.FundingPeriod.Id)
+                .Returns(new ApiResponse<FundingConfiguration>(HttpStatusCode.OK, NewFundingConfiguration()));
+
 
             ILogger logger = CreateLogger();
 
@@ -1207,7 +1218,8 @@ namespace CalculateFunding.Services.Calcs.Services
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
                 logger: logger, providersApiClient: providersApiClient, cacheProvider: cacheProvider, jobManagement: jobManagement,
-                datasetsApiClient: datasetsApiClient, mapper: mapper);
+                datasetsApiClient: datasetsApiClient, mapper: mapper,
+                policiesApiClient: policiesApiClient);
 
             //Act
             await buildProjectsService.Process(message);
@@ -1247,10 +1259,19 @@ namespace CalculateFunding.Services.Calcs.Services
             cacheProvider
                 .KeyExists<SpecificationSummary>(Arg.Any<string>())
                 .Returns(true);
+            SpecificationSummary specificationSummary = CreateSpecificationSummary(specificationId);
+            cacheProvider
+                .GetAsync<SpecificationSummary>(Arg.Any<string>())
+                .Returns(specificationSummary);
             IProvidersApiClient providersApiClient = CreateProvidersApiClient();
             providersApiClient
                 .RegenerateProviderSummariesForSpecification(Arg.Is(specificationId), Arg.Is(true))
                 .Returns(new ApiResponse<bool>(HttpStatusCode.BadRequest));
+
+            IPoliciesApiClient policiesApiClient = CreatePolicyApiClient();
+            policiesApiClient
+                .GetFundingConfiguration(specificationSummary.FundingStreams.First().Id, specificationSummary.FundingPeriod.Id)
+                .Returns(new ApiResponse<FundingConfiguration>(HttpStatusCode.OK, NewFundingConfiguration()));
 
             ILogger logger = CreateLogger();
 
@@ -1311,7 +1332,8 @@ namespace CalculateFunding.Services.Calcs.Services
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
                 logger: logger, providersApiClient: providersApiClient, cacheProvider: cacheProvider, jobManagement: jobManagement,
-                datasetsApiClient: datasetsApiClient, mapper: mapper);
+                datasetsApiClient: datasetsApiClient, mapper: mapper,
+                policiesApiClient: policiesApiClient);
 
             //Act
             Func<Task> invocation = async () => await buildProjectsService.Process(message);
@@ -1351,6 +1373,10 @@ namespace CalculateFunding.Services.Calcs.Services
             cacheProvider
                 .KeyExists<SpecificationSummary>(Arg.Any<string>())
                 .Returns(true);
+            SpecificationSummary specificationSummary = CreateSpecificationSummary(specificationId);
+            cacheProvider
+                .GetAsync<SpecificationSummary>(Arg.Any<string>())
+                .Returns(specificationSummary);
             IProvidersApiClient providersApiClient = CreateProvidersApiClient();
             providersApiClient
                 .RegenerateProviderSummariesForSpecification(Arg.Is(specificationId), Arg.Is(true))
@@ -1367,6 +1393,11 @@ namespace CalculateFunding.Services.Calcs.Services
                 CorrelationId = "correlation-id-1",
                 JobDefinitionId = JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob
             };
+
+            IPoliciesApiClient policiesApiClient = CreatePolicyApiClient();
+            policiesApiClient
+                .GetFundingConfiguration(specificationSummary.FundingStreams.First().Id, specificationSummary.FundingPeriod.Id)
+                .Returns(new ApiResponse<FundingConfiguration>(HttpStatusCode.OK, NewFundingConfiguration()));
 
             ApiResponse<JobViewModel> parentJobViewModelResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, parentJob);
 
@@ -1410,7 +1441,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
                 logger: logger, providersApiClient: providersApiClient, cacheProvider: cacheProvider, jobManagement: jobManagement,
-                datasetsApiClient: datasetsApiClient, mapper: mapper);
+                datasetsApiClient: datasetsApiClient, mapper: mapper, policiesApiClient: policiesApiClient);
 
             //Act
             Func<Task> invocation = async () => await buildProjectsService.Run(message);
@@ -1516,11 +1547,18 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(new ApiResponse<IEnumerable<string>>(HttpStatusCode.OK, providerIds));
 
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            ApiClientSpecModels.SpecificationSummary specificationSummary = CreateApiClientSpecificationSummary(specificationId);
+
             specificationsApiClient
                 .GetSpecificationSummaryById(specificationId)
-                .Returns(new ApiResponse<SpecModels.SpecificationSummary>(HttpStatusCode.OK, new SpecModels.SpecificationSummary { Id = specificationId }));
+                .Returns(new ApiResponse<ApiClientSpecModels.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             ILogger logger = CreateLogger();
+
+            IPoliciesApiClient policiesApiClient = CreatePolicyApiClient();
+            policiesApiClient
+                .GetFundingConfiguration(specificationSummary.FundingStreams.First().Id, specificationSummary.FundingPeriod.Id)
+                .Returns(new ApiResponse<FundingConfiguration>(HttpStatusCode.OK, NewFundingConfiguration()));
 
             IJobManagement jobManagement = CreateJobManagement();
             jobManagement
@@ -1528,7 +1566,11 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(new JobViewModel { Id = jobId });
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
-                logger: logger, cacheProvider: cacheProvider, providersApiClient: providersApiClient, specificationsApiClient: specificationsApiClient, jobManagement: jobManagement);
+                logger: logger, cacheProvider: cacheProvider
+                , providersApiClient: providersApiClient
+                , specificationsApiClient: specificationsApiClient
+                , jobManagement: jobManagement
+                , policiesApiClient: policiesApiClient);
 
             //Act
             Func<Task> test = async () => await buildProjectsService.Run(message);
@@ -1603,11 +1645,13 @@ namespace CalculateFunding.Services.Calcs.Services
             cacheProvider
                 .KeyExists<ProviderSummary>(Arg.Is(cacheKey))
                 .Returns(true);
-
             cacheProvider
                 .KeyExists<SpecificationSummary>(Arg.Is(specificationSummaryCacheKey))
                 .Returns(true);
-
+            SpecificationSummary specificationSummary = CreateSpecificationSummary(specificationId);
+            cacheProvider
+                .GetAsync<SpecificationSummary>(Arg.Any<string>())
+                .Returns(specificationSummary);
             cacheProvider
                 .ListLengthAsync<ProviderSummary>(cacheKey)
                 .Returns(10);
@@ -1622,6 +1666,11 @@ namespace CalculateFunding.Services.Calcs.Services
             providersApiClient
                 .GetScopedProviderIds(Arg.Is(specificationId))
                 .Returns(new ApiResponse<IEnumerable<string>>(HttpStatusCode.OK, providerIds));
+
+            IPoliciesApiClient policiesApiClient = CreatePolicyApiClient();
+            policiesApiClient
+                .GetFundingConfiguration(specificationSummary.FundingStreams.First().Id, specificationSummary.FundingPeriod.Id)
+                .Returns(new ApiResponse<FundingConfiguration>(HttpStatusCode.OK, NewFundingConfiguration()));
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
             jobsApiClient
@@ -1677,7 +1726,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 providersApiClient: providersApiClient,
                 datasetsApiClient: datasetsApiClient,
                 mapper: mapper,
-                specificationsApiClient: specificationsApiClient);
+                specificationsApiClient: specificationsApiClient,
+                policiesApiClient: policiesApiClient);
 
             //Act
             await buildProjectsService.Run(message);
@@ -1806,8 +1856,14 @@ namespace CalculateFunding.Services.Calcs.Services
             IMapper mapper = CreateMapper();
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
 
+            ApiClientSpecModels.SpecificationSummary specificationSummary = CreateApiClientSpecificationSummary(specificationId);
             specificationsApiClient.GetSpecificationSummaryById(Arg.Is(specificationId))
-                .Returns(new ApiResponse<Common.ApiClient.Specifications.Models.SpecificationSummary>(HttpStatusCode.OK, new Common.ApiClient.Specifications.Models.SpecificationSummary()));
+                .Returns(new ApiResponse<ApiClientSpecModels.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
+            
+            IPoliciesApiClient policiesApiClient = CreatePolicyApiClient();
+            policiesApiClient
+                .GetFundingConfiguration(specificationSummary.FundingStreams.First().Id, specificationSummary.FundingPeriod.Id)
+                .Returns(new ApiResponse<FundingConfiguration>(HttpStatusCode.OK, NewFundingConfiguration()));
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
                 logger: logger,
@@ -1818,7 +1874,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 providersApiClient: providersApiClient,
                 datasetsApiClient: datasetsApiClient,
                 mapper: mapper,
-                specificationsApiClient: specificationsApiClient);
+                specificationsApiClient: specificationsApiClient,
+                policiesApiClient: policiesApiClient);
 
             //Act
             await buildProjectsService.Run(message);
@@ -1883,6 +1940,10 @@ namespace CalculateFunding.Services.Calcs.Services
             cacheProvider
                 .KeyExists<ProviderSummary>(Arg.Is(cacheKey))
                 .Returns(true);
+            SpecificationSummary specificationSummary = CreateSpecificationSummary(specificationId);
+            cacheProvider
+                .GetAsync<SpecificationSummary>(Arg.Any<string>())
+                .Returns(specificationSummary);
             cacheProvider
                 .KeyExists<SpecificationSummary>(Arg.Any<string>())
                 .Returns(true);
@@ -1895,6 +1956,10 @@ namespace CalculateFunding.Services.Calcs.Services
             cacheProvider
                 .ListRangeAsync<ProviderSummary>(Arg.Is(cacheKey), Arg.Is(0), Arg.Is(10))
                 .Returns(providerSummaries);
+            IPoliciesApiClient policiesApiClient = CreatePolicyApiClient();
+            policiesApiClient
+                .GetFundingConfiguration(specificationSummary.FundingStreams.First().Id, specificationSummary.FundingPeriod.Id)
+                .Returns(new ApiResponse<FundingConfiguration>(HttpStatusCode.OK, NewFundingConfiguration()));
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
             jobsApiClient
@@ -1934,7 +1999,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 engineSettings: engineSettings,
                 providersApiClient: providersApiClient,
                 datasetsApiClient: datasetsApiClient,
-                mapper: mapper);
+                mapper: mapper,
+                policiesApiClient: policiesApiClient);
 
             //Act
             await buildProjectsService.Run(message);
@@ -2045,6 +2111,10 @@ namespace CalculateFunding.Services.Calcs.Services
             cacheProvider
                 .KeyExists<SpecificationSummary>(Arg.Any<string>())
                 .Returns(true);
+            SpecificationSummary specificationSummary = CreateSpecificationSummary(specificationId);
+            cacheProvider
+                .GetAsync<SpecificationSummary>(Arg.Any<string>())
+                .Returns(specificationSummary);
             cacheProvider
                 .ListLengthAsync<ProviderSummary>(cacheKey)
                 .Returns(10);
@@ -2054,6 +2124,10 @@ namespace CalculateFunding.Services.Calcs.Services
             cacheProvider
                 .ListRangeAsync<ProviderSummary>(Arg.Is(cacheKey), Arg.Is(0), Arg.Is(10))
                 .Returns(providerSummaries);
+            IPoliciesApiClient policiesApiClient = CreatePolicyApiClient();
+            policiesApiClient
+                .GetFundingConfiguration(specificationSummary.FundingStreams.First().Id, specificationSummary.FundingPeriod.Id)
+                .Returns(new ApiResponse<FundingConfiguration>(HttpStatusCode.OK, NewFundingConfiguration()));
 
             IProvidersApiClient providersApiClient = CreateProvidersApiClient();
             providersApiClient
@@ -2093,7 +2167,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 logger: logger, providersApiClient: providersApiClient, cacheProvider: cacheProvider,
                 jobManagement: jobManagement, engineSettings: engineSettings,
                 datasetsApiClient: datasetsApiClient, mapper: mapper,
-                sourceFileRepository: sourceFileRepository);
+                sourceFileRepository: sourceFileRepository, policiesApiClient: policiesApiClient);
 
             string assemblyETag = new RandomString();
 
@@ -2182,6 +2256,10 @@ namespace CalculateFunding.Services.Calcs.Services
             cacheProvider
                 .KeyExists<SpecificationSummary>(Arg.Any<string>())
                 .Returns(true);
+            SpecificationSummary specificationSummary = CreateSpecificationSummary(specificationId);
+            cacheProvider
+                .GetAsync<SpecificationSummary>(Arg.Any<string>())
+                .Returns(specificationSummary);
             cacheProvider
                 .ListLengthAsync<ProviderSummary>(cacheKey)
                 .Returns(10);
@@ -2196,6 +2274,11 @@ namespace CalculateFunding.Services.Calcs.Services
             providersApiClient
                 .GetScopedProviderIds(Arg.Is(specificationId))
                 .Returns(new ApiResponse<IEnumerable<string>>(HttpStatusCode.OK, providerIds));
+
+            IPoliciesApiClient policiesApiClient = CreatePolicyApiClient();
+            policiesApiClient
+                .GetFundingConfiguration(specificationSummary.FundingStreams.First().Id, specificationSummary.FundingPeriod.Id)
+                .Returns(new ApiResponse<FundingConfiguration>(HttpStatusCode.OK, NewFundingConfiguration()));
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
 
@@ -2229,7 +2312,7 @@ namespace CalculateFunding.Services.Calcs.Services
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
                 logger: logger, providersApiClient: providersApiClient, cacheProvider: cacheProvider,
                 jobManagement: jobManagement, engineSettings: engineSettings,
-                datasetsApiClient: datasetsApiClient, mapper: mapper);
+                datasetsApiClient: datasetsApiClient, mapper: mapper, policiesApiClient: policiesApiClient);
 
             IEnumerable<JobCreateModel> jobModelsToTest = null;
 
@@ -2306,6 +2389,10 @@ namespace CalculateFunding.Services.Calcs.Services
             cacheProvider
                 .KeyExists<ProviderSummary>(Arg.Is(cacheKey))
                 .Returns(true);
+            SpecificationSummary specificationSummary = CreateSpecificationSummary(specificationId);
+            cacheProvider
+                .GetAsync<SpecificationSummary>(Arg.Any<string>())
+                .Returns(specificationSummary);
             cacheProvider
                 .KeyExists<SpecificationSummary>(Arg.Any<string>())
                 .Returns(true);
@@ -2323,6 +2410,10 @@ namespace CalculateFunding.Services.Calcs.Services
             providersApiClient
                 .GetScopedProviderIds(Arg.Is(specificationId))
                 .Returns(new ApiResponse<IEnumerable<string>>(HttpStatusCode.OK, providerIds));
+            IPoliciesApiClient policiesApiClient = CreatePolicyApiClient();
+            policiesApiClient
+                .GetFundingConfiguration(specificationSummary.FundingStreams.First().Id, specificationSummary.FundingPeriod.Id)
+                .Returns(new ApiResponse<FundingConfiguration>(HttpStatusCode.OK, NewFundingConfiguration()));
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
             jobsApiClient
@@ -2353,7 +2444,7 @@ namespace CalculateFunding.Services.Calcs.Services
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
                 logger: logger, providersApiClient: providersApiClient, cacheProvider: cacheProvider,
                 jobManagement: jobManagement, engineSettings: engineSettings,
-                datasetsApiClient: datasetsApiClient, mapper: mapper);
+                datasetsApiClient: datasetsApiClient, mapper: mapper, policiesApiClient: policiesApiClient);
 
             //Act
             Func<Task> test = async () => await buildProjectsService.Run(message);
@@ -2628,7 +2719,7 @@ namespace CalculateFunding.Services.Calcs.Services
             string parentJobId = "job-id-1";
 
             string specificationId = "test-spec1";
-
+            
             JobViewModel parentJob = new JobViewModel
             {
                 Id = parentJobId,
@@ -2665,6 +2756,11 @@ namespace CalculateFunding.Services.Calcs.Services
                 .KeyExists<SpecificationSummary>(Arg.Any<string>())
                 .Returns(true);
 
+            SpecificationSummary specificationSummary = CreateSpecificationSummary(specificationId);
+            cacheProvider
+                .GetAsync<SpecificationSummary>(Arg.Any<string>())
+                .Returns(specificationSummary);
+
             cacheProvider
                 .ListLengthAsync<ProviderSummary>(cacheKey)
                 .Returns(10);
@@ -2674,6 +2770,11 @@ namespace CalculateFunding.Services.Calcs.Services
             cacheProvider
                 .ListRangeAsync<ProviderSummary>(Arg.Is(cacheKey), Arg.Is(0), Arg.Is(10))
                 .Returns(providerSummaries);
+
+            IPoliciesApiClient policiesApiClient = CreatePolicyApiClient();
+            policiesApiClient
+                .GetFundingConfiguration(specificationSummary.FundingStreams.First().Id, specificationSummary.FundingPeriod.Id)
+                .Returns(new ApiResponse<FundingConfiguration>(HttpStatusCode.OK, NewFundingConfiguration()));
 
             IProvidersApiClient providersApiClient = CreateProvidersApiClient();
             providersApiClient
@@ -2736,7 +2837,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 providersApiClient: providersApiClient,
                 datasetsApiClient: datasetsApiClient,
                 mapper: mapper,
-                jobManagement: jobManagement);
+                jobManagement: jobManagement,
+                policiesApiClient: policiesApiClient);
 
             //Act
             await buildProjectsService.Run(message);
@@ -2846,6 +2948,10 @@ namespace CalculateFunding.Services.Calcs.Services
             cacheProvider
                 .KeyExists<SpecificationSummary>(Arg.Any<string>())
                 .Returns(true);
+            SpecificationSummary specificationSummary = CreateSpecificationSummary(specificationId);
+            cacheProvider
+                .GetAsync<SpecificationSummary>(Arg.Any<string>())
+                .Returns(specificationSummary);
             cacheProvider
                 .ListLengthAsync<ProviderSummary>(cacheKey)
                 .Returns(10);
@@ -2860,6 +2966,11 @@ namespace CalculateFunding.Services.Calcs.Services
             providersApiClient
                 .GetScopedProviderIds(Arg.Is(specificationId))
                 .Returns(new ApiResponse<IEnumerable<string>>(HttpStatusCode.OK, providerIds));
+
+            IPoliciesApiClient policiesApiClient = CreatePolicyApiClient();
+            policiesApiClient
+                .GetFundingConfiguration(specificationSummary.FundingStreams.First().Id, specificationSummary.FundingPeriod.Id)
+                .Returns(new ApiResponse<FundingConfiguration>(HttpStatusCode.OK, NewFundingConfiguration()));
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
             jobsApiClient
@@ -2934,7 +3045,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 engineSettings: engineSettings,
                 providersApiClient: providersApiClient,
                 datasetsApiClient: datasetsApiClient,
-                mapper: mapper);
+                mapper: mapper,
+                policiesApiClient: policiesApiClient);
 
             //Act
             await buildProjectsService.Run(message);
@@ -3026,6 +3138,10 @@ namespace CalculateFunding.Services.Calcs.Services
             cacheProvider
                 .KeyExists<SpecificationSummary>(Arg.Any<string>())
                 .Returns(true);
+            SpecificationSummary specificationSummary = CreateSpecificationSummary(specificationId);
+            cacheProvider
+                .GetAsync<SpecificationSummary>(Arg.Any<string>())
+                .Returns(specificationSummary);
             cacheProvider
                 .ListLengthAsync<ProviderSummary>(Arg.Is(cacheKey))
                 .Returns(0);
@@ -3038,6 +3154,11 @@ namespace CalculateFunding.Services.Calcs.Services
             jobsApiClient
                 .CreateJobs(Arg.Any<IEnumerable<JobCreateModel>>())
                 .Returns(CreateJobs());
+
+            IPoliciesApiClient policiesApiClient = CreatePolicyApiClient();
+            policiesApiClient
+                .GetFundingConfiguration(specificationSummary.FundingStreams.First().Id, specificationSummary.FundingPeriod.Id)
+                .Returns(new ApiResponse<FundingConfiguration>(HttpStatusCode.OK, NewFundingConfiguration()));
 
             IProvidersApiClient providersApiClient = CreateProvidersApiClient();
             providersApiClient
@@ -3107,7 +3228,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 calculationsRepository: calculationsRepository,
                 providersApiClient: providersApiClient,
                 datasetsApiClient: datasetsApiClient,
-                mapper: mapper);
+                mapper: mapper,
+                policiesApiClient: policiesApiClient);
 
             //Act
             await buildProjectsService.Run(message);
@@ -3173,6 +3295,10 @@ namespace CalculateFunding.Services.Calcs.Services
             cacheProvider
                 .KeyExists<SpecificationSummary>(Arg.Any<string>())
                 .Returns(true);
+            SpecificationSummary specificationSummary = CreateSpecificationSummary(specificationId);
+            cacheProvider
+                .GetAsync<SpecificationSummary>(Arg.Any<string>())
+                .Returns(specificationSummary);
             cacheProvider
                 .ListLengthAsync<ProviderSummary>(cacheKey)
                 .Returns(10);
@@ -3191,6 +3317,10 @@ namespace CalculateFunding.Services.Calcs.Services
             providersApiClient
                 .RegenerateProviderSummariesForSpecification(Arg.Is(specificationId), Arg.Is(false))
                 .Returns(new ApiResponse<bool>(HttpStatusCode.OK, true));
+            IPoliciesApiClient policiesApiClient = CreatePolicyApiClient();
+            policiesApiClient
+                .GetFundingConfiguration(specificationSummary.FundingStreams.First().Id, specificationSummary.FundingPeriod.Id)
+                .Returns(new ApiResponse<FundingConfiguration>(HttpStatusCode.OK, NewFundingConfiguration()));
 
             ILogger logger = CreateLogger();
 
@@ -3255,7 +3385,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 providersApiClient: providersApiClient,
                 jobManagement: jobManagement,
                 datasetsApiClient: datasetsApiClient,
-                mapper: mapper);
+                mapper: mapper,
+                policiesApiClient:policiesApiClient);
 
             //Act
             await buildProjectsService.Run(message);
@@ -3312,6 +3443,10 @@ namespace CalculateFunding.Services.Calcs.Services
             cacheProvider
                 .KeyExists<SpecificationSummary>(Arg.Any<string>())
                 .Returns(true);
+            SpecificationSummary specificationSummary = CreateSpecificationSummary(specificationId);
+            cacheProvider
+                .GetAsync<SpecificationSummary>(Arg.Any<string>())
+                .Returns(specificationSummary);
             cacheProvider
                 .ListLengthAsync<ProviderSummary>(cacheKey)
                 .Returns(10);
@@ -3330,6 +3465,11 @@ namespace CalculateFunding.Services.Calcs.Services
             providersApiClient
                 .RegenerateProviderSummariesForSpecification(Arg.Is(specificationId), Arg.Is(false))
                 .Returns(new ApiResponse<bool>(HttpStatusCode.OK, true));
+
+            IPoliciesApiClient policiesApiClient = CreatePolicyApiClient();
+            policiesApiClient
+                .GetFundingConfiguration(specificationSummary.FundingStreams.First().Id, specificationSummary.FundingPeriod.Id)
+                .Returns(new ApiResponse<FundingConfiguration>(HttpStatusCode.OK, NewFundingConfiguration()));
 
             ILogger logger = CreateLogger();
 
@@ -3394,7 +3534,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 providersApiClient: providersApiClient,
                 jobManagement: jobManagement,
                 datasetsApiClient: datasetsApiClient,
-                mapper: mapper);
+                mapper: mapper,
+                policiesApiClient: policiesApiClient);
 
             //Act
             await buildProjectsService.Run(message);
@@ -3462,6 +3603,10 @@ namespace CalculateFunding.Services.Calcs.Services
             cacheProvider
                 .KeyExists<SpecificationSummary>(Arg.Any<string>())
                 .Returns(true);
+            SpecificationSummary specificationSummary = CreateSpecificationSummary(specificationId);
+            cacheProvider
+                .GetAsync<SpecificationSummary>(Arg.Any<string>())
+                .Returns(specificationSummary);
             cacheProvider
                 .ListLengthAsync<ProviderSummary>(cacheKey)
                 .Returns(10);
@@ -3487,6 +3632,11 @@ namespace CalculateFunding.Services.Calcs.Services
             providersApiClient
                 .GetScopedProviderIds(Arg.Is(specificationId))
                 .Returns(new ApiResponse<IEnumerable<string>>(HttpStatusCode.OK, providerIds));
+
+            IPoliciesApiClient policiesApiClient = CreatePolicyApiClient();
+            policiesApiClient
+                .GetFundingConfiguration(specificationSummary.FundingStreams.First().Id, specificationSummary.FundingPeriod.Id)
+                .Returns(new ApiResponse<FundingConfiguration>(HttpStatusCode.OK, NewFundingConfiguration()));
 
             ICalculationEngineRunningChecker calculationEngineRunningChecker = CreateCalculationEngineRunningChecker();
             calculationEngineRunningChecker
@@ -3514,7 +3664,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 calculationEngineRunningChecker: calculationEngineRunningChecker,
                 jobManagement: jobManagement,
                 datasetsApiClient: datasetsApiClient,
-                mapper: mapper);
+                mapper: mapper,
+                policiesApiClient: policiesApiClient);
 
             //Act
             Func<Task> test = async () => await buildProjectsService.Run(message);
@@ -3559,13 +3710,13 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetDatasetDefinitionById(Arg.Is("111"))
                 .Returns(new ApiResponse<Common.ApiClient.DataSets.Models.DatasetDefinition>(HttpStatusCode.OK, CreateDatsetDefinition()));
 
-            SpecModels.SpecificationSummary specificationSummary = CreateSpecificationSummary(SpecificationId);
+            ApiClientSpecModels.SpecificationSummary specificationSummary = CreateApiClientSpecificationSummary(SpecificationId);
 
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
 
             specificationsApiClient
                 .GetSpecificationSummaryById(SpecificationId)
-                .Returns(new ApiResponse<SpecModels.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
+                .Returns(new ApiResponse<ApiClientSpecModels.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             TemplateMapping mapping = new TemplateMapping
             {
@@ -3668,13 +3819,13 @@ namespace CalculateFunding.Services.Calcs.Services
                 .IsDynamicBuildProjectEnabled()
                 .Returns(true);
 
-            SpecModels.SpecificationSummary specificationSummary = CreateSpecificationSummary(SpecificationId);
+            ApiClientSpecModels.SpecificationSummary specificationSummary = CreateApiClientSpecificationSummary(SpecificationId);
 
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
 
             specificationsApiClient
                 .GetSpecificationSummaryById(SpecificationId)
-                .Returns(new ApiResponse<SpecModels.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
+                .Returns(new ApiResponse<ApiClientSpecModels.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             TemplateMapping mapping = new TemplateMapping
             {
@@ -3740,7 +3891,7 @@ namespace CalculateFunding.Services.Calcs.Services
             return jobs;
         }
 
-        private static SpecModels.SpecificationSummary CreateSpecificationSummary(string specificationId = null)
+        private static ApiClientSpecModels.SpecificationSummary CreateApiClientSpecificationSummary(string specificationId = null)
         {
             Reference fundingStream = new Reference
             {
@@ -3748,7 +3899,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 Name = new RandomString()
             };
 
-            return new SpecModels.SpecificationSummary
+            return new ApiClientSpecModels.SpecificationSummary
             {
                 Id = specificationId ?? new RandomString(),
                 Name = "Specification 1",
@@ -3762,6 +3913,11 @@ namespace CalculateFunding.Services.Calcs.Services
                 },
                 TemplateIds = new Dictionary<string, string> { { fundingStream.Id, "1.1" } }
             };
+        }
+
+        private static SpecificationSummary CreateSpecificationSummary(string specificationId = null)
+        {
+            return CreateMapper().Map<SpecificationSummary>(CreateApiClientSpecificationSummary(specificationId));
         }
 
         private static BuildProjectsService CreateBuildProjectsService(
@@ -3942,6 +4098,15 @@ namespace CalculateFunding.Services.Calcs.Services
             setUp?.Invoke(fundingLineBuilder);
 
             return fundingLineBuilder.Build();
+        }
+
+        private static FundingConfiguration NewFundingConfiguration(Action<FundingConfigurationBuilder> setUp = null)
+        {
+            FundingConfigurationBuilder fundingConfigurationBuilder = new FundingConfigurationBuilder();
+
+            setUp?.Invoke(fundingConfigurationBuilder);
+
+            return fundingConfigurationBuilder.Build();
         }
 
         protected static Common.TemplateMetadata.Models.Calculation NewTemplateMappingCalculation(Action<TemplateMappingCalculationBuilder> setUp = null)

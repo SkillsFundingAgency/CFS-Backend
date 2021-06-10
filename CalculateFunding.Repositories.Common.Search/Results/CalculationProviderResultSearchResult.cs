@@ -51,5 +51,7 @@ namespace CalculateFunding.Repositories.Common.Search.Results
         public string FundingLineExceptionType { get; set; }
 
         public string FundingLineExceptionMessage { get; set; }
+
+        public bool IsIndicativeProvider { get; set; }
     }
 }

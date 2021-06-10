@@ -35,5 +35,6 @@ namespace CalculateFunding.Models.Calcs
         
         public string AssemblyETag { get; set; }
 
+        public IEnumerable<string> IndicativeOpenerProviderStatuses { get; set; }
     }
 }
