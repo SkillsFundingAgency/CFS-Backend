@@ -62,6 +62,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             string schemaVersion = NewRandomString();
             string fundingTemplateContents = NewRandomString();
 
+            string fundingStreamTablePrefix = $"{fundingStreamId}_{fundingPeriodId}";
+
             Calculation calculationOne = NewCalculation();
             Calculation calculationTwo = NewCalculation();
             Calculation calculationThree = NewCalculation();
@@ -100,8 +102,35 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
             AndTheProfiling(fundingStreamId, fundingPeriodId, profilePatternOne, profilePatternTwo);
             
             await WhenTheSchemaIsRecreated(specificationId, fundingStreamId);
-               
+
+            string[] providerColumns = new[] { "ProviderId",
+                "ProviderName",
+                "UKPRN",
+                "URN",
+                "Authority",
+                "ProviderType",
+                "ProviderSubtype",
+                "DateOpened",
+                "DateClosed",
+                "LaCode",
+                "Status",
+                "Successor",
+                "TrustCode",
+                "TrustName",
+                "PaymentOrganisationIdentifier",
+                "PaymentOrganisationName",
+                "IsIndicative"
+            };
+
+            ThenTheGenerateCreateTableSqlWasCalled($"{fundingStreamTablePrefix}_Providers", fundingStreamId, fundingPeriodId, providerColumns);
+
             ThenTheTotalNumberOfDDLScriptsExecutedWas(7);
+        }
+
+        private void ThenTheGenerateCreateTableSqlWasCalled(string tableName, string fundingStreamId, string fundingPeriodId, string[] columns)
+        {
+            _sqlSchemaGenerator.Verify(_ => _.GenerateCreateTableSql(tableName, fundingStreamId, fundingPeriodId, It.Is<IEnumerable<SqlColumnDefinition>>(x => x.All(cd => columns.Contains(cd.Name)))),
+                Times.Once);
         }
 
         private void ThenTheTotalNumberOfDDLScriptsExecutedWas(int count)

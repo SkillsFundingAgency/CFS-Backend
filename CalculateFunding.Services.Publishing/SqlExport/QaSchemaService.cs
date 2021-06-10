@@ -453,6 +453,12 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                     Name = "PaymentOrganisationName",
                     Type = "[nvarchar](256)",
                     AllowNulls = true
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "IsIndicative",
+                    Type = "[bit]",
+                    AllowNulls = false
                 }
             };
         }
