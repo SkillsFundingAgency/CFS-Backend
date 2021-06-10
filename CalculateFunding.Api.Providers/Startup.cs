@@ -118,6 +118,7 @@ namespace CalculateFunding.Api.Providers
 
             builder
                 .AddSingleton<IProviderVersionService, ProviderVersionService>()
+                .AddSingleton<IProviderSnapshotPersistService, ProviderSnapshotPersistService>()
                 .AddSingleton<IHealthChecker, ProviderVersionService>();
 
             builder

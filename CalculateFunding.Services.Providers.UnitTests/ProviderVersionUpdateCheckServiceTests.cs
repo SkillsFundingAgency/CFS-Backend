@@ -14,15 +14,18 @@ using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Providers;
+using CalculateFunding.Models.Providers.ViewModels;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Providers.Interfaces;
 using CalculateFunding.Services.Providers.MappingProfiles;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Polly;
 using Serilog.Core;
+using FundingDataZoneProvider = CalculateFunding.Common.ApiClient.FundingDataZone.Models.Provider;
 
 namespace CalculateFunding.Services.Providers.UnitTests
 {
@@ -32,9 +35,11 @@ namespace CalculateFunding.Services.Providers.UnitTests
         private ProviderVersionUpdateCheckService _service;
         private Mock<IPoliciesApiClient> _policiesApiClient;
         private Mock<IProviderVersionsMetadataRepository> _providerVersionsMetadataRepository;
+        private Mock<IProviderVersionService> _providerVersionService;
         private Mock<IFundingDataZoneApiClient> _fundingDataZoneApiClient;
         private Mock<ISpecificationsApiClient> _specificationsApiClient;
         private Mock<IPublishingJobClashCheck> _publishingJobClashCheck;
+        private IProviderSnapshotPersistService _providerSnapshotPersistService;
 
         private IMapper _mapper;
         private IEnumerable<FundingStream> _fundingStreams;
@@ -63,6 +68,21 @@ namespace CalculateFunding.Services.Providers.UnitTests
             _fundingDataZoneApiClient = new Mock<IFundingDataZoneApiClient>();
             _specificationsApiClient = new Mock<ISpecificationsApiClient>();
             _publishingJobClashCheck = new Mock<IPublishingJobClashCheck>();
+            _providerVersionService = new Mock<IProviderVersionService>();
+
+            ProvidersResiliencePolicies providersResiliencePolicies = new ProvidersResiliencePolicies
+            {
+                PoliciesApiClient = Policy.NoOpAsync(),
+                ProviderVersionMetadataRepository = Policy.NoOpAsync(),
+                FundingDataZoneApiClient = Policy.NoOpAsync(),
+                SpecificationsApiClient = Policy.NoOpAsync()
+            };
+
+            _providerSnapshotPersistService = new ProviderSnapshotPersistService(_providerVersionService.Object,
+                _fundingDataZoneApiClient.Object,
+                Logger.None,
+                _mapper,
+                providersResiliencePolicies);
 
             _service = new ProviderVersionUpdateCheckService(
                 _policiesApiClient.Object,
@@ -78,7 +98,8 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 _fundingDataZoneApiClient.Object,
                 _specificationsApiClient.Object,
                 _mapper,
-                _publishingJobClashCheck.Object
+                _publishingJobClashCheck.Object,
+                _providerSnapshotPersistService
             );
 
             int previousProviderSnapshotId = NewRandomInteger();
@@ -195,6 +216,8 @@ namespace CalculateFunding.Services.Providers.UnitTests
             AndTheCurrentProviderVersions(_currentProviderVersions);
             AndTheCurrentProviderVersionSaved(currentProviderId, providerVersionId, providerSnapshot.ProviderSnapshotId);
             AndTheFundingConfigurationsForTheFundingStreamId(_fundingConfigurations, _fundingStreamOneId);
+            AndTheFundingDataZoneProvidersForTheSnapshot(providerSnapshot.ProviderSnapshotId);
+            AndTheProviderVersionUploadSucceeds(providerSnapshot.ProviderVersionId, null);
             AndTheProviderSnapshotsForFundingStream(_providerSnapshots);
             AndErrorGetSpecificationsWithProviderVersionUpdatesAsUseLatest();
 
@@ -215,13 +238,18 @@ namespace CalculateFunding.Services.Providers.UnitTests
             ProviderSnapshot providerSnapshot = _providerSnapshots.Single(_ => _.Version == 1);
             string providerVersionId = $"{providerSnapshot.FundingStreamCode}-{providerSnapshot.TargetDate:yyyy}-{providerSnapshot.TargetDate:MM}-{providerSnapshot.TargetDate:dd}-{providerSnapshot.ProviderSnapshotId}";
             string currentProviderId = $"Current_{providerSnapshot.FundingStreamCode}";
+            
+            FundingDataZoneProvider expectedProviderOne = NewFundingDataZoneProvider();
+            FundingDataZoneProvider expectedProviderTwo = NewFundingDataZoneProvider();
 
             GivenTheFundingStreams(_fundingStreams);
             AndTheCurrentProviderVersions(_currentProviderVersions);
             AndTheCurrentProviderVersionSaved(currentProviderId, providerVersionId, providerSnapshot.ProviderSnapshotId);
             AndTheFundingConfigurationsForTheFundingStreamId(_fundingConfigurations, _fundingStreamOneId);
             AndTheProviderSnapshotsForFundingStream(_providerSnapshots);
+            AndTheFundingDataZoneProvidersForTheSnapshot(providerSnapshot.ProviderSnapshotId, expectedProviderOne, expectedProviderTwo);
             AndTheSpecificationsUseTheLatestProviderSnapshot(_specificationSummaries);
+            AndTheProviderVersionUploadSucceeds(providerVersionId, null, expectedProviderOne.ProviderId, expectedProviderTwo.ProviderId);
 
             await WhenTheProviderVersionUpdateIsChecked();
 
@@ -231,10 +259,13 @@ namespace CalculateFunding.Services.Providers.UnitTests
         [TestMethod]
         public async Task CheckProviderVersionUpdate_GivenGetSpecificationsWithProviderVersionUpdatesAsUseLatestNotFound_ThenDoesNotUpdatesSpecification()
         {
+            ProviderSnapshot providerSnapshot = _providerSnapshots.FirstOrDefault();
             GivenTheFundingStreams(_fundingStreams);
             AndTheCurrentProviderVersions(_currentProviderVersions);
             AndTheFundingConfigurationsForTheFundingStreamId(_fundingConfigurations, _fundingStreamOneId);
             AndTheProviderSnapshotsForFundingStream(_providerSnapshots);
+            AndTheFundingDataZoneProvidersForTheSnapshot(providerSnapshot.ProviderSnapshotId);
+            AndTheProviderVersionUploadSucceeds(providerSnapshot.ProviderVersionId, null);
             AndNoSpecificationsUseTheLatestProviderVersion();
 
             await WhenTheProviderVersionUpdateIsChecked();
@@ -245,10 +276,13 @@ namespace CalculateFunding.Services.Providers.UnitTests
         [TestMethod]
         public async Task SkipsUpdatesForProviderSnapshotsInUseBySpecificationsWithRunningPublishingJobs()
         {
+            ProviderSnapshot providerSnapshot = _providerSnapshots.FirstOrDefault();
             GivenTheFundingStreams(_fundingStreams);
             AndTheCurrentProviderVersions(_currentProviderVersions);
             AndTheFundingConfigurationsForTheFundingStreamId(_fundingConfigurations, _fundingStreamOneId);
             AndTheProviderSnapshotsForFundingStream(_providerSnapshots);
+            AndTheFundingDataZoneProvidersForTheSnapshot(providerSnapshot.ProviderSnapshotId);
+            AndTheProviderVersionUploadSucceeds(providerSnapshot.ProviderVersionId, null);
             AndTheSpecificationsUseTheLatestProviderSnapshot(_specificationSummaries);
             AndThereIsAPublishingJobClashingWithTheProviderSnapshotForTheSpecifications(_specificationId);
 
@@ -303,10 +337,10 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 .Setup(_ => _.GetLatestProviderSnapshotsForAllFundingStreams())
                 .ReturnsAsync(new ApiResponse<IEnumerable<ProviderSnapshot>>(HttpStatusCode.OK, providerSnapshots));
 
-        private void AndErrorGetProviderSnapshotsForFundingStream() =>
-            _fundingDataZoneApiClient
-                .Setup(_ => _.GetLatestProviderSnapshotsForAllFundingStreams())
-                .ReturnsAsync(new ApiResponse<IEnumerable<ProviderSnapshot>>(HttpStatusCode.BadRequest));
+        private void AndTheFundingDataZoneProvidersForTheSnapshot(int providerSnapshotId,
+            params FundingDataZoneProvider[] providers)
+            => _fundingDataZoneApiClient.Setup(_ => _.GetProvidersInSnapshot(providerSnapshotId))
+                .ReturnsAsync(new ApiResponse<IEnumerable<FundingDataZoneProvider>>(HttpStatusCode.OK, providers));
 
         private void AndTheSpecificationsUseTheLatestProviderSnapshot(IEnumerable<SpecificationSummary> specificationSummaries) =>
             _specificationsApiClient
@@ -327,8 +361,35 @@ namespace CalculateFunding.Services.Providers.UnitTests
             => _publishingJobClashCheck.Setup(_ => _.PublishingJobsClashWithFundingStreamCoreProviderUpdate(specificationId))
                 .ReturnsAsync(true);
 
+        private void AndTheProviderVersionUploadSucceeds(string providerVersionId,
+            IActionResult actionResult = null,
+            params string[] providerIds)
+            => SetupProviderVersionUpload(providerVersionId, providerIds, true, actionResult);
+
+        private void SetupProviderVersionUpload(string providerVersionId,
+            string[] providerIds,
+            bool success,
+            IActionResult actionResult)
+        {
+            _providerVersionService.Setup(_ => _.UploadProviderVersion(providerVersionId,
+                    It.Is<ProviderVersionViewModel>(pv
+                        => pv.Providers.Select(p => p.ProviderId).SequenceEqual(providerIds) &&
+                        pv.Providers.All(p => p.ProviderVersionId == providerVersionId && p.ProviderVersionIdProviderId == $"{providerVersionId}_{p.ProviderId}"))))
+                .ReturnsAsync((success, actionResult))
+                .Verifiable();
+        }
+
         private async Task WhenTheProviderVersionUpdateIsChecked() =>
             await _service.CheckProviderVersionUpdate();
+
+        private FundingDataZoneProvider NewFundingDataZoneProvider(Action<FundingDataZoneProviderBuilder> setUp = null)
+        {
+            FundingDataZoneProviderBuilder fundingDataZoneProviderBuilder = new FundingDataZoneProviderBuilder();
+
+            setUp?.Invoke(fundingDataZoneProviderBuilder);
+
+            return fundingDataZoneProviderBuilder.Build();
+        }
 
         private static string NewRandomString() => new RandomString();
 

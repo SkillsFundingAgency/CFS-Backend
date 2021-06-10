@@ -42,6 +42,7 @@ namespace CalculateFunding.Services.Providers
         private readonly IMapper _mapper;
         private readonly IJobManagement _jobManagement;
         private readonly AsyncPolicy _fundingDataZoneApiClientPolicy;
+        private readonly IProviderSnapshotPersistService _providerSnapshotPersistService;
 
         public ProviderSnapshotDataLoadService(ILogger logger,
             ISpecificationsApiClient specificationsApiClient,
@@ -49,7 +50,8 @@ namespace CalculateFunding.Services.Providers
             IProvidersResiliencePolicies resiliencePolicies,
             IFundingDataZoneApiClient fundingDataZoneApiClient,
             IMapper mapper,
-            IJobManagement jobManagement) : base(jobManagement, logger)
+            IJobManagement jobManagement,
+            IProviderSnapshotPersistService providerSnapshotPersistService) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
@@ -59,6 +61,7 @@ namespace CalculateFunding.Services.Providers
             Guard.ArgumentNotNull(fundingDataZoneApiClient, nameof(fundingDataZoneApiClient));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
+            Guard.ArgumentNotNull(providerSnapshotPersistService, nameof(providerSnapshotPersistService));
 
             _logger = logger;
             _specificationsApiClient = specificationsApiClient;
@@ -66,6 +69,7 @@ namespace CalculateFunding.Services.Providers
             _specificationsApiClientPolicy = resiliencePolicies.SpecificationsApiClient;
             _fundingDataZoneApiClientPolicy = resiliencePolicies.FundingDataZoneApiClient;
             _fundingDataZoneApiClient = fundingDataZoneApiClient;
+            _providerSnapshotPersistService = providerSnapshotPersistService;
             _mapper = mapper;
             _jobManagement = jobManagement;
         }
@@ -102,31 +106,22 @@ namespace CalculateFunding.Services.Providers
 
             ProviderSnapshot providerSnapshot = await GetProviderSnapshot(fundingStreamId, providerSnapshotId);
 
-            string providerVersionId = $"{fundingStreamId}-{providerSnapshot.TargetDate:yyyy}-{providerSnapshot.TargetDate:MM}-{providerSnapshot.TargetDate:dd}-{providerSnapshotId}";
-            bool isProviderVersionExists = await _providerVersionService.Exists(providerVersionId);
+            bool success = await _providerSnapshotPersistService.PersistSnapshot(providerSnapshot);
 
-            if (!isProviderVersionExists)
+            if (!success)
             {
-                IEnumerable<Common.ApiClient.FundingDataZone.Models.Provider> fdzProviders = await GetProvidersInSnapshot(providerSnapshotId);
+                string errorMessage = $"Unable to persist provider snapshot for - {specificationId}, with provider snapshot id  - {providerSnapshot.ProviderSnapshotId}.";
 
-                ProviderVersionViewModel providerVersionViewModel = CreateProviderVersionViewModel(fundingStreamId, providerVersionId, providerSnapshot, fdzProviders);
-                (bool success, IActionResult actionResult) = await _providerVersionService.UploadProviderVersion(providerVersionId, providerVersionViewModel);
+                _logger.Error(errorMessage);
 
-                if (!success)
-                {
-                    string errorMessage = $"Failed to upload provider version {providerVersionId}. {GetErrorMessage(actionResult, providerVersionId)}";
-
-                    _logger.Error(errorMessage);
-
-                    throw new Exception(errorMessage);
-                }
+                throw new Exception(errorMessage);
             }
 
-            HttpStatusCode httpStatusCode = await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.SetProviderVersion(specificationId, providerVersionId));
+            HttpStatusCode httpStatusCode = await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.SetProviderVersion(specificationId, providerSnapshot.ProviderVersionId));
 
             if (!httpStatusCode.IsSuccess())
             {
-                string errorMessage = $"Unable to update the specification - {specificationId}, with provider version id  - {providerVersionId}. HttpStatusCode - {httpStatusCode}";
+                string errorMessage = $"Unable to update the specification - {specificationId}, with provider version id  - {providerSnapshot.ProviderVersionId}. HttpStatusCode - {httpStatusCode}";
 
                 _logger.Error(errorMessage);
 

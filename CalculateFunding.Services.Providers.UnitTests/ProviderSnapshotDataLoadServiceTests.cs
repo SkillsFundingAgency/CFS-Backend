@@ -43,6 +43,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
         private Mock<IJobManagement> _jobs;
 
         private ProviderSnapshotDataLoadService _service;
+        private IProviderSnapshotPersistService _providerSnapshotPersistService;
         private string _specificationId;
         private string _fundingStreamId;
         private string _jobId;
@@ -57,6 +58,21 @@ namespace CalculateFunding.Services.Providers.UnitTests
             _fundingDataZone = new Mock<IFundingDataZoneApiClient>();
             _jobs = new Mock<IJobManagement>();
 
+            IMapper mapper = new MapperConfiguration(c => { c.AddProfile<ProviderVersionsMappingProfile>(); }).CreateMapper();
+            
+            ProvidersResiliencePolicies providersResiliencePolicies = new ProvidersResiliencePolicies
+            {
+                SpecificationsApiClient = Policy.NoOpAsync(),
+                FundingDataZoneApiClient = Policy.NoOpAsync()
+            };
+
+            _providerSnapshotPersistService = new ProviderSnapshotPersistService(_providerVersionService.Object,
+                _fundingDataZone.Object,
+                Logger.None,
+                mapper,
+                providersResiliencePolicies
+            );
+
             _service = new ProviderSnapshotDataLoadService(
                 Logger.None,
                 _specifications.Object,
@@ -67,8 +83,10 @@ namespace CalculateFunding.Services.Providers.UnitTests
                     FundingDataZoneApiClient = Policy.NoOpAsync()
                 },
                 _fundingDataZone.Object,
-                new MapperConfiguration(c => { c.AddProfile<ProviderVersionsMappingProfile>(); }).CreateMapper(),
-                _jobs.Object);
+                mapper,
+                _jobs.Object,
+                _providerSnapshotPersistService
+            );
 
             _specificationId = NewRandomString();
             _fundingStreamId = NewRandomString();

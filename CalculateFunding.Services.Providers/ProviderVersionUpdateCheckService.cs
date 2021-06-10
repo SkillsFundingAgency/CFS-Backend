@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -13,9 +14,11 @@ using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Providers;
+using CalculateFunding.Models.Providers.ViewModels;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Providers.Interfaces;
+using Microsoft.AspNetCore.Mvc;
 using Polly;
 using Serilog;
 
@@ -25,6 +28,7 @@ namespace CalculateFunding.Services.Providers
     {
         private readonly IPublishingJobClashCheck _publishingJobClashCheck;
         private readonly IPoliciesApiClient _policiesApiClient;
+        private readonly IProviderSnapshotPersistService _providerSnapshotPersistService;
         private readonly IProviderVersionsMetadataRepository _providerVersionMetadata;
         private readonly IFundingDataZoneApiClient _fundingDataZoneApiClient;
         private readonly ISpecificationsApiClient _specificationsApiClient;
@@ -44,7 +48,8 @@ namespace CalculateFunding.Services.Providers
             IFundingDataZoneApiClient fundingDataZoneApiClient,
             ISpecificationsApiClient specificationsApiClient,
             IMapper mapper,
-            IPublishingJobClashCheck publishingJobClashCheck)
+            IPublishingJobClashCheck publishingJobClashCheck,
+            IProviderSnapshotPersistService providerSnapshotPersistService)
         {
             Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -58,6 +63,7 @@ namespace CalculateFunding.Services.Providers
             Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(publishingJobClashCheck, nameof(publishingJobClashCheck));
+            Guard.ArgumentNotNull(providerSnapshotPersistService, nameof(providerSnapshotPersistService));
 
             _policiesApiClient = policiesApiClient;
             _providerVersionMetadata = providerVersionMetadata;
@@ -70,6 +76,7 @@ namespace CalculateFunding.Services.Providers
             _providerVersionMetadataPolicy = resiliencePolicies.ProviderVersionMetadataRepository;
             _fundingDataZoneApiClientPolicy = resiliencePolicies.FundingDataZoneApiClient;
             _specificationsApiClientPolicy = resiliencePolicies.SpecificationsApiClient;
+            _providerSnapshotPersistService = providerSnapshotPersistService;
         }
 
         public async Task CheckProviderVersionUpdate()
@@ -133,9 +140,23 @@ namespace CalculateFunding.Services.Providers
 
                 if (currentProviderSnapshotId != latestProviderSnapshotId)
                 {
-                    HttpStatusCode httpStatusCode = await UpdateCurrentProviderVersionMetadata(latestProviderSnapshot);
+                    bool success = await _providerSnapshotPersistService.PersistSnapshot(latestProviderSnapshot);
 
-                    if (!httpStatusCode.IsSuccess())
+                    if (success)
+                    {
+                        HttpStatusCode httpStatusCode = await _providerVersionMetadataPolicy.ExecuteAsync(() =>
+                               _providerVersionMetadata.UpsertCurrentProviderVersion(
+                                   new CurrentProviderVersion
+                                   {
+                                       Id = $"Current_{latestProviderSnapshot.FundingStreamCode}",
+                                       ProviderSnapshotId = latestProviderSnapshot.ProviderSnapshotId,
+                                       ProviderVersionId = latestProviderSnapshot.ProviderVersionId
+                                   }));
+
+                        success = !httpStatusCode.IsSuccess();
+                    }
+
+                    if (success)
                     {
                         string errorMessage = $"Unable to set current provider for funding stream with ID: {fundingStream?.Id}";
                         _logger.Error(errorMessage);
@@ -173,19 +194,7 @@ namespace CalculateFunding.Services.Providers
 
             return _mapper.Map<IEnumerable<CurrentProviderVersionMetadata>>(currentProviderVersions);
         }
-
-        private async Task<HttpStatusCode> UpdateCurrentProviderVersionMetadata(ProviderSnapshot providerSnapshot)
-        {
-            string providerVersionId = $"{providerSnapshot.FundingStreamCode}-{providerSnapshot.TargetDate:yyyy}-{providerSnapshot.TargetDate:MM}-{providerSnapshot.TargetDate:dd}-{providerSnapshot.ProviderSnapshotId}";
-
-            return await _providerVersionMetadataPolicy.ExecuteAsync(() =>
-                    _providerVersionMetadata.UpsertCurrentProviderVersion(
-                        new CurrentProviderVersion { Id = $"Current_{providerSnapshot.FundingStreamCode}",
-                                                    ProviderSnapshotId = providerSnapshot.ProviderSnapshotId, 
-                                                    ProviderVersionId = providerVersionId
-                        }));
-        }
-
+        
         private async Task<IEnumerable<ProviderSnapshot>> GetLatestProviderSnapshots()
         {
             ApiResponse<IEnumerable<ProviderSnapshot>> providerSnapshotResponse
