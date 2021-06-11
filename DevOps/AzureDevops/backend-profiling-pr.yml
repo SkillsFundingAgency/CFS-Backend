@@ -62,7 +62,7 @@ steps:
      SmokeTestClientSecret: $(ProfilingAzureAdClientSecret)
 
  - task: DotNetCoreCLI@2
-   condition: and(succeeded(), eq(variables.runIntegrationTests, true))
+   condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'), eq(variables.runIntegrationTests, true))
    displayName: 'dotnet test for Integration tests'
    inputs:
      command: 'test'
