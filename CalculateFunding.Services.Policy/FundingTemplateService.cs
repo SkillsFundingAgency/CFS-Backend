@@ -459,7 +459,7 @@ namespace CalculateFunding.Services.Policy
             {
                 foreach (Calculation calculation in calculations)
                 {
-                    if (calculation.Type == Common.TemplateMetadata.Enums.CalculationType.Cash)
+                    if (calculation.Type == Common.TemplateMetadata.Enums.CalculationType.Cash || calculation.Type == Common.TemplateMetadata.Enums.CalculationType.Adjustment)
                     {
                         calculationsResult.Add(_mapper.Map<TemplateMetadataCalculation>(calculation));
                     }

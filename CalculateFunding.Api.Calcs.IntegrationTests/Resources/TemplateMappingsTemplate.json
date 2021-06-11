@@ -1,0 +1,1046 @@
+{
+  "id": "<ID>",
+  "documentType": "TemplateMapping",
+  "content": {
+    "id": "<ID>",
+    "specificationId": "<SPECIFICATIONID>",
+    "fundingStreamId": "<FUNDINGSTREAMID>",
+    "templateMappingItems": [
+      {
+        "entityType": 0,
+        "name": "Primary Pupil Number",
+        "templateId": 15,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Primary Unit of Funding",
+        "templateId": 16,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Secondary Pupil Number",
+        "templateId": 17,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Secondary Unit of Funding",
+        "templateId": 18,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Primary pupil sub-total",
+        "templateId": 13,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Secondary pupil sub-total",
+        "templateId": 14,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Premises and Mobility Factors",
+        "templateId": 19,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Provisional Schools Block Funding Excluding Growth",
+        "templateId": 241,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Current Year School Block Pupil No",
+        "templateId": 242,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Current Year Provisional Schools Block Funding Excluding Growth - NON CASH",
+        "templateId": 248,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Previous Year Schools Block Pupil Numbers",
+        "templateId": 249,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Previous Year Schools Block Excluding Growth Funding",
+        "templateId": 250,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Current Year Provisional Schools Block Excluding Growth Funding Per Pupil",
+        "templateId": 246,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Previous Year Schools Block Excluding Growth Funding Per Pupil",
+        "templateId": 247,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Current Year Local Authority Protection",
+        "templateId": 243,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Percentage Change between Current Year and Previous Year per Pupil Funding",
+        "templateId": 244,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Percentage Change between Current Year and Previous Year per Pupil Funding after local authority protection",
+        "templateId": 245,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Growth",
+        "templateId": 20,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "CSSB per Pupil Rate",
+        "templateId": 25,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "CSSB Pupil Number",
+        "templateId": 26,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "CSSB Pupil Led Total",
+        "templateId": 24,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Actual CSSB Funding for Historic Commitments",
+        "templateId": 28,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Universal Entitlement for 3 and 4 Year Olds total Early Years Universal Entitlement for 3 and 4 Year Olds Rate",
+        "templateId": 132,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Total 3 and 4 Year Olds (PTE)",
+        "templateId": 133,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Universal Entitlement for 3 and 4 Year Olds total PTE Funded hours",
+        "templateId": 134,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Universal Entitlement for 3 and 4 Year Olds total",
+        "templateId": 131,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Funding for Additional Hours for working parents total Early Years Universal Entitlement for 3 and 4 Year Olds Rate",
+        "templateId": 137,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Total 3 and 4 Year Old for Additional Hours for Working Parents (PTE)",
+        "templateId": 138,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Funding for Additional Hours for working parents total PTE Funded hours",
+        "templateId": 139,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Funding for Additional Hours for working parents total",
+        "templateId": 136,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Early Years Participation Funding for 2 Year Olds Rate",
+        "templateId": 142,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Total 2 Year Olds (PTE)",
+        "templateId": 143,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Participation Funding for Disadvantaged 2 Year Olds total PTE Funded hours",
+        "templateId": 144,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Participation Funding for Disadvantaged 2 Year Olds total",
+        "templateId": 141,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Early Years Pupil Premium",
+        "templateId": 147,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Pupil Premium Pupil Count for 3 to 4 Year Olds (PTE)",
+        "templateId": 148,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Funding Allocation for Early Years Pupil Premium total PTE Funded hours",
+        "templateId": 149,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Funding Allocation for Early Years Pupil Premium total",
+        "templateId": 146,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Maintained Nursery Schools Supplement Hourly Rate",
+        "templateId": 152,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Maintained Nursery Schools Supplement (PTE)",
+        "templateId": 153,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "PTE Funded hours",
+        "templateId": 154,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Funding Allocation for Maintained Nursery Supplement total",
+        "templateId": 151,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Disability Access Fund",
+        "templateId": 238,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Basic Entitlement Per Pupil Rate",
+        "templateId": 31,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Basic Entitlement Per Pupil Number",
+        "templateId": 32,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Import/Export Adjustment per pupil number",
+        "templateId": 34,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Import/Export Adjustment per pupil rate",
+        "templateId": 35,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Mid 2019 Age 2-18 ONS Population Projection",
+        "templateId": 37,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Additional High Needs Funding Quantum",
+        "templateId": 38,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "HN Block Baseline",
+        "templateId": 29,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Additional Funding For free Schools",
+        "templateId": 237,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Basic Entitlement",
+        "templateId": 30,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Import/Export Adjustment",
+        "templateId": 33,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Additional High Needs Funding",
+        "templateId": 36,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @6k SEN places deduction April (Year 1) - August (Year 1)",
+        "templateId": 65,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @6k SEN places deduction September (Year 1) - March (Year 2)",
+        "templateId": 66,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @6k SEN places deduction April (Year 1) - August (Year 1) rate",
+        "templateId": 67,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @6k SEN places deduction September (Year 1) - March (Year 2) rate",
+        "templateId": 68,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @6k SEN places deduction",
+        "templateId": 64,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @10k SEN places deduction April (Year 1) - August (Year 1)",
+        "templateId": 70,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @10k SEN places deduction September (Year 1) - March (Year 2)",
+        "templateId": 71,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @10k SEN places deduction April (Year 1) - August (Year 1) Top Up rate",
+        "templateId": 235,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @10k SEN places deduction September (Year 1) - March (Year 2) Top Up rate",
+        "templateId": 236,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @10k SEN places deduction April (Year 1) - August (Year 1) rate",
+        "templateId": 72,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @10k SEN places deduction September (Year 1) - March (Year 2) rate",
+        "templateId": 73,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @10k SEN places deduction",
+        "templateId": 69,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Mainstream Academies (SEN units and Resourced provision) Post-16 SEN Places Deduction April (Year 1) - July (Year 1)",
+        "templateId": 75,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Mainstream Academies (SEN units and Resourced provision) Post-16 SEN Places Deduction August (Year 1) - March (Year 2)",
+        "templateId": 76,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Mainstream Academies (SEN units and Resourced provision) Post-16 SEN Places Deduction April (Year 1) - July (Year 1) rate",
+        "templateId": 77,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Mainstream Academies (SEN units and Resourced provision) Post-16 SEN Places Deduction August (Year 1) - March (Year 2) rate",
+        "templateId": 78,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Mainstream Academies (SEN units and Resourced provision) Post-16 SEN Places Deduction",
+        "templateId": 74,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 AP Places Deduction April (Year 1) - August (Year 1)",
+        "templateId": 80,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 AP Places Deduction September (Year 1) - March (Year 2)",
+        "templateId": 81,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 AP Places Deduction April (Year 1) - August (Year 1) rate",
+        "templateId": 82,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 AP Places Deduction September (Year 1) - March (Year 2) rate",
+        "templateId": 83,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 AP Places Deduction",
+        "templateId": 79,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @6k",
+        "templateId": 50,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @10k",
+        "templateId": 51,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Post-16 SEN Places Main Stream Academies",
+        "templateId": 52,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 AP Places",
+        "templateId": 53,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Special Academies Pre-16 SEN Places Deduction April (Year 1) - July (Year 1)",
+        "templateId": 163,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Special Academies Pre-16 SEN Places Deduction August (Year 1) - March (Year 2)",
+        "templateId": 164,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Special Academies Pre-16 SEN Places Deduction April (Year 1) - July (Year 1) rate",
+        "templateId": 165,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Special Academies Pre-16 SEN Places Deduction August (Year 1) - March (Year 2) rate",
+        "templateId": 166,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Special Academies Deduction",
+        "templateId": 162,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Special Academies Post-16 SEN Places Deduction April (Year 1) - July (Year 1)",
+        "templateId": 90,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Special Academies Post-16 SEN Places Deduction August (Year 1) - March (Year 2)",
+        "templateId": 91,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Special Academies Post-16 SEN Places Deduction April (Year 1) - July (Year 1) rate",
+        "templateId": 92,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Special Academies Post-16 SEN Places Deduction August (Year 1) - March (Year 2) rate",
+        "templateId": 93,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Special Academies Post-16 SEN Places Deduction",
+        "templateId": 89,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Special Academies Pre-16 AP Places Deduction April (Year 1) - July (Year 1)",
+        "templateId": 95,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Special Academies Pre-16 AP Places Deduction August (Year 1) - March (Year 2)",
+        "templateId": 96,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Special Academies Pre-16 AP Places Deduction April (Year 1) - July (Year 1) rate",
+        "templateId": 97,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Special Academies Pre-16 AP Places Deduction August (Year 1) - March (Year 2) rate",
+        "templateId": 98,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Special Academies Pre-16 AP Places Deduction",
+        "templateId": 94,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Special Academies Pre-16 SEN Places",
+        "templateId": 158,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Special Academies Post-16 SEN Places",
+        "templateId": 175,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Special Academies Pre-16 AP Places",
+        "templateId": 174,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Special Free Schools Pre-16 SEN Places Deduction April (Year 1) - August (Year 1)",
+        "templateId": 168,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Special Free Schools Pre-16 SEN Places Deduction August (Year 1) - March (Year 2)",
+        "templateId": 169,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Special Free Schools Pre-16 SEN Places Deduction April (Year 1) - August (Year 1) rate",
+        "templateId": 170,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Special Free Schools Pre-16 SEN Places Deduction August (Year 1) - March (Year 2) rate",
+        "templateId": 171,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Special Free Schools Deduction",
+        "templateId": 167,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Special Free Schools Post-16 SEN Places Deduction April (Year 1) - July (Year 1)",
+        "templateId": 176,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Special Free Schools Post-16 SEN Places Deduction August (Year 1) - March (Year 2)",
+        "templateId": 177,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Special Free Schools Post-16 SEN Places Deduction April (Year 1) - July (Year 1) rate",
+        "templateId": 178,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Special Free Schools Post-16 SEN Places Deduction August (Year 1) - March (Year 2) rate",
+        "templateId": 179,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Special Free Schools Post-16 SEN Places Deduction",
+        "templateId": 232,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Special Free Schools Pre-16 AP Places Deduction April (Year 1) - August (Year 1)",
+        "templateId": 182,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Special Free Schools Pre-16 AP Places Deduction September (Year 1) - March (Year 2)",
+        "templateId": 183,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Special Free Schools Pre-16 AP Places Deduction April (Year 1) - August (Year 1) rate",
+        "templateId": 180,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Special Free Schools Pre-16 AP Places Deduction September (Year 1) - March (Year 2) rate",
+        "templateId": 181,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Special Free Schools Pre-16 AP Places Deduction",
+        "templateId": 234,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Special Free Schools Pre-16 SEN Places",
+        "templateId": 159,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Special Free Schools Post-16 SEN Places",
+        "templateId": 161,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Special Free Schools Pre-16 AP Places",
+        "templateId": 233,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "AP Academies and Free Schools Pre-16 SEN Places April (Year 1) - August (Year 1)",
+        "templateId": 189,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "AP Academies and Free Schools Pre-16 SEN Places Sept (Year 1) - March (Year 2)",
+        "templateId": 190,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "AP Academies and Free Schools April (Year 1) - August (Year 1) rate",
+        "templateId": 187,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "AP Academies and Free Schools September (Year 1) - March (Year 2) rate",
+        "templateId": 188,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "AP Academies and Free Schools Pre-16 SEN Places Deduction",
+        "templateId": 186,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "AP Academies & Free schools Pre-16 AP Places Deduction April (Year 1) - August (Year 1)",
+        "templateId": 195,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "AP Academies & Free schools Pre-16 AP Places Deduction September (Year 1) - March (Year 2)",
+        "templateId": 196,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "AP Academies & Free schools Pre-16 AP Places Deduction April (Year 1) - August (Year 1) rate",
+        "templateId": 193,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "AP Academies & Free schools Pre-16 AP Places Deduction September (Year 1) - March (Year 2) rate",
+        "templateId": 194,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "AP Academies & Free schools Pre-16 AP Places Deduction",
+        "templateId": 192,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "AP Academies & Free schools Pre- 16 SEN places",
+        "templateId": 185,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "AP Academies & Free schools Pre-16 AP Places",
+        "templateId": 191,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Maintained Special Schools Post-16 SEN Places Deduction April (Year 1) - July (Year 1)",
+        "templateId": 202,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Maintained Special Schools Post-16 SEN Places Deduction August (Year 1) - March (Year 2)",
+        "templateId": 203,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Maintained Special Schools Post-16 SEN Places Deduction April (Year 1) - July (Year 1) rate",
+        "templateId": 200,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Maintained Special Schools Post-16 SEN Places Deduction August (Year 1) - March (Year 1) rate",
+        "templateId": 201,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Maintained Special Schools Post-16 SEN Places deduction",
+        "templateId": 199,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Maintained Special Schools Post-16 SEN Places",
+        "templateId": 198,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Maintained Mainstream Schools Post-16 SEN Places Deduction April (Year 1) - July (Year 1)",
+        "templateId": 209,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Maintained Mainstream Schools Post-16 SEN Places Deduction August (Year 1) - March (Year 2)",
+        "templateId": 210,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Maintained Mainstream Schools Post-16 SEN Places Deduction April (Year 1) - July (Year 1) rate",
+        "templateId": 207,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Maintained Mainstream Schools Post-16 SEN Places Deduction August (Year 1) - March (Year 2) rate",
+        "templateId": 208,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Maintained Mainstream Schools Post-16 SEN Places Deduction",
+        "templateId": 206,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Maintained Mainstream Schools Post-16 SEN Places",
+        "templateId": 205,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Hospital Academies Funding Total Hospital Education Deduction April (Year 1) - August (Year 1)",
+        "templateId": 214,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Hospital Academies Funding Total Hospital Education Deduction September (Year 1) - March (Year 2)",
+        "templateId": 215,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Hospital Academies Funding Total Hospital Education Deduction April (Year 1) - August (Year 1) rate",
+        "templateId": 216,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Hospital Academies Funding Total Hospital Education Deduction September (Year 1) - March (Year 2) rate",
+        "templateId": 217,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Hospital Academies Funding Total Hospital Education Deduction",
+        "templateId": 213,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Hospital Academies Funding Total Hospital Education",
+        "templateId": 212,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "16-19 Academies and Free Schools Total Post-16 Schools SEN Places Deduction April (Year 1) to July (Year 1)",
+        "templateId": 223,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "16-19 Academies and Free Schools Total Post-16 Schools SEN Places Deduction August (Year 1) to March (Year 2)",
+        "templateId": 224,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "16-19 Academies and Free Schools Total Post-16 Schools SEN Places Deduction April (Year 1) to July (Year 1) rate",
+        "templateId": 221,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "16-19 Academies and Free Schools Total Post-16 Schools SEN Places Deduction August (Year 1) to March (Year 2) rate",
+        "templateId": 222,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "16-19 Academies and Free Schools Total Post-16 Schools SEN Places Deduction",
+        "templateId": 220,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "16-19 Academies and Free Schools Total Post-16 Schools SEN Places",
+        "templateId": 219,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "FE and ILP Places April (Year 1) - July (Year 1)",
+        "templateId": 128,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "FE and ILP Places August (Year 1)- March (Year 2)",
+        "templateId": 129,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "FE and ILP Places Deduction April (Year 1) - July (Year 1) rate",
+        "templateId": 228,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "FE and ILP Places Deduction August (Year 1) - March (Year 2) rate",
+        "templateId": 229,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "FE and ILP Deduction",
+        "templateId": 227,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "FE and ILP Places",
+        "templateId": 226,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Mainstream Academies (SEN units and Resourced provision)",
+        "templateId": 42,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Special Academies",
+        "templateId": 156,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Special Free Schools",
+        "templateId": 157,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "AP Academies & Free schools",
+        "templateId": 184,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Maintained Special Schools",
+        "templateId": 197,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Maintained Mainstream Schools",
+        "templateId": 204,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Hospital Academies",
+        "templateId": 211,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "16-19 Academies and Free Schools",
+        "templateId": 218,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "FE and ILP",
+        "templateId": 225,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "HN Deductions",
+        "templateId": 40,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "HN before deductions",
+        "templateId": 41,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "HN after deductions",
+        "templateId": 39,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "Recoupment",
+        "templateId": 21,
+        "calculationId": null
+      },
+      {
+        "entityType": 0,
+        "name": "School Block After Recoupment",
+        "templateId": 22,
+        "calculationId": null
+      }
+    ]
+  },
+  "createdAt": "<NOW>",
+  "updatedAt": "<NOW>",
+  "deleted": false
+}

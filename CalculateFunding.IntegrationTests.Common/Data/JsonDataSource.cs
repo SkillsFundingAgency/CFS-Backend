@@ -39,9 +39,7 @@ namespace CalculateFunding.IntegrationTests.Common.Data
 
             foreach (dynamic documentData in documents)
             {
-                object formatWith = GetFormatParametersForDocument(documentData, now);
-
-                string document = GetDocumentFromTemplate(formatWith);
+                string document = GetFormattedDocument(documentData, now);
 
                 JsonDocument jsonDocument = ParseJsonDocument(document);
 
@@ -50,6 +48,13 @@ namespace CalculateFunding.IntegrationTests.Common.Data
 
             await RemoveData(batchIdentities);
             await InsertContextData(temporaryDocuments);
+        }
+
+        public string GetFormattedDocument(dynamic documentData, string now)
+        {
+            object formatWith = GetFormatParametersForDocument(documentData, now);
+
+            return GetDocumentFromTemplate(formatWith);
         }
 
         private void LoadEmbeddedTemplate()

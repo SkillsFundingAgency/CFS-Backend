@@ -721,7 +721,7 @@ namespace CalculateFunding.Services.Calcs
 
             return calculations?.SelectMany(_ =>
             {
-                if (_.Type == TemplateCalculationType.Cash)
+                if (_.Type == TemplateCalculationType.Cash || _.Type == TemplateCalculationType.Adjustment)
                 {
                     return new[] { _ };
                 }

@@ -1,10 +1,22 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <IsPackable>false</IsPackable>
         <LangVersion>8</LangVersion>
     </PropertyGroup>
+
+    <ItemGroup>
+      <None Remove="Resources\FundingTemplateTemplate.json" />
+      <None Remove="Resources\SpecificationTemplate.json" />
+      <None Remove="Resources\TemplateMappingsTemplate.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Include="Resources\FundingTemplateTemplate.json" />
+      <EmbeddedResource Include="Resources\SpecificationTemplate.json" />
+      <EmbeddedResource Include="Resources\TemplateMappingsTemplate.json" />
+    </ItemGroup>
 
 
     <ItemGroup>

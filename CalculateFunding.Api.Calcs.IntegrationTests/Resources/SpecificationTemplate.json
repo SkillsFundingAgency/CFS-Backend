@@ -1,0 +1,40 @@
+{
+  "id": "<ID>",
+  "documentType": "Specification",
+  "content": {
+    "isSelectedForFunding": <ISSELECTEDFORFUNDING>,
+    "current": {
+      "id": "<SPECIFICATIONVERSIONID>",
+      "entityId": "<ID>",
+      "name": "<NAME>",
+      "specificationId": "<ID>",
+      "fundingPeriod": {
+        "id": "<FUNDINGPERIODID>",
+        "name": "<FUNDINGPERIODNAME>"
+      },
+      "providerVersionId": "<PROVIDERVERSIONID>",
+      "fundingStreams": <FUNDINGSTREAMS>,
+      "description": "<DESCRIPTION>",
+      "dataDefinitionRelationshipIds": <DATADEFINITIONRELATIONSHIPIDS>,
+      "templateIds": <TEMPLATEIDS>,
+      "externalPublicationDate": null,
+      "earliestPaymentAvailableDate": null,
+      "profileVariationPointers": null,
+      "providerSource": "<PROVIDERSOURCE>",
+      "providerSnapshotId": "<PROVIDERSNAPSHOTID>",
+      "version": <VERSION>,
+      "date": "<NOW>",
+      "author": {
+        "id": "<AUTHORID>",
+        "name": "<AUTHORNAME>"
+      },
+      "comment": null,
+      "publishStatus": "<PUBLISHSTATUS>"
+    },
+    "id": "<ID>",
+    "name": "<NAME>"
+  },
+  "createdAt": "<NOW>",
+  "updatedAt": "<NOW>",
+  "deleted": false
+}
