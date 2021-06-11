@@ -1252,7 +1252,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                 PublishedProviderId = (string)_.publishedProviderId,
                 FundingStreamId = (string)_.fundingStreamId,
                 TotalFunding = (decimal?)_.totalFunding,
-                IsIndicative = (bool)_.isIndicative,
+                IsIndicative = (bool)(_.isIndicative ?? false),
                 ProviderTypeSubType = new ProviderTypeSubType()
                 {
                     ProviderType = (string)_.providerType,

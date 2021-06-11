@@ -668,8 +668,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
             string specificationId = NewRandomString();
 
             List<dynamic> results = new List<dynamic>() {
-                CreatePublishedProviderFundingResult(specificationId, publishedProviderId0),
-                CreatePublishedProviderFundingResult(specificationId, publishedProviderId1),
+                CreatePublishedProviderFundingResult(specificationId, publishedProviderId0, false),
+                CreatePublishedProviderFundingResult(specificationId, publishedProviderId1, false),
                 CreatePublishedProviderFundingResult(specificationId, publishedProviderId2)
             };
 
@@ -889,14 +889,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
 
         private PublishedProviderStatus NewRandomStatus() => new RandomEnum<PublishedProviderStatus>();
 
-        private dynamic CreatePublishedProviderFundingResult(string specificationId, string publishedProviderId)
+        private dynamic CreatePublishedProviderFundingResult(string specificationId, string publishedProviderId, bool? isIndicative = null)
         {
             string fundingStreamId = NewRandomString();
             string providerType = NewRandomString();
             string providerSubType = NewRandomString();
             string laCode = NewRandomString();
             decimal totalFunding = NewRandomNumber();
-            bool isIndicative = NewRandomFlag();
 
             dynamic result = new ExpandoObject();
             result.specificationId = specificationId;
