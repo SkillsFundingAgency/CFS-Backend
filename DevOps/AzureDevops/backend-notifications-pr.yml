@@ -1,0 +1,61 @@
+name: $(Rev:r)
+
+pool:
+  vmImage: windows-2019
+
+trigger:
+  branches:
+    include:
+    - master
+    - providers
+    - fdps
+  paths:
+    include:
+    - CalculateFunding.Api.Calcs
+    - CalculateFunding.Functions.Calcs
+    - CalculateFunding.Services.Calcs
+    - CalculateFunding.Services.Calcs.UnitTests
+    - CalculateFunding.Services.Core
+    - Devops/search-indexes/calculationindex
+    - CalculateFunding.Services.CodeGeneration
+    - CalculateFunding.Services.CodeGeneration.VisualBasic
+    - CalculateFunding.Services.CodeMetadataGenerator 
+    - CalculateFunding.Models.Calcs
+    - CalculateFunding.Models.Search
+    - CalculateFunding.Models.Versioning
+    - CalculateFunding.Models.ProviderLegacy
+    - DevOps/azure/calcs
+    - CalculateFunding.Functions.Notification
+
+variables:
+ - name: ProjectName
+   value: 'notifications'
+ - name: ServiceName
+   value: 'notifications'
+ - name: releaseconfiguration
+   value: 'release'
+ - name: DOTNET_SKIP_FIRST_TIME_EXPERIENCE
+   value: true
+ - name: DOTNET_CLI_TELEMETRY_OPTOUT 
+   value: true
+ - name: BuildApi
+   value: false
+ - name: BuildFunction
+   value: true
+ - name: SecureSmokeTest
+   value: false
+ - group: 'Dotnet Core SDK Version'
+ - group: 'Azure Settings Integration-v2'
+ - group: 'Smoke Test Info - Integration-v2' 
+ - group: 'Smoke Test KV - Integration-v2'
+
+steps:
+ - template: templates\standard-service-pr-ci-build.yml
+   parameters:
+     ProjectName: ${{ variables.ProjectName }}
+     ServiceName: ${{ variables.ServiceName }} 
+     DotnetCoreSdkVersion: $(DotnetCoreSdkVersion)
+     ResourceGroup: $(ResourceGroup)
+     BuildApi: ${{ variables.BuildApi }}
+     BuildFunction: ${{ variables.BuildFunction }}
+     SecureSmokeTest: ${{ variables.SecureSmokeTest }}

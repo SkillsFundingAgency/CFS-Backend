@@ -3,9 +3,31 @@ name: $(Rev:r)
 pool:
   vmImage: windows-2019
 
-trigger: none
+trigger:
+  branches:
+    include:
+    - master
+    - providers
+    - fdps
+  paths:
+    include:
+    - CalculateFunding.Api.Jobs
+    - CalculateFunding.Functions.Jobs
+    - CalculateFunding.Services.Jobs
+    - CalculateFunding.Services.Jobs.UnitTests
+    - CalculateFunding.Services.Core
+    - CalculateFunding.Services.Notifications
+    - CalculateFunding.Api.Notifications
+    - CalculateFunding.Functions.Notifications
+    - CalculateFunding.Functions.Notifications.UnitTests
+    - CalculateFunding.Services.Notifications.UnitTests
+    - CalculateFunding.Models.Jobs
 
 variables:
+ - name: ProjectName
+   value: 'jobs'
+ - name: ServiceName
+   value: 'jobs'
  - name: releaseconfiguration
    value: 'release'
  - name: DOTNET_SKIP_FIRST_TIME_EXPERIENCE
@@ -15,7 +37,7 @@ variables:
  - name: BuildApi
    value: true
  - name: BuildFunction
-   value: false
+   value: true
  - name: SecureSmokeTest
    value: false
  - group: 'Dotnet Core SDK Version'
@@ -24,19 +46,19 @@ variables:
  - group: 'Smoke Test KV - Integration-v2'
 
 steps:
- - template: templates\standard-service-pr-build.yml
+ - template: templates\standard-service-pr-ci-build.yml
    parameters:
-     ProjectName: Jobs
-     ServiceName: Jobs
+     ProjectName: ${{ variables.ProjectName }}
+     ServiceName: ${{ variables.ServiceName }} 
      DotnetCoreSdkVersion: $(DotnetCoreSdkVersion)
      ResourceGroup: $(ResourceGroup)
-     BuildApi: true
-     BuildFunction: true
+     BuildApi: ${{ variables.BuildApi }}
+     BuildFunction: ${{ variables.BuildFunction }}
      SecureSmokeTest: ${{ variables.SecureSmokeTest }}
      APIKey: $(svcapijobs)
 
  - task: DotNetCoreCLI@2
-   condition: and(succeeded(), eq(variables.runIntegrationTests, true))
+   condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'), eq(variables.runIntegrationTests, true))
    displayName: 'dotnet test for Integration tests'
    inputs:
      command: 'test'
@@ -58,13 +80,4 @@ steps:
      apiKeyMiddleware:apiKey: $(svcapijobs)
      cfsClient:ApiEndpoint: $(cfsClientApiEndpoint)
      jobsClient:ApiEndpoint: $(jobsClientApiEndpoint)
-     jobsClient:ApiKey: $(svcapijobs)   
-
- - template: templates\standard-service-pr-build.yml
-   parameters:
-     ProjectName: Notifications
-     ServiceName: Notifications
-     DotnetCoreSdkVersion: $(DotnetCoreSdkVersion)
-     BuildApi: false
-     BuildFunction: true
-     SecureSmokeTest: ${{ variables.SecureSmokeTest }}
+     jobsClient:ApiKey: $(svcapijobs)
