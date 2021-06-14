@@ -86,7 +86,7 @@ namespace CalculateFunding.Services.Publishing
                 if (batchProfilingResponseModels == null)
                 {
                     throw new NonRetriableException(
-                        $"Unable to complete batch profiling. Missing results from profiling service for {request.FundingStreamId} {request.FundingPeriodId} {request.FundingLineCode} Provider Type={request.ProviderType}, Provider Sub Type={request.ProviderSubType}");
+                        $"Unable to complete batch profiling. Missing results or configuration from profiling service for {request.FundingStreamId} {request.FundingPeriodId} while processing funding line '{request.FundingLineCode}' for Provider Type='{request.ProviderType}' and Provider Sub Type '{request.ProviderSubType}'");
                 }
 
                 foreach (BatchProfilingResponseModel batchProfilingResponse in batchProfilingResponseModels)
