@@ -67,6 +67,16 @@ namespace CalculateFunding.Services.FundingDataZone
 			int cloneId = await QuerySingleSql<int>(@"BEGIN
     BEGIN TRANSACTION
 
+	DECLARE @FundingStreamId AS INT
+
+	SET @FundingStreamId = (SELECT 
+		[FundingStreamId]
+	FROM ProviderSnapshot
+	WHERE [ProviderSnapshotId] = @providerSnapShot)
+	
+	DECLARE @Version AS INT
+	SET @Version = (SELECT ISNULL(Max([Version]),0) FROM ProviderSnapshot WHERE FundingStreamId = @FundingStreamId AND Convert(Date, TargetDate) = Convert(Date, GetDate()))
+	
 	INSERT INTO ProviderSnapshot(
 		[Name], 
 		[Description], 
@@ -78,7 +88,7 @@ namespace CalculateFunding.Services.FundingDataZone
 	SELECT 
 		@cloneName, 
 		ps.[Description], 
-		1, 
+		@Version + 1, 
 		GETDATE(), 
 		ps.[FundingStreamId], 
 		GETDATE() 

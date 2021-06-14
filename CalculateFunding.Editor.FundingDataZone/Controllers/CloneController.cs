@@ -1,9 +1,6 @@
-﻿using CalculateFunding.Editor.FundingDataZone.Pages.ProviderSnapshots;
-using CalculateFunding.Services.FundingDataZone;
+﻿using CalculateFunding.Services.FundingDataZone;
+using CalculateFunding.Services.FundingDataZone.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Editor.FundingDataZone.Controllers
@@ -11,10 +8,13 @@ namespace CalculateFunding.Editor.FundingDataZone.Controllers
     public class CloneController : Controller
     {
         private readonly IPublishingAreaEditorRepository _repo;
-        
-        public CloneController(IPublishingAreaEditorRepository publishingAreaEditorRepository)
+        private readonly IProviderRetrievalService _providerRetrievalService;
+
+        public CloneController(IPublishingAreaEditorRepository publishingAreaEditorRepository,
+            IProviderRetrievalService providerRetrievalService)
         {
             _repo = publishingAreaEditorRepository;
+            _providerRetrievalService = providerRetrievalService;
         }
 
         [Route("cloning/{providerSnapshotId}/{cloneName}")]
@@ -23,6 +23,13 @@ namespace CalculateFunding.Editor.FundingDataZone.Controllers
         {
             int cloneSnapShotId = await _repo.CloneProviderSnapshot(providerSnapshotId, cloneName);
             return RedirectToPage("/ProviderSnapshots/ProviderSnapshotDetails", new { providerSnapshotId  = cloneSnapShotId });
+        }
+
+        [Route("cloning/disableTrackLatest/{disableTrackLatest}")]
+        [HttpGet]
+        public async Task DisableTrackLatest([FromRoute] bool disableTrackLatest)
+        {
+            await _providerRetrievalService.DisableTrackLatest(disableTrackLatest);
         }
     }
 }

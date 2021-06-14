@@ -2,6 +2,7 @@ using CalculateFunding.Common.Sql;
 using CalculateFunding.Common.Sql.Interfaces;
 using CalculateFunding.Editor.FundingDataZone.Modules;
 using CalculateFunding.Editor.FundingDataZone.Options;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.FundingDataZone;
 using CalculateFunding.Services.FundingDataZone.IoC;
 using Microsoft.AspNetCore.Builder;
@@ -35,9 +36,11 @@ namespace CalculateFunding.Editor.FundingDataZone
             services.AddRazorPages();
 
             services.AddSingleton<ISqlPolicyFactory, SqlPolicyFactory>();
+            services.AddCaching(Configuration);
 
             FundingDataZoneServiceIoCRegistrations.AddFundingDataZoneDBSettings(services, Configuration);
-
+            FundingDataZoneServiceIoCRegistrations.AddFundingDataZoneServices(services, Configuration);
+            
             services.AddScoped<IPublishingAreaEditorRepository, PublishingAreaEditorRepository>();
         }
 

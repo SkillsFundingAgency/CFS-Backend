@@ -96,6 +96,7 @@ namespace CalculateFunding.Api.FundingDataZone
             builder.AddTelemetry();
             builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
             builder.AddHealthCheckMiddleware();
+            builder.AddCaching(Configuration);
 
             if (Configuration.IsSwaggerEnabled())
             {

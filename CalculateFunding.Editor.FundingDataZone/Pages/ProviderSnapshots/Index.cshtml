@@ -6,7 +6,10 @@
 <div class="d-grid gap-2 d-md-flex justify-content-md-end spacing-m">
     <a class="btn btn-info" asp-page="/ProviderSnapshots/CreateProviderSnapshot">Add provider snapshot</a>
 </div>
-
+<div class="d-grid gap-2 d-md-flex justify-content-md-end spacing-m">
+    <label for="DisableToggleLatest">Disable Track Latest</label>
+    @Html.CheckBoxFor(_ => _.DisableToggleLatest)
+</div>
 
 @if (Model.Snapshots.Any())
 {
@@ -49,4 +52,17 @@
 else
 {
     <p class="alert alert-info">No provider snapshots exist in this environment</p>
+}
+
+@section Scripts {
+    <script>
+    $('#DisableToggleLatest').change(function () {
+        $.ajax({
+            url: "/cloning/disableTrackLatest/" + this.checked,
+            error: function (xhr, status, error) {
+                alert("Result: " + status + " " + error + " " + xhr.status + " " + xhr.statusText)
+            }
+        });
+    });
+    </script>
 }

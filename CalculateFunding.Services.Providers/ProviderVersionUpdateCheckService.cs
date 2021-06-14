@@ -14,11 +14,11 @@ using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Providers;
-using CalculateFunding.Models.Providers.ViewModels;
 using CalculateFunding.Services.Core;
+using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Providers.Interfaces;
-using Microsoft.AspNetCore.Mvc;
 using Polly;
 using Serilog;
 
@@ -27,6 +27,7 @@ namespace CalculateFunding.Services.Providers
     public class ProviderVersionUpdateCheckService : IProviderVersionUpdateCheckService
     {
         private readonly IPublishingJobClashCheck _publishingJobClashCheck;
+        private readonly ICacheProvider _cacheProvider;
         private readonly IPoliciesApiClient _policiesApiClient;
         private readonly IProviderSnapshotPersistService _providerSnapshotPersistService;
         private readonly IProviderVersionsMetadataRepository _providerVersionMetadata;
@@ -36,12 +37,14 @@ namespace CalculateFunding.Services.Providers
         private readonly ILogger _logger;
 
         private readonly AsyncPolicy _policiesApiClientPolicy;
+        private readonly AsyncPolicy _cacheProviderPolicy;
         private readonly AsyncPolicy _providerVersionMetadataPolicy;
         private readonly AsyncPolicy _fundingDataZoneApiClientPolicy;
         private readonly AsyncPolicy _specificationsApiClientPolicy;
 
         public ProviderVersionUpdateCheckService(
             IPoliciesApiClient policiesApiClient,
+            ICacheProvider cacheProvider,
             ILogger logger,
             IProvidersResiliencePolicies resiliencePolicies,
             IProviderVersionsMetadataRepository providerVersionMetadata,
@@ -52,12 +55,14 @@ namespace CalculateFunding.Services.Providers
             IProviderSnapshotPersistService providerSnapshotPersistService)
         {
             Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
+            Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
             Guard.ArgumentNotNull(resiliencePolicies.PoliciesApiClient, nameof(resiliencePolicies.PoliciesApiClient));
             Guard.ArgumentNotNull(resiliencePolicies.ProviderVersionMetadataRepository, nameof(resiliencePolicies.ProviderVersionMetadataRepository));
             Guard.ArgumentNotNull(resiliencePolicies.FundingDataZoneApiClient, nameof(resiliencePolicies.FundingDataZoneApiClient));
             Guard.ArgumentNotNull(resiliencePolicies.SpecificationsApiClient, nameof(resiliencePolicies.SpecificationsApiClient));
+            Guard.ArgumentNotNull(resiliencePolicies.CacheProvider, nameof(resiliencePolicies.CacheProvider));
             Guard.ArgumentNotNull(providerVersionMetadata, nameof(providerVersionMetadata));
             Guard.ArgumentNotNull(fundingDataZoneApiClient, nameof(fundingDataZoneApiClient));
             Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
@@ -66,12 +71,14 @@ namespace CalculateFunding.Services.Providers
             Guard.ArgumentNotNull(providerSnapshotPersistService, nameof(providerSnapshotPersistService));
 
             _policiesApiClient = policiesApiClient;
+            _cacheProvider = cacheProvider;
             _providerVersionMetadata = providerVersionMetadata;
             _fundingDataZoneApiClient = fundingDataZoneApiClient;
             _specificationsApiClient = specificationsApiClient;
             _mapper = mapper;
             _publishingJobClashCheck = publishingJobClashCheck;
             _logger = logger;
+            _cacheProviderPolicy = resiliencePolicies.CacheProvider;
             _policiesApiClientPolicy = resiliencePolicies.PoliciesApiClient;
             _providerVersionMetadataPolicy = resiliencePolicies.ProviderVersionMetadataRepository;
             _fundingDataZoneApiClientPolicy = resiliencePolicies.FundingDataZoneApiClient;
@@ -81,6 +88,13 @@ namespace CalculateFunding.Services.Providers
 
         public async Task CheckProviderVersionUpdate()
         {
+            bool disableTackLatest = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.GetAsync<bool>(CacheKeys.DisableTrackLatest));
+            
+            if (disableTackLatest)
+            {
+                return;
+            }
+
             List<FundingConfiguration> fundingConfigurations = new List<FundingConfiguration>();
             Dictionary<string, int> fundingStreamsLatestProviderSnapshotIds = new Dictionary<string, int>();
 

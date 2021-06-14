@@ -50,6 +50,8 @@
 
         public const string FundingTemplatePrefix  = "funding-template:";
 
+        public const string DisableTrackLatest = "disable-track-latest";
+
         /// <summary>
         /// Effective Permissions - eg effective-permissions:userId
         /// </summary>

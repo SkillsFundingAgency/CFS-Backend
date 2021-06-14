@@ -13,9 +13,11 @@ using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Providers.ViewModels;
 using CalculateFunding.Services.Core;
+using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Providers.Interfaces;
 using CalculateFunding.Services.Providers.MappingProfiles;
 using CalculateFunding.Tests.Common.Helpers;
@@ -23,6 +25,7 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using Newtonsoft.Json;
 using Polly;
 using Serilog.Core;
 using FundingDataZoneProvider = CalculateFunding.Common.ApiClient.FundingDataZone.Models.Provider;
@@ -33,6 +36,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
     public class ProviderVersionUpdateCheckServiceTests
     {
         private ProviderVersionUpdateCheckService _service;
+        private Mock<ICacheProvider> _cachProvider;
         private Mock<IPoliciesApiClient> _policiesApiClient;
         private Mock<IProviderVersionsMetadataRepository> _providerVersionsMetadataRepository;
         private Mock<IProviderVersionService> _providerVersionService;
@@ -69,13 +73,15 @@ namespace CalculateFunding.Services.Providers.UnitTests
             _specificationsApiClient = new Mock<ISpecificationsApiClient>();
             _publishingJobClashCheck = new Mock<IPublishingJobClashCheck>();
             _providerVersionService = new Mock<IProviderVersionService>();
+            _cachProvider = new Mock<ICacheProvider>();
 
             ProvidersResiliencePolicies providersResiliencePolicies = new ProvidersResiliencePolicies
             {
                 PoliciesApiClient = Policy.NoOpAsync(),
                 ProviderVersionMetadataRepository = Policy.NoOpAsync(),
                 FundingDataZoneApiClient = Policy.NoOpAsync(),
-                SpecificationsApiClient = Policy.NoOpAsync()
+                SpecificationsApiClient = Policy.NoOpAsync(),
+                CacheProvider = Policy.NoOpAsync()
             };
 
             _providerSnapshotPersistService = new ProviderSnapshotPersistService(_providerVersionService.Object,
@@ -86,14 +92,9 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
             _service = new ProviderVersionUpdateCheckService(
                 _policiesApiClient.Object,
+                _cachProvider.Object,
                 Logger.None,
-                new ProvidersResiliencePolicies
-                {
-                    PoliciesApiClient = Policy.NoOpAsync(),
-                    ProviderVersionMetadataRepository = Policy.NoOpAsync(),
-                    FundingDataZoneApiClient = Policy.NoOpAsync(),
-                    SpecificationsApiClient = Policy.NoOpAsync()
-                },
+                providersResiliencePolicies,
                 _providerVersionsMetadataRepository.Object,
                 _fundingDataZoneApiClient.Object,
                 _specificationsApiClient.Object,
@@ -272,7 +273,17 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
             ThenDoesNotUpdatesSpecification(_specificationId);
         }
-        
+
+        [TestMethod]
+        public async Task SkipsUpdatesIfTrackingDisabled()
+        {
+            GivenDisableTrackLatest(true);
+
+            await WhenTheProviderVersionUpdateIsChecked();
+
+            ThenDoesNotUpdatesSpecification(_specificationId);
+        }
+
         [TestMethod]
         public async Task SkipsUpdatesForProviderSnapshotsInUseBySpecificationsWithRunningPublishingJobs()
         {
@@ -308,6 +319,13 @@ namespace CalculateFunding.Services.Providers.UnitTests
             _policiesApiClient
                 .Setup(_ => _.GetFundingStreams())
                 .ReturnsAsync(new ApiResponse<IEnumerable<FundingStream>>(HttpStatusCode.OK, fundingStreams));
+
+        private void GivenDisableTrackLatest(bool trackLatest)
+        {
+            _cachProvider
+                .Setup(_ => _.GetAsync<bool>(CacheKeys.DisableTrackLatest, It.IsAny<JsonSerializerSettings>()))
+                .ReturnsAsync(trackLatest);
+        }
 
         private void AndTheFundingConfigurationsForTheFundingStreamId(IEnumerable<FundingConfiguration> fundingConfigurations,
             string fundingStreamOneId) =>
