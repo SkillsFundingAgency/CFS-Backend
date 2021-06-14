@@ -1,5 +1,6 @@
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Tests.Common.Helpers;
+using System;
 
 namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
 {
@@ -9,6 +10,7 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
         private string _description;
         private string _fundingStreamId;
         private bool _converterEnabled;
+        private bool _converterEligible;
         private int _version;
         private TableDefinition[] _tableDefinitions;
         private string _name;
@@ -55,6 +57,13 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
             return this;
         }
 
+        public DatasetDefinitionTemplateParametersBuilder WithConverterEligible(bool converterEligible)
+        {
+            _converterEligible = converterEligible;
+
+            return this;
+        }
+
         public DatasetDefinitionTemplateParametersBuilder WithVersion(int version)
         {
             _version = version;
@@ -71,7 +80,8 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
                 Version = _version,
                 FundingStreamId = _fundingStreamId ?? NewRandomString(),
                 ConverterEnabled = _converterEnabled,
-                TableDefinitions = _tableDefinitions ?? new TableDefinition[0]
+                ConverterEligible = _converterEligible,
+                TableDefinitions = _tableDefinitions ?? Array.Empty<TableDefinition>()
             };
     }
 }

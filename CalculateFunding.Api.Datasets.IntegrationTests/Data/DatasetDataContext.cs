@@ -36,7 +36,8 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.Data
                 FUNDINGSTREAMID = documentData.FundingStreamId,
                 FUNDINGSTREAMNAME = documentData.FundingStreamName,
                 FUNDINGSTREAMSHORTNAME = documentData.FundingStreamShortName,
-                NOW = now
+                NOW = now,
+                PROVIDERVERSIONID = documentData.ProviderVersionId
             };
     }
 }

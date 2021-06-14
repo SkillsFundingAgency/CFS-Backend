@@ -13,6 +13,7 @@ namespace CalculateFunding.Services.Datasets.Services
         private DateTimeOffset? _date;
         private Reference _author;
         private Reference _fundingStream;
+        private string _providerVersionId;
 
         public DatasetVersionBuilder WithFundingStream(Reference fundingStream)
         {
@@ -24,6 +25,13 @@ namespace CalculateFunding.Services.Datasets.Services
         public DatasetVersionBuilder WithBlobName(string blobName)
         {
             _blobName = blobName;
+
+            return this;
+        }
+
+        public DatasetVersionBuilder WithProviderVersionId(string providerVersionId)
+        {
+            _providerVersionId = providerVersionId;
 
             return this;
         }
@@ -64,7 +72,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 Comment = _comment ?? NewRandomString(),
                 Date = _date.GetValueOrDefault(NewRandomDateTime()),
                 Author = _author,
-                FundingStream = _fundingStream
+                FundingStream = _fundingStream,
+                ProviderVersionId = _providerVersionId
             };
         }
     }

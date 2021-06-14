@@ -604,6 +604,7 @@ namespace CalculateFunding.Services.Datasets
                     dataset.Current.BlobName = blobPath;
                     dataset.Current.UploadedBlobFilePath = uploadedBlobPath;
                     dataset.Current.ChangeType = model.MergeExistingVersion ? DatasetChangeType.Merge : DatasetChangeType.NewVersion;
+                    dataset.Current.ProviderVersionId = null;
 
                     if (!mergeResult.HasChanges)
                     {
@@ -1322,7 +1323,8 @@ namespace CalculateFunding.Services.Datasets
                 FundingStream = fundingStream,
                 NewRowCount = mergeResult.TotalRowsCreated,
                 AmendedRowCount = mergeResult.TotalRowsAmended,
-                ChangeType = model.Version > 1 && model.MergeExistingVersion ? DatasetChangeType.Merge : DatasetChangeType.NewVersion
+                ChangeType = model.Version > 1 && model.MergeExistingVersion ? DatasetChangeType.Merge : DatasetChangeType.NewVersion,
+                ProviderVersionId = null
             };
 
             dataset.Description = model.Description;

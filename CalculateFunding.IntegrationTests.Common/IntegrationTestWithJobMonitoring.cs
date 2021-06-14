@@ -55,6 +55,16 @@ namespace CalculateFunding.IntegrationTests.Common
                 failureMessage,
                 timeoutSeconds);
 
+        protected async Task ThenTheJobFails(string jobId,
+            string outcome,
+            string failureMessage,
+            int timeoutSeconds = 120)
+            => await Wait.Until(() => TheJobFails(jobId,
+                    outcome,
+                    failureMessage),
+                failureMessage,
+                timeoutSeconds);
+
         protected async Task<string[]> GetChildJobIds(string parentJobId,
             string jobDefinitionId = null)
         {
@@ -79,6 +89,17 @@ namespace CalculateFunding.IntegrationTests.Common
                 .ChildJobs
                 .Should()
                 .BeNullOrEmpty(failureMessage);
+        }
+
+        protected async Task<bool> TheJobFails(string jobId,
+            string outcome,
+            string message)
+        {
+            ApiResponse<JobViewModel> jobResponse = await _jobs.GetJobById(jobId);
+
+            JobViewModel job = jobResponse?.Content;
+
+            return TheJobFailed(job) && AndTheJobOutcomeMatches(job, outcome);
         }
 
         protected async Task<bool> TheJobSucceeds(string jobId,
@@ -128,6 +149,8 @@ namespace CalculateFunding.IntegrationTests.Common
             job.ChildJobs?.Where(_ => jobDefinitionId == null || _.JobDefinitionId == jobDefinitionId).Any() == true;
 
         private static bool TheJobFailed(JobViewModel job) => job?.CompletionStatus == CompletionStatus.Failed;
+
+        private static bool AndTheJobOutcomeMatches(JobViewModel job, string outcome) => job?.Outcome == outcome;
 
         private static bool AnyChildJobsFailed(string jobDefinitionId,
             JobViewModel job)

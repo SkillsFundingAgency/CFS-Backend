@@ -290,6 +290,7 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
         public async Task SaveContentsCreatesAndIndexesANewDatasetVersionAndUploadsANewXlsBlob()
         {
             Reference author = NewReference();
+            string providerVersionId = NewRandomString();
             Dataset dataset = NewDataset(_ => _.WithHistory(NewDatasetVersion(ver => ver.WithVersion(97)),
                 NewDatasetVersion(ver => ver.WithVersion(98))));
             DatasetVersion currentVersion = dataset.Current;
@@ -313,7 +314,7 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
             
             AndTheBlobReference($"{dataset.Id}/v100/{currentBlobName}", blob.Object);
 
-            await WhenTheContentsAreSaved(author, datasetDefinition, dataset);
+            await WhenTheContentsAreSaved(author, datasetDefinition, dataset, providerVersionId);
 
             dataset
                 .History
@@ -328,7 +329,8 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
             expectedNewVersion.Version++;
             expectedNewVersion.ChangeType = DatasetChangeType.ConverterWizard;
             expectedNewVersion.BlobName = $"{dataset.Id}/v100/{currentBlobName}";
-            
+            expectedNewVersion.ProviderVersionId = providerVersionId;
+
             newVersion
                 .Should()
                 .BeEquivalentTo(expectedNewVersion);
@@ -383,8 +385,9 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
 
         private async Task WhenTheContentsAreSaved(Reference author,
             DatasetDefinition datasetDefinition,
-            Dataset dataset)
-            => await _builder.SaveContents(author, datasetDefinition, dataset);
+            Dataset dataset,
+            string providerVersionId)
+            => await _builder.SaveContents(author, providerVersionId, datasetDefinition, dataset);
 
         private RowCopyResult WhenTheRowIsCopied(string fieldName,
             string sourceProviderId,

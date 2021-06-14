@@ -105,7 +105,10 @@ namespace CalculateFunding.Services.Datasets.Converter
                 }
             }))?.SingleOrDefault();
 
-            return new OkObjectResult(job);
+            return new OkObjectResult(new JobCreationResponse
+            {
+                JobId = job.Id
+            });
         }
 
         public override async Task Process(Message message)
@@ -127,7 +130,7 @@ namespace CalculateFunding.Services.Datasets.Converter
             Dataset dataset = await LookupDataset(request);
             DatasetDefinition datasetDefinition = await LookupDatasetDefinition(dataset);
 
-            await EnsureConverterCanBeRunAgainstDataset(datasetDefinition, dataset.Current, request.ProviderVersionId);
+            EnsureConverterCanBeRunAgainstDataset(dataset.Current, request.ProviderVersionId);
             EnsureFieldDefinitionIsValid(datasetDefinition);
 
             DefinitionSpecificationRelationship relationship = await GetDatasetRelationship(request);
@@ -157,6 +160,7 @@ namespace CalculateFunding.Services.Datasets.Converter
 
             DatasetVersion createdDatasetVersion = await SaveDatasetVersionWhenChangesExist(results, 
                 request.Author,
+                request.ProviderVersionId,
                 dataset, 
                 datasetDefinition, 
                 datasetCloneBuilder);
@@ -180,7 +184,7 @@ namespace CalculateFunding.Services.Datasets.Converter
             SpecificationSummary specificationSummary =
                 (await _specificationsResilience.ExecuteAsync(() => _specifications.GetSpecificationSummaryById(specificationId)))?.Content;
 
-            EnsureIsNotNull(specificationSummary, $"Did not locate s specification summary for id {specificationId}");
+            EnsureIsNotNull(specificationSummary, $"Did not locate specification summary for id {specificationId}");
 
             string fundingPeriodId = specificationSummary.FundingPeriod?.Id;
 
@@ -202,17 +206,13 @@ namespace CalculateFunding.Services.Datasets.Converter
             await _converterDataMergeLogger.SaveLogs(results, request, parentJobId, jobId, createdDatasetVersion.Version);
         }
 
-        private async Task EnsureConverterCanBeRunAgainstDataset(DatasetDefinition datasetDefinition,
+        private void EnsureConverterCanBeRunAgainstDataset(
             DatasetVersion dataset,
             string providerVersionId)
         {
-            // bool alreadyUsingCoreProviderVersion = dataset
-
-            // Check if the dataset is enabled for the converter wizard. Fail job if not enabled
-
-            // Check the last core provider version which has run against the dataset, if it's the same as the one being request, complete the job as successful, but log that it skipped processing
-
-            //from Dan - apparently I just need to check which provider version id is stored against the datasetversion to check this (should be coming with a prereq)
+            Ensure(
+                dataset?.ProviderVersionId != providerVersionId,
+                $"Converter wizard does not run a second time against a dataset with same ProviderVersionId={providerVersionId} as the existing one");
         }
 
         private async Task<DefinitionSpecificationRelationship> GetDatasetRelationship(ConverterMergeRequest request)
@@ -238,11 +238,12 @@ namespace CalculateFunding.Services.Datasets.Converter
 
         private async Task<DatasetVersion> SaveDatasetVersionWhenChangesExist(List<RowCopyResult> results,
             Reference author,
+            string providerVersionId,
             Dataset dataset,
             DatasetDefinition datasetDefinition,
             IDatasetCloneBuilder datasetCloneBuilder) =>
             results.Any(_ => _.Outcome == RowCopyOutcome.Copied) ? 
-                await datasetCloneBuilder.SaveContents(author, datasetDefinition, dataset) : 
+                await datasetCloneBuilder.SaveContents(author, providerVersionId, datasetDefinition, dataset) : 
                 null;
 
         private void CopyRowInDataset(ICollection<RowCopyResult> results,

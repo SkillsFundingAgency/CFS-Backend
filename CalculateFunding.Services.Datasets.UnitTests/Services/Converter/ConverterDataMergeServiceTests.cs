@@ -103,8 +103,9 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
         public async Task QueueJobCreatesConverterDatasetMergeJobsWithValidRequests()
         {
             ConverterMergeRequest request = NewConverterMergeRequest();
+            string jobId = NewRandomString();
 
-            Job expectedJob = new Job();
+            Job expectedJob = new Job { Id = jobId };
 
             GivenTheValidationResult(request, NewValidationResult());
             AndTheJob(new JobCreateModel
@@ -130,7 +131,11 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
 
             result?.Value
                 .Should()
-                .BeSameAs(expectedJob);
+                .BeOfType<JobCreationResponse>()
+                .Which
+                .JobId
+                .Should()
+                .Be(jobId);
         }
 
         [TestMethod]
@@ -235,6 +240,31 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
                 .Message
                 .Should()
                 .Be("Dataset is not enabled for converters. Enable it in the dataset definition.");
+        }
+
+        [TestMethod]
+        public void ProcessFailsIfDataSetAlreadyRunForGivenProviderVersionId()
+        {
+            string providerVersionId = NewRandomString();
+            ConverterMergeRequest request = NewConverterMergeRequest(_ => _.WithProviderVersionId(providerVersionId));
+
+            Func<Task> invocation = () => WhenTheMergeJobIsRun(NewMessage(_ => _
+                .WithMessageBody(request
+                    .AsJsonBytes())));
+
+            DatasetDefinitionVersion datasetDefinitionVersion = NewDatasetDefinitionVersion();
+
+            GivenTheDataset(request.DatasetId, NewDataset(_ => _.WithDefinition(datasetDefinitionVersion).WithCurrent(NewDatasetVersion(dv => dv.WithProviderVersionId(providerVersionId)))));
+            AndTheDatasetDefinition(datasetDefinitionVersion.Id, NewDatasetDefinition(_ => _.WithConverterEnabled(true)));
+
+            invocation
+                .Should()
+                .ThrowAsync<NonRetriableException>()
+                .Result
+                .Which
+                .Message
+                .Should()
+                .Be($"Converter wizard does not run a second time against a dataset with same ProviderVersionId={providerVersionId} as the existing one");
         }
 
         [TestMethod]
@@ -385,7 +415,7 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
                 .Which
                 .Message
                 .Should()
-                .Be($"Did not locate s specification summary for id {specificationId}");
+                .Be($"Did not locate specification summary for id {specificationId}");
         }
 
         [TestMethod]
@@ -649,7 +679,7 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
 
             DatasetVersion createdDatasetVersion = NewDatasetVersion();
 
-            AndTheNewDatasetVersion(createdDatasetVersion, dataset, datasetDefinition, author);
+            AndTheNewDatasetVersion(createdDatasetVersion, dataset, datasetDefinition, author, request.ProviderVersionId);
 
             string parentJobId = NewRandomString();
             string jobId = NewRandomString();
@@ -661,7 +691,7 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
                 .WithUserProperty("parentJobId", parentJobId)));
 
             ThenTheOriginalDatasetWasLoaded(dataset, datasetDefinition);
-            AndTheRowCopyResultsAreSaved(author, datasetDefinition, dataset);
+            AndTheRowCopyResultsAreSaved(author, datasetDefinition, dataset, request.ProviderVersionId);
             AndTheMergeWasLogged(createdDatasetVersion, request, parentJobId, jobId, rowCopyResultOne, rowCopyResultTwo);
         }
 
@@ -793,22 +823,30 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
         private void AndTheNewDatasetVersion(DatasetVersion datasetVersion,
             Dataset dataset,
             DatasetDefinition datasetDefinition,
-            Reference author)
+            Reference author,
+            string providerVersionId)
             => _datasetCloneBuilder.Setup(_ => _.SaveContents(It.Is<Reference>(user
                     => AreEquivalent(user, author)),
+                    providerVersionId,
                     datasetDefinition,
                     dataset))
                 .ReturnsAsync(datasetVersion);
 
-        private void AndTheRowCopyResultsAreSaved(Reference author, DatasetDefinition datasetDefinition, Dataset dataset)
+        private void AndTheRowCopyResultsAreSaved(
+            Reference author, 
+            DatasetDefinition datasetDefinition, 
+            Dataset dataset,
+            string providerVersionId)
             => _datasetCloneBuilder.Verify(_ => _.SaveContents(It.Is<Reference>(user
                     => AreEquivalent(user, author)),
+                    providerVersionId,
                     datasetDefinition,
                     dataset),
                 Times.Once);
 
         private void AndTheRowCopyResultsAreNotSaved()
             => _datasetCloneBuilder.Verify(_ => _.SaveContents(It.IsAny<Reference>(),
+                It.IsAny<string>(),
                 It.IsAny<DatasetDefinition>(), 
                 It.IsAny<Dataset>()), Times.Never);
 
@@ -909,6 +947,15 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
         private Dataset NewDataset(Action<DatasetBuilder> setUp = null)
         {
             DatasetBuilder builder = new DatasetBuilder();
+
+            setUp?.Invoke(builder);
+
+            return builder.Build();
+        }
+
+        private DatasetVersion NewDatasetVersion(Action<DatasetVersionBuilder> setUp = null)
+        {
+            DatasetVersionBuilder builder = new DatasetVersionBuilder();
 
             setUp?.Invoke(builder);
 

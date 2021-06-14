@@ -8,11 +8,13 @@ namespace CalculateFunding.Models.Datasets
     public class Dataset : VersionContainer<DatasetVersion>
     {
         public void CreateNewVersion(Reference author,
+            string providerVersionId,
             int rowCount,
             DatasetChangeType changeType)
         {
             Current = (DatasetVersion) Current.Clone();
             Current.Author = author;
+            Current.ProviderVersionId = providerVersionId;
             Current.RowCount = rowCount;
             Current.ChangeType = changeType;
             (History ??= new List<DatasetVersion>()).Add(Current);

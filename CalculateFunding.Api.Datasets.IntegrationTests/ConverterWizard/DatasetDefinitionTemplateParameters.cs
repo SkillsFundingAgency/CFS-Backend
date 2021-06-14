@@ -16,6 +16,8 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
 
         public bool ConverterEnabled { get; set; }
 
+        public bool ConverterEligible { get; set; }
+
         public TableDefinition[] TableDefinitions { get; set; }
     }
 }

@@ -24,6 +24,8 @@ namespace CalculateFunding.Models.Datasets
 
         public Reference FundingStream { get; set; }
 
+        public string ProviderVersionId { get; set; }
+
         public override VersionedItem Clone()
         {
             return new DatasetVersion
@@ -38,7 +40,8 @@ namespace CalculateFunding.Models.Datasets
                 FundingStream = FundingStream,
                 NewRowCount = NewRowCount,
                 AmendedRowCount = AmendedRowCount,
-                ChangeType = ChangeType
+                ChangeType = ChangeType,
+                ProviderVersionId = ProviderVersionId
             };
         }
     }

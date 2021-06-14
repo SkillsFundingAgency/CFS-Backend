@@ -7,6 +7,7 @@
     "version": <VERSION>,
     "tableDefinitions": <TABLEDEFINITIONS>,
     "converterEnabled": <CONVERTERENABLED>,
+    "converterEligible": <CONVERTERELIGIBLE>,
     "validateProviders": false,
     "id": "<ID>",
     "name": "<NAME>"

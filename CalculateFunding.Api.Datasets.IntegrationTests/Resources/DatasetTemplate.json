@@ -30,7 +30,8 @@
         "name": "<AUTHORNAME>"
       },
       "comment": "",
-      "publishStatus": "<PUBLISHSTATUS>"
+      "publishStatus": "<PUBLISHSTATUS>",
+      "providerVersionId": "<PROVIDERVERSIONID>"
     },
     "published": null,
     "history": null,

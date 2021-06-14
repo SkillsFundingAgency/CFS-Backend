@@ -128,13 +128,14 @@ namespace CalculateFunding.Services.Datasets.Converter
         private static string GetFileNameFromBlobPath(string blobPath)
             => Path.GetFileName(blobPath);
 
-        public async Task<DatasetVersion> SaveContents(Reference author, 
+        public async Task<DatasetVersion> SaveContents(Reference author,
+            string providerVersionId,
             DatasetDefinition datasetDefinition, 
             Dataset dataset)
         {
             int rowCount = (DatasetData?.FirstOrDefault()?.Rows?.Count).GetValueOrDefault();
             
-            await CreateNewDatasetVersion(dataset, author, rowCount);
+            await CreateNewDatasetVersion(dataset, author, providerVersionId, rowCount);
             
             byte[] excelData = Writer.Write(datasetDefinition, DatasetData);
 
@@ -146,9 +147,13 @@ namespace CalculateFunding.Services.Datasets.Converter
 
         private async Task CreateNewDatasetVersion(Dataset dataset,
             Reference author,
+            string providerVersionId,
             int rowCount)
         {
-            dataset.CreateNewVersion(author, rowCount, DatasetChangeType.ConverterWizard);
+            dataset.CreateNewVersion(author,
+                                     providerVersionId,
+                                     rowCount,
+                                     DatasetChangeType.ConverterWizard);
 
             HttpStatusCode statusCode = await DatasetsResilience.ExecuteAsync(() => Datasets.SaveDataset(dataset));
 

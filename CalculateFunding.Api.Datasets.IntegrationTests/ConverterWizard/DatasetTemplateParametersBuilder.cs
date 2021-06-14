@@ -25,6 +25,7 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
         private string _authorId;
         private string _authorName;
         private PublishStatus? _publishStatus;
+        private string _providerVersionId;
 
         public DatasetTemplateParametersBuilder WithPublishStatus(PublishStatus publishStatus)
         {
@@ -152,6 +153,13 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
             return this;
         }
 
+        public DatasetTemplateParametersBuilder WithProviderVersionId(string providerVersionId)
+        {
+            _providerVersionId = providerVersionId;
+
+            return this;
+        }
+
         public DatasetTemplateParameters Build() =>
             new DatasetTemplateParameters
             {
@@ -172,7 +180,8 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
                 NewRowCount = _newRowCount.GetValueOrDefault(),
                 FundingStreamId = _fundingStreamId ?? NewRandomString(),
                 FundingStreamName = _fundingStreamName ?? NewRandomString(),
-                FundingStreamShortName = _fundingStreamShortName
+                FundingStreamShortName = _fundingStreamShortName,
+                ProviderVersionId = _providerVersionId
             };
     }
 }

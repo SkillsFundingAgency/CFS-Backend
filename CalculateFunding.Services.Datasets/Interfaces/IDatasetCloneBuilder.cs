@@ -29,7 +29,8 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         IDatasetRepository Datasets { get; }
         AsyncPolicy DatasetsResilience { get; }
 
-        Task<DatasetVersion> SaveContents(Reference author, 
+        Task<DatasetVersion> SaveContents(Reference author,
+            string providerVersionId,
             DatasetDefinition datasetDefinition, 
             Dataset dataset);
     }

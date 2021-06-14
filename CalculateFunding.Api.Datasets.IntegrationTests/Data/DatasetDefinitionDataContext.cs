@@ -29,6 +29,7 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.Data
                 DESCRIPTION = documentData.Description,
                 VERSION = documentData.Version,
                 CONVERTERENABLED = documentData.ConverterEnabled.ToString().ToLower(),
+                CONVERTERELIGIBLE = documentData.ConverterEligible.ToString().ToLower(),
                 TABLEDEFINITIONS = tableDefinitions,
                 NOW = now
             };

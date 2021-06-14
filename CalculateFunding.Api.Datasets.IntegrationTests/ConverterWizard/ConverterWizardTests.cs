@@ -225,7 +225,7 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
 
             await AndTheDatasetDefinition(NewDatasetDefinitionTemplateParameters(_ => _.WithId(definitionId)
                 .WithVersion(definitionVersion)
-                .WithConverterEnabled(true)
+                .WithConverterEligible(true)
                 .WithFundingStreamId(fundingStreamId)
                 .WithTableDefinitions(NewTableDefinition(tab =>
                     tab.WithFields(NewFieldDefinition(fld =>
@@ -275,6 +275,7 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
 
             await AndANewDatasetVersionWasCreatedFor(datasetTemplateParameters,
                 datasetPath,
+                providerVersionId,
                 ukprnTwo,
                 ukprnFour,
                 ukprnFive,
@@ -293,6 +294,7 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
 
         private async Task AndANewDatasetVersionWasCreatedFor(DatasetTemplateParameters parameters,
             string blobPath,
+            string expectedProviderVersionId,
             params string[] expectedUkprns)
         {
             DatasetViewModel dataset = (await _datasets.GetDatasetByDatasetId(parameters.Id))?.Content;
@@ -303,7 +305,7 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
 
             dataset
                 .History
-                ?.Where(_ => _.Version == parameters.Version)
+                ?.Where(_ => _.Version == parameters.Version && _.ProviderVersionId == expectedProviderVersionId)
                 .Should()
                 .NotBeNull();
 
@@ -378,7 +380,7 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
                 .Results
                 .Select(_ => new
                 {
-                    ukprn = _.EligibleConverter.ProviderId,
+                    ukprn = _.EligibleConverter.TargetProviderId,
                     outcome = _.Outcome
                 })
                 .ToArray()
