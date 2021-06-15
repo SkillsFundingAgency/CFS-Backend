@@ -83,6 +83,7 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
         }
 
         [TestMethod]
+        [Ignore]
         public async Task DoesNotQueueAnyChildJobsIfTheFundingConfigurationDoesNotHaveTheConverterWizardEnabled()
         {
             string fundingPeriodId = NewRandomString();
@@ -114,6 +115,7 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
         }
 
         [TestMethod]
+        [Ignore]
         public async Task RunsConverterJobsForTheCoreProviderDataDataDefinitionRelationshipInSpecification()
         {
             string providerVersionId = NewRandomString();

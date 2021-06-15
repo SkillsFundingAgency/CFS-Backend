@@ -18,7 +18,8 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                 NewDataColumn<string>("MinorVersion", 32),
                 NewDataColumn<string>("Status", 32),
                 NewDataColumn<DateTime>("LastUpdated"),
-                NewDataColumn<string>("LastUpdatedBy", 256)
+                NewDataColumn<string>("LastUpdatedBy", 256),
+                NewDataColumn<bool>("IsIndicative")
             };
 
         protected override void AddDataRowToDataTable(PublishedProviderVersion dto)
@@ -31,7 +32,8 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                 dto.MinorVersion.ToString(),
                 dto.Status.ToString(),
                 dto.Date.UtcDateTime,
-                dto.Author.Name);
+                dto.Author.Name,
+                dto.IsIndicative);
 
         protected override void EnsureTableNameIsSet(PublishedProviderVersion dto)
             => TableName = $"[dbo].[{dto.FundingStreamId}_{dto.FundingPeriodId}_Funding]";
