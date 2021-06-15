@@ -15,6 +15,7 @@ using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Calcs.Interfaces;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Processing;
@@ -102,7 +103,7 @@ namespace CalculateFunding.Services.Calcs
 
             if (templateMapping == null)
             {
-                LogAndThrowException(
+                LogAndThrowException<NonRetriableException>(
                     $"Did not locate Template Mapping for funding stream id {fundingStreamId} and specification id {specificationId}");
             }
 
@@ -111,7 +112,7 @@ namespace CalculateFunding.Services.Calcs
 
             if (!specificationApiResponse.StatusCode.IsSuccess() || specificationApiResponse.Content == null)
             {
-                LogAndThrowException(
+                LogAndThrowException<NonRetriableException>(
                     $"Did not locate specification : {specificationId}");
             }
 
@@ -124,7 +125,7 @@ namespace CalculateFunding.Services.Calcs
 
             if (templateMetadataContents == null)
             {
-                LogAndThrowException(
+                LogAndThrowException<NonRetriableException>(
                     $"Did not locate Template Metadata Contents for funding stream id {fundingStreamId}, funding period id {specificationSummary.FundingPeriod.Id} and template version {templateVersion}");
             }
 
@@ -240,7 +241,7 @@ namespace CalculateFunding.Services.Calcs
 
                 if (!(editCalculationResult is OkObjectResult))
                 {
-                    LogAndThrowException("Unable to edit template calculation for template mapping");
+                    LogAndThrowException<Exception>("Unable to edit template calculation for template mapping");
                 }
             }
 
@@ -377,7 +378,7 @@ namespace CalculateFunding.Services.Calcs
             IDictionary<uint, Calculation> uniqueTemplatesCalculations)
         {
             if (!uniqueTemplatesCalculations.TryGetValue(templateMapping.TemplateId, out Calculation templateCalculation))
-                LogAndThrowException($"Unable to locate template contents for template calculation id {templateMapping.TemplateId}");
+                LogAndThrowException<Exception>($"Unable to locate template contents for template calculation id {templateMapping.TemplateId}");
 
             CalculationValueType calculationValueType = templateCalculation.ValueFormat.AsMatchingEnum<CalculationValueType>();
 
@@ -401,7 +402,9 @@ namespace CalculateFunding.Services.Calcs
                 templateCalculation.AllowedEnumTypeValues);
 
             if (!(createCalculationResponse?.Succeeded).GetValueOrDefault())
-                LogAndThrowException("Unable to create new default template calculation for template mapping");
+            {
+                LogAndThrowException<NonRetriableException>($"Unable to create new default template calculation for template mapping {createCalculationResponse?.ErrorsSummary}".Trim());
+            }
 
             templateMapping.CalculationId = createCalculationResponse.Calculation.Id;
         }
@@ -415,11 +418,11 @@ namespace CalculateFunding.Services.Calcs
             return userProperty;
         }
 
-        private void LogAndThrowException(string message)
+        private void LogAndThrowException<T>(string message) where T : Exception
         {
             _logger.Error(message);
 
-            throw new Exception(message);
+            throw Activator.CreateInstance(typeof(T), message) as T;
         }
 
         private async Task RefreshTemplateMapping(string specificationId, string fundingStreamId, TemplateMapping templateMapping)

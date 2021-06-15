@@ -166,21 +166,24 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
         }
 
         [TestMethod]
-        public void ThrowsExceptionIfCreateCallFailsWhenCreatingMissingCalculations()
+        public void ThrowsExceptionIfCreateCallFailsWhenCreatingCalculationWhichAlreadyExists()
         {
             TemplateMappingItem mappingWithMissingCalculation1 = NewTemplateMappingItem();
             TemplateMapping templateMapping = NewTemplateMapping(_ => _.WithItems(mappingWithMissingCalculation1));
             TemplateMetadataContents templateMetadataContents = NewTemplateMetadataContents(_ => _.WithFundingLines(NewFundingLine(fl => fl.WithCalculations(NewTemplateMappingCalculation()))));
             TemplateCalculation templateCalculationOne = NewTemplateMappingCalculation(_ => _.WithName("template calculation 1"));
 
+            string errorMessage = $"Calculation with the same generated source code name already exists in this specification. Calculation Name {templateCalculationOne.Name} and Specification {_specificationId}";
+            
             GivenAValidMessage();
             AndTheJobCanBeRun();
             AndTheTemplateMapping(templateMapping);
             AndTheTemplateMetaDataContents(templateMetadataContents);
             AndTheTemplateContentsCalculation(mappingWithMissingCalculation1, templateMetadataContents, templateCalculationOne);
             AndTheSpecificationIsReturned();
+            AndTheCalculationCreateResponse(new CreateCalculationResponse { Succeeded = false, ErrorMessage = errorMessage });
 
-            ThenAnExceptionShouldBeThrownWithMessage("Unable to create new default template calculation for template mapping");
+            ThenAnExceptionShouldBeThrownWithMessage($"Unable to create new default template calculation for template mapping {errorMessage}");
         }
 
         [TestMethod]
@@ -607,6 +610,20 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
         {
             _jobManagement.RetrieveJobAndCheckCanBeProcessed(_jobId)
                 .Returns(new JobViewModel { Id = _jobId });
+        }
+
+        private void AndTheCalculationCreateResponse(CreateCalculationResponse createCalculationResponse)
+        {
+            _createCalculationService.CreateCalculation(Arg.Any<string>(),
+                Arg.Any<CalculationCreateModel>(),
+                Arg.Any<CalculationNamespace>(),
+                Arg.Any<Models.Calcs.CalculationType>(),
+                Arg.Any<Reference>(),
+                Arg.Any<string>(),
+                Arg.Any<CalculationDataType>(),
+                false,
+                Arg.Any<IEnumerable<string>>())
+            .Returns(createCalculationResponse);
         }
 
         private void AndTheTemplateMapping(TemplateMapping templateMapping)
