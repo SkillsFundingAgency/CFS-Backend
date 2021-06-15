@@ -140,6 +140,9 @@ namespace CalculateFunding.Models.Publishing
         FundingSchemaUpdated,
 
         [EnumMember(Value = nameof(DistributionProfileUpdated))]
-        DistributionProfileUpdated
+        DistributionProfileUpdated,
+
+        [EnumMember(Value = nameof(IndicativeToLive))]
+        IndicativeToLive,
     }
 }
