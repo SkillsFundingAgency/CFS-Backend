@@ -101,5 +101,7 @@ steps:
      providerProfilingClient:ApiKey: $(svcapiprofiling)
      providersClient:ApiEndpoint: $(providersClientApiEndpoint)
      providersClient:ApiKey: $(svcapiproviders)
+     publishingClient:ApiEndpoint: $(publishingClientApiEndpoint)
+     publishingClient:ApiKey: $(svcapipublishing)
      specificationsClient:ApiEndpoint: $(specificationsClientApiEndpoint)
      specificationsClient:ApiKey: $(svcapispecs)
