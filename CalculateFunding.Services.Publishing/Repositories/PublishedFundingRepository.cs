@@ -907,6 +907,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                         'author':{{
                                             'name' : c.content.author.name
                                         }},
+                                        'isIndicative' : c.content.isIndicative,
                                         'provider':{{ 
                                             'providerType' : c.content.provider.providerType,
                                             'providerSubType' : c.content.provider.providerSubType,
@@ -973,6 +974,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                     'author'          : {{
                                         'name' : c.content.current.author.name
                                     }},
+                                    'isIndicative' : c.content.current.isIndicative,
                                     'provider'        : {{ 
                                         'providerType' : c.content.current.provider.providerType,
                                         'providerSubType' : c.content.current.provider.providerSubType,
@@ -1019,6 +1021,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                     'author'          : {{
                                         'name' : c.content.released.author.name
                                     }},
+                                    'isIndicative' : c.content.released.isIndicative,
                                     'provider'        : {{ 
                                         'providerType' : c.content.released.provider.providerType,
                                         'providerSubType' : c.content.released.provider.providerSubType,

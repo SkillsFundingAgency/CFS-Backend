@@ -348,6 +348,12 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                     Name = "LastUpdatedBy",
                     Type = "[nvarchar](256)",
                     AllowNulls = false
+                },
+                new SqlColumnDefinition
+                {
+                    Name = "IsIndicative",
+                    Type = "[bit]",
+                    AllowNulls = false
                 }
             };
         }

@@ -19,7 +19,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
                 NewDataColumn<string>("Status", 32),
                 NewDataColumn<DateTime>("LastUpdated"),
                 NewDataColumn<string>("LastUpdatedBy", 256),
-                NewDataColumn<bool>("IsIndicative")
+                NewDataColumn<bool>("IsIndicative", defaultValue: false)
             };
 
         protected override void AddDataRowToDataTable(PublishedProviderVersion dto)
