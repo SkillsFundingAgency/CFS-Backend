@@ -82,8 +82,10 @@ steps:
      ResourceGroup: $(ResourceGroup)
      ServiceBusSettings:ConnectionString: $(ServiceBusSettings)
      storageConfiguration:ConnectionString: $(AzureStorageSettings)
-     cfsClient:ApiEndpoint: $(cfsClientApiEndpoint)
      providerProfilingClient:ApiEndpoint: $(providerProfilingClientApiEndpoint)
      providerProfilingClient:ApiKey: $(svcapiprofiling)
-     ProfilingAzureAdClientID: $(SmokeTestClientId-profiling)
-     ProfilingAzureAdClientSecret: $(ProfilingAzureAdClientSecret)
+     providerProfilingAzureBearerTokenOptions:ClientId: $(providerProfilingAzureBearerTokenOptionsClientId) 
+     providerProfilingAzureBearerTokenOptions:ClientSecret: $(providerProfilingAzureBearerTokenClientSecret)
+     providerProfilingAzureBearerTokenOptions:GrantType : 'client_credentials'
+     providerProfilingAzureBearerTokenOptions:Scope: $(providerProfilingAzureBearerTokenOptionsScope)
+     providerProfilingAzureBearerTokenOptions:Url: $(providerProfilingAzureBearerTokenOptionsUrl)
