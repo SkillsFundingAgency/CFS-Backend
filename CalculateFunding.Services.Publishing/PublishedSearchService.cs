@@ -203,7 +203,7 @@ namespace CalculateFunding.Services.Publishing
                     searchModel.OrderBy = new[] { "providerName" };
                 }
 
-                IEnumerable<Task<SearchResults<PublishedProviderIndex>>> searchTasks = await BuildSearchTasks(searchModel, Facets);
+                IEnumerable<Task<SearchResults<PublishedProviderIndex>>> searchTasks = await BuildSearchTasks(searchModel, Facets, true);
 
                 if (searchTasks.IsNullOrEmpty())
                 {

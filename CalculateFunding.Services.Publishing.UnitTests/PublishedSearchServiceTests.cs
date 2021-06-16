@@ -511,7 +511,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Received(searchCallTimes)
                 .Search(Arg.Is(searchModel.SearchTerm),
                     Arg.Is<SearchParameters>(_ =>
-                        _.Filter == expectedFilterLiteral));
+                        _.Filter == expectedFilterLiteral),
+                    Arg.Any<bool>());
         }
 
         private async Task ThenTheRowsWereSkippedDuringSearch(int expectedSkipCount,
@@ -524,7 +525,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Received(searchCalls)
                 .Search(Arg.Is(searchText),
                     Arg.Is<SearchParameters>(_ => _.Skip == expectedSkipCount),
-                    Arg.Is(false));
+                    Arg.Is(true));
         }
 
         private void AndTheSearchResultsWithExpectedFilter(SearchModel search, SearchResults<PublishedProviderIndex> results, string expectedFilter = null)
@@ -535,7 +536,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
         private void AndTheSearchResults(SearchModel search, SearchResults<PublishedProviderIndex> results)
         {
-            _searchRepository.Search(Arg.Is(search.SearchTerm), Arg.Any<SearchParameters>())
+            _searchRepository.Search(Arg.Is(search.SearchTerm), Arg.Any<SearchParameters>(), Arg.Any<bool>())
                 .Returns(results);
         }
 

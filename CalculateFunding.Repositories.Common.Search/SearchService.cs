@@ -44,7 +44,7 @@ namespace CalculateFunding.Repositories.Common.Search
             });
         }
 
-        protected Task<IEnumerable<Task<SearchResults<T>>>> BuildSearchTasks(SearchModel searchModel, FacetFilterType[] facets)
+        protected Task<IEnumerable<Task<SearchResults<T>>>> BuildSearchTasks(SearchModel searchModel, FacetFilterType[] facets, bool allResults = false)
         {
             if (searchModel == null)
             {
@@ -87,7 +87,7 @@ namespace CalculateFunding.Repositories.Common.Search
 
             searchTasks = searchTasks.Concat(new[]
             {
-                BuildItemsSearchTask(fullFilterList, searchModel)
+                BuildItemsSearchTask(fullFilterList, searchModel, allResults)
             });
 
             return Task.FromResult(searchTasks);
@@ -138,7 +138,7 @@ namespace CalculateFunding.Repositories.Common.Search
             return $"({string.Join(" or ", values.Select(value => $"{name} eq '{value}'"))})";
         }
 
-        private Task<SearchResults<T>> BuildItemsSearchTask(IDictionary<string, string> fullFilterList, SearchModel searchModel)
+        private Task<SearchResults<T>> BuildItemsSearchTask(IDictionary<string, string> fullFilterList, SearchModel searchModel, bool allResults = false)
         {
             int skip = (searchModel.PageNumber - 1) * searchModel.Top;
 
@@ -156,7 +156,8 @@ namespace CalculateFunding.Repositories.Common.Search
                     Filter = string.Join(" and ", fullFilterList.Values.Where(x => !string.IsNullOrWhiteSpace(x))),
                     OrderBy = searchModel.OrderBy.ToList(),
                     QueryType = QueryType.Full
-                });
+                },
+                allResults);
             });
         }
 
