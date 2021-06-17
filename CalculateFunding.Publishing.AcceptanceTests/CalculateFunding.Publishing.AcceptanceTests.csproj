@@ -56,6 +56,7 @@
     <SpecFlowObsoleteCodeBehindFiles Remove="Features\PublishingAllFundingPsg - Copy.feature.cs" />
     <SpecFlowObsoleteCodeBehindFiles Remove="Features\PublishingBatchFundingDsg - Copy.feature.cs" />
     <SpecFlowObsoleteCodeBehindFiles Remove="Features\PublishingPsg - Copy.feature.cs" />
+    <SpecFlowObsoleteCodeBehindFiles Remove="Features\Refresh1619 - Copy.feature.cs" />
     <SpecFlowObsoleteCodeBehindFiles Remove="Features\RefreshDsg - Copy.feature.cs" />
     <SpecFlowObsoleteCodeBehindFiles Remove="Features\RefreshGAG - Copy.feature.cs" />
     <SpecFlowObsoleteCodeBehindFiles Remove="Features\RefreshPsg - Copy.feature.cs" />
@@ -165,6 +166,9 @@
     <Compile Update="Features\PublishingAllFundingDsg.feature.cs">
       <DependentUpon>PublishingAllFundingDsg.feature</DependentUpon>
     </Compile>
+    <Compile Update="Features\Refresh1619Variations.feature.cs">
+      <DependentUpon>Refresh1619Variations.feature</DependentUpon>
+    </Compile>
     <Compile Update="Features\Refresh1619.feature.cs">
       <DependentUpon>Refresh1619.feature</DependentUpon>
     </Compile>
@@ -241,6 +245,10 @@
       <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
     </SpecFlowFeatureFiles>
     <SpecFlowFeatureFiles Update="Features\PublishingAllFundingDsg.feature">
+      <Visible>$(UsingMicrosoftNETSdk)</Visible>
+      <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
+    </SpecFlowFeatureFiles>
+    <SpecFlowFeatureFiles Update="Features\Refresh1619Variations.feature">
       <Visible>$(UsingMicrosoftNETSdk)</Visible>
       <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
     </SpecFlowFeatureFiles>

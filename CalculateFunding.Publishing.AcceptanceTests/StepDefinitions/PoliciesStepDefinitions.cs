@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Publishing.AcceptanceTests.Contexts;
+using CalculateFunding.Publishing.AcceptanceTests.Extensions;
 using FluentAssertions;
 using TechTalk.SpecFlow;
 using TechTalk.SpecFlow.Assist;
@@ -98,6 +100,20 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             OrganisationGroupingConfiguration organisationGrouping = _policiesStepContext.CreateFundingConfiguration.OrganisationGroupings.Last();
 
             organisationGrouping.ProviderTypeMatch = table.CreateSet<ProviderTypeMatch>();
+        }
+
+        [Given(@"the funding configuration has the following indicative opener provider status")]
+        public void GivenTheFundingConfigurationHasTheFollowingIndicativeOpenerProviderStatus(Table table)
+        {
+            FundingConfiguration fundingConfiguration = _policiesStepContext
+                .CreateFundingConfiguration;
+
+            fundingConfiguration
+                .Should()
+                .NotBeNull();
+
+            fundingConfiguration
+                    .IndicativeOpenerProviderStatus = table.AsStrings() ?? Array.Empty<string>();
         }
 
         [Given(@"the funding configuration is available in the policies repository")]

@@ -112,13 +112,6 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
                 .Should()
                 .BeEquivalentTo(expectedPublishedProviderIds);
 
-            publishedProviders
-                .Where(_ => _.Current.Status == PublishedProviderStatus.Approved || _.Current.Status == PublishedProviderStatus.Updated || _.Current.Status == PublishedProviderStatus.Draft)
-                .Select(_ => (_.Released))
-                .First()
-                .Should()
-                .BeNull();
-
             CalculationInMemoryRepository calculationsInMemoryRepository = _publishFundingStepContext.CalculationsInMemoryRepository;
 
             IDictionary<string, IEnumerable<CalculationResult>> providerCalculationResults = calculationsInMemoryRepository.ProviderResults;
