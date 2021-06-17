@@ -36,6 +36,7 @@ namespace CalculateFunding.Services.Results.UnitTests
                                 .WithUKPRN("ukprn1")
                                 .WithLocalProviderType("pt1")
                                 .WithLocalProviderSubType("pst1")))
+                    .WithIsIndicativeProvider(true)
                     .WithCalculationResults(NewCalculationResult(cr => cr.WithCalculationType(CalculationType.Additional)
                             .WithCalculation(NewReference(rf => rf.WithName("calc3").WithId("calc3")))
                             .WithValue(555M)),
@@ -55,6 +56,7 @@ namespace CalculateFunding.Services.Results.UnitTests
                                 .WithUKPRN("ukprn2")
                                 .WithLocalProviderType("pt2")
                                 .WithLocalProviderSubType("pst2")))
+                    .WithIsIndicativeProvider(false)
                     .WithCalculationResults(NewCalculationResult(cr => cr.WithCalculationType(CalculationType.Additional)),
                         NewCalculationResult(cr => cr.WithCalculationType(CalculationType.Template)
                             .WithCalculation(NewReference(rf => rf.WithName("calc1").WithId("calc1")))
@@ -84,6 +86,7 @@ namespace CalculateFunding.Services.Results.UnitTests
                     {"LA Name", "laname1"},
                     {"Provider Type", "pt1"},
                     {"Provider SubType", "pst1"},
+                    {"Is Indicative", "TRUE"},
                     {"CAL: calc1 (1)", 999M.ToString(CultureInfo.InvariantCulture)},
                     {"CAL: calc2 (2)", 666M.ToString(CultureInfo.InvariantCulture)},
                     {"ADD: calc3", 555M.ToString(CultureInfo.InvariantCulture)}
@@ -98,6 +101,7 @@ namespace CalculateFunding.Services.Results.UnitTests
                     {"LA Name", "laname2"},
                     {"Provider Type", "pt2"},
                     {"Provider SubType", "pst2"},
+                    {"Is Indicative", "FALSE"},
                     {"FUN: fundingLine1 (1)", 333M.ToString(CultureInfo.InvariantCulture)},
                     {"FUN: fundingLine2 (2)", 555M.ToString(CultureInfo.InvariantCulture)},
                     {"CAL: calc1 (1)", 123M.ToString(CultureInfo.InvariantCulture)},

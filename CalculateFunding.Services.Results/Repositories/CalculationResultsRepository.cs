@@ -94,6 +94,7 @@ namespace CalculateFunding.Services.Results.Repositories
                                 c.id as id,
                                 c.createdAt as createdAt,
                                 c.content.specificationId as specificationId,
+                                c.content.isIndicativeProvider as isIndicativeProvider,
                                 {{
                                 ""urn"" : c.content.provider.urn,
                                 ""ukPrn"" : c.content.provider.ukPrn,

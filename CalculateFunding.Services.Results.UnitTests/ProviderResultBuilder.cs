@@ -12,6 +12,7 @@ namespace CalculateFunding.Services.Results.UnitTests
         private IEnumerable<CalculationResult> _calculationResults;
         private IEnumerable<FundingLineResult> _fundingLineResults;
         private string _specificationId;
+        private bool _isIndicativeProvider;
 
         public ProviderResultBuilder WithProviderSummary(ProviderSummary providerSummary)
         {
@@ -41,6 +42,13 @@ namespace CalculateFunding.Services.Results.UnitTests
             return this;
         }
 
+        public ProviderResultBuilder WithIsIndicativeProvider(bool isIndicativeProvider)
+        {
+            _isIndicativeProvider = isIndicativeProvider;
+
+            return this;
+        }
+
         public ProviderResult Build()
         {
             return new ProviderResult
@@ -48,7 +56,8 @@ namespace CalculateFunding.Services.Results.UnitTests
                 SpecificationId = _specificationId,
                 Provider = _providerSummary,
                 CalculationResults =  _calculationResults?.ToList() ?? new List<CalculationResult>(),
-                FundingLineResults = _fundingLineResults?.ToList() ?? new List<FundingLineResult>()
+                FundingLineResults = _fundingLineResults?.ToList() ?? new List<FundingLineResult>(),
+                IsIndicativeProvider = _isIndicativeProvider
             };
         }
     }

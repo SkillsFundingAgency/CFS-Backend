@@ -35,6 +35,7 @@ namespace CalculateFunding.Services.Results
                 row["LA Name"] = providerSummary.Authority;
                 row["Provider Type"] = providerSummary.ProviderType;
                 row["Provider SubType"] = providerSummary.ProviderSubType;
+                row["Is Indicative"] = result.IsIndicativeProvider.ToString().ToUpperInvariant();
 
                 if (result.FundingLineResults != null)
                 {

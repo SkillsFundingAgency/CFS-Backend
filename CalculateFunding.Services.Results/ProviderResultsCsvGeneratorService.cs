@@ -137,7 +137,7 @@ namespace CalculateFunding.Services.Results
 
             SpecificationSummary specificationSummary = specificationSummaryResponse.Content;
 
-            IEnumerable<TemplateMappingItem> allMappings = new TemplateMappingItem[0];
+            IEnumerable<TemplateMappingItem> allMappings = Array.Empty<TemplateMappingItem>();
 
             foreach (Reference reference in specificationSummary.FundingStreams)
             {
