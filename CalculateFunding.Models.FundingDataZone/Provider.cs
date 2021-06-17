@@ -57,8 +57,6 @@ namespace CalculateFunding.Models.FundingDataZone
 
         public string ReasonEstablishmentClosed { get; set; }
 
-        public string Successor { get; set; }
-
         public string Town { get; set; }
 
         public string Postcode { get; set; }
@@ -66,8 +64,6 @@ namespace CalculateFunding.Models.FundingDataZone
         public string TrustName { get; set; }
 
         public string TrustCode { get; set; }
-
-        public string LocalAuthorityName { get; set; }
 
         public string CompaniesHouseNumber { get; set; }
 
@@ -165,7 +161,5 @@ namespace CalculateFunding.Models.FundingDataZone
         public IEnumerable<string> Predecessors { get; set; }
 
         public IEnumerable<string> Successors { get; set; }
-
-        public bool Indicative { get; set; }
     }
 }

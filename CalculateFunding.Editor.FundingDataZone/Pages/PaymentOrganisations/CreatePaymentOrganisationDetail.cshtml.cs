@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using CalculateFunding.Services.FundingDataZone;
 using CalculateFunding.Services.FundingDataZone.SqlModels;
@@ -25,7 +24,7 @@ namespace CalculateFunding.Editor.FundingDataZone.Pages.Provider
             if (!ModelState.IsValid)
             {
                 //await PopulateFundingStreams();
-                return await Task.FromResult<IActionResult>(null);
+                return Page();
             }
 
             Organisation = await _repo.InsertOrganisation(Organisation);

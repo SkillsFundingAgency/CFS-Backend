@@ -61,7 +61,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 CountryCode = NewRandomString(),
                 CountryName = NewRandomString(),
                 LocalGovernmentGroupTypeCode = NewRandomString(),
-                LocalGovernmentGroupTypeName = NewRandomString()
+                LocalGovernmentGroupTypeName = NewRandomString(),
             };
         }
     }

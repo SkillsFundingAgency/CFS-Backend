@@ -54,6 +54,7 @@ namespace CalculateFunding.Editor.FundingDataZone.Pages.ProviderSnapshots
             if (!ModelState.IsValid)
             {
                 await PopulateFundingStreams();
+                return Page();
             }
 
             ProviderSnapshotTableModel providerSnapshotTableModel = new ProviderSnapshotTableModel
@@ -72,7 +73,7 @@ namespace CalculateFunding.Editor.FundingDataZone.Pages.ProviderSnapshots
                 return RedirectToPage("/ProviderSnapshots/ProviderSnapshotDetails", new { providerSnapshotId = ProviderSnapshotId });
             }
 
-            return await Task.FromResult<IActionResult>(null);
+            return Page();
         }
 
         [BindProperty]

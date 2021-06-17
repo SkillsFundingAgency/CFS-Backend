@@ -35,6 +35,7 @@ namespace CalculateFunding.Services.Providers.MappingProfiles
                 .ForMember(c => c.Street, opt => opt.Ignore())
                 .ForMember(c => c.Locality, opt => opt.Ignore())
                 .ForMember(c => c.Address3, opt => opt.Ignore())
+                .ForMember(c => c.Successor, opt => opt.Ignore())
                 .ForMember(c => c.PaymentOrganisationIdentifier, opt => opt.MapFrom(c => c.PaymentOrganisationUkprn))
                 .ForMember(c => c.ProviderVersionIdProviderId, opt => opt.Ignore())
                 .ForMember(c => c.ProviderVersionId, opt => opt.Ignore())

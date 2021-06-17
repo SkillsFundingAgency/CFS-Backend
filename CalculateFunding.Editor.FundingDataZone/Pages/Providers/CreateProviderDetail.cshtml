@@ -21,12 +21,7 @@
         <option value="@provider.UKPRN"></option>
     }
 </datalist>
-<datalist id="statuses">
-    @foreach (var status in Model.Statuses)
-    {
-        <option value="@status.ProviderStatusName"></option>
-    }
-</datalist>
+<div asp-validation-summary="All"></div>
 <form method="post" autocomplete="off">
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
     <div class="mb-3">
@@ -115,9 +110,9 @@
         <span asp-validation-for="Provider.LegalName" class="text-danger"></span>
     </div>
     <div class="mb-3">
-        <label asp-for="Provider.Status"></label>
-        <input asp-for="Provider.Status" list="statuses" type="text" class="form-control">
-        <span asp-validation-for="Provider.Status" class="text-danger"></span>
+        <label asp-for="Provider.ProviderStatusId"></label>
+        <select asp-for="Provider.ProviderStatusId" asp-items="Model.StatusesListItems" type="text" class="form-control"></select>
+        <span asp-validation-for="Provider.ProviderStatusId" class="text-danger"></span>
     </div>
     <div class="mb-3">
         <label asp-for="Provider.PhaseOfEducation"></label>
@@ -133,11 +128,6 @@
         <label asp-for="Provider.ReasonEstablishmentClosed"></label>
         <input asp-for="Provider.ReasonEstablishmentClosed" type="text" class="form-control">
         <span asp-validation-for="Provider.ReasonEstablishmentClosed" class="text-danger"></span>
-    </div>
-    <div class="mb-3">
-        <label asp-for="Provider.Successor"></label>
-        <input asp-for="Provider.Successor" type="text" class="form-control">
-        <span asp-validation-for="Provider.Successor" class="text-danger"></span>
     </div>
     <div class="mb-3">
         <label asp-for="Provider.Town"></label>
@@ -161,13 +151,6 @@
         <input asp-for="Provider.TrustCode" type="text" class="form-control">
         <span asp-validation-for="Provider.TrustCode" class="text-danger"></span>
     </div>
-
-    <div class="mb-3">
-        <label asp-for="Provider.LocalAuthorityName"></label>
-        <input asp-for="Provider.LocalAuthorityName" type="text" class="form-control">
-        <span asp-validation-for="Provider.LocalAuthorityName" class="text-danger"></span>
-    </div>
-
     <div class="mb-3">
         <label asp-for="Provider.CompaniesHouseNumber"></label>
         <input asp-for="Provider.CompaniesHouseNumber" type="text" class="form-control">

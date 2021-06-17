@@ -21,14 +21,8 @@
         <option value="@provider.UKPRN"></option>
     }
 </datalist>
-<datalist id="statuses">
-    @foreach (var status in Model.Statuses)
-    {
-        <option value="@status.ProviderStatusName"></option>
-    }
-</datalist>
 <form method="post" autocomplete="off">
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div asp-validation-summary="All" class="text-danger"></div>
     <div class="mb-3">
         <label asp-for="Provider.Name"></label>
         <input asp-for="Provider.Name" type="text" class="form-control">
@@ -115,9 +109,9 @@
         <span asp-validation-for="Provider.LegalName" class="text-danger"></span>
     </div>
     <div class="mb-3">
-        <label asp-for="Provider.Status"></label>
-        <input asp-for="Provider.Status" list="statuses" type="text" class="form-control">
-        <span asp-validation-for="Provider.Status" class="text-danger"></span>
+        <label asp-for="Provider.ProviderStatusId"></label>
+        <select asp-for="Provider.ProviderStatusId" asp-items="Model.StatusesListItems" type="text" class="form-control"></select>
+        <span asp-validation-for="Provider.ProviderStatusId" class="text-danger"></span>
     </div>
     <div class="mb-3">
         <label asp-for="Provider.PhaseOfEducation"></label>
@@ -133,11 +127,6 @@
         <label asp-for="Provider.ReasonEstablishmentClosed"></label>
         <input asp-for="Provider.ReasonEstablishmentClosed" type="text" class="form-control">
         <span asp-validation-for="Provider.ReasonEstablishmentClosed" class="text-danger"></span>
-    </div>
-    <div class="mb-3">
-        <label asp-for="Provider.Successor"></label>
-        <input asp-for="Provider.Successor" type="text" class="form-control">
-        <span asp-validation-for="Provider.Successor" class="text-danger"></span>
     </div>
     <div class="mb-3">
         <label asp-for="Provider.Town"></label>
@@ -161,13 +150,6 @@
         <input asp-for="Provider.TrustCode" type="text" class="form-control">
         <span asp-validation-for="Provider.TrustCode" class="text-danger"></span>
     </div>
-
-    <div class="mb-3">
-        <label asp-for="Provider.LocalAuthorityName"></label>
-        <input asp-for="Provider.LocalAuthorityName" type="text" class="form-control">
-        <span asp-validation-for="Provider.LocalAuthorityName" class="text-danger"></span>
-    </div>
-
     <div class="mb-3">
         <label asp-for="Provider.CompaniesHouseNumber"></label>
         <input asp-for="Provider.CompaniesHouseNumber" type="text" class="form-control">
@@ -352,16 +334,15 @@
     </div>
     <div class="mb-3">
         <label asp-for="Provider.Predecessors"></label>
-        <input id="predecessors" class="form-control flexdatalist" asp-for="Provider.Predecessors"  type="text" multiple="multiple" list="providers">
+        <input id="predecessors" class="form-control flexdatalist" asp-for="Provider.Predecessors" type="text" multiple="multiple" list="providers">
         <span asp-validation-for="Provider.Predecessors" class="text-danger"></span>
     </div>
     <div class="mb-3">
         <label asp-for="Provider.Successors"></label>
-        <input id="successors" class="form-control flexdatalist"  asp-for="Provider.Successors" type="text" multiple="multiple" list="providers">
+        <input id="successors" class="form-control flexdatalist" asp-for="Provider.Successors" type="text" multiple="multiple" list="providers">
         <span asp-validation-for="Provider.Successors" class="text-danger"></span>
     </div>
-    <input asp-for="ProviderId" type="hidden" class="form-control">
-    <input asp-for="ProviderSnapshotId" type="hidden" class="form-control">
+
     <button type="submit" class="btn btn-primary">Save provider details</button>
 </form>
 

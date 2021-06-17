@@ -24,44 +24,33 @@ namespace CalculateFunding.Editor.FundingDataZone.Pages.Provider
             PaymentOrganisations = await _repo.GetAllOrganisations(providerSnapshotId);
             Providers = await _repo.GetProvidersInSnapshot(providerSnapshotId);
             Statuses = await _repo.GetProviderStatuses();
+            StatusesListItems = Statuses.Select(_ => new SelectListItem(_.ProviderStatusName, _.ProviderStatusId.ToString()));
 
             return Page();
         }
 
         public async Task<IActionResult> OnPost()
         {
-            IEnumerable<PublishingAreaOrganisation> paymentOrganisations  = await _repo.GetAllOrganisations(Convert.ToInt32(Provider.ProviderSnapshotId));
+            IEnumerable<PublishingAreaOrganisation> paymentOrganisations = await _repo.GetAllOrganisations(Convert.ToInt32(Provider.ProviderSnapshotId));
             IEnumerable<ProviderStatus> statuses = await _repo.GetProviderStatuses();
 
             Provider.ProviderId = Provider.UKPRN;
 
-            if (Provider.Status != null)
+            if (Provider.ProviderStatusId.HasValue)
             {
-                var providerStatus = statuses.SingleOrDefault(_ => _.ProviderStatusName == Provider.Status);
+                ProviderStatus providerStatus = statuses.SingleOrDefault(_ => _.ProviderStatusId == Provider.ProviderStatusId);
                 if (providerStatus == null)
                 {
                     ModelState.AddModelError("Provider.Status", "Invalid provider status");
                 }
-                else
-                {
-                    Provider.ProviderStatusId = providerStatus.ProviderStatusId;
-                }
             }
-            else
-            {
-                Provider.ProviderStatusId = null;
-            }
-            
+
             if (Provider.PaymentOrganisationUkprn != null)
             {
                 var organisation = paymentOrganisations.SingleOrDefault(_ => _.Ukprn == Provider.PaymentOrganisationUkprn);
                 if (organisation == null)
                 {
                     ModelState.AddModelError("Provider.PaymentOrganisationUkprn", "Invalid organisation");
-                }
-                else
-                {
-                    Provider.PaymentOrganisationId = organisation.PaymentOrganisationId;
                 }
             }
             else
@@ -74,12 +63,13 @@ namespace CalculateFunding.Editor.FundingDataZone.Pages.Provider
                 PaymentOrganisations = await _repo.GetAllOrganisations(Convert.ToInt32(Provider.ProviderSnapshotId));
                 Providers = await _repo.GetProvidersInSnapshot(Convert.ToInt32(Provider.ProviderSnapshotId));
                 Statuses = await _repo.GetProviderStatuses();
+                StatusesListItems = Statuses.Select(_ => new SelectListItem(_.ProviderStatusName, _.ProviderStatusId.ToString()));
 
-                return await Task.FromResult<IActionResult>(null);
+                return Page();
             }
 
             Provider = await _repo.InsertProvider(Provider);
-            
+
             if (!string.IsNullOrWhiteSpace(Provider.Predecessors))
             {
                 await _repo.CreatePredecessors(Provider.Predecessors.Split(',').Select(_ => new Predecessor { ProviderId = Convert.ToInt32(Provider.Id), UKPRN = _ }));
@@ -101,5 +91,6 @@ namespace CalculateFunding.Editor.FundingDataZone.Pages.Provider
         public IEnumerable<PublishingAreaOrganisation> PaymentOrganisations { get; set; }
 
         public IEnumerable<ProviderStatus> Statuses { get; set; }
+        public IEnumerable<SelectListItem> StatusesListItems { get; private set; }
     }
 }

@@ -25,19 +25,19 @@ namespace CalculateFunding.Editor.FundingDataZone.Pages.Provider
             PaymentOrganisations = await _repo.GetAllOrganisations(providerSnapshotId);
             Providers = await _repo.GetProvidersInSnapshot(providerSnapshotId);
             Statuses = await _repo.GetProviderStatuses();
-
-            ProviderSnapshotId = providerSnapshotId.ToString();
-            ProviderId = providerId;
+            StatusesListItems = Statuses.Select(_ => new SelectListItem(_.ProviderStatusName, _.ProviderStatusId.ToString()));
 
             return Page();
         }
 
-        public async Task<IActionResult> OnPost()
+        public async Task<IActionResult> OnPost([FromRoute] int providerSnapshotId, [FromRoute] string providerId)
         {
-            PublishingAreaProvider provider  = await _repo.GetProviderInSnapshot(Convert.ToInt32(ProviderSnapshotId), ProviderId);
-            IEnumerable<PublishingAreaOrganisation> paymentOrganisations  = await _repo.GetAllOrganisations(Convert.ToInt32(ProviderSnapshotId));
+            PublishingAreaProvider provider = await _repo.GetProviderInSnapshot(providerSnapshotId, providerId);
+            IEnumerable<PublishingAreaOrganisation> paymentOrganisations = await _repo.GetAllOrganisations(providerSnapshotId);
             IEnumerable<ProviderStatus> statuses = await _repo.GetProviderStatuses();
 
+            provider.ProviderSnapshotId = providerSnapshotId;
+            provider.ProviderId = providerId;
             provider.Name = Provider.Name;
             provider.URN = Provider.URN;
             provider.UKPRN = Provider.UKPRN;
@@ -53,16 +53,13 @@ namespace CalculateFunding.Editor.FundingDataZone.Pages.Provider
             provider.NavVendorNo = Provider.NavVendorNo;
             provider.CrmAccountId = Provider.CrmAccountId;
             provider.LegalName = Provider.LegalName;
-            provider.Status = Provider.Status;
             provider.PhaseOfEducation = Provider.PhaseOfEducation;
             provider.ReasonEstablishmentOpened = Provider.ReasonEstablishmentOpened;
             provider.ReasonEstablishmentClosed = Provider.ReasonEstablishmentClosed;
-            provider.Successor = Provider.Successor;
             provider.Town = Provider.Town;
             provider.Postcode = Provider.Postcode;
             provider.TrustName = Provider.TrustName;
             provider.TrustCode = Provider.TrustCode;
-            provider.LocalAuthorityName = Provider.LocalAuthorityName;
             provider.CompaniesHouseNumber = Provider.CompaniesHouseNumber;
             provider.GroupIdNumber = Provider.GroupIdNumber;
             provider.RscRegionName = Provider.RscRegionName;
@@ -99,26 +96,17 @@ namespace CalculateFunding.Editor.FundingDataZone.Pages.Provider
             provider.PreviousLaCode = Provider.PreviousLaCode;
             provider.PreviousLaName = Provider.PreviousLaName;
             provider.PreviousEstablishmentNumber = Provider.PreviousEstablishmentNumber;
-            provider.Status = Provider.Status;
             provider.StatusCode = Provider.StatusCode;
-            
-            if (Provider.Status != null)
+
+            if (Provider.ProviderStatusId.HasValue)
             {
-                var providerStatus = statuses.SingleOrDefault(_ => _.ProviderStatusName == Provider.Status);
+                var providerStatus = statuses.SingleOrDefault(_ => _.ProviderStatusId == Provider.ProviderStatusId);
                 if (providerStatus == null)
                 {
                     ModelState.AddModelError("Provider.Status", "Invalid provider status");
                 }
-                else
-                {
-                    provider.ProviderStatusId = providerStatus.ProviderStatusId;
-                }
             }
-            else
-            {
-                provider.ProviderStatusId = null;
-            }
-            
+
             if (Provider.PaymentOrganisationUkprn != null)
             {
                 var organisation = paymentOrganisations.SingleOrDefault(_ => _.Ukprn == Provider.PaymentOrganisationUkprn);
@@ -138,11 +126,12 @@ namespace CalculateFunding.Editor.FundingDataZone.Pages.Provider
 
             if (!ModelState.IsValid)
             {
-                PaymentOrganisations = await _repo.GetAllOrganisations(Convert.ToInt32(ProviderSnapshotId));
-                Providers = await _repo.GetProvidersInSnapshot(Convert.ToInt32(ProviderSnapshotId));
+                PaymentOrganisations = await _repo.GetAllOrganisations(providerSnapshotId);
+                Providers = await _repo.GetProvidersInSnapshot(providerSnapshotId);
                 Statuses = await _repo.GetProviderStatuses();
+                StatusesListItems = Statuses.Select(_ => new SelectListItem(_.ProviderStatusName, _.ProviderStatusId.ToString()));
 
-                return await Task.FromResult<IActionResult>(null);
+                return Page();
             }
 
             await _repo.DeletePredecessors(Convert.ToInt32(provider.Id));
@@ -162,7 +151,7 @@ namespace CalculateFunding.Editor.FundingDataZone.Pages.Provider
                 return RedirectToPage("/Providers/ProviderDetail", new { providerSnapshotId = provider.ProviderSnapshotId, ProviderId = provider.ProviderId });
             }
 
-            return await Task.FromResult<IActionResult>(null);
+            return Page();
         }
 
         [BindProperty]
@@ -174,12 +163,6 @@ namespace CalculateFunding.Editor.FundingDataZone.Pages.Provider
 
         public IEnumerable<ProviderStatus> Statuses { get; set; }
 
-        [BindProperty]
-        [HiddenInput]
-        public string ProviderSnapshotId { get; set; }
-
-        [BindProperty]
-        [HiddenInput]
-        public string ProviderId { get; set; }
+        public IEnumerable<SelectListItem> StatusesListItems { get; set; }
     }
 }

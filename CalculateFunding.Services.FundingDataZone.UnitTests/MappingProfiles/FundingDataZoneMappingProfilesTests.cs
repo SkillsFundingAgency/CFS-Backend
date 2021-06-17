@@ -1,12 +1,10 @@
-﻿using AutoMapper;
+﻿using System;
+using AutoMapper;
 using CalculateFunding.Models.FundingDataZone;
 using CalculateFunding.Services.FundingDataZone.MappingProfiles;
 using CalculateFunding.Services.FundingDataZone.SqlModels;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CalculateFunding.Services.FundingDataZone.UnitTests.MappingProfiles
 {
@@ -37,17 +35,17 @@ namespace CalculateFunding.Services.FundingDataZone.UnitTests.MappingProfiles
             var mapper = new Mapper(config);
 
             // Act
-            Provider provider = mapper.Map<Provider>(new PublishingAreaProvider() { Predecessors = "p1,p2"});
+            Provider provider = mapper.Map<Provider>(new PublishingAreaProvider() { Predecessors = "p1,p2" });
 
             //Assert
             provider
                 .Predecessors
                 .Should()
                 .HaveCount(2);
-           provider
-                .Predecessors
-                .Should()
-                .BeEquivalentTo(new[] { "p1", "p2"});
+            provider
+                 .Predecessors
+                 .Should()
+                 .BeEquivalentTo(new[] { "p1", "p2" });
         }
 
         [TestMethod]

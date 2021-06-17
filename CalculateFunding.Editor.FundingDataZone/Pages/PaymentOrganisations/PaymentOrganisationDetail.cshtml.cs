@@ -31,10 +31,10 @@ namespace CalculateFunding.Editor.FundingDataZone.Pages.Provider
             if (!ModelState.IsValid)
             {
                 //await PopulateFundingStreams();
-                return await Task.FromResult<IActionResult>(null);
+                return Page();
             }
 
-            PublishingAreaOrganisation organisation  = await _repo.GetOrganisationInSnapshot(Convert.ToInt32(ProviderSnapshotId), PaymentOrganisationId.ToString());
+            PublishingAreaOrganisation organisation = await _repo.GetOrganisationInSnapshot(Convert.ToInt32(ProviderSnapshotId), PaymentOrganisationId.ToString());
 
             organisation.Name = Organisation.Name;
             organisation.Ukprn = Organisation.Ukprn;
@@ -50,7 +50,7 @@ namespace CalculateFunding.Editor.FundingDataZone.Pages.Provider
                 return RedirectToPage("/PaymentOrganisations/PaymentOrganisationDetail", new { providerSnapshotId = organisation.ProviderSnapshotId, OrganisationId = organisation.PaymentOrganisationId });
             }
 
-            return await Task.FromResult<IActionResult>(null);
+            return Page();
         }
 
         [BindProperty]

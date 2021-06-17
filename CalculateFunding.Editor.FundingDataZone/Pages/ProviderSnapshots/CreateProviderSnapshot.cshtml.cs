@@ -31,6 +31,7 @@ namespace CalculateFunding.Editor.FundingDataZone.Pages.ProviderSnapshots
             if (!ModelState.IsValid)
             {
                 await PopulateFundingStreams();
+                return Page();
             }
 
             ProviderSnapshotTableModel providerSnapshot = new ProviderSnapshotTableModel()

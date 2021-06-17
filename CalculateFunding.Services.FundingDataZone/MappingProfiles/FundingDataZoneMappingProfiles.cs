@@ -1,8 +1,8 @@
-﻿using AutoMapper;
+﻿using System.Collections.Generic;
+using System.Linq;
+using AutoMapper;
 using CalculateFunding.Models.FundingDataZone;
 using CalculateFunding.Services.FundingDataZone.SqlModels;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace CalculateFunding.Services.FundingDataZone.MappingProfiles
 {
@@ -13,12 +13,15 @@ namespace CalculateFunding.Services.FundingDataZone.MappingProfiles
             CreateMap<PublishingAreaProvider, Provider>()
                 .ForMember(_ => _.Predecessors, opt => opt.MapFrom<PredecessorsResolver>())
                 .ForMember(_ => _.Successors, opt => opt.MapFrom<SuccessorsResolver>())
-                .ForMember(_ => _.PaymentOrganisationType, opt => opt.Ignore());
+                .ForMember(_ => _.PaymentOrganisationType, opt => opt.Ignore())
+                .ForMember(_ => _.Status, opt => opt.MapFrom(p => p.ProviderStatusName));
+
             CreateMap<PublishingAreaOrganisation, PaymentOrganisation>()
-                .ForMember(_ => _.Name, 
+                .ForMember(_ => _.Name,
                     opt => opt.MapFrom(_ => _.LaCode))
-                .ForMember(_ => _.OrganisationType, 
+                .ForMember(_ => _.OrganisationType,
                     opt => opt.MapFrom(_ => _.PaymentOrganisationType));
+
             CreateMap<PublishingAreaProviderSnapshot, ProviderSnapshot>();
         }
     }
@@ -39,4 +42,3 @@ namespace CalculateFunding.Services.FundingDataZone.MappingProfiles
         }
     }
 }
- 
