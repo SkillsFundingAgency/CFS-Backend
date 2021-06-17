@@ -27,6 +27,7 @@ namespace CalculateFunding.Services.Publishing
         private readonly AsyncPolicy _searchPolicy;
         private readonly ILogger _logger;
         private readonly IPublishingEngineOptions _publishingEngineOptions;
+        private const string OtherMonthYearOpened = "Any other";
 
         public PublishedProviderIndexerService(
             ILogger logger,
@@ -193,6 +194,11 @@ namespace CalculateFunding.Services.Publishing
 
             string fundingPeriodId = publishedProviderVersion.FundingPeriodId;
 
+            if (string.IsNullOrWhiteSpace(fundingPeriodId))
+            {
+                return OtherMonthYearOpened;
+            }
+
             if (!fundingPeriodMonths.TryGetValue(fundingPeriodId, out HashSet<string> validMonths))
             {
                 validMonths = await GetFundingPeriodsMonths(fundingPeriodId);
@@ -201,7 +207,7 @@ namespace CalculateFunding.Services.Publishing
                     _ => validMonths, (_,current) => validMonths);
             }
 
-            return validMonths?.Contains(monthYearOpened) == true ? monthYearOpened : null;
+            return validMonths?.Contains(monthYearOpened) == true ? monthYearOpened : OtherMonthYearOpened;
         }
 
         private async Task<HashSet<string>> GetFundingPeriodsMonths(string fundingPeriodId)
@@ -215,7 +221,7 @@ namespace CalculateFunding.Services.Publishing
                 return null;
             }
 
-            return new HashSet<string>(GetMonthsBetween(fundingPeriod.StartDate, fundingPeriod.EndDate));
+            return new HashSet<string>(GetMonthsBetween(fundingPeriod.StartDate.AddMonths(-6), fundingPeriod.EndDate));
         }
     }
 }

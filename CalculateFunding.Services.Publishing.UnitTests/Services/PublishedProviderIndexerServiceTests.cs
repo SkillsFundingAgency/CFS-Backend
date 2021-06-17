@@ -97,7 +97,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
         [TestMethod]
         [DataRow(true, false, "Hide indicative allocations", "20 September 2021", "1 September 2021", "28 September 2022", "September 2021")]
-        [DataRow(false, true, "Only indicative allocations",  "20 August 2021", "1 September 2021", "28 September 2021", null)]
+        [DataRow(false, true, "Only indicative allocations",  "20 August 2021", "1 September 2021", "28 September 2021", "August 2021")]
+        [DataRow(false, true, "Only indicative allocations", "20 July 2021", "1 February 2022", "28 February 2022", "Any other")]
+        [DataRow(false, true, "Only indicative allocations", null, "1 February 2022", "28 February 2022", "Any other")]
         public async Task IndexPublishedProvider_GivenSearchRepository_NoExceptionThrownAsync(bool hasErrors,
             bool isIndicative,
             string indicativeIndexText,
@@ -127,7 +129,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 } : null
             };
 
-            publishedProviderVersion.Provider.DateOpened = dateOpenedLiteral.ToDateTimeOffset();
+            publishedProviderVersion.Provider.DateOpened = dateOpenedLiteral?.ToDateTimeOffset();
 
             ILogger logger = CreateLogger();
             ISearchRepository<PublishedProviderIndex> searchRepository = CreateSearchRepository();

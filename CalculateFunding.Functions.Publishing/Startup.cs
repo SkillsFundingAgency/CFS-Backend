@@ -252,6 +252,7 @@ namespace CalculateFunding.Functions.Publishing
                 builder.AddScoped<OnDeletePublishedProviders>();
                 builder.AddScoped<OnDeletePublishedProvidersFailure>();
                 builder.AddScoped<OnReIndexPublishedProviders>();
+                builder.AddScoped<OnReIndexPublishedProvidersFailure>();
                 builder.AddScoped<OnGeneratePublishedFundingCsv>();
                 builder.AddScoped<OnGeneratePublishedFundingCsvFailure>();
                 builder.AddScoped<OnGeneratePublishedProviderEstateCsv>();
