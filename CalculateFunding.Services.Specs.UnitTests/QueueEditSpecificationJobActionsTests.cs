@@ -34,6 +34,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
         private QueueEditSpecificationJobActions _action;
         private IJobManagement _jobManagement;
         private IDatasetsApiClient _datasetsApiClient;
+        private ISpecificationTemplateVersionChangedHandler _templateVersionChangedHandler;
         private ISpecificationsResiliencePolicies _specificationsResiliencePolicies;
         private ILogger _logger;
         private Reference _user;
@@ -46,6 +47,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
         {
             _jobManagement = Substitute.For<IJobManagement>();
             _datasetsApiClient = Substitute.For<IDatasetsApiClient>();
+            _templateVersionChangedHandler = Substitute.For<ISpecificationTemplateVersionChangedHandler>();
             _specificationsResiliencePolicies = new SpecificationsResiliencePolicies
             {
                 DatasetsApiClient = Policy.NoOpAsync()
@@ -58,14 +60,14 @@ namespace CalculateFunding.Services.Specs.UnitTests
             _user = NewReference(_ => _.WithId(_userId).WithName(_userName));
             _correlationId = NewRandomString();
 
-            _action = new QueueEditSpecificationJobActions(_jobManagement, _datasetsApiClient, _specificationsResiliencePolicies, _logger);
+            _action = new QueueEditSpecificationJobActions(_jobManagement, _datasetsApiClient, _specificationsResiliencePolicies, _templateVersionChangedHandler, _logger);
 
             _jobManagement.QueueJob(Arg.Any<JobCreateModel>())
                 .Returns(new Job());//default instance as we assert was called but have null checks in the test now
         }
 
         [TestMethod]
-        public async Task ShouldQueueProviderSnapshotDataLoadJobWhenSpecificationProviderSoruceIsFDZ()
+        public async Task ShouldQueueProviderSnapshotDataLoadJobWhenSpecificationProviderSourceIsFDZ()
         {
             string fundingStreamId = NewRandomString();
             string specificationId = NewRandomString();
@@ -76,11 +78,27 @@ namespace CalculateFunding.Services.Specs.UnitTests
                                                                                       .WithSpecificationId(specificationId)
                                                                                       .WithProviderSource(Models.Providers.ProviderSource.FDZ)
                                                                                       .WithProviderSnapshotId(providerSnapshotId));
+            
+            SpecificationVersion previousspecificationVersion = NewSpecificationVersion(_ => _.WithFundingStreamsIds(fundingStreamId)
+                                                                                      .WithSpecificationId(specificationId)
+                                                                                      .WithProviderSource(Models.Providers.ProviderSource.FDZ)
+                                                                                      .WithProviderSnapshotId(providerSnapshotId));
 
-            await WhenTheQueueEditSpecificationJobActionsIsRun(specificationVersion, _user, _correlationId, false, !disableQueueCalculationJob);
+            SpecificationEditModel editModel = new SpecificationEditModel();
+
+            string editSpecificationJobId = NewRandomString();
+
+            GivenEditSpecificationJobQueued(editSpecificationJobId);
+
+            await WhenTheQueueEditSpecificationJobActionsIsRun(specificationVersion, previousspecificationVersion, editModel, _user, _correlationId, false, !disableQueueCalculationJob);
+
+            await ThenEditSpecificationJobWasCreated(CreateJobModelMatching(_ => _.JobDefinitionId == JobConstants.DefinitionNames.EditSpecificationJob &&
+                                            HasProperty(_, SpecificationIdKey, specificationId))
+                );
 
             await ThenProviderSnapshotDataLoadJobWasCreated(
                 CreateJobModelMatching(_ => _.JobDefinitionId == JobConstants.DefinitionNames.ProviderSnapshotDataLoadJob &&
+                                            _.ParentJobId == editSpecificationJobId &&
                                             HasProperty(_, SpecificationIdKey, specificationId) &&
                                             HasProperty(_, FundingStreamIdKey, fundingStreamId) &&
                                             HasProperty(_, ProviderSnapshotIdKey, providerSnapshotId.ToString()) &&
@@ -101,10 +119,27 @@ namespace CalculateFunding.Services.Specs.UnitTests
                                                                                       .WithProviderSource(Models.Providers.ProviderSource.CFS)
                                                                                       .WithProviderSnapshotId(providerSnapshotId));
 
-            await WhenTheQueueEditSpecificationJobActionsIsRun(specificationVersion, _user, _correlationId, true, !disableQueueCalculationJob);
+            SpecificationVersion previousspecificationVersion = NewSpecificationVersion(_ => _.WithFundingStreamsIds(fundingStreamId)
+                                                                                      .WithSpecificationId(specificationId)
+                                                                                      .WithProviderSource(Models.Providers.ProviderSource.FDZ)
+                                                                                      .WithProviderSnapshotId(providerSnapshotId));
 
+            SpecificationEditModel editModel = new SpecificationEditModel();
+
+            string editSpecificationJobId = NewRandomString();
+
+            GivenEditSpecificationJobQueued(editSpecificationJobId);
+
+
+            await WhenTheQueueEditSpecificationJobActionsIsRun(specificationVersion, previousspecificationVersion, editModel, _user, _correlationId, true, !disableQueueCalculationJob);
+            
+            await ThenEditSpecificationJobWasCreated(CreateJobModelMatching(_ => _.JobDefinitionId == JobConstants.DefinitionNames.EditSpecificationJob &&
+                                            HasProperty(_, SpecificationIdKey, specificationId))
+                );
+            
             await ThenProviderSnapshotDataLoadJobWasCreated(
                 CreateJobModelMatching(_ => _.JobDefinitionId == JobConstants.DefinitionNames.ProviderSnapshotDataLoadJob &&
+                                            _.ParentJobId == editSpecificationJobId &&
                                             HasProperty(_, SpecificationIdKey, specificationId) &&
                                             HasProperty(_, FundingStreamIdKey, fundingStreamId) &&
                                             HasProperty(_, ProviderSnapshotIdKey, providerSnapshotId.ToString()) &&
@@ -125,10 +160,26 @@ namespace CalculateFunding.Services.Specs.UnitTests
                                                                                       .WithProviderSource(Models.Providers.ProviderSource.CFS)
                                                                                       .WithProviderSnapshotId(providerSnapshotId));
 
-            await WhenTheQueueEditSpecificationJobActionsIsRun(specificationVersion, _user, _correlationId, false, !disableQueueCalculationJob);
+            SpecificationVersion previousspecificationVersion = NewSpecificationVersion(_ => _.WithFundingStreamsIds(fundingStreamId)
+                                                                                      .WithSpecificationId(specificationId)
+                                                                                      .WithProviderSource(Models.Providers.ProviderSource.FDZ)
+                                                                                      .WithProviderSnapshotId(providerSnapshotId));
+
+            SpecificationEditModel editModel = new SpecificationEditModel();
+
+            string editSpecificationJobId = NewRandomString();
+
+            GivenEditSpecificationJobQueued(editSpecificationJobId);
+
+            await WhenTheQueueEditSpecificationJobActionsIsRun(specificationVersion, previousspecificationVersion, editModel, _user, _correlationId, false, !disableQueueCalculationJob);
+            
+            await ThenEditSpecificationJobWasCreated(CreateJobModelMatching(_ => _.JobDefinitionId == JobConstants.DefinitionNames.EditSpecificationJob &&
+                                            HasProperty(_, SpecificationIdKey, specificationId))
+                );
 
             await ThenProviderSnapshotDataLoadJobWasNotCreated(
                 CreateJobModelMatching(_ => _.JobDefinitionId == JobConstants.DefinitionNames.ProviderSnapshotDataLoadJob &&
+                                            _.ParentJobId == editSpecificationJobId &&
                                             HasProperty(_, SpecificationIdKey, specificationId) &&
                                             HasProperty(_, FundingStreamIdKey, fundingStreamId) &&
                                             HasProperty(_, ProviderSnapshotIdKey, providerSnapshotId.ToString()) &&
@@ -137,7 +188,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
         }
 
         [TestMethod]
-        public async Task ShouldQueueMapScopedDatasetJobWhenSpecificationProviverSoruceIsCFSAndHaveProviderVersionId()
+        public async Task ShouldQueueMapScopedDatasetJobWhenSpecificationProviderSourceIsCFSAndHaveProviderVersionId()
         {
             string fundingStreamId = NewRandomString();
             string specificationId = NewRandomString();
@@ -150,9 +201,20 @@ namespace CalculateFunding.Services.Specs.UnitTests
                                                                                       .WithProviderSource(Models.Providers.ProviderSource.CFS)
                                                                                       .WithProviderVersionId(providerVersionId));
 
-            GivenTheDatasetSpecificationRelationship(specificationId, datasetId);
+            SpecificationVersion previousspecificationVersion = NewSpecificationVersion(_ => _.WithFundingStreamsIds(fundingStreamId)
+                                                                                      .WithSpecificationId(specificationId)
+                                                                                      .WithProviderSource(Models.Providers.ProviderSource.FDZ));
+
+            SpecificationEditModel editModel = new SpecificationEditModel();
+
+            GivenTheDatasetSpecificationRelationship(specificationId, datasetId); 
+
             AndTheDataset(datasetId);
-            await WhenTheQueueEditSpecificationJobActionsIsRun(specificationVersion, _user, _correlationId, false, !disableQueueCalculationJob);
+            await WhenTheQueueEditSpecificationJobActionsIsRun(specificationVersion, previousspecificationVersion, editModel, _user, _correlationId, false, !disableQueueCalculationJob);
+
+            await ThenEditSpecificationJobWasCreated(CreateJobModelMatching(_ => _.JobDefinitionId == JobConstants.DefinitionNames.EditSpecificationJob &&
+                                            HasProperty(_, SpecificationIdKey, specificationId))
+                );
 
             await ThenProviderSnapshotDataLoadJobWasCreated(
                 CreateJobModelMatching(_ => _.JobDefinitionId == JobConstants.DefinitionNames.MapScopedDatasetJob &&
@@ -183,6 +245,12 @@ namespace CalculateFunding.Services.Specs.UnitTests
                 }));
         }
 
+        private async Task ThenEditSpecificationJobWasCreated(Expression<Predicate<JobCreateModel>> expectedJob)
+        {
+            await _jobManagement.Received(1).QueueJob(
+                Arg.Is(expectedJob));
+        }
+
         private async Task ThenProviderSnapshotDataLoadJobWasCreated(Expression<Predicate<JobCreateModel>> expectedJob)
         {
             await _jobManagement.Received(1).QueueJob(
@@ -211,13 +279,33 @@ namespace CalculateFunding.Services.Specs.UnitTests
                    && matchValue1 == value;
         }
 
+        private void AndEditSpecificationJobQueued(string jobId)
+        {
+            GivenEditSpecificationJobQueued(jobId);
+        }
+
+        private void GivenEditSpecificationJobQueued(string jobId)
+        {
+            _jobManagement
+                .QueueJob(Arg.Is<JobCreateModel>(_ => _.JobDefinitionId == JobConstants.DefinitionNames.EditSpecificationJob))
+                .Returns(new Job { Id = jobId });
+        }
+
         private async Task WhenTheQueueEditSpecificationJobActionsIsRun(SpecificationVersion specificationVersion,
+            SpecificationVersion previousSpecificationVersion,
+            SpecificationEditModel editModel,
             Reference user,
             string correlationId,
             bool triggerProviderSnapshotDataLoadJob,
             bool triggerCalculationEngineRunJob)
         {
-            await _action.Run(specificationVersion, user, correlationId, triggerProviderSnapshotDataLoadJob, triggerCalculationEngineRunJob);
+            await _action.Run(specificationVersion,
+                previousSpecificationVersion,
+                editModel,
+                user,
+                correlationId,
+                triggerProviderSnapshotDataLoadJob,
+                triggerCalculationEngineRunJob);
         }
 
         private string NewRandomString() => new RandomString();

@@ -25,55 +25,104 @@ namespace CalculateFunding.Services.Specs
         private readonly IJobManagement _jobManagement;
         private readonly IDatasetsApiClient _datasets;
         private readonly AsyncPolicy _datasetsPolicy;
+        private readonly ISpecificationTemplateVersionChangedHandler _templateVersionChangedHandler;
         private readonly ILogger _logger;
+        private const string EditSpecificationJobOutCome = "No change";
 
         public QueueEditSpecificationJobActions(
             IJobManagement jobManagement,
             IDatasetsApiClient datasets,
             ISpecificationsResiliencePolicies resiliencePolicies,
+            ISpecificationTemplateVersionChangedHandler templateVersionChangedHandler,
             ILogger logger)
         {
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(resiliencePolicies?.DatasetsApiClient, nameof(resiliencePolicies.DatasetsApiClient));
             Guard.ArgumentNotNull(datasets, nameof(datasets));
+            Guard.ArgumentNotNull(templateVersionChangedHandler, nameof(templateVersionChangedHandler));
 
             _jobManagement = jobManagement;
             _logger = logger;
             _datasets = datasets;
             _datasetsPolicy = resiliencePolicies.DatasetsApiClient;
+            _templateVersionChangedHandler = templateVersionChangedHandler;
         }
 
         public async Task Run(
             SpecificationVersion specificationVersion, 
+            SpecificationVersion previousSpecificationVersion,
+            SpecificationEditModel editModel,
             Reference user, 
             string correlationId, 
             bool triggerProviderSnapshotDataLoadJob,
             bool triggerCalculationEngineRunJob)
         {
-            string errorMessage = $"Unable to queue ProviderSnapshotDataLoadJob for specification - {specificationVersion.SpecificationId}";
+            string errorMessage = $"Unable to queue Edit Specification Job for specification - {specificationVersion.SpecificationId}";
             string triggerMessage = $"Assigning ProviderVersionId for specification: {specificationVersion.SpecificationId}";
-            Reference fundingStream = specificationVersion.FundingStreams.FirstOrDefault();
-            if (fundingStream != null && (specificationVersion.ProviderSource == Models.Providers.ProviderSource.FDZ || triggerProviderSnapshotDataLoadJob))
+            bool assignTemplateJobQueued = false;
+            Job createEditSpecificationJob = null;
+
+            try
             {
-                Job createProviderSnapshotDataLoadJob = await CreateJob(errorMessage,
-                NewJobCreateModel(specificationVersion.SpecificationId,
-                    triggerMessage,
-                    JobConstants.DefinitionNames.ProviderSnapshotDataLoadJob,
-                    correlationId,
+                createEditSpecificationJob = await CreateJob(errorMessage,
+                    NewJobCreateModel(specificationVersion.SpecificationId,
+                        triggerMessage,
+                        JobConstants.DefinitionNames.EditSpecificationJob,
+                        correlationId,
+                        user,
+                        new Dictionary<string, string>
+                        {
+                        { "specification-id", specificationVersion.SpecificationId },
+                        { "user-id", user?.Id},
+                        { "user-name", user?.Name}
+                        }));
+
+                GuardAgainstNullJob(createEditSpecificationJob, errorMessage);
+
+                assignTemplateJobQueued = await _templateVersionChangedHandler.HandleTemplateVersionChanged(
+                    previousSpecificationVersion,
+                    specificationVersion,
+                    editModel.AssignedTemplateIds,
                     user,
-                    new Dictionary<string, string>
-                    {
+                    correlationId,
+                    createEditSpecificationJob.Id);
+
+                errorMessage = $"Unable to queue ProviderSnapshotDataLoadJob for specification - {specificationVersion.SpecificationId}";
+                Reference fundingStream = specificationVersion.FundingStreams.FirstOrDefault();
+                if (fundingStream != null &&
+                    (specificationVersion.ProviderSource == Models.Providers.ProviderSource.FDZ ||
+                    triggerProviderSnapshotDataLoadJob))
+                {
+                    Job createProviderSnapshotDataLoadJob = await CreateJob(errorMessage,
+                    NewJobCreateModel(specificationVersion.SpecificationId,
+                        triggerMessage,
+                        JobConstants.DefinitionNames.ProviderSnapshotDataLoadJob,
+                        correlationId,
+                        user,
+                        new Dictionary<string, string>
+                        {
                         { "specification-id", specificationVersion.SpecificationId},
                         { "fundingstream-id", fundingStream.Id},
                         { "providerSanpshot-id", specificationVersion.ProviderSnapshotId?.ToString() },
                         { "disableQueueCalculationJob", (!triggerCalculationEngineRunJob).ToString()}
-                    }));
+                        },
+                        parentJobId: createEditSpecificationJob.Id)
+                    );
 
-                GuardAgainstNullJob(createProviderSnapshotDataLoadJob, errorMessage);
+                    GuardAgainstNullJob(createProviderSnapshotDataLoadJob, errorMessage);
+                }
+            }
+            finally
+            {
+                if (createEditSpecificationJob != null && !assignTemplateJobQueued && !triggerProviderSnapshotDataLoadJob)
+                {
+                    await _jobManagement.UpdateJobStatus(createEditSpecificationJob.Id, 100, true, EditSpecificationJobOutCome);
+                }
             }
 
-            if(specificationVersion.ProviderSource == Models.Providers.ProviderSource.CFS && !string.IsNullOrWhiteSpace(specificationVersion.ProviderVersionId))
+            if (specificationVersion.ProviderSource == Models.Providers.ProviderSource.CFS && 
+                !string.IsNullOrWhiteSpace(specificationVersion.ProviderVersionId))
             {
                 ApiResponse<IEnumerable<DatasetSpecificationRelationshipViewModel>> response =
                         await _datasetsPolicy.ExecuteAsync(() => _datasets.GetRelationshipsBySpecificationId(specificationVersion.SpecificationId));

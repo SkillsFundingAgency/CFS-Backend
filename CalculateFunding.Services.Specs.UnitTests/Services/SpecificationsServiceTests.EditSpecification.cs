@@ -390,14 +390,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
               _versionRepository
                .Received(1)
                .SaveVersion(Arg.Is(newSpecVersion));
-
-            await _templateVersionChangedHandler
-                .Received(1)
-                .HandleTemplateVersionChanged(Arg.Is(previousSpecificationVersion),
-                    Arg.Is<SpecificationVersion>(_ => newSpecVersion.AsJson(true) == _.AsJson(true)),
-                    Arg.Is(specificationEditModel.AssignedTemplateIds), 
-                    Arg.Is(user),
-                     Arg.Is(correlationId));
         }
 
         [TestMethod]
@@ -502,14 +494,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
               _versionRepository
                .Received(1)
                .SaveVersion(Arg.Is(newSpecVersion));
-
-            await _templateVersionChangedHandler
-                .Received(1)
-                .HandleTemplateVersionChanged(Arg.Is(previousSpecificationVersion),
-                    Arg.Is<SpecificationVersion>(_ => newSpecVersion.AsJson(true) == _.AsJson(true)),
-                    Arg.Is(specificationEditModel.AssignedTemplateIds),
-                    Arg.Is(user),
-                     Arg.Is(correlationId));
         }
 
         [TestMethod]
@@ -530,10 +514,13 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             SpecificationVersion newSpecVersion = _specification.Current.DeepCopy(useCamelCase: false);
             newSpecVersion.Name = specificationEditModel.Name;
             newSpecVersion.FundingPeriod.Id = specificationEditModel.FundingPeriodId;
-            newSpecVersion.FundingStreams = new[] { new Reference { Id = "fs11" } };
+            newSpecVersion.FundingStreams = new[] { new Reference { Id = "fs1" } };
             newSpecVersion.FundingPeriod.Name = "p10";
             newSpecVersion.Author = user;
             newSpecVersion.Description = specificationEditModel.Description;
+            newSpecVersion.TemplateIds = new Dictionary<string, string> { { "fs1", "2.0" } };
+
+            specificationEditModel.AssignedTemplateIds.Add("fs1", "2.0");
 
             AndGetFundingConfiguration(
                 _specification.Current.FundingStreams.FirstOrDefault().Id,
@@ -585,19 +572,13 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                .Received(1)
                .SaveVersion(Arg.Is(newSpecVersion));
 
-            await _templateVersionChangedHandler
-                .Received(1)
-                .HandleTemplateVersionChanged(Arg.Is(previousSpecificationVersion),
-                    Arg.Any<SpecificationVersion>(),
-                    Arg.Is(specificationEditModel.AssignedTemplateIds),
-                    Arg.Is(user),
-                     Arg.Is(correlationId));
-
             await _editSpecificationJobActions
                 .Received(1)
                 .Run(Arg.Is<SpecificationVersion>(
                         m => !string.IsNullOrWhiteSpace(m.EntityId)  &&
                              m.Name == specificationEditModel.Name),
+                    Arg.Is<SpecificationVersion>(_ => _.AsJson(false) == previousSpecificationVersion.AsJson(false)),
+                    Arg.Is(specificationEditModel),
                     Arg.Any<Reference>(),
                     Arg.Any<string>(),
                     Arg.Any<bool>(),
@@ -723,19 +704,13 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                .Received(1)
                .SaveVersion(Arg.Is(newSpecVersion));
 
-            await _templateVersionChangedHandler
-                .Received(1)
-                .HandleTemplateVersionChanged(Arg.Is(previousSpecificationVersion),
-                    Arg.Any<SpecificationVersion>(),
-                    Arg.Is(specificationEditModel.AssignedTemplateIds),
-                    Arg.Is(user),
-                     Arg.Is(correlationId));
-
             await _editSpecificationJobActions
                 .Received(1)
                 .Run(Arg.Is<SpecificationVersion>(
                         m => !string.IsNullOrWhiteSpace(m.EntityId) &&
                              m.Name == specificationEditModel.Name),
+                    Arg.Is<SpecificationVersion>(_ => _.AsJson(false) == previousSpecificationVersion.AsJson(false)),
+                    Arg.Is(specificationEditModel),
                     Arg.Any<Reference>(),
                     Arg.Any<string>(),
                     true,
@@ -754,7 +729,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .UpdateSpecification(Arg.Any<Specification>())
                 .Returns(HttpStatusCode.OK);
             _versionRepository
-                .CreateVersion(Arg.Any<Models.Specs.SpecificationVersion>(), Arg.Any<Models.Specs.SpecificationVersion>())
+                .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
                 .Returns(newSpecVersion);
             SpecificationsService service = CreateService(
                 mapper: _mapper, 

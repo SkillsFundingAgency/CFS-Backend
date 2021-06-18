@@ -65,8 +65,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         private readonly IJobManagement _jobManagement;
         private readonly IVersionRepository<Models.Specs.SpecificationVersion> _versionRepository;
         private Mock<IDatasetsApiClient> _datasets;
-
-        private ISpecificationTemplateVersionChangedHandler _templateVersionChangedHandler;
         private IResultsApiClient _resultsApiClient;
 
         [TestInitialize]
@@ -105,7 +103,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             _specificationIndexer = Substitute.For<ISpecificationIndexer>();
             _resultsApiClient = Substitute.For<IResultsApiClient>();
-            _templateVersionChangedHandler = Substitute.For<ISpecificationTemplateVersionChangedHandler>();
 
             _datasets = new Mock<IDatasetsApiClient>();
         }
@@ -154,7 +151,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 providersApiClient ?? Substitute.For<IProvidersApiClient>(),
                 _specificationIndexer,
                 _resultsApiClient,
-                _templateVersionChangedHandler,
                 assignSpecificationProviderVersionModelValidator ?? CreateAssignSpecificationProviderVersionModelValidator(),
                 jobManagement ?? CreateJobManagement(),
                 _datasets.Object);
@@ -355,7 +351,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                     Version = 1,
                     ProviderSource = Models.Providers.ProviderSource.CFS,
                     ProviderSnapshotId = 0,
-                    SpecificationId = SpecificationId
+                    SpecificationId = SpecificationId,
+                    TemplateIds = new Dictionary<string, string> { {"fs1", "1.0"} }
                 }
             };
         }

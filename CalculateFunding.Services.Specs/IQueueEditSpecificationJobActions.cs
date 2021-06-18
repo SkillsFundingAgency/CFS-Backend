@@ -7,7 +7,9 @@ namespace CalculateFunding.Services.Specs
     public interface IQueueEditSpecificationJobActions
     {
         Task Run(
-            SpecificationVersion specificationVersion, 
+            SpecificationVersion specificationVersion,
+            SpecificationVersion previousSpecificationVersion,
+            SpecificationEditModel editModel,
             Reference user, 
             string correlationId, 
             bool triggerProviderSnapshotDataLoadJob,

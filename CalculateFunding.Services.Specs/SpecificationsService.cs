@@ -63,7 +63,7 @@ namespace CalculateFunding.Services.Specs
         private readonly IValidator<SpecificationEditModel> _specificationEditModelValidator;
         private readonly ICacheProvider _cacheProvider;
         private readonly IResultsRepository _resultsRepository;
-        private readonly IVersionRepository<Models.Specs.SpecificationVersion> _specificationVersionRepository;
+        private readonly IVersionRepository<SpecificationVersion> _specificationVersionRepository;
         private readonly IQueueCreateSpecificationJobActions _queueCreateSpecificationJobAction;
         private readonly IQueueEditSpecificationJobActions _queueEditSpecificationJobActions;
         private readonly IQueueDeleteSpecificationJobActions _queueDeleteSpecificationJobAction;
@@ -73,7 +73,6 @@ namespace CalculateFunding.Services.Specs
         private readonly IProvidersApiClient _providersApiClient;
         private readonly AsyncPolicy _providersApiClientPolicy;
         private readonly ISpecificationIndexer _specificationIndexer;
-        private readonly ISpecificationTemplateVersionChangedHandler _templateVersionChangedHandler;
         private readonly IValidator<AssignSpecificationProviderVersionModel> _assignSpecificationProviderVersionModelValidator;
         private readonly IResultsApiClient _results;
         private readonly AsyncPolicy _resultsApiClientPolicy;
@@ -93,7 +92,7 @@ namespace CalculateFunding.Services.Specs
             ICacheProvider cacheProvider,
             IValidator<SpecificationEditModel> specificationEditModelValidator,
             IResultsRepository resultsRepository,
-            IVersionRepository<Models.Specs.SpecificationVersion> specificationVersionRepository,
+            IVersionRepository<SpecificationVersion> specificationVersionRepository,
             ISpecificationsResiliencePolicies resiliencePolicies,
             IQueueCreateSpecificationJobActions queueCreateSpecificationJobAction,
             IQueueEditSpecificationJobActions queueEditSpecificationJobActions,
@@ -103,7 +102,6 @@ namespace CalculateFunding.Services.Specs
             IProvidersApiClient providersApiClient,
             ISpecificationIndexer specificationIndexer,
             IResultsApiClient results,
-            ISpecificationTemplateVersionChangedHandler templateVersionChangedHandler,
             IValidator<AssignSpecificationProviderVersionModel> assignSpecificationProviderVersionModelValidator,
             IJobManagement jobManagement,
             IDatasetsApiClient datasets) : base(jobManagement, logger)
@@ -134,7 +132,6 @@ namespace CalculateFunding.Services.Specs
             Guard.ArgumentNotNull(providersApiClient, nameof(providersApiClient));
             Guard.ArgumentNotNull(specificationIndexer, nameof(specificationIndexer));
             Guard.ArgumentNotNull(results, nameof(results));
-            Guard.ArgumentNotNull(templateVersionChangedHandler, nameof(templateVersionChangedHandler));
             Guard.ArgumentNotNull(assignSpecificationProviderVersionModelValidator, nameof(assignSpecificationProviderVersionModelValidator));
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(datasets, nameof(datasets));
@@ -162,7 +159,6 @@ namespace CalculateFunding.Services.Specs
             _providersApiClient = providersApiClient;
             _specificationIndexer = specificationIndexer;
             _results = results;
-            _templateVersionChangedHandler = templateVersionChangedHandler;
             _assignSpecificationProviderVersionModelValidator = assignSpecificationProviderVersionModelValidator;
             _providersApiClientPolicy = resiliencePolicies.ProvidersApiClient;
             _resultsApiClientPolicy = resiliencePolicies.ResultsApiClient;
@@ -826,7 +822,7 @@ namespace CalculateFunding.Services.Specs
                 return new NotFoundObjectResult("Specification not found");
             }
 
-            SpecificationVersion previousSpecificationVersion = specification.Current;
+            SpecificationVersion previousSpecificationVersion = specification.Current.DeepCopy(useCamelCase: false);
 
             if (previousSpecificationVersion.ProviderVersionId != editModel.ProviderVersionId)
             {
@@ -851,7 +847,7 @@ namespace CalculateFunding.Services.Specs
             specificationVersion.Author = user;
             specificationVersion.SpecificationId = specificationId;
             specificationVersion.CoreProviderVersionUpdates = editModel.CoreProviderVersionUpdates;
-
+            
             specification.Name = editModel.Name;
 
             string previousFundingPeriodId = specificationVersion.FundingPeriod.Id;
@@ -872,6 +868,11 @@ namespace CalculateFunding.Services.Specs
             }
 
             string fundingStreamId = specification.Current.FundingStreams.FirstOrDefault().Id;
+
+            if (editModel.AssignedTemplateIds.AnyWithNullCheck() && editModel.AssignedTemplateIds.ContainsKey(fundingStreamId))
+            {
+                specificationVersion.AddOrUpdateTemplateId(fundingStreamId, editModel.AssignedTemplateIds[fundingStreamId]);
+            }
 
             ApiResponse<PolicyModels.FundingConfig.FundingConfiguration> fundingConfigResponse =
                 await _policiesApiClientPolicy.ExecuteAsync(() =>
@@ -926,13 +927,6 @@ namespace CalculateFunding.Services.Specs
                 }
             }
 
-            await _templateVersionChangedHandler.HandleTemplateVersionChanged(
-                previousSpecificationVersion,
-                specificationVersion,
-                editModel.AssignedTemplateIds,
-                user,
-                correlationId);
-
             HttpStatusCode statusCode =
                 await UpdateSpecification(specification, specificationVersion, previousSpecificationVersion);
 
@@ -951,13 +945,15 @@ namespace CalculateFunding.Services.Specs
             }
 
             await SendSpecificationComparisonModelMessageToTopic(specificationId,
-                ServiceBusConstants.TopicNames.EditSpecification, specification.Current, previousSpecificationVersion,
+                ServiceBusConstants.TopicNames.EditSpecification, specificationVersion, previousSpecificationVersion,
                 user, correlationId);
 
             bool triggerCalculationEngineRunJob = fundingConfiguration.RunCalculationEngineAfterCoreProviderUpdate;
 
             await _queueEditSpecificationJobActions.Run(
-                specificationVersion, 
+                specificationVersion,
+                previousSpecificationVersion,
+                editModel,
                 user, 
                 correlationId, 
                 triggerProviderSnapshotDataLoadJob, 
@@ -1141,10 +1137,10 @@ namespace CalculateFunding.Services.Specs
                         new[] { $"Specification could not be found for id {specificationId}" });
                 }
 
-                Models.Specs.SpecificationVersion previousSpecificationVersion = specification.Current;
+                SpecificationVersion previousSpecificationVersion = specification.Current;
 
-                Models.Specs.SpecificationVersion specificationVersion =
-                    specification.Current.Clone() as Models.Specs.SpecificationVersion;
+                SpecificationVersion specificationVersion =
+                    specification.Current.Clone() as SpecificationVersion;
 
                 if (specificationVersion.DataDefinitionRelationshipIds.IsNullOrEmpty())
                 {
@@ -1403,7 +1399,7 @@ WHERE   s.documentType = @DocumentType",
         }
 
         private async Task<HttpStatusCode> UpdateSpecification(Specification specification,
-            Models.Specs.SpecificationVersion specificationVersion, Models.Specs.SpecificationVersion previousVersion)
+            SpecificationVersion specificationVersion, SpecificationVersion previousVersion)
         {
             specificationVersion =
                 await _specificationVersionRepository.CreateVersion(specificationVersion, previousVersion);

@@ -112,11 +112,11 @@ namespace CalculateFunding.Services.Specs
         }
 
         private async Task CreateAssignCalculationJobForFundingStream(string fundingStreamId,
-            string fundingPeriodId,
-            SpecificationVersion specificationVersion,
-            Reference user,
-            string correlationId,
-            string parentJobId)
+        string fundingPeriodId,
+        SpecificationVersion specificationVersion,
+        Reference user,
+        string correlationId,
+        string parentJobId)
         {
             string templateVersion = specificationVersion.TemplateIds.ContainsKey(fundingStreamId) ? specificationVersion.TemplateIds[fundingStreamId] : string.Empty;
 

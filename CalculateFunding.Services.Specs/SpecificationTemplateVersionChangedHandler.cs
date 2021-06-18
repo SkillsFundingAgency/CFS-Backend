@@ -45,18 +45,21 @@ namespace CalculateFunding.Services.Specs
             _calculationsPolicy = resiliencePolicies.CalcsApiClient;
         }
 
-        public async Task HandleTemplateVersionChanged(SpecificationVersion previousSpecificationVersion,
+        public async Task<bool> HandleTemplateVersionChanged(SpecificationVersion previousSpecificationVersion,
             SpecificationVersion specificationVersion,
             IDictionary<string, string> assignedTemplateIds,
             Reference user,
-            string correlationId)
+            string correlationId,
+            string parentJobId)
         {
+            bool assignTemplateJobQueued = false;
+
             Guard.ArgumentNotNull(previousSpecificationVersion, nameof(previousSpecificationVersion));
 
             if (assignedTemplateIds.IsNullOrEmpty())
             {
                 //this is a temporary branch to keep the existing edit call working before the UI catches up
-                return;
+                return assignTemplateJobQueued;
             }
 
             string specificationId = previousSpecificationVersion.SpecificationId;
@@ -74,6 +77,8 @@ namespace CalculateFunding.Services.Specs
                     continue;
                 }
 
+                assignTemplateJobQueued = true;
+
                 LogInformation($"FundingStream {fundingStreamId} template version id {templateVersionId} changed for specification {specificationId}.");
 
                 string previousTemplateVersionId = previousSpecificationVersion.GetTemplateVersionId(fundingStreamId);
@@ -83,8 +88,10 @@ namespace CalculateFunding.Services.Specs
                 }
 
                 await AssignTemplateWithSpecification(specificationVersion, templateVersionId, fundingStreamId, fundingPeriodId);
-                await QueueAssignTemplateCalculationsJob(user, correlationId, specificationId, fundingStreamId, fundingPeriodId, templateVersionId);
+                await QueueAssignTemplateCalculationsJob(user, correlationId, specificationId, fundingStreamId, fundingPeriodId, templateVersionId, parentJobId);
             }
+
+            return assignTemplateJobQueued;
         }
 
         private Task<Job> DetectAndCreateObsoleteItemsForFundingLines(Reference user,
@@ -131,7 +138,8 @@ namespace CalculateFunding.Services.Specs
             string specificationId,
             string fundingStreamId,
             string fundingPeriodId,
-            string templateVersionId) =>
+            string templateVersionId,
+            string parentJobId) =>
             _jobs.QueueJob(new JobCreateModel
             {
                 JobDefinitionId = AssignTemplateCalculationsJob,
@@ -139,6 +147,7 @@ namespace CalculateFunding.Services.Specs
                 InvokerUserDisplayName = user?.Name,
                 CorrelationId = correlationId,
                 SpecificationId = specificationId,
+                ParentJobId = parentJobId,
                 Trigger = new Trigger
                 {
                     Message = "Changed template version for specification",
@@ -167,8 +176,6 @@ namespace CalculateFunding.Services.Specs
             string fundingStreamId,
             string fundingPeriodId)
         {
-            specificationVersion.AddOrUpdateTemplateId(fundingStreamId, templateVersionId);
-
             ApiResponse<TemplateMapping> mappingResponse = await _calculationsPolicy.ExecuteAsync(() => _calculations.ProcessTemplateMappings(specificationVersion.SpecificationId,
                 templateVersionId,
                 fundingStreamId));

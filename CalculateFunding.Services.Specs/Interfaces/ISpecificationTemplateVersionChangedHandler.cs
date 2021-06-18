@@ -7,10 +7,11 @@ namespace CalculateFunding.Services.Specs.Interfaces
 {
     public interface ISpecificationTemplateVersionChangedHandler
     {
-        Task HandleTemplateVersionChanged(SpecificationVersion previousSpecificationVersion,
+        Task<bool> HandleTemplateVersionChanged(SpecificationVersion previousSpecificationVersion,
             SpecificationVersion specificationVersion,
-           IDictionary<string, string> assignedTemplateIds,
+            IDictionary<string, string> assignedTemplateIds,
             Reference user,
-            string correlationId);
+            string correlationId,
+            string parentJobId);
     }
 }
