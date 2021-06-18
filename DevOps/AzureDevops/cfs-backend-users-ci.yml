@@ -21,7 +21,9 @@ trigger:
   paths:
     include:
     - CalculateFunding.Api.Users
+    - CalculateFunding.Api.Users.UnitTests
     - CalculateFunding.Functions.Users
+    - CalculateFunding.Functions.Users.UnitTests
     - CalculateFunding.Services.Users
     - CalculateFunding.Services.Users.UnitTests
     - CalculateFunding.Services.Core
