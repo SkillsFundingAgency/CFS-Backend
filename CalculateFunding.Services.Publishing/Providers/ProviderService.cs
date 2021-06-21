@@ -205,7 +205,8 @@ namespace CalculateFunding.Services.Publishing.Providers
         {
             IDictionary<string, PublishedProvider> scopedPublishedProviders = publishedProviders.Values.Where(_ => scopedProviders.ContainsKey(_.Current.Provider.ProviderId)).ToDictionary(_ => _.Current.Provider.ProviderId);
 
-            foreach (Provider predecessor in scopedProviders.Values.Where(_ => _.GetSuccessors().Any()))
+            // get all predecessors which are eligible for funding
+            foreach (Provider predecessor in scopedProviders.Values.Where(_ => _.GetSuccessors().Any() && scopedPublishedProviders.ContainsKey(_.ProviderId)))
             {
                 foreach (string successor in predecessor.GetSuccessors())
                 {
