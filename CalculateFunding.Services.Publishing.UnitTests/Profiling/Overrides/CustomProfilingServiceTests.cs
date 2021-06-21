@@ -138,7 +138,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
                                     NewDistributionPeriod(dp =>
                                 dp.WithDistributionPeriodId("FY-2022")
                                     .WithProfilePeriods(profilePeriod2)))
-                            .WithValue(profilePeriod1.ProfiledValue + (profilePeriod2.ProfiledValue - carryOver.GetValueOrDefault())))
+                            .WithValue(profilePeriod1.ProfiledValue + profilePeriod2.ProfiledValue + carryOver.GetValueOrDefault()))
                         ))));
 
             Reference author = NewAuthor();

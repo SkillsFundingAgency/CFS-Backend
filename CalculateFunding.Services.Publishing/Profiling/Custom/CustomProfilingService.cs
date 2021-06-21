@@ -78,7 +78,7 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
                 currentProviderVersion.AddOrUpdateCustomProfile(fundingLineCode, request.CarryOver, distributionPeriodId);
             }
 
-            currentProviderVersion.VerifyProfileAmountsMatchFundingLineValue(fundingLineCode, request.CarryOver);
+            currentProviderVersion.VerifyProfileAmountsMatchFundingLineValue(fundingLineCode, request.ProfilePeriods, request.CarryOver);
 
             if (request.HasCarryOver)
             {

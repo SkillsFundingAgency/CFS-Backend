@@ -352,13 +352,13 @@ namespace CalculateFunding.Models.Publishing
             }
         }
 
-        public void VerifyProfileAmountsMatchFundingLineValue(string fundingLineCode, decimal? carryOver)
+        public void VerifyProfileAmountsMatchFundingLineValue(string fundingLineCode, IEnumerable<ProfilePeriod> profilePeriods, decimal? carryOver)
         {
-            decimal reProfileFundingLineTotal = GetDistributionPeriods(fundingLineCode).SelectMany(_ => _.ProfilePeriods).Sum(_ => _.ProfiledValue);
             decimal fundingLineTotal = GetFundingLineTotal(fundingLineCode).GetValueOrDefault();
-            decimal totalAmount = fundingLineTotal + carryOver.GetValueOrDefault();
+            decimal reProfileFundingLineTotal = profilePeriods.Sum(_ => _.ProfiledValue);
+            decimal totalAmount = reProfileFundingLineTotal + carryOver.GetValueOrDefault();
 
-            if (totalAmount != reProfileFundingLineTotal)
+            if (totalAmount != fundingLineTotal)
             {
                 throw new InvalidOperationException(
                     $"Profile amounts ({fundingLineTotal}) and carry over amount ({carryOver.GetValueOrDefault()}) does not equal funding line total requested ({reProfileFundingLineTotal}) from strategy.");
