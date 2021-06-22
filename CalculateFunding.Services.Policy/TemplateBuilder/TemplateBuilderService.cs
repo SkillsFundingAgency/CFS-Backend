@@ -220,7 +220,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                     MajorVersion = 0,
                     MinorVersion = 1,
                     PublishStatus = PublishStatus.Draft,
-                    SchemaVersion = command.SchemaVersion,
+                    SchemaVersion = "1.2",
                     Author = author,
                     Date = DateTimeOffset.Now.ToLocalTime()
                 };
@@ -661,19 +661,19 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
 
         private (ValidationFailure, TemplateJsonContentUpdateCommand) MapCommand(TemplateFundingLinesUpdateCommand command)
         {
-            (IEnumerable<SchemaJsonFundingLine> fundingLines, string errorMessage) =
-                Deserialise<IEnumerable<SchemaJsonFundingLine>>(command.TemplateFundingLinesJson);
+            (IEnumerable<CalculateFunding.Common.TemplateMetadata.Schema12.Models.SchemaJsonFundingLine> fundingLines, string errorMessage) =
+                Deserialise<IEnumerable<CalculateFunding.Common.TemplateMetadata.Schema12.Models.SchemaJsonFundingLine>>(command.TemplateFundingLinesJson);
             if (!errorMessage.IsNullOrEmpty())
             {
                 _logger.Error("Updating Template: Input Validation: Failed to deserialise json template: " + errorMessage);
                 return (new ValidationFailure(nameof(command.TemplateFundingLinesJson), errorMessage), null);
             }
 
-            var templateJson = new SchemaJson
+            var templateJson = new CalculateFunding.Common.TemplateMetadata.Schema12.Models.SchemaJson
             {
                 Schema = "https://fundingschemas.blob.core.windows.net/schemas/funding-template-schema-1.2.json",
                 SchemaVersion = "1.2",
-                FundingTemplate = new SchemaJsonFundingStreamTemplate
+                FundingTemplate = new CalculateFunding.Common.TemplateMetadata.Schema12.Models.SchemaJsonFundingStreamTemplate
                 {
                     FundingLines = fundingLines
                 }

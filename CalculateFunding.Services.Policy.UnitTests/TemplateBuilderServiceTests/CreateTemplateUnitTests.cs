@@ -140,7 +140,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             [TestMethod]
             public void Saved_version_with_correct_SchemaVersion()
             {
-                _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.SchemaVersion == _command.SchemaVersion));
+                _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.SchemaVersion == "1.2"));
             }
 
             [TestMethod]
@@ -188,7 +188,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             [TestMethod]
             public void Saved_current_version_with_correct_SchemaVersion()
             {
-                _templateRepository.Received(1).CreateDraft(Arg.Is<Template>(x => x.Current.SchemaVersion == _command.SchemaVersion));
+                _templateRepository.Received(1).CreateDraft(Arg.Is<Template>(x => x.Current.SchemaVersion == "1.2"));
             }
 
             [TestMethod]
