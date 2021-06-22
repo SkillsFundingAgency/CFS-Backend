@@ -66,6 +66,8 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
 
             PublishedProviderVersion currentProviderVersion = publishedProvider.Current;
 
+            currentProviderVersion.VerifyProfileAmountsMatchFundingLineValue(fundingLineCode, request.ProfilePeriods, request.CarryOver);
+
             foreach (IGrouping<string, ProfilePeriod> profilePeriods in request.ProfilePeriods.GroupBy(_ => _.DistributionPeriodId))
             {
                 string distributionPeriodId = profilePeriods.Key;
@@ -77,8 +79,6 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
 
                 currentProviderVersion.AddOrUpdateCustomProfile(fundingLineCode, request.CarryOver, distributionPeriodId);
             }
-
-            currentProviderVersion.VerifyProfileAmountsMatchFundingLineValue(fundingLineCode, request.ProfilePeriods, request.CarryOver);
 
             if (request.HasCarryOver)
             {
