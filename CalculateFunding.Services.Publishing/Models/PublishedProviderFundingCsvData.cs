@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace CalculateFunding.Services.Publishing.Models
+﻿namespace CalculateFunding.Services.Publishing.Models
 {
     public class PublishedProviderFundingCsvData
     {
@@ -15,5 +11,9 @@ namespace CalculateFunding.Services.Publishing.Models
         public string Upin { get; set; }
         public decimal? TotalFunding { get; set; }
         public string Status { get; set; }
+        public bool? IsIndicative { get; set; }
+        public int? MinorVersion { get; set; }
+        public int? MajorVersion { get; set; }
+        public string[] VariationReasons { get; set; }
     }
 }

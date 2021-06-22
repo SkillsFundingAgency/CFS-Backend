@@ -100,7 +100,7 @@ namespace CalculateFunding.IntegrationTests.Common
         protected IEnumerable<TItem> AsEnumerable<TItem>(params TItem[] items) => items;
 
         protected static string NewRandomString() => new RandomString();
-
         protected static int NewRandomInteger() => new RandomNumberBetween(1, int.MaxValue - 1);
+        protected static bool NewRandomFlag() => new RandomBoolean();
     }
 }

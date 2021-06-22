@@ -212,8 +212,12 @@ namespace CalculateFunding.Services.Publishing.Specifications
                 UKPRN = x.Ukprn,
                 URN = x.Urn,
                 UPIN = x.Upin,
+                IsIndicative = x.IsIndicative,
+                MajorVersion = x.MajorVersion,
+                MinorVersion = x.MinorVersion,
                 ProviderName = x.ProviderName,
-                FundingAmount = x.TotalFunding
+                FundingAmount = x.TotalFunding,
+                VariationReasons = string.Join(';', x.VariationReasons)
             });
 
             string csvFileData = _csvUtils.AsCsv(csvRows, true);

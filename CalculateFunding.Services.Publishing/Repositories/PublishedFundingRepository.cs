@@ -1585,7 +1585,11 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                     c.content.current.provider.urn,
                                     c.content.current.provider.upin,
                                     c.content.current.provider.name,
-                                    c.content.current.totalFunding
+                                    c.content.current.totalFunding,
+                                    c.content.current.majorVersion,
+                                    c.content.current.minorVersion,
+                                    c.content.current.isIndicative,
+                                    c.content.current.variationReasons
                               FROM publishedProvider c
                               WHERE c.documentType = 'PublishedProvider'
                               AND c.deleted = false 
@@ -1613,7 +1617,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
 
             IEnumerable<dynamic> results = await _repository.DynamicQuery(cosmosDbQuery);
 
-            return results.Select(_ => new PublishedProviderFundingCsvData()
+            return results.Select(_ => new PublishedProviderFundingCsvData
             {
                 SpecificationId = (string)_.specificationId,
                 FundingStreamId = (string)_.fundingStreamId,
@@ -1623,7 +1627,11 @@ namespace CalculateFunding.Services.Publishing.Repositories
                 Urn = (string)_.urn,
                 Upin = (string)_.upin,
                 TotalFunding = (decimal?)_.totalFunding,
-                Status = (string)_.status
+                Status = (string)_.status,
+                IsIndicative = (bool?)_.isIndicative,
+                MajorVersion = (int?)_.majorVersion,
+                MinorVersion = (int?)_.minorVersion,
+                VariationReasons = _.variationReasons?.ToObject<string[]>()
             });
         }
 

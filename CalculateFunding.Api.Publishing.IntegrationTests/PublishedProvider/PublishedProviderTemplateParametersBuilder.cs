@@ -15,6 +15,54 @@ namespace CalculateFunding.Api.Publishing.IntegrationTests.PublishedProvider
         private decimal? _totalFunding;
         private bool? _isIndicative;
         private string _status;
+        private string _ukPrn;
+        private string _urn;
+        private string _upin;
+        private string _name;
+        private int? _majorVersion;
+        private int? _minorVersion;
+
+        public PublishedProviderTemplateParametersBuilder WithUKPRN(string ukPrn)
+        {
+            _ukPrn = ukPrn;
+
+            return this;
+        }
+
+        public PublishedProviderTemplateParametersBuilder WithURN(string urn)
+        {
+            _urn = urn;
+
+            return this;
+        }
+
+        public PublishedProviderTemplateParametersBuilder WithUPIN(string upin)
+        {
+            _upin = upin;
+
+            return this;
+        }
+
+        public PublishedProviderTemplateParametersBuilder WithName(string name)
+        {
+            _name = name;
+
+            return this;
+        }
+
+        public PublishedProviderTemplateParametersBuilder WithMajorVersion(int majorVersion)
+        {
+            _majorVersion = majorVersion;
+
+            return this;
+        }
+
+        public PublishedProviderTemplateParametersBuilder WithMinorVersion(int minorVersion)
+        {
+            _minorVersion = minorVersion;
+
+            return this;
+        }
 
         public PublishedProviderTemplateParametersBuilder WithFundingPeriodId(string fundingPeriodId)
         {
@@ -107,7 +155,14 @@ namespace CalculateFunding.Api.Publishing.IntegrationTests.PublishedProvider
                 LaCode = _laCode ?? NewRandomString(),
                 TotalFunding = _totalFunding ?? NewRandomNumberBetween(0, 1000),
                 IsIndicative = _isIndicative ?? NewRandomFlag(),
-                Status = _status ?? NewRandomString()
+                Status = _status ?? NewRandomString(),
+                UKPRN = _ukPrn ?? NewRandomString(),
+                URN = _urn ?? NewRandomString(),
+                UPIN = _upin ?? NewRandomString(),
+                Name = _name ?? NewRandomString(),
+                MajorVersion = _majorVersion ?? NewRandomNumberBetween(0, 1000),
+                MinorVersion = _minorVersion ?? NewRandomNumberBetween(0, 1000),
+                
             };
         }
     }

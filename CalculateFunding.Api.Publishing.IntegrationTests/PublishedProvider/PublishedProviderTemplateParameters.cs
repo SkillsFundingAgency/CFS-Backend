@@ -15,5 +15,11 @@
         public decimal TotalFunding { get; set; }
         public bool IsIndicative { get; set; }
         public string Status { get; set; }
+        public string UKPRN { get; set; }
+        public string URN { get; set; }
+        public string UPIN { get; set; }
+        public string Name { get; set; }
+        public int MajorVersion { get; set; }
+        public int MinorVersion { get; set; }
     }
 }

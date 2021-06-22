@@ -38,7 +38,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
         {
             ProviderVariationContext variationContext = GivenTheVariationContextHasTheCurrentAndPriorStateDifferences(differences);
 
-            expectedVariationReasons ??= new VariationReason[0];
+            expectedVariationReasons ??= Array.Empty<VariationReason>();
             
             await _metadataVariationStrategy.DetermineVariations(variationContext, null);
 

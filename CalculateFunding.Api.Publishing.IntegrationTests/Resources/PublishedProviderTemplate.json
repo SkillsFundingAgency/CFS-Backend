@@ -6,14 +6,23 @@
       "specificationId": "<SPECIFICATIONID>",
       "publishedProviderId": "<PUBLISHEDPROVIDERID>",
       "fundingStreamId": "<FUNDINGSTREAMID>",
+      "fundingPeriodId": "<FUNDINGPERIODID>",
       "totalFunding": <TOTALFUNDING>,
       "isIndicative": "<ISINDICATIVE>",
       "status": "<STATUS>",
+      "majorVersion": <MAJORVERSION>,
+      "minorVersion": <MINORVERSION>,
+      "variationReasons": [],
       "errors": [],
       "provider": {
         "providerType": "<PROVIDERTYPE>",
         "providerSubType": "<PROVIDERSUBTYPE>",
-        "laCode": "<LACODE>"
+        "laCode": "<LACODE>",
+        "providerId": "<PROVIDERID>",
+        "ukprn": "<UKPRN>",
+        "urn": "<URN>",
+        "upin": "<UPIN>",
+        "name": "<NAME>"
       }
     },
     "id": "<ID>"

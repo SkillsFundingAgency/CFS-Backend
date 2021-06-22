@@ -20,14 +20,22 @@ namespace CalculateFunding.Api.Publishing.IntegrationTests.Data
                 ID = documentData.Id,
                 SPECIFICATIONID = documentData.SpecificationId,
                 PUBLISHEDPROVIDERID = documentData.PublishedProviderId,
-                FUNDINGSTREAM = documentData.FundingStream, 
+                FUNDINGSTREAMID = documentData.FundingStream,
+                FUNDINGPERIODID = documentData.FundingPeriodId,
                 TOTALFUNDING = documentData.TotalFunding,
                 PROVIDERTYPE = documentData.ProviderType,
                 PROVIDERSUBTYPE = documentData.ProviderSubType,
                 LACODE = documentData.LaCode,
                 ISINDICATIVE = documentData.IsIndicative,
                 STATUS = documentData.Status,
-                NOW = now
+                NOW = now,
+                PROVIDERID = documentData.ProviderId,
+                UKPRN = documentData.UKPRN,
+                URN = documentData.URN,
+                UPIN = documentData.UPIN,
+                NAME = documentData.Name,
+                MAJORVERSION = documentData.MajorVersion,
+                MINORVERSION = documentData.MinorVersion
             };
     }
 }

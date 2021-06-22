@@ -751,7 +751,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                                     c.content.current.provider.urn,
                                     c.content.current.provider.upin,
                                     c.content.current.provider.name,
-                                    c.content.current.totalFunding
+                                    c.content.current.totalFunding,
+                                    c.content.current.majorVersion,
+                                    c.content.current.minorVersion,
+                                    c.content.current.isIndicative,
+                                    c.content.current.variationReasons
                               FROM publishedProvider c
                               WHERE c.documentType = 'PublishedProvider'
                               AND c.deleted = false 
@@ -886,6 +890,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
         }
 
         private string NewRandomString() => new RandomString();
+        private JArray AsJArray(params object[] content) => new JArray(content);
 
         private PublishedProviderStatus NewRandomStatus() => new RandomEnum<PublishedProviderStatus>();
 
@@ -922,6 +927,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
             data.upin = NewRandomString();
             data.totalFunding = NewRandomNumber();
             data.status = status;
+            data.isIndicative = NewRandomFlag();
+            data.majorVersion = NewRandomNumber();
+            data.minorVersion = NewRandomNumber();
+            data.variationReasons = AsJArray(Array.Empty<string>());
 
             return data;
         }

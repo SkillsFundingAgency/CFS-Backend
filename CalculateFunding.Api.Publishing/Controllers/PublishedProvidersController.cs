@@ -261,10 +261,9 @@ The publishedProviderVersionId will be in the context of funding stream ID, fund
         [ProducesResponseType(200, Type = typeof(PublishedProviderDataDownload))]
         public async Task<IActionResult> GenerateCsvForBatchPublishedProvidersForApproval(
             [FromBody] PublishedProviderIdsRequest providerIds,
-            [FromRoute] string specificationId)
-        {
-            return await _publishedProviderStatusService.GetProviderDataForBatchApprovalAsCsv(providerIds, specificationId);
-        }
+            [FromRoute] string specificationId) => 
+            await _publishedProviderStatusService.GetProviderDataForBatchApprovalAsCsv(providerIds, specificationId);
+        
 
         /// <summary>
         /// Generates a csv file for all providers where they are ready for approval
@@ -274,10 +273,8 @@ The publishedProviderVersionId will be in the context of funding stream ID, fund
         [HttpPost("api/specifications/{specificationId}/publishedproviders/generate-csv-for-approval/all")]
         [ProducesResponseType(200, Type = typeof(PublishedProviderDataDownload))]
         public async Task<IActionResult> GenerateCsvForAllPublishedProvidersForApproval(
-            [FromRoute] string specificationId)
-        {
-            return await _publishedProviderStatusService.GetProviderDataForAllApprovalAsCsv(specificationId);
-        }
+            [FromRoute] string specificationId) =>
+            await _publishedProviderStatusService.GetProviderDataForAllApprovalAsCsv(specificationId);
 
         /// <summary>
         /// Generates a csv file for given providers where they are ready for release
@@ -289,10 +286,8 @@ The publishedProviderVersionId will be in the context of funding stream ID, fund
         [ProducesResponseType(200, Type = typeof(PublishedProviderDataDownload))]
         public async Task<IActionResult> GenerateCsvForBatchPublishedProvidersForRelease(
             [FromBody] PublishedProviderIdsRequest providerIds,
-            [FromRoute] string specificationId)
-        {
-            return await _publishedProviderStatusService.GetProviderDataForBatchReleaseAsCsv(providerIds, specificationId);
-        }
+            [FromRoute] string specificationId) =>
+            await _publishedProviderStatusService.GetProviderDataForBatchReleaseAsCsv(providerIds, specificationId);
 
         /// <summary>
         /// Generates a csv file for all providers where they are ready for release
@@ -302,9 +297,7 @@ The publishedProviderVersionId will be in the context of funding stream ID, fund
         [HttpPost("api/specifications/{specificationId}/publishedproviders/generate-csv-for-release/all")]
         [ProducesResponseType(200, Type = typeof(PublishedProviderDataDownload))]
         public async Task<IActionResult> GenerateCsvForAllPublishedProvidersForRelease(
-            [FromRoute] string specificationId)
-        {
-            return await _publishedProviderStatusService.GetProviderDataForAllReleaseAsCsv(specificationId);
-        }
+            [FromRoute] string specificationId) =>
+            await _publishedProviderStatusService.GetProviderDataForAllReleaseAsCsv(specificationId);
     }
 }
