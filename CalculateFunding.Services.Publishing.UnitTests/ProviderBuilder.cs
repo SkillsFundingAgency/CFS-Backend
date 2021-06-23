@@ -30,6 +30,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private string _reasonEstablishmentClosed;
         private string _paymentOrganisationIdentifier;
         private IEnumerable<string> _successors;
+        private ProviderTrustStatus? _trustStatus;
 
         public ProviderBuilder WithSuccessors(params string[] successors)
         {
@@ -55,6 +56,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         public ProviderBuilder WithTrustCode(string trustCode)
         {
             _trustCode = trustCode;
+
+            return this;
+        }
+
+        public ProviderBuilder WithTrustStatus(ProviderTrustStatus trustStatus)
+        {
+            _trustStatus = trustStatus;
 
             return this;
         }
@@ -201,7 +209,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 ProviderType = _providerType ?? NewRandomString(),
                 ProviderSubType = _providerSubType ?? NewRandomString(),
                 TrustCode = _trustCode ?? NewRandomString(),
-                TrustStatus = NewRandomEnum<ProviderTrustStatus>(),
+                TrustStatus = _trustStatus.GetValueOrDefault(NewRandomEnum<ProviderTrustStatus>()),
                 TrustName = _trustName ?? NewRandomString(),
                 WardCode = NewRandomString(),
                 WardName = NewRandomString(),

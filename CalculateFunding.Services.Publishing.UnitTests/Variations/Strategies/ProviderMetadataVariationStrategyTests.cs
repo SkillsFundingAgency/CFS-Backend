@@ -65,7 +65,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
 
         private ProviderVariationContext GivenTheVariationContextHasTheCurrentAndPriorStateDifferences(Action<Provider> differences)
         {
-            Provider priorState = NewProvider();
+            Provider priorState = NewProvider(_ => _.WithTrustStatus(ProviderTrustStatus.SupportedByATrust));
 
             ProviderVariationContext variationContext = NewProviderVariationContext(_ =>
                 _.WithPublishedProvider(NewPublishedProvider(pp =>
@@ -121,7 +121,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             yield return VariationExample(_ => _.LocalGovernmentGroupTypeName = NewRandomString());
             yield return VariationExample(_ => _.ProviderVersionId = NewRandomString());
             yield return VariationExample(_ => _.ProviderId = NewRandomString());
-            yield return VariationExample(_ => _.TrustStatus = new RandomEnum<ProviderTrustStatus>(ProviderTrustStatus.NotApplicable), VariationReason.TrustStatusFieldUpdated);
+            yield return VariationExample(_ => _.TrustStatus = ProviderTrustStatus.NotApplicable, VariationReason.TrustStatusFieldUpdated);
             yield return VariationExample(_ => _.UKPRN = NewRandomString());
             yield return VariationExample(_ => _.UPIN = NewRandomString());
             yield return VariationExample(_ => _.ProviderType = NewRandomString());
@@ -162,9 +162,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
 
         private static DateTimeOffset NewRandomDateTimeOffset() => new RandomDateTime();
 
-        private static Provider NewProvider() =>
-            new ProviderBuilder()
-                .Build();
+        private static Provider NewProvider(Action<ProviderBuilder> setUp = null)
+        {
+            ProviderBuilder providerBuilder = new ProviderBuilder();
+
+            setUp?.Invoke(providerBuilder);
+
+            return providerBuilder.Build();
+        }
 
         private static PublishedProvider NewPublishedProvider(Action<PublishedProviderBuilder> setUp = null)
         {
