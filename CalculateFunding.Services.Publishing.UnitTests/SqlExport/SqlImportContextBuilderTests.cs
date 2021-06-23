@@ -18,7 +18,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
     {
         private Mock<ICosmosRepository> _cosmos;
 
-        private Mock<ICosmosDbFeedIterator<PublishedProvider>> _publishedProviders;
+        private Mock<ICosmosDbFeedIterator> _publishedProviders;
 
         private SqlImportContextBuilder _contextBuilder;
 
@@ -26,7 +26,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
         public void SetUp()
         {
             _cosmos = new Mock<ICosmosRepository>();
-            _publishedProviders = new Mock<ICosmosDbFeedIterator<PublishedProvider>>();
+            _publishedProviders = new Mock<ICosmosDbFeedIterator>();
 
             _contextBuilder = new SqlImportContextBuilder(_cosmos.Object,
                 Policies.Object,
@@ -148,7 +148,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
 
         private void AndTheCosmosDocumentFeed(string specificationId,
             string fundingStreamId)
-            => _cosmos.Setup(_ => _.GetFeedIterator<PublishedProvider>(It.Is<CosmosDbQuery>(qry
+            => _cosmos.Setup(_ => _.GetFeedIterator(It.Is<CosmosDbQuery>(qry
                         => qry.QueryText == @"SELECT
                               *
                         FROM publishedProvider p

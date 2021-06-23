@@ -69,18 +69,18 @@ namespace CalculateFunding.Services.Publishing.SqlExport
         {
             try
             {
-                ICosmosDbFeedIterator<PublishedProvider> feed = ((ISqlImportContext) context).Documents;
+                ICosmosDbFeedIterator feed = ((ISqlImportContext) context).Documents;
 
                 if (!feed.HasMoreResults)
                 {
                     return (true, ArraySegment<PublishedProvider>.Empty);
                 }
 
-                IEnumerable<PublishedProvider> documents = await feed.ReadNext(cancellationToken);
+                IEnumerable<PublishedProvider> documents = await feed.ReadNext<PublishedProvider>(cancellationToken);
 
                 while (documents.IsNullOrEmpty() && feed.HasMoreResults)
                 {
-                    documents = await feed.ReadNext(cancellationToken);
+                    documents = await feed.ReadNext<PublishedProvider>(cancellationToken);
                 }
 
                 if (documents.IsNullOrEmpty() && !feed.HasMoreResults)

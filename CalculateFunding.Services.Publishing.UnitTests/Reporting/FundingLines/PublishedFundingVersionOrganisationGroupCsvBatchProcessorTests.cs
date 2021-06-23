@@ -50,7 +50,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             GivenThePublishedFundingVersionForBatchProfessingFeed(specificationId, 
                 fundingStreamId, 
                 fundingPeriodId, 
-                new Mock<ICosmosDbFeedIterator<PublishedFundingVersion>>().Object);
+                new Mock<ICosmosDbFeedIterator>().Object);
             
             bool processedResults = await WhenTheCsvIsGenerated(FundingLineCsvGeneratorJobType.HistoryOrganisationGroupValues,
                 specificationId,
@@ -97,7 +97,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             string expectedCsvOne = NewRandomString();
             string expectedCsvTwo = NewRandomString();
 
-            Mock<ICosmosDbFeedIterator<PublishedFundingVersion>> feed = new Mock<ICosmosDbFeedIterator<PublishedFundingVersion>>();
+            Mock<ICosmosDbFeedIterator> feed = new Mock<ICosmosDbFeedIterator>();
 
             GivenTheCsvRowTransformation<PublishedFundingVersion>(publishedProviders =>
             {
@@ -138,7 +138,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         private void GivenThePublishedFundingVersionForBatchProfessingFeed(string specificationId,
             string fundingStreamId,
             string fundingPeriodId,
-            ICosmosDbFeedIterator<PublishedFundingVersion> feed)
+            ICosmosDbFeedIterator feed)
             => AndThePublishedFundingVersionForBatchProfessingFeed(specificationId,
                 fundingStreamId,
                 fundingPeriodId,
@@ -147,7 +147,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         private void AndThePublishedFundingVersionForBatchProfessingFeed(string specificationId,
             string fundingStreamId,
             string fundingPeriodId,
-            ICosmosDbFeedIterator<PublishedFundingVersion> feed)
+            ICosmosDbFeedIterator feed)
             => PublishedFunding.Setup(_ => _.GetPublishedFundingVersionsForBatchProcessing(specificationId,
                     fundingStreamId,
                     fundingPeriodId,

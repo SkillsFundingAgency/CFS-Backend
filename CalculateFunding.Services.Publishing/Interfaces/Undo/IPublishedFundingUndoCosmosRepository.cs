@@ -17,19 +17,19 @@ namespace CalculateFunding.Services.Publishing.Interfaces.Undo
         
         Task<UndoTaskDetails> GetCorrelationIdDetailsForPublishedFundingVersions(string correlationId);
 
-        ICosmosDbFeedIterator<PublishedProviderVersion> GetPublishedProviderVersions(string fundingStreamId,
+        ICosmosDbFeedIterator GetPublishedProviderVersions(string fundingStreamId,
             string fundingPeriodId,
             long sinceTimeStamp);
 
-        ICosmosDbFeedIterator<PublishedProvider> GetPublishedProviders(string fundingStreamId,
+        ICosmosDbFeedIterator GetPublishedProviders(string fundingStreamId,
             string fundingPeriodId,
             long sinceTimeStamp);
 
-        ICosmosDbFeedIterator<PublishedFundingVersion> GetPublishedFundingVersions(string fundingStreamId,
+        ICosmosDbFeedIterator GetPublishedFundingVersions(string fundingStreamId,
             string fundingPeriodId,
             long sinceTimeStamp);
 
-        ICosmosDbFeedIterator<PublishedFunding> GetPublishedFunding(string fundingStreamId,
+        ICosmosDbFeedIterator GetPublishedFunding(string fundingStreamId,
             string fundingPeriodId,
             long sinceTimeStamp);
 
@@ -57,19 +57,19 @@ namespace CalculateFunding.Services.Publishing.Interfaces.Undo
             Func<TDocument, string> partitionKeyAccessor)
             where TDocument : IIdentifiable;
 
-        ICosmosDbFeedIterator<PublishedProviderVersion> GetPublishedProviderVersionsFromVersion(string fundingStreamId,
+        ICosmosDbFeedIterator GetPublishedProviderVersionsFromVersion(string fundingStreamId,
             string fundingPeriodId,
             decimal version);
 
-        ICosmosDbFeedIterator<PublishedProvider> GetPublishedProvidersFromVersion(string fundingStreamId,
+        ICosmosDbFeedIterator GetPublishedProvidersFromVersion(string fundingStreamId,
             string fundingPeriodId,
             decimal version);
 
-        ICosmosDbFeedIterator<PublishedFunding> GetPublishedFundingFromVersion(string fundingStreamId,
+        ICosmosDbFeedIterator GetPublishedFundingFromVersion(string fundingStreamId,
             string fundingPeriodId,
             decimal version);
 
-        ICosmosDbFeedIterator<PublishedFundingVersion> GetPublishedFundingVersionsFromVersion(string fundingStreamId,
+        ICosmosDbFeedIterator GetPublishedFundingVersionsFromVersion(string fundingStreamId,
             string fundingPeriodId,
             decimal version);
 

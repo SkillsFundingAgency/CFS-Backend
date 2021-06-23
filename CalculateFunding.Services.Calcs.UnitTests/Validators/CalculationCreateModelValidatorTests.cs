@@ -198,7 +198,7 @@ namespace CalculateFunding.Services.Calcs.Validators
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
             specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(model.SpecificationId))
-                .Returns(new Common.ApiClient.Models.ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, null));
+                .Returns(new Common.ApiClient.Models.ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, null, null));
 
             CalculationCreateModelValidator validator = CreateValidator(specificationsApiClient: specificationsApiClient);
 

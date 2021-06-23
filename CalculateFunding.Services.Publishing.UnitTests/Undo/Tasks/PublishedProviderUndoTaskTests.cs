@@ -118,7 +118,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Tasks
             }
         }
         
-        protected void GivenThePublishedProviderFeed(ICosmosDbFeedIterator<PublishedProvider> feed)
+        protected void GivenThePublishedProviderFeed(ICosmosDbFeedIterator feed)
         {
             Cosmos.Setup(_ => _.GetPublishedProviders(TaskDetails.FundingStreamId,
                     TaskDetails.FundingPeriodId,

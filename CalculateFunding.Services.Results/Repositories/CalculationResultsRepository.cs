@@ -148,7 +148,7 @@ namespace CalculateFunding.Services.Results.Repositories
                 hardDelete: true);
         }
 
-        public ICosmosDbFeedIterator<ProviderWithResultsForSpecifications> GetProvidersWithResultsForSpecificationBySpecificationId(string specificationId)
+        public ICosmosDbFeedIterator GetProvidersWithResultsForSpecificationBySpecificationId(string specificationId)
         {
             CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
             {
@@ -163,7 +163,7 @@ namespace CalculateFunding.Services.Results.Repositories
                 }
             };
 
-            return _cosmosRepository.GetFeedIterator<ProviderWithResultsForSpecifications>(cosmosDbQuery);
+            return _cosmosRepository.GetFeedIterator(cosmosDbQuery);
         }
 
         public async Task<ProviderWithResultsForSpecifications> GetProviderWithResultsForSpecificationsByProviderId(string providerId)

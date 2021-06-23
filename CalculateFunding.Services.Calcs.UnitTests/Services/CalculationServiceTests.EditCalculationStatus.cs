@@ -200,7 +200,7 @@ namespace CalculateFunding.Services.Calcs.Services
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
             specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
-                .Returns(new Common.ApiClient.Models.ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, null));
+                .Returns(new Common.ApiClient.Models.ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, null, null));
 
             CalculationService service = CreateCalculationService(
                 logger: logger, calculationsRepository: CalculationsRepository, specificationsApiClient: specificationsApiClient);

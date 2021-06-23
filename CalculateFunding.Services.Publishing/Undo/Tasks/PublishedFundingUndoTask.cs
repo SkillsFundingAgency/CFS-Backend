@@ -37,9 +37,9 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
             
             UndoTaskDetails details = taskContext.PublishedFundingDetails;
 
-            ICosmosDbFeedIterator<PublishedFunding> feed = GetPublishedFundingFeed(details);
+            ICosmosDbFeedIterator feed = GetPublishedFundingFeed(details);
             
-            FeedContext<PublishedFunding> feedContext = new FeedContext<PublishedFunding>(taskContext, feed);
+            FeedContext feedContext = new FeedContext(taskContext, feed);
             
             IProducerConsumer producerConsumer = ProducerConsumerFactory.CreateProducerConsumer(ProducePublishedFunding,
                 UndoPublishedFunding,
@@ -54,7 +54,7 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
             LogCompletedTask();
         }
 
-        protected virtual ICosmosDbFeedIterator<PublishedFunding> GetPublishedFundingFeed(UndoTaskDetails details) =>
+        protected virtual ICosmosDbFeedIterator GetPublishedFundingFeed(UndoTaskDetails details) =>
             Cosmos.GetPublishedFunding(details.FundingStreamId,
                 details.FundingPeriodId,
                 details.TimeStamp);

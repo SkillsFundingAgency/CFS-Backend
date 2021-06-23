@@ -67,7 +67,7 @@ namespace CalculateFunding.Migrations.SpecificationsWithResults.Migrations
                                     AND c.deleted = false"
                 };
 
-                ICosmosDbFeedIterator<ProviderResult> feed = _cosmosRepository.GetFeedIterator<ProviderResult>(query);
+                using ICosmosDbFeedIterator feed = _cosmosRepository.GetFeedIterator(query);
 
                 ApiResponse<IEnumerable<FundingPeriod>> fundingPeriods = await _policiesPolicy.ExecuteAsync(() => _policies.GetFundingPeriods());
 
@@ -102,11 +102,11 @@ namespace CalculateFunding.Migrations.SpecificationsWithResults.Migrations
         private async Task<(bool Complete, IEnumerable<MergeSpecificationRequest> items)> ProduceSpecificationInformation(CancellationToken cancellationToken,
             dynamic context)
         {
-            ICosmosDbFeedIterator<ProviderResult> feed = ((MergeContext) context).Feed;
+            ICosmosDbFeedIterator feed = ((MergeContext) context).Feed;
 
             while (feed.HasMoreResults)
             {
-                ProviderResult[] providerResults = (await feed.ReadNext(cancellationToken)).ToArray();
+                ProviderResult[] providerResults = (await feed.ReadNext<ProviderResult>(cancellationToken)).ToArray();
 
                 Console.WriteLine($"Processing next {providerResults.Length} provider results");
 
@@ -186,7 +186,7 @@ namespace CalculateFunding.Migrations.SpecificationsWithResults.Migrations
 
         private class MergeContext
         {
-            public MergeContext(ICosmosDbFeedIterator<ProviderResult> feed,
+            public MergeContext(ICosmosDbFeedIterator feed,
                 IEnumerable<FundingPeriod> fundingPeriods)
             {
                 Feed = feed;
@@ -194,7 +194,7 @@ namespace CalculateFunding.Migrations.SpecificationsWithResults.Migrations
                     fundingPeriods.ToDictionary(_ => _.Id));
             }
 
-            public ICosmosDbFeedIterator<ProviderResult> Feed { get; }
+            public ICosmosDbFeedIterator Feed { get; }
 
             public ConcurrentDictionary<string, FundingPeriod> FundingPeriods { get; }
         }

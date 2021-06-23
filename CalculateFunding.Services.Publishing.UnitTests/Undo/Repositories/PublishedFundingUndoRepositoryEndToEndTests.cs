@@ -63,7 +63,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
         [TestMethod]
         public async Task GetPublishedProviders()
         {
-            ICosmosDbFeedIterator<PublishedProvider> feed = _repository.GetPublishedProviders("DSG",
+            ICosmosDbFeedIterator feed = _repository.GetPublishedProviders("DSG",
                 "FY-2021-7db621f6-ff28-4910-a3b2-5440c2cd80b0",
                 1588682808);
 
@@ -71,7 +71,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
                 .Should()
                 .BeTrue();
 
-            IEnumerable<PublishedProvider> documents = await feed.ReadNext();
+            IEnumerable<PublishedProvider> documents = await feed.ReadNext<PublishedProvider>();
 
             documents
                 .Should()
@@ -81,7 +81,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
         [TestMethod]
         public async Task GetPublishedProvidersFromVersion()
         {
-            ICosmosDbFeedIterator<PublishedProvider> feed = _repository.GetPublishedProvidersFromVersion("DSG",
+            ICosmosDbFeedIterator feed = _repository.GetPublishedProvidersFromVersion("DSG",
                 "FY-2021",
                 2M);
 
@@ -89,7 +89,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
                 .Should()
                 .BeTrue();
 
-            IEnumerable<PublishedProvider> documents = await feed.ReadNext();
+            IEnumerable<PublishedProvider> documents = await feed.ReadNext<PublishedProvider>();
 
             documents
                 .Should()
@@ -115,7 +115,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
         [TestMethod]
         public async Task GetPublishedProviderVersions()
         {
-            ICosmosDbFeedIterator<PublishedProviderVersion> feed = _repository.GetPublishedProviderVersions("DSG",
+            ICosmosDbFeedIterator feed = _repository.GetPublishedProviderVersions("DSG",
                 "FY-2021",
                 1588684299);
 
@@ -123,7 +123,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
                 .Should()
                 .BeTrue();
 
-            IEnumerable<PublishedProviderVersion> documents = await feed.ReadNext();
+            IEnumerable<PublishedProviderVersion> documents = await feed.ReadNext<PublishedProviderVersion>();
 
             documents
                 .Should()
@@ -133,7 +133,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
         [TestMethod]
         public async Task GetPublishedProviderVersionsFromVersion()
         {
-            ICosmosDbFeedIterator<PublishedProviderVersion> feed = _repository.GetPublishedProviderVersionsFromVersion("DSG",
+            ICosmosDbFeedIterator feed = _repository.GetPublishedProviderVersionsFromVersion("DSG",
                 "FY-2021",
                 2M);
 
@@ -141,7 +141,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
                 .Should()
                 .BeTrue();
 
-            IEnumerable<PublishedProviderVersion> documents = await feed.ReadNext();
+            IEnumerable<PublishedProviderVersion> documents = await feed.ReadNext<PublishedProviderVersion>();
 
             documents
                 .Should()
@@ -167,7 +167,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
         [TestMethod]
         public async Task GetPublishedFundingVersions()
         {
-            ICosmosDbFeedIterator<PublishedFundingVersion> feed = _repository.GetPublishedFundingVersions("DSG",
+            ICosmosDbFeedIterator feed = _repository.GetPublishedFundingVersions("DSG",
                 "FY-2021",
                 1588684299);
 
@@ -175,7 +175,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
                 .Should()
                 .BeTrue();
 
-            IEnumerable<PublishedFundingVersion> documents = await feed.ReadNext();
+            IEnumerable<PublishedFundingVersion> documents = await feed.ReadNext<PublishedFundingVersion>();
 
             documents
                 .Should()
@@ -185,7 +185,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
         [TestMethod]
         public async Task GetPublishedFundingVersionsFromVersion()
         {
-            ICosmosDbFeedIterator<PublishedFundingVersion> feed = _repository.GetPublishedFundingVersionsFromVersion("DSG",
+            ICosmosDbFeedIterator feed = _repository.GetPublishedFundingVersionsFromVersion("DSG",
                 "FY-2021",
                 2M);
 
@@ -193,7 +193,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
                 .Should()
                 .BeTrue();
 
-            IEnumerable<PublishedFundingVersion> documents = await feed.ReadNext();
+            IEnumerable<PublishedFundingVersion> documents = await feed.ReadNext<PublishedFundingVersion>();
 
             documents
                 .Should()
@@ -219,13 +219,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
         [TestMethod]
         public async Task GetPublishedFunding()
         {
-            ICosmosDbFeedIterator<PublishedFunding> feed = _repository.GetPublishedFunding("DSG",
+            ICosmosDbFeedIterator feed = _repository.GetPublishedFunding("DSG",
                 "FY-2021",
                 1588685609);
 
             while (feed.HasMoreResults)
             {
-                IEnumerable<PublishedFunding> documents = await feed.ReadNext();    
+                IEnumerable<PublishedFunding> documents = await feed.ReadNext<PublishedFunding>();    
                 
                 documents
                     .Should()
@@ -238,7 +238,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
         [TestMethod]
         public async Task GetPublishedFundingFromVersion()
         {
-            ICosmosDbFeedIterator<PublishedFunding> feed = _repository.GetPublishedFundingFromVersion("DSG",
+            ICosmosDbFeedIterator feed = _repository.GetPublishedFundingFromVersion("DSG",
                 "FY-2021",
                 4M);
 
@@ -246,7 +246,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
                 .Should()
                 .BeTrue();
             
-            IEnumerable<PublishedFunding> documents = await feed.ReadNext();
+            IEnumerable<PublishedFunding> documents = await feed.ReadNext<PublishedFunding>();
 
             documents
                 .Should()

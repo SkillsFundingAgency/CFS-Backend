@@ -8,7 +8,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
 {
     public class SqlImportContext : ISqlImportContext
     {
-        public ICosmosDbFeedIterator<PublishedProvider> Documents { get; set; }
+        public ICosmosDbFeedIterator Documents { get; set; }
 
         public IDataTableBuilder<PublishedProviderVersion> Providers { get; set; }
 

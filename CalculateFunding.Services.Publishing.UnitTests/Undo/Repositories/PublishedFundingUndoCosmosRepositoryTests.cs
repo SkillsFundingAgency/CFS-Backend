@@ -148,7 +148,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
             string fundingPeriodId = NewRandomString();
             decimal version = NewRandomInteger();
 
-            ICosmosDbFeedIterator<PublishedProviderVersion> expectedFeed = NewFeedIterator<PublishedProviderVersion>();
+            ICosmosDbFeedIterator expectedFeed = NewFeedIterator<PublishedProviderVersion>();
 
             GivenTheFeedIterator(@"SELECT
                               *
@@ -163,7 +163,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
                 ("@fundingStreamId", fundingStreamId),
                 ("@version", version));
 
-            ICosmosDbFeedIterator<PublishedProviderVersion> actualFeedIterator = _repository.GetPublishedProviderVersionsFromVersion(fundingStreamId,
+            ICosmosDbFeedIterator actualFeedIterator = _repository.GetPublishedProviderVersionsFromVersion(fundingStreamId,
                 fundingPeriodId,
                 version);
 
@@ -179,7 +179,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
             string fundingPeriodId = NewRandomString();
             long timeStamp = NewRandomTimeStamp();
 
-            ICosmosDbFeedIterator<PublishedProviderVersion> expectedFeed = NewFeedIterator<PublishedProviderVersion>();
+            ICosmosDbFeedIterator expectedFeed = NewFeedIterator<PublishedProviderVersion>();
 
             GivenTheFeedIterator(@"SELECT
                               *
@@ -194,7 +194,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
                 ("@fundingStreamId", fundingStreamId),
                 ("@sinceTimeStamp", timeStamp));
 
-            ICosmosDbFeedIterator<PublishedProviderVersion> actualFeedIterator = _repository.GetPublishedProviderVersions(fundingStreamId,
+            ICosmosDbFeedIterator actualFeedIterator = _repository.GetPublishedProviderVersions(fundingStreamId,
                 fundingPeriodId,
                 timeStamp);
 
@@ -210,7 +210,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
             string fundingPeriodId = NewRandomString();
             decimal version = NewRandomInteger();
 
-            ICosmosDbFeedIterator<PublishedProvider> expectedFeed = NewFeedIterator<PublishedProvider>();
+            ICosmosDbFeedIterator expectedFeed = NewFeedIterator<PublishedProvider>();
 
             GivenTheFeedIterator(@"SELECT
                               *
@@ -225,7 +225,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
                 ("@fundingStreamId", fundingStreamId),
                 ("@version", version));
 
-            ICosmosDbFeedIterator<PublishedProvider> actualFeedIterator = _repository.GetPublishedProvidersFromVersion(fundingStreamId,
+            ICosmosDbFeedIterator actualFeedIterator = _repository.GetPublishedProvidersFromVersion(fundingStreamId,
                 fundingPeriodId,
                 version);
 
@@ -241,7 +241,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
             string fundingPeriodId = NewRandomString();
             long timeStamp = NewRandomTimeStamp();
 
-            ICosmosDbFeedIterator<PublishedProvider> expectedFeed = NewFeedIterator<PublishedProvider>();
+            ICosmosDbFeedIterator expectedFeed = NewFeedIterator<PublishedProvider>();
 
             GivenTheFeedIterator(@"SELECT
                               *
@@ -256,7 +256,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
                 ("@fundingStreamId", fundingStreamId),
                 ("@sinceTimeStamp", timeStamp));
 
-            ICosmosDbFeedIterator<PublishedProvider> actualFeedIterator = _repository.GetPublishedProviders(fundingStreamId,
+            ICosmosDbFeedIterator actualFeedIterator = _repository.GetPublishedProviders(fundingStreamId,
                 fundingPeriodId,
                 timeStamp);
 
@@ -272,7 +272,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
             string fundingPeriodId = NewRandomString();
             decimal version = NewRandomInteger();
 
-            ICosmosDbFeedIterator<PublishedFunding> expectedFeed = NewFeedIterator<PublishedFunding>();
+            ICosmosDbFeedIterator expectedFeed = NewFeedIterator<PublishedFunding>();
 
             GivenTheFeedIterator(@"SELECT
                               *
@@ -287,7 +287,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
                 ("@fundingStreamId", fundingStreamId),
                 ("@version", version));
 
-            ICosmosDbFeedIterator<PublishedFunding> actualFeedIterator = _repository.GetPublishedFundingFromVersion(fundingStreamId,
+            ICosmosDbFeedIterator actualFeedIterator = _repository.GetPublishedFundingFromVersion(fundingStreamId,
                 fundingPeriodId,
                 version);
 
@@ -303,7 +303,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
             string fundingPeriodId = NewRandomString();
             long timeStamp = NewRandomTimeStamp();
 
-            ICosmosDbFeedIterator<PublishedFunding> expectedFeed = NewFeedIterator<PublishedFunding>();
+            ICosmosDbFeedIterator expectedFeed = NewFeedIterator<PublishedFunding>();
 
             GivenTheFeedIterator(@"SELECT
                               *
@@ -318,7 +318,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
                 ("@fundingStreamId", fundingStreamId),
                 ("@sinceTimeStamp", timeStamp));
 
-            ICosmosDbFeedIterator<PublishedFunding> actualFeedIterator = _repository.GetPublishedFunding(fundingStreamId,
+            ICosmosDbFeedIterator actualFeedIterator = _repository.GetPublishedFunding(fundingStreamId,
                 fundingPeriodId,
                 timeStamp);
 
@@ -334,7 +334,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
             string fundingPeriodId = NewRandomString();
             decimal version = NewRandomInteger();
 
-            ICosmosDbFeedIterator<PublishedFundingVersion> expectedFeed = NewFeedIterator<PublishedFundingVersion>();
+            ICosmosDbFeedIterator expectedFeed = NewFeedIterator<PublishedFundingVersion>();
 
             GivenTheFeedIterator(@"SELECT
                               *
@@ -349,7 +349,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
                 ("@fundingStreamId", fundingStreamId),
                 ("@version", version));
 
-            ICosmosDbFeedIterator<PublishedFundingVersion> actualFeedIterator = _repository.GetPublishedFundingVersionsFromVersion(fundingStreamId,
+            ICosmosDbFeedIterator actualFeedIterator = _repository.GetPublishedFundingVersionsFromVersion(fundingStreamId,
                 fundingPeriodId,
                 version);
 
@@ -365,7 +365,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
             string fundingPeriodId = NewRandomString();
             long timeStamp = NewRandomTimeStamp();
 
-            ICosmosDbFeedIterator<PublishedFundingVersion> expectedFeed = NewFeedIterator<PublishedFundingVersion>();
+            ICosmosDbFeedIterator expectedFeed = NewFeedIterator<PublishedFundingVersion>();
 
             GivenTheFeedIterator(@"SELECT
                               *
@@ -380,7 +380,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
                 ("@fundingStreamId", fundingStreamId),
                 ("@sinceTimeStamp", timeStamp));
 
-            ICosmosDbFeedIterator<PublishedFundingVersion> actualFeedIterator = _repository.GetPublishedFundingVersions(fundingStreamId,
+            ICosmosDbFeedIterator actualFeedIterator = _repository.GetPublishedFundingVersions(fundingStreamId,
                 fundingPeriodId,
                 timeStamp);
 
@@ -694,12 +694,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
                 });
         }
 
-        private void GivenTheFeedIterator<TDocument>(string sql,
-            ICosmosDbFeedIterator<TDocument> feedIterator,
+        private void GivenTheFeedIterator(string sql,
+            ICosmosDbFeedIterator feedIterator,
             params (string name, object value)[] parameters)
-            where TDocument : IIdentifiable
         {
-            _cosmosRepository.Setup(_ => _.GetFeedIterator<TDocument>(It.Is(QueryMatching(sql, parameters)),
+            _cosmosRepository.Setup(_ => _.GetFeedIterator(It.Is(QueryMatching(sql, parameters)),
                     100,
                     null))
                 .Returns(feedIterator);

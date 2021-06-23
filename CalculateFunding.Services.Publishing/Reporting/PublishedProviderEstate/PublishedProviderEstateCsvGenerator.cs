@@ -55,7 +55,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.PublishedProviderEstate
 
             string specificationId = message.GetUserProperty<string>("specification-id");
             
-            ICosmosDbFeedIterator<PublishedProviderVersion> documents = _publishedFundingRepository.GetRefreshedProviderVersionBatchProcessing(specificationId,
+            using ICosmosDbFeedIterator documents = _publishedFundingRepository.GetRefreshedProviderVersionBatchProcessing(specificationId,
                 BatchSize);
 
             if (documents == null)
@@ -66,7 +66,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.PublishedProviderEstate
 
             while (documents.HasMoreResults)
             {
-                IEnumerable<PublishedProviderVersion> publishedProviderVersions = await documents.ReadNext();
+                IEnumerable<PublishedProviderVersion> publishedProviderVersions = await documents.ReadNext<PublishedProviderVersion>();
                 
                 List<IGrouping<string, PublishedProviderVersion>> providerVersionGroups = publishedProviderVersions.GroupBy(v => v.ProviderId).ToList();
 

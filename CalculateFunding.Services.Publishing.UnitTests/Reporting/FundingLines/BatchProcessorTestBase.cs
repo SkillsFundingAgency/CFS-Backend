@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Interfaces;
@@ -52,12 +53,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             return await BatchProcessor.GenerateCsv(jobType, specificationId, fundingPeriodId, path, _transformation.Object, fundingLineName, fundingStreamId, fundingLineCode);
         }
 
-        protected void AndTheFeedIteratorHasThePages<TEntity>(Mock<ICosmosDbFeedIterator<TEntity>> feed,
-            params IEnumerable<TEntity>[] pages)
+        protected void AndTheFeedIteratorHasThePages<TEntity>(Mock<ICosmosDbFeedIterator> feed,
+            params IEnumerable<TEntity>[] pages) where TEntity : IIdentifiable
         {
             ISetupSequentialResult<bool> hasMoreRecordsSequence = feed.SetupSequence(_ => _.HasMoreResults);
             ISetupSequentialResult<Task<IEnumerable<TEntity>>> readNextSequence 
-                = feed.SetupSequence(_ => _.ReadNext(It.IsAny<CancellationToken>()));
+                = feed.SetupSequence(_ => _.ReadNext<TEntity>(It.IsAny<CancellationToken>()));
 
             foreach (IEnumerable<TEntity> page in pages)
             {

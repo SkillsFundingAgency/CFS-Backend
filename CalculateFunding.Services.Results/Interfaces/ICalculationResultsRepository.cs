@@ -29,7 +29,7 @@ namespace CalculateFunding.Services.Results.Interfaces
         Task<bool> ProviderHasResultsBySpecificationId(string specificationId);
         Task<ProviderWithResultsForSpecifications> GetProviderWithResultsForSpecificationsByProviderId(string providerId);
         Task UpsertSpecificationWithProviderResults(params ProviderWithResultsForSpecifications[] providerWithResultsForSpecifications); 
-        ICosmosDbFeedIterator<ProviderWithResultsForSpecifications> GetProvidersWithResultsForSpecificationBySpecificationId(string specificationId);
+        ICosmosDbFeedIterator GetProvidersWithResultsForSpecificationBySpecificationId(string specificationId);
         Task DeleteCalculationResultsBySpecificationId(string specificationId, DeletionType deletionType);
         Task<DateTime?> GetSpecificationCalculationResultsLastUpdated(string specificationId);
     }

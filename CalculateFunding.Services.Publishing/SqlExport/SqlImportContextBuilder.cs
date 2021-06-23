@@ -51,7 +51,7 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             string fundingStreamId,
             SchemaContext schemaContext)
         {
-            ICosmosDbFeedIterator<PublishedProvider> publishedProviderFeed = GetPublishedProviderFeed(specificationId, fundingStreamId);
+            ICosmosDbFeedIterator publishedProviderFeed = GetPublishedProviderFeed(specificationId, fundingStreamId);
 
             TemplateMetadataContents template = await GetTemplateMetadataContents(specificationId, fundingStreamId);
 
@@ -98,9 +98,9 @@ namespace CalculateFunding.Services.Publishing.SqlExport
             return templateContents.GetMetadata(fundingTemplateContents.TemplateFileContents);
         }
 
-        private ICosmosDbFeedIterator<PublishedProvider> GetPublishedProviderFeed(string specificationId,
+        private ICosmosDbFeedIterator GetPublishedProviderFeed(string specificationId,
             string fundingStreamId)
-            => _cosmos.GetFeedIterator<PublishedProvider>(new CosmosDbQuery
+            => _cosmos.GetFeedIterator(new CosmosDbQuery
                 {
                     QueryText = @"SELECT
                               *

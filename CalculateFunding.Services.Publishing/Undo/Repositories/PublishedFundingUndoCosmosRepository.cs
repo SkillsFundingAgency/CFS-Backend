@@ -97,7 +97,7 @@ namespace CalculateFunding.Services.Publishing.Undo.Repositories
                 .SingleOrDefault();
         }
 
-        public ICosmosDbFeedIterator<PublishedProviderVersion> GetPublishedProviderVersionsFromVersion(string fundingStreamId,
+        public ICosmosDbFeedIterator GetPublishedProviderVersionsFromVersion(string fundingStreamId,
             string fundingPeriodId,
             decimal version) =>
             GetDocumentFeedFromVersion<PublishedProviderVersion>(
@@ -113,10 +113,10 @@ namespace CalculateFunding.Services.Publishing.Undo.Repositories
                 fundingPeriodId,
                 version);
 
-        public ICosmosDbFeedIterator<PublishedProviderVersion> GetPublishedProviderVersions(string fundingStreamId,
+        public ICosmosDbFeedIterator GetPublishedProviderVersions(string fundingStreamId,
             string fundingPeriodId,
             long sinceTimeStamp) =>
-            GetDocumentFeed<PublishedProviderVersion>(
+            GetDocumentFeed(
                 @"SELECT
                               *
                         FROM publishedProviderVersion p
@@ -129,7 +129,7 @@ namespace CalculateFunding.Services.Publishing.Undo.Repositories
                 fundingPeriodId,
                 sinceTimeStamp);
 
-        public ICosmosDbFeedIterator<PublishedProvider> GetPublishedProvidersFromVersion(string fundingStreamId,
+        public ICosmosDbFeedIterator GetPublishedProvidersFromVersion(string fundingStreamId,
             string fundingPeriodId,
             decimal version) =>
             GetDocumentFeedFromVersion<PublishedProvider>(
@@ -145,10 +145,10 @@ namespace CalculateFunding.Services.Publishing.Undo.Repositories
                 fundingPeriodId,
                 version);
 
-        public ICosmosDbFeedIterator<PublishedProvider> GetPublishedProviders(string fundingStreamId,
+        public ICosmosDbFeedIterator GetPublishedProviders(string fundingStreamId,
             string fundingPeriodId,
             long sinceTimeStamp) =>
-            GetDocumentFeed<PublishedProvider>(
+            GetDocumentFeed(
                 @"SELECT
                               *
                         FROM publishedProvider p
@@ -161,7 +161,7 @@ namespace CalculateFunding.Services.Publishing.Undo.Repositories
                 fundingPeriodId,
                 sinceTimeStamp);
 
-        public ICosmosDbFeedIterator<PublishedFunding> GetPublishedFundingFromVersion(string fundingStreamId,
+        public ICosmosDbFeedIterator GetPublishedFundingFromVersion(string fundingStreamId,
             string fundingPeriodId,
             decimal version) =>
             GetDocumentFeedFromVersion<PublishedFunding>(
@@ -177,10 +177,10 @@ namespace CalculateFunding.Services.Publishing.Undo.Repositories
                 fundingPeriodId,
                 version);
 
-        public ICosmosDbFeedIterator<PublishedFunding> GetPublishedFunding(string fundingStreamId,
+        public ICosmosDbFeedIterator GetPublishedFunding(string fundingStreamId,
             string fundingPeriodId,
             long sinceTimeStamp) =>
-            GetDocumentFeed<PublishedFunding>(
+            GetDocumentFeed(
                 @"SELECT
                               *
                         FROM publishedFunding p
@@ -193,7 +193,7 @@ namespace CalculateFunding.Services.Publishing.Undo.Repositories
                 fundingPeriodId,
                 sinceTimeStamp);
 
-        public ICosmosDbFeedIterator<PublishedFundingVersion> GetPublishedFundingVersionsFromVersion(string fundingStreamId,
+        public ICosmosDbFeedIterator GetPublishedFundingVersionsFromVersion(string fundingStreamId,
             string fundingPeriodId,
             decimal version) =>
             GetDocumentFeedFromVersion<PublishedFundingVersion>(
@@ -209,10 +209,10 @@ namespace CalculateFunding.Services.Publishing.Undo.Repositories
                 fundingPeriodId,
                 version);
 
-        public ICosmosDbFeedIterator<PublishedFundingVersion> GetPublishedFundingVersions(string fundingStreamId,
+        public ICosmosDbFeedIterator GetPublishedFundingVersions(string fundingStreamId,
             string fundingPeriodId,
             long sinceTimeStamp) =>
-            GetDocumentFeed<PublishedFundingVersion>(
+            GetDocumentFeed(
                 @"SELECT
                               *
                         FROM publishedFundingVersion p
@@ -225,12 +225,11 @@ namespace CalculateFunding.Services.Publishing.Undo.Repositories
                 fundingPeriodId,
                 sinceTimeStamp);
 
-        private ICosmosDbFeedIterator<TDocument> GetDocumentFeed<TDocument>(string sql,
+        private ICosmosDbFeedIterator GetDocumentFeed(string sql,
             string fundingStreamId,
             string fundingPeriodId,
-            long sinceTimeStamp)
-            where TDocument : IIdentifiable =>
-            _cosmos.GetFeedIterator<TDocument>(new CosmosDbQuery
+            long sinceTimeStamp) =>
+            _cosmos.GetFeedIterator(new CosmosDbQuery
                 {
                     QueryText = sql,
                     Parameters = Parameters(
@@ -240,12 +239,12 @@ namespace CalculateFunding.Services.Publishing.Undo.Repositories
                 },
                 100);
 
-        private ICosmosDbFeedIterator<TDocument> GetDocumentFeedFromVersion<TDocument>(string sql,
+        private ICosmosDbFeedIterator GetDocumentFeedFromVersion<TDocument>(string sql,
             string fundingStreamId,
             string fundingPeriodId,
             decimal version)
             where TDocument : IIdentifiable =>
-            _cosmos.GetFeedIterator<TDocument>(new CosmosDbQuery
+            _cosmos.GetFeedIterator(new CosmosDbQuery
                 {
                     QueryText = sql,
                     Parameters = Parameters(

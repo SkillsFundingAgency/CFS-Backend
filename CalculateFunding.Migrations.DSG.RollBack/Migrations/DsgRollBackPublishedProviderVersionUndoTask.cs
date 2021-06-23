@@ -29,7 +29,7 @@ namespace CalculateFunding.Migrations.DSG.RollBack.Migrations
             await DeleteDocuments(publishedProviderVersions, _ => _.PartitionKey, true);
         }
 
-        protected override ICosmosDbFeedIterator<PublishedProviderVersion> GetPublishedProviderVersionsFeed(UndoTaskDetails details)
+        protected override ICosmosDbFeedIterator GetPublishedProviderVersionsFeed(UndoTaskDetails details)
             => Cosmos.GetPublishedProviderVersionsFromVersion(details.FundingStreamId,
                 details.FundingPeriodId,
                 details.Version);

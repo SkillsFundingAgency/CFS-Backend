@@ -21,7 +21,7 @@ namespace CalculateFunding.Migrations.DSG.RollBack.Migrations
         {
         }
 
-        protected override ICosmosDbFeedIterator<PublishedFunding> GetPublishedFundingFeed(UndoTaskDetails details)
+        protected override ICosmosDbFeedIterator GetPublishedFundingFeed(UndoTaskDetails details)
             => Cosmos.GetPublishedFundingFromVersion(details.FundingStreamId,
                 details.FundingPeriodId,
                 details.Version);

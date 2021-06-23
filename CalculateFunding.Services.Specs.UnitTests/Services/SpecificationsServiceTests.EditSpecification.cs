@@ -615,7 +615,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 specificationEditModel.FundingPeriodId);
 
             _providersApiClient.GetCurrentProviderMetadataForFundingStream(specFundingStreamId)
-                .Returns(new ApiResponse<CurrentProviderVersionMetadata>(HttpStatusCode.NotFound, null));
+                .Returns(new ApiResponse<CurrentProviderVersionMetadata>(HttpStatusCode.NotFound, null, null));
 
             SpecificationsService service = CreateSpecificationsService(newSpecVersion);
 

@@ -87,7 +87,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         {
             string specificationId = new RandomString();
             _specifications.GetProfileVariationPointers(Arg.Is(specificationId))
-                .Returns(new ApiResponse<IEnumerable<ProfileVariationPointer>>(HttpStatusCode.NotFound, null));
+                .Returns(new ApiResponse<IEnumerable<ProfileVariationPointer>>(HttpStatusCode.NotFound, null, null));
 
             IEnumerable<ProfileVariationPointer> profileVariationPointers =
                 await _service.GetProfileVariationPointers(specificationId);
@@ -104,7 +104,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             string specificationId = new RandomString();
 
             _specifications.GetProfileVariationPointers(Arg.Is(specificationId))
-                .Returns(new ApiResponse<IEnumerable<ProfileVariationPointer>>(HttpStatusCode.InternalServerError, null));
+                .Returns(new ApiResponse<IEnumerable<ProfileVariationPointer>>(HttpStatusCode.InternalServerError, null, null));
 
             //Act
             Func<Task> test = async () => await _service.GetProfileVariationPointers(specificationId);

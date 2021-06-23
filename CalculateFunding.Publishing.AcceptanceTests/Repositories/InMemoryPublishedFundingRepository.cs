@@ -526,26 +526,26 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             return Task.CompletedTask;
         }
 
-        public ICosmosDbFeedIterator<PublishedProviderVersion> GetPublishedProviderVersionsForBatchProcessing(string predicate,
+        public ICosmosDbFeedIterator GetPublishedProviderVersionsForBatchProcessing(string predicate,
             string specificationId,
             int batchSize,
             string joinPredicate = null,
             string fundingLineCode = null) =>
             throw new NotImplementedException();
 
-        public ICosmosDbFeedIterator<PublishedFundingVersion> GetPublishedFundingVersionsForBatchProcessing(string specificationId,
+        public ICosmosDbFeedIterator GetPublishedFundingVersionsForBatchProcessing(string specificationId,
             string fundingStreamId,
             string fundingPeriodId,
             int batchSize) =>
             throw new NotImplementedException();
 
-        public ICosmosDbFeedIterator<PublishedFunding> GetPublishedFundingForBatchProcessing(string specificationId,
+        public ICosmosDbFeedIterator GetPublishedFundingForBatchProcessing(string specificationId,
             string fundingStreamId,
             string fundingPeriodId,
             int batchSize) =>
             throw new NotImplementedException();
 
-        public ICosmosDbFeedIterator<PublishedProviderVersion> GetRefreshedProviderVersionBatchProcessing(string specificationId,
+        public ICosmosDbFeedIterator GetRefreshedProviderVersionBatchProcessing(string specificationId,
             int batchSize) =>
             throw new NotImplementedException();
     }

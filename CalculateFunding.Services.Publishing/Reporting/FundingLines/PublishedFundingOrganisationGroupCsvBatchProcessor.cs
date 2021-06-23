@@ -43,7 +43,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
             bool outputHeaders = true;
             bool processedResults = false;
             
-            ICosmosDbFeedIterator<PublishedFunding> documents = _publishedFunding.GetPublishedFundingForBatchProcessing(specificationId,
+            using ICosmosDbFeedIterator documents = _publishedFunding.GetPublishedFundingForBatchProcessing(specificationId,
                 fundingStreamId,
                 fundingPeriodId,
                 BatchSize);
@@ -56,7 +56,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
 
             while (documents.HasMoreResults)
             {
-                IEnumerable<PublishedFunding> publishedFunding = await documents.ReadNext();
+                IEnumerable<PublishedFunding> publishedFunding = await documents.ReadNext<PublishedFunding>();
                 
                 IEnumerable<ExpandoObject> csvRows = fundingLineCsvTransform.Transform(publishedFunding, jobType);
 

@@ -36,7 +36,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Tasks
             AndNothingWasUpdated<PublishedProviderVersion>();
         }
         
-        protected void GivenThePublishedProviderVersionFeed(ICosmosDbFeedIterator<PublishedProviderVersion> feed)
+        protected void GivenThePublishedProviderVersionFeed(ICosmosDbFeedIterator feed)
         {
 
             Cosmos.Setup(_ => _.GetPublishedProviderVersions(TaskDetails.FundingStreamId,

@@ -53,7 +53,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
 
             IEnumerable<ProfilePeriodPattern> uniqueProfilePatterns = await GetProfilePeriodPatterns(jobType, fundingStreamId, fundingPeriodId, fundingLineCode);
 
-            ICosmosDbFeedIterator<PublishedProviderVersion> documents = _publishedFunding.GetPublishedProviderVersionsForBatchProcessing(predicate,
+            using ICosmosDbFeedIterator documents = _publishedFunding.GetPublishedProviderVersionsForBatchProcessing(predicate,
                 specificationId,
                 BatchSize,
                 join,
@@ -67,7 +67,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
 
             while (documents.HasMoreResults)
             {
-                IEnumerable<PublishedProviderVersion> publishedProviderVersions = (await documents.ReadNext()).Where(_ => _.FundingLines.AnyWithNullCheck());
+                IEnumerable<PublishedProviderVersion> publishedProviderVersions = (await documents.ReadNext<PublishedProviderVersion>()).Where(_ => _.FundingLines.AnyWithNullCheck());
 
                 IEnumerable<ExpandoObject> csvRows = fundingLineCsvTransform.Transform(publishedProviderVersions, jobType, uniqueProfilePatterns);
 

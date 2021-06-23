@@ -50,7 +50,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .GetFundingConfiguration(Arg.Any<string>(), Arg.Any<string>())
                 .Returns(
                     new ApiResponse<FundingConfiguration>(System.Net.HttpStatusCode.OK, new FundingConfiguration()),
-                    new ApiResponse<FundingConfiguration>(System.Net.HttpStatusCode.BadRequest, null));
+                    new ApiResponse<FundingConfiguration>(System.Net.HttpStatusCode.BadRequest, null, null));
 
             FundingConfigurationService fundingConfigurationService = CreateService(policiesApiClient);
 

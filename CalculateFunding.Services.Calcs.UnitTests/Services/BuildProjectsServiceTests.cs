@@ -698,7 +698,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             specificationsApiClient
                 .GetSpecificationSummaryById(SpecificationId)
-                .Returns(new ApiResponse<ApiClientSpecModels.SpecificationSummary>(HttpStatusCode.OK, null));
+                .Returns(new ApiResponse<ApiClientSpecModels.SpecificationSummary>(HttpStatusCode.OK, null, null));
 
 
 
@@ -725,7 +725,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             specificationsApiClient
                 .GetSpecificationSummaryById(SpecificationId)
-                .Returns(new ApiResponse<ApiClientSpecModels.SpecificationSummary>(HttpStatusCode.InternalServerError, null));
+                .Returns(new ApiResponse<ApiClientSpecModels.SpecificationSummary>(HttpStatusCode.InternalServerError, null, null));
 
 
 

@@ -162,7 +162,7 @@ namespace CalculateFunding.Services.Datasets.Services
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
             specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Any<string>())
-                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, null));
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, null, null));
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger,
                 datasetRepository: datasetRepository, specificationsApiClient: specificationsApiClient);
@@ -595,7 +595,7 @@ namespace CalculateFunding.Services.Datasets.Services
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
             specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(specificationId))
-                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, null));
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, null, null));
 
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger, specificationsApiClient: specificationsApiClient);

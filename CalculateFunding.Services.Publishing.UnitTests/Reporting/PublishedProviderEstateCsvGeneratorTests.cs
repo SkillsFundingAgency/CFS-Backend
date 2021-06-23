@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
@@ -131,7 +132,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
                 ("funding-stream-id", fundingStreamId));
             AndTheFileExists(expectedInterimFilePath);
             AndTheJobExists(jobId);
-            AndTheRefreshedProviderVersionBatchProcessingFeed(specificationId, new Mock<ICosmosDbFeedIterator<PublishedProviderVersion>>().Object);
+            AndTheRefreshedProviderVersionBatchProcessingFeed(specificationId, new Mock<ICosmosDbFeedIterator>().Object);
 
             await WhenTheCsvIsGenerated();
 
@@ -183,7 +184,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
 
             MemoryStream incrementalFileStream = new MemoryStream();
 
-            Mock<ICosmosDbFeedIterator<PublishedProviderVersion>> feed = new Mock<ICosmosDbFeedIterator<PublishedProviderVersion>>();
+            Mock<ICosmosDbFeedIterator> feed = new Mock<ICosmosDbFeedIterator>();
 
             GivenTheCsvRowTransformation(transformedRowsOne, expectedCsvOne, true);
             AndTheMessageProperties(("specification-id", specificationId),
@@ -268,7 +269,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
             
             MemoryStream incrementalFileStream = new MemoryStream();
 
-            Mock<ICosmosDbFeedIterator<PublishedProviderVersion>> feed = new Mock<ICosmosDbFeedIterator<PublishedProviderVersion>>();
+            Mock<ICosmosDbFeedIterator> feed = new Mock<ICosmosDbFeedIterator>();
 
             GivenTheCsvRowTransformation(transformedRowsOne, expectedCsvOne, true);
             AndTheMessageProperties(("specification-id", specificationId), 
@@ -348,7 +349,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
             
             MemoryStream incrementalFileStream = new MemoryStream();
             
-            Mock<ICosmosDbFeedIterator<PublishedProviderVersion>> feed = new Mock<ICosmosDbFeedIterator<PublishedProviderVersion>>();
+            Mock<ICosmosDbFeedIterator> feed = new Mock<ICosmosDbFeedIterator>();
 
             GivenTheCsvRowTransformation(transformedRowsOne, expectedCsvOne, true);
             AndTheCsvRowTransformation(transformedRowsTwo, expectedCsvTwo, false);
@@ -475,21 +476,21 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
         }  
         
         private void GivenTheRefreshedProviderVersionBatchProcessingFeed(string specificationId,
-            ICosmosDbFeedIterator<PublishedProviderVersion> feed)
+            ICosmosDbFeedIterator feed)
             => _publishedFunding.Setup(_ => _.GetRefreshedProviderVersionBatchProcessing(specificationId,
                     PublishedProviderEstateCsvGenerator.BatchSize))
                 .Returns(feed);
 
         private void AndTheRefreshedProviderVersionBatchProcessingFeed(string specification,
-            ICosmosDbFeedIterator<PublishedProviderVersion> feed)
+            ICosmosDbFeedIterator feed)
             => GivenTheRefreshedProviderVersionBatchProcessingFeed(specification, feed);
         
-        private void AndTheFeedIteratorHasThePages<TEntity>(Mock<ICosmosDbFeedIterator<TEntity>> feed,
-            params IEnumerable<TEntity>[] pages)
+        private void AndTheFeedIteratorHasThePages<TEntity>(Mock<ICosmosDbFeedIterator> feed,
+            params IEnumerable<TEntity>[] pages) where TEntity : IIdentifiable
         {
             ISetupSequentialResult<bool> hasMoreRecordsSequence = feed.SetupSequence(_ => _.HasMoreResults);
             ISetupSequentialResult<Task<IEnumerable<TEntity>>> readNextSequence 
-                = feed.SetupSequence(_ => _.ReadNext(It.IsAny<CancellationToken>()));
+                = feed.SetupSequence(_ => _.ReadNext<TEntity>(It.IsAny<CancellationToken>()));
 
             foreach (IEnumerable<TEntity> page in pages)
             {

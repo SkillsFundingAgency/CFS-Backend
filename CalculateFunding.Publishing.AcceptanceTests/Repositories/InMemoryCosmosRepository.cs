@@ -239,7 +239,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
-        public ICosmosDbFeedIterator<T> GetFeedIterator<T>(CosmosDbQuery cosmosDbQuery, int itemsPerPage = -1, int? maxItemCount = null) where T : IIdentifiable
+        public ICosmosDbFeedIterator GetFeedIterator(CosmosDbQuery cosmosDbQuery, int itemsPerPage = -1, int? maxItemCount = null)
         {
             throw new NotImplementedException();
         }

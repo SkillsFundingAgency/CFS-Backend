@@ -525,7 +525,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             policiesApiClient
                 .GetFundingTemplate(Arg.Is(fundingStreamId), Arg.Is(fundingPeriodId), Arg.Is(templateVersion))
-                .Returns(new ApiResponse<FundingTemplateContents>(HttpStatusCode.NotFound, null));
+                .Returns(new ApiResponse<FundingTemplateContents>(HttpStatusCode.NotFound, null, null));
 
             // Act
             IActionResult result = await specificationsService.CreateSpecification(specificationCreateModel, user, null);
@@ -1233,7 +1233,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             policiesApiClient
                 .GetFundingStreamById(Arg.Is(fundingStreamNotFoundId))
-                .Returns(new ApiResponse<PolicyModels.FundingStream>(HttpStatusCode.OK, null));
+                .Returns(new ApiResponse<PolicyModels.FundingStream>(HttpStatusCode.OK, null, null));
 
             // Act
             IActionResult result = await specificationsService.CreateSpecification(specificationCreateModel, user, null);

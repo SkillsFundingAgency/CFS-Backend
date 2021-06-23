@@ -49,10 +49,10 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
             PublishedFundingUndoTaskContext TaskContext { get; set; }
         }
 
-        protected class FeedContext<TDocument> : IFeedContext where TDocument : IIdentifiable
+        protected class FeedContext : IFeedContext
         {
             public FeedContext(PublishedFundingUndoTaskContext taskContext,
-                ICosmosDbFeedIterator<TDocument> feed)
+                ICosmosDbFeedIterator feed)
             {
                 TaskContext = taskContext;
                 Feed = feed;
@@ -60,7 +60,7 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
 
             public PublishedFundingUndoTaskContext TaskContext { get; set; }
 
-            public ICosmosDbFeedIterator<TDocument> Feed { get; set; }
+            public ICosmosDbFeedIterator Feed { get; set; }
         }
 
         protected async Task<(bool isComplete, IEnumerable<TDocument> items)> GetDocumentsFromFeed<TDocument>(CancellationToken cancellationToken,
@@ -69,7 +69,7 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
         {
             try
             {
-                ICosmosDbFeedIterator<TDocument> feed = ((FeedContext<TDocument>) context).Feed;
+                ICosmosDbFeedIterator feed = ((FeedContext) context).Feed;
             
                 LogInformation($"Requesting next page of {typeof(TDocument).Name} documents from cosmos feed");
 
@@ -80,11 +80,11 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
                     return (true, ArraySegment<TDocument>.Empty);
                 }
 
-                IEnumerable<TDocument> documents = await feed.ReadNext(cancellationToken);
+                IEnumerable<TDocument> documents = await feed.ReadNext<TDocument>(cancellationToken);
 
                 while(documents.IsNullOrEmpty() && feed.HasMoreResults)
                 {
-                    documents = await feed.ReadNext(cancellationToken);
+                    documents = await feed.ReadNext<TDocument>(cancellationToken);
                 }
 
                 if (documents.IsNullOrEmpty() && !feed.HasMoreResults)

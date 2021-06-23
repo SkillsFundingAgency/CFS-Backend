@@ -408,7 +408,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
 
             _cosmosRepository
                 .Received(1)
-                .GetFeedIterator<PublishedFundingVersion>(
+                .GetFeedIterator(
                     Arg.Is<CosmosDbQuery>(_ => _.QueryText == queryText &&
                                                HasParameter(_, "@fundingPeriodId", fundingPeriodId) &&
                                                HasParameter(_, "@fundingStreamId", fundingStreamId) &&
@@ -478,7 +478,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
 
             _cosmosRepository
                 .Received(1)
-                .GetFeedIterator<PublishedFunding>(
+                .GetFeedIterator(
                     Arg.Is<CosmosDbQuery>(_ => _.QueryText == queryText &&
                                                HasParameter(_, "@fundingPeriodId", fundingPeriodId) &&
                                                HasParameter(_, "@fundingStreamId", fundingStreamId) &&

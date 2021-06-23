@@ -125,7 +125,7 @@ namespace CalculateFunding.Services.Calculator
             IDatasetsApiClient datasetsApiClient = Substitute.For<IDatasetsApiClient>();
             datasetsApiClient
                 .GetDatasetAggregationsBySpecificationId(Arg.Any<string>())
-                .Returns(new ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetAggregations>>(HttpStatusCode.OK, null));
+                .Returns(new ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetAggregations>>(HttpStatusCode.OK, null, null));
 
             DatasetAggregationsRepository datasetAggregationsRepository = new DatasetAggregationsRepository(datasetsApiClient, CreateMapper());
 

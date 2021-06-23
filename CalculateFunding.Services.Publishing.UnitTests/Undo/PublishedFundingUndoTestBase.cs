@@ -62,14 +62,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
         protected IEnumerable<TDocument> Page<TDocument>(params TDocument[] items) 
             where TDocument : IIdentifiable => items;
 
-        protected ICosmosDbFeedIterator<TDocument> NewFeedIterator<TDocument>(params IEnumerable<TDocument>[] pages)
+        protected ICosmosDbFeedIterator NewFeedIterator<TDocument>(params IEnumerable<TDocument>[] pages)
             where TDocument : IIdentifiable
         {
-            Mock<ICosmosDbFeedIterator<TDocument>> feedIterator = new Mock<ICosmosDbFeedIterator<TDocument>>();
+            Mock<ICosmosDbFeedIterator> feedIterator = new Mock<ICosmosDbFeedIterator>();
 
             ISetupSequentialResult<bool> hasResultsSequence = feedIterator.SetupSequence(_ => _.HasMoreResults);
             ISetupSequentialResult<Task<IEnumerable<TDocument>>> pagesSequence = feedIterator.SetupSequence(_ => 
-                _.ReadNext(It.IsAny<CancellationToken>()));
+                _.ReadNext<TDocument>(It.IsAny<CancellationToken>()));
 
             foreach (IEnumerable<TDocument> page in pages)
             {

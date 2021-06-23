@@ -753,14 +753,14 @@ namespace CalculateFunding.Services.Publishing.Repositories
             itemsPerPage: 50);
         }
 
-        public ICosmosDbFeedIterator<PublishedFunding> GetPublishedFundingForBatchProcessing(string specificationId,
+        public ICosmosDbFeedIterator GetPublishedFundingForBatchProcessing(string specificationId,
             string fundingStreamId,
             string fundingPeriodId,
             int batchSize)
         {
             CosmosDbQuery query = CreateQueryForPublishedFundingBatchProcessing(specificationId, fundingStreamId, fundingPeriodId);
 
-            return _repository.GetFeedIterator<PublishedFunding>(query, batchSize);
+            return _repository.GetFeedIterator(query, batchSize);
         }
 
         private static CosmosDbQuery CreateQueryForPublishedFundingBatchProcessing(string specificationId,
@@ -815,14 +815,14 @@ namespace CalculateFunding.Services.Publishing.Repositories
             };
         }
 
-        public ICosmosDbFeedIterator<PublishedFundingVersion> GetPublishedFundingVersionsForBatchProcessing(string specificationId,
+        public ICosmosDbFeedIterator GetPublishedFundingVersionsForBatchProcessing(string specificationId,
             string fundingStreamId,
             string fundingPeriodId,
             int batchSize)
         {
             CosmosDbQuery query = CreateQueryForPublishedFundingVersionBatchProcessing(specificationId, fundingStreamId, fundingPeriodId);
 
-            return _repository.GetFeedIterator<PublishedFundingVersion>(query, batchSize);
+            return _repository.GetFeedIterator(query, batchSize);
         }
 
         private static CosmosDbQuery CreateQueryForPublishedFundingVersionBatchProcessing(string specificationId,
@@ -873,7 +873,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
             };
         }
 
-        public ICosmosDbFeedIterator<PublishedProviderVersion> GetPublishedProviderVersionsForBatchProcessing(string predicate,
+        public ICosmosDbFeedIterator GetPublishedProviderVersionsForBatchProcessing(string predicate,
             string specificationId,
             int batchSize,
             string joinPredicate = null,
@@ -881,7 +881,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
         {
             CosmosDbQuery query = CreateQueryForPublishedProviderVersionBatchProcessing(predicate, specificationId, joinPredicate, fundingLineName);
 
-            return _repository.GetFeedIterator<PublishedProviderVersion>(query, batchSize);
+            return _repository.GetFeedIterator(query, batchSize);
         }
 
         private static CosmosDbQuery CreateQueryForPublishedProviderVersionBatchProcessing(string predicate,
@@ -1409,12 +1409,12 @@ namespace CalculateFunding.Services.Publishing.Repositories
             return results;
         }
 
-        public ICosmosDbFeedIterator<PublishedProviderVersion> GetRefreshedProviderVersionBatchProcessing(string specificationId,
+        public ICosmosDbFeedIterator GetRefreshedProviderVersionBatchProcessing(string specificationId,
             int batchSize)
         {
             CosmosDbQuery query = CreateQueryForRefreshedProviderVersionBatchProcessing(specificationId);
 
-            return _repository.GetFeedIterator<PublishedProviderVersion>(query, batchSize);
+            return _repository.GetFeedIterator(query, batchSize);
         }
 
         private static CosmosDbQuery CreateQueryForRefreshedProviderVersionBatchProcessing(string specificationId)
@@ -1486,7 +1486,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                 fundingLines.Add((item.fundingLineCode, item.name));
             }
 
-            return await Task.FromResult(fundingLines.DistinctBy(_ => _.Code));
+            return fundingLines.DistinctBy(_ => _.Code);
         }
 
         public async Task<int> QueryPublishedFundingCount(IEnumerable<string> fundingStreamIds,

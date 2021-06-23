@@ -139,24 +139,23 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         Task<IEnumerable<string>> GetPublishedProviderPublishedProviderIds(string specificationId);
 
         Task DeletePublishedProviders(IEnumerable<PublishedProvider> publishedProviders);
-
-        ICosmosDbFeedIterator<PublishedProviderVersion> GetPublishedProviderVersionsForBatchProcessing(string predicate,
+        ICosmosDbFeedIterator GetPublishedProviderVersionsForBatchProcessing(string predicate,
             string specificationId,
             int batchSize,
             string joinPredicate = null,
             string fundingLineName = null);
 
-        ICosmosDbFeedIterator<PublishedFundingVersion> GetPublishedFundingVersionsForBatchProcessing(string specificationId,
+        ICosmosDbFeedIterator GetPublishedFundingVersionsForBatchProcessing(string specificationId,
             string fundingStreamId,
             string fundingPeriodId,
             int batchSize);
 
-        ICosmosDbFeedIterator<PublishedFunding> GetPublishedFundingForBatchProcessing(string specificationId,
+        ICosmosDbFeedIterator GetPublishedFundingForBatchProcessing(string specificationId,
             string fundingStreamId,
             string fundingPeriodId,
             int batchSize);
 
-        ICosmosDbFeedIterator<PublishedProviderVersion> GetRefreshedProviderVersionBatchProcessing(string specificationId,
+        ICosmosDbFeedIterator GetRefreshedProviderVersionBatchProcessing(string specificationId,
             int batchSize);
     }
 }

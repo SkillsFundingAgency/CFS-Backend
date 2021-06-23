@@ -17,7 +17,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
     [TestClass]
     public class SqlImporterTests
     {
-        private Mock<ICosmosDbFeedIterator<PublishedProvider>> _cosmosFeed;
+        private Mock<ICosmosDbFeedIterator> _cosmosFeed;
         private Mock<ISqlImportContext> _importContext;
         private Mock<ISqlImportContextBuilder> _importContextBuilder;
         private Mock<IDataTableImporter> _dataTableImporter;
@@ -35,7 +35,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
         [TestInitialize]
         public void SetUp()
         {
-            _cosmosFeed = new Mock<ICosmosDbFeedIterator<PublishedProvider>>();
+            _cosmosFeed = new Mock<ICosmosDbFeedIterator>();
             _importContext = new Mock<ISqlImportContext>();
             _importContextBuilder = new Mock<ISqlImportContextBuilder>();
             _dataTableImporter = new Mock<IDataTableImporter>();
@@ -148,7 +148,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.SqlExport
         private void AndThePagesOfPublishedProviders(params IEnumerable<PublishedProvider>[] pages)
         {
             ISetupSequentialResult<Task<IEnumerable<PublishedProvider>>> reads = _cosmosFeed.SetupSequence(_ => 
-                _.ReadNext(It.IsAny<CancellationToken>()));
+                _.ReadNext<PublishedProvider>(It.IsAny<CancellationToken>()));
             ISetupSequentialResult<bool> hasRecords = _cosmosFeed.SetupSequence(_ => _.HasMoreResults);
             
             foreach (IEnumerable<PublishedProvider> page in pages)

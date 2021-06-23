@@ -50,7 +50,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             GivenThePublishedFundingForBatchProfessingFeed(specificationId, 
                 fundingStreamId, 
                 fundingPeriodId, 
-                new Mock<ICosmosDbFeedIterator<PublishedFunding>>().Object);
+                new Mock<ICosmosDbFeedIterator>().Object);
 
             bool processedResults = await WhenTheCsvIsGenerated(FundingLineCsvGeneratorJobType.CurrentOrganisationGroupValues,
                 specificationId,
@@ -97,7 +97,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             string expectedCsvOne = NewRandomString();
             string expectedCsvTwo = NewRandomString();
 
-            Mock<ICosmosDbFeedIterator<PublishedFunding>> feed = new Mock<ICosmosDbFeedIterator<PublishedFunding>>();
+            Mock<ICosmosDbFeedIterator> feed = new Mock<ICosmosDbFeedIterator>();
 
             GivenTheCsvRowTransformation<PublishedFunding>(publishedProviders => 
             {
@@ -138,7 +138,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         private void GivenThePublishedFundingForBatchProfessingFeed(string specificationId,
             string fundingStreamId,
             string fundingPeriodId,
-            ICosmosDbFeedIterator<PublishedFunding> feed)
+            ICosmosDbFeedIterator feed)
             => AndThePublishedFundingForBatchProfessingFeed(specificationId,
                 fundingStreamId,
                 fundingPeriodId,
@@ -147,7 +147,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         private void AndThePublishedFundingForBatchProfessingFeed(string specificationId,
             string fundingStreamId,
             string fundingPeriodId,
-            ICosmosDbFeedIterator<PublishedFunding> feed)
+            ICosmosDbFeedIterator feed)
             => PublishedFunding.Setup(_ => _.GetPublishedFundingForBatchProcessing(specificationId,
                     fundingStreamId,
                     fundingPeriodId,

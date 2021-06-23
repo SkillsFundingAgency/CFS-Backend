@@ -116,7 +116,7 @@ namespace CalculateFunding.Services.Results
 
             LogInformation($"Merging specification information for specification {specificationId} into summary for all providers with results currently tracking it");
 
-            ICosmosDbFeedIterator<ProviderWithResultsForSpecifications> providersWithResultsForSpecifications = GetProviderWithResultsBySpecificationId(specificationId);
+            ICosmosDbFeedIterator providersWithResultsForSpecifications = GetProviderWithResultsBySpecificationId(specificationId);
 
             await EnsureFundingPeriodEndDateQueried(specificationInformation);
 
@@ -134,11 +134,11 @@ namespace CalculateFunding.Services.Results
         private async Task<(bool isComplete, IEnumerable<ProviderWithResultsForSpecifications> items)> ProduceProviderWithResultsForSpecifications(CancellationToken token,
             dynamic context)
         {
-            ICosmosDbFeedIterator<ProviderWithResultsForSpecifications> feedIterator = ((MergeSpecificationInformationContext) context).FeedIterator;
+            ICosmosDbFeedIterator feedIterator = ((MergeSpecificationInformationContext) context).FeedIterator;
 
             while (feedIterator.HasMoreResults)
             {
-                ProviderWithResultsForSpecifications[] page = (await feedIterator.ReadNext(token)).ToArray();
+                ProviderWithResultsForSpecifications[] page = (await feedIterator.ReadNext<ProviderWithResultsForSpecifications>(token)).ToArray();
 
                 LogInformation($"Producing next page of ProviderWithResultsForSpecifications with {page.Length} items");
 
@@ -251,7 +251,7 @@ namespace CalculateFunding.Services.Results
         private Task<ProviderWithResultsForSpecifications> GetProviderWithResultsByProviderId(string providerId)
             => _resultsPolicy.ExecuteAsync(() => _results.GetProviderWithResultsForSpecificationsByProviderId(providerId));
 
-        private ICosmosDbFeedIterator<ProviderWithResultsForSpecifications> GetProviderWithResultsBySpecificationId(string specificationId) 
+        private ICosmosDbFeedIterator GetProviderWithResultsBySpecificationId(string specificationId) 
             => _results.GetProvidersWithResultsForSpecificationBySpecificationId(specificationId);
 
         private void LogInformation(string message) => _logger.Information(FormatLogMessage(message));
@@ -260,14 +260,14 @@ namespace CalculateFunding.Services.Results
 
         private class MergeSpecificationInformationContext
         {
-            public MergeSpecificationInformationContext(ICosmosDbFeedIterator<ProviderWithResultsForSpecifications> feedIterator,
+            public MergeSpecificationInformationContext(ICosmosDbFeedIterator feedIterator,
                 SpecificationInformation specificationInformation)
             {
                 FeedIterator = feedIterator;
                 SpecificationInformation = specificationInformation;
             }
 
-            public ICosmosDbFeedIterator<ProviderWithResultsForSpecifications> FeedIterator { get; }
+            public ICosmosDbFeedIterator FeedIterator { get; }
 
             public SpecificationInformation SpecificationInformation { get; }
         }

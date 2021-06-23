@@ -2011,7 +2011,7 @@ namespace CalculateFunding.Services.Calcs.Services
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
             specificationsApiClient
                 .GetSpecificationSummaryById(specificationId)
-                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, null));
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, null, null));
 
             CalculationService service = CreateCalculationService(logger: logger, specificationsApiClient: specificationsApiClient);
 
@@ -2100,7 +2100,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetSpecificationSummaryById(specificationId)
                 .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
-            ApiResponse<TemplateMetadataContents> fundingTemplateApiResponse = new ApiResponse<TemplateMetadataContents>(HttpStatusCode.NotFound, null);
+            ApiResponse<TemplateMetadataContents> fundingTemplateApiResponse = new ApiResponse<TemplateMetadataContents>(HttpStatusCode.NotFound, null, null);
 
             policiesApiClient
                 .GetFundingTemplateContents(Arg.Is(fundingStreamId), Arg.Is(fundingPeriodId), Arg.Is(templateId))

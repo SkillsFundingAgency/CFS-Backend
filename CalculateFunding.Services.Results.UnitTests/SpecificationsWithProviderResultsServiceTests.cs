@@ -368,7 +368,7 @@ namespace CalculateFunding.Services.Results.UnitTests
         }
 
         private void AndTheProviderWithResultsForSpecifications(string specificationId,
-            ICosmosDbFeedIterator<ProviderWithResultsForSpecifications> feed)
+            ICosmosDbFeedIterator feed)
         {
             _calculationResults.Setup(_ => _.GetProvidersWithResultsForSpecificationBySpecificationId(specificationId))
                 .Returns(feed);
@@ -503,13 +503,13 @@ namespace CalculateFunding.Services.Results.UnitTests
             return messageBuilder.Build();
         }
 
-        private ICosmosDbFeedIterator<ProviderWithResultsForSpecifications> NewFeedIterator(params ProviderWithResultsForSpecifications[][] pages)
+        private ICosmosDbFeedIterator NewFeedIterator(params ProviderWithResultsForSpecifications[][] pages)
         {
-            Mock<ICosmosDbFeedIterator<ProviderWithResultsForSpecifications>> feed = new Mock<ICosmosDbFeedIterator<ProviderWithResultsForSpecifications>>();
+            Mock<ICosmosDbFeedIterator> feed = new Mock<ICosmosDbFeedIterator>();
 
             ISetupSequentialResult<bool> hasResults = feed.SetupSequence(_ => _.HasMoreResults);
             ISetupSequentialResult<Task<IEnumerable<ProviderWithResultsForSpecifications>>> next =
-                feed.SetupSequence(_ => _.ReadNext(It.IsAny<CancellationToken>()));
+                feed.SetupSequence(_ => _.ReadNext<ProviderWithResultsForSpecifications>(It.IsAny<CancellationToken>()));
 
             foreach (ProviderWithResultsForSpecifications[] page in pages)
             {
