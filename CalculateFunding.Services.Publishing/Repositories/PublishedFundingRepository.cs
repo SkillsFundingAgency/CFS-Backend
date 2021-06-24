@@ -1172,6 +1172,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                            'status'          : c.content.current.status,
                                            'totalFunding'    : c.content.current.totalFunding,
                                            'version'         : c.content.current.version,
+                                           'errors'          : c.content.current.errors,
                                            'provider'        : { 
                                                'providerType' : c.content.current.provider.providerType,
                                                'providerSubType' : c.content.current.provider.providerSubType,
