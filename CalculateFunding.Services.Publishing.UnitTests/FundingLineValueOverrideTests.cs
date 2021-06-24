@@ -73,7 +73,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _.WithFundingLines(NewFundingLine(fl => fl.WithTemplateLineId(templateLineId)
                     .WithValue(98990M))))));
 
-            _fundingLineValueOverride.OverridePreviousFundingLineValues(publishedProvider, 
+            _fundingLineValueOverride.OverridePreviousFundingLineValues(publishedProvider,
                 generatedProviderResult);
 
             generatedProviderResult.FundingLines
@@ -82,6 +82,40 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Value
                 .Should()
                 .Be(null);
+
+            generatedProviderResult
+                .TotalFunding
+                .Should()
+                .Be(null);
+        }
+
+        [TestMethod]
+        public void UpdatesGeneratedResultIfPreviousVersionFundingLineHasBeenNulledSetsTotalFundingToZero()
+        {
+            uint templateLineId = NewRandomUint();
+
+            GeneratedProviderResult generatedProviderResult = NewGeneratedProviderResult(_ =>
+                _.WithFundlines(NewFundingLine(fl => fl
+                    .WithTemplateLineId(templateLineId)
+                    .WithValue(null)
+                    .WithFundingLineType(FundingLineType.Payment))));
+
+            PublishedProvider publishedProvider = NewPublishedProvider(_ =>
+                _.WithCurrent(NewPublishedProviderVersion(_ =>
+                    _.WithFundingLines(NewFundingLine(fl => fl.WithTemplateLineId(templateLineId)
+                        .WithValue(0m))))
+                )
+                .WithReleased(NewPublishedProviderVersion(_ =>
+                    _.WithFundingLines(NewFundingLine(fl => fl.WithTemplateLineId(templateLineId)
+                        .WithValue(100000m))))));
+
+            _fundingLineValueOverride.OverridePreviousFundingLineValues(publishedProvider,
+                generatedProviderResult);
+
+            generatedProviderResult
+                .TotalFunding
+                .Should()
+                .Be(0m);
         }
 
         [TestMethod]
@@ -136,7 +170,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             PublishedProvider publishedProvider = NewPublishedProvider(_ => _.WithCurrent(NewPublishedProviderVersion(_ =>
                 _.WithFundingLines(NewFundingLine()))));
 
-            _fundingLineValueOverride.OverridePreviousFundingLineValues(publishedProvider, 
+            _fundingLineValueOverride.OverridePreviousFundingLineValues(publishedProvider,
                 generatedProviderResult);
 
             generatedProviderResult.FundingLines
@@ -147,14 +181,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Be(null);
         }
 
-        private uint NewRandomUint() => (uint) new RandomNumberBetween(1, int.MaxValue);
+        private uint NewRandomUint() => (uint)new RandomNumberBetween(1, int.MaxValue);
 
         private static GeneratedProviderResult NewGeneratedProviderResult(Action<GeneratedProviderResultBuilder> setUp = null)
         {
             GeneratedProviderResultBuilder generatedProviderResultBuilder = new GeneratedProviderResultBuilder();
 
             setUp?.Invoke(generatedProviderResultBuilder);
-        
+
             return generatedProviderResultBuilder.Build();
         }
 
@@ -163,7 +197,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             FundingLineBuilder fundingLineBuilder = new FundingLineBuilder();
 
             setUp?.Invoke(fundingLineBuilder);
-        
+
             return fundingLineBuilder.Build();
         }
 
@@ -181,7 +215,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             PublishedProviderVersionBuilder publishedProviderVersionBuilder = new PublishedProviderVersionBuilder();
 
             setUp?.Invoke(publishedProviderVersionBuilder);
-        
+
             return publishedProviderVersionBuilder.Build();
         }
     }
