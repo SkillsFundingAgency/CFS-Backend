@@ -7,6 +7,6 @@ namespace CalculateFunding.Services.Publishing.Interfaces
 {
     public interface ICustomProfileService
     {
-        Task<IActionResult> ApplyCustomProfile(ApplyCustomProfileRequest request, Reference author);
+        Task<IActionResult> ApplyCustomProfile(ApplyCustomProfileRequest request, Reference author, string correlationId);
     }
 }

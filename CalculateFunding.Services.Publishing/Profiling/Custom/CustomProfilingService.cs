@@ -6,6 +6,7 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Models;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
@@ -20,18 +21,21 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
         private readonly IPublishedFundingRepository _publishedFundingRepository;
         private readonly IPublishedProviderStatusUpdateService _publishedProviderVersionCreation;
         private readonly IValidator<ApplyCustomProfileRequest> _requestValidation;
+        private readonly IPublishedFundingCsvJobsService _publishFundingCsvJobsService;
         private readonly ILogger _logger;
 
         public CustomProfilingService(IPublishedProviderStatusUpdateService publishedProviderStatusUpdateService,
             IValidator<ApplyCustomProfileRequest> requestValidation,
             IPublishedFundingRepository publishedFundingRepository,
             IPublishingResiliencePolicies resiliencePolicies,
+            IPublishedFundingCsvJobsService publishFundingCsvJobsService,
             ILogger logger)
         {
             Guard.ArgumentNotNull(requestValidation, nameof(requestValidation));
             Guard.ArgumentNotNull(publishedProviderStatusUpdateService, nameof(publishedProviderStatusUpdateService));
             Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
             Guard.ArgumentNotNull(resiliencePolicies?.PublishedFundingRepository, nameof(resiliencePolicies.PublishedFundingRepository));
+            Guard.ArgumentNotNull(publishFundingCsvJobsService, nameof(publishFundingCsvJobsService));
             Guard.ArgumentNotNull(logger, nameof(logger));
 
             _publishedProviderVersionCreation = publishedProviderStatusUpdateService;
@@ -39,9 +43,10 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
             _publishedFundingRepository = publishedFundingRepository;
             _logger = logger;
             _publishedFundingResilience = resiliencePolicies.PublishedFundingRepository;
+            _publishFundingCsvJobsService = publishFundingCsvJobsService;
         }
 
-        public async Task<IActionResult> ApplyCustomProfile(ApplyCustomProfileRequest request, Reference author)
+        public async Task<IActionResult> ApplyCustomProfile(ApplyCustomProfileRequest request, Reference author, string correlationId)
         {
             Guard.ArgumentNotNull(request, nameof(request));
             Guard.ArgumentNotNull(author, nameof(author));
@@ -104,6 +109,11 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
 
             _logger.Information(
                 $"Successfully applied custom profiling {request.CustomProfileName} to published provider {publishedProviderId}");
+
+            await _publishFundingCsvJobsService.QueueCsvJobs(GeneratePublishingCsvJobsCreationAction.Refresh,
+                currentProviderVersion.SpecificationId,
+                correlationId,
+                author);
 
             return new NoContentResult();
         }

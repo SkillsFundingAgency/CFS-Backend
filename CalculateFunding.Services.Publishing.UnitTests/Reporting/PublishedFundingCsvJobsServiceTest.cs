@@ -14,6 +14,7 @@ using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using Serilog.Core;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
 {
@@ -36,7 +37,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
 
             _publishedFundingCsvJobsService = new PublishedFundingCsvJobsService(_publishedFundingDataService.Object, 
                 _generateCsvJobsLocator.Object,
-                _specificationService.Object);
+                _specificationService.Object,
+                Logger.None);
         }
 
         [TestMethod]

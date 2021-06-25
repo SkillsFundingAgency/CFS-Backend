@@ -60,7 +60,7 @@ namespace CalculateFunding.Api.Publishing.Controllers
         public async Task<IActionResult> ApplyCustomProfilePattern(
             [FromBody] ApplyCustomProfileRequest request)
         {
-            return await _customProfileService.ApplyCustomProfile(request, Request.GetUser());
+            return await _customProfileService.ApplyCustomProfile(request, Request.GetUser(), Request.GetCorrelationId());
         }
     }
 }

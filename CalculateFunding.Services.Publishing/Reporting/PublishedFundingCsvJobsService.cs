@@ -6,6 +6,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using Microsoft.AspNetCore.Mvc;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,18 +20,21 @@ namespace CalculateFunding.Services.Publishing.Reporting
         private readonly IPublishedFundingDataService _publishedFundingDataService;
         private readonly IGeneratePublishedFundingCsvJobsCreationLocator _generateCsvJobsLocator;
         private readonly ISpecificationService _specificationService;
+        private readonly ILogger _logger;
 
         public PublishedFundingCsvJobsService(IPublishedFundingDataService publishedFundingDataService,
             IGeneratePublishedFundingCsvJobsCreationLocator generateCsvJobsLocator,
-            ISpecificationService specificationService)
+            ISpecificationService specificationService, ILogger logger)
         {
             Guard.ArgumentNotNull(publishedFundingDataService, nameof(publishedFundingDataService));
             Guard.ArgumentNotNull(generateCsvJobsLocator, nameof(generateCsvJobsLocator));
             Guard.ArgumentNotNull(specificationService, nameof(specificationService));
+            Guard.ArgumentNotNull(logger, nameof(logger));
 
             _publishedFundingDataService = publishedFundingDataService;
             _generateCsvJobsLocator = generateCsvJobsLocator;
             _specificationService = specificationService;
+            _logger = logger;
         }
 
         public async Task<IEnumerable<Job>> QueueCsvJobs(GeneratePublishingCsvJobsCreationAction createActionType, string specificationId, string correlationId, Reference author)
@@ -46,6 +50,8 @@ namespace CalculateFunding.Services.Publishing.Reporting
             {
                 throw new Exception($"Specification with id '{specificationId}' is not chosen for funding.");
             }
+
+            _logger.Information($"Queuing csv job create action type '{createActionType}' for specification Id '{specificationId}'. Correlation id = '{correlationId}'.");
 
             return await GenerateCsvJobs(createActionType,
                     specification.Id,

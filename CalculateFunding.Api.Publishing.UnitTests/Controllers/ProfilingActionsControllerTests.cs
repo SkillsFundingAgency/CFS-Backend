@@ -93,7 +93,8 @@ namespace CalculateFunding.Api.Publishing.UnitTests.Controllers
         {
             _customProfileService.Setup(_ => _.ApplyCustomProfile(request,
                     It.Is<Reference>(rf => rf.Id == _userId &&
-                                           rf.Name == _userName)))
+                                           rf.Name == _userName),
+                    It.IsAny<string>()))
                 .ReturnsAsync(result);
         }
 

@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Polly;
 using Serilog.Core;
+using CalculateFunding.Services.Publishing.Models;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
 {
@@ -25,40 +26,44 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
         private Mock<IPublishedProviderStatusUpdateService> _publishedProviderVersionCreation;
         private Mock<IValidator<ApplyCustomProfileRequest>> _validator;
         private Mock<IPublishedFundingRepository> _publishedFunding;
-        
+        private Mock<IPublishedFundingCsvJobsService> _publishedFundingCsvJobsService;
+        private readonly string CorrelationId = "123";
+
         [TestInitialize]
         public void SetUp()
         {
-                _publishedProviderVersionCreation = new Mock<IPublishedProviderStatusUpdateService>();
-                _validator = new Mock<IValidator<ApplyCustomProfileRequest>>();
-                _publishedFunding = new Mock<IPublishedFundingRepository>();
-                
-                _service = new CustomProfilingService(_publishedProviderVersionCreation.Object,
-                    _validator.Object,
-                    _publishedFunding.Object,
-                    new ResiliencePolicies
-                    {
-                        PublishedFundingRepository = Policy.NoOpAsync(),
-                        SpecificationsApiClient = Policy.NoOpAsync()
-                    },
-                    Logger.None);
+            _publishedProviderVersionCreation = new Mock<IPublishedProviderStatusUpdateService>();
+            _validator = new Mock<IValidator<ApplyCustomProfileRequest>>();
+            _publishedFunding = new Mock<IPublishedFundingRepository>();
+            _publishedFundingCsvJobsService = new Mock<IPublishedFundingCsvJobsService>();
+
+            _service = new CustomProfilingService(_publishedProviderVersionCreation.Object,
+                _validator.Object,
+                _publishedFunding.Object,
+                new ResiliencePolicies
+                {
+                    PublishedFundingRepository = Policy.NoOpAsync(),
+                    SpecificationsApiClient = Policy.NoOpAsync()
+                },
+                _publishedFundingCsvJobsService.Object,
+                Logger.None);
         }
 
         [TestMethod]
         public async Task ExitsEarlyIfRequestDoesntPassValidation()
         {
             ApplyCustomProfileRequest request = NewApplyCustomProfileRequest();
-            
-            GivenTheValidationResultForTheRequest(NewValidationResult(_ => 
-                    _.WithValidationFailures(NewValidationFailure())), 
+
+            GivenTheValidationResultForTheRequest(NewValidationResult(_ =>
+                    _.WithValidationFailures(NewValidationFailure())),
                 request);
-            
+
             IActionResult result = await WhenTheCustomProfileIsApplied(request, NewAuthor());
 
             result
                 .Should()
                 .BeOfType<BadRequestObjectResult>();
-            
+
             AndNoNewVersionWasCreated();
         }
 
@@ -73,7 +78,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
 
             ProfilePeriod profilePeriod1 = NewProfilePeriod(_ => _.WithDistributionPeriodId("FY-2021").WithAmount(periodProfileAmount1));
             ProfilePeriod profilePeriod2 = NewProfilePeriod(_ => _.WithDistributionPeriodId("FY-2022").WithAmount(periodProfileAmount2));
-            
+
             ApplyCustomProfileRequest request = NewApplyCustomProfileRequest(_ => _
                 .WithFundingLineCode(fundingLineOne)
                 .WithProfilePeriods(profilePeriod1, profilePeriod2)
@@ -158,6 +163,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
             AndTheCustomProfilePeriodsWereUsedOn(fundingLine, profilePeriods);
             AndANewProviderVersionWasCreatedFor(publishedProvider, expectedRequestedStatus, author);
             AndProfilingAuditUpdatedForFundingLines(publishedProvider, new[] { fundingLineOne }, author);
+            AndPublishCsvReportsJobCreated();
         }
 
         private void AndProfilingAuditUpdatedForFundingLines(PublishedProvider publishedProvider, string[] fundingLines, Reference author)
@@ -192,7 +198,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
 
         private void AndANewProviderVersionWasCreatedFor(PublishedProvider publishedProvider, PublishedProviderStatus newStatus, Reference author)
         {
-            _publishedProviderVersionCreation.Verify(_ => _.UpdatePublishedProviderStatus(new [] { publishedProvider },
+            _publishedProviderVersionCreation.Verify(_ => _.UpdatePublishedProviderStatus(new[] { publishedProvider },
                 author,
                 newStatus,
                 null,
@@ -209,7 +215,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
 
         private async Task<IActionResult> WhenTheCustomProfileIsApplied(ApplyCustomProfileRequest request, Reference author)
         {
-            return await _service.ApplyCustomProfile(request, author);
+            return await _service.ApplyCustomProfile(request, author, CorrelationId);
         }
 
         private Reference NewAuthor(Action<ReferenceBuilder> setUp = null)
@@ -217,7 +223,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
             ReferenceBuilder referenceBuilder = new ReferenceBuilder();
 
             setUp?.Invoke(referenceBuilder);
-            
+
             return referenceBuilder.Build();
         }
 
@@ -232,12 +238,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
                 Times.Never);
         }
 
+        private void AndPublishCsvReportsJobCreated()
+        {
+            _publishedFundingCsvJobsService.Verify(_ => _.QueueCsvJobs(GeneratePublishingCsvJobsCreationAction.Refresh,
+                It.IsAny<string>(),
+                CorrelationId,
+                It.IsAny<Reference>()), Times.Once);
+        }
+
         private ValidationResult NewValidationResult(Action<ValidationResultBuilder> setUp = null)
         {
             ValidationResultBuilder resultBuilder = new ValidationResultBuilder();
 
             setUp?.Invoke(resultBuilder);
-            
+
             return resultBuilder.Build();
         }
 
@@ -246,7 +260,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
             ValidationFailureBuilder failureBuilder = new ValidationFailureBuilder();
 
             setUp?.Invoke(failureBuilder);
-            
+
             return failureBuilder.Build();
         }
     }
