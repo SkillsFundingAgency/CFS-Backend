@@ -157,8 +157,7 @@ namespace CalculateFunding.Services.Core.Services
                     QueryText = @"SELECT VALUE Max(c.content.version) 
                             FROM    c 
                             WHERE   c.content.entityId = @EntityID
-                                    AND c.documentType = @DocumentType
-                                    AND c.deleted = false",
+                                    AND c.documentType = @DocumentType",
                     Parameters = new[]
                     {
                         new CosmosDbQueryParameter("@EntityID", entityId),
@@ -172,8 +171,7 @@ namespace CalculateFunding.Services.Core.Services
                 {
                     QueryText = @"SELECT VALUE Max(c.content.version) 
                             FROM    c 
-                            WHERE   c.documentType = @DocumentType
-                                    AND c.deleted = false",
+                            WHERE   c.documentType = @DocumentType",
                     Parameters = new[]
                     {
                         new CosmosDbQueryParameter("@DocumentType", typeof(T).Name)
