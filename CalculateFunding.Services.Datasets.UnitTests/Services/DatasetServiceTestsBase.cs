@@ -320,5 +320,19 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             return Substitute.For<IProvidersApiClient>();
         }
+
+        protected DefinitionSpecificationRelationship NewDefinitionSpecificationRelationship(Action<DefinitionSpecificationRelationshipBuilder> setUp = null)
+        {
+            DefinitionSpecificationRelationshipBuilder builder = new DefinitionSpecificationRelationshipBuilder();
+            setUp?.Invoke(builder);
+            return builder.Build();
+        }
+
+        protected DefinitionSpecificationRelationshipVersion NewDefinitionSpecificationRelationshipVersion(Action<DefinitionSpecificationRelationshipVersionBuilder> setUp = null)
+        {
+            DefinitionSpecificationRelationshipVersionBuilder builder = new DefinitionSpecificationRelationshipVersionBuilder();
+            setUp?.Invoke(builder);
+            return builder.Build();
+        }
     }
 }

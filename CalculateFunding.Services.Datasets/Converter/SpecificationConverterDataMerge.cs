@@ -132,7 +132,7 @@ namespace CalculateFunding.Services.Datasets.Converter
 
             foreach (DefinitionSpecificationRelationship specificationDatasetRelationship in specificationDatasetRelationships)
             {
-                if (!specificationDatasetRelationship.ConverterEnabled)
+                if (!specificationDatasetRelationship.Current.ConverterEnabled)
                 {
                     continue;
                 }
@@ -149,14 +149,14 @@ namespace CalculateFunding.Services.Datasets.Converter
                     },
                     Trigger = new Trigger
                     {
-                        EntityId = specificationDatasetRelationship.Specification.Id,
+                        EntityId = specificationDatasetRelationship.Current.Specification.Id,
                         EntityType = "Specification",
                     },
                     MessageBody = new ConverterMergeRequest
                     {
                         DatasetRelationshipId = datasetRelationshipId,
-                        DatasetId = specificationDatasetRelationship.DatasetVersion.Id,
-                        Version = specificationDatasetRelationship.DatasetVersion.Version.ToString(),
+                        DatasetId = specificationDatasetRelationship.Current.DatasetVersion.Id,
+                        Version = specificationDatasetRelationship.Current.DatasetVersion.Version.ToString(),
                         ProviderVersionId = providerVersionId,
                         Author = author
                     }.AsJson()
@@ -166,7 +166,7 @@ namespace CalculateFunding.Services.Datasets.Converter
 
         private async Task<IEnumerable<DefinitionSpecificationRelationship>> GetDatasetRelationships(string specificationId) =>
             await _datasetsResilience.ExecuteAsync(() => _datasets.GetDefinitionSpecificationRelationshipsByQuery(_ =>
-                _.Content.Specification.Id == specificationId));
+                _.Content.Current.Specification.Id == specificationId));
 
         private async Task<SpecificationSummary> GetSpecification(string specificationId)
         {

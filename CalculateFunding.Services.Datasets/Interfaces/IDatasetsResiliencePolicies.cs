@@ -29,5 +29,7 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         AsyncPolicy PoliciesApiClient { get; set; }
         
         AsyncPolicy CalculationsApiClient { get; set; }
+
+        AsyncPolicy RelationshipVersionRepository { get; set; }
     }
 }

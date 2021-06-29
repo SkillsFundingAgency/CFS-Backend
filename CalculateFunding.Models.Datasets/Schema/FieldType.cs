@@ -15,6 +15,7 @@ namespace CalculateFunding.Models.Datasets.Schema
         DateTime,
         String,
         NullableOfInteger,
-        NullableOfDecimal
+        NullableOfDecimal,
+        NullableOfBoolean
     }
 }

@@ -51,6 +51,8 @@ using CalculateFunding.Models.Datasets.Converter;
 using CalculateFunding.Services.Datasets.Converter;
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using Serilog;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type.Interfaces;
 
 [assembly: FunctionsStartup(typeof(CalculateFunding.Functions.Datasets.Startup))]
 
@@ -165,6 +167,10 @@ namespace CalculateFunding.Functions.Datasets
 
             builder
                .AddSingleton<IValidator<CreateDefinitionSpecificationRelationshipModel>, CreateDefinitionSpecificationRelationshipModelValidator>();
+
+            builder
+               .AddSingleton<IValidator<ValidateDefinitionSpecificationRelationshipModel>, ValidateDefinitionSpecificationRelationshipModelValidator>();
+            builder.AddSingleton<ITypeIdentifierGenerator, VisualBasicTypeIdentifierGenerator>();
 
             builder
                .AddSingleton<IExcelDatasetWriter, DataDefinitionExcelWriter>();
@@ -328,6 +334,19 @@ namespace CalculateFunding.Functions.Datasets
                 return new ProviderSourceDatasetBulkRepository(cosmos);
             });
 
+            builder.AddSingleton<IVersionRepository<DefinitionSpecificationRelationshipVersion>, VersionRepository<DefinitionSpecificationRelationshipVersion>>((ctx) =>
+            {
+                CosmosDbSettings settings = new CosmosDbSettings();
+
+                config.Bind("CosmosDbSettings", settings);
+
+                settings.ContainerName = "datasets";
+
+                CosmosRepository cosmosRepository = new CosmosRepository(settings);
+
+                return new VersionRepository<DefinitionSpecificationRelationshipVersion>(cosmosRepository, new NewVersionBuilderFactory<DefinitionSpecificationRelationshipVersion>());
+            });
+
             return builder.BuildServiceProvider();
         }
 
@@ -360,7 +379,9 @@ namespace CalculateFunding.Functions.Datasets
                 JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 ProvidersApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                CalculationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                CalculationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                RelationshipVersionRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy)
+
             };
         }
     }

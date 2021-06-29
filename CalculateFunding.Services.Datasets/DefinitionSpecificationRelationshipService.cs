@@ -2,10 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Policies;
+using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
@@ -24,13 +28,17 @@ using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Helpers;
 using CalculateFunding.Services.Datasets.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using Polly;
 using Serilog;
 using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
+using TemplateMetadataCalculationType = CalculateFunding.Common.TemplateMetadata.Enums.CalculationType;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -40,47 +48,68 @@ namespace CalculateFunding.Services.Datasets
         private readonly IDatasetRepository _datasetRepository;
         private readonly ILogger _logger;
         private readonly ISpecificationsApiClient _specificationsApiClient;
-        private readonly IValidator<CreateDefinitionSpecificationRelationshipModel> _relationshipModelValidator;
+        private readonly IValidator<CreateDefinitionSpecificationRelationshipModel> _createRelationshipModelValidator;
+        private readonly IValidator<ValidateDefinitionSpecificationRelationshipModel> _validateRelationshipModelValidator;
+        private readonly IPoliciesApiClient _policiesApiClient;
         private readonly IMessengerService _messengerService;
         private readonly ICalcsRepository _calcsRepository;
         private readonly ICacheProvider _cacheProvider;
         private readonly IJobManagement _jobManagement;
         private readonly IDateTimeProvider _dateTimeProvider;
         private readonly Polly.AsyncPolicy _specificationsApiClientPolicy;
+        private readonly Polly.AsyncPolicy _policiesApiClientPolicy;
+        private readonly Polly.AsyncPolicy _relationshipRepositoryPolicy;
+        private readonly AsyncPolicy _datasetRepositoryPolicy;
+        private readonly IVersionRepository<DefinitionSpecificationRelationshipVersion> _relationshipVersionRepository;
         private readonly ITypeIdentifierGenerator _typeIdentifierGenerator;
 
         public DefinitionSpecificationRelationshipService(IDatasetRepository datasetRepository,
             ILogger logger,
             ISpecificationsApiClient specificationsApiClient,
-            IValidator<CreateDefinitionSpecificationRelationshipModel> relationshipModelValidator,
+            IValidator<CreateDefinitionSpecificationRelationshipModel> createRelationshipModelValidator,
             IMessengerService messengerService,
             ICalcsRepository calcsRepository,
             ICacheProvider cacheProvider,
             IDatasetsResiliencePolicies datasetsResiliencePolicies,
             IJobManagement jobManagement,
-            IDateTimeProvider dateTimeProvider)
+            IDateTimeProvider dateTimeProvider,
+            IValidator<ValidateDefinitionSpecificationRelationshipModel> validateRelationshipModelValidator,
+            IVersionRepository<DefinitionSpecificationRelationshipVersion> relationshipVersionRepository,
+            IPoliciesApiClient policiesApiClient)
         {
             Guard.ArgumentNotNull(dateTimeProvider, nameof(dateTimeProvider));
             Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
-            Guard.ArgumentNotNull(relationshipModelValidator, nameof(relationshipModelValidator));
+            Guard.ArgumentNotNull(createRelationshipModelValidator, nameof(createRelationshipModelValidator));
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
             Guard.ArgumentNotNull(calcsRepository, nameof(calcsRepository));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(datasetsResiliencePolicies?.SpecificationsApiClient, nameof(datasetsResiliencePolicies.SpecificationsApiClient));
+            Guard.ArgumentNotNull(datasetsResiliencePolicies?.PoliciesApiClient, nameof(datasetsResiliencePolicies.PoliciesApiClient));
+            Guard.ArgumentNotNull(datasetsResiliencePolicies?.DatasetRepository, nameof(datasetsResiliencePolicies.DatasetRepository));
+            Guard.ArgumentNotNull(datasetsResiliencePolicies?.RelationshipVersionRepository, nameof(datasetsResiliencePolicies.RelationshipVersionRepository));
+            Guard.ArgumentNotNull(validateRelationshipModelValidator, nameof(validateRelationshipModelValidator));
+            Guard.ArgumentNotNull(relationshipVersionRepository, nameof(relationshipVersionRepository));
+            Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
 
             _datasetRepository = datasetRepository;
             _logger = logger;
             _specificationsApiClient = specificationsApiClient;
-            _relationshipModelValidator = relationshipModelValidator;
+            _createRelationshipModelValidator = createRelationshipModelValidator;
             _messengerService = messengerService;
             _calcsRepository = calcsRepository;
             _cacheProvider = cacheProvider;
             _jobManagement = jobManagement;
             _dateTimeProvider = dateTimeProvider;
             _specificationsApiClientPolicy = datasetsResiliencePolicies.SpecificationsApiClient;
+            _policiesApiClientPolicy = datasetsResiliencePolicies.PoliciesApiClient;
+            _datasetRepositoryPolicy = datasetsResiliencePolicies.DatasetRepository;
+            _relationshipRepositoryPolicy = datasetsResiliencePolicies.RelationshipVersionRepository;
+            _relationshipVersionRepository = relationshipVersionRepository;
+            _validateRelationshipModelValidator = validateRelationshipModelValidator;
+            _policiesApiClient = policiesApiClient;
 
             _typeIdentifierGenerator = new VisualBasicTypeIdentifierGenerator();
         }
@@ -114,7 +143,7 @@ namespace CalculateFunding.Services.Datasets
                 return new BadRequestObjectResult("Null CreateDefinitionSpecificationRelationshipModel was provided");
             }
 
-            BadRequestObjectResult validationResult = (await _relationshipModelValidator.ValidateAsync(model)).PopulateModelState();
+            BadRequestObjectResult validationResult = (await _createRelationshipModelValidator.ValidateAsync(model)).PopulateModelState();
 
             if (validationResult != null)
             {
@@ -139,24 +168,36 @@ namespace CalculateFunding.Services.Datasets
             }
 
             SpecModel.SpecificationSummary specification = specificationApiResponse.Content;
+            
+            DefinitionSpecificationRelationship relationship = new DefinitionSpecificationRelationship()
+            { 
+                Id = Guid.NewGuid().ToString(),
+                Name = model.Name
+            };
 
-            string relationshipId = Guid.NewGuid().ToString();
-
-            DefinitionSpecificationRelationship relationship = new DefinitionSpecificationRelationship
+            DefinitionSpecificationRelationshipVersion relationshipVersion = new DefinitionSpecificationRelationshipVersion
             {
                 Name = model.Name,
                 DatasetDefinition = new Reference(definition.Id, definition.Name),
                 Specification = new Reference(specification.Id, specification.Name),
                 Description = model.Description,
-                Id = relationshipId,
+                RelationshipId = relationship.Id,
                 IsSetAsProviderData = model.IsSetAsProviderData,
                 UsedInDataAggregations = model.UsedInDataAggregations,
                 Author = author,
                 LastUpdated = _dateTimeProvider.UtcNow,
-                ConverterEnabled = model.ConverterEnabled
+                ConverterEnabled = model.ConverterEnabled,
+                RelationshipType = model.RelationshipType
             };
 
-            HttpStatusCode statusCode = await _datasetRepository.SaveDefinitionSpecificationRelationship(relationship);
+            if (model.RelationshipType == DatasetRelationshipType.ReleasedData && !string.IsNullOrWhiteSpace(model.TargetSpecificationId))
+            {
+                relationshipVersion.PublishedSpecificationConfiguration = await CreatePublishedSpecificationConfiguration(model.TargetSpecificationId, model.FundingLineIds, model.CalculationIds);
+            }
+
+            relationship.Current = relationshipVersion = await _relationshipVersionRepository.CreateVersion(relationshipVersion);
+
+            HttpStatusCode statusCode = await _datasetRepositoryPolicy.ExecuteAsync(() => _datasetRepository.SaveDefinitionSpecificationRelationship(relationship));
 
             if (!statusCode.IsSuccess())
             {
@@ -164,33 +205,35 @@ namespace CalculateFunding.Services.Datasets
                 return new StatusCodeResult((int) statusCode);
             }
 
+            await _relationshipVersionRepository.SaveVersion(relationshipVersion);
+
             IDictionary<string, string> properties = MessageExtensions.BuildMessageProperties(correlationId, author);
 
             await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.AddDefinitionRelationshipToSpecification,
                 new AssignDefinitionRelationshipMessage
                 {
                     SpecificationId = specification.Id,
-                    RelationshipId = relationshipId
+                    RelationshipId = relationship.Id
                 },
                 properties);
 
 
             DatasetRelationshipSummary relationshipSummary = new DatasetRelationshipSummary
             {
-                Name = relationship.Name,
+                Name = relationshipVersion.Name,
                 Id = Guid.NewGuid().ToString(),
-                Relationship = new Reference(relationship.Id, relationship.Name),
+                Relationship = new Reference(relationshipVersion.Id, relationshipVersion.Name),
                 DatasetDefinition = definition,
                 DatasetDefinitionId = definition.Id,
-                DataGranularity = relationship.UsedInDataAggregations ? DataGranularity.MultipleRowsPerProvider : DataGranularity.SingleRowPerProvider,
-                DefinesScope = relationship.IsSetAsProviderData
+                DataGranularity = relationshipVersion.UsedInDataAggregations ? DataGranularity.MultipleRowsPerProvider : DataGranularity.SingleRowPerProvider,
+                DefinesScope = relationshipVersion.IsSetAsProviderData
             };
 
             await _calcsRepository.UpdateBuildProjectRelationships(specification.Id, relationshipSummary);
 
             await _cacheProvider.RemoveAsync<IEnumerable<DatasetSchemaRelationshipModel>>($"{CacheKeys.DatasetRelationshipFieldsForSpecification}{specification.Id}");
 
-            return new OkObjectResult(relationship);
+            return new OkObjectResult(relationshipVersion);
         }
 
         public async Task<IEnumerable<DatasetSpecificationRelationshipViewModel>> GetRelationshipsBySpecificationId(string specificationId)
@@ -198,7 +241,7 @@ namespace CalculateFunding.Services.Datasets
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
             IEnumerable<DefinitionSpecificationRelationship> relationships =
-                await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(m => m.Content.Specification.Id == specificationId);
+                await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(m => m.Content.Current.Specification.Id == specificationId);
 
             if (relationships.IsNullOrEmpty())
             {
@@ -210,11 +253,11 @@ namespace CalculateFunding.Services.Datasets
             IList<Task<DatasetSpecificationRelationshipViewModel>> tasks = new List<Task<DatasetSpecificationRelationshipViewModel>>();
 
             IEnumerable<KeyValuePair<string, int>> datasetLatestVersions =
-                await _datasetRepository.GetDatasetLatestVersions(relationships.Select(_ => _.DatasetVersion?.Id));
+                await _datasetRepository.GetDatasetLatestVersions(relationships.Select(_ => _.Current.DatasetVersion?.Id));
 
             foreach (DefinitionSpecificationRelationship relationship in relationships)
             {
-                KeyValuePair<string, int> datasetLatestVersion = datasetLatestVersions.SingleOrDefault(_ => _.Key == relationship.DatasetVersion?.Id);
+                KeyValuePair<string, int> datasetLatestVersion = datasetLatestVersions.SingleOrDefault(_ => _.Key == relationship.Current.DatasetVersion?.Id);
                 Task<DatasetSpecificationRelationshipViewModel> task = CreateViewModel(relationship, datasetLatestVersion);
 
                 tasks.Add(task);
@@ -259,12 +302,12 @@ namespace CalculateFunding.Services.Datasets
 
             selectDatasourceModel.RelationshipId = relationship.Id;
             selectDatasourceModel.RelationshipName = relationship.Name;
-            selectDatasourceModel.SpecificationId = relationship.Specification.Id;
-            selectDatasourceModel.SpecificationName = relationship.Specification.Name;
-            selectDatasourceModel.DefinitionId = relationship.DatasetDefinition.Id;
-            selectDatasourceModel.DefinitionName = relationship.DatasetDefinition.Name;
+            selectDatasourceModel.SpecificationId = relationship.Current.Specification.Id;
+            selectDatasourceModel.SpecificationName = relationship.Current.Specification.Name;
+            selectDatasourceModel.DefinitionId = relationship.Current.DatasetDefinition.Id;
+            selectDatasourceModel.DefinitionName = relationship.Current.DatasetDefinition.Name;
 
-            IEnumerable<Dataset> datasets = await _datasetRepository.GetDatasetsByQuery(m => m.Content.Definition.Id == relationship.DatasetDefinition.Id);
+            IEnumerable<Dataset> datasets = await _datasetRepository.GetDatasetsByQuery(m => m.Content.Definition.Id == relationship.Current.DatasetDefinition.Id);
 
             if (!datasets.IsNullOrEmpty())
             {
@@ -282,7 +325,7 @@ namespace CalculateFunding.Services.Datasets
                             Id = dataset.Id,
                             Name = dataset.Name,
                             Description = dataset.Description,
-                            SelectedVersion = (relationship.DatasetVersion != null && relationship.DatasetVersion.Id == dataset.Id) ? relationship.DatasetVersion.Version : null as int?,
+                            SelectedVersion = (relationship.Current.DatasetVersion != null && relationship.Current.DatasetVersion.Id == dataset.Id) ? relationship.Current.DatasetVersion.Version : null as int?,
                             Versions = dataset.History.OrderByDescending(_ => _.Version).Select(m => new DatasetVersionModel
                             {
                                 Id = m.Id,
@@ -303,7 +346,7 @@ namespace CalculateFunding.Services.Datasets
         {
             DefinitionSpecificationRelationship relationship = await _datasetRepository.GetDefinitionSpecificationRelationshipById(relationshipId);
 
-            relationship.ConverterEnabled = converterEnabled;
+            relationship.Current.ConverterEnabled = converterEnabled;
 
             HttpStatusCode statusCode = await _datasetRepository.UpdateDefinitionSpecificationRelationship(relationship);
 
@@ -337,35 +380,30 @@ namespace CalculateFunding.Services.Datasets
             }
 
             ApiResponse<SpecModel.SpecificationSummary> specificationApiResponse =
-                await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(relationship.Specification.Id));
+                await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(relationship.Current.Specification.Id));
 
             if (!specificationApiResponse.StatusCode.IsSuccess() || specificationApiResponse.Content == null)
             {
-                _logger.Error($"Specification was not found for id {relationship.Specification.Id}");
+                _logger.Error($"Specification was not found for id {relationship.Current.Specification.Id}");
                 return new StatusCodeResult(412);
             }
 
             SpecModel.SpecificationSummary specification = specificationApiResponse.Content;
 
+            DefinitionSpecificationRelationshipVersion previousRelationshipVersion = relationship.Current.DeepCopy(useCamelCase: false);
+            DefinitionSpecificationRelationshipVersion relationshipVersion = relationship.Current;
 
-            relationship.Author = user;
-            relationship.LastUpdated = _dateTimeProvider.UtcNow;
-            relationship.DatasetVersion = new DatasetRelationshipVersion
+            relationshipVersion.Author = user;
+            relationshipVersion.LastUpdated = _dateTimeProvider.UtcNow;
+            relationshipVersion.DatasetVersion = new DatasetRelationshipVersion
             {
                 Id = model.DatasetId,
                 Version = model.Version
             };
 
-            HttpStatusCode statusCode = await _datasetRepository.UpdateDefinitionSpecificationRelationship(relationship);
+            await UpdateDefinitionSpecificationRelationship(relationship,relationshipVersion, previousRelationshipVersion);
 
-            if (!statusCode.IsSuccess())
-            {
-                _logger.Error($"Failed to assign data source to relationship : {model.RelationshipId} with status code {statusCode.ToString()}");
-
-                return new StatusCodeResult((int) statusCode);
-            }
-
-            IEnumerable<CalculationResponseModel> allCalculations = await _calcsRepository.GetCurrentCalculationsBySpecificationId(relationship.Specification.Id);
+            IEnumerable<CalculationResponseModel> allCalculations = await _calcsRepository.GetCurrentCalculationsBySpecificationId(relationshipVersion.Specification.Id);
 
             bool generateCalculationAggregations = !allCalculations.IsNullOrEmpty() &&
                                                    SourceCodeHelpers.HasCalculationAggregateFunctionParameters(allCalculations.Select(m => m.SourceCode));
@@ -385,19 +423,19 @@ namespace CalculateFunding.Services.Datasets
                 MessageBody = JsonConvert.SerializeObject(dataset),
                 Properties = new Dictionary<string, string>
                 {
-                    {"specification-id", relationship.Specification.Id},
+                    {"specification-id", relationshipVersion.Specification.Id},
                     {"relationship-id", relationship.Id},
                     {"user-id", user?.Id},
                     {"user-name", user?.Name},
                 },
-                SpecificationId = relationship.Specification.Id,
+                SpecificationId = relationshipVersion.Specification.Id,
                 Trigger = trigger,
                 CorrelationId = correlationId
             };
 
             Job parentJob = null;
 
-            if (relationship.IsSetAsProviderData)
+            if (relationshipVersion.IsSetAsProviderData)
             {
                 string parentJobDefinition = generateCalculationAggregations ? JobConstants.DefinitionNames.MapScopedDatasetJobWithAggregation : JobConstants.DefinitionNames.MapScopedDatasetJob;
 
@@ -408,11 +446,11 @@ namespace CalculateFunding.Services.Datasets
                     JobDefinitionId = parentJobDefinition,
                     Properties = new Dictionary<string, string>
                     {
-                        {"specification-id", relationship.Specification.Id},
-                        {"provider-cache-key", $"{CacheKeys.ScopedProviderSummariesPrefix}{relationship.Specification.Id}"},
-                        {"specification-summary-cache-key", $"{CacheKeys.SpecificationSummaryById}{relationship.Specification.Id}"}
+                        {"specification-id", relationshipVersion.Specification.Id},
+                        {"provider-cache-key", $"{CacheKeys.ScopedProviderSummariesPrefix}{relationshipVersion.Specification.Id}"},
+                        {"specification-summary-cache-key", $"{CacheKeys.SpecificationSummaryById}{relationshipVersion.Specification.Id}"}
                     },
-                    SpecificationId = relationship.Specification.Id,
+                    SpecificationId = relationshipVersion.Specification.Id,
                     Trigger = trigger,
                     CorrelationId = correlationId
                 });
@@ -481,7 +519,7 @@ namespace CalculateFunding.Services.Datasets
             }
 
             IEnumerable<DefinitionSpecificationRelationship> relationships =
-                (await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(m => m.Content.Specification.Id == specificationId)).ToList();
+                (await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(m => m.Content.Current.Specification.Id == specificationId)).ToList();
 
             if (relationships.IsNullOrEmpty())
             {
@@ -496,13 +534,13 @@ namespace CalculateFunding.Services.Datasets
             }
 
             IEnumerable<KeyValuePair<string, int>> datasetLatestVersions =
-                await _datasetRepository.GetDatasetLatestVersions(relationships.Select(_ => _.DatasetVersion?.Id));
+                await _datasetRepository.GetDatasetLatestVersions(relationships.Select(_ => _.Current.DatasetVersion?.Id));
 
             IList<Task<DatasetSpecificationRelationshipViewModel>> tasks = new List<Task<DatasetSpecificationRelationshipViewModel>>();
 
             foreach (DefinitionSpecificationRelationship relationship in relationships)
             {
-                KeyValuePair<string, int> datasetLatestVersion = datasetLatestVersions.SingleOrDefault(_ => _.Key == relationship.DatasetVersion?.Id);
+                KeyValuePair<string, int> datasetLatestVersion = datasetLatestVersions.SingleOrDefault(_ => _.Key == relationship.Current.DatasetVersion?.Id);
                 Task<DatasetSpecificationRelationshipViewModel> task = CreateViewModel(relationship, datasetLatestVersion);
 
                 tasks.Add(task);
@@ -525,7 +563,7 @@ namespace CalculateFunding.Services.Datasets
             Guard.IsNullOrWhiteSpace(datasetDefinitionId, nameof(datasetDefinitionId));
 
             IEnumerable<DefinitionSpecificationRelationship> relationships =
-                await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(m => m.Content.Specification.Id == specificationId && m.Content.DatasetDefinition.Id == datasetDefinitionId);
+                await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(m => m.Content.Current.Specification.Id == specificationId && m.Content.Current.DatasetDefinition.Id == datasetDefinitionId);
 
             if (relationships.IsNullOrEmpty())
             {
@@ -540,13 +578,13 @@ namespace CalculateFunding.Services.Datasets
             }
 
             IEnumerable<KeyValuePair<string, int>> datasetLatestVersions =
-                await _datasetRepository.GetDatasetLatestVersions(relationships.Select(_ => _.DatasetVersion?.Id));
+                await _datasetRepository.GetDatasetLatestVersions(relationships.Select(_ => _.Current.DatasetVersion?.Id));
 
             IList<Task<DatasetSpecificationRelationshipViewModel>> tasks = new List<Task<DatasetSpecificationRelationshipViewModel>>();
 
             foreach (DefinitionSpecificationRelationship relationship in relationships)
             {
-                KeyValuePair<string, int> datasetLatestVersion = datasetLatestVersions.SingleOrDefault(_ => _.Key == relationship.DatasetVersion?.Id);
+                KeyValuePair<string, int> datasetLatestVersion = datasetLatestVersions.SingleOrDefault(_ => _.Key == relationship.Current.DatasetVersion?.Id);
                 Task<DatasetSpecificationRelationshipViewModel> task = CreateViewModel(relationship, datasetLatestVersion);
 
                 tasks.Add(task);
@@ -567,14 +605,14 @@ namespace CalculateFunding.Services.Datasets
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
             IEnumerable<DefinitionSpecificationRelationship> relationships =
-                (await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(m => m.Content.Specification.Id == specificationId)).ToList();
+                (await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(m => m.Content.Current.Specification.Id == specificationId)).ToList();
 
             if (relationships.IsNullOrEmpty())
             {
                 relationships = Array.Empty<DefinitionSpecificationRelationship>();
             }
 
-            IEnumerable<string> definitionIds = relationships.Select(m => m.DatasetDefinition.Id);
+            IEnumerable<string> definitionIds = relationships.Select(m => m.Current.DatasetDefinition.Id);
 
             IEnumerable<DatasetDefinition> definitions = await _datasetRepository.GetDatasetDefinitionsByQuery(d => definitionIds.Contains(d.Id));
 
@@ -584,7 +622,7 @@ namespace CalculateFunding.Services.Datasets
             {
                 string relationshipName = definitionSpecificationRelationship.Name;
                 string datasetName = _typeIdentifierGenerator.GenerateIdentifier(relationshipName);
-                DatasetDefinition datasetDefinition = definitions.FirstOrDefault(m => m.Id == definitionSpecificationRelationship.DatasetDefinition.Id);
+                DatasetDefinition datasetDefinition = definitions.FirstOrDefault(m => m.Id == definitionSpecificationRelationship.Current.DatasetDefinition.Id);
 
                 schemaRelationshipModels.Add(new DatasetSchemaRelationshipModel
                 {
@@ -622,7 +660,7 @@ namespace CalculateFunding.Services.Datasets
             }
 
             IEnumerable<DefinitionSpecificationRelationship> relationships =
-                (await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(m => m.Content.DatasetDefinition.Id == datasetDefinitionReference.Id)).ToList();
+                (await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(m => m.Content.Current.DatasetDefinition.Id == datasetDefinitionReference.Id)).ToList();
 
             if (!relationships.IsNullOrEmpty())
             {
@@ -634,12 +672,16 @@ namespace CalculateFunding.Services.Datasets
                 {
                     foreach (DefinitionSpecificationRelationship definitionSpecificationRelationship in relationships)
                     {
-                        definitionSpecificationRelationship.DatasetDefinition.Name = datasetDefinitionReference.Name;
-                    }
+                        DefinitionSpecificationRelationshipVersion previousRelationshipVersion = definitionSpecificationRelationship.Current;
+                        DefinitionSpecificationRelationshipVersion relationshipVersion = previousRelationshipVersion.DeepCopy(useCamelCase: false);
 
-                    await _datasetRepository.UpdateDefinitionSpecificationRelationships(relationships);
+                        relationshipVersion.DatasetDefinition.Name = datasetDefinitionReference.Name;
+
+                        await UpdateDefinitionSpecificationRelationship(definitionSpecificationRelationship, relationshipVersion, previousRelationshipVersion);
+                     }
 
                     _logger.Information($"Updated {relationshipCount} relationships with new definition name: {datasetDefinitionReference.Name}");
+
                 }
                 catch (Exception ex)
                 {
@@ -654,41 +696,120 @@ namespace CalculateFunding.Services.Datasets
             }
         }
 
+        public async Task<IActionResult> ValidateRelationship(ValidateDefinitionSpecificationRelationshipModel model)
+        {
+            if (model == null)
+            {
+                _logger.Error("Null ValidateDefinitionSpecificationRelationshipModel was provided to CreateRelationship");
+                return new BadRequestObjectResult("Null ValidateDefinitionSpecificationRelationshipModel was provided");
+            }
+
+            BadRequestObjectResult validationResult = (await _validateRelationshipModelValidator.ValidateAsync(model)).PopulateModelState();
+
+            if (validationResult != null)
+            {
+                return validationResult;
+            }
+
+            return new OkResult();
+        }
+
+        public async Task<IActionResult> Migrate()
+        {
+            IList<OldDefinitionSpecificationRelationship> relationshipsToMigrate = (await _datasetRepository.GetDefinitionSpecificationRelationshipsToMigrate()).ToList();
+            SemaphoreSlim throttler = new SemaphoreSlim(5);
+
+            _logger.Information($"Number of relationships to migrate - {relationshipsToMigrate.Count}");
+
+            List<Task> tasks = new List<Task>();
+
+            foreach (OldDefinitionSpecificationRelationship oldRelationship in relationshipsToMigrate)
+            {
+                await throttler.WaitAsync();
+
+                tasks.Add(Task.Run(async () =>
+                {
+                    try
+                    {
+                        DefinitionSpecificationRelationshipVersion relationshipVersion = new DefinitionSpecificationRelationshipVersion()
+                        {
+                            RelationshipId = oldRelationship.Id,
+                            Name = oldRelationship.Name,
+                            ConverterEnabled = oldRelationship.Content.ConverterEnabled,
+                            DatasetDefinition = oldRelationship.Content.DatasetDefinition,
+                            DatasetVersion = oldRelationship.Content.DatasetVersion,
+                            Description = oldRelationship.Content.Description,
+                            IsSetAsProviderData = oldRelationship.Content.IsSetAsProviderData,
+                            LastUpdated = oldRelationship.Content.LastUpdated,
+                            Specification = oldRelationship.Content.Specification,
+                            UsedInDataAggregations = oldRelationship.Content.UsedInDataAggregations
+                        };
+
+                        DefinitionSpecificationRelationship relationship = new DefinitionSpecificationRelationship()
+                        {
+                            Id = oldRelationship.Id,
+                            Name = oldRelationship.Name
+                        };
+
+                        await UpdateDefinitionSpecificationRelationship(relationship, relationshipVersion, null);
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.Error(e, $"Error occurred while migrating relationship - {oldRelationship.Name}");
+                        throw;
+                    }
+                    finally
+                    {
+                        throttler.Release();
+                    }
+                }));
+            }
+
+            await TaskHelper.WhenAllAndThrow(tasks.ToArray());
+
+            _logger.Information($"Number of relationships migrated - {relationshipsToMigrate.Count}");
+            return new NoContentResult();
+        }
+
         private async Task<DatasetSpecificationRelationshipViewModel> CreateViewModel(
             DefinitionSpecificationRelationship relationship,
             KeyValuePair<string, int> datasetLatestVersion)
         {
+            DefinitionSpecificationRelationshipVersion relationshipVersion = relationship.Current;
+
             DatasetSpecificationRelationshipViewModel relationshipViewModel = new DatasetSpecificationRelationshipViewModel
             {
                 Id = relationship.Id,
                 Name = relationship.Name,
-                RelationshipDescription = relationship.Description,
-                IsProviderData = relationship.IsSetAsProviderData,
-                LastUpdatedAuthor = relationship.Author,
-                LastUpdatedDate = relationship.LastUpdated,
-                ConverterEnabled = relationship.ConverterEnabled
+                RelationshipDescription = relationshipVersion.Description,
+                IsProviderData = relationshipVersion.IsSetAsProviderData,
+                LastUpdatedAuthor = relationshipVersion.Author,
+                LastUpdatedDate = relationshipVersion.LastUpdated,
+                ConverterEnabled = relationshipVersion.ConverterEnabled,
+                RelationshipType = relationshipVersion.RelationshipType,
+                PublishedSpecificationConfiguration = relationshipVersion.PublishedSpecificationConfiguration
             };
 
-            if (relationship.DatasetVersion != null)
+            if (relationshipVersion.DatasetVersion != null)
             {
-                Dataset dataset = await _datasetRepository.GetDatasetByDatasetId(relationship.DatasetVersion.Id);
+                Dataset dataset = await _datasetRepository.GetDatasetByDatasetId(relationshipVersion.DatasetVersion.Id);
 
                 if (dataset != null)
                 {
-                    relationshipViewModel.DatasetId = relationship.DatasetVersion.Id;
+                    relationshipViewModel.DatasetId = relationshipVersion.DatasetVersion.Id;
                     relationshipViewModel.DatasetName = dataset.Name;
-                    relationshipViewModel.Version = relationship.DatasetVersion.Version;
-                    relationshipViewModel.IsLatestVersion = relationship.DatasetVersion.Version == datasetLatestVersion.Value;
+                    relationshipViewModel.Version = relationshipVersion.DatasetVersion.Version;
+                    relationshipViewModel.IsLatestVersion = relationshipVersion.DatasetVersion.Version == datasetLatestVersion.Value;
                 }
                 else
                 {
-                    _logger.Warning($"Dataset could not be found for Id {relationship.DatasetVersion.Id}");
+                    _logger.Warning($"Dataset could not be found for Id {relationshipVersion.DatasetVersion.Id}");
                 }
             }
 
-            if (relationship.DatasetDefinition != null)
+            if (relationshipVersion.DatasetDefinition != null)
             {
-                string definitionId = relationship.DatasetDefinition.Id;
+                string definitionId = relationshipVersion.DatasetDefinition.Id;
 
                 DatasetDefinition definition = await _datasetRepository.GetDatasetDefinition(definitionId);
 
@@ -706,6 +827,147 @@ namespace CalculateFunding.Services.Datasets
             }
 
             return relationshipViewModel;
+        }
+
+        private async Task UpdateDefinitionSpecificationRelationship(
+            DefinitionSpecificationRelationship definitionSpecificationRelationship,
+            DefinitionSpecificationRelationshipVersion relationshipVersion,
+            DefinitionSpecificationRelationshipVersion previousRelationshipVersion)
+        {
+            relationshipVersion = await _relationshipRepositoryPolicy.ExecuteAsync(() => _relationshipVersionRepository.CreateVersion(relationshipVersion, previousRelationshipVersion));
+            definitionSpecificationRelationship.Current = relationshipVersion;
+
+            HttpStatusCode statusCode = await _datasetRepositoryPolicy.ExecuteAsync(() => _datasetRepository.UpdateDefinitionSpecificationRelationship(definitionSpecificationRelationship));
+
+            if (!statusCode.IsSuccess())
+            {
+                string message = $"Failed to save relationship - {definitionSpecificationRelationship.Name} with status code: {statusCode.ToString()}";
+                _logger.Error(message);
+                throw new RetriableException(message);
+            }
+
+            await _relationshipRepositoryPolicy.ExecuteAsync(() => _relationshipVersionRepository.SaveVersion(relationshipVersion));
+        }
+
+        private async Task<PublishedSpecificationConfiguration> CreatePublishedSpecificationConfiguration(string targetSpecificationId, IEnumerable<uint> fundingLineIds, IEnumerable<uint> calculationIds)
+        {
+            if (string.IsNullOrWhiteSpace(targetSpecificationId))
+                return null;
+
+            ApiResponse<SpecificationSummary> specificationSummaryApiResponse =
+                await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(targetSpecificationId));
+
+            if (!specificationSummaryApiResponse.StatusCode.IsSuccess() && specificationSummaryApiResponse.StatusCode != HttpStatusCode.NotFound)
+            {
+                string errorMessage = $"Failed to fetch specification summary for specification ID: {targetSpecificationId} with StatusCode={specificationSummaryApiResponse.StatusCode}";
+
+                _logger.Error(errorMessage);
+
+                throw new RetriableException(errorMessage);
+            }
+
+            SpecificationSummary specificationSummary = specificationSummaryApiResponse.Content;
+            string fundingStreamId = specificationSummary.FundingStreams.First().Id;
+            string fundingPeriodId = specificationSummary.FundingPeriod.Id;
+            string templateId = specificationSummary.TemplateIds.First(x => x.Key == fundingStreamId).Value;
+
+            ApiResponse<TemplateMetadataDistinctContents> metadataResponse =
+                    await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetDistinctTemplateMetadataContents(fundingStreamId, fundingPeriodId, templateId));
+
+            if (!metadataResponse.StatusCode.IsSuccess() && metadataResponse.StatusCode != HttpStatusCode.NotFound)
+            {
+                string errorMessage = $"Failed to fetch template metadata for FundingStreamId={fundingStreamId}, FundingPeriodId={fundingPeriodId} and TemplateId={templateId} with StatusCode={metadataResponse.StatusCode}";
+                _logger.Error(errorMessage);
+                throw new RetriableException(errorMessage);
+            }
+
+            TemplateMetadataDistinctContents metadata = metadataResponse.Content;
+
+            PublishedSpecificationConfiguration configuration = new PublishedSpecificationConfiguration()
+            {
+                SpecificationId = targetSpecificationId,
+                FundingStreamId = fundingStreamId,
+                FundingPeriodId = fundingPeriodId
+            };
+
+            List<PublishedSpecificationItem> fundingLines = new List<PublishedSpecificationItem>();
+            List<PublishedSpecificationItem> calculations = new List<PublishedSpecificationItem>();
+
+            if (!fundingLineIds.IsNullOrEmpty())
+            {
+                foreach (uint fundingLineId in fundingLineIds.Distinct())
+                {
+                    TemplateMetadataFundingLine fundingLineMetadata = metadata.FundingLines?.FirstOrDefault(x => x.TemplateLineId == fundingLineId);
+
+                    if(fundingLineMetadata != null)
+                    {
+                        fundingLines.Add(new PublishedSpecificationItem() 
+                        {
+                            TemplateId = fundingLineId,
+                            Name = fundingLineMetadata.Name,
+                            SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(fundingLineMetadata.Name)
+                        });
+                    }
+                    else
+                    {
+                        string errorMessage = $"No fundingline id '{fundingLineId}' in the metadata for FundingStreamId={fundingStreamId}, FundingPeriodId={fundingPeriodId} and TemplateId={templateId}.";
+                        _logger.Error(errorMessage);
+                        throw new NonRetriableException(errorMessage);
+                    }
+                }
+            }
+
+            if (!calculationIds.IsNullOrEmpty())
+            {
+                foreach (uint calculationId in calculationIds.Distinct())
+                {
+                    TemplateMetadataCalculation calculationMetadata = metadata.Calculations?.FirstOrDefault(x => x.TemplateCalculationId == calculationId);
+
+                    if (calculationMetadata != null)
+                    {
+                        fundingLines.Add(new PublishedSpecificationItem()
+                        {
+                            TemplateId = calculationId,
+                            Name = calculationMetadata.Name,
+                            SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(calculationMetadata.Name),
+                            FieldType = GetFieldType(calculationMetadata.Type)
+                        });
+                    }
+                    else
+                    {
+                        string errorMessage = $"No calculation id '{calculationId}' in the metadata for FundingStreamId={fundingStreamId}, FundingPeriodId={fundingPeriodId} and TemplateId={templateId}.";
+                        _logger.Error(errorMessage);
+                        throw new NonRetriableException(errorMessage);
+                    }
+                }
+            }
+
+            configuration.FundingLines = fundingLines;
+            configuration.Calculations = calculations;
+
+            return configuration;
+        }
+
+        private static FieldType GetFieldType(TemplateMetadataCalculationType calculationType)
+        {
+            switch (calculationType)
+            {
+                case TemplateMetadataCalculationType.Adjustment:
+                case TemplateMetadataCalculationType.Cash:
+                case TemplateMetadataCalculationType.Rate:
+                case TemplateMetadataCalculationType.PupilNumber:
+                case TemplateMetadataCalculationType.Weighting:
+                case TemplateMetadataCalculationType.PerPupilFunding:
+                case TemplateMetadataCalculationType.LumpSum:
+                case TemplateMetadataCalculationType.Number:
+                    return FieldType.NullableOfDecimal;
+                case TemplateMetadataCalculationType.Boolean:
+                    return FieldType.NullableOfBoolean;
+                case TemplateMetadataCalculationType.Enum:
+                    return FieldType.String;
+                default:
+                    throw new NotSupportedException($"Unknown calculation type - {calculationType.ToString()} to get the field type");
+            }
         }
     }
 }

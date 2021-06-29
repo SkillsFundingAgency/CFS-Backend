@@ -151,6 +151,23 @@ namespace CalculateFunding.Api.Datasets.Controllers
             return _definitionSpecificationRelationshipService.CreateRelationship(createDefinitionSpecificationRelationshipModel, user, correlationId);
         }
 
+        [Route("api/datasets/validate-definitionspecification-relationship")]
+        [HttpPost]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        public Task<IActionResult> ValidateDefinitionSpecificationRelationship([FromBody] ValidateDefinitionSpecificationRelationshipModel validateDefinitionSpecificationRelationshipModel)
+        {
+            return _definitionSpecificationRelationshipService.ValidateRelationship(validateDefinitionSpecificationRelationshipModel);
+        }
+
+        [Route("api/datasets/migrate-definitionspecification-relationships")]
+        [HttpPost]
+        [ProducesResponseType((int)HttpStatusCode.NoContent)]
+        public Task<IActionResult> MigarteDefinitionSpecificationRelationship()
+        {
+            return _definitionSpecificationRelationshipService.Migrate();
+        }
+
         [Route("api/datasets/get-definitions-relationships")]
         [HttpGet]
         [Produces(typeof(IEnumerable<DatasetSpecificationRelationshipViewModel>))]

@@ -24,5 +24,11 @@ namespace CalculateFunding.Api.Datasets.Controllers
         [Produces(typeof(IEnumerable<EligibleSpecificationReference>))]
         public async Task<IActionResult> GetEligibleSpecificationsToReference(string specificationId)
             => await _specificationsService.GetEligibleSpecificationsToReference(specificationId);
+
+        [Route("api/specifications/{specificationId}/published-specification-template-metadata")]
+        [HttpGet]
+        [Produces(typeof(IEnumerable<PublishedSpecificationTemplateMetadata>))]
+        public async Task<IActionResult> GetPublishedSpecificationTemplateMetadata(string specificationId)
+            => await _specificationsService.PublishedSpecificationTemplateMetadata(specificationId);
     }
 }

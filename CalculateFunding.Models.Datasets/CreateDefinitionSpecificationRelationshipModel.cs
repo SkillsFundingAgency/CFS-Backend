@@ -1,4 +1,6 @@
-﻿namespace CalculateFunding.Models.Datasets
+﻿using System.Collections.Generic;
+
+namespace CalculateFunding.Models.Datasets
 {
     public class CreateDefinitionSpecificationRelationshipModel
     {
@@ -15,5 +17,13 @@
         public bool UsedInDataAggregations { get; set; }
 
         public bool ConverterEnabled { get; set; }
+
+        public DatasetRelationshipType RelationshipType { get; set; }
+
+        public string TargetSpecificationId { get; set; }
+
+        public IEnumerable<uint> FundingLineIds { get; set; }
+
+        public IEnumerable<uint> CalculationIds { get; set; }
     }
 }

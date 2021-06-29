@@ -1036,22 +1036,22 @@ namespace CalculateFunding.Services.Datasets
             }
             else
             {
-                relationships = await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(r => r.Content.Specification.Id == specificationId);
+                relationships = await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(r => r.Content.Current.Specification.Id == specificationId);
             }
 
             Dictionary<string, Dataset> datasets = new Dictionary<string, Dataset>();
 
             foreach (DefinitionSpecificationRelationship relationship in relationships)
             {
-                if (relationship == null || relationship.DatasetVersion == null || string.IsNullOrWhiteSpace(relationship.DatasetVersion.Id))
+                if (relationship == null || relationship.Current.DatasetVersion == null || string.IsNullOrWhiteSpace(relationship.Current.DatasetVersion.Id))
                 {
                     continue;
                 }
 
-                if (!datasets.TryGetValue(relationship.DatasetVersion.Id, out Dataset dataset))
+                if (!datasets.TryGetValue(relationship.Current.DatasetVersion.Id, out Dataset dataset))
                 {
-                    dataset = (await _datasetRepository.GetDatasetsByQuery(c => c.Id == relationship.DatasetVersion.Id)).FirstOrDefault();
-                    datasets.Add(relationship.DatasetVersion.Id, dataset);
+                    dataset = (await _datasetRepository.GetDatasetsByQuery(c => c.Id == relationship.Current.DatasetVersion.Id)).FirstOrDefault();
+                    datasets.Add(relationship.Current.DatasetVersion.Id, dataset);
                 }
 
                 Trigger trigger = new Trigger
@@ -1069,11 +1069,11 @@ namespace CalculateFunding.Services.Datasets
                     MessageBody = JsonConvert.SerializeObject(dataset),
                     Properties = new Dictionary<string, string>
                     {
-                        {"specification-id", relationship.Specification.Id},
+                        {"specification-id", relationship.Current.Specification.Id},
                         {"relationship-id", relationship.Id},
-                        {"session-id", relationship.Specification.Id}
+                        {"session-id", relationship.Current.Specification.Id}
                     },
-                    SpecificationId = relationship.Specification.Id,
+                    SpecificationId = relationship.Current.Specification.Id,
                     Trigger = trigger,
                     CorrelationId = correlationId
                 };

@@ -368,7 +368,7 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
                         .WithFieldDefinitions(NewFieldDefinition(fld => fld
                             .WithIdentifierFieldType(IdentifierFieldType.UKPRN)))))));
 
-            DefinitionSpecificationRelationship relationship = NewDefinitionSpecificationRelationship();
+            DefinitionSpecificationRelationship relationship = NewDefinitionSpecificationRelationship(r => r.WithCurrent(NewDefinitionSpecificationRelationshipVersion()));
 
             AndTheDefinitionSpecificationRelationship(request.DatasetRelationshipId, relationship);
 
@@ -404,9 +404,9 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
             string specificationId = NewRandomString();
 
             AndTheDefinitionSpecificationRelationship(request.DatasetRelationshipId,
-                NewDefinitionSpecificationRelationship(_ => _
+                NewDefinitionSpecificationRelationship(r => r.WithCurrent(NewDefinitionSpecificationRelationshipVersion(_ => _
                     .WithSpecification(NewReference(spec => spec
-                        .WithId(specificationId)))));
+                        .WithId(specificationId)))))));
 
             invocation
                 .Should()
@@ -444,9 +444,9 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
             string specificationId = NewRandomString();
 
             AndTheDefinitionSpecificationRelationship(request.DatasetRelationshipId,
-                NewDefinitionSpecificationRelationship(_ => _
+                NewDefinitionSpecificationRelationship(r => r.WithCurrent(NewDefinitionSpecificationRelationshipVersion(_ => _
                     .WithSpecification(NewReference(spec => spec
-                        .WithId(specificationId)))));
+                        .WithId(specificationId)))))));
 
             string fundingPeriodId = NewRandomString();
 
@@ -488,9 +488,9 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
             string specificationId = NewRandomString();
 
             AndTheDefinitionSpecificationRelationship(request.DatasetRelationshipId,
-                NewDefinitionSpecificationRelationship(_ => _
+                NewDefinitionSpecificationRelationship(r => r.WithCurrent(NewDefinitionSpecificationRelationshipVersion(_ => _
                     .WithSpecification(NewReference(spec => spec
-                        .WithId(specificationId)))));
+                        .WithId(specificationId)))))));
 
             string fundingPeriodId = NewRandomString();
 
@@ -537,9 +537,9 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
             string specificationId = NewRandomString();
 
             AndTheDefinitionSpecificationRelationship(request.DatasetRelationshipId,
-                NewDefinitionSpecificationRelationship(_ => _
+                NewDefinitionSpecificationRelationship(r => r.WithCurrent(NewDefinitionSpecificationRelationshipVersion(_ => _
                     .WithSpecification(NewReference(spec => spec
-                        .WithId(specificationId)))));
+                        .WithId(specificationId)))))));
 
             string fundingPeriodId = NewRandomString();
 
@@ -583,9 +583,9 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
             string specificationId = NewRandomString();
 
             AndTheDefinitionSpecificationRelationship(request.DatasetRelationshipId,
-                NewDefinitionSpecificationRelationship(_ => _
+                NewDefinitionSpecificationRelationship(r => r.WithCurrent(NewDefinitionSpecificationRelationshipVersion(_ => _
                     .WithSpecification(NewReference(spec => spec
-                        .WithId(specificationId)))));
+                        .WithId(specificationId)))))));
 
             string fundingPeriodId = NewRandomString();
 
@@ -632,9 +632,9 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
             string specificationId = NewRandomString();
 
             AndTheDefinitionSpecificationRelationship(request.DatasetRelationshipId,
-                NewDefinitionSpecificationRelationship(_ => _
+                NewDefinitionSpecificationRelationship(r => r.WithCurrent(NewDefinitionSpecificationRelationshipVersion(_ => _
                     .WithSpecification(NewReference(spec => spec
-                        .WithId(specificationId)))));
+                        .WithId(specificationId)))))));
 
             string fundingPeriodId = NewRandomString();
 
@@ -723,9 +723,9 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
             string specificationId = NewRandomString();
 
             AndTheDefinitionSpecificationRelationship(request.DatasetRelationshipId,
-                NewDefinitionSpecificationRelationship(_ => _
+                NewDefinitionSpecificationRelationship(r => r.WithCurrent(NewDefinitionSpecificationRelationshipVersion(_ => _
                     .WithSpecification(NewReference(spec => spec
-                        .WithId(specificationId)))));
+                        .WithId(specificationId)))))));
 
             string fundingPeriodId = NewRandomString();
 
@@ -1005,6 +1005,15 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
             setUp?.Invoke(datasetDefinitionBuilder);
 
             return datasetDefinitionBuilder.Build();
+        }
+
+        private DefinitionSpecificationRelationshipVersion NewDefinitionSpecificationRelationshipVersion(Action<DefinitionSpecificationRelationshipVersionBuilder> setUp = null)
+        {
+            DefinitionSpecificationRelationshipVersionBuilder definitionSpecificationRelationshipVersionBuilder = new DefinitionSpecificationRelationshipVersionBuilder();
+
+            setUp?.Invoke(definitionSpecificationRelationshipVersionBuilder);
+
+            return definitionSpecificationRelationshipVersionBuilder.Build();
         }
 
         private DefinitionSpecificationRelationship NewDefinitionSpecificationRelationship(Action<DefinitionSpecificationRelationshipBuilder> setUp = null)

@@ -178,7 +178,7 @@ namespace CalculateFunding.Services.Datasets
 
         public async Task<DefinitionSpecificationRelationship> GetRelationshipBySpecificationIdAndName(string specificationId, string name)
         {
-            IEnumerable<DefinitionSpecificationRelationship> relationships = await GetDefinitionSpecificationRelationshipsByQuery(m => m.Content.Specification.Id == specificationId);
+            IEnumerable<DefinitionSpecificationRelationship> relationships = await GetDefinitionSpecificationRelationshipsByQuery(m => m.Content.Current.Specification.Id == specificationId);
 
             if (relationships.IsNullOrEmpty())
             {
@@ -193,6 +193,11 @@ namespace CalculateFunding.Services.Datasets
             IEnumerable<DefinitionSpecificationRelationship> relationships = await GetDefinitionSpecificationRelationshipsByQuery(m => m.Id == relationshipId);
 
             return relationships.FirstOrDefault();
+        }
+
+        public async Task<IEnumerable<DefinitionSpecificationRelationship>> GetDefinitionSpecificationRelationshipsBySpecificationId(string specificationId)
+        {
+            return await GetDefinitionSpecificationRelationshipsByQuery(m => m.Content.Current.Specification.Id == specificationId);
         }
 
         public Task<IEnumerable<DocumentEntity<Dataset>>> GetDatasets()
@@ -313,7 +318,7 @@ namespace CalculateFunding.Services.Datasets
         public async Task DeleteDefinitionSpecificationRelationshipBySpecificationId(string specificationId, DeletionType deletionType)
         {
             IEnumerable<DefinitionSpecificationRelationship> relationships =
-                 await GetDefinitionSpecificationRelationshipsByQuery(r => r.Content.Specification.Id == specificationId);
+                 await GetDefinitionSpecificationRelationshipsByQuery(r => r.Content.Current.Specification.Id == specificationId);
 
             List<DefinitionSpecificationRelationship> definitionSpecificationRelationshipList = relationships.ToList();
 
@@ -324,6 +329,18 @@ namespace CalculateFunding.Services.Datasets
                 await _cosmosRepository.BulkDeleteAsync(definitionSpecificationRelationshipList.Select(c => new KeyValuePair<string, DefinitionSpecificationRelationship>(null, c)), hardDelete:false);
             if (deletionType == DeletionType.PermanentDelete)
                 await _cosmosRepository.BulkDeleteAsync(definitionSpecificationRelationshipList.Select(c => new KeyValuePair<string, DefinitionSpecificationRelationship>(null, c)), hardDelete:true);
+        }
+
+        public async Task<IEnumerable<OldDefinitionSpecificationRelationship>> GetDefinitionSpecificationRelationshipsToMigrate()
+        {
+            CosmosDbQuery dbQuery = new CosmosDbQuery()
+            {
+                QueryText = @"SELECT *
+                            FROM    c 
+                            WHERE   c.documentType = 'DefinitionSpecificationRelationship'"
+            };
+
+            return (await _cosmosRepository.RawQuery<OldDefinitionSpecificationRelationship>(dbQuery)).Where(x => x.Content.Current == null);
         }
     }
 }

@@ -223,8 +223,8 @@ namespace CalculateFunding.Services.Datasets.Services
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
             ));
-            AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference())
-                .WithDatasetVersion(NewRelationshipVersion())));
+            AndTheRelationship(_relationshipId, NewRelationship(r => r.WithCurrent(NewRelationshipVersion(_ => _.WithDatasetDefinition(NewReference())
+                .WithDatasetVersion(NewDatasetRelationshipVersion())))));
             AndThePopulationOfProviderSummariesForSpecification(false, false);
 
             Func<Task> invocation = async () => await WhenTheProcessDatasetMessageIsProcessed();
@@ -248,8 +248,8 @@ namespace CalculateFunding.Services.Datasets.Services
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
             ));
-            AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference())
-                .WithDatasetVersion(NewRelationshipVersion())));
+            AndTheRelationship(_relationshipId, NewRelationship(r => r.WithCurrent(NewRelationshipVersion(_ => _.WithDatasetDefinition(NewReference())
+                .WithDatasetVersion(NewDatasetRelationshipVersion())))));
             AndTheDatasetDefinitions(NewDatasetDefinition());
             AndThePopulationOfProviderSummariesForSpecification(false, false);
 
@@ -274,8 +274,8 @@ namespace CalculateFunding.Services.Datasets.Services
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
             ));
-            AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference())
-                .WithDatasetVersion(NewRelationshipVersion())));
+            AndTheRelationship(_relationshipId, NewRelationship(r => r.WithCurrent(NewRelationshipVersion(_ => _.WithDatasetDefinition(NewReference())
+                .WithDatasetVersion(NewDatasetRelationshipVersion())))));
             AndTheDatasetDefinitions(NewDatasetDefinition());
             AndTheBuildProject(SpecificationId, NewBuildProject());
             AndThePopulationOfProviderSummariesForSpecification(false, false);
@@ -302,8 +302,8 @@ namespace CalculateFunding.Services.Datasets.Services
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
             ));
-            AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference())
-                .WithDatasetVersion(NewRelationshipVersion())));
+            AndTheRelationship(_relationshipId, NewRelationship(r => r.WithCurrent(NewRelationshipVersion(_ => _.WithDatasetDefinition(NewReference())
+                .WithDatasetVersion(NewDatasetRelationshipVersion())))));
             AndTheDatasetDefinitions(NewDatasetDefinition());
             AndTheBuildProject(SpecificationId, NewBuildProject());
             AndThePopulationOfProviderSummariesForSpecification(false, false);
@@ -334,8 +334,8 @@ namespace CalculateFunding.Services.Datasets.Services
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
             ));
-            AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference())
-                .WithDatasetVersion(NewRelationshipVersion())));
+            AndTheRelationship(_relationshipId, NewRelationship(r => r.WithCurrent(NewRelationshipVersion(_ => _.WithDatasetDefinition(NewReference())
+                .WithDatasetVersion(NewDatasetRelationshipVersion())))));
             AndTheDatasetDefinitions(NewDatasetDefinition());
             AndTheBuildProject(SpecificationId, NewBuildProject());
             AndThePopulationOfProviderSummariesForSpecification(false, false);
@@ -366,8 +366,8 @@ namespace CalculateFunding.Services.Datasets.Services
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
             ));
-            AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference())
-                .WithDatasetVersion(NewRelationshipVersion())));
+            AndTheRelationship(_relationshipId, NewRelationship(r => r.WithCurrent(NewRelationshipVersion(_ => _.WithDatasetDefinition(NewReference())
+                .WithDatasetVersion(NewDatasetRelationshipVersion())))));
 
             DatasetDefinition datasetDefinition = NewDatasetDefinition();
 
@@ -403,9 +403,9 @@ namespace CalculateFunding.Services.Datasets.Services
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
             ));
-            AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
+            AndTheRelationship(_relationshipId, NewRelationship(r => r.WithCurrent(NewRelationshipVersion(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
-                .WithDatasetVersion(NewRelationshipVersion())));
+                .WithDatasetVersion(NewDatasetRelationshipVersion())))));
 
             DatasetDefinition datasetDefinition = NewDatasetDefinition();
 
@@ -440,9 +440,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
                 .WithHistory(NewDatasetVersion())));
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
-            AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
+            AndTheRelationship(_relationshipId, NewRelationship(r => r.WithCurrent(NewRelationshipVersion(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
-                .WithDatasetVersion(NewRelationshipVersion())));
+                .WithDatasetVersion(NewDatasetRelationshipVersion())))));
 
             DatasetDefinition datasetDefinition = NewDatasetDefinition();
 
@@ -477,9 +477,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
                 .WithHistory(NewDatasetVersion())));
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
-            AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
+            AndTheRelationship(_relationshipId, NewRelationship(r => r.WithCurrent(NewRelationshipVersion(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
-                .WithDatasetVersion(NewRelationshipVersion())));
+                .WithDatasetVersion(NewDatasetRelationshipVersion())))));
 
             DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
                 tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
@@ -520,9 +520,9 @@ namespace CalculateFunding.Services.Datasets.Services
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
             ));
-            AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
+            AndTheRelationship(_relationshipId, NewRelationship(r => r.WithCurrent(NewRelationshipVersion(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
-                .WithDatasetVersion(NewRelationshipVersion())));
+                .WithDatasetVersion(NewDatasetRelationshipVersion())))));
 
             DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
                 tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
@@ -580,9 +580,9 @@ namespace CalculateFunding.Services.Datasets.Services
             .WithProviderVersionId(ProviderVersionId)
             .WithProviderSource(ProviderSource.FDZ)
             ));
-            AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
+            AndTheRelationship(_relationshipId, NewRelationship(r => r.WithCurrent(NewRelationshipVersion(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
-                .WithDatasetVersion(NewRelationshipVersion())));
+                .WithDatasetVersion(NewDatasetRelationshipVersion())))));
 
             DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
                 tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
@@ -641,9 +641,9 @@ namespace CalculateFunding.Services.Datasets.Services
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
             ));
-            AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
+            AndTheRelationship(_relationshipId, NewRelationship(r => r.WithCurrent(NewRelationshipVersion(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
-                .WithDatasetVersion(NewRelationshipVersion())));
+                .WithDatasetVersion(NewDatasetRelationshipVersion())))));
 
             DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
                 tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
@@ -700,9 +700,9 @@ namespace CalculateFunding.Services.Datasets.Services
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
             ));
-            AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
+            AndTheRelationship(_relationshipId, NewRelationship(r => r.WithCurrent(NewRelationshipVersion(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
-                .WithDatasetVersion(NewRelationshipVersion())));
+                .WithDatasetVersion(NewDatasetRelationshipVersion())))));
 
             DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
                 tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
@@ -758,9 +758,9 @@ namespace CalculateFunding.Services.Datasets.Services
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
             ));
-            AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
+            AndTheRelationship(_relationshipId, NewRelationship(r => r.WithCurrent(NewRelationshipVersion(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
-                .WithDatasetVersion(NewRelationshipVersion())));
+                .WithDatasetVersion(NewDatasetRelationshipVersion())))));
 
             DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
                 tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
@@ -835,9 +835,9 @@ namespace CalculateFunding.Services.Datasets.Services
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
             ));
-            AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
+            AndTheRelationship(_relationshipId, NewRelationship(r => r.WithCurrent(NewRelationshipVersion(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
-                .WithDatasetVersion(NewRelationshipVersion())));
+                .WithDatasetVersion(NewDatasetRelationshipVersion())))));
 
             DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
                 tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
@@ -916,9 +916,9 @@ namespace CalculateFunding.Services.Datasets.Services
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
             ));
-            AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
+            AndTheRelationship(_relationshipId, NewRelationship(r => r.WithCurrent(NewRelationshipVersion(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
-                .WithDatasetVersion(NewRelationshipVersion())));
+                .WithDatasetVersion(NewDatasetRelationshipVersion())))));
 
             DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
                 tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
@@ -970,9 +970,9 @@ namespace CalculateFunding.Services.Datasets.Services
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
             ));
-            AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
+            AndTheRelationship(_relationshipId, NewRelationship(r => r.WithCurrent(NewRelationshipVersion(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
-                .WithDatasetVersion(NewRelationshipVersion())));
+                .WithDatasetVersion(NewDatasetRelationshipVersion())))));
 
             DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
                 tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
@@ -1023,9 +1023,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
                 .WithHistory(NewDatasetVersion())));
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
-            AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
+            AndTheRelationship(_relationshipId, NewRelationship(r => r.WithCurrent(NewRelationshipVersion(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
-                .WithDatasetVersion(NewRelationshipVersion())));
+                .WithDatasetVersion(NewDatasetRelationshipVersion())))));
 
             DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
                 tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
@@ -1081,9 +1081,9 @@ namespace CalculateFunding.Services.Datasets.Services
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
             ));
-            AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
+            AndTheRelationship(_relationshipId, NewRelationship(r => r.WithCurrent(NewRelationshipVersion(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
-                .WithDatasetVersion(NewRelationshipVersion())));
+                .WithDatasetVersion(NewDatasetRelationshipVersion())))));
 
             DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
                 tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
@@ -1150,9 +1150,9 @@ namespace CalculateFunding.Services.Datasets.Services
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
             ));
-            AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
+            AndTheRelationship(_relationshipId, NewRelationship(r => r.WithCurrent(NewRelationshipVersion(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
-                .WithDatasetVersion(NewRelationshipVersion())));
+                .WithDatasetVersion(NewDatasetRelationshipVersion())))));
 
             DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
                 tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
@@ -1204,9 +1204,9 @@ namespace CalculateFunding.Services.Datasets.Services
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
             ));
-            AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
+            AndTheRelationship(_relationshipId, NewRelationship(r => r.WithCurrent(NewRelationshipVersion(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
-                .WithDatasetVersion(NewRelationshipVersion())));
+                .WithDatasetVersion(NewDatasetRelationshipVersion())))));
 
             DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
                 tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
@@ -1257,17 +1257,26 @@ namespace CalculateFunding.Services.Datasets.Services
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
             ));
-            AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
+            AndTheRelationship(_relationshipId, NewRelationship(r => r.WithCurrent(NewRelationshipVersion(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
-                .WithDatasetVersion(NewRelationshipVersion())));
+                .WithDatasetVersion(NewDatasetRelationshipVersion())))));
 
             DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
                 tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
                     .WithIdentifierFieldType(IdentifierFieldType.UPIN))))));
 
             IEnumerable<DefinitionSpecificationRelationship> specificationRelationships = new List<DefinitionSpecificationRelationship>() {
-                    new DefinitionSpecificationRelationship() { Id = _relationshipId},
-                    new DefinitionSpecificationRelationship() { Id = "non-scoped-rel-1", DatasetVersion = new DatasetRelationshipVersion(){Id = "dataset-1"}, Specification = new Reference(SpecificationId, "sp-name")}
+                    new DefinitionSpecificationRelationship() { Id = _relationshipId , Current = new DefinitionSpecificationRelationshipVersion(){ RelationshipId = _relationshipId} },
+                    new DefinitionSpecificationRelationship() 
+                    { 
+                        Id = "non-scoped-rel-1", 
+                        Current = new DefinitionSpecificationRelationshipVersion()
+                        {
+                            RelationshipId = "non-scoped-rel-1",
+                            DatasetVersion = new DatasetRelationshipVersion(){Id = "dataset-1"}, 
+                            Specification = new Reference(SpecificationId, "sp-name")
+                        } 
+                    }
                 };
 
             _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(Arg.Any<Expression<Func<DocumentEntity<DefinitionSpecificationRelationship>, bool>>>())
@@ -1321,9 +1330,9 @@ namespace CalculateFunding.Services.Datasets.Services
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
             ));
-            AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
+            AndTheRelationship(_relationshipId, NewRelationship(r => r.WithCurrent(NewRelationshipVersion(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
-                .WithDatasetVersion(NewRelationshipVersion())));
+                .WithDatasetVersion(NewDatasetRelationshipVersion())))));
 
             DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
                 tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
@@ -1374,9 +1383,9 @@ namespace CalculateFunding.Services.Datasets.Services
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
             ));
-            AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
+            AndTheRelationship(_relationshipId, NewRelationship(r => r.WithCurrent(NewRelationshipVersion(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
-                .WithDatasetVersion(NewRelationshipVersion())));
+                .WithDatasetVersion(NewDatasetRelationshipVersion())))));
 
             DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
                 tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
@@ -1430,9 +1439,9 @@ namespace CalculateFunding.Services.Datasets.Services
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
             ));
-            AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
+            AndTheRelationship(_relationshipId, NewRelationship(r => r.WithCurrent(NewRelationshipVersion(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
-                .WithDatasetVersion(NewRelationshipVersion())));
+                .WithDatasetVersion(NewDatasetRelationshipVersion())))));
 
             DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
                 tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
@@ -1488,9 +1497,9 @@ namespace CalculateFunding.Services.Datasets.Services
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
             ));
-            AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
+            AndTheRelationship(_relationshipId, NewRelationship(r => r.WithCurrent(NewRelationshipVersion(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
-                .WithDatasetVersion(NewRelationshipVersion())));
+                .WithDatasetVersion(NewDatasetRelationshipVersion())))));
 
             DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
                 tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
@@ -1544,9 +1553,9 @@ namespace CalculateFunding.Services.Datasets.Services
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
             ));
-            AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
+            AndTheRelationship(_relationshipId, NewRelationship(r => r.WithCurrent(NewRelationshipVersion(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
-                .WithDatasetVersion(NewRelationshipVersion())));
+                .WithDatasetVersion(NewDatasetRelationshipVersion())))));
 
             DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
                 tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
@@ -1604,10 +1613,10 @@ namespace CalculateFunding.Services.Datasets.Services
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
             ));
-            AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
+            AndTheRelationship(_relationshipId, NewRelationship(r => r.WithCurrent(NewRelationshipVersion(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
-                .WithDatasetVersion(NewRelationshipVersion())
-                .WithIsSetAsProviderData(true)));
+                .WithDatasetVersion(NewDatasetRelationshipVersion())
+                .WithIsSetAsProviderData(true)))));
             var setCachedProviders = true;
             AndThePopulationOfProviderSummariesForSpecification(setCachedProviders, true);
 
@@ -1661,10 +1670,10 @@ namespace CalculateFunding.Services.Datasets.Services
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
             ));
-            AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
+            AndTheRelationship(_relationshipId, NewRelationship(r => r.WithCurrent(NewRelationshipVersion(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
-                .WithDatasetVersion(NewRelationshipVersion())
-                .WithIsSetAsProviderData(true)));
+                .WithDatasetVersion(NewDatasetRelationshipVersion())
+                .WithIsSetAsProviderData(true)))));
             var setCachedProviders = true;
             AndThePopulationOfProviderSummariesForSpecificationFails(setCachedProviders);
 
@@ -1721,10 +1730,10 @@ namespace CalculateFunding.Services.Datasets.Services
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
             ));
-            AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
+            AndTheRelationship(_relationshipId, NewRelationship(r => r.WithCurrent(NewRelationshipVersion(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
-                .WithDatasetVersion(NewRelationshipVersion())
-                .WithIsSetAsProviderData(true)));
+                .WithDatasetVersion(NewDatasetRelationshipVersion())
+                .WithIsSetAsProviderData(true)))));
             var setCachedProviders = true;
             AndThePopulationOfProviderSummariesForSpecification(setCachedProviders, true);
 
@@ -1860,6 +1869,15 @@ namespace CalculateFunding.Services.Datasets.Services
             return relationshipBuilder.Build();
         }
 
+        private DefinitionSpecificationRelationshipVersion NewRelationshipVersion(Action<DefinitionSpecificationRelationshipVersionBuilder> setUp = null)
+        {
+            DefinitionSpecificationRelationshipVersionBuilder relationshipVersionBuilder = new DefinitionSpecificationRelationshipVersionBuilder();
+
+            setUp?.Invoke(relationshipVersionBuilder);
+
+            return relationshipVersionBuilder.Build();
+        }
+
         private SpecificationSummary NewSpecification(Action<ApiSpecificationSummaryBuilder> setUp = null)
         {
             ApiSpecificationSummaryBuilder relationshipBuilder = new ApiSpecificationSummaryBuilder();
@@ -1869,7 +1887,7 @@ namespace CalculateFunding.Services.Datasets.Services
             return relationshipBuilder.Build();
         }
 
-        private DatasetRelationshipVersion NewRelationshipVersion(Action<DatasetRelationshipVersionBuilder> setUp = null)
+        private DatasetRelationshipVersion NewDatasetRelationshipVersion(Action<DatasetRelationshipVersionBuilder> setUp = null)
         {
             DatasetRelationshipVersionBuilder relationshipVersionBuilder = new DatasetRelationshipVersionBuilder()
                 .WithVersion(1);

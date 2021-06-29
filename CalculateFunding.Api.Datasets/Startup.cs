@@ -54,6 +54,8 @@ using System;
 using CalculateFunding.Models.Datasets.Converter;
 using CalculateFunding.Services.Datasets.Converter;
 using CalculateFunding.Services.Core.Caching.FileSystem;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type.Interfaces;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
 
 namespace CalculateFunding.Api.Datasets
 {
@@ -195,6 +197,10 @@ namespace CalculateFunding.Api.Datasets
 
             builder
                .AddSingleton<IValidator<CreateDefinitionSpecificationRelationshipModel>, CreateDefinitionSpecificationRelationshipModelValidator>();
+
+            builder
+               .AddSingleton<IValidator<ValidateDefinitionSpecificationRelationshipModel>,ValidateDefinitionSpecificationRelationshipModelValidator>();
+            builder.AddSingleton<ITypeIdentifierGenerator, VisualBasicTypeIdentifierGenerator>();
 
             builder
                 .AddSingleton<IExcelDatasetWriter, DataDefinitionExcelWriter>();
@@ -376,6 +382,19 @@ namespace CalculateFunding.Api.Datasets
 
                 return new ProviderSourceDatasetBulkRepository(cosmos);
             });
+
+            builder.AddSingleton<IVersionRepository<DefinitionSpecificationRelationshipVersion>, VersionRepository<DefinitionSpecificationRelationshipVersion>>((ctx) =>
+            {
+                CosmosDbSettings settings = new CosmosDbSettings();
+
+                Configuration.Bind("CosmosDbSettings", settings);
+
+                settings.ContainerName = "datasets";
+
+                CosmosRepository cosmosRepository = new CosmosRepository(settings);
+
+                return new VersionRepository<DefinitionSpecificationRelationshipVersion>(cosmosRepository, new NewVersionBuilderFactory<DefinitionSpecificationRelationshipVersion>());
+            });
         }
 
         private CosmosRepository CreateCosmosDbSettings(string containerName)
@@ -407,7 +426,8 @@ namespace CalculateFunding.Api.Datasets
                 JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 ProvidersApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                CalculationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                CalculationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                RelationshipVersionRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy)
             };
         }
     }

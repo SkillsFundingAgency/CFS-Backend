@@ -236,7 +236,7 @@ namespace CalculateFunding.Services.Datasets
 
             try
             {
-                BuildProject buildProject = await ProcessDataset(dataset, specification, relationshipId, relationship.DatasetVersion.Version, user, relationship.IsSetAsProviderData, correlationId);
+                BuildProject buildProject = await ProcessDataset(dataset, specification, relationshipId, relationship.Current.DatasetVersion.Version, user, relationship.Current.IsSetAsProviderData, correlationId);
 
                 await _datasetVersionKeyProvider.AddOrUpdateProviderSourceDatasetVersionKey(relationshipId, Guid.NewGuid());
 
@@ -301,21 +301,21 @@ namespace CalculateFunding.Services.Datasets
 
                 if (isScopedJob && specification.ProviderSource != ProviderSource.FDZ)
                 {
-                    IEnumerable<DefinitionSpecificationRelationship> relationships = await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(c => c.Content.Specification.Id == specificationId);
+                    IEnumerable<DefinitionSpecificationRelationship> relationships = await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(c => c.Content.Current.Specification.Id == specificationId);
 
                     Dictionary<string, Dataset> nonScopeddatasets = new Dictionary<string, Dataset>();
 
                     foreach (DefinitionSpecificationRelationship nonScopedRelationship in relationships.Where(x => x.Id != relationshipId))
                     {
-                        if (nonScopedRelationship == null || nonScopedRelationship.DatasetVersion == null || string.IsNullOrWhiteSpace(nonScopedRelationship.DatasetVersion.Id))
+                        if (nonScopedRelationship == null || nonScopedRelationship.Current.DatasetVersion == null || string.IsNullOrWhiteSpace(nonScopedRelationship.Current.DatasetVersion.Id))
                         {
                             continue;
                         }
 
-                        if (!nonScopeddatasets.TryGetValue(nonScopedRelationship.DatasetVersion.Id, out Dataset nonScopedDataset))
+                        if (!nonScopeddatasets.TryGetValue(nonScopedRelationship.Current.DatasetVersion.Id, out Dataset nonScopedDataset))
                         {
-                            nonScopedDataset = await _datasetRepository.GetDatasetByDatasetId(nonScopedRelationship.DatasetVersion.Id);
-                            nonScopeddatasets.Add(nonScopedRelationship.DatasetVersion.Id, nonScopedDataset);
+                            nonScopedDataset = await _datasetRepository.GetDatasetByDatasetId(nonScopedRelationship.Current.DatasetVersion.Id);
+                            nonScopeddatasets.Add(nonScopedRelationship.Current.DatasetVersion.Id, nonScopedDataset);
                         }
 
                         Trigger trigger = new Trigger
@@ -333,13 +333,13 @@ namespace CalculateFunding.Services.Datasets
                             MessageBody = JsonConvert.SerializeObject(nonScopedDataset),
                             Properties = new Dictionary<string, string>
                                             {
-                                                { "specification-id", nonScopedRelationship.Specification.Id },
+                                                { "specification-id", nonScopedRelationship.Current.Specification.Id },
                                                 { "relationship-id", nonScopedRelationship.Id },
                                                 { "user-id", user?.Id},
                                                 { "user-name", user?.Name},
                                                 { "disableQueueCalculationJob", "true" }
                                             },
-                            SpecificationId = nonScopedRelationship.Specification.Id,
+                            SpecificationId = nonScopedRelationship.Current.Specification.Id,
                             ParentJobId = parentJobId,
                             Trigger = trigger,
                             CorrelationId = correlationId,
@@ -400,7 +400,7 @@ namespace CalculateFunding.Services.Datasets
                 if (string.IsNullOrWhiteSpace(relationshipId))
                 {
                     relationships = await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(r
-                    => r.Content.Specification.Id == specificationId);
+                    => r.Content.Current.Specification.Id == specificationId);
                 }
                 else
                 {
@@ -409,12 +409,12 @@ namespace CalculateFunding.Services.Datasets
 
                 Dictionary<string, Dataset> datasets = new Dictionary<string, Dataset>();
 
-                foreach (DefinitionSpecificationRelationship relationship in relationships.Where(_ => _.DatasetVersion != null))
+                foreach (DefinitionSpecificationRelationship relationship in relationships.Where(_ => _.Current.DatasetVersion != null))
                 {
-                    if (!datasets.TryGetValue(relationship.DatasetVersion.Id, out Dataset dataset))
+                    if (!datasets.TryGetValue(relationship.Current.DatasetVersion.Id, out Dataset dataset))
                     {
-                        dataset = await _datasetRepository.GetDatasetByDatasetId(relationship.DatasetVersion.Id);
-                        datasets.Add(relationship.DatasetVersion.Id, dataset);
+                        dataset = await _datasetRepository.GetDatasetByDatasetId(relationship.Current.DatasetVersion.Id);
+                        datasets.Add(relationship.Current.DatasetVersion.Id, dataset);
                     }
 
                     Trigger trigger = new Trigger

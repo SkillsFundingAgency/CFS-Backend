@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <RootNamespace>CalculateFunding.Services.Datasets</RootNamespace>
+    <RootNamespace>CalculateFunding.Services.Datasets.UnitTests</RootNamespace>
     <LangVersion>8</LangVersion>
   </PropertyGroup>
 

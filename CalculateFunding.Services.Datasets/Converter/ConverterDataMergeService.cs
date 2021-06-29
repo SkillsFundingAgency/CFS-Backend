@@ -177,7 +177,7 @@ namespace CalculateFunding.Services.Datasets.Converter
         private async Task<FundingConfiguration> GetFundingConfiguration(DefinitionSpecificationRelationship relationship,
             string fundingStreamId)
         {
-            string specificationId = relationship.Specification?.Id;
+            string specificationId = relationship.Current.Specification?.Id;
 
             EnsureIsNotNullOrWhitespace(specificationId, $"DefinitionSpecificationRelationship {relationship.Id} has no specification reference.");
 

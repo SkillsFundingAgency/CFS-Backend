@@ -51,6 +51,9 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 case FieldType.NullableOfInteger:
                     propertyType = SyntaxFactory.IdentifierName("Nullable(Of Integer)");
                     break;
+                case FieldType.NullableOfBoolean:
+                    propertyType = SyntaxFactory.IdentifierName("Nullable(Of Boolean)");
+                    break;
                 default:
                     propertyType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword));
                     break;

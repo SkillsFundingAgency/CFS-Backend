@@ -95,9 +95,9 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IEnumerable<DefinitionSpecificationRelationship> relationships = new[]
             {
-                NewRelationship(_ => _.WithDatasetDefinition(NewReference())
-                                    .WithId(relationshipId1)
-                                    .WithDatasetVersion(NewRelationshipVersion(v => v.WithId(datasetVersionId1))))
+                NewDefinitionSpecificationRelationship(r => r.WithCurrent(NewDefinitionSpecificationRelationshipVersion(_ => _.WithDatasetDefinition(NewReference())
+                                    .WithRelationshipId(relationshipId1)
+                                    .WithDatasetVersion(NewDatasetRelationshipVersion(v => v.WithId(datasetVersionId1))))))
             };
 
             Dataset dataset1 = NewDataset(_ => _.WithId(datasetId1));
@@ -127,9 +127,9 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IEnumerable<DefinitionSpecificationRelationship> relationships = new[]
             {
-                NewRelationship(_ => _.WithDatasetDefinition(NewReference())
-                                    .WithId(relationshipId1)
-                                    .WithDatasetVersion(NewRelationshipVersion(v => v.WithId(datasetVersionId1))))
+                NewDefinitionSpecificationRelationship(r => r.WithCurrent(NewDefinitionSpecificationRelationshipVersion(_ => _.WithDatasetDefinition(NewReference())
+                                    .WithRelationshipId(relationshipId1)
+                                    .WithDatasetVersion(NewDatasetRelationshipVersion(v => v.WithId(datasetVersionId1))))))
             };
 
             Dataset dataset1 = NewDataset(_ => _.WithId(datasetId1));
@@ -162,12 +162,18 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IEnumerable<DefinitionSpecificationRelationship> relationships = new[]
             {
-                NewRelationship(_ => _.WithDatasetDefinition(NewReference())
-                                    .WithId(relationshipId1)
-                                    .WithDatasetVersion(NewRelationshipVersion(v => v.WithId(datasetVersionId1)))),
-                NewRelationship(_ => _.WithDatasetDefinition(NewReference())
-                                    .WithId(relationshipId2)
-                                    .WithDatasetVersion(NewRelationshipVersion(v => v.WithId(datasetVersionId2)))),
+                NewDefinitionSpecificationRelationship(r => r
+                .WithId(relationshipId1)
+                .WithCurrent(
+                    NewDefinitionSpecificationRelationshipVersion(_ => _.WithDatasetDefinition(NewReference(d => d.WithId(datasetId1)))
+                                    .WithRelationshipId(relationshipId1)
+                                    .WithDatasetVersion(NewDatasetRelationshipVersion(v => v.WithId(datasetVersionId1)))))),
+                NewDefinitionSpecificationRelationship(r => r
+                .WithId(relationshipId2)
+                .WithCurrent(
+                    NewDefinitionSpecificationRelationshipVersion(_ => _.WithDatasetDefinition(NewReference(d => d.WithId(datasetId2)))
+                                    .WithRelationshipId(relationshipId2)
+                                    .WithDatasetVersion(NewDatasetRelationshipVersion(v => v.WithId(datasetVersionId2)))))),
             };
 
             Dataset dataset1 = NewDataset(_ => _.WithId(datasetId1));
@@ -192,11 +198,15 @@ namespace CalculateFunding.Services.Datasets.Services
             string datasetVersionId = NewRandomString();
             string datasetId = NewRandomString();
 
-            DefinitionSpecificationRelationship relationship = NewRelationship(_ => _.WithDatasetDefinition(NewReference())
-                                    .WithId(relationshipId)
-                                    .WithDatasetVersion(NewRelationshipVersion(v => v.WithId(datasetVersionId))));
-
             Dataset dataset = NewDataset(_ => _.WithId(datasetId));
+
+            DefinitionSpecificationRelationship relationship = NewDefinitionSpecificationRelationship(r => 
+                                r.WithId(relationshipId)
+                                .WithCurrent(NewDefinitionSpecificationRelationshipVersion(_ => _.WithDatasetDefinition(NewReference(d => d.WithId(datasetId)))
+                                    .WithRelationshipId(relationshipId)
+                                    .WithDatasetVersion(NewDatasetRelationshipVersion(v => v.WithId(datasetVersionId))))));
+
+            
 
             GivenTheMessageProperties(("jobId", jobId), ("specification-id", SpecificationId), ("relationship-id", relationshipId), ("user-id", UserId), ("user-name", Username));
             AndTheJobDetails(jobId, JobConstants.DefinitionNames.MapFdzDatasetsJob);
@@ -274,7 +284,16 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Error(Arg.Any<Exception>(), Arg.Any<string>());
         }
 
-        private DefinitionSpecificationRelationship NewRelationship(Action<DefinitionSpecificationRelationshipBuilder> setUp = null)
+        private DefinitionSpecificationRelationshipVersion NewDefinitionSpecificationRelationshipVersion(Action<DefinitionSpecificationRelationshipVersionBuilder> setUp = null)
+        {
+            DefinitionSpecificationRelationshipVersionBuilder relationshipVersionBuilder = new DefinitionSpecificationRelationshipVersionBuilder();
+
+            setUp?.Invoke(relationshipVersionBuilder);
+
+            return relationshipVersionBuilder.Build();
+        }
+
+        private DefinitionSpecificationRelationship NewDefinitionSpecificationRelationship(Action<DefinitionSpecificationRelationshipBuilder> setUp = null)
         {
             DefinitionSpecificationRelationshipBuilder relationshipBuilder = new DefinitionSpecificationRelationshipBuilder();
 
@@ -283,7 +302,7 @@ namespace CalculateFunding.Services.Datasets.Services
             return relationshipBuilder.Build();
         }
 
-        private DatasetRelationshipVersion NewRelationshipVersion(Action<DatasetRelationshipVersionBuilder> setUp = null)
+        private DatasetRelationshipVersion NewDatasetRelationshipVersion(Action<DatasetRelationshipVersionBuilder> setUp = null)
         {
             DatasetRelationshipVersionBuilder relationshipVersionBuilder = new DatasetRelationshipVersionBuilder()
                 .WithVersion(1);

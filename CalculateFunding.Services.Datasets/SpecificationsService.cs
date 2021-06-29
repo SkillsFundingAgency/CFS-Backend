@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using System.Linq;
+using CalculateFunding.Common.ApiClient.Policies.Models;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -117,6 +118,56 @@ namespace CalculateFunding.Services.Datasets
                     SpecificationName = specificationSelectedForFundingSummary.Name
                 }).ToList();
             return new OkObjectResult(eligibleSpecificationReferences);
+        }
+
+        public async Task<IActionResult> PublishedSpecificationTemplateMetadata(string specificationId)
+        {
+            Guard.ArgumentNotNull(specificationId, nameof(specificationId));
+
+            ApiResponse<SpecificationSummary> specificationSummaryApiResponse =
+                await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId));
+
+            if (!specificationSummaryApiResponse.StatusCode.IsSuccess() && specificationSummaryApiResponse.StatusCode != HttpStatusCode.NotFound)
+            {
+                string errorMessage = $"Failed to fetch specification summary for specification ID: {specificationId} with StatusCode={specificationSummaryApiResponse.StatusCode}";
+
+                _logger.Error(errorMessage);
+
+                throw new RetriableException(errorMessage);
+            }
+
+            SpecificationSummary specificationSummary = specificationSummaryApiResponse.Content;
+            string fundingStreamId = specificationSummary.FundingStreams.First().Id;
+            string fundingPeriodId = specificationSummary.FundingPeriod.Id;
+            string templateId = specificationSummary.TemplateIds.First(x => x.Key == fundingStreamId).Value;
+
+            ApiResponse<TemplateMetadataDistinctContents> metadataResponse =
+                    await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetDistinctTemplateMetadataContents(fundingStreamId, fundingPeriodId, templateId));
+
+            if (!metadataResponse.StatusCode.IsSuccess() && metadataResponse.StatusCode != HttpStatusCode.NotFound)
+            {
+                string errorMessage = $"Failed to fetch template metadata for FundingStreamId={fundingStreamId}, FundingPeriodId={fundingPeriodId} and TemplateId={templateId} with StatusCode={metadataResponse.StatusCode}";
+                _logger.Error(errorMessage);
+                throw new RetriableException(errorMessage);
+            }
+
+            TemplateMetadataDistinctContents metadata = metadataResponse.Content;
+
+            List<PublishedSpecificationTemplateMetadata> templateMetadataItems = metadata.Calculations.Select(c => new PublishedSpecificationTemplateMetadata() 
+                                                                                                                    {
+                                                                                                                        Name = c.Name,
+                                                                                                                        TemplateId = c.TemplateCalculationId,
+                                                                                                                        Type = PublishedSpecificationTemplateMetadataType.Calculation
+                                                                                                                    })
+                                                                                                        .ToList();
+            templateMetadataItems.AddRange(metadata.FundingLines.Select(f => new PublishedSpecificationTemplateMetadata() 
+            {
+                Name = f.Name,
+                TemplateId = f.TemplateLineId,
+                Type = PublishedSpecificationTemplateMetadataType.FundingLine
+            }));
+
+            return new OkObjectResult(templateMetadataItems.OrderBy(x => x.Name));
         }
     }
 }

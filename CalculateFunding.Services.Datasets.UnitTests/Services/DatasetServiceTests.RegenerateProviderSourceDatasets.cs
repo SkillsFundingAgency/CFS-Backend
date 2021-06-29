@@ -21,15 +21,14 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             // Arrange
             IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            DefinitionSpecificationRelationship relationship = NewDefinitionSpecificationRelationship(_ =>
+                            _.WithCurrent(NewDefinitionSpecificationRelationshipVersion(v => v
+                                            .WithDatasetVersion(new DatasetRelationshipVersion { Id = "DSRV1", Version = 1 })
+                                            .WithSpecification(new Reference { Id = SpecificationId, Name = "SpecAbc" }))));
+
             datasetRepository
                 .GetDefinitionSpecificationRelationshipsByQuery(Arg.Any<Expression<Func<DocumentEntity<DefinitionSpecificationRelationship>, bool>>>())
-                .Returns(new List<DefinitionSpecificationRelationship>
-                {
-                    new DefinitionSpecificationRelationship{
-                        DatasetVersion = new DatasetRelationshipVersion { Id = "DSRV1", Version = 1},
-                        Specification = new Common.Models.Reference { Id = SpecificationId, Name = "SpecAbc"}
-                    }
-                });
+                .Returns(new List<DefinitionSpecificationRelationship>{ relationship });
             datasetRepository
                 .GetDatasetsByQuery(Arg.Any<Expression<Func<DocumentEntity<Dataset>, bool>>>())
                 .Returns(new List<Dataset>

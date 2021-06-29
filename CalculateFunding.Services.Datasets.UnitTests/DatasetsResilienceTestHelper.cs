@@ -20,7 +20,8 @@ namespace CalculateFunding.Services.Datasets
                 JobsApiClient = Policy.NoOpAsync(),
                 ProvidersApiClient = Policy.NoOpAsync(),
                 PoliciesApiClient = Policy.NoOpAsync(),
-                CalculationsApiClient = Policy.NoOpAsync()
+                CalculationsApiClient = Policy.NoOpAsync(),
+                RelationshipVersionRepository = Policy.NoOpAsync()
             };
         }
     }

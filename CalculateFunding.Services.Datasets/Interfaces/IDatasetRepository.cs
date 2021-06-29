@@ -45,6 +45,8 @@ namespace CalculateFunding.Services.Datasets.Interfaces
 
         Task<DefinitionSpecificationRelationship> GetDefinitionSpecificationRelationshipById(string relationshipId);
 
+        Task<IEnumerable<DefinitionSpecificationRelationship>> GetDefinitionSpecificationRelationshipsBySpecificationId(string specificationId);
+
         Task<HttpStatusCode> UpdateDefinitionSpecificationRelationship(DefinitionSpecificationRelationship relationship);
 
         Task<IEnumerable<string>> GetDistinctRelationshipSpecificationIdsForDatasetDefinitionId(string datasetDefinitionId);
@@ -68,5 +70,7 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         Task<IEnumerable<ConverterDataMergeLog>> GetConverterDataMergeLogsByQuery(Expression<Func<DocumentEntity<ConverterDataMergeLog>, bool>> query);
 
         Task<ConverterDataMergeLog> GetConverterDataMergeLog(string jobId);
+
+        Task<IEnumerable<OldDefinitionSpecificationRelationship>> GetDefinitionSpecificationRelationshipsToMigrate();
     }
 }

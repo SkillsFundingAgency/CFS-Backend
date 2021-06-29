@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace CalculateFunding.Services.Datasets.Services
+namespace CalculateFunding.Services.Datasets.Services.UnitTests
 {
     [TestClass]
     public class DefinitionChangesDetectionServiceTests

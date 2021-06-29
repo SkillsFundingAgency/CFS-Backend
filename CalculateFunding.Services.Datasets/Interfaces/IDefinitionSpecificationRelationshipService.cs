@@ -32,5 +32,7 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         Task<IActionResult> ToggleDatasetRelationship(string relationshipId, bool converterEnabled);
 
         Task<IActionResult> GetCurrentRelationshipsBySpecificationIdAndDatasetDefinitionId(string specificationId, string datasetDefinitionId);
+        Task<IActionResult> ValidateRelationship(ValidateDefinitionSpecificationRelationshipModel validateDefinitionSpecificationRelationshipModel);
+        Task<IActionResult> Migrate();
     }
 }

@@ -13,7 +13,7 @@ namespace CalculateFunding.Services.Datasets
         public AsyncPolicy DatasetRepository { get; set; }
 
         public AsyncPolicy DatasetSearchService { get; set; }
-        
+
         public AsyncPolicy DatasetVersionSearchService { get; set; }
 
         public AsyncPolicy SpecificationsApiClient { get; set; }
@@ -29,7 +29,9 @@ namespace CalculateFunding.Services.Datasets
         public AsyncPolicy ProvidersApiClient { get; set; }
 
         public AsyncPolicy PoliciesApiClient { get; set; }
-        
+
         public AsyncPolicy CalculationsApiClient { get; set; }
+
+        public AsyncPolicy RelationshipVersionRepository {get; set;}
     }
 }
