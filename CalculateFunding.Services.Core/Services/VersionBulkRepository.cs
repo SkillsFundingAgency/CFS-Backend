@@ -15,7 +15,7 @@ namespace CalculateFunding.Services.Core.Services
     public class VersionBulkRepository<T> : IVersionBulkRepository<T> where T : VersionedItem
     {
         protected readonly ICosmosRepository CosmosRepository;
-        
+
         private readonly INewVersionBuilderFactory<T> _newVersionBuilderFactory;
 
         public VersionBulkRepository(ICosmosRepository cosmosRepository,
@@ -49,13 +49,13 @@ namespace CalculateFunding.Services.Core.Services
         public async Task<T> SaveVersion(T newVersion,
             string partitionKey)
         {
-            await CosmosRepository.UpsertAsync(newVersion, partitionKey);
+            await CosmosRepository.CreateAsync(newVersion, partitionKey);
 
             return newVersion;
         }
-        
+
         public async Task<HttpStatusCode> SaveVersion(T newVersion)
-          =>  await CosmosRepository.UpsertAsync(newVersion);
+          => await CosmosRepository.CreateAsync(newVersion);
 
         public async Task<T> CreateVersion(T newVersion,
             T currentVersion = null,
@@ -194,7 +194,7 @@ namespace CalculateFunding.Services.Core.Services
 
             if (results.IsNullOrEmpty()) return 1;
 
-            int nextVersionNumber = (int) results.First() + 1;
+            int nextVersionNumber = (int)results.First() + 1;
 
             return nextVersionNumber;
         }

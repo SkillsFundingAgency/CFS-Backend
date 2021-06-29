@@ -35,7 +35,7 @@ namespace CalculateFunding.Services.Core.Services
             await
                 cosmosRepository
                     .Received(1)
-                    .UpsertAsync<TestVersionItem>(Arg.Is<TestVersionItem>(
+                    .CreateAsync<TestVersionItem>(Arg.Is<TestVersionItem>(
                             m => m.Id == "spec-id_version_1" &&
                                  m.EntityId == "spec-id"
                         ));
