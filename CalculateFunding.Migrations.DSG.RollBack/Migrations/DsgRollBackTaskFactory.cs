@@ -59,10 +59,10 @@ namespace CalculateFunding.Migrations.DSG.RollBack.Migrations
         {
             List<IPublishedFundingUndoJobTask> undoTasks = new List<IPublishedFundingUndoJobTask>();
 
-            AddWithNullCheck(taskContext.PublishedFundingDetails, undoTasks, CreatePublishedFundingUndoTask);
-            AddWithNullCheck(taskContext.PublishedFundingVersionDetails, undoTasks, CreatePublishedFundingVersionUndoTask);
-            AddWithNullCheck(taskContext.PublishedProviderDetails, undoTasks, CreatePublishedProviderUndoTask);
-            AddWithNullCheck(taskContext.PublishedProviderVersionDetails, undoTasks, CreatePublishedProviderVersionUndoTask);
+            AddWithNullCheck(taskContext.UndoTaskDetails, undoTasks, CreatePublishedFundingUndoTask);
+            AddWithNullCheck(taskContext.UndoTaskDetails, undoTasks, CreatePublishedFundingVersionUndoTask);
+            AddWithNullCheck(taskContext.UndoTaskDetails, undoTasks, CreatePublishedProviderUndoTask);
+            AddWithNullCheck(taskContext.UndoTaskDetails, undoTasks, CreatePublishedProviderVersionUndoTask);
 
             return undoTasks;
         }

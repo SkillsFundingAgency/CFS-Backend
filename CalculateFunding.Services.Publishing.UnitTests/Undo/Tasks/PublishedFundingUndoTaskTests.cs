@@ -21,10 +21,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Tasks
             _isHardDelete = NewRandomFlag();
 
             TaskContext = NewPublishedFundingUndoTaskContext(_ =>
-                _.WithPublishedFundingDetails(NewUndoTaskDetails())
-                    .WithPublishedFundingVersionDetails(NewUndoTaskDetails()));
+                _.WithPublishedProviderVersionDetails(NewUndoTaskDetails()));
 
-            TaskDetails = TaskContext.PublishedFundingDetails;
+            TaskDetails = TaskContext.UndoTaskDetails;
 
             Task = new PublishedFundingUndoTask(Cosmos.Object,
                 BlobStore.Object,
@@ -114,7 +113,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Tasks
         protected void AndThePreviousLatestVersion(PublishedFundingVersion current,
             PublishedFundingVersion previous)
         {
-            UndoTaskDetails publishedFundingVersionDetails = TaskContext.PublishedFundingVersionDetails;
+            UndoTaskDetails publishedFundingVersionDetails = TaskContext.UndoTaskDetails;
 
             Cosmos.Setup(_ => _.GetLatestEarlierPublishedFundingVersion(publishedFundingVersionDetails.FundingStreamId,
                     publishedFundingVersionDetails.FundingPeriodId,

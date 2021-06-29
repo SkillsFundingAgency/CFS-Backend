@@ -33,11 +33,9 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
         {
             LogStartingTask();
             
-            Guard.ArgumentNotNull(taskContext?.PublishedFundingDetails, nameof(taskContext.PublishedFundingDetails));
+            Guard.ArgumentNotNull(taskContext?.UndoTaskDetails, nameof(taskContext.UndoTaskDetails));
             
-            UndoTaskDetails details = taskContext.PublishedFundingDetails;
-
-            ICosmosDbFeedIterator feed = GetPublishedFundingFeed(details);
+            ICosmosDbFeedIterator feed = GetPublishedFundingFeed(taskContext.UndoTaskDetails);
             
             FeedContext feedContext = new FeedContext(taskContext, feed);
             
@@ -102,7 +100,7 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
         {
             LogInformation($"Querying latest earlier published funding version for '{taskContext.Parameters}'");
             
-            UndoTaskDetails details = taskContext.PublishedFundingVersionDetails;
+            UndoTaskDetails details = taskContext.UndoTaskDetails;
 
             return await Cosmos.GetLatestEarlierPublishedFundingVersion(details.FundingStreamId,
                 details.FundingPeriodId,

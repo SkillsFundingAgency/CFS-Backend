@@ -21,10 +21,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Tasks
             _isHardDelete = NewRandomFlag();
             
             TaskContext = NewPublishedFundingUndoTaskContext(_ => 
-                _.WithPublishedProviderDetails(NewUndoTaskDetails())
-                    .WithPublishedProviderVersionDetails(NewUndoTaskDetails()));
+                _.WithPublishedProviderVersionDetails(NewUndoTaskDetails()));
 
-            TaskDetails = TaskContext.PublishedProviderDetails;
+            TaskDetails = TaskContext.UndoTaskDetails;
             
             Task = new PublishedProviderUndoTask(Cosmos.Object,
                 BlobStore.Object,
@@ -122,13 +121,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Tasks
         {
             Cosmos.Setup(_ => _.GetPublishedProviders(TaskDetails.FundingStreamId,
                     TaskDetails.FundingPeriodId,
-                    TaskDetails.TimeStamp))
+                    TaskDetails.TimeStamp,
+                    It.IsAny<string>()))
                 .Returns(feed);
         }
 
         protected void AndThePreviousLatestVersion(PublishedProviderVersion current, PublishedProviderVersion previous)
         {
-            UndoTaskDetails publishedProviderVersionDetails = TaskContext.PublishedProviderVersionDetails;
+            UndoTaskDetails publishedProviderVersionDetails = TaskContext.UndoTaskDetails;
             
             Cosmos.Setup(_ => _.GetLatestEarlierPublishedProviderVersion(publishedProviderVersionDetails.FundingStreamId,
                     publishedProviderVersionDetails.FundingPeriodId,
@@ -140,7 +140,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Tasks
         
         protected void AndThePreviousLatestReleasedVersion(PublishedProviderVersion current, PublishedProviderVersion previousReleased)
         {
-            UndoTaskDetails publishedProviderVersionDetails = TaskContext.PublishedProviderVersionDetails;
+            UndoTaskDetails publishedProviderVersionDetails = TaskContext.UndoTaskDetails;
             
             Cosmos.Setup(_ => _.GetLatestEarlierPublishedProviderVersion(publishedProviderVersionDetails.FundingStreamId,
                     publishedProviderVersionDetails.FundingPeriodId,

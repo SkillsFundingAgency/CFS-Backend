@@ -14,6 +14,8 @@ namespace CalculateFunding.Tests.Common.Helpers
         
         protected int NewRandomNumberBetween(int min, int max) => new RandomNumberBetween(min, max);
         
+        protected int NewRandomTimeStamp() => new RandomNumberBetween(10000, int.MaxValue);
+
         protected uint NewRandomUint() => (uint)NewRandomNumberBetween(0, int.MaxValue);
         
         protected DateTimeOffset NewRandomDateTime() => new RandomDateTime();

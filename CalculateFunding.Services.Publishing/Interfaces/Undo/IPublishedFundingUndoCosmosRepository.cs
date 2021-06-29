@@ -11,40 +11,35 @@ namespace CalculateFunding.Services.Publishing.Interfaces.Undo
 {
     public interface IPublishedFundingUndoCosmosRepository
     {
-        Task<UndoTaskDetails> GetCorrelationDetailsForPublishedProviders(string correlationId);
-        
         Task<UndoTaskDetails> GetCorrelationIdDetailsForPublishedProviderVersions(string correlationId);
         
-        Task<UndoTaskDetails> GetCorrelationIdDetailsForPublishedFundingVersions(string correlationId);
-
         ICosmosDbFeedIterator GetPublishedProviderVersions(string fundingStreamId,
             string fundingPeriodId,
-            long sinceTimeStamp);
+            DateTimeOffset sinceTimeStamp);
 
         ICosmosDbFeedIterator GetPublishedProviders(string fundingStreamId,
             string fundingPeriodId,
-            long sinceTimeStamp);
+            DateTimeOffset sinceTimeStamp,
+            string correlationId);
 
         ICosmosDbFeedIterator GetPublishedFundingVersions(string fundingStreamId,
             string fundingPeriodId,
-            long sinceTimeStamp);
+            DateTimeOffset sinceTimeStamp);
 
         ICosmosDbFeedIterator GetPublishedFunding(string fundingStreamId,
             string fundingPeriodId,
-            long sinceTimeStamp);
-
-        Task<UndoTaskDetails> GetCorrelationIdDetailsForPublishedFunding(string correlationId);
+            DateTimeOffset sinceTimeStamp);
 
         Task<PublishedFundingVersion> GetLatestEarlierPublishedFundingVersion(string fundingStreamId,
             string fundingPeriodId,
-            long sinceTimeStamp,
+            DateTimeOffset sinceTimeStamp,
             string groupTypeIdentifier,
             string groupTypeIdentifierValue,
             ModelsGroupingReason groupingReason);
 
         Task<PublishedProviderVersion> GetLatestEarlierPublishedProviderVersion(string fundingStreamId,
             string fundingPeriodId,
-            long sinceTimeStamp,
+            DateTimeOffset sinceTimeStamp,
             string providerId,
             PublishedProviderStatus? status = null);
 

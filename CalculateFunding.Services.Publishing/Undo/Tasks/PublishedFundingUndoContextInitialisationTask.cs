@@ -28,16 +28,13 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
             string correlationId = taskContext.Parameters.ForCorrelationId;
 
             LogInformation($"Initialising task context for correlationId: {correlationId}");
-            
-            Task[] initialisations = new[]
-            {
-                InitialisePublishedProviderDetails(correlationId, taskContext),
-                InitialisePublishedProviderVersionDetails(correlationId, taskContext),
-                InitialisePublishFundingDetails(correlationId, taskContext),
-                InitialisePublishFundingVersionDetails(correlationId, taskContext),
-            };
 
-            await TaskHelper.WhenAllAndThrow(initialisations);
+            await InitialiseFundingDetails(correlationId, taskContext);
+
+            if (taskContext.UndoTaskDetails != null)
+            {
+                taskContext.UndoTaskDetails.CorrelationId = correlationId;
+            }
 
             EnsureContextInitialised(taskContext);
         }
@@ -51,25 +48,10 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
                 throw new InvalidOperationException(initialisationCheck.errors.Join("\n"));
             }
         }
-
-        private async Task InitialisePublishFundingDetails(string correlationId, PublishedFundingUndoTaskContext context)
-        {
-            context.PublishedFundingDetails = await Cosmos.GetCorrelationIdDetailsForPublishedFunding(correlationId);
-        }
         
-        private async Task InitialisePublishFundingVersionDetails(string correlationId, PublishedFundingUndoTaskContext context)
+        private async Task InitialiseFundingDetails(string correlationId, PublishedFundingUndoTaskContext context)
         {
-            context.PublishedFundingVersionDetails = await Cosmos.GetCorrelationIdDetailsForPublishedFundingVersions(correlationId);
-        }
-        
-        private async Task InitialisePublishedProviderDetails(string correlationId, PublishedFundingUndoTaskContext context)
-        {
-            context.PublishedProviderDetails = await Cosmos.GetCorrelationDetailsForPublishedProviders(correlationId);
-        }
-        
-        private async Task InitialisePublishedProviderVersionDetails(string correlationId, PublishedFundingUndoTaskContext context)
-        {
-            context.PublishedProviderVersionDetails = await Cosmos.GetCorrelationIdDetailsForPublishedProviderVersions(correlationId);
+            context.UndoTaskDetails = await Cosmos.GetCorrelationIdDetailsForPublishedProviderVersions(correlationId);
         }
     }
 }

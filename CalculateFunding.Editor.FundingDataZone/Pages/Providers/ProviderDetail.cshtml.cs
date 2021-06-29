@@ -105,6 +105,10 @@ namespace CalculateFunding.Editor.FundingDataZone.Pages.Provider
                 {
                     ModelState.AddModelError("Provider.Status", "Invalid provider status");
                 }
+                else
+                {
+                    provider.ProviderStatusId = providerStatus.ProviderStatusId;
+                }
             }
 
             if (Provider.PaymentOrganisationUkprn != null)

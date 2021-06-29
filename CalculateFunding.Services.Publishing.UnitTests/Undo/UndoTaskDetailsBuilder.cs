@@ -1,5 +1,6 @@
 using CalculateFunding.Services.Publishing.Undo;
 using CalculateFunding.Tests.Common.Helpers;
+using System;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Undo
 {
@@ -36,7 +37,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
             {
                 FundingPeriodId = _fundingPeriodId ?? NewRandomString(),
                 FundingStreamId = _fundingStreamId ?? NewRandomString(),
-                TimeStamp = _timeStamp.GetValueOrDefault(NewRandomNumberBetween(10000, int.MaxValue))
+                TimeStamp = new DateTimeOffset(_timeStamp.GetValueOrDefault(NewRandomTimeStamp()), TimeSpan.Zero)
             };
         }
     }

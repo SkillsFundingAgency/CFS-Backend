@@ -27,53 +27,18 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Tasks
             [TestMethod]
             public async Task InitialisedCorrelationIdDetailsForAllFundingDocumentTypes()
             {
-                UndoTaskDetails expectedPublishedProviderDetails = NewUndoTaskDetails();
                 UndoTaskDetails expectedPublishedProviderVersionDetails = NewUndoTaskDetails();
-                UndoTaskDetails expectedPublishedFundingDetails = NewUndoTaskDetails();
-                UndoTaskDetails expectedPublishedFundingVersionDetails = NewUndoTaskDetails();
                 
-                GivenThePublishedFundingCorrelationDetails(expectedPublishedFundingDetails);
-                AndThePublishedFundingVersionsCorrelationDetails(expectedPublishedFundingVersionDetails);
-                AndThePublishedProviderCorrelationDetails(expectedPublishedProviderDetails);
-                AndThePublishedProviderVersionsCorrelationDetails(expectedPublishedProviderVersionDetails);
+                GivenThePublishedProviderVersionsCorrelationDetails(expectedPublishedProviderVersionDetails);
 
                 await WhenTheTaskIsRun();
 
-                TaskContext.PublishedProviderDetails
-                    .Should()
-                    .BeSameAs(expectedPublishedProviderDetails);
-
-                TaskContext.PublishedProviderVersionDetails
+                TaskContext.UndoTaskDetails
                     .Should()
                     .BeSameAs(expectedPublishedProviderVersionDetails);
-
-                TaskContext.PublishedFundingDetails
-                    .Should()
-                    .BeSameAs(expectedPublishedFundingDetails);
-                
-                TaskContext.PublishedFundingVersionDetails
-                    .Should()
-                    .BeSameAs(expectedPublishedFundingVersionDetails);
             }
 
-            private void GivenThePublishedFundingCorrelationDetails(UndoTaskDetails details)
-            {
-                Cosmos.Setup(_ => _.GetCorrelationIdDetailsForPublishedFunding(Parameters.ForCorrelationId))
-                    .ReturnsAsync(details);
-            }
-            
-            private void AndThePublishedFundingVersionsCorrelationDetails(UndoTaskDetails details)
-            {
-                Cosmos.Setup(_ => _.GetCorrelationIdDetailsForPublishedFundingVersions(Parameters.ForCorrelationId))
-                    .ReturnsAsync(details);
-            }
-            private void AndThePublishedProviderCorrelationDetails(UndoTaskDetails details)
-            {
-                Cosmos.Setup(_ => _.GetCorrelationDetailsForPublishedProviders(Parameters.ForCorrelationId))
-                    .ReturnsAsync(details);
-            }
-            
-            private void AndThePublishedProviderVersionsCorrelationDetails(UndoTaskDetails details)
+            private void GivenThePublishedProviderVersionsCorrelationDetails(UndoTaskDetails details)
             {
                 Cosmos.Setup(_ => _.GetCorrelationIdDetailsForPublishedProviderVersions(Parameters.ForCorrelationId))
                     .ReturnsAsync(details);

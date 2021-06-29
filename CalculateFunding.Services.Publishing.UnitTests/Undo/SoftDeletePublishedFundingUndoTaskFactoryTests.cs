@@ -65,10 +65,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
         public void CreateSoftDeleteUndoTasksBasedOnContext()
         {
             PublishedFundingUndoTaskContext context = NewPublishedFundingUndoTaskContext(_ =>
-            _.WithPublishedFundingDetails(NewUndoTaskDetails())
-            .WithPublishedFundingVersionDetails(NewUndoTaskDetails())
-            .WithPublishedProviderDetails(NewUndoTaskDetails())
-            .WithPublishedProviderVersionDetails(NewUndoTaskDetails()));
+            _.WithPublishedProviderVersionDetails(NewUndoTaskDetails()));
 
             IEnumerable<IPublishedFundingUndoJobTask> undoTasks = WhenTheFactoryCreatesUndoTasks(context);
 

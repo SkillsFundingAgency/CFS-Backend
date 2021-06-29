@@ -32,12 +32,12 @@ namespace CalculateFunding.Services.Publishing.Undo.Repositories
 
         public async Task RemovePublishedProviderVersionBlob(PublishedProviderVersion publishedProviderVersion)
         {
-            await RemoveBlob(publishedProviderVersion.FundingId, "publishedproviderversions");
+            await RemoveBlob($"{publishedProviderVersion.FundingId}.json", "publishedproviderversions");
         }
 
         public async Task RemovePublishedFundingVersionBlob(PublishedFundingVersion publishedFundingVersion)
         {
-            await RemoveBlob(publishedFundingVersion.FundingId, "publishedfunding");
+            await RemoveBlob($"{publishedFundingVersion.FundingId}.json", "publishedfunding");
         }
 
         private async Task RemoveBlob(string name, string container)

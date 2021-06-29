@@ -26,15 +26,12 @@ namespace CalculateFunding.Migrations.DSG.RollBack.Migrations
             
             Guard.ArgumentNotNull(parameters, nameof(parameters));
             
-            taskContext.PublishedFundingDetails =
-                taskContext.PublishedProviderDetails =
-                    taskContext.PublishedProviderVersionDetails =
-                        taskContext.PublishedFundingVersionDetails = new UndoTaskDetails
-                        {
-                            FundingPeriodId = parameters.FundingPeriodId,
-                            FundingStreamId = "DSG",
-                            Version = parameters.Version.DecimalValue
-                        };
+            taskContext.UndoTaskDetails = new UndoTaskDetails
+            {
+                FundingPeriodId = parameters.FundingPeriodId,
+                FundingStreamId = "DSG",
+                Version = parameters.Version.DecimalValue
+            };
             
             return Task.CompletedTask;
         }

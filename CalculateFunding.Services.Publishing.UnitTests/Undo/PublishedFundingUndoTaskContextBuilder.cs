@@ -6,28 +6,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
     public class PublishedFundingUndoTaskContextBuilder : TestEntityBuilder
     {
         private PublishedFundingUndoJobParameters _parameters;
-        private UndoTaskDetails _publishedFundingDetails;
-        private UndoTaskDetails _publishedFundingVersionDetails;
-        private UndoTaskDetails _publishedProviderDetails;
         private UndoTaskDetails _publishedProviderVersionDetails;
 
         public PublishedFundingUndoTaskContextBuilder WithParameters(PublishedFundingUndoJobParameters parameters)
         {
             _parameters = parameters;
-
-            return this;
-        }
-
-        public PublishedFundingUndoTaskContextBuilder WithPublishedFundingDetails(UndoTaskDetails details)
-        {
-            _publishedFundingDetails = details;
-
-            return this;
-        }
-        
-        public PublishedFundingUndoTaskContextBuilder WithPublishedFundingVersionDetails(UndoTaskDetails details)
-        {
-            _publishedFundingVersionDetails = details;
 
             return this;
         }
@@ -38,13 +21,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
 
             return this;
         }
-        
-        public PublishedFundingUndoTaskContextBuilder WithPublishedProviderDetails(UndoTaskDetails details)
-        {
-            _publishedProviderDetails = details;
-
-            return this;
-        }
 
         public PublishedFundingUndoTaskContext Build()
         {
@@ -52,10 +28,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
                 _parameters
                 ?? new PublishedFundingUndoJobParametersBuilder().Build())
             {
-                PublishedFundingDetails = _publishedFundingDetails,
-                PublishedFundingVersionDetails = _publishedFundingVersionDetails,
-                PublishedProviderDetails = _publishedProviderDetails,
-                PublishedProviderVersionDetails = _publishedProviderVersionDetails
+                UndoTaskDetails = _publishedProviderVersionDetails
             };
         }
     }

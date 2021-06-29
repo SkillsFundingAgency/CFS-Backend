@@ -17,13 +17,7 @@ namespace CalculateFunding.Services.Publishing.Undo
 
         public PublishedFundingUndoJobParameters Parameters { get; }
         
-        public UndoTaskDetails PublishedProviderDetails { get; set; }
-        
-        public UndoTaskDetails PublishedProviderVersionDetails { get; set; }
-        
-        public UndoTaskDetails PublishedFundingDetails { get; set; }
-        
-        public UndoTaskDetails PublishedFundingVersionDetails { get; set; }
+        public UndoTaskDetails UndoTaskDetails { get; set; }
         
         public ICollection<Exception> Errors { get; } = new List<Exception>();
 
@@ -38,8 +32,7 @@ namespace CalculateFunding.Services.Publishing.Undo
         {
             List<string> errors = new List<string>();
             
-            if(PublishedFundingDetails == null && PublishedFundingVersionDetails == null
-                && PublishedProviderDetails == null && PublishedProviderVersionDetails == null)
+            if (UndoTaskDetails == null)
             {
                 errors.Add($"No funding or provider details in the task context.");
             }
@@ -51,16 +44,6 @@ namespace CalculateFunding.Services.Publishing.Undo
         public void RegisterException(Exception exception)
         {
             Errors.Add(exception);
-        }
-
-        private void GuardAgainstNull(object property, string name, ICollection<string> errors)
-        {
-            if (property != null)
-            {
-                return;
-            }
-            
-            errors.Add($"{name} missing in task context");
         }
     }
 }

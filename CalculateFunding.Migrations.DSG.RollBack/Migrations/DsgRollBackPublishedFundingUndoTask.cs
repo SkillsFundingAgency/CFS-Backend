@@ -31,7 +31,7 @@ namespace CalculateFunding.Migrations.DSG.RollBack.Migrations
         {
             LogInformation($"Querying latest earlier published funding version for '{taskContext.Parameters}'");
             
-            UndoTaskDetails details = taskContext.PublishedFundingVersionDetails;
+            UndoTaskDetails details = taskContext.UndoTaskDetails;
 
             return await Cosmos.GetLatestEarlierPublishedFundingVersionFromVersion(details.FundingStreamId,
                 details.FundingPeriodId,

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
@@ -43,29 +44,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
                 PublishedFundingRepository = Policy.NoOpAsync()
             }, new CosmosRepository(cosmosDbSettings));
         }
-
-        [TestMethod]
-        public async Task GetCorrelationDetailsForPublishedProviders()
-        {
-            UndoTaskDetails undoTaskDetails = await _repository
-                .GetCorrelationDetailsForPublishedProviders(CorrelationId);
-
-            undoTaskDetails
-                .Should()
-                .BeEquivalentTo(new UndoTaskDetails
-                {
-                    FundingStreamId = "DSG",
-                    FundingPeriodId = "FY-2021-7db621f6-ff28-4910-a3b2-5440c2cd80b0",
-                    TimeStamp = 1588682808
-                });
-        }
         
         [TestMethod]
         public async Task GetPublishedProviders()
         {
             ICosmosDbFeedIterator feed = _repository.GetPublishedProviders("DSG",
                 "FY-2021-7db621f6-ff28-4910-a3b2-5440c2cd80b0",
-                1588682808);
+                new System.DateTimeOffset(1588682808, TimeSpan.FromHours(1)),
+                CorrelationId);
 
             feed.HasMoreResults
                 .Should()
@@ -108,7 +94,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
                 {
                     FundingStreamId = "DSG",
                     FundingPeriodId = "FY-2021",
-                    TimeStamp = 1588684299
+                    TimeStamp = new System.DateTimeOffset(1588684299, TimeSpan.FromHours(1))
                 });
         }
         
@@ -117,7 +103,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
         {
             ICosmosDbFeedIterator feed = _repository.GetPublishedProviderVersions("DSG",
                 "FY-2021",
-                1588684299);
+                new System.DateTimeOffset(1588684299, TimeSpan.FromHours(1)));
 
             feed.HasMoreResults
                 .Should()
@@ -149,27 +135,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
         }
         
         [TestMethod]
-        public async Task GetCorrelationIdDetailsForPublishedFundingVersions()
-        {
-            UndoTaskDetails undoTaskDetails = await _repository
-                .GetCorrelationIdDetailsForPublishedFundingVersions(CorrelationId);
-
-            undoTaskDetails
-                .Should()
-                .BeEquivalentTo(new UndoTaskDetails
-                {
-                    FundingStreamId = "DSG",
-                    FundingPeriodId = "FY-2021",
-                    TimeStamp = 1588684935
-                });
-        }
-        
-        [TestMethod]
         public async Task GetPublishedFundingVersions()
         {
             ICosmosDbFeedIterator feed = _repository.GetPublishedFundingVersions("DSG",
                 "FY-2021",
-                1588684299);
+                new System.DateTimeOffset(1588684299, TimeSpan.FromHours(1)));
 
             feed.HasMoreResults
                 .Should()
@@ -201,27 +171,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
         }
         
         [TestMethod]
-        public async Task GetCorrelationIdDetailsForPublishedFunding()
-        {
-            UndoTaskDetails undoTaskDetails = await _repository
-                .GetCorrelationIdDetailsForPublishedFunding(CorrelationId);
-
-            undoTaskDetails
-                .Should()
-                .BeEquivalentTo(new UndoTaskDetails
-                {
-                    FundingStreamId = "DSG",
-                    FundingPeriodId = "FY-2021",
-                    TimeStamp = 1588685609
-                });
-        }
-        
-        [TestMethod]
         public async Task GetPublishedFunding()
         {
             ICosmosDbFeedIterator feed = _repository.GetPublishedFunding("DSG",
                 "FY-2021",
-                1588685609);
+                new System.DateTimeOffset(1588685609, TimeSpan.FromHours(1)));
 
             while (feed.HasMoreResults)
             {
@@ -258,7 +212,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
         {
             PublishedFundingVersion document = await _repository.GetLatestEarlierPublishedFundingVersion("DSG",
                 "FY-2021",
-                1584980585, //timestamp is for version 3 so test should find me version 2
+                new DateTimeOffset(1584980585, TimeSpan.FromHours(1)), //timestamp is for version 3 so test should find me version 2
                 "LACode",
                 "213",
                 ModelGroupingReason.Information);
@@ -290,7 +244,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
         {
             PublishedProviderVersion document = await _repository.GetLatestEarlierPublishedProviderVersion("DSG",
                 "FY-2021",
-                1584355885, //timestamp is v3 so should yield v2
+                new DateTimeOffset(1584355885, TimeSpan.FromHours(1)), //timestamp is v3 so should yield v2
                 "10007322");
 
             document?

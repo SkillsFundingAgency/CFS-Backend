@@ -37,104 +37,24 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
         }
 
         [TestMethod]
-        public async Task GetCorrelationDetailsForPublishedProviders()
-        {
-            UndoTaskDetails expectedDetails = NewUndoTaskDetails();
-            string correlationId = NewRandomString();
-
-            GivenTheCorrelationIdDetailsForCosmosQuery(@"SELECT
-                              MIN(p._ts) AS timeStamp,
-                              p.content.current.fundingStreamId,
-                              p.content.current.fundingPeriodId
-                        FROM publishedProvider p
-                        WHERE p.documentType = 'PublishedProvider'
-                        AND p.content.current.correlationId = @correlationId
-                        AND p.deleted = false
-                        GROUP BY p.content.current.fundingStreamId,
-                        p.content.current.fundingPeriodId",
-                correlationId,
-                expectedDetails);
-
-            UndoTaskDetails actualDetails = await _repository.GetCorrelationDetailsForPublishedProviders(correlationId);
-
-            actualDetails
-                .Should()
-                .BeSameAs(expectedDetails);
-        }
-
-        [TestMethod]
         public async Task GetCorrelationIdDetailsForPublishedProviderVersions()
         {
             UndoTaskDetails expectedDetails = NewUndoTaskDetails();
             string correlationId = NewRandomString();
 
             GivenTheCorrelationIdDetailsForCosmosQuery(@"SELECT
-                              MIN(p._ts) AS timeStamp,
+                              TOP 1 p.updatedAt AS timeStamp,
                               p.content.fundingStreamId,
                               p.content.fundingPeriodId
                         FROM publishedProviderVersion p
                         WHERE p.documentType = 'PublishedProviderVersion'
                         AND p.content.correlationId = @correlationId
                         AND p.deleted = false
-                        GROUP BY p.content.fundingStreamId,
-                        p.content.fundingPeriodId",
+                        ORDER BY p.updatedAt asc",
                 correlationId,
                 expectedDetails);
 
             UndoTaskDetails actualDetails = await _repository.GetCorrelationIdDetailsForPublishedProviderVersions(correlationId);
-
-            actualDetails
-                .Should()
-                .BeSameAs(expectedDetails);
-        }
-        
-
-        [TestMethod]
-        public async Task GetCorrelationIdDetailsForPublishedFundingVersions()
-        {
-            UndoTaskDetails expectedDetails = NewUndoTaskDetails();
-            string correlationId = NewRandomString();
-
-            GivenTheCorrelationIdDetailsForCosmosQuery(@"SELECT
-                              MIN(p._ts) AS timeStamp,
-                              p.content.fundingStreamId,
-                              p.content.fundingPeriod.id AS fundingPeriodId
-                        FROM publishedFundingVersion p
-                        WHERE p.documentType = 'PublishedFundingVersion'
-                        AND p.content.correlationId = @correlationId
-                        AND p.deleted = false
-                        GROUP BY p.content.fundingStreamId,
-                        p.content.fundingPeriod.id",
-                correlationId,
-                expectedDetails);
-
-            UndoTaskDetails actualDetails = await _repository.GetCorrelationIdDetailsForPublishedFundingVersions(correlationId);
-
-            actualDetails
-                .Should()
-                .BeSameAs(expectedDetails);
-        }
-
-        [TestMethod]
-        public async Task GetCorrelationIdDetailsForPublishedFunding()
-        {
-            UndoTaskDetails expectedDetails = NewUndoTaskDetails();
-            string correlationId = NewRandomString();
-
-            GivenTheCorrelationIdDetailsForCosmosQuery(@"SELECT
-                              MIN(p._ts) AS timeStamp,
-                              p.content.current.fundingStreamId,
-                              p.content.current.fundingPeriod.id AS fundingPeriodId
-                        FROM publishedFunding p
-                        WHERE p.documentType = 'PublishedFunding'
-                        AND p.content.current.correlationId = @correlationId
-                        AND p.deleted = false
-                        GROUP BY p.content.current.fundingStreamId,
-                        p.content.current.fundingPeriod.id",
-                correlationId,
-                expectedDetails);
-
-            UndoTaskDetails actualDetails = await _repository.GetCorrelationIdDetailsForPublishedFunding(correlationId);
 
             actualDetails
                 .Should()
@@ -156,8 +76,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
                         WHERE p.documentType = 'PublishedProviderVersion'
                         AND StringToNumber(CONCAT(Tostring(p.content.majorVersion), '.', Tostring(p.content.minorVersion))) >= @version
                         AND p.content.fundingStreamId = @fundingStreamId
-                        AND p.content.fundingPeriodId = @fundingPeriodId
-                        AND p.deleted = false",
+                        AND p.content.fundingPeriodId = @fundingPeriodId",
                 expectedFeed,
                 ("@fundingPeriodId", fundingPeriodId),
                 ("@fundingStreamId", fundingStreamId),
@@ -177,7 +96,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
         {
             string fundingStreamId = NewRandomString();
             string fundingPeriodId = NewRandomString();
-            long timeStamp = NewRandomTimeStamp();
+            DateTimeOffset timeStamp = new DateTimeOffset(NewRandomTimeStamp(), TimeSpan.Zero);
 
             ICosmosDbFeedIterator expectedFeed = NewFeedIterator<PublishedProviderVersion>();
 
@@ -185,10 +104,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
                               *
                         FROM publishedProviderVersion p
                         WHERE p.documentType = 'PublishedProviderVersion'
-                        AND p._ts >= @sinceTimeStamp
+                        AND p.updatedAt >= @sinceTimeStamp
                         AND p.content.fundingStreamId = @fundingStreamId
-                        AND p.content.fundingPeriodId = @fundingPeriodId
-                        AND p.deleted = false",
+                        AND p.content.fundingPeriodId = @fundingPeriodId",
                 expectedFeed,
                 ("@fundingPeriodId", fundingPeriodId),
                 ("@fundingStreamId", fundingStreamId),
@@ -218,8 +136,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
                         WHERE p.documentType = 'PublishedProvider'
                         AND StringToNumber(CONCAT(Tostring(p.content.current.majorVersion), '.', Tostring(p.content.current.minorVersion))) >= @version
                         AND p.content.current.fundingStreamId = @fundingStreamId
-                        AND p.content.current.fundingPeriodId = @fundingPeriodId
-                        AND p.deleted = false",
+                        AND p.content.current.fundingPeriodId = @fundingPeriodId",
                 expectedFeed,
                 ("@fundingPeriodId", fundingPeriodId),
                 ("@fundingStreamId", fundingStreamId),
@@ -239,7 +156,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
         {
             string fundingStreamId = NewRandomString();
             string fundingPeriodId = NewRandomString();
-            long timeStamp = NewRandomTimeStamp();
+            DateTimeOffset timeStamp = new DateTimeOffset(NewRandomTimeStamp(), TimeSpan.Zero);
+            string correlationId = NewRandomString();
 
             ICosmosDbFeedIterator expectedFeed = NewFeedIterator<PublishedProvider>();
 
@@ -247,18 +165,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
                               *
                         FROM publishedProvider p
                         WHERE p.documentType = 'PublishedProvider'
-                        AND p._ts >= @sinceTimeStamp
+                        AND ((p.updatedAt >= @sinceTimeStamp
                         AND p.content.current.fundingStreamId = @fundingStreamId
-                        AND p.content.current.fundingPeriodId = @fundingPeriodId
-                        AND p.deleted = false",
+                        AND p.content.current.fundingPeriodId = @fundingPeriodId) OR p.content.current.correlationId = @correlationId)",
                 expectedFeed,
                 ("@fundingPeriodId", fundingPeriodId),
                 ("@fundingStreamId", fundingStreamId),
-                ("@sinceTimeStamp", timeStamp));
-
+                ("@sinceTimeStamp", timeStamp),
+                ("@correlationId", correlationId));
+            
             ICosmosDbFeedIterator actualFeedIterator = _repository.GetPublishedProviders(fundingStreamId,
                 fundingPeriodId,
-                timeStamp);
+                timeStamp,
+                correlationId);
 
             actualFeedIterator
                 .Should()
@@ -280,8 +199,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
                         WHERE p.documentType = 'PublishedFunding'
                         AND StringToNumber(CONCAT(Tostring(p.content.current.majorVersion), '.', Tostring(p.content.current.minorVersion))) >= @version
                         AND p.content.current.fundingStreamId = @fundingStreamId
-                        AND p.content.current.fundingPeriod.id = @fundingPeriodId
-                        AND p.deleted = false",
+                        AND p.content.current.fundingPeriod.id = @fundingPeriodId",
                 expectedFeed,
                 ("@fundingPeriodId", fundingPeriodId),
                 ("@fundingStreamId", fundingStreamId),
@@ -301,7 +219,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
         {
             string fundingStreamId = NewRandomString();
             string fundingPeriodId = NewRandomString();
-            long timeStamp = NewRandomTimeStamp();
+            DateTimeOffset timeStamp = new DateTimeOffset(NewRandomTimeStamp(), TimeSpan.Zero);
 
             ICosmosDbFeedIterator expectedFeed = NewFeedIterator<PublishedFunding>();
 
@@ -309,10 +227,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
                               *
                         FROM publishedFunding p
                         WHERE p.documentType = 'PublishedFunding'
-                        AND p._ts >= @sinceTimeStamp
+                        AND p.updatedAt >= @sinceTimeStamp
                         AND p.content.current.fundingStreamId = @fundingStreamId
-                        AND p.content.current.fundingPeriod.id = @fundingPeriodId
-                        AND p.deleted = false",
+                        AND p.content.current.fundingPeriod.id = @fundingPeriodId",
                 expectedFeed,
                 ("@fundingPeriodId", fundingPeriodId),
                 ("@fundingStreamId", fundingStreamId),
@@ -342,8 +259,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
                         WHERE p.documentType = 'PublishedFundingVersion'
                         AND StringToNumber(CONCAT(Tostring(p.content.majorVersion), '.', Tostring(p.content.minorVersion))) >= @version
                         AND p.content.fundingStreamId = @fundingStreamId
-                        AND p.content.fundingPeriod.id = @fundingPeriodId
-                        AND p.deleted = false",
+                        AND p.content.fundingPeriod.id = @fundingPeriodId",
                 expectedFeed,
                 ("@fundingPeriodId", fundingPeriodId),
                 ("@fundingStreamId", fundingStreamId),
@@ -363,7 +279,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
         {
             string fundingStreamId = NewRandomString();
             string fundingPeriodId = NewRandomString();
-            long timeStamp = NewRandomTimeStamp();
+            DateTimeOffset timeStamp = new DateTimeOffset(NewRandomTimeStamp(), TimeSpan.Zero);
 
             ICosmosDbFeedIterator expectedFeed = NewFeedIterator<PublishedFundingVersion>();
 
@@ -371,10 +287,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
                               *
                         FROM publishedFundingVersion p
                         WHERE p.documentType = 'PublishedFundingVersion'
-                        AND p._ts >= @sinceTimeStamp
+                        AND p.updatedAt >= @sinceTimeStamp
                         AND p.content.fundingStreamId = @fundingStreamId
-                        AND p.content.fundingPeriod.id = @fundingPeriodId
-                        AND p.deleted = false",
+                        AND p.content.fundingPeriod.id = @fundingPeriodId",
                 expectedFeed,
                 ("@fundingPeriodId", fundingPeriodId),
                 ("@fundingStreamId", fundingStreamId),
@@ -394,7 +309,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
         {
             string fundingStreamId = NewRandomString();
             string fundingPeriodId = NewRandomString();
-            long timeStamp = NewRandomTimeStamp();
+            DateTimeOffset timeStamp = new DateTimeOffset(NewRandomTimeStamp(), TimeSpan.Zero);
             string groupTypeIdentifier = NewRandomString();
             string groupTypeIdentifierValue = NewRandomString();
             ModelsGroupingReason groupingReason = NewRandomGroupingReason();
@@ -405,14 +320,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
                               TOP 1 *
                         FROM publishedFundingVersion p
                         WHERE p.documentType = 'PublishedFundingVersion'
-                        AND p._ts < @sinceTimeStamp                        
+                        AND p.updatedAt < @sinceTimeStamp                        
                         AND p.content.fundingStreamId = @fundingStreamId
                         AND p.content.fundingPeriod.id = @fundingPeriodId
                         AND p.content.organisationGroupTypeIdentifier = @groupTypeIdentifier
                         AND p.content.organisationGroupIdentifierValue = @groupTypeIdentifierValue
                         AND p.content.groupingReason = @groupingReason
                         AND p.deleted = false
-                        ORDER BY p._ts DESC",
+                        ORDER BY p.updatedAt DESC",
                 expectedLatestEarlierDocument,
                 ("@fundingPeriodId", fundingPeriodId),
                 ("@fundingStreamId", fundingStreamId),
@@ -522,7 +437,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
         {
             string fundingStreamId = NewRandomString();
             string fundingPeriodId = NewRandomString();
-            long timeStamp = NewRandomTimeStamp();
+            DateTimeOffset timeStamp = new DateTimeOffset(NewRandomTimeStamp(), TimeSpan.Zero);
             string providerId = NewRandomString();
             PublishedProviderStatus status = new RandomEnum<PublishedProviderStatus>();
 
@@ -532,13 +447,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
                               TOP 1 *
                         FROM publishedProviderVersion p
                         WHERE p.documentType = 'PublishedProviderVersion'
-                        AND p._ts < @sinceTimeStamp
+                        AND p.updatedAt < @sinceTimeStamp
                         AND p.content.fundingStreamId = @fundingStreamId
                         AND p.content.fundingPeriodId = @fundingPeriodId
                         AND p.content.providerId = @providerId
                         AND p.content.status = @status
                         AND p.deleted = false
-                        ORDER BY p._ts DESC",
+                        ORDER BY p.updatedAt DESC",
                 expectedLatestEarlierDocument,
                 ("@fundingPeriodId", fundingPeriodId),
                 ("@fundingStreamId", fundingStreamId),
@@ -562,7 +477,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
         {
             string fundingStreamId = NewRandomString();
             string fundingPeriodId = NewRandomString();
-            long timeStamp = NewRandomTimeStamp();
+            DateTimeOffset timeStamp = new DateTimeOffset(NewRandomTimeStamp(), TimeSpan.Zero);
             string providerId = NewRandomString();
 
             PublishedProviderVersion expectedLatestEarlierDocument = NewPublishedProviderVersion();
@@ -571,13 +486,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
                               TOP 1 *
                         FROM publishedProviderVersion p
                         WHERE p.documentType = 'PublishedProviderVersion'
-                        AND p._ts < @sinceTimeStamp
+                        AND p.updatedAt < @sinceTimeStamp
                         AND p.content.fundingStreamId = @fundingStreamId
                         AND p.content.fundingPeriodId = @fundingPeriodId
                         AND p.content.providerId = @providerId
                         {string.Empty}
                         AND p.deleted = false
-                        ORDER BY p._ts DESC",
+                        ORDER BY p.updatedAt DESC",
                 expectedLatestEarlierDocument,
                 ("@fundingPeriodId", fundingPeriodId),
                 ("@fundingStreamId", fundingStreamId),
@@ -676,7 +591,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
                         => docs.SequenceEqual(documentsToUpdate.ToKeyValuePairs(doc => doc.PartitionKey))),
                     5,
                     true,
-                    false),
+                    true),
                 Times.Once);
         }
 

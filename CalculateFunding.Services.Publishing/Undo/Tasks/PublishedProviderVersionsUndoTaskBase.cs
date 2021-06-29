@@ -29,11 +29,9 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
         {
             LogStartingTask();
             
-            Guard.ArgumentNotNull(taskContext?.PublishedProviderVersionDetails, nameof(taskContext.PublishedProviderVersionDetails));
+            Guard.ArgumentNotNull(taskContext?.UndoTaskDetails, nameof(taskContext.UndoTaskDetails));
             
-            UndoTaskDetails details = taskContext.PublishedProviderVersionDetails;
-
-            ICosmosDbFeedIterator feed = GetPublishedProviderVersionsFeed(details);
+            ICosmosDbFeedIterator feed = GetPublishedProviderVersionsFeed(taskContext.UndoTaskDetails);
 
             FeedContext feedContext = new FeedContext(taskContext, feed);
 
@@ -69,7 +67,7 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
         {
             LogInformation($"Requesting deletion of {publishedProviderVersions.Count()} published provider version blobs");
             
-            foreach (PublishedProviderVersion publishedProviderVersion in publishedProviderVersions)
+            foreach (PublishedProviderVersion publishedProviderVersion in publishedProviderVersions.Where(_ => _.MajorVersion > 0 && _.MinorVersion == 0))
             {
                 await BlobStore.RemovePublishedProviderVersionBlob(publishedProviderVersion);
             }

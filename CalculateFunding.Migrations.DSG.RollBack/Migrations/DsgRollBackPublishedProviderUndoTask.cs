@@ -32,7 +32,7 @@ namespace CalculateFunding.Migrations.DSG.RollBack.Migrations
         {
             LogInformation($"Querying latest earlier published provider version for '{taskContext.Parameters}'");
             
-            UndoTaskDetails taskDetails = taskContext.PublishedProviderVersionDetails;
+            UndoTaskDetails taskDetails = taskContext.UndoTaskDetails;
 
             return await Cosmos.GetLatestEarlierPublishedProviderVersionFromVersion(taskDetails.FundingStreamId,
                 taskDetails.FundingPeriodId,

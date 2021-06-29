@@ -33,11 +33,9 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
         {
             LogStartingTask();
             
-            Guard.ArgumentNotNull(taskContext?.PublishedProviderDetails, nameof(taskContext.PublishedProviderDetails));
+            Guard.ArgumentNotNull(taskContext?.UndoTaskDetails, nameof(taskContext.UndoTaskDetails));
             
-            UndoTaskDetails details = taskContext.PublishedProviderDetails;
-
-            ICosmosDbFeedIterator feed = GetPublishedProvidersFeed(details);
+            ICosmosDbFeedIterator feed = GetPublishedProvidersFeed(taskContext.UndoTaskDetails);
 
             FeedContext feedContext = new FeedContext(taskContext, feed);
 
@@ -57,7 +55,8 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
         protected virtual ICosmosDbFeedIterator GetPublishedProvidersFeed(UndoTaskDetails details) =>
             Cosmos.GetPublishedProviders(details.FundingStreamId,
                 details.FundingPeriodId,
-                details.TimeStamp);
+                details.TimeStamp,
+                details.CorrelationId);
 
         private async Task<(bool isComplete, IEnumerable<PublishedProvider> items)> ProducePublishedProviders(CancellationToken cancellationToken,
             dynamic context)
@@ -110,7 +109,7 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
             PublishedFundingUndoTaskContext taskContext,
             PublishedProviderStatus? status = null)
         {
-            UndoTaskDetails details = taskContext.PublishedProviderVersionDetails;
+            UndoTaskDetails details = taskContext.UndoTaskDetails;
             
             LogInformation($"Querying latest earlier published provider version for '{taskContext.Parameters}'");
 

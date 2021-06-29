@@ -13,7 +13,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Tasks
             TaskContext = NewPublishedFundingUndoTaskContext(_ => 
                 _.WithPublishedProviderVersionDetails(NewUndoTaskDetails()));
 
-            TaskDetails = TaskContext.PublishedProviderVersionDetails;
+            TaskDetails = TaskContext.UndoTaskDetails;
         }
         
         [TestMethod]

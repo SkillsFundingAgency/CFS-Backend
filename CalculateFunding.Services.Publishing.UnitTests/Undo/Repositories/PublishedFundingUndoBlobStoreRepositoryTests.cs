@@ -36,7 +36,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
         {
             PublishedProviderVersion publishedProviderVersion = NewPublishedProviderVersion();
 
-            GivenTheCloudBlobIsForBlobNameAndContainer(publishedProviderVersion.FundingId, "publishedproviderversions");
+            GivenTheCloudBlobIsForBlobNameAndContainer($"{publishedProviderVersion.FundingId}.json", "publishedproviderversions");
 
             await WhenThePublishedProviderDocumentIsRemoved(publishedProviderVersion);
 
@@ -48,7 +48,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
         {
             PublishedFundingVersion publishedFundingVersion = NewPublishedFundingVersion();
 
-            GivenTheCloudBlobIsForBlobNameAndContainer(publishedFundingVersion.FundingId, "publishedfunding");
+            GivenTheCloudBlobIsForBlobNameAndContainer($"{publishedFundingVersion.FundingId}.json", "publishedfunding");
 
             await WhenThePublishedFundingDocumentIsRemoved(publishedFundingVersion);
 
