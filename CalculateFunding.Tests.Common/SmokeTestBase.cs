@@ -13,12 +13,14 @@ using NSubstitute;
 using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Common.ServiceBus.Options;
 using CalculateFunding.Common.ServiceBus;
+using FluentAssertions;
 
 namespace CalculateFunding.Tests.Common
 {
     public class SmokeTestBase
     {
         protected static bool IsDevelopment;
+        protected static string BuildNumber;
         private static bool _useMocking;
         
         private static TimeSpan _timeout;
@@ -38,6 +40,7 @@ namespace CalculateFunding.Tests.Common
             Services.AddSingleton(configuration);
 
             IsDevelopment = configuration["ASPNETCORE_ENVIRONMENT"] == "Development";
+            BuildNumber = configuration["BuildNumber"];
 
             _useMocking = configuration["USE_MOCKING"] == "true";
 
@@ -164,8 +167,17 @@ namespace CalculateFunding.Tests.Common
                     await action(message);
                 }
 
-                return await messengerService.ReceiveMessage<SmokeResponse>(entityPathBase,_ => _.InvocationId == uniqueId,
+                SmokeResponse smokeResponse = await messengerService.ReceiveMessage<SmokeResponse>(entityPathBase, _ => _.InvocationId == uniqueId,
                     _timeout);
+
+                if (!string.IsNullOrWhiteSpace(BuildNumber))
+                {
+                    smokeResponse.BuildNumber
+                        .Should()
+                        .Be(BuildNumber);
+                }
+
+                return smokeResponse;
             }
             finally
             {
@@ -194,7 +206,7 @@ namespace CalculateFunding.Tests.Common
             messengerService.ReceiveMessage<SmokeResponse>(entityPathBase,
                     Arg.Any<Predicate<SmokeResponse>>(),
                     _timeout)
-                .Returns(new SmokeResponse { InvocationId = uniqueId });
+                .Returns(new SmokeResponse { InvocationId = uniqueId, BuildNumber = BuildNumber });
         }
 
         private static void CheckServiceBusCalls(IMessengerService messengerService, string uniqueId, string queueName, string topicName, string entityPathBase, bool useSession)

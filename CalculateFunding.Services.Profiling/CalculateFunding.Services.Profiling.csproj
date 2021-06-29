@@ -6,7 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="CalculateFunding.Common.Caching" Version="2.0.1" />
-    <PackageReference Include="CalculateFunding.Common.Models" Version="2.2.0" />
+    <PackageReference Include="CalculateFunding.Common.Models" Version="2.3.0" />
     <PackageReference Include="FluentValidation" Version="8.6.2" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
     <PackageReference Include="CalculateFunding.Common.CosmosDb" Version="5.9.0" />

@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Processing.Interfaces;
+using System.Reflection;
 
 namespace CalculateFunding.Services.Processing.Functions
 {
@@ -45,7 +46,7 @@ namespace CalculateFunding.Services.Processing.Functions
 
         private bool IsSmokeTest(Message message) => message.UserProperties.ContainsKey(SmokeTestKey);
 
-        public string BuildNumber => FileVersionInfo.GetVersionInfo(GetType().Assembly.Location).FileVersion;
+        public string BuildNumber => FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location).FileVersion;
 
         protected virtual async Task Run(Message message, Func<Task> func = null)
         {

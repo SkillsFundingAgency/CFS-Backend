@@ -41,6 +41,9 @@ parameters:
 - name: APIKey
   type: string
   default: ''
+- name: apiBuildNumber
+  type: string
+  default: ''
 - name: BuildApi
   type: boolean
   default: true
@@ -112,6 +115,15 @@ steps:
      arguments: '--configuration ${{ parameters.buildconfiguration }}'
      projects: 'CalculateFunding.Api.${{ parameters.ProjectName }}/CalculateFunding.Api.${{ parameters.ProjectName }}.csproj'
 
+ - task: PowerShell@2
+   condition: and(succeeded(), eq( '${{ parameters.BuildApi }}', true))
+   displayName: 'Get File Version Info for API'
+   inputs:
+     targetType: 'inline'
+     script: |
+       ($apibuildnumber = (Get-Command $(System.DefaultWorkingDirectory)\CalculateFunding.Api.${{ parameters.ProjectName }}\bin\Release\netcoreapp3.1\CalculateFunding.Api.${{ parameters.ProjectName }}.dll).FileVersionInfo.FileVersion)
+       echo "##vso[task.setvariable variable=apibuildnumber]$apibuildnumber"
+
  - task: DotNetCoreCLI@2
    condition: and(succeeded(), eq( '${{ parameters.BuildFunction }}', true))
    displayName: 'dotnet publish Function'
@@ -169,7 +181,7 @@ steps:
    inputs:
     targetType: filePath
     filePath: '$(System.DefaultWorkingDirectory)/DevOps/run-smoke-test.ps1'
-    arguments: '-url "https://app-${{ parameters.EnvironmentKey }}-${{ parameters.ServiceName }}-${{ parameters.productVersion }}-staging.azurewebsites.net" -apiKey ${{ parameters.apiKey }}'
+    arguments: '-url "https://app-${{ parameters.EnvironmentKey }}-${{ parameters.ServiceName }}-${{ parameters.productVersion }}-staging.azurewebsites.net" -apiKey ${{ parameters.apiKey }} -apiBuildNumber $(apibuildnumber)'
     failOnStderr: true
  
  - task: PowerShell@2

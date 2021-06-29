@@ -1,3 +1,4 @@
 {
-  "USE_MOCKING": "true"
+  "USE_MOCKING": "true",
+  "BuildNumber": "1.0.0.0"
 }

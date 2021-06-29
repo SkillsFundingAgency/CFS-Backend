@@ -671,7 +671,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             specificationsApiClient
                 .GetSpecificationSummaryById(SpecificationId)
-                .Returns(new ApiResponse<ApiClientSpecModels.SpecificationSummary>(HttpStatusCode.NotFound, null));
+                .Returns(new ApiResponse<ApiClientSpecModels.SpecificationSummary>(HttpStatusCode.NotFound, null, null));
 
 
 

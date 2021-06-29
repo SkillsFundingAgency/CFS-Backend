@@ -1,6 +1,7 @@
 param (
     [Parameter(Mandatory = $true)][string]$url,
-    [Parameter(Mandatory = $true)][string]$apiKey
+    [Parameter(Mandatory = $true)][string]$apiKey,
+    [Parameter(Mandatory = $false)][string]$apiBuildNumber
 )
 
 if ([string]::IsNullOrWhiteSpace($url)) {
@@ -38,12 +39,27 @@ do {
 
         $jsonResponse = $responseData | ConvertFrom-Json;
         $overallHealth = $jsonResponse.OverallHealthOk;
+        $buildNumber = $jsonResponse.BuildNumber;
+
         if ($overallHealth) {
             Write-Host "Smoke test was successful" -ForegroundColor Green
         }
         else {
             Write-Host "##vso[task.logissue type=error;] $fullUrl failed" -ForegroundColor Red
             Write-Error $responseData
+        }
+
+        if ($apiBuildNumber -ne $null)
+        {
+            if ($apiBuildNumber -eq $buildNumber)
+            {
+                Write-Host "Smoke test was successful" -ForegroundColor Green
+            }
+            else
+            {
+                Write-Host "##vso[task.logissue type=error;] $fullUrl failed" -ForegroundColor Red
+                Write-Error $responseData
+            }
         }
 
         $stopTrying = $true
