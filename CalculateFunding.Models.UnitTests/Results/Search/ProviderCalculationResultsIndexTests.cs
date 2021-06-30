@@ -61,7 +61,8 @@ namespace CalculateFunding.Models.UnitTests.Results.Search
                     new[] {"calculationResult", "CalculationResult"},
                     new[] {"calculationException", "CalculationException"},
                     new[] {"calculationExceptionType", "CalculationExceptionType"},
-                    new[] {"calculationExceptionMessage", "CalculationExceptionMessage"}
+                    new[] {"calculationExceptionMessage", "CalculationExceptionMessage"},
+                    new[] {"isIndicativeProvider", "IsIndicativeProvider" }
                 };
 
                 List<string> errors = new List<string>();

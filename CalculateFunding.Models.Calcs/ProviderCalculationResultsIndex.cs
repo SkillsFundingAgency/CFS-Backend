@@ -175,7 +175,6 @@ namespace CalculateFunding.Models.Calcs
         public string[] FundingLineExceptionMessage { get; set; }
 
         [IsFacetable]
-        [IsSearchable]
         [IsFilterable]
         [IsRetrievable(true)]
         [JsonProperty("isIndicativeProvider")]

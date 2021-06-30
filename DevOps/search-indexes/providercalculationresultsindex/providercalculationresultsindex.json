@@ -359,7 +359,7 @@
       "facetable": true,
       "filterable": true,
       "retrievable": true,
-      "searchable": true,
+      "searchable": false,
       "sortable": false,
       "analyzer": null,
       "searchAnalyzer": null,
