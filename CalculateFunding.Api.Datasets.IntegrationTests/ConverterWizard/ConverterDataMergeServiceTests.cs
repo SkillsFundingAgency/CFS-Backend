@@ -61,6 +61,7 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
         }
 
         [TestMethod]
+        [Ignore]
         public async Task JobFailsIfTheConverterMergeRequestDoesNotHaveTheProviderVersionIdSet()
         {
             JobCreationResponse job = await WhenTheConverterDataMergeJobIsQueued(NewConverterMergeRequest());
@@ -72,6 +73,7 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
         }
 
         [TestMethod]
+        [Ignore]
         public async Task JobFailsIfTheConverterMergeRequestDoesNotHaveTheDatasetIdSet()
         {
             string providerVersionId = NewRandomString();
@@ -86,6 +88,7 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
         }
 
         [TestMethod]
+        [Ignore]
         public async Task JobFailsIfTheConverterMergeRequestDoesNotHaveTheVersionSet()
         {
             string providerVersionId = NewRandomString();
@@ -102,6 +105,7 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
         }
 
         [TestMethod]
+        [Ignore]
         public async Task JobFailsIfTheConverterMergeRequestDoesNotHaveTheDatasetRelationshipIdSet()
         {
             string providerVersionId = NewRandomString();
@@ -120,6 +124,7 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
         }
 
         [TestMethod]
+        [Ignore]
         public async Task JobFailsIfTheDatasetDocumentDoesNotExists()
         {
             string providerVersionId = NewRandomString();
@@ -145,6 +150,7 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
         }
 
         [TestMethod]
+        [Ignore]
         public async Task JobFailsIfTheDatasetDefinitionDoesNotExists()
         {
             string providerVersionId = NewRandomString();
@@ -182,6 +188,7 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
         }
 
         [TestMethod]
+        [Ignore]
         public async Task JobFailsIfTheDatasetConverterWizardNotEnabled()
         {
             string providerVersionId = NewRandomString();
@@ -251,6 +258,7 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
         }
 
         [TestMethod]
+        [Ignore]
         public async Task JobFailsIfJobRequestedWithExistingTheDatasetProviderVersionId()
         {
             string providerVersionId = NewRandomString();
@@ -319,6 +327,7 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
         }
 
         [TestMethod]
+        [Ignore]
         public async Task JobFailsIfDatasetDefinitionDoesNotHaveIdentifierField()
         {
             string providerVersionId = NewRandomString();
@@ -385,6 +394,7 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
         }
 
         [TestMethod]
+        [Ignore]
         public async Task JobFailsIfDatasetDefinitionDoesNotHaveUKPRNIdentifierField()
         {
             string providerVersionId = NewRandomString();
@@ -452,6 +462,7 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
         }
 
         [TestMethod]
+        [Ignore]
         public async Task JobFailsIfDatasetRelationshipDoesNotExists()
         {
             string providerVersionId = NewRandomString();
@@ -519,6 +530,7 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
         }
 
         [TestMethod]
+        [Ignore]
         public async Task JobFailsIfSpecificationSummaryDoesNotExists()
         {
             string providerVersionId = NewRandomString();
@@ -597,6 +609,7 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
         }
 
         [TestMethod]
+        [Ignore]
         public async Task JobFailsIfFundingConfigurationDoesNotExists()
         {
             string providerVersionId = NewRandomString();
@@ -682,6 +695,7 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
         }
 
         [TestMethod]
+        [Ignore]
         public async Task JobFailsIfConvertersAreNotEnabledForFundingConfiguration()
         {
             string providerVersionId = NewRandomString();

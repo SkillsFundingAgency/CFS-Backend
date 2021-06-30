@@ -5,9 +5,9 @@
     <UserSecretsId>df0d69d5-a6db-4598-909f-262fc39cb8c8</UserSecretsId>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
-   
     <LangVersion>8</LangVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <FileVersion>1.0.0.$(VersionSuffix)</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>

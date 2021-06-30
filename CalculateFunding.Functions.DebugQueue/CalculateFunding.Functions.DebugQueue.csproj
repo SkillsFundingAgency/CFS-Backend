@@ -6,6 +6,7 @@
     <UserSecretsId>df0d69d5-a6db-4598-909f-262fc39cb8c8</UserSecretsId>
     <LangVersion>8</LangVersion>
     <_FunctionsSkipCleanOutput>true</_FunctionsSkipCleanOutput>
+    <FileVersion>1.0.0.$(VersionSuffix)</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>

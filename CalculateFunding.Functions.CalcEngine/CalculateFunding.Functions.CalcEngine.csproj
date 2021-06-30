@@ -5,6 +5,7 @@
     <AzureFunctionsVersion>v3</AzureFunctionsVersion>
     <LangVersion>8</LangVersion>
     <_FunctionsSkipCleanOutput>true</_FunctionsSkipCleanOutput>
+    <FileVersion>1.0.0.$(VersionSuffix)</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>

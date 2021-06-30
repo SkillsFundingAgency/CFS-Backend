@@ -46,7 +46,7 @@ namespace CalculateFunding.Services.Processing.Functions
 
         private bool IsSmokeTest(Message message) => message.UserProperties.ContainsKey(SmokeTestKey);
 
-        public string BuildNumber => FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location).FileVersion;
+        public string BuildNumber => FileVersionInfo.GetVersionInfo(GetType().Assembly.Location).FileVersion;
 
         protected virtual async Task Run(Message message, Func<Task> func = null)
         {
