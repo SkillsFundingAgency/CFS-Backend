@@ -112,7 +112,7 @@ steps:
      command: publish
      publishWebProjects: false
      zipAfterPublish: false
-     arguments: '--configuration ${{ parameters.buildconfiguration }}'
+     arguments: '--configuration ${{ parameters.buildconfiguration }} --version-suffix $(Build.BuildId)'
      projects: 'CalculateFunding.Api.${{ parameters.ProjectName }}/CalculateFunding.Api.${{ parameters.ProjectName }}.csproj'
 
  - task: PowerShell@2
