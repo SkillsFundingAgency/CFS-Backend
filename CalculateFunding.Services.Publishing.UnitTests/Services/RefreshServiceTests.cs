@@ -561,13 +561,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Be($"calculationMappingResult returned null for funding stream {FundingStreamId}");
         }
 
-        [TestMethod]
-        public void CheckPrerequisitesForSpecificationToBeRefreshed_WhenPreReqsValidationErrors_ThrowsException()
+        [DataTestMethod]
+        [DynamicData(nameof(GetRefreshFundingBlockingJobTypesData), DynamicDataSourceType.Method)]
+        public void CheckPrerequisitesForSpecificationToBeRefreshed_WhenPreReqsValidationErrors_ThrowsException(string runningJobType)
         {
             GivenJobCanBeProcessed();
             AndSpecification();
-            AndPublishedProviders(new PublishedProvider[0]);
-            AndJobsRunning();
+            AndPublishedProviders(Array.Empty<PublishedProvider>());
+            AndJobsRunning(runningJobType);
 
             Func<Task> invocation = WhenMessageReceivedWithJobIdAndCorrelationId;
 
@@ -579,7 +580,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Should()
                 .Be($"Specification with id: '{SpecificationId} has prerequisites which aren't complete.");
 
-            string[] prereqValidationErrors = new string[] { $"{JobConstants.DefinitionNames.CreateInstructAllocationJob} is still running", "Specification must have providers in scope." };
+            string[] prereqValidationErrors = new string[] { $"{runningJobType} is still running", "Specification must have providers in scope." };
 
             _jobManagement
                 .Verify(_ => _.UpdateJobStatus(JobId, It.IsAny<int>(), false, string.Join(", ", prereqValidationErrors)));
@@ -960,21 +961,36 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Returns((publishedProviders ?? new List<PublishedProvider>()).ToDictionary(x => x.Current.ProviderId));
         }
 
-        private void AndJobsRunning()
+        public static IEnumerable<object[]> GetRefreshFundingBlockingJobTypesData()
         {
-            string[] jobTypes = new string[]
+            foreach (string jobType in GetRefreshFundingBlockingJobTypes())
+            {
+                yield return new object[] { jobType };
+            }
+        }
+
+        private static string[] GetRefreshFundingBlockingJobTypes()
+        {
+            return new string[]
             {
                 JobConstants.DefinitionNames.CreateInstructAllocationJob,
                 JobConstants.DefinitionNames.ApproveAllProviderFundingJob,
                 JobConstants.DefinitionNames.ApproveBatchProviderFundingJob,
                 JobConstants.DefinitionNames.PublishAllProviderFundingJob,
                 JobConstants.DefinitionNames.PublishBatchProviderFundingJob,
-                JobConstants.DefinitionNames.ReIndexPublishedProvidersJob
+                JobConstants.DefinitionNames.ReIndexPublishedProvidersJob,
+                JobConstants.DefinitionNames.GenerateGraphAndInstructAllocationJob,
+                JobConstants.DefinitionNames.GenerateGraphAndInstructGenerateAggregationAllocationJob
             };
+        }
+
+        private void AndJobsRunning(string runningJobType)
+        {
+            string[] jobTypes = GetRefreshFundingBlockingJobTypes();
 
             _jobsRunning
                 .Setup(_ => _.GetJobTypes(SpecificationId, It.Is<IEnumerable<string>>(_ => _.All(jt => jobTypes.Contains(jt)))))
-                .ReturnsAsync(new[] { JobConstants.DefinitionNames.CreateInstructAllocationJob });
+                .ReturnsAsync(new[] { runningJobType });
         }
 
         private void AndUpdateStatusThrowsAnError(string error)
