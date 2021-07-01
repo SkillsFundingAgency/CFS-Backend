@@ -66,5 +66,8 @@ namespace CalculateFunding.Services.Profiling.Models
 
         [JsonIgnore] 
         public decimal FundingLineTotalChange => FundingLineTotal - ExistingFundingLineTotal;
+
+        [JsonIgnore]
+        public bool NegativeAllocation => FundingLineTotal < 0 && ExistingFundingLineTotal < 0;
     }
 }

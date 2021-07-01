@@ -128,10 +128,18 @@ namespace CalculateFunding.Services.Profiling.Services
             IReadOnlyCollection<DeliveryProfilePeriod> profilePeriods,
             RoundingStrategy roundingStrategy)
         {
+            bool negativeAllocation = false;
+
             List<DeliveryProfilePeriod> calculatedDeliveryProfile = new List<DeliveryProfilePeriod>();
 
             if (profilePeriods.Any())
             {
+                if (fundingValue < 0)
+                {
+                    fundingValue = Math.Abs(fundingValue);
+                    negativeAllocation = true;
+                }
+
                 decimal allocationValueToBeProfiled = Convert.ToDecimal(fundingValue);
                 decimal runningTotal = 0;
 
@@ -188,6 +196,11 @@ namespace CalculateFunding.Services.Profiling.Services
                 calculatedDeliveryProfile.AddRange(
                     withoutLast.Append(
                         last.WithValue(allocationValueToBeProfiled - withoutLast.Sum(cdp => cdp.ProfileValue))));
+            }
+
+            if (negativeAllocation)
+            {
+                calculatedDeliveryProfile.ForEach(_ => _.SetProfiledValue(_.ProfileValue * -1));
             }
 
             return calculatedDeliveryProfile;

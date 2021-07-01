@@ -389,7 +389,11 @@ namespace CalculateFunding.Services.Profiling.Tests
         //     //}
 
         [TestMethod, TestCategory("UnitTest")]
-        public async Task CalculateProfileService_ShouldCorrectlyProfileEdgeCaseAllocationJustWithinPatternMonths()
+        [DataRow(1000, 583, 417)]
+        [DataRow(-1000, -583, -417)]
+        public async Task CalculateProfileService_ShouldCorrectlyProfileEdgeCaseAllocationJustWithinPatternMonths(int fundingValue, 
+            int octoberAmount, 
+            int aprilAmount)
         {
             // arrange
             FundingStreamPeriodProfilePattern pattern = TestResource.FromJson<FundingStreamPeriodProfilePattern>(
@@ -400,7 +404,7 @@ namespace CalculateFunding.Services.Profiling.Tests
                 fundingStreamId: "PSG",
                 fundingPeriodId: "AY-1819",
                 fundingLineCode: "FL1",
-                fundingValue: 1000);
+                fundingValue: fundingValue);
 
             IProfilePatternRepository mockProfilePatternRepository = Substitute.For<IProfilePatternRepository>();
             mockProfilePatternRepository
@@ -419,13 +423,18 @@ namespace CalculateFunding.Services.Profiling.Tests
             OkObjectResult responseAsOkObjectResult = responseResult as OkObjectResult;
             AllocationProfileResponse response = responseAsOkObjectResult.Value as AllocationProfileResponse;
 
-            response.DeliveryProfilePeriods.ToArray().FirstOrDefault(q => q.TypeValue == "October").ProfileValue.Should().Be(583.00M);
-            response.DeliveryProfilePeriods.ToArray().FirstOrDefault(q => q.TypeValue == "April").ProfileValue.Should().Be(417.00M);
+            response.DeliveryProfilePeriods.ToArray().FirstOrDefault(q => q.TypeValue == "October").ProfileValue.Should().Be(octoberAmount);
+            response.DeliveryProfilePeriods.ToArray().FirstOrDefault(q => q.TypeValue == "April").ProfileValue.Should().Be(aprilAmount);
             response.DeliveryProfilePeriods.Length.Should().Be(3);
         }
 
         [TestMethod, TestCategory("UnitTest")]
-        public async Task CalculateProfileService_ShouldCorrectlyProfileEdgeCaseOfFiftyPence()
+        [DataRow(16, 9, 7, 0)]
+        [DataRow(-16, -9, -7, 0)]
+        public async Task CalculateProfileService_ShouldCorrectlyProfileEdgeCaseOfFiftyPence(int fundingValue, 
+            int octoberAmount, 
+            int aprilAmountOccurrenceOne, 
+            int aprilAmountOccurrenceTwo)
         {
             // arrange
             FundingStreamPeriodProfilePattern pattern = TestResource.FromJson<FundingStreamPeriodProfilePattern>(
@@ -436,7 +445,7 @@ namespace CalculateFunding.Services.Profiling.Tests
                 fundingStreamId: "PSG",
                 fundingPeriodId: "AY-1819",
                 fundingLineCode: "FL1",
-                fundingValue: 16);
+                fundingValue: fundingValue);
 
             IProfilePatternRepository mockProfilePatternRepository = Substitute.For<IProfilePatternRepository>();
             mockProfilePatternRepository
@@ -455,9 +464,9 @@ namespace CalculateFunding.Services.Profiling.Tests
             OkObjectResult responseAsOkObjectResult = responseResult as OkObjectResult;
             AllocationProfileResponse response = responseAsOkObjectResult.Value as AllocationProfileResponse;
 
-            response.DeliveryProfilePeriods.ToArray().FirstOrDefault(q => q.TypeValue == "October").ProfileValue.Should().Be(9M);
-            response.DeliveryProfilePeriods.ToArray().FirstOrDefault(q => q.TypeValue == "April").ProfileValue.Should().Be(7M);
-            response.DeliveryProfilePeriods.ToArray().LastOrDefault(q => q.TypeValue == "April").ProfileValue.Should().Be(0M);
+            response.DeliveryProfilePeriods.ToArray().FirstOrDefault(q => q.TypeValue == "October").ProfileValue.Should().Be(octoberAmount);
+            response.DeliveryProfilePeriods.ToArray().FirstOrDefault(q => q.TypeValue == "April").ProfileValue.Should().Be(aprilAmountOccurrenceOne);
+            response.DeliveryProfilePeriods.ToArray().LastOrDefault(q => q.TypeValue == "April").ProfileValue.Should().Be(aprilAmountOccurrenceTwo);
             response.DeliveryProfilePeriods.Length.Should().Be(3);
         }
 

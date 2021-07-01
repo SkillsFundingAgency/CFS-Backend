@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Services.Profiling.Models;
 using CalculateFunding.Services.Profiling.ReProfilingStrategies;
@@ -146,10 +147,12 @@ namespace CalculateFunding.Services.Profiling.Tests
         }
 
         [TestMethod]
-        public async Task ProfilesFundingLinesNormallyThenReProfilesUsingTheseResultsWithLessThanStrategyIfFundingDropped()
+        [DataRow(true)]
+        [DataRow(false)]
+        public async Task ProfilesFundingLinesNormallyThenReProfilesUsingTheseResultsWithLessThanStrategyIfFundingDropped(bool negativeFundingTotal)
         {
-            decimal newFundingTotal = NewRandomTotal();
-            
+            decimal newFundingTotal = negativeFundingTotal ? NewRandomTotal() * -1 : NewRandomTotal();
+
             ReProfileRequest request = NewReProfileRequest(_ => _.WithFundingValue(newFundingTotal)
                 .WithExistingFundingValue(newFundingTotal + 100));
             AllocationProfileResponse profileResponse = NewAllocationProfileResponse();
@@ -163,7 +166,7 @@ namespace CalculateFunding.Services.Profiling.Tests
 
             DistributionPeriods distributionPeriods1 = NewDistributionPeriods();
             DeliveryProfilePeriod deliveryProfilePeriod1 = NewDeliveryProfilePeriod(_ => _.WithProfiledValue(10));
-            DeliveryProfilePeriod deliveryProfilePeriod2 = NewDeliveryProfilePeriod(_ => _.WithProfiledValue(newFundingTotal - 20));
+            DeliveryProfilePeriod deliveryProfilePeriod2 = NewDeliveryProfilePeriod(_ => _.WithProfiledValue(Math.Abs(newFundingTotal) - 20));
 
             GivenTheProfilePattern(request, profilePattern);
             AndTheReProfilingStrategy(key);
@@ -178,21 +181,24 @@ namespace CalculateFunding.Services.Profiling.Tests
             reProfileResponse?
                 .Value
                 .Should()
-                .BeEquivalentTo(new ReProfileResponse
-                {
-                    DistributionPeriods = new [] { distributionPeriods1 },
-                    CarryOverAmount = 10,
-                    DeliveryProfilePeriods = new [] { deliveryProfilePeriod1, deliveryProfilePeriod2 },
-                    ProfilePatternKey = profilePattern.ProfilePatternKey,
-                    ProfilePatternDisplayName = profilePattern.ProfilePatternDisplayName
-                });
+                .BeEquivalentTo(
+                    GetProfileResponse(
+                        new[] { distributionPeriods1 },
+                        new[] { deliveryProfilePeriod1, deliveryProfilePeriod2 },
+                        10,
+                        profilePattern,
+                        negativeFundingTotal
+                    )
+                );
         }
 
         [TestMethod]
-        public async Task ProfilesFundingLinesNormallyThenReProfilesUsingTheseResultsWithMoreThanStrategyIfFundingIncreased()
+        [DataRow(true)]
+        [DataRow(false)]
+        public async Task ProfilesFundingLinesNormallyThenReProfilesUsingTheseResultsWithMoreThanStrategyIfFundingIncreased(bool negativeFundingTotal)
         {
-            decimal newFundingTotal = NewRandomTotal();
-            
+            decimal newFundingTotal = negativeFundingTotal ? NewRandomTotal() * -1 : NewRandomTotal();
+
             ReProfileRequest request = NewReProfileRequest(_ => _.WithFundingValue(newFundingTotal)
                 .WithExistingFundingValue(newFundingTotal - 100));
             AllocationProfileResponse profileResponse = NewAllocationProfileResponse();
@@ -206,7 +212,7 @@ namespace CalculateFunding.Services.Profiling.Tests
 
             DistributionPeriods distributionPeriods1 = NewDistributionPeriods();
             DeliveryProfilePeriod deliveryProfilePeriod1 = NewDeliveryProfilePeriod(_ => _.WithProfiledValue(10));
-            DeliveryProfilePeriod deliveryProfilePeriod2 = NewDeliveryProfilePeriod(_ => _.WithProfiledValue(newFundingTotal - 20));
+            DeliveryProfilePeriod deliveryProfilePeriod2 = NewDeliveryProfilePeriod(_ => _.WithProfiledValue(Math.Abs(newFundingTotal) - 20));
 
             GivenTheProfilePattern(request, profilePattern);
             AndTheReProfilingStrategy(key);
@@ -221,21 +227,24 @@ namespace CalculateFunding.Services.Profiling.Tests
             reProfileResponse?
                 .Value
                 .Should()
-                .BeEquivalentTo(new ReProfileResponse
-                {
-                    DistributionPeriods = new [] { distributionPeriods1 },
-                    CarryOverAmount = 10,
-                    DeliveryProfilePeriods = new [] { deliveryProfilePeriod1, deliveryProfilePeriod2 },
-                    ProfilePatternKey = profilePattern.ProfilePatternKey,
-                    ProfilePatternDisplayName = profilePattern.ProfilePatternDisplayName
-                });
+                .BeEquivalentTo(
+                    GetProfileResponse(
+                        new[] { distributionPeriods1 },
+                        new[] { deliveryProfilePeriod1, deliveryProfilePeriod2 },
+                        10,
+                        profilePattern,
+                        negativeFundingTotal
+                    )
+                );
         }
 
         [TestMethod]
-        public async Task ProfilesFundingLinesNormallyThenReProfilesUsingTheseResultsWithSameAmountStrategyIfFundingTheSame()
+        [DataRow(true)]
+        [DataRow(false)]
+        public async Task ProfilesFundingLinesNormallyThenReProfilesUsingTheseResultsWithSameAmountStrategyIfFundingTheSame(bool negativeFundingTotal)
         {
-            decimal newFundingTotal = NewRandomTotal();
-            
+            decimal newFundingTotal = negativeFundingTotal ? NewRandomTotal() * -1 : NewRandomTotal();
+
             ReProfileRequest request = NewReProfileRequest(_ => _.WithFundingValue(newFundingTotal)
                 .WithExistingFundingValue(newFundingTotal));
             AllocationProfileResponse profileResponse = NewAllocationProfileResponse();
@@ -249,7 +258,7 @@ namespace CalculateFunding.Services.Profiling.Tests
 
             DistributionPeriods distributionPeriods1 = NewDistributionPeriods();
             DeliveryProfilePeriod deliveryProfilePeriod1 = NewDeliveryProfilePeriod(_ => _.WithProfiledValue(10));
-            DeliveryProfilePeriod deliveryProfilePeriod2 = NewDeliveryProfilePeriod(_ => _.WithProfiledValue(newFundingTotal - 20));
+            DeliveryProfilePeriod deliveryProfilePeriod2 = NewDeliveryProfilePeriod(_ => _.WithProfiledValue(Math.Abs(newFundingTotal) - 20));
 
             GivenTheProfilePattern(request, profilePattern);
             AndTheReProfilingStrategy(key);
@@ -264,20 +273,23 @@ namespace CalculateFunding.Services.Profiling.Tests
             reProfileResponse?
                 .Value
                 .Should()
-                .BeEquivalentTo(new ReProfileResponse
-                {
-                    DistributionPeriods = new [] { distributionPeriods1 },
-                    CarryOverAmount = 10,
-                    DeliveryProfilePeriods = new [] { deliveryProfilePeriod1, deliveryProfilePeriod2 },
-                    ProfilePatternKey = profilePattern.ProfilePatternKey,
-                    ProfilePatternDisplayName = profilePattern.ProfilePatternDisplayName
-                });
+                .BeEquivalentTo(
+                    GetProfileResponse(
+                        new[] { distributionPeriods1 },
+                        new[] { deliveryProfilePeriod1, deliveryProfilePeriod2},
+                        10,
+                        profilePattern,
+                        negativeFundingTotal
+                    )
+                );
         }
-        
+
         [TestMethod]
-        public async Task ProfilesFundingLinesNormallyThenReProfilesUsingTheseResultsWithInitialFundingStrategyIfRequestIsMidYear()
+        [DataRow(true)]
+        [DataRow(false)]
+        public async Task ProfilesFundingLinesNormallyThenReProfilesUsingTheseResultsWithInitialFundingStrategyIfRequestIsMidYear(bool negativeFundingTotal)
         {
-            decimal newFundingTotal = NewRandomTotal();
+            decimal newFundingTotal = negativeFundingTotal ? NewRandomTotal() * -1 : NewRandomTotal();
             
             ReProfileRequest request = NewReProfileRequest(_ => _.WithFundingValue(newFundingTotal)
                 .WithExistingFundingValue(newFundingTotal)
@@ -293,7 +305,7 @@ namespace CalculateFunding.Services.Profiling.Tests
 
             DistributionPeriods distributionPeriods1 = NewDistributionPeriods();
             DeliveryProfilePeriod deliveryProfilePeriod1 = NewDeliveryProfilePeriod(_ => _.WithProfiledValue(10));
-            DeliveryProfilePeriod deliveryProfilePeriod2 = NewDeliveryProfilePeriod(_ => _.WithProfiledValue(newFundingTotal - 20));
+            DeliveryProfilePeriod deliveryProfilePeriod2 = NewDeliveryProfilePeriod(_ => _.WithProfiledValue(Math.Abs(newFundingTotal) - 20));
 
             GivenTheProfilePattern(request, profilePattern);
             AndTheReProfilingStrategy(key);
@@ -308,15 +320,37 @@ namespace CalculateFunding.Services.Profiling.Tests
             reProfileResponse?
                 .Value
                 .Should()
-                .BeEquivalentTo(new ReProfileResponse
-                {
-                    DistributionPeriods = new [] { distributionPeriods1 },
-                    CarryOverAmount = 10,
-                    DeliveryProfilePeriods = new [] { deliveryProfilePeriod1, deliveryProfilePeriod2 },
-                    ProfilePatternKey = profilePattern.ProfilePatternKey,
-                    ProfilePatternDisplayName = profilePattern.ProfilePatternDisplayName
-                });
+                .BeEquivalentTo(
+                    GetProfileResponse(
+                        new[] { distributionPeriods1 },
+                        new[] { deliveryProfilePeriod1, deliveryProfilePeriod2 },
+                        10,
+                        profilePattern,
+                        negativeFundingTotal
+                    )
+                );
         }
+
+        private ReProfileResponse GetProfileResponse(DistributionPeriods[] distributionPeriods,
+            DeliveryProfilePeriod[] deliveryProfilePeriods,
+            decimal carryOveramount,
+            FundingStreamPeriodProfilePattern profilePattern,
+            bool negativeFundingTotal)
+                => new ReProfileResponse
+                        {
+                            DistributionPeriods = distributionPeriods.Select(_ => negativeFundingTotal ? new DistributionPeriods { DistributionPeriodCode = _.DistributionPeriodCode, Value = _.Value * -1 } : _).ToArray(),
+                            CarryOverAmount = negativeFundingTotal ? carryOveramount * -1 : carryOveramount,
+                            DeliveryProfilePeriods = deliveryProfilePeriods.Select(_ => negativeFundingTotal ? new DeliveryProfilePeriod
+                            {
+                                DistributionPeriod = _.DistributionPeriod,
+                                Occurrence = _.Occurrence,
+                                ProfileValue = _.ProfileValue * -1,
+                                TypeValue = _.TypeValue,
+                                Year = _.Year
+                            } : _).ToArray(),
+                            ProfilePatternKey = profilePattern.ProfilePatternKey,
+                            ProfilePatternDisplayName = profilePattern.ProfilePatternDisplayName
+                        };
 
         private async Task<ActionResult<ReProfileResponse>> WhenTheFundingLineIsReProfiled(ReProfileRequest request)
             => await _service.ReProfile(request);
@@ -350,10 +384,10 @@ namespace CalculateFunding.Services.Profiling.Tests
                         req.FundingStreamId == request.FundingStreamId &&
                         req.FundingPeriodId == request.FundingPeriodId &&
                         req.FundingLineCode == request.FundingLineCode &&
-                        req.FundingValue == request.FundingLineTotal &&
+                        req.FundingValue == Math.Abs(request.FundingLineTotal) &&
                         req.ProfilePatternKey == request.ProfilePatternKey),
                     profilePattern,
-                    request.FundingLineTotal))
+                    Math.Abs(request.FundingLineTotal)))
                 .Returns(response);
 
         private FundingStreamPeriodProfilePattern NewFundingStreamPeriodProfilePattern(Action<FundingStreamPeriodProfilePatternBuilder> setUp = null)
