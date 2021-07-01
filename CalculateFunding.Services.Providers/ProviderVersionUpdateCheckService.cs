@@ -88,9 +88,9 @@ namespace CalculateFunding.Services.Providers
 
         public async Task CheckProviderVersionUpdate()
         {
-            bool disableTackLatest = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.GetAsync<bool>(CacheKeys.DisableTrackLatest));
+            bool disableTrackLatest = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.GetAsync<bool>(CacheKeys.DisableTrackLatest));
             
-            if (disableTackLatest)
+            if (disableTrackLatest)
             {
                 return;
             }

@@ -84,7 +84,15 @@ End Function"
                         .WithId(1)
                         .WithName("One")
                         .WithSourceCodeName("One")
-                        .WithNamespace(psg)))));
+                        .WithNamespace(psg)
+                        .WithFundingLines(NewFundingLine(fl => fl
+                            .WithCalculations(NewFundingLineCalculation(cal => cal.WithId(2)
+                                .WithCalculationNamespaceType(CalculationNamespace.Template)))
+                            .WithId(2)
+                            .WithName("two")
+                            .WithSourceCodeName("two")
+                            .WithNamespace(psg))))
+                        )));
             AndTheObsoleteItems(NewObsoleteItem(_ => _.WithCodeReference(obsoleteFundingLineOne)
                     .WithItemType(ObsoleteItemType.FundingLine)),
                 NewObsoleteItem(_ => _.WithItemType(ObsoleteItemType.Calculation)),
@@ -128,7 +136,15 @@ One = Function() As Decimal?"
                         .WithId(1)
                         .WithName("One")
                         .WithSourceCodeName("One")
-                        .WithNamespace(psg)))));
+                        .WithNamespace(psg)
+                        .WithFundingLines(NewFundingLine(fl => fl
+                            .WithCalculations(NewFundingLineCalculation(cal => cal.WithId(1)
+                                .WithCalculationNamespaceType(CalculationNamespace.Template)))
+                            .WithId(2)
+                            .WithName("two")
+                            .WithSourceCodeName("two")
+                            .WithNamespace(psg)))
+                        ))));
 
             WhenTheFundingLineNamespacesAreBuilt();
 
@@ -146,23 +162,45 @@ One = Function() As Decimal?"
             string expectedFundingLineLambda = @$"Dim userCalculationCodeImplementation As Func(Of Decimal?) = Function() As Decimal?
 Dim sum As Decimal? = Nothing
 AddToNullable(sum, Template.CalcOne())
+AddToNullable(sum, PSG.FundingLines.FundingLineTwo())
 Return If(sum.HasValue(), Math.Round(sum.Value, {decimalPlaces}, MidpointRounding.AwayFromZero), sum)
 End Function";
 
-            GivenTheFundingLine(psg,
-                NewFunding(_ => _
-                    .WithFundingLines(NewFundingLine(fl => fl
+            string expectedFundingLineLambdaTwo = @$"Dim userCalculationCodeImplementation As Func(Of Decimal?) = Function() As Decimal?
+Dim sum As Decimal? = Nothing
+AddToNullable(sum, Template.CalcTwo())
+Return If(sum.HasValue(), Math.Round(sum.Value, {decimalPlaces}, MidpointRounding.AwayFromZero), sum)
+End Function";
+
+            FundingLine fundingLineTwo = NewFundingLine(fl => fl
+                             .WithCalculations(NewFundingLineCalculation(cal => cal
+                                 .WithId(2)
+                                 .WithName("CalcTwo")
+                                 .WithSourceCodeName("CalcTwo")
+                                 .WithCalculationNamespaceType(CalculationNamespace.Template)))
+                             .WithId(2)
+                             .WithName("FundingLineTwo")
+                             .WithSourceCodeName("FundingLineTwo")
+                             .WithNamespace(psg)
+                        );
+
+            FundingLine fundingLineOne = NewFundingLine(fl => fl
                         .WithCalculations(NewFundingLineCalculation(cal => cal
                             .WithId(1)
                             .WithName("CalcOne")
                             .WithSourceCodeName("CalcOne")
                             .WithCalculationNamespaceType(CalculationNamespace.Template)))
                         .WithId(1)
-                        .WithNamespace(psg)))));
+                        .WithNamespace(psg)
+                        .WithFundingLines(fundingLineTwo));
+
+            GivenTheFundingLine(psg,
+                NewFunding(_ => _
+                    .WithFundingLines(fundingLineOne, fundingLineTwo)));
 
             WhenTheFundingLineNamespacesAreBuilt(decimalPlaces);
 
-            AndTheNamespaceDefinition(psg, expectedFundingLineLambda);
+            AndTheNamespaceDefinition(psg, expectedFundingLineLambda, expectedFundingLineLambdaTwo);
         }
 
         [TestMethod]

@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using CalculateFunding.Functions.Calcs.ServiceBus;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Datasets;
 using CalculateFunding.Services.Core.Constants;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
@@ -54,7 +55,7 @@ namespace CalculateFunding.Functions.DebugQueue
         public static async Task RunOnCalcsInstructAllocationResults([QueueTrigger(ServiceBusConstants.QueueNames.CalculationJobInitialiser, Connection = "AzureConnectionString")] string item, ILogger log)
         {
             using IServiceScope scope = Functions.Calcs.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
-            Message message = Helpers.ConvertToMessage<string>(item);
+            Message message = Helpers.ConvertToMessage<Dataset>(item);
 
             OnCalcsInstructAllocationResults function = scope.ServiceProvider.GetService<OnCalcsInstructAllocationResults>();
 

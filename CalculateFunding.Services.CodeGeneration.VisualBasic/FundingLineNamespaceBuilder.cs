@@ -116,7 +116,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             sourceCode.AppendLine($"{_typeIdentifierGenerator.GenerateIdentifier(@namespace)} = calculationContext.{_typeIdentifierGenerator.GenerateIdentifier(@namespace)}");
             sourceCode.AppendLine();
 
-            foreach (FundingLine fundingLine in fundingLines.Where(_ => !_.Calculations.IsNullOrEmpty()))
+            foreach (FundingLine fundingLine in fundingLines)
             {
                 fundingLine.SourceCodeName ??= _typeIdentifierGenerator.GenerateIdentifier(fundingLine.Name);
 
@@ -145,7 +145,12 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 {
                     sourceCode.AppendLine($"AddToNullable(sum, {_typeIdentifierGenerator.GenerateIdentifier(calculation.Namespace)}.{calculation.SourceCodeName}())");
                 }
-                
+
+                foreach(FundingLine childFundingLine in fundingLine.FundingLines)
+                {
+                    sourceCode.AppendLine($"AddToNullable(sum, {_typeIdentifierGenerator.GenerateIdentifier(childFundingLine.Namespace)}.FundingLines.{childFundingLine.SourceCodeName}())");
+                }
+
                 sourceCode.AppendLine($"Return If(sum.HasValue(), Math.Round(sum.Value, {decimalPlaces}, MidpointRounding.AwayFromZero), sum)");
                 sourceCode.AppendLine("End Function");
 

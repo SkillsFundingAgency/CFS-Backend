@@ -636,10 +636,10 @@ namespace CalculateFunding.Services.Calcs.Services
             buildProject.FundingLines[mapping.FundingStreamId].FundingLines.Count().Should().Be(2);
             buildProject.FundingLines[mapping.FundingStreamId].FundingLines.First().Calculations.Count().Should().Be(1);
             buildProject.FundingLines[mapping.FundingStreamId].FundingLines.First().Calculations.First().Id.Should().Be(4);
-            buildProject.FundingLines[mapping.FundingStreamId].FundingLines.Skip(1).First().Calculations.Count().Should().Be(3);
+            buildProject.FundingLines[mapping.FundingStreamId].FundingLines.Skip(1).First().Calculations.Count().Should().Be(2);
             buildProject.FundingLines[mapping.FundingStreamId].FundingLines.Skip(1).First().Calculations.First().Id.Should().Be(1);
             buildProject.FundingLines[mapping.FundingStreamId].FundingLines.Skip(1).First().Calculations.Skip(1).First().Id.Should().Be(3);
-            buildProject.FundingLines[mapping.FundingStreamId].FundingLines.Skip(1).First().Calculations.Last().Id.Should().Be(4);
+            buildProject.FundingLines[mapping.FundingStreamId].FundingLines.Skip(1).First().Calculations.Last().Id.Should().Be(3);
         }
 
         private Common.TemplateMetadata.Models.FundingLine GetFundingLines()

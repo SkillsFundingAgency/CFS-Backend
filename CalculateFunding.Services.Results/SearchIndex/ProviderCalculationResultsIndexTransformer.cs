@@ -40,7 +40,7 @@ namespace CalculateFunding.Services.Results.SearchIndex
                 UPIN = providerResult.Provider?.UPIN,
                 EstablishmentNumber = providerResult.Provider?.EstablishmentNumber,
                 OpenDate = providerResult.Provider?.DateOpened,
-                IsIndicativeProvider = providerResult.IsIndicativeProvider,
+                IsIndicativeProvider = providerResult.IsIndicativeProvider ?? false,
                 CalculationId = providerResult.CalculationResults.Select(m => m.Calculation.Id).ToArraySafe(),
                 CalculationName = providerResult.CalculationResults.Select(m => m.Calculation.Name).ToArraySafe(),
                 CalculationResult = providerResult.CalculationResults.Select(m => !string.IsNullOrEmpty(m.Value?.ToString()) ? m.Value.ToString() : "null").ToArraySafe(),

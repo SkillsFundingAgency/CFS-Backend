@@ -21,5 +21,7 @@ namespace CalculateFunding.Models.Calcs
         public string SourceCodeName { get; set; }
 
         public IEnumerable<FundingLineCalculation> Calculations { get; set; }
+
+        public IEnumerable<FundingLine> FundingLines { get; set; }
     } 
 }

@@ -735,21 +735,14 @@ namespace CalculateFunding.Services.Calcs
 
         private IEnumerable<FundingLine> GetFundingLines(TemplateMetadataContents templateMetadataContents, string fundingStreamId)
         {
-            IEnumerable<FundingLine> flattenedFundingLines = templateMetadataContents.RootFundingLines?.Flatten(_ =>
+            IEnumerable<TemplateFundingLine> flattenedFundingLines = templateMetadataContents.RootFundingLines?.Flatten(_ =>
             {
-                // get all calculations for current funding line
                 _.Calculations = GetCalculations(_.Calculations);
 
-                IEnumerable<TemplateFundingLine> currentFlattenedFundingLines = _.FundingLines?.Flatten(_ =>
-                {
-                    return _.FundingLines;
-                }) ?? new TemplateFundingLine[] { };
-
-                // concat all calculations for all funding lines below current funding line
-                _.Calculations = _.Calculations?.Concat(currentFlattenedFundingLines?.SelectMany(_ => GetCalculations(_.Calculations)));
-
                 return _.FundingLines;
-            }).Where(_ => _.Calculations.AnyWithNullCheck()).DistinctBy(_ => _.TemplateLineId).Select(_ =>
+            });
+
+            return flattenedFundingLines.DistinctBy(_ => _.TemplateLineId).Select(_ =>
             {
                 return new FundingLine
                 {
@@ -763,11 +756,16 @@ namespace CalculateFunding.Services.Calcs
                         Name = calc.Name,
                         Namespace = fundingStreamId,
                         SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(calc.Name)
-                    }).ToList()
+                    }) ?? ArraySegment<FundingLineCalculation>.Empty,
+                    FundingLines = _.FundingLines?.DistinctBy(_ => _.TemplateLineId).Select(fl => new FundingLine
+                    {
+                        Id = fl.TemplateLineId,
+                        Name = fl.Name,
+                        Namespace = fundingStreamId,
+                        SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(fl.Name)
+                    }) ?? ArraySegment<FundingLine>.Empty
                 };
             }).ToList();
-
-            return flattenedFundingLines;
         }
 
         private async Task<BuildProject> GenerateBuildProject(string specificationId, IEnumerable<(Reference, Reference)> fundingStreamAndPeriods, IDictionary<string, string> templateIds)

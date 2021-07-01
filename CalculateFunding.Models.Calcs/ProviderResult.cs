@@ -27,6 +27,6 @@ namespace CalculateFunding.Models.Calcs
         public List<FundingLineResult> FundingLineResults { get; set; }
 
         [JsonProperty("isIndicativeProvider")]
-        public bool IsIndicativeProvider { get; set; }
+        public bool? IsIndicativeProvider { get; set; }
     }
 }
