@@ -147,11 +147,9 @@ namespace CalculateFunding.Services.Profiling.Tests
         }
 
         [TestMethod]
-        [DataRow(true)]
-        [DataRow(false)]
-        public async Task ProfilesFundingLinesNormallyThenReProfilesUsingTheseResultsWithLessThanStrategyIfFundingDropped(bool negativeFundingTotal)
+        public async Task ProfilesFundingLinesNormallyThenReProfilesUsingTheseResultsWithLessThanStrategyIfFundingDropped()
         {
-            decimal newFundingTotal = negativeFundingTotal ? NewRandomTotal() * -1 : NewRandomTotal();
+            decimal newFundingTotal = NewRandomTotal();
 
             ReProfileRequest request = NewReProfileRequest(_ => _.WithFundingValue(newFundingTotal)
                 .WithExistingFundingValue(newFundingTotal + 100));
@@ -166,7 +164,7 @@ namespace CalculateFunding.Services.Profiling.Tests
 
             DistributionPeriods distributionPeriods1 = NewDistributionPeriods();
             DeliveryProfilePeriod deliveryProfilePeriod1 = NewDeliveryProfilePeriod(_ => _.WithProfiledValue(10));
-            DeliveryProfilePeriod deliveryProfilePeriod2 = NewDeliveryProfilePeriod(_ => _.WithProfiledValue(Math.Abs(newFundingTotal) - 20));
+            DeliveryProfilePeriod deliveryProfilePeriod2 = NewDeliveryProfilePeriod(_ => _.WithProfiledValue(newFundingTotal - 20));
 
             GivenTheProfilePattern(request, profilePattern);
             AndTheReProfilingStrategy(key);
@@ -186,21 +184,18 @@ namespace CalculateFunding.Services.Profiling.Tests
                         new[] { distributionPeriods1 },
                         new[] { deliveryProfilePeriod1, deliveryProfilePeriod2 },
                         10,
-                        profilePattern,
-                        negativeFundingTotal
+                        profilePattern
                     )
                 );
         }
 
         [TestMethod]
-        [DataRow(true)]
-        [DataRow(false)]
-        public async Task ProfilesFundingLinesNormallyThenReProfilesUsingTheseResultsWithMoreThanStrategyIfFundingIncreased(bool negativeFundingTotal)
+        public async Task ProfilesFundingLinesNormallyThenReProfilesUsingTheseResultsWithMoreThanStrategyIfFundingIncreased()
         {
-            decimal newFundingTotal = negativeFundingTotal ? NewRandomTotal() * -1 : NewRandomTotal();
+            decimal newFundingTotal = NewRandomTotal();
 
             ReProfileRequest request = NewReProfileRequest(_ => _.WithFundingValue(newFundingTotal)
-                .WithExistingFundingValue(newFundingTotal - 100));
+                .WithExistingFundingValue(newFundingTotal * -1));
             AllocationProfileResponse profileResponse = NewAllocationProfileResponse();
 
             string key = NewRandomString();
@@ -212,7 +207,7 @@ namespace CalculateFunding.Services.Profiling.Tests
 
             DistributionPeriods distributionPeriods1 = NewDistributionPeriods();
             DeliveryProfilePeriod deliveryProfilePeriod1 = NewDeliveryProfilePeriod(_ => _.WithProfiledValue(10));
-            DeliveryProfilePeriod deliveryProfilePeriod2 = NewDeliveryProfilePeriod(_ => _.WithProfiledValue(Math.Abs(newFundingTotal) - 20));
+            DeliveryProfilePeriod deliveryProfilePeriod2 = NewDeliveryProfilePeriod(_ => _.WithProfiledValue(newFundingTotal - 20));
 
             GivenTheProfilePattern(request, profilePattern);
             AndTheReProfilingStrategy(key);
@@ -232,18 +227,15 @@ namespace CalculateFunding.Services.Profiling.Tests
                         new[] { distributionPeriods1 },
                         new[] { deliveryProfilePeriod1, deliveryProfilePeriod2 },
                         10,
-                        profilePattern,
-                        negativeFundingTotal
+                        profilePattern
                     )
                 );
         }
 
         [TestMethod]
-        [DataRow(true)]
-        [DataRow(false)]
-        public async Task ProfilesFundingLinesNormallyThenReProfilesUsingTheseResultsWithSameAmountStrategyIfFundingTheSame(bool negativeFundingTotal)
+        public async Task ProfilesFundingLinesNormallyThenReProfilesUsingTheseResultsWithSameAmountStrategyIfFundingTheSame()
         {
-            decimal newFundingTotal = negativeFundingTotal ? NewRandomTotal() * -1 : NewRandomTotal();
+            decimal newFundingTotal = NewRandomTotal();
 
             ReProfileRequest request = NewReProfileRequest(_ => _.WithFundingValue(newFundingTotal)
                 .WithExistingFundingValue(newFundingTotal));
@@ -258,7 +250,7 @@ namespace CalculateFunding.Services.Profiling.Tests
 
             DistributionPeriods distributionPeriods1 = NewDistributionPeriods();
             DeliveryProfilePeriod deliveryProfilePeriod1 = NewDeliveryProfilePeriod(_ => _.WithProfiledValue(10));
-            DeliveryProfilePeriod deliveryProfilePeriod2 = NewDeliveryProfilePeriod(_ => _.WithProfiledValue(Math.Abs(newFundingTotal) - 20));
+            DeliveryProfilePeriod deliveryProfilePeriod2 = NewDeliveryProfilePeriod(_ => _.WithProfiledValue(newFundingTotal - 20));
 
             GivenTheProfilePattern(request, profilePattern);
             AndTheReProfilingStrategy(key);
@@ -278,21 +270,18 @@ namespace CalculateFunding.Services.Profiling.Tests
                         new[] { distributionPeriods1 },
                         new[] { deliveryProfilePeriod1, deliveryProfilePeriod2},
                         10,
-                        profilePattern,
-                        negativeFundingTotal
+                        profilePattern
                     )
                 );
         }
 
         [TestMethod]
-        [DataRow(true)]
-        [DataRow(false)]
-        public async Task ProfilesFundingLinesNormallyThenReProfilesUsingTheseResultsWithInitialFundingStrategyIfRequestIsMidYear(bool negativeFundingTotal)
+        public async Task ProfilesFundingLinesNormallyThenReProfilesUsingTheseResultsWithInitialFundingStrategyIfRequestIsMidYear()
         {
-            decimal newFundingTotal = negativeFundingTotal ? NewRandomTotal() * -1 : NewRandomTotal();
+            decimal newFundingTotal = NewRandomTotal();
             
             ReProfileRequest request = NewReProfileRequest(_ => _.WithFundingValue(newFundingTotal)
-                .WithExistingFundingValue(newFundingTotal)
+                .WithExistingFundingValue(newFundingTotal * -1)
                 .WithMidYear(true));
             AllocationProfileResponse profileResponse = NewAllocationProfileResponse();
 
@@ -305,7 +294,7 @@ namespace CalculateFunding.Services.Profiling.Tests
 
             DistributionPeriods distributionPeriods1 = NewDistributionPeriods();
             DeliveryProfilePeriod deliveryProfilePeriod1 = NewDeliveryProfilePeriod(_ => _.WithProfiledValue(10));
-            DeliveryProfilePeriod deliveryProfilePeriod2 = NewDeliveryProfilePeriod(_ => _.WithProfiledValue(Math.Abs(newFundingTotal) - 20));
+            DeliveryProfilePeriod deliveryProfilePeriod2 = NewDeliveryProfilePeriod(_ => _.WithProfiledValue(newFundingTotal - 20));
 
             GivenTheProfilePattern(request, profilePattern);
             AndTheReProfilingStrategy(key);
@@ -325,8 +314,7 @@ namespace CalculateFunding.Services.Profiling.Tests
                         new[] { distributionPeriods1 },
                         new[] { deliveryProfilePeriod1, deliveryProfilePeriod2 },
                         10,
-                        profilePattern,
-                        negativeFundingTotal
+                        profilePattern
                     )
                 );
         }
@@ -334,20 +322,12 @@ namespace CalculateFunding.Services.Profiling.Tests
         private ReProfileResponse GetProfileResponse(DistributionPeriods[] distributionPeriods,
             DeliveryProfilePeriod[] deliveryProfilePeriods,
             decimal carryOveramount,
-            FundingStreamPeriodProfilePattern profilePattern,
-            bool negativeFundingTotal)
+            FundingStreamPeriodProfilePattern profilePattern)
                 => new ReProfileResponse
                         {
-                            DistributionPeriods = distributionPeriods.Select(_ => negativeFundingTotal ? new DistributionPeriods { DistributionPeriodCode = _.DistributionPeriodCode, Value = _.Value * -1 } : _).ToArray(),
-                            CarryOverAmount = negativeFundingTotal ? carryOveramount * -1 : carryOveramount,
-                            DeliveryProfilePeriods = deliveryProfilePeriods.Select(_ => negativeFundingTotal ? new DeliveryProfilePeriod
-                            {
-                                DistributionPeriod = _.DistributionPeriod,
-                                Occurrence = _.Occurrence,
-                                ProfileValue = _.ProfileValue * -1,
-                                TypeValue = _.TypeValue,
-                                Year = _.Year
-                            } : _).ToArray(),
+                            DistributionPeriods = distributionPeriods,
+                            CarryOverAmount = carryOveramount,
+                            DeliveryProfilePeriods = deliveryProfilePeriods,
                             ProfilePatternKey = profilePattern.ProfilePatternKey,
                             ProfilePatternDisplayName = profilePattern.ProfilePatternDisplayName
                         };
@@ -384,10 +364,10 @@ namespace CalculateFunding.Services.Profiling.Tests
                         req.FundingStreamId == request.FundingStreamId &&
                         req.FundingPeriodId == request.FundingPeriodId &&
                         req.FundingLineCode == request.FundingLineCode &&
-                        req.FundingValue == Math.Abs(request.FundingLineTotal) &&
+                        req.FundingValue == request.FundingLineTotal &&
                         req.ProfilePatternKey == request.ProfilePatternKey),
                     profilePattern,
-                    Math.Abs(request.FundingLineTotal)))
+                    request.FundingLineTotal))
                 .Returns(response);
 
         private FundingStreamPeriodProfilePattern NewFundingStreamPeriodProfilePattern(Action<FundingStreamPeriodProfilePatternBuilder> setUp = null)

@@ -52,15 +52,6 @@ namespace CalculateFunding.Services.Profiling.Services
                 return new BadRequestObjectResult("Re-profiling is not enabled for this scenario or the strategy was not found");
             }
 
-            bool negativeAllocation = false;
-
-            if (reProfileRequest.NegativeAllocation)
-            {
-                reProfileRequest.FundingLineTotal = Math.Abs(reProfileRequest.FundingLineTotal);
-                reProfileRequest.ExistingFundingLineTotal = Math.Abs(reProfileRequest.ExistingFundingLineTotal);
-                negativeAllocation = true;
-            }
-
             ReProfileContext context = CreateReProfilingContext(reProfileRequest, profilePattern);
 
             ReProfileStrategyResult strategyResult = strategy.ReProfile(context);
@@ -69,11 +60,11 @@ namespace CalculateFunding.Services.Profiling.Services
 
             return new ReProfileResponse
             {
-                DeliveryProfilePeriods = negativeAllocation ? strategyResult.NegativeDeliveryProfilePeriods : strategyResult.DeliveryProfilePeriods,
-                DistributionPeriods = negativeAllocation ? strategyResult.NegativeDistributionPeriods : strategyResult.DistributionPeriods,
+                DeliveryProfilePeriods = strategyResult.DeliveryProfilePeriods,
+                DistributionPeriods = strategyResult.DistributionPeriods,
                 ProfilePatternDisplayName = profilePattern.ProfilePatternDisplayName,
                 ProfilePatternKey = profilePattern.ProfilePatternKey,
-                CarryOverAmount = negativeAllocation ? strategyResult.NegativeCarryOverAmount : strategyResult.CarryOverAmount
+                CarryOverAmount = strategyResult.CarryOverAmount
             };
         }
 
