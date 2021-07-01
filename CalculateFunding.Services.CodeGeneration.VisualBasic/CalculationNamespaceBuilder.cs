@@ -261,7 +261,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 sourceCode.AppendLine(GetConditionalAddValuesToDictionarySourceCode(calculation));
                 sourceCode.AppendLine("Return executedUserCodeCalculationResult");
                 sourceCode.AppendLine("Catch ex as System.Exception");
-                sourceCode.AppendLine("    If Not calculationContext.Dictionary.ContainsKey(\"{calculation.Id}\")");
+                sourceCode.AppendLine($"    If Not calculationContext.Dictionary.ContainsKey(\"{calculation.Id}\")");
                 sourceCode.AppendLine($"       calculationContext.Dictionary.Add(\"{calculation.Id}\", {{\"\", ex.GetType().Name, ex.Message}})");
                 sourceCode.AppendLine("    End If");
                 sourceCode.AppendLine("    Throw");
