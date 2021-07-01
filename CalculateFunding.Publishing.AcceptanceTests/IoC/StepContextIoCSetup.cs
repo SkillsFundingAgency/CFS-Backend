@@ -109,7 +109,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
                 SpecificationsApiClient = Policy.NoOpAsync(),
                 PublishedProviderSearchRepository = Policy.NoOpAsync(),
                 PublishedIndexSearchResiliencePolicy = Policy.NoOpAsync(),
-                CacheProvider = Policy.NoOpAsync()
+                CacheProvider = Policy.NoOpAsync(),
+                FundingStreamPaymentDatesRepository = Policy.NoOpAsync(),
             };
 
             RegisterInstanceAs<ILogger>(new LoggerConfiguration().CreateLogger());
@@ -148,6 +149,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<PoliciesInMemoryRepository, IPoliciesApiClient>();
             RegisterTypeAs<InMemoryCacheProvider, ICacheProvider>();
             RegisterTypeAs<InMemoryMessengerService, IMessengerService>();
+            RegisterTypeAs<InMemoryFundingStreamPaymentDatesRepository, IFundingStreamPaymentDatesRepository>();
 
             ProvidersInMemoryClient providersInMemoryClient = new ProvidersInMemoryClient(mapper);
             

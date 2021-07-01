@@ -1,0 +1,20 @@
+{
+  "id": "<ID>",
+  "documentType": "TemplateMapping",
+  "content": {
+    "id": "<ID>",
+    "specificationId": "<SPECIFICATIONID>",
+    "fundingStreamId": "<FUNDINGSTREAMID>",
+    "templateMappingItems": [
+      {
+        "entityType": 0,
+        "name": "Primary Pupil Number",
+        "templateId": 15,
+        "calculationId": 1
+      }
+    ]
+  },
+  "createdAt": "<NOW>",
+  "updatedAt": "<NOW>",
+  "deleted": false
+}

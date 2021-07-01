@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AutoMapper;
 using CalculateFunding.Common.ApiClient.Calcs.Models;
+using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.JobManagement;
@@ -13,6 +13,10 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Serilog;
+using ApiProfileVariationPointer = CalculateFunding.Common.ApiClient.Specifications.Models.ProfileVariationPointer;
+using ApiPeriodType = CalculateFunding.Common.ApiClient.Profiling.Models.PeriodType;
+using CalculateFunding.Services.Core.Extensions;
+using Polly;
 
 namespace CalculateFunding.Services.Publishing
 {
@@ -25,6 +29,8 @@ namespace CalculateFunding.Services.Publishing
         private readonly IPoliciesService _policiesService;
         private readonly IProfilingService _profilingService;
         private readonly ICalculationsService _calculationsService;
+        private readonly AsyncPolicy _fundingStreamPaymentDatesRepositoryPolicy;
+        private readonly IFundingStreamPaymentDatesRepository _fundingStreamPaymentDatesRepository;
 
         public RefreshPrerequisiteChecker(
             ISpecificationFundingStatusService specificationFundingStatusService,
@@ -35,7 +41,9 @@ namespace CalculateFunding.Services.Publishing
             ILogger logger,
             IPoliciesService policiesService,
             IProfilingService profilingService,
-            ICalculationsService calculationsService) : base(jobsRunning, jobManagement, logger)
+            ICalculationsService calculationsService,
+            IPublishingResiliencePolicies resiliencePolicies,
+            IFundingStreamPaymentDatesRepository fundingStreamPaymentDatesRepository) : base(jobsRunning, jobManagement, logger)
         {
             Guard.ArgumentNotNull(specificationFundingStatusService, nameof(specificationFundingStatusService));
             Guard.ArgumentNotNull(specificationService, nameof(specificationService));
@@ -44,6 +52,8 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(policiesService, nameof(policiesService));
             Guard.ArgumentNotNull(profilingService, nameof(profilingService));
             Guard.ArgumentNotNull(calculationsService, nameof(calculationsService));
+            Guard.ArgumentNotNull(resiliencePolicies?.FundingStreamPaymentDatesRepository, nameof(resiliencePolicies.FundingStreamPaymentDatesRepository));
+            Guard.ArgumentNotNull(fundingStreamPaymentDatesRepository, nameof(fundingStreamPaymentDatesRepository));
 
             _specificationFundingStatusService = specificationFundingStatusService;
             _specificationService = specificationService;
@@ -52,6 +62,9 @@ namespace CalculateFunding.Services.Publishing
             _policiesService = policiesService;
             _profilingService = profilingService;
             _calculationsService = calculationsService;
+            _fundingStreamPaymentDatesRepository = fundingStreamPaymentDatesRepository;
+
+            _fundingStreamPaymentDatesRepositoryPolicy = resiliencePolicies.FundingStreamPaymentDatesRepository;
         }
 
         public async Task PerformChecks<T>(T prereqObject, string jobId, IEnumerable<PublishedProvider> publishedProviders = null, IEnumerable<Provider> providers = null)
@@ -83,7 +96,7 @@ namespace CalculateFunding.Services.Publishing
 
             Guard.ArgumentNotNull(specification, nameof(specification));
 
-            if (specification.ApprovalStatus != Common.ApiClient.Models.PublishStatus.Approved)
+            if (specification.ApprovalStatus != PublishStatus.Approved)
             {
                 _logger.Error("Specification failed refresh prerequisite check. Reason: must be approved");
                 return new string[] { "Specification must be approved." };
@@ -160,6 +173,48 @@ namespace CalculateFunding.Services.Publishing
             {
                 results.Add("All template calculations for this specification must be approved.");
                 _logger.Error(string.Join(Environment.NewLine, calculationPrereqValidationErrors));
+
+                return results;
+            }
+
+            string fundingStreamId = specification.FundingStreams.FirstOrDefault()?.Id;
+
+            FundingStreamPaymentDates fundingStreamPaymentDates = await _fundingStreamPaymentDatesRepositoryPolicy.ExecuteAsync(() =>
+                _fundingStreamPaymentDatesRepository.GetUpdateDates(fundingStreamId, specification.FundingPeriod.Id));
+
+            if (fundingStreamPaymentDates != null)
+            {
+                FundingStreamPaymentDate lastFundingStreamPaymentDate = fundingStreamPaymentDates.PaymentDates
+                    .Where(_ => _.Type == ProfilePeriodType.CalendarMonth)
+                    .OrderByDescending(_ => _.Year)
+                    .ThenByDescending(_ => _.TypeValue.ToMonthNumber())
+                    .ThenByDescending(_ => _.Occurrence)
+                    .FirstOrDefault();
+
+                IEnumerable<ApiProfileVariationPointer> variationPointers = await _specificationService.GetProfileVariationPointers(specification.Id);
+
+                if (variationPointers != null && lastFundingStreamPaymentDate != null)
+                {
+                    IEnumerable<ApiProfileVariationPointer> fundingStreamVariationPointers = variationPointers
+                        .Where(_ => _.FundingStreamId == fundingStreamId);
+
+                    ApiProfileVariationPointer latestVariationPointer = fundingStreamVariationPointers
+                        .Where(_ => _.PeriodType == ApiPeriodType.CalendarMonth.ToString())
+                        .OrderByDescending(_ => _.Year)
+                        .ThenByDescending(_ => _.TypeValue.ToMonthNumber())
+                        .ThenByDescending(_ => _.Occurrence)
+                        .FirstOrDefault();
+
+                    if (latestVariationPointer.Year < lastFundingStreamPaymentDate?.Year
+                        || (latestVariationPointer.Year == lastFundingStreamPaymentDate?.Year 
+                            && latestVariationPointer.TypeValue.ToMonthNumber() < lastFundingStreamPaymentDate.TypeValue.ToMonthNumber()))
+                    {
+                        string errorMessage = $"There are payment funding lines with variation instalments set earlier than the current profile instalment.{Environment.NewLine}#VariationInstallmentLink# must be set later or equal to the current profile instalment.";
+
+                        _logger.Error(errorMessage);
+                        return new string[] { errorMessage };
+                    }
+                }
             }
 
             return results;

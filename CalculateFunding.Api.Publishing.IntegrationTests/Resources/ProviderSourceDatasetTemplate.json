@@ -1,0 +1,17 @@
+{
+  "id": "<ID>",
+  "documentType": "ProviderSourceDataset",
+  "content": {
+    "providerId": "<PROVIDERID>",
+    "specificationId": "<SPECIFICATIONID>",
+    "dataRelationship": {
+      "id": "<DATARELATIONSHIPID>",
+      "name": "test"
+    },
+    "definesScope": true,
+    "id": "<ID>"
+    },
+  "createdAt": "<NOW>",
+  "updatedAt": "<NOW>",
+  "deleted": false
+}

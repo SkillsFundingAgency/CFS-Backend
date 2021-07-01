@@ -20,6 +20,11 @@ using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Calcs.Models;
+using Polly;
+using CalculateFunding.Services.Publishing.UnitTests.Profiling;
+using ApiProfileVariationPointer = CalculateFunding.Common.ApiClient.Specifications.Models.ProfileVariationPointer;
+using CalculateFunding.Services.Publishing.UnitTests.Variations.Changes;
+using ApiPeriodType = CalculateFunding.Common.ApiClient.Profiling.Models.PeriodType;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
 {
@@ -36,6 +41,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private IPoliciesService _policiesService;
         private IProfilingService _profilingService;
         private ICalculationsService _calculationsService;
+        private IFundingStreamPaymentDatesRepository _fundingStreamPaymentDatesRepository;
+        private ResiliencePolicies _resiliencePolicies;
 
         [TestInitialize]
         public void SetUp()
@@ -49,6 +56,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _policiesService = Substitute.For<IPoliciesService>();
             _profilingService = Substitute.For<IProfilingService>();
             _calculationsService = Substitute.For<ICalculationsService>();
+            _fundingStreamPaymentDatesRepository = Substitute.For<IFundingStreamPaymentDatesRepository>();
+
+            _resiliencePolicies = new ResiliencePolicies
+            {
+                FundingStreamPaymentDatesRepository = Policy.NoOpAsync()
+            };
 
             _refreshPrerequisiteChecker = new RefreshPrerequisiteChecker(
                 _specificationFundingStatusService, 
@@ -59,7 +72,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _logger,
                 _policiesService,
                 _profilingService,
-                _calculationsService);
+                _calculationsService,
+                _resiliencePolicies,
+                _fundingStreamPaymentDatesRepository);
         }
 
         [TestMethod]
@@ -459,6 +474,86 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .All(_ => _.Current.HasErrors);
         }
 
+        [TestMethod]
+        public async Task ReturnsErrorMessageWhenVariationPointerSetEarlierThanTheLastPaymentDate()
+        {
+            // Arrange
+            string errorMessage =
+                $"There are payment funding lines with variation instalments set earlier than the current profile instalment.{Environment.NewLine}#VariationInstallmentLink# must be set later or equal to the current profile instalment.";
+
+            string specificationId = NewRandomString();
+            string providerVersionId = NewRandomString();
+            string fundingStreamId = NewRandomString();
+            string fundingPeriodId = NewRandomString();
+
+            string providerIdOne = NewRandomString();
+
+            DateTime paymentDate = DateTime.Today.ToUniversalTime();
+            DateTime variationPointerDate = paymentDate.AddMonths(-1);
+
+            SpecificationSummary specificationSummary = NewSpecificationSummary(_ => _
+                .WithId(specificationId)
+                .WithProviderVersionId(providerVersionId)
+                .WithPublishStatus(PublishStatus.Approved)
+                .WithFundingPeriodId(fundingPeriodId)
+                .WithFundingStreamIds(fundingStreamId));
+
+            FundingStreamPaymentDates fundingStreamPaymentDates = NewFundingStreamPaymentDates(_ => _
+                .WithPaymentDates(
+                    NewFundingStreamPaymentDate(pd => pd
+                    .WithYear(paymentDate.Year)
+                    .WithType(ProfilePeriodType.CalendarMonth)
+                    .WithTypeValue(paymentDate.ToString("MMMM")))));
+
+            IEnumerable<Provider> providers = new[]
+            {
+                NewProvider(_ => _.WithProviderId(providerIdOne)),
+            };
+
+            IEnumerable<ApiProfileVariationPointer> profileVariationPointers = new[]
+            {
+                NewProfileVariationPointer(_ => _
+                    .WithFundingStreamId(fundingStreamId)
+                    .WithPeriodType(ApiPeriodType.CalendarMonth.ToString())
+                    .WithYear(variationPointerDate.Year)
+                    .WithTypeValue(variationPointerDate.ToString("MMMM"))
+                    .WithOccurence(1))
+            };
+
+            GivenProfilePatternsForFundingStreamAndFundingPeriod(fundingStreamId, fundingPeriodId, new[] { new FundingStreamPeriodProfilePattern { } });
+            AndUpdateDates(fundingStreamId, fundingPeriodId, fundingStreamPaymentDates);
+            AndGetProfileVariationPointers(specificationId, profileVariationPointers);
+
+            // Act
+            Func<Task> invocation
+                = () => WhenThePreRequisitesAreChecked(specificationSummary, Enumerable.Empty<PublishedProvider>(), providers);
+
+            // Assert
+            invocation
+                .Should()
+                .Throw<JobPrereqFailedException>()
+                .Where(_ =>
+                    _.Message == $"Specification with id: '{specificationSummary.Id} has prerequisites which aren't complete.");
+
+            _logger
+                .Received()
+                .Error(errorMessage);
+        }
+
+        private void AndUpdateDates(string fundingStreamId, string fundingPeriodId, FundingStreamPaymentDates fundingStreamPaymentDates)
+        {
+            _fundingStreamPaymentDatesRepository
+                .GetUpdateDates(fundingStreamId, fundingPeriodId)
+                .Returns(fundingStreamPaymentDates);
+        }
+
+        private void AndGetProfileVariationPointers(string specificationId, IEnumerable<ApiProfileVariationPointer> apiProfileVariationPointers)
+        {
+            _specificationService
+                .GetProfileVariationPointers(specificationId)
+                .Returns(apiProfileVariationPointers);
+        }
+
         private void GivenTheSpecificationFundingStatusForTheSpecification(SpecificationSummary specification, SpecificationFundingStatus specificationFundingStatus)
         {
             _specificationFundingStatusService.CheckChooseForFundingStatus(specification)
@@ -524,6 +619,33 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             setUp?.Invoke(referenceBuilder);
 
             return referenceBuilder.Build();
+        }
+
+        private static FundingStreamPaymentDates NewFundingStreamPaymentDates(Action<FundingStreamPaymentDatesBuilder> setUp = null)
+        {
+            FundingStreamPaymentDatesBuilder fundingStreamPaymentDatesBuilder = new FundingStreamPaymentDatesBuilder();
+
+            setUp?.Invoke(fundingStreamPaymentDatesBuilder);
+
+            return fundingStreamPaymentDatesBuilder.Build();
+        }
+
+        private static FundingStreamPaymentDate NewFundingStreamPaymentDate(Action<FundingStreamPaymentDateBuilder> setUp = null)
+        {
+            FundingStreamPaymentDateBuilder fundingStreamPaymentDateBuilder = new FundingStreamPaymentDateBuilder();
+
+            setUp?.Invoke(fundingStreamPaymentDateBuilder);
+
+            return fundingStreamPaymentDateBuilder.Build();
+        }
+
+        private static ApiProfileVariationPointer NewProfileVariationPointer(Action<ProfileVariationPointerBuilder> setUp = null)
+        {
+            ProfileVariationPointerBuilder profileVariationPointerBuilder = new ProfileVariationPointerBuilder();
+
+            setUp?.Invoke(profileVariationPointerBuilder);
+
+            return profileVariationPointerBuilder.Build();
         }
 
         private static PublishedProviderVersion NewPublishedProviderVersion(Action<PublishedProviderVersionBuilder> setUp = null)

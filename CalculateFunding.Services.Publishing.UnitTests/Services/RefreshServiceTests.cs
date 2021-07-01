@@ -105,6 +105,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private Mock<IBatchProfilingService> _batchProfilingService;
         private Mock<ICalculationsService> _calculationsService;
         private IRefreshStateService _refreshStateService;
+        private Mock<IFundingStreamPaymentDatesRepository> _fundingStreamPaymentDatesRepository;
 
         [TestInitialize]
         public void Setup()
@@ -120,7 +121,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 SpecificationsApiClient = Policy.NoOpAsync(),
                 SpecificationsRepositoryPolicy = Policy.NoOpAsync(),
                 CacheProvider = Policy.NoOpAsync(),
-                PoliciesApiClient = Policy.NoOpAsync()
+                PoliciesApiClient = Policy.NoOpAsync(),
+                FundingStreamPaymentDatesRepository = Policy.NoOpAsync()
             };
             _specificationsApiClient = new Mock<ISpecificationsApiClient>();
             _specificationService = new SpecificationService(_specificationsApiClient.Object, _publishingResiliencePolicies);
@@ -150,6 +152,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _prerequisiteCheckerLocator = new Mock<IPrerequisiteCheckerLocator>();
             _policiesService = new Mock<IPoliciesService>();
             _calculationsService = new Mock<ICalculationsService>();
+            _fundingStreamPaymentDatesRepository = new Mock<IFundingStreamPaymentDatesRepository>();
 
             _prerequisiteCheckerLocator.Setup(_ => _.GetPreReqChecker(PrerequisiteCheckerType.Refresh))
                 .Returns(new RefreshPrerequisiteChecker(
@@ -161,7 +164,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 _logger.Object,
                 _policiesService.Object,
                 _profilingService.Object,
-                _calculationsService.Object));
+                _calculationsService.Object,
+                _publishingResiliencePolicies,
+                _fundingStreamPaymentDatesRepository.Object));
             _organisationGroupGenerator = new Mock<IOrganisationGroupGenerator>();
             _transactionFactory = new TransactionFactory(_logger.Object, new TransactionResiliencePolicies { TransactionPolicy = Policy.NoOpAsync() });
             _publishedProviderVersionService = new Mock<IPublishedProviderVersionService>();

@@ -168,6 +168,19 @@ namespace CalculateFunding.Functions.Publishing
             builder
                 .AddSingleton<IPublishingEngineOptions>(_ => new PublishingEngineOptions(config));
 
+            builder.AddSingleton<IFundingStreamPaymentDatesRepository, FundingStreamPaymentDatesRepository>((ctx) =>
+            {
+                CosmosDbSettings settings = new CosmosDbSettings();
+
+                config.Bind("CosmosDbSettings", settings);
+
+                settings.ContainerName = "profiling";
+
+                CosmosRepository profilingCosmosRepostory = new CosmosRepository(settings);
+
+                return new FundingStreamPaymentDatesRepository(profilingCosmosRepostory);
+            });
+
             builder.AddSingleton<IPublishedFundingRepository, PublishedFundingRepository>((ctx) =>
             {
                 CosmosDbSettings calssDbSettings = new CosmosDbSettings();
@@ -668,7 +681,8 @@ namespace CalculateFunding.Functions.Publishing
                 PublishedProviderSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
                 PublishedIndexSearchResiliencePolicy = PublishedIndexSearchResiliencePolicy.GeneratePublishedIndexSearch(),
                 SpecificationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                CacheProvider = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy)
+                CacheProvider = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy),
+                FundingStreamPaymentDatesRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(),
             };
 
             return resiliencePolicies;

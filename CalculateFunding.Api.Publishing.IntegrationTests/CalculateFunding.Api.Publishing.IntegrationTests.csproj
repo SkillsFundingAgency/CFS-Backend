@@ -7,11 +7,23 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <None Remove="Resources\FundingStreamPaymentDatesTemplate.json" />
+      <None Remove="Resources\ProfilePatternTemplate.json" />
+      <None Remove="Resources\ProviderSourceDatasetTemplate.json" />
+      <None Remove="Resources\ProviderVersionBlobTemplate.json" />
       <None Remove="Resources\PublishedProviderTemplate.json" />
+      <None Remove="Resources\SpecificationTemplate.json" />
+      <None Remove="Resources\TemplateMappingsTemplate.json" />
     </ItemGroup>
 
     <ItemGroup>
+      <EmbeddedResource Include="Resources\ProviderSourceDatasetTemplate.json" />
+      <EmbeddedResource Include="Resources\FundingStreamPaymentDatesTemplate.json" />
+      <EmbeddedResource Include="Resources\ProfilePatternTemplate.json" />
+      <EmbeddedResource Include="Resources\ProviderVersionBlobTemplate.json" />
       <EmbeddedResource Include="Resources\PublishedProviderTemplate.json" />
+      <EmbeddedResource Include="Resources\SpecificationTemplate.json" />
+      <EmbeddedResource Include="Resources\TemplateMappingsTemplate.json" />
     </ItemGroup>
 
 
@@ -26,6 +38,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\CalculateFunding.IntegrationTests.Common\CalculateFunding.IntegrationTests.Common.csproj" />
+        <ProjectReference Include="..\CalculateFunding.Models.Calcs\CalculateFunding.Models.Calcs.csproj" />
         <ProjectReference Include="..\CalculateFunding.Services.Publishing\CalculateFunding.Services.Publishing.csproj" />
     </ItemGroup>
 

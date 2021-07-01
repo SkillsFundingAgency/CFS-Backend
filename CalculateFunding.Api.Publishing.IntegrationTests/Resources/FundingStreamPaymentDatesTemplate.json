@@ -1,0 +1,13 @@
+{
+  "id": "<ID>",
+  "documentType": "FundingStreamPaymentDates",
+  "content": {
+    "fundingStreamId": "<FUNDINGSTREAMID>",
+    "fundingPeriodId": "<FUNDINGPERIODID>",
+    "paymentDates": <PAYMENTDATES>,
+    "id": "<ID>"
+  },
+  "createdAt": "<NOW>",
+  "updatedAt": "<NOW>",
+  "deleted": false
+}
