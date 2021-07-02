@@ -234,7 +234,9 @@ namespace CalculateFunding.Services.Providers.UnitTests
         }
 
         [TestMethod]
-        public async Task CheckProviderVersionUpdate_GivenGetSpecificationsWithProviderVersionUpdatesAsUseLatest_UpdatesSpecification()
+		[DataRow(true)]
+		[DataRow(false)]
+        public async Task CheckProviderVersionUpdate_GivenGetSpecificationsWithProviderVersionUpdatesAsUseLatest_UpdatesSpecification(bool currentVersionExists)
         {
             ProviderSnapshot providerSnapshot = _providerSnapshots.Single(_ => _.Version == 1);
             string providerVersionId = $"{providerSnapshot.FundingStreamCode}-{providerSnapshot.TargetDate:yyyy}-{providerSnapshot.TargetDate:MM}-{providerSnapshot.TargetDate:dd}-{providerSnapshot.ProviderSnapshotId}";
@@ -244,7 +246,10 @@ namespace CalculateFunding.Services.Providers.UnitTests
             FundingDataZoneProvider expectedProviderTwo = NewFundingDataZoneProvider();
 
             GivenTheFundingStreams(_fundingStreams);
-            AndTheCurrentProviderVersions(_currentProviderVersions);
+            if (currentVersionExists)
+			{
+				AndTheCurrentProviderVersions(_currentProviderVersions);
+			}
             AndTheCurrentProviderVersionSaved(currentProviderId, providerVersionId, providerSnapshot.ProviderSnapshotId);
             AndTheFundingConfigurationsForTheFundingStreamId(_fundingConfigurations, _fundingStreamOneId);
             AndTheProviderSnapshotsForFundingStream(_providerSnapshots);

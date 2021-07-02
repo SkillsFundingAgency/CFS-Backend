@@ -126,16 +126,6 @@ namespace CalculateFunding.Services.Providers
 
                 fundingConfigurations.AddRange(periodsWithUpdatesEnabled);
 
-                CurrentProviderVersionMetadata currentProviderVersionMetadata =
-                    metadataForAllFundingStreams.SingleOrDefault(_ => _.FundingStreamId == fundingStreamId);
-                
-                if (currentProviderVersionMetadata == null)
-                {
-                    string errorMessage = $"Unable to retrieve provider snapshots for funding stream with ID: {fundingStream?.Id}";
-                    _logger.Error(errorMessage);
-                    continue;
-                }
-
                 IEnumerable<ProviderSnapshot> providerSnapshots = await GetLatestProviderSnapshots();
                 if (providerSnapshots.IsNullOrEmpty())
                 {
@@ -148,9 +138,12 @@ namespace CalculateFunding.Services.Providers
                 {
                     continue;
                 }
+				
+				CurrentProviderVersionMetadata currentProviderVersionMetadata =
+                    metadataForAllFundingStreams.SingleOrDefault(_ => _.FundingStreamId == fundingStreamId);
 
                 int latestProviderSnapshotId = latestProviderSnapshot.ProviderSnapshotId;
-                int? currentProviderSnapshotId = currentProviderVersionMetadata.ProviderSnapshotId;
+                int? currentProviderSnapshotId = currentProviderVersionMetadata?.ProviderSnapshotId;
 
                 if (currentProviderSnapshotId != latestProviderSnapshotId)
                 {
@@ -167,21 +160,20 @@ namespace CalculateFunding.Services.Providers
                                        ProviderVersionId = latestProviderSnapshot.ProviderVersionId
                                    }));
 
-                        success = !httpStatusCode.IsSuccess();
+                        success = httpStatusCode.IsSuccess();
                     }
 
-                    if (success)
-                    {
-                        string errorMessage = $"Unable to set current provider for funding stream with ID: {fundingStream?.Id}";
-                        _logger.Error(errorMessage);
-                        continue;
-                    }
+					if (!success)
+					{
+						string errorMessage = $"Unable to set current provider for funding stream with ID: {fundingStream?.Id}";
+						_logger.Error(errorMessage);
+						continue;
+					}
 
                     fundingStreamsLatestProviderSnapshotIds.Add(fundingStreamId, latestProviderSnapshotId);
 
                     LogInformation($"Triggering Update Specification Provider Version for funding stream ID: {fundingStreamId}. " +
-                                   $"Latest provider snapshot ID: {latestProviderSnapshotId} " +
-                                   $"Current provider version snaphot ID: {currentProviderSnapshotId}");
+                                   $"Current provider snapshot ID: {latestProviderSnapshotId}");
                 }
             }
 
