@@ -884,7 +884,9 @@ namespace CalculateFunding.Services.Calcs
                         DefinesScope = datasetRelationshipModel.IsProviderData,
                         Id = datasetRelationshipModel.Id,
                         Name = datasetRelationshipModel.Name,
-                        DatasetDefinition = datasetDefinitions.FirstOrDefault(m => m.Id == datasetRelationshipModel.Definition.Id)
+                        DatasetDefinition = datasetDefinitions.FirstOrDefault(m => m.Id == datasetRelationshipModel.Definition.Id),
+                        RelationshipType = datasetRelationshipModel.RelationshipType,
+                        PublishedSpecificationConfiguration = datasetRelationshipModel.PublishedSpecificationConfiguration
                     });
                 }
             }

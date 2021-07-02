@@ -1,6 +1,8 @@
 using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace CalculateFunding.Models.Calcs
 {
@@ -26,5 +28,12 @@ namespace CalculateFunding.Models.Calcs
 
         [JsonProperty("datasetName")]
         public string DatasetName { get; set; }
+
+        [JsonProperty("relationshipType")]
+        [JsonConverter(typeof(StringEnumConverter))]
+        public DatasetRelationshipType RelationshipType { get; set; }
+
+        [JsonProperty("publishedSpecificationConfiguration")]
+        public PublishedSpecificationConfiguration PublishedSpecificationConfiguration { get; set; }
     }
 }

@@ -37,7 +37,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
         protected override IEnumerable<SourceFile> GenerateDatasetSourceFiles(BuildProject buildProject)
         {
             DatasetTypeGenerator datasetTypeGenerator = new DatasetTypeGenerator();
-            return datasetTypeGenerator.GenerateDatasets(buildProject);
+            return datasetTypeGenerator.GenerateDatasetSourceFiles(buildProject);
         }
 
         public override string GetIdentifier(string name)
