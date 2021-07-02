@@ -228,6 +228,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             string fundingStreamId = NewRandomString();
             string fundingLineCode = NewRandomString();
             string fundingPeriodId = NewRandomString();
+            string distributionPeriodId1 = NewRandomString();
+            string distributionPeriodId2 = NewRandomString();
             string providerName = NewRandomString();
             string UKPRN = NewRandomString();
             string templateVersion = NewRandomString();
@@ -246,6 +248,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 fundingStreamId,
                 providerId,
                 NewPublishedProviderVersion(_ => _.WithFundingPeriodId(fundingPeriodId)
+                    .WithFundingStreamId(fundingStreamId)
                     .WithProviderId(providerId)
                     .WithProvider(NewProvider(p => p.WithName(providerName).WithUKPRN(UKPRN)))
                     .WithTemplateVersion(templateVersion)
@@ -277,6 +280,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                                             .WithYear(2020)
                                             .WithTypeValue("May")
                                             .WithOccurence(1)
+                                            .WithDistributionPeriodId(distributionPeriodId1)
                                             .WithAmount(500)))),
                                 NewDistributionPeriod(dp => dp
                                     .WithProfilePeriods(
@@ -285,6 +289,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                                             .WithYear(2020)
                                             .WithTypeValue("June")
                                             .WithOccurence(1)
+                                            .WithDistributionPeriodId(distributionPeriodId2)
                                             .WithAmount(1000)))))
                         ).ToArray())));
 
@@ -380,30 +385,37 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .WithProfilePatternName(profilePatternDisplayName)
                 .WithProfilePatternDescription(profilePatternDescription)
                 .WithRemainingAmount(1000)
-                .WithTotalAllocation(1500)
+                .WithProfilePatternTotal(1500)
                 .WithProfileTotalAmount(1500)
+                .WithProfilePatternTotalWithCarryOver(1600)
                 .WithProviderName(providerName)
                 .WithProviderId(providerId)
                 .WithUKPRN(UKPRN)
                 .WithFundingLineName(fundingLineName)
+                .WithFundingLineAmount(1500)
+                .WithFundingLineCode(fundingLineCode)
                 .WithProfileTotals(new[]
                 {
                     NewProfileTotal(pt => pt
                         .WithYear(2020)
                         .WithTypeValue("May")
+                        .WithPeriodType("CalendarMonth")
                         .WithOccurrence(1)
                         .WithValue(500)
                         .WithIsPaid(true)
                         .WithActualDate(fundingDatePatternJune)
+                        .WithDistributionPeriod(distributionPeriodId1)
                         .WithInstallmentNumber(1)),
                     NewProfileTotal(pt => pt
                         .WithYear(2020)
                         .WithTypeValue("June")
+                        .WithPeriodType("CalendarMonth")
                         .WithOccurrence(1)
                         .WithValue(1000)
                         .WithIsPaid(false)
                         .WithActualDate(fundingDatePatternJuly)
                         .WithInstallmentNumber(2)
+                        .WithDistributionPeriod(distributionPeriodId2)
                         .WithProfileRemainingPercentage(100))
                 }));
 
@@ -665,6 +677,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             string fundingStreamName = NewRandomString();
             string fundingPeriodId = NewRandomString();
             string templateVersion = NewRandomString();
+            string distribtionPeriod1 = NewRandomString();
+            string distribtionPeriod2 = NewRandomString();
 
             DateTimeOffset paymentDate = NewRandomDateTime();
             Reference user = NewReference();
@@ -681,6 +695,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                             .WithTypeValue("August")
                             .WithYear(2020)
                             .WithType(ProfilePeriodType.CalendarMonth)
+                            .WithDistributionPeriodId(distribtionPeriod1)
                             .WithAmount(200)))))))
                     .WithCarryOvers(NewProfilingCarryOver(co => co.WithAmount(2000).WithFundingLineCode(fundingLineCode)))
                     .WithFundingStreamId(fundingStreamId)
@@ -762,6 +777,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                         .WithValue(200)
                         .WithInstallmentNumber(1)
                         .WithActualDate(paymentDate)
+                        .WithDistributionPeriod(distribtionPeriod1)
                         .WithPeriodType(ProfilePeriodType.CalendarMonth.ToString()))
                 }));
 
@@ -862,6 +878,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             string specificationId = NewRandomString();
             string providerId = NewRandomString();
+            string providerName = NewRandomString();
             string fundingStreamId = NewRandomString();
             string fundingLineCode = NewRandomString();
             string customProfileFundingLineCode = NewRandomString();
@@ -876,7 +893,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             string profilePatternDisplayName = NewRandomString();
             string profilePatternDisplayDescription = NewRandomString();
 
-            PublishedProviderError expectedError = NewPublishedProviderError(err => err.WithIdentifier(fundingLineCode));
+            string distributionPeriod1 = NewRandomString();
+            string distributionPeriod2 = NewRandomString();
+
+            PublishedProviderError expectedError = NewPublishedProviderError(err =>
+            err.WithIdentifier(fundingLineCode)
+            .WithFundingLine(fundingLineCode)
+            .WithFundingStreamId(fundingStreamId));
 
             GivenTheLatestPublishedProviderVersionBySpecificationId(
                 specificationId,
@@ -886,6 +909,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     .WithFundingStreamId(fundingStreamId)
                     .WithFundingPeriodId(fundingPeriodId)
                     .WithTemplateVersion(templateVersion)
+                    .WithProvider(NewProvider(p => p.WithName(providerName).WithProviderId(providerId).WithUKPRN(providerId)))
                     .WithErrors(expectedError,
                         NewPublishedProviderError())
                     .WithProfilePatternKeys(
@@ -918,6 +942,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                                             .WithTypeValue("May")
                                             .WithOccurence(1)
                                             .WithAmount(500)
+                                            .WithDistributionPeriodId(distributionPeriod1)
                                             .WithType(ProfilePeriodType.CalendarMonth)))),
                                 NewDistributionPeriod(dp => dp
                                     .WithProfilePeriods(
@@ -927,6 +952,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                                             .WithTypeValue("June")
                                             .WithOccurence(1)
                                             .WithAmount(1000)
+                                            .WithDistributionPeriodId(distributionPeriod2)
                                             .WithType(ProfilePeriodType.CalendarMonth))))),
                             f2 => f2
                             .WithFundingLineType(FundingLineType.Payment)
@@ -941,6 +967,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                                             .WithTypeValue("May")
                                             .WithOccurence(1)
                                             .WithAmount(500)
+                                            .WithDistributionPeriodId(distributionPeriod1)
                                             .WithType(ProfilePeriodType.CalendarMonth)))),
                                 NewDistributionPeriod(dp => dp
                                     .WithProfilePeriods(
@@ -950,6 +977,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                                             .WithTypeValue("June")
                                             .WithOccurence(1)
                                             .WithAmount(1000)
+                                            .WithDistributionPeriodId(distributionPeriod2)
                                             .WithType(ProfilePeriodType.CalendarMonth)))))
                         ).ToArray())));
 
@@ -1038,9 +1066,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .WithProfilePatternKey(profilePatternKey)
                 .WithProfilePatternName(profilePatternDisplayName)
                 .WithProfilePatternDescription(profilePatternDisplayDescription)
+                .WithFundingLineAmount(1600)
                 .WithProfileTotalAmount(1500)
-                .WithTotalAllocation(1600)
+                .WithProfilePatternTotal(1500)
                 .WithErrors(expectedError)
+                .WithFundingLineAmount(1500)
+                .WithRemainingAmount(1500)
+                .WithProviderId(providerId)
+                .WithUKPRN(providerId)
+                .WithProviderName(providerName)
+                .WithProfilePatternTotalWithCarryOver(1600)
+                .WithCustomProfile(false)
                 .WithProfileTotals(new[]
                 {
                     NewProfileTotal(pt => pt
@@ -1048,12 +1084,18 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                         .WithTypeValue("May")
                         .WithOccurrence(1)
                         .WithValue(500)
+                        .WithDistributionPeriod(distributionPeriod1)
+                        .WithInstallmentNumber(1)
+                        .WithProfileRemainingPercentage(33.333333333333333333333333330M)
                         .WithPeriodType(ProfilePeriodType.CalendarMonth.ToString())),
                     NewProfileTotal(pt => pt
                         .WithYear(2020)
                         .WithTypeValue("June")
                         .WithOccurrence(1)
+                        .WithInstallmentNumber(2)
                         .WithValue(1000)
+                        .WithDistributionPeriod(distributionPeriod2)
+                        .WithProfileRemainingPercentage(66.666666666666666666666666670M)
                         .WithPeriodType(ProfilePeriodType.CalendarMonth.ToString()))
                 }));
 

@@ -31,7 +31,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             string fundingLineId,
             IEnumerable<ProfileTotal> expectedProfileTotals)
         {
-            IEnumerable<ProfileTotal> actualProfileTotals = 
+            IEnumerable<ProfileTotal> actualProfileTotals =
                 new PaymentFundingLineProfileTotals(publishedProviderVersion, fundingLineId);
 
             actualProfileTotals
@@ -50,16 +50,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                                     .WithTypeValue("January")
                                     .WithOccurence(0)
                                     .WithDistributionPeriodId("FY2021")
+                                    .WithType(ProfilePeriodType.CalendarMonth)
                                     .WithYear(2021)),
                                 NewProfilePeriod(pp => pp.WithAmount(999)
                                     .WithTypeValue("January")
                                     .WithOccurence(1)
                                     .WithDistributionPeriodId("FY2021")
+                                    .WithType(ProfilePeriodType.CalendarMonth)
                                     .WithYear(2021)),
                                 NewProfilePeriod(pp => pp.WithAmount(666)
                                     .WithTypeValue("February")
                                     .WithOccurence(0)
                                     .WithDistributionPeriodId("FY2021")
+                                    .WithType(ProfilePeriodType.CalendarMonth)
                                     .WithYear(2021)))))))),
                 FundingLineCode,
                 Array.Empty<ProfileTotal>()
@@ -96,10 +99,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                     NewProfileTotal(_ => _.WithYear(2021)
                         .WithValue(999)
                         .WithTypeValue("January")
+                        .WithPeriodType(nameof(ProfilePeriodType.CalendarMonth))
+                        .WithDistributionPeriod("FY2021")
                         .WithOccurrence(1)),
                     NewProfileTotal(_ => _.WithYear(2021)
                         .WithValue(666)
                         .WithTypeValue("February")
+                        .WithPeriodType(nameof(ProfilePeriodType.CalendarMonth))
+                        .WithDistributionPeriod("FY2021")
                         .WithOccurrence(0))
                 }
             };

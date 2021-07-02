@@ -1,9 +1,9 @@
-﻿using CalculateFunding.Common.Models;
+﻿using System;
+using System.Collections.Generic;
+using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Profiling;
 using CalculateFunding.Tests.Common.Helpers;
-using System;
-using System.Collections.Generic;
-using CalculateFunding.Models.Publishing;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
 {
@@ -22,10 +22,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
         private string _providerId;
         private string _UKPRN;
         private decimal? _remainingAmount;
-        private decimal? _totalAllocation;
+        private decimal? _profilePatternTotal;
         private IEnumerable<ProfileTotal> _profileTotals;
         private IEnumerable<PublishedProviderError> _errors;
         private decimal? _profileTotalAmount;
+        private decimal? _fundingLineAmount;
+        private bool _isCustomProfile;
+        private decimal? _profilePatternTotalWithCarryOver;
 
         public FundingLineProfileBuilder WithProfileTotalAmount(decimal profileTotalAmount)
         {
@@ -97,6 +100,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             return this;
         }
 
+        public FundingLineProfileBuilder WithFundingLineAmount(decimal? fundingLineAmount)
+        {
+            _fundingLineAmount = fundingLineAmount;
+
+            return this;
+        }
+
         public FundingLineProfileBuilder WithProviderName(string providerName)
         {
             _providerName = providerName;
@@ -125,9 +135,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             return this;
         }
 
-        public FundingLineProfileBuilder WithTotalAllocation(decimal totalAllocation)
+        public FundingLineProfileBuilder WithProfilePatternTotal(decimal profilePatternTotal)
         {
-            _totalAllocation = totalAllocation;
+            _profilePatternTotal = profilePatternTotal;
 
             return this;
         }
@@ -138,10 +148,24 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
 
             return this;
         }
-        
+
         public FundingLineProfileBuilder WithErrors(params PublishedProviderError[] errors)
         {
             _errors = errors;
+
+            return this;
+        }
+
+        public FundingLineProfileBuilder WithCustomProfile(bool isCustomProfile)
+        {
+            _isCustomProfile = isCustomProfile;
+
+            return this;
+        }
+
+        public FundingLineProfileBuilder WithProfilePatternTotalWithCarryOver(decimal? profilePatternTotalWithCarryOver)
+        {
+            _profilePatternTotalWithCarryOver = profilePatternTotalWithCarryOver;
 
             return this;
         }
@@ -163,10 +187,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                 ProviderId = _providerId,
                 UKPRN = _UKPRN,
                 RemainingAmount = _remainingAmount.GetValueOrDefault(),
-                TotalAllocation = _totalAllocation.GetValueOrDefault(),
+                ProfilePatternTotal = _profilePatternTotal.GetValueOrDefault(),
                 ProfileTotals = _profileTotals,
-                ProfileTotalAmount = _profileTotalAmount.GetValueOrDefault(NewRandomNumberBetween(1000, 99999)),
-                Errors = _errors
+                IsCustomProfile = _isCustomProfile,
+                ProfilePatternTotalWithCarryOver = _profilePatternTotalWithCarryOver,
+                Errors = _errors,
+                FundingLineAmount = _fundingLineAmount,
             };
         }
     }

@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common.Models" Version="2.2.0" />
+    <PackageReference Include="CalculateFunding.Common.Models" Version="2.3.0" />
   </ItemGroup>
 
 </Project>

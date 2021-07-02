@@ -1,6 +1,6 @@
+using System;
 using CalculateFunding.Services.Publishing.Profiling;
 using CalculateFunding.Tests.Common.Helpers;
-using System;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
 {
@@ -51,8 +51,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
 
             return this;
         }
-        
-        
+
+
         public ProfileTotalBuilder WithTypeValue(string typeValue)
         {
             _typeValue = typeValue;
@@ -87,7 +87,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
 
             return this;
         }
-        
+
         public ProfileTotal Build()
         {
             return new ProfileTotal
@@ -101,8 +101,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                 InstallmentNumber = _installmentNumber.GetValueOrDefault(),
                 ProfileRemainingPercentage = _profileRemainingPercentage,
                 PeriodType = _periodType,
-                DistributionPeriodId = _distributionPeriodId
+                DistributionPeriodId = _distributionPeriodId,
             };
-        }     
+        }
     }
 }

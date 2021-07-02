@@ -23,7 +23,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
         private Mock<IReProfilingRequestBuilder> _reProfilingRequestBuilder;
         private Mock<IProfilingApiClient> _profiling;
         private Mock<IPoliciesApiClient> _policies;
-        
+
         private ProfilePatternPreview _preview;
 
         [TestInitialize]
@@ -61,7 +61,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
         public void GuardsAgainstNotGettingAReProfilingResponse()
         {
             ProfilePreviewRequest previewRequest = NewProfilePreviewRequest();
-            
+
             Func<Task<IActionResult>> invocation = () => WhenTheProfilePatternChangeIsPreviewed(previewRequest);
 
             invocation
@@ -70,8 +70,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                 .Which
                 .Message
                 .Should()
-                .Be($"Did not received a valid re-profiling response for profile pattern preview request {previewRequest}");       
-            
+                .Be($"Did not received a valid re-profiling response for profile pattern preview request {previewRequest}");
+
             AndAReProfileRequestWasBuiltForTheRequest(previewRequest);
         }
 
@@ -81,45 +81,45 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             ProfilePreviewRequest previewRequest = NewProfilePreviewRequest();
 
             string distributionPeriod = NewRandomString();
-            
+
             ReProfileRequest expectedReProfileRequest = NewReProfileRequest(_ => _.WithFundingLineTotal(999)
                 .WithExistingFundingLineTotal(1000)
-                .WithExistingProfilePeriods(NewExistingProfilePeriod(exp => 
+                .WithExistingProfilePeriods(NewExistingProfilePeriod(exp =>
                     exp.WithDistributionPeriod(distributionPeriod)
                         .WithPeriodType(PeriodType.CalendarMonth)
                         .WithTypeValue("January")
                         .WithValue(23)
                         .WithYear(2021)
                         .WithOccurrence(0)),
-                    NewExistingProfilePeriod(exp => 
+                    NewExistingProfilePeriod(exp =>
                         exp.WithDistributionPeriod(distributionPeriod)
                             .WithPeriodType(PeriodType.CalendarMonth)
                             .WithTypeValue("January")
                             .WithValue(24)
                             .WithYear(2021)
                             .WithOccurrence(1)),
-                    NewExistingProfilePeriod(exp => 
+                    NewExistingProfilePeriod(exp =>
                         exp.WithDistributionPeriod(distributionPeriod)
                             .WithPeriodType(PeriodType.CalendarMonth)
                             .WithTypeValue("February")
                             .WithValue(null)
                             .WithYear(2021)
                             .WithOccurrence(0)),
-                    NewExistingProfilePeriod(exp => 
+                    NewExistingProfilePeriod(exp =>
                         exp.WithDistributionPeriod(distributionPeriod)
                             .WithPeriodType(PeriodType.CalendarMonth)
                             .WithTypeValue("March")
                             .WithValue(null)
                             .WithYear(2021)
                             .WithOccurrence(0)),
-                    NewExistingProfilePeriod(exp => 
+                    NewExistingProfilePeriod(exp =>
                         exp.WithDistributionPeriod(distributionPeriod)
                             .WithPeriodType(PeriodType.CalendarMonth)
                             .WithTypeValue("April")
                             .WithValue(null)
                             .WithYear(2021)
                             .WithOccurrence(0)),
-                    NewExistingProfilePeriod(exp => 
+                    NewExistingProfilePeriod(exp =>
                         exp.WithDistributionPeriod(distributionPeriod)
                             .WithPeriodType(PeriodType.CalendarMonth)
                             .WithTypeValue("May")
@@ -128,42 +128,42 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                             .WithOccurrence(0))
                     ));
             ReProfileResponse expectedReProfileResponse = NewReProfileResponse(_ => _.WithCarryOverAmount(992)
-                .WithDeliveryProfilePeriods(NewDeliveryProfilePeriod(exp => 
+                .WithDeliveryProfilePeriods(NewDeliveryProfilePeriod(exp =>
                     exp.WithDistributionPeriod(distributionPeriod)
                         .WithPeriodType(PeriodType.CalendarMonth)
                         .WithTypeValue("January")
                         .WithValue(33)
                         .WithYear(2021)
                         .WithOccurrence(0)),
-                    NewDeliveryProfilePeriod(exp => 
+                    NewDeliveryProfilePeriod(exp =>
                         exp.WithDistributionPeriod(distributionPeriod)
                             .WithPeriodType(PeriodType.CalendarMonth)
                             .WithTypeValue("January")
                             .WithValue(34)
                             .WithYear(2021)
                             .WithOccurrence(1)),
-                    NewDeliveryProfilePeriod(exp => 
+                    NewDeliveryProfilePeriod(exp =>
                         exp.WithDistributionPeriod(distributionPeriod)
                             .WithPeriodType(PeriodType.CalendarMonth)
                             .WithTypeValue("February")
                             .WithValue(35)
                             .WithYear(2021)
                             .WithOccurrence(0)),
-                    NewDeliveryProfilePeriod(exp => 
+                    NewDeliveryProfilePeriod(exp =>
                         exp.WithDistributionPeriod(distributionPeriod)
                             .WithPeriodType(PeriodType.CalendarMonth)
                             .WithTypeValue("March")
                             .WithValue(36)
                             .WithYear(2021)
                             .WithOccurrence(0)),
-                    NewDeliveryProfilePeriod(exp => 
+                    NewDeliveryProfilePeriod(exp =>
                         exp.WithDistributionPeriod(distributionPeriod)
                             .WithPeriodType(PeriodType.CalendarMonth)
                             .WithTypeValue("April")
                             .WithValue(37)
                             .WithYear(2021)
                             .WithOccurrence(0)),
-                    NewDeliveryProfilePeriod(exp => 
+                    NewDeliveryProfilePeriod(exp =>
                         exp.WithDistributionPeriod(distributionPeriod)
                             .WithPeriodType(PeriodType.CalendarMonth)
                             .WithTypeValue("May")
@@ -171,93 +171,93 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                             .WithYear(2021)
                             .WithOccurrence(0))));
 
-            DateTimeOffset expectedActualDateOne = NewRandomDate(); 
-            DateTimeOffset expectedActualDateTwo= NewRandomDate(); 
-            DateTimeOffset expectedActualDateThree = NewRandomDate(); 
-            DateTimeOffset expectedActualDateFour = NewRandomDate(); 
-            
-            FundingDate expectedFundingDate = NewFundingDate(_ => _.WithPatterns(NewFundingDatePattern(fdp => 
+            DateTimeOffset expectedActualDateOne = NewRandomDate();
+            DateTimeOffset expectedActualDateTwo = NewRandomDate();
+            DateTimeOffset expectedActualDateThree = NewRandomDate();
+            DateTimeOffset expectedActualDateFour = NewRandomDate();
+
+            FundingDate expectedFundingDate = NewFundingDate(_ => _.WithPatterns(NewFundingDatePattern(fdp =>
                 fdp.WithOccurrence(0)
                     .WithPeriod("January")
                     .WithPeriodYear(2021)
                     .WithPaymentDate(expectedActualDateOne)),
-                NewFundingDatePattern(fdp => 
+                NewFundingDatePattern(fdp =>
                     fdp.WithOccurrence(0)
                         .WithPeriod("February")
                         .WithPeriodYear(2021)
                         .WithPaymentDate(expectedActualDateTwo)),
-            NewFundingDatePattern(fdp => 
+            NewFundingDatePattern(fdp =>
                 fdp.WithOccurrence(0)
                     .WithPeriod("April")
                     .WithPeriodYear(2021)
                     .WithPaymentDate(expectedActualDateThree)),
-            NewFundingDatePattern(fdp => 
+            NewFundingDatePattern(fdp =>
                 fdp.WithOccurrence(0)
                     .WithPeriod("May")
                     .WithPeriodYear(2021)
                     .WithPaymentDate(expectedActualDateFour)),
                 NewFundingDatePattern()));
-            
+
             GivenTheReProfileRequest(previewRequest, expectedReProfileRequest);
             AndTheReProfileResponse(expectedReProfileRequest, expectedReProfileResponse);
             AndTheFundingDate(previewRequest, expectedFundingDate);
 
             OkObjectResult response = await WhenTheProfilePatternChangeIsPreviewed(previewRequest) as OkObjectResult;
-            
+
             response?
                 .Value
                 .Should()
-                .BeEquivalentTo(new [] {
+                .BeEquivalentTo(new[] {
                     NewProfileTotal(_ => _.WithOccurrence(0)
                         .WithDistributionPeriod(distributionPeriod)
                         .WithValue(23)
                         .WithYear(2021)
-                        .WithPeriodType("CalenderMonth")
+                        .WithPeriodType("CalendarMonth")
                         .WithTypeValue("January")
                         .WithIsPaid(true)
                         .WithInstallmentNumber(1)
-                        .WithActualDate(expectedActualDateOne)), 
+                        .WithActualDate(expectedActualDateOne)),
                     NewProfileTotal(_ => _.WithOccurrence(1)
                         .WithDistributionPeriod(distributionPeriod)
                         .WithValue(24)
                         .WithYear(2021)
-                        .WithPeriodType("CalenderMonth")
+                        .WithPeriodType("CalendarMonth")
                         .WithTypeValue("January")
                         .WithIsPaid(true)
                         .WithInstallmentNumber(2)
-                        .WithActualDate(null)), 
+                        .WithActualDate(null)),
                     NewProfileTotal(_ => _.WithOccurrence(0)
                         .WithDistributionPeriod(distributionPeriod)
                         .WithValue(35)
                         .WithYear(2021)
-                        .WithPeriodType("CalenderMonth")
+                        .WithPeriodType("CalendarMonth")
                         .WithTypeValue("February")
                         .WithIsPaid(false)
                         .WithInstallmentNumber(3)
-                        .WithActualDate(expectedActualDateTwo)), 
+                        .WithActualDate(expectedActualDateTwo)),
                     NewProfileTotal(_ => _.WithOccurrence(0)
                         .WithDistributionPeriod(distributionPeriod)
                         .WithValue(36)
                         .WithYear(2021)
-                        .WithPeriodType("CalenderMonth")
+                        .WithPeriodType("CalendarMonth")
                         .WithTypeValue("March")
                         .WithIsPaid(false)
                         .WithInstallmentNumber(4)
-                        .WithActualDate(null)), 
+                        .WithActualDate(null)),
                     NewProfileTotal(_ => _.WithOccurrence(0)
                         .WithDistributionPeriod(distributionPeriod)
                         .WithValue(37)
                         .WithYear(2021)
-                        .WithPeriodType("CalenderMonth")
+                        .WithPeriodType("CalendarMonth")
                         .WithTypeValue("April")
                         .WithIsPaid(false)
                         .WithInstallmentNumber(5)
-                        .WithActualDate(expectedActualDateThree)), 
+                        .WithActualDate(expectedActualDateThree)),
                     NewProfileTotal(_ => _.WithOccurrence(0)
                         .WithDistributionPeriod(distributionPeriod)
                         .WithValue(38)
                         .WithYear(2021)
-                        .WithPeriodType("CalenderMonth")
+                        .WithPeriodType("CalendarMonth")
                         .WithTypeValue("May")
                         .WithIsPaid(false)
                         .WithInstallmentNumber(6)
@@ -310,7 +310,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             ProfilePreviewRequestBuilder profilePreviewRequestBuilder = new ProfilePreviewRequestBuilder();
 
             setUp?.Invoke(profilePreviewRequestBuilder);
-            
+
             return profilePreviewRequestBuilder.Build();
         }
 
@@ -319,7 +319,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             FundingDatePatternBuilder fundingDatePatternBuilder = new FundingDatePatternBuilder();
 
             setUp?.Invoke(fundingDatePatternBuilder);
-            
+
             return fundingDatePatternBuilder.Build();
         }
 
@@ -328,7 +328,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             ReProfileRequestTestEntityBuilder requestTestEntityBuilder = new ReProfileRequestTestEntityBuilder();
 
             setUp?.Invoke(requestTestEntityBuilder);
-            
+
             return requestTestEntityBuilder.Build();
         }
 
@@ -337,7 +337,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             ReProfileResponseBuilder reProfileResponseBuilder = new ReProfileResponseBuilder();
 
             setUp?.Invoke(reProfileResponseBuilder);
-            
+
             return reProfileResponseBuilder.Build();
         }
 
@@ -346,7 +346,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             FundingDateBuilder fundingDateBuilder = new FundingDateBuilder();
 
             setUp?.Invoke(fundingDateBuilder);
-            
+
             return fundingDateBuilder.Build();
         }
 
@@ -355,7 +355,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             ExistingProfilePeriodBuilder existingProfilePeriodBuilder = new ExistingProfilePeriodBuilder();
 
             setUp?.Invoke(existingProfilePeriodBuilder);
-            
+
             return existingProfilePeriodBuilder.Build();
         }
 
@@ -364,7 +364,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             ProfileTotalBuilder profileTotalBuilder = new ProfileTotalBuilder();
 
             setUp?.Invoke(profileTotalBuilder);
-            
+
             return profileTotalBuilder.Build();
         }
 
@@ -373,7 +373,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             DeliveryProfilePeriodBuilder deliveryProfilePeriodBuilder = new DeliveryProfilePeriodBuilder();
 
             setUp?.Invoke(deliveryProfilePeriodBuilder);
-            
+
             return deliveryProfilePeriodBuilder.Build();
         }
 
