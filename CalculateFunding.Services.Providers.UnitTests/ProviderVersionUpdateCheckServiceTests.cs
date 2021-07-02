@@ -285,6 +285,23 @@ namespace CalculateFunding.Services.Providers.UnitTests
         }
 
         [TestMethod]
+        public async Task SkipsUpdatesForFundingStreamWithoutLatestProviderSnapshot()
+        {
+            IEnumerable<ProviderSnapshot> providerSnapshots = Array.Empty<ProviderSnapshot>();
+
+            GivenTheFundingStreams(_fundingStreams);
+            AndTheCurrentProviderVersions(_currentProviderVersions);
+            AndTheFundingConfigurationsForTheFundingStreamId(_fundingConfigurations, _fundingStreamOneId);
+            AndTheProviderSnapshotsForFundingStream(providerSnapshots);
+            AndTheSpecificationsUseTheLatestProviderSnapshot(_specificationSummaries);
+            AndThereIsAPublishingJobClashingWithTheProviderSnapshotForTheSpecifications(_specificationId);
+
+            await WhenTheProviderVersionUpdateIsChecked();
+
+            ThenDoesNotUpdatesSpecification(_specificationId);
+        }
+
+        [TestMethod]
         public async Task SkipsUpdatesForProviderSnapshotsInUseBySpecificationsWithRunningPublishingJobs()
         {
             ProviderSnapshot providerSnapshot = _providerSnapshots.FirstOrDefault();
@@ -328,15 +345,10 @@ namespace CalculateFunding.Services.Providers.UnitTests
         }
 
         private void AndTheFundingConfigurationsForTheFundingStreamId(IEnumerable<FundingConfiguration> fundingConfigurations,
-            string fundingStreamOneId) =>
+            string fundingStreamId) =>
             _policiesApiClient
-                .Setup(_ => _.GetFundingConfigurationsByFundingStreamId(fundingStreamOneId))
+                .Setup(_ => _.GetFundingConfigurationsByFundingStreamId(fundingStreamId))
                 .ReturnsAsync(new ApiResponse<IEnumerable<FundingConfiguration>>(HttpStatusCode.OK, fundingConfigurations));
-
-        private void AndErrorGetFundingConfigurationsByFundingStreamId() =>
-            _policiesApiClient
-                .Setup(_ => _.GetFundingConfigurationsByFundingStreamId(_fundingStreamOneId))
-                .ReturnsAsync(new ApiResponse<IEnumerable<FundingConfiguration>>(HttpStatusCode.BadRequest));
 
         private void AndTheCurrentProviderVersions(IEnumerable<CurrentProviderVersion> currentProviderVersions) =>
             _providerVersionsMetadataRepository

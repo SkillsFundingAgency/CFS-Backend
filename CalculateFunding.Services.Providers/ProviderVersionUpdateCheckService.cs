@@ -291,6 +291,14 @@ namespace CalculateFunding.Services.Providers
             {
                 string fundingStreamId = specificationSummary.FundingStreams.FirstOrDefault().Id;
 
+                if (!fundingStreamsLatestProviderSnapshotIds.ContainsKey(fundingStreamId))
+                {
+                    LogInformation($"Skipping Update Specification Provider Version for funding stream ID: {fundingStreamId}. " +
+                                       "Latest provider snapshot IDs does not contain item for above funding stream ID.");
+
+                    continue;
+                }
+
                 int latestProviderSnapshotId = fundingStreamsLatestProviderSnapshotIds[fundingStreamId];
 
                 if (updateLatestFundingConfigurations.Any(_ =>
