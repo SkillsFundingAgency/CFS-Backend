@@ -164,9 +164,24 @@ namespace CalculateFunding.Services.Datasets
 
             // if we need to spawn any jobs then the map scoped dataset job needs to be set as the parent job
             string parentJobId = message.UserProperties.ContainsKey("parentJobId") ? message.UserProperties["parentJobId"].ToString() : null;
+            bool isScopedJob = false;
+
             // if it contains a parent job id then this is a child job of the map scoped datasets Job which means it is a scoped provider job
-            bool isScopedJob = !string.IsNullOrWhiteSpace(parentJobId);
-            // if this is a scoped job or it's a child job of the scoped dataset job then we don't want to trigger an instruct
+            if (!string.IsNullOrWhiteSpace(parentJobId))
+            {
+                JobViewModel parentJob = await _jobManagement.GetJobById(parentJobId);
+
+                if (parentJob == null)
+                {
+                    _logger.Error($"Error occurred while retrieving the parent job. JobId {parentJobId}");
+                    await _jobManagement.UpdateJobStatus(Job.Id, 100, false, "Failed to Process - No parent job details found.");
+                    return;
+                }
+
+                isScopedJob = parentJob.JobDefinitionId == DefinitionNames.MapScopedDatasetJob || Job.JobDefinitionId == DefinitionNames.MapScopedDatasetJobWithAggregation;
+            }
+
+            // if this is a scoped job then we don't want to trigger an instruct
             bool queueCalculationJob = !isScopedJob;
 
             if (message.UserProperties.ContainsKey("disableQueueCalculationJob") && message.UserProperties["disableQueueCalculationJob"] != null)
@@ -335,8 +350,8 @@ namespace CalculateFunding.Services.Datasets
                                             {
                                                 { "specification-id", nonScopedRelationship.Current.Specification.Id },
                                                 { "relationship-id", nonScopedRelationship.Id },
-                                                { "user-id", user?.Id},
-                                                { "user-name", user?.Name},
+                                                { "user-id", user?.Id },
+                                                { "user-name", user?.Name },
                                                 { "disableQueueCalculationJob", "true" }
                                             },
                             SpecificationId = nonScopedRelationship.Current.Specification.Id,

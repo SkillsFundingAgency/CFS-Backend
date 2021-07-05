@@ -1238,6 +1238,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .WithUPIN(_upin)));
             AndTheJob(NewJob(_ => _.WithId(_jobId)
                 .WithDefinitionId(CreateInstructAllocationJob)), CreateInstructAllocationJob);
+            AndTheJobExists("parentJob1", new JobViewModel { JobDefinitionId = JobConstants.DefinitionNames.MapScopedDatasetJob });
 
             await WhenTheProcessDatasetMessageIsProcessed();
 
@@ -1311,7 +1312,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 .WithUPIN(_upin)));
             AndTheJob(NewJob(_ => _.WithId(_jobId)
                 .WithDefinitionId(JobConstants.DefinitionNames.MapDatasetJob)), JobConstants.DefinitionNames.MapDatasetJob);
-
+            AndTheJobExists("parentJob1", new JobViewModel { JobDefinitionId = JobConstants.DefinitionNames.MapScopedDatasetJob });
+           
             await WhenTheProcessDatasetMessageIsProcessed();
 
             await ThenTheMapDatasetJobWasCreated(JobConstants.DefinitionNames.MapDatasetJob, "non-scoped-rel-1", "dataset-1");
@@ -2361,6 +2363,13 @@ namespace CalculateFunding.Services.Datasets.Services
             _jobsApiClient
                 .CreateJob(Arg.Is<JobCreateModel>(_ => _.JobDefinitionId == definitionId))
                 .Returns(job);
+        }
+
+        private void AndTheJobExists(string jobId, JobViewModel jobViewModel)
+        {
+            _jobsApiClient
+                .GetJobById(jobId)
+                .Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, jobViewModel, null));
         }
 
         private async Task ThenTheAllocationJobWasCreated(string definitionId, string expectedRelationshipId = null)
