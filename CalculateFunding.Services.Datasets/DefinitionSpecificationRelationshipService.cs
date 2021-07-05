@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
@@ -28,7 +27,6 @@ using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Helpers;
 using CalculateFunding.Services.Datasets.Interfaces;
@@ -116,7 +114,7 @@ namespace CalculateFunding.Services.Datasets
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            ServiceHealth datasetsRepoHealth = await ((IHealthChecker) _datasetRepository).IsHealthOk();
+            ServiceHealth datasetsRepoHealth = await ((IHealthChecker)_datasetRepository).IsHealthOk();
             string queueName = ServiceBusConstants.QueueNames.AddDefinitionRelationshipToSpecification;
             (bool Ok, string Message) messengerServiceHealth = await _messengerService.IsHealthOk(queueName);
             (bool Ok, string Message) cacheHealth = await _cacheProvider.IsHealthOk();
@@ -127,8 +125,8 @@ namespace CalculateFunding.Services.Datasets
             };
             health.Dependencies.AddRange(datasetsRepoHealth.Dependencies);
             health.Dependencies.Add(new DependencyHealth
-                {HealthOk = messengerServiceHealth.Ok, DependencyName = $"{_messengerService.GetType().GetFriendlyName()} for queue: {queueName}", Message = messengerServiceHealth.Message});
-            health.Dependencies.Add(new DependencyHealth {HealthOk = cacheHealth.Ok, DependencyName = _cacheProvider.GetType().GetFriendlyName(), Message = cacheHealth.Message});
+            { HealthOk = messengerServiceHealth.Ok, DependencyName = $"{_messengerService.GetType().GetFriendlyName()} for queue: {queueName}", Message = messengerServiceHealth.Message });
+            health.Dependencies.Add(new DependencyHealth { HealthOk = cacheHealth.Ok, DependencyName = _cacheProvider.GetType().GetFriendlyName(), Message = cacheHealth.Message });
 
             return health;
         }
@@ -168,9 +166,9 @@ namespace CalculateFunding.Services.Datasets
             }
 
             SpecModel.SpecificationSummary specification = specificationApiResponse.Content;
-            
+
             DefinitionSpecificationRelationship relationship = new DefinitionSpecificationRelationship()
-            { 
+            {
                 Id = Guid.NewGuid().ToString(),
                 Name = model.Name
             };
@@ -202,7 +200,7 @@ namespace CalculateFunding.Services.Datasets
             if (!statusCode.IsSuccess())
             {
                 _logger.Error($"Failed to save relationship with status code: {statusCode.ToString()}");
-                return new StatusCodeResult((int) statusCode);
+                return new StatusCodeResult((int)statusCode);
             }
 
             await _relationshipVersionRepository.SaveVersion(relationshipVersion);
@@ -401,7 +399,7 @@ namespace CalculateFunding.Services.Datasets
                 Version = model.Version
             };
 
-            await UpdateDefinitionSpecificationRelationship(relationship,relationshipVersion, previousRelationshipVersion);
+            await UpdateDefinitionSpecificationRelationship(relationship, relationshipVersion, previousRelationshipVersion);
 
             IEnumerable<CalculationResponseModel> allCalculations = await _calcsRepository.GetCurrentCalculationsBySpecificationId(relationshipVersion.Specification.Id);
 
@@ -678,7 +676,7 @@ namespace CalculateFunding.Services.Datasets
                         relationshipVersion.DatasetDefinition.Name = datasetDefinitionReference.Name;
 
                         await UpdateDefinitionSpecificationRelationship(definitionSpecificationRelationship, relationshipVersion, previousRelationshipVersion);
-                     }
+                    }
 
                     _logger.Information($"Updated {relationshipCount} relationships with new definition name: {datasetDefinitionReference.Name}");
 
@@ -717,55 +715,44 @@ namespace CalculateFunding.Services.Datasets
         public async Task<IActionResult> Migrate()
         {
             IList<OldDefinitionSpecificationRelationship> relationshipsToMigrate = (await _datasetRepository.GetDefinitionSpecificationRelationshipsToMigrate()).ToList();
-            SemaphoreSlim throttler = new SemaphoreSlim(5);
 
             _logger.Information($"Number of relationships to migrate - {relationshipsToMigrate.Count}");
 
-            List<Task> tasks = new List<Task>();
-
             foreach (OldDefinitionSpecificationRelationship oldRelationship in relationshipsToMigrate)
             {
-                await throttler.WaitAsync();
-
-                tasks.Add(Task.Run(async () =>
+                try
                 {
-                    try
+                    DefinitionSpecificationRelationshipVersion relationshipVersion = new DefinitionSpecificationRelationshipVersion()
                     {
-                        DefinitionSpecificationRelationshipVersion relationshipVersion = new DefinitionSpecificationRelationshipVersion()
-                        {
-                            RelationshipId = oldRelationship.Id,
-                            Name = oldRelationship.Name,
-                            ConverterEnabled = oldRelationship.Content.ConverterEnabled,
-                            DatasetDefinition = oldRelationship.Content.DatasetDefinition,
-                            DatasetVersion = oldRelationship.Content.DatasetVersion,
-                            Description = oldRelationship.Content.Description,
-                            IsSetAsProviderData = oldRelationship.Content.IsSetAsProviderData,
-                            LastUpdated = oldRelationship.Content.LastUpdated,
-                            Specification = oldRelationship.Content.Specification,
-                            UsedInDataAggregations = oldRelationship.Content.UsedInDataAggregations
-                        };
+                        RelationshipId = oldRelationship.Id,
+                        Name = oldRelationship.Content.Name,
+                        ConverterEnabled = oldRelationship.Content.ConverterEnabled,
+                        DatasetDefinition = oldRelationship.Content.DatasetDefinition,
+                        DatasetVersion = oldRelationship.Content.DatasetVersion,
+                        Description = oldRelationship.Content.Description,
+                        IsSetAsProviderData = oldRelationship.Content.IsSetAsProviderData,
+                        LastUpdated = oldRelationship.Content.LastUpdated,
+                        Specification = oldRelationship.Content.Specification,
+                        UsedInDataAggregations = oldRelationship.Content.UsedInDataAggregations,
+                        Author = oldRelationship.Content.Author,
+                        RelationshipType = DatasetRelationshipType.Uploaded,
+                        PublishedSpecificationConfiguration = oldRelationship.Content.PublishedSpecificationConfiguration,
+                    };
 
-                        DefinitionSpecificationRelationship relationship = new DefinitionSpecificationRelationship()
-                        {
-                            Id = oldRelationship.Id,
-                            Name = oldRelationship.Name
-                        };
+                    DefinitionSpecificationRelationship relationship = new DefinitionSpecificationRelationship()
+                    {
+                        Id = oldRelationship.Id,
+                        Name = oldRelationship.Name
+                    };
 
-                        await UpdateDefinitionSpecificationRelationship(relationship, relationshipVersion, null);
-                    }
-                    catch (Exception e)
-                    {
-                        _logger.Error(e, $"Error occurred while migrating relationship - {oldRelationship.Name}");
-                        throw;
-                    }
-                    finally
-                    {
-                        throttler.Release();
-                    }
-                }));
+                    await UpdateDefinitionSpecificationRelationship(relationship, relationshipVersion, null);
+                }
+                catch (Exception e)
+                {
+                    _logger.Error(e, $"Error occurred while migrating relationship - {oldRelationship.Name}");
+                    throw;
+                }
             }
-
-            await TaskHelper.WhenAllAndThrow(tasks.ToArray());
 
             _logger.Information($"Number of relationships migrated - {relationshipsToMigrate.Count}");
             return new NoContentResult();
@@ -899,9 +886,9 @@ namespace CalculateFunding.Services.Datasets
                 {
                     TemplateMetadataFundingLine fundingLineMetadata = metadata.FundingLines?.FirstOrDefault(x => x.TemplateLineId == fundingLineId);
 
-                    if(fundingLineMetadata != null)
+                    if (fundingLineMetadata != null)
                     {
-                        fundingLines.Add(new PublishedSpecificationItem() 
+                        fundingLines.Add(new PublishedSpecificationItem()
                         {
                             TemplateId = fundingLineId,
                             Name = fundingLineMetadata.Name,

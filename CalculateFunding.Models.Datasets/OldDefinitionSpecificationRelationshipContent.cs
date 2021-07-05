@@ -1,12 +1,15 @@
-﻿using CalculateFunding.Common.Models;
+﻿using System;
+using CalculateFunding.Common.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System;
 
 namespace CalculateFunding.Models.Datasets
 {
     public class OldDefinitionSpecificationRelationshipContent
     {
+        [JsonProperty("name")]
+        public string Name { get; set; }
+
         [JsonProperty("current")]
         public DefinitionSpecificationRelationshipVersion Current { get; set; }
 
@@ -40,5 +43,8 @@ namespace CalculateFunding.Models.Datasets
 
         [JsonProperty("publishedSpecificationConfiguration")]
         public PublishedSpecificationConfiguration PublishedSpecificationConfiguration { get; set; }
+
+        [JsonProperty("author")]
+        public Reference Author { get; set; }
     }
 }
