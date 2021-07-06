@@ -1195,7 +1195,7 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsForScopedDataset_NotCreateNewAllocationJob()
         {
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
-                ("user-id", UserId), ("user-name", Username), ("parentJobId", "parentJob1"));
+                ("user-id", UserId), ("user-name", Username), ("parentJobId", "parentJob1"), ("isScopedJob", bool.TrueString));
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
                 .WithHistory(NewDatasetVersion())));
@@ -1238,8 +1238,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .WithUPIN(_upin)));
             AndTheJob(NewJob(_ => _.WithId(_jobId)
                 .WithDefinitionId(CreateInstructAllocationJob)), CreateInstructAllocationJob);
-            AndTheJobExists("parentJob1", new JobViewModel { JobDefinitionId = JobConstants.DefinitionNames.MapScopedDatasetJob });
-
+            
             await WhenTheProcessDatasetMessageIsProcessed();
 
             await ThenTheAllocationJobNotCreated();
@@ -1249,7 +1248,7 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsForScopedDataset_CreateNewMapDatasetJobsForOtherRelationshipsInSpecification()
         {
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
-                ("user-id", UserId), ("user-name", Username), ("parentJobId", "parentJob1"));
+                ("user-id", UserId), ("user-name", Username), ("parentJobId", "parentJob1"), ("isScopedJob", bool.TrueString));
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
                 .WithHistory(NewDatasetVersion())));
@@ -1312,8 +1311,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .WithUPIN(_upin)));
             AndTheJob(NewJob(_ => _.WithId(_jobId)
                 .WithDefinitionId(JobConstants.DefinitionNames.MapDatasetJob)), JobConstants.DefinitionNames.MapDatasetJob);
-            AndTheJobExists("parentJob1", new JobViewModel { JobDefinitionId = JobConstants.DefinitionNames.MapScopedDatasetJob });
-           
+            
             await WhenTheProcessDatasetMessageIsProcessed();
 
             await ThenTheMapDatasetJobWasCreated(JobConstants.DefinitionNames.MapDatasetJob, "non-scoped-rel-1", "dataset-1");
@@ -2363,13 +2361,6 @@ namespace CalculateFunding.Services.Datasets.Services
             _jobsApiClient
                 .CreateJob(Arg.Is<JobCreateModel>(_ => _.JobDefinitionId == definitionId))
                 .Returns(job);
-        }
-
-        private void AndTheJobExists(string jobId, JobViewModel jobViewModel)
-        {
-            _jobsApiClient
-                .GetJobById(jobId)
-                .Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, jobViewModel, null));
         }
 
         private async Task ThenTheAllocationJobWasCreated(string definitionId, string expectedRelationshipId = null)

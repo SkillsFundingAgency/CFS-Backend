@@ -171,6 +171,7 @@ namespace CalculateFunding.Services.Specs
                             { "user-id", user?.Id},
                             { "user-name", user?.Name},
                             { "parentJobId", mapScopedDatasetJob.Id },
+                            { "isScopedJob", bool.TrueString },
                             { "disableQueueCalculationJob", (!triggerCalculationEngineRunJob).ToString()},
                         },
                         mapScopedDatasetJob.Id,

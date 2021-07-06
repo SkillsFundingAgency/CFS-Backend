@@ -458,6 +458,7 @@ namespace CalculateFunding.Services.Datasets
             {
                 job.ParentJobId = parentJob.Id;
                 job.Properties.Add("parentJobId", parentJob.Id);
+                job.Properties.Add("isScopedJob", bool.TrueString);
             }
 
             Job childJob = await _jobManagement.QueueJob(job);

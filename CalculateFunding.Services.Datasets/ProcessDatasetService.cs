@@ -166,19 +166,9 @@ namespace CalculateFunding.Services.Datasets
             string parentJobId = message.UserProperties.ContainsKey("parentJobId") ? message.UserProperties["parentJobId"].ToString() : null;
             bool isScopedJob = false;
 
-            // if it contains a parent job id then this is a child job of the map scoped datasets Job which means it is a scoped provider job
-            if (!string.IsNullOrWhiteSpace(parentJobId))
+            if (message.UserProperties.ContainsKey("isScopedJob") && message.UserProperties["isScopedJob"] != null)
             {
-                JobViewModel parentJob = await _jobManagement.GetJobById(parentJobId);
-
-                if (parentJob == null)
-                {
-                    _logger.Error($"Error occurred while retrieving the parent job. JobId {parentJobId}");
-                    await _jobManagement.UpdateJobStatus(Job.Id, 100, false, "Failed to Process - No parent job details found.");
-                    return;
-                }
-
-                isScopedJob = parentJob.JobDefinitionId == DefinitionNames.MapScopedDatasetJob || Job.JobDefinitionId == DefinitionNames.MapScopedDatasetJobWithAggregation;
+                isScopedJob = bool.Parse(message.UserProperties["isScopedJob"].ToString());
             }
 
             // if this is a scoped job then we don't want to trigger an instruct
