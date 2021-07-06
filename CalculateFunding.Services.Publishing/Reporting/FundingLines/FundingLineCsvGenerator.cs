@@ -190,7 +190,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
             {
                 ContentDisposition = $"attachment; filename={GetPrettyFileName(jobType, fundingLineName, fundingStreamId, fundingPeriodId)}";
                 
-                fundingLineName = WithPrefixDelimiterOrEmpty(fundingLineName);
+                fundingLineName = WithPrefixDelimiterOrEmpty(fundingLineName.ToASCII());
                 fundingStreamId = WithPrefixDelimiterOrEmpty(fundingStreamId);
 
                 FileName = $"funding-lines-{specificationId}-{jobType}{fundingLineName}{fundingStreamId}.csv";

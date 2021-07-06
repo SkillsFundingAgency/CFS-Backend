@@ -151,6 +151,15 @@ namespace System
             return Encoding.UTF8.GetBytes(text ?? string.Empty);
         }
 
+        public static string ToASCII(this string input, string fallbackString = "")
+        {
+            Encoding encoding = Encoding.GetEncoding(Encoding.ASCII.CodePage, 
+                new EncoderReplacementFallback(fallbackString),
+                new DecoderReplacementFallback(fallbackString));
+
+            return encoding.GetString(encoding.GetBytes(input ?? string.Empty));
+        }
+
         public static string ToCamelCase(this string identifier)
         {
             return string.IsNullOrWhiteSpace(identifier) ? null : $"{char.ToLower(identifier[0])}{identifier.Substring(1)}";

@@ -164,6 +164,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         [DataRow(FundingLineCsvGeneratorJobType.Released, "spec2", "FC1", "FN1", "DSG", "AY-2020",
             "funding-lines-spec2-Released-FN1-DSG.csv",
             "DSG AY-2020 Provider Funding Lines Released Only", false)]
+        [DataRow(FundingLineCsvGeneratorJobType.Released, "spec2", "FC1", "FN–1", "DSG", "AY-2020",
+            "funding-lines-spec2-Released-FN1-DSG.csv",
+            "DSG AY-2020 Provider Funding Lines Released Only", false)]
         [DataRow(FundingLineCsvGeneratorJobType.CurrentProfileValues, "spec3", null, null, "PSG", "AY-2021",
             "funding-lines-spec3-CurrentProfileValues-PSG.csv",
             "PSG AY-2021  Profile Current State", false)]

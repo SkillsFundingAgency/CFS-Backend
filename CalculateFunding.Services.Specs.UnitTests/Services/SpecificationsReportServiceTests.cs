@@ -276,7 +276,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             string fundingLineCode = NewRandomString();
             string fundingPeriodId = NewRandomString();
-            string fundingStreamId = NewRandomString();
+            string fundingStreamId = $"–{NewRandomString()}";
             string specificationId = NewRandomString();
 
             SpecificationReportIdentifier id = new SpecificationReportIdentifier
@@ -290,7 +290,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             string expectedBlobName = jobType == JobType.HistoryPublishedProviderEstate ?
                 $"funding-lines-{specificationId}-{jobType}-{fundingPeriodId}.csv" :
-                $"funding-lines-{specificationId}-{jobType}-{fundingLineCode}-{fundingStreamId}.csv";
+                $"funding-lines-{specificationId}-{jobType}-{fundingLineCode.ToASCII()}-{fundingStreamId}.csv";
 
             _blobClient
                 .GetBlobSasUrl(expectedBlobName, Arg.Any<DateTimeOffset>(), SharedAccessBlobPermissions.Read, PublishedProviderVersionsContainerName)

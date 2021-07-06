@@ -261,7 +261,7 @@ namespace CalculateFunding.Services.Specs
             switch (reportType)
             {
                 case ReportType.FundingLine:
-                    string fundingLineCode = WithPrefixDelimiterOrEmpty(id.FundingLineCode);
+                    string fundingLineCode = WithPrefixDelimiterOrEmpty(id.FundingLineCode.ToASCII());
                     string fundingStreamId = WithPrefixDelimiterOrEmpty(id.FundingStreamId);
 
                     switch (id.JobType)
