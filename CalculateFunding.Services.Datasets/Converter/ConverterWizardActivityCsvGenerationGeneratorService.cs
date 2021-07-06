@@ -125,13 +125,17 @@ namespace CalculateFunding.Services.Datasets.Converter
 
             EnsureFileIsNew(temporaryFilePath);
 
+            bool outputHeader = true;
+
             foreach(IEnumerable<ProviderConverterDetail> providerConvertersBatch in providerConverters.Partition(BatchSize))
             {
                 IEnumerable<ExpandoObject> csvRows = _converterWizardActivityToCsvRowsTransformation.TransformConvertWizardActivityIntoCsvRows(providerConverters, outcomeLogs, converterEnabledDatasets);
 
-                string csv = _csvUtils.AsCsv(csvRows, true);
+                string csv = _csvUtils.AsCsv(csvRows, outputHeader);
 
                 await _fileSystemAccess.Append(temporaryFilePath, csv);
+
+                outputHeader = false;
             }
 
             await using Stream csvFileStream = _fileSystemAccess.OpenRead(temporaryFilePath);
