@@ -743,7 +743,7 @@ namespace CalculateFunding.Services.Datasets
                     DefinitionSpecificationRelationship relationship = new DefinitionSpecificationRelationship()
                     {
                         Id = oldRelationship.Id,
-                        Name = oldRelationship.Name
+                        Name = oldRelationship.Content.Name
                     };
 
                     await UpdateDefinitionSpecificationRelationship(relationship, relationshipVersion, null);

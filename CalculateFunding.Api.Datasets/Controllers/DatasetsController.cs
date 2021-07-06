@@ -163,7 +163,7 @@ namespace CalculateFunding.Api.Datasets.Controllers
         [Route("api/datasets/migrate-definitionspecification-relationships")]
         [HttpPost]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        public Task<IActionResult> MigarteDefinitionSpecificationRelationship()
+        public Task<IActionResult> MigrateDefinitionSpecificationRelationship()
         {
             return _definitionSpecificationRelationshipService.Migrate();
         }
