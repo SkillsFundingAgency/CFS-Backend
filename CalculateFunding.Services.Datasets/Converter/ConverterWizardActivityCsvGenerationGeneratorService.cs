@@ -129,7 +129,7 @@ namespace CalculateFunding.Services.Datasets.Converter
 
             foreach(IEnumerable<ProviderConverterDetail> providerConvertersBatch in providerConverters.Partition(BatchSize))
             {
-                IEnumerable<ExpandoObject> csvRows = _converterWizardActivityToCsvRowsTransformation.TransformConvertWizardActivityIntoCsvRows(providerConverters, outcomeLogs, converterEnabledDatasets);
+                IEnumerable<ExpandoObject> csvRows = _converterWizardActivityToCsvRowsTransformation.TransformConvertWizardActivityIntoCsvRows(providerConvertersBatch, outcomeLogs, converterEnabledDatasets);
 
                 string csv = _csvUtils.AsCsv(csvRows, outputHeader);
 

@@ -19,7 +19,7 @@ namespace CalculateFunding.Models.Datasets
         public RowLoadResult GetRowWithMatchingFieldValue(string identifierFieldName,
             object fieldValue)
             => Rows?.FirstOrDefault(_ => _.Fields.ContainsKey(identifierFieldName) &&
-                                         _.Fields[identifierFieldName]?.Equals(fieldValue) == true);
+                                         _.Fields[identifierFieldName]?.ToString().Equals(fieldValue) == true);
 
         public RowLoadResult GetRowWithMatchingIdentifier(RowLoadResult other)
             => Rows?.FirstOrDefault(_ => _.HasSameIdentifier(other));

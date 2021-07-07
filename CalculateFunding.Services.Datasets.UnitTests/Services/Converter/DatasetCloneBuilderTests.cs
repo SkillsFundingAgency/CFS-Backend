@@ -246,7 +246,7 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
         public void CopyRowCopiesSourceRowToDestinationIdentifierIdAndAddsToDatasetIfNotInDatasetYet()
         {
             string fieldName = NewRandomString();
-            string sourceProviderId = NewRandomString();
+            int sourceProviderId = NewRandomUKPRN();
             string destinationProviderId = NewRandomString();
 
             (string, object) fieldOne = NewField();
@@ -261,13 +261,13 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
 
             GivenTheDatasetData(datasetTable);
             
-            RowCopyResult result = WhenTheRowIsCopied(fieldName, sourceProviderId, destinationProviderId);
+            RowCopyResult result = WhenTheRowIsCopied(fieldName, sourceProviderId.ToString(), destinationProviderId);
 
             result
                 .Should()
                 .BeEquivalentTo(NewRowCopyResult(_ => _.WithOutcome(RowCopyOutcome.Copied)
                     .WithEligibleConverter(NewEligibleConverter(ec => 
-                        ec.WithPreviousProviderIdentifier(sourceProviderId)
+                        ec.WithPreviousProviderIdentifier(sourceProviderId.ToString())
                             .WithTargetProviderId(destinationProviderId)))));
             
             datasetTable.Rows
@@ -549,6 +549,11 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
         private string NewRandomString()
         {
             return new RandomString();
+        }
+
+        private int NewRandomUKPRN()
+        {
+            return new RandomNumberBetween(1000000, 1010000);
         }
     }
 }
