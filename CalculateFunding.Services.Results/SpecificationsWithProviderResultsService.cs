@@ -93,8 +93,7 @@ namespace CalculateFunding.Services.Results
             await MergeSpecificationInformation(mergeRequest);
         }
 
-        public async Task MergeSpecificationInformation(MergeSpecificationInformationRequest mergeRequest,
-            ConcurrentDictionary<string, FundingPeriod> fundingPeriods = null)
+        public async Task MergeSpecificationInformation(MergeSpecificationInformationRequest mergeRequest)
         {
             Guard.ArgumentNotNull(mergeRequest, nameof(mergeRequest));
 
@@ -105,8 +104,7 @@ namespace CalculateFunding.Services.Results
             else
             {
                 await MergeSpecificationInformationForProviderBatch(mergeRequest.SpecificationInformation, 
-                    mergeRequest.ProviderIds, 
-                    fundingPeriods);   
+                    mergeRequest.ProviderIds);   
             }
         }
 
@@ -118,7 +116,7 @@ namespace CalculateFunding.Services.Results
 
             ICosmosDbFeedIterator providersWithResultsForSpecifications = GetProviderWithResultsBySpecificationId(specificationId);
 
-            await EnsureFundingPeriodEndDateQueried(specificationInformation);
+            EnsureFundingPeriodEndDateQueried(specificationInformation);
 
             MergeSpecificationInformationContext context = new MergeSpecificationInformationContext(providersWithResultsForSpecifications, specificationInformation);
 
@@ -171,11 +169,12 @@ namespace CalculateFunding.Services.Results
         }
 
         private async Task MergeSpecificationInformationForProviderBatch(SpecificationInformation specificationInformation,
-            IEnumerable<string> providerIds,
-            ConcurrentDictionary<string, FundingPeriod> fundingPeriods)
+            IEnumerable<string> providerIds)
         {
             LogInformation($"Merging specification information for specification {specificationInformation.Id} into summary for provider batch with length {providerIds.Count()}");
-            
+
+            ConcurrentDictionary<string, FundingPeriod> fundingPeriods = new ConcurrentDictionary<string, FundingPeriod>();
+
             foreach (string providerId in providerIds)
             {
                 LogInformation($"Merging specification information for specification {specificationInformation.Id} into summary for provider {providerId}");
@@ -190,7 +189,7 @@ namespace CalculateFunding.Services.Results
                     }
                 };
 
-                await EnsureFundingPeriodEndDateQueried(specificationInformation, fundingPeriods);
+                EnsureFundingPeriodEndDateQueried(specificationInformation, fundingPeriods);
 
                 providerWithResultsForSpecifications.MergeSpecificationInformation(specificationInformation);
 
@@ -217,7 +216,7 @@ namespace CalculateFunding.Services.Results
             return new OkObjectResult(providerWithResultsForSpecifications.Specifications?.ToArray() ?? new SpecificationInformation[0]);
         }
 
-        private async Task EnsureFundingPeriodEndDateQueried(SpecificationInformation specificationInformation,
+        private void EnsureFundingPeriodEndDateQueried(SpecificationInformation specificationInformation,
             ConcurrentDictionary<string, FundingPeriod> fundingPeriods = null)
         {
             if (specificationInformation.FundingPeriodEnd.HasValue)
@@ -227,16 +226,16 @@ namespace CalculateFunding.Services.Results
 
             LogInformation($"Querying funding period end date for information for {specificationInformation.Id}");
 
-            specificationInformation.FundingPeriodEnd = await GetFundingPeriodEndDate(specificationInformation.FundingPeriodId,
+            specificationInformation.FundingPeriodEnd = GetFundingPeriodEndDate(specificationInformation.FundingPeriodId,
                 fundingPeriods);
         }
 
-        private async Task<DateTimeOffset?> GetFundingPeriodEndDate(string fundingPeriodId,
+        private DateTimeOffset? GetFundingPeriodEndDate(string fundingPeriodId,
             ConcurrentDictionary<string, FundingPeriod> fundingPeriods)
         {
             if (fundingPeriods == null)
             {
-                return  (await GetFundingPeriod(fundingPeriodId))?.Content?.EndDate;
+                fundingPeriods = new ConcurrentDictionary<string, FundingPeriod>();
             }
 
             return fundingPeriods.GetOrAdd(fundingPeriodId,

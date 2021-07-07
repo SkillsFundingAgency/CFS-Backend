@@ -103,7 +103,7 @@ namespace CalculateFunding.Services.Results.UnitTests
         [TestMethod]
         public void MergeSpecificationInformationGuardsAgainstMissingMergeRequest()
         {
-            Func<Task> invocation = () => WhenTheSpecificationInformationIsMerged(null, new ConcurrentDictionary<string, FundingPeriod>());
+            Func<Task> invocation = () => WhenTheSpecificationInformationIsMerged((MergeSpecificationInformationRequest)null);
 
             invocation
                 .Should()
@@ -168,18 +168,19 @@ namespace CalculateFunding.Services.Results.UnitTests
         public async Task MergeSpecificationInformationMergesCreatesNewMissingProviderWithResultsForSpecificationsForSpecificProviderIdsWhenSupplied()
         {
             string jobId = NewRandomString();
-            string providerId = NewRandomString();
+            string providerIdOne = NewRandomString();
+            string providerIdTwo = NewRandomString();
 
             SpecificationInformation specificationInformation = NewSpecificationInformation();
             MergeSpecificationInformationRequest mergeRequest = NewMergeSpecificationInformationRequest(_ => _.WithSpecificationInformation(specificationInformation)
-                .WithProviderIds(providerId));
+                .WithProviderIds(providerIdOne, providerIdTwo));
 
             DateTimeOffset expectedFundingPeriodEndDate = NewRandomDateTime();
 
             GivenTheFundingPeriodEndDate(specificationInformation.FundingPeriodId, expectedFundingPeriodEndDate);
 
             Message message = NewMessage(_ => _.WithUserProperty(JobId, jobId)
-                .WithUserProperty(ProviderId, providerId)
+                .WithUserProperty(ProviderId, providerIdOne)
                 .WithMessageBody(mergeRequest.AsJsonBytes()));
 
             await WhenTheSpecificationInformationIsMerged(message);
@@ -189,9 +190,10 @@ namespace CalculateFunding.Services.Results.UnitTests
             SpecificationInformation expectedSpecificationInformation = specificationInformation.DeepCopy();
             expectedSpecificationInformation.FundingPeriodEnd = expectedFundingPeriodEndDate;
 
-            AndTheProviderWithResultsForSpecificationsWasUpserted(_ => _.Id == providerId &&
+            AndTheProviderWithResultsForSpecificationsWasUpserted(_ => _.Id == providerIdOne &&
                                                                        HasEquivalentSpecificationInformation(_, expectedSpecificationInformation));
             AndTheJobTrackingWasCompleted(jobId);
+            AndTheGetFundingPeriodByIdCalled(specificationInformation.FundingPeriodId, 1);
         }
 
         [TestMethod]
@@ -260,6 +262,7 @@ namespace CalculateFunding.Services.Results.UnitTests
                 providerSeven);
 
             AndTheJobTrackingWasCompleted(jobId);
+            AndTheGetFundingPeriodByIdCalled(specificationInformation.FundingPeriodId, 1);
         }
 
         private void AndTheProviderWithResultsForSpecificationsHaveTheEquivalentSpecificationInformation(SpecificationInformation specificationInformation,
@@ -280,6 +283,12 @@ namespace CalculateFunding.Services.Results.UnitTests
         {
             _policies.Setup(_ => _.GetFundingPeriodById(fundingPeriodId))
                 .ReturnsAsync(new ApiResponse<FundingPeriod>(HttpStatusCode.OK, NewFundingPeriod(_ => _.WithEndDate(fundingPeriodEndDate))));
+        }
+
+        private void AndTheGetFundingPeriodByIdCalled(string fundingPeriodId, int callCount)
+        {
+            _policies
+                .Verify(_ => _.GetFundingPeriodById(fundingPeriodId), Times.Exactly(callCount));
         }
 
         private bool HasEquivalentSpecificationInformation(ProviderWithResultsForSpecifications providerWithResultsForSpecifications,
@@ -356,9 +365,8 @@ namespace CalculateFunding.Services.Results.UnitTests
         private async Task WhenTheSpecificationInformationIsMerged(Message message)
             => await _service.Run(message);
 
-        private async Task WhenTheSpecificationInformationIsMerged(MergeSpecificationInformationRequest mergeRequest,
-            ConcurrentDictionary<string, FundingPeriod> fundingPeriods = null)
-            => await _service.MergeSpecificationInformation(mergeRequest, fundingPeriods);
+        private async Task WhenTheSpecificationInformationIsMerged(MergeSpecificationInformationRequest mergeRequest)
+            => await _service.MergeSpecificationInformation(mergeRequest);
 
         private void GivenTheProviderWithResultsForSpecificationsByProviderId(ProviderWithResultsForSpecifications providerWithResultsForSpecifications,
             string providerId)
