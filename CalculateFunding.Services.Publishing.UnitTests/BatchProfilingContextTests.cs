@@ -677,11 +677,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             FundingLine paymentFundingLineOne = NewFundingLine(_ => _.WithFundingLineType(FundingLineType.Payment)
                 .WithFundingLineCode(fundingLineCodeOne)
-                .WithValue(0));
+                .WithValue(10));
             FundingLine paymentFundingLineTwo = NewFundingLine(_ => _.WithFundingLineType(FundingLineType.Payment)
-                .WithValue(0));
+                .WithValue(10));
             FundingLine paymentFundingLineThree = NewFundingLine(_ => _.WithFundingLineType(FundingLineType.Payment)
                 .WithValue(null));
+            FundingLine paymentFundingLineFour = NewFundingLine(_ => _.WithFundingLineType(FundingLineType.Payment)
+                .WithValue(0));
 
             ProfilePatternKey fundingLinePatternKey = NewProfilePatternKey(ppk =>
                 ppk.WithKey(profilePatternKey)
@@ -709,7 +711,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     .WithFundingLines(paymentFundingLineOne,
                         NewFundingLine(fl =>
                             fl.WithFundingLineType(FundingLineType.Information)),
-                        paymentFundingLineThree));
+                        paymentFundingLineThree,
+                        paymentFundingLineFour));
 
             yield return new object[]
             {
@@ -722,10 +725,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             };
 
             PublishedProviderVersion expectedPublishedProvider = publishedProviderVersionNullPaymentFundingLine.DeepCopy();
-            expectedPublishedProvider.FundingLines.ForEach(_ => _.Value = 0);
+            expectedPublishedProvider.FundingLines.ForEach(_ => _.Value = 10);
 
             FundingLine expectedFundingLine = paymentFundingLineThree.DeepCopy();
-            expectedFundingLine.Value = 0;
+            expectedFundingLine.Value = 10;
 
             yield return new object[]
             {
@@ -737,7 +740,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     .WithFundingLinesToProfile(paymentFundingLineOne, expectedFundingLine))
             };
 
-            yield return new object[]
+            /*yield return new object[]
             {
                 publishedProviderVersion,
                 true,
@@ -745,7 +748,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     .WithFundingLinesToProfile(paymentFundingLineOne, paymentFundingLineTwo)
                     .WithProviderSubType(providerSubType)
                     .WithProviderType(providerType))
-            };
+            };*/
         }
 
         private static Provider NewProvider(Action<ProviderBuilder> setUp = null)
@@ -865,7 +868,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                         publishedProviderVersion.ProviderId, new GeneratedProviderResult
                         {
                             FundingLines = publishedProviderVersion.FundingLines.DeepCopy().Select(_ => {
-                                _.Value??=0;
+                                _.Value??=10;
                                 return _;
                             })
                         }

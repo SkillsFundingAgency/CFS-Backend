@@ -26,9 +26,10 @@ namespace CalculateFunding.Services.Publishing
         {
             Provider provider = providerVersion.Provider;
             
+            // only profile a value if not null and it's not equal to zero
             FundingLine[] fundingLines = generatedProviderResults[provider.ProviderId]
                 .FundingLines?
-                .Where(_ => _.Type == FundingLineType.Payment && _.Value.HasValue)
+                .Where(_ => _.Type == FundingLineType.Payment && _.Value.HasValue && _.Value != 0)
                 .ToArray();
 
             // add all funding lines which were previously either null payment on released or weren't included in last release
