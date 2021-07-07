@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Storage.Blob;
 using System;
 
-namespace CalculateFunding.Services.Datasets
+namespace CalculateFunding.Services.Datasets.Converter
 {
     public class ReportService : IReportService
     {
@@ -23,9 +23,7 @@ namespace CalculateFunding.Services.Datasets
 
         public IActionResult GetReportMetadata(string specificationId)
         {
-            string blobName = $"{specificationId}/converterwizardreport.csv";
-
-            string blobUrl = _blobClient.GetBlobSasUrl(blobName, DateTimeOffset.Now.AddDays(1), SharedAccessBlobPermissions.Read, BlobContainerName);
+            string blobUrl = _blobClient.GetBlobSasUrl(new CsvFileName(specificationId), DateTimeOffset.Now.AddDays(1), SharedAccessBlobPermissions.Read, BlobContainerName);
 
             return new OkObjectResult(new DatasetDownloadModel { Url = blobUrl });
         }

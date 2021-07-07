@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System;
 
-namespace CalculateFunding.Services.Datasets
+namespace CalculateFunding.Services.Datasets.Converter
 {
     [TestClass]
     public class ReportServiceTests
@@ -31,7 +31,7 @@ namespace CalculateFunding.Services.Datasets
             // Arrange
             string specificationId = NewRandomString();
             string blobSasUrl = NewRandomString();
-            string blobName = $"{specificationId}/converterwizardreport.csv";
+            string blobName = $"converter-wizard-activity-{specificationId}.csv";
 
             _blobClient
                 .Setup(_ => _.GetBlobSasUrl(blobName, It.IsAny<DateTimeOffset>(), SharedAccessBlobPermissions.Read, BlobContainerName))

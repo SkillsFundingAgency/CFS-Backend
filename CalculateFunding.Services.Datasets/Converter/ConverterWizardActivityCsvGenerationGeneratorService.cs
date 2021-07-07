@@ -187,37 +187,5 @@ namespace CalculateFunding.Services.Datasets.Converter
         {
             return $"Converter wizard activity report {specificationName} {DateTimeOffset.UtcNow:s}.csv";
         }
-
-        private class CsvFileName
-        {
-            private readonly string _specificationId;
-
-            public CsvFileName(string specificationId)
-            {
-                _specificationId = specificationId;
-            }
-
-            public static implicit operator string(CsvFileName csvFileName)
-            {
-                return $"converter-wizard-activity-{csvFileName._specificationId}.csv";
-            }
-        }
-
-        private class CsvFilePath
-        {
-            private readonly string _root;
-            private readonly string _filename;
-
-            public CsvFilePath(string root, string specificationId)
-            {
-                _root = root;
-                _filename = new CsvFileName(specificationId);
-            }
-
-            public static implicit operator string(CsvFilePath csvFilePath)
-            {
-                return Path.Combine(csvFilePath._root, csvFilePath._filename);
-            }
-        }
     }
 }
