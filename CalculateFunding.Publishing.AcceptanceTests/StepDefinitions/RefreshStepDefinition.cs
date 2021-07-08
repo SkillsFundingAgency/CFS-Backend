@@ -50,8 +50,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             _refreshService = refreshService;
             _currentCorrelationStepContext = currentCorrelationStepContext;
             _providerVersionInMemoryRepository =
-                (PublishedProviderVersionInMemoryRepository) publishedProviderVersionRepository;
-            _specificationInMemoryRepository = (SpecificationInMemoryRepository) specificationService;
+                (PublishedProviderVersionInMemoryRepository)publishedProviderVersionRepository;
+            _specificationInMemoryRepository = (SpecificationInMemoryRepository)specificationService;
         }
 
         [Given(@"variations are enabled")]
@@ -138,7 +138,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
                         profilePeriod
                             .ProfiledValue
                             .Should()
-                            .Be(expectedProfileValue.ProfiledValue);
+                            .Be(expectedProfileValue.ProfiledValue, $"expected period {profilePeriod.TypeValue} in {profilePeriod.Year}, occurrence {profilePeriod.Occurrence} should be the same");
                     }
                 }
             }

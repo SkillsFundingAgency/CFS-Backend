@@ -58,6 +58,7 @@
     <SpecFlowObsoleteCodeBehindFiles Remove="Features\PublishingPsg - Copy.feature.cs" />
     <SpecFlowObsoleteCodeBehindFiles Remove="Features\Refresh1619 - Copy.feature.cs" />
     <SpecFlowObsoleteCodeBehindFiles Remove="Features\RefreshDsg - Copy.feature.cs" />
+    <SpecFlowObsoleteCodeBehindFiles Remove="Features\RefreshDsgVariations - Copy.feature.cs" />
     <SpecFlowObsoleteCodeBehindFiles Remove="Features\RefreshGAG - Copy.feature.cs" />
     <SpecFlowObsoleteCodeBehindFiles Remove="Features\RefreshPsg - Copy.feature.cs" />
     <SpecFlowObsoleteCodeBehindFiles Remove="Features\RefreshPsgVariations - Copy.feature.cs" />
@@ -253,6 +254,10 @@
       <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
     </SpecFlowFeatureFiles>
     <SpecFlowFeatureFiles Update="Features\Refresh1619.feature">
+      <Visible>$(UsingMicrosoftNETSdk)</Visible>
+      <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
+    </SpecFlowFeatureFiles>
+    <SpecFlowFeatureFiles Update="Features\RefreshDsgVariationsWithSecondOccurrence.feature">
       <Visible>$(UsingMicrosoftNETSdk)</Visible>
       <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
     </SpecFlowFeatureFiles>

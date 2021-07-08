@@ -96,1817 +96,372 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
         {
 #line 10
 #line hidden
-            TechTalk.SpecFlow.Table table971 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table1017 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table971.AddRow(new string[] {
+            table1017.AddRow(new string[] {
                         "DefaultTemplateVersion",
                         "1.0"});
 #line 11
  testRunner.Given("a funding configuration exists for funding stream \'PSG\' in funding period \'AY-192" +
-                    "0\'", ((string)(null)), table971, "Given ");
+                    "0\'", ((string)(null)), table1017, "Given ");
 #line hidden
-            TechTalk.SpecFlow.Table table972 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table1018 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table972.AddRow(new string[] {
+            table1018.AddRow(new string[] {
                         "GroupTypeIdentifier",
                         "UKPRN"});
-            table972.AddRow(new string[] {
+            table1018.AddRow(new string[] {
                         "GroupingReason",
                         "Payment"});
-            table972.AddRow(new string[] {
+            table1018.AddRow(new string[] {
                         "GroupTypeClassification",
                         "LegalEntity"});
-            table972.AddRow(new string[] {
+            table1018.AddRow(new string[] {
                         "OrganisationGroupTypeCode",
                         "LocalAuthority"});
 #line 14
- testRunner.And("the funding configuration has the following organisation group", ((string)(null)), table972, "And ");
+ testRunner.And("the funding configuration has the following organisation group", ((string)(null)), table1018, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table973 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table1019 = new TechTalk.SpecFlow.Table(new string[] {
                         "ProviderType",
                         "ProviderSubtype"});
-            table973.AddRow(new string[] {
+            table1019.AddRow(new string[] {
                         "LA maintained schools",
                         "Community school"});
-            table973.AddRow(new string[] {
+            table1019.AddRow(new string[] {
                         "LA maintained schools",
                         "Foundation school"});
-            table973.AddRow(new string[] {
+            table1019.AddRow(new string[] {
                         "LA maintained schools",
                         "Pupil referral unit"});
-            table973.AddRow(new string[] {
+            table1019.AddRow(new string[] {
                         "LA maintained schools",
                         "Voluntary aided school"});
-            table973.AddRow(new string[] {
+            table1019.AddRow(new string[] {
                         "LA maintained schools",
                         "Voluntary controlled school"});
-            table973.AddRow(new string[] {
+            table1019.AddRow(new string[] {
                         "Special schools",
                         "Community special school"});
-            table973.AddRow(new string[] {
+            table1019.AddRow(new string[] {
                         "Special schools",
                         "Foundation special school"});
 #line 20
- testRunner.And("the funding configuration has the following provider type matches", ((string)(null)), table973, "And ");
+ testRunner.And("the funding configuration has the following provider type matches", ((string)(null)), table1019, "And ");
 #line hidden
 #line 29
  testRunner.And("the funding configuration is available in the policies repository", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table974 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table1020 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table974.AddRow(new string[] {
+            table1020.AddRow(new string[] {
                         "GroupTypeIdentifier",
                         "UKPRN"});
-            table974.AddRow(new string[] {
+            table1020.AddRow(new string[] {
                         "GroupingReason",
                         "Payment"});
-            table974.AddRow(new string[] {
+            table1020.AddRow(new string[] {
                         "GroupTypeClassification",
                         "LegalEntity"});
-            table974.AddRow(new string[] {
+            table1020.AddRow(new string[] {
                         "OrganisationGroupTypeCode",
                         "AcademyTrust"});
 #line 30
- testRunner.And("the funding configuration has the following organisation group", ((string)(null)), table974, "And ");
+ testRunner.And("the funding configuration has the following organisation group", ((string)(null)), table1020, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table975 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table1021 = new TechTalk.SpecFlow.Table(new string[] {
                         "ProviderType",
                         "ProviderSubtype"});
-            table975.AddRow(new string[] {
+            table1021.AddRow(new string[] {
                         "Free Schools",
                         "Free schools"});
-            table975.AddRow(new string[] {
+            table1021.AddRow(new string[] {
                         "Free Schools",
                         "Free schools alternative provision"});
-            table975.AddRow(new string[] {
+            table1021.AddRow(new string[] {
                         "Free Schools",
                         "Free schools special"});
-            table975.AddRow(new string[] {
+            table1021.AddRow(new string[] {
                         "Free Schools",
                         "Free schools 16 to 19"});
-            table975.AddRow(new string[] {
+            table1021.AddRow(new string[] {
                         "Independent schools",
                         "City technology college"});
-            table975.AddRow(new string[] {
+            table1021.AddRow(new string[] {
                         "Academies",
                         "Academy alternative provision converter"});
-            table975.AddRow(new string[] {
+            table1021.AddRow(new string[] {
                         "Academies",
                         "Academy alternative provision sponsor led"});
-            table975.AddRow(new string[] {
+            table1021.AddRow(new string[] {
                         "Academies",
                         "Academy converter"});
-            table975.AddRow(new string[] {
+            table1021.AddRow(new string[] {
                         "Academies",
                         "Academy special converter"});
-            table975.AddRow(new string[] {
+            table1021.AddRow(new string[] {
                         "Academies",
                         "Academy special sponsor led"});
-            table975.AddRow(new string[] {
+            table1021.AddRow(new string[] {
                         "Academies",
                         "Academy sponsor led"});
-            table975.AddRow(new string[] {
+            table1021.AddRow(new string[] {
                         "Academies",
                         "Academy 16 to 19 sponsor led"});
-            table975.AddRow(new string[] {
+            table1021.AddRow(new string[] {
                         "Academies",
                         "Academy 16-19 converter"});
 #line 36
- testRunner.And("the funding configuration has the following provider type matches", ((string)(null)), table975, "And ");
+ testRunner.And("the funding configuration has the following provider type matches", ((string)(null)), table1021, "And ");
 #line hidden
 #line 51
  testRunner.And("the funding configuration is available in the policies repository", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table976 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table1022 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table976.AddRow(new string[] {
+            table1022.AddRow(new string[] {
                         "GroupTypeIdentifier",
                         "UKPRN"});
-            table976.AddRow(new string[] {
+            table1022.AddRow(new string[] {
                         "GroupingReason",
                         "Information"});
-            table976.AddRow(new string[] {
+            table1022.AddRow(new string[] {
                         "GroupTypeClassification",
                         "LegalEntity"});
-            table976.AddRow(new string[] {
+            table1022.AddRow(new string[] {
                         "OrganisationGroupTypeCode",
                         "Provider"});
 #line 52
- testRunner.And("the funding configuration has the following organisation group", ((string)(null)), table976, "And ");
+ testRunner.And("the funding configuration has the following organisation group", ((string)(null)), table1022, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table977 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table1023 = new TechTalk.SpecFlow.Table(new string[] {
                         "ProviderType",
                         "ProviderSubtype"});
-            table977.AddRow(new string[] {
+            table1023.AddRow(new string[] {
                         "Special schools",
                         "Non-maintained special school"});
 #line 58
- testRunner.And("the funding configuration has the following provider type matches", ((string)(null)), table977, "And ");
+ testRunner.And("the funding configuration has the following provider type matches", ((string)(null)), table1023, "And ");
 #line hidden
 #line 61
  testRunner.And("the funding configuration is available in the policies repository", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table978 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table1024 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table978.AddRow(new string[] {
+            table1024.AddRow(new string[] {
                         "GroupTypeIdentifier",
                         "LACode"});
-            table978.AddRow(new string[] {
+            table1024.AddRow(new string[] {
                         "GroupingReason",
                         "Information"});
-            table978.AddRow(new string[] {
+            table1024.AddRow(new string[] {
                         "GroupTypeClassification",
                         "GeographicalBoundary"});
-            table978.AddRow(new string[] {
+            table1024.AddRow(new string[] {
                         "OrganisationGroupTypeCode",
                         "LocalAuthority"});
 #line 62
- testRunner.And("the funding configuration has the following organisation group", ((string)(null)), table978, "And ");
+ testRunner.And("the funding configuration has the following organisation group", ((string)(null)), table1024, "And ");
 #line hidden
 #line 68
  testRunner.And("the funding configuration is available in the policies repository", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table979 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table1025 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table979.AddRow(new string[] {
+            table1025.AddRow(new string[] {
                         "Id",
                         "AY-1920"});
-            table979.AddRow(new string[] {
+            table1025.AddRow(new string[] {
                         "Name",
                         "Academic Year 2019-20"});
-            table979.AddRow(new string[] {
+            table1025.AddRow(new string[] {
                         "StartDate",
                         "2019-08-01 00:00:00"});
-            table979.AddRow(new string[] {
+            table1025.AddRow(new string[] {
                         "EndDate",
                         "2020-07-31 00:00:00"});
-            table979.AddRow(new string[] {
+            table1025.AddRow(new string[] {
                         "Period",
                         "1920"});
-            table979.AddRow(new string[] {
+            table1025.AddRow(new string[] {
                         "Type",
                         "AY"});
 #line 69
- testRunner.And("the funding period exists in the policies service", ((string)(null)), table979, "And ");
+ testRunner.And("the funding period exists in the policies service", ((string)(null)), table1025, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table980 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table1026 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table980.AddRow(new string[] {
+            table1026.AddRow(new string[] {
                         "Id",
                         "specForPublishing"});
-            table980.AddRow(new string[] {
+            table1026.AddRow(new string[] {
                         "Name",
                         "Test Specification for Publishing"});
-            table980.AddRow(new string[] {
+            table1026.AddRow(new string[] {
                         "IsSelectedForFunding",
                         "true"});
-            table980.AddRow(new string[] {
+            table1026.AddRow(new string[] {
                         "ProviderVersionId",
                         "psg-providers-1.0"});
 #line 77
- testRunner.And("the following specification exists", ((string)(null)), table980, "And ");
+ testRunner.And("the following specification exists", ((string)(null)), table1026, "And ");
 #line hidden
 #line 83
  testRunner.And("the specification has the funding period with id \'AY-1920\' and name \'Academic Yea" +
                     "r 2019-20\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table981 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table1027 = new TechTalk.SpecFlow.Table(new string[] {
                         "Name",
                         "Id"});
-            table981.AddRow(new string[] {
+            table1027.AddRow(new string[] {
                         "PE and Sports",
                         "PSG"});
 #line 84
- testRunner.And("the specification has the following funding streams", ((string)(null)), table981, "And ");
+ testRunner.And("the specification has the following funding streams", ((string)(null)), table1027, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table982 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table1028 = new TechTalk.SpecFlow.Table(new string[] {
                         "Key",
                         "Value"});
-            table982.AddRow(new string[] {
+            table1028.AddRow(new string[] {
                         "PSG",
                         "1.0"});
 #line 87
- testRunner.And("the specification has the following template versions for funding streams", ((string)(null)), table982, "And ");
+ testRunner.And("the specification has the following template versions for funding streams", ((string)(null)), table1028, "And ");
 #line hidden
 #line 90
  testRunner.And("the specification is approved", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table983 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table1029 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table983.AddRow(new string[] {
+            table1029.AddRow(new string[] {
                         "StatusChangedDate",
                         "2019-09-27 00:00:00"});
-            table983.AddRow(new string[] {
+            table1029.AddRow(new string[] {
                         "ExternalPublicationDate",
                         "2019-09-28 00:00:00"});
-            table983.AddRow(new string[] {
+            table1029.AddRow(new string[] {
                         "EarliestPaymentAvailableDate",
                         "2019-09-29 00:00:00"});
 #line 91
- testRunner.And("the publishing dates for the specifcation are set as following", ((string)(null)), table983, "And ");
+ testRunner.And("the publishing dates for the specifcation are set as following", ((string)(null)), table1029, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table984 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table1030 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table984.AddRow(new string[] {
+            table1030.AddRow(new string[] {
                         "JobDefinitionId",
                         "PublishFundingJob"});
-            table984.AddRow(new string[] {
+            table1030.AddRow(new string[] {
                         "InvokerUserId",
                         "PublishUserId"});
-            table984.AddRow(new string[] {
+            table1030.AddRow(new string[] {
                         "InvokerUserDisplayName",
                         "Invoker User"});
-            table984.AddRow(new string[] {
+            table1030.AddRow(new string[] {
                         "ParentJobId",
                         ""});
 #line 96
- testRunner.And("the following job is requested to be queued for the current specification", ((string)(null)), table984, "And ");
+ testRunner.And("the following job is requested to be queued for the current specification", ((string)(null)), table1030, "And ");
 #line hidden
 #line 102
  testRunner.And("the job is submitted to the job service", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table985 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table1031 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table985.AddRow(new string[] {
+            table1031.AddRow(new string[] {
                         "ProviderVersionId",
                         "psg-providers-1.0"});
-            table985.AddRow(new string[] {
+            table1031.AddRow(new string[] {
                         "VersionType",
                         "Custom"});
-            table985.AddRow(new string[] {
+            table1031.AddRow(new string[] {
                         "Name",
                         "PSG Provider Version"});
-            table985.AddRow(new string[] {
+            table1031.AddRow(new string[] {
                         "Description",
                         "Acceptance Tests"});
-            table985.AddRow(new string[] {
+            table1031.AddRow(new string[] {
                         "Version",
                         "1"});
-            table985.AddRow(new string[] {
+            table1031.AddRow(new string[] {
                         "TargetDate",
                         "2019-12-12 00:00"});
-            table985.AddRow(new string[] {
+            table1031.AddRow(new string[] {
                         "FundingStream",
                         "PSG"});
-            table985.AddRow(new string[] {
+            table1031.AddRow(new string[] {
                         "Created",
                         "2019-12-11 00:00"});
 #line 103
- testRunner.And("the following provider version exists in the providers service", ((string)(null)), table985, "And ");
+ testRunner.And("the following provider version exists in the providers service", ((string)(null)), table1031, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table986 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table1032 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table986.AddRow(new string[] {
+            table1032.AddRow(new string[] {
                         "ProviderId",
                         "1000000"});
-            table986.AddRow(new string[] {
+            table1032.AddRow(new string[] {
                         "FundingStreamId",
                         "PSG"});
-            table986.AddRow(new string[] {
+            table1032.AddRow(new string[] {
                         "FundingPeriodId",
                         "AY-1920"});
-            table986.AddRow(new string[] {
+            table1032.AddRow(new string[] {
                         "TemplateVersion",
                         "1.0"});
-            table986.AddRow(new string[] {
+            table1032.AddRow(new string[] {
                         "Status",
                         "Approved"});
-            table986.AddRow(new string[] {
+            table1032.AddRow(new string[] {
                         "TotalFunding",
                         "12000"});
-            table986.AddRow(new string[] {
+            table1032.AddRow(new string[] {
                         "MajorVersion",
                         "0"});
-            table986.AddRow(new string[] {
+            table1032.AddRow(new string[] {
                         "MinorVersion",
                         "1"});
 #line 114
  testRunner.And("the following Published Provider has been previously generated for the current sp" +
-                    "ecification", ((string)(null)), table986, "And ");
+                    "ecification", ((string)(null)), table1032, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table987 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table1033 = new TechTalk.SpecFlow.Table(new string[] {
                         "Name",
                         "FundingLineCode",
                         "Value",
                         "TemplateLineId",
                         "Type"});
-            table987.AddRow(new string[] {
+            table1033.AddRow(new string[] {
                         "Total Allocation",
                         "TotalAllocation",
                         "12000",
                         "1",
                         "Payment"});
 #line 124
- testRunner.And("the Published Provider has the following funding lines", ((string)(null)), table987, "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table988 = new TechTalk.SpecFlow.Table(new string[] {
-                        "DistributionPeriodId",
-                        "Value"});
-            table988.AddRow(new string[] {
-                        "FY-1920",
-                        "7000"});
-            table988.AddRow(new string[] {
-                        "FY-2021",
-                        "5000"});
-#line 127
- testRunner.And("the Published Provider has the following distribution period for funding line \'To" +
-                    "talAllocation\'", ((string)(null)), table988, "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table989 = new TechTalk.SpecFlow.Table(new string[] {
-                        "DistributionPeriodId",
-                        "Type",
-                        "TypeValue",
-                        "Year",
-                        "Occurrence",
-                        "ProfiledValue"});
-            table989.AddRow(new string[] {
-                        "FY-1920",
-                        "CalendarMonth",
-                        "October",
-                        "1920",
-                        "1",
-                        "7000"});
-            table989.AddRow(new string[] {
-                        "FY-2021",
-                        "CalendarMonth",
-                        "April",
-                        "2021",
-                        "1",
-                        "5000"});
-#line 131
- testRunner.And("the Published Providers distribution period has the following profiles for fundin" +
-                    "g line \'TotalAllocation\'", ((string)(null)), table989, "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table990 = new TechTalk.SpecFlow.Table(new string[] {
-                        "EntityType",
-                        "CalculationId",
-                        "TemplateId",
-                        "Name"});
-            table990.AddRow(new string[] {
-                        "Calculation",
-                        "calculation1",
-                        "2",
-                        "Total Allocation"});
-            table990.AddRow(new string[] {
-                        "Calculation",
-                        "calculation2",
-                        "3",
-                        "Eligible Pupils"});
-            table990.AddRow(new string[] {
-                        "Calculation",
-                        "calculation3",
-                        "4",
-                        "Pupil rate threshold"});
-            table990.AddRow(new string[] {
-                        "Calculation",
-                        "calculation4",
-                        "5",
-                        "Rate"});
-            table990.AddRow(new string[] {
-                        "Calculation",
-                        "calculation5",
-                        "6",
-                        "Additional Rate"});
-#line 135
- testRunner.And("template mapping exists", ((string)(null)), table990, "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table991 = new TechTalk.SpecFlow.Table(new string[] {
-                        "TemplateCalculationId",
-                        "Value"});
-            table991.AddRow(new string[] {
-                        "2",
-                        "12000"});
-            table991.AddRow(new string[] {
-                        "3",
-                        "120"});
-            table991.AddRow(new string[] {
-                        "4",
-                        "500"});
-            table991.AddRow(new string[] {
-                        "5",
-                        "1000"});
-            table991.AddRow(new string[] {
-                        "6",
-                        "20"});
-#line 142
- testRunner.And("the Published Provider contains the following calculation results", ((string)(null)), table991, "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table992 = new TechTalk.SpecFlow.Table(new string[] {
-                        "Field",
-                        "Value"});
-            table992.AddRow(new string[] {
-                        "ProviderId",
-                        "1000000"});
-            table992.AddRow(new string[] {
-                        "Name",
-                        "Maintained School 1"});
-            table992.AddRow(new string[] {
-                        "Authority",
-                        "Local Authority 1"});
-            table992.AddRow(new string[] {
-                        "DateOpened",
-                        "2012-03-15"});
-            table992.AddRow(new string[] {
-                        "LACode",
-                        "200"});
-            table992.AddRow(new string[] {
-                        "LocalAuthorityName",
-                        "Maintained School 1"});
-            table992.AddRow(new string[] {
-                        "ProviderType",
-                        "LA maintained schools"});
-            table992.AddRow(new string[] {
-                        "ProviderSubType",
-                        "Community school"});
-            table992.AddRow(new string[] {
-                        "ProviderVersionId",
-                        "psg-providers-1.0"});
-            table992.AddRow(new string[] {
-                        "TrustStatus",
-                        "Not Supported By A Trust"});
-            table992.AddRow(new string[] {
-                        "UKPRN",
-                        "1000000"});
-#line 149
- testRunner.And("the Published Provider has the following provider information", ((string)(null)), table992, "And ");
-#line hidden
-#line 162
- testRunner.And("the Published Provider is available in the repository for this specification", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table993 = new TechTalk.SpecFlow.Table(new string[] {
-                        "Field",
-                        "Value"});
-            table993.AddRow(new string[] {
-                        "ProviderId",
-                        "1000002"});
-            table993.AddRow(new string[] {
-                        "FundingStreamId",
-                        "PSG"});
-            table993.AddRow(new string[] {
-                        "FundingPeriodId",
-                        "AY-1920"});
-            table993.AddRow(new string[] {
-                        "TemplateVersion",
-                        "1.0"});
-            table993.AddRow(new string[] {
-                        "Status",
-                        "Approved"});
-            table993.AddRow(new string[] {
-                        "TotalFunding",
-                        "24000"});
-            table993.AddRow(new string[] {
-                        "MajorVersion",
-                        "0"});
-            table993.AddRow(new string[] {
-                        "MinorVersion",
-                        "1"});
-#line 163
- testRunner.And("the following Published Provider has been previously generated for the current sp" +
-                    "ecification", ((string)(null)), table993, "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table994 = new TechTalk.SpecFlow.Table(new string[] {
-                        "Name",
-                        "FundingLineCode",
-                        "Value",
-                        "TemplateLineId",
-                        "Type"});
-            table994.AddRow(new string[] {
-                        "Total Allocation",
-                        "TotalAllocation",
-                        "24000",
-                        "1",
-                        "Payment"});
-#line 173
- testRunner.And("the Published Provider has the following funding lines", ((string)(null)), table994, "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table995 = new TechTalk.SpecFlow.Table(new string[] {
-                        "DistributionPeriodId",
-                        "Value"});
-            table995.AddRow(new string[] {
-                        "FY-1920",
-                        "14000"});
-            table995.AddRow(new string[] {
-                        "FY-2021",
-                        "10000"});
-#line 176
- testRunner.And("the Published Provider has the following distribution period for funding line \'To" +
-                    "talAllocation\'", ((string)(null)), table995, "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table996 = new TechTalk.SpecFlow.Table(new string[] {
-                        "DistributionPeriodId",
-                        "Type",
-                        "TypeValue",
-                        "Year",
-                        "Occurrence",
-                        "ProfiledValue"});
-            table996.AddRow(new string[] {
-                        "FY-1920",
-                        "CalendarMonth",
-                        "October",
-                        "1920",
-                        "1",
-                        "14000"});
-            table996.AddRow(new string[] {
-                        "FY-2021",
-                        "CalendarMonth",
-                        "April",
-                        "2021",
-                        "1",
-                        "10000"});
-#line 180
- testRunner.And("the Published Providers distribution period has the following profiles for fundin" +
-                    "g line \'TotalAllocation\'", ((string)(null)), table996, "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table997 = new TechTalk.SpecFlow.Table(new string[] {
-                        "TemplateCalculationId",
-                        "Value"});
-            table997.AddRow(new string[] {
-                        "2",
-                        "24000"});
-            table997.AddRow(new string[] {
-                        "3",
-                        "120"});
-            table997.AddRow(new string[] {
-                        "4",
-                        "500"});
-            table997.AddRow(new string[] {
-                        "5",
-                        "1000"});
-            table997.AddRow(new string[] {
-                        "6",
-                        "20"});
-#line 184
- testRunner.And("the Published Provider contains the following calculation results", ((string)(null)), table997, "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table998 = new TechTalk.SpecFlow.Table(new string[] {
-                        "Field",
-                        "Value"});
-            table998.AddRow(new string[] {
-                        "ProviderId",
-                        "1000002"});
-            table998.AddRow(new string[] {
-                        "Name",
-                        "Maintained School 2"});
-            table998.AddRow(new string[] {
-                        "Authority",
-                        "Local Authority 1"});
-            table998.AddRow(new string[] {
-                        "DateOpened",
-                        "2013-04-17"});
-            table998.AddRow(new string[] {
-                        "LACode",
-                        "200"});
-            table998.AddRow(new string[] {
-                        "LocalAuthorityName",
-                        "Local Authority 1"});
-            table998.AddRow(new string[] {
-                        "ProviderType",
-                        "LA maintained schools"});
-            table998.AddRow(new string[] {
-                        "ProviderSubType",
-                        "Community school"});
-            table998.AddRow(new string[] {
-                        "ProviderVersionId",
-                        "psg-providers-1.0"});
-            table998.AddRow(new string[] {
-                        "TrustStatus",
-                        "Not Supported By A Trust"});
-            table998.AddRow(new string[] {
-                        "UKPRN",
-                        "1000002"});
-#line 191
- testRunner.And("the Published Provider has the following provider information", ((string)(null)), table998, "And ");
-#line hidden
-#line 204
- testRunner.And("the Published Provider is available in the repository for this specification", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table999 = new TechTalk.SpecFlow.Table(new string[] {
-                        "Field",
-                        "Value"});
-            table999.AddRow(new string[] {
-                        "ProviderId",
-                        "1000101"});
-            table999.AddRow(new string[] {
-                        "FundingStreamId",
-                        "PSG"});
-            table999.AddRow(new string[] {
-                        "FundingPeriodId",
-                        "AY-1920"});
-            table999.AddRow(new string[] {
-                        "TemplateVersion",
-                        "1.0"});
-            table999.AddRow(new string[] {
-                        "Status",
-                        "Approved"});
-            table999.AddRow(new string[] {
-                        "TotalFunding",
-                        "24000"});
-            table999.AddRow(new string[] {
-                        "MajorVersion",
-                        "0"});
-            table999.AddRow(new string[] {
-                        "MinorVersion",
-                        "1"});
-#line 206
- testRunner.And("the following Published Provider has been previously generated for the current sp" +
-                    "ecification", ((string)(null)), table999, "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table1000 = new TechTalk.SpecFlow.Table(new string[] {
-                        "Name",
-                        "FundingLineCode",
-                        "Value",
-                        "TemplateLineId",
-                        "Type"});
-            table1000.AddRow(new string[] {
-                        "Total Allocation",
-                        "TotalAllocation",
-                        "24000",
-                        "1",
-                        "Payment"});
-#line 216
- testRunner.And("the Published Provider has the following funding lines", ((string)(null)), table1000, "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table1001 = new TechTalk.SpecFlow.Table(new string[] {
-                        "DistributionPeriodId",
-                        "Value"});
-            table1001.AddRow(new string[] {
-                        "FY-1920",
-                        "14000"});
-            table1001.AddRow(new string[] {
-                        "FY-2021",
-                        "10000"});
-#line 219
- testRunner.And("the Published Provider has the following distribution period for funding line \'To" +
-                    "talAllocation\'", ((string)(null)), table1001, "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table1002 = new TechTalk.SpecFlow.Table(new string[] {
-                        "DistributionPeriodId",
-                        "Type",
-                        "TypeValue",
-                        "Year",
-                        "Occurrence",
-                        "ProfiledValue"});
-            table1002.AddRow(new string[] {
-                        "FY-1920",
-                        "CalendarMonth",
-                        "October",
-                        "1920",
-                        "1",
-                        "14000"});
-            table1002.AddRow(new string[] {
-                        "FY-2021",
-                        "CalendarMonth",
-                        "April",
-                        "2021",
-                        "1",
-                        "10000"});
-#line 223
- testRunner.And("the Published Providers distribution period has the following profiles for fundin" +
-                    "g line \'TotalAllocation\'", ((string)(null)), table1002, "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table1003 = new TechTalk.SpecFlow.Table(new string[] {
-                        "TemplateCalculationId",
-                        "Value"});
-            table1003.AddRow(new string[] {
-                        "2",
-                        "24000"});
-            table1003.AddRow(new string[] {
-                        "3",
-                        "120"});
-            table1003.AddRow(new string[] {
-                        "4",
-                        "500"});
-            table1003.AddRow(new string[] {
-                        "5",
-                        "1000"});
-            table1003.AddRow(new string[] {
-                        "6",
-                        "20"});
-#line 227
- testRunner.And("the Published Provider contains the following calculation results", ((string)(null)), table1003, "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table1004 = new TechTalk.SpecFlow.Table(new string[] {
-                        "Field",
-                        "Value"});
-            table1004.AddRow(new string[] {
-                        "ProviderId",
-                        "1000101"});
-            table1004.AddRow(new string[] {
-                        "Name",
-                        "Academy 1"});
-            table1004.AddRow(new string[] {
-                        "Authority",
-                        "Local Authority 1"});
-            table1004.AddRow(new string[] {
-                        "DateOpened",
-                        "2013-04-17"});
-            table1004.AddRow(new string[] {
-                        "LACode",
-                        "200"});
-            table1004.AddRow(new string[] {
-                        "LocalAuthorityName",
-                        "Local Authority 1"});
-            table1004.AddRow(new string[] {
-                        "ProviderType",
-                        "Academies"});
-            table1004.AddRow(new string[] {
-                        "ProviderSubType",
-                        "Academy special sponsor led"});
-            table1004.AddRow(new string[] {
-                        "ProviderVersionId",
-                        "psg-providers-1.0"});
-            table1004.AddRow(new string[] {
-                        "TrustCode",
-                        "1001"});
-            table1004.AddRow(new string[] {
-                        "TrustStatus",
-                        "SupportedByAMultiAcademyTrust"});
-            table1004.AddRow(new string[] {
-                        "UKPRN",
-                        "1000101"});
-#line 234
- testRunner.And("the Published Provider has the following provider information", ((string)(null)), table1004, "And ");
-#line hidden
-#line 248
- testRunner.And("the Published Provider is available in the repository for this specification", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table1005 = new TechTalk.SpecFlow.Table(new string[] {
-                        "Field",
-                        "Value"});
-            table1005.AddRow(new string[] {
-                        "ProviderId",
-                        "1000102"});
-            table1005.AddRow(new string[] {
-                        "FundingStreamId",
-                        "PSG"});
-            table1005.AddRow(new string[] {
-                        "FundingPeriodId",
-                        "AY-1920"});
-            table1005.AddRow(new string[] {
-                        "TemplateVersion",
-                        "1.0"});
-            table1005.AddRow(new string[] {
-                        "Status",
-                        "Approved"});
-            table1005.AddRow(new string[] {
-                        "TotalFunding",
-                        "24000"});
-            table1005.AddRow(new string[] {
-                        "MajorVersion",
-                        "0"});
-            table1005.AddRow(new string[] {
-                        "MinorVersion",
-                        "1"});
-#line 249
- testRunner.And("the following Published Provider has been previously generated for the current sp" +
-                    "ecification", ((string)(null)), table1005, "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table1006 = new TechTalk.SpecFlow.Table(new string[] {
-                        "Name",
-                        "FundingLineCode",
-                        "Value",
-                        "TemplateLineId",
-                        "Type"});
-            table1006.AddRow(new string[] {
-                        "Total Allocation",
-                        "TotalAllocation",
-                        "24000",
-                        "1",
-                        "Payment"});
-#line 259
- testRunner.And("the Published Provider has the following funding lines", ((string)(null)), table1006, "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table1007 = new TechTalk.SpecFlow.Table(new string[] {
-                        "DistributionPeriodId",
-                        "Value"});
-            table1007.AddRow(new string[] {
-                        "FY-1920",
-                        "14000"});
-            table1007.AddRow(new string[] {
-                        "FY-2021",
-                        "10000"});
-#line 262
- testRunner.And("the Published Provider has the following distribution period for funding line \'To" +
-                    "talAllocation\'", ((string)(null)), table1007, "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table1008 = new TechTalk.SpecFlow.Table(new string[] {
-                        "DistributionPeriodId",
-                        "Type",
-                        "TypeValue",
-                        "Year",
-                        "Occurrence",
-                        "ProfiledValue"});
-            table1008.AddRow(new string[] {
-                        "FY-1920",
-                        "CalendarMonth",
-                        "October",
-                        "1920",
-                        "1",
-                        "14000"});
-            table1008.AddRow(new string[] {
-                        "FY-2021",
-                        "CalendarMonth",
-                        "April",
-                        "2021",
-                        "1",
-                        "10000"});
-#line 266
- testRunner.And("the Published Providers distribution period has the following profiles for fundin" +
-                    "g line \'TotalAllocation\'", ((string)(null)), table1008, "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table1009 = new TechTalk.SpecFlow.Table(new string[] {
-                        "TemplateCalculationId",
-                        "Value"});
-            table1009.AddRow(new string[] {
-                        "2",
-                        "24000"});
-            table1009.AddRow(new string[] {
-                        "3",
-                        "120"});
-            table1009.AddRow(new string[] {
-                        "4",
-                        "500"});
-            table1009.AddRow(new string[] {
-                        "5",
-                        "1000"});
-            table1009.AddRow(new string[] {
-                        "6",
-                        "20"});
-#line 270
- testRunner.And("the Published Provider contains the following calculation results", ((string)(null)), table1009, "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table1010 = new TechTalk.SpecFlow.Table(new string[] {
-                        "Field",
-                        "Value"});
-            table1010.AddRow(new string[] {
-                        "ProviderId",
-                        "1000102"});
-            table1010.AddRow(new string[] {
-                        "Name",
-                        "Academy 2"});
-            table1010.AddRow(new string[] {
-                        "Authority",
-                        "Local Authority 1"});
-            table1010.AddRow(new string[] {
-                        "DateOpened",
-                        "2013-04-17"});
-            table1010.AddRow(new string[] {
-                        "LACode",
-                        "200"});
-            table1010.AddRow(new string[] {
-                        "LocalAuthorityName",
-                        "Local Authority 1"});
-            table1010.AddRow(new string[] {
-                        "ProviderType",
-                        "Academies"});
-            table1010.AddRow(new string[] {
-                        "ProviderSubType",
-                        "Academy special sponsor led"});
-            table1010.AddRow(new string[] {
-                        "ProviderVersionId",
-                        "psg-providers-1.0"});
-            table1010.AddRow(new string[] {
-                        "TrustCode",
-                        "1001"});
-            table1010.AddRow(new string[] {
-                        "TrustStatus",
-                        "SupportedByAMultiAcademyTrust"});
-            table1010.AddRow(new string[] {
-                        "UKPRN",
-                        "1000102"});
-#line 277
- testRunner.And("the Published Provider has the following provider information", ((string)(null)), table1010, "And ");
-#line hidden
-#line 291
- testRunner.And("the Published Provider is available in the repository for this specification", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table1011 = new TechTalk.SpecFlow.Table(new string[] {
-                        "Field",
-                        "Value"});
-            table1011.AddRow(new string[] {
-                        "ProviderId",
-                        "1000104"});
-            table1011.AddRow(new string[] {
-                        "FundingStreamId",
-                        "PSG"});
-            table1011.AddRow(new string[] {
-                        "FundingPeriodId",
-                        "AY-1920"});
-            table1011.AddRow(new string[] {
-                        "TemplateVersion",
-                        "1.0"});
-            table1011.AddRow(new string[] {
-                        "Status",
-                        "Approved"});
-            table1011.AddRow(new string[] {
-                        "TotalFunding",
-                        "24000"});
-            table1011.AddRow(new string[] {
-                        "MajorVersion",
-                        "0"});
-            table1011.AddRow(new string[] {
-                        "MinorVersion",
-                        "1"});
-#line 292
- testRunner.And("the following Published Provider has been previously generated for the current sp" +
-                    "ecification", ((string)(null)), table1011, "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table1012 = new TechTalk.SpecFlow.Table(new string[] {
-                        "Name",
-                        "FundingLineCode",
-                        "Value",
-                        "TemplateLineId",
-                        "Type"});
-            table1012.AddRow(new string[] {
-                        "Total Allocation",
-                        "TotalAllocation",
-                        "",
-                        "1",
-                        "Payment"});
-#line 302
- testRunner.And("the Published Provider has the following funding lines", ((string)(null)), table1012, "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table1013 = new TechTalk.SpecFlow.Table(new string[] {
-                        "DistributionPeriodId",
-                        "Value"});
-            table1013.AddRow(new string[] {
-                        "FY-1920",
-                        ""});
-            table1013.AddRow(new string[] {
-                        "FY-2021",
-                        ""});
-#line 305
- testRunner.And("the Published Provider has the following distribution period for funding line \'To" +
-                    "talAllocation\'", ((string)(null)), table1013, "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table1014 = new TechTalk.SpecFlow.Table(new string[] {
-                        "DistributionPeriodId",
-                        "Type",
-                        "TypeValue",
-                        "Year",
-                        "Occurrence",
-                        "ProfiledValue"});
-            table1014.AddRow(new string[] {
-                        "FY-1920",
-                        "CalendarMonth",
-                        "October",
-                        "1920",
-                        "1",
-                        ""});
-            table1014.AddRow(new string[] {
-                        "FY-2021",
-                        "CalendarMonth",
-                        "April",
-                        "2021",
-                        "1",
-                        ""});
-#line 309
- testRunner.And("the Published Providers distribution period has the following profiles for fundin" +
-                    "g line \'TotalAllocation\'", ((string)(null)), table1014, "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table1015 = new TechTalk.SpecFlow.Table(new string[] {
-                        "TemplateCalculationId",
-                        "Value"});
-            table1015.AddRow(new string[] {
-                        "2",
-                        ""});
-            table1015.AddRow(new string[] {
-                        "3",
-                        ""});
-            table1015.AddRow(new string[] {
-                        "4",
-                        ""});
-            table1015.AddRow(new string[] {
-                        "5",
-                        ""});
-            table1015.AddRow(new string[] {
-                        "6",
-                        ""});
-#line 313
- testRunner.And("the Published Provider contains the following calculation results", ((string)(null)), table1015, "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table1016 = new TechTalk.SpecFlow.Table(new string[] {
-                        "Field",
-                        "Value"});
-            table1016.AddRow(new string[] {
-                        "ProviderId",
-                        "1000104"});
-            table1016.AddRow(new string[] {
-                        "Name",
-                        "Academy 4"});
-            table1016.AddRow(new string[] {
-                        "Authority",
-                        "Local Authority 1"});
-            table1016.AddRow(new string[] {
-                        "DateOpened",
-                        "2013-04-17"});
-            table1016.AddRow(new string[] {
-                        "LACode",
-                        "200"});
-            table1016.AddRow(new string[] {
-                        "LocalAuthorityName",
-                        "Local Authority 1"});
-            table1016.AddRow(new string[] {
-                        "ProviderType",
-                        "Academies"});
-            table1016.AddRow(new string[] {
-                        "ProviderSubType",
-                        "Academy special sponsor led"});
-            table1016.AddRow(new string[] {
-                        "ProviderVersionId",
-                        "psg-providers-1.0"});
-            table1016.AddRow(new string[] {
-                        "TrustCode",
-                        "1001"});
-            table1016.AddRow(new string[] {
-                        "TrustStatus",
-                        "SupportedByAMultiAcademyTrust"});
-            table1016.AddRow(new string[] {
-                        "UKPRN",
-                        "1000104"});
-#line 320
- testRunner.And("the Published Provider has the following provider information", ((string)(null)), table1016, "And ");
-#line hidden
-#line 334
- testRunner.And("the Published Provider is available in the repository for this specification", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table1017 = new TechTalk.SpecFlow.Table(new string[] {
-                        "Field",
-                        "Value"});
-            table1017.AddRow(new string[] {
-                        "ProviderId",
-                        "1000000"});
-            table1017.AddRow(new string[] {
-                        "Name",
-                        "Maintained School 1"});
-            table1017.AddRow(new string[] {
-                        "Authority",
-                        "Local Authority 1"});
-            table1017.AddRow(new string[] {
-                        "DateOpened",
-                        "2012-03-16"});
-            table1017.AddRow(new string[] {
-                        "LACode",
-                        "200"});
-            table1017.AddRow(new string[] {
-                        "LocalAuthorityName",
-                        "Maintained School 1"});
-            table1017.AddRow(new string[] {
-                        "ProviderType",
-                        "LA maintained schools"});
-            table1017.AddRow(new string[] {
-                        "ProviderSubType",
-                        "Community school"});
-            table1017.AddRow(new string[] {
-                        "ProviderVersionId",
-                        "psg-providers-1.0"});
-            table1017.AddRow(new string[] {
-                        "TrustStatus",
-                        "Not Supported By A Trust"});
-            table1017.AddRow(new string[] {
-                        "UKPRN",
-                        "1000000"});
-#line 336
- testRunner.And("the following provider exists within core provider data in provider version \'psg-" +
-                    "providers-1.0\'", ((string)(null)), table1017, "And ");
-#line hidden
-#line 349
- testRunner.And("the provider with id \'1000000\' should be a scoped provider in the current specifi" +
-                    "cation in provider version \'psg-providers-1.0\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table1018 = new TechTalk.SpecFlow.Table(new string[] {
-                        "Field",
-                        "Value"});
-            table1018.AddRow(new string[] {
-                        "ProviderId",
-                        "1000002"});
-            table1018.AddRow(new string[] {
-                        "Name",
-                        "Maintained School 2"});
-            table1018.AddRow(new string[] {
-                        "Authority",
-                        "Local Authority 1"});
-            table1018.AddRow(new string[] {
-                        "DateOpened",
-                        "2013-04-16"});
-            table1018.AddRow(new string[] {
-                        "LACode",
-                        "200"});
-            table1018.AddRow(new string[] {
-                        "LocalAuthorityName",
-                        "Local Authority 1"});
-            table1018.AddRow(new string[] {
-                        "ProviderType",
-                        "LA maintained schools"});
-            table1018.AddRow(new string[] {
-                        "ProviderSubType",
-                        "Community school"});
-            table1018.AddRow(new string[] {
-                        "ProviderVersionId",
-                        "psg-providers-1.0"});
-            table1018.AddRow(new string[] {
-                        "TrustStatus",
-                        "Not Supported By A Trust"});
-            table1018.AddRow(new string[] {
-                        "UKPRN",
-                        "1000002"});
-#line 350
- testRunner.And("the following provider exists within core provider data in provider version \'psg-" +
-                    "providers-1.0\'", ((string)(null)), table1018, "And ");
-#line hidden
-#line 363
- testRunner.And("the provider with id \'1000002\' should be a scoped provider in the current specifi" +
-                    "cation in provider version \'psg-providers-1.0\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table1019 = new TechTalk.SpecFlow.Table(new string[] {
-                        "Field",
-                        "Value"});
-            table1019.AddRow(new string[] {
-                        "ProviderId",
-                        "1000003"});
-            table1019.AddRow(new string[] {
-                        "Name",
-                        "Maintained School 3"});
-            table1019.AddRow(new string[] {
-                        "Authority",
-                        "Local Authority 1"});
-            table1019.AddRow(new string[] {
-                        "DateOpened",
-                        "2013-04-16"});
-            table1019.AddRow(new string[] {
-                        "LACode",
-                        "200"});
-            table1019.AddRow(new string[] {
-                        "LocalAuthorityName",
-                        "Local Authority 1"});
-            table1019.AddRow(new string[] {
-                        "ProviderType",
-                        "LA maintained schools"});
-            table1019.AddRow(new string[] {
-                        "ProviderSubType",
-                        "Community school"});
-            table1019.AddRow(new string[] {
-                        "ProviderVersionId",
-                        "psg-providers-1.0"});
-            table1019.AddRow(new string[] {
-                        "TrustStatus",
-                        "Not Supported By A Trust"});
-            table1019.AddRow(new string[] {
-                        "UKPRN",
-                        "1000003"});
-#line 364
- testRunner.And("the following provider exists within core provider data in provider version \'psg-" +
-                    "providers-1.0\'", ((string)(null)), table1019, "And ");
-#line hidden
-#line 377
- testRunner.And("the provider with id \'1000003\' should be a scoped provider in the current specifi" +
-                    "cation in provider version \'psg-providers-1.0\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table1020 = new TechTalk.SpecFlow.Table(new string[] {
-                        "Field",
-                        "Value"});
-            table1020.AddRow(new string[] {
-                        "ProviderId",
-                        "1000004"});
-            table1020.AddRow(new string[] {
-                        "Name",
-                        "Maintained School 4"});
-            table1020.AddRow(new string[] {
-                        "Authority",
-                        "Local Authority 2"});
-            table1020.AddRow(new string[] {
-                        "DateOpened",
-                        "2013-04-16"});
-            table1020.AddRow(new string[] {
-                        "LACode",
-                        "202"});
-            table1020.AddRow(new string[] {
-                        "LocalAuthorityName",
-                        "Local Authority 2"});
-            table1020.AddRow(new string[] {
-                        "ProviderType",
-                        "LA maintained schools"});
-            table1020.AddRow(new string[] {
-                        "ProviderSubType",
-                        "Community school"});
-            table1020.AddRow(new string[] {
-                        "ProviderVersionId",
-                        "psg-providers-1.0"});
-            table1020.AddRow(new string[] {
-                        "TrustStatus",
-                        "Not Supported By A Trust"});
-            table1020.AddRow(new string[] {
-                        "UKPRN",
-                        "1000004"});
-#line 378
- testRunner.And("the following provider exists within core provider data in provider version \'psg-" +
-                    "providers-1.0\'", ((string)(null)), table1020, "And ");
-#line hidden
-#line 391
- testRunner.And("the provider with id \'1000004\' should be a scoped provider in the current specifi" +
-                    "cation in provider version \'psg-providers-1.0\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table1021 = new TechTalk.SpecFlow.Table(new string[] {
-                        "Field",
-                        "Value"});
-            table1021.AddRow(new string[] {
-                        "ProviderId",
-                        "1000005"});
-            table1021.AddRow(new string[] {
-                        "Name",
-                        "Maintained School 5"});
-            table1021.AddRow(new string[] {
-                        "Authority",
-                        "Local Authority 2"});
-            table1021.AddRow(new string[] {
-                        "DateOpened",
-                        "2013-04-16"});
-            table1021.AddRow(new string[] {
-                        "LACode",
-                        "202"});
-            table1021.AddRow(new string[] {
-                        "LocalAuthorityName",
-                        "Local Authority 2"});
-            table1021.AddRow(new string[] {
-                        "ProviderType",
-                        "LA maintained schools"});
-            table1021.AddRow(new string[] {
-                        "ProviderSubType",
-                        "Community school"});
-            table1021.AddRow(new string[] {
-                        "ProviderVersionId",
-                        "psg-providers-1.0"});
-            table1021.AddRow(new string[] {
-                        "TrustStatus",
-                        "Not Supported By A Trust"});
-            table1021.AddRow(new string[] {
-                        "UKPRN",
-                        "1000005"});
-#line 392
- testRunner.And("the following provider exists within core provider data in provider version \'psg-" +
-                    "providers-1.0\'", ((string)(null)), table1021, "And ");
-#line hidden
-#line 405
- testRunner.And("the provider with id \'1000005\' should be a scoped provider in the current specifi" +
-                    "cation in provider version \'psg-providers-1.0\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table1022 = new TechTalk.SpecFlow.Table(new string[] {
-                        "Field",
-                        "Value"});
-            table1022.AddRow(new string[] {
-                        "ProviderId",
-                        "1000009"});
-            table1022.AddRow(new string[] {
-                        "Name",
-                        "Maintained School 9  - Excluded for funding, but in scope for specification"});
-            table1022.AddRow(new string[] {
-                        "Authority",
-                        "Local Authority 3"});
-            table1022.AddRow(new string[] {
-                        "DateOpened",
-                        "2013-04-16"});
-            table1022.AddRow(new string[] {
-                        "LACode",
-                        "203"});
-            table1022.AddRow(new string[] {
-                        "LocalAuthorityName",
-                        "Local Authority 3"});
-            table1022.AddRow(new string[] {
-                        "ProviderType",
-                        "LA maintained schools"});
-            table1022.AddRow(new string[] {
-                        "ProviderSubType",
-                        "Community school"});
-            table1022.AddRow(new string[] {
-                        "ProviderVersionId",
-                        "psg-providers-1.0"});
-            table1022.AddRow(new string[] {
-                        "TrustStatus",
-                        "Not Supported By A Trust"});
-            table1022.AddRow(new string[] {
-                        "UKPRN",
-                        "1000009"});
-#line 406
- testRunner.And("the following provider exists within core provider data in provider version \'psg-" +
-                    "providers-1.0\'", ((string)(null)), table1022, "And ");
-#line hidden
-#line 419
- testRunner.And("the provider with id \'1000009\' should be a scoped provider in the current specifi" +
-                    "cation in provider version \'psg-providers-1.0\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table1023 = new TechTalk.SpecFlow.Table(new string[] {
-                        "Field",
-                        "Value"});
-            table1023.AddRow(new string[] {
-                        "ProviderId",
-                        "1000101"});
-            table1023.AddRow(new string[] {
-                        "Name",
-                        "Academy 1"});
-            table1023.AddRow(new string[] {
-                        "Authority",
-                        "Local Authority 1"});
-            table1023.AddRow(new string[] {
-                        "DateOpened",
-                        "2013-04-16"});
-            table1023.AddRow(new string[] {
-                        "LACode",
-                        "200"});
-            table1023.AddRow(new string[] {
-                        "LocalAuthorityName",
-                        "Local Authority 1"});
-            table1023.AddRow(new string[] {
-                        "ProviderType",
-                        "Academies"});
-            table1023.AddRow(new string[] {
-                        "ProviderSubType",
-                        "Academy special sponsor led"});
-            table1023.AddRow(new string[] {
-                        "ProviderVersionId",
-                        "psg-providers-1.0"});
-            table1023.AddRow(new string[] {
-                        "TrustCode",
-                        "1001"});
-            table1023.AddRow(new string[] {
-                        "TrustStatus",
-                        "SupportedByAMultiAcademyTrust"});
-            table1023.AddRow(new string[] {
-                        "UKPRN",
-                        "1000101"});
-#line 421
- testRunner.And("the following provider exists within core provider data in provider version \'psg-" +
-                    "providers-1.0\'", ((string)(null)), table1023, "And ");
-#line hidden
-#line 435
- testRunner.And("the provider with id \'1000101\' should be a scoped provider in the current specifi" +
-                    "cation in provider version \'psg-providers-1.0\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table1024 = new TechTalk.SpecFlow.Table(new string[] {
-                        "Field",
-                        "Value"});
-            table1024.AddRow(new string[] {
-                        "ProviderId",
-                        "1000102"});
-            table1024.AddRow(new string[] {
-                        "Name",
-                        "Academy 2"});
-            table1024.AddRow(new string[] {
-                        "Authority",
-                        "Local Authority 1"});
-            table1024.AddRow(new string[] {
-                        "DateOpened",
-                        "2013-04-16"});
-            table1024.AddRow(new string[] {
-                        "LACode",
-                        "200"});
-            table1024.AddRow(new string[] {
-                        "LocalAuthorityName",
-                        "Local Authority 1"});
-            table1024.AddRow(new string[] {
-                        "ProviderType",
-                        "Academies"});
-            table1024.AddRow(new string[] {
-                        "ProviderSubType",
-                        "Academy special sponsor led"});
-            table1024.AddRow(new string[] {
-                        "ProviderVersionId",
-                        "psg-providers-1.0"});
-            table1024.AddRow(new string[] {
-                        "TrustCode",
-                        "1001"});
-            table1024.AddRow(new string[] {
-                        "TrustStatus",
-                        "SupportedByAMultiAcademyTrust"});
-            table1024.AddRow(new string[] {
-                        "UKPRN",
-                        "1000102"});
-#line 436
- testRunner.And("the following provider exists within core provider data in provider version \'psg-" +
-                    "providers-1.0\'", ((string)(null)), table1024, "And ");
-#line hidden
-#line 450
- testRunner.And("the provider with id \'1000102\' should be a scoped provider in the current specifi" +
-                    "cation in provider version \'psg-providers-1.0\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table1025 = new TechTalk.SpecFlow.Table(new string[] {
-                        "Field",
-                        "Value"});
-            table1025.AddRow(new string[] {
-                        "ProviderId",
-                        "1000103"});
-            table1025.AddRow(new string[] {
-                        "Name",
-                        "Academy 3"});
-            table1025.AddRow(new string[] {
-                        "Authority",
-                        "Local Authority 2"});
-            table1025.AddRow(new string[] {
-                        "DateOpened",
-                        "2013-04-16"});
-            table1025.AddRow(new string[] {
-                        "LACode",
-                        "200"});
-            table1025.AddRow(new string[] {
-                        "LocalAuthorityName",
-                        "Local Authority 2"});
-            table1025.AddRow(new string[] {
-                        "ProviderType",
-                        "Free Schools"});
-            table1025.AddRow(new string[] {
-                        "ProviderSubType",
-                        "Free Schools"});
-            table1025.AddRow(new string[] {
-                        "ProviderVersionId",
-                        "psg-providers-1.0"});
-            table1025.AddRow(new string[] {
-                        "TrustCode",
-                        "1002"});
-            table1025.AddRow(new string[] {
-                        "TrustStatus",
-                        "SupportedByAMultiAcademyTrust"});
-            table1025.AddRow(new string[] {
-                        "UKPRN",
-                        "1000103"});
-#line 451
- testRunner.And("the following provider exists within core provider data in provider version \'psg-" +
-                    "providers-1.0\'", ((string)(null)), table1025, "And ");
-#line hidden
-#line 465
- testRunner.And("the provider with id \'1000103\' should be a scoped provider in the current specifi" +
-                    "cation in provider version \'psg-providers-1.0\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table1026 = new TechTalk.SpecFlow.Table(new string[] {
-                        "Field",
-                        "Value"});
-            table1026.AddRow(new string[] {
-                        "ProviderId",
-                        "1000104"});
-            table1026.AddRow(new string[] {
-                        "Name",
-                        "Academy 4"});
-            table1026.AddRow(new string[] {
-                        "Authority",
-                        "Local Authority 2"});
-            table1026.AddRow(new string[] {
-                        "DateOpened",
-                        "2013-04-16"});
-            table1026.AddRow(new string[] {
-                        "LACode",
-                        "200"});
-            table1026.AddRow(new string[] {
-                        "LocalAuthorityName",
-                        "Local Authority 2"});
-            table1026.AddRow(new string[] {
-                        "ProviderType",
-                        "Free Schools"});
-            table1026.AddRow(new string[] {
-                        "ProviderSubType",
-                        "Free Schools"});
-            table1026.AddRow(new string[] {
-                        "ProviderVersionId",
-                        "psg-providers-1.0"});
-            table1026.AddRow(new string[] {
-                        "TrustCode",
-                        "1002"});
-            table1026.AddRow(new string[] {
-                        "TrustStatus",
-                        "SupportedByAMultiAcademyTrust"});
-            table1026.AddRow(new string[] {
-                        "UKPRN",
-                        "1000104"});
-#line 466
- testRunner.And("the following provider exists within core provider data in provider version \'psg-" +
-                    "providers-1.0\'", ((string)(null)), table1026, "And ");
-#line hidden
-#line 480
- testRunner.And("the provider with id \'1000104\' should be a scoped provider in the current specifi" +
-                    "cation in provider version \'psg-providers-1.0\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table1027 = new TechTalk.SpecFlow.Table(new string[] {
-                        "Field",
-                        "Value"});
-            table1027.AddRow(new string[] {
-                        "ProviderId",
-                        "9000000"});
-            table1027.AddRow(new string[] {
-                        "Name",
-                        "Local Authority 1"});
-            table1027.AddRow(new string[] {
-                        "Authority",
-                        "Local Authority 1"});
-            table1027.AddRow(new string[] {
-                        "DateOpened",
-                        "2012-03-15"});
-            table1027.AddRow(new string[] {
-                        "LACode",
-                        "200"});
-            table1027.AddRow(new string[] {
-                        "LocalAuthorityName",
-                        "Local Authority 1"});
-            table1027.AddRow(new string[] {
-                        "ProviderType",
-                        "Local Authority"});
-            table1027.AddRow(new string[] {
-                        "ProviderSubType",
-                        "Local Authority"});
-            table1027.AddRow(new string[] {
-                        "ProviderVersionId",
-                        "psg-providers-1.0"});
-            table1027.AddRow(new string[] {
-                        "TrustStatus",
-                        "Not Supported By A Trust"});
-            table1027.AddRow(new string[] {
-                        "UKPRN",
-                        "9000000"});
-            table1027.AddRow(new string[] {
-                        "WardName",
-                        ""});
-#line 482
- testRunner.And("the following provider exists within core provider data in provider version \'psg-" +
-                    "providers-1.0\'", ((string)(null)), table1027, "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table1028 = new TechTalk.SpecFlow.Table(new string[] {
-                        "Field",
-                        "Value"});
-            table1028.AddRow(new string[] {
-                        "ProviderId",
-                        "9000002"});
-            table1028.AddRow(new string[] {
-                        "Name",
-                        "Local Authority 2"});
-            table1028.AddRow(new string[] {
-                        "Authority",
-                        "Local Authority 2"});
-            table1028.AddRow(new string[] {
-                        "DateOpened",
-                        "2012-03-15"});
-            table1028.AddRow(new string[] {
-                        "LACode",
-                        "202"});
-            table1028.AddRow(new string[] {
-                        "LocalAuthorityName",
-                        "Local Authority 2"});
-            table1028.AddRow(new string[] {
-                        "ProviderType",
-                        "Local Authority"});
-            table1028.AddRow(new string[] {
-                        "ProviderSubType",
-                        "Local Authority"});
-            table1028.AddRow(new string[] {
-                        "ProviderVersionId",
-                        "psg-providers-1.0"});
-            table1028.AddRow(new string[] {
-                        "TrustStatus",
-                        "Not Supported By A Trust"});
-            table1028.AddRow(new string[] {
-                        "UKPRN",
-                        "9000002"});
-#line 496
- testRunner.And("the following provider exists within core provider data in provider version \'psg-" +
-                    "providers-1.0\'", ((string)(null)), table1028, "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table1029 = new TechTalk.SpecFlow.Table(new string[] {
-                        "Field",
-                        "Value"});
-            table1029.AddRow(new string[] {
-                        "ProviderId",
-                        "9000003"});
-            table1029.AddRow(new string[] {
-                        "Name",
-                        "Local Authority 3"});
-            table1029.AddRow(new string[] {
-                        "Authority",
-                        "Local Authority 3"});
-            table1029.AddRow(new string[] {
-                        "DateOpened",
-                        "2012-03-15"});
-            table1029.AddRow(new string[] {
-                        "LACode",
-                        "203"});
-            table1029.AddRow(new string[] {
-                        "LocalAuthorityName",
-                        "Local Authority 3"});
-            table1029.AddRow(new string[] {
-                        "ProviderType",
-                        "Local Authority"});
-            table1029.AddRow(new string[] {
-                        "ProviderSubType",
-                        "Local Authority"});
-            table1029.AddRow(new string[] {
-                        "ProviderVersionId",
-                        "psg-providers-1.0"});
-            table1029.AddRow(new string[] {
-                        "TrustStatus",
-                        "Not Supported By A Trust"});
-            table1029.AddRow(new string[] {
-                        "UKPRN",
-                        "9000003"});
-#line 509
- testRunner.And("the following provider exists within core provider data in provider version \'psg-" +
-                    "providers-1.0\'", ((string)(null)), table1029, "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table1030 = new TechTalk.SpecFlow.Table(new string[] {
-                        "Field",
-                        "Value"});
-            table1030.AddRow(new string[] {
-                        "ProviderId",
-                        "8000001"});
-            table1030.AddRow(new string[] {
-                        "Name",
-                        "Academy Trust 1"});
-            table1030.AddRow(new string[] {
-                        "Authority",
-                        "Local Authority 1"});
-            table1030.AddRow(new string[] {
-                        "DateOpened",
-                        "2012-03-15"});
-            table1030.AddRow(new string[] {
-                        "LACode",
-                        "202"});
-            table1030.AddRow(new string[] {
-                        "LocalAuthorityName",
-                        "Local Authority 1"});
-            table1030.AddRow(new string[] {
-                        "ProviderType",
-                        "Academy Trust"});
-            table1030.AddRow(new string[] {
-                        "ProviderSubType",
-                        "Academy Trust"});
-            table1030.AddRow(new string[] {
-                        "ProviderVersionId",
-                        "psg-providers-1.0"});
-            table1030.AddRow(new string[] {
-                        "TrustCode",
-                        "1001"});
-            table1030.AddRow(new string[] {
-                        "TrustStatus",
-                        "Not Supported By A Trust"});
-            table1030.AddRow(new string[] {
-                        "UKPRN",
-                        "8000001"});
-#line 523
- testRunner.And("the following provider exists within core provider data in provider version \'psg-" +
-                    "providers-1.0\'", ((string)(null)), table1030, "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table1031 = new TechTalk.SpecFlow.Table(new string[] {
-                        "Field",
-                        "Value"});
-            table1031.AddRow(new string[] {
-                        "ProviderId",
-                        "8000002"});
-            table1031.AddRow(new string[] {
-                        "Name",
-                        "Academy Trust 2"});
-            table1031.AddRow(new string[] {
-                        "Authority",
-                        "Local Authority 2"});
-            table1031.AddRow(new string[] {
-                        "DateOpened",
-                        "2012-03-15"});
-            table1031.AddRow(new string[] {
-                        "LACode",
-                        "202"});
-            table1031.AddRow(new string[] {
-                        "LocalAuthorityName",
-                        "Academy Trust 1"});
-            table1031.AddRow(new string[] {
-                        "ProviderType",
-                        "Academy Trust"});
-            table1031.AddRow(new string[] {
-                        "ProviderSubType",
-                        "Academy Trust"});
-            table1031.AddRow(new string[] {
-                        "ProviderVersionId",
-                        "psg-providers-1.0"});
-            table1031.AddRow(new string[] {
-                        "TrustCode",
-                        "1002"});
-            table1031.AddRow(new string[] {
-                        "TrustStatus",
-                        "Not Supported By A Trust"});
-            table1031.AddRow(new string[] {
-                        "UKPRN",
-                        "8000001"});
-#line 537
- testRunner.And("the following provider exists within core provider data in provider version \'psg-" +
-                    "providers-1.0\'", ((string)(null)), table1031, "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table1032 = new TechTalk.SpecFlow.Table(new string[] {
-                        "CalculationType",
-                        "CalculationId",
-                        "Name",
-                        "PublishStatus"});
-            table1032.AddRow(new string[] {
-                        "Template",
-                        "calculation1",
-                        "Total Allocation",
-                        "Approved"});
-            table1032.AddRow(new string[] {
-                        "Template",
-                        "calculation2",
-                        "Eligible Pupils",
-                        "Approved"});
-            table1032.AddRow(new string[] {
-                        "Template",
-                        "calculation3",
-                        "Pupil rate threshold",
-                        "Approved"});
-            table1032.AddRow(new string[] {
-                        "Template",
-                        "calculation4",
-                        "Rate",
-                        "Approved"});
-            table1032.AddRow(new string[] {
-                        "Template",
-                        "calculation5",
-                        "Additional Rate",
-                        "Approved"});
-#line 551
- testRunner.And("calculation meta data exists for \'PSG\'", ((string)(null)), table1032, "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table1033 = new TechTalk.SpecFlow.Table(new string[] {
-                        "Value",
-                        "Id"});
-            table1033.AddRow(new string[] {
-                        "24000",
-                        "calculation1"});
-            table1033.AddRow(new string[] {
-                        "120",
-                        "calculation2"});
-            table1033.AddRow(new string[] {
-                        "500",
-                        "calculation3"});
-            table1033.AddRow(new string[] {
-                        "1000",
-                        "calculation4"});
-            table1033.AddRow(new string[] {
-                        "20",
-                        "calculation5"});
-#line 558
- testRunner.And("calculations exists", ((string)(null)), table1033, "And ");
+ testRunner.And("the Published Provider has the following funding lines", ((string)(null)), table1033, "And ");
 #line hidden
             TechTalk.SpecFlow.Table table1034 = new TechTalk.SpecFlow.Table(new string[] {
                         "DistributionPeriodId",
                         "Value"});
             table1034.AddRow(new string[] {
                         "FY-1920",
-                        "14000"});
+                        "7000"});
             table1034.AddRow(new string[] {
                         "FY-2021",
-                        "10000"});
-#line 565
- testRunner.And("the following distribution periods exist", ((string)(null)), table1034, "And ");
+                        "5000"});
+#line 127
+ testRunner.And("the Published Provider has the following distribution period for funding line \'To" +
+                    "talAllocation\'", ((string)(null)), table1034, "And ");
 #line hidden
             TechTalk.SpecFlow.Table table1035 = new TechTalk.SpecFlow.Table(new string[] {
                         "DistributionPeriodId",
@@ -1921,8 +476,1453 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
                         "October",
                         "1920",
                         "1",
-                        "14000"});
+                        "7000"});
             table1035.AddRow(new string[] {
+                        "FY-2021",
+                        "CalendarMonth",
+                        "April",
+                        "2021",
+                        "1",
+                        "5000"});
+#line 131
+ testRunner.And("the Published Providers distribution period has the following profiles for fundin" +
+                    "g line \'TotalAllocation\'", ((string)(null)), table1035, "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1036 = new TechTalk.SpecFlow.Table(new string[] {
+                        "EntityType",
+                        "CalculationId",
+                        "TemplateId",
+                        "Name"});
+            table1036.AddRow(new string[] {
+                        "Calculation",
+                        "calculation1",
+                        "2",
+                        "Total Allocation"});
+            table1036.AddRow(new string[] {
+                        "Calculation",
+                        "calculation2",
+                        "3",
+                        "Eligible Pupils"});
+            table1036.AddRow(new string[] {
+                        "Calculation",
+                        "calculation3",
+                        "4",
+                        "Pupil rate threshold"});
+            table1036.AddRow(new string[] {
+                        "Calculation",
+                        "calculation4",
+                        "5",
+                        "Rate"});
+            table1036.AddRow(new string[] {
+                        "Calculation",
+                        "calculation5",
+                        "6",
+                        "Additional Rate"});
+#line 135
+ testRunner.And("template mapping exists", ((string)(null)), table1036, "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1037 = new TechTalk.SpecFlow.Table(new string[] {
+                        "TemplateCalculationId",
+                        "Value"});
+            table1037.AddRow(new string[] {
+                        "2",
+                        "12000"});
+            table1037.AddRow(new string[] {
+                        "3",
+                        "120"});
+            table1037.AddRow(new string[] {
+                        "4",
+                        "500"});
+            table1037.AddRow(new string[] {
+                        "5",
+                        "1000"});
+            table1037.AddRow(new string[] {
+                        "6",
+                        "20"});
+#line 142
+ testRunner.And("the Published Provider contains the following calculation results", ((string)(null)), table1037, "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1038 = new TechTalk.SpecFlow.Table(new string[] {
+                        "Field",
+                        "Value"});
+            table1038.AddRow(new string[] {
+                        "ProviderId",
+                        "1000000"});
+            table1038.AddRow(new string[] {
+                        "Name",
+                        "Maintained School 1"});
+            table1038.AddRow(new string[] {
+                        "Authority",
+                        "Local Authority 1"});
+            table1038.AddRow(new string[] {
+                        "DateOpened",
+                        "2012-03-15"});
+            table1038.AddRow(new string[] {
+                        "LACode",
+                        "200"});
+            table1038.AddRow(new string[] {
+                        "LocalAuthorityName",
+                        "Maintained School 1"});
+            table1038.AddRow(new string[] {
+                        "ProviderType",
+                        "LA maintained schools"});
+            table1038.AddRow(new string[] {
+                        "ProviderSubType",
+                        "Community school"});
+            table1038.AddRow(new string[] {
+                        "ProviderVersionId",
+                        "psg-providers-1.0"});
+            table1038.AddRow(new string[] {
+                        "TrustStatus",
+                        "Not Supported By A Trust"});
+            table1038.AddRow(new string[] {
+                        "UKPRN",
+                        "1000000"});
+#line 149
+ testRunner.And("the Published Provider has the following provider information", ((string)(null)), table1038, "And ");
+#line hidden
+#line 162
+ testRunner.And("the Published Provider is available in the repository for this specification", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1039 = new TechTalk.SpecFlow.Table(new string[] {
+                        "Field",
+                        "Value"});
+            table1039.AddRow(new string[] {
+                        "ProviderId",
+                        "1000002"});
+            table1039.AddRow(new string[] {
+                        "FundingStreamId",
+                        "PSG"});
+            table1039.AddRow(new string[] {
+                        "FundingPeriodId",
+                        "AY-1920"});
+            table1039.AddRow(new string[] {
+                        "TemplateVersion",
+                        "1.0"});
+            table1039.AddRow(new string[] {
+                        "Status",
+                        "Approved"});
+            table1039.AddRow(new string[] {
+                        "TotalFunding",
+                        "24000"});
+            table1039.AddRow(new string[] {
+                        "MajorVersion",
+                        "0"});
+            table1039.AddRow(new string[] {
+                        "MinorVersion",
+                        "1"});
+#line 163
+ testRunner.And("the following Published Provider has been previously generated for the current sp" +
+                    "ecification", ((string)(null)), table1039, "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1040 = new TechTalk.SpecFlow.Table(new string[] {
+                        "Name",
+                        "FundingLineCode",
+                        "Value",
+                        "TemplateLineId",
+                        "Type"});
+            table1040.AddRow(new string[] {
+                        "Total Allocation",
+                        "TotalAllocation",
+                        "24000",
+                        "1",
+                        "Payment"});
+#line 173
+ testRunner.And("the Published Provider has the following funding lines", ((string)(null)), table1040, "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1041 = new TechTalk.SpecFlow.Table(new string[] {
+                        "DistributionPeriodId",
+                        "Value"});
+            table1041.AddRow(new string[] {
+                        "FY-1920",
+                        "14000"});
+            table1041.AddRow(new string[] {
+                        "FY-2021",
+                        "10000"});
+#line 176
+ testRunner.And("the Published Provider has the following distribution period for funding line \'To" +
+                    "talAllocation\'", ((string)(null)), table1041, "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1042 = new TechTalk.SpecFlow.Table(new string[] {
+                        "DistributionPeriodId",
+                        "Type",
+                        "TypeValue",
+                        "Year",
+                        "Occurrence",
+                        "ProfiledValue"});
+            table1042.AddRow(new string[] {
+                        "FY-1920",
+                        "CalendarMonth",
+                        "October",
+                        "1920",
+                        "1",
+                        "14000"});
+            table1042.AddRow(new string[] {
+                        "FY-2021",
+                        "CalendarMonth",
+                        "April",
+                        "2021",
+                        "1",
+                        "10000"});
+#line 180
+ testRunner.And("the Published Providers distribution period has the following profiles for fundin" +
+                    "g line \'TotalAllocation\'", ((string)(null)), table1042, "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1043 = new TechTalk.SpecFlow.Table(new string[] {
+                        "TemplateCalculationId",
+                        "Value"});
+            table1043.AddRow(new string[] {
+                        "2",
+                        "24000"});
+            table1043.AddRow(new string[] {
+                        "3",
+                        "120"});
+            table1043.AddRow(new string[] {
+                        "4",
+                        "500"});
+            table1043.AddRow(new string[] {
+                        "5",
+                        "1000"});
+            table1043.AddRow(new string[] {
+                        "6",
+                        "20"});
+#line 184
+ testRunner.And("the Published Provider contains the following calculation results", ((string)(null)), table1043, "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1044 = new TechTalk.SpecFlow.Table(new string[] {
+                        "Field",
+                        "Value"});
+            table1044.AddRow(new string[] {
+                        "ProviderId",
+                        "1000002"});
+            table1044.AddRow(new string[] {
+                        "Name",
+                        "Maintained School 2"});
+            table1044.AddRow(new string[] {
+                        "Authority",
+                        "Local Authority 1"});
+            table1044.AddRow(new string[] {
+                        "DateOpened",
+                        "2013-04-17"});
+            table1044.AddRow(new string[] {
+                        "LACode",
+                        "200"});
+            table1044.AddRow(new string[] {
+                        "LocalAuthorityName",
+                        "Local Authority 1"});
+            table1044.AddRow(new string[] {
+                        "ProviderType",
+                        "LA maintained schools"});
+            table1044.AddRow(new string[] {
+                        "ProviderSubType",
+                        "Community school"});
+            table1044.AddRow(new string[] {
+                        "ProviderVersionId",
+                        "psg-providers-1.0"});
+            table1044.AddRow(new string[] {
+                        "TrustStatus",
+                        "Not Supported By A Trust"});
+            table1044.AddRow(new string[] {
+                        "UKPRN",
+                        "1000002"});
+#line 191
+ testRunner.And("the Published Provider has the following provider information", ((string)(null)), table1044, "And ");
+#line hidden
+#line 204
+ testRunner.And("the Published Provider is available in the repository for this specification", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1045 = new TechTalk.SpecFlow.Table(new string[] {
+                        "Field",
+                        "Value"});
+            table1045.AddRow(new string[] {
+                        "ProviderId",
+                        "1000101"});
+            table1045.AddRow(new string[] {
+                        "FundingStreamId",
+                        "PSG"});
+            table1045.AddRow(new string[] {
+                        "FundingPeriodId",
+                        "AY-1920"});
+            table1045.AddRow(new string[] {
+                        "TemplateVersion",
+                        "1.0"});
+            table1045.AddRow(new string[] {
+                        "Status",
+                        "Approved"});
+            table1045.AddRow(new string[] {
+                        "TotalFunding",
+                        "24000"});
+            table1045.AddRow(new string[] {
+                        "MajorVersion",
+                        "0"});
+            table1045.AddRow(new string[] {
+                        "MinorVersion",
+                        "1"});
+#line 206
+ testRunner.And("the following Published Provider has been previously generated for the current sp" +
+                    "ecification", ((string)(null)), table1045, "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1046 = new TechTalk.SpecFlow.Table(new string[] {
+                        "Name",
+                        "FundingLineCode",
+                        "Value",
+                        "TemplateLineId",
+                        "Type"});
+            table1046.AddRow(new string[] {
+                        "Total Allocation",
+                        "TotalAllocation",
+                        "24000",
+                        "1",
+                        "Payment"});
+#line 216
+ testRunner.And("the Published Provider has the following funding lines", ((string)(null)), table1046, "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1047 = new TechTalk.SpecFlow.Table(new string[] {
+                        "DistributionPeriodId",
+                        "Value"});
+            table1047.AddRow(new string[] {
+                        "FY-1920",
+                        "14000"});
+            table1047.AddRow(new string[] {
+                        "FY-2021",
+                        "10000"});
+#line 219
+ testRunner.And("the Published Provider has the following distribution period for funding line \'To" +
+                    "talAllocation\'", ((string)(null)), table1047, "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1048 = new TechTalk.SpecFlow.Table(new string[] {
+                        "DistributionPeriodId",
+                        "Type",
+                        "TypeValue",
+                        "Year",
+                        "Occurrence",
+                        "ProfiledValue"});
+            table1048.AddRow(new string[] {
+                        "FY-1920",
+                        "CalendarMonth",
+                        "October",
+                        "1920",
+                        "1",
+                        "14000"});
+            table1048.AddRow(new string[] {
+                        "FY-2021",
+                        "CalendarMonth",
+                        "April",
+                        "2021",
+                        "1",
+                        "10000"});
+#line 223
+ testRunner.And("the Published Providers distribution period has the following profiles for fundin" +
+                    "g line \'TotalAllocation\'", ((string)(null)), table1048, "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1049 = new TechTalk.SpecFlow.Table(new string[] {
+                        "TemplateCalculationId",
+                        "Value"});
+            table1049.AddRow(new string[] {
+                        "2",
+                        "24000"});
+            table1049.AddRow(new string[] {
+                        "3",
+                        "120"});
+            table1049.AddRow(new string[] {
+                        "4",
+                        "500"});
+            table1049.AddRow(new string[] {
+                        "5",
+                        "1000"});
+            table1049.AddRow(new string[] {
+                        "6",
+                        "20"});
+#line 227
+ testRunner.And("the Published Provider contains the following calculation results", ((string)(null)), table1049, "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1050 = new TechTalk.SpecFlow.Table(new string[] {
+                        "Field",
+                        "Value"});
+            table1050.AddRow(new string[] {
+                        "ProviderId",
+                        "1000101"});
+            table1050.AddRow(new string[] {
+                        "Name",
+                        "Academy 1"});
+            table1050.AddRow(new string[] {
+                        "Authority",
+                        "Local Authority 1"});
+            table1050.AddRow(new string[] {
+                        "DateOpened",
+                        "2013-04-17"});
+            table1050.AddRow(new string[] {
+                        "LACode",
+                        "200"});
+            table1050.AddRow(new string[] {
+                        "LocalAuthorityName",
+                        "Local Authority 1"});
+            table1050.AddRow(new string[] {
+                        "ProviderType",
+                        "Academies"});
+            table1050.AddRow(new string[] {
+                        "ProviderSubType",
+                        "Academy special sponsor led"});
+            table1050.AddRow(new string[] {
+                        "ProviderVersionId",
+                        "psg-providers-1.0"});
+            table1050.AddRow(new string[] {
+                        "TrustCode",
+                        "1001"});
+            table1050.AddRow(new string[] {
+                        "TrustStatus",
+                        "SupportedByAMultiAcademyTrust"});
+            table1050.AddRow(new string[] {
+                        "UKPRN",
+                        "1000101"});
+#line 234
+ testRunner.And("the Published Provider has the following provider information", ((string)(null)), table1050, "And ");
+#line hidden
+#line 248
+ testRunner.And("the Published Provider is available in the repository for this specification", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1051 = new TechTalk.SpecFlow.Table(new string[] {
+                        "Field",
+                        "Value"});
+            table1051.AddRow(new string[] {
+                        "ProviderId",
+                        "1000102"});
+            table1051.AddRow(new string[] {
+                        "FundingStreamId",
+                        "PSG"});
+            table1051.AddRow(new string[] {
+                        "FundingPeriodId",
+                        "AY-1920"});
+            table1051.AddRow(new string[] {
+                        "TemplateVersion",
+                        "1.0"});
+            table1051.AddRow(new string[] {
+                        "Status",
+                        "Approved"});
+            table1051.AddRow(new string[] {
+                        "TotalFunding",
+                        "24000"});
+            table1051.AddRow(new string[] {
+                        "MajorVersion",
+                        "0"});
+            table1051.AddRow(new string[] {
+                        "MinorVersion",
+                        "1"});
+#line 249
+ testRunner.And("the following Published Provider has been previously generated for the current sp" +
+                    "ecification", ((string)(null)), table1051, "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1052 = new TechTalk.SpecFlow.Table(new string[] {
+                        "Name",
+                        "FundingLineCode",
+                        "Value",
+                        "TemplateLineId",
+                        "Type"});
+            table1052.AddRow(new string[] {
+                        "Total Allocation",
+                        "TotalAllocation",
+                        "24000",
+                        "1",
+                        "Payment"});
+#line 259
+ testRunner.And("the Published Provider has the following funding lines", ((string)(null)), table1052, "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1053 = new TechTalk.SpecFlow.Table(new string[] {
+                        "DistributionPeriodId",
+                        "Value"});
+            table1053.AddRow(new string[] {
+                        "FY-1920",
+                        "14000"});
+            table1053.AddRow(new string[] {
+                        "FY-2021",
+                        "10000"});
+#line 262
+ testRunner.And("the Published Provider has the following distribution period for funding line \'To" +
+                    "talAllocation\'", ((string)(null)), table1053, "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1054 = new TechTalk.SpecFlow.Table(new string[] {
+                        "DistributionPeriodId",
+                        "Type",
+                        "TypeValue",
+                        "Year",
+                        "Occurrence",
+                        "ProfiledValue"});
+            table1054.AddRow(new string[] {
+                        "FY-1920",
+                        "CalendarMonth",
+                        "October",
+                        "1920",
+                        "1",
+                        "14000"});
+            table1054.AddRow(new string[] {
+                        "FY-2021",
+                        "CalendarMonth",
+                        "April",
+                        "2021",
+                        "1",
+                        "10000"});
+#line 266
+ testRunner.And("the Published Providers distribution period has the following profiles for fundin" +
+                    "g line \'TotalAllocation\'", ((string)(null)), table1054, "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1055 = new TechTalk.SpecFlow.Table(new string[] {
+                        "TemplateCalculationId",
+                        "Value"});
+            table1055.AddRow(new string[] {
+                        "2",
+                        "24000"});
+            table1055.AddRow(new string[] {
+                        "3",
+                        "120"});
+            table1055.AddRow(new string[] {
+                        "4",
+                        "500"});
+            table1055.AddRow(new string[] {
+                        "5",
+                        "1000"});
+            table1055.AddRow(new string[] {
+                        "6",
+                        "20"});
+#line 270
+ testRunner.And("the Published Provider contains the following calculation results", ((string)(null)), table1055, "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1056 = new TechTalk.SpecFlow.Table(new string[] {
+                        "Field",
+                        "Value"});
+            table1056.AddRow(new string[] {
+                        "ProviderId",
+                        "1000102"});
+            table1056.AddRow(new string[] {
+                        "Name",
+                        "Academy 2"});
+            table1056.AddRow(new string[] {
+                        "Authority",
+                        "Local Authority 1"});
+            table1056.AddRow(new string[] {
+                        "DateOpened",
+                        "2013-04-17"});
+            table1056.AddRow(new string[] {
+                        "LACode",
+                        "200"});
+            table1056.AddRow(new string[] {
+                        "LocalAuthorityName",
+                        "Local Authority 1"});
+            table1056.AddRow(new string[] {
+                        "ProviderType",
+                        "Academies"});
+            table1056.AddRow(new string[] {
+                        "ProviderSubType",
+                        "Academy special sponsor led"});
+            table1056.AddRow(new string[] {
+                        "ProviderVersionId",
+                        "psg-providers-1.0"});
+            table1056.AddRow(new string[] {
+                        "TrustCode",
+                        "1001"});
+            table1056.AddRow(new string[] {
+                        "TrustStatus",
+                        "SupportedByAMultiAcademyTrust"});
+            table1056.AddRow(new string[] {
+                        "UKPRN",
+                        "1000102"});
+#line 277
+ testRunner.And("the Published Provider has the following provider information", ((string)(null)), table1056, "And ");
+#line hidden
+#line 291
+ testRunner.And("the Published Provider is available in the repository for this specification", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1057 = new TechTalk.SpecFlow.Table(new string[] {
+                        "Field",
+                        "Value"});
+            table1057.AddRow(new string[] {
+                        "ProviderId",
+                        "1000104"});
+            table1057.AddRow(new string[] {
+                        "FundingStreamId",
+                        "PSG"});
+            table1057.AddRow(new string[] {
+                        "FundingPeriodId",
+                        "AY-1920"});
+            table1057.AddRow(new string[] {
+                        "TemplateVersion",
+                        "1.0"});
+            table1057.AddRow(new string[] {
+                        "Status",
+                        "Approved"});
+            table1057.AddRow(new string[] {
+                        "TotalFunding",
+                        "24000"});
+            table1057.AddRow(new string[] {
+                        "MajorVersion",
+                        "0"});
+            table1057.AddRow(new string[] {
+                        "MinorVersion",
+                        "1"});
+#line 292
+ testRunner.And("the following Published Provider has been previously generated for the current sp" +
+                    "ecification", ((string)(null)), table1057, "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1058 = new TechTalk.SpecFlow.Table(new string[] {
+                        "Name",
+                        "FundingLineCode",
+                        "Value",
+                        "TemplateLineId",
+                        "Type"});
+            table1058.AddRow(new string[] {
+                        "Total Allocation",
+                        "TotalAllocation",
+                        "",
+                        "1",
+                        "Payment"});
+#line 302
+ testRunner.And("the Published Provider has the following funding lines", ((string)(null)), table1058, "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1059 = new TechTalk.SpecFlow.Table(new string[] {
+                        "DistributionPeriodId",
+                        "Value"});
+            table1059.AddRow(new string[] {
+                        "FY-1920",
+                        ""});
+            table1059.AddRow(new string[] {
+                        "FY-2021",
+                        ""});
+#line 305
+ testRunner.And("the Published Provider has the following distribution period for funding line \'To" +
+                    "talAllocation\'", ((string)(null)), table1059, "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1060 = new TechTalk.SpecFlow.Table(new string[] {
+                        "DistributionPeriodId",
+                        "Type",
+                        "TypeValue",
+                        "Year",
+                        "Occurrence",
+                        "ProfiledValue"});
+            table1060.AddRow(new string[] {
+                        "FY-1920",
+                        "CalendarMonth",
+                        "October",
+                        "1920",
+                        "1",
+                        ""});
+            table1060.AddRow(new string[] {
+                        "FY-2021",
+                        "CalendarMonth",
+                        "April",
+                        "2021",
+                        "1",
+                        ""});
+#line 309
+ testRunner.And("the Published Providers distribution period has the following profiles for fundin" +
+                    "g line \'TotalAllocation\'", ((string)(null)), table1060, "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1061 = new TechTalk.SpecFlow.Table(new string[] {
+                        "TemplateCalculationId",
+                        "Value"});
+            table1061.AddRow(new string[] {
+                        "2",
+                        ""});
+            table1061.AddRow(new string[] {
+                        "3",
+                        ""});
+            table1061.AddRow(new string[] {
+                        "4",
+                        ""});
+            table1061.AddRow(new string[] {
+                        "5",
+                        ""});
+            table1061.AddRow(new string[] {
+                        "6",
+                        ""});
+#line 313
+ testRunner.And("the Published Provider contains the following calculation results", ((string)(null)), table1061, "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1062 = new TechTalk.SpecFlow.Table(new string[] {
+                        "Field",
+                        "Value"});
+            table1062.AddRow(new string[] {
+                        "ProviderId",
+                        "1000104"});
+            table1062.AddRow(new string[] {
+                        "Name",
+                        "Academy 4"});
+            table1062.AddRow(new string[] {
+                        "Authority",
+                        "Local Authority 1"});
+            table1062.AddRow(new string[] {
+                        "DateOpened",
+                        "2013-04-17"});
+            table1062.AddRow(new string[] {
+                        "LACode",
+                        "200"});
+            table1062.AddRow(new string[] {
+                        "LocalAuthorityName",
+                        "Local Authority 1"});
+            table1062.AddRow(new string[] {
+                        "ProviderType",
+                        "Academies"});
+            table1062.AddRow(new string[] {
+                        "ProviderSubType",
+                        "Academy special sponsor led"});
+            table1062.AddRow(new string[] {
+                        "ProviderVersionId",
+                        "psg-providers-1.0"});
+            table1062.AddRow(new string[] {
+                        "TrustCode",
+                        "1001"});
+            table1062.AddRow(new string[] {
+                        "TrustStatus",
+                        "SupportedByAMultiAcademyTrust"});
+            table1062.AddRow(new string[] {
+                        "UKPRN",
+                        "1000104"});
+#line 320
+ testRunner.And("the Published Provider has the following provider information", ((string)(null)), table1062, "And ");
+#line hidden
+#line 334
+ testRunner.And("the Published Provider is available in the repository for this specification", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1063 = new TechTalk.SpecFlow.Table(new string[] {
+                        "Field",
+                        "Value"});
+            table1063.AddRow(new string[] {
+                        "ProviderId",
+                        "1000000"});
+            table1063.AddRow(new string[] {
+                        "Name",
+                        "Maintained School 1"});
+            table1063.AddRow(new string[] {
+                        "Authority",
+                        "Local Authority 1"});
+            table1063.AddRow(new string[] {
+                        "DateOpened",
+                        "2012-03-16"});
+            table1063.AddRow(new string[] {
+                        "LACode",
+                        "200"});
+            table1063.AddRow(new string[] {
+                        "LocalAuthorityName",
+                        "Maintained School 1"});
+            table1063.AddRow(new string[] {
+                        "ProviderType",
+                        "LA maintained schools"});
+            table1063.AddRow(new string[] {
+                        "ProviderSubType",
+                        "Community school"});
+            table1063.AddRow(new string[] {
+                        "ProviderVersionId",
+                        "psg-providers-1.0"});
+            table1063.AddRow(new string[] {
+                        "TrustStatus",
+                        "Not Supported By A Trust"});
+            table1063.AddRow(new string[] {
+                        "UKPRN",
+                        "1000000"});
+#line 336
+ testRunner.And("the following provider exists within core provider data in provider version \'psg-" +
+                    "providers-1.0\'", ((string)(null)), table1063, "And ");
+#line hidden
+#line 349
+ testRunner.And("the provider with id \'1000000\' should be a scoped provider in the current specifi" +
+                    "cation in provider version \'psg-providers-1.0\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1064 = new TechTalk.SpecFlow.Table(new string[] {
+                        "Field",
+                        "Value"});
+            table1064.AddRow(new string[] {
+                        "ProviderId",
+                        "1000002"});
+            table1064.AddRow(new string[] {
+                        "Name",
+                        "Maintained School 2"});
+            table1064.AddRow(new string[] {
+                        "Authority",
+                        "Local Authority 1"});
+            table1064.AddRow(new string[] {
+                        "DateOpened",
+                        "2013-04-16"});
+            table1064.AddRow(new string[] {
+                        "LACode",
+                        "200"});
+            table1064.AddRow(new string[] {
+                        "LocalAuthorityName",
+                        "Local Authority 1"});
+            table1064.AddRow(new string[] {
+                        "ProviderType",
+                        "LA maintained schools"});
+            table1064.AddRow(new string[] {
+                        "ProviderSubType",
+                        "Community school"});
+            table1064.AddRow(new string[] {
+                        "ProviderVersionId",
+                        "psg-providers-1.0"});
+            table1064.AddRow(new string[] {
+                        "TrustStatus",
+                        "Not Supported By A Trust"});
+            table1064.AddRow(new string[] {
+                        "UKPRN",
+                        "1000002"});
+#line 350
+ testRunner.And("the following provider exists within core provider data in provider version \'psg-" +
+                    "providers-1.0\'", ((string)(null)), table1064, "And ");
+#line hidden
+#line 363
+ testRunner.And("the provider with id \'1000002\' should be a scoped provider in the current specifi" +
+                    "cation in provider version \'psg-providers-1.0\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1065 = new TechTalk.SpecFlow.Table(new string[] {
+                        "Field",
+                        "Value"});
+            table1065.AddRow(new string[] {
+                        "ProviderId",
+                        "1000003"});
+            table1065.AddRow(new string[] {
+                        "Name",
+                        "Maintained School 3"});
+            table1065.AddRow(new string[] {
+                        "Authority",
+                        "Local Authority 1"});
+            table1065.AddRow(new string[] {
+                        "DateOpened",
+                        "2013-04-16"});
+            table1065.AddRow(new string[] {
+                        "LACode",
+                        "200"});
+            table1065.AddRow(new string[] {
+                        "LocalAuthorityName",
+                        "Local Authority 1"});
+            table1065.AddRow(new string[] {
+                        "ProviderType",
+                        "LA maintained schools"});
+            table1065.AddRow(new string[] {
+                        "ProviderSubType",
+                        "Community school"});
+            table1065.AddRow(new string[] {
+                        "ProviderVersionId",
+                        "psg-providers-1.0"});
+            table1065.AddRow(new string[] {
+                        "TrustStatus",
+                        "Not Supported By A Trust"});
+            table1065.AddRow(new string[] {
+                        "UKPRN",
+                        "1000003"});
+#line 364
+ testRunner.And("the following provider exists within core provider data in provider version \'psg-" +
+                    "providers-1.0\'", ((string)(null)), table1065, "And ");
+#line hidden
+#line 377
+ testRunner.And("the provider with id \'1000003\' should be a scoped provider in the current specifi" +
+                    "cation in provider version \'psg-providers-1.0\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1066 = new TechTalk.SpecFlow.Table(new string[] {
+                        "Field",
+                        "Value"});
+            table1066.AddRow(new string[] {
+                        "ProviderId",
+                        "1000004"});
+            table1066.AddRow(new string[] {
+                        "Name",
+                        "Maintained School 4"});
+            table1066.AddRow(new string[] {
+                        "Authority",
+                        "Local Authority 2"});
+            table1066.AddRow(new string[] {
+                        "DateOpened",
+                        "2013-04-16"});
+            table1066.AddRow(new string[] {
+                        "LACode",
+                        "202"});
+            table1066.AddRow(new string[] {
+                        "LocalAuthorityName",
+                        "Local Authority 2"});
+            table1066.AddRow(new string[] {
+                        "ProviderType",
+                        "LA maintained schools"});
+            table1066.AddRow(new string[] {
+                        "ProviderSubType",
+                        "Community school"});
+            table1066.AddRow(new string[] {
+                        "ProviderVersionId",
+                        "psg-providers-1.0"});
+            table1066.AddRow(new string[] {
+                        "TrustStatus",
+                        "Not Supported By A Trust"});
+            table1066.AddRow(new string[] {
+                        "UKPRN",
+                        "1000004"});
+#line 378
+ testRunner.And("the following provider exists within core provider data in provider version \'psg-" +
+                    "providers-1.0\'", ((string)(null)), table1066, "And ");
+#line hidden
+#line 391
+ testRunner.And("the provider with id \'1000004\' should be a scoped provider in the current specifi" +
+                    "cation in provider version \'psg-providers-1.0\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1067 = new TechTalk.SpecFlow.Table(new string[] {
+                        "Field",
+                        "Value"});
+            table1067.AddRow(new string[] {
+                        "ProviderId",
+                        "1000005"});
+            table1067.AddRow(new string[] {
+                        "Name",
+                        "Maintained School 5"});
+            table1067.AddRow(new string[] {
+                        "Authority",
+                        "Local Authority 2"});
+            table1067.AddRow(new string[] {
+                        "DateOpened",
+                        "2013-04-16"});
+            table1067.AddRow(new string[] {
+                        "LACode",
+                        "202"});
+            table1067.AddRow(new string[] {
+                        "LocalAuthorityName",
+                        "Local Authority 2"});
+            table1067.AddRow(new string[] {
+                        "ProviderType",
+                        "LA maintained schools"});
+            table1067.AddRow(new string[] {
+                        "ProviderSubType",
+                        "Community school"});
+            table1067.AddRow(new string[] {
+                        "ProviderVersionId",
+                        "psg-providers-1.0"});
+            table1067.AddRow(new string[] {
+                        "TrustStatus",
+                        "Not Supported By A Trust"});
+            table1067.AddRow(new string[] {
+                        "UKPRN",
+                        "1000005"});
+#line 392
+ testRunner.And("the following provider exists within core provider data in provider version \'psg-" +
+                    "providers-1.0\'", ((string)(null)), table1067, "And ");
+#line hidden
+#line 405
+ testRunner.And("the provider with id \'1000005\' should be a scoped provider in the current specifi" +
+                    "cation in provider version \'psg-providers-1.0\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1068 = new TechTalk.SpecFlow.Table(new string[] {
+                        "Field",
+                        "Value"});
+            table1068.AddRow(new string[] {
+                        "ProviderId",
+                        "1000009"});
+            table1068.AddRow(new string[] {
+                        "Name",
+                        "Maintained School 9  - Excluded for funding, but in scope for specification"});
+            table1068.AddRow(new string[] {
+                        "Authority",
+                        "Local Authority 3"});
+            table1068.AddRow(new string[] {
+                        "DateOpened",
+                        "2013-04-16"});
+            table1068.AddRow(new string[] {
+                        "LACode",
+                        "203"});
+            table1068.AddRow(new string[] {
+                        "LocalAuthorityName",
+                        "Local Authority 3"});
+            table1068.AddRow(new string[] {
+                        "ProviderType",
+                        "LA maintained schools"});
+            table1068.AddRow(new string[] {
+                        "ProviderSubType",
+                        "Community school"});
+            table1068.AddRow(new string[] {
+                        "ProviderVersionId",
+                        "psg-providers-1.0"});
+            table1068.AddRow(new string[] {
+                        "TrustStatus",
+                        "Not Supported By A Trust"});
+            table1068.AddRow(new string[] {
+                        "UKPRN",
+                        "1000009"});
+#line 406
+ testRunner.And("the following provider exists within core provider data in provider version \'psg-" +
+                    "providers-1.0\'", ((string)(null)), table1068, "And ");
+#line hidden
+#line 419
+ testRunner.And("the provider with id \'1000009\' should be a scoped provider in the current specifi" +
+                    "cation in provider version \'psg-providers-1.0\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1069 = new TechTalk.SpecFlow.Table(new string[] {
+                        "Field",
+                        "Value"});
+            table1069.AddRow(new string[] {
+                        "ProviderId",
+                        "1000101"});
+            table1069.AddRow(new string[] {
+                        "Name",
+                        "Academy 1"});
+            table1069.AddRow(new string[] {
+                        "Authority",
+                        "Local Authority 1"});
+            table1069.AddRow(new string[] {
+                        "DateOpened",
+                        "2013-04-16"});
+            table1069.AddRow(new string[] {
+                        "LACode",
+                        "200"});
+            table1069.AddRow(new string[] {
+                        "LocalAuthorityName",
+                        "Local Authority 1"});
+            table1069.AddRow(new string[] {
+                        "ProviderType",
+                        "Academies"});
+            table1069.AddRow(new string[] {
+                        "ProviderSubType",
+                        "Academy special sponsor led"});
+            table1069.AddRow(new string[] {
+                        "ProviderVersionId",
+                        "psg-providers-1.0"});
+            table1069.AddRow(new string[] {
+                        "TrustCode",
+                        "1001"});
+            table1069.AddRow(new string[] {
+                        "TrustStatus",
+                        "SupportedByAMultiAcademyTrust"});
+            table1069.AddRow(new string[] {
+                        "UKPRN",
+                        "1000101"});
+#line 421
+ testRunner.And("the following provider exists within core provider data in provider version \'psg-" +
+                    "providers-1.0\'", ((string)(null)), table1069, "And ");
+#line hidden
+#line 435
+ testRunner.And("the provider with id \'1000101\' should be a scoped provider in the current specifi" +
+                    "cation in provider version \'psg-providers-1.0\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1070 = new TechTalk.SpecFlow.Table(new string[] {
+                        "Field",
+                        "Value"});
+            table1070.AddRow(new string[] {
+                        "ProviderId",
+                        "1000102"});
+            table1070.AddRow(new string[] {
+                        "Name",
+                        "Academy 2"});
+            table1070.AddRow(new string[] {
+                        "Authority",
+                        "Local Authority 1"});
+            table1070.AddRow(new string[] {
+                        "DateOpened",
+                        "2013-04-16"});
+            table1070.AddRow(new string[] {
+                        "LACode",
+                        "200"});
+            table1070.AddRow(new string[] {
+                        "LocalAuthorityName",
+                        "Local Authority 1"});
+            table1070.AddRow(new string[] {
+                        "ProviderType",
+                        "Academies"});
+            table1070.AddRow(new string[] {
+                        "ProviderSubType",
+                        "Academy special sponsor led"});
+            table1070.AddRow(new string[] {
+                        "ProviderVersionId",
+                        "psg-providers-1.0"});
+            table1070.AddRow(new string[] {
+                        "TrustCode",
+                        "1001"});
+            table1070.AddRow(new string[] {
+                        "TrustStatus",
+                        "SupportedByAMultiAcademyTrust"});
+            table1070.AddRow(new string[] {
+                        "UKPRN",
+                        "1000102"});
+#line 436
+ testRunner.And("the following provider exists within core provider data in provider version \'psg-" +
+                    "providers-1.0\'", ((string)(null)), table1070, "And ");
+#line hidden
+#line 450
+ testRunner.And("the provider with id \'1000102\' should be a scoped provider in the current specifi" +
+                    "cation in provider version \'psg-providers-1.0\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1071 = new TechTalk.SpecFlow.Table(new string[] {
+                        "Field",
+                        "Value"});
+            table1071.AddRow(new string[] {
+                        "ProviderId",
+                        "1000103"});
+            table1071.AddRow(new string[] {
+                        "Name",
+                        "Academy 3"});
+            table1071.AddRow(new string[] {
+                        "Authority",
+                        "Local Authority 2"});
+            table1071.AddRow(new string[] {
+                        "DateOpened",
+                        "2013-04-16"});
+            table1071.AddRow(new string[] {
+                        "LACode",
+                        "200"});
+            table1071.AddRow(new string[] {
+                        "LocalAuthorityName",
+                        "Local Authority 2"});
+            table1071.AddRow(new string[] {
+                        "ProviderType",
+                        "Free Schools"});
+            table1071.AddRow(new string[] {
+                        "ProviderSubType",
+                        "Free Schools"});
+            table1071.AddRow(new string[] {
+                        "ProviderVersionId",
+                        "psg-providers-1.0"});
+            table1071.AddRow(new string[] {
+                        "TrustCode",
+                        "1002"});
+            table1071.AddRow(new string[] {
+                        "TrustStatus",
+                        "SupportedByAMultiAcademyTrust"});
+            table1071.AddRow(new string[] {
+                        "UKPRN",
+                        "1000103"});
+#line 451
+ testRunner.And("the following provider exists within core provider data in provider version \'psg-" +
+                    "providers-1.0\'", ((string)(null)), table1071, "And ");
+#line hidden
+#line 465
+ testRunner.And("the provider with id \'1000103\' should be a scoped provider in the current specifi" +
+                    "cation in provider version \'psg-providers-1.0\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1072 = new TechTalk.SpecFlow.Table(new string[] {
+                        "Field",
+                        "Value"});
+            table1072.AddRow(new string[] {
+                        "ProviderId",
+                        "1000104"});
+            table1072.AddRow(new string[] {
+                        "Name",
+                        "Academy 4"});
+            table1072.AddRow(new string[] {
+                        "Authority",
+                        "Local Authority 2"});
+            table1072.AddRow(new string[] {
+                        "DateOpened",
+                        "2013-04-16"});
+            table1072.AddRow(new string[] {
+                        "LACode",
+                        "200"});
+            table1072.AddRow(new string[] {
+                        "LocalAuthorityName",
+                        "Local Authority 2"});
+            table1072.AddRow(new string[] {
+                        "ProviderType",
+                        "Free Schools"});
+            table1072.AddRow(new string[] {
+                        "ProviderSubType",
+                        "Free Schools"});
+            table1072.AddRow(new string[] {
+                        "ProviderVersionId",
+                        "psg-providers-1.0"});
+            table1072.AddRow(new string[] {
+                        "TrustCode",
+                        "1002"});
+            table1072.AddRow(new string[] {
+                        "TrustStatus",
+                        "SupportedByAMultiAcademyTrust"});
+            table1072.AddRow(new string[] {
+                        "UKPRN",
+                        "1000104"});
+#line 466
+ testRunner.And("the following provider exists within core provider data in provider version \'psg-" +
+                    "providers-1.0\'", ((string)(null)), table1072, "And ");
+#line hidden
+#line 480
+ testRunner.And("the provider with id \'1000104\' should be a scoped provider in the current specifi" +
+                    "cation in provider version \'psg-providers-1.0\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1073 = new TechTalk.SpecFlow.Table(new string[] {
+                        "Field",
+                        "Value"});
+            table1073.AddRow(new string[] {
+                        "ProviderId",
+                        "9000000"});
+            table1073.AddRow(new string[] {
+                        "Name",
+                        "Local Authority 1"});
+            table1073.AddRow(new string[] {
+                        "Authority",
+                        "Local Authority 1"});
+            table1073.AddRow(new string[] {
+                        "DateOpened",
+                        "2012-03-15"});
+            table1073.AddRow(new string[] {
+                        "LACode",
+                        "200"});
+            table1073.AddRow(new string[] {
+                        "LocalAuthorityName",
+                        "Local Authority 1"});
+            table1073.AddRow(new string[] {
+                        "ProviderType",
+                        "Local Authority"});
+            table1073.AddRow(new string[] {
+                        "ProviderSubType",
+                        "Local Authority"});
+            table1073.AddRow(new string[] {
+                        "ProviderVersionId",
+                        "psg-providers-1.0"});
+            table1073.AddRow(new string[] {
+                        "TrustStatus",
+                        "Not Supported By A Trust"});
+            table1073.AddRow(new string[] {
+                        "UKPRN",
+                        "9000000"});
+            table1073.AddRow(new string[] {
+                        "WardName",
+                        ""});
+#line 482
+ testRunner.And("the following provider exists within core provider data in provider version \'psg-" +
+                    "providers-1.0\'", ((string)(null)), table1073, "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1074 = new TechTalk.SpecFlow.Table(new string[] {
+                        "Field",
+                        "Value"});
+            table1074.AddRow(new string[] {
+                        "ProviderId",
+                        "9000002"});
+            table1074.AddRow(new string[] {
+                        "Name",
+                        "Local Authority 2"});
+            table1074.AddRow(new string[] {
+                        "Authority",
+                        "Local Authority 2"});
+            table1074.AddRow(new string[] {
+                        "DateOpened",
+                        "2012-03-15"});
+            table1074.AddRow(new string[] {
+                        "LACode",
+                        "202"});
+            table1074.AddRow(new string[] {
+                        "LocalAuthorityName",
+                        "Local Authority 2"});
+            table1074.AddRow(new string[] {
+                        "ProviderType",
+                        "Local Authority"});
+            table1074.AddRow(new string[] {
+                        "ProviderSubType",
+                        "Local Authority"});
+            table1074.AddRow(new string[] {
+                        "ProviderVersionId",
+                        "psg-providers-1.0"});
+            table1074.AddRow(new string[] {
+                        "TrustStatus",
+                        "Not Supported By A Trust"});
+            table1074.AddRow(new string[] {
+                        "UKPRN",
+                        "9000002"});
+#line 496
+ testRunner.And("the following provider exists within core provider data in provider version \'psg-" +
+                    "providers-1.0\'", ((string)(null)), table1074, "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1075 = new TechTalk.SpecFlow.Table(new string[] {
+                        "Field",
+                        "Value"});
+            table1075.AddRow(new string[] {
+                        "ProviderId",
+                        "9000003"});
+            table1075.AddRow(new string[] {
+                        "Name",
+                        "Local Authority 3"});
+            table1075.AddRow(new string[] {
+                        "Authority",
+                        "Local Authority 3"});
+            table1075.AddRow(new string[] {
+                        "DateOpened",
+                        "2012-03-15"});
+            table1075.AddRow(new string[] {
+                        "LACode",
+                        "203"});
+            table1075.AddRow(new string[] {
+                        "LocalAuthorityName",
+                        "Local Authority 3"});
+            table1075.AddRow(new string[] {
+                        "ProviderType",
+                        "Local Authority"});
+            table1075.AddRow(new string[] {
+                        "ProviderSubType",
+                        "Local Authority"});
+            table1075.AddRow(new string[] {
+                        "ProviderVersionId",
+                        "psg-providers-1.0"});
+            table1075.AddRow(new string[] {
+                        "TrustStatus",
+                        "Not Supported By A Trust"});
+            table1075.AddRow(new string[] {
+                        "UKPRN",
+                        "9000003"});
+#line 509
+ testRunner.And("the following provider exists within core provider data in provider version \'psg-" +
+                    "providers-1.0\'", ((string)(null)), table1075, "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1076 = new TechTalk.SpecFlow.Table(new string[] {
+                        "Field",
+                        "Value"});
+            table1076.AddRow(new string[] {
+                        "ProviderId",
+                        "8000001"});
+            table1076.AddRow(new string[] {
+                        "Name",
+                        "Academy Trust 1"});
+            table1076.AddRow(new string[] {
+                        "Authority",
+                        "Local Authority 1"});
+            table1076.AddRow(new string[] {
+                        "DateOpened",
+                        "2012-03-15"});
+            table1076.AddRow(new string[] {
+                        "LACode",
+                        "202"});
+            table1076.AddRow(new string[] {
+                        "LocalAuthorityName",
+                        "Local Authority 1"});
+            table1076.AddRow(new string[] {
+                        "ProviderType",
+                        "Academy Trust"});
+            table1076.AddRow(new string[] {
+                        "ProviderSubType",
+                        "Academy Trust"});
+            table1076.AddRow(new string[] {
+                        "ProviderVersionId",
+                        "psg-providers-1.0"});
+            table1076.AddRow(new string[] {
+                        "TrustCode",
+                        "1001"});
+            table1076.AddRow(new string[] {
+                        "TrustStatus",
+                        "Not Supported By A Trust"});
+            table1076.AddRow(new string[] {
+                        "UKPRN",
+                        "8000001"});
+#line 523
+ testRunner.And("the following provider exists within core provider data in provider version \'psg-" +
+                    "providers-1.0\'", ((string)(null)), table1076, "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1077 = new TechTalk.SpecFlow.Table(new string[] {
+                        "Field",
+                        "Value"});
+            table1077.AddRow(new string[] {
+                        "ProviderId",
+                        "8000002"});
+            table1077.AddRow(new string[] {
+                        "Name",
+                        "Academy Trust 2"});
+            table1077.AddRow(new string[] {
+                        "Authority",
+                        "Local Authority 2"});
+            table1077.AddRow(new string[] {
+                        "DateOpened",
+                        "2012-03-15"});
+            table1077.AddRow(new string[] {
+                        "LACode",
+                        "202"});
+            table1077.AddRow(new string[] {
+                        "LocalAuthorityName",
+                        "Academy Trust 1"});
+            table1077.AddRow(new string[] {
+                        "ProviderType",
+                        "Academy Trust"});
+            table1077.AddRow(new string[] {
+                        "ProviderSubType",
+                        "Academy Trust"});
+            table1077.AddRow(new string[] {
+                        "ProviderVersionId",
+                        "psg-providers-1.0"});
+            table1077.AddRow(new string[] {
+                        "TrustCode",
+                        "1002"});
+            table1077.AddRow(new string[] {
+                        "TrustStatus",
+                        "Not Supported By A Trust"});
+            table1077.AddRow(new string[] {
+                        "UKPRN",
+                        "8000001"});
+#line 537
+ testRunner.And("the following provider exists within core provider data in provider version \'psg-" +
+                    "providers-1.0\'", ((string)(null)), table1077, "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1078 = new TechTalk.SpecFlow.Table(new string[] {
+                        "CalculationType",
+                        "CalculationId",
+                        "Name",
+                        "PublishStatus"});
+            table1078.AddRow(new string[] {
+                        "Template",
+                        "calculation1",
+                        "Total Allocation",
+                        "Approved"});
+            table1078.AddRow(new string[] {
+                        "Template",
+                        "calculation2",
+                        "Eligible Pupils",
+                        "Approved"});
+            table1078.AddRow(new string[] {
+                        "Template",
+                        "calculation3",
+                        "Pupil rate threshold",
+                        "Approved"});
+            table1078.AddRow(new string[] {
+                        "Template",
+                        "calculation4",
+                        "Rate",
+                        "Approved"});
+            table1078.AddRow(new string[] {
+                        "Template",
+                        "calculation5",
+                        "Additional Rate",
+                        "Approved"});
+#line 551
+ testRunner.And("calculation meta data exists for \'PSG\'", ((string)(null)), table1078, "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1079 = new TechTalk.SpecFlow.Table(new string[] {
+                        "Value",
+                        "Id"});
+            table1079.AddRow(new string[] {
+                        "24000",
+                        "calculation1"});
+            table1079.AddRow(new string[] {
+                        "120",
+                        "calculation2"});
+            table1079.AddRow(new string[] {
+                        "500",
+                        "calculation3"});
+            table1079.AddRow(new string[] {
+                        "1000",
+                        "calculation4"});
+            table1079.AddRow(new string[] {
+                        "20",
+                        "calculation5"});
+#line 558
+ testRunner.And("calculations exists", ((string)(null)), table1079, "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1080 = new TechTalk.SpecFlow.Table(new string[] {
+                        "DistributionPeriodId",
+                        "Value"});
+            table1080.AddRow(new string[] {
+                        "FY-1920",
+                        "14000"});
+            table1080.AddRow(new string[] {
+                        "FY-2021",
+                        "10000"});
+#line 565
+ testRunner.And("the following distribution periods exist", ((string)(null)), table1080, "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table1081 = new TechTalk.SpecFlow.Table(new string[] {
+                        "DistributionPeriodId",
+                        "Type",
+                        "TypeValue",
+                        "Year",
+                        "Occurrence",
+                        "ProfiledValue"});
+            table1081.AddRow(new string[] {
+                        "FY-1920",
+                        "CalendarMonth",
+                        "October",
+                        "1920",
+                        "1",
+                        "14000"});
+            table1081.AddRow(new string[] {
                         "FY-2021",
                         "CalendarMonth",
                         "April",
@@ -1930,16 +1930,16 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
                         "1",
                         "10000"});
 #line 569
- testRunner.And("the following profiles exist", ((string)(null)), table1035, "And ");
+ testRunner.And("the following profiles exist", ((string)(null)), table1081, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table1036 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table1082 = new TechTalk.SpecFlow.Table(new string[] {
                         "FundingStreamId",
                         "FundingPeriodId"});
-            table1036.AddRow(new string[] {
+            table1082.AddRow(new string[] {
                         "PSG",
                         "AY-1920"});
 #line 573
- testRunner.And("the following profile pattern exists", ((string)(null)), table1036, "And ");
+ testRunner.And("the following profile pattern exists", ((string)(null)), table1082, "And ");
 #line hidden
         }
         
@@ -1977,38 +1977,38 @@ this.FeatureBackground();
 #line 578
  testRunner.When("funding is refreshed", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-                TechTalk.SpecFlow.Table table1037 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table1083 = new TechTalk.SpecFlow.Table(new string[] {
                             "PublishedProviderId",
                             "Status"});
-                table1037.AddRow(new string[] {
+                table1083.AddRow(new string[] {
                             "publishedprovider-1000000-AY-1920-PSG",
                             "Updated"});
-                table1037.AddRow(new string[] {
+                table1083.AddRow(new string[] {
                             "publishedprovider-1000002-AY-1920-PSG",
                             "Updated"});
-                table1037.AddRow(new string[] {
+                table1083.AddRow(new string[] {
                             "publishedprovider-1000003-AY-1920-PSG",
                             "Draft"});
-                table1037.AddRow(new string[] {
+                table1083.AddRow(new string[] {
                             "publishedprovider-1000004-AY-1920-PSG",
                             "Draft"});
-                table1037.AddRow(new string[] {
+                table1083.AddRow(new string[] {
                             "publishedprovider-1000005-AY-1920-PSG",
                             "Draft"});
-                table1037.AddRow(new string[] {
+                table1083.AddRow(new string[] {
                             "publishedprovider-1000009-AY-1920-PSG",
                             "Draft"});
-                table1037.AddRow(new string[] {
+                table1083.AddRow(new string[] {
                             "publishedprovider-1000101-AY-1920-PSG",
                             "Updated"});
-                table1037.AddRow(new string[] {
+                table1083.AddRow(new string[] {
                             "publishedprovider-1000102-AY-1920-PSG",
                             "Updated"});
-                table1037.AddRow(new string[] {
+                table1083.AddRow(new string[] {
                             "publishedprovider-1000103-AY-1920-PSG",
                             "Draft"});
 #line 579
- testRunner.Then("the following published provider ids are upserted", ((string)(null)), table1037, "Then ");
+ testRunner.Then("the following published provider ids are upserted", ((string)(null)), table1083, "Then ");
 #line hidden
             }
             this.ScenarioCleanup();
@@ -2045,80 +2045,80 @@ this.ScenarioInitialize(scenarioInfo);
 #line 10
 this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table1038 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table1084 = new TechTalk.SpecFlow.Table(new string[] {
                             "CalculationType",
                             "CalculationId",
                             "Name",
                             "PublishStatus"});
-                table1038.AddRow(new string[] {
+                table1084.AddRow(new string[] {
                             "Template",
                             "calculation1",
                             "Total Allocation",
                             "Approved"});
-                table1038.AddRow(new string[] {
+                table1084.AddRow(new string[] {
                             "Template",
                             "calculation2",
                             "Eligible Pupils",
                             "Approved"});
-                table1038.AddRow(new string[] {
+                table1084.AddRow(new string[] {
                             "Template",
                             "calculation3",
                             "Pupil rate threshold",
                             "Approved"});
-                table1038.AddRow(new string[] {
+                table1084.AddRow(new string[] {
                             "Template",
                             "calculation4",
                             "Rate",
                             "Approved"});
-                table1038.AddRow(new string[] {
+                table1084.AddRow(new string[] {
                             "Template",
                             "calculation5",
                             "Additional Rate",
                             "Approved"});
 #line 592
- testRunner.Given("calculation meta data exists for \'PSG\'", ((string)(null)), table1038, "Given ");
+ testRunner.Given("calculation meta data exists for \'PSG\'", ((string)(null)), table1084, "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table1039 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table1085 = new TechTalk.SpecFlow.Table(new string[] {
                             "Value",
                             "Id"});
-                table1039.AddRow(new string[] {
+                table1085.AddRow(new string[] {
                             "",
                             "calculation1"});
-                table1039.AddRow(new string[] {
+                table1085.AddRow(new string[] {
                             "",
                             "calculation2"});
-                table1039.AddRow(new string[] {
+                table1085.AddRow(new string[] {
                             "",
                             "calculation3"});
-                table1039.AddRow(new string[] {
+                table1085.AddRow(new string[] {
                             "",
                             "calculation4"});
-                table1039.AddRow(new string[] {
+                table1085.AddRow(new string[] {
                             "",
                             "calculation5"});
 #line 599
- testRunner.And("calculations exists", ((string)(null)), table1039, "And ");
+ testRunner.And("calculations exists", ((string)(null)), table1085, "And ");
 #line hidden
 #line 606
  testRunner.When("funding is refreshed", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-                TechTalk.SpecFlow.Table table1040 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table1086 = new TechTalk.SpecFlow.Table(new string[] {
                             "PublishedProviderId",
                             "Status"});
-                table1040.AddRow(new string[] {
+                table1086.AddRow(new string[] {
                             "publishedprovider-1000000-AY-1920-PSG",
                             "Updated"});
-                table1040.AddRow(new string[] {
+                table1086.AddRow(new string[] {
                             "publishedprovider-1000002-AY-1920-PSG",
                             "Updated"});
-                table1040.AddRow(new string[] {
+                table1086.AddRow(new string[] {
                             "publishedprovider-1000101-AY-1920-PSG",
                             "Updated"});
-                table1040.AddRow(new string[] {
+                table1086.AddRow(new string[] {
                             "publishedprovider-1000102-AY-1920-PSG",
                             "Updated"});
 #line 607
- testRunner.Then("the following published provider ids are upserted", ((string)(null)), table1040, "Then ");
+ testRunner.Then("the following published provider ids are upserted", ((string)(null)), table1086, "Then ");
 #line hidden
             }
             this.ScenarioCleanup();
@@ -2157,84 +2157,84 @@ this.ScenarioInitialize(scenarioInfo);
 #line 10
 this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table1041 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table1087 = new TechTalk.SpecFlow.Table(new string[] {
                             "Field",
                             "Value"});
-                table1041.AddRow(new string[] {
+                table1087.AddRow(new string[] {
                             "ProviderId",
                             "9000000"});
-                table1041.AddRow(new string[] {
+                table1087.AddRow(new string[] {
                             "Name",
                             "Local Authority 1"});
-                table1041.AddRow(new string[] {
+                table1087.AddRow(new string[] {
                             "Authority",
                             "Local Authority 1"});
-                table1041.AddRow(new string[] {
+                table1087.AddRow(new string[] {
                             "DateOpened",
                             "2012-03-15"});
-                table1041.AddRow(new string[] {
+                table1087.AddRow(new string[] {
                             "LACode",
                             "200"});
-                table1041.AddRow(new string[] {
+                table1087.AddRow(new string[] {
                             "LocalAuthorityName",
                             "Local Authority 1"});
-                table1041.AddRow(new string[] {
+                table1087.AddRow(new string[] {
                             "NavVendorNo",
                             "1234"});
-                table1041.AddRow(new string[] {
+                table1087.AddRow(new string[] {
                             "ProviderType",
                             "Local Authority"});
-                table1041.AddRow(new string[] {
+                table1087.AddRow(new string[] {
                             "ProviderSubType",
                             "Local Authority"});
-                table1041.AddRow(new string[] {
+                table1087.AddRow(new string[] {
                             "ProviderVersionId",
                             "psg-providers-1.0"});
-                table1041.AddRow(new string[] {
+                table1087.AddRow(new string[] {
                             "TrustStatus",
                             "Not Supported By A Trust"});
-                table1041.AddRow(new string[] {
+                table1087.AddRow(new string[] {
                             "UKPRN",
                             "9000000"});
 #line 615
  testRunner.Given("the following provider exists within core provider data in provider version \'psg-" +
-                        "providers-1.0\'", ((string)(null)), table1041, "Given ");
+                        "providers-1.0\'", ((string)(null)), table1087, "Given ");
 #line hidden
 #line 629
  testRunner.When("funding is refreshed", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-                TechTalk.SpecFlow.Table table1042 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table1088 = new TechTalk.SpecFlow.Table(new string[] {
                             "PublishedProviderId",
                             "Status"});
-                table1042.AddRow(new string[] {
+                table1088.AddRow(new string[] {
                             "publishedprovider-1000000-AY-1920-PSG",
                             "Updated"});
-                table1042.AddRow(new string[] {
+                table1088.AddRow(new string[] {
                             "publishedprovider-1000002-AY-1920-PSG",
                             "Updated"});
-                table1042.AddRow(new string[] {
+                table1088.AddRow(new string[] {
                             "publishedprovider-1000003-AY-1920-PSG",
                             "Draft"});
-                table1042.AddRow(new string[] {
+                table1088.AddRow(new string[] {
                             "publishedprovider-1000004-AY-1920-PSG",
                             "Draft"});
-                table1042.AddRow(new string[] {
+                table1088.AddRow(new string[] {
                             "publishedprovider-1000005-AY-1920-PSG",
                             "Draft"});
-                table1042.AddRow(new string[] {
+                table1088.AddRow(new string[] {
                             "publishedprovider-1000009-AY-1920-PSG",
                             "Draft"});
-                table1042.AddRow(new string[] {
+                table1088.AddRow(new string[] {
                             "publishedprovider-1000101-AY-1920-PSG",
                             "Updated"});
-                table1042.AddRow(new string[] {
+                table1088.AddRow(new string[] {
                             "publishedprovider-1000102-AY-1920-PSG",
                             "Updated"});
-                table1042.AddRow(new string[] {
+                table1088.AddRow(new string[] {
                             "publishedprovider-1000103-AY-1920-PSG",
                             "Draft"});
 #line 630
- testRunner.Then("the following published provider ids are upserted", ((string)(null)), table1042, "Then ");
+ testRunner.Then("the following published provider ids are upserted", ((string)(null)), table1088, "Then ");
 #line hidden
             }
             this.ScenarioCleanup();
@@ -2286,65 +2286,65 @@ this.FeatureBackground();
 #line 646
  testRunner.When("funding is refreshed", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-                TechTalk.SpecFlow.Table table1043 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table1089 = new TechTalk.SpecFlow.Table(new string[] {
                             "PublishedProviderId",
                             "Status"});
-                table1043.AddRow(new string[] {
+                table1089.AddRow(new string[] {
                             "publishedprovider-1000000-AY-1920-PSG",
                             "Updated"});
-                table1043.AddRow(new string[] {
+                table1089.AddRow(new string[] {
                             "publishedprovider-1000002-AY-1920-PSG",
                             "Updated"});
-                table1043.AddRow(new string[] {
+                table1089.AddRow(new string[] {
                             "publishedprovider-1000003-AY-1920-PSG",
                             "Draft"});
-                table1043.AddRow(new string[] {
+                table1089.AddRow(new string[] {
                             "publishedprovider-1000004-AY-1920-PSG",
                             "Draft"});
-                table1043.AddRow(new string[] {
+                table1089.AddRow(new string[] {
                             "publishedprovider-1000005-AY-1920-PSG",
                             "Draft"});
-                table1043.AddRow(new string[] {
+                table1089.AddRow(new string[] {
                             "publishedprovider-1000009-AY-1920-PSG",
                             "Draft"});
-                table1043.AddRow(new string[] {
+                table1089.AddRow(new string[] {
                             "publishedprovider-1000101-AY-1920-PSG",
                             "Updated"});
-                table1043.AddRow(new string[] {
+                table1089.AddRow(new string[] {
                             "publishedprovider-1000102-AY-1920-PSG",
                             "Updated"});
-                table1043.AddRow(new string[] {
+                table1089.AddRow(new string[] {
                             "publishedprovider-1000103-AY-1920-PSG",
                             "Draft"});
-                table1043.AddRow(new string[] {
+                table1089.AddRow(new string[] {
                             "publishedprovider-9000000-AY-1920-PSG",
                             "Draft"});
-                table1043.AddRow(new string[] {
+                table1089.AddRow(new string[] {
                             "publishedprovider-9000002-AY-1920-PSG",
                             "Draft"});
-                table1043.AddRow(new string[] {
+                table1089.AddRow(new string[] {
                             "publishedprovider-9000003-AY-1920-PSG",
                             "Draft"});
 #line 647
- testRunner.Then("the following published provider ids are upserted", ((string)(null)), table1043, "Then ");
+ testRunner.Then("the following published provider ids are upserted", ((string)(null)), table1089, "Then ");
 #line hidden
-                TechTalk.SpecFlow.Table table1044 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table1090 = new TechTalk.SpecFlow.Table(new string[] {
                             "FundingLineCode",
                             "Value"});
-                table1044.AddRow(new string[] {
+                table1090.AddRow(new string[] {
                             "TotalAllocation",
                             "12000"});
 #line 661
- testRunner.And("the following funding lines are set against provider with id \'1000000\'", ((string)(null)), table1044, "And ");
+ testRunner.And("the following funding lines are set against provider with id \'1000000\'", ((string)(null)), table1090, "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table1045 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table1091 = new TechTalk.SpecFlow.Table(new string[] {
                             "FundingLineCode",
                             "Value"});
-                table1045.AddRow(new string[] {
+                table1091.AddRow(new string[] {
                             "TotalAllocation",
                             "24000"});
 #line 664
- testRunner.And("the following funding lines are set against provider with id \'9000000\'", ((string)(null)), table1045, "And ");
+ testRunner.And("the following funding lines are set against provider with id \'9000000\'", ((string)(null)), table1091, "And ");
 #line hidden
             }
             this.ScenarioCleanup();
@@ -2383,90 +2383,90 @@ this.ScenarioInitialize(scenarioInfo);
 #line 10
 this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table1046 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table1092 = new TechTalk.SpecFlow.Table(new string[] {
                             "Field",
                             "Value"});
-                table1046.AddRow(new string[] {
+                table1092.AddRow(new string[] {
                             "ProviderId",
                             "1000000"});
-                table1046.AddRow(new string[] {
+                table1092.AddRow(new string[] {
                             "Name",
                             "Local Authority Updated 1"});
-                table1046.AddRow(new string[] {
+                table1092.AddRow(new string[] {
                             "Authority",
                             "Local Authority 1"});
-                table1046.AddRow(new string[] {
+                table1092.AddRow(new string[] {
                             "DateOpened",
                             "2012-03-15"});
-                table1046.AddRow(new string[] {
+                table1092.AddRow(new string[] {
                             "LACode",
                             "204"});
-                table1046.AddRow(new string[] {
+                table1092.AddRow(new string[] {
                             "LocalAuthorityName",
                             "Local Authority 1"});
-                table1046.AddRow(new string[] {
+                table1092.AddRow(new string[] {
                             "ProviderType",
                             "Local Authority"});
-                table1046.AddRow(new string[] {
+                table1092.AddRow(new string[] {
                             "ProviderSubType",
                             "Local Authority"});
-                table1046.AddRow(new string[] {
+                table1092.AddRow(new string[] {
                             "ProviderVersionId",
                             "psg-providers-1.0"});
-                table1046.AddRow(new string[] {
+                table1092.AddRow(new string[] {
                             "TrustStatus",
                             "Not Supported By A Trust"});
-                table1046.AddRow(new string[] {
+                table1092.AddRow(new string[] {
                             "UKPRN",
                             "9000000"});
 #line 670
  testRunner.Given("the following provider exists within core provider data in provider version \'psg-" +
-                        "providers-1.0\'", ((string)(null)), table1046, "Given ");
+                        "providers-1.0\'", ((string)(null)), table1092, "Given ");
 #line hidden
 #line 683
  testRunner.When("funding is refreshed", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-                TechTalk.SpecFlow.Table table1047 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table1093 = new TechTalk.SpecFlow.Table(new string[] {
                             "PublishedProviderId",
                             "Status"});
-                table1047.AddRow(new string[] {
+                table1093.AddRow(new string[] {
                             "publishedprovider-1000000-AY-1920-PSG",
                             "Updated"});
-                table1047.AddRow(new string[] {
+                table1093.AddRow(new string[] {
                             "publishedprovider-1000002-AY-1920-PSG",
                             "Updated"});
-                table1047.AddRow(new string[] {
+                table1093.AddRow(new string[] {
                             "publishedprovider-1000003-AY-1920-PSG",
                             "Draft"});
-                table1047.AddRow(new string[] {
+                table1093.AddRow(new string[] {
                             "publishedprovider-1000004-AY-1920-PSG",
                             "Draft"});
-                table1047.AddRow(new string[] {
+                table1093.AddRow(new string[] {
                             "publishedprovider-1000005-AY-1920-PSG",
                             "Draft"});
-                table1047.AddRow(new string[] {
+                table1093.AddRow(new string[] {
                             "publishedprovider-1000009-AY-1920-PSG",
                             "Draft"});
-                table1047.AddRow(new string[] {
+                table1093.AddRow(new string[] {
                             "publishedprovider-1000101-AY-1920-PSG",
                             "Updated"});
-                table1047.AddRow(new string[] {
+                table1093.AddRow(new string[] {
                             "publishedprovider-1000102-AY-1920-PSG",
                             "Updated"});
-                table1047.AddRow(new string[] {
+                table1093.AddRow(new string[] {
                             "publishedprovider-1000103-AY-1920-PSG",
                             "Draft"});
 #line 684
- testRunner.Then("the following published provider ids are upserted", ((string)(null)), table1047, "Then ");
+ testRunner.Then("the following published provider ids are upserted", ((string)(null)), table1093, "Then ");
 #line hidden
-                TechTalk.SpecFlow.Table table1048 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table1094 = new TechTalk.SpecFlow.Table(new string[] {
                             "FundingLineCode",
                             "Value"});
-                table1048.AddRow(new string[] {
+                table1094.AddRow(new string[] {
                             "TotalAllocation",
                             "12000"});
 #line 695
- testRunner.And("the following funding lines are set against provider with id \'1000000\'", ((string)(null)), table1048, "And ");
+ testRunner.And("the following funding lines are set against provider with id \'1000000\'", ((string)(null)), table1094, "And ");
 #line hidden
             }
             this.ScenarioCleanup();
