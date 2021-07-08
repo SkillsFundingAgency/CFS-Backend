@@ -81,7 +81,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        public async Task CreateRelationship_GivenModelButWasInvalid_ReturnesBadRequest()
+        public async Task CreateRelationship_GivenModelButWasInvalid_ReturnsBadRequest()
         {
             //Arrange
             CreateDefinitionSpecificationRelationshipModel model = new CreateDefinitionSpecificationRelationshipModel();
@@ -402,13 +402,13 @@ namespace CalculateFunding.Services.Datasets.Services
             SpecModel.SpecificationSummary targetSpecification = new SpecModel.SpecificationSummary
             {
                 Id = targetSpecificationId,
-                FundingStreams = new[] {new Reference(targetFundingStreamId, targetFundingStreamId)},
+                FundingStreams = new[] { new Reference(targetFundingStreamId, targetFundingStreamId) },
                 FundingPeriod = new Reference(targetFundingPeriodId, targetFundingPeriodId),
-                TemplateIds = new Dictionary<string, string>() { { targetFundingStreamId, templateId} }
+                TemplateIds = new Dictionary<string, string>() { { targetFundingStreamId, templateId } }
             };
             TemplateMetadataDistinctContents metadataContents = new TemplateMetadataDistinctContents()
             {
-                FundingLines = new[] 
+                FundingLines = new[]
                 {
                     new TemplateMetadataFundingLine() { FundingLineCode = fundingLineOne, TemplateLineId = fundingLineIdOne, Name = fundingLineOne},
                     new TemplateMetadataFundingLine() { FundingLineCode = fundingLineTwo, TemplateLineId = fundingLineIdTwo, Name = fundingLineTwo}
@@ -545,9 +545,9 @@ namespace CalculateFunding.Services.Datasets.Services
                   .Received(1)
                   .RemoveAsync<IEnumerable<DatasetSchemaRelationshipModel>>(Arg.Is($"{CacheKeys.DatasetRelationshipFieldsForSpecification}{specificationId}"));
 
-           await relationshipVersionRepository
-                .Received(1)
-                .CreateVersion(Arg.Is<DefinitionSpecificationRelationshipVersion>(x => x.Name == relationshipName), null, null, false);
+            await relationshipVersionRepository
+                 .Received(1)
+                 .CreateVersion(Arg.Is<DefinitionSpecificationRelationshipVersion>(x => x.Name == relationshipName), null, null, false);
 
             await datasetRepository
                 .Received(1)
@@ -2410,10 +2410,10 @@ namespace CalculateFunding.Services.Datasets.Services
             IMessengerService messengerService = CreateMessengerService();
 
             DefinitionSpecificationRelationshipService service = CreateService(
-                logger: logger, 
-                datasetRepository: datasetRepository, 
-                jobManagement: jobManagement, 
-                messengerService: messengerService, 
+                logger: logger,
+                datasetRepository: datasetRepository,
+                jobManagement: jobManagement,
+                messengerService: messengerService,
                 specificationsApiClient: specificationsApiClient,
                 relationshipVersionRepository: relationshipVersionRepository);
 
@@ -2495,7 +2495,7 @@ namespace CalculateFunding.Services.Datasets.Services
                                                                                           .WithRelationshipId(relationshipId)
                                                                                           .WithName(relationshipName)
                                                                                           .WithIsSetAsProviderData(true))));
-            
+
             IVersionRepository<DefinitionSpecificationRelationshipVersion> relationshipVersionRepository = CreateRelationshipVersionRepository();
 
             relationshipVersionRepository
@@ -2539,7 +2539,7 @@ namespace CalculateFunding.Services.Datasets.Services
             IMessengerService messengerService = CreateMessengerService();
 
             DefinitionSpecificationRelationshipService service = CreateService(
-                logger: logger, datasetRepository: datasetRepository, jobManagement: jobManagement, 
+                logger: logger, datasetRepository: datasetRepository, jobManagement: jobManagement,
                 messengerService: messengerService, specificationsApiClient: specificationsApiClient,
                 relationshipVersionRepository: relationshipVersionRepository);
 
@@ -2675,7 +2675,7 @@ namespace CalculateFunding.Services.Datasets.Services
             IMessengerService messengerService = CreateMessengerService();
 
             DefinitionSpecificationRelationshipService service = CreateService(
-                logger: logger, datasetRepository: datasetRepository, jobManagement: jobManagement, 
+                logger: logger, datasetRepository: datasetRepository, jobManagement: jobManagement,
                 messengerService: messengerService, specificationsApiClient: specificationsApiClient,
                 relationshipVersionRepository: relationshipVersionRepository);
 
@@ -2983,7 +2983,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 }
             };
 
-            DefinitionSpecificationRelationshipVersion relationshipVersion = NewDefinitionSpecificationRelationshipVersion(_ => 
+            DefinitionSpecificationRelationshipVersion relationshipVersion = NewDefinitionSpecificationRelationshipVersion(_ =>
                                                                                          _.WithSpecification(NewReference(s => s.WithId(specificationId)))
                                                                                           .WithRelationshipId(relationshipId)
                                                                                           .WithName(relationshipName)
@@ -3130,6 +3130,426 @@ namespace CalculateFunding.Services.Datasets.Services
                .SaveVersion(Arg.Is<DefinitionSpecificationRelationshipVersion>(x => x.RelationshipId == relationshipIdTwo));
         }
 
+        [TestMethod]
+        public async Task UpdateRelationship_GivenNullModelProvided_ReturnsBadRequest()
+        {
+            ILogger logger = CreateLogger();
+            string relationshipId = "123";
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger);
+
+            IActionResult result = await service.UpdateRelationship(null, relationshipId);
+
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+
+            logger
+                .Received(1)
+                .Error(Arg.Is("Null UpdateDefinitionSpecificationRelationshipModel was provided to UpdateRelationship"));
+        }
+
+        [TestMethod]
+        public void UpdateRelationship_GivenNullRelationshipIdProvided_ReturnsBadRequest()
+        {
+            UpdateDefinitionSpecificationRelationshipModel model = new UpdateDefinitionSpecificationRelationshipModel
+            {
+                Description = "desc",
+                FundingLineIds = new List<uint>(),
+                CalculationIds = new List<uint>()
+            };
+
+            ILogger logger = CreateLogger();
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger);
+
+            Func<Task> test = async () => await service.UpdateRelationship(model, null);
+
+            test
+                .Should()
+                .ThrowExactly<ArgumentNullException>();
+        }
+
+        [TestMethod]
+        public async Task UpdateRelationship_GivenModelButWasInvalid_ReturnesBadRequest()
+        {
+            string relationshipId = "123";
+            UpdateDefinitionSpecificationRelationshipModel model = new UpdateDefinitionSpecificationRelationshipModel();
+
+            ILogger logger = CreateLogger();
+
+            ValidationResult validationResult = new ValidationResult(new[]{
+                    new ValidationFailure("prop1", "any error")
+                });
+
+            IValidator<UpdateDefinitionSpecificationRelationshipModel> validator = CreateUpdateRelationshipModelValidator(validationResult);
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, updateRelationshipModelValidator: validator);
+
+            IActionResult result = await service.UpdateRelationship(model, relationshipId);
+
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+        }
+
+        [TestMethod]
+        public async Task UpdateRelationship_GivenValidModelButDefinitionSpecificationRelationshipCouldNotBeFound_ReturnsNotFound()
+        {
+            string relationshipId = NewRandomString();
+
+            UpdateDefinitionSpecificationRelationshipModel model = new UpdateDefinitionSpecificationRelationshipModel
+            {
+                Description = "desc",
+                FundingLineIds = new List<uint>(),
+                CalculationIds = new List<uint>()
+            };
+
+            ILogger logger = CreateLogger();
+
+            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
+                .Returns((DefinitionSpecificationRelationship)null);
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
+
+            IActionResult result = await service.UpdateRelationship(model, relationshipId);
+
+            result
+                .Should()
+                .BeOfType<StatusCodeResult>();
+
+            StatusCodeResult statusCodeResult = result as StatusCodeResult;
+
+            statusCodeResult
+                .StatusCode
+                .Should()
+                .Be(404);
+        }
+
+        [TestMethod]
+        public async Task UpdateRelationship_GivenValidModelButDefinitionSpecificationRelationshipWrongRelationshipType_ReturnsNotFound()
+        {
+            string relationshipId = NewRandomString();
+
+            UpdateDefinitionSpecificationRelationshipModel model = new UpdateDefinitionSpecificationRelationshipModel
+            {
+                Description = "desc",
+                FundingLineIds = new List<uint>(),
+                CalculationIds = new List<uint>()
+            };
+
+            ILogger logger = CreateLogger();
+
+            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
+                .Returns(new DefinitionSpecificationRelationship
+                {
+                    Current = new DefinitionSpecificationRelationshipVersion
+                    {
+                        RelationshipType = DatasetRelationshipType.Uploaded
+                    }
+                });
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
+
+            IActionResult result = await service.UpdateRelationship(model, relationshipId);
+
+            result
+                .Should()
+                .BeOfType<StatusCodeResult>();
+
+            StatusCodeResult statusCodeResult = result as StatusCodeResult;
+
+            statusCodeResult
+                .StatusCode
+                .Should()
+                .Be(404);
+        }
+
+        [TestMethod]
+        public async Task UpdateRelationship_GivenValidModelButFailedToSave_ReturnsFailedResult()
+        {
+            string relationshipId = NewRandomString();
+            string specificationId = NewRandomString();
+            string fundingStreamId = NewRandomString();
+            string fundingPeriodId = NewRandomString();
+            string templateId = NewRandomString();
+            string relationshipName = NewRandomString();
+            string description = NewRandomString();
+            uint fundingLineIdOne = NewRandomUint();
+            uint fundingLineIdTwo = NewRandomUint();
+            uint calculationIdOne = NewRandomUint();
+            uint calculationIdTwo = NewRandomUint();
+            string fundingLineOne = NewRandomString();
+            string fundingLineTwo = NewRandomString();
+            string calculationOne = NewRandomString();
+            string calculationTwo = NewRandomString();
+            Reference author = NewReference();
+
+            UpdateDefinitionSpecificationRelationshipModel model = new UpdateDefinitionSpecificationRelationshipModel
+            {
+                Description = "desc",
+                FundingLineIds = new List<uint>() { fundingLineIdOne, fundingLineIdTwo },
+                CalculationIds = new List<uint>() { calculationIdOne, calculationIdTwo }
+            };
+
+            SpecModel.SpecificationSummary specification = new SpecModel.SpecificationSummary
+            {
+                Id = specificationId,
+                FundingStreams = new[] { new Reference(fundingStreamId, fundingStreamId) },
+                FundingPeriod = new Reference(fundingPeriodId, fundingPeriodId),
+                TemplateIds = new Dictionary<string, string>() { { fundingStreamId, templateId } }
+            };
+            TemplateMetadataDistinctContents metadataContents = new TemplateMetadataDistinctContents()
+            {
+                FundingLines = new[]
+                {
+                    new TemplateMetadataFundingLine() { FundingLineCode = fundingLineOne, TemplateLineId = fundingLineIdOne, Name = fundingLineOne},
+                    new TemplateMetadataFundingLine() { FundingLineCode = fundingLineTwo, TemplateLineId = fundingLineIdTwo, Name = fundingLineTwo}
+                },
+                Calculations = new[]
+                {
+                    new TemplateMetadataCalculation(){TemplateCalculationId = calculationIdOne, Name = calculationOne, Type = Common.TemplateMetadata.Enums.CalculationType.Number},
+                    new TemplateMetadataCalculation(){TemplateCalculationId = calculationIdTwo, Name = calculationTwo, Type = Common.TemplateMetadata.Enums.CalculationType.Enum}
+                }
+            };
+            PublishedSpecificationConfiguration publishedSpecificationConfiguration = new PublishedSpecificationConfiguration()
+            {
+                SpecificationId = specificationId,
+                FundingStreamId = fundingStreamId,
+                FundingPeriodId = fundingPeriodId,
+                FundingLines = new[]
+                {
+                    new PublishedSpecificationItem() { TemplateId = fundingLineIdOne, Name = fundingLineOne, SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(fundingLineOne)},
+                    new PublishedSpecificationItem() { TemplateId = fundingLineIdTwo, Name = fundingLineTwo, SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(fundingLineTwo)}
+                },
+                Calculations = new[]
+                {
+                    new PublishedSpecificationItem() { TemplateId = calculationIdOne, Name = calculationOne, SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(fundingLineOne), FieldType = FieldType.NullableOfDecimal},
+                    new PublishedSpecificationItem() { TemplateId = calculationIdTwo, Name = calculationTwo, SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(calculationTwo), FieldType = FieldType.String}
+                }
+            };
+            DefinitionSpecificationRelationship relationship = NewDefinitionSpecificationRelationship(r =>
+                                                              r.WithName(relationshipName)
+                                                              .WithCurrent(NewDefinitionSpecificationRelationshipVersion(_ =>
+                                                                                          _.WithSpecification(NewReference(s => s.WithId(specificationId)))
+                                                                                          .WithDatasetDefinition(NewReference(d => d.WithId(relationshipId)))
+                                                                                          .WithName(relationshipName)
+                                                                                          .WithDescription(description)
+                                                                                          .WithAuthor(author)
+                                                                                          .WithLastUpdated(_utcNow)
+                                                                                          .WithPublishedSpecificationConfiguration(publishedSpecificationConfiguration))));
+
+            ILogger logger = CreateLogger();
+
+            IVersionRepository<DefinitionSpecificationRelationshipVersion> relationshipVersionRepository = CreateRelationshipVersionRepository();
+
+            relationshipVersionRepository
+                .CreateVersion(Arg.Is<DefinitionSpecificationRelationshipVersion>(x => x.Name == relationshipName), null, null, false)
+                .Returns(relationship.Current);
+
+            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
+                .Returns(new DefinitionSpecificationRelationship
+                {
+                    Current = new DefinitionSpecificationRelationshipVersion
+                    {
+                        Specification = new Reference
+                        {
+                            Id = specificationId,
+                            Name = specificationId
+                        },
+                        RelationshipType = DatasetRelationshipType.ReleasedData
+                    }
+                });
+
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
+                .GetSpecificationSummaryById(Arg.Any<string>())
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specification));
+
+            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
+            policiesApiClient.GetDistinctTemplateMetadataContents(Arg.Is(fundingStreamId), Arg.Any<string>(), Arg.Is(templateId))
+                .Returns(new ApiResponse<TemplateMetadataDistinctContents>(HttpStatusCode.OK, metadataContents, null));
+
+            datasetRepository
+                .SaveDefinitionSpecificationRelationship(Arg.Any<DefinitionSpecificationRelationship>())
+                .Returns(HttpStatusCode.BadRequest);
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger,
+                datasetRepository: datasetRepository, specificationsApiClient: specificationsApiClient, policiesApiClient: policiesApiClient,
+                relationshipVersionRepository: relationshipVersionRepository);
+
+            IActionResult result = await service.UpdateRelationship(model, relationshipId);
+
+            result
+                .Should()
+                .BeOfType<StatusCodeResult>();
+
+            StatusCodeResult statusCodeResult = result as StatusCodeResult;
+
+            statusCodeResult
+                .StatusCode
+                .Should()
+                .Be(400);
+
+            logger
+              .Received(1)
+              .Error(Arg.Is($"Failed to save relationship with status code: BadRequest"));
+        }
+
+        [TestMethod]
+        public async Task UpdateRelationship_GivenValidModelAndSavesWithoutError_ReturnsOK()
+        {
+            string relationshipId = NewRandomString();
+            string specificationId = NewRandomString();
+            string fundingStreamId = NewRandomString();
+            string fundingPeriodId = NewRandomString();
+            string templateId = NewRandomString();
+            string originalDescription = NewRandomString();
+            string newDescription = NewRandomString();
+            uint fundingLineIdOne = NewRandomUint();
+            uint fundingLineIdTwo = NewRandomUint();
+            uint calculationIdOne = NewRandomUint();
+            uint calculationIdTwo = NewRandomUint();
+            string fundingLineOne = NewRandomString();
+            string fundingLineTwo = NewRandomString();
+            string calculationOne = NewRandomString();
+            string calculationTwo = NewRandomString();
+            Reference author = NewReference();
+
+            UpdateDefinitionSpecificationRelationshipModel model = new UpdateDefinitionSpecificationRelationshipModel
+            {
+                Description = newDescription,
+                FundingLineIds = new List<uint>() { fundingLineIdOne, fundingLineIdTwo },
+                CalculationIds = new List<uint>() { calculationIdOne }
+            };
+
+            PublishedSpecificationConfiguration originalPublishedSpecificationConfiguration = new PublishedSpecificationConfiguration()
+            {
+                SpecificationId = specificationId,
+                FundingStreamId = fundingStreamId,
+                FundingPeriodId = fundingPeriodId,
+                FundingLines = new[]
+                {
+                    new PublishedSpecificationItem() { TemplateId = fundingLineIdOne, Name = fundingLineOne, SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(fundingLineOne)},
+                    new PublishedSpecificationItem() { TemplateId = fundingLineIdTwo, Name = fundingLineTwo, SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(fundingLineTwo)}
+                },
+                Calculations = new[]
+                {
+                    new PublishedSpecificationItem() { TemplateId = calculationIdOne, Name = calculationOne, SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(fundingLineOne), FieldType = FieldType.NullableOfDecimal},
+                    new PublishedSpecificationItem() { TemplateId = calculationIdTwo, Name = calculationTwo, SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(calculationTwo), FieldType = FieldType.String}
+                }
+            };
+
+            PublishedSpecificationConfiguration newPublishedSpecificationConfiguration = new PublishedSpecificationConfiguration()
+            {
+                SpecificationId = specificationId,
+                FundingStreamId = fundingStreamId,
+                FundingPeriodId = fundingPeriodId,
+                FundingLines = new[]
+                {
+                    new PublishedSpecificationItem() { TemplateId = fundingLineIdOne, Name = fundingLineOne, SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(fundingLineOne)},
+                    new PublishedSpecificationItem() { TemplateId = fundingLineIdTwo, Name = fundingLineTwo, SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(fundingLineTwo)}
+                },
+                Calculations = new[]
+                {
+                    new PublishedSpecificationItem() { TemplateId = calculationIdOne, Name = calculationOne, SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(fundingLineOne), FieldType = FieldType.NullableOfDecimal}
+                }
+            };
+            DefinitionSpecificationRelationship newRelationship = NewDefinitionSpecificationRelationship(r =>
+                r.WithCurrent(NewDefinitionSpecificationRelationshipVersion(_ =>
+                    _.WithSpecification(NewReference(s => s.WithId(specificationId)))
+                    .WithDatasetDefinition(NewReference(d => d.WithId(relationshipId)))
+                    .WithDescription(newDescription)
+                    .WithAuthor(author)
+                    .WithLastUpdated(_utcNow)
+                    .WithRelationshipType(DatasetRelationshipType.ReleasedData)
+                    .WithPublishedSpecificationConfiguration(newPublishedSpecificationConfiguration))));
+
+            ILogger logger = CreateLogger();
+
+            IVersionRepository<DefinitionSpecificationRelationshipVersion> relationshipVersionRepository = CreateRelationshipVersionRepository();
+
+            relationshipVersionRepository
+                .CreateVersion(Arg.Is<DefinitionSpecificationRelationshipVersion>(x => x.Specification.Id == specificationId), null, null, false)
+                .Returns(newRelationship.Current);
+
+            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
+                .Returns(new DefinitionSpecificationRelationship
+                {
+                    Current = new DefinitionSpecificationRelationshipVersion
+                    {
+                        Specification = new Reference
+                        {
+                            Id = specificationId,
+                            Name = specificationId
+                        },
+                        LastUpdated = _utcNow,
+                        Description = originalDescription,
+                        RelationshipId = relationshipId,
+                        RelationshipType = DatasetRelationshipType.ReleasedData,
+                        PublishedSpecificationConfiguration = originalPublishedSpecificationConfiguration
+                    }
+                });
+
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
+                .GetSpecificationSummaryById(Arg.Any<string>())
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, new SpecModel.SpecificationSummary
+                {
+                    Id = specificationId,
+                    FundingStreams = new[] { new Reference(fundingStreamId, fundingStreamId) },
+                    FundingPeriod = new Reference(fundingPeriodId, fundingPeriodId),
+                    TemplateIds = new Dictionary<string, string>() { { fundingStreamId, templateId } }
+                }));
+
+            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
+            policiesApiClient.GetDistinctTemplateMetadataContents(Arg.Is(fundingStreamId), Arg.Any<string>(), Arg.Is(templateId))
+                .Returns(new ApiResponse<TemplateMetadataDistinctContents>(HttpStatusCode.OK,
+                new TemplateMetadataDistinctContents()
+                {
+                    FundingLines = new[]
+                    {
+                        new TemplateMetadataFundingLine() { FundingLineCode = fundingLineOne, TemplateLineId = fundingLineIdOne, Name = fundingLineOne},
+                        new TemplateMetadataFundingLine() { FundingLineCode = fundingLineTwo, TemplateLineId = fundingLineIdTwo, Name = fundingLineTwo}
+                    },
+                    Calculations = new[]
+                    {
+                        new TemplateMetadataCalculation(){TemplateCalculationId = calculationIdOne, Name = calculationOne, Type = Common.TemplateMetadata.Enums.CalculationType.Number},
+                        new TemplateMetadataCalculation(){TemplateCalculationId = calculationIdTwo, Name = calculationTwo, Type = Common.TemplateMetadata.Enums.CalculationType.Enum}
+                    }
+                }, null));
+
+            datasetRepository
+                .SaveDefinitionSpecificationRelationship(Arg.Any<DefinitionSpecificationRelationship>())
+                .Returns(HttpStatusCode.OK);
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger,
+                datasetRepository: datasetRepository, specificationsApiClient: specificationsApiClient, policiesApiClient: policiesApiClient,
+                relationshipVersionRepository: relationshipVersionRepository);
+
+            IActionResult result = await service.UpdateRelationship(model, relationshipId);
+
+            result
+                .Should()
+                .BeOfType<CreatedResult>();
+
+            await
+                datasetRepository
+                    .Received(1)
+                    .SaveDefinitionSpecificationRelationship(Arg.Is<DefinitionSpecificationRelationship>(m =>
+                        m.Current.Description == newDescription &&
+                        m.Current.Specification.Id == specificationId &&
+                        m.Current.LastUpdated == _utcNow));
+        }
+
         private DefinitionSpecificationRelationshipService CreateService(
             IDatasetRepository datasetRepository = null,
             ILogger logger = null,
@@ -3141,7 +3561,8 @@ namespace CalculateFunding.Services.Datasets.Services
             IJobManagement jobManagement = null,
             IValidator<ValidateDefinitionSpecificationRelationshipModel> validateRelationshipModelValidator = null,
             IVersionRepository<DefinitionSpecificationRelationshipVersion> relationshipVersionRepository = null,
-            IPoliciesApiClient policiesApiClient = null)
+            IPoliciesApiClient policiesApiClient = null,
+            IValidator<UpdateDefinitionSpecificationRelationshipModel> updateRelationshipModelValidator = null)
         {
             return new DefinitionSpecificationRelationshipService(
                 datasetRepository ?? CreateDatasetRepository(),
@@ -3156,7 +3577,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 _dateTimeProvider,
                 validateRelationshipModelValidator ?? CreateValidateRelationshipModelValidator(),
                 relationshipVersionRepository ?? CreateRelationshipVersionRepository(),
-                policiesApiClient ?? CreatePoliciesApiClient());
+                policiesApiClient ?? CreatePoliciesApiClient(),
+                updateRelationshipModelValidator ?? CreateUpdateRelationshipModelValidator());
         }
 
         private static IValidator<CreateDefinitionSpecificationRelationshipModel> CreateRelationshipModelValidator(ValidationResult validationResult = null)
@@ -3186,6 +3608,22 @@ namespace CalculateFunding.Services.Datasets.Services
 
             validator
                .ValidateAsync(Arg.Any<ValidateDefinitionSpecificationRelationshipModel>())
+               .Returns(validationResult);
+
+            return validator;
+        }
+
+        private static IValidator<UpdateDefinitionSpecificationRelationshipModel> CreateUpdateRelationshipModelValidator(ValidationResult validationResult = null)
+        {
+            if (validationResult == null)
+            {
+                validationResult = new ValidationResult();
+            }
+
+            IValidator<UpdateDefinitionSpecificationRelationshipModel> validator = Substitute.For<IValidator<UpdateDefinitionSpecificationRelationshipModel>>();
+
+            validator
+               .ValidateAsync(Arg.Any<UpdateDefinitionSpecificationRelationshipModel>())
                .Returns(validationResult);
 
             return validator;

@@ -48,6 +48,7 @@ namespace CalculateFunding.Services.Datasets
         private readonly ISpecificationsApiClient _specificationsApiClient;
         private readonly IValidator<CreateDefinitionSpecificationRelationshipModel> _createRelationshipModelValidator;
         private readonly IValidator<ValidateDefinitionSpecificationRelationshipModel> _validateRelationshipModelValidator;
+        private readonly IValidator<UpdateDefinitionSpecificationRelationshipModel> _updateRelationshipModelValidator;
         private readonly IPoliciesApiClient _policiesApiClient;
         private readonly IMessengerService _messengerService;
         private readonly ICalcsRepository _calcsRepository;
@@ -73,7 +74,8 @@ namespace CalculateFunding.Services.Datasets
             IDateTimeProvider dateTimeProvider,
             IValidator<ValidateDefinitionSpecificationRelationshipModel> validateRelationshipModelValidator,
             IVersionRepository<DefinitionSpecificationRelationshipVersion> relationshipVersionRepository,
-            IPoliciesApiClient policiesApiClient)
+            IPoliciesApiClient policiesApiClient,
+            IValidator<UpdateDefinitionSpecificationRelationshipModel> updateRelationshipModelValidator)
         {
             Guard.ArgumentNotNull(dateTimeProvider, nameof(dateTimeProvider));
             Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
@@ -91,6 +93,7 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(validateRelationshipModelValidator, nameof(validateRelationshipModelValidator));
             Guard.ArgumentNotNull(relationshipVersionRepository, nameof(relationshipVersionRepository));
             Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
+            Guard.ArgumentNotNull(updateRelationshipModelValidator, nameof(updateRelationshipModelValidator));
 
             _datasetRepository = datasetRepository;
             _logger = logger;
@@ -108,6 +111,7 @@ namespace CalculateFunding.Services.Datasets
             _relationshipVersionRepository = relationshipVersionRepository;
             _validateRelationshipModelValidator = validateRelationshipModelValidator;
             _policiesApiClient = policiesApiClient;
+            _updateRelationshipModelValidator = updateRelationshipModelValidator;
 
             _typeIdentifierGenerator = new VisualBasicTypeIdentifierGenerator();
         }
@@ -232,6 +236,51 @@ namespace CalculateFunding.Services.Datasets
             await _cacheProvider.RemoveAsync<IEnumerable<DatasetSchemaRelationshipModel>>($"{CacheKeys.DatasetRelationshipFieldsForSpecification}{specification.Id}");
 
             return new OkObjectResult(relationshipVersion);
+        }
+
+        public async Task<IActionResult> UpdateRelationship(UpdateDefinitionSpecificationRelationshipModel model, string relationshipId)
+        {
+            Guard.ArgumentNotNull(relationshipId, nameof(relationshipId));
+
+            if (model == null)
+            {
+                _logger.Error("Null UpdateDefinitionSpecificationRelationshipModel was provided to UpdateRelationship");
+                return new BadRequestObjectResult("Null EditDefinitionSpecificationRelationshipModel was provided to UpdateRelationship");
+            }
+
+            BadRequestObjectResult validationResult = (await _updateRelationshipModelValidator.ValidateAsync(model)).PopulateModelState();
+
+            if (validationResult != null)
+            {
+                return validationResult;
+            }
+
+            DefinitionSpecificationRelationship definitionSpecificationRelationship = await _datasetRepository.GetDefinitionSpecificationRelationshipById(relationshipId);
+
+            if (definitionSpecificationRelationship == null || definitionSpecificationRelationship.Current.RelationshipType != DatasetRelationshipType.ReleasedData)
+            {
+                return new StatusCodeResult(404);
+            }
+
+            string specificationId = definitionSpecificationRelationship.Current.Specification.Id;
+
+            DefinitionSpecificationRelationshipVersion newRelationshipVersion = definitionSpecificationRelationship.Current.DeepCopy(useCamelCase: false);
+            newRelationshipVersion.Description = model.Description;
+            newRelationshipVersion.LastUpdated = _dateTimeProvider.UtcNow;
+            newRelationshipVersion.PublishedSpecificationConfiguration = await CreatePublishedSpecificationConfiguration(specificationId, model.FundingLineIds, model.CalculationIds);
+            definitionSpecificationRelationship.Current = newRelationshipVersion = await _relationshipVersionRepository.CreateVersion(newRelationshipVersion);
+
+            HttpStatusCode statusCode = await _datasetRepositoryPolicy.ExecuteAsync(() => _datasetRepository.SaveDefinitionSpecificationRelationship(definitionSpecificationRelationship));
+
+            if (!statusCode.IsSuccess())
+            {
+                _logger.Error($"Failed to save relationship with status code: {statusCode}");
+                return new StatusCodeResult((int)statusCode);
+            }
+
+            await _relationshipVersionRepository.SaveVersion(newRelationshipVersion);
+
+            return new CreatedResult($"api/datasets/{specificationId}/{relationshipId}/relationships", newRelationshipVersion);
         }
 
         public async Task<IEnumerable<DatasetSpecificationRelationshipViewModel>> GetRelationshipsBySpecificationId(string specificationId)
@@ -840,7 +889,9 @@ namespace CalculateFunding.Services.Datasets
         private async Task<PublishedSpecificationConfiguration> CreatePublishedSpecificationConfiguration(string targetSpecificationId, IEnumerable<uint> fundingLineIds, IEnumerable<uint> calculationIds)
         {
             if (string.IsNullOrWhiteSpace(targetSpecificationId))
+            {
                 return null;
+            }
 
             ApiResponse<SpecificationSummary> specificationSummaryApiResponse =
                 await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(targetSpecificationId));

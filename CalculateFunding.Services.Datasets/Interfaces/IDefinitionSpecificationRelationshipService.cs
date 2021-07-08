@@ -34,5 +34,6 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         Task<IActionResult> GetCurrentRelationshipsBySpecificationIdAndDatasetDefinitionId(string specificationId, string datasetDefinitionId);
         Task<IActionResult> ValidateRelationship(ValidateDefinitionSpecificationRelationshipModel validateDefinitionSpecificationRelationshipModel);
         Task<IActionResult> Migrate();
+        Task<IActionResult> UpdateRelationship(UpdateDefinitionSpecificationRelationshipModel editDefinitionSpecificationRelationshipModel, string relationshipId);
     }
 }

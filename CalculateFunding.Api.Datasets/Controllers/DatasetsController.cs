@@ -151,6 +151,15 @@ namespace CalculateFunding.Api.Datasets.Controllers
             return _definitionSpecificationRelationshipService.CreateRelationship(createDefinitionSpecificationRelationshipModel, user, correlationId);
         }
 
+        [Route("api/datasets/edit-definitionspecification-relationship/{relationshipId}")]
+        [HttpPut]
+        [Produces(typeof(CreatedResult))]
+        public Task<IActionResult> UpdateDefinitionSpecificationRelationship([FromRoute] string relationshipId,
+            [FromBody] UpdateDefinitionSpecificationRelationshipModel editDefinitionSpecificationRelationshipModel)
+        {
+            return _definitionSpecificationRelationshipService.UpdateRelationship(editDefinitionSpecificationRelationshipModel, relationshipId);
+        }
+
         [Route("api/datasets/validate-definitionspecification-relationship")]
         [HttpPost]
         [ProducesResponseType((int)HttpStatusCode.OK)]

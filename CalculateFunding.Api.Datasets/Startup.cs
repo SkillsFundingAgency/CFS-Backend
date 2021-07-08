@@ -199,6 +199,9 @@ namespace CalculateFunding.Api.Datasets
                .AddSingleton<IValidator<CreateDefinitionSpecificationRelationshipModel>, CreateDefinitionSpecificationRelationshipModelValidator>();
 
             builder
+               .AddSingleton<IValidator<UpdateDefinitionSpecificationRelationshipModel>, UpdateDefinitionSpecificationRelationshipModelValidator>();
+
+            builder
                .AddSingleton<IValidator<ValidateDefinitionSpecificationRelationshipModel>,ValidateDefinitionSpecificationRelationshipModelValidator>();
             builder.AddSingleton<ITypeIdentifierGenerator, VisualBasicTypeIdentifierGenerator>();
 

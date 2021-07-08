@@ -71,7 +71,7 @@ namespace CalculateFunding.Services.Datasets.Validators
 
             RuleFor(model => model.SpecificationId)
               .NotEmpty()
-              .WithMessage("Missing specification id.");
+              .WithMessage("Missing specification id");
 
             RuleFor(model => model.Name)
               .CustomAsync(async (name, context, ct) =>
