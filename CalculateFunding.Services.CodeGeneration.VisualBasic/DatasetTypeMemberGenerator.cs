@@ -139,7 +139,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
         {
             TypeSyntax propertyType = GetType(fieldDefinition.Type);
             StringBuilder builder = new StringBuilder();
-            builder.AppendLine($"<Field(Id := \"{_typeIdentifierGenerator.GenerateIdentifier(fieldDefinition.Id)}\", Name := \"{fieldDefinition.Name}\")>");
+            builder.AppendLine($"<Field(Id := \"{fieldDefinition.Id}\", Name := \"{fieldDefinition.Name}\")>");
             builder.AppendLine($"<IsAggregable(IsAggregable := \"{fieldDefinition.IsAggregable.ToString()}\")>");
             builder.AppendLine($"<Description(Description := \"{fieldDefinition.Description?.Replace("\"", "\"\"")}\")>");
             builder.AppendLine($"Public Property {_typeIdentifierGenerator.GenerateIdentifier(fieldDefinition.Name)}() As {_typeIdentifierGenerator.GenerateIdentifier($"{propertyType}")}");

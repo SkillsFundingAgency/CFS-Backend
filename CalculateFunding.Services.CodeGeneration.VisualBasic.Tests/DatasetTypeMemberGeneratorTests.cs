@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
@@ -6,8 +8,6 @@ using FluentAssertions;
 using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace CalculateFunding.Services.CodeGeneration.VisualBasic.UnitTests
 {
@@ -35,7 +35,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic.UnitTests
                         Description = "Table1",
                         FieldDefinitions = new List<FieldDefinition>
                         {
-                            new FieldDefinition { Id = "ID", Name = "ID", Description = "ID", IsAggregable = false },
+                            new FieldDefinition { Id = "123", Name = "ID", Description = "ID", IsAggregable = false },
                             new FieldDefinition { Id = "TOTAL", Name = "TOTAL", Description = "TOTAL", IsAggregable = true },
                         }
                     }
@@ -49,7 +49,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic.UnitTests
             properties.Should().HaveCount(3);
 
             string idProperty = properties.Where(s => s.Identifier.ValueText == "ID").First().ToFullString();
-            idProperty.Should().Contain("Id := \"ID\"");
+            idProperty.Should().Contain("Id := \"123\"");
             idProperty.Should().Contain("Name := \"ID\"");
             idProperty.Should().Contain("IsAggregable := \"False\"");
 
