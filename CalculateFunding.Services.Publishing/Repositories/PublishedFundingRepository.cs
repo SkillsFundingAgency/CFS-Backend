@@ -1173,6 +1173,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                            'totalFunding'    : c.content.current.totalFunding,
                                            'version'         : c.content.current.version,
                                            'errors'          : c.content.current.errors,
+                                           'isIndicative'    : c.content.current.isIndicative,
                                            'provider'        : { 
                                                'providerType' : c.content.current.provider.providerType,
                                                'providerSubType' : c.content.current.provider.providerSubType,
@@ -1181,7 +1182,8 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                                'name' : c.content.current.provider.name,
                                                'ukprn' : c.content.current.provider.ukprn,
                                                'urn' : c.content.current.provider.urn,
-                                               'upin' : c.content.current.provider.upin
+                                               'upin' : c.content.current.provider.upin,
+                                               'dateOpened' : c.content.current.provider.dateOpened
                                             }
                                         } AS Current
                                FROM     publishedProviders c
@@ -1334,7 +1336,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
 
             return results;
         }
-        
+
         public async Task<IEnumerable<PublishedProviderFundingStreamStatus>> GetPublishedProviderStatusCounts(string specificationId,
             string providerType,
             string localAuthority,
