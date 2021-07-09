@@ -69,6 +69,8 @@ namespace CalculateFunding.Functions.Providers
                 builder.AddScoped<OnPopulateScopedProvidersEventTriggerFailure>();
                 builder.AddScoped<OnProviderSnapshotDataLoadEventTrigger>();
                 builder.AddScoped<OnProviderSnapshotDataLoadEventTriggerFailure>();
+                builder.AddScoped<OnTrackLatestEventTrigger>();
+                builder.AddScoped<OnTrackLatestEventTriggerFailure>();
                 builder.AddScoped<OnNewProviderVersionCheck>();
             }
 
@@ -91,6 +93,7 @@ namespace CalculateFunding.Functions.Providers
 
             builder
                 .AddSingleton<IProviderVersionUpdateCheckService, ProviderVersionUpdateCheckService>()
+                .AddSingleton<IProviderVersionUpdateService, ProviderVersionUpdateService>()
                 .AddSingleton<IPublishingJobClashCheck, PublishingJobClashCheck>();
 
             builder

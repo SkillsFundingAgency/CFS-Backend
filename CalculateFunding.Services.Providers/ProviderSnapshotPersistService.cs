@@ -2,6 +2,7 @@
 using CalculateFunding.Common.ApiClient.FundingDataZone;
 using CalculateFunding.Common.ApiClient.FundingDataZone.Models;
 using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Providers.ViewModels;
@@ -18,7 +19,7 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Providers
 {
-    public class ProviderSnapshotPersistService : IProviderSnapshotPersistService
+    public class ProviderSnapshotPersistService : IProviderSnapshotPersistService, IHealthChecker
     {
         private readonly IProviderVersionService _providerVersionService;
         private readonly IFundingDataZoneApiClient _fundingDataZoneApiClient;
@@ -43,6 +44,19 @@ namespace CalculateFunding.Services.Providers
             _fundingDataZoneApiClient = fundingDataZoneApiClient;
             _mapper = mapper;
             _logger = logger;
+        }
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            ServiceHealth versionServiceHealth = await _providerVersionService.IsHealthOk();
+
+            ServiceHealth health = new ServiceHealth()
+            {
+                Name = nameof(ProviderSnapshotPersistService)
+            };
+
+            health.Dependencies.AddRange(versionServiceHealth.Dependencies);
+
+            return health;
         }
 
         public async Task<bool> PersistSnapshot(ProviderSnapshot providerSnapshot)

@@ -25,7 +25,7 @@ using Serilog;
 
 namespace CalculateFunding.Services.Providers
 {
-    public class ProviderVersionService : IProviderVersionService
+    public class ProviderVersionService : IProviderVersionService, IHealthChecker
     {
         private const int CACHE_DURATION = 7;
 
@@ -327,23 +327,41 @@ namespace CalculateFunding.Services.Providers
             Guard.ArgumentNotNull(providerVersionModel, nameof(providerVersionModel));
 
             IActionResult validationResult = await UploadProviderVersionValidate(providerVersionModel, providerVersionId);
-            if (validationResult != null) return (false, validationResult);
-
+            
             ProviderVersion providerVersion = _mapper.Map<ProviderVersion>(providerVersionModel);
+
             providerVersion.Id = $"providerVersion-{providerVersionId}";
 
-            await UploadProviderVersionBlob(providerVersionId, providerVersion);
+            // if the validation passed then persist to blob storage
+            if (validationResult == null)
+            {
+                await UploadProviderVersionBlob(providerVersionId, providerVersion);
+            }
 
             providerVersion.Providers = null;
 
             ProviderVersionMetadata providerVersionMetadata = providerVersion;
 
+            // if the validation failed persist the validation result to provider version meta data in cosmos
+            if (validationResult != null)
+            {
+                providerVersionMetadata.ValidationResult = validationResult.AsJson();
+            }
+
             HttpStatusCode result = await _providerVersionMetadataRepositoryPolicy.ExecuteAsync(() => _providerVersionMetadataRepository.CreateProviderVersion(providerVersionMetadata));
 
-            if (result.IsSuccess())
+            // only re-index if the provider meta data was successfully persisted and it is valid
+            if (result.IsSuccess() && validationResult == null)
                 await _providersSearchPolicy.ExecuteAsync(() => _searchRepository.RunIndexer());
 
-            return (true, null);
+            if (validationResult != null)
+            {
+                return (false, validationResult);
+            }
+            else
+            {
+                return (true, null);
+            }
         }
 
         private async Task UploadProviderVersionBlob(string providerVersionId, ProviderVersion providerVersion)

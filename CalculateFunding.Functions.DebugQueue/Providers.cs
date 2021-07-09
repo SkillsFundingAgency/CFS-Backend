@@ -65,6 +65,31 @@ namespace CalculateFunding.Functions.DebugQueue
             log.LogInformation($"C# Queue trigger function processed: {item}");
         }
 
+        [FunctionName(FunctionConstants.TrackLatest)]
+        public static async Task RunOnTrackLatestEventTrigger([QueueTrigger(ServiceBusConstants.QueueNames.TrackLatest, Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using IServiceScope scope = Functions.Providers.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+            Message message = Helpers.ConvertToMessage<string>(item);
+
+            OnTrackLatestEventTrigger function = scope.ServiceProvider.GetService<OnTrackLatestEventTrigger>();
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
+
+        [FunctionName(FunctionConstants.TrackLatestPoisoned)]
+        public static async Task RunOnTrackLatestEventTriggerFailure([QueueTrigger(ServiceBusConstants.QueueNames.TrackLatestPoisonedLocal, Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using IServiceScope scope = Functions.Providers.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+            Message message = Helpers.ConvertToMessage<string>(item);
+
+            OnTrackLatestEventTriggerFailure function = scope.ServiceProvider.GetService<OnTrackLatestEventTriggerFailure>();
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
 
         [FunctionName(FunctionConstants.NewProviderVersionCheck)]
         public static async Task RunOnNewProviderVersionCheck([TimerTrigger(Every1Minute, RunOnStartup = true)]TimerInfo timerInfo)

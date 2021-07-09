@@ -49,5 +49,9 @@
         public const string BatchPublishedProviderValidationPoisoned = "on-batch-published-provider-validation-poisoned";
 
         public const string NewProviderVersionCheck = "on-new-provider-version-check";
+
+        public const string TrackLatest = "on-track-latest";
+
+        public const string TrackLatestPoisoned = "on-track-latest-poisoned";
     }
 }

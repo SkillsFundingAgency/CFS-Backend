@@ -933,11 +933,11 @@ namespace CalculateFunding.Services.Jobs
             {
                 if (!string.IsNullOrWhiteSpace(jobDefinition.MessageBusQueue))
                 {
-                    await _messengerService.SendToQueueAsJson(jobDefinition.MessageBusQueue, data, messageProperties, sessionId: sessionId, compressData: compress);
+                    await _messengerService.SendToQueueAsJson(jobDefinition.MessageBusQueue, data, messageProperties, sessionId: sessionId, compressData: compress, processingDelay: jobDefinition.ProcessingDelay);
                 }
                 else
                 {
-                    await _messengerService.SendToTopicAsJson(jobDefinition.MessageBusTopic, data, messageProperties, compressData: compress);
+                    await _messengerService.SendToTopicAsJson(jobDefinition.MessageBusTopic, data, messageProperties, compressData: compress, processingDelay: jobDefinition.ProcessingDelay);
                 }
             }
             catch (Exception ex)

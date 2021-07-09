@@ -39,6 +39,12 @@ namespace CalculateFunding.Models.Providers
         [JsonProperty("fundingStream")]
         public string FundingStream { get; set; }
 
+        [JsonProperty("validationResult")]
+        public string ValidationResult { get; set; }
+
+        [JsonIgnore]
+        public bool IsValid => string.IsNullOrWhiteSpace(ValidationResult);
+
         [JsonIgnore]
         public ProviderVersionType VersionType
         {

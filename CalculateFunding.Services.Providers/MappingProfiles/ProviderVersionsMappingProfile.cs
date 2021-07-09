@@ -19,6 +19,7 @@ namespace CalculateFunding.Services.Providers.MappingProfiles
                 .ForMember(c => c.FundingStream, opt => opt.Ignore())
                 .ForMember(c => c.VersionType, opt => opt.Ignore())
                 .ForMember(c => c.Created, opt => opt.Ignore())
+                .ForMember(c => c.ValidationResult, opt => opt.Ignore())
                 .ForMember(c => c.ProviderVersionId, opt => opt.MapFrom(c => c.ProviderVersionId))
                 .ForMember(c => c.Id, opt => opt.MapFrom(s => MASTER_KEY));
 

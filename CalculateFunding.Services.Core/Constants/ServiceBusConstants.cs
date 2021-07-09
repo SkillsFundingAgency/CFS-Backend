@@ -242,6 +242,12 @@
             public const string SpecificationConverterDatasetsMergePoisonedLocal = "datasets-specification-converter-datasets-merge-poisoned";
 
             public const string UsersReIndexUsers = "users-reindex-users";
+
+            public const string TrackLatest = "track-latest";
+
+            public const string TrackLatestPoisoned = "track-latest/$DeadLetterQueue";
+
+            public const string TrackLatestPoisonedLocal = "track-latest-poisoned";
         }
 
         public static class TopicNames

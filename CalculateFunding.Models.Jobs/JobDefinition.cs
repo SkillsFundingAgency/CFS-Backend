@@ -106,5 +106,11 @@ namespace CalculateFunding.Models.Jobs
         /// </summary>
         [JsonProperty("preCompletionJobs")]
         public IEnumerable<string> PreCompletionJobs { get; set; }
+
+        /// <summary>
+        /// Apply a delay in minutes before processing the message
+        /// </summary>
+        [JsonProperty("processingDelay")]
+        public int? ProcessingDelay { get; set; }
     }
 }

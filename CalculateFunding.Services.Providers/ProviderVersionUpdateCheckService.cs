@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.FundingDataZone;
@@ -10,8 +9,6 @@ using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
-using CalculateFunding.Common.ApiClient.Specifications;
-using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Services.Core;
@@ -21,18 +18,19 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Providers.Interfaces;
 using Polly;
 using Serilog;
+using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Services.Core.Constants;
 
 namespace CalculateFunding.Services.Providers
 {
     public class ProviderVersionUpdateCheckService : IProviderVersionUpdateCheckService
     {
-        private readonly IPublishingJobClashCheck _publishingJobClashCheck;
         private readonly ICacheProvider _cacheProvider;
         private readonly IPoliciesApiClient _policiesApiClient;
-        private readonly IProviderSnapshotPersistService _providerSnapshotPersistService;
         private readonly IProviderVersionsMetadataRepository _providerVersionMetadata;
         private readonly IFundingDataZoneApiClient _fundingDataZoneApiClient;
-        private readonly ISpecificationsApiClient _specificationsApiClient;
+        private readonly IJobManagement _jobManagement;
         private readonly IMapper _mapper;
         private readonly ILogger _logger;
 
@@ -40,7 +38,6 @@ namespace CalculateFunding.Services.Providers
         private readonly AsyncPolicy _cacheProviderPolicy;
         private readonly AsyncPolicy _providerVersionMetadataPolicy;
         private readonly AsyncPolicy _fundingDataZoneApiClientPolicy;
-        private readonly AsyncPolicy _specificationsApiClientPolicy;
 
         public ProviderVersionUpdateCheckService(
             IPoliciesApiClient policiesApiClient,
@@ -49,10 +46,8 @@ namespace CalculateFunding.Services.Providers
             IProvidersResiliencePolicies resiliencePolicies,
             IProviderVersionsMetadataRepository providerVersionMetadata,
             IFundingDataZoneApiClient fundingDataZoneApiClient,
-            ISpecificationsApiClient specificationsApiClient,
-            IMapper mapper,
-            IPublishingJobClashCheck publishingJobClashCheck,
-            IProviderSnapshotPersistService providerSnapshotPersistService)
+            IJobManagement jobManagement,
+            IMapper mapper)
         {
             Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
@@ -65,38 +60,32 @@ namespace CalculateFunding.Services.Providers
             Guard.ArgumentNotNull(resiliencePolicies.CacheProvider, nameof(resiliencePolicies.CacheProvider));
             Guard.ArgumentNotNull(providerVersionMetadata, nameof(providerVersionMetadata));
             Guard.ArgumentNotNull(fundingDataZoneApiClient, nameof(fundingDataZoneApiClient));
-            Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
+            Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
-            Guard.ArgumentNotNull(publishingJobClashCheck, nameof(publishingJobClashCheck));
-            Guard.ArgumentNotNull(providerSnapshotPersistService, nameof(providerSnapshotPersistService));
 
             _policiesApiClient = policiesApiClient;
             _cacheProvider = cacheProvider;
             _providerVersionMetadata = providerVersionMetadata;
             _fundingDataZoneApiClient = fundingDataZoneApiClient;
-            _specificationsApiClient = specificationsApiClient;
+            _jobManagement = jobManagement;
             _mapper = mapper;
-            _publishingJobClashCheck = publishingJobClashCheck;
             _logger = logger;
             _cacheProviderPolicy = resiliencePolicies.CacheProvider;
             _policiesApiClientPolicy = resiliencePolicies.PoliciesApiClient;
             _providerVersionMetadataPolicy = resiliencePolicies.ProviderVersionMetadataRepository;
             _fundingDataZoneApiClientPolicy = resiliencePolicies.FundingDataZoneApiClient;
-            _specificationsApiClientPolicy = resiliencePolicies.SpecificationsApiClient;
-            _providerSnapshotPersistService = providerSnapshotPersistService;
         }
 
         public async Task CheckProviderVersionUpdate()
         {
             bool disableTrackLatest = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.GetAsync<bool>(CacheKeys.DisableTrackLatest));
-            
+
             if (disableTrackLatest)
             {
                 return;
             }
 
             List<FundingConfiguration> fundingConfigurations = new List<FundingConfiguration>();
-            Dictionary<string, int> fundingStreamsLatestProviderSnapshotIds = new Dictionary<string, int>();
 
             IEnumerable<FundingStream> fundingStreams = await GetFundingStreams();
             IEnumerable<CurrentProviderVersionMetadata> metadataForAllFundingStreams = await GetMetadataForAllFundingStreams();
@@ -138,8 +127,15 @@ namespace CalculateFunding.Services.Providers
                 {
                     continue;
                 }
-				
-				CurrentProviderVersionMetadata currentProviderVersionMetadata =
+
+                ProviderVersionMetadata providerVersionMetadata = await GetProviderVersion(latestProviderSnapshot.ProviderVersionId);
+
+                if (providerVersionMetadata != null && !providerVersionMetadata.IsValid)
+                {
+                    continue;
+                }
+
+                CurrentProviderVersionMetadata currentProviderVersionMetadata =
                     metadataForAllFundingStreams.SingleOrDefault(_ => _.FundingStreamId == fundingStreamId);
 
                 int latestProviderSnapshotId = latestProviderSnapshot.ProviderSnapshotId;
@@ -147,49 +143,33 @@ namespace CalculateFunding.Services.Providers
 
                 if (currentProviderSnapshotId != latestProviderSnapshotId)
                 {
-                    bool success = await _providerSnapshotPersistService.PersistSnapshot(latestProviderSnapshot);
-
-                    if (success)
+                    try
                     {
-                        HttpStatusCode httpStatusCode = await _providerVersionMetadataPolicy.ExecuteAsync(() =>
-                               _providerVersionMetadata.UpsertCurrentProviderVersion(
-                                   new CurrentProviderVersion
-                                   {
-                                       Id = $"Current_{latestProviderSnapshot.FundingStreamCode}",
-                                       ProviderSnapshotId = latestProviderSnapshot.ProviderSnapshotId,
-                                       ProviderVersionId = latestProviderSnapshot.ProviderVersionId
-                                   }));
-
-                        success = httpStatusCode.IsSuccess();
+                        await _jobManagement.QueueJob(new JobCreateModel()
+                        {
+                            Trigger = new Trigger
+                            {
+                                EntityId = fundingStreamId,
+                                EntityType = "FundingStream",
+                                Message = "Tracking latest snapshot"
+                            },
+                            JobDefinitionId = JobConstants.DefinitionNames.TrackLatestJob,
+                            CorrelationId = Guid.NewGuid().ToString(),
+                            Properties = new Dictionary<string, string>
+                            {
+                                {"fundingstream-id", fundingStreamId},
+                                {"providersnapshot-id", latestProviderSnapshotId.ToString()},
+                            }
+                        });
                     }
-
-					if (!success)
-					{
-						string errorMessage = $"Unable to set current provider for funding stream with ID: {fundingStream?.Id}";
-						_logger.Error(errorMessage);
-						continue;
-					}
-
-                    fundingStreamsLatestProviderSnapshotIds.Add(fundingStreamId, latestProviderSnapshotId);
-
-                    LogInformation($"Triggering Update Specification Provider Version for funding stream ID: {fundingStreamId}. " +
-                                   $"Current provider snapshot ID: {latestProviderSnapshotId}");
+                    catch (Exception ex)
+                    {
+                        string errorMessage = $"Failed to queue TrackLatestJob for funding stream - {fundingStreamId}";
+                        _logger.Error(ex, errorMessage);
+                        throw;
+                    }
                 }
             }
-
-            if (!fundingStreamsLatestProviderSnapshotIds.Any())
-            {
-                return;
-            }
-
-            IEnumerable<SpecificationSummary> specificationSummaries = await GetSpecificationsWithProviderVersionUpdatesAsUseLatest();
-
-            await EditSpecifications(fundingConfigurations, fundingStreamsLatestProviderSnapshotIds, specificationSummaries);
-        }
-
-        private void LogInformation(string message)
-        {
-            _logger.Information(message);
         }
 
         private async Task<IEnumerable<CurrentProviderVersionMetadata>> GetMetadataForAllFundingStreams()
@@ -200,7 +180,16 @@ namespace CalculateFunding.Services.Providers
 
             return _mapper.Map<IEnumerable<CurrentProviderVersionMetadata>>(currentProviderVersions);
         }
-        
+
+        private async Task<ProviderVersionMetadata> GetProviderVersion(string providerVersionId)
+        {
+            ProviderVersionMetadata providerVersion =
+                await _providerVersionMetadataPolicy.ExecuteAsync(() =>
+                    _providerVersionMetadata.GetProviderVersionMetadata(providerVersionId));
+
+            return providerVersion;
+        }
+
         private async Task<IEnumerable<ProviderSnapshot>> GetLatestProviderSnapshots()
         {
             ApiResponse<IEnumerable<ProviderSnapshot>> providerSnapshotResponse
@@ -246,80 +235,6 @@ namespace CalculateFunding.Services.Providers
             }
 
             return fundingStreamsResponse.Content;
-        }
-
-        private async Task<IEnumerable<SpecificationSummary>> GetSpecificationsWithProviderVersionUpdatesAsUseLatest()
-        {
-            ApiResponse<IEnumerable<SpecificationSummary>> specificationsWithProviderVersionUpdateResponse =
-                await _specificationsApiClientPolicy.ExecuteAsync(() =>
-                    _specificationsApiClient.GetSpecificationsWithProviderVersionUpdatesAsUseLatest());
-
-            if (specificationsWithProviderVersionUpdateResponse.StatusCode == System.Net.HttpStatusCode.NotFound)
-            {
-                string errorMessage = "No specification with provider version updates as use latest";
-                _logger.Information(errorMessage);
-                return Enumerable.Empty<SpecificationSummary>();
-            }
-
-            if (!specificationsWithProviderVersionUpdateResponse.StatusCode.IsSuccess())
-            {
-                string errorMessage = "Unable to retrieve specification with provider version updates as use latest";
-                _logger.Error(errorMessage);
-                throw new NonRetriableException(errorMessage);
-            }
-
-            return specificationsWithProviderVersionUpdateResponse.Content;
-        }
-
-        private async Task EditSpecifications(
-            List<FundingConfiguration> fundingConfigurations,
-            Dictionary<string, int> fundingStreamsLatestProviderSnapshotIds,
-            IEnumerable<SpecificationSummary> specificationSummaries)
-        {
-            IEnumerable<FundingConfiguration> updateLatestFundingConfigurations =
-                fundingConfigurations.Where(_ => _.UpdateCoreProviderVersion == UpdateCoreProviderVersion.ToLatest).ToList();
-
-            foreach (SpecificationSummary specificationSummary in specificationSummaries)
-            {
-                string fundingStreamId = specificationSummary.FundingStreams.FirstOrDefault().Id;
-
-                if (!fundingStreamsLatestProviderSnapshotIds.ContainsKey(fundingStreamId))
-                {
-                    LogInformation($"Skipping Update Specification Provider Version for funding stream ID: {fundingStreamId}. " +
-                                       "Latest provider snapshot IDs does not contain item for above funding stream ID.");
-
-                    continue;
-                }
-
-                int latestProviderSnapshotId = fundingStreamsLatestProviderSnapshotIds[fundingStreamId];
-
-                if (updateLatestFundingConfigurations.Any(_ =>
-                    _.FundingPeriodId == specificationSummary.FundingPeriod.Id &&
-                    _.FundingStreamId == fundingStreamId) && specificationSummary.ProviderSnapshotId != latestProviderSnapshotId)
-                {
-                    if (await _publishingJobClashCheck.PublishingJobsClashWithFundingStreamCoreProviderUpdate(specificationSummary.GetSpecificationId()))
-                    {
-                        LogInformation($"Skipping Update Specification Provider Version for funding stream ID: {fundingStreamId}. " +
-                                       $"Latest provider snapshot ID: {latestProviderSnapshotId} as detected publishing jobs running for specifications using an earlier snapshot of this provider data");
-
-                        continue;
-                    }
-
-                    await _specificationsApiClientPolicy.ExecuteAsync(() =>
-                            _specificationsApiClient.UpdateSpecification(
-                                specificationSummary.Id,
-                                new EditSpecificationModel
-                                {
-                                    Name = specificationSummary.Name,
-                                    Description = specificationSummary.Description,
-                                    FundingStreamId = fundingStreamId,
-                                    FundingPeriodId = specificationSummary.FundingPeriod.Id,
-                                    ProviderVersionId = specificationSummary.ProviderVersionId,
-                                    ProviderSnapshotId = latestProviderSnapshotId,
-                                    CoreProviderVersionUpdates = CoreProviderVersionUpdates.UseLatest
-                                }));
-                }
-            }
         }
     }
 }

@@ -96,6 +96,8 @@
             public const string ConverterWizardActivityCsvGenerationJob = nameof(ConverterWizardActivityCsvGenerationJob);
 
             public const string EditSpecificationJob = nameof(EditSpecificationJob);
+
+            public const string TrackLatestJob = nameof(TrackLatestJob);
         }
 
         public static class NotificationChannels

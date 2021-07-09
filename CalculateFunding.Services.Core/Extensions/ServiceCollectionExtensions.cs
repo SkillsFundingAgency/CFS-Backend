@@ -79,7 +79,7 @@ namespace CalculateFunding.Services.Core.Extensions
                     {
                         MessageReceiverFactory messageReceiverFactory = new MessageReceiverFactory(serviceBusSettings.ConnectionString);
                         ManagementClient managementClient = new ManagementClient(serviceBusSettings.ConnectionString);
-                        return new MessengerService(serviceBusSettings, managementClient, messageReceiverFactory, serviceName);
+                        return new MessengerService(managementClient, messageReceiverFactory, serviceName);
                     });
             }
 
