@@ -101,7 +101,7 @@ namespace CalculateFunding.Services.Datasets.Validators
                 var metadataFundingLineIds = (metadata.FundingLines ?? Enumerable.Empty<TemplateMetadataFundingLine>()).Select(x => x.TemplateLineId).Distinct().ToList();
                 var missingFundingLineIds = relationshipModel.FundingLineIds.Distinct().Where(x => !metadataFundingLineIds.Contains(x)).ToList();
 
-                if(missingFundingLineIds.Any())
+                if (missingFundingLineIds.Any())
                 {
                     context.AddFailure($"The following funding lines not found in the metadata for fundingStream - {fundingStreamId}, fundingperiod - {fundingPeriodId} and template id - {templateId}: {string.Join(",", missingFundingLineIds)}");
                 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
@@ -238,9 +239,10 @@ namespace CalculateFunding.Services.Datasets
             return new OkObjectResult(relationshipVersion);
         }
 
-        public async Task<IActionResult> UpdateRelationship(UpdateDefinitionSpecificationRelationshipModel model, string relationshipId)
+        public async Task<IActionResult> UpdateRelationship(UpdateDefinitionSpecificationRelationshipModel model, string specificationId, string relationshipId)
         {
-            Guard.ArgumentNotNull(relationshipId, nameof(relationshipId));
+            Guard.IsNullOrWhiteSpace(relationshipId, nameof(relationshipId));
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
             if (model == null)
             {
@@ -248,6 +250,7 @@ namespace CalculateFunding.Services.Datasets
                 return new BadRequestObjectResult("Null EditDefinitionSpecificationRelationshipModel was provided to UpdateRelationship");
             }
 
+            model.SpecificationId = specificationId;
             BadRequestObjectResult validationResult = (await _updateRelationshipModelValidator.ValidateAsync(model)).PopulateModelState();
 
             if (validationResult != null)
@@ -261,8 +264,6 @@ namespace CalculateFunding.Services.Datasets
             {
                 return new StatusCodeResult(404);
             }
-
-            string specificationId = definitionSpecificationRelationship.Current.Specification.Id;
 
             DefinitionSpecificationRelationshipVersion newRelationshipVersion = definitionSpecificationRelationship.Current.DeepCopy(useCamelCase: false);
             newRelationshipVersion.Description = model.Description;
@@ -280,7 +281,7 @@ namespace CalculateFunding.Services.Datasets
 
             await _relationshipVersionRepository.SaveVersion(newRelationshipVersion);
 
-            return new CreatedResult($"api/datasets/{specificationId}/{relationshipId}/relationships", newRelationshipVersion);
+            return new OkObjectResult(newRelationshipVersion);
         }
 
         public async Task<IEnumerable<DatasetSpecificationRelationshipViewModel>> GetRelationshipsBySpecificationId(string specificationId)

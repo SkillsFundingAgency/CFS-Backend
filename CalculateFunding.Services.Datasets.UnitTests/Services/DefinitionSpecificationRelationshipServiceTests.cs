@@ -3134,11 +3134,12 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task UpdateRelationship_GivenNullModelProvided_ReturnsBadRequest()
         {
             ILogger logger = CreateLogger();
-            string relationshipId = "123";
+            string relationshipId = NewRandomString();
+            string specificationId = NewRandomString();
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger);
 
-            IActionResult result = await service.UpdateRelationship(null, relationshipId);
+            IActionResult result = await service.UpdateRelationship(null, specificationId, relationshipId);
 
             result
                 .Should()
@@ -3152,6 +3153,8 @@ namespace CalculateFunding.Services.Datasets.Services
         [TestMethod]
         public void UpdateRelationship_GivenNullRelationshipIdProvided_ReturnsBadRequest()
         {
+            string specificationId = NewRandomString();
+
             UpdateDefinitionSpecificationRelationshipModel model = new UpdateDefinitionSpecificationRelationshipModel
             {
                 Description = "desc",
@@ -3163,7 +3166,30 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger);
 
-            Func<Task> test = async () => await service.UpdateRelationship(model, null);
+            Func<Task> test = async () => await service.UpdateRelationship(model, specificationId, null);
+
+            test
+                .Should()
+                .ThrowExactly<ArgumentNullException>();
+        }
+
+        [TestMethod]
+        public void UpdateRelationship_GivenNullSpecificationIdProvided_ReturnsBadRequest()
+        {
+            string relationshipId = NewRandomString();
+
+            UpdateDefinitionSpecificationRelationshipModel model = new UpdateDefinitionSpecificationRelationshipModel
+            {
+                Description = "desc",
+                FundingLineIds = new List<uint>(),
+                CalculationIds = new List<uint>()
+            };
+
+            ILogger logger = CreateLogger();
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger);
+
+            Func<Task> test = async () => await service.UpdateRelationship(model, null, relationshipId);
 
             test
                 .Should()
@@ -3173,7 +3199,9 @@ namespace CalculateFunding.Services.Datasets.Services
         [TestMethod]
         public async Task UpdateRelationship_GivenModelButWasInvalid_ReturnesBadRequest()
         {
-            string relationshipId = "123";
+            string relationshipId = NewRandomString();
+            string specificationId = NewRandomString();
+
             UpdateDefinitionSpecificationRelationshipModel model = new UpdateDefinitionSpecificationRelationshipModel();
 
             ILogger logger = CreateLogger();
@@ -3186,7 +3214,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger, updateRelationshipModelValidator: validator);
 
-            IActionResult result = await service.UpdateRelationship(model, relationshipId);
+            IActionResult result = await service.UpdateRelationship(model, specificationId, relationshipId);
 
             result
                 .Should()
@@ -3197,6 +3225,7 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task UpdateRelationship_GivenValidModelButDefinitionSpecificationRelationshipCouldNotBeFound_ReturnsNotFound()
         {
             string relationshipId = NewRandomString();
+            string specificationId = NewRandomString();
 
             UpdateDefinitionSpecificationRelationshipModel model = new UpdateDefinitionSpecificationRelationshipModel
             {
@@ -3214,7 +3243,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
 
-            IActionResult result = await service.UpdateRelationship(model, relationshipId);
+            IActionResult result = await service.UpdateRelationship(model, specificationId, relationshipId);
 
             result
                 .Should()
@@ -3232,6 +3261,7 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task UpdateRelationship_GivenValidModelButDefinitionSpecificationRelationshipWrongRelationshipType_ReturnsNotFound()
         {
             string relationshipId = NewRandomString();
+            string specificationId = NewRandomString();
 
             UpdateDefinitionSpecificationRelationshipModel model = new UpdateDefinitionSpecificationRelationshipModel
             {
@@ -3255,7 +3285,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
 
-            IActionResult result = await service.UpdateRelationship(model, relationshipId);
+            IActionResult result = await service.UpdateRelationship(model, specificationId, relationshipId);
 
             result
                 .Should()
@@ -3384,7 +3414,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 datasetRepository: datasetRepository, specificationsApiClient: specificationsApiClient, policiesApiClient: policiesApiClient,
                 relationshipVersionRepository: relationshipVersionRepository);
 
-            IActionResult result = await service.UpdateRelationship(model, relationshipId);
+            IActionResult result = await service.UpdateRelationship(model, specificationId, relationshipId);
 
             result
                 .Should()
@@ -3535,11 +3565,11 @@ namespace CalculateFunding.Services.Datasets.Services
                 datasetRepository: datasetRepository, specificationsApiClient: specificationsApiClient, policiesApiClient: policiesApiClient,
                 relationshipVersionRepository: relationshipVersionRepository);
 
-            IActionResult result = await service.UpdateRelationship(model, relationshipId);
+            IActionResult result = await service.UpdateRelationship(model, specificationId, relationshipId);
 
             result
                 .Should()
-                .BeOfType<CreatedResult>();
+                .BeOfType<OkObjectResult>();
 
             await
                 datasetRepository
