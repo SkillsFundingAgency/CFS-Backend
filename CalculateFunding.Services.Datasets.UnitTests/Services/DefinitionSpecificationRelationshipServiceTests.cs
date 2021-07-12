@@ -610,7 +610,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 {
                     new TemplateMetadataCalculation(){TemplateCalculationId = calculationIdOne, Name = calculationOne, Type = Common.TemplateMetadata.Enums.CalculationType.Number},
                     new TemplateMetadataCalculation(){TemplateCalculationId = calculationIdTwo, Name = calculationTwo, Type = Common.TemplateMetadata.Enums.CalculationType.Enum}
-                }
+                },
+                FundingStreamId = targetFundingStreamId,
+                FundingPeriodId = targetFundingPeriodId
             };
             CreateDefinitionSpecificationRelationshipModel model = new CreateDefinitionSpecificationRelationshipModel
             {
@@ -759,7 +761,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 Calculations = new[]
                 {
                     new TemplateMetadataCalculation(){TemplateCalculationId = calculationIdOne, Name = calculationOne, Type = Common.TemplateMetadata.Enums.CalculationType.Number},
-                }
+                },
+                FundingStreamId = targetFundingStreamId,
+                FundingPeriodId = targetFundingPeriodId
             };
             CreateDefinitionSpecificationRelationshipModel model = new CreateDefinitionSpecificationRelationshipModel
             {
@@ -3578,6 +3582,174 @@ namespace CalculateFunding.Services.Datasets.Services
                         m.Current.Description == newDescription &&
                         m.Current.Specification.Id == specificationId &&
                         m.Current.LastUpdated == _utcNow));
+        }
+
+        [TestMethod]
+        public async Task GetFundingLineCalculations_GivenValidModelButDefinitionCouldNotBeFound_ReturnsNotFound()
+        {
+            string relationshipId = NewRandomString();
+
+            ILogger logger = CreateLogger();
+
+            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
+                .Returns((DefinitionSpecificationRelationship)null);
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
+
+            IActionResult result = await service.GetFundingLineCalculations(relationshipId);
+
+            result
+                .Should()
+                .BeOfType<StatusCodeResult>();
+
+            StatusCodeResult statusCodeResult = result as StatusCodeResult;
+
+            statusCodeResult
+                .StatusCode
+                .Should()
+                .Be(404);
+        }
+
+        [TestMethod]
+        public async Task GetFundingLineCalculations_GivenValidModelButDefinitionNotReleasedDataType_ReturnsPreconditionFailed()
+        {
+            string datasetDefinitionId = NewRandomString();
+
+            ILogger logger = CreateLogger();
+
+            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipById(Arg.Is(datasetDefinitionId))
+                .Returns(new DefinitionSpecificationRelationship
+                {
+                    Current = new DefinitionSpecificationRelationshipVersion
+                    {
+                        RelationshipType = DatasetRelationshipType.Uploaded
+                    }
+                });
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
+
+            IActionResult result = await service.GetFundingLineCalculations(datasetDefinitionId);
+
+            result
+                .Should()
+                .BeOfType<StatusCodeResult>();
+
+            StatusCodeResult statusCodeResult = result as StatusCodeResult;
+
+            statusCodeResult
+                .StatusCode
+                .Should()
+                .Be(412);
+        }
+
+        [TestMethod]
+        public async Task GetFundingLineCalculations_GivenValidModel_ReturnsOk()
+        {
+            string datasetDefinitionId = NewRandomString();
+            string specificationId = NewRandomString();
+            string fundingStreamId = NewRandomString();
+            string fundingPeriodId = NewRandomString();
+            uint fundingLineIdOne = NewRandomUint();
+            uint fundingLineIdOneDup = fundingLineIdOne;
+            uint fundingLineIdTwo = NewRandomUint();
+            uint calculationIdOne = NewRandomUint();
+            uint calculationIdOneDup = calculationIdOne;
+            uint calculationIdTwo = NewRandomUint();
+            string fundingLineOne = NewRandomString();
+            string fundingLineTwo = NewRandomString();
+            string calculationOne = NewRandomString();
+            string calculationTwo = NewRandomString();
+            string templateId = NewRandomString();
+
+            ILogger logger = CreateLogger();
+
+            SpecModel.SpecificationSummary specification = new SpecModel.SpecificationSummary
+            {
+                Id = specificationId,
+                FundingStreams = new[] { new Reference(fundingStreamId, fundingStreamId) },
+                FundingPeriod = new Reference(fundingPeriodId, fundingPeriodId),
+                TemplateIds = new Dictionary<string, string>() { { fundingStreamId, templateId } }
+            };
+
+            Reference author = NewReference();
+            PublishedSpecificationConfiguration currentPublishedSpecificationConfiguration = new PublishedSpecificationConfiguration()
+            {
+                SpecificationId = specificationId,
+                FundingStreamId = fundingStreamId,
+                FundingPeriodId = fundingPeriodId,
+                FundingLines = new[]
+                {
+                    new PublishedSpecificationItem() { TemplateId = fundingLineIdOne, Name = fundingLineOne, SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(fundingLineOne)}
+                },
+                Calculations = new[]
+                {
+                    new PublishedSpecificationItem() { TemplateId = calculationIdOne, Name = calculationOne, SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(fundingLineOne), FieldType = FieldType.NullableOfDecimal},
+                    new PublishedSpecificationItem() { TemplateId = calculationIdTwo, Name = calculationTwo, SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(calculationTwo), FieldType = FieldType.String}
+                }
+            };
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
+                .GetSpecificationSummaryById(Arg.Is<string>(specificationId))
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specification));
+            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipById(Arg.Is(datasetDefinitionId))
+                .Returns(new DefinitionSpecificationRelationship
+                {
+                    Current = new DefinitionSpecificationRelationshipVersion
+                    {
+                        RelationshipType = DatasetRelationshipType.ReleasedData,
+                        Specification = new Reference { Id = specificationId, Name = specificationId },
+                        PublishedSpecificationConfiguration = currentPublishedSpecificationConfiguration
+                    }
+                });
+            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
+            policiesApiClient.GetDistinctTemplateMetadataContents(Arg.Is(fundingStreamId), Arg.Is(fundingPeriodId), Arg.Is(templateId))
+                .Returns(new ApiResponse<TemplateMetadataDistinctContents>(HttpStatusCode.OK,
+                new TemplateMetadataDistinctContents()
+                {
+                    FundingLines = new[]
+                {
+                    new TemplateMetadataFundingLine() { FundingLineCode = fundingLineOne, TemplateLineId = fundingLineIdOne, Name = fundingLineOne},
+                    new TemplateMetadataFundingLine() { FundingLineCode = fundingLineTwo, TemplateLineId = fundingLineIdTwo, Name = fundingLineTwo}
+                },
+                    Calculations = new[]
+                {
+                    new TemplateMetadataCalculation(){TemplateCalculationId = calculationIdOne, Name = calculationOne, Type = Common.TemplateMetadata.Enums.CalculationType.Number}
+                }
+                }, null));
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository,
+                specificationsApiClient: specificationsApiClient, policiesApiClient: policiesApiClient);
+
+            IActionResult result = await service.GetFundingLineCalculations(datasetDefinitionId);
+
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            OkObjectResult objectResult = result as OkObjectResult;
+
+            PublishedSpecificationConfiguration resultAsPublishedSpecificationConfiguration = objectResult.Value as PublishedSpecificationConfiguration;
+            resultAsPublishedSpecificationConfiguration.SpecificationId.Should().Be(specificationId);
+            resultAsPublishedSpecificationConfiguration.FundingStreamId.Should().Be(fundingStreamId);
+            resultAsPublishedSpecificationConfiguration.FundingPeriodId.Should().Be(fundingPeriodId);
+
+            resultAsPublishedSpecificationConfiguration.FundingLines.Should().HaveCount(2);
+            resultAsPublishedSpecificationConfiguration.FundingLines.Single(s => s.TemplateId == fundingLineIdOne).IsObsolete.Should().BeFalse();
+            resultAsPublishedSpecificationConfiguration.FundingLines.Single(s => s.TemplateId == fundingLineIdOne).IsSelected.Should().BeTrue();
+            resultAsPublishedSpecificationConfiguration.FundingLines.Single(s => s.TemplateId == fundingLineIdTwo).IsObsolete.Should().BeFalse();
+            resultAsPublishedSpecificationConfiguration.FundingLines.Single(s => s.TemplateId == fundingLineIdTwo).IsSelected.Should().BeFalse();
+
+            resultAsPublishedSpecificationConfiguration.Calculations.Should().HaveCount(2);
+            resultAsPublishedSpecificationConfiguration.Calculations.Single(s => s.TemplateId == calculationIdOne).IsObsolete.Should().BeFalse();
+            resultAsPublishedSpecificationConfiguration.Calculations.Single(s => s.TemplateId == calculationIdOne).IsSelected.Should().BeTrue();
+            resultAsPublishedSpecificationConfiguration.Calculations.Single(s => s.TemplateId == calculationIdTwo).IsObsolete.Should().BeTrue();
+            resultAsPublishedSpecificationConfiguration.Calculations.Single(s => s.TemplateId == calculationIdTwo).IsSelected.Should().BeTrue();
         }
 
         private DefinitionSpecificationRelationshipService CreateService(

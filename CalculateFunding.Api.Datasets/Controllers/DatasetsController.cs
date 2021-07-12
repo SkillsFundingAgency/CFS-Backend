@@ -185,6 +185,14 @@ namespace CalculateFunding.Api.Datasets.Controllers
             return _definitionSpecificationRelationshipService.GetRelationshipsBySpecificationIdResult(specificationId);
         }
 
+        [Route("api/datasets/definition-relationships/{relationshipId}/get-funding-line-calculations")]
+        [HttpGet]
+        [Produces(typeof(PublishedSpecificationConfiguration))]
+        public Task<IActionResult> GetFundingLinesCalculations([FromRoute] string relationshipId)
+        {
+            return _definitionSpecificationRelationshipService.GetFundingLineCalculations(relationshipId);
+        }
+
         [Route("api/datasets/get-definition-relationship-by-specificationid-name")]
         [HttpGet]
         [Produces(typeof(DefinitionSpecificationRelationship))]

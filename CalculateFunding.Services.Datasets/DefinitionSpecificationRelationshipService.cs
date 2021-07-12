@@ -809,6 +809,29 @@ namespace CalculateFunding.Services.Datasets
             return new NoContentResult();
         }
 
+        public async Task<IActionResult> GetFundingLineCalculations(string relationshipId)
+        {
+            Guard.ArgumentNotNull(relationshipId, nameof(relationshipId));
+
+            DefinitionSpecificationRelationship definitionSpecificationRelationship = await _datasetRepository.GetDefinitionSpecificationRelationshipById(relationshipId);
+
+            if (definitionSpecificationRelationship == null)
+            {
+                return new StatusCodeResult(404);
+            }
+            else if (definitionSpecificationRelationship.Current.RelationshipType != DatasetRelationshipType.ReleasedData)
+            {
+                return new StatusCodeResult(412);
+            }
+
+            string specificationId = definitionSpecificationRelationship.Current.Specification.Id;
+            PublishedSpecificationConfiguration publishedSpecificationConfiguration = await CreatePublishedSpecificationConfiguration(
+                specificationId,
+                definitionSpecificationRelationship.Current.PublishedSpecificationConfiguration);
+
+            return new OkObjectResult(publishedSpecificationConfiguration);
+        }
+
         private async Task<DatasetSpecificationRelationshipViewModel> CreateViewModel(
             DefinitionSpecificationRelationship relationship,
             KeyValuePair<string, int> datasetLatestVersion)
@@ -887,19 +910,186 @@ namespace CalculateFunding.Services.Datasets
             await _relationshipRepositoryPolicy.ExecuteAsync(() => _relationshipVersionRepository.SaveVersion(relationshipVersion));
         }
 
-        private async Task<PublishedSpecificationConfiguration> CreatePublishedSpecificationConfiguration(string targetSpecificationId, IEnumerable<uint> fundingLineIds, IEnumerable<uint> calculationIds)
+        private async Task<PublishedSpecificationConfiguration> CreatePublishedSpecificationConfiguration(string targetSpecificationId,
+            PublishedSpecificationConfiguration originalPublishedSpecificationConfiguration)
         {
-            if (string.IsNullOrWhiteSpace(targetSpecificationId))
+            List<PublishedSpecificationItem> GetFundingLines(TemplateMetadataDistinctContents metadata, string templateId)
+            {
+                List<PublishedSpecificationItem> fundingLines = new List<PublishedSpecificationItem>();
+                IEnumerable<PublishedSpecificationItem> currentFundingLines = originalPublishedSpecificationConfiguration.FundingLines;
+
+                foreach (TemplateMetadataFundingLine fundingLine in metadata.FundingLines)
+                {
+                    PublishedSpecificationItem currentFundingLine = currentFundingLines.FirstOrDefault(x => x.TemplateId == fundingLine.TemplateLineId);
+                    if (currentFundingLine != null)
+                    {
+                        fundingLines.Add(new PublishedSpecificationItem()
+                        {
+                            TemplateId = currentFundingLine.TemplateId,
+                            Name = currentFundingLine.Name,
+                            SourceCodeName = currentFundingLine.SourceCodeName,
+                            IsSelected = true
+                        });
+                    }
+                    else
+                    {
+                        fundingLines.Add(new PublishedSpecificationItem()
+                        {
+                            TemplateId = fundingLine.TemplateLineId,
+                            Name = fundingLine.Name,
+                            SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(fundingLine.Name)
+                        });
+                    }
+                }
+
+                IEnumerable<PublishedSpecificationItem> obsoleteFundingLines = currentFundingLines.Where(fl => !metadata.FundingLines.Any(m => m.TemplateLineId == fl.TemplateId));
+                foreach (PublishedSpecificationItem obsoleteFundingLine in obsoleteFundingLines)
+                {
+                    fundingLines.Add(new PublishedSpecificationItem()
+                    {
+                        TemplateId = obsoleteFundingLine.TemplateId,
+                        Name = obsoleteFundingLine.Name,
+                        SourceCodeName = obsoleteFundingLine.SourceCodeName,
+                        IsSelected = true,
+                        IsObsolete = true
+                    });
+                }
+
+                return fundingLines;
+            }
+
+            List<PublishedSpecificationItem> GetCalculations(TemplateMetadataDistinctContents metadata, string templateId)
+            {
+                List<PublishedSpecificationItem> calculations = new List<PublishedSpecificationItem>();
+                IEnumerable<PublishedSpecificationItem> currentCalculations = originalPublishedSpecificationConfiguration.Calculations;
+
+                foreach (TemplateMetadataCalculation calculation in metadata.Calculations)
+                {
+                    PublishedSpecificationItem currentCalculation = currentCalculations.FirstOrDefault(x => x.TemplateId == calculation.TemplateCalculationId);
+                    if (currentCalculation != null)
+                    {
+                        calculations.Add(new PublishedSpecificationItem()
+                        {
+                            TemplateId = currentCalculation.TemplateId,
+                            Name = currentCalculation.Name,
+                            SourceCodeName = currentCalculation.SourceCodeName,
+                            IsSelected = true
+                        });
+                    }
+                    else
+                    {
+                        calculations.Add(new PublishedSpecificationItem()
+                        {
+                            TemplateId = calculation.TemplateCalculationId,
+                            Name = calculation.Name,
+                            SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(calculation.Name)
+                        });
+                    }
+                }
+
+                IEnumerable<PublishedSpecificationItem> obsoleteCalculations = currentCalculations.Where(fl => !metadata.Calculations.Any(m => m.TemplateCalculationId == fl.TemplateId));
+                foreach (PublishedSpecificationItem obsoleteCalculation in obsoleteCalculations)
+                {
+                    calculations.Add(new PublishedSpecificationItem()
+                    {
+                        TemplateId = obsoleteCalculation.TemplateId,
+                        Name = obsoleteCalculation.Name,
+                        SourceCodeName = obsoleteCalculation.SourceCodeName,
+                        IsSelected = true,
+                        IsObsolete = true
+                    });
+                }
+
+                return calculations;
+            }
+
+            return await BuildPublishedSpecificationConfiguration(targetSpecificationId, GetFundingLines, GetCalculations);
+        }
+
+        private async Task<PublishedSpecificationConfiguration> CreatePublishedSpecificationConfiguration(string targetSpecificationId,
+            IEnumerable<uint> fundingLineIds, IEnumerable<uint> calculationIds)
+        {
+            List<PublishedSpecificationItem> GetFundingLines(TemplateMetadataDistinctContents metadata, string templateId)
+            {
+                List<PublishedSpecificationItem> fundingLines = new List<PublishedSpecificationItem>();
+
+                if (!fundingLineIds.IsNullOrEmpty())
+                {
+                    foreach (uint fundingLineId in fundingLineIds.Distinct())
+                    {
+                        TemplateMetadataFundingLine fundingLineMetadata = metadata.FundingLines?.FirstOrDefault(x => x.TemplateLineId == fundingLineId);
+
+                        if (fundingLineMetadata != null)
+                        {
+                            fundingLines.Add(new PublishedSpecificationItem()
+                            {
+                                TemplateId = fundingLineId,
+                                Name = fundingLineMetadata.Name,
+                                SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(fundingLineMetadata.Name)
+                            });
+                        }
+                        else
+                        {
+                            string errorMessage = $"No fundingline id '{fundingLineId}' in the metadata for FundingStreamId={metadata.FundingStreamId}, FundingPeriodId={metadata.FundingPeriodId} and TemplateId={templateId}.";
+                            _logger.Error(errorMessage);
+                            throw new NonRetriableException(errorMessage);
+                        }
+                    }
+                }
+
+                return fundingLines;
+            }
+
+            List<PublishedSpecificationItem> GetCalculations(TemplateMetadataDistinctContents metadata, string templateId)
+            {
+                List<PublishedSpecificationItem> calculations = new List<PublishedSpecificationItem>();
+
+                if (!calculationIds.IsNullOrEmpty())
+                {
+                    foreach (uint calculationId in calculationIds.Distinct())
+                    {
+                        TemplateMetadataCalculation calculationMetadata = metadata.Calculations?.FirstOrDefault(x => x.TemplateCalculationId == calculationId);
+
+                        if (calculationMetadata != null)
+                        {
+                            calculations.Add(new PublishedSpecificationItem()
+                            {
+                                TemplateId = calculationId,
+                                Name = calculationMetadata.Name,
+                                SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(calculationMetadata.Name),
+                                FieldType = GetFieldType(calculationMetadata.Type)
+                            });
+                        }
+                        else
+                        {
+                            string errorMessage = $"No calculation id '{calculationId}' in the metadata for FundingStreamId={metadata.FundingStreamId}, FundingPeriodId={metadata.FundingPeriodId} and TemplateId={templateId}.";
+                            _logger.Error(errorMessage);
+                            throw new NonRetriableException(errorMessage);
+                        }
+                    }
+                }
+
+                return calculations;
+            }
+
+            return await BuildPublishedSpecificationConfiguration(targetSpecificationId, GetFundingLines, GetCalculations);
+        }
+
+        private async Task<PublishedSpecificationConfiguration> BuildPublishedSpecificationConfiguration(string specificationId,
+            Func<TemplateMetadataDistinctContents, string, List<PublishedSpecificationItem>> GetFundingLines,
+            Func<TemplateMetadataDistinctContents, string, List<PublishedSpecificationItem>> GetCalculations)
+        {
+            if (string.IsNullOrWhiteSpace(specificationId))
             {
                 return null;
             }
 
             ApiResponse<SpecificationSummary> specificationSummaryApiResponse =
-                await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(targetSpecificationId));
+                await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId));
 
             if (!specificationSummaryApiResponse.StatusCode.IsSuccess() && specificationSummaryApiResponse.StatusCode != HttpStatusCode.NotFound)
             {
-                string errorMessage = $"Failed to fetch specification summary for specification ID: {targetSpecificationId} with StatusCode={specificationSummaryApiResponse.StatusCode}";
+                string errorMessage = $"Failed to fetch specification summary for specification ID: {specificationId} with StatusCode={specificationSummaryApiResponse.StatusCode}";
 
                 _logger.Error(errorMessage);
 
@@ -923,69 +1113,14 @@ namespace CalculateFunding.Services.Datasets
 
             TemplateMetadataDistinctContents metadata = metadataResponse.Content;
 
-            PublishedSpecificationConfiguration configuration = new PublishedSpecificationConfiguration()
+            return new PublishedSpecificationConfiguration()
             {
-                SpecificationId = targetSpecificationId,
+                SpecificationId = specificationId,
                 FundingStreamId = fundingStreamId,
-                FundingPeriodId = fundingPeriodId
+                FundingPeriodId = fundingPeriodId,
+                FundingLines = GetFundingLines(metadata, templateId),
+                Calculations = GetCalculations(metadata, templateId)
             };
-
-            List<PublishedSpecificationItem> fundingLines = new List<PublishedSpecificationItem>();
-            List<PublishedSpecificationItem> calculations = new List<PublishedSpecificationItem>();
-
-            if (!fundingLineIds.IsNullOrEmpty())
-            {
-                foreach (uint fundingLineId in fundingLineIds.Distinct())
-                {
-                    TemplateMetadataFundingLine fundingLineMetadata = metadata.FundingLines?.FirstOrDefault(x => x.TemplateLineId == fundingLineId);
-
-                    if (fundingLineMetadata != null)
-                    {
-                        fundingLines.Add(new PublishedSpecificationItem()
-                        {
-                            TemplateId = fundingLineId,
-                            Name = fundingLineMetadata.Name,
-                            SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(fundingLineMetadata.Name)
-                        });
-                    }
-                    else
-                    {
-                        string errorMessage = $"No fundingline id '{fundingLineId}' in the metadata for FundingStreamId={fundingStreamId}, FundingPeriodId={fundingPeriodId} and TemplateId={templateId}.";
-                        _logger.Error(errorMessage);
-                        throw new NonRetriableException(errorMessage);
-                    }
-                }
-            }
-
-            if (!calculationIds.IsNullOrEmpty())
-            {
-                foreach (uint calculationId in calculationIds.Distinct())
-                {
-                    TemplateMetadataCalculation calculationMetadata = metadata.Calculations?.FirstOrDefault(x => x.TemplateCalculationId == calculationId);
-
-                    if (calculationMetadata != null)
-                    {
-                        fundingLines.Add(new PublishedSpecificationItem()
-                        {
-                            TemplateId = calculationId,
-                            Name = calculationMetadata.Name,
-                            SourceCodeName = _typeIdentifierGenerator.GenerateIdentifier(calculationMetadata.Name),
-                            FieldType = GetFieldType(calculationMetadata.Type)
-                        });
-                    }
-                    else
-                    {
-                        string errorMessage = $"No calculation id '{calculationId}' in the metadata for FundingStreamId={fundingStreamId}, FundingPeriodId={fundingPeriodId} and TemplateId={templateId}.";
-                        _logger.Error(errorMessage);
-                        throw new NonRetriableException(errorMessage);
-                    }
-                }
-            }
-
-            configuration.FundingLines = fundingLines;
-            configuration.Calculations = calculations;
-
-            return configuration;
         }
 
         private static FieldType GetFieldType(TemplateMetadataCalculationType calculationType)
