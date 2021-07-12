@@ -11,21 +11,17 @@ trigger:
     - fdps
   paths:
     include:
-    - CalculateFunding.Api.Calcs
-    - CalculateFunding.Functions.Calcs
-    - CalculateFunding.Services.Calcs
-    - CalculateFunding.Services.Calcs.UnitTests
+    - CalculateFunding.Api.Jobs
+    - CalculateFunding.Functions.Jobs
+    - CalculateFunding.Services.Jobs
+    - CalculateFunding.Services.Jobs.UnitTests
     - CalculateFunding.Services.Core
-    - Devops/search-indexes/calculationindex
-    - CalculateFunding.Services.CodeGeneration
-    - CalculateFunding.Services.CodeGeneration.VisualBasic
-    - CalculateFunding.Services.CodeMetadataGenerator 
-    - CalculateFunding.Models.Calcs
-    - CalculateFunding.Models.Search
-    - CalculateFunding.Models.Versioning
-    - CalculateFunding.Models.ProviderLegacy
-    - DevOps/azure/calcs
-    - CalculateFunding.Functions.Notification
+    - CalculateFunding.Services.Notifications
+    - CalculateFunding.Api.Notifications
+    - CalculateFunding.Functions.Notifications
+    - CalculateFunding.Functions.Notifications.UnitTests
+    - CalculateFunding.Services.Notifications.UnitTests
+    - CalculateFunding.Models.Jobs
 
 variables:
  - name: ProjectName
