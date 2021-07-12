@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Calcs" Version="5.1.0" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Datasets" Version="5.12.1" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Datasets" Version="5.13.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Graph" Version="2.5.8" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="4.1.1" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="4.8.1" />
