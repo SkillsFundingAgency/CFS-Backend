@@ -10,6 +10,7 @@ namespace CalculateFunding.Models.Publishing
         Undefined = 0,
         FundingLineValueProfileMismatch,
         TrustIdMismatch,
+        ProviderNotFunded,
         PostPaymentOutOfScopeProvider,
         ProfilingConsistencyCheckFailure,
         MultipleSuccessors

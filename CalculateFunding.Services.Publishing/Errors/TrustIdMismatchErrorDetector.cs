@@ -1,85 +1,47 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using AutoMapper;
-using CalculateFunding.Common.Utility;
-using CalculateFunding.Generators.OrganisationGroup.Interfaces;
 using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Models;
-using Provider = CalculateFunding.Common.ApiClient.Providers.Models.Provider;
 
 namespace CalculateFunding.Services.Publishing.Errors
 {
-    public class TrustIdMismatchErrorDetector : PublishedProviderErrorDetector
+    public class TrustIdMismatchErrorDetector : OrganisationGroupsErrorDetectorBase
     {
-        private readonly IOrganisationGroupGenerator _organisationGroupGenerator;
-        private readonly IMapper _mapper;
-
-        public override bool IsPreVariationCheck => true;
-
-        public override bool IsAssignProfilePatternCheck => false;
-        
         public override string Name => nameof(TrustIdMismatchErrorDetector);
 
-        public TrustIdMismatchErrorDetector(IOrganisationGroupGenerator organisationGroupGenerator,
-            IMapper mapper) : base(PublishedProviderErrorType.TrustIdMismatch)
+        public TrustIdMismatchErrorDetector() : base(PublishedProviderErrorType.TrustIdMismatch)
         {
-            Guard.ArgumentNotNull(organisationGroupGenerator, nameof(organisationGroupGenerator));
-            Guard.ArgumentNotNull(mapper, nameof(mapper));
-
-            _organisationGroupGenerator = organisationGroupGenerator;
-            _mapper = mapper;
         }
 
-        protected override Task<ErrorCheck> HasErrors(
-            PublishedProvider publishedProvider,
-            PublishedProvidersContext publishedProvidersContext)
+        protected override void CheckGroups(PublishedProvider publishedProvider, 
+            IEnumerable<OrganisationGroupResult> organisationGroups, 
+            PublishedProvidersContext publishedProvidersContext,
+            ErrorCheck errorCheck)
         {
-            Guard.ArgumentNotNull(publishedProvidersContext, nameof(publishedProvidersContext));
+            HashSet<string> organisationGroupsHashSet = organisationGroups.SelectMany(_ => _.Identifiers.Select(_ => $"{_.Type}-{_.Value}")).Distinct().ToHashSet();
 
-            ErrorCheck errorCheck = new ErrorCheck();
-
-            // if there is no released version then we don't need to do the check
-            if (publishedProvider.Released == null)
-            {
-                return Task.FromResult(errorCheck);
-            }
-            
-            static string OrganisationGroupsKey(string fundingStreamId,
-                string fundingPeriodId)
-            {
-                return $"{fundingStreamId}:{fundingPeriodId}";
-            }
-
-            string keyForOrganisationGroups = OrganisationGroupsKey(publishedProvider.Current.FundingStreamId, publishedProvider.Current.FundingPeriodId);
-
-            if (publishedProvidersContext.OrganisationGroupResultsData.ContainsKey(keyForOrganisationGroups))
-            {
-                IEnumerable<OrganisationGroupResult> organisationGroups = publishedProvidersContext.OrganisationGroupResultsData[keyForOrganisationGroups];
-
-                HashSet<string> organisationGroupsHashSet = organisationGroups
-                                                .Where(_ => _.Providers.AnyWithNullCheck()
-                                                            && _.Providers.Any(p => p.ProviderId == publishedProvider.Current.ProviderId))
-                                                .SelectMany(_ => _.Identifiers.Select(_ => $"{_.Type}-{_.Value}")).Distinct().ToHashSet();
-
-                publishedProvidersContext.CurrentPublishedFunding
-                    .ForEach(x =>
+            publishedProvidersContext.CurrentPublishedFunding
+                .ForEach(x =>
+                {
+                    if (organisationGroupsHashSet.Contains($"{x.Current.OrganisationGroupTypeIdentifier}-{x.Current.OrganisationGroupIdentifierValue}")
+                        && x.Current.ProviderFundings.All(pv => pv != publishedProvider.Released.FundingId))
                     {
-                        if (organisationGroupsHashSet.Contains($"{x.Current.OrganisationGroupTypeIdentifier}-{x.Current.OrganisationGroupIdentifierValue}")
-                            && x.Current.ProviderFundings.All(pv => pv != publishedProvider.Released.FundingId))
+                        errorCheck.AddError(new PublishedProviderError
                         {
-                            errorCheck.AddError(new PublishedProviderError
-                            {
-                                Type = PublishedProviderErrorType.TrustIdMismatch,
-                                DetailedErrorMessage = $"TrustId {x.Current.OrganisationGroupTypeIdentifier}-{x.Current.OrganisationGroupIdentifierValue} not matched.",
-                                SummaryErrorMessage = "TrustId  not matched",
-                                FundingStreamId = publishedProvider.Current.FundingStreamId
-                            });
-                        }
-                    });
-            }
-            return Task.FromResult(errorCheck);
+                            Type = PublishedProviderErrorType.TrustIdMismatch,
+                            DetailedErrorMessage = $"TrustId {x.Current.OrganisationGroupTypeIdentifier}-{x.Current.OrganisationGroupIdentifierValue} not matched.",
+                            SummaryErrorMessage = "TrustId not matched",
+                            FundingStreamId = publishedProvider.Current.FundingStreamId
+                        });
+                    }
+                });
+        }
+
+        protected override bool SkipCheck(PublishedProvider publishedProvider)
+        {
+            // if there is no released version then we don't need to do the check
+            return publishedProvider.Released == null;
         }
     }
 }

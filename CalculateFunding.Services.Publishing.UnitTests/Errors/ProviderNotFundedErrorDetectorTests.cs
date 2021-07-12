@@ -10,27 +10,22 @@ using CalculateFunding.Generators.OrganisationGroup.Interfaces;
 using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Errors;
-using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Tests.Common.Helpers;
-using ApiProvider = CalculateFunding.Common.ApiClient.Providers.Models.Provider;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Errors
 {
     [TestClass]
-    public class TrustIdMismatchErrorDetectorTests
+    public class ProviderNotFundedErrorDetectorTests
     {
-        private TrustIdMismatchErrorDetector _errorDetector;
-        private IPublishedFundingDataService _publishedFundingDataService;
+        private ProviderNotFundedErrorDetector _errorDetector;
 
         [TestInitialize]
         public void SetUp()
         {
-            _publishedFundingDataService = Substitute.For<IPublishedFundingDataService>();
-            _errorDetector = new TrustIdMismatchErrorDetector();
+            _errorDetector = new ProviderNotFundedErrorDetector();
         }
         
         [TestMethod]
@@ -54,11 +49,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
         }
 
         [TestMethod]
-        public async Task ReturnsErrorMessageWhenTrustIdMismatch()
+        public async Task ReturnsErrorMessageWhenProviderNotFunded()
         {
             // Arrange
-            string specificationId = NewRandomString();
-            string providerVersionId = NewRandomString();
             string fundingStreamId = NewRandomString();
             string fundingPeriodId = NewRandomString();
 
@@ -73,10 +66,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
             string fundingConfigurationId = NewRandomString();
             OrganisationGroupTypeIdentifier groupTypeIdentifier = OrganisationGroupTypeIdentifier.UKPRN;
 
-            string summaryErrorMessage = "TrustId not matched";
-            string detailedErrorMessage = $"TrustId {groupTypeIdentifier}-{identifierValue2} not matched.";
+            string summaryErrorMessage = "Provider not funded";
+            string detailedErrorMessage = $"Provider {providerId2} not configured to be a member of any group.";
 
-            SpecificationSummary specificationSummary = NewSpecificationSummary(_ => _.WithId(specificationId).WithProviderVersionId(providerVersionId));
             PublishedProvider publishedProvider = NewPublishedProvider(_ => _
                 .WithCurrent(NewPublishedProviderVersion(pv => pv.WithFundingStreamId(fundingStreamId)
                     .WithFundingPeriodId(fundingPeriodId)
@@ -87,12 +79,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
                     .WithMajorVersion(majorVersion2)
                     .WithMinorVersion(minorVersion2))));
 
-            IEnumerable<Provider> providers = new[]
-            {
-                NewProvider(_ => _.WithProviderId(providerId1)),
-                NewProvider(_ => _.WithProviderId(providerId2))
-            };
-
             IEnumerable<OrganisationGroupResult> organisationGroupResults = new[]
             {
                 NewOrganisationGroupResult(_ => _
@@ -101,14 +87,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
                         NewOrganisationIdentifier(i => i.WithType(groupTypeIdentifier).WithValue(identifierValue1)),
                         NewOrganisationIdentifier(i => i.WithType(groupTypeIdentifier).WithValue(NewRandomString()))
                     }))
-                ,
-                NewOrganisationGroupResult(_ => _
-                    .WithIdentifiers(new[]
-                    {
-                        NewOrganisationIdentifier(i => i.WithType(groupTypeIdentifier).WithValue(identifierValue2)),
-                        NewOrganisationIdentifier(i => i.WithType(groupTypeIdentifier).WithValue(NewRandomString()))
-                    })
-                    .WithProviders(new[] { new ApiProvider { ProviderId = providerId2 } }))
             };
 
             IDictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResultsData
@@ -136,16 +114,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
                         .WithOrganisationGroupTypeIdentifier(groupTypeIdentifier))))
             };
 
-            FundingConfiguration fundingConfiguration = NewFundingConfiguration(_ => _.WithId(fundingConfigurationId));
-            GivenTheCurrentPublishedFundingForTheSpecification(specificationId, publishedFundings);
-
             // Act
             await WhenErrorsAreDetectedOnThePublishedProvider(publishedProvider, 
-                                                              providers, 
-                                                              specificationId, 
-                                                              providerVersionId, 
-                                                              fundingConfiguration, 
-                                                              publishedFundings,
                                                               organisationGroupResultsData);
 
             publishedProvider.Current
@@ -171,31 +141,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
         }
 
         private async Task WhenErrorsAreDetectedOnThePublishedProvider(PublishedProvider publishedProvider,
-            IEnumerable<Provider> providers,
-            string specificationId,
-            string providerVersionId,
-            FundingConfiguration fundingConfiguration,
-            IEnumerable<PublishedFunding> publishedFundings,
             IDictionary<string, IEnumerable<OrganisationGroupResult>> organisationGroupResults)
         {
             PublishedProvidersContext publishedProvidersContext = new PublishedProvidersContext
             {
-                ScopedProviders = providers,
-                SpecificationId = specificationId,
-                ProviderVersionId = providerVersionId,
-                CurrentPublishedFunding = publishedFundings,
-                OrganisationGroupResultsData = organisationGroupResults,
-                FundingConfiguration = fundingConfiguration
+                OrganisationGroupResultsData = organisationGroupResults
             };
 
             await _errorDetector.DetectErrors(publishedProvider, publishedProvidersContext);
-        }
-
-        private void GivenTheCurrentPublishedFundingForTheSpecification(string specificationId,
-            IEnumerable<PublishedFunding> publishedFundings)
-        {
-            _publishedFundingDataService.GetCurrentPublishedFunding(specificationId, GroupingReason.Payment)
-                .Returns(publishedFundings);
         }
 
         private static PublishedProviderVersion NewPublishedProviderVersion(Action<PublishedProviderVersionBuilder> setUp = null)
@@ -216,15 +169,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
             return publishedProviderBuilder.Build();
         }
 
-        private static Provider NewProvider(Action<ProviderBuilder> setUp = null)
-        {
-            ProviderBuilder providerBuilder = new ProviderBuilder();
-
-            setUp?.Invoke(providerBuilder);
-
-            return providerBuilder.Build();
-        }
-
         private static PublishedFunding NewPublishedFunding(Action<PublishedFundingBuilder> setUp = null)
         {
             PublishedFundingBuilder publishedFundingBuilder = new PublishedFundingBuilder();
@@ -243,15 +187,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
             return publishedFundingVersionBuilder.Build();
         }
 
-        private static SpecificationSummary NewSpecificationSummary(Action<SpecificationSummaryBuilder> setUp = null)
-        {
-            SpecificationSummaryBuilder specificationSummaryBuilder = new SpecificationSummaryBuilder();
-
-            setUp?.Invoke(specificationSummaryBuilder);
-
-            return specificationSummaryBuilder.Build();
-        }
-
         private static OrganisationGroupResult NewOrganisationGroupResult(Action<OrganisationGroupResultBuilder> setUp = null)
         {
             OrganisationGroupResultBuilder organisationGroupResultBuilder = new OrganisationGroupResultBuilder();
@@ -268,15 +203,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
             setUp?.Invoke(organisationIdentifierBuilder);
 
             return organisationIdentifierBuilder.Build();
-        }
-
-        private static FundingConfiguration NewFundingConfiguration(Action<FundingConfigurationBuilder> setUp = null)
-        {
-            FundingConfigurationBuilder fundingConfigurationBuilder = new FundingConfigurationBuilder();
-
-            setUp?.Invoke(fundingConfigurationBuilder);
-
-            return fundingConfigurationBuilder.Build();
         }
 
         private static string NewRandomString() => new RandomString();
