@@ -13,6 +13,7 @@ using Serilog;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Services.Processing;
+using System.Linq;
 
 namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
 {
@@ -110,7 +111,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
         private async Task UploadBlob(ICloudBlob blob, Stream csvFileStream, IDictionary<string, string> metadata)
         {
             await _blobClient.UploadFileAsync(blob, csvFileStream);
-            await _blobClient.AddMetadataAsync(blob, metadata);
+            await _blobClient.AddMetadataAsync(blob, metadata.ToDictionary(_ => _.Key, _ => _.Value.ToASCII()));
         }
 
         private void EnsureFileIsNew(string path)
@@ -159,6 +160,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
                     FundingLineCode = GetProperty(message, "funding-line-code")
                 };
             }
+
             public IDictionary<string, string> ToDictionary()
             {
                 return new Dictionary<string, string>
@@ -188,12 +190,12 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
                 string fundingStreamId,
                 string fundingPeriodId)
             {
-                ContentDisposition = $"attachment; filename={GetPrettyFileName(jobType, fundingLineName, fundingStreamId, fundingPeriodId)}";
+                ContentDisposition = $"attachment; filename={GetPrettyFileName(jobType, fundingLineName, fundingStreamId, fundingPeriodId)}".ToASCII();
                 
-                fundingLineName = WithPrefixDelimiterOrEmpty(fundingLineName.ToASCII());
+                fundingLineName = WithPrefixDelimiterOrEmpty(fundingLineName);
                 fundingStreamId = WithPrefixDelimiterOrEmpty(fundingStreamId);
 
-                FileName = $"funding-lines-{specificationId}-{jobType}{fundingLineName}{fundingStreamId}.csv";
+                FileName = $"funding-lines-{specificationId}-{jobType}{fundingLineName}{fundingStreamId}.csv".ToASCII();
                 TemporaryPath = Path.Combine(root, FileName);
             }
 
