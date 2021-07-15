@@ -30,7 +30,8 @@ namespace CalculateFunding.Services.Publishing
                 PublishedFunding publishedFunding = existingPublishedFunding?.Where(_ => organisationGroup.IdentifierValue == _.Current.OrganisationGroupIdentifierValue &&
                 organisationGroup.GroupTypeCode == Enum.Parse<OrganisationGroupTypeCode>(_.Current.OrganisationGroupTypeCode) &&
                 organisationGroup.GroupTypeClassification == Enum.Parse<OrganisationGroupTypeClassification>(_.Current.OrganisationGroupTypeClassification) &&
-                organisationGroup.GroupTypeIdentifier == Enum.Parse<OrganisationGroupTypeIdentifier>(_.Current.OrganisationGroupTypeIdentifier)
+                organisationGroup.GroupTypeIdentifier == Enum.Parse<OrganisationGroupTypeIdentifier>(_.Current.OrganisationGroupTypeIdentifier) &&
+                organisationGroup.GroupReason == Enum.Parse<OrganisationGroupingReason>(_.Current.GroupingReason.ToString())
                 ).OrderBy(_ => _.Current.Version).LastOrDefault();
 
                 // no existing published funding so need to yield the organisation group
