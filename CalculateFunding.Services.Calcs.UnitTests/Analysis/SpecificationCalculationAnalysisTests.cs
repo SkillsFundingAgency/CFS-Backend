@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
-using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Graph;
 using CalculateFunding.Services.Calcs.Analysis;
 using CalculateFunding.Services.Calcs.Interfaces;
@@ -16,7 +14,6 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Polly;
-using ApiCalculation = CalculateFunding.Common.ApiClient.Calcs.Models.Calculation;
 using Calculation = CalculateFunding.Models.Calcs.Calculation;
 using GraphCalculation = CalculateFunding.Models.Graph.Calculation;
 
@@ -147,7 +144,9 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
                     CalculationEnumRelationships = calculationEnumRelationships,
                     CalculationDataFieldRelationships = datasetReferences.SelectMany(_ => _.Calculations.Select(calculation => new CalculationDataFieldRelationship { Calculation = calculation, DataField = _.DataField })),
                     DatasetDataFieldRelationships = datasetReferences.Select(_ => new DatasetDataFieldRelationship { Dataset = _.Dataset, DataField = _.DataField }),
-                    DatasetDatasetDefinitionRelationships = datasetReferences.Select(_ => new DatasetDatasetDefinitionRelationship { Dataset = _.Dataset, DatasetDefinition = _.DatasetDefinition })
+                    DatasetDatasetDefinitionRelationships = datasetReferences.Select(_ => new DatasetDatasetDefinitionRelationship { Dataset = _.Dataset, DatasetDefinition = _.DatasetDefinition }),
+                    DatasetRelationships = datasetReferences.Select(_ => _.DatasetRelationship),
+                    DatasetRelationshipDataFieldRelationships = datasetReferences.Select(_ => new DatasetRelationshipDataFieldRelationship { DatasetRelationship = _.DatasetRelationship, DataField = _.DataField }),
                 });
         }
 

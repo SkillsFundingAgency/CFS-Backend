@@ -6,6 +6,7 @@ using DatasetReference = CalculateFunding.Models.Graph.DatasetReference;
 using Calculation = CalculateFunding.Models.Calcs.Calculation;
 using DatasetRelationshipSummary = CalculateFunding.Models.Calcs.DatasetRelationshipSummary;
 using DataField = CalculateFunding.Models.Graph.DataField;
+using GraphDatasetRelationshipType = CalculateFunding.Models.Graph.DatasetRelationshipType;
 using System.Text.RegularExpressions;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Common.Utility;
@@ -96,7 +97,7 @@ namespace CalculateFunding.Services.Calcs
                                 {
                                     DatasetId = datasetRelationship.DatasetId,
                                     Name = datasetRelationship.DatasetName,
-                                    SpecificationId = calculation.SpecificationId
+                                    SpecificationId = calculation.SpecificationId,
                                 },
                                 DatasetDefinition = new CalculateFunding.Models.Graph.DatasetDefinition
                                 {
@@ -114,7 +115,13 @@ namespace CalculateFunding.Services.Calcs
                                     DataFieldRelationshipName = datasetRelationship.Relationship?.Name,
                                     SpecificationId = calculation.SpecificationId,
                                     CalculationId = calculation.Current.CalculationId,
-                                    PropertyName = datasetRelationship.Name
+                                    PropertyName = datasetRelationship.Name,
+                                    SourceCodeName = calculation.Current.SourceCodeName,
+                                    SchemaId = datasetRelationship.DatasetDefinitionId,
+                                    SchemaFieldId = 
+                                        datasetRelationship.RelationshipType == Models.Datasets.DatasetRelationshipType.Uploaded ?
+                                        datasetRelationship.DatasetDefinitionId :
+                                        datasetRelationship.Relationship?.Id
                                 },
                                 Calculations = new List<Models.Graph.Calculation>()
                                             {
@@ -124,7 +131,17 @@ namespace CalculateFunding.Services.Calcs
                                                     CalculationId = calculation.Current.CalculationId,
                                                     CalculationName = calculation.Name
                                                 }
-                                            }
+                                            },
+                                DatasetRelationship = new Models.Graph.DatasetRelationship
+                                {
+                                    DatasetRelationshipId = datasetRelationship.Relationship?.Id,
+                                    DatasetRelationshipName = datasetRelationship.Relationship?.Name,
+                                    DatasetRelationshipType = (GraphDatasetRelationshipType)
+                                        Enum.Parse(typeof(GraphDatasetRelationshipType), datasetRelationship.RelationshipType.ToString()),
+                                    SchemaName = datasetRelationship.DatasetDefinition.Name,
+                                    SchemaId = datasetRelationship.DatasetDefinitionId,
+                                    SpecificationId = calculation.SpecificationId,
+                                }
                             };
 
                             datasetReferences.Add(dataSetReference);

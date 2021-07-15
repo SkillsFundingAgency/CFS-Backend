@@ -18,6 +18,7 @@ using Serilog;
 using ApiSpecification = CalculateFunding.Common.ApiClient.Graph.Models.Specification;
 using ApiCalculation = CalculateFunding.Common.ApiClient.Graph.Models.Calculation;
 using ApiEnum = CalculateFunding.Common.ApiClient.Graph.Models.Enum;
+using ApiDatasetRelationship = CalculateFunding.Common.ApiClient.Graph.Models.DatasetRelationship;
 using ApiDataField = CalculateFunding.Common.ApiClient.Graph.Models.DataField;
 using ApiDataset = CalculateFunding.Common.ApiClient.Graph.Models.Dataset;
 using ApiDatasetDefinition = CalculateFunding.Common.ApiClient.Graph.Models.DatasetDefinition;
@@ -25,6 +26,7 @@ using ApiFundingLine = CalculateFunding.Common.ApiClient.Graph.Models.FundingLin
 using ApiEntitySpecification = CalculateFunding.Common.ApiClient.Graph.Models.Entity<CalculateFunding.Common.ApiClient.Graph.Models.Specification>;
 using ApiEntityCalculation = CalculateFunding.Common.ApiClient.Graph.Models.Entity<CalculateFunding.Common.ApiClient.Graph.Models.Calculation>;
 using ApiEntityFundingLine = CalculateFunding.Common.ApiClient.Graph.Models.Entity<CalculateFunding.Common.ApiClient.Graph.Models.FundingLine>;
+using ApiEntityDatasetRelationship = CalculateFunding.Common.ApiClient.Graph.Models.Entity<CalculateFunding.Common.ApiClient.Graph.Models.DatasetRelationship>;
 using ApiRelationship = CalculateFunding.Common.ApiClient.Graph.Models.Relationship;
 using Calculation = CalculateFunding.Models.Graph.Calculation;
 using DataField = CalculateFunding.Models.Graph.DataField;
@@ -32,6 +34,7 @@ using FundingLine = CalculateFunding.Models.Graph.FundingLine;
 using IEnumerableExtensions = CalculateFunding.Common.Extensions.IEnumerableExtensions;
 using Specification = CalculateFunding.Models.Graph.Specification;
 using Enum = CalculateFunding.Models.Graph.Enum;
+using DatasetRelationship = CalculateFunding.Models.Graph.DatasetRelationship;
 
 namespace CalculateFunding.Services.Calcs.Analysis
 {
@@ -74,7 +77,8 @@ namespace CalculateFunding.Services.Calcs.Analysis
             }
 
             IEnumerable<ApiEntityCalculation> allCalculationsRelatedToSpecification = await GetAllCalculationsRelatedToSpecification(specificationCalculationRelationships);
-            
+            IEnumerable<ApiEntityDatasetRelationship> allDatasetRelationshipsRelatedToSpecification = await GetAllDatasetRelationshipRelatedToSpecification(specificationCalculationRelationships);
+
             IEnumerable<Calculation> removedSpecificationCalculations = RemoveCalculationSpecificationRelationships(specificationCalculationRelationships.Calculations, entities);
             IEnumerable<CalculationRelationship> removedCalculationRelationships =
                 RemoveCalculationCalculationRelationships(specificationCalculationRelationships.CalculationRelationships, allCalculationsRelatedToSpecification);
@@ -83,16 +87,50 @@ namespace CalculateFunding.Services.Calcs.Analysis
             IEnumerable<CalculationEnumRelationship> removedCalculationEnumRelationship =
                 await RemoveCalculationEnumRelationships(specificationCalculationRelationships.CalculationEnumRelationships, allCalculationsRelatedToSpecification);
             IEnumerable<FundingLine> removedFundingLines = await RemoveFundingLines(specificationCalculationRelationships.FundingLineRelationships, specificationCalculationRelationships.FundingLines);
+            IEnumerable<DatasetRelationshipDataFieldRelationship> datasetRelationships = 
+                await RemoveDatasetRelationshipDataFieldRelationships(
+                    specificationCalculationRelationships.DatasetRelationshipDataFieldRelationships,
+                    allDatasetRelationshipsRelatedToSpecification);
 
             return new SpecificationCalculationRelationships
             {
                 Specification = specificationCalculationRelationships.Specification,
                 Calculations = removedSpecificationCalculations,
                 FundingLines = removedFundingLines,
+                DatasetRelationshipDataFieldRelationships = datasetRelationships,
                 CalculationRelationships = removedCalculationRelationships,
                 CalculationDataFieldRelationships = removedDatasetReferences,
                 CalculationEnumRelationships = removedCalculationEnumRelationship
             };
+        }
+
+        private async Task<IEnumerable<ApiEntityDatasetRelationship>> GetAllDatasetRelationshipRelatedToSpecification(
+            SpecificationCalculationRelationships specificationCalculationRelationships)
+        {
+            PagedContext<DatasetRelationship> pagedRequests = new PagedContext<DatasetRelationship>(specificationCalculationRelationships.DatasetRelationships,
+                PageSize);
+
+            List<ApiEntityDatasetRelationship> allDatasetRelationships = new List<ApiEntityDatasetRelationship>();
+
+            while (pagedRequests.HasPages)
+            {
+                ApiResponse<IEnumerable<ApiEntityDatasetRelationship>> apiCalcResponse = await _resilience.ExecuteAsync(() =>
+                    _graphApiClient.GetAllEntitiesRelatedToDatasetRelationships(pagedRequests
+                        .NextPage()
+                        .Select(_ => _.DatasetRelationshipId)
+                        .ToArray()));
+
+                IEnumerable<ApiEntityDatasetRelationship> datasetRelationshipsPage = apiCalcResponse?.Content;
+
+                if (datasetRelationshipsPage == null || !datasetRelationshipsPage.Any())
+                {
+                    continue;
+                }
+
+                allDatasetRelationships.AddRange(datasetRelationshipsPage);
+            }
+
+            return allDatasetRelationships;
         }
 
         private async Task<IEnumerable<ApiEntityCalculation>> GetAllCalculationsRelatedToSpecification(SpecificationCalculationRelationships specificationCalculationRelationships)
@@ -146,6 +184,47 @@ namespace CalculateFunding.Services.Calcs.Analysis
                 .Where(_ => !newSpecificationCalculations.Contains(_.CalculationId));
 
             return removedSpecificationCalculations;
+        }
+
+        private async Task<IEnumerable<DatasetRelationshipDataFieldRelationship>> RemoveDatasetRelationshipDataFieldRelationships
+            (IEnumerable<DatasetRelationshipDataFieldRelationship> allDatasetRelationshipDataFieldRelationship,
+            IEnumerable<ApiEntityDatasetRelationship> datasetRelationships)
+        {
+            // retrieve all calculation to enum relationships from current graph
+            IEnumerable<ApiRelationship> datasetRelationshipDataFieldRelationships = datasetRelationships?.Where(_ => _.Relationships != null).SelectMany(_ =>
+                _.Relationships.Where(rel =>
+                    rel.Type.Equals(DatasetRelationshipDataFieldRelationship.FromIdField, StringComparison.InvariantCultureIgnoreCase)));
+
+            // if there are no calculation relationships to remove then exit early
+            if (datasetRelationshipDataFieldRelationships.IsNullOrEmpty())
+            {
+                return null;
+            }
+
+            // retrieve all data field referenced from the current graph related to the dataset relationships
+            IDictionary<string, DatasetRelationshipDataFieldRelationship> datasetRelationshipDataFieldReferences = datasetRelationshipDataFieldRelationships.Select(_ =>
+                new DatasetRelationshipDataFieldRelationship
+                {
+                    //double check how we handle dynamic at the other end as I don't believe this is needed
+                    DatasetRelationship = ((object)_.One).AsJson().AsPoco<DatasetRelationship>(),
+                    DataField = ((object)_.Two).AsJson().AsPoco<DataField>()
+                }).DistinctBy(_ => new { _.DatasetRelationship.DatasetRelationshipId, _.DataField.UniqueDataFieldId }).ToDictionary(_ => $"{_.DatasetRelationship.DatasetRelationshipId}{_.DataField.UniqueDataFieldId}");
+
+            // there are no data field references in the new set of dataset relationships so need to delete all current references
+            if (allDatasetRelationshipDataFieldRelationship.IsNullOrEmpty())
+            {
+                return datasetRelationshipDataFieldReferences.Values;
+            }
+
+            // retrieve all the new data field related to the dataset relationships
+            IDictionary<string, DatasetRelationshipDataFieldRelationship> newDatasetRelationshipDataFields =
+                allDatasetRelationshipDataFieldRelationship.DistinctBy(_ => new { _.DatasetRelationship.DatasetRelationshipId, _.DataField.UniqueDataFieldId }).ToDictionary(_ => $"{_.DatasetRelationship.DatasetRelationshipId}{_.DataField.UniqueDataFieldId}");
+
+            // retrieve all dataset field relationships which exist in the current graph but not in the new result set
+            IEnumerable<DatasetRelationshipDataFieldRelationship> removedEnums = datasetRelationshipDataFieldReferences
+                .Where(_ => !newDatasetRelationshipDataFields.ContainsKey(_.Key)).Select(_ => _.Value);
+
+            return removedEnums;
         }
 
         private async Task<IEnumerable<FundingLine>> RemoveFundingLines(IEnumerable<FundingLineCalculationRelationship> fundingLineCalculationRelationships,
@@ -343,6 +422,11 @@ namespace CalculateFunding.Services.Calcs.Analysis
                 await DeleteFundingLines(specificationCalculationUnusedRelationships.FundingLines);
             }
 
+            if (specificationCalculationUnusedRelationships.DatasetRelationshipDataFieldRelationships.AnyWithNullCheck())
+            {
+                await DeleteDatasetRelationshipDataFieldRelationship(specificationCalculationUnusedRelationships.DatasetRelationshipDataFieldRelationships);
+            }
+
             if (specificationCalculationUnusedRelationships.CalculationRelationships.AnyWithNullCheck())
             {
                 await DeleteCalculationRelationships(specificationCalculationUnusedRelationships.CalculationRelationships);
@@ -376,7 +460,8 @@ namespace CalculateFunding.Services.Calcs.Analysis
                 UpsertDataFieldRelationships(specificationCalculationRelationships.CalculationDataFieldRelationships),
                 UpsertEnumRelationships(specificationCalculationRelationships.CalculationEnumRelationships),
                 UpsertDatasetDataFieldRelationships(specificationCalculationRelationships.DatasetDataFieldRelationships, specificationCalculationRelationships.Specification.SpecificationId),
-                UpsertDatasetDatasetDefinitionRelationships(specificationCalculationRelationships.DatasetDatasetDefinitionRelationships)
+                UpsertDatasetDatasetDefinitionRelationships(specificationCalculationRelationships.DatasetDatasetDefinitionRelationships),
+                UpsertDatasetRelationshipDataFieldRelationships(specificationCalculationRelationships.DatasetRelationshipDataFieldRelationships)
             };
 
             await TaskHelper.WhenAllAndThrow(subGraphTasks);
@@ -423,6 +508,26 @@ namespace CalculateFunding.Services.Calcs.Analysis
                     .ToArray()));
 
                 EnsureApiCallSucceeded(response, "Unable to delete previous graph relationship for calculation ids and calculation ids");
+            }
+        }
+
+        private async Task DeleteDatasetRelationshipDataFieldRelationship(IEnumerable<DatasetRelationshipDataFieldRelationship> datasetRelationshipDataFieldRelationships)
+        {
+            PagedContext<AmendRelationshipRequestModel> pagedRequests = new PagedContext<AmendRelationshipRequestModel>(datasetRelationshipDataFieldRelationships
+                .Select(_ => new AmendRelationshipRequestModel
+                {
+                    IdA = _.DatasetRelationship.DatasetRelationshipId,
+                    IdB = _.DataField.UniqueDataFieldId
+                }),
+            PageSize);
+
+            while (pagedRequests.HasPages)
+            {
+                HttpStatusCode response = await _resilience.ExecuteAsync(() => _graphApiClient.DeleteDatasetRelationshipDataFieldRelationships(pagedRequests
+                    .NextPage()
+                    .ToArray()));
+
+                EnsureApiCallSucceeded(response, "Unable to delete previous graph dataset relationships");
             }
         }
 
@@ -556,6 +661,30 @@ namespace CalculateFunding.Services.Calcs.Analysis
                         relationships.Select(_ => _.CalculationTwoId).ToArray()));
 
                 EnsureApiCallSucceeded(response, "Unable to create calculation relationships");
+            }
+        }
+
+        private async Task UpsertDatasetRelationshipDataFieldRelationships(IEnumerable<DatasetRelationshipDataFieldRelationship> datasetRelationshipDataFieldRelationships)
+        {
+            IEnumerable<IGrouping<string, DatasetRelationshipDataFieldRelationship>> datasetRelationshipDataFieldRelationshipsPerDatasetRelationshipId =
+                datasetRelationshipDataFieldRelationships.GroupBy(_ => _.DatasetRelationship.DatasetRelationshipId);
+
+            foreach (IGrouping<string, DatasetRelationshipDataFieldRelationship> relationships in datasetRelationshipDataFieldRelationshipsPerDatasetRelationshipId)
+            {
+                HttpStatusCode response;
+
+                ApiDatasetRelationship[] apiDatasetRelationships = relationships.Select(_ => _mapper.Map<ApiDatasetRelationship>(_.DatasetRelationship)).ToArray();
+
+                response = await _resilience.ExecuteAsync(() =>
+                    _graphApiClient.UpsertDatasetRelationships(apiDatasetRelationships));
+
+                EnsureApiCallSucceeded(response, "Unable to create dataset relationships");
+
+                response = await _resilience.ExecuteAsync(() =>
+                    _graphApiClient.UpsertDatasetRelationshipDataFieldRelationships(relationships.Key,
+                        relationships.Select(_ => _.DataField.DataFieldId).ToArray()));
+
+                EnsureApiCallSucceeded(response, "Unable to create dataset relationship data field relationships");
             }
         }
 

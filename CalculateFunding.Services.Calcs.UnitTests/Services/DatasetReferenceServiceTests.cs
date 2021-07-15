@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using CalculationType = CalculateFunding.Models.Calcs.CalculationType;
 using DatasetReference = CalculateFunding.Models.Graph.DatasetReference;
 using Calculation = CalculateFunding.Models.Calcs.Calculation;
 using DatasetRelationshipSummary = CalculateFunding.Models.Calcs.DatasetRelationshipSummary;
-using DataField = CalculateFunding.Models.Graph.DataField;
 using NSubstitute;
 using Serilog;
 using FluentAssertions;
@@ -44,8 +42,6 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
         [TestMethod]
         public void GetGetDatasetRelationShips_WhenGivenAdditionalCalculationsWithNoDatasetRelationshipSummary_ReturnNoDatasetReferences()
         {
-            string specificationId = Guid.NewGuid().ToString();
-
             List<Calculation> calculations = CreatCalculations();
 
             List<DatasetReference> datasetReferences = _service.GetDatasetRelationShips(calculations, null).ToList();
@@ -56,8 +52,6 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
         [TestMethod]
         public void GetGetDatasetRelationShips_WhenGivenAdditionalCalculationsWithNoDatasetReferenceInCalculation_ReturnNoDatasetReferences()
         {
-            string specificationId = Guid.NewGuid().ToString();
-
             List<Calculation> calculations = CreatCalculations();
             calculations[0].Current.SourceCode = "return 1";
             calculations[1].Current.SourceCode = "return 2";
@@ -73,8 +67,6 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
         [TestMethod]
         public void GetGetDatasetRelationShips_WhenGivenAdditionalCalculationsWithInvalidDatasetFieldReference_ReturnNoDatasetReferences()
         {
-            string specificationId = Guid.NewGuid().ToString();
-
             List<Calculation> calculations = CreatCalculations();
 
             List<DatasetRelationshipSummary> datasetRelationshipSummaries = CreatDatasetRelationshipSummary();
@@ -85,7 +77,6 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
             datasetReferences.Should().NotBeEmpty();
             datasetReferences.Count.Should().Be(1);
         }
-
 
         private static List<Calculation> CreatCalculations()
         {

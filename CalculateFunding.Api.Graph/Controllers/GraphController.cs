@@ -83,7 +83,46 @@ namespace CalculateFunding.Api.Graph.Controllers
         {
             return await _graphService.DeleteDataField(fieldId);
         }
-        
+
+        [HttpPut("api/graph/datasetrelationships")]
+        [ProducesResponseType(200)]
+        public async Task<IActionResult> UpsertDatasetRelationships([FromBody] DatasetRelationship[] datasetRelationships)
+            => await _graphService.UpsertDatasetRelationships(datasetRelationships);
+
+        [HttpPut("api/graph/datasetrelationship")]
+        [ProducesResponseType(200)]
+        public async Task<IActionResult> UpsertDatasetRelationship([FromBody] DatasetRelationship datasetRelationship)
+            => await _graphService.UpsertDatasetRelationship(datasetRelationship);
+
+        [HttpDelete("api/graph/datasetrelationship/{relationshipId}")]
+        [ProducesResponseType(200)]
+        public async Task<IActionResult> DeleteDatasetRelationship([FromRoute] string relationshipId)
+            => await _graphService.DeleteDatasetRelationship(relationshipId);
+
+        [HttpPost("api/graph/datasetrelationship/delete")]
+        [ProducesResponseType(200)]
+        public async Task<IActionResult> DeleteDatasetRelationships([FromBody] string[] relationshipIds)
+            => await _graphService.DeleteDatasetRelationships(relationshipIds);
+
+        [HttpPost("api/graph/datasetrelationship/getallentitiesforall")]
+        public async Task<IActionResult> GetAllEntitiesForAllDatasetRelationships([FromBody] string[] relationshipIds)
+            => await _graphService.GetAllDatasetRelationshipsForAll(relationshipIds);
+
+        [HttpPost("api/graph/datasetrelationship/{datasetRelationshipId}/relationships/datafields")]
+        [ProducesResponseType(200)]
+        public async Task<IActionResult> UpsertDatasetRelationshipDataFieldRelationships([FromRoute] string datasetRelationshipId, [FromBody] string[] dataFieldUniqueIds)
+            => await _graphService.UpsertDatasetRelationshipDataFieldRelationships(datasetRelationshipId, dataFieldUniqueIds);
+
+        [HttpDelete("api/graph/datasetrelationship/{datasetRelationshipId}/relationships/datafields/{dataFieldUniqueId}")]
+        [ProducesResponseType(200)]
+        public async Task<IActionResult> DeleteDatasetRelationshipDataFieldRelationship([FromRoute] string datasetRelationshipId, [FromRoute] string dataFieldUniqueId)
+            => await _graphService.DeleteDatasetRelationshipDataFieldRelationship(datasetRelationshipId, dataFieldUniqueId);
+
+        [HttpPost("api/graph/datasetrelationship/relationships/datafields/delete")]
+        [ProducesResponseType(200)]
+        public async Task<IActionResult> DeleteDatasetRelationshipDataFieldRelationships([FromBody] AmendRelationshipRequest[] relationships)
+            => await _graphService.DeleteDatasetRelationshipDataFieldRelationships(ToRelationships(relationships));
+
         [HttpPut("api/graph/datasetdefinitions/{definitionId}/relationships/datasets/{datasetId}")]
         [ProducesResponseType(200)]
         public async Task<IActionResult> UpsertDataDefinitionDatasetRelationship([FromRoute]string definitionId, [FromRoute]string datasetId)

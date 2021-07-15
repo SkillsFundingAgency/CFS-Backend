@@ -1,7 +1,3 @@
-using System;
-using System.Diagnostics.CodeAnalysis;
-using Newtonsoft.Json;
-
 namespace CalculateFunding.Models.Graph
 {
     public class CalculationEnumRelationship

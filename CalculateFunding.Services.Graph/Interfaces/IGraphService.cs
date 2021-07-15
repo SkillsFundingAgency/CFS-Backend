@@ -46,9 +46,10 @@ namespace CalculateFunding.Services.Graph.Interfaces
         Task<IActionResult> DeleteFundingLine(string fieldId);
 
         Task<IActionResult> UpsertFundingLineCalculationRelationship(string fundingLineId, string calculationId);
-
+        Task<IActionResult> UpsertDatasetRelationship(DatasetRelationship datasetRelationship);
+        Task<IActionResult> UpsertDatasetRelationships(DatasetRelationship[] datasetRelationships);
         Task<IActionResult> UpsertCalculationFundingLineRelationship(string calculationId, string fundingLineId);
-
+        Task<IActionResult> DeleteDatasetRelationship(string relationshipId);
         Task<IActionResult> DeleteFundingLineCalculationRelationship(string fundingLineId, string calculationId);
 
         Task<IActionResult> DeleteCalculationFundingLineRelationship(string calculationId, string fundingLineId);
@@ -56,15 +57,19 @@ namespace CalculateFunding.Services.Graph.Interfaces
         Task<IActionResult> GetCalculationCircularDependencies(string specificationId);
         Task<IActionResult> GetAllEntities<TNode>(string nodeId)
             where TNode:class;
-
+        Task<IActionResult> DeleteDatasetRelationships(string[] relationshipIds);
         Task<IActionResult> DeleteFundingLines(string[] fieldIds);
         Task<IActionResult> UpsertFundingLineCalculationRelationships(params (string fundingLineId, string calculationId)[] relationships);
+        Task<IActionResult> GetAllDatasetRelationshipsForAll(string[] relationshipIds);
         Task<IActionResult> UpsertCalculationFundingLineRelationships(params (string calculationId, string fundingLineId)[] relationships);
         Task<IActionResult> DeleteFundingLineCalculationRelationships(params (string fundingLineId, string calculationId)[] relationships);
+        Task<IActionResult> UpsertDatasetRelationshipDataFieldRelationships(string datasetRelationshipId, string[] dataFieldUniqueIds);
         Task<IActionResult> DeleteCalculationFundingLineRelationships(params (string calculationId, string fundingLineId)[] relationships);
         Task<IActionResult> DeleteSpecificationDatasetRelationships(params (string specificationId, string datasetId)[] relationships);
+        Task<IActionResult> DeleteDatasetRelationshipDataFieldRelationship(string datasetRelationshipId, string dataFieldUniqueId);
         Task<IActionResult> UpsertCalculationDataFieldRelationships(params (string calculationId, string fieldId)[] relationships);
         Task<IActionResult> DeleteCalculationDataFieldRelationships(params (string calculationId, string fieldId)[] relationships);
+        Task<IActionResult> DeleteDatasetRelationshipDataFieldRelationships(params (string datasetRelationshipId, string dataFieldUniqueId)[] relationships);
         Task<IActionResult> DeleteCalculationEnumRelationships(params (string calculationId, string fieldId)[] relationships);
         Task<IActionResult> DeleteCalculations(params string[] calculationIds);
         Task<IActionResult> UpsertCalculationSpecificationRelationships(params (string calculationId, string specificationId)[] relationships);

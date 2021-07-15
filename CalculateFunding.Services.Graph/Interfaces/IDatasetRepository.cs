@@ -23,5 +23,14 @@ namespace CalculateFunding.Services.Graph.Interfaces
         Task<IEnumerable<Entity<DataField, IRelationship>>> GetAllEntities(string datasetFieldId);
         Task UpsertDataDefinitionDatasetRelationships(params (string datasetDefinitionId, string datasetId)[] relationships);
         Task UpsertDatasetDataFieldRelationships(params (string datasetId, string dataFieldId)[] relationships);
+        Task UpsertDatasetRelationship(DatasetRelationship datasetRelationship);
+        Task UpsertDatasetRelationships(DatasetRelationship[] datasetRelationships);
+        Task DeleteDatasetRelationship(string relationshipId);
+        Task DeleteDatasetRelationships(string[] relationshipIds);
+        Task<IEnumerable<Entity<DatasetRelationship, IRelationship>>> GetAllDatasetRelationsshipEntitiesForAll(params string[] relationshipIds);
+        Task<IEnumerable<Entity<DatasetRelationship, IRelationship>>> GetAllDatasetRelationsshipEntities(string relationshipId);
+        Task UpsertDatasetRelationshipDataFieldRelationships(params (string datasetRelationshipId, string dataFieldUniqueId)[] relationships);
+        Task DeleteDatasetRelationshipDataFieldRelationship(string datasetRelationshipId, string dataFieldUniqueId);
+        Task DeleteDatasetRelationshipDataFieldRelationships((string datasetRelationshipId, string dataFieldUniqueId)[] relationships);
     }
 }

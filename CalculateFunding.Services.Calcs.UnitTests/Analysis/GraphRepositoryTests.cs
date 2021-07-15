@@ -19,18 +19,20 @@ using ApiDataField = CalculateFunding.Common.ApiClient.Graph.Models.DataField;
 using ApiEnum = CalculateFunding.Common.ApiClient.Graph.Models.Enum;
 using ApiDataSet = CalculateFunding.Common.ApiClient.Graph.Models.Dataset;
 using ApiDatasetDefinition = CalculateFunding.Common.ApiClient.Graph.Models.DatasetDefinition;
+using ApiDatasetRelationship = CalculateFunding.Common.ApiClient.Graph.Models.DatasetRelationship;
 using ApiEntitySpecification = CalculateFunding.Common.ApiClient.Graph.Models.Entity<CalculateFunding.Common.ApiClient.Graph.Models.Specification>;
 using ApiEntityCalculation = CalculateFunding.Common.ApiClient.Graph.Models.Entity<CalculateFunding.Common.ApiClient.Graph.Models.Calculation>;
 using ApiEntityFundingLine = CalculateFunding.Common.ApiClient.Graph.Models.Entity<CalculateFunding.Common.ApiClient.Graph.Models.FundingLine>;
 using ApiRelationship = CalculateFunding.Common.ApiClient.Graph.Models.Relationship;
 using CalculateFunding.Common.ApiClient.Models;
-using NSubstitute;
 using Calculation = CalculateFunding.Models.Graph.Calculation;
 using Dataset = CalculateFunding.Models.Graph.Dataset;
 using DatasetDefinition = CalculateFunding.Models.Graph.DatasetDefinition;
 using FundingLine = CalculateFunding.Models.Graph.FundingLine;
 using Specification = CalculateFunding.Models.Graph.Specification;
 using Enum = CalculateFunding.Models.Graph.Enum;
+using DataField = CalculateFunding.Models.Graph.DataField;
+using DatasetRelationship = CalculateFunding.Models.Graph.DatasetRelationship;
 
 namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
 {
@@ -150,7 +152,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
                     .WithCalculationTwoId(calculationIdFour)
                     .WithFundingLine(fundingLines[3]))
             };
-            IEnumerable<FundingLine> unusedFundingLines = new FundingLine[0];
+            IEnumerable<FundingLine> unusedFundingLines = Array.Empty<FundingLine>();
 
             unusedFundingLines = unusedFundingLines.Concat(new[]
             {
@@ -227,7 +229,22 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
                 Calculation = NewGraphCalculation(_ => _.WithId(calculationIdFour)),
                 Enum = existingEnum
             }
-    };
+            };
+
+            Models.Graph.DatasetRelationship[] datasetRelationships = dataFieldRelationships.Select(_ => new Models.Graph.DatasetRelationship
+            {
+                DatasetRelationshipId = _.DataField.DatasetRelationshipId,
+                DatasetRelationshipName = _.DataField.DataFieldRelationshipName,
+                SchemaId = _.DataField.SchemaId
+            }).ToArray();
+
+            DataField newDataField = NewDataField();
+
+            DatasetRelationshipDataFieldRelationship[] datasetRelationshipDataFieldRelationships = datasetRelationships.Select(_ => new DatasetRelationshipDataFieldRelationship
+            {
+                DatasetRelationship = _,
+                DataField = newDataField
+            }).ToArray();
 
             SpecificationCalculationRelationships specificationCalculationRelationships = NewSpecificationCalculationRelationships(_ =>
                 _.WithSpecification(specification)
@@ -238,7 +255,9 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
                     .WithCalculationDataFieldRelationships(dataFieldRelationships)
                     .WithCalculationEnumRelationships(calculationEnumRelationships)
                     .WithDatasetDataFieldRelationships(datasetDataFieldRelationships)
-                    .WithDatasetDatasetDefinitionRelationships(datasetDatasetDefinitionRelationships));
+                    .WithDatasetDatasetDefinitionRelationships(datasetDatasetDefinitionRelationships)
+                    .WithDatasetRelationships(datasetRelationships)
+                    .WithDatasetRelationshipDataFieldRelationships(datasetRelationshipDataFieldRelationships));
 
             ApiSpecification apiSpecification = NewApiSpecification();
             ApiCalculation[] apiCalculations = new[]
@@ -289,6 +308,17 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
                 });
             }
 
+            foreach (Models.Graph.DatasetRelationship datasetRelationship in datasetRelationships)
+            {
+                AndTheMapping(datasetRelationship, new ApiDatasetRelationship
+                {
+                    DatasetRelationshipId = datasetRelationship.DatasetRelationshipId,
+                    DatasetRelationshipName = datasetRelationship.DatasetRelationshipName,
+                    SchemaId = datasetRelationship.SchemaId,
+                    SchemaName = datasetRelationship.SchemaName
+                });
+            }
+
             AndTheMapping(newDataset, new ApiDataSet
             {
                 DatasetId = newDataset.DatasetId,
@@ -334,7 +364,8 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
             AndTheEnumRelationshipsWereCreated(calculationEnumRelationships);
             AndTheDatasetDataFieldRelationshipsWereCreated(datasetDataFieldRelationships, specificationId);
             AndTheDatasetDatasetDefinitionRelationshipsWereCreated(datasetDatasetDefinitionRelationships);
-            
+            AndTheDatasetRelationshipDataFieldRelationshipsWereCreated(datasetRelationshipDataFieldRelationships);
+
             SpecificationCalculationRelationships specificationUnusedCalculationRelationships = await WhenTheUnusedRelationshipsAreReturned(specificationCalculationRelationships);
 
             await AndTheGraphIsRecreated(specificationCalculationRelationships, specificationUnusedCalculationRelationships);
@@ -492,6 +523,25 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
                 
                 _graphApiClient.Setup(_ => _.UpsertDatasetDataFieldRelationships(It.Is<AmendRelationshipRequestModel[]>(requests =>
                         RequestsMatch(requests, relationships.Key, relationships.Select(_ => _.DataField.DataFieldId).ToArray()))))
+                    .ReturnsAsync(HttpStatusCode.OK)
+                    .Verifiable();
+            }
+        }
+
+        private void AndTheDatasetRelationshipDataFieldRelationshipsWereCreated(DatasetRelationshipDataFieldRelationship[] datasetRelationshipDataFieldRelationships)
+        {
+            IEnumerable<IGrouping<string, DatasetRelationshipDataFieldRelationship>> relationshipsPerDatasetRelationshipId =
+                datasetRelationshipDataFieldRelationships.GroupBy(_ => _.DatasetRelationship.DatasetRelationshipId);
+
+            foreach (IGrouping<string, DatasetRelationshipDataFieldRelationship> relationships in relationshipsPerDatasetRelationshipId)
+            {
+                _graphApiClient.Setup(_ => _.UpsertDatasetRelationships(It.Is<ApiDatasetRelationship[]>(datasetDefinitions =>
+                        datasetDefinitions.Select(_ => _.DatasetRelationshipId).SequenceEqual(relationships.Select(rel => rel.DatasetRelationship.DatasetRelationshipId).Distinct().ToArray()))))
+                    .ReturnsAsync(HttpStatusCode.OK)
+                    .Verifiable();
+
+                _graphApiClient.Setup(_ => _.UpsertDatasetRelationshipDataFieldRelationships(relationships.Key, It.Is<string[]>(dataFieldUniqueIds =>
+                        dataFieldUniqueIds.SequenceEqual(relationships.Select(rel => rel.DataField.DataFieldId).ToArray()))))
                     .ReturnsAsync(HttpStatusCode.OK)
                     .Verifiable();
             }

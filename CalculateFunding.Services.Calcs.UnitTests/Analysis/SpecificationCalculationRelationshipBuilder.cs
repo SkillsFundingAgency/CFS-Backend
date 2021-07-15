@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using CalculateFunding.Models.Graph;
 using CalculateFunding.Tests.Common.Helpers;
+using System;
 
 namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
 {
@@ -15,6 +16,8 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
         private IEnumerable<DatasetDataFieldRelationship> _datasetDataFieldRelationships;
         private IEnumerable<DatasetDatasetDefinitionRelationship> _datasetDatasetDefinitionRelationships;
         private IEnumerable<CalculationEnumRelationship> _calculationEnumRelationships;
+        private IEnumerable<DatasetRelationship> _datasetRelationships;
+        private IEnumerable<DatasetRelationshipDataFieldRelationship> _datasetRelationshipDataFieldRelationships;
 
         public SpecificationCalculationRelationshipBuilder WithCalculations(params Calculation[] calculations)
         {
@@ -72,6 +75,21 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
             return this;
         }
 
+        public SpecificationCalculationRelationshipBuilder WithDatasetRelationships(params DatasetRelationship[] datasetRelationships)
+        {
+            _datasetRelationships = datasetRelationships;
+
+            return this;
+        }
+
+        public SpecificationCalculationRelationshipBuilder WithDatasetRelationshipDataFieldRelationships(
+            params DatasetRelationshipDataFieldRelationship[] datasetRelationshipDataFieldRelationships)
+        {
+            _datasetRelationshipDataFieldRelationships = datasetRelationshipDataFieldRelationships;
+
+            return this;
+        }
+
         public SpecificationCalculationRelationshipBuilder WithSpecification(Specification specification)
         {
             _specification = specification;
@@ -84,14 +102,16 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
             return new SpecificationCalculationRelationships
             {
                 Specification = _specification,
-                Calculations = _calculations ?? new Calculation[0],
-                FundingLines = _fundingLines ?? new FundingLine[0],
-                FundingLineRelationships = _fundingLineCalculationRelationships ?? new FundingLineCalculationRelationship[0],
-                CalculationRelationships = _relationships ?? new CalculationRelationship[0],
-                CalculationDataFieldRelationships = _calculationDatafieldRelationships ?? new CalculationDataFieldRelationship[0],
-                DatasetDataFieldRelationships = _datasetDataFieldRelationships ?? new DatasetDataFieldRelationship[0],
-                CalculationEnumRelationships = _calculationEnumRelationships ?? new CalculationEnumRelationship[0],
-                DatasetDatasetDefinitionRelationships = _datasetDatasetDefinitionRelationships ?? new DatasetDatasetDefinitionRelationship[0]
+                Calculations = _calculations ?? Array.Empty<Calculation>(),
+                FundingLines = _fundingLines ?? Array.Empty<FundingLine>(),
+                FundingLineRelationships = _fundingLineCalculationRelationships ?? Array.Empty<FundingLineCalculationRelationship>(),
+                CalculationRelationships = _relationships ?? Array.Empty<CalculationRelationship>(),
+                CalculationDataFieldRelationships = _calculationDatafieldRelationships ?? Array.Empty<CalculationDataFieldRelationship>(),
+                DatasetDataFieldRelationships = _datasetDataFieldRelationships ?? Array.Empty<DatasetDataFieldRelationship>(),
+                CalculationEnumRelationships = _calculationEnumRelationships ?? Array.Empty<CalculationEnumRelationship>(),
+                DatasetDatasetDefinitionRelationships = _datasetDatasetDefinitionRelationships ?? Array.Empty<DatasetDatasetDefinitionRelationship>(),
+                DatasetRelationships = _datasetRelationships ?? Array.Empty<DatasetRelationship>(),
+                DatasetRelationshipDataFieldRelationships = _datasetRelationshipDataFieldRelationships ?? Array.Empty<DatasetRelationshipDataFieldRelationship>()
             };
         }
     }

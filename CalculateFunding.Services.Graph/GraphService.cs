@@ -11,7 +11,6 @@ using CalculateFunding.Services.Core.Threading;
 using CalculateFunding.Common.Graph.Interfaces;
 using Serilog;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Graph;
@@ -169,6 +168,56 @@ namespace CalculateFunding.Services.Graph
         {
             return await ExecuteRepositoryAction(() => _fundingLineRepository.DeleteCalculationFundingLineRelationships(relationships),
                 $"Unable to delete calculation -> funding line relationship");
+        }
+
+        public async Task<IActionResult> UpsertDatasetRelationship(DatasetRelationship datasetRelationship)
+        {
+            return await ExecuteRepositoryAction(() => _datasetRepository.UpsertDatasetRelationship(datasetRelationship),
+                $"Unable to create dataset relationship {datasetRelationship.AsJson()}");
+        }
+
+        public async Task<IActionResult> UpsertDatasetRelationships(DatasetRelationship[] datasetRelationships)
+        {
+            return await ExecuteRepositoryAction(() => _datasetRepository.UpsertDatasetRelationships(datasetRelationships),
+                $"Unable to create dataset relationship {datasetRelationships.AsJson()}");
+        }
+
+        public async Task<IActionResult> DeleteDatasetRelationship(string relationshipId)
+        {
+            return await ExecuteRepositoryAction(() => _datasetRepository.DeleteDatasetRelationship(relationshipId),
+                $"Unable to delete dataset relationship {relationshipId}");
+        }
+
+        public async Task<IActionResult> DeleteDatasetRelationships(string[] relationshipIds)
+        {
+            return await ExecuteRepositoryAction(() => _datasetRepository.DeleteDatasetRelationships(relationshipIds),
+                $"Unable to delete dataset relationships. {relationshipIds.AsJson()}");
+        }
+
+        public async Task<IActionResult> GetAllDatasetRelationshipsForAll(string[] relationshipIds)
+        {
+            return await ExecuteRepositoryAction(() => _datasetRepository.GetAllDatasetRelationsshipEntitiesForAll(relationshipIds),
+                $"Unable to retrieve all entities for dataset relationship ids {relationshipIds.AsJson()}");
+        }
+
+        public async Task<IActionResult> UpsertDatasetRelationshipDataFieldRelationships(string datasetRelationshipId, string[] dataFieldUniqueIds)
+        {
+            return await ExecuteRepositoryAction(() => _datasetRepository.UpsertDatasetRelationshipDataFieldRelationships(
+                    dataFieldUniqueIds.Select(_ => (datasetRelationshipId, _)).ToArray()),
+                $"Upsert datafield relationship call to dataset relationship failed for dataset relationship:'{datasetRelationshipId}'" +
+                $" calling data fields:'{dataFieldUniqueIds.AsJson()}'");
+        }
+
+        public async Task<IActionResult> DeleteDatasetRelationshipDataFieldRelationship(string datasetRelationshipId, string dataFieldUniqueId)
+        {
+            return await ExecuteRepositoryAction(() => _datasetRepository.DeleteDatasetRelationshipDataFieldRelationship(datasetRelationshipId, dataFieldUniqueId),
+                $"Unable to delete dataset relationship -> data field relationship {datasetRelationshipId} -> {dataFieldUniqueId}");
+        }
+
+        public async Task<IActionResult> DeleteDatasetRelationshipDataFieldRelationships(params (string datasetRelationshipId, string dataFieldUniqueId)[] relationships)
+        {
+            return await ExecuteRepositoryAction(() => _datasetRepository.DeleteDatasetRelationshipDataFieldRelationships(relationships),
+                $"Delete dataset relationship relationships call to data field failed");
         }
 
         public async Task<IActionResult> UpsertDataDefinitionDatasetRelationship(string definitionId, string datasetId)
@@ -423,6 +472,10 @@ namespace CalculateFunding.Services.Graph
             else if (typeof(TNode).IsAssignableFrom(typeof(Enum)))
             {
                 return await ExecuteRepositoryAction(() => _enumRepository.GetAllEntities(nodeId), $"Unable to retrieve all entities for {typeof(TNode).Name.ToLowerInvariant()}.");
+            }
+            else if (typeof(TNode).IsAssignableFrom(typeof(DatasetRelationship)))
+            {
+                return await ExecuteRepositoryAction(() => _datasetRepository.GetAllDatasetRelationsshipEntities(nodeId), $"Unable to retrieve all entities for {typeof(TNode).Name.ToLowerInvariant()}.");
             }
             else
             {

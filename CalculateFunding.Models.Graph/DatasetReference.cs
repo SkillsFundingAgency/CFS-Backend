@@ -16,6 +16,7 @@ namespace CalculateFunding.Models.Graph
         public DataField DataField { get; set; }
         public Dataset Dataset { get; set; }
         public DatasetDefinition DatasetDefinition { get; set; }
+        public DatasetRelationship DatasetRelationship { get; set; }
 
         protected bool Equals(DatasetReference other)
         {

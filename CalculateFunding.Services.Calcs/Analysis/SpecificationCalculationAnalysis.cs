@@ -104,6 +104,9 @@ namespace CalculateFunding.Services.Calcs.Analysis
                 FundingLines = buildProject.FundingLines?.Values.SelectMany(_ => _.FundingLines).Select(_ => _mapper.Map<FundingLine, GraphFundingLine>(_, opt => {
                     opt.AfterMap((src, dest) => dest.SpecificationId = specificationId);
                 })),
+                DatasetRelationshipDataFieldRelationships = 
+                    datasetReferences.Select(_ => new DatasetRelationshipDataFieldRelationship { DatasetRelationship = _.DatasetRelationship, DataField = _.DataField }),
+                DatasetRelationships = datasetReferences.Select(_ => _.DatasetRelationship),
                 CalculationRelationships = calculationRelationships,
                 FundingLineRelationships = fundingLineRelationships,
                 CalculationEnumRelationships = calculationEnumRelationships,

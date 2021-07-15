@@ -6,6 +6,7 @@ namespace CalculateFunding.Models.Graph
     public class DataField : SpecificationNode
     {
         public const string IdField = "datafieldid";
+        public const string UniqueIdField = "uniquedatafieldid";
 
         [JsonProperty("datafieldrelationshipname")]
         public string DataFieldRelationshipName { get; set; }
@@ -18,16 +19,27 @@ namespace CalculateFunding.Models.Graph
 
         [JsonProperty("datasetrelationshipid")]
         public string DatasetRelationshipId { get; set; }
+        
         [JsonProperty("schemaid")]
         public string SchemaId { get; set; }
+        
         [JsonProperty("schemafieldid")]
         public string SchemaFieldId { get; set; }
+        
         [JsonProperty("datafieldname")]
         public string DataFieldName { get; set; }
+        
         [JsonProperty(IdField)]
         public string DataFieldId { get; set; }
+        
         [JsonProperty("datafieldisaggregable")]
         public bool DataFieldIsAggregable { get; set; }
+        
+        [JsonProperty("sourceCodeName")]
+        public string SourceCodeName { get; set; }
+
+        [JsonProperty(UniqueIdField)]
+        public string UniqueDataFieldId { get => $"{SpecificationId}-{DataFieldId}"; }
 
         protected bool Equals(DataField other)
         {
