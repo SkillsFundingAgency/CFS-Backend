@@ -39,5 +39,6 @@ namespace CalculateFunding.Services.Publishing
         public AsyncPolicy CacheProvider { get; set; }
 
         public AsyncPolicy ProfilingApiClient { get; set; }
+        public AsyncPolicy DatasetsApiClient { get; set; }
     }
 }

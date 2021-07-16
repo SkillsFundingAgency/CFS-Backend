@@ -26,6 +26,8 @@ namespace CalculateFunding.Functions.Publishing.UnitTests
                 { "providersClient:ApiKey", "Local" },
                 { "calcsClient:ApiEndpoint", "https://localhost:7002/api/" },
                 { "calcsClient:ApiKey", "Local" },
+                { "datasetsClient:ApiEndpoint", "https://localhost:7004/api/" },
+                { "datasetsClient:ApiKey", "Local" },
                 { "providerProfilingClient:ApiEndpoint", "https://funding-profiling/" },
                 { "fdzClient:ApiEndpoint", "https://localhost:7109/api/" },
                 { "providerProfilingAzureBearerTokenOptions:Url", "https://wahetever-token" },

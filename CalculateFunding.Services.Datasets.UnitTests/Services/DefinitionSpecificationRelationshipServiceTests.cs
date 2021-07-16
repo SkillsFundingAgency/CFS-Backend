@@ -545,9 +545,12 @@ namespace CalculateFunding.Services.Datasets.Services
                   .Received(1)
                   .RemoveAsync<IEnumerable<DatasetSchemaRelationshipModel>>(Arg.Is($"{CacheKeys.DatasetRelationshipFieldsForSpecification}{specificationId}"));
 
-            await relationshipVersionRepository
-                 .Received(1)
-                 .CreateVersion(Arg.Is<DefinitionSpecificationRelationshipVersion>(x => x.Name == relationshipName), null, null, false);
+           await relationshipVersionRepository
+                .Received(1)
+                .CreateVersion(Arg.Is<DefinitionSpecificationRelationshipVersion>(
+                    x => x.Name == relationshipName &&
+                    x.PublishedSpecificationConfiguration.FundingLines.Count() == 2 &&
+                    x.PublishedSpecificationConfiguration.Calculations.Count() == 2), null, null, false);
 
             await datasetRepository
                 .Received(1)

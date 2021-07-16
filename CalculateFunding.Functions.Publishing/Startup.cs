@@ -2,6 +2,7 @@
 using System.Threading;
 using AutoMapper;
 using CalculateFunding.Common.Config.ApiClient.Calcs;
+using CalculateFunding.Common.Config.ApiClient.Dataset;
 using CalculateFunding.Common.Config.ApiClient.FundingDataZone;
 using CalculateFunding.Common.Config.ApiClient.Jobs;
 using CalculateFunding.Common.Config.ApiClient.Policies;
@@ -36,6 +37,7 @@ using CalculateFunding.Services.Processing.Interfaces;
 using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.Batches;
 using CalculateFunding.Services.Publishing.Errors;
+using CalculateFunding.Services.Publishing.Excel;
 using CalculateFunding.Services.Publishing.Helper;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Interfaces.Undo;
@@ -375,6 +377,8 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddScoped<ICreateGeneratePublishedProviderEstateCsvJobs, CreateGeneratePublishedProviderEstateCsvJobs>();
             builder.AddScoped<IPublishedFundingCsvJobsService, PublishedFundingCsvJobsService>();
 
+            builder.AddSingleton<IRelationshipDataExcelWriter, RelationshipDataExcelWriter>();
+
             builder
                 .AddSingleton<IPublishedProviderVersioningService, PublishedProviderVersioningService>()
                 .AddSingleton<IHealthChecker, PublishedProviderVersioningService>();
@@ -613,6 +617,7 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddCalculationsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
             builder.AddPoliciesInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
             builder.AddFundingDataServiceInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
+            builder.AddDatasetsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
 
             builder.AddSingleton<ITransactionResiliencePolicies>((ctx) => new TransactionResiliencePolicies()
             {
@@ -683,7 +688,9 @@ namespace CalculateFunding.Functions.Publishing
                 PublishedIndexSearchResiliencePolicy = PublishedIndexSearchResiliencePolicy.GeneratePublishedIndexSearch(),
                 SpecificationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 CacheProvider = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy),
-                FundingStreamPaymentDatesRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(),
+                DatasetsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                FundingStreamPaymentDatesRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy()
+
             };
 
             return resiliencePolicies;

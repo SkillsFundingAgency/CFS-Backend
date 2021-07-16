@@ -21,7 +21,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 CalculationResultsRepository = Policy.NoOpAsync(),
                 SpecificationsRepositoryPolicy = Policy.NoOpAsync(),
                 PublishedIndexSearchResiliencePolicy = Policy.NoOpAsync(),
-                SpecificationsApiClient = Policy.NoOpAsync()
+                SpecificationsApiClient = Policy.NoOpAsync(),
+                DatasetsApiClient = Policy.NoOpAsync()
             };
         }
     }
