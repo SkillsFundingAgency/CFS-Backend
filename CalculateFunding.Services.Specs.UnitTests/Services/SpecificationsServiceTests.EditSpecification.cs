@@ -313,11 +313,16 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             {
                 Id = existingFundingStreams.First().Id
             };
-            Models.Specs.SpecificationVersion newSpecVersion = _specification.Current.Clone() as Models.Specs.SpecificationVersion;
+
+            SpecificationVersion newSpecVersion = _specification.Current.Clone() as SpecificationVersion;
             newSpecVersion.Name = specificationEditModel.Name;
             newSpecVersion.FundingPeriod.Id = specificationEditModel.FundingPeriodId;
             newSpecVersion.FundingStreams = new[] { new Reference { Id = "fs11" } };
             newSpecVersion.ProviderVersionId = "Provider version 2";
+
+            AndGetFundingConfiguration(
+                _specification.Current.FundingStreams.FirstOrDefault().Id,
+                specificationEditModel.FundingPeriodId);
 
             _providersApiClient.RegenerateProviderSummariesForSpecification(_specification.Id, true)
                 .Returns(new ApiResponse<bool>(HttpStatusCode.BadRequest));

@@ -824,21 +824,6 @@ namespace CalculateFunding.Services.Specs
 
             SpecificationVersion previousSpecificationVersion = specification.Current.DeepCopy(useCamelCase: false);
 
-            if (previousSpecificationVersion.ProviderVersionId != editModel.ProviderVersionId)
-            {
-                ApiResponse<bool> refreshCacheFromApi = await _providersApiClientPolicy.ExecuteAsync(() =>
-                                 _providersApiClient.RegenerateProviderSummariesForSpecification(specificationId, true));
-
-                if (!refreshCacheFromApi.StatusCode.IsSuccess())
-                {
-                    string errorMessage = $"Unable to re-generate scoped providers while editing specification '{specificationId}' with status code: {refreshCacheFromApi.StatusCode}";
-
-                    _logger.Information(errorMessage);
-
-                    throw new RetriableException(errorMessage);
-                }
-            }
-
             SpecificationVersion specificationVersion = specification.Current.DeepCopy(useCamelCase: false);
 
             specificationVersion.ProviderVersionId = editModel.ProviderVersionId;
@@ -933,6 +918,21 @@ namespace CalculateFunding.Services.Specs
             if (!statusCode.IsSuccess())
             {
                 return new StatusCodeResult((int)statusCode);
+            }
+
+            if (previousSpecificationVersion.ProviderVersionId != editModel.ProviderVersionId)
+            {
+                ApiResponse<bool> refreshCacheFromApi = await _providersApiClientPolicy.ExecuteAsync(() =>
+                                 _providersApiClient.RegenerateProviderSummariesForSpecification(specificationId, true));
+
+                if (!refreshCacheFromApi.StatusCode.IsSuccess())
+                {
+                    string errorMessage = $"Unable to re-generate scoped providers while editing specification '{specificationId}' with status code: {refreshCacheFromApi.StatusCode}";
+
+                    _logger.Information(errorMessage);
+
+                    throw new RetriableException(errorMessage);
+                }
             }
 
             await TaskHelper.WhenAllAndThrow(ReindexSpecification(specification),
