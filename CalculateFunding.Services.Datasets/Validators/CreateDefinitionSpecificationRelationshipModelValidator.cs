@@ -38,19 +38,12 @@ namespace CalculateFunding.Services.Datasets.Validators
             _policiesApiClientPolicy = datasetsResiliencePolicies.PoliciesApiClient;
 
             RuleFor(model => model.DatasetDefinitionId)
-               .NotEmpty()
-               .WithMessage("Missing dataset definition id.")
-               .CustomAsync(async (name, context, ct) =>
+               .Custom((name, context) =>
                {
                    CreateDefinitionSpecificationRelationshipModel relationshipModel = context.ParentContext.InstanceToValidate as CreateDefinitionSpecificationRelationshipModel;
-                   if (relationshipModel.ConverterEnabled && !string.IsNullOrWhiteSpace(relationshipModel.DatasetDefinitionId))
+                   if (relationshipModel.RelationshipType == DatasetRelationshipType.Uploaded && string.IsNullOrWhiteSpace(relationshipModel.DatasetDefinitionId))
                    {
-                       DatasetDefinition datasetDefinition = await _datasetRepository.GetDatasetDefinition(relationshipModel.DatasetDefinitionId);
-
-                       if (!datasetDefinition.ConverterEligible)
-                       {
-                           context.AddFailure("You cannot enable the relationship as converter enabled as the dataset definition does not allow it");
-                       }
+                       context.AddFailure("Missing dataset definition id");
                    }
                });
 
@@ -110,7 +103,7 @@ namespace CalculateFunding.Services.Datasets.Validators
 
                       if (relationshipModel.FundingLineIds.IsNullOrEmpty() && relationshipModel.CalculationIds.IsNullOrEmpty())
                       {
-                          context.AddFailure($"Atleast one fundingline or calculation must be provided for relatioship type - ReleasedData.");
+                          context.AddFailure($"At least one fundingline or calculation must be provided for relatioship type - ReleasedData.");
                       }
                       else
                       {

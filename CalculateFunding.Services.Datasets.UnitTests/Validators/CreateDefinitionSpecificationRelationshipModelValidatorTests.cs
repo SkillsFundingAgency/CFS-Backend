@@ -39,6 +39,7 @@ namespace CalculateFunding.Services.Datasets.Validators
         {
             //Arrange
             CreateDefinitionSpecificationRelationshipModel model = CreateModel();
+            model.RelationshipType = DatasetRelationshipType.Uploaded;
             model.DatasetDefinitionId = string.Empty;
 
             CreateDefinitionSpecificationRelationshipModelValidator validator = CreateValidator();
@@ -83,7 +84,7 @@ namespace CalculateFunding.Services.Datasets.Validators
                 .Errors
                 .Count
                 .Should()
-                .Be(2);
+                .Be(1);
         }
 
         [TestMethod]
@@ -162,7 +163,7 @@ namespace CalculateFunding.Services.Datasets.Validators
         }
 
         [TestMethod]
-        public async Task Validate_GivenNameAlreadyExistsn_ReturnsFalse()
+        public async Task Validate_GivenNameAlreadyExists_ReturnsFalse()
         {
             //Arrange
             CreateDefinitionSpecificationRelationshipModel model = CreateModel();
@@ -225,7 +226,7 @@ namespace CalculateFunding.Services.Datasets.Validators
                 .BeFalse();
 
             ErrorMessageShouldContain(result, "Target specification must be provided for relatioship type - ReleasedData.");
-            ErrorMessageShouldContain(result, "Atleast one fundingline or calculation must be provided for relatioship type - ReleasedData.");
+            ErrorMessageShouldContain(result, "At least one fundingline or calculation must be provided for relatioship type - ReleasedData.");
         }
 
         [TestMethod]
@@ -397,6 +398,7 @@ namespace CalculateFunding.Services.Datasets.Validators
             CreateDefinitionSpecificationRelationshipModel model = CreateModel();
             model.RelationshipType = DatasetRelationshipType.ReleasedData;
             model.TargetSpecificationId = NewRandomString();
+            model.DatasetDefinitionId = null;
             model.CalculationIds = new[] { calculationTemplateId1, calculationTemplateId2 };
             model.FundingLineIds = new[] { fundingLineTemplateId1, fundingLineTemplateId2 };
 
