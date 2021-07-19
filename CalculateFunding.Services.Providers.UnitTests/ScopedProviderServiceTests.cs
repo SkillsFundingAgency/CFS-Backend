@@ -201,6 +201,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             string specificationId = NewRandomString();
             string providerVersionId = NewRandomString();
             string cacheKeyForList = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
+            string cacheKeyForProviderVersion = $"{CacheKeys.ScopedProviderProviderVersion}{specificationId}";
 
             Provider providerOne = NewProvider();
             Provider providerTwo = NewProvider();
@@ -221,6 +222,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             await WhenTheScopedProvidersArePopulated();
             
             ThenTheEquivalentProviderSummariesWereCached(cacheKeyForList, MapProvidersToSummaries(providerOne, providerTwo, providerThree));
+            ThenTheProviderVersionIsCached(cacheKeyForProviderVersion, providerVersionId);
             AndACacheExpiryWasSet(cacheKeyForList);
         }
         
@@ -482,6 +484,11 @@ namespace CalculateFunding.Services.Providers.UnitTests
             _cacheProvider.Verify(_ => _.CreateListAsync(It.Is<IEnumerable<ProviderSummary>>(summaries =>
             ProviderSummariesAllMatch(summaries, providers)),
                 key), Times.Once);
+        }
+
+        private void ThenTheProviderVersionIsCached(string key, string providerVersion)
+        {
+            _cacheProvider.Verify(_ => _.SetAsync(key, providerVersion, TimeSpan.FromDays(7), true, null), Times.Once);
         }
 
         private void AndTheEquivalentProviderSummariesWereCached(string key,

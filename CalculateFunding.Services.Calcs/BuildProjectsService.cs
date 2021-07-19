@@ -253,28 +253,38 @@ namespace CalculateFunding.Services.Calcs
 
             if (summariesExist)
             {
-                // if there are no provider results for specification then the call returns no content
-                ApiResponse<IEnumerable<string>> scopedProviderIds = await _providersApiClient.GetScopedProviderIds(specificationId);
-
-                if (scopedProviderIds?.Content != null)
+                if (specificationSummary.ProviderSource == Models.Providers.ProviderSource.CFS)
                 {
-                    if (scopedProviderIds.Content.Count() != totalCount)
+                    // if there are no provider results for specification then the call returns no content
+                    ApiResponse<IEnumerable<string>> scopedProviderIds = await _providersApiClient.GetScopedProviderIds(specificationId);
+
+                    if (scopedProviderIds?.Content != null)
                     {
-                        refreshCachedScopedProviders = true;
+                        if (scopedProviderIds.Content.Count() != totalCount)
+                        {
+                            refreshCachedScopedProviders = true;
+                        }
+                        else
+                        {
+                            IEnumerable<ProviderSummary> cachedScopedSummaries = await _cacheProvider.ListRangeAsync<ProviderSummary>(providerCacheKey, 0, (int)totalCount);
+
+                            IEnumerable<string> differences = scopedProviderIds.Content.Except(cachedScopedSummaries.Select(m => m.Id));
+
+                            refreshCachedScopedProviders = differences.AnyWithNullCheck();
+                        }
                     }
                     else
                     {
-                        IEnumerable<ProviderSummary> cachedScopedSummaries = await _cacheProvider.ListRangeAsync<ProviderSummary>(providerCacheKey, 0, (int)totalCount);
-
-                        IEnumerable<string> differences = scopedProviderIds.Content.Except(cachedScopedSummaries.Select(m => m.Id));
-
-                        refreshCachedScopedProviders = differences.AnyWithNullCheck();
+                        // if there are no provider results then always refresh scoped providers
+                        refreshCachedScopedProviders = true;
                     }
                 }
                 else
                 {
-                    // if there are no provider results then always refresh scoped providers
-                    refreshCachedScopedProviders = true;
+                    // for FDZ if the provider version cached is not equal to the one set against specification then we need to refresh cache
+                    string cachedProviderVersion = await _cacheProvider.GetAsync<string>($"{CacheKeys.ScopedProviderProviderVersion}{specificationId}");
+
+                    refreshCachedScopedProviders = cachedProviderVersion != specificationSummary.ProviderVersionId;
                 }
             }
 

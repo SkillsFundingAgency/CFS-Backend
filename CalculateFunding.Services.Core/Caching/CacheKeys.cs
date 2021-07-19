@@ -36,6 +36,8 @@
 
         public const string ScopedProviderSummariesCount  = "scoped-provider-summaries-count:";
 
+        public const string ScopedProviderProviderVersion = "scoped-provider-summaries-provider-version:";
+
         public const string AllFundingStreams  = "all-funding-streams";
 
         public const string UserById  = "users";

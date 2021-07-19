@@ -110,6 +110,7 @@ namespace CalculateFunding.Services.Providers
 
             string scopedProviderSummariesCountCacheKey = $"{CacheKeys.ScopedProviderSummariesCount}{specificationId}";
             string cacheKeyScopedListCacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
+            string scopedProviderSummariesProviderVersionCacheKey = $"{CacheKeys.ScopedProviderProviderVersion}{specificationId}";
 
             SpecificationSummary specificationSummary =  await GetSpecificationSummary(specificationId);
 
@@ -151,6 +152,10 @@ namespace CalculateFunding.Services.Providers
             await _cachePolicy.ExecuteAsync(() =>
                 _cacheProvider.SetAsync(scopedProviderSummariesCountCacheKey, 
                     providerSummaries.Count().ToString(), TimeSpan.FromDays(7), true));
+
+            await _cachePolicy.ExecuteAsync(() =>
+                _cacheProvider.SetAsync(scopedProviderSummariesProviderVersionCacheKey,
+                    providerVersionId, TimeSpan.FromDays(7), true));
 
             string filesystemCacheKey = $"{CacheKeys.ScopedProviderSummariesFilesystemKeyPrefix}{specificationId}";
             await _cachePolicy.ExecuteAsync(() => _cacheProvider.KeyDeleteAsync<string>(filesystemCacheKey));

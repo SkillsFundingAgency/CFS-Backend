@@ -3398,6 +3398,128 @@ namespace CalculateFunding.Services.Calcs.Services
                     .RegenerateProviderSummariesForSpecification(Arg.Is(specificationId), Arg.Is(false));
         }
 
+        [TestMethod]
+        public async Task Process_GivenBuildProjectAndSummariesInCacheButProviderVersionDoesntMatchScopedProviderVersion_CallsRegenerateScopedProviders()
+        {
+            //Arrange
+            EngineSettings engineSettings = CreateEngineSettings();
+            engineSettings.MaxPartitionSize = 1;
+
+            string specificationId = "test-spec1";
+            string parentJobId = "job-id-1";
+            string jobId = "job2";
+
+            string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
+
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = specificationId,
+                Id = Guid.NewGuid().ToString(),
+                Name = specificationId
+            };
+
+            Message message = new Message(Encoding.UTF8.GetBytes(""));
+            message.UserProperties.Add("jobId", jobId);
+            message.UserProperties.Add("specification-id", specificationId);
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .KeyExists<ProviderSummary>(Arg.Is(cacheKey))
+                .Returns(true);
+            cacheProvider
+                .KeyExists<SpecificationSummary>(Arg.Any<string>())
+                .Returns(true);
+            SpecificationSummary specificationSummary = CreateSpecificationSummary(specificationId, ProviderSource.FDZ);
+            cacheProvider
+                .GetAsync<SpecificationSummary>(Arg.Any<string>())
+                .Returns(specificationSummary);
+
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            
+            providersApiClient
+                .RegenerateProviderSummariesForSpecification(Arg.Is(specificationId), Arg.Is(false))
+                .Returns(new ApiResponse<bool>(HttpStatusCode.OK, true));
+
+            IPoliciesApiClient policiesApiClient = CreatePolicyApiClient();
+            policiesApiClient
+                .GetFundingConfiguration(specificationSummary.FundingStreams.First().Id, specificationSummary.FundingPeriod.Id)
+                .Returns(new ApiResponse<FundingConfiguration>(HttpStatusCode.OK, NewFundingConfiguration()));
+
+            ILogger logger = CreateLogger();
+
+            JobViewModel parentJob = new JobViewModel
+            {
+                Id = parentJobId,
+                InvokerUserDisplayName = "Username",
+                InvokerUserId = "UserId",
+                SpecificationId = specificationId,
+                CorrelationId = "correlation-id-1",
+                JobDefinitionId = JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob
+            };
+
+            ApiResponse<JobViewModel> parentJobViewModelResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, parentJob);
+
+            JobViewModel childJob = new JobViewModel
+            {
+                Id = jobId,
+                InvokerUserDisplayName = "Username",
+                InvokerUserId = "UserId",
+                SpecificationId = specificationId,
+                CorrelationId = "correlation-id-1",
+                JobDefinitionId = JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob
+            };
+
+            ApiResponse<JobViewModel> jobViewModelResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, childJob);
+
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(parentJobId))
+                .Returns(parentJobViewModelResponse);
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId))
+                .Returns(jobViewModelResponse);
+            jobsApiClient
+                .CreateJobs(Arg.Any<IEnumerable<JobCreateModel>>())
+                .Returns(new List<Job> { new Job { SpecificationId = specificationId } });
+            jobsApiClient
+                .GetLatestJobsForSpecification(Arg.Is(specificationId), Arg.Is<string[]>(_ => _.First() == JobConstants.DefinitionNames.PopulateScopedProvidersJob))
+                .Returns(new ApiResponse<IDictionary<string, JobSummary>>(
+                    HttpStatusCode.OK,
+                    new Dictionary<string, JobSummary> { { JobConstants.DefinitionNames.PopulateScopedProvidersJob, new JobSummary { CompletionStatus = CompletionStatus.Succeeded, RunningStatus = RunningStatus.Completed } } }));
+
+            IMessengerService messengerService = CreateMessengerService();
+
+            IJobManagement jobManagement = new JobManagement(jobsApiClient, logger, new JobManagementResiliencePolicies { JobsApiClient = NoOpPolicy.NoOpAsync() }, messengerService);
+
+            IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
+            datasetsApiClient
+                .GetCurrentRelationshipsBySpecificationId(Arg.Is(specificationId))
+                .Returns(new ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel>>(HttpStatusCode.OK, CreateDatasetSpecificationRelationshipViewModels()));
+
+            datasetsApiClient
+                .GetDatasetDefinitionById(Arg.Is("111"))
+                .Returns(new ApiResponse<Common.ApiClient.DataSets.Models.DatasetDefinition>(HttpStatusCode.OK, CreateDatsetDefinition()));
+
+            IMapper mapper = CreateMapper();
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(
+                logger: logger,
+                cacheProvider: cacheProvider,
+                providersApiClient: providersApiClient,
+                jobManagement: jobManagement,
+                datasetsApiClient: datasetsApiClient,
+                mapper: mapper,
+                policiesApiClient: policiesApiClient);
+
+            //Act
+            await buildProjectsService.Run(message);
+
+            //Assert
+            await
+                providersApiClient
+                    .Received(1)
+                    .RegenerateProviderSummariesForSpecification(Arg.Is(specificationId), Arg.Is(false));
+        }
 
         [TestMethod]
         public async Task Process_GivenBuildProjectAndSummariesInCacheButDoesntMatchScopedProviderIdCount_CallsRegenerateScopedProviders()
@@ -3891,7 +4013,7 @@ namespace CalculateFunding.Services.Calcs.Services
             return jobs;
         }
 
-        private static ApiClientSpecModels.SpecificationSummary CreateApiClientSpecificationSummary(string specificationId = null)
+        private static ApiClientSpecModels.SpecificationSummary CreateApiClientSpecificationSummary(string specificationId = null, ProviderSource source = ProviderSource.CFS)
         {
             Reference fundingStream = new Reference
             {
@@ -3902,6 +4024,7 @@ namespace CalculateFunding.Services.Calcs.Services
             return new ApiClientSpecModels.SpecificationSummary
             {
                 Id = specificationId ?? new RandomString(),
+                ProviderSource = source,
                 Name = "Specification 1",
                 FundingStreams = new[] {
                     fundingStream
@@ -3915,9 +4038,9 @@ namespace CalculateFunding.Services.Calcs.Services
             };
         }
 
-        private static SpecificationSummary CreateSpecificationSummary(string specificationId = null)
+        private static SpecificationSummary CreateSpecificationSummary(string specificationId = null, ProviderSource source = ProviderSource.CFS)
         {
-            return CreateMapper().Map<SpecificationSummary>(CreateApiClientSpecificationSummary(specificationId));
+            return CreateMapper().Map<SpecificationSummary>(CreateApiClientSpecificationSummary(specificationId, source));
         }
 
         private static BuildProjectsService CreateBuildProjectsService(
