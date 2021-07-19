@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
@@ -215,6 +216,14 @@ namespace CalculateFunding.Api.Datasets.Controllers
         public Task<IActionResult> GetRelationshipsBySpecificationId([FromQuery] string specificationId)
         {
             return _definitionSpecificationRelationshipService.GetCurrentRelationshipsBySpecificationId(specificationId);
+        }
+
+        [Route("api/datasets/get-reference-relationships-by-specificationId")]
+        [HttpGet]
+        [Produces(typeof(IEnumerable<DatasetSpecificationRelationshipViewModel>))]
+        public Task<IActionResult> GetReferenceRelationshipsBySpecificationId([FromQuery] string specificationId)
+        {
+            return _definitionSpecificationRelationshipService.GetReferenceRelationshipsBySpecificationId(specificationId);
         }
 
         [Route("api/datasets/get-datasources-by-relationshipid")]

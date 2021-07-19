@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -269,7 +270,7 @@ namespace CalculateFunding.Services.Datasets
             newRelationshipVersion.Description = model.Description;
             newRelationshipVersion.LastUpdated = _dateTimeProvider.UtcNow;
             newRelationshipVersion.PublishedSpecificationConfiguration = await CreatePublishedSpecificationConfiguration(specificationId, model.FundingLineIds, model.CalculationIds);
-            definitionSpecificationRelationship.Current = newRelationshipVersion = await _relationshipVersionRepository.CreateVersion(newRelationshipVersion);
+            definitionSpecificationRelationship.Current = newRelationshipVersion = await _relationshipVersionRepository.CreateVersion(newRelationshipVersion, definitionSpecificationRelationship.Current);
 
             HttpStatusCode statusCode = await _datasetRepositoryPolicy.ExecuteAsync(() => _datasetRepository.SaveDefinitionSpecificationRelationship(definitionSpecificationRelationship));
 
@@ -548,7 +549,17 @@ namespace CalculateFunding.Services.Datasets
             return new NotFoundResult();
         }
 
+        public async Task<IActionResult> GetReferenceRelationshipsBySpecificationId(string specificationId)
+        {
+            return await GetCurrentRelationshipsByQuery(specificationId, _ => _.Content.Current.RelationshipType == DatasetRelationshipType.ReleasedData && _.Content.Current.PublishedSpecificationConfiguration.SpecificationId == specificationId);
+        }
+
         public async Task<IActionResult> GetCurrentRelationshipsBySpecificationId(string specificationId)
+        {
+            return await GetCurrentRelationshipsByQuery(specificationId, _ => _.Content.Current.Specification.Id == specificationId);
+        }
+
+        private async Task<IActionResult> GetCurrentRelationshipsByQuery(string specificationId, Expression<Func<DocumentEntity<DefinitionSpecificationRelationship>, bool>> query)
         {
             if (string.IsNullOrWhiteSpace(specificationId))
             {
@@ -568,7 +579,7 @@ namespace CalculateFunding.Services.Datasets
             }
 
             IEnumerable<DefinitionSpecificationRelationship> relationships =
-                (await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(m => m.Content.Current.Specification.Id == specificationId)).ToList();
+                (await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(query)).ToList();
 
             if (relationships.IsNullOrEmpty())
             {

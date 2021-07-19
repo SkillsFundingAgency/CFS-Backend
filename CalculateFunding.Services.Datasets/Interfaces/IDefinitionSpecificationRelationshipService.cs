@@ -17,6 +17,8 @@ namespace CalculateFunding.Services.Datasets.Interfaces
 
         Task<IActionResult> GetRelationshipBySpecificationIdAndName(string specificationId, string name);
 
+        Task<IActionResult> GetReferenceRelationshipsBySpecificationId(string specificationId);
+
         Task<IActionResult> GetCurrentRelationshipsBySpecificationId(string specificationId);
 
         Task<IActionResult> GetDataSourcesByRelationshipId(string relationshipId);

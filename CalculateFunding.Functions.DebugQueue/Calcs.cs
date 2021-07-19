@@ -169,5 +169,33 @@ namespace CalculateFunding.Functions.DebugQueue
 
             log.LogInformation($"C# Queue trigger function processed: {item}");
         }
+
+        [FunctionName("on-referenced-specification-remap")]
+        public static async Task RunOnReferencedSpecificationReMap(
+            [QueueTrigger(ServiceBusConstants.QueueNames.ReferencedSpecificationReMap, Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using IServiceScope scope = Functions.Calcs.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+            Message message = Helpers.ConvertToMessage<string>(item);
+
+            OnReferencedSpecificationReMap function = scope.ServiceProvider.GetService<OnReferencedSpecificationReMap>();
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
+
+        [FunctionName("on-referenced-specification-remap-poisoned")]
+        public static async Task RunOnReferencedSpecificationReMapFailure(
+            [QueueTrigger(ServiceBusConstants.QueueNames.ReferencedSpecificationReMapPoisonedLocal, Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using IServiceScope scope = Functions.Calcs.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+            Message message = Helpers.ConvertToMessage<string>(item);
+
+            OnReferencedSpecificationReMapFailure function = scope.ServiceProvider.GetService<OnReferencedSpecificationReMapFailure>();
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
     }
 }

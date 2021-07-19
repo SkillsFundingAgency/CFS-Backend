@@ -98,6 +98,8 @@
             public const string EditSpecificationJob = nameof(EditSpecificationJob);
 
             public const string TrackLatestJob = nameof(TrackLatestJob);
+
+            public const string ReferencedSpecificationReMapJob = nameof(ReferencedSpecificationReMapJob);
         }
 
         public static class NotificationChannels

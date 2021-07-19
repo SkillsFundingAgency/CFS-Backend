@@ -248,6 +248,12 @@
             public const string TrackLatestPoisoned = "track-latest/$DeadLetterQueue";
 
             public const string TrackLatestPoisonedLocal = "track-latest-poisoned";
+
+            public const string ReferencedSpecificationReMap = "referenced-specification-remap";
+            
+            public const string ReferencedSpecificationReMapPoisoned = "referenced-specification-remap/$DeadLetterQueue";
+            
+            public const string ReferencedSpecificationReMapPoisonedLocal = "referenced-specification-remap-poisoned";
         }
 
         public static class TopicNames

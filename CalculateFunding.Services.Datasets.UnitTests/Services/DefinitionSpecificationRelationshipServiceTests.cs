@@ -3513,7 +3513,7 @@ namespace CalculateFunding.Services.Datasets.Services
             IVersionRepository<DefinitionSpecificationRelationshipVersion> relationshipVersionRepository = CreateRelationshipVersionRepository();
 
             relationshipVersionRepository
-                .CreateVersion(Arg.Is<DefinitionSpecificationRelationshipVersion>(x => x.Specification.Id == specificationId), null, null, false)
+                .CreateVersion(Arg.Is<DefinitionSpecificationRelationshipVersion>(x => x.Specification.Id == specificationId), Arg.Is<DefinitionSpecificationRelationshipVersion>(x => x.Specification.Id == specificationId), null, false)
                 .Returns(newRelationship.Current);
 
             IDatasetRepository datasetRepository = CreateDatasetRepository();

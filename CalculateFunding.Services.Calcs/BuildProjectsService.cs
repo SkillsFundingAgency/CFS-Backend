@@ -814,8 +814,6 @@ namespace CalculateFunding.Services.Calcs
                     throw new Exception(errorMessage);
                 }
 
-
-
                 if (templateMetadataContentsResponses[fundingStream.Id].Result?.Content == null)
                 {
                     continue;

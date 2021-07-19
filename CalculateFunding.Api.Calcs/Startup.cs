@@ -160,7 +160,8 @@ namespace CalculateFunding.Api.Calcs
                .AddSingleton<ICalculationNameInUseCheck, CalculationNameInUseCheck>()
                .AddScoped<IInstructionAllocationJobCreation, InstructionAllocationJobCreation>()
                .AddScoped<IHealthChecker, CalculationService>()
-               .AddScoped<ICreateCalculationService, CreateCalculationService>();
+               .AddScoped<ICreateCalculationService, CreateCalculationService>()
+               .AddScoped<IReferencedSpecificationReMapService, ReferencedSpecificationReMapService>();
 
             builder
                 .AddScoped<IObsoleteItemService, ObsoleteItemService>();

@@ -158,7 +158,7 @@ namespace CalculateFunding.Services.Datasets
 
         public Task<HttpStatusCode> SaveDefinitionSpecificationRelationship(DefinitionSpecificationRelationship relationship)
         {
-            return _cosmosRepository.CreateAsync(relationship);
+            return _cosmosRepository.UpsertAsync(relationship);
         }
 
         public Task<HttpStatusCode> UpdateDefinitionSpecificationRelationship(DefinitionSpecificationRelationship relationship)

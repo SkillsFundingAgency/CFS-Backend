@@ -107,6 +107,8 @@ namespace CalculateFunding.Functions.Calcs
                 builder.AddScoped<OnUpdateCodeContextCacheFailure>();
                 builder.AddScoped<OnApproveAllCalculations>();
                 builder.AddScoped<OnApproveAllCalculationsFailure>();
+                builder.AddScoped<OnReferencedSpecificationReMap>();
+                builder.AddScoped<OnReferencedSpecificationReMapFailure>();
             }
 
             builder.AddSingleton<IFundingLineRoundingSettings, FundingLineRoundingSettings>();
@@ -126,7 +128,9 @@ namespace CalculateFunding.Functions.Calcs
 
             builder.AddScoped<ICalculationService, CalculationService>()
                 .AddScoped<IInstructionAllocationJobCreation, InstructionAllocationJobCreation>()
-                .AddScoped<ICreateCalculationService, CreateCalculationService>();
+                .AddScoped<ICreateCalculationService, CreateCalculationService>()
+                .AddScoped<IReferencedSpecificationReMapService, ReferencedSpecificationReMapService>();
+
             builder.AddSingleton<ICalculationNameInUseCheck, CalculationNameInUseCheck>();
             builder.AddSingleton<ICalculationsSearchService, CalculationSearchService>();
             builder.AddSingleton<ICalculationCodeReferenceUpdate, CalculationCodeReferenceUpdate>();

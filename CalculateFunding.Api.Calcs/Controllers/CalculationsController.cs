@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Aggregations;
@@ -21,6 +22,7 @@ namespace CalculateFunding.Api.Calcs.Controllers
     {
         private readonly ICalculationFundingLineQueryService _calculationFundingLineQueryService;
         private readonly ICalculationService _calcsService;
+        private readonly IReferencedSpecificationReMapService _referencedSpecificationReMapService;
         private readonly IPreviewService _previewService;
         private readonly ICalculationsSearchService _calcsSearchService;
         private readonly IBuildProjectsService _buildProjectsService;
@@ -32,6 +34,7 @@ namespace CalculateFunding.Api.Calcs.Controllers
             ICalculationsSearchService calcsSearchService,
             IPreviewService previewService,
             IBuildProjectsService buildProjectsService,
+            IReferencedSpecificationReMapService referencedSpecificationReMapService,
             IQueueReIndexSpecificationCalculationRelationships calculationRelationships,
             ICalculationFundingLineQueryService calculationFundingLineQueryService,
             ICodeContextCache codeContextCache)
@@ -40,6 +43,7 @@ namespace CalculateFunding.Api.Calcs.Controllers
             Guard.ArgumentNotNull(calcsSearchService, nameof(calcsSearchService));
             Guard.ArgumentNotNull(previewService, nameof(previewService));
             Guard.ArgumentNotNull(buildProjectsService, nameof(buildProjectsService));
+            Guard.ArgumentNotNull(referencedSpecificationReMapService, nameof(referencedSpecificationReMapService));
             Guard.ArgumentNotNull(calculationRelationships, nameof(calculationRelationships));
             Guard.ArgumentNotNull(calculationFundingLineQueryService, nameof(calculationFundingLineQueryService));
             Guard.ArgumentNotNull(codeContextCache, nameof(codeContextCache));
@@ -48,6 +52,7 @@ namespace CalculateFunding.Api.Calcs.Controllers
             _previewService = previewService;
             _calcsSearchService = calcsSearchService;
             _buildProjectsService = buildProjectsService;
+            _referencedSpecificationReMapService = referencedSpecificationReMapService;
             _calculationRelationships = calculationRelationships;
             _calculationFundingLineQueryService = calculationFundingLineQueryService;
             _codeContextCache = codeContextCache;
@@ -285,6 +290,21 @@ namespace CalculateFunding.Api.Calcs.Controllers
             HttpRequest httpRequest = ControllerContext.HttpContext.Request;
 
             return await _calcsService.QueueApproveAllSpecificationCalculations(specificationId, httpRequest.GetUser(), httpRequest.GetCorrelationId());
+        }
+
+
+
+        [HttpPost("api/calcs/{specificationId}/remap")]
+        [Produces(typeof(IEnumerable<JobViewModel>))]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        public async Task<IActionResult> ReMapSpecification([FromRoute] string specificationId)
+        {
+            Reference user = Request.GetUser();
+            string correlationId = ControllerContext.HttpContext.Request.GetCorrelationId();
+
+            return await _referencedSpecificationReMapService.QueueReferencedSpecificationReMapJobs(specificationId,
+                user,
+                correlationId);
         }
     }
 }

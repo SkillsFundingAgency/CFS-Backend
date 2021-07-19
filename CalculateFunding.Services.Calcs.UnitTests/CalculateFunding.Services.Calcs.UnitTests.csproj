@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Services\CalculationServiceTests.GetCaclculationSummariesForSpecification.cs" />
+    <Compile Remove="Services\CalculationServiceTests.GetCalculationSummariesForSpecification.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="Services\CalculationServiceTests.GetCaclculationSummariesForSpecification.cs" />
+    <None Include="Services\CalculationServiceTests.GetCalculationSummariesForSpecification.cs" />
   </ItemGroup>
 
   <ItemGroup>
