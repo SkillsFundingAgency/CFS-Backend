@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AutoMapper;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -98,13 +99,40 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         }
 
         [TestMethod]
-        public void UpdatePublishedProvider_GivenChangedProvider_ReturnsTrue()
+        [DynamicData(nameof(GetProviderChanges), DynamicDataSourceType.Method)]
+        public void UpdatePublishedProvider_GivenChangedProvider_ReturnsTrue(string name, IEnumerable<string> predecessors, IEnumerable<string> successors)
         {
-            string initialProviderName = _publishedProviderVersionForMapping.Provider.Name;
-            string newProviderName = "NewName";
-            _publishedProviderVersionForMapping.Provider.Name = newProviderName;
+            string initialPropertyValue = "";
+            string newPropertyValue = "";
+            string propertyName = "";
+
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                initialPropertyValue = _publishedProviderVersionForMapping.Provider.Name;
+                _publishedProviderVersionForMapping.Provider.Name = name;
+                newPropertyValue = name;
+                propertyName = "Name";
+            }
+
+            if (predecessors != null)
+            {
+                initialPropertyValue = _publishedProviderVersionForMapping.Provider.Predecessors.AsJson();
+                _publishedProviderVersionForMapping.Provider.Predecessors = predecessors;
+                newPropertyValue = predecessors.AsJson();
+                propertyName = "Predecessors"; 
+            }
+
+            if (successors != null)
+            {
+                initialPropertyValue = _publishedProviderVersionForMapping.Provider.Successors.AsJson();
+                _publishedProviderVersionForMapping.Provider.Successors = successors;
+                newPropertyValue = successors.AsJson();
+                propertyName = "Successors";
+            }
 
             bool result = WhenThePublishedProviderIsUpdated();
+
+            IEnumerable<string> variances = new[] { $"Provider: {propertyName}: {initialPropertyValue} != {newPropertyValue}" };
 
             result
                 .Should()
@@ -112,7 +140,31 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             _logger
                  .Received(1)
-                 .Information($"changes for published provider version : {_publishedProviderVersion.Id} : [\"Provider: Name: {initialProviderName} != {newProviderName}\"]");
+                 .Information($"changes for published provider version : {_publishedProviderVersion.Id} : {variances.AsJson()}");
+        }
+
+        private static IEnumerable<object[]> GetProviderChanges()
+        {
+            yield return new object[]
+            {
+                "NewName",
+                null,
+                null
+            };
+
+            yield return new object[]
+            {
+                null,
+                new[] { "1234" },
+                null
+            };
+
+            yield return new object[]
+            {
+                null,
+                null,
+                new[] { "1234" }
+            };
         }
 
         [TestMethod]
@@ -311,7 +363,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     ParliamentaryConstituencyName = "Bermondsey and Old Southwark",
                     ParliamentaryConstituencyCode = "BOS",
                     CountryCode = "E",
-                    CountryName = "England"
+                    CountryName = "England",
                 },
                 ProviderId = "12345678",
                 FundingStreamId = "PSG",

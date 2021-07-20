@@ -30,6 +30,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private string _reasonEstablishmentClosed;
         private string _paymentOrganisationIdentifier;
         private IEnumerable<string> _successors;
+        private IEnumerable<string> _predecessors;
         private ProviderTrustStatus? _trustStatus;
 
         public ProviderBuilder WithSuccessors(params string[] successors)
@@ -38,7 +39,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             return this;
         }
-        
+        public ProviderBuilder WithPredecessors(params string[] predecessors)
+        {
+            _predecessors = predecessors;
+
+            return this;
+        }
+
         public ProviderBuilder WithPaymentOrganisationIdentifier(string paymentOrganisationIdentifier)
         {
             _paymentOrganisationIdentifier = paymentOrganisationIdentifier;
@@ -197,6 +204,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 Status = _status ?? NewRandomString(),
                 Successor = _successor,
                 Successors = _successors,
+                Predecessors = _predecessors,
                 Town = NewRandomString(),
                 CountryCode = NewRandomString(),
                 CountryName = NewRandomString(),

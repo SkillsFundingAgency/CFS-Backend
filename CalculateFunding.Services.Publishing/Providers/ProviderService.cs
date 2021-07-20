@@ -298,7 +298,8 @@ namespace CalculateFunding.Services.Publishing.Providers
                     Provider = provider,
                     SpecificationId = specificationId,
                     Comment = comment,
-                    FundingLines = fundingLines
+                    FundingLines = fundingLines,
+                    Predecessors = provider.Predecessors?.ToList()
                 }
             };
         }

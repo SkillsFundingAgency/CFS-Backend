@@ -111,6 +111,9 @@ namespace CalculateFunding.Models.Publishing
                 };
         }
 
+        [JsonProperty("predecessors")]
+        public IEnumerable<string> Predecessors { get; set; }
+
         [JsonProperty("trustName")]
         public string TrustName { get; set; }
 

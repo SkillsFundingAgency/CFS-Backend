@@ -1,9 +1,9 @@
 ﻿using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Core.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 
 namespace CalculateFunding.Services.Publishing.Comparers
 {
@@ -32,7 +32,7 @@ namespace CalculateFunding.Services.Publishing.Comparers
                 {
                     if (!CompareStringCollectionsIgnoreOrder((IEnumerable<string>) propA, (IEnumerable<string>) propB))
                     {
-                        _variances.Add(property.Name, $"{propA} != {propB}");
+                        _variances.Add(property.Name, $"{propA?.AsJson()} != {propB?.AsJson()}");
                         return false;
                     }
                     else
