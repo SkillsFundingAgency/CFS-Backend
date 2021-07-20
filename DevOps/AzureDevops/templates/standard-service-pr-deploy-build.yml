@@ -1,0 +1,39 @@
+parameters:
+- name: ServiceName
+  type: string
+  default: ''
+- name: ResourceGroup
+  type: 'string'
+  default: ''
+- name: azureSubscription
+  type: 'string'
+  default: ''
+- name: overrideParameters
+  type: 'string'
+  default: ''
+
+
+steps:
+- task: DownloadPipelineArtifact@2
+  inputs:
+    source: 'specific'
+    project: 'Funding Transformation Programme'
+    pipeline: '447'
+    preferTriggeringPipeline: false
+    runVersion: 'latestFromBranch'
+    runBranch: 'refs/heads/master'
+    #runId: # Required when source == Specific && RunVersion == Specific
+    #tags: # Optional
+    artifact: CalculateFunding.Shared.ArmTemplates
+    #patterns: '**' # Optional
+    path: $(Pipeline.Workspace)\_templates
+
+- task: AzureResourceGroupDeployment@2
+  displayName: 'Azure Deployment:Create Or Update Resource Group action on rg-t1te-cfs for PR App Services'
+  inputs:
+    azureSubscription: '${{ parameters.azureSubscription }}'
+    resourceGroupName: ${{ parameters.ResourceGroup }}
+    location: 'west europe'
+    csmFile: '$(Pipeline.Workspace)/_templates/${{ parameters.ServiceName }}/template.json'
+    overrideParameters: ${{ parameters.overrideParameters }}
+    deploymentName: '${{ parameters.ServiceName }}-API-FA-ARM-PR'

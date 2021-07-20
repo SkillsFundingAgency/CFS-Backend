@@ -44,15 +44,29 @@ variables:
  - group: 'Azure Settings Integration-v2'
  - group: 'Smoke Test Info - Integration-v2' 
  - group: 'Smoke Test KV - Integration-v2'
+ - group: 'Shared Infrastructure - Integration - v2'
+ - group: 'Resource Tags test-v2 integration-v2'
+ - group: 'Feature Toggles Integration-v2'
 
 
 steps:
- - template: templates\standard-service-pr-ci-build.yml
+ - ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
+   - template: templates\standard-service-pr-deploy-build.yml
+     parameters:
+       ServiceName: ${{ variables.ServiceName }}
+       ResourceGroup: $(ResourceGroup)
+       azureSubscription: $(azureSubscription)
+       overrideParameters: '-environmentTag "$(environmentTag)" -parentBusinessTag "$(parentBusinessTag)" -portfolioTag "$(portfolioTag)" -productTag "$(productTag)" -serviceLineTag "$(serviceLineTag)" -environmentKey "$(EnvironmentKey)" -productVersion "pr" -appServiceLogRetentionDays "0" -sendWebLogsToStorage "false" -apiHostingPlanName $(apiHostingPlanNamePR) -keyVaultName $(keyVaultName) -sharedLogStorageName $(sharedLogStorageName) -searchName $(searchName) -azureAdTenantId $(AzureAdTenantId) -azureAdAudienceExternal $(AzureAdAudienceExternal) -Http5xxTH "100" -Http401TH "100" -HttpResponseTimeTH "100" -applicationInsightsName $(applicationInsightsName) -addCerttoExternalAppService "false" -externalApiCertificateThumbprint "not-applicable" -externalApiCertName "not-applicable" -externalApiHostName "not-applicable"'
+
+ - template: templates\standard-service-pr-ci-build-prinfra.yml
    parameters:
      ProjectName: ${{ variables.ProjectName }}
      ServiceName: ${{ variables.ServiceName }} 
      DotnetCoreSdkVersion: $(DotnetCoreSdkVersion)
      ResourceGroup: $(ResourceGroup)
+     ServiceBusSettings: $(ServiceBusSettingsPR)
+     azureSubscription: '$(azureSubscription)'
+     environmentKey: $(EnvironmentKey)
      BuildApi: ${{ variables.BuildApi }}
      BuildFunction: ${{ variables.BuildFunction }}
      SecureSmokeTest: ${{ variables.SecureSmokeTest }}
@@ -83,7 +97,7 @@ steps:
      ResourceGroup: $(ResourceGroup)
      SearchServiceKey: $(SearchServiceKey)
      SearchServiceName: $(SearchServiceName)
-     ServiceBusSettings:ConnectionString: $(ServiceBusSettings)
+     ServiceBusSettings:ConnectionString: $(ServiceBusSettingsPR)
      storageConfiguration:ConnectionString: $(AzureStorageSettings)
      WEBSITE_HTTPLOGGING_CONTAINER_URL: $(WEBSITE_HTTPLOGGING_CONTAINER_URL)
      apiKeyMiddleware:apiKey: $(svcapiexternal)
