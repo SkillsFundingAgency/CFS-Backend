@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "CalculateFunding.Runners.CalcEngine": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}
