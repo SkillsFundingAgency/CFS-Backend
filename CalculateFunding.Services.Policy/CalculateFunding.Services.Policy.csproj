@@ -14,8 +14,7 @@
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Results" Version="5.2.0" />
     <PackageReference Include="CalculateFunding.Common.JobManagement" Version="7.0.2" />
     <PackageReference Include="CalculateFunding.Common.Storage" Version="2.0.5" />
-    <PackageReference Include="CalculateFunding.Common.TemplateMetadata" Version="2.3.0" />
-    <PackageReference Include="CalculateFunding.Common.TemplateMetadata.Schema10" Version="2.2.1" />
+    <PackageReference Include="CalculateFunding.Common.TemplateMetadata.Schema10" Version="2.2.2" />
     <PackageReference Include="CalculateFunding.Common.TemplateMetadata.Schema11" Version="2.2.1" />
     <PackageReference Include="CalculateFunding.Common.TemplateMetadata.Schema12" Version="1.2.1" />
 

@@ -5,6 +5,7 @@ using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.ApiClient.Providers.Models;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
@@ -125,6 +126,53 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
         }
 
         [TestMethod]
+        public async Task WhenPublishedProvidersRequestedAndPublishedProvidersExistForSpecificationWithMissingSuccessorAndConfigSetExceptionThrown()
+        {
+            Provider successor = NewProvider();
+            IEnumerable<PublishedProvider> publishedProviders = new[] {
+                NewPublishedProvider(_ => _.WithCurrent(NewPublishedProviderVersion(ppv => ppv.WithProvider(NewProvider())))),
+                NewPublishedProvider(_ => _.WithCurrent(NewPublishedProviderVersion(ppv => ppv.WithProvider(NewProvider())))),
+                NewPublishedProvider(_ => _.WithCurrent(NewPublishedProviderVersion(ppv => ppv.WithProvider(NewProvider(p => p.WithSuccessor(successor.ProviderId)))))) };
+
+            IEnumerable<ApiProvider> apiproviders = _mapper.Map<IEnumerable<ApiProvider>>(publishedProviders.Select(_ => _.Current.Provider));
+
+            ApiProvider excludedProvider = _mapper.Map<ApiProvider>(NewProvider());
+            apiproviders = apiproviders.Concat(new[] { excludedProvider });
+
+            string providerVersionId = NewRandomString();
+            string specificationId = NewRandomString();
+            SpecificationSummary specification = new SpecificationSummary
+            {
+                Id = specificationId,
+                FundingPeriod = new Reference { Id = FundingPeriodId },
+                ProviderVersionId = providerVersionId
+            };
+
+            GivenTheApiResponseProviderVersionContainsTheProviders(providerVersionId, apiproviders.ToArray());
+
+            AndTheFundingConfiguration(FundingStreamId, FundingPeriodId, true);
+
+            AndPublishedProvidersForFundingStreamAndFundingPeriod(publishedProviders);
+
+            AndTheSecondApiResponseScopedProviderIdsContainsProviderIds(specificationId, apiproviders.Select(_ => _.ProviderId));
+
+            _jobManagement
+                .QueueJobAndWait(Arg.Any<Func<Task<bool>>>(), JobConstants.DefinitionNames.PopulateScopedProvidersJob, specificationId, Arg.Any<string>(), ServiceBusConstants.TopicNames.JobNotifications)
+                .Returns(true);
+
+            Func<Task<(IDictionary<string, PublishedProvider>, IDictionary<string, PublishedProvider>)>> invocation = () => WhenPublishedProvidersAreReturned(specification);
+
+            invocation
+                .Should()
+                .Throw<ArgumentOutOfRangeException>();
+
+            _logger
+                .Received(1)
+                .Error($"Could not locate the successor provider:{successor.ProviderId}");
+        }
+
+
+        [TestMethod]
         public async Task WhenPublishedProvidersRequestedAndPublishedProvidersExistForSpecificationPublishedProvidersReturned()
         {
             Provider successor = NewProvider();
@@ -150,6 +198,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
             };
 
             GivenTheApiResponseProviderVersionContainsTheProviders(providerVersionId, apiproviders.ToArray());
+
+            AndTheFundingConfiguration(FundingStreamId, FundingPeriodId, true);
 
             AndPublishedProvidersForFundingStreamAndFundingPeriod(publishedProviders);
 
@@ -350,6 +400,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
             ApiResponse<IEnumerable<string>> providerIds)
         {
             GivenTheApiResponse(() => _providers.GetScopedProviderIds(specificationId), providerIds);
+        }
+
+        private void AndTheFundingConfiguration(string fundingStreamId, string fundingPeriodId, bool successorCheck = false)
+        {
+            _policiesService.GetFundingConfiguration(fundingStreamId, fundingPeriodId)
+                .Returns(new FundingConfiguration { SuccessorCheck = successorCheck });
         }
 
         private void AndTheSecondApiResponseScopedProviderIdsContainsProviderIds(string specificationId,

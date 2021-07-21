@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.ApiClient.Providers.Models.Search;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
@@ -194,14 +195,16 @@ namespace CalculateFunding.Services.Publishing.Providers
             IDictionary<string, Provider> scopedProviders =
                 await GetScopedProvidersForSpecification(specification.Id, specification.ProviderVersionId);
 
-            IDictionary<string, PublishedProvider> scopedPublishedProvidersForFundingStream = ReadScopedProviders(publishedProvidersForFundingStream, scopedProviders);
+            FundingConfiguration configuration = await _policiesService.GetFundingConfiguration(fundingStream.Id, specification.FundingPeriod.Id);
+
+            IDictionary<string, PublishedProvider> scopedPublishedProvidersForFundingStream = ReadScopedProviders(publishedProvidersForFundingStream, scopedProviders, configuration.SuccessorCheck);
 
             return (publishedProvidersForFundingStream, scopedPublishedProvidersForFundingStream);
         }
 
         private IDictionary<string, PublishedProvider> ReadScopedProviders(IDictionary<string, PublishedProvider> publishedProviders,
-            IDictionary<string, Provider> scopedProviders
-            )
+            IDictionary<string, Provider> scopedProviders,
+            bool successorCheck)
         {
             IDictionary<string, PublishedProvider> scopedPublishedProviders = publishedProviders.Values.Where(_ => scopedProviders.ContainsKey(_.Current.Provider.ProviderId)).ToDictionary(_ => _.Current.Provider.ProviderId);
 
@@ -216,7 +219,7 @@ namespace CalculateFunding.Services.Publishing.Providers
                         {
                             scopedPublishedProviders.Add(successor, publishedProviders[successor]);
                         }
-                        else
+                        else if (successorCheck)
                         {
                             string error = $"Could not locate the successor provider:{successor}";
                             _logger.Error(error);

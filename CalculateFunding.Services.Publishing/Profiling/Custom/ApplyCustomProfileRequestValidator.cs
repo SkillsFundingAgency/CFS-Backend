@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
@@ -104,7 +105,7 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
                     if (fundingStreamId.IsNotNullOrWhitespace() &&
                         fundingPeriodId.IsNotNullOrWhitespace())
                     {
-                        var fundingConfiguration = await policiesService.GetFundingConfiguration(fundingStreamId, fundingPeriodId);
+                        FundingConfiguration fundingConfiguration = await policiesService.GetFundingConfiguration(fundingStreamId, fundingPeriodId);
                         if(fundingConfiguration == null || !fundingConfiguration.EnableUserEditableCustomProfiles)
                         {
                             ctx.AddFailure("Request", $"User not allowed to edit custom profiles for funding stream - '{fundingStreamId}' and funding period - '{fundingPeriodId}'");

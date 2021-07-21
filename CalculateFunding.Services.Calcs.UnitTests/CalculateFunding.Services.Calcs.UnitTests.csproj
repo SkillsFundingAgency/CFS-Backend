@@ -26,7 +26,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common.TemplateMetadata.Schema10" Version="2.2.1" />
     <PackageReference Include="FluentAssertions" Version="5.10.3" />
     <PackageReference Include="FluentValidation" Version="8.6.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.4.0" />
