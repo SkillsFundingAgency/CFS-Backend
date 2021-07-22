@@ -161,6 +161,12 @@ namespace CalculateFunding.Services.Publishing
                 throw new InvalidOperationException(error);
             }
 
+            if (!fundingLine.Value.HasValue || fundingLine.Value == 0)
+            {
+                // exit early as there is nothing to profile or re-profile
+                return;
+            }
+
             ApiResponse<IEnumerable<ProfileVariationPointer>> variationPointersResponse =
                 await _specificationResiliencePolicy.ExecuteAsync(() =>
                     _specificationsApiClient.GetProfileVariationPointers(newPublishedProviderVersion.SpecificationId));

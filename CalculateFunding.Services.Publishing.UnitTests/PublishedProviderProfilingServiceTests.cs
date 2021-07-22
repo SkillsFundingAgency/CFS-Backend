@@ -329,6 +329,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             FundingLine fundingLine = NewFundingLine(_ => _
                 .WithFundingLineCode(fundingLineCode)
+                .WithValue(NewRandomNumberBetween(1, int.MaxValue))
                 .WithDistributionPeriods(
                     NewDistributionPeriod(dp => dp
                         .WithDistributionPeriodId(distributionPeriodId)

@@ -8,6 +8,7 @@ using CalculateFunding.Common.ApiClient.Profiling;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -55,9 +56,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
         [TestMethod]
         public async Task ReProfilesFundingLinesInTheRefreshStateWhereTheyShowAsAffectedFundingLineCodes()
         {
-            FundingLine fundingLineOne = NewFundingLine();
-            FundingLine fundingLineTwo = NewFundingLine();
-            FundingLine fundingLineThree = NewFundingLine();
+            FundingLine fundingLineOne = NewFundingLine(_ => _.WithValue(NewRandomNumberBetween(1, int.MaxValue)));
+            FundingLine fundingLineTwo = NewFundingLine(_ => _.WithValue(NewRandomNumberBetween(1, int.MaxValue)));
+            FundingLine fundingLineThree = NewFundingLine(_ => _.WithValue(NewRandomNumberBetween(1, int.MaxValue)));
             ProfilePatternKey profilePatternKey = NewProfilePatternKey(ppk => ppk.WithFundingLineCode(fundingLineOne.FundingLineCode));
 
             ReProfileRequest reProfileRequestOne = NewReProfileRequest();
@@ -143,5 +144,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
 
         private void AndTheAffectedFundingLineCodes(params string[] fundingLineCodes)
             => VariationContext.AffectedFundingLineCodes = fundingLineCodes.ToList();
+
+        private int NewRandomNumberBetween(int min,
+            int max) => new RandomNumberBetween(min, max);
     }
 }

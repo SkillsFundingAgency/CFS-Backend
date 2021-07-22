@@ -240,24 +240,9 @@ namespace CalculateFunding.Functions.Publishing
             // These registrations of the functions themselves are just for the DebugQueue. Ideally we don't want these registered in production
             if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
             {
-                builder.AddScoped(_ => new OnRefreshFunding(_.GetService<ILogger>(),
-                    _.GetService<IRefreshService>(),
-                    _.GetService<IMessengerService>(),
-                    _.GetService<IUserProfileProvider>(),
-                    _.GetService<IConfigurationRefresherProvider>(),
-                    true));
-                builder.AddScoped(_ => new OnApproveAllProviderFunding(_.GetService<ILogger>(),
-                    _.GetService<IApproveService>(),
-                    _.GetService<IMessengerService>(),
-                    _.GetService<IUserProfileProvider>(),
-                    _.GetService<IConfigurationRefresherProvider>(),
-                    true));
-                builder.AddScoped(_ => new OnPublishAllProviderFunding(_.GetService<ILogger>(),
-                    _.GetService<IPublishService>(),
-                    _.GetService<IMessengerService>(),
-                    _.GetService<IUserProfileProvider>(),
-                    _.GetService<IConfigurationRefresherProvider>(),
-                    true));
+                builder.AddScoped<OnRefreshFunding>();
+                builder.AddScoped<OnApproveAllProviderFunding>();
+                builder.AddScoped<OnPublishAllProviderFunding>();
                 builder.AddScoped<OnRunSqlImport>();
                 builder.AddScoped<OnRefreshFundingFailure>();
                 builder.AddScoped<OnApproveAllProviderFundingFailure>();
@@ -272,29 +257,14 @@ namespace CalculateFunding.Functions.Publishing
                 builder.AddScoped<OnGeneratePublishedFundingCsvFailure>();
                 builder.AddScoped<OnGeneratePublishedProviderEstateCsv>();
                 builder.AddScoped<OnGeneratePublishedProviderEstateCsvFailure>();
-                builder.AddScoped(_ => new OnApproveBatchProviderFunding(_.GetService<ILogger>(),
-                    _.GetService<IApproveService>(),
-                    _.GetService<IMessengerService>(),
-                    _.GetService<IUserProfileProvider>(),
-                    _.GetService<IConfigurationRefresherProvider>(),
-                    true));
+                builder.AddScoped<OnApproveBatchProviderFunding>();
                 builder.AddScoped<OnApproveBatchProviderFundingFailure>();
-                builder.AddScoped(_ => new OnPublishBatchProviderFunding(_.GetService<ILogger>(),
-                    _.GetService<IPublishService>(),
-                    _.GetService<IMessengerService>(),
-                    _.GetService<IUserProfileProvider>(),
-                    _.GetService<IConfigurationRefresherProvider>(),
-                    true));
+                builder.AddScoped<OnPublishBatchProviderFunding>();
                 builder.AddScoped<OnPublishBatchProviderFundingFailure>();
                 builder.AddScoped<OnPublishedFundingUndo>();
                 builder.AddScoped<OnBatchPublishedProviderValidation>();
                 builder.AddScoped<OnBatchPublishedProviderValidationFailure>();
-                builder.AddScoped(_ => new OnPublishDatasetsCopy(_.GetService<ILogger>(),
-                    _.GetService<IDatasetsDataCopyService>(),
-                    _.GetService<IMessengerService>(),
-                    _.GetService<IUserProfileProvider>(),
-                    _.GetService<IConfigurationRefresherProvider>(),
-                    true));
+                builder.AddScoped<OnPublishDatasetsCopy>();
                 builder.AddScoped<OnPublishDatasetsCopyFailure>();
             }
 

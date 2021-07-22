@@ -36,6 +36,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
             IApplyProviderVariations variationApplications)
         {
             FundingLine fundingLine = refreshState.FundingLines.SingleOrDefault(_ => _.FundingLineCode == fundingLineCode);
+
             string profilePatternKey =  refreshState.ProfilePatternKeys?.SingleOrDefault(_ => _.FundingLineCode == fundingLineCode)?.Key;
 
             string providerId = refreshState.ProviderId;
@@ -43,6 +44,12 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
             if (fundingLine == null)
             {
                 throw new NonRetriableException($"Could not locate funding line {fundingLineCode} for published provider version {providerId}");
+            }
+
+            if (!fundingLine.Value.HasValue || fundingLine.Value == 0)
+            {
+                // exit early as nothing to re-profile
+                return;
             }
 
             ReProfileRequest reProfileRequest = await BuildReProfileRequest(fundingLineCode, refreshState, variationApplications, providerId, profilePatternKey, fundingLine);
