@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
@@ -221,6 +222,23 @@ namespace CalculateFunding.Services.Datasets
                 },
                 properties);
 
+            if (relationshipVersion.RelationshipType == DatasetRelationshipType.ReleasedData)
+            {
+                await _jobManagement.QueueJob(new JobCreateModel
+                {
+                    InvokerUserDisplayName = author.Name,
+                    InvokerUserId = author.Id,
+                    JobDefinitionId = JobConstants.DefinitionNames.PublishDatasetsDataJob,
+                    SpecificationId = specification.Id,
+                    Trigger = new Trigger
+                    {
+                        EntityId = specification.Id,
+                        EntityType = "Specification",
+                        Message = "New Csv file generation triggered by dataset relationship spec"
+                    },
+                    CorrelationId = correlationId
+                });
+            }
 
             DatasetRelationshipSummary relationshipSummary = new DatasetRelationshipSummary
             {

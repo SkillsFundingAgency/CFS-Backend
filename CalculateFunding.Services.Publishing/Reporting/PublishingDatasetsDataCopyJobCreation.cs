@@ -4,7 +4,7 @@ using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Specifications;
 using Serilog;
 
-namespace CalculateFunding.Services.Publishing.Reporting
+namespace CalculateFunding.Services.Publishing
 {
     public class PublishingDatasetsDataCopyJobCreation : JobCreationForSpecification, ICreatePublishDatasetsDataCopyJob
     {

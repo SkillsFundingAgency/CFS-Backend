@@ -457,6 +457,7 @@ namespace CalculateFunding.Services.Datasets.Services
                                                                                           .WithDescription(description)
                                                                                           .WithAuthor(author)
                                                                                           .WithLastUpdated(_utcNow)
+                                                                                          .WithRelationshipType(DatasetRelationshipType.ReleasedData)
                                                                                           .WithPublishedSpecificationConfiguration(publishedSpecificationConfiguration))));
 
             ILogger logger = CreateLogger();
@@ -510,10 +511,12 @@ namespace CalculateFunding.Services.Datasets.Services
             policiesApiClient.GetDistinctTemplateMetadataContents(Arg.Is(targetFundingStreamId), Arg.Is(targetFundingPeriodId), Arg.Is(templateId))
                 .Returns(new ApiResponse<TemplateMetadataDistinctContents>(HttpStatusCode.OK, metadataContents, null));
 
+            IJobManagement jobManagement = CreateJobManagement();
+
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger,
                 datasetRepository: datasetRepository, specificationsApiClient: specificationsApiClient, cacheProvider: cacheProvider,
                 calcsRepository: calcsRepository, relationshipVersionRepository: relationshipVersionRepository,
-                policiesApiClient: policiesApiClient);
+                policiesApiClient: policiesApiClient, jobManagement: jobManagement);
 
             //Act
             IActionResult result = await service.CreateRelationship(model, author, null);
@@ -551,6 +554,11 @@ namespace CalculateFunding.Services.Datasets.Services
                     x => x.Name == relationshipName &&
                     x.PublishedSpecificationConfiguration.FundingLines.Count() == 2 &&
                     x.PublishedSpecificationConfiguration.Calculations.Count() == 2), null, null, false);
+
+            await jobManagement
+                .Received(1)
+                .QueueJob(Arg.Is<JobCreateModel>(_ => _.JobDefinitionId == JobConstants.DefinitionNames.PublishDatasetsDataJob &&
+                    _.SpecificationId == specificationId));
 
             await datasetRepository
                 .Received(1)

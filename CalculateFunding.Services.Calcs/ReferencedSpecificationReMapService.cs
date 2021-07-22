@@ -248,28 +248,33 @@ namespace CalculateFunding.Services.Calcs
 
             foreach (DatasetSpecificationRelationshipViewModel datasetSpecificationRelationshipViewModel in datasetRelationshipsResponse.Content)
             {
-                jobs.Add(await _jobManagement.QueueJob(new JobCreateModel
-                {
-                    JobDefinitionId = JobConstants.DefinitionNames.ReferencedSpecificationReMapJob,
-                    SpecificationId = specificationId,
-                    InvokerUserId = user.Id,
-                    InvokerUserDisplayName = user.Name,
-                    CorrelationId = correlationId,
-                    Properties = new Dictionary<string, string>
-                    {
-                        {"specification-id", specificationId},
-                        {"dataset-specification-relationship-id", datasetSpecificationRelationshipViewModel.Id}
-                    },
-                    Trigger = new Trigger
-                    {
-                        EntityId = specificationId,
-                        EntityType = "Specification",
-                        Message = "Specification relationship changed"
-                    }
-                }));
+                jobs.Add(await QueueReferencedSpecificationReMapJob(specificationId, datasetSpecificationRelationshipViewModel.Id, user, correlationId));
             }
 
             return new OkObjectResult(jobs);
+        }
+
+        private async Task<Job> QueueReferencedSpecificationReMapJob(string specificationId, string datasetSpecificationRelationshipId, Reference user, string correlationId)
+        {
+            return await _jobManagement.QueueJob(new JobCreateModel
+            {
+                JobDefinitionId = JobConstants.DefinitionNames.ReferencedSpecificationReMapJob,
+                SpecificationId = specificationId,
+                InvokerUserId = user.Id,
+                InvokerUserDisplayName = user.Name,
+                CorrelationId = correlationId,
+                Properties = new Dictionary<string, string>
+                    {
+                        {"specification-id", specificationId},
+                        {"dataset-specification-relationship-id", datasetSpecificationRelationshipId}
+                    },
+                Trigger = new Trigger
+                {
+                    EntityId = specificationId,
+                    EntityType = "Specification",
+                    Message = "Specification relationship changed"
+                }
+            });
         }
     }
 }
