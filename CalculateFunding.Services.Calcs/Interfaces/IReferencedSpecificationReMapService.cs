@@ -7,8 +7,9 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 {
     public interface IReferencedSpecificationReMapService : IJobProcessingService
     {
-        Task<IActionResult> QueueReferencedSpecificationReMapJobs(string specificationId,
-                Reference user,
-                string correlationId);
+        Task<IActionResult> QueueReferencedSpecificationReMapJob(string specificationId,
+            string datsetRelationshipId,
+            Reference user,
+            string correlationId);
     }
 }

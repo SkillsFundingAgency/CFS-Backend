@@ -15,7 +15,7 @@
 	  <PackageReference Include="CalculateFunding.Common.ApiClient.Bearer" Version="2.3.1" />
 	  <PackageReference Include="CalculateFunding.Common.ApiClient.Datasets" Version="6.20.0" />
 	  <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="6.10.2" />
-	  <PackageReference Include="CalculateFunding.Common.ApiClient.Calcs" Version="7.2.1" />
+	  <PackageReference Include="CalculateFunding.Common.ApiClient.Calcs" Version="7.3.1" />
 	      <PackageReference Include="CalculateFunding.Common.ApiClient.FundingDataZone" Version="2.0.1" />
 	  <PackageReference Include="CalculateFunding.Common.ApiClient.Profiling" Version="4.2.1" />
 	  <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="6.20.0" />

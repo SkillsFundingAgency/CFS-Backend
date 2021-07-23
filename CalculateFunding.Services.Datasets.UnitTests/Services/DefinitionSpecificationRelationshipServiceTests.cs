@@ -38,6 +38,7 @@ using CalculateFunding.Services.CodeGeneration.VisualBasic.Type.Interfaces;
 using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Common.ApiClient.Policies.Models;
+using Polly;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
@@ -315,7 +316,9 @@ namespace CalculateFunding.Services.Datasets.Services
                     Name = "Name"
                 }));
 
-            ICalcsRepository calcsRepository = new CalcsRepository(calcsClient, CreateMapper());
+            ICalcsRepository calcsRepository = new CalcsRepository(calcsClient,
+                new DatasetsResiliencePolicies {CalculationsApiClient = Policy.NoOpAsync()},
+                CreateMapper());
 
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
             specificationsApiClient
@@ -485,7 +488,9 @@ namespace CalculateFunding.Services.Datasets.Services
                     Name = "Name"
                 }));
 
-            ICalcsRepository calcsRepository = new CalcsRepository(calcsClient, CreateMapper());
+            ICalcsRepository calcsRepository = new CalcsRepository(calcsClient,
+                new DatasetsResiliencePolicies { CalculationsApiClient = Policy.NoOpAsync() },
+                CreateMapper());
 
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
             specificationsApiClient
@@ -690,7 +695,9 @@ namespace CalculateFunding.Services.Datasets.Services
                     Name = "Name"
                 }));
 
-            ICalcsRepository calcsRepository = new CalcsRepository(calcsClient, CreateMapper());
+            ICalcsRepository calcsRepository = new CalcsRepository(calcsClient,
+                new DatasetsResiliencePolicies { CalculationsApiClient = Policy.NoOpAsync() },
+                CreateMapper());
 
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
             specificationsApiClient
@@ -3572,13 +3579,18 @@ namespace CalculateFunding.Services.Datasets.Services
                     }
                 }, null));
 
+            ICalcsRepository calcsRepository = CreateCalcsRepository();
+
+            calcsRepository.ReMapSpecificationReference(Arg.Is(specificationId), Arg.Is(relationshipId))
+                .Returns(new Job { JobDefinitionId = JobConstants.DefinitionNames.ReferencedSpecificationReMapJob });
+
             datasetRepository
                 .SaveDefinitionSpecificationRelationship(Arg.Any<DefinitionSpecificationRelationship>())
                 .Returns(HttpStatusCode.OK);
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger,
                 datasetRepository: datasetRepository, specificationsApiClient: specificationsApiClient, policiesApiClient: policiesApiClient,
-                relationshipVersionRepository: relationshipVersionRepository);
+                relationshipVersionRepository: relationshipVersionRepository, calcsRepository: calcsRepository);
 
             IActionResult result = await service.UpdateRelationship(model, specificationId, relationshipId);
 

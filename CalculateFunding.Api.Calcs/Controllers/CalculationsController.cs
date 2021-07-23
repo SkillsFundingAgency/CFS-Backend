@@ -294,15 +294,15 @@ namespace CalculateFunding.Api.Calcs.Controllers
 
 
 
-        [HttpPost("api/calcs/{specificationId}/remap")]
-        [Produces(typeof(IEnumerable<JobViewModel>))]
-        [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> ReMapSpecification([FromRoute] string specificationId)
+        [HttpPost("api/calcs/{specificationId}/{datasetDefinitionRelationshipId}/remap")]
+        [Produces(typeof(JobViewModel))]
+        public async Task<IActionResult> ReMapSpecificationRelationship([FromRoute] string specificationId, [FromRoute] string datasetDefinitionRelationshipId)
         {
             Reference user = Request.GetUser();
             string correlationId = ControllerContext.HttpContext.Request.GetCorrelationId();
 
-            return await _referencedSpecificationReMapService.QueueReferencedSpecificationReMapJobs(specificationId,
+            return await _referencedSpecificationReMapService.QueueReferencedSpecificationReMapJob(specificationId,
+                datasetDefinitionRelationshipId,
                 user,
                 correlationId);
         }

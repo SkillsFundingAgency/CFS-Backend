@@ -206,5 +206,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task<ApiResponse<Job>> ReMapSpecificationReference(string specificationId, string datasetRelationshipId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

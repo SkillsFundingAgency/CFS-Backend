@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
@@ -26,6 +27,7 @@ namespace CalculateFunding.Services.Datasets.MappingProfiles
             CreateMap<Common.ApiClient.Calcs.Models.DatasetRelationshipSummary, DatasetRelationshipSummary>();
             CreateMap<Common.ApiClient.Calcs.Models.Build, Build>();
             CreateMap<Common.ApiClient.Calcs.Models.BuildProject, BuildProject>();
+            CreateMap<Common.ApiClient.Calcs.Models.Job, Job>();
         }
     }
 }

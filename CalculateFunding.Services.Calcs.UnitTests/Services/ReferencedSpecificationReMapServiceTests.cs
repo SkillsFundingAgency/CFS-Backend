@@ -222,17 +222,10 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
         public async Task ReferencedSpecificationReMapService_WhenQueueReferencedSpecificationReMapJobsForSpecificationRequestedJobsSuccessfullyQueued()
         {
             string jobId = NewRandomString();
-            string datasetSpecificationRelationshipId = NewRandomString();
 
-            IEnumerable<DatasetSpecificationRelationshipViewModel> datasetSpecificationRelationshipViewModels = new[] {
-                new DatasetSpecificationRelationshipViewModel{RelationshipType = DatasetRelationshipType.ReleasedData,
-                    Id = datasetSpecificationRelationshipId}
-            };
+            AndJobQueued(JobConstants.DefinitionNames.ReferencedSpecificationReMapJob, jobId);
 
-            GivenReferenceRelationshipsBySpecificationId(datasetSpecificationRelationshipViewModels);
-            AndJobQueued(JobConstants.DefinitionNames.ReferencedSpecificationReMapJob, jobId, datasetSpecificationRelationshipId);
-
-            IActionResult actionResult = await WhenQueueReferencedSpecificationReMapJobs();
+            IActionResult actionResult = await WhenQueueReferencedSpecificationReMapJob();
 
             actionResult
                 .Should()
@@ -242,29 +235,13 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
 
             OkObjectResult okObjectResult = actionResult as OkObjectResult;
 
-            okObjectResult.Value.Should().NotBeNull().And.BeAssignableTo<IEnumerable<Job>>();
+            okObjectResult.Value.Should().NotBeNull().And.BeAssignableTo<Job>();
 
-            IEnumerable<Job> actualJobs = okObjectResult.Value as IEnumerable<Job>;
-
-            Job actualJob = actualJobs.First();
+            Job actualJob = okObjectResult.Value as Job;
 
             actualJob.Id.Should().Be(jobId);
             actualJob.SpecificationId.Should().Be(_specificationId);
-            actualJob.Properties[DatasetSpecificationRelationshipId].Should().Be(datasetSpecificationRelationshipId);
-        }
-
-        [TestMethod]
-        public async Task ReferencedSpecificationReMapService_WhenQueueReferencedSpecificationReMapJobsForSpecificationRequestedButNoRelationshipsNotFoundReturned()
-        {
-            IActionResult actionResult = await WhenQueueReferencedSpecificationReMapJobs();
-
-            _logger.Verify(_ => _.Information($"No dataset relationships returned for {_specificationId}"), Times.Once);
-
-            actionResult
-                .Should()
-                .BeAssignableTo<NotFoundResult>()
-                .And
-                .NotBeNull();
+            actualJob.Properties[DatasetSpecificationRelationshipId].Should().Be(_datasetSpecificationRelationshipId);
         }
         
         private void AndTheDatasetSpecificationRelationshipUpdated()
@@ -299,14 +276,14 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
                 .ReturnsAsync(new[] { calculation });
         }
 
-        private void AndJobQueued(string jobDefinition, string jobId, string datasetSpecificationRelationshipId)
+        private void AndJobQueued(string jobDefinition, string jobId)
         {
-            _jobManagement.Setup(_ => _.QueueJob(It.Is<JobCreateModel>(job => job.JobDefinitionId == jobDefinition && job.SpecificationId == _specificationId && job.Properties["dataset-specification-relationship-id"] == datasetSpecificationRelationshipId)))
+            _jobManagement.Setup(_ => _.QueueJob(It.Is<JobCreateModel>(job => job.JobDefinitionId == jobDefinition && job.SpecificationId == _specificationId && job.Properties["dataset-specification-relationship-id"] == _datasetSpecificationRelationshipId)))
                 .ReturnsAsync(new Job
                 {
                     JobDefinitionId = jobDefinition,
                     SpecificationId = _specificationId,
-                    Properties = new Dictionary<string, string> { { DatasetSpecificationRelationshipId, datasetSpecificationRelationshipId } },
+                    Properties = new Dictionary<string, string> { { DatasetSpecificationRelationshipId, _datasetSpecificationRelationshipId } },
                     Id = jobId
                 });
         }
@@ -373,12 +350,6 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
             _message = messageBuilder.Build();
         }
 
-        private void GivenReferenceRelationshipsBySpecificationId(IEnumerable<DatasetSpecificationRelationshipViewModel> datasetSpecificationRelationshipViewModels)
-        {
-            _datasetsApiClient.Setup(_ => _.GetReferenceRelationshipsBySpecificationId(_specificationId))
-                .ReturnsAsync(new ApiResponse<IEnumerable<DatasetSpecificationRelationshipViewModel>>(HttpStatusCode.OK, datasetSpecificationRelationshipViewModels));
-        }
-
         private void AndTheTemplateMapping(TemplateMapping templateMapping)
         {
             _calculationsRepository.Setup(_ => _.GetTemplateMapping(_specificationId, _fundingStreamId))
@@ -396,9 +367,10 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
             await _service.Run(_message);
         }
 
-        private async Task<IActionResult> WhenQueueReferencedSpecificationReMapJobs()
+        private async Task<IActionResult> WhenQueueReferencedSpecificationReMapJob()
         {
-            return await _service.QueueReferencedSpecificationReMapJobs(_specificationId,
+            return await _service.QueueReferencedSpecificationReMapJob(_specificationId,
+                _datasetSpecificationRelationshipId,
                 new Reference(_userId, _userName),
                 _correlationId);
         }

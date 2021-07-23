@@ -206,57 +206,15 @@ namespace CalculateFunding.Services.Calcs
             // only update the dataset relationship if a calculation name has changed or a funding line name has changed
             if (relationshipChanges)
             {
-                // persist updated relationship
-                ValidatedApiResponse<DefinitionSpecificationRelationshipVersion> validatedApiResponse = await _datasetsApiClientPolicy.ExecuteAsync(
-                                 () => _datasetsApiClient.UpdateDefinitionSpecificationRelationship(
-                                         new UpdateDefinitionSpecificationRelationshipModel
-                                         {
-                                             CalculationIds = definitionSpecificationRelationship.PublishedSpecificationConfiguration.Calculations.Select(_ => _.TemplateId),
-                                             Description = definitionSpecificationRelationship.RelationshipDescription,
-                                             FundingLineIds = definitionSpecificationRelationship.PublishedSpecificationConfiguration.FundingLines.Select(_ => _.TemplateId)
-                                         },
-                                         specificationId,
-                                         definitionSpecificationRelationship.Id
-                                 ));
-
-                if (validatedApiResponse?.Content == null || !validatedApiResponse.StatusCode.IsSuccess())
-                {
-                    throw new NonRetriableException(
-                        $"Unable to update definition specification relationship id {definitionSpecificationRelationship.Id}");
-                }
-
                 // persist updated calculations
                 await _calculationsRepositoryPolicy.ExecuteAsync(
                                  () => _calculationsRepository.UpdateCalculations(sourceCalculations));
             }
         }
 
-        public async Task<IActionResult> QueueReferencedSpecificationReMapJobs(string specificationId, Reference user, string correlationId)
+        public async Task<IActionResult> QueueReferencedSpecificationReMapJob(string specificationId, string datasetRelationshipId, Reference user, string correlationId)
         {
-            List<Job> jobs = new List<Job>();
-
-            ApiResponse<IEnumerable<DatasetSpecificationRelationshipViewModel>> datasetRelationshipsResponse = await _datasetsApiClientPolicy.ExecuteAsync(
-                () => _datasetsApiClient.GetReferenceRelationshipsBySpecificationId(specificationId));
-
-            if (datasetRelationshipsResponse?.Content == null)
-            {
-                string message = $"No dataset relationships returned for {specificationId}";
-                _logger.Information(message);
-
-                return new NotFoundResult();
-            }
-
-            foreach (DatasetSpecificationRelationshipViewModel datasetSpecificationRelationshipViewModel in datasetRelationshipsResponse.Content)
-            {
-                jobs.Add(await QueueReferencedSpecificationReMapJob(specificationId, datasetSpecificationRelationshipViewModel.Id, user, correlationId));
-            }
-
-            return new OkObjectResult(jobs);
-        }
-
-        private async Task<Job> QueueReferencedSpecificationReMapJob(string specificationId, string datasetSpecificationRelationshipId, Reference user, string correlationId)
-        {
-            return await _jobManagement.QueueJob(new JobCreateModel
+            Job job = await _jobManagement.QueueJob(new JobCreateModel
             {
                 JobDefinitionId = JobConstants.DefinitionNames.ReferencedSpecificationReMapJob,
                 SpecificationId = specificationId,
@@ -266,7 +224,7 @@ namespace CalculateFunding.Services.Calcs
                 Properties = new Dictionary<string, string>
                     {
                         {"specification-id", specificationId},
-                        {"dataset-specification-relationship-id", datasetSpecificationRelationshipId}
+                        {"dataset-specification-relationship-id", datasetRelationshipId}
                     },
                 Trigger = new Trigger
                 {
@@ -275,6 +233,8 @@ namespace CalculateFunding.Services.Calcs
                     Message = "Specification relationship changed"
                 }
             });
+
+            return new OkObjectResult(job);
         }
     }
 }

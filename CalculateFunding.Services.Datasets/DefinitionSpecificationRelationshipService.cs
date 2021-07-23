@@ -300,6 +300,15 @@ namespace CalculateFunding.Services.Datasets
 
             await _relationshipVersionRepository.SaveVersion(newRelationshipVersion);
 
+            Job reMapJob = await _calcsRepository.ReMapSpecificationReference(specificationId, relationshipId);
+
+            if (reMapJob == null)
+            {
+                string errorMessage = "Failed to queue a specification relationship re-map job";
+                _logger.Error(errorMessage);
+                return new BadRequestObjectResult(errorMessage);
+            }
+
             return new OkObjectResult(newRelationshipVersion);
         }
 
