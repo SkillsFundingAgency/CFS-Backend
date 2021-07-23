@@ -23,6 +23,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
         private Mock<IReProfilingRequestBuilder> _reProfilingRequestBuilder;
         private Mock<IProfilingApiClient> _profiling;
         private Mock<IPoliciesApiClient> _policies;
+        private Mock<IPoliciesService> _policiesService;
+        private Mock<IProfileTotalsService> _profileTotalsService;
 
         private ProfilePatternPreview _preview;
 
@@ -32,6 +34,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             _reProfilingRequestBuilder = new Mock<IReProfilingRequestBuilder>();
             _profiling = new Mock<IProfilingApiClient>();
             _policies = new Mock<IPoliciesApiClient>();
+            _policiesService = new Mock<IPoliciesService>();
+            _profileTotalsService = new Mock<IProfileTotalsService>();
 
             _preview = new ProfilePatternPreview(_reProfilingRequestBuilder.Object,
                 _profiling.Object,
@@ -40,7 +44,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                 {
                     PoliciesApiClient = Policy.NoOpAsync(),
                     ProfilingApiClient = Policy.NoOpAsync()
-                });
+                },
+                _policiesService.Object,
+                _profileTotalsService.Object);
         }
 
         [TestMethod]
@@ -198,8 +204,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                     .WithPaymentDate(expectedActualDateFour)),
                 NewFundingDatePattern()));
 
+            FundingLineProfile expectedFundingLineProfile = NewFundingLineProfile(_ =>
+                _.WithProfilePatternTotal(1000)
+                .WithAmountAlreadyPaid(100)
+            );
+
             GivenTheReProfileRequest(previewRequest, expectedReProfileRequest);
             AndTheReProfileResponse(expectedReProfileRequest, expectedReProfileResponse);
+            AndTheProfileTotalsResponse(previewRequest, expectedFundingLineProfile);
             AndTheFundingDate(previewRequest, expectedFundingDate);
 
             OkObjectResult response = await WhenTheProfilePatternChangeIsPreviewed(previewRequest) as OkObjectResult;
@@ -234,6 +246,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                         .WithTypeValue("February")
                         .WithIsPaid(false)
                         .WithInstallmentNumber(3)
+                        .WithProfileRemainingPercentage(3.8888888888888888888888888900M)
                         .WithActualDate(expectedActualDateTwo)),
                     NewProfileTotal(_ => _.WithOccurrence(0)
                         .WithDistributionPeriod(distributionPeriod)
@@ -243,6 +256,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                         .WithTypeValue("March")
                         .WithIsPaid(false)
                         .WithInstallmentNumber(4)
+                        .WithProfileRemainingPercentage(4.00M)
                         .WithActualDate(null)),
                     NewProfileTotal(_ => _.WithOccurrence(0)
                         .WithDistributionPeriod(distributionPeriod)
@@ -252,6 +266,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                         .WithTypeValue("April")
                         .WithIsPaid(false)
                         .WithInstallmentNumber(5)
+                        .WithProfileRemainingPercentage(4.1111111111111111111111111100M)
                         .WithActualDate(expectedActualDateThree)),
                     NewProfileTotal(_ => _.WithOccurrence(0)
                         .WithDistributionPeriod(distributionPeriod)
@@ -261,6 +276,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                         .WithTypeValue("May")
                         .WithIsPaid(false)
                         .WithInstallmentNumber(6)
+                        .WithProfileRemainingPercentage(4.2222222222222222222222222200M)
                         .WithActualDate(expectedActualDateFour))
                 });
         }
@@ -297,6 +313,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             ReProfileResponse expectedResponse)
             => _profiling.Setup(_ => _.ReProfile(request))
                 .ReturnsAsync(new ApiResponse<ReProfileResponse>(HttpStatusCode.OK, expectedResponse));
+
+        private void AndTheProfileTotalsResponse(ProfilePreviewRequest request, FundingLineProfile response)
+            => _profileTotalsService.Setup(_ => _.GetPublishedProviderProfileTotalsForSpecificationForProviderForFundingLine(
+                request.SpecificationId, request.ProviderId, request.FundingStreamId, request.FundingLineCode))
+                .ReturnsAsync(new ActionResult<FundingLineProfile>(response));
 
         private void AndTheFundingDate(ProfilePreviewRequest previewRequest,
             FundingDate fundingDate)
@@ -344,6 +365,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
         private FundingDate NewFundingDate(Action<FundingDateBuilder> setUp = null)
         {
             FundingDateBuilder fundingDateBuilder = new FundingDateBuilder();
+
+            setUp?.Invoke(fundingDateBuilder);
+
+            return fundingDateBuilder.Build();
+        }
+
+        private FundingLineProfile NewFundingLineProfile(Action<FundingLineProfileBuilder> setUp = null)
+        {
+            FundingLineProfileBuilder fundingDateBuilder = new FundingLineProfileBuilder();
 
             setUp?.Invoke(fundingDateBuilder);
 

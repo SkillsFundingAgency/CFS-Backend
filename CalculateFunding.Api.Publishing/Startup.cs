@@ -224,7 +224,7 @@ namespace CalculateFunding.Api.Publishing
                 return resolver;
             });
 
-            builder.AddSingleton<IProfilePatternPreview, ProfilePatternPreview>();
+            builder.AddScoped<IProfilePatternPreview, ProfilePatternPreview>();
             builder.AddSingleton<IReProfilingRequestBuilder, ReProfilingRequestBuilder>();
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
 

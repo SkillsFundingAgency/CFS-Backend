@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using CalculateFunding.Services.Publishing.Profiling;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CalculateFunding.Services.Publishing.Interfaces
@@ -15,7 +16,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             string fundingPeriodId, 
             string providerId);
 
-        Task<IActionResult> GetPublishedProviderProfileTotalsForSpecificationForProviderForFundingLine(
+        Task<ActionResult<FundingLineProfile>> GetPublishedProviderProfileTotalsForSpecificationForProviderForFundingLine(
             string specificationId,
             string providerId,
             string fundingStreamId,

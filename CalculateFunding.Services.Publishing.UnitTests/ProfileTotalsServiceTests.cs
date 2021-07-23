@@ -106,7 +106,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         public void WhenGetPublishedProviderProfileTotalsForSpecificationForProviderForFundingLine_GuardsAgainstMissingSpecificationId(
             string specificationId)
         {
-            Func<Task<IActionResult>> invocation = () => WhenGetPublishedProviderProfileTotalsForSpecificationForProviderForFundingLine(
+            Func<Task<ActionResult<FundingLineProfile>>> invocation = () => WhenGetPublishedProviderProfileTotalsForSpecificationForProviderForFundingLine(
                 specificationId,
                 NewRandomString(),
                 NewRandomString(),
@@ -126,7 +126,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         public void WhenGetPublishedProviderProfileTotalsForSpecificationForProviderForFundingLine_GuardsAgainstMissingProviderId(
             string providerId)
         {
-            Func<Task<IActionResult>> invocation = () => WhenGetPublishedProviderProfileTotalsForSpecificationForProviderForFundingLine(
+            Func<Task<ActionResult<FundingLineProfile>>> invocation = () => WhenGetPublishedProviderProfileTotalsForSpecificationForProviderForFundingLine(
                 NewRandomString(),
                 providerId,
                 NewRandomString(),
@@ -146,7 +146,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         public void WhenGetPublishedProviderProfileTotalsForSpecificationForProviderForFundingLine_GuardsAgainstMissingFundingStreamId(
             string fundingStreamId)
         {
-            Func<Task<IActionResult>> invocation = () => WhenGetPublishedProviderProfileTotalsForSpecificationForProviderForFundingLine(
+            Func<Task<ActionResult<FundingLineProfile>>> invocation = () => WhenGetPublishedProviderProfileTotalsForSpecificationForProviderForFundingLine(
                 NewRandomString(),
                 NewRandomString(),
                 fundingStreamId,
@@ -166,7 +166,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         public void WhenGetPublishedProviderProfileTotalsForSpecificationForProviderForFundingLine_GuardsAgainstMissingFundingLineId(
             string fundingLineCode)
         {
-            Func<Task<IActionResult>> invocation = () => WhenGetPublishedProviderProfileTotalsForSpecificationForProviderForFundingLine(
+            Func<Task<ActionResult<FundingLineProfile>>> invocation = () => WhenGetPublishedProviderProfileTotalsForSpecificationForProviderForFundingLine(
                 NewRandomString(),
                 NewRandomString(),
                 NewRandomString(),
@@ -184,13 +184,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         [TestMethod]
         public async Task Returns404IfNoPublishedProviderBySpecificationIdLocated()
         {
-            IActionResult result = await WhenGetPublishedProviderProfileTotalsForSpecificationForProviderForFundingLine(
+            ActionResult<FundingLineProfile> result = await WhenGetPublishedProviderProfileTotalsForSpecificationForProviderForFundingLine(
                 NewRandomString(),
                 NewRandomString(),
                 NewRandomString(),
                 NewRandomString());
 
             result
+                .Result
                 .Should()
                 .BeOfType<NotFoundResult>();
         }
@@ -209,13 +210,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 fundingStreamId,
                 NewPublishedProviderVersion());
 
-            IActionResult result = await WhenGetPublishedProviderProfileTotalsForSpecificationForProviderForFundingLine(
+            ActionResult<FundingLineProfile> result = await WhenGetPublishedProviderProfileTotalsForSpecificationForProviderForFundingLine(
                 specificationId,
                 providerId,
                 fundingStreamId,
                 fundingLineId);
 
             result
+                .Result
                 .Should()
                 .BeOfType<NotFoundResult>();
         }
@@ -352,7 +354,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 }
             );
 
-            IActionResult result = await WhenGetPublishedProviderProfileTotalsForSpecificationForProviderForFundingLine(
+            ActionResult<FundingLineProfile> result = await WhenGetPublishedProviderProfileTotalsForSpecificationForProviderForFundingLine(
                 specificationId,
                 providerId,
                 fundingStreamId,
@@ -360,13 +362,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             result
                 .Should()
-                .BeOfType<OkObjectResult>()
+                .BeOfType<ActionResult<FundingLineProfile>>()
                 .And
                 .NotBeNull();
 
-            OkObjectResult objectResult = result as OkObjectResult;
-
-            objectResult
+            result
                 .Value
                 .Should()
                 .BeOfType<FundingLineProfile>()
@@ -374,7 +374,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .NotBeNull();
 
             FundingLineProfile actualFundingLineProfile =
-                objectResult.Value as FundingLineProfile;
+                result.Value as FundingLineProfile;
 
             FundingLineProfile expectedFundingLineProfile = NewFundingLineProfile(_ => _
                 .WithAmountAlreadyPaid(500)
@@ -1180,7 +1180,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 fundingPeriodId,
                 providerId);
 
-        private async Task<IActionResult> WhenGetPublishedProviderProfileTotalsForSpecificationForProviderForFundingLine(
+        private async Task<ActionResult<FundingLineProfile>> WhenGetPublishedProviderProfileTotalsForSpecificationForProviderForFundingLine(
             string specificationId,
             string providerId,
             string fundingStreamId,

@@ -19,24 +19,32 @@ namespace CalculateFunding.Services.Publishing.Profiling
         private readonly IReProfilingRequestBuilder _reProfilingRequestBuilder;
         private readonly IProfilingApiClient _profiling;
         private readonly IPoliciesApiClient _policies;
+        private readonly IPoliciesService _policiesService;
+        private readonly IProfileTotalsService _profileTotalsService;
         private readonly AsyncPolicy _profilingResilience;
         private readonly AsyncPolicy _policiesResilience;
 
         public ProfilePatternPreview(IReProfilingRequestBuilder reProfilingRequestBuilder,
             IProfilingApiClient profiling,
             IPoliciesApiClient policies,
-            IPublishingResiliencePolicies resiliencePolicies)
+            IPublishingResiliencePolicies resiliencePolicies,
+            IPoliciesService policiesService,
+            IProfileTotalsService profileTotalsService)
         {
             Guard.ArgumentNotNull(reProfilingRequestBuilder, nameof(reProfilingRequestBuilder));
             Guard.ArgumentNotNull(profiling, nameof(profiling));
             Guard.ArgumentNotNull(resiliencePolicies?.ProfilingApiClient, nameof(resiliencePolicies.ProfilingApiClient));
             Guard.ArgumentNotNull(resiliencePolicies.PoliciesApiClient, nameof(resiliencePolicies.PoliciesApiClient));
+            Guard.ArgumentNotNull(policiesService, nameof(policiesService));
+            Guard.ArgumentNotNull(profileTotalsService, nameof(profileTotalsService));
 
             _reProfilingRequestBuilder = reProfilingRequestBuilder;
             _profiling = profiling;
             _policies = policies;
             _profilingResilience = resiliencePolicies.ProfilingApiClient;
             _policiesResilience = resiliencePolicies.PoliciesApiClient;
+            _policiesService = policiesService;
+            _profileTotalsService = profileTotalsService;
         }
 
         public async Task<IActionResult> PreviewProfilingChange(ProfilePreviewRequest request)
@@ -61,11 +69,22 @@ namespace CalculateFunding.Services.Publishing.Profiling
                     $"Did not received a valid re-profiling response for profile pattern preview request {request}");
             }
 
+            FundingDate fundingDates = await _policiesService.GetFundingDate(
+               request.FundingStreamId,
+               request.FundingPeriodId,
+               request.FundingLineCode);
+
+            FundingLineProfile fundingLineProfile = (await _profileTotalsService.GetPublishedProviderProfileTotalsForSpecificationForProviderForFundingLine(
+                request.SpecificationId,
+                request.ProviderId,
+                request.FundingStreamId,
+                request.FundingLineCode)).Value;
+
             ExistingProfilePeriod[] existingProfilePeriods = reProfileRequest.ExistingPeriods.ToArray();
-            
+
             int isPaidTo = GetIsPaidTo(existingProfilePeriods);
 
-            ProfileTotal[] profileTotals = BuildProfileTotals(reProfileResponse, existingProfilePeriods, isPaidTo);
+            ProfileTotal[] profileTotals = BuildProfileTotals(reProfileResponse, existingProfilePeriods, isPaidTo, fundingDates, fundingLineProfile);
 
             await AddFundingDatesToProfileTotals(request, profileTotals);
 
@@ -74,21 +93,37 @@ namespace CalculateFunding.Services.Publishing.Profiling
 
         private static ProfileTotal[] BuildProfileTotals(ReProfileResponse reProfileResponse,
             ExistingProfilePeriod[] existingProfilePeriods,
-            int isPaidTo)
+            int isPaidTo,
+            FundingDate fundingDates,
+            FundingLineProfile fundingLineProfile)
         {
-            return reProfileResponse.DeliveryProfilePeriods.Select((deliveryProfilePeriod,
+            IEnumerable<ProfileTotal> profileTotals = reProfileResponse.DeliveryProfilePeriods.Select((deliveryProfilePeriod,
                     installmentNumber)
-                => new ProfileTotal
+                =>
+            {
+                decimal value = installmentNumber < isPaidTo ? existingProfilePeriods[installmentNumber].ProfileValue.GetValueOrDefault() : deliveryProfilePeriod.ProfileValue;
+                bool isPaid = installmentNumber < isPaidTo;
+                return new ProfileTotal
                 {
                     DistributionPeriodId = deliveryProfilePeriod.DistributionPeriod,
                     Occurrence = deliveryProfilePeriod.Occurrence,
-                    Value = installmentNumber < isPaidTo ? existingProfilePeriods[installmentNumber].ProfileValue.GetValueOrDefault() : deliveryProfilePeriod.ProfileValue,
+                    Value = value,
                     Year = deliveryProfilePeriod.Year,
                     InstallmentNumber = installmentNumber + 1,
-                    IsPaid = installmentNumber < isPaidTo,
+                    IsPaid = isPaid,
                     PeriodType = deliveryProfilePeriod.Type.ToString(),
-                    TypeValue = deliveryProfilePeriod.TypeValue
-                }).ToArray();
+                    ActualDate = fundingDates?.Patterns?.SingleOrDefault(_ =>
+                        _.Occurrence == deliveryProfilePeriod.Occurrence &&
+                        _.Period == deliveryProfilePeriod.TypeValue &&
+                        _.PeriodYear == deliveryProfilePeriod.Year)?.PaymentDate,
+                    TypeValue = deliveryProfilePeriod.TypeValue,
+                    ProfileRemainingPercentage = isPaid ? null :
+                        (fundingLineProfile.ProfilePatternTotal.HasValue && fundingLineProfile.ProfilePatternTotal > 0 ?
+                            value / (fundingLineProfile.ProfilePatternTotal - fundingLineProfile.AmountAlreadyPaid) * 100 : 0)
+                };
+            });
+
+            return profileTotals.ToArray();
         }
 
         private int GetIsPaidTo(ExistingProfilePeriod[] existingProfilePeriods)

@@ -91,7 +91,7 @@ namespace CalculateFunding.Services.Publishing
                 }));
         }
 
-        public async Task<IActionResult> GetPublishedProviderProfileTotalsForSpecificationForProviderForFundingLine(
+        public async Task<ActionResult<FundingLineProfile>> GetPublishedProviderProfileTotalsForSpecificationForProviderForFundingLine(
             string specificationId,
             string providerId,
             string fundingStreamId,
@@ -136,7 +136,7 @@ namespace CalculateFunding.Services.Publishing
                 templateMetadataDistinctFundingLinesContents,
                 fundingStreamPeriodProfilePatterns);
 
-            return new OkObjectResult(fundingLineProfile);
+            return fundingLineProfile;
         }
 
         private async Task<(IEnumerable<ProfileVariationPointer> profileVariationPointers,

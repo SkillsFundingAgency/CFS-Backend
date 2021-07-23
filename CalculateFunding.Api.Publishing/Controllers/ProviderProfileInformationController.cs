@@ -75,7 +75,7 @@ namespace CalculateFunding.Api.Publishing.Controllers
         [HttpGet("api/publishedproviderfundinglinedetails/{specificationId}/{providerId}/{fundingStreamId}/{fundingLineId}")]
         [ProducesResponseType(200, Type = typeof(FundingLineProfile))]
         [ProducesResponseType(404)]
-        public async Task<IActionResult> GetFundingLinePublishedProviderDetails(
+        public async Task<ActionResult<FundingLineProfile>> GetFundingLinePublishedProviderDetails(
            [FromRoute] string specificationId,
            [FromRoute] string providerId,
            [FromRoute] string fundingStreamId,
