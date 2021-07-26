@@ -83,12 +83,12 @@ namespace CalculateFunding.Services.Calcs.Analysis
             IEnumerable<CalculationRelationship> removedCalculationRelationships =
                 RemoveCalculationCalculationRelationships(specificationCalculationRelationships.CalculationRelationships, allCalculationsRelatedToSpecification);
             IEnumerable<CalculationDataFieldRelationship> removedDatasetReferences =
-                await RemoveDataFieldCalculationRelationships(specificationCalculationRelationships.CalculationDataFieldRelationships, allCalculationsRelatedToSpecification);
+                RemoveDataFieldCalculationRelationships(specificationCalculationRelationships.CalculationDataFieldRelationships, allCalculationsRelatedToSpecification);
             IEnumerable<CalculationEnumRelationship> removedCalculationEnumRelationship =
-                await RemoveCalculationEnumRelationships(specificationCalculationRelationships.CalculationEnumRelationships, allCalculationsRelatedToSpecification);
+                RemoveCalculationEnumRelationships(specificationCalculationRelationships.CalculationEnumRelationships, allCalculationsRelatedToSpecification);
             IEnumerable<FundingLine> removedFundingLines = await RemoveFundingLines(specificationCalculationRelationships.FundingLineRelationships, specificationCalculationRelationships.FundingLines);
             IEnumerable<DatasetRelationshipDataFieldRelationship> datasetRelationships = 
-                await RemoveDatasetRelationshipDataFieldRelationships(
+                RemoveDatasetRelationshipDataFieldRelationships(
                     specificationCalculationRelationships.DatasetRelationshipDataFieldRelationships,
                     allDatasetRelationshipsRelatedToSpecification);
 
@@ -186,7 +186,7 @@ namespace CalculateFunding.Services.Calcs.Analysis
             return removedSpecificationCalculations;
         }
 
-        private async Task<IEnumerable<DatasetRelationshipDataFieldRelationship>> RemoveDatasetRelationshipDataFieldRelationships
+        private IEnumerable<DatasetRelationshipDataFieldRelationship> RemoveDatasetRelationshipDataFieldRelationships
             (IEnumerable<DatasetRelationshipDataFieldRelationship> allDatasetRelationshipDataFieldRelationship,
             IEnumerable<ApiEntityDatasetRelationship> datasetRelationships)
         {
@@ -273,7 +273,7 @@ namespace CalculateFunding.Services.Calcs.Analysis
             return fundingLines.Where(_ => !fundingLineCalculationRelationships.Any(rel => rel.FundingLine.SpecificationFundingLineId == _.SpecificationFundingLineId));
         }
         
-        private async Task<IEnumerable<CalculationEnumRelationship>> RemoveCalculationEnumRelationships(IEnumerable<CalculationEnumRelationship> enumReferences,
+        private IEnumerable<CalculationEnumRelationship> RemoveCalculationEnumRelationships(IEnumerable<CalculationEnumRelationship> enumReferences,
             IEnumerable<ApiEntityCalculation> calculations)
         {
             // retrieve all calculation to enum relationships from current graph
@@ -312,7 +312,7 @@ namespace CalculateFunding.Services.Calcs.Analysis
             return removedEnums;
         }
 
-        private async Task<IEnumerable<CalculationDataFieldRelationship>> RemoveDataFieldCalculationRelationships(IEnumerable<CalculationDataFieldRelationship> datasetReferences,
+        private IEnumerable<CalculationDataFieldRelationship> RemoveDataFieldCalculationRelationships(IEnumerable<CalculationDataFieldRelationship> datasetReferences,
             IEnumerable<ApiEntityCalculation> calculations)
         {
             // retrieve all calculation to datafield relationships from current graph
@@ -399,7 +399,7 @@ namespace CalculateFunding.Services.Calcs.Analysis
             }
             catch (Exception e)
             {
-                _logger.Error(e, "Unable to complete calculation relationship upserts");
+                _logger.Error(e, $"Unable to complete calculation relationship upserts: {e.Message}");
 
                 throw;
             }
@@ -673,12 +673,12 @@ namespace CalculateFunding.Services.Calcs.Analysis
             {
                 HttpStatusCode response;
 
-                ApiDatasetRelationship[] apiDatasetRelationships = relationships.Select(_ => _mapper.Map<ApiDatasetRelationship>(_.DatasetRelationship)).ToArray();
+                ApiDatasetRelationship apiDatasetRelationship = relationships.Select(_ => _mapper.Map<ApiDatasetRelationship>(_.DatasetRelationship)).First();
 
                 response = await _resilience.ExecuteAsync(() =>
-                    _graphApiClient.UpsertDatasetRelationships(apiDatasetRelationships));
+                    _graphApiClient.UpsertDatasetRelationship(apiDatasetRelationship));
 
-                EnsureApiCallSucceeded(response, "Unable to create dataset relationships");
+                EnsureApiCallSucceeded(response, "Unable to create dataset relationship");
 
                 response = await _resilience.ExecuteAsync(() =>
                     _graphApiClient.UpsertDatasetRelationshipDataFieldRelationships(relationships.Key,

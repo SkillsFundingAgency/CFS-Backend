@@ -535,8 +535,8 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
 
             foreach (IGrouping<string, DatasetRelationshipDataFieldRelationship> relationships in relationshipsPerDatasetRelationshipId)
             {
-                _graphApiClient.Setup(_ => _.UpsertDatasetRelationships(It.Is<ApiDatasetRelationship[]>(datasetDefinitions =>
-                        datasetDefinitions.Select(_ => _.DatasetRelationshipId).SequenceEqual(relationships.Select(rel => rel.DatasetRelationship.DatasetRelationshipId).Distinct().ToArray()))))
+                _graphApiClient.Setup(_ => _.UpsertDatasetRelationship(It.Is<ApiDatasetRelationship>(datasetDefinition =>
+                        datasetDefinition.DatasetRelationshipId == relationships.Select(rel => rel.DatasetRelationship.DatasetRelationshipId).First())))
                     .ReturnsAsync(HttpStatusCode.OK)
                     .Verifiable();
 

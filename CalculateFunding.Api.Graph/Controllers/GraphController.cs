@@ -84,7 +84,7 @@ namespace CalculateFunding.Api.Graph.Controllers
             return await _graphService.DeleteDataField(fieldId);
         }
 
-        [HttpPut("api/graph/datasetrelationships")]
+        [HttpPost("api/graph/datasetrelationships")]
         [ProducesResponseType(200)]
         public async Task<IActionResult> UpsertDatasetRelationships([FromBody] DatasetRelationship[] datasetRelationships)
             => await _graphService.UpsertDatasetRelationships(datasetRelationships);
