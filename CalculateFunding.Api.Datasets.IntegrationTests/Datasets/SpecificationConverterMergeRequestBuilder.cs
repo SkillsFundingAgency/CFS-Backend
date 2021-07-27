@@ -2,7 +2,7 @@ using CalculateFunding.Common.ApiClient.DataSets.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Tests.Common.Helpers;
 
-namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
+namespace CalculateFunding.Api.Datasets.IntegrationTests.Datasets
 {
     public class SpecificationConverterMergeRequestBuilder : TestEntityBuilder
     {

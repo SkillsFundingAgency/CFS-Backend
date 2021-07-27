@@ -1,5 +1,6 @@
 using System.Linq;
 using CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard;
+using CalculateFunding.Api.Datasets.IntegrationTests.Datasets;
 using CalculateFunding.Common.Extensions;
 using CalculateFunding.IntegrationTests.Common.Data;
 using Microsoft.Extensions.Configuration;

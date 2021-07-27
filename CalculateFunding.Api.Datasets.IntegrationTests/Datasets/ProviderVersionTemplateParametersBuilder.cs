@@ -2,7 +2,7 @@ using System.Linq;
 using CalculateFunding.Common.ApiClient.Providers.Models;
 using CalculateFunding.Tests.Common.Helpers;
 
-namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
+namespace CalculateFunding.Api.Datasets.IntegrationTests.Datasets
 {
     public class ProviderVersionTemplateParametersBuilder : TestEntityBuilder
     {

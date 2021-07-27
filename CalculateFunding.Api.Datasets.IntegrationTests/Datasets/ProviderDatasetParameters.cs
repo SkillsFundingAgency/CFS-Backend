@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
+namespace CalculateFunding.Api.Datasets.IntegrationTests.Datasets
 {
     public class ProviderDatasetParameters
     {

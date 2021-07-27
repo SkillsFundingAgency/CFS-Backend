@@ -241,6 +241,8 @@ namespace CalculateFunding.Services.Datasets
                         EntityType = "Specification",
                         Message = "New Csv file generation triggered by dataset relationship spec"
                     },
+                    Properties = new Dictionary<string, string> { { "specification-id", specification.Id }, 
+                        { "relationship-id", relationshipVersion.RelationshipId } },
                     CorrelationId = correlationId
                 });
             }

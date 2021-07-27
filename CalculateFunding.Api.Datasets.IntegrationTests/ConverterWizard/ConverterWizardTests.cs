@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using CalculateFunding.Api.Datasets.IntegrationTests.Data;
+using CalculateFunding.Api.Datasets.IntegrationTests.Datasets;
 using CalculateFunding.Common.ApiClient.DataSets;
 using CalculateFunding.Common.ApiClient.DataSets.Models;
 using CalculateFunding.Common.Config.ApiClient.Dataset;

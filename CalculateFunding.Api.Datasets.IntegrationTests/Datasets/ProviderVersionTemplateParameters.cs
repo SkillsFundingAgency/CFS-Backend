@@ -1,6 +1,6 @@
 using CalculateFunding.Common.ApiClient.Providers.Models;
 
-namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
+namespace CalculateFunding.Api.Datasets.IntegrationTests.Datasets
 {
     public class ProviderVersionTemplateParameters
     {

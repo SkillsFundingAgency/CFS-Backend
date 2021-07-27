@@ -75,6 +75,12 @@ namespace CalculateFunding.Services.Publishing
             DatasetSpecificationRelationshipViewModel relationship = await GetSpecificationRelationship(specificationId, relationshipId);
             List<RelationshipDataSetExcelData> excelDataItems = await GetRelationshipDatasetExcelData(specificationId, relationship);
 
+            // there are no published providers so exit early
+            if (excelDataItems.IsNullOrEmpty())
+            {
+                return;
+            }
+
             DatasetVersionUpdateModel datasetVersionUpdateModel = new DatasetVersionUpdateModel()
             {
                 DatasetId = relationship.DatasetId,
@@ -122,7 +128,7 @@ namespace CalculateFunding.Services.Publishing
 
             if (!datasetUpdateResponse.StatusCode.IsSuccess() || datasetUpdateResponse.Content == null)
             {
-                LogAndThrowException($"Failed to assing datasource version to relationship, dataset id - {datasetVersion.DatasetId}, relationship id - {relationshipId}, version - {datasetVersion.Version}. Status Code - {datasetUpdateResponse.StatusCode}");
+                LogAndThrowException($"Failed to assign datasource version to relationship, dataset id - {datasetVersion.DatasetId}, relationship id - {relationshipId}, version - {datasetVersion.Version}. Status Code - {datasetUpdateResponse.StatusCode}");
             }
         }
 

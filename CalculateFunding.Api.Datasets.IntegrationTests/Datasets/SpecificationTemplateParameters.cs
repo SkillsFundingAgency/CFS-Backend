@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Models;
 
-namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
+namespace CalculateFunding.Api.Datasets.IntegrationTests.Datasets
 {
     public class SpecificationTemplateParameters
     {

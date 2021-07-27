@@ -29,9 +29,11 @@
       <EmbeddedResource Include="Resources\ConverterDataMergeLog.json" />
       <EmbeddedResource Include="Resources\DatasetTemplate.json" />
       <EmbeddedResource Include="Resources\DefinitionSpecificationRelationship.json" />
+      <EmbeddedResource Include="Resources\FundingTemplateTemplate.json" />
       <EmbeddedResource Include="Resources\ProviderVersionBlobTemplate.json" />
       <EmbeddedResource Include="Resources\SpecificationTemplate.json" />
       <None Remove="Resources\FundingConfigurationTemplate.json" />
+      <None Remove="Resources\FundingTemplateTemplate.json" />
       <EmbeddedResource Include="Resources\FundingConfigurationTemplate.json" />
       <None Remove="Resources\DatasetDefinitionTemplate.json" />
       <EmbeddedResource Include="Resources\DatasetDefinitionTemplate.json" />

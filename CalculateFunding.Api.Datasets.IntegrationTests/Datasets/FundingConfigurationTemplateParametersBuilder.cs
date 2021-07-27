@@ -2,7 +2,7 @@ using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Tests.Common.Helpers;
 using System;
 
-namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
+namespace CalculateFunding.Api.Datasets.IntegrationTests.Datasets
 {
     public class FundingConfigurationTemplateParametersBuilder : TestEntityBuilder
     {

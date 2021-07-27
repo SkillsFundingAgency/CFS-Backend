@@ -2,7 +2,7 @@ using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Tests.Common.Helpers;
 
-namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
+namespace CalculateFunding.Api.Datasets.IntegrationTests.Datasets
 {
     public class DatasetTemplateParametersBuilder : TestEntityBuilder
     {

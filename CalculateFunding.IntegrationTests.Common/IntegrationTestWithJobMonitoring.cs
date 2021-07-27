@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
@@ -161,6 +162,9 @@ namespace CalculateFunding.IntegrationTests.Common
 
         protected async Task<JobViewModel> GetJob(string jobId)
             => (await _jobs.GetJobById(jobId))?.Content;
+
+        protected async Task<IDictionary<string, JobSummary>> GetLatestJob(string specificationId, params string[] jobDefinitions)
+            => (await _jobs.GetLatestJobsForSpecification(specificationId, jobDefinitions))?.Content;
 
         protected static void AddJobsClient(IServiceCollection serviceCollection,
             IConfiguration configuration)

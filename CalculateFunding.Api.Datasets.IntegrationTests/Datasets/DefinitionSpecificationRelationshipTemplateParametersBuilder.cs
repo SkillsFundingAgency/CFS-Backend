@@ -1,6 +1,7 @@
+using CalculateFunding.Common.ApiClient.DataSets.Models;
 using CalculateFunding.Tests.Common.Helpers;
 
-namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
+namespace CalculateFunding.Api.Datasets.IntegrationTests.Datasets
 {
     public class DefinitionSpecificationRelationshipTemplateParametersBuilder : TestEntityBuilder
     {
@@ -14,6 +15,7 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
         private string _specificationName;
         private string _description;
         private bool? _converterEnabled;
+        private DatasetRelationshipType _relationshipType;
 
         public DefinitionSpecificationRelationshipTemplateParametersBuilder WithId(string id)
         {
@@ -85,6 +87,13 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
             return this;
         }
 
+        public DefinitionSpecificationRelationshipTemplateParametersBuilder WithRelationshipType(DatasetRelationshipType relationshipType)
+        {
+            _relationshipType = relationshipType;
+
+            return this;
+        }
+
         public DefinitionSpecificationRelationshipTemplateParameters Build()
             => new DefinitionSpecificationRelationshipTemplateParameters
             {
@@ -97,7 +106,8 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.ConverterWizard
                 DatasetName = _datasetName ?? NewRandomString(),
                 SpecificationId = _specificationId ?? NewRandomString(),
                 SpecificationName = _specificationName ?? NewRandomString(),
-                ConverterEnabled = _converterEnabled.GetValueOrDefault(NewRandomFlag())
+                ConverterEnabled = _converterEnabled.GetValueOrDefault(NewRandomFlag()),
+                DatasetRelationshipType = _relationshipType
             };
     }
 }
