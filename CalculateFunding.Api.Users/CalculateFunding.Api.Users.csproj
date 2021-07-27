@@ -13,8 +13,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="4.1.1" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="3.18.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="4.2.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="3.19.0" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.15.0" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.2.3" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.2" />

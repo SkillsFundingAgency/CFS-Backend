@@ -225,8 +225,8 @@ namespace CalculateFunding.Services.Datasets.Validators
                 .Should()
                 .BeFalse();
 
-            ErrorMessageShouldContain(result, "Target specification must be provided for relatioship type - ReleasedData.");
-            ErrorMessageShouldContain(result, "At least one fundingline or calculation must be provided for relatioship type - ReleasedData.");
+            ErrorMessageShouldContain(result, "Target specification must be provided for relationship type - ReleasedData.");
+            ErrorMessageShouldContain(result, "At least one fundingline or calculation must be provided for relationship type - ReleasedData.");
         }
 
         [TestMethod]

@@ -143,7 +143,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             logger
                 .Received(1)
-                .Error(Arg.Is($"Datset definition was not found for id {model.DatasetDefinitionId}"));
+                .Error(Arg.Is($"Dataset definition was not found for id {model.DatasetDefinitionId}"));
         }
 
         [TestMethod]
@@ -373,7 +373,6 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task CreateRelationship_GivenValidModelWithPublishedSpecificationConfigurationDetailsShouldSaveWithoutError_ReturnsOK()
         {
             //Arrange
-            string datasetDefinitionId = NewRandomString();
             string specificationId = NewRandomString();
             string relationshipName = NewRandomString();
             string description = NewRandomString();
@@ -391,11 +390,6 @@ namespace CalculateFunding.Services.Datasets.Services
             string calculationOne = NewRandomString();
             string calculationTwo = NewRandomString();
             string templateId = NewRandomString();
-
-            Models.Datasets.Schema.DatasetDefinition definition = new Models.Datasets.Schema.DatasetDefinition
-            {
-                Id = datasetDefinitionId
-            };
 
             SpecModel.SpecificationSummary specification = new SpecModel.SpecificationSummary
             {
@@ -424,7 +418,6 @@ namespace CalculateFunding.Services.Datasets.Services
             };
             CreateDefinitionSpecificationRelationshipModel model = new CreateDefinitionSpecificationRelationshipModel
             {
-                DatasetDefinitionId = datasetDefinitionId,
                 SpecificationId = specificationId,
                 Name = relationshipName,
                 Description = description,
@@ -455,7 +448,6 @@ namespace CalculateFunding.Services.Datasets.Services
                                                               r.WithName(relationshipName)
                                                               .WithCurrent(NewDefinitionSpecificationRelationshipVersion(_ =>
                                                                                           _.WithSpecification(NewReference(s => s.WithId(specificationId)))
-                                                                                          .WithDatasetDefinition(NewReference(d => d.WithId(datasetDefinitionId)))
                                                                                           .WithName(relationshipName)
                                                                                           .WithDescription(description)
                                                                                           .WithAuthor(author)
@@ -466,9 +458,6 @@ namespace CalculateFunding.Services.Datasets.Services
             ILogger logger = CreateLogger();
 
             IDatasetRepository datasetRepository = CreateDatasetRepository();
-            datasetRepository
-                .GetDatasetDefinition(Arg.Is(datasetDefinitionId))
-                .Returns(definition);
 
             ICalculationsApiClient calcsClient = Substitute.For<ICalculationsApiClient>();
             calcsClient
@@ -539,7 +528,6 @@ namespace CalculateFunding.Services.Datasets.Services
                         m.Current.Description == description &&
                         m.Current.Name == relationshipName &&
                         m.Current.Specification.Id == specificationId &&
-                        m.Current.DatasetDefinition.Id == datasetDefinitionId &&
                         m.Current.LastUpdated == _utcNow &&
                         m.Current.Author.Id == author.Id &&
                         m.Current.PublishedSpecificationConfiguration.SpecificationId == targetSpecificationId &&
@@ -1907,6 +1895,175 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Should()
                 .Be(200);
         }
+
+        [TestMethod]
+        public async Task GetDataSourcesByRelationshipId_GivenReleasedRelationshipFoundAndDatasetFound_ReturnsOKResult()
+        {
+            string relationshipId = NewRandomString();
+            string datasetComment = NewRandomString();
+            DateTimeOffset datasetDate = NewRandomDateTime();
+            string datasetAuthorId = NewRandomString();
+            string datasetAuthorName = NewRandomString();
+            string datasetName = NewRandomString();
+            string datasetDescription = NewRandomString();
+            string relationshipName = NewRandomString();
+
+            ILogger logger = CreateLogger();
+
+            DefinitionSpecificationRelationship relationship = NewDefinitionSpecificationRelationship(r =>
+                                                              r.WithId(relationshipId)
+                                                              .WithName(relationshipName)
+                                                              .WithCurrent(NewDefinitionSpecificationRelationshipVersion(_ =>
+                                                                                          _.WithSpecification(NewReference(s => s.WithId(NewRandomString())))
+                                                                                          .WithRelationshipId(relationshipId)
+                                                                                          .WithRelationshipType(DatasetRelationshipType.ReleasedData)
+                                                                                          .WithName(relationshipName)
+                                                                                          .WithDatasetDefinition(NewReference(s => s.WithId(NewRandomString()))))));
+
+            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
+                .Returns(relationship);
+
+            IEnumerable<Dataset> datasets = new[]
+            {
+                NewDataset(_ =>_
+                    .WithId(NewRandomString())
+                    .WithName(datasetName)
+                    .WithDescription(datasetDescription)
+                    .WithHistory(
+                        NewDatasetVersion(dv=> dv
+                            .WithVersion(1)
+                            .WithComment(datasetComment)
+                            .WithDate(datasetDate)
+                            .WithAuthor(
+                                NewReference(r=>r
+                                    .WithId(datasetAuthorId)
+                                    .WithName(datasetAuthorName)))
+                            ),
+                        NewDatasetVersion(dv=> dv
+                            .WithVersion(3)
+                            .WithComment(datasetComment)
+                            .WithDate(datasetDate)
+                            .WithAuthor(
+                                NewReference(r=>r
+                                    .WithId(datasetAuthorId)
+                                    .WithName(datasetAuthorName)))
+                            ),
+                        NewDatasetVersion(dv=> dv
+                            .WithVersion(2)
+                            .WithComment(datasetComment)
+                            .WithDate(datasetDate)
+                            .WithAuthor(
+                                NewReference(r=>r
+                                    .WithId(datasetAuthorId)
+                                    .WithName(datasetAuthorName)))
+                            )
+                    ))
+            };
+
+            datasetRepository
+                .GetDatasetsByQuery(Arg.Any<Expression<Func<DocumentEntity<Dataset>, bool>>>())
+                .Returns(datasets);
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
+
+            //Act
+            IActionResult result = await service.GetDataSourcesByRelationshipId(relationshipId);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            OkObjectResult okObjectResult = result as OkObjectResult;
+
+            SelectDatasourceModel sourceModel = okObjectResult.Value as SelectDatasourceModel;
+
+            sourceModel
+                .Datasets
+                .Count()
+                .Should()
+                .Be(1);
+
+            sourceModel
+               .Datasets
+               .First()
+               .Name
+               .Should()
+               .Be(datasetName);
+
+            sourceModel
+               .Datasets
+               .First()
+               .Description
+               .Should()
+               .Be(datasetDescription);
+
+            sourceModel
+                .Datasets
+                .First()
+                .Versions
+                .First()
+                .Version
+                .Should()
+                .Be(3);
+
+            sourceModel
+                .Datasets
+                .First()
+                .Versions
+                .First()
+                .Comment
+                .Should()
+                .Be(datasetComment);
+
+            sourceModel
+                .Datasets
+                .First()
+                .Versions
+                .First()
+                .Date
+                .Should()
+                .Be(datasetDate);
+
+            sourceModel
+                .Datasets
+                .First()
+                .Versions
+                .First()
+                .Author
+                .Should()
+                .NotBeNull();
+
+            sourceModel
+                .Datasets
+                .First()
+                .Versions
+                .First()
+                .Author
+                .Id
+                .Should()
+                .Be(datasetAuthorId);
+
+            sourceModel
+                .Datasets
+                .First()
+                .Versions
+                .First()
+                .Author
+                .Name
+                .Should()
+                .Be(datasetAuthorName);
+
+            sourceModel
+                .Datasets
+                .First()
+                .SelectedVersion
+                .Should()
+                .BeNull();
+        }
+
 
         [TestMethod]
         public async Task GetDataSourcesByRelationshipId_GivenRelationshipFoundAndDatasetsFound_ReturnsOKResult()

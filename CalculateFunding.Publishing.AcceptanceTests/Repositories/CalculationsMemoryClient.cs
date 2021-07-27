@@ -211,5 +211,15 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task<ValidatedApiResponse<Calculation>> CreateCalculationBatchOperation(string specificationId, CalculationCreateModel calculationCreateModel)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ApiResponse<Job>> QueueCalculationRun(string specificationId, QueueCalculationRunModel model)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

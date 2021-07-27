@@ -7,10 +7,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="CalculateFunding.Common.ApiClient.Calcs" Version="7.3.1" />
-        <PackageReference Include="CalculateFunding.Common.ApiClient.Datasets" Version="6.21.0" />
+        <PackageReference Include="CalculateFunding.Common.ApiClient.Calcs" Version="7.5.5" />
+        <PackageReference Include="CalculateFunding.Common.ApiClient.Datasets" Version="6.23.0" />
         <PackageReference Include="CalculateFunding.Common.ApiClient.Profiling" Version="4.2.1" />
-        <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="6.20.0" />
+        <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="6.21.0" />
         <PackageReference Include="CommandLineParser" Version="2.8.0" />
     </ItemGroup>
 

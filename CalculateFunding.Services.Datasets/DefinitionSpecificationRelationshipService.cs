@@ -155,12 +155,17 @@ namespace CalculateFunding.Services.Datasets
                 return validationResult;
             }
 
-            DatasetDefinition definition = await _datasetRepository.GetDatasetDefinition(model.DatasetDefinitionId);
+            DatasetDefinition definition = null;
 
-            if (definition == null)
+            if (model.RelationshipType == DatasetRelationshipType.Uploaded)
             {
-                _logger.Error($"Datset definition was not found for id {model.DatasetDefinitionId}");
-                return new StatusCodeResult(412);
+                definition = await _datasetRepository.GetDatasetDefinition(model.DatasetDefinitionId);
+
+                if (definition == null)
+                {
+                    _logger.Error($"Dataset definition was not found for id {model.DatasetDefinitionId}");
+                    return new StatusCodeResult(412);
+                }
             }
 
             ApiResponse<SpecModel.SpecificationSummary> specificationApiResponse =
@@ -183,7 +188,7 @@ namespace CalculateFunding.Services.Datasets
             DefinitionSpecificationRelationshipVersion relationshipVersion = new DefinitionSpecificationRelationshipVersion
             {
                 Name = model.Name,
-                DatasetDefinition = new Reference(definition.Id, definition.Name),
+                DatasetDefinition = definition != null ? new Reference(definition.Id, definition.Name) : null,
                 Specification = new Reference(specification.Id, specification.Name),
                 Description = model.Description,
                 RelationshipId = relationship.Id,
@@ -206,7 +211,7 @@ namespace CalculateFunding.Services.Datasets
 
             if (!statusCode.IsSuccess())
             {
-                _logger.Error($"Failed to save relationship with status code: {statusCode.ToString()}");
+                _logger.Error($"Failed to save relationship with status code: {statusCode}");
                 return new StatusCodeResult((int)statusCode);
             }
 
@@ -246,7 +251,7 @@ namespace CalculateFunding.Services.Datasets
                 Id = Guid.NewGuid().ToString(),
                 Relationship = new Reference(relationshipVersion.Id, relationshipVersion.Name),
                 DatasetDefinition = definition,
-                DatasetDefinitionId = definition.Id,
+                DatasetDefinitionId = definition?.Id,
                 DataGranularity = relationshipVersion.UsedInDataAggregations ? DataGranularity.MultipleRowsPerProvider : DataGranularity.SingleRowPerProvider,
                 DefinesScope = relationshipVersion.IsSetAsProviderData
             };
@@ -383,7 +388,16 @@ namespace CalculateFunding.Services.Datasets
             selectDatasourceModel.DefinitionId = relationship.Current.DatasetDefinition.Id;
             selectDatasourceModel.DefinitionName = relationship.Current.DatasetDefinition.Name;
 
-            IEnumerable<Dataset> datasets = await _datasetRepository.GetDatasetsByQuery(m => m.Content.Definition.Id == relationship.Current.DatasetDefinition.Id);
+            IEnumerable<Dataset> datasets;
+
+            if (relationship.Current.RelationshipType == DatasetRelationshipType.Uploaded)
+            {
+                datasets = await _datasetRepository.GetDatasetsByQuery(m => m.Content.Definition.Id == relationship.Current.DatasetDefinition.Id);
+            }
+            else
+            {
+                datasets = await _datasetRepository.GetDatasetsByQuery(m => m.Content.Id == relationship.Current.DatasetVersion.Id);
+            }
 
             if (!datasets.IsNullOrEmpty())
             {

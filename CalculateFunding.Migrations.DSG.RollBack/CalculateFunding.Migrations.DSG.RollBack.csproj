@@ -29,7 +29,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="4.1.1" />
+      <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="4.2.0" />
       <PackageReference Include="CommandLineParser" Version="2.8.0" />
     </ItemGroup>
 

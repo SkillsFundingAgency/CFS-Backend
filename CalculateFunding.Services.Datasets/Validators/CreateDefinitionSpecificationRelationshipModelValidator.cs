@@ -98,12 +98,12 @@ namespace CalculateFunding.Services.Datasets.Validators
                   {
                       if (string.IsNullOrWhiteSpace(relationshipModel.TargetSpecificationId))
                       {
-                          context.AddFailure($"Target specification must be provided for relatioship type - ReleasedData.");
+                          context.AddFailure($"Target specification must be provided for relationship type - ReleasedData.");
                       }
 
                       if (relationshipModel.FundingLineIds.IsNullOrEmpty() && relationshipModel.CalculationIds.IsNullOrEmpty())
                       {
-                          context.AddFailure($"At least one fundingline or calculation must be provided for relatioship type - ReleasedData.");
+                          context.AddFailure($"At least one fundingline or calculation must be provided for relationship type - ReleasedData.");
                       }
                       else
                       {
@@ -127,7 +127,7 @@ namespace CalculateFunding.Services.Datasets.Validators
                 throw new RetriableException(errorMessage);
             }
 
-            if(specificationSummaryApiResponse.StatusCode == HttpStatusCode.NotFound || specificationSummaryApiResponse.Content == null)
+            if (specificationSummaryApiResponse.StatusCode == HttpStatusCode.NotFound || specificationSummaryApiResponse.Content == null)
             {
                 context.AddFailure($"Target specification - {relationshipModel.TargetSpecificationId} not found.");
                 return;

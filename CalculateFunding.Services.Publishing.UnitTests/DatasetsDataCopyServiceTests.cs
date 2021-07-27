@@ -169,7 +169,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             decimal fundingLineValue1 = NewRandomDecimal();
             
             string datasetId = NewRandomString();
-            string definitionId = NewRandomString();
             int datasetVersionVersion = NewRandomInt();
             string fileName = NewRandomString();
 
@@ -209,7 +208,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             NewDatasetVersionResponseModel datasetVersionResponse = new NewDatasetVersionResponseModel()
             {
-                DefinitionId = definitionId,
                 DatasetId = datasetId,
                 Version = datasetVersionVersion,
                 Filename = fileName,
@@ -274,7 +272,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             decimal calculationValue2 = NewRandomDecimal();
 
             string datasetId = NewRandomString();
-            string definitionId = NewRandomString();
             int datasetVersionVersion = NewRandomInt();
             string fileName = NewRandomString();
 
@@ -341,7 +338,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             NewDatasetVersionResponseModel datasetVersionResponse = new NewDatasetVersionResponseModel()
             {
-                DefinitionId = definitionId,
                 DatasetId = datasetId,
                 Version = datasetVersionVersion,
                 Filename = fileName,
@@ -472,8 +468,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             _datasetsApiClient.Setup(x => x.UploadDatasetFile(
                 It.Is<string>(fileName => fileName == datasetVersionResponse.Filename),
-                It.Is<DatasetMetadataViewModel>(m => m.DataDefinitionId == datasetVersionResponse.DefinitionId &&
-                                                     m.DatasetId == datasetVersionResponse.DatasetId &&
+                It.Is<DatasetMetadataViewModel>(m => m.DatasetId == datasetVersionResponse.DatasetId &&
                                                      m.Filename == datasetVersionResponse.Filename &&
                                                      m.FundingStreamId == datasetVersionResponse.FundingStreamId)))
                 .ReturnsAsync(HttpStatusCode.OK);

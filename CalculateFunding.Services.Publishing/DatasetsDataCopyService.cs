@@ -94,7 +94,6 @@ namespace CalculateFunding.Services.Publishing
 
             DatasetMetadataViewModel datasetMetadataViewModel = new DatasetMetadataViewModel()
             {
-                DataDefinitionId = datasetVersion.DefinitionId,
                 AuthorId = datasetVersion.Author?.Id,
                 AuthorName = datasetVersion.Author?.Name,
                 DatasetId = datasetVersion.DatasetId,
