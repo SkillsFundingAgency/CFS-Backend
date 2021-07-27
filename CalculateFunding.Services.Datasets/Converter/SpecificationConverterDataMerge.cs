@@ -12,6 +12,7 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Converter;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Datasets.Interfaces;
@@ -35,6 +36,7 @@ namespace CalculateFunding.Services.Datasets.Converter
         private readonly AsyncPolicy _datasetsResilience;
         private readonly AsyncPolicy _policiesResilience;
         private readonly AsyncPolicy _specificationsResilience;
+        private readonly IJobManagement _jobManagement;
 
         public SpecificationConverterDataMerge(ISpecificationsApiClient specifications,
             IPoliciesApiClient policies,
@@ -46,6 +48,7 @@ namespace CalculateFunding.Services.Datasets.Converter
             Guard.ArgumentNotNull(specifications, nameof(specifications));
             Guard.ArgumentNotNull(policies, nameof(policies));
             Guard.ArgumentNotNull(datasets, nameof(datasets));
+            Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsApiClient, "resiliencePolicies.SpecificationsApiClient");
             Guard.ArgumentNotNull(resiliencePolicies.PoliciesApiClient, "resiliencePolicies.PoliciesApiClient");
             Guard.ArgumentNotNull(resiliencePolicies.DatasetRepository, "resiliencePolicies.DatasetRepository");
@@ -53,6 +56,7 @@ namespace CalculateFunding.Services.Datasets.Converter
             _specifications = specifications;
             _policies = policies;
             _datasets = datasets;
+            _jobManagement = jobManagement;
             _specificationsResilience = resiliencePolicies.SpecificationsApiClient;
             _policiesResilience = resiliencePolicies.PoliciesApiClient;
             _datasetsResilience = resiliencePolicies.DatasetRepository;
@@ -65,6 +69,16 @@ namespace CalculateFunding.Services.Datasets.Converter
             string specificationId = request.SpecificationId;
 
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+
+            IEnumerable<JobSummary> jobTypesRunning = await GetJobTypes(specificationId,
+                new string[] {
+                    JobConstants.DefinitionNames.QueueConverterDatasetMergeJob
+            });
+
+            if (!jobTypesRunning.IsNullOrEmpty())
+            {
+                throw new NonRetriableException($"Unable to queue a new converter job as one is already running job id:{jobTypesRunning.First().JobId}.");
+            }
 
             Reference author = request.Author;
 
@@ -197,6 +211,22 @@ namespace CalculateFunding.Services.Datasets.Converter
             EnsureIsNotNull(fundingConfiguration, $"Did not locate a funding configuration for {fundingStreamId} {fundingPeriodId}");
 
             return fundingConfiguration;
+        }
+
+        public async Task<IEnumerable<JobSummary>> GetJobTypes(string specificationId, IEnumerable<string> jobTypes)
+        {
+            Guard.ArgumentNotNull(jobTypes, nameof(jobTypes));
+
+            try
+            {
+                IDictionary<string, JobSummary> jobSummaries = await _jobManagement.GetLatestJobsForSpecification(specificationId, jobTypes);
+
+                return jobSummaries?.Values.Where(_ => _ != null && _.RunningStatus == RunningStatus.InProgress);
+            }
+            catch (JobsNotRetrievedException ex)
+            {
+                throw new NonRetriableException(ex.Message, ex);
+            }
         }
     }
 }

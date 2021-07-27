@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
@@ -132,6 +133,31 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
                 .Should()
                 .Be(expectedJob.Id);
         }
+
+        [TestMethod]
+        public void DeosntCreateParentQueueConverterDatasetMergeJobWhenJobRunning()
+        {
+            string specificationId = NewRandomString();
+            string runningJobId = Guid.NewGuid().ToString();
+            Reference author = NewReference();
+
+            SpecificationConverterMergeRequest request = NewSpecificationMergeRequest(_ => _.WithSpecificationId(specificationId)
+                .WithAuthor(author));
+
+            GivenTheJobIsRunning(specificationId, JobConstants.DefinitionNames.QueueConverterDatasetMergeJob, runningJobId);
+
+            Func<Task> invocation = () => WhenTheJobIsQueued(request);
+
+            invocation
+                .Should()
+                .ThrowAsync<NonRetriableException>()
+                .Result
+                .Which
+                .Message
+                .Should()
+                .Be($"Unable to queue a new converter job as one is already running job id:{runningJobId}.");
+        }
+
 
         [TestMethod]
         public void GuardsAgainstMissingMessageWhenProcessesJob()
@@ -334,6 +360,14 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
                         AreEquivalent(actualJob, expectedJob))),
                     Times.Never);
             }
+        }
+
+        private void GivenTheJobIsRunning(string specificationId, string jobDefinitionId, string runningJobId)
+        {
+            _jobs.Setup(_ => _.GetLatestJobsForSpecification(specificationId,
+                It.Is<IEnumerable<string>>(defs => defs.First() == jobDefinitionId)))
+            .ReturnsAsync(new Dictionary<string, JobSummary> { { jobDefinitionId,
+                    new JobSummary { JobId = runningJobId, RunningStatus = RunningStatus.InProgress } } });
         }
 
         private void GivenTheJobIsQueued(JobCreateModel expectedJobCreateModel,
