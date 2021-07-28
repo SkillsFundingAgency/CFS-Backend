@@ -9,19 +9,28 @@ using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Policies;
+using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Datasets.ViewModels;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
+using CalculateFunding.Services.CodeGeneration.VisualBasic.Type.Interfaces;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
-using CalculateFunding.Services.Core.Interfaces.Helpers;
 using CalculateFunding.Services.Core.Constants;
+using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Services.Core.Interfaces.Helpers;
 using CalculateFunding.Services.Datasets.Interfaces;
 using CalculateFunding.Services.Datasets.MappingProfiles;
+using CalculateFunding.Services.Datasets.Services.UnitTests;
+using CalculateFunding.Services.Datasets.UnitTests.Builders;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using FluentValidation;
@@ -29,16 +38,10 @@ using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using Serilog;
-using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
-using Job = CalculateFunding.Common.ApiClient.Jobs.Models.Job;
-using CalculateFunding.Common.ApiClient.Policies;
-using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Services.CodeGeneration.VisualBasic.Type.Interfaces;
-using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
-using CalculateFunding.Models.Datasets.Schema;
-using CalculateFunding.Common.ApiClient.Policies.Models;
 using Polly;
+using Serilog;
+using Job = CalculateFunding.Common.ApiClient.Jobs.Models.Job;
+using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
@@ -317,7 +320,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 }));
 
             ICalcsRepository calcsRepository = new CalcsRepository(calcsClient,
-                new DatasetsResiliencePolicies {CalculationsApiClient = Policy.NoOpAsync()},
+                new DatasetsResiliencePolicies { CalculationsApiClient = Policy.NoOpAsync() },
                 CreateMapper());
 
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
@@ -541,12 +544,12 @@ namespace CalculateFunding.Services.Datasets.Services
                   .Received(1)
                   .RemoveAsync<IEnumerable<DatasetSchemaRelationshipModel>>(Arg.Is($"{CacheKeys.DatasetRelationshipFieldsForSpecification}{specificationId}"));
 
-           await relationshipVersionRepository
-                .Received(1)
-                .CreateVersion(Arg.Is<DefinitionSpecificationRelationshipVersion>(
-                    x => x.Name == relationshipName &&
-                    x.PublishedSpecificationConfiguration.FundingLines.Count() == 2 &&
-                    x.PublishedSpecificationConfiguration.Calculations.Count() == 2), null, null, false);
+            await relationshipVersionRepository
+                 .Received(1)
+                 .CreateVersion(Arg.Is<DefinitionSpecificationRelationshipVersion>(
+                     x => x.Name == relationshipName &&
+                     x.PublishedSpecificationConfiguration.FundingLines.Count() == 2 &&
+                     x.PublishedSpecificationConfiguration.Calculations.Count() == 2), null, null, false);
 
             await jobManagement
                 .Received(1)
@@ -1907,6 +1910,9 @@ namespace CalculateFunding.Services.Datasets.Services
             string datasetName = NewRandomString();
             string datasetDescription = NewRandomString();
             string relationshipName = NewRandomString();
+            string specificationId = NewRandomString();
+            string sourceSpecificationId = NewRandomString();
+            string sourceSpecificationName = NewRandomString();
 
             ILogger logger = CreateLogger();
 
@@ -1914,10 +1920,11 @@ namespace CalculateFunding.Services.Datasets.Services
                                                               r.WithId(relationshipId)
                                                               .WithName(relationshipName)
                                                               .WithCurrent(NewDefinitionSpecificationRelationshipVersion(_ =>
-                                                                                          _.WithSpecification(NewReference(s => s.WithId(NewRandomString())))
+                                                                                          _.WithSpecification(NewReference(s => s.WithId(specificationId)))
                                                                                           .WithRelationshipId(relationshipId)
                                                                                           .WithRelationshipType(DatasetRelationshipType.ReleasedData)
                                                                                           .WithName(relationshipName)
+                                                                                          .WithPublishedSpecificationConfiguration(NewPublishedSpecificationConfiguration(p => p.WithSpecificationId(sourceSpecificationId)))
                                                                                           .WithDatasetDefinition(NewReference(s => s.WithId(NewRandomString()))))));
 
             IDatasetRepository datasetRepository = CreateDatasetRepository();
@@ -1966,7 +1973,14 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetDatasetsByQuery(Arg.Any<Expression<Func<DocumentEntity<Dataset>, bool>>>())
                 .Returns(datasets);
 
-            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
+            ISpecificationsApiClient specsClient = CreateSpecificationsApiClient();
+            SpecificationSummary spec = CreateSpecificationSummary(_ => _.WithId(sourceSpecificationId).WithName(sourceSpecificationName));
+
+            specsClient
+                .GetSpecificationSummaryById(Arg.Is(sourceSpecificationId))
+                .Returns(new ApiResponse<SpecificationSummary>(HttpStatusCode.OK, spec));
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository, specificationsApiClient: specsClient);
 
             //Act
             IActionResult result = await service.GetDataSourcesByRelationshipId(relationshipId);
@@ -2062,6 +2076,16 @@ namespace CalculateFunding.Services.Datasets.Services
                 .SelectedVersion
                 .Should()
                 .BeNull();
+
+            sourceModel.SourceSpecificationId
+                .Should()
+                .Be(sourceSpecificationId);
+
+            sourceModel.SourceSpecificationName
+                .Should()
+                .Be(sourceSpecificationName);
+
+            sourceModel.RelationshipType.Should().Be(DatasetRelationshipType.ReleasedData);
         }
 
 
@@ -2230,6 +2254,10 @@ namespace CalculateFunding.Services.Datasets.Services
                 .SelectedVersion
                 .Should()
                 .BeNull();
+
+            sourceModel.RelationshipType.Should().Be(DatasetRelationshipType.Uploaded);
+            sourceModel.SourceSpecificationId.Should().BeNull();
+            sourceModel.SourceSpecificationName.Should().BeNull();
         }
 
         [TestMethod]
@@ -4075,6 +4103,15 @@ namespace CalculateFunding.Services.Datasets.Services
             return Substitute.For<IJobManagement>();
         }
 
+        private SpecificationSummary CreateSpecificationSummary(Action<SpecificationSummaryBuilder> setUp = null)
+        {
+            SpecificationSummaryBuilder specsBuilder = new SpecificationSummaryBuilder();
+
+            setUp?.Invoke(specsBuilder);
+
+            return specsBuilder.Build();
+        }
+
         private Dataset NewDataset(Action<DatasetBuilder> setUp = null)
         {
             DatasetBuilder datasetBuilder = new DatasetBuilder();
@@ -4128,6 +4165,16 @@ namespace CalculateFunding.Services.Datasets.Services
 
             return datasetRelationshipVersionBuilder.Build();
         }
+
+        private PublishedSpecificationConfiguration NewPublishedSpecificationConfiguration(Action<PublishedSpecificationConfigurationBuilder> setUp = null)
+        {
+            PublishedSpecificationConfigurationBuilder builder = new PublishedSpecificationConfigurationBuilder();
+
+            setUp?.Invoke(builder);
+
+            return builder.Build();
+        }
+
 
         private string NewRandomString() => new RandomString();
         private uint NewRandomUint() => (uint)new RandomNumberBetween(1, int.MaxValue);

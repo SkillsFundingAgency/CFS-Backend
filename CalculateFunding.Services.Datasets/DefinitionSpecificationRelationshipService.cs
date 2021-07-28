@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
@@ -241,7 +239,7 @@ namespace CalculateFunding.Services.Datasets
                         EntityType = "Specification",
                         Message = "New Csv file generation triggered by dataset relationship spec"
                     },
-                    Properties = new Dictionary<string, string> { { "specification-id", specification.Id }, 
+                    Properties = new Dictionary<string, string> { { "specification-id", specification.Id },
                         { "relationship-id", relationshipVersion.RelationshipId } },
                     CorrelationId = correlationId
                 });
@@ -387,8 +385,9 @@ namespace CalculateFunding.Services.Datasets
             selectDatasourceModel.RelationshipName = relationship.Name;
             selectDatasourceModel.SpecificationId = relationship.Current.Specification.Id;
             selectDatasourceModel.SpecificationName = relationship.Current.Specification.Name;
-            selectDatasourceModel.DefinitionId = relationship.Current.DatasetDefinition.Id;
-            selectDatasourceModel.DefinitionName = relationship.Current.DatasetDefinition.Name;
+            selectDatasourceModel.DefinitionId = relationship.Current.DatasetDefinition?.Id;
+            selectDatasourceModel.DefinitionName = relationship.Current.DatasetDefinition?.Name;
+            selectDatasourceModel.RelationshipType = relationship.Current.RelationshipType;
 
             IEnumerable<Dataset> datasets;
 
@@ -398,14 +397,23 @@ namespace CalculateFunding.Services.Datasets
             }
             else
             {
-                datasets = await _datasetRepository.GetDatasetsByQuery(m => m.Content.Id == relationship.Current.DatasetVersion.Id);
+                datasets = await _datasetRepository.GetDatasetsByQuery(m => m.Content.RelationshipId == relationship.Id);
+
+                ApiResponse<SpecificationSummary> sourceSpecification = await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(relationship.Current.PublishedSpecificationConfiguration.SpecificationId));
+                if (sourceSpecification == null || sourceSpecification.Content == null || sourceSpecification.StatusCode != HttpStatusCode.OK)
+                {
+                    return new PreconditionFailedResult("Source specification not found");
+                }
+
+                selectDatasourceModel.SourceSpecificationId = relationship.Current.PublishedSpecificationConfiguration.SpecificationId;
+                selectDatasourceModel.SourceSpecificationName = sourceSpecification.Content.Name;
             }
 
             if (!datasets.IsNullOrEmpty())
             {
                 if (selectDatasourceModel.Datasets == null)
                 {
-                    selectDatasourceModel.Datasets = Enumerable.Empty<DatasetVersions>();
+                    EnsureNullDatasetsReturnsEmptyArray(selectDatasourceModel);
                 }
 
                 foreach (Dataset dataset in datasets)
@@ -430,8 +438,17 @@ namespace CalculateFunding.Services.Datasets
                     });
                 }
             }
+            else if (selectDatasourceModel.Datasets == null)
+            {
+                EnsureNullDatasetsReturnsEmptyArray(selectDatasourceModel);
+            }
 
             return new OkObjectResult(selectDatasourceModel);
+        }
+
+        private static void EnsureNullDatasetsReturnsEmptyArray(SelectDatasourceModel selectDatasourceModel)
+        {
+            selectDatasourceModel.Datasets = Enumerable.Empty<DatasetVersions>();
         }
 
         public async Task<IActionResult> ToggleDatasetRelationship(string relationshipId, bool converterEnabled)

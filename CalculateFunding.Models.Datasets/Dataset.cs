@@ -12,7 +12,7 @@ namespace CalculateFunding.Models.Datasets
             int rowCount,
             DatasetChangeType changeType)
         {
-            Current = (DatasetVersion) Current.Clone();
+            Current = (DatasetVersion)Current.Clone();
             Current.Author = author;
             Current.ProviderVersionId = providerVersionId;
             Current.RowCount = rowCount;
@@ -23,6 +23,11 @@ namespace CalculateFunding.Models.Datasets
         }
 
         public DatasetDefinitionVersion Definition { get; set; }
+
+        /// <summary>
+        /// Associated RelationshipId for ReleaseData. There is a 1-1 mapping between the dataset and the relationship
+        /// </summary>
+        public string RelationshipId { get; set; }
 
         public string Description { get; set; }
     }
