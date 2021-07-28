@@ -278,10 +278,19 @@ namespace CalculateFunding.Api.Specs.Controllers
             return await _specService.SetProfileVariationPointers(specificationId, specificationProfileVariationPointerModels);
         }
 
+        [Route("/api/specs/{specificationId}/mergeprofilevariationpointers")]
+        [HttpPatch]
+        [Produces(typeof(HttpStatusCode))]
+        public async Task<IActionResult> MergeProfileVariationPointers([FromRoute] string specificationId,
+           [FromBody] IEnumerable<SpecificationProfileVariationPointerModel> specificationProfileVariationPointerModels)
+        {
+            return await _specService.SetProfileVariationPointers(specificationId, specificationProfileVariationPointerModels, true);
+        }
+
         [Route("/api/specs/{specificationId}/profilevariationpointer")]
         [HttpPut]
         [Produces(typeof(HttpStatusCode))]
-        public async Task<IActionResult> SetProfileVariationPointer([FromRoute]string specificationId,
+        public async Task<IActionResult> MergeProfileVariationPointer([FromRoute]string specificationId,
            [FromBody]SpecificationProfileVariationPointerModel specificationProfileVariationPointerModel)
         {
             return await _specService.SetProfileVariationPointer(specificationId, specificationProfileVariationPointerModel);

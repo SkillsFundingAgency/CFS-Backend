@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Policies;
@@ -152,7 +153,9 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task SetProfileVariationPointers_ValidParametersPassed_ReturnsOKAndSetsSetProfileVariationPointersOnSpec()
+        [DataRow(false)]
+        [DataRow(true)]
+        public async Task SetProfileVariationPointers_ValidParametersPassed_ReturnsOKAndSetsSetProfileVariationPointersOnSpec(bool merge)
         {
             //Arrange
             ILogger logger = CreateLogger();
@@ -165,7 +168,19 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 Current = new SpecificationVersion
                 {
                     ExternalPublicationDate = DateTimeOffset.Now.Date,
-                    EarliestPaymentAvailableDate = DateTimeOffset.Now.Date
+                    EarliestPaymentAvailableDate = DateTimeOffset.Now.Date,
+                    ProfileVariationPointers = new ProfileVariationPointer[]
+                    {
+                        new ProfileVariationPointer
+                        {
+                            FundingLineId = "FundingLineId",
+                            FundingStreamId = "FundingStreamId",
+                            Occurrence = 2,
+                            PeriodType = "PeriodType",
+                            TypeValue = "TypeValue",
+                            Year = 2019
+                        }
+                    }
                 }
             };
 
@@ -207,7 +222,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 policiesApiClient: policiesApiClient);
 
             // Act
-            IActionResult result = await service.SetProfileVariationPointers(specificationId, specificationProfileVariationPointerModels);
+            IActionResult result = await service.SetProfileVariationPointers(specificationId, specificationProfileVariationPointerModels, merge);
 
             //Assert
             result
@@ -224,10 +239,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             var profileVariationPointers = clonedSpecificationVersion?
                 .ProfileVariationPointers;
 
-            profileVariationPointers
-                .Should()
-                .NotBeNull()
-                .Equals(new ProfileVariationPointer[]{ new ProfileVariationPointer
+            List<ProfileVariationPointer> expectedProfileVariationPointers = new List<ProfileVariationPointer>{ new ProfileVariationPointer
                 {
                     FundingLineId = "FundingLineId",
                     FundingStreamId = "FundingStreamId",
@@ -235,9 +247,29 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                     PeriodType = "PeriodType",
                     TypeValue = "TypeValue",
                     Year = 2019
-                } });
-        }
+                } };
 
+            if (merge)
+            {
+                expectedProfileVariationPointers.Add(new ProfileVariationPointer
+                {
+                    FundingLineId = "FundingLineId",
+                    FundingStreamId = "FundingStreamId",
+                    Occurrence = 2,
+                    PeriodType = "PeriodType",
+                    TypeValue = "TypeValue",
+                    Year = 2019
+                });
+            }
+
+            profileVariationPointers
+                .Should()
+                .NotBeNull();
+
+            profileVariationPointers
+                .Should()
+                .BeEquivalentTo(expectedProfileVariationPointers);
+        }
 
         [TestMethod]
         public async Task SetProfileVariationPointer_ValidParametersPassed_ReturnsOKAndSetsSetProfileVariationPointersOnSpec()

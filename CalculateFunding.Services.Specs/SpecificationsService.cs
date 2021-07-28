@@ -1588,7 +1588,13 @@ WHERE   s.documentType = @DocumentType",
                     .Concat(
                         profileVariationPointers
                             .Where(_ =>
-                                !newSpecificationVersion.ProfileVariationPointers.Any(pvp => pvp.FundingLineId == _.FundingLineId && pvp.FundingStreamId == _.FundingStreamId))).ToList();
+                                !newSpecificationVersion.ProfileVariationPointers.Any(pvp => 
+                                    pvp.FundingLineId == _.FundingLineId && 
+                                    pvp.FundingStreamId == _.FundingStreamId && 
+                                    pvp.Occurrence == _.Occurrence && 
+                                    pvp.PeriodType == _.PeriodType &&
+                                    pvp.Year == _.Year &&
+                                    pvp.TypeValue == _.TypeValue))).ToList();
             }
 
             newSpecificationVersion.Version++;
