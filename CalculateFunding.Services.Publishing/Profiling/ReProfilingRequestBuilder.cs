@@ -61,7 +61,7 @@ namespace CalculateFunding.Services.Publishing.Profiling
                 providerId,
                 fundingLineCode);
 
-            int paidUpToIndex = GetProfilePeriodIndexForVariationPointer(profileVariationPointer, orderedProfilePeriodsForFundingLine);
+            int paidUpToIndex = GetProfilePeriodIndexForVariationPointer(profileVariationPointer, orderedProfilePeriodsForFundingLine, providerId);
 
             IEnumerable<ExistingProfilePeriod> existingProfilePeriods = BuildExistingProfilePeriods(orderedProfilePeriodsForFundingLine, paidUpToIndex);
 
@@ -137,7 +137,7 @@ namespace CalculateFunding.Services.Publishing.Profiling
                                                                     _.FundingStreamId == fundingStreamId);
         }
             
-        protected int GetProfilePeriodIndexForVariationPointer(ProfileVariationPointer variationPointer, ProfilePeriod[] profilePeriods)
+        protected int GetProfilePeriodIndexForVariationPointer(ProfileVariationPointer variationPointer, ProfilePeriod[] profilePeriods, string providerId)
         {
             if (variationPointer == null)
             {
@@ -151,7 +151,7 @@ namespace CalculateFunding.Services.Publishing.Profiling
             if (variationPointerIndex == -1)
             {
                 throw new ArgumentOutOfRangeException(nameof(variationPointer),
-                    $"Did not locate profile period corresponding to variation pointer for funding line id {variationPointer.FundingLineId}");
+                    $"Did not locate profile period corresponding to variation pointer for funding line id {variationPointer.FundingLineId} against provider: {providerId}");
             }
 
             return variationPointerIndex;

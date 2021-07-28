@@ -66,8 +66,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
             string fundingConfigurationId = NewRandomString();
             OrganisationGroupTypeIdentifier groupTypeIdentifier = OrganisationGroupTypeIdentifier.UKPRN;
 
-            string summaryErrorMessage = "Provider not funded";
-            string detailedErrorMessage = $"Provider {providerId2} not configured to be a member of any group.";
+
+            string errorMessage = $"Provider {providerId2} not configured to be a member of any group.";
 
             PublishedProvider publishedProvider = NewPublishedProvider(_ => _
                 .WithCurrent(NewPublishedProviderVersion(pv => pv.WithFundingStreamId(fundingStreamId)
@@ -129,7 +129,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
                 .First()
                 .DetailedErrorMessage
                 .Should()
-                .Be(detailedErrorMessage);
+                .Be(errorMessage);
 
             publishedProvider
                 .Current
@@ -137,7 +137,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
                 .First()
                 .SummaryErrorMessage
                 .Should()
-                .Be(summaryErrorMessage);
+                .Be(errorMessage);
         }
 
         private async Task WhenErrorsAreDetectedOnThePublishedProvider(PublishedProvider publishedProvider,

@@ -23,11 +23,12 @@ namespace CalculateFunding.Services.Publishing.Errors
 
             if (organisationGroups.IsNullOrEmpty())
             {
+                string errorMessage = $"Provider {publishedProvider.Current.ProviderId} not configured to be a member of any group.";
                 errorCheck.AddError(new PublishedProviderError
                 {
                     Type = PublishedProviderErrorType.ProviderNotFunded,
-                    DetailedErrorMessage = $"Provider {publishedProvider.Current.ProviderId} not configured to be a member of any group.",
-                    SummaryErrorMessage = "Provider not funded",
+                    DetailedErrorMessage = errorMessage,
+                    SummaryErrorMessage = errorMessage,
                     FundingStreamId = publishedProvider.Current.FundingStreamId
                 });
             }
