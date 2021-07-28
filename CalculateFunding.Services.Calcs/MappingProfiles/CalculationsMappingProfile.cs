@@ -4,6 +4,7 @@ using CalculateFunding.Models.Datasets.Schema;
 using GraphCalculation = CalculateFunding.Models.Graph.Calculation;
 using GraphFundingLine = CalculateFunding.Models.Graph.FundingLine;
 using CalcEngineModels = CalculateFunding.Common.ApiClient.CalcEngine.Models;
+using JobsModels = CalculateFunding.Common.ApiClient.Jobs.Models;
 
 namespace CalculateFunding.Services.Calcs.MappingProfiles
 {
@@ -36,8 +37,14 @@ namespace CalculateFunding.Services.Calcs.MappingProfiles
             CreateMap<CalculationSummaryModel, CalcEngineModels.CalculationSummaryModel>();
             CreateMap<Common.ApiClient.Specifications.Models.SpecificationSummary, Models.Specs.SpecificationSummary>();
 
+            CreateJobsMappingProfiles();
             CreateDatasetsMappingProfiles();
             CreateGraphMappingProfiles();
+        }
+
+        private void CreateJobsMappingProfiles()
+        {
+            CreateMap<TriggerModel, JobsModels.Trigger>();
         }
 
         private void CreateDatasetsMappingProfiles()

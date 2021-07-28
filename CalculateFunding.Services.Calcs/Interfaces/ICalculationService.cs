@@ -52,7 +52,14 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 
         Task<IActionResult> GetCalculationByName(CalculationGetModel model);
 
-        Task<IActionResult> CreateAdditionalCalculation(string specificationId, CalculationCreateModel model, Reference author, string correlationId);
+        Task<IActionResult> CreateAdditionalCalculation(
+            string specificationId, 
+            CalculationCreateModel model, 
+            Reference author, 
+            string correlationId,
+            bool skipCalcRun = false,
+            bool skipQueueCodeContextCacheUpdate = false,
+            bool overrideCreateModelAuthor = false);
 
         Task<IActionResult> GetCalculationsMetadataForSpecification(string specificationId);
 
@@ -71,5 +78,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         Task<BuildProject> UpdateBuildProject(SpecModel.SpecificationSummary specificationSummary);
 
         Task<IActionResult> QueueApproveAllSpecificationCalculations(string specificationId, Reference author, string correlationId);
+
+        Task<IActionResult> QueueCalculationRun(string specificationId, QueueCalculationRunModel initiateCalculationRunModel);
     }
 }

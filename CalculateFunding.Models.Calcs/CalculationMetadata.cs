@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Models.Versioning;
+﻿using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Versioning;
 
 namespace CalculateFunding.Models.Calcs
 {

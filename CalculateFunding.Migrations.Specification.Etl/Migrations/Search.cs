@@ -1,7 +1,4 @@
 ﻿using CalculateFunding.Common.Utility;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CalculateFunding.Migrations.Specification.Etl.Migrations
 {

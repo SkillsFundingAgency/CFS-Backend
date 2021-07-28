@@ -7,29 +7,24 @@ using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Common.ApiClient.Calcs.Models.Code;
 using CalculateFunding.Common.ApiClient.Models;
-using CalculateFunding.Common.ApiClient.Providers.Models;
-using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Calcs.ObsoleteItems;
 using BuildProject = CalculateFunding.Common.ApiClient.Calcs.Models.BuildProject;
 using Calculation = CalculateFunding.Common.ApiClient.Calcs.Models.Calculation;
 using CalculationCreateModel = CalculateFunding.Common.ApiClient.Calcs.Models.CalculationCreateModel;
 using CalculationEditModel = CalculateFunding.Common.ApiClient.Calcs.Models.CalculationEditModel;
 using CalculationFundingLine = CalculateFunding.Common.ApiClient.Calcs.Models.CalculationFundingLine;
 using CalculationMetadata = CalculateFunding.Common.ApiClient.Calcs.Models.CalculationMetadata;
-using CalculationResult = CalculateFunding.Models.Calcs.CalculationResult;
 using CalculationVersion = CalculateFunding.Common.ApiClient.Calcs.Models.CalculationVersion;
 using DatasetRelationshipSummary = CalculateFunding.Common.ApiClient.Calcs.Models.DatasetRelationshipSummary;
 using ObsoleteItem = CalculateFunding.Common.ApiClient.Calcs.Models.ObsoleteItem;
 using PreviewRequest = CalculateFunding.Common.ApiClient.Calcs.Models.PreviewRequest;
 using PreviewResponse = CalculateFunding.Common.ApiClient.Calcs.Models.PreviewResponse;
 using TemplateMapping = CalculateFunding.Common.ApiClient.Calcs.Models.TemplateMapping;
+using QueueCalculationRunModel = CalculateFunding.Common.ApiClient.Calcs.Models.QueueCalculationRunModel;
 
 namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 {
     public class CalculationsInMemoryClient : ICalculationsApiClient
     {
-        private Dictionary<string, Dictionary<string, CalculationResult>> _calculations = new Dictionary<string, Dictionary<string, CalculationResult>>();
-        private Dictionary<string, Dictionary<string, Provider>> _scopedProviders = new Dictionary<string, Dictionary<string, Provider>>();
         private IEnumerable<CalculationMetadata> _calculationMetadata;
         public TemplateMapping Mapping { get; private set; }
 
@@ -218,6 +213,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         }
 
         public Task<ApiResponse<Job>> QueueCalculationRun(string specificationId, QueueCalculationRunModel model)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ValidatedApiResponse<Calculation>> CreateCalculation(string specificationId, CalculationCreateModel calculationCreateModel, bool skipCalcRun, bool skipQueueCodeContextCacheUpdate, bool overrideCreateModelAuthor)
         {
             throw new NotImplementedException();
         }

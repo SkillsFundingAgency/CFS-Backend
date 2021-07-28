@@ -130,6 +130,7 @@ namespace CalculateFunding.Migrations.Specifications.Etl.Migrations
 
                                 if (item == null)
                                 {
+                                    // no FundingPeriod
                                     return false;
                                 }
 
@@ -147,6 +148,7 @@ namespace CalculateFunding.Migrations.Specifications.Etl.Migrations
 
                                 if (item == null)
                                 {
+                                    // no ProviderVersionMetadata
                                     return false;
                                 }
 
@@ -205,6 +207,7 @@ namespace CalculateFunding.Migrations.Specifications.Etl.Migrations
 
                                     if (item == null)
                                     {
+                                        // no DatasetDefinition
                                         return false;
                                     }
                                 }

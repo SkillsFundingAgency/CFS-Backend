@@ -52,12 +52,11 @@ using ApiClientTableDefinition = CalculateFunding.Common.ApiClient.DataSets.Mode
 using Calculation = CalculateFunding.Models.Calcs.Calculation;
 using CalculationResponseModel = CalculateFunding.Models.Calcs.CalculationResponseModel;
 using CalculationType = CalculateFunding.Models.Calcs.CalculationType;
-using Job = CalculateFunding.Common.ApiClient.Jobs.Models.Job;
+using ApiClientJob = CalculateFunding.Common.ApiClient.Jobs.Models.Job;
 using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
-using Trigger = CalculateFunding.Common.ApiClient.Jobs.Models.Trigger;
 using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
 using CalculateFunding.Services.CodeGeneration.VisualBasic.Type.Interfaces;
-using Microsoft.Net.Http.Headers;
+using AutoMapper;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -101,6 +100,7 @@ namespace CalculateFunding.Services.Calcs
         private readonly ICodeContextCache _codeContextCache;
         private readonly ITypeIdentifierGenerator _typeIdentifierGenerator;
         private readonly IObsoleteItemCleanup _obsoleteItemCleanup;
+        private readonly IMapper _mapper;
 
         public CalculationService(
             ICalculationsRepository calculationsRepository,
@@ -127,7 +127,8 @@ namespace CalculateFunding.Services.Calcs
             IResultsApiClient resultsApiClient,
             IDatasetsApiClient datasetsApiClient,
             IApproveAllCalculationsJobAction approveAllCalculationsJobAction,
-            IObsoleteItemCleanup obsoleteItemCleanup)
+            IObsoleteItemCleanup obsoleteItemCleanup,
+            IMapper mapper)
         {
             Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -162,6 +163,7 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(resultsApiClient, nameof(resultsApiClient));
             Guard.ArgumentNotNull(datasetsApiClient, nameof(datasetsApiClient));
             Guard.ArgumentNotNull(obsoleteItemCleanup, nameof(obsoleteItemCleanup));
+            Guard.ArgumentNotNull(mapper, nameof(mapper));
 
             _calculationsRepository = calculationsRepository;
             _logger = logger;
@@ -197,6 +199,7 @@ namespace CalculateFunding.Services.Calcs
             _resultsApiClientPolicy = resiliencePolicies?.ResultsApiClient;
             _datasetsApiClient = datasetsApiClient;
             _datasetsApiClientPolicy = resiliencePolicies?.DatasetsApiClient;
+            _mapper = mapper;
 
             _typeIdentifierGenerator = new VisualBasicTypeIdentifierGenerator();
         }
@@ -416,7 +419,27 @@ namespace CalculateFunding.Services.Calcs
             return new OkObjectResult(calculations);
         }
 
-        public async Task<IActionResult> CreateAdditionalCalculation(string specificationId, CalculationCreateModel model, Reference author, string correlationId)
+        public async Task<IActionResult> QueueCalculationRun(string specificationId, QueueCalculationRunModel model)
+        {
+            Trigger trigger = _mapper.Map<Trigger>(model.Trigger);
+
+            ApiClientJob jobResponse = await _instructionAllocationJobCreation.SendInstructAllocationsToJobService(specificationId,
+                model.Author?.Id,
+                model.Author?.Name,
+                trigger,
+                model.CorrelationId);
+
+            return new OkObjectResult(jobResponse);
+        }
+
+        public async Task<IActionResult> CreateAdditionalCalculation(
+            string specificationId, 
+            CalculationCreateModel model, 
+            Reference author, 
+            string correlationId, 
+            bool skipCalcRun = false,
+            bool skipQueueCodeContextCacheUpdate = false,
+            bool overrideCreateModelAuthor = false)
         {
             ApiResponse<SpecificationSummary> specificationApiResponse = await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId));
 
@@ -431,9 +454,10 @@ namespace CalculateFunding.Services.Calcs
                 model,
                 CalculationNamespace.Additional,
                 CalculationType.Additional,
-                author,
+                overrideCreateModelAuthor ? model.Author : author,
                 correlationId,
-                CalculationDataType.Decimal);
+                CalculationDataType.Decimal,
+                initiateCalcRun: !skipCalcRun);
 
             if (createCalculationResponse.Succeeded)
             {
@@ -441,7 +465,10 @@ namespace CalculateFunding.Services.Calcs
 
                 await UpdateCalculationInCache(calculation.ToResponseModel());
 
-                await _codeContextCache.QueueCodeContextCacheUpdate(specificationId);
+                if (!skipQueueCodeContextCacheUpdate)
+                {
+                    await _codeContextCache.QueueCodeContextCacheUpdate(specificationId);
+                }
 
                 return new OkObjectResult(createCalculationResponse.Calculation.ToResponseModel());
             }

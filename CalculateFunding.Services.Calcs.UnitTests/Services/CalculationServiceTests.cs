@@ -13,6 +13,7 @@ using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs.Analysis.ObsoleteItems;
 using CalculateFunding.Services.Calcs.Interfaces;
+using CalculateFunding.Services.Calcs.MappingProfiles;
 using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Core.Interfaces;
 using FluentValidation;
@@ -114,7 +115,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 resultsApiClient ?? Substitute.For<IResultsApiClient>(),
                 datasetsApiClient ?? Substitute.For<IDatasetsApiClient>(),
                 approveAllCalculationsJobAction ?? CreateApproveAllCalculationsJobAction(),
-                _obsoleteItemCleanUp.Object);
+                _obsoleteItemCleanUp.Object,
+                CreateMapper());
         }
 
         private static IApproveAllCalculationsJobAction CreateApproveAllCalculationsJobAction()
@@ -166,6 +168,7 @@ namespace CalculateFunding.Services.Calcs.Services
         {
             MapperConfiguration resultsConfig = new MapperConfiguration(c =>
             {
+                c.AddProfile<CalculationsMappingProfile>();
             });
 
             return resultsConfig.CreateMapper();

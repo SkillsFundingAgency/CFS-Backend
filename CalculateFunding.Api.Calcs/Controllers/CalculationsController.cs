@@ -235,12 +235,34 @@ namespace CalculateFunding.Api.Calcs.Controllers
         [HttpPost]
         [Produces(typeof(CalculationResponseModel))]
         public async Task<IActionResult> CreateAdditionalCalculation([FromRoute] string specificationId,
-            [FromBody] CalculationCreateModel model)
-        {
-            HttpRequest httpRequest = ControllerContext.HttpContext.Request;
+            [FromBody] CalculationCreateModel model) =>
+            await _calcsService.CreateAdditionalCalculation(specificationId, model, ControllerContext.HttpContext.Request.GetUserOrDefault(), ControllerContext.HttpContext.Request.GetCorrelationId());
 
-            return await _calcsService.CreateAdditionalCalculation(specificationId, model, httpRequest.GetUserOrDefault(), httpRequest.GetCorrelationId());
-        }
+        [Route("api/calcs/specifications/{specificationId}/calculations/{skipCalcRun}/{skipQueueCodeContextCacheUpdate}/{overrideCreateModelAuthor}")]
+        [HttpPost]
+        [Produces(typeof(CalculationResponseModel))]
+        public async Task<IActionResult> CreateAdditionalCalculation(
+            [FromRoute] string specificationId,
+            [FromBody] CalculationCreateModel model,
+            [FromRoute] bool skipCalcRun,
+            [FromRoute] bool skipQueueCodeContextCacheUpdate,
+            [FromRoute] bool overrideCreateModelAuthor)
+            => await _calcsService.CreateAdditionalCalculation(
+                specificationId, 
+                model, 
+                ControllerContext.HttpContext.Request.GetUserOrDefault(), 
+                ControllerContext.HttpContext.Request.GetCorrelationId(),
+                skipCalcRun: skipCalcRun,
+                skipQueueCodeContextCacheUpdate: skipQueueCodeContextCacheUpdate,
+                overrideCreateModelAuthor: overrideCreateModelAuthor);
+
+        [Route("api/calcs/specifications/{specificationId}/calculations/queue-calculation-run")]
+        [HttpPost]
+        [Produces(typeof(Job))]
+        public async Task<IActionResult> QueueCalculationRun([FromRoute] string specificationId,
+            [FromBody] QueueCalculationRunModel model)
+            => await _calcsService.QueueCalculationRun(specificationId, model);
+
 
         [Route("api/calcs/specifications/{specificationId}/templates/{fundingStreamId}")]
         [HttpPut]

@@ -1,5 +1,5 @@
-﻿using Newtonsoft.Json;
-using System.Collections.Generic;
+﻿using CalculateFunding.Common.Models;
+using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Calcs
 {
@@ -27,5 +27,7 @@ namespace CalculateFunding.Models.Calcs
         public string SourceCode { get; set; }
 
         public string Description { get; set; }
+
+        public Reference Author { get; set; }
     }
 }

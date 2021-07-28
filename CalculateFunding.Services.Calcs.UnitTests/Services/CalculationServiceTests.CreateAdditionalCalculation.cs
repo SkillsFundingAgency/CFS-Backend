@@ -111,8 +111,12 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Error(Arg.Is(errorMessage));
         }
 
-        [TestMethod]
-        public async Task CreateAdditionalCalculation_GivenCalcSaves_ReturnsOKObjectResult()
+        [DataTestMethod]
+        [DataRow(true, true)]
+        [DataRow(true, false)]
+        [DataRow(false, true)]
+        [DataRow(false, false)]
+        public async Task CreateAdditionalCalculation_GivenCalcSaves_ReturnsOKObjectResult(bool skipQueueCodeContextCacheUpdate, bool skipCalcRun)
         {
             //Arrange
             string cacheKey = $"{CacheKeys.CalculationsMetadataForSpecification}{SpecificationId}";
@@ -180,7 +184,13 @@ namespace CalculateFunding.Services.Calcs.Services
                    .SaveVersion(Arg.Do<CalculationVersion>(m => savedCalculationVersion = m));
 
             //Act
-            IActionResult result = await calculationService.CreateAdditionalCalculation(SpecificationId, model, author, CorrelationId);
+            IActionResult result = await calculationService.CreateAdditionalCalculation(
+                SpecificationId, 
+                model, 
+                author, 
+                CorrelationId,
+                skipCalcRun: skipCalcRun,
+                skipQueueCodeContextCacheUpdate: skipQueueCodeContextCacheUpdate);
 
             //Assert
             result
@@ -189,21 +199,23 @@ namespace CalculateFunding.Services.Calcs.Services
 
             Calculation calculation = (result as OkObjectResult).Value as Calculation;
 
-            await
-               jobManagement
+            if (!skipCalcRun)
+            {
+                await
+                   jobManagement
+                       .Received(1)
+                       .QueueJob(Arg.Is<JobCreateModel>(
+                           m =>
+                               m.InvokerUserDisplayName == Username &&
+                               m.InvokerUserId == UserId &&
+                               m.JobDefinitionId == JobConstants.DefinitionNames.CreateInstructAllocationJob &&
+                               m.Properties["specification-id"] == SpecificationId
+                           ));
+            
+                logger
                    .Received(1)
-                   .QueueJob(Arg.Is<JobCreateModel>(
-                       m =>
-                           m.InvokerUserDisplayName == Username &&
-                           m.InvokerUserId == UserId &&
-                           m.JobDefinitionId == JobConstants.DefinitionNames.CreateInstructAllocationJob &&
-                           m.Properties["specification-id"] == SpecificationId
-                       ));
-
-            logger
-               .Received(1)
-               .Information(Arg.Is($"New job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' created with id: 'job-id-1'"));
-
+                   .Information(Arg.Is($"New job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' created with id: 'job-id-1'"));
+            }
 
             await
                 versionRepository
@@ -252,27 +264,17 @@ namespace CalculateFunding.Services.Calcs.Services
                     }
                 });
 
-            //!string.IsNullOrWhiteSpace(m.First().Id) &&
-            //m.First().Name == model.Name &&
-            //m.First().SpecificationId == SpecificationId &&
-            //m.First().SpecificationName == model.SpecificationName &&
-            //m.First().ValueType == model.ValueType.ToString() &&
-            //m.First().CalculationType == CalculationType.Additional.ToString() &&
-            //m.First().Namespace == CalculationNamespace.Additional.ToString() &&
-            //m.First().FundingStreamId == model.FundingStreamId &&
-            //m.First().FundingStreamName == model.FundingStreamName &&
-            //m.First().WasTemplateCalculation == false &&
-            //m.First().Description == model.Description &&
-            //m.First().Status == calculation.Current.PublishStatus.ToString()
-
             await
                 cacheProvider
                     .Received(1)
                     .RemoveAsync<List<CalculationMetadata>>(Arg.Is(cacheKey));
 
-            await codeContextCache
-                .Received(1)
-                .QueueCodeContextCacheUpdate(SpecificationId);
+            if (!skipQueueCodeContextCacheUpdate)
+            {
+                await codeContextCache
+                    .Received(1)
+                    .QueueCodeContextCacheUpdate(SpecificationId);
+            }
         }
 
         [TestMethod]
