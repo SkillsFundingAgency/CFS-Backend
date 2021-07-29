@@ -24,7 +24,7 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
             int variationPointerIndex = GetVariationPointerIndex(orderedRefreshProfilePeriods, orderedExistingProfilePeriods, context);
             RetainPaidProfilePeriodValues(variationPointerIndex, orderedExistingProfilePeriods, orderedRefreshProfilePeriods);
 
-            decimal carryOverAmount = AdjustFuturePeriodFunidngLineValues(orderedExistingProfilePeriods, variationPointerIndex, reProfileRequest, orderedRefreshProfilePeriods);
+            decimal carryOverAmount = AdjustFuturePeriodFundingLineValues(orderedExistingProfilePeriods, variationPointerIndex, reProfileRequest, orderedRefreshProfilePeriods);
 
             return new ReProfileStrategyResult
             {
@@ -34,7 +34,7 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
             };
         }
 
-        private static decimal AdjustFuturePeriodFunidngLineValues(IExistingProfilePeriod[] orderedExistingProfilePeriods,
+        private static decimal AdjustFuturePeriodFundingLineValues(IExistingProfilePeriod[] orderedExistingProfilePeriods,
             int variationPointerIndex,
             ReProfileRequest reProfileRequest,
             IProfilePeriod[] orderedRefreshProfilePeriods)
@@ -44,7 +44,7 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
             
             decimal amountAlreadyPaid = orderedExistingProfilePeriods.Take(variationPointerIndex).Sum(x => x.GetProfileValue());
             decimal amountThatShouldHaveBeenPaid = orderedExistingProfilePeriods.Take(variationPointerIndex)
-                                                    .Sum(x => CalculateAmountThatShouldHaveBeenPaid(existingFundingLineTotal, x.GetProfileValue(), fundingLineTotal));
+                                                    .Sum(x => CalculateAmountThatShouldHaveBeenPaid(existingFundingLineTotal, x.GetProfileValue(), fundingLineTotal, orderedExistingProfilePeriods.Length));
             decimal amountToBeAdjustedInNextPeriod = amountThatShouldHaveBeenPaid - amountAlreadyPaid;
 
             decimal remaingAmount = fundingLineTotal - amountAlreadyPaid;
@@ -61,8 +61,14 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
             return 0M;
         }
 
-        private static decimal CalculateAmountThatShouldHaveBeenPaid(decimal existingFundingLineTotal, decimal existingProfileValue, decimal fundingLineTotal)
+        private static decimal CalculateAmountThatShouldHaveBeenPaid(decimal existingFundingLineTotal, decimal existingProfileValue, decimal fundingLineTotal, int numberofPeriods)
         {
+            if (existingFundingLineTotal == 0)
+            {
+                // if the existing funding total is zero then treat as a flat profile
+                return (1M / numberofPeriods) * fundingLineTotal;
+            }
+
             // Calculating same percentages
             return (existingProfileValue / existingFundingLineTotal) * fundingLineTotal;
         }
@@ -89,7 +95,7 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
             for (int profilePeriod = variationPointerIndex; profilePeriod < orderedRefreshProfilePeriods.Length; profilePeriod++)
             {
                 IProfilePeriod periodToAdjust = orderedRefreshProfilePeriods[profilePeriod];
-                decimal amountThatShouldHaveBeenPaid = CalculateAmountThatShouldHaveBeenPaid(existingFundingLineTotal, periodToAdjust.GetProfileValue(), fundingLineTotal);
+                decimal amountThatShouldHaveBeenPaid = CalculateAmountThatShouldHaveBeenPaid(existingFundingLineTotal, periodToAdjust.GetProfileValue(), fundingLineTotal, orderedRefreshProfilePeriods.Length);
 
                 decimal profileValue = (profilePeriod == variationPointerIndex) ?
                     amountThatShouldHaveBeenPaid + amountToBeAdjustedInNextPeriod :

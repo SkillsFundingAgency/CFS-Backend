@@ -107,6 +107,16 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 NewDecimals(1000, 1000, 1101.86M, 1033.95M, 1033.95M),
                 0M
             };
+            // Example 8 - decimals
+            yield return new object[]
+            {
+                2,
+                NewDecimals(0, 0, 0, 0, 0),
+                3000M,
+                0M,
+                NewDecimals(0, 0, 1800M, 600M, 600M),
+                0M
+            };
         }
     }
 }
