@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Profiling;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
@@ -24,6 +25,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
     public class ReProfilingRequestBuilderTests
     {
         private Mock<ISpecificationsApiClient> _specifications;
+        private Mock<IProfilingApiClient> _profiling;
         private Mock<IPublishedFundingRepository> _publishedFunding;
 
         private ReProfilingRequestBuilder _requestBuilder;
@@ -32,13 +34,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
         public void SetUp()
         {
             _specifications = new Mock<ISpecificationsApiClient>();
+            _profiling = new Mock<IProfilingApiClient>();
             _publishedFunding = new Mock<IPublishedFundingRepository>();
             
             _requestBuilder = new ReProfilingRequestBuilder(_specifications.Object,
+                _profiling.Object,
                 _publishedFunding.Object,
                 new ResiliencePolicies
                 {
                     SpecificationsApiClient = Policy.NoOpAsync(),
+                    ProfilingApiClient = Policy.NoOpAsync(),
                     PublishedFundingRepository = Policy.NoOpAsync()
                 });
         }
@@ -121,6 +126,74 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                 .Message
                 .Should()
                 .Be($"Did not locate a funding line {fundingLineCode} on published provider for {fundingStreamId} {fundingPeriodId} {providerId}");    
+        }
+
+        [TestMethod]
+        public void GuardsAgainstNoProfilingPatternsForTheSuppliedParameters()
+        {
+            string providerId = NewRandomString();
+            string fundingStreamId = NewRandomString();
+            string fundingPeriodId = NewRandomString();
+            string fundingLineCode = NewRandomString();
+
+            GivenThePublishedProvider(fundingStreamId,
+                fundingPeriodId,
+                providerId,
+                NewPublishedProvider(_ => _.WithCurrent(NewPublisherProviderVersion(pvp =>
+                    pvp.WithFundingLines(NewFundingLine(),
+                        NewFundingLine(fl => fl.WithFundingLineCode(fundingLineCode)))))));
+
+            Func<Task<ReProfileRequest>> invocation = () => WhenTheReProfileRequestIsBuilt(NewRandomString(),
+                fundingStreamId,
+                fundingPeriodId,
+                providerId,
+                fundingLineCode,
+                NewRandomString(),
+                ProfileConfigurationType.Custom);
+
+            invocation
+                .Should()
+                .Throw<InvalidOperationException>()
+                .Which
+                .Message
+                .Should()
+                .Be($"Did not locate any profiling patterns for {fundingStreamId} {fundingPeriodId}");
+        }
+
+        [TestMethod]
+        public void GuardsAgainstNoProfilingPatternForTheSuppliedParameters()
+        {
+            string providerId = NewRandomString();
+            string fundingStreamId = NewRandomString();
+            string fundingPeriodId = NewRandomString();
+            string fundingLineCode = NewRandomString();
+
+            GivenThePublishedProvider(fundingStreamId,
+                fundingPeriodId,
+                providerId,
+                NewPublishedProvider(_ => _.WithCurrent(NewPublisherProviderVersion(pvp =>
+                    pvp.WithFundingLines(NewFundingLine(),
+                        NewFundingLine(fl => fl.WithFundingLineCode(fundingLineCode)))))));
+
+            AndTheProfilingPatterns(fundingStreamId,
+                fundingPeriodId,
+                NewFundingStreamPeriodProfilePattern());
+
+            Func<Task<ReProfileRequest>> invocation = () => WhenTheReProfileRequestIsBuilt(NewRandomString(),
+                fundingStreamId,
+                fundingPeriodId,
+                providerId,
+                fundingLineCode,
+                NewRandomString(),
+                ProfileConfigurationType.Custom);
+
+            invocation
+                .Should()
+                .Throw<InvalidOperationException>()
+                .Which
+                .Message
+                .Should()
+                .Be($"Did not locate a profiling pattern for funding line {fundingLineCode} {fundingStreamId} {fundingPeriodId}");
         }
 
         [TestMethod]
@@ -330,6 +403,105 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                 });    
         }
 
+        [TestMethod]
+        public async Task BuildsReProfileRequestsOutOfProfilePatternsWhenNoExistingFundingInformationForPublishedProviderAndVariationPointers()
+        {
+            string providerId = NewRandomString();
+            string fundingStreamId = NewRandomString();
+            string fundingPeriodId = NewRandomString();
+            string fundingLineCode = NewRandomString();
+            string specificationId = NewRandomString();
+            string profilePattern = NewRandomString();
+            decimal fundingLineTotal = NewRandomAmount();
+            bool midYear = new RandomBoolean();
+            ProfileConfigurationType profileConfigurationType = NewRandomProfileConfigurationType();
+
+            GivenThePublishedProvider(fundingStreamId,
+                fundingPeriodId,
+                providerId,
+                NewPublishedProvider(_ => _.WithCurrent(NewPublisherProviderVersion(pvp =>
+                    pvp.WithFundingLines(NewFundingLine(),
+                        NewFundingLine(fl => fl.WithFundingLineCode(fundingLineCode)))))));
+
+            AndTheProfilingPatterns(fundingStreamId,
+                fundingPeriodId,
+                NewFundingStreamPeriodProfilePattern(_ => _.WithPeriods(NewProfilePeriodPattern(pp => pp.WithDistributionPeriodId("dp1")
+                                    .WithOccurence(0)
+                                    .WithYear(2021)
+                                    .WithType(PeriodType.CalendarMonth)
+                                    .WithTypeValue("January")),
+                                    NewProfilePeriodPattern(pp => pp.WithDistributionPeriodId("dp1")
+                                        .WithOccurence(1)
+                                        .WithYear(2021)
+                                        .WithType(PeriodType.CalendarMonth)
+                                        .WithTypeValue("January")),
+                                    NewProfilePeriodPattern(pp => pp.WithDistributionPeriodId("dp1")
+                                        .WithOccurence(0)
+                                        .WithYear(2021)
+                                        .WithType(PeriodType.CalendarMonth)
+                                        .WithTypeValue("March")),
+                                    NewProfilePeriodPattern(pp => pp.WithDistributionPeriodId("dp1")
+                                        .WithOccurence(0)
+                                        .WithYear(2021)
+                                        .WithType(PeriodType.CalendarMonth)
+                                        .WithTypeValue("April"))
+                                    )
+                        .WithFundingLineId(fundingLineCode)
+                        .WithNoPatternKey()));
+
+            ReProfileRequest reProfileRequest = await WhenTheReProfileRequestIsBuilt(specificationId,
+                fundingStreamId,
+                fundingPeriodId,
+                providerId,
+                fundingLineCode,
+                profilePattern,
+                profileConfigurationType,
+                fundingLineTotal,
+                midYear);
+
+            reProfileRequest
+                .Should()
+                .BeEquivalentTo(new ReProfileRequest
+                {
+                    ConfigurationType = profileConfigurationType,
+                    FundingLineCode = fundingLineCode,
+                    ExistingFundingLineTotal = 0,
+                    FundingLineTotal = fundingLineTotal,
+                    FundingPeriodId = fundingPeriodId,
+                    FundingStreamId = fundingStreamId,
+                    ProfilePatternKey = profilePattern,
+                    MidYear = midYear,
+                    VariationPointerIndex = 0,
+                    ExistingPeriods = new[]
+                    {
+                        NewExististingProfilePeriod(_ => _.WithOccurrence(0)
+                            .WithDistributionPeriod("dp1")
+                            .WithValue(null)
+                            .WithPeriodType(PeriodType.CalendarMonth)
+                            .WithTypeValue("January")
+                            .WithYear(2021)),
+                        NewExististingProfilePeriod(_ => _.WithOccurrence(1)
+                            .WithDistributionPeriod("dp1")
+                            .WithValue(null)
+                            .WithPeriodType(PeriodType.CalendarMonth)
+                            .WithTypeValue("January")
+                            .WithYear(2021)),
+                        NewExististingProfilePeriod(_ => _.WithOccurrence(0)
+                            .WithDistributionPeriod("dp1")
+                            .WithValue(null)
+                            .WithPeriodType(PeriodType.CalendarMonth)
+                            .WithTypeValue("March")
+                            .WithYear(2021)),
+                        NewExististingProfilePeriod(_ => _.WithOccurrence(0)
+                            .WithDistributionPeriod("dp1")
+                            .WithValue(null)
+                            .WithPeriodType(PeriodType.CalendarMonth)
+                            .WithTypeValue("April")
+                            .WithYear(2021))
+                    }
+                });
+        }
+
         private async Task<ReProfileRequest> WhenTheReProfileRequestIsBuilt(string specificationId,
             string fundingStreamId,
             string fundingPeriodId,
@@ -357,6 +529,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                     fundingPeriodId,
                     providerId))
                 .ReturnsAsync(publishedProvider);
+
+        private void AndTheProfilingPatterns(string fundingStreamId,
+            string fundingPeriod,
+            FundingStreamPeriodProfilePattern fundingStreamPeriodProfilePattern)
+            => _profiling.Setup(_ => _.GetProfilePatternsForFundingStreamAndFundingPeriod(fundingStreamId,
+                fundingPeriod))
+                .ReturnsAsync(new ApiResponse<IEnumerable<FundingStreamPeriodProfilePattern>>(HttpStatusCode.OK,
+                    new[] { fundingStreamPeriodProfilePattern }));
 
         private void AndTheVariationPointers(string specificationId,
             params ProfileVariationPointer[] variationPointers)
@@ -415,6 +595,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             return publishedProviderBuilder.Build();
         }
 
+        private FundingStreamPeriodProfilePattern NewFundingStreamPeriodProfilePattern(Action<FundingStreamPeriodProfilePatternBuilder> setUp = null)
+        {
+            FundingStreamPeriodProfilePatternBuilder fundingStreamPeriodProfilePatternBuilder = new FundingStreamPeriodProfilePatternBuilder();
+
+            setUp?.Invoke(fundingStreamPeriodProfilePatternBuilder);
+
+            return fundingStreamPeriodProfilePatternBuilder.Build();
+        }
+
         private PublishedProviderVersion NewPublisherProviderVersion(Action<PublishedProviderVersionBuilder> setUp = null)
         {
             PublishedProviderVersionBuilder publishedProviderVersionBuilder = new PublishedProviderVersionBuilder();
@@ -440,6 +629,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             setUp?.Invoke(profilePeriodBuilder);
             
             return profilePeriodBuilder.Build();
+        }
+
+        private ProfilePeriodPattern NewProfilePeriodPattern(Action<ProfilePeriodPatternBuilder> setUp = null)
+        {
+            ProfilePeriodPatternBuilder profilePeriodPatternBuilder = new ProfilePeriodPatternBuilder();
+
+            setUp?.Invoke(profilePeriodPatternBuilder);
+
+            return profilePeriodPatternBuilder.Build();
         }
 
         private DistributionPeriod NewDistributionPeriod(Action<DistributionPeriodBuilder> setUp = null)
