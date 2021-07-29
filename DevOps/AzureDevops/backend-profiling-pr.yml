@@ -42,8 +42,8 @@ variables:
    value: true
  - group: 'Dotnet Core SDK Version'
  - group: 'Azure Settings Integration-v2'
- - group: 'Smoke Test Info - Integration-v2' 
- - group: 'Smoke Test KV - Integration-v2'
+ - group: 'Integration Tests Info - Integration-PR' 
+ - group: 'Integration Tests KV - Integration-PR'
  - group: 'Shared Infrastructure - Integration - v2'
  - group: 'Resource Tags test-v2 integration-v2'
  - group: 'Feature Toggles Integration-v2'
@@ -56,7 +56,7 @@ steps:
        ServiceName: ${{ variables.ServiceName }}
        ResourceGroup: $(ResourceGroup)
        azureSubscription: $(azureSubscription)
-       overrideParameters: '-environmentKey "$(EnvironmentKey)" -productVersion "pr" -appServiceLogRetentionDays "0" -sendWebLogsToStorage "false" -apiHostingPlanName $(apiHostingPlanNamePR) -keyVaultName $(keyVaultName) -sharedLogStorageName $(sharedLogStorageName) -environmentTag "$(environmentTag)" -parentBusinessTag "$(parentBusinessTag)" -portfolioTag "$(portfolioTag)" -productTag "$(productTag)" -serviceLineTag "$(serviceLineTag)" -Http5xxTH "100" -Http401TH "100" -HttpResponseTimeTH "100" -applicationInsightsName $(applicationInsightsName) -azureAdTenantId $(azureAdTenantId) -azureAdAudienceProfiling $(azureAdAudienceProfiling)'
+       overrideParameters: '-environmentKey "$(EnvironmentKey)" -productVersion "pr" -appServiceLogRetentionDays "0" -sendWebLogsToStorage "false" -apiHostingPlanName $(apiHostingPlanNamePR) -keyVaultName $(keyVaultNamePR) -sharedLogStorageName $(sharedLogStorageName) -environmentTag "$(environmentTag)" -parentBusinessTag "$(parentBusinessTag)" -portfolioTag "$(portfolioTag)" -productTag "$(productTag)" -serviceLineTag "$(serviceLineTag)" -Http5xxTH "100" -Http401TH "100" -HttpResponseTimeTH "100" -applicationInsightsName $(applicationInsightsName) -azureAdTenantId $(azureAdTenantId) -azureAdAudienceProfiling $(azureAdAudienceProfiling)'
 
  - template: templates\standard-service-pr-ci-build-prinfra.yml
    parameters:

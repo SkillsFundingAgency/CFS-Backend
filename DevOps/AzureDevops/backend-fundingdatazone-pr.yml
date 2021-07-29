@@ -34,8 +34,8 @@ variables:
    value: false
  - group: 'Dotnet Core SDK Version'
  - group: 'Azure Settings Integration-v2'
- - group: 'Smoke Test Info - Integration-v2' 
- - group: 'Smoke Test KV - Integration-v2'
+ - group: 'Integration Tests Info - Integration-PR' 
+ - group: 'Integration Tests KV - Integration-PR'
  - group: 'Shared Infrastructure - Integration - v2'
  - group: 'Resource Tags test-v2 integration-v2'
  - group: 'Feature Toggles Integration-v2'
@@ -47,7 +47,7 @@ steps:
        ServiceName: ${{ variables.ServiceName }}
        ResourceGroup: $(ResourceGroup)
        azureSubscription: $(azureSubscription)
-       overrideParameters: '-environmentKey "$(EnvironmentKey)" -productVersion "pr" -appServiceLogRetentionDays "0" -sendWebLogsToStorage "false" -enableExceptionMessages "false" -FUNCTIONS_EXTENSION_VERSION $(FUNCTIONS_EXTENSION_VERSION) -environmentTag "$(environmentTag)" -parentBusinessTag "$(parentBusinessTag)" -portfolioTag "$(portfolioTag)" -productTag "$(productTag)" -serviceLineTag "$(serviceLineTag)" -sqlServerName "$(sqlServerName)" -logAnalyticsWorkspaceName "$(logAnalyticsWorkspaceName)" -fdzDatabaseSku "S0" -Http5xxTH "100" -Http401TH "100" -HttpResponseTimeTH "100" -apiHostingPlanName $(apiHostingPlanNamePR) -functionHostingPlanName $(functionHostingPlanNamePR) -keyVaultName $(keyVaultName) -applicationInsightsName $(applicationInsightsName) -sharedLogStorageName $(sharedLogStorageName) -fdzDatabaseName $(fdzDatabaseName)'
+       overrideParameters: '-environmentKey "$(EnvironmentKey)" -productVersion "pr" -appServiceLogRetentionDays "0" -sendWebLogsToStorage "false" -environmentTag "$(environmentTag)" -parentBusinessTag "$(parentBusinessTag)" -portfolioTag "$(portfolioTag)" -productTag "$(productTag)" -serviceLineTag "$(serviceLineTag)" -sqlServerName "$(sqlServerName)" -logAnalyticsWorkspaceName "$(logAnalyticsWorkspaceName)" -fdzDatabaseSku "S0" -Http5xxTH "100" -Http401TH "100" -HttpResponseTimeTH "100" -apiHostingPlanName $(apiHostingPlanNamePR) -keyVaultName $(keyVaultNamePR) -applicationInsightsName $(applicationInsightsName) -sharedLogStorageName $(sharedLogStorageName) -fdzDatabaseName $(fdzDatabaseName)'
 
  - template: templates\standard-service-pr-ci-build-prinfra.yml
    parameters:

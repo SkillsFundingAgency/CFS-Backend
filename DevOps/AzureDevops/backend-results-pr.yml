@@ -42,8 +42,8 @@ variables:
    value: false
  - group: 'Dotnet Core SDK Version'
  - group: 'Azure Settings Integration-v2'
- - group: 'Smoke Test Info - Integration-v2' 
- - group: 'Smoke Test KV - Integration-v2'
+ - group: 'Integration Tests Info - Integration-PR' 
+ - group: 'Integration Tests KV - Integration-PR'
  - group: 'Shared Infrastructure - Integration - v2'
  - group: 'Resource Tags test-v2 integration-v2'
  - group: 'Feature Toggles Integration-v2'
@@ -55,7 +55,7 @@ steps:
        ServiceName: ${{ variables.ServiceName }}
        ResourceGroup: $(ResourceGroup)
        azureSubscription: $(azureSubscription)
-       overrideParameters: '-environmentTag "$(environmentTag)" -parentBusinessTag "$(parentBusinessTag)" -portfolioTag "$(portfolioTag)" -productTag "$(productTag)" -serviceLineTag "$(serviceLineTag)" -environmentKey "$(EnvironmentKey)" -productVersion "pr" -appServiceLogRetentionDays "0" -sendWebLogsToStorage "false" -enableExceptionMessages "false" -FUNCTIONS_EXTENSION_VERSION $(FUNCTIONS_EXTENSION_VERSION) -apiHostingPlanName $(apiHostingPlanNamePR) -functionHostingPlanName $(functionHostingPlanNamePR) -keyVaultName $(keyVaultName) -applicationInsightsName $(applicationInsightsName) -sharedLogStorageName $(sharedLogStorageName) -searchName $(searchName) -enableNewProviderCalculationResultsIndex $(EnableNewProviderCalculationResultsIndex) -disableProviderProfilingService "false" -providerProfilingApiUrl $(providerProfilingClientApiEndpoint) -Http5xxTH "100" -Http401TH "100" -HttpResponseTimeTH "100"'
+       overrideParameters: '-environmentTag "$(environmentTag)" -parentBusinessTag "$(parentBusinessTag)" -portfolioTag "$(portfolioTag)" -productTag "$(productTag)" -serviceLineTag "$(serviceLineTag)" -environmentKey "$(EnvironmentKey)" -productVersion "pr" -appServiceLogRetentionDays "0" -sendWebLogsToStorage "false" -enableExceptionMessages "false" -FUNCTIONS_EXTENSION_VERSION $(FUNCTIONS_EXTENSION_VERSION) -apiHostingPlanName $(apiHostingPlanNamePR) -functionHostingPlanName $(functionHostingPlanNamePR) -keyVaultName $(keyVaultNamePR) -applicationInsightsName $(applicationInsightsName) -sharedLogStorageName $(sharedLogStorageName) -searchName $(searchName) -enableNewProviderCalculationResultsIndex $(EnableNewProviderCalculationResultsIndex) -disableProviderProfilingService "false" -providerProfilingApiUrl $(providerProfilingClientApiEndpoint) -Http5xxTH "100" -Http401TH "100" -HttpResponseTimeTH "100"'
 
  - template: templates\standard-service-pr-ci-build-prinfra.yml
    parameters:
