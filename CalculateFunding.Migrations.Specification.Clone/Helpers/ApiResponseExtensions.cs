@@ -11,6 +11,8 @@ namespace CalculateFunding.Migrations.Specification.Clone.Helpers
         {
             if (apiResponse.StatusCode != HttpStatusCode.OK)
             {
+                errorMessage = $"ErrorMessage={errorMessage} StatusCode={apiResponse.StatusCode}";
+
                 logger.Error(errorMessage);
                 throw new Exception(errorMessage);
             }

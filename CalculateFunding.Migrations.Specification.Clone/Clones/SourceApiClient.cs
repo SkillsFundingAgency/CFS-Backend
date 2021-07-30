@@ -70,7 +70,7 @@ namespace CalculateFunding.Migrations.Specification.Clone.Clones
         {
             ApiResponse<SpecificationSummary> specificationSummaryResponse =
                 await _specificationsPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId));
-            specificationSummaryResponse.ValidateApiResponse(_logger, $"Specification={specificationId} not found");
+            specificationSummaryResponse.ValidateApiResponse(_logger, $"Error while retrieving SpecificationId={specificationId} summary.");
             return specificationSummaryResponse.Content;
         }
 
@@ -78,7 +78,7 @@ namespace CalculateFunding.Migrations.Specification.Clone.Clones
         {
             ApiResponse<FundingPeriod> targetFundingPeriodResponse =
                 await _policiesPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingPeriodById(fundingPeriodId));
-            targetFundingPeriodResponse.ValidateApiResponse(_logger, $"FundingPeriodId={fundingPeriodId} not found");
+            targetFundingPeriodResponse.ValidateApiResponse(_logger, $"Error while retrieving FundingPeriodId={fundingPeriodId}");
             return targetFundingPeriodResponse.Content;
         }
 
