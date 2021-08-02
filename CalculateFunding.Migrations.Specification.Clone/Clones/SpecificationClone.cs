@@ -89,86 +89,6 @@ namespace CalculateFunding.Migrations.Specification.Clone.Clones
             await ThenTheJobSucceeds(assignTemplateCalcJobSummary.JobId, $"Expected {nameof(JobConstants.DefinitionNames.AssignTemplateCalculationsJob)} to complete and succeed.");
             _logger.Information($"{nameof(JobConstants.DefinitionNames.AssignTemplateCalculationsJob)} job await finished at {DateTime.UtcNow}");
 
-            _logger.Information($"Retrieving original specification calculations.");
-
-            IEnumerable<Calculation> sourceCalculations = await _sourceDataOperations.GetCalculationsForSpecification(specificationId);
-
-            _logger.Information($"Retrieved {sourceCalculations.Count()} calculations.");
-
-            // Ensure changes on template calculations reflected to cloned specification calculations
-            IEnumerable<Calculation> templateCalculations = sourceCalculations.Where(_ => _.CalculationType == CalculationType.Template);
-            IEnumerable<Calculation> templateCalculationsWithChange = templateCalculations.Where(_ => _.Version > 1);
-
-            if(templateCalculationsWithChange.Count() > 0)
-            {
-                _logger.Information($"{templateCalculationsWithChange.Count()} Template Calculations with changes exists. Replicating changes on cloned spec.");
-
-                IEnumerable<Calculation> targetCalculations = await _targetDataOperations.GetCalculationsForSpecification(cloneSpecificationSummary.Id);
-
-                foreach (Calculation templateCalculationWithChange in templateCalculationsWithChange)
-                {
-                    Calculation targetCalculation = targetCalculations.SingleOrDefault(_ => _.Name == templateCalculationWithChange.Name);
-
-                    CalculationEditModel calculationEditModel = new CalculationEditModel
-                    {
-                        CalculationId = targetCalculation.Id,
-                        DataType = templateCalculationWithChange.DataType,
-                        Description = templateCalculationWithChange.Description,
-                        Name = templateCalculationWithChange.Name,
-                        SourceCode = templateCalculationWithChange.SourceCode,
-                        SpecificationId = cloneSpecificationSummary.Id,
-                        ValueType = templateCalculationWithChange.ValueType
-                    };
-
-                    await _targetDataOperations.EditCalculationWithSkipInstruct(cloneSpecificationSummary.Id, targetCalculation.Id, calculationEditModel);
-                }
-
-                _logger.Information($"Completed editing Template Calculations.");
-            }
-
-            // Clone additional calculations
-            IEnumerable<Calculation> sourceAdditionalCalculations = sourceCalculations.Where(_ => _.CalculationType == CalculationType.Additional);
-            _logger.Information($"Starting to create clone {sourceAdditionalCalculations.Count()} additional calculations");
-
-            foreach (Calculation additionalCalculation in sourceAdditionalCalculations)
-            {
-                CalculationCreateModel calculationCreateModel = new CalculationCreateModel
-                {
-                    SpecificationId = cloneSpecificationSummary.Id,
-                    Description = additionalCalculation.Description,
-                    Name = additionalCalculation.Name,
-                    SourceCode = additionalCalculation.SourceCode,
-                    ValueType = additionalCalculation.ValueType,
-                    Author = additionalCalculation.Author
-                };
-
-                await _targetDataOperations.CreateCalculation(
-                    cloneSpecificationSummary.Id, 
-                    calculationCreateModel,
-                    skipCalcRun: true,
-                    skipQueueCodeContextCacheUpdate: true,
-                    overrideCreateModelAuthor: true);
-            }
-            _logger.Information($"Create clone {sourceAdditionalCalculations.Count()} additional calculations completed.");
-
-            Common.ApiClient.Calcs.Models.Job queueCodeContextUpdateJob = await _targetDataOperations.QueueCodeContextUpdate(cloneSpecificationSummary.Id);
-            _logger.Information($"Queued Code Context Update Job. JobId={queueCodeContextUpdateJob.Id}");
-
-            QueueCalculationRunModel queueCalculationRunModel = new QueueCalculationRunModel
-            {
-                Author = new Reference("default", "defaultName"),
-                CorrelationId = cloneSpecificationSummary.Id,
-                Trigger = new TriggerModel
-                {
-                    EntityId = cloneSpecificationSummary.Id,
-                    EntityType = nameof(SpecificationClone),
-                    Message = "Assigning Additional Calculations for Specification"
-                }
-            };
-
-            Common.ApiClient.Calcs.Models.Job queueCalculationRunJob = await _targetDataOperations.QueueCalculationRun(cloneSpecificationSummary.Id, queueCalculationRunModel);
-            _logger.Information($"Queued Calculation Run Job. JobId={queueCalculationRunJob.Id}");
-
             // Clone uploaded data datasets (including converter wizard setting)
             // DefinitionSpecificationRelationship - where c.content.current.relationshipType == 'Uploaded'
 
@@ -193,6 +113,104 @@ namespace CalculateFunding.Migrations.Specification.Clone.Clones
 
                 await _targetDataOperations.CreateRelationship(createDefinitionSpecificationRelationshipModel);
             }
+
+            _logger.Information($"Dataset relationship upload operation completed.");
+
+            _logger.Information($"Retrieving original specification calculations.");
+
+            IEnumerable<Calculation> sourceCalculations = await _sourceDataOperations.GetCalculationsForSpecification(specificationId);
+
+            _logger.Information($"Retrieved {sourceCalculations.Count()} calculations.");
+
+            // Clone additional calculations
+            IEnumerable<Calculation> sourceAdditionalCalculations = sourceCalculations.Where(_ => _.CalculationType == CalculationType.Additional);
+            _logger.Information($"Starting to create clone {sourceAdditionalCalculations.Count()} additional calculations");
+
+            int additionalCalculationIndex = 0;
+
+            foreach (Calculation additionalCalculation in sourceAdditionalCalculations)
+            {
+                CalculationCreateModel calculationCreateModel = new CalculationCreateModel
+                {
+                    SpecificationId = cloneSpecificationSummary.Id,
+                    Description = additionalCalculation.Description,
+                    Name = additionalCalculation.Name,
+                    SourceCode = additionalCalculation.SourceCode,
+                    ValueType = additionalCalculation.ValueType,
+                    Author = additionalCalculation.Author
+                };
+
+                await _targetDataOperations.CreateCalculation(
+                    cloneSpecificationSummary.Id,
+                    calculationCreateModel,
+                    skipCalcRun: true,
+                    skipQueueCodeContextCacheUpdate: true,
+                    overrideCreateModelAuthor: true);
+
+                additionalCalculationIndex++;
+
+                if (additionalCalculationIndex % 10 == 0)
+                {
+                    _logger.Information($"Create clone {additionalCalculationIndex}/{sourceAdditionalCalculations.Count()} additional calculations completed.");
+                }
+            }
+            _logger.Information($"Create clone {sourceAdditionalCalculations.Count()} additional calculations completed.");
+
+            // Ensure changes on template calculations reflected to cloned specification calculations
+            IEnumerable<Calculation> templateCalculations = sourceCalculations.Where(_ => _.CalculationType == CalculationType.Template);
+            IEnumerable<Calculation> templateCalculationsWithChange = templateCalculations.Where(_ => _.Version > 1);
+
+            if(templateCalculationsWithChange.Count() > 0)
+            {
+                _logger.Information($"{templateCalculationsWithChange.Count()} Template Calculations with changes exists. Replicating changes on cloned spec.");
+
+                IEnumerable<Calculation> targetCalculations = await _targetDataOperations.GetCalculationsForSpecification(cloneSpecificationSummary.Id);
+
+                int templateCalculationWithChangeIndex = 0;
+                foreach (Calculation templateCalculationWithChange in templateCalculationsWithChange)
+                {
+                    Calculation targetCalculation = targetCalculations.SingleOrDefault(_ => _.Name == templateCalculationWithChange.Name);
+
+                    CalculationEditModel calculationEditModel = new CalculationEditModel
+                    {
+                        CalculationId = targetCalculation.Id,
+                        DataType = templateCalculationWithChange.DataType,
+                        Description = templateCalculationWithChange.Description,
+                        Name = templateCalculationWithChange.Name,
+                        SourceCode = templateCalculationWithChange.SourceCode,
+                        SpecificationId = cloneSpecificationSummary.Id,
+                        ValueType = templateCalculationWithChange.ValueType
+                    };
+
+                    await _targetDataOperations.EditCalculationWithSkipInstruct(cloneSpecificationSummary.Id, targetCalculation.Id, calculationEditModel);
+
+                    templateCalculationWithChangeIndex++;
+                    if (templateCalculationWithChangeIndex % 10 == 0)
+                    {
+                        _logger.Information($"Edit clone {templateCalculationWithChangeIndex}/{templateCalculationsWithChange.Count()} template calculations completed.");
+                    }
+                }
+
+                _logger.Information($"Completed editing Template Calculations.");
+            }
+
+            Common.ApiClient.Calcs.Models.Job queueCodeContextUpdateJob = await _targetDataOperations.QueueCodeContextUpdate(cloneSpecificationSummary.Id);
+            _logger.Information($"Queued Code Context Update Job. JobId={queueCodeContextUpdateJob.Id}");
+
+            QueueCalculationRunModel queueCalculationRunModel = new QueueCalculationRunModel
+            {
+                Author = new Reference("default", "defaultName"),
+                CorrelationId = cloneSpecificationSummary.Id,
+                Trigger = new TriggerModel
+                {
+                    EntityId = cloneSpecificationSummary.Id,
+                    EntityType = nameof(SpecificationClone),
+                    Message = "Assigning Additional Calculations for Specification"
+                }
+            };
+
+            Common.ApiClient.Calcs.Models.Job queueCalculationRunJob = await _targetDataOperations.QueueCalculationRun(cloneSpecificationSummary.Id, queueCalculationRunModel);
+            _logger.Information($"Queued Calculation Run Job. JobId={queueCalculationRunJob.Id}");
 
             _logger.Information($"Completed clone uploaded dataset relationships.");
 
