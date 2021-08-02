@@ -179,4 +179,21 @@ Public Class Provider
     <Field(Id:="PreviousEstablishmentNumber", Name:="PreviousEstablishmentNumber")>
     <Description(Description:="Previous establishment number")>
     Public Property PreviousEstablishmentNumber() As String
+
+    <Field(Id:="ReasonEstablishmentOpened", Name:="ReasonEstablishmentOpened")>
+    <Description(Description:="Reason Establishment Opened")>
+    Public Property ReasonEstablishmentOpened() As String
+
+    <Field(Id:="ReasonEstablishmentClosed", Name:="ReasonEstablishmentClosed")>
+    <Description(Description:="Reason Establishment Closed")>
+    Public Property ReasonEstablishmentClosed() As String
+
+    <Field(Id:="HasPredecessor", Name:="HasPredecessor")>
+    <Description(Description:="Has one or more predecessors")>
+    Public Property HasPredecessor() As Boolean
+
+    <Field(Id:="HasSuccessors", Name:="HasSuccessor")>
+    <Description(Description:="Has one or more successors")>
+    Public Property HasSuccessor() As Boolean
+
 End Class

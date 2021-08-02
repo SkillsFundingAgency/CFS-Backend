@@ -186,7 +186,7 @@ namespace CalculateFunding.Services.CalcEngine
             SetMissingDatasetDefaultObjects(datasetNamesUsed, _datasetSetters, datasetsInstance);
 
             Stopwatch stopwatch = Stopwatch.StartNew();
-            
+
             // get all calculation results
             dynamic calculations = instance;
             ValueTuple<Dictionary<string, string[]>, Dictionary<string, string[]>> results =
@@ -581,6 +581,22 @@ namespace CalculateFunding.Services.CalcEngine
 
                     case "LocalGovernmentGroupTypeName":
                         property.SetValue(data, providerSummary.LocalGovernmentGroupTypeName.EmptyIfNull());
+                        break;
+
+                    case "ReasonEstablishmentOpened":
+                        property.SetValue(data, providerSummary.ReasonEstablishmentOpened.EmptyIfNull());
+                        break;
+
+                    case "ReasonEstablishmentClosed":
+                        property.SetValue(data, providerSummary.ReasonEstablishmentClosed.EmptyIfNull());
+                        break;
+
+                    case "HasSuccessor":
+                        property.SetValue(data, providerSummary.Successors.AnyWithNullCheck());
+                        break;
+
+                    case "HasPredecessor":
+                        property.SetValue(data, providerSummary.Predecessors.AnyWithNullCheck());
                         break;
 
                     default:
