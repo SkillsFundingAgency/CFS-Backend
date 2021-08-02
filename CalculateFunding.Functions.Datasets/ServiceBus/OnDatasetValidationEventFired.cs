@@ -28,7 +28,9 @@ namespace CalculateFunding.Functions.Datasets.ServiceBus
         }
 
         [FunctionName(FunctionName)]
-        public async Task Run([ServiceBusTrigger(QueueName, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
+        public async Task Run([ServiceBusTrigger(QueueName,
+            Connection = ServiceBusConstants.ConnectionStringConfigurationKey,
+            IsSessionsEnabled = true)] Message message)
         {
             await base.Run(message);
         }

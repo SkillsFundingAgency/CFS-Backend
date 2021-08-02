@@ -161,7 +161,7 @@ namespace CalculateFunding.Functions.Datasets.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.ValidateDataset,
-                async smokeResponse => await onDatasetValidationEvent.Run(smokeResponse));
+                async smokeResponse => await onDatasetValidationEvent.Run(smokeResponse), useSession:true);
 
             response
                 .Should()

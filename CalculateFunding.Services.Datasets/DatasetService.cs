@@ -440,7 +440,8 @@ namespace CalculateFunding.Services.Datasets
                 MessageBody = JsonConvert.SerializeObject(model),
                 Properties = new Dictionary<string, string>
                 {
-                    {"operation-id", responseModel.OperationId}
+                    {"operation-id", responseModel.OperationId},
+                    {"dataset-id", model.DatasetId}
                 },
                 Trigger = trigger,
                 CorrelationId = correlationId

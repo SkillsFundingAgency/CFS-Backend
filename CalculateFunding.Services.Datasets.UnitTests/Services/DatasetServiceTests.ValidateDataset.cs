@@ -802,7 +802,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             await jobManagement
                 .Received(1)
-                .QueueJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == JobConstants.DefinitionNames.ValidateDatasetJob));
+                .QueueJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == JobConstants.DefinitionNames.ValidateDatasetJob && j.Properties.ContainsKey("dataset-id") && j.Properties["dataset-id"] == DatasetId));
         }
 
         [TestMethod]
