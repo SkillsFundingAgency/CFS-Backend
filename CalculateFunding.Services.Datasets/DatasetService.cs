@@ -1562,22 +1562,24 @@ namespace CalculateFunding.Services.Datasets
         public async Task<IActionResult> MigrateDatasetsPerDocumentVersioning()
         {
             int totalUpdatedDatasets = 0;
-            List<Dataset> datasetDocuments = new List<Dataset>();
             IEnumerable<DocumentEntity<OldDataset>> oldDatasetDocuments = await _datasetRepository.GetOldDatasetsToMigrate();
 
             foreach (DocumentEntity<OldDataset> dataset in oldDatasetDocuments)
             {
-                await _versionDatasetRepository.SaveVersions(dataset.Content.History.Select(_ =>
+                if (dataset.Content.History != null)
                 {
-                    _.DatasetId = dataset.Content.Id;
-                    _.Description = dataset.Content.Description;
+                    await _versionDatasetRepository.SaveVersions(dataset.Content.History?.Select(_ =>
+                    {
+                        _.DatasetId = dataset.Content.Id;
+                        _.Description = dataset.Content.Description;
 
-                    return _;
-                }));
+                        return _;
+                    }));
+                }
 
                 dataset.Content.Current.DatasetId = dataset.Content.Id;
 
-                datasetDocuments.Add(new Dataset
+                await _datasetRepository.SaveDataset(new Dataset
                 {
                     Current = dataset.Content.Current,
                     Definition = dataset.Content.Definition,
@@ -1587,11 +1589,6 @@ namespace CalculateFunding.Services.Datasets
                 });
 
                 totalUpdatedDatasets++;
-            }
-
-            if (datasetDocuments.Count > 0)
-            {
-                await _datasetRepository.SaveDatasets(datasetDocuments);
             }
 
             return new OkObjectResult($"Migrated total of {totalUpdatedDatasets} Datasets");
