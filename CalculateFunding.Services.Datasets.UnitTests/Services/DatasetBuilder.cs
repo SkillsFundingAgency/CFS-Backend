@@ -10,10 +10,8 @@ namespace CalculateFunding.Services.Datasets.Services
     {
         private string _id;
         private string _name;
-        private string _description;
         private DatasetDefinitionVersion _definition;
         private DatasetVersion _current;
-        private ICollection<DatasetVersion> _history = new List<DatasetVersion>();
 
         public DatasetBuilder WithId(string id)
         {
@@ -28,28 +26,12 @@ namespace CalculateFunding.Services.Datasets.Services
 
             return this;
         }
-
-        public DatasetBuilder WithDescription(string description)
-        {
-            _description = description;
-
-            return this;
-        }
-
         public DatasetBuilder WithCurrent(DatasetVersion current)
         {
             _current = current;
 
             return this;
         }
-
-        public DatasetBuilder WithHistory(params DatasetVersion[] history)
-        {
-            _history.AddRange(history);
-
-            return this;
-        }
-
         public DatasetBuilder WithDefinition(DatasetDefinitionVersion definition)
         {
             _definition = definition;
@@ -64,9 +46,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 Id = _id ?? NewRandomString(),
                 Definition = _definition,
                 Current = _current,
-                History = _history?.ToList(),
-                Name = _name ?? NewRandomString(),
-                Description = _description ?? NewRandomString(),
+                Name = _name ?? NewRandomString()
             };
         }
     }

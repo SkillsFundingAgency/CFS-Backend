@@ -40,6 +40,8 @@ using Serilog;
 using BadRequestObjectResult = Microsoft.AspNetCore.Mvc.BadRequestObjectResult;
 using ValidationResult = FluentValidation.Results.ValidationResult;
 using ProvidersApiClientModels = CalculateFunding.Common.ApiClient.Providers.Models;
+using CalculateFunding.Services.Core.Interfaces;
+using Provider = CalculateFunding.Common.ApiClient.Providers.Models.Provider;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
@@ -1505,7 +1507,7 @@ namespace CalculateFunding.Services.Datasets.Services
             {
                 Providers = new[]
                 {
-                    new Common.ApiClient.Providers.Models.Provider()
+                    new Provider()
                 }
             });
 
@@ -1514,9 +1516,12 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetCurrentProvidersForFundingStream(FundingStreamId)
                 .Returns(providerVersionResponse);
 
+            IVersionRepository<DatasetVersion> datasetVersionRepository = CreateDatasetsVersionRepository();
+
             DatasetService service = CreateDatasetService(logger: logger,
                 blobClient: blobClient,
                 datasetRepository: datasetRepository,
+                datasetVersionRepository: datasetVersionRepository,
                 searchRepository: searchRepository,
                 cacheProvider: cacheProvider,
                 providersApiClient: providersApiClient,
@@ -1530,17 +1535,29 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Should().NotThrow();
 
             // Ensure initial version is set
-            await datasetRepository
+            await datasetVersionRepository
                 .Received(1)
-                .SaveDataset(Arg.Is<Dataset>(d =>
-                d.Current.Version == 1
+                .SaveVersion(Arg.Is<DatasetVersion>(d =>
+                    d.Version == 1 &&
+                    d.Author.Name == authorName &&
+                    d.Author.Id == authorId &&
+                    d.FundingStream != null &&
+                    d.FundingStream.Id == model.FundingStreamId &&
+                    d.FundingStream.Name == FundingStreamName
                 ));
 
-            // Ensure comment is null
             await datasetRepository
                 .Received(1)
                 .SaveDataset(Arg.Is<Dataset>(d =>
-                string.IsNullOrWhiteSpace(d.Current.Comment)
+                    d.Current.Version == 1
+                ));
+
+            // Ensure comment is null and description set
+            await datasetRepository
+                .Received(1)
+                .SaveDataset(Arg.Is<Dataset>(d =>
+                    string.IsNullOrWhiteSpace(d.Current.Comment) &&
+                    d.Current.Description == model.Description
                 ));
 
             // Ensure the rest of the properties are set
@@ -1551,7 +1568,6 @@ namespace CalculateFunding.Services.Datasets.Services
                 d.Current.Author.Name == authorName &&
                 d.Current.Author.Id == authorId &&
                 d.Name == name &&
-                d.Description == model.Description &&
                 d.Current.FundingStream != null &&
                 d.Current.FundingStream.Id == model.FundingStreamId &&
                 d.Current.FundingStream.Name == FundingStreamName
@@ -1664,6 +1680,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 datasetDefinition
             };
 
+            IVersionRepository<DatasetVersion> datasetVersionRepository = CreateDatasetsVersionRepository();
+
             IDatasetRepository datasetRepository = CreateDatasetsRepository();
             datasetRepository
                 .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DocumentEntity<DatasetDefinition>, bool>>>())
@@ -1699,6 +1717,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 logger: logger,
                 blobClient: blobClient,
                 datasetRepository: datasetRepository,
+                datasetVersionRepository: datasetVersionRepository,
                 searchRepository: searchRepository,
                 cacheProvider: cacheProvider,
                 providersApiClient: providersApiClient,
@@ -1706,6 +1725,8 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetVersion existingDatasetVersion = new DatasetVersion()
             {
+                DatasetId = model.DatasetId,
+                Description = initialDescription,
                 Version = 1,
             };
 
@@ -1713,40 +1734,46 @@ namespace CalculateFunding.Services.Datasets.Services
             {
                 Id = model.DatasetId,
                 Current = existingDatasetVersion,
-                History = new List<DatasetVersion>() { existingDatasetVersion },
                 Definition = new DatasetDefinitionVersion { Id = datasetDefinition.Id, Name = datasetDefinition.Name },
-                Description = initialDescription,
-                Name = name,
-                Published = null,
+                Name = name
             };
 
             datasetRepository
                 .GetDatasetByDatasetId(Arg.Is(model.DatasetId))
                 .Returns(existingDataset);
 
+            datasetVersionRepository
+                .GetNextVersionNumber(Arg.Is<DatasetVersion>(_ => _.EntityId == existingDatasetVersion.EntityId))
+                .Returns(existingDatasetVersion.Version + 1);
+
             // Act
             await service.Run(message);
 
             // Assert
             // Ensure next version is set
+            await datasetVersionRepository
+                .Received(1)
+                .SaveVersion(Arg.Is<DatasetVersion>(d =>
+                    d.Version == 2 &&
+                    d.Author.Name == authorName &&
+                    d.Author.Id == authorId &&
+                    d.FundingStream != null &&
+                    d.FundingStream.Id == model.FundingStreamId &&
+                    d.FundingStream.Name == FundingStreamName
+                ));
+
             await datasetRepository
                 .Received(1)
                 .SaveDataset(Arg.Is<Dataset>(d =>
                 d.Current.Version == 2
                 ));
 
-            // Ensure comment is changed
+            // Ensure comment is changed and description is updated
             await datasetRepository
                 .Received(1)
                 .SaveDataset(Arg.Is<Dataset>(d =>
-                d.Current.Comment == updateComment
-                ));
-
-            // Ensure description is updated
-            await datasetRepository
-                .Received(1)
-                .SaveDataset(Arg.Is<Dataset>(d =>
-                d.Description == updatedDescription
+                    d.Current.Comment == updateComment &&
+                    d.Current.Description == updatedDescription
                 ));
 
             // Ensure the rest of the properties are the same
@@ -1874,6 +1901,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 .SaveDataset(Arg.Any<Dataset>())
                 .Returns(HttpStatusCode.OK);
 
+            IVersionRepository<DatasetVersion> datasetVersionRepository = CreateDatasetsVersionRepository();
+            
             IEnumerable<TableLoadResult> tableLoadResults = new[]
             {
                 new TableLoadResult{ GlobalErrors = new List<DatasetValidationError>() }
@@ -1899,6 +1928,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetService service = CreateDatasetService(logger: logger,
                 blobClient: blobClient,
                 datasetRepository: datasetRepository,
+                datasetVersionRepository: datasetVersionRepository,
                 searchRepository: searchRepository,
                 providersApiClient: providersApiClient,
                 policyRepository: policyRepository);
@@ -1910,6 +1940,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetVersion existingDatasetVersion2 = new DatasetVersion()
             {
+                Description = initialDescription,
                 Version = 2,
             };
 
@@ -1917,15 +1948,22 @@ namespace CalculateFunding.Services.Datasets.Services
             {
                 Id = model.DatasetId,
                 Current = existingDatasetVersion2,
-                History = new List<DatasetVersion>() {
+                Definition = new DatasetDefinitionVersion {Id = datasetDefinition.Id, Name = datasetDefinition.Name },
+                Name = name,
+            };
+
+            List<DatasetVersion> history = new List<DatasetVersion>() {
                     existingDatasetVersion1,
                     existingDatasetVersion2,
-                },
-                Definition = new DatasetDefinitionVersion {Id = datasetDefinition.Id, Name = datasetDefinition.Name },
-                Description = initialDescription,
-                Name = name,
-                Published = null,
-            };
+                };
+
+            datasetVersionRepository
+                .GetVersions(model.DatasetId)
+                .Returns(history);
+
+            datasetVersionRepository
+                .GetNextVersionNumber(Arg.Is<DatasetVersion>(_ => _.EntityId == existingDatasetVersion2.EntityId))
+                .Returns(existingDatasetVersion2.Version + 1);
 
             datasetRepository
                 .GetDatasetByDatasetId(Arg.Is(model.DatasetId))
@@ -2158,6 +2196,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 datasetDefinition
             };
 
+            IVersionRepository<DatasetVersion> datasetVersionRepository = CreateDatasetsVersionRepository();
+
             IDatasetRepository datasetRepository = CreateDatasetsRepository();
             datasetRepository
                 .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DocumentEntity<DatasetDefinition>, bool>>>())
@@ -2190,12 +2230,14 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetService service = CreateDatasetService(logger: logger,
                 blobClient: blobClient,
                 datasetRepository: datasetRepository,
+                datasetVersionRepository: datasetVersionRepository,
                 searchRepository: searchRepository,
                 providersApiClient: providersApiClient,
                 policyRepository: policyRepository);
 
             DatasetVersion existingDatasetVersion = new DatasetVersion()
             {
+                Description = initialDescription,
                 Version = 1,
             };
 
@@ -2203,16 +2245,17 @@ namespace CalculateFunding.Services.Datasets.Services
             {
                 Id = model.DatasetId,
                 Current = existingDatasetVersion,
-                History = new List<DatasetVersion>() { existingDatasetVersion },
                 Definition = new DatasetDefinitionVersion { Id = datasetDefinition.Id, Name = datasetDefinition.Name },
-                Description = initialDescription,
                 Name = name,
-                Published = null,
             };
 
             datasetRepository
                 .GetDatasetByDatasetId(Arg.Is(model.DatasetId))
                 .Returns(existingDataset);
+
+            datasetVersionRepository
+                .GetNextVersionNumber(Arg.Is<DatasetVersion>(_ => _.EntityId == existingDatasetVersion.EntityId))
+                .Returns(existingDatasetVersion.Version + 1);
 
             // Act
             Func<Task> result = () => service.Run(message);
@@ -2302,6 +2345,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 datasetDefinition
             };
 
+            IVersionRepository<DatasetVersion> datasetVersionRepository = CreateDatasetsVersionRepository();
+
             IDatasetRepository datasetRepository = CreateDatasetsRepository();
             datasetRepository
                 .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DocumentEntity<DatasetDefinition>, bool>>>())
@@ -2334,12 +2379,14 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetService service = CreateDatasetService(logger: logger,
                 blobClient: blobClient,
                 datasetRepository: datasetRepository,
+                datasetVersionRepository: datasetVersionRepository,
                 searchRepository: searchRepository,
                 providersApiClient: providersApiClient,
                 policyRepository: policyRepository);
 
             DatasetVersion existingDatasetVersion = new DatasetVersion()
             {
+                Description = initialDescription,
                 Version = 1,
             };
 
@@ -2347,12 +2394,13 @@ namespace CalculateFunding.Services.Datasets.Services
             {
                 Id = model.DatasetId,
                 Current = existingDatasetVersion,
-                History = new List<DatasetVersion>() { existingDatasetVersion },
                 Definition = new DatasetDefinitionVersion { Id = datasetDefinition.Id, Name = datasetDefinition.Name },
-                Description = initialDescription,
-                Name = name,
-                Published = null,
+                Name = name
             };
+
+            datasetVersionRepository
+                .GetNextVersionNumber(Arg.Is<DatasetVersion>(_ => _.EntityId == existingDatasetVersion.EntityId))
+                .Returns(existingDatasetVersion.Version + 1);
 
             datasetRepository
                 .GetDatasetByDatasetId(Arg.Is(model.DatasetId))
@@ -3044,6 +3092,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetVersion existingDatasetVersion = new DatasetVersion()
             {
+                Description = initialDescription,
                 Version = 1,
             };
 
@@ -3051,11 +3100,8 @@ namespace CalculateFunding.Services.Datasets.Services
             {
                 Id = model.DatasetId,
                 Current = existingDatasetVersion,
-                History = new List<DatasetVersion>() { existingDatasetVersion },
                 Definition = new DatasetDefinitionVersion { Id = datasetDefinition.Id, Name = datasetDefinition.Name },
-                Description = initialDescription,
                 Name = name,
-                Published = null,
             };
 
             datasetRepository
@@ -3189,6 +3235,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetVersion existingDatasetVersion = new DatasetVersion()
             {
+                Description = initialDescription,
                 Version = 1,
             };
 
@@ -3196,11 +3243,8 @@ namespace CalculateFunding.Services.Datasets.Services
             {
                 Id = getDatasetBlobModel.DatasetId,
                 Current = existingDatasetVersion,
-                History = new List<DatasetVersion>() { existingDatasetVersion },
                 Definition = new DatasetDefinitionVersion { Id = datasetDefinition.Id, Name = datasetDefinition.Name },
-                Description = initialDescription,
                 Name = name,
-                Published = null,
             };
 
             datasetRepository
@@ -3468,9 +3512,12 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetCurrentProvidersForFundingStream(FundingStreamId)
                 .Returns(providerVersionResponse);
 
+            IVersionRepository<DatasetVersion> datasetVersionRepository = CreateDatasetsVersionRepository();
+
             DatasetService service = CreateDatasetService(logger: logger,
                 blobClient: blobClient,
                 datasetRepository: datasetRepository,
+                datasetVersionRepository: datasetVersionRepository,
                 searchRepository: searchRepository,
                 cacheProvider: cacheProvider,
                 jobManagement: jobManagement,
@@ -3483,17 +3530,26 @@ namespace CalculateFunding.Services.Datasets.Services
             // Assert
 
             // Ensure initial version is set
+            await datasetVersionRepository
+                .Received(1)
+                .SaveVersion(Arg.Is<DatasetVersion>(d =>
+                    d.Version == 1 &&
+                    d.Author.Name == authorName &&
+                    d.Author.Id == authorId
+                ));
+
             await datasetRepository
                 .Received(1)
                 .SaveDataset(Arg.Is<Dataset>(d =>
                 d.Current.Version == 1
                 ));
 
-            // Ensure comment is null
+            // Ensure comment is null and description set
             await datasetRepository
                 .Received(1)
                 .SaveDataset(Arg.Is<Dataset>(d =>
-                string.IsNullOrWhiteSpace(d.Current.Comment)
+                    string.IsNullOrWhiteSpace(d.Current.Comment) &&
+                    d.Current.Description == description
                 ));
 
             // Ensure the rest of the properties are set
@@ -3503,8 +3559,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 d.Definition.Id == dataDefinitionId &&
                 d.Current.Author.Name == authorName &&
                 d.Current.Author.Id == authorId &&
-                d.Name == name &&
-                d.Description == description
+                d.Name == name
                 ));
 
             await searchRepository
@@ -3623,6 +3678,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetVersion existingDatasetVersion = new DatasetVersion()
             {
+                Description = "description",
                 Version = 1,
             };
 
@@ -3630,11 +3686,8 @@ namespace CalculateFunding.Services.Datasets.Services
             {
                 Id = model.DatasetId,
                 Current = existingDatasetVersion,
-                History = new List<DatasetVersion> { existingDatasetVersion },
                 Definition = new DatasetDefinitionVersion { Id = datasetDefinition.Id, Name = datasetDefinition.Name },
-                Description = "description",
                 Name = name,
-                Published = null,
             };
 
             datasetRepository
@@ -3785,12 +3838,9 @@ namespace CalculateFunding.Services.Datasets.Services
             };
 
             IDatasetRepository datasetRepository = CreateDatasetsRepository();
-            datasetRepository
-                .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DocumentEntity<DatasetDefinition>, bool>>>())
-                .Returns(datasetDefinitions);
-            
             DatasetVersion existingDatasetVersion = new DatasetVersion()
             {
+                Description = "description",
                 Version = 1,
             };
 
@@ -3798,12 +3848,24 @@ namespace CalculateFunding.Services.Datasets.Services
             {
                 Id = model.DatasetId,
                 Current = existingDatasetVersion,
-                History = new List<DatasetVersion>() { existingDatasetVersion },
                 Definition = new DatasetDefinitionVersion { Id = datasetDefinition.Id, Name = datasetDefinition.Name },
-                Description = "description",
                 Name = name,
-                Published = null,
             };
+
+            List<DatasetVersion> history = new List<DatasetVersion>() { existingDatasetVersion };
+
+            IVersionRepository<DatasetVersion> datasetVersionRepository = CreateDatasetsVersionRepository();
+            datasetVersionRepository
+                .GetVersions(model.DatasetId)
+                .Returns(history);
+
+            datasetVersionRepository
+                .GetNextVersionNumber(Arg.Is<DatasetVersion>(_ => _.EntityId == existingDatasetVersion.EntityId))
+                .Returns(existingDatasetVersion.Version + 1);
+            
+            datasetRepository
+             .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DocumentEntity<DatasetDefinition>, bool>>>())
+             .Returns(datasetDefinitions);
 
             datasetRepository
                 .GetDatasetsByQuery(Arg.Any<Expression<Func<DocumentEntity<Dataset>, bool>>>())
@@ -3861,6 +3923,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetService service = CreateDatasetService(logger: logger,
                 blobClient: blobClient,
                 datasetRepository: datasetRepository,
+                datasetVersionRepository: datasetVersionRepository,
                 searchRepository: searchRepository,
                 cacheProvider: cacheProvider,
                 jobManagement: jobManagement,
@@ -3874,6 +3937,16 @@ namespace CalculateFunding.Services.Datasets.Services
             // Assert
 
             // Ensure initial version is set
+            await datasetVersionRepository
+                .Received(1)
+                .SaveVersion(Arg.Is<DatasetVersion>(d =>
+                    d.Version == 2 &&
+                    d.Author.Name == authorName &&
+                    d.Author.Id == authorId &&
+                    d.NewRowCount == newRowCount &&
+                    d.AmendedRowCount == updatedRowCount
+                ));
+
             await datasetRepository
                 .Received(1)
                 .SaveDataset(Arg.Is<Dataset>(d =>
@@ -3883,7 +3956,8 @@ namespace CalculateFunding.Services.Datasets.Services
             await datasetRepository
                 .Received(1)
                 .SaveDataset(Arg.Is<Dataset>(d =>
-                d.Current.Comment == "MergeTest"
+                    d.Current.Comment == "MergeTest" &&
+                    d.Current.Description == description
                 ));
 
             // Ensure the rest of the properties are set
@@ -3894,7 +3968,6 @@ namespace CalculateFunding.Services.Datasets.Services
                 d.Current.Author.Name == authorName &&
                 d.Current.Author.Id == authorId &&
                 d.Name == name &&
-                d.Description == description &&
                 d.Current.NewRowCount == newRowCount &&
                 d.Current.AmendedRowCount == updatedRowCount
                 ));

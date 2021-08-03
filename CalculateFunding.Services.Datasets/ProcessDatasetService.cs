@@ -32,6 +32,7 @@ using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.DataImporter;
@@ -53,6 +54,7 @@ namespace CalculateFunding.Services.Datasets
     public class ProcessDatasetService : JobProcessingService, IProcessDatasetService, IHealthChecker
     {
         private readonly IDatasetRepository _datasetRepository;
+        private readonly IVersionRepository<DatasetVersion> _datasetVersionRepository;
         private readonly IExcelDatasetReader _excelDatasetReader;
         private readonly ICacheProvider _cacheProvider;
         private readonly ICalcsRepository _calcsRepository;
@@ -75,6 +77,7 @@ namespace CalculateFunding.Services.Datasets
 
         public ProcessDatasetService(
             IDatasetRepository datasetRepository,
+            IVersionRepository<DatasetVersion> datasetVersionRepository,
             IExcelDatasetReader excelDatasetReader,
             ICacheProvider cacheProvider,
             ICalcsRepository calcsRepository,
@@ -94,6 +97,7 @@ namespace CalculateFunding.Services.Datasets
             IProviderSourceDatasetBulkRepository bulkProviderSourceDatasetRepository) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
+            Guard.ArgumentNotNull(datasetVersionRepository, nameof(datasetVersionRepository));
             Guard.ArgumentNotNull(excelDatasetReader, nameof(excelDatasetReader));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
@@ -114,6 +118,7 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(bulkProviderSourceDatasetRepository, nameof(bulkProviderSourceDatasetRepository));
 
             _datasetRepository = datasetRepository;
+            _datasetVersionRepository = datasetVersionRepository;
             _excelDatasetReader = excelDatasetReader;
             _cacheProvider = cacheProvider;
             _calcsRepository = calcsRepository;
@@ -541,7 +546,7 @@ namespace CalculateFunding.Services.Datasets
         {
             string dataDefinitionId = dataset.Definition.Id;
 
-            DatasetVersion datasetVersion = dataset.History.SingleOrDefault(v => v.Version == version);
+            DatasetVersion datasetVersion = (await _datasetVersionRepository.GetVersions(dataset.Id))?.SingleOrDefault(v => v.Version == version);
             
             if (datasetVersion == null)
             {

@@ -440,5 +440,13 @@ namespace CalculateFunding.Api.Datasets.Controllers
         {
             return _datasetService.FixupDatasetsFundingStream();
         }
+
+        [Route("api/datasets/migrate-datasets-per-document-versioning")]
+        [HttpGet]
+        [Produces(typeof(string))]
+        public Task<IActionResult> MigrateDatasetsPerDocumentVersioning()
+        {
+            return _datasetService.MigrateDatasetsPerDocumentVersioning();
+        }
     }
 }

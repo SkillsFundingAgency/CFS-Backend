@@ -1932,16 +1932,19 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
                 .Returns(relationship);
 
+            string datasetId = NewRandomString();
+
             IEnumerable<Dataset> datasets = new[]
             {
                 NewDataset(_ =>_
-                    .WithId(NewRandomString())
-                    .WithName(datasetName)
-                    .WithDescription(datasetDescription)
-                    .WithHistory(
-                        NewDatasetVersion(dv=> dv
+                    .WithId(datasetId)
+                    .WithName(datasetName))
+            };
+
+            List<DatasetVersion> history = new List<DatasetVersion> { NewDatasetVersion(dv=> dv
                             .WithVersion(1)
                             .WithComment(datasetComment)
+                            .WithDescription(datasetDescription)
                             .WithDate(datasetDate)
                             .WithAuthor(
                                 NewReference(r=>r
@@ -1951,6 +1954,7 @@ namespace CalculateFunding.Services.Datasets.Services
                         NewDatasetVersion(dv=> dv
                             .WithVersion(3)
                             .WithComment(datasetComment)
+                            .WithDescription(datasetDescription)
                             .WithDate(datasetDate)
                             .WithAuthor(
                                 NewReference(r=>r
@@ -1960,18 +1964,23 @@ namespace CalculateFunding.Services.Datasets.Services
                         NewDatasetVersion(dv=> dv
                             .WithVersion(2)
                             .WithComment(datasetComment)
+                            .WithDescription(datasetDescription)
                             .WithDate(datasetDate)
                             .WithAuthor(
                                 NewReference(r=>r
                                     .WithId(datasetAuthorId)
                                     .WithName(datasetAuthorName)))
-                            )
-                    ))
-            };
+                            ) };
 
             datasetRepository
                 .GetDatasetsByQuery(Arg.Any<Expression<Func<DocumentEntity<Dataset>, bool>>>())
                 .Returns(datasets);
+
+            IVersionRepository<DatasetVersion> datasetVersionRepository = CreateDatasetVersionRepository();
+
+            datasetVersionRepository
+                .GetVersions(datasetId)
+                .Returns(history);
 
             ISpecificationsApiClient specsClient = CreateSpecificationsApiClient();
             SpecificationSummary spec = CreateSpecificationSummary(_ => _.WithId(sourceSpecificationId).WithName(sourceSpecificationName));
@@ -1980,7 +1989,10 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetSpecificationSummaryById(Arg.Is(sourceSpecificationId))
                 .Returns(new ApiResponse<SpecificationSummary>(HttpStatusCode.OK, spec));
 
-            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository, specificationsApiClient: specsClient);
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger,
+                datasetRepository: datasetRepository,
+                datasetVersionRepository: datasetVersionRepository,
+                specificationsApiClient: specsClient);
 
             //Act
             IActionResult result = await service.GetDataSourcesByRelationshipId(relationshipId);
@@ -2008,13 +2020,6 @@ namespace CalculateFunding.Services.Datasets.Services
                .Be(datasetName);
 
             sourceModel
-               .Datasets
-               .First()
-               .Description
-               .Should()
-               .Be(datasetDescription);
-
-            sourceModel
                 .Datasets
                 .First()
                 .Versions
@@ -2031,6 +2036,15 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Comment
                 .Should()
                 .Be(datasetComment);
+
+            sourceModel
+               .Datasets
+               .First()
+               .Versions
+               .First()
+               .Description
+               .Should()
+               .Be(datasetDescription);
 
             sourceModel
                 .Datasets
@@ -2117,16 +2131,21 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
                 .Returns(relationship);
 
+            string datasetId = NewRandomString();
+
             IEnumerable<Dataset> datasets = new[]
             {
                 NewDataset(_ =>_
-                    .WithId(NewRandomString())
-                    .WithName(datasetName)
-                    .WithDescription(datasetDescription)
-                    .WithHistory(
-                        NewDatasetVersion(dv=> dv
+                    .WithId(datasetId)
+                    .WithName(datasetName))
+            };
+
+            List<DatasetVersion> history = new List<DatasetVersion>
+            {
+                NewDatasetVersion(dv=> dv
                             .WithVersion(1)
                             .WithComment(datasetComment)
+                            .WithDescription(datasetDescription)
                             .WithDate(datasetDate)
                             .WithAuthor(
                                 NewReference(r=>r
@@ -2136,6 +2155,7 @@ namespace CalculateFunding.Services.Datasets.Services
                         NewDatasetVersion(dv=> dv
                             .WithVersion(3)
                             .WithComment(datasetComment)
+                            .WithDescription(datasetDescription)
                             .WithDate(datasetDate)
                             .WithAuthor(
                                 NewReference(r=>r
@@ -2145,20 +2165,27 @@ namespace CalculateFunding.Services.Datasets.Services
                         NewDatasetVersion(dv=> dv
                             .WithVersion(2)
                             .WithComment(datasetComment)
+                            .WithDescription(datasetDescription)
                             .WithDate(datasetDate)
                             .WithAuthor(
                                 NewReference(r=>r
                                     .WithId(datasetAuthorId)
                                     .WithName(datasetAuthorName)))
                             )
-                    ))
             };
+
+            IVersionRepository<DatasetVersion> datasetVersionRepository = CreateDatasetVersionRepository();
+            datasetVersionRepository
+                .GetVersions(datasetId)
+                .Returns(history);
 
             datasetRepository
                 .GetDatasetsByQuery(Arg.Any<Expression<Func<DocumentEntity<Dataset>, bool>>>())
                 .Returns(datasets);
 
-            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger,
+                datasetRepository: datasetRepository,
+                datasetVersionRepository: datasetVersionRepository);
 
             //Act
             IActionResult result = await service.GetDataSourcesByRelationshipId(relationshipId);
@@ -2186,13 +2213,6 @@ namespace CalculateFunding.Services.Datasets.Services
                .Be(datasetName);
 
             sourceModel
-               .Datasets
-               .First()
-               .Description
-               .Should()
-               .Be(datasetDescription);
-
-            sourceModel
                 .Datasets
                 .First()
                 .Versions
@@ -2209,6 +2229,15 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Comment
                 .Should()
                 .Be(datasetComment);
+
+            sourceModel
+                .Datasets
+                .First()
+                .Versions
+                .First()
+                .Description
+                .Should()
+                .Be(datasetDescription);
 
             sourceModel
                 .Datasets
@@ -3962,6 +3991,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
         private DefinitionSpecificationRelationshipService CreateService(
             IDatasetRepository datasetRepository = null,
+            IVersionRepository<DatasetVersion> datasetVersionRepository = null,
             ILogger logger = null,
             ISpecificationsApiClient specificationsApiClient = null,
             IValidator<CreateDefinitionSpecificationRelationshipModel> relationshipModelValidator = null,
@@ -3976,6 +4006,7 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             return new DefinitionSpecificationRelationshipService(
                 datasetRepository ?? CreateDatasetRepository(),
+                datasetVersionRepository ?? CreateDatasetVersionRepository(),
                 logger ?? CreateLogger(),
                 specificationsApiClient ?? CreateSpecificationsApiClient(),
                 relationshipModelValidator ?? CreateRelationshipModelValidator(),
@@ -4048,12 +4079,14 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             return Substitute.For<ICalcsRepository>();
         }
-
         private static IDatasetRepository CreateDatasetRepository()
         {
             return Substitute.For<IDatasetRepository>();
         }
-
+        private static IVersionRepository<DatasetVersion> CreateDatasetVersionRepository()
+        {
+            return Substitute.For<IVersionRepository<DatasetVersion>>();
+        }
         private static ILogger CreateLogger()
         {
             return Substitute.For<ILogger>();

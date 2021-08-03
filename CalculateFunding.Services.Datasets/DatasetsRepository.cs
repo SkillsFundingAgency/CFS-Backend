@@ -151,6 +151,19 @@ namespace CalculateFunding.Services.Datasets
         {
             return await _cosmosRepository.Query(query);
         }
+
+        public async Task<IEnumerable<DocumentEntity<OldDataset>>> GetOldDatasetsToMigrate()
+        {
+            CosmosDbQuery dbQuery = new CosmosDbQuery()
+            {
+                QueryText = @"SELECT *
+                            FROM    c 
+                            WHERE   c.documentType = 'Dataset' 
+                                    and IsDefined(c.content.history)"
+            };
+
+            return await _cosmosRepository.RawQuery<DocumentEntity<OldDataset>>(dbQuery);
+        }
         public async Task<IEnumerable<DatasetVersion>> GetDatasetVersionsByQuery(Expression<Func<DocumentEntity<DatasetVersion>, bool>> query)
         {
             return await _cosmosRepository.Query(query);

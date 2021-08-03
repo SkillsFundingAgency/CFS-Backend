@@ -46,5 +46,7 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         IActionResult GetValidateDatasetValidationErrorSasUrl(DatasetValidationErrorRequestModel requestModel);
 
         Task<IActionResult> FixupDatasetsFundingStream();
+
+        Task<IActionResult> MigrateDatasetsPerDocumentVersioning();
     }
 }

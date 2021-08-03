@@ -16,6 +16,7 @@ using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core;
+using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Datasets.Interfaces;
 using CalculateFunding.Services.Results.Interfaces;
@@ -415,16 +416,15 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task DownloadOriginalDatasetUploadFile_GivenDatasetCurrentBlobNameDoesnotExist_ReturnsPreConditionFailed()
         {
             //Arrange
-            Dataset dataset = new Dataset()
-            {
-                History = new List<DatasetVersion>()
+            Dataset dataset = new Dataset();
+
+            List<DatasetVersion> history = new List<DatasetVersion>()
                 {
                     new DatasetVersion()
                     {
                         BlobName = "BlobName"
                     }
-                }
-            };
+                };
 
             ILogger logger = CreateLogger();
 
@@ -433,7 +433,13 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetDatasetByDatasetId(Arg.Is(DatasetId))
                 .Returns(dataset);
 
-            DatasetService service = CreateDatasetService(logger: logger, datasetRepository: datasetRepository);
+            IVersionRepository<DatasetVersion> datasetVersionRepository = CreateDatasetsVersionRepository();
+
+            datasetVersionRepository
+                .GetVersions(Arg.Is(DatasetId))
+                .Returns(history);
+
+            DatasetService service = CreateDatasetService(logger: logger, datasetRepository: datasetRepository, datasetVersionRepository: datasetVersionRepository);
 
             // Act
             IActionResult result = await service.DownloadDatasetFile(DatasetId, null);
@@ -466,15 +472,16 @@ namespace CalculateFunding.Services.Datasets.Services
                 Current = new DatasetVersion
                 {
                     BlobName = blobName
-                },
-                History = new List<DatasetVersion>()
+                }
+            };
+
+            List<DatasetVersion> history = new List<DatasetVersion>()
                 {
                     new DatasetVersion()
                     {
                         BlobName = "BlobName"
                     }
-                }
-            };
+                };
 
             ILogger logger = CreateLogger();
 
@@ -488,7 +495,13 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetBlobReferenceFromServerAsync(Arg.Is(blobName))
                 .Returns((ICloudBlob) null);
 
-            DatasetService service = CreateDatasetService(logger: logger, datasetRepository: datasetRepository, blobClient: blobClient);
+            IVersionRepository<DatasetVersion> datasetVersionRepository = CreateDatasetsVersionRepository();
+
+            datasetVersionRepository
+                .GetVersions(Arg.Is(DatasetId))
+                .Returns(history);
+
+            DatasetService service = CreateDatasetService(logger: logger, datasetRepository: datasetRepository, datasetVersionRepository: datasetVersionRepository, blobClient: blobClient);
 
             // Act
             IActionResult result = await service.DownloadDatasetFile(DatasetId, null);
@@ -515,15 +528,16 @@ namespace CalculateFunding.Services.Datasets.Services
                 Current = new DatasetVersion
                 {
                     BlobName = blobName
-                },
-                History = new List<DatasetVersion>()
+                }
+            };
+
+            List<DatasetVersion> history = new List<DatasetVersion>()
                 {
                     new DatasetVersion()
                     {
                         BlobName = "BlobName"
                     }
-                }
-            };
+                };
 
             ILogger logger = CreateLogger();
 
@@ -531,6 +545,12 @@ namespace CalculateFunding.Services.Datasets.Services
             datasetRepository
                 .GetDatasetByDatasetId(Arg.Is(DatasetId))
                 .Returns(dataset);
+
+            IVersionRepository<DatasetVersion> datasetVersionRepository = CreateDatasetsVersionRepository();
+
+            datasetVersionRepository
+                .GetVersions(Arg.Is(DatasetId))
+                .Returns(history);
 
             ICloudBlob cloudBlob = Substitute.For<ICloudBlob>();
 
@@ -543,7 +563,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetBlobSasUrl(Arg.Any<string>(), Arg.Any<DateTimeOffset>(), Arg.Any<SharedAccessBlobPermissions>())
                 .Returns(blobUrl);
 
-            DatasetService service = CreateDatasetService(logger: logger, datasetRepository: datasetRepository, blobClient: blobClient);
+            DatasetService service = CreateDatasetService(logger: logger, datasetRepository: datasetRepository, datasetVersionRepository: datasetVersionRepository, blobClient: blobClient);
 
             // Act
             IActionResult result = await service.DownloadDatasetFile(DatasetId, null);
@@ -569,24 +589,28 @@ namespace CalculateFunding.Services.Datasets.Services
 
             Dataset dataset = new Dataset
             {
+                Id = DatasetId,
                 Current = new DatasetVersion
                 {
                     BlobName = "CurrentsBlobName"
-                },
-                History = new List<DatasetVersion>()
+                }
+            };
+
+            List<DatasetVersion> history = new List<DatasetVersion>()
                 {
                     new DatasetVersion()
                     {
+                        DatasetId = DatasetId,
                         BlobName = "blobName v1",
                         Version = 1
                     },
                     new DatasetVersion()
                     {
+                        DatasetId = DatasetId,
                         BlobName = blobName,
                         Version = versionSpecified
                     }
-                }
-            };
+                };
 
             ILogger logger = CreateLogger();
 
@@ -594,6 +618,12 @@ namespace CalculateFunding.Services.Datasets.Services
             datasetRepository
                 .GetDatasetByDatasetId(Arg.Is(DatasetId))
                 .Returns(dataset);
+
+            IVersionRepository<DatasetVersion> datasetVersionRepository = CreateDatasetsVersionRepository();
+
+            datasetVersionRepository
+                .GetVersions(Arg.Is(DatasetId))
+                .Returns(history);
 
             ICloudBlob cloudBlob = Substitute.For<ICloudBlob>();
 
@@ -606,7 +636,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetBlobSasUrl(blobName, Arg.Any<DateTimeOffset>(), Arg.Any<SharedAccessBlobPermissions>())
                 .Returns(blobUrl);
 
-            DatasetService service = CreateDatasetService(logger: logger, datasetRepository: datasetRepository, blobClient: blobClient);
+            DatasetService service = CreateDatasetService(logger: logger, datasetRepository: datasetRepository, datasetVersionRepository: datasetVersionRepository, blobClient: blobClient);
 
             // Act
             IActionResult result = await service.DownloadDatasetFile(DatasetId, versionSpecified.ToString());
@@ -635,8 +665,10 @@ namespace CalculateFunding.Services.Datasets.Services
                 Current = new DatasetVersion
                 {
                     BlobName = "CurrentsBlobName"
-                },
-                History = new List<DatasetVersion>()
+                }
+            };
+
+            List<DatasetVersion> history = new List<DatasetVersion>()
                 {
                     new DatasetVersion()
                     {
@@ -648,8 +680,7 @@ namespace CalculateFunding.Services.Datasets.Services
                         BlobName = blobName,
                         Version = 3
                     }
-                }
-            };
+                };
 
             ILogger logger = CreateLogger();
 
@@ -657,6 +688,12 @@ namespace CalculateFunding.Services.Datasets.Services
             datasetRepository
                 .GetDatasetByDatasetId(Arg.Is(DatasetId))
                 .Returns(dataset);
+
+            IVersionRepository<DatasetVersion> datasetVersionRepository = CreateDatasetsVersionRepository();
+
+            datasetVersionRepository
+                .GetVersions(Arg.Is(DatasetId))
+                .Returns(history);
 
             ICloudBlob cloudBlob = Substitute.For<ICloudBlob>();
 
@@ -669,7 +706,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetBlobSasUrl(blobName, Arg.Any<DateTimeOffset>(), Arg.Any<SharedAccessBlobPermissions>())
                 .Returns(blobUrl);
 
-            DatasetService service = CreateDatasetService(logger: logger, datasetRepository: datasetRepository, blobClient: blobClient);
+            DatasetService service = CreateDatasetService(logger: logger, datasetRepository: datasetRepository, datasetVersionRepository: datasetVersionRepository, blobClient: blobClient);
 
             // Act
             IActionResult result = await service.DownloadDatasetFile(DatasetId, versionSpecified.ToString());
@@ -757,16 +794,15 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task DownloadDatasetFile_GivenDatasetCurrentBlobNameDoesnotExist_ReturnsPreConditionFailed()
         {
             //Arrange
-            Dataset dataset = new Dataset()
-            {
-                History = new List<DatasetVersion>()
+            Dataset dataset = new Dataset();
+
+            List<DatasetVersion> history = new List<DatasetVersion>()
                 {
                     new DatasetVersion()
                     {
                         BlobName = "BlobName"
                     }
-                }
-            };
+                };
 
             ILogger logger = CreateLogger();
 
@@ -775,7 +811,13 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetDatasetByDatasetId(Arg.Is(DatasetId))
                 .Returns(dataset);
 
-            DatasetService service = CreateDatasetService(logger: logger, datasetRepository: datasetRepository);
+            IVersionRepository<DatasetVersion> datasetVersionRepository = CreateDatasetsVersionRepository();
+
+            datasetVersionRepository
+                .GetVersions(Arg.Is(DatasetId))
+                .Returns(history);
+
+            DatasetService service = CreateDatasetService(logger: logger, datasetRepository: datasetRepository, datasetVersionRepository: datasetVersionRepository);
 
             // Act
             IActionResult result = await service.DownloadDatasetFile(DatasetId, null);
@@ -808,15 +850,16 @@ namespace CalculateFunding.Services.Datasets.Services
                 Current = new DatasetVersion
                 {
                     BlobName = blobName
-                },
-                History = new List<DatasetVersion>()
+                }
+            };
+
+            List<DatasetVersion> history = new List<DatasetVersion>()
                 {
                     new DatasetVersion()
                     {
                         BlobName = "BlobName"
                     }
-                }
-            };
+                };
 
             ILogger logger = CreateLogger();
 
@@ -825,12 +868,18 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetDatasetByDatasetId(Arg.Is(DatasetId))
                 .Returns(dataset);
 
+            IVersionRepository<DatasetVersion> datasetVersionRepository = CreateDatasetsVersionRepository();
+
+            datasetVersionRepository
+                .GetVersions(Arg.Is(DatasetId))
+                .Returns(history);
+
             IBlobClient blobClient = CreateBlobClient();
             blobClient
                 .GetBlobReferenceFromServerAsync(Arg.Is(blobName))
                 .Returns((ICloudBlob) null);
 
-            DatasetService service = CreateDatasetService(logger: logger, datasetRepository: datasetRepository, blobClient: blobClient);
+            DatasetService service = CreateDatasetService(logger: logger, datasetRepository: datasetRepository, datasetVersionRepository: datasetVersionRepository, blobClient: blobClient);
 
             // Act
             IActionResult result = await service.DownloadDatasetFile(DatasetId, null);
@@ -857,15 +906,16 @@ namespace CalculateFunding.Services.Datasets.Services
                 Current = new DatasetVersion
                 {
                     BlobName = blobName
-                },
-                History = new List<DatasetVersion>()
+                }
+            };
+
+            List<DatasetVersion> history = new List<DatasetVersion>()
                 {
                     new DatasetVersion()
                     {
                         BlobName = "BlobName"
                     }
-                }
-            };
+                };
 
             ILogger logger = CreateLogger();
 
@@ -873,6 +923,12 @@ namespace CalculateFunding.Services.Datasets.Services
             datasetRepository
                 .GetDatasetByDatasetId(Arg.Is(DatasetId))
                 .Returns(dataset);
+
+            IVersionRepository<DatasetVersion> datasetVersionRepository = CreateDatasetsVersionRepository();
+
+            datasetVersionRepository
+                .GetVersions(Arg.Is(DatasetId))
+                .Returns(history);
 
             ICloudBlob cloudBlob = Substitute.For<ICloudBlob>();
 
@@ -885,7 +941,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetBlobSasUrl(Arg.Any<string>(), Arg.Any<DateTimeOffset>(), Arg.Any<SharedAccessBlobPermissions>())
                 .Returns(blobUrl);
 
-            DatasetService service = CreateDatasetService(logger: logger, datasetRepository: datasetRepository, blobClient: blobClient);
+            DatasetService service = CreateDatasetService(logger: logger, datasetRepository: datasetRepository, datasetVersionRepository: datasetVersionRepository, blobClient: blobClient);
 
             // Act
             IActionResult result = await service.DownloadDatasetFile(DatasetId, null);
@@ -911,24 +967,26 @@ namespace CalculateFunding.Services.Datasets.Services
 
             Dataset dataset = new Dataset
             {
+                Id = DatasetId,
                 Current = new DatasetVersion
                 {
+                    DatasetId = DatasetId,
                     BlobName = "CurrentsBlobName"
-                },
-                History = new List<DatasetVersion>()
-                {
-                    new DatasetVersion()
+                }
+            };
+
+            List<DatasetVersion> history = new List<DatasetVersion> { new DatasetVersion()
                     {
+                        DatasetId = DatasetId,
                         BlobName = "blobName v1",
                         Version = 1
                     },
                     new DatasetVersion()
                     {
+                        DatasetId = DatasetId,
                         BlobName = blobName,
                         Version = versionSpecified
-                    }
-                }
-            };
+                    } };
 
             ILogger logger = CreateLogger();
 
@@ -936,6 +994,12 @@ namespace CalculateFunding.Services.Datasets.Services
             datasetRepository
                 .GetDatasetByDatasetId(Arg.Is(DatasetId))
                 .Returns(dataset);
+
+            IVersionRepository<DatasetVersion> datasetVersionRepository = CreateDatasetsVersionRepository();
+
+            datasetVersionRepository
+                .GetVersions(Arg.Is(DatasetId))
+                .Returns(history);
 
             ICloudBlob cloudBlob = Substitute.For<ICloudBlob>();
 
@@ -948,7 +1012,10 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetBlobSasUrl(blobName, Arg.Any<DateTimeOffset>(), Arg.Any<SharedAccessBlobPermissions>())
                 .Returns(blobUrl);
 
-            DatasetService service = CreateDatasetService(logger: logger, datasetRepository: datasetRepository, blobClient: blobClient);
+            DatasetService service = CreateDatasetService(logger: logger,
+                datasetRepository: datasetRepository,
+                datasetVersionRepository: datasetVersionRepository,
+                blobClient: blobClient);
 
             // Act
             IActionResult result = await service.DownloadDatasetFile(DatasetId, versionSpecified.ToString());
@@ -977,8 +1044,10 @@ namespace CalculateFunding.Services.Datasets.Services
                 Current = new DatasetVersion
                 {
                     BlobName = "CurrentsBlobName"
-                },
-                History = new List<DatasetVersion>()
+                }
+            };
+
+            List<DatasetVersion> history = new List<DatasetVersion>()
                 {
                     new DatasetVersion()
                     {
@@ -990,8 +1059,7 @@ namespace CalculateFunding.Services.Datasets.Services
                         BlobName = blobName,
                         Version = 3
                     }
-                }
-            };
+                };
 
             ILogger logger = CreateLogger();
 
@@ -999,6 +1067,12 @@ namespace CalculateFunding.Services.Datasets.Services
             datasetRepository
                 .GetDatasetByDatasetId(Arg.Is(DatasetId))
                 .Returns(dataset);
+
+            IVersionRepository<DatasetVersion> datasetVersionRepository = CreateDatasetsVersionRepository();
+
+            datasetVersionRepository
+                .GetVersions(Arg.Is(DatasetId))
+                .Returns(history);
 
             ICloudBlob cloudBlob = Substitute.For<ICloudBlob>();
 
@@ -1011,7 +1085,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetBlobSasUrl(blobName, Arg.Any<DateTimeOffset>(), Arg.Any<SharedAccessBlobPermissions>())
                 .Returns(blobUrl);
 
-            DatasetService service = CreateDatasetService(logger: logger, datasetRepository: datasetRepository, blobClient: blobClient);
+            DatasetService service = CreateDatasetService(logger: logger, datasetRepository: datasetRepository, datasetVersionRepository: datasetVersionRepository, blobClient: blobClient);
 
             // Act
             IActionResult result = await service.DownloadDatasetFile(DatasetId, versionSpecified.ToString());
@@ -1136,10 +1210,12 @@ namespace CalculateFunding.Services.Datasets.Services
             const string expectedInputBloblUrl = "https://blob.com/source";
 
             IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            IVersionRepository<DatasetVersion> datasetVersionRepository = CreateDatasetsVersionRepository();
             IBlobClient blobClient = CreateBlobClient();
             IMapper mapper = CreateMapperWithDatasetsConfiguration();
 
             DatasetService datasetService = CreateDatasetService(datasetRepository: datasetRepository,
+                datasetVersionRepository: datasetVersionRepository,
                 blobClient: blobClient,
                 mapper: mapper);
 
@@ -1153,7 +1229,9 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetVersion existingDatasetVersion = new DatasetVersion()
             {
+                DatasetId = datasetId,
                 Version = 1,
+                Description = "Description v1"
             };
 
             Dataset existingDataset = new Dataset()
@@ -1161,14 +1239,12 @@ namespace CalculateFunding.Services.Datasets.Services
                 Id = datasetId,
                 Current = existingDatasetVersion,
                 Definition = new DatasetDefinitionVersion {Id = "defId", Name = "Definition Name"},
-                Description = "Description v1",
-                History = new List<DatasetVersion>()
-                {
-                    existingDatasetVersion
-                },
                 Name = "Dataset Name",
-                Published = null,
             };
+
+            datasetVersionRepository
+                .GetNextVersionNumber(Arg.Is<DatasetVersion>(_ => _.EntityId == existingDatasetVersion.EntityId))
+                .Returns(existingDatasetVersion.Version + 1);
 
             datasetRepository
                 .GetDatasetByDatasetId(Arg.Is(datasetId))
@@ -1197,7 +1273,6 @@ namespace CalculateFunding.Services.Datasets.Services
                     Author = new Reference(authorId, authorName),
                     BlobUrl = expectedInputBloblUrl,
                     DefinitionId = existingDataset.Definition.Id,
-                    Description = existingDataset.Description,
                     Filename = model.Filename,
                     Name = existingDataset.Name,
                     Version = 2,
@@ -1315,10 +1390,12 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetVersion datasetVersion = new DatasetVersion()
             {
+                DatasetId = datasetId,
                 Version = 1,
                 Author = new Reference("authorId", "Author Name"),
                 BlobName = "file/name.xlsx",
                 Comment = "My update comment",
+                Description = "Description",
                 Date = new DateTime(2018, 12, 1, 3, 4, 5),
                 PublishStatus = Models.Versioning.PublishStatus.Draft,
             };
@@ -1327,11 +1404,8 @@ namespace CalculateFunding.Services.Datasets.Services
             {
                 Id = datasetId,
                 Current = datasetVersion,
-                History = new List<DatasetVersion>() {datasetVersion},
                 Definition = new DatasetDefinitionVersion {Id = "defId", Name = "definitionName"},
-                Description = "Description",
                 Name = "Dataset Name",
-                Published = null,
             };
 
             DocumentEntity<Dataset> documentEntity = new DocumentEntity<Dataset>(dataset)
@@ -1380,10 +1454,12 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetVersion datasetVersion1 = new DatasetVersion()
             {
+                DatasetId = datasetId,
                 Version = 1,
                 Author = new Reference("authorId", "Author Name"),
                 BlobName = "file/name.xlsx",
                 Comment = "My update comment",
+                Description = "Description",
                 Date = new DateTime(2018, 12, 1, 3, 4, 5),
                 PublishStatus = Models.Versioning.PublishStatus.Draft,
             };
@@ -1392,11 +1468,8 @@ namespace CalculateFunding.Services.Datasets.Services
             {
                 Id = datasetId,
                 Current = datasetVersion1,
-                History = new List<DatasetVersion>() {datasetVersion1},
                 Definition = new DatasetDefinitionVersion {Id = "defId", Name = "Definition Name"},
-                Description = "Description",
                 Name = "Dataset Name",
-                Published = null,
             };
 
             DatasetDefinition datasetDefinition = new DatasetDefinition()
@@ -1429,15 +1502,11 @@ namespace CalculateFunding.Services.Datasets.Services
             IDatasetRepository datasetRepository = CreateDatasetsRepository();
             IMapper mapper = CreateMapperWithDatasetsConfiguration();
 
-            DatasetService datasetService = CreateDatasetService(
-                datasetRepository: datasetRepository,
-                mapper: mapper
-            );
-
             const string datasetId = "ds1";
 
             DatasetVersion datasetVersion1 = new DatasetVersion()
             {
+                DatasetId = datasetId,
                 Version = 1,
                 Author = new Reference("authorId", "Author Name"),
                 BlobName = "file/name.xlsx",
@@ -1448,10 +1517,12 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetVersion datasetVersion2 = new DatasetVersion()
             {
+                DatasetId = datasetId,
                 Version = 2,
                 Author = new Reference("authorId2", "Author Name Two"),
                 BlobName = "file/name2.xlsx",
                 Comment = "My update comment for second",
+                Description = "Description",
                 Date = new DateTime(2018, 12, 1, 3, 2, 2),
                 PublishStatus = Models.Versioning.PublishStatus.Draft,
             };
@@ -1460,11 +1531,8 @@ namespace CalculateFunding.Services.Datasets.Services
             {
                 Id = datasetId,
                 Current = datasetVersion2,
-                History = new List<DatasetVersion>() {datasetVersion1, datasetVersion2},
                 Definition = new DatasetDefinitionVersion {Id = "defId", Name = "definitionName"},
-                Description = "Description",
                 Name = "Dataset Name",
-                Published = null,
             };
 
             DocumentEntity<Dataset> documentEntity = new DocumentEntity<Dataset>(dataset)
@@ -1475,6 +1543,18 @@ namespace CalculateFunding.Services.Datasets.Services
             datasetRepository
                 .GetDatasetDocumentByDatasetId(Arg.Is(datasetId))
                 .Returns(documentEntity);
+
+            IVersionRepository<DatasetVersion> datasetVersionRepository = CreateDatasetsVersionRepository();
+
+            datasetVersionRepository
+                .GetVersion(Arg.Is(datasetId), 1)
+                .Returns(datasetVersion1);
+
+            DatasetService datasetService = CreateDatasetService(
+                datasetRepository: datasetRepository,
+                datasetVersionRepository: datasetVersionRepository,
+                mapper: mapper
+            );
 
             // Act
             IActionResult result = await datasetService.GetCurrentDatasetVersionByDatasetId(datasetId);
@@ -1748,9 +1828,6 @@ namespace CalculateFunding.Services.Datasets.Services
                 new Dataset
                 {
                     Definition = new DatasetDefinitionVersion {Id = definitionId, Name = defintionName},
-                    History = new List<DatasetVersion>
-                    {
-                    },
                     Current = new DatasetVersion
                     {
                         PublishStatus = Models.Versioning.PublishStatus.Approved

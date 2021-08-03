@@ -41,6 +41,7 @@ namespace CalculateFunding.Services.Datasets.Services
             IMessengerService messengerService = null,
             ILogger logger = null,
             IDatasetRepository datasetRepository = null,
+            IVersionRepository<DatasetVersion> datasetVersionRepository = null,
             IExcelDatasetReader excelDatasetReader = null,
             ICacheProvider cacheProvider = null,
             ICalcsRepository calcsRepository = null,
@@ -61,6 +62,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             return new ProcessDatasetService(
                 datasetRepository ?? CreateDatasetsRepository(),
+                datasetVersionRepository ?? CreateDatasetsVersionRepository(),
                 excelDatasetReader ?? CreateExcelDatasetReader(),
                 cacheProvider ?? CreateCacheProvider(),
                 calcsRepository ?? CreateCalcsRepository(),
@@ -176,6 +178,10 @@ namespace CalculateFunding.Services.Datasets.Services
         protected static IDatasetRepository CreateDatasetsRepository()
         {
             return Substitute.For<IDatasetRepository>();
+        }
+        protected static IVersionRepository<DatasetVersion> CreateDatasetsVersionRepository()
+        {
+            return Substitute.For<IVersionRepository<DatasetVersion>>();
         }
         protected static IMapper CreateMapper()
         {

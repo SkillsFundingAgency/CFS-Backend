@@ -1,7 +1,9 @@
+using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.Datasets.Converter;
 using CalculateFunding.Services.Datasets.Interfaces;
+using CalculateFunding.Models.Datasets;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -19,6 +21,7 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
         private Mock<IExcelDatasetReader> _reader;
         private Mock<IExcelDatasetWriter> _writer;
         private Mock<IDatasetRepository> _datasets;
+        private Mock<IVersionRepository<DatasetVersion>> _datasetsVersionRepository;
         private Mock<IDatasetIndexer> _indexer;
 
         private DatasetCloneBuilderFactory _cloneBuilderFactory;
@@ -36,10 +39,12 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
             _reader = new Mock<IExcelDatasetReader>();
             _writer = new Mock<IExcelDatasetWriter>();
             _datasets = new Mock<IDatasetRepository>();
+            _datasetsVersionRepository = new Mock<IVersionRepository<DatasetVersion>>();
             _indexer = new Mock<IDatasetIndexer>();
 
             _cloneBuilderFactory = new DatasetCloneBuilderFactory(_blobs.Object,
                 _datasets.Object,
+                _datasetsVersionRepository.Object,
                 _reader.Object,
                 _writer.Object,
                 _indexer.Object,

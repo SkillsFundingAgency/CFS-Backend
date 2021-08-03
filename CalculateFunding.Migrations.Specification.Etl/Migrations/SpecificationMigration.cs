@@ -569,6 +569,7 @@ namespace CalculateFunding.Migrations.Specifications.Etl.Migrations
                                             Version = datasetVersion.version,
                                             BlobName = datasetVersion.BlobName,
                                             ChangeNote = datasetVersion.Comment,
+                                            ChangeType = datasetVersion.ChangeType,
                                             DefinitionName = item.content.Definition.name,
                                             Description = item.content.description,
                                             LastUpdatedDate = !string.IsNullOrWhiteSpace(Convert.ToString(datasetVersion.date)) ? DateTimeOffset.Parse(Convert.ToString(datasetVersion.date)) : null,

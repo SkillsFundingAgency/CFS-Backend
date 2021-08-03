@@ -8,6 +8,7 @@ using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Converter;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.Datasets.Interfaces;
@@ -21,6 +22,7 @@ namespace CalculateFunding.Services.Datasets.Converter
     {
         public DatasetCloneBuilder(IBlobClient blobs,
             IDatasetRepository datasets,
+            IVersionRepository<DatasetVersion> versiondDatasetsRepository,
             IExcelDatasetReader reader,
             IExcelDatasetWriter writer,
             IDatasetIndexer indexer,
@@ -31,19 +33,22 @@ namespace CalculateFunding.Services.Datasets.Converter
             Writer = writer;
             Indexer = indexer;
             Datasets = datasets;
+            VersionDatasetsRepository = versiondDatasetsRepository;
             BlobsResilience = resiliencePolicies.BlobClient;
             DatasetsResilience = resiliencePolicies.DatasetRepository;
         }
-        
+
         public IDatasetIndexer Indexer { get; }
-        
+
         public IExcelDatasetReader Reader { get; }
-        
+
         public IExcelDatasetWriter Writer { get; }
 
         public IBlobClient Blobs { get; }
-        
+
         public IDatasetRepository Datasets { get; }
+
+        public IVersionRepository<DatasetVersion> VersionDatasetsRepository { get; }
 
         public AsyncPolicy BlobsResilience { get; }
         
@@ -150,10 +155,17 @@ namespace CalculateFunding.Services.Datasets.Converter
             string providerVersionId,
             int rowCount)
         {
-            dataset.CreateNewVersion(author,
-                                     providerVersionId,
-                                     rowCount,
-                                     DatasetChangeType.ConverterWizard);
+            DatasetVersion datasetVersion = (DatasetVersion)dataset.Current.Clone();
+
+            datasetVersion.Author = author;
+            datasetVersion.ProviderVersionId = providerVersionId;
+            datasetVersion.RowCount = rowCount;
+            datasetVersion.ChangeType = DatasetChangeType.ConverterWizard;
+
+            datasetVersion = await VersionDatasetsRepository.CreateVersion(datasetVersion, dataset.Current);
+            datasetVersion.BlobName = $"{dataset.Id}/v{datasetVersion.Version}/{Path.GetFileName(datasetVersion.BlobName)}";
+
+            dataset.Current = datasetVersion;
 
             HttpStatusCode statusCode = await DatasetsResilience.ExecuteAsync(() => Datasets.SaveDataset(dataset));
 
@@ -178,7 +190,7 @@ namespace CalculateFunding.Services.Datasets.Converter
             blob.Metadata["authorId"] = author.Id;
             blob.Metadata["authorName"] = author.Name;
             blob.Metadata["name"] = dataset.Current.BlobName;
-            blob.Metadata["description"] = dataset.Description;
+            blob.Metadata["description"] = dataset.Current.Description;
             blob.Metadata["fundingStreamId"] = datasetDefinition.FundingStreamId;
             blob.Metadata["converterWizard"] = true.ToString().ToLower();
             

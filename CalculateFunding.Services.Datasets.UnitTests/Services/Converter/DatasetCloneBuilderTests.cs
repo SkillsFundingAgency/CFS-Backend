@@ -10,6 +10,7 @@ using CalculateFunding.Models.Datasets.Converter;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.Datasets.Converter;
@@ -31,6 +32,7 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
         private Mock<IExcelDatasetWriter> _writer;
         private Mock<IDatasetIndexer> _indexer;
         private Mock<IDatasetRepository> _datasets;
+        private Mock<IVersionRepository<DatasetVersion>> _datasetsVersionRepository;
 
         private byte[] _lastUploadedBlobData;
 
@@ -44,9 +46,11 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
             _indexer = new Mock<IDatasetIndexer>();
             _writer = new Mock<IExcelDatasetWriter>();
             _datasets = new Mock<IDatasetRepository>();
+            _datasetsVersionRepository = new Mock<IVersionRepository<DatasetVersion>>();
 
             _builder = new DatasetCloneBuilder(_blobs.Object,
                 _datasets.Object,
+                _datasetsVersionRepository.Object,
                 _reader.Object,
                 _writer.Object,
                 _indexer.Object,
@@ -291,10 +295,12 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
         {
             Reference author = NewReference();
             string providerVersionId = NewRandomString();
-            Dataset dataset = NewDataset(_ => _.WithHistory(NewDatasetVersion(ver => ver.WithVersion(97)),
-                NewDatasetVersion(ver => ver.WithVersion(98))));
+            Dataset dataset = NewDataset();
+            List<DatasetVersion> history = new List<DatasetVersion> { NewDatasetVersion(ver => ver.WithVersion(97)),
+                NewDatasetVersion(ver => ver.WithVersion(98)) };
             DatasetVersion currentVersion = dataset.Current;
             currentVersion.Version = 99;
+            currentVersion.ChangeType = DatasetChangeType.ConverterWizard;
             DatasetDefinition datasetDefinition = NewDatasetDefinition();
             
             TableLoadResult datasetTable = NewTableLoadResult(_ => _.WithRows(NewRowLoadResult(),
@@ -307,6 +313,7 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
             GivenTheDatasetData(datasetTable);
             AndTheDatasetSavesSuccessfully(dataset);
             AndTheExcelDataForTheDatasetData(datasetDefinition, datasetTable, expectedExcelData);
+            AndTheDatasetVersionCreated(currentVersion, dataset.Id, author, providerVersionId, datasetTable.Rows.Count, currentVersion.Version);
 
             Mock<ICloudBlob> blob = NewBlob();
 
@@ -315,12 +322,6 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
             AndTheBlobReference($"{dataset.Id}/v100/{currentBlobName}", blob.Object);
 
             await WhenTheContentsAreSaved(author, datasetDefinition, dataset, providerVersionId);
-
-            dataset
-                .History
-                .Count
-                .Should()
-                .Be(4);
 
             DatasetVersion newVersion = dataset.Current;
             DatasetVersion expectedNewVersion = (DatasetVersion) currentVersion.Clone();
@@ -334,12 +335,6 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
             newVersion
                 .Should()
                 .BeEquivalentTo(expectedNewVersion);
-
-            dataset
-                .History
-                .Last()
-                .Should()
-                .BeSameAs(dataset.Current);
 
             _indexer.Verify(_ => _.IndexDatasetAndVersion(dataset), 
                 Times.Once);
@@ -364,7 +359,7 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
             AssertThatDictionaryContainsEntry(metadata, ("authorId", dataset.Current.Author.Id));
             AssertThatDictionaryContainsEntry(metadata, ("authorName", dataset.Current.Author.Name));
             AssertThatDictionaryContainsEntry(metadata, ("name", dataset.Current.BlobName));
-            AssertThatDictionaryContainsEntry(metadata, ("description", dataset.Description));
+            AssertThatDictionaryContainsEntry(metadata, ("description", dataset.Current.Description));
             AssertThatDictionaryContainsEntry(metadata, ("fundingStreamId", datasetDefinition.FundingStreamId));
             AssertThatDictionaryContainsEntry(metadata, ("converterWizard", true.ToString()));
         }
@@ -410,6 +405,19 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
                     It.Is<IEnumerable<TableLoadResult>>(tables =>
                     tables.SequenceEqual(new [] { datasetData }))))
                 .Returns(excelData);
+
+        private void AndTheDatasetVersionCreated(DatasetVersion datasetVersion, string datasetId, Reference author, string providerVersion, int rowCount, int version = 1)
+        {
+            DatasetVersion clonedDatasetVersion = (DatasetVersion)datasetVersion.Clone();
+            clonedDatasetVersion.Author = author;
+            clonedDatasetVersion.ProviderVersionId = providerVersion;
+            clonedDatasetVersion.RowCount = rowCount;
+            clonedDatasetVersion.Version = version + 1;
+
+            _datasetsVersionRepository
+                .Setup(_ => _.CreateVersion(It.Is<DatasetVersion>(cv => cv.BlobName == clonedDatasetVersion.BlobName), It.Is<DatasetVersion>(cv => cv.Id == datasetVersion.Id), null, false))
+                .ReturnsAsync(clonedDatasetVersion);
+        }
 
         private IEnumerable<string> WhenTheExistingIdentifierValuesAreQueried(string identifierFieldName)
         {
@@ -511,8 +519,7 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
             DatasetVersion current = NewDatasetVersion();
 
             DatasetBuilder datasetBuilder = new DatasetBuilder()
-                .WithCurrent(current)
-                .WithHistory(current);
+                .WithCurrent(current);
 
             setUp?.Invoke(datasetBuilder);
 

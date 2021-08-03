@@ -45,6 +45,7 @@ namespace CalculateFunding.Services.Datasets
         IDefinitionSpecificationRelationshipService, IHealthChecker
     {
         private readonly IDatasetRepository _datasetRepository;
+        private readonly IVersionRepository<DatasetVersion> _versionDatasetRepository;
         private readonly ILogger _logger;
         private readonly ISpecificationsApiClient _specificationsApiClient;
         private readonly IValidator<CreateDefinitionSpecificationRelationshipModel> _createRelationshipModelValidator;
@@ -64,6 +65,7 @@ namespace CalculateFunding.Services.Datasets
         private readonly ITypeIdentifierGenerator _typeIdentifierGenerator;
 
         public DefinitionSpecificationRelationshipService(IDatasetRepository datasetRepository,
+            IVersionRepository<DatasetVersion> versionDatasetRepository,
             ILogger logger,
             ISpecificationsApiClient specificationsApiClient,
             IValidator<CreateDefinitionSpecificationRelationshipModel> createRelationshipModelValidator,
@@ -80,6 +82,7 @@ namespace CalculateFunding.Services.Datasets
         {
             Guard.ArgumentNotNull(dateTimeProvider, nameof(dateTimeProvider));
             Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
+            Guard.ArgumentNotNull(versionDatasetRepository, nameof(versionDatasetRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
             Guard.ArgumentNotNull(createRelationshipModelValidator, nameof(createRelationshipModelValidator));
@@ -97,6 +100,7 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(updateRelationshipModelValidator, nameof(updateRelationshipModelValidator));
 
             _datasetRepository = datasetRepository;
+            _versionDatasetRepository = versionDatasetRepository;
             _logger = logger;
             _specificationsApiClient = specificationsApiClient;
             _createRelationshipModelValidator = createRelationshipModelValidator;
@@ -424,15 +428,17 @@ namespace CalculateFunding.Services.Datasets
                         {
                             Id = dataset.Id,
                             Name = dataset.Name,
-                            Description = dataset.Description,
+                            Description = dataset.Current?.Description,
                             SelectedVersion = (relationship.Current.DatasetVersion != null && relationship.Current.DatasetVersion.Id == dataset.Id) ? relationship.Current.DatasetVersion.Version : null as int?,
-                            Versions = dataset.History.OrderByDescending(_ => _.Version).Select(m => new DatasetVersionModel
+                            Versions = (await _versionDatasetRepository.GetVersions(dataset.Id))?.OrderByDescending(_ => _.Version).Select(m => new DatasetVersionModel
                             {
                                 Id = m.Id,
+                                DatasetId = m.DatasetId,
                                 Version = m.Version,
                                 Date = m.Date,
                                 Author = m.Author,
-                                Comment = m.Comment
+                                Comment = m.Comment,
+                                Description = m.Description
                             })
                         }
                     });
@@ -487,6 +493,11 @@ namespace CalculateFunding.Services.Datasets
                 _logger.Error($"Relationship not found for relationship id: {model.RelationshipId}");
                 return new StatusCodeResult(412);
             }
+
+            //  need to save the relationship id here so we can list all dataset versions
+            dataset.RelationshipId = model.RelationshipId;
+
+            await _datasetRepository.SaveDataset(dataset);
 
             ApiResponse<SpecModel.SpecificationSummary> specificationApiResponse =
                 await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(relationship.Current.Specification.Id));

@@ -229,6 +229,9 @@ namespace CalculateFunding.Functions.Datasets
                 return new DataSetsRepository(CreateCosmosDbSettings(config, "datasets"));
             });
 
+            builder.AddSingleton<IVersionRepository<DatasetVersion>, VersionRepository<DatasetVersion>>(ctx =>
+                new VersionRepository<DatasetVersion>(CreateCosmosDbSettings(config, "datasets"), new NewVersionBuilderFactory<DatasetVersion>()));
+
             builder.AddSingleton<IDatasetSearchService, DatasetSearchService>();
 
             builder.AddSingleton<IProviderSourceDatasetVersionKeyProvider, ProviderSourceDatasetVersionKeyProvider>();

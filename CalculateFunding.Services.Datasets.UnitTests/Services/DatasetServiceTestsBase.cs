@@ -43,6 +43,7 @@ namespace CalculateFunding.Services.Datasets.Services
             IBlobClient blobClient = null,
             ILogger logger = null,
             IDatasetRepository datasetRepository = null,
+            IVersionRepository<DatasetVersion> datasetVersionRepository = null,
             IValidator<CreateNewDatasetModel> createNewDatasetModelValidator = null,
             IValidator<DatasetVersionUpdateModel> datasetVersionUpdateModelValidator = null,
             IMapper mapper = null,
@@ -65,6 +66,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 blobClient ?? CreateBlobClient(),
                 logger ?? CreateLogger(),
                 datasetRepository ?? CreateDatasetsRepository(),
+                datasetVersionRepository ?? CreateDatasetsVersionRepository(),
                 createNewDatasetModelValidator ?? CreateNewDatasetModelValidator(),
                 datasetVersionUpdateModelValidator ?? CreateDatasetVersionUpdateModelValidator(),
                 mapper ?? CreateMapper(),
@@ -75,7 +77,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 datasetWorksheetValidator ?? CreateDataWorksheetValidator(),
                 datasetUploadValidator ?? CreateDatasetUploadValidator(),
                 DatasetsResilienceTestHelper.GenerateTestPolicies(),
-                datasetVersionIndex ?? CreateDatasetVersionRepository(),
+                datasetVersionIndex ?? CreateDatasetVersionIndexRepository(),
                 providersApiClient ?? CreateProvidersApiClient(),
                 jobManagement ?? CreateJobManagement(),
                 providerSourceDatasetRepository ?? CreateProviderSourceDatasetRepository(),
@@ -145,7 +147,7 @@ namespace CalculateFunding.Services.Datasets.Services
             return Substitute.For<ISearchRepository<DatasetIndex>>();
         }
 
-        protected ISearchRepository<DatasetVersionIndex> CreateDatasetVersionRepository()
+        protected ISearchRepository<DatasetVersionIndex> CreateDatasetVersionIndexRepository()
         {
             return Substitute.For<ISearchRepository<DatasetVersionIndex>>();
         }
@@ -286,7 +288,11 @@ namespace CalculateFunding.Services.Datasets.Services
             return Substitute.For<IDatasetRepository>();
         }
 
-        protected byte[] CreateTestExcelPackage()
+        protected IVersionRepository<DatasetVersion> CreateDatasetsVersionRepository()
+        {
+            return Substitute.For<IVersionRepository<DatasetVersion>>();
+        }
+    protected byte[] CreateTestExcelPackage()
         {
             using (ExcelPackage package = new ExcelPackage())
             {

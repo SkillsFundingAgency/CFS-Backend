@@ -19,6 +19,8 @@ namespace CalculateFunding.Services.Datasets.Interfaces
 
         Task<IEnumerable<Dataset>> GetDatasetsByQuery(Expression<Func<DocumentEntity<Dataset>, bool>> query);
 
+        Task<IEnumerable<DocumentEntity<OldDataset>>> GetOldDatasetsToMigrate();
+
         Task<IEnumerable<DatasetDefinition>> GetDatasetDefinitionsByQuery(Expression<Func<DocumentEntity<DatasetDefinition>, bool>> query);
 
         Task<HttpStatusCode> SaveDataset(Dataset dataset);

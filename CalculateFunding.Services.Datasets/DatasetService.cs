@@ -49,6 +49,7 @@ using CalculateFunding.Services.DataImporter.Models;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using Microsoft.Azure.Cosmos.Linq;
+using CalculateFunding.Services.Core.Interfaces;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -57,6 +58,7 @@ namespace CalculateFunding.Services.Datasets
         private readonly IBlobClient _blobClient;
         private readonly ILogger _logger;
         private readonly IDatasetRepository _datasetRepository;
+        private readonly IVersionRepository<DatasetVersion> _versionDatasetRepository;
         private readonly IValidator<CreateNewDatasetModel> _createNewDatasetModelValidator;
         private readonly IValidator<DatasetVersionUpdateModel> _datasetVersionUpdateModelValidator;
         private readonly IMapper _mapper;
@@ -79,6 +81,7 @@ namespace CalculateFunding.Services.Datasets
             IBlobClient blobClient,
             ILogger logger,
             IDatasetRepository datasetRepository,
+            IVersionRepository<DatasetVersion> versionDatasetRepository,
             IValidator<CreateNewDatasetModel> createNewDatasetModelValidator,
             IValidator<DatasetVersionUpdateModel> datasetVersionUpdateModelValidator,
             IMapper mapper,
@@ -100,6 +103,7 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(blobClient, nameof(blobClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
+            Guard.ArgumentNotNull(versionDatasetRepository, nameof(versionDatasetRepository));
             Guard.ArgumentNotNull(createNewDatasetModelValidator, nameof(createNewDatasetModelValidator));
             Guard.ArgumentNotNull(datasetVersionUpdateModelValidator, nameof(datasetVersionUpdateModelValidator));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
@@ -120,6 +124,7 @@ namespace CalculateFunding.Services.Datasets
             _blobClient = blobClient;
             _logger = logger;
             _datasetRepository = datasetRepository;
+            _versionDatasetRepository = versionDatasetRepository;
             _createNewDatasetModelValidator = createNewDatasetModelValidator;
             _datasetVersionUpdateModelValidator = datasetVersionUpdateModelValidator;
             _mapper = mapper;
@@ -216,7 +221,7 @@ namespace CalculateFunding.Services.Datasets
                 return new PreconditionFailedResult($"Dataset was not found with ID {model.DatasetId} when trying to add new dataset version");
             }
 
-            int version = dataset.GetNextVersion();
+            int version = await _versionDatasetRepository.GetNextVersionNumber(dataset.Current);
             
             string blobUrl = _blobClient.GetBlobSasUrl(GetUploadedBlobFilepath(model.Filename, model.DatasetId, version),
                 DateTimeOffset.Now.AddDays(1), SharedAccessBlobPermissions.Read | SharedAccessBlobPermissions.Write);
@@ -228,7 +233,6 @@ namespace CalculateFunding.Services.Datasets
             responseModel.Author = author;
             responseModel.DefinitionId = dataset.Definition.Id;
             responseModel.Name = dataset.Name;
-            responseModel.Description = dataset.Description;
             responseModel.Version = version;
             responseModel.FundingStreamId = model.FundingStreamId;
 
@@ -441,7 +445,7 @@ namespace CalculateFunding.Services.Datasets
                 Properties = new Dictionary<string, string>
                 {
                     {"operation-id", responseModel.OperationId},
-                    {"dataset-id", model.DatasetId}
+                    {"dataset-id", model.DatasetId }
                 },
                 Trigger = trigger,
                 CorrelationId = correlationId
@@ -851,7 +855,7 @@ namespace CalculateFunding.Services.Datasets
                 return new StatusCodeResult(412);
             }
             
-            string fullBlobName = datasetVersion == -1 ? dataset.Current?.BlobName : dataset.History?.FirstOrDefault(dh => dh.Version == datasetVersion)?.BlobName;
+            string fullBlobName = datasetVersion == -1 ? dataset.Current?.BlobName : (await _versionDatasetRepository.GetVersions(dataset.Id))?.FirstOrDefault(dh => dh.Version == datasetVersion)?.BlobName;
 
             return await DownloadDatasetFile(currentDatasetId, fullBlobName, datasetVersion);
         }
@@ -885,7 +889,7 @@ namespace CalculateFunding.Services.Datasets
                 return new StatusCodeResult(412);
             }
 
-            string fullBlobName = datasetVersion == -1 ? dataset.Current?.UploadedBlobFilePath : dataset.History?.FirstOrDefault(dh => dh.Version == datasetVersion)?.UploadedBlobFilePath;
+            string fullBlobName = datasetVersion == -1 ? dataset.Current?.UploadedBlobFilePath : (await _versionDatasetRepository.GetVersions(dataset.Id))?.FirstOrDefault(dh => dh.Version == datasetVersion)?.UploadedBlobFilePath;
 
             return await DownloadDatasetFile(datasetId, fullBlobName, datasetVersion);
         }
@@ -939,7 +943,7 @@ namespace CalculateFunding.Services.Datasets
                     LastUpdatedDate = dataset.UpdatedAt,
                     Name = dataset.Content.Name,
                     Status = Enum.GetName(typeof(Models.Versioning.PublishStatus), dataset.Content.Current.PublishStatus),
-                    Description = dataset.Content.Description,
+                    Description = dataset.Content.Current.Description,
                     Version = dataset.Content.Current.Version,
                     ChangeNote = dataset.Content.Current.Comment,
                     ChangeType = dataset.Content.Current.ChangeType == DatasetChangeType.Unknown ? DatasetChangeType.NewVersion.ToString() : dataset.Content.Current.ChangeType.ToString(),
@@ -982,37 +986,35 @@ namespace CalculateFunding.Services.Datasets
 
             foreach (DocumentEntity<Dataset> dataset in datasets)
             {
-                if (dataset.Content.History.AnyWithNullCheck())
+                foreach (DatasetVersion datasetVersion in await _versionDatasetRepository.GetVersions(dataset.Id))
                 {
-                    foreach (DatasetVersion datasetVersion in dataset.Content.History)
+                    DatasetVersionIndex datasetVersionIndex = new DatasetVersionIndex
                     {
-                        DatasetVersionIndex datasetVersionIndex = new DatasetVersionIndex
-                        {
-                            Id = $"{dataset.Id}-{datasetVersion.Version}",
-                            DatasetId = dataset.Id,
-                            Name = dataset.Content.Name,
-                            Version = datasetVersion.Version,
-                            BlobName = datasetVersion.BlobName,
-                            ChangeNote = datasetVersion.Comment,
-                            DefinitionName = dataset.Content.Definition.Name,
-                            Description = dataset.Content.Description,
-                            LastUpdatedDate = datasetVersion.Date,
-                            LastUpdatedByName = datasetVersion.Author.Name,
-                            FundingStreamId = datasetVersion.FundingStream?.Id,
-                            FundingStreamName = datasetVersion.FundingStream?.Name
-                        };
-                        searchEntries.Add(datasetVersionIndex);
+                        Id = $"{dataset.Id}-{datasetVersion.Version}",
+                        DatasetId = dataset.Id,
+                        Name = dataset.Content.Name,
+                        Version = datasetVersion.Version,
+                        BlobName = datasetVersion.BlobName,
+                        ChangeNote = datasetVersion.Comment,
+                        ChangeType = datasetVersion.ChangeType.ToString(),
+                        DefinitionName = dataset.Content.Definition.Name,
+                        Description = datasetVersion.Description,
+                        LastUpdatedDate = datasetVersion.Date,
+                        LastUpdatedByName = datasetVersion.Author.Name,
+                        FundingStreamId = datasetVersion.FundingStream?.Id,
+                        FundingStreamName = datasetVersion.FundingStream?.Name
+                    };
+                    searchEntries.Add(datasetVersionIndex);
 
-                        if (searchEntries.Count >= searchBatchSize)
+                    if (searchEntries.Count >= searchBatchSize)
+                    {
+                        foreach (IEnumerable<DatasetVersionIndex> datasetVersionIndexBatch in searchEntries.ToBatches(searchBatchSize))
                         {
-                            foreach (IEnumerable<DatasetVersionIndex> datasetVersionIndexBatch in searchEntries.ToBatches(searchBatchSize))
-                            {
-                                await _datasetVersionIndexRepository.Index(datasetVersionIndexBatch);
-                                totalInserts += searchEntries.Count;
-                            }
-
-                            searchEntries.Clear();
+                            await _datasetVersionIndexRepository.Index(datasetVersionIndexBatch);
+                            totalInserts += searchEntries.Count;
                         }
+
+                        searchEntries.Clear();
                     }
                 }
             }
@@ -1124,7 +1126,7 @@ namespace CalculateFunding.Services.Datasets
             {
                 indexErrors.AddRange((await IndexDatasetInSearch(dataset)));
 
-                foreach (DatasetVersion datasetVersion in dataset.History)
+                foreach (DatasetVersion datasetVersion in await _versionDatasetRepository.GetVersions(dataset.Id))
                 {
                     indexErrors.AddRange(await IndexDatasetVersionInSearch(dataset, datasetVersion));
                 }
@@ -1227,6 +1229,7 @@ namespace CalculateFunding.Services.Datasets
 
             DatasetVersion newVersion = new DatasetVersion
             {
+                DatasetId = metadataModel.DatasetId,
                 Author = new Reference(metadataModel.AuthorId, metadataModel.AuthorName),
                 Version = 1,
                 Date = DateTimeOffset.Now,
@@ -1236,6 +1239,7 @@ namespace CalculateFunding.Services.Datasets
                 ChangeType = DatasetChangeType.NewVersion,
                 RowCount = rowCount,
                 Comment = metadataModel.Comment,
+                Description = metadataModel.Description,
                 FundingStream = fundingStream
             };
 
@@ -1243,19 +1247,16 @@ namespace CalculateFunding.Services.Datasets
             {
                 Id = metadataModel.DatasetId,
                 Name = metadataModel.Name,
-                Description = metadataModel.Description,
                 Definition = new DatasetDefinitionVersion
                 {
                     Id = datasetDefinition.Id,
                     Name = datasetDefinition.Name,
                     Version = datasetDefinition.Version
                 },
-                Current = newVersion,
-                History = new List<DatasetVersion>
-                {
-                    newVersion
-                }
+                Current = newVersion
             };
+
+            await _versionDatasetRepository.SaveVersion(newVersion);
 
             HttpStatusCode statusCode = await _datasetRepository.SaveDataset(dataset);
 
@@ -1304,15 +1305,18 @@ namespace CalculateFunding.Services.Datasets
                 throw new InvalidOperationException($"Failed to retrieve dataset for id: {model.DatasetId} response was null");
             }
 
-            if (model.Version != dataset.GetNextVersion())
-            {
-                _logger.Error($"Failed to save dataset or dataset version for id: {model.DatasetId} due to version mismatch. Expected next version to be {dataset.GetNextVersion()} but request provided '{model.Version}'");
+            int newVersionNumber = await _versionDatasetRepository.GetNextVersionNumber(dataset.Current);
 
-                throw new InvalidOperationException($"Failed to save dataset or dataset version for id: {model.DatasetId} due to version mismatch. Expected next version to be {dataset.GetNextVersion()} but request provided '{model.Version}'");
+            if (model.Version != newVersionNumber)
+            {
+                _logger.Error($"Failed to save dataset or dataset version for id: {model.DatasetId} due to version mismatch. Expected next version to be {newVersionNumber} but request provided '{model.Version}'");
+
+                throw new InvalidOperationException($"Failed to save dataset or dataset version for id: {model.DatasetId} due to version mismatch. Expected next version to be {newVersionNumber} but request provided '{model.Version}'");
             }
 
             DatasetVersion newVersion = new DatasetVersion
             {
+                DatasetId = dataset.Id,
                 Author = new Reference(author.Id, author.Name),
                 Version = model.Version,
                 Date = DateTimeOffset.Now,
@@ -1325,12 +1329,12 @@ namespace CalculateFunding.Services.Datasets
                 NewRowCount = mergeResult.TotalRowsCreated,
                 AmendedRowCount = mergeResult.TotalRowsAmended,
                 ChangeType = model.Version > 1 && model.MergeExistingVersion ? DatasetChangeType.Merge : DatasetChangeType.NewVersion,
-                ProviderVersionId = null
+                ProviderVersionId = null,
+                Description = model.Description
             };
 
-            dataset.Description = model.Description;
             dataset.Current = newVersion;
-            dataset.History.Add(newVersion);
+            await _versionDatasetRepository.SaveVersion(newVersion);
 
             HttpStatusCode statusCode = await _datasetRepository.SaveDataset(dataset);
 
@@ -1370,7 +1374,7 @@ namespace CalculateFunding.Services.Datasets
                     DefinitionName = dataset.Definition.Name,
                     Status = dataset.Current.PublishStatus.ToString(),
                     LastUpdatedDate = DateTimeOffset.Now,
-                    Description = dataset.Description,
+                    Description = dataset.Current.Description,
                     Version = dataset.Current.Version,
                     ChangeNote = dataset.Current.Comment,
                     ChangeType = dataset.Current.ChangeType.ToString(),
@@ -1398,7 +1402,7 @@ namespace CalculateFunding.Services.Datasets
                     ChangeNote = datasetVersion.Comment,
                     ChangeType = datasetVersion.ChangeType.ToString(),
                     DefinitionName = dataset.Definition.Name,
-                    Description = dataset.Description,
+                    Description = datasetVersion.Description,
                     LastUpdatedDate = datasetVersion.Date,
                     LastUpdatedByName = datasetVersion.Author.Name,
                     FundingStreamId = datasetVersion.FundingStream?.Id,
@@ -1503,7 +1507,7 @@ namespace CalculateFunding.Services.Datasets
                 Author = dataset.Content.Current.Author,
                 BlobName = dataset.Content.Current.BlobName,
                 Definition = dataset.Content.Definition,
-                Description = dataset.Content.Description,
+                Description = dataset.Content.Current.Description,
                 LastUpdatedDate = dataset.UpdatedAt,
                 Name = dataset.Content.Name,
                 PublishStatus = dataset.Content.Current.PublishStatus,
@@ -1515,10 +1519,10 @@ namespace CalculateFunding.Services.Datasets
                 NewRowCount = dataset.Content.Current.NewRowCount
             };
 
-            int maxVersion = dataset.Content.History.Max(m => m.Version);
+            int maxVersion = dataset.Content.Current.Version;
             if (maxVersion > 1)
             {
-                result.PreviousDataSourceRows = dataset.Content.History.First().RowCount;
+                result.PreviousDataSourceRows = (await _versionDatasetRepository.GetVersion(dataset.Id, maxVersion - 1)).RowCount;
             }
 
             return new OkObjectResult(result);
@@ -1549,6 +1553,44 @@ namespace CalculateFunding.Services.Datasets
                     totalUpdatedDatasets++;
                 }
 
+                await _datasetRepository.SaveDatasets(datasetDocuments);
+            }
+
+            return new OkObjectResult($"Migrated total of {totalUpdatedDatasets} Datasets");
+        }
+
+        public async Task<IActionResult> MigrateDatasetsPerDocumentVersioning()
+        {
+            int totalUpdatedDatasets = 0;
+            List<Dataset> datasetDocuments = new List<Dataset>();
+            IEnumerable<DocumentEntity<OldDataset>> oldDatasetDocuments = await _datasetRepository.GetOldDatasetsToMigrate();
+
+            foreach (DocumentEntity<OldDataset> dataset in oldDatasetDocuments)
+            {
+                await _versionDatasetRepository.SaveVersions(dataset.Content.History.Select(_ =>
+                {
+                    _.DatasetId = dataset.Content.Id;
+                    _.Description = dataset.Content.Description;
+
+                    return _;
+                }));
+
+                dataset.Content.Current.DatasetId = dataset.Content.Id;
+
+                datasetDocuments.Add(new Dataset
+                {
+                    Current = dataset.Content.Current,
+                    Definition = dataset.Content.Definition,
+                    RelationshipId = dataset.Content.RelationshipId,
+                    Name = dataset.Content.Name,
+                    Id = dataset.Content.Id
+                });
+
+                totalUpdatedDatasets++;
+            }
+
+            if (datasetDocuments.Count > 0)
+            {
                 await _datasetRepository.SaveDatasets(datasetDocuments);
             }
 

@@ -46,6 +46,7 @@ using ApiProviderVersion = CalculateFunding.Common.ApiClient.Providers.Models.Pr
 using FieldDefinition = CalculateFunding.Models.Datasets.Schema.FieldDefinition;
 using VersionReference = CalculateFunding.Models.VersionReference;
 using CalculateFunding.UnitTests.ApiClientHelpers.Jobs;
+using CalculateFunding.Services.Core.Interfaces;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
@@ -54,6 +55,7 @@ namespace CalculateFunding.Services.Datasets.Services
     {
         private ProcessDatasetService _service;
         private IDatasetRepository _datasetRepository;
+        private IVersionRepository<DatasetVersion> _datasetVersionRepository;
         private ICalcsRepository _calculationsRepository;
         private IBlobClient _blobClient;
         private ICacheProvider _cacheProvider;
@@ -96,6 +98,7 @@ namespace CalculateFunding.Services.Datasets.Services
         public void SetUp()
         {
             _datasetRepository = CreateDatasetsRepository();
+            _datasetVersionRepository = CreateDatasetsVersionRepository();
             _calculationsRepository = CreateCalcsRepository();
             _blobClient = CreateBlobClient();
             _cacheProvider = CreateCacheProvider();
@@ -115,6 +118,7 @@ namespace CalculateFunding.Services.Datasets.Services
             _providerSourceDatasetBulkRepository = new Mock<IProviderSourceDatasetBulkRepository>();
             
             _service = CreateProcessDatasetService(datasetRepository: _datasetRepository,
+                datasetVersionRepository: _datasetVersionRepository,
                 calcsRepository: _calculationsRepository,
                 blobClient: _blobClient,
                 cacheProvider: _cacheProvider,
@@ -214,10 +218,12 @@ namespace CalculateFunding.Services.Datasets.Services
         [TestMethod]
         public void ProcessDataset_GivenPayloadButDatasetDefinitionCouldNotBeFound_DoesNotProcess()
         {
+            DatasetVersion datasetVersion = NewDatasetVersion();
+            Dataset dataset = NewDataset(_ => _.WithCurrent(datasetVersion)
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId))))));
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"));
-            AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
-                .WithHistory(NewDatasetVersion())));
+            AndTheMessageBody(dataset);
+            AndTheDatasetVersion(dataset.Id, datasetVersion);
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
@@ -239,10 +245,12 @@ namespace CalculateFunding.Services.Datasets.Services
         [TestMethod]
         public void ProcessDataset_GivenPayloadButBuildProjectCouldNotBeFound_DoesNotProcess()
         {
+            DatasetVersion datasetVersion = NewDatasetVersion();
+            Dataset dataset = NewDataset(_ => _.WithCurrent(datasetVersion)
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId))))));
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"));
-            AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
-                .WithHistory(NewDatasetVersion())));
+            AndTheMessageBody(dataset);
+            AndTheDatasetVersion(dataset.Id, datasetVersion);
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
@@ -265,10 +273,12 @@ namespace CalculateFunding.Services.Datasets.Services
         [TestMethod]
         public async Task ProcessDataset_GivenPayloadButBlobNotFound_DoesNotProcess()
         {
+            DatasetVersion datasetVersion = NewDatasetVersion();
+            Dataset dataset = NewDataset(_ => _.WithCurrent(datasetVersion)
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId))))));
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"));
-            AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
-                .WithHistory(NewDatasetVersion())));
+            AndTheMessageBody(dataset);
+            AndTheDatasetVersion(dataset.Id, datasetVersion);
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
@@ -293,10 +303,12 @@ namespace CalculateFunding.Services.Datasets.Services
         [TestMethod]
         public void ProcessDataset_GivenPayloadAndBlobFoundButEmptyFile_DoesNotProcess()
         {
+            DatasetVersion datasetVersion = NewDatasetVersion();
+            Dataset dataset = NewDataset(_ => _.WithCurrent(datasetVersion)
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId))))));
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"));
-            AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
-                .WithHistory(NewDatasetVersion())));
+            AndTheMessageBody(dataset);
+            AndTheDatasetVersion(dataset.Id, datasetVersion);
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
@@ -325,10 +337,12 @@ namespace CalculateFunding.Services.Datasets.Services
         [TestMethod]
         public void ProcessDataset_GivenPayloadAndBlobFoundButNoTableResultsReturned_DoesNotProcess()
         {
+            DatasetVersion datasetVersion = NewDatasetVersion();
+            Dataset dataset = NewDataset(_ => _.WithCurrent(datasetVersion)
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId))))));
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"));
-            AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
-                .WithHistory(NewDatasetVersion())));
+            AndTheMessageBody(dataset);
+            AndTheDatasetVersion(dataset.Id, datasetVersion);
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
@@ -357,10 +371,12 @@ namespace CalculateFunding.Services.Datasets.Services
         [TestMethod]
         public async Task ProcessDataset_GivenPayloadAndTableResultsButNoDatasetRelationshipSummaries_DoesNotProcess()
         {
+            DatasetVersion datasetVersion = NewDatasetVersion();
+            Dataset dataset = NewDataset(_ => _.WithCurrent(datasetVersion)
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId))))));
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"));
-            AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
-                .WithHistory(NewDatasetVersion())));
+            AndTheMessageBody(dataset);
+            AndTheDatasetVersion(dataset.Id, datasetVersion);
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
@@ -393,11 +409,13 @@ namespace CalculateFunding.Services.Datasets.Services
         [TestMethod]
         public async Task ProcessDataset_GivenPayloadAndTableResultsButNoDatasetRelationshipSummaryCouldBeFound_DoesNotProcess()
         {
+            DatasetVersion datasetVersion = NewDatasetVersion();
+            Dataset dataset = NewDataset(_ => _.WithCurrent(datasetVersion)
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId))))));
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username));
-            AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
-                .WithHistory(NewDatasetVersion())));
+            AndTheMessageBody(dataset);
+            AndTheDatasetVersion(dataset.Id, datasetVersion);
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
@@ -431,51 +449,15 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        [Ignore("I don't understand the changes made to to this test, Ant. Essentially there was some refactoring and now it only passes if the MUT is not invoked??")]
-        public async Task ProcessDataset_GivenPayloadAndTableResultsButNoIdentifiersFound_DoesNotSaveResults()
+        public void ProcessDataset_GivenPayloadAndTableResultsButNoProviderIds_DoesNotSaveResults()
         {
+            DatasetVersion datasetVersion = NewDatasetVersion();
+            Dataset dataset = NewDataset(_ => _.WithCurrent(datasetVersion)
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId))))));
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username));
-            AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
-                .WithHistory(NewDatasetVersion())));
-            AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
-            AndTheRelationship(_relationshipId, NewRelationship(r => r.WithCurrent(NewRelationshipVersion(_ => _.WithDatasetDefinition(NewReference(
-                    rf => rf.WithId(DataDefintionId)))
-                .WithDatasetVersion(NewDatasetRelationshipVersion())))));
-
-            DatasetDefinition datasetDefinition = NewDatasetDefinition();
-
-            AndTheDatasetDefinitions(datasetDefinition);
-            AndTheBuildProject(SpecificationId, NewBuildProject(_ => _.WithRelationships(NewRelationshipSummary())));
-
-            ICloudBlob cloudBlob = NewCloudBlob();
-
-            AndTheCloudBlob(BlobPath, cloudBlob);
-
-            Stream tableStream = NewStream(new byte[1]);
-
-            AndTheCloudStream(cloudBlob, tableStream);
-
-            TableLoadResult tableLoadResult = NewTableLoadResult(_ => _.WithRows(NewRowLoadResult(
-                row => row.WithFields((Upin, _upin)))));
-
-            AndTheCachedTableLoadResults(_datasetCacheKey, tableLoadResult);
-            AndTheTableLoadResultsFromExcel(tableStream, datasetDefinition, tableLoadResult);
-
-            Func<Task> invocation = WhenTheProcessDatasetMessageIsProcessed;
-
-            ThenNoResultsWereSaved();
-        }
-
-        [TestMethod]
-        public async Task ProcessDataset_GivenPayloadAndTableResultsButNoProviderIds_DoesNotSaveResults()
-        {
-            GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
-                ("user-id", UserId), ("user-name", Username));
-            AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
-                .WithHistory(NewDatasetVersion())));
+            AndTheMessageBody(dataset);
+            AndTheDatasetVersion(dataset.Id, datasetVersion);
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheRelationship(_relationshipId, NewRelationship(r => r.WithCurrent(NewRelationshipVersion(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
@@ -510,11 +492,13 @@ namespace CalculateFunding.Services.Datasets.Services
         [TestMethod]
         public async Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsButNotAggregateFields_SavesDatasetButDoesNotSaveAggregates()
         {
+            DatasetVersion datasetVersion = NewDatasetVersion();
+            Dataset dataset = NewDataset(_ => _.WithCurrent(datasetVersion)
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId))))));
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username));
-            AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
-                .WithHistory(NewDatasetVersion())));
+            AndTheMessageBody(dataset);
+            AndTheDatasetVersion(dataset.Id, datasetVersion);
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
@@ -567,11 +551,13 @@ namespace CalculateFunding.Services.Datasets.Services
         [TestMethod]
         public async Task ProcessDataset_GivenPayloadAndTableResultsWithSpecificationProviderSourceFDZButNotAggregateFields_SavesDatasetButDoesNotSaveAggregatesAndNotUpdatedScopedProviders()
         {
+            DatasetVersion datasetVersion = NewDatasetVersion();
+            Dataset dataset = NewDataset(_ => _.WithCurrent(datasetVersion)
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId))))));
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username));
-            AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
-                .WithHistory(NewDatasetVersion())));
+            AndTheMessageBody(dataset);
+            AndTheDatasetVersion(dataset.Id, datasetVersion);
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheJob(NewJob(_ => _.WithId(_jobId)
                 .WithDefinitionId(CreateInstructAllocationJob)), CreateInstructAllocationJob);
@@ -631,11 +617,13 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             string newProviderId = NewRandomString();
 
+            DatasetVersion datasetVersion = NewDatasetVersion();
+            Dataset dataset = NewDataset(_ => _.WithCurrent(datasetVersion)
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId))))));
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username));
-            AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
-                .WithHistory(NewDatasetVersion())));
+            AndTheMessageBody(dataset);
+            AndTheDatasetVersion(dataset.Id, datasetVersion);
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
@@ -690,11 +678,13 @@ namespace CalculateFunding.Services.Datasets.Services
         [TestMethod]
         public async Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsAndLaCodesAsIdentifiers_SavesDataset()
         {
+            DatasetVersion datasetVersion = NewDatasetVersion();
+            Dataset dataset = NewDataset(_ => _.WithCurrent(datasetVersion)
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId))))));
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username));
-            AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
-                .WithHistory(NewDatasetVersion())));
+            AndTheMessageBody(dataset);
+            AndTheDatasetVersion(dataset.Id, datasetVersion);
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
@@ -748,11 +738,13 @@ namespace CalculateFunding.Services.Datasets.Services
             string aggregateFieldName = NewRandomString();
             decimal aggregateFieldValue = new RandomNumberBetween(1, 3000);
 
+            DatasetVersion datasetVersion = NewDatasetVersion();
+            Dataset dataset = NewDataset(_ => _.WithCurrent(datasetVersion)
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId))))));
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username));
-            AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
-                .WithHistory(NewDatasetVersion())));
+            AndTheMessageBody(dataset);
+            AndTheDatasetVersion(dataset.Id, datasetVersion);
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
@@ -825,11 +817,13 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             string aggregateFieldName = NewRandomString();
 
+            DatasetVersion datasetVersion = NewDatasetVersion();
+            Dataset dataset = NewDataset(_ => _.WithCurrent(datasetVersion)
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId))))));
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username));
-            AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
-                .WithHistory(NewDatasetVersion())));
+            AndTheMessageBody(dataset);
+            AndTheDatasetVersion(dataset.Id, datasetVersion);
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
@@ -906,11 +900,13 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             string secondProviderUpin = NewRandomString();
 
+            DatasetVersion datasetVersion = NewDatasetVersion();
+            Dataset dataset = NewDataset(_ => _.WithCurrent(datasetVersion)
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId))))));
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                ("user-id", UserId), ("user-name", Username));
-            AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
-                .WithHistory(NewDatasetVersion())));
+            AndTheMessageBody(dataset);
+            AndTheDatasetVersion(dataset.Id, datasetVersion);
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
@@ -960,11 +956,13 @@ namespace CalculateFunding.Services.Datasets.Services
         [TestMethod]
         public async Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsButNoExistingToCompare_SavesDatasetDoesntCallCreateVersionSavesVersion() 
         {
+            DatasetVersion datasetVersion = NewDatasetVersion();
+            Dataset dataset = NewDataset(_ => _.WithCurrent(datasetVersion)
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId))))));
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username));
-            AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
-                .WithHistory(NewDatasetVersion())));
+            AndTheMessageBody(dataset);
+            AndTheDatasetVersion(dataset.Id, datasetVersion);
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
@@ -1020,8 +1018,7 @@ namespace CalculateFunding.Services.Datasets.Services
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username));
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
-                .WithHistory(NewDatasetVersion())));
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))));
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheRelationship(_relationshipId, NewRelationship(r => r.WithCurrent(NewRelationshipVersion(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
@@ -1071,11 +1068,13 @@ namespace CalculateFunding.Services.Datasets.Services
         [TestMethod]
         public async Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsAndChangesInData_CalsCreateNewVersionAndSaves()
         {
+            DatasetVersion datasetVersion = NewDatasetVersion();
+            Dataset dataset = NewDataset(_ => _.WithCurrent(datasetVersion)
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId))))));
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username));
-            AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
-                .WithHistory(NewDatasetVersion())));
+            AndTheMessageBody(dataset);
+            AndTheDatasetVersion(dataset.Id, datasetVersion);
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
@@ -1140,11 +1139,13 @@ namespace CalculateFunding.Services.Datasets.Services
         [TestMethod]
         public async Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIds_EnsuresCreatesNewJob()
         {
+            DatasetVersion datasetVersion = NewDatasetVersion();
+            Dataset dataset = NewDataset(_ => _.WithCurrent(datasetVersion)
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId))))));
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username));
-            AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
-                .WithHistory(NewDatasetVersion())));
+            AndTheMessageBody(dataset);
+            AndTheDatasetVersion(dataset.Id, datasetVersion);
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
@@ -1194,11 +1195,13 @@ namespace CalculateFunding.Services.Datasets.Services
         [TestMethod]
         public async Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsForScopedDataset_NotCreateNewAllocationJob()
         {
+            DatasetVersion datasetVersion = NewDatasetVersion();
+            Dataset dataset = NewDataset(_ => _.WithCurrent(datasetVersion)
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId))))));
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username), ("parentJobId", "parentJob1"), ("isScopedJob", bool.TrueString));
-            AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
-                .WithHistory(NewDatasetVersion())));
+            AndTheMessageBody(dataset);
+            AndTheDatasetVersion(dataset.Id, datasetVersion);
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
@@ -1247,11 +1250,13 @@ namespace CalculateFunding.Services.Datasets.Services
         [TestMethod]
         public async Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsForScopedDataset_CreateNewMapDatasetJobsForOtherRelationshipsInSpecification()
         {
+            DatasetVersion datasetVersion = NewDatasetVersion();
+            Dataset dataset = NewDataset(_ => _.WithCurrent(datasetVersion)
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId))))));
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username), ("parentJobId", "parentJob1"), ("isScopedJob", bool.TrueString));
-            AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
-                .WithHistory(NewDatasetVersion())));
+            AndTheMessageBody(dataset);
+            AndTheDatasetVersion(dataset.Id, datasetVersion);
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
@@ -1320,11 +1325,13 @@ namespace CalculateFunding.Services.Datasets.Services
         [TestMethod]
         public async Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsForNonScopedDatasetWithDisablecalculationFlag_NotCreateNewAllocationJob()
         {
+            DatasetVersion datasetVersion = NewDatasetVersion();
+            Dataset dataset = NewDataset(_ => _.WithCurrent(datasetVersion)
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId))))));
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username), ("disableQueueCalculationJob", "true"));
-            AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
-                .WithHistory(NewDatasetVersion())));
+            AndTheMessageBody(dataset);
+            AndTheDatasetVersion(dataset.Id, datasetVersion);
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
@@ -1373,11 +1380,13 @@ namespace CalculateFunding.Services.Datasets.Services
         [TestMethod]
         public async Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsAndJobServiceFeatureIsOnAndCalcsIncludeAggregatedCals_EnsuresCreatesNewGenerateAggregationsJob()
         {
+            DatasetVersion datasetVersion = NewDatasetVersion();
+            Dataset dataset = NewDataset(_ => _.WithCurrent(datasetVersion)
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId))))));
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username));
-            AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
-                .WithHistory(NewDatasetVersion())));
+            AndTheMessageBody(dataset);
+            AndTheDatasetVersion(dataset.Id, datasetVersion);
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
@@ -1429,11 +1438,13 @@ namespace CalculateFunding.Services.Datasets.Services
         [TestMethod]
         public void ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsButCreatingJobReturnsNull_LogsErrorAndThrowsException()
         {
+            DatasetVersion datasetVersion = NewDatasetVersion();
+            Dataset dataset = NewDataset(_ => _.WithCurrent(datasetVersion)
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId))))));
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username));
-            AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
-                .WithHistory(NewDatasetVersion())));
+            AndTheMessageBody(dataset);
+            AndTheDatasetVersion(dataset.Id, datasetVersion);
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
@@ -1490,8 +1501,7 @@ namespace CalculateFunding.Services.Datasets.Services
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username));
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
-                .WithHistory(NewDatasetVersion())));
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))));
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
@@ -1543,11 +1553,13 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             string invokedByJobId = "job1";
 
+            DatasetVersion datasetVersion = NewDatasetVersion();
+            Dataset dataset = NewDataset(_ => _.WithCurrent(datasetVersion)
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId))))));
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", invokedByJobId),
                 ("user-id", UserId), ("user-name", Username));
-            AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
-                .WithHistory(NewDatasetVersion())));
+            AndTheMessageBody(dataset);
+            AndTheDatasetVersion(dataset.Id, datasetVersion);
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
@@ -1603,11 +1615,13 @@ namespace CalculateFunding.Services.Datasets.Services
         [TestMethod]
         public async Task ProcessDataset_GivenPayloadAndTableResultsWithRelationshipIsSetAsProviderData_ThenRegenerateProviderSummariesForSpecification()
         {
+            DatasetVersion datasetVersion = NewDatasetVersion();
+            Dataset dataset = NewDataset(_ => _.WithCurrent(datasetVersion)
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId))))));
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username));
-            AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
-                .WithHistory(NewDatasetVersion())));
+            AndTheMessageBody(dataset);
+            AndTheDatasetVersion(dataset.Id, datasetVersion);
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
@@ -1660,11 +1674,13 @@ namespace CalculateFunding.Services.Datasets.Services
         [TestMethod]
         public async Task ProcessDataset_GivenPayloadAndTableResultsWithRelationshipIsSetAsProviderDataAndTheRegenerateScopedProviderFails_LogErrorThrowException()
         {
+            DatasetVersion datasetVersion = NewDatasetVersion();
+            Dataset dataset = NewDataset(_ => _.WithCurrent(datasetVersion)
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId))))));
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username));
-            AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
-                .WithHistory(NewDatasetVersion())));
+            AndTheMessageBody(dataset);
+            AndTheDatasetVersion(dataset.Id, datasetVersion);
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
@@ -1720,11 +1736,13 @@ namespace CalculateFunding.Services.Datasets.Services
         [TestMethod]
         public async Task ProcessDataset_GivenPayloadAndTableResultsWithRelationshipIsSetAsProviderDataAndTheJobFails_LogErrorThrowException()
         {
+            DatasetVersion datasetVersion = NewDatasetVersion();
+            Dataset dataset = NewDataset(_ => _.WithCurrent(datasetVersion)
+                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId))))));
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username));
-            AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
-                .WithDefinition(NewDataDefinitionVersion(rfv => rfv.FromReference(NewReference(rf => rf.WithId(DataDefintionId)))))
-                .WithHistory(NewDatasetVersion())));
+            AndTheMessageBody(dataset);
+            AndTheDatasetVersion(dataset.Id, datasetVersion);
             AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
@@ -1812,6 +1830,13 @@ namespace CalculateFunding.Services.Datasets.Services
             _jobsApiClient.GetJobById(Arg.Is(jobId))
                 .Returns(new ApiResponse<JobViewModel> (HttpStatusCode.OK, new JobViewModel() { Id = jobId, JobDefinitionId = jobDefinitionId }));
         }
+
+        private void AndTheDatasetVersion(string datasetId, DatasetVersion datasetVersion)
+        {
+            _datasetVersionRepository.GetVersions(datasetId)
+                .Returns(new[] { datasetVersion });
+        }
+
         private void AndTheCloudBlob(string blobName, ICloudBlob cloudBlob)
         {
             _blobClient
