@@ -32,6 +32,9 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
             providerVariationContext.QueueVariationChange(new MidYearReProfileVariationChange(providerVariationContext));
 
+            // Stop subsequent strategies                    
+            StrategyResult.StopSubsequentStrategies = true;
+
             return Task.FromResult(StrategyResult);
         }
 
