@@ -278,6 +278,7 @@ namespace CalculateFunding.Services.Datasets
                 return new BadRequestObjectResult("Null EditDefinitionSpecificationRelationshipModel was provided to UpdateRelationship");
             }
 
+            model.RelationshipId = relationshipId;
             model.SpecificationId = specificationId;
             BadRequestObjectResult validationResult = (await _updateRelationshipModelValidator.ValidateAsync(model)).PopulateModelState();
 

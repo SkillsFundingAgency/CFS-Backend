@@ -3,12 +3,16 @@ using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Datasets.Interfaces;
 using FluentValidation;
 using FluentValidation.Validators;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -19,18 +23,31 @@ namespace CalculateFunding.Services.Datasets.Validators
     {
         private readonly IPoliciesApiClient _policiesApiClient;
         private readonly ISpecificationsApiClient _specificationsApiClient;
+        private readonly ICalcsRepository _calcsRepository;
+        private readonly IDatasetRepository _datasetRepository;
         private readonly Polly.AsyncPolicy _specificationsApiClientPolicy;
         private readonly Polly.AsyncPolicy _policiesApiClientPolicy;
 
         public UpdateDefinitionSpecificationRelationshipModelValidator(
             IPoliciesApiClient policiesApiClient,
             ISpecificationsApiClient specificationsApiClient,
+            ICalcsRepository calcsRepository,
+            IDatasetRepository datasetRepository,
             IDatasetsResiliencePolicies datasetsResiliencePolicies)
         {
+            Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
+            Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
+            Guard.ArgumentNotNull(calcsRepository, nameof(calcsRepository));
+            Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
+            Guard.ArgumentNotNull(datasetsResiliencePolicies?.CalculationsApiClient, nameof(datasetsResiliencePolicies.CalculationsApiClient));
+            Guard.ArgumentNotNull(datasetsResiliencePolicies?.PoliciesApiClient, nameof(datasetsResiliencePolicies.PoliciesApiClient));
+
             _policiesApiClient = policiesApiClient;
             _specificationsApiClient = specificationsApiClient;
             _specificationsApiClientPolicy = datasetsResiliencePolicies.SpecificationsApiClient;
             _policiesApiClientPolicy = datasetsResiliencePolicies.PoliciesApiClient;
+            _calcsRepository = calcsRepository;
+            _datasetRepository = datasetRepository;
 
             RuleFor(model => model.Description)
               .NotEmpty()
@@ -46,13 +63,41 @@ namespace CalculateFunding.Services.Datasets.Validators
                   UpdateDefinitionSpecificationRelationshipModel relationshipModel = context.ParentContext.InstanceToValidate as UpdateDefinitionSpecificationRelationshipModel;
                   if (relationshipModel.FundingLineIds.IsNullOrEmpty() && relationshipModel.CalculationIds.IsNullOrEmpty())
                   {
-                      context.AddFailure($"At least one funding line or calculation must be provided for the ReleasedData relationship type");
+                      context.AddFailure("At least one funding line or calculation must be provided for the ReleasedData relationship type");
                   }
                   else
                   {
                       await ValidateFundingLinesAndCalculationsForReleasedDataRelationship(relationshipModel, context);
+                      await ValidateFundingLinesAndCalculationsRemoval(relationshipModel, context);
                   }
               });
+        }
+        private async Task ValidateFundingLinesAndCalculationsRemoval(UpdateDefinitionSpecificationRelationshipModel model, CustomContext context)
+        {
+            DefinitionSpecificationRelationship definitionSpecificationRelationship = await _datasetRepository.GetDefinitionSpecificationRelationshipById(model.RelationshipId);
+
+            if (definitionSpecificationRelationship == null || definitionSpecificationRelationship.Current?.RelationshipType != DatasetRelationshipType.ReleasedData)
+            {
+                return;
+            }
+
+            IEnumerable<PublishedSpecificationItem> itemsToRemove = new PublishedSpecificationItem[0];
+
+            itemsToRemove = itemsToRemove.Concat(definitionSpecificationRelationship.Current?.PublishedSpecificationConfiguration?.FundingLines?.Where(_ => !model.FundingLineIds.Contains(_.TemplateId)) ?? new PublishedSpecificationItem[0]);
+
+            itemsToRemove = itemsToRemove.Concat(definitionSpecificationRelationship.Current?.PublishedSpecificationConfiguration?.Calculations?.Where(_ => !model.CalculationIds.Contains(_.TemplateId)) ?? new PublishedSpecificationItem[0]);
+
+            IEnumerable<CalculationResponseModel> calculationResponseModels = await _calcsRepository.GetCurrentCalculationsBySpecificationId(model.SpecificationId);
+
+            IEnumerable<PublishedSpecificationItem> referencedItemsToRemove = itemsToRemove.Where(_ => calculationResponseModels.Any(calc => calc.SourceCode.IndexOf(_.SourceCodeName, StringComparison.InvariantCultureIgnoreCase) >= 0));
+
+            if (referencedItemsToRemove.Any())
+            {
+                foreach (PublishedSpecificationItem publishedSpecificationItem in referencedItemsToRemove)
+                {
+                    context.AddFailure($"Unable to remove {publishedSpecificationItem.Name} as it is in use.");
+                }
+            }
         }
 
         private async Task ValidateFundingLinesAndCalculationsForReleasedDataRelationship(UpdateDefinitionSpecificationRelationshipModel relationshipModel, CustomContext context)

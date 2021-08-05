@@ -6,6 +6,8 @@ namespace CalculateFunding.Models.Datasets
     {
         public string Description { get; set; }
 
+        public string RelationshipId { get; set; }
+
         public string SpecificationId { get; set; }
 
         public IEnumerable<uint> FundingLineIds { get; set; }
