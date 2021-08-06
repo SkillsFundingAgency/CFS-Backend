@@ -224,14 +224,18 @@ steps:
      inlineScript: 'az webapp deployment source config-zip --resource-group ${{ parameters.ResourceGroup }} --name app-${{ parameters.EnvironmentKey }}-${{ parameters.ServiceName }}-pr --src "$(Build.ArtifactStagingDirectory)/CalculateFunding.Api.${{ parameters.ProjectName }}.zip" --slot Staging'
 
  - task: AzureCLI@2
+   displayName: 'Start-Stop Web Apps'
    condition: and(succeeded(), eq( '${{ parameters.BuildApi }}', true), eq(variables['Build.Reason'], 'PullRequest'))
-   displayName: 'Restart web app'
    inputs:
      azureSubscription: '${{ parameters.azureSubscription }}'
      scriptType: pscore
      scriptLocation: inlineScript
-     inlineScript: 'az webapp restart --name app-${{ parameters.EnvironmentKey }}-${{ parameters.ServiceName }}-pr --resource-group ${{ parameters.ResourceGroup }}  --slot Staging'
- 
+     inlineScript: |
+       az webapp stop --name app-${{ parameters.EnvironmentKey }}-${{ parameters.ServiceName }}-pr --resource-group ${{ parameters.ResourceGroup }}
+       az webapp stop --name app-${{ parameters.EnvironmentKey }}-${{ parameters.ServiceName }}-pr --resource-group ${{ parameters.ResourceGroup }} --slot Staging
+       az webapp start --name app-${{ parameters.EnvironmentKey }}-${{ parameters.ServiceName }}-pr --resource-group ${{ parameters.ResourceGroup }}
+       az webapp start --name app-${{ parameters.EnvironmentKey }}-${{ parameters.ServiceName }}-pr --resource-group ${{ parameters.ResourceGroup }} --slot Staging
+
  - task: AzureCLI@2
    condition: and(succeeded(), eq( '${{ parameters.BuildApi }}', true), eq(variables['Build.Reason'], 'PullRequest'))
    displayName: 'Prepare Staging slot for swap'
@@ -292,12 +296,14 @@ steps:
  
  - task: AzureCLI@2
    condition: and(succeeded(), eq( '${{ parameters.BuildFunction }}', true), eq(variables['Build.Reason'], 'PullRequest'))
-   displayName: 'Restart function app'
+   displayName: 'Start-Stop Function App'
    inputs:
     azureSubscription: '${{ parameters.azureSubscription }}'
     scriptType: pscore
     scriptLocation: inlineScript
-    inlineScript: 'az webapp restart --name fa-${{ parameters.EnvironmentKey }}-${{ parameters.ServiceName }}-pr --resource-group ${{ parameters.ResourceGroup }}'
+    inlineScript: |
+      az webapp stop --name fa-${{ parameters.EnvironmentKey }}-${{ parameters.ServiceName }}-pr --resource-group ${{ parameters.ResourceGroup }}
+      az webapp start --name fa-${{ parameters.EnvironmentKey }}-${{ parameters.ServiceName }}-pr --resource-group ${{ parameters.ResourceGroup }}
 
  - powershell: |
     Write-Host "Creating local.settings.json file"
