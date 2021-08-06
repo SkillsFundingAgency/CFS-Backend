@@ -50,6 +50,7 @@ using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using Microsoft.Azure.Cosmos.Linq;
 using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Common.ApiClient.Policies.Models;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -163,6 +164,88 @@ namespace CalculateFunding.Services.Datasets
             health.Dependencies.Add(new DependencyHealth {HealthOk = cacheHealth.Ok, DependencyName = _cacheProvider.GetType().GetFriendlyName(), Message = cacheHealth.Message});
 
             return health;
+        }
+
+        public async Task<IActionResult> CreateAndPersistNewDataset(CreateNewDatasetModel model, Reference author)
+        {
+            if (model == null)
+            {
+                _logger.Error("Null model name was provided to CreateAndPersistNewDataset");
+                return new BadRequestObjectResult("Null model name was provided");
+            }
+
+            model.StrictValidation = false;
+
+            BadRequestObjectResult validationResult = (await _createNewDatasetModelValidator.ValidateAsync(model)).PopulateModelState();
+
+            if (validationResult != null)
+            {
+                return validationResult;
+            }
+
+            FundingStream fundingStream = await _policyRepository.GetFundingStream(model.FundingStreamId);
+
+            string datasetId = Guid.NewGuid().ToString();
+            string filePath = GetUploadedBlobFilepath(model.Filename, datasetId, 1);
+
+            DatasetVersion newVersion = new DatasetVersion
+            {
+                DatasetId = datasetId,
+                Author = new Reference(author.Id, author.Name),
+                Version = 1,
+                Date = DateTimeOffset.Now,
+                PublishStatus = Models.Versioning.PublishStatus.Draft,
+                BlobName = model.Filename,
+                UploadedBlobFilePath = filePath,
+                ChangeType = DatasetChangeType.NewVersion,
+                RowCount = model.RowCount,
+                FundingStream = fundingStream
+            };
+
+            Dataset dataset = new Dataset
+            {
+                Id = datasetId,
+                Name = model.Name,
+                Current = newVersion
+            };
+
+            HttpStatusCode versionStatusCode = await _versionDatasetRepository.SaveVersion(newVersion);
+            if (!versionStatusCode.IsSuccess())
+            {
+                _logger.Error($"Failed to create dataset version for: {model.Name} with status code {versionStatusCode}");
+
+                throw new InvalidOperationException($"Failed to create dataset version for: {model.Name} with status code {versionStatusCode}");
+            }
+
+            HttpStatusCode datasetStatusCode = await _datasetRepository.SaveDataset(dataset);
+            if (!datasetStatusCode.IsSuccess())
+            {
+                _logger.Error($"Failed to create dataset for: {model.Name} with status code {datasetStatusCode}");
+
+                throw new InvalidOperationException($"Failed to create dataset for id: {model.Name} with status code {datasetStatusCode}");
+            }
+
+            List<IndexError> indexErrors = (await IndexDatasetInSearch(dataset)).ToList();
+            indexErrors.AddRange(await IndexDatasetVersionInSearch(dataset, newVersion));
+
+            if (indexErrors.Any())
+            {
+                string errors = string.Join(";", indexErrors.Select(m => m.ErrorMessage).ToArraySafe());
+
+                _logger.Error($"Failed to save dataset for: {model.Name} in search with errors {errors}");
+
+                throw new InvalidOperationException($"Failed to save dataset for: {model.Name} in search with errors {errors}");
+            }
+
+            NewDatasetVersionResponseModel responseModel = _mapper.Map<NewDatasetVersionResponseModel>(model);
+
+            responseModel.DatasetId = datasetId;
+            responseModel.Filename = model.Filename;
+            responseModel.Author = author;
+            responseModel.DefinitionId = model.DefinitionId;
+            responseModel.FundingStreamId = model.FundingStreamId;
+
+            return new OkObjectResult(responseModel);
         }
 
         public async Task<IActionResult> CreateNewDataset(CreateNewDatasetModel model, Reference author)
@@ -1370,8 +1453,8 @@ namespace CalculateFunding.Services.Datasets
                 {
                     Id = dataset.Id,
                     Name = dataset.Name,
-                    DefinitionId = dataset.Definition.Id,
-                    DefinitionName = dataset.Definition.Name,
+                    DefinitionId = dataset.Definition?.Id,
+                    DefinitionName = dataset.Definition?.Name,
                     Status = dataset.Current.PublishStatus.ToString(),
                     LastUpdatedDate = DateTimeOffset.Now,
                     Description = dataset.Current.Description,
@@ -1381,7 +1464,8 @@ namespace CalculateFunding.Services.Datasets
                     LastUpdatedById = dataset.Current.Author?.Id,
                     LastUpdatedByName = dataset.Current.Author?.Name,
                     FundingStreamId = dataset.Current.FundingStream?.Id,
-                    FundingStreamName = dataset.Current.FundingStream?.Name
+                    FundingStreamName = dataset.Current.FundingStream?.Name,
+                    RelationshipId = dataset.RelationshipId
                 }
             });
         }
@@ -1401,7 +1485,7 @@ namespace CalculateFunding.Services.Datasets
                     BlobName = datasetVersion.BlobName,
                     ChangeNote = datasetVersion.Comment,
                     ChangeType = datasetVersion.ChangeType.ToString(),
-                    DefinitionName = dataset.Definition.Name,
+                    DefinitionName = dataset.Definition?.Name,
                     Description = datasetVersion.Description,
                     LastUpdatedDate = datasetVersion.Date,
                     LastUpdatedByName = datasetVersion.Author.Name,

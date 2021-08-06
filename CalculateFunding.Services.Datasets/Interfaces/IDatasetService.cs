@@ -48,5 +48,6 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         Task<IActionResult> FixupDatasetsFundingStream();
 
         Task<IActionResult> MigrateDatasetsPerDocumentVersioning();
+        Task<IActionResult> CreateAndPersistNewDataset(CreateNewDatasetModel createNewDatasetModel, Reference user);
     }
 }

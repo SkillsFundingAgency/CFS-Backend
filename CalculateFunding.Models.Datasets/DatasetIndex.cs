@@ -80,5 +80,9 @@ namespace CalculateFunding.Models.Datasets
         [JsonProperty("fundingStreamName")]
         [IsFilterable, IsFacetable, IsRetrievable(true)]
         public string FundingStreamName { get; set; }
+
+        [JsonProperty("relationshipId")]
+        [IsRetrievable(true)]
+        public string RelationshipId { get; set; }
     }
 }

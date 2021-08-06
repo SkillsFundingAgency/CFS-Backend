@@ -74,11 +74,11 @@ namespace CalculateFunding.Services.Datasets.Validators
             .CustomAsync(async (name, context, ct) =>
             {
                 CreateNewDatasetModel model = context.ParentContext.InstanceToValidate as CreateNewDatasetModel;
-                if (string.IsNullOrWhiteSpace(model.DefinitionId))
+                if (model.StrictValidation && string.IsNullOrWhiteSpace(model.DefinitionId))
                 {
                     context.AddFailure("You must provide a valid dataset schema");
                 }
-                else if(!string.IsNullOrWhiteSpace(model.FundingStreamId))
+                else if(model.StrictValidation && !string.IsNullOrWhiteSpace(model.FundingStreamId))
                 {
                     IEnumerable<DatasetDefinitionByFundingStream> datasetDefinitions = await _datasetsRepository.GetDatasetDefinitionsByFundingStreamId(model.FundingStreamId);
 

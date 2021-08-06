@@ -2,7 +2,6 @@
 using CalculateFunding.Common.ApiClient.DataSets.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
-using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
@@ -18,8 +17,6 @@ using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Net;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
 
@@ -367,6 +364,129 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             AssertThatRelationshipUpdatedWithNewDatasetVersion(relationshipId, datasetId, datasetVersionVersion);
         }
 
+        [TestMethod]
+        public async Task Process_GivenValidProvidersData_AndNoDatasetExists_ShouldCreateNewDatasetVersionAndUpdateTheRelationshipWithNewDatasetVersion_And_CreateDataset()
+        {
+            // Arrange
+            string specificationId = NewRandomString();
+            string fundingStreamId = NewRandomString();
+            string fundingPeriodId = NewRandomString();
+            string templateId = NewRandomString();
+            string relationshipId = NewRandomString();
+            string relationshipName = NewRandomString().Substring(0, 30); // Used for excel worksheet name
+
+            string Ukprn1 = NewRandomString();
+            string Ukprn2 = NewRandomString();
+            string Ukprn3 = NewRandomString();
+            string fundingLine1 = NewRandomString();
+            string fundingLine2 = NewRandomString();
+            uint fundingLineTemplateId1 = NewRandomUint();
+            uint fundingLineTemplateId2 = NewRandomUint();
+            decimal fundingLineValue1 = NewRandomDecimal();
+            decimal fundingLineValue2 = NewRandomDecimal();
+            string calculation1 = NewRandomString();
+            string calculation2 = NewRandomString();
+            uint calculationTemplateId1 = NewRandomUint();
+            uint calculationTemplateId2 = NewRandomUint();
+            decimal calculationValue1 = NewRandomDecimal();
+            decimal calculationValue2 = NewRandomDecimal();
+
+            string datasetId = NewRandomString();
+            int datasetVersionVersion = NewRandomInt();
+            string fileName = NewRandomString();
+
+            Message message = CreateMessage(specificationId, relationshipId);
+
+            IEnumerable<DatasetSpecificationRelationshipViewModel> relationships = new[]
+            {
+                NewDatasetSpecificationRelationshipViewModel(_ =>
+                _.WithId(relationshipId)
+                 .WithName(relationshipName)
+                 .WithPublishedSpecificationConfiguration(NewPublishedSpecificationConfiguration(c => c
+                                    .WithFundingLines(
+                                        NewPublishedSpecificationItem(f => f.WithName(fundingLine1).WithTemplateId(fundingLineTemplateId1)),
+                                        NewPublishedSpecificationItem(f => f.WithName(fundingLine2).WithTemplateId(fundingLineTemplateId2)))
+                                    .WithCalculations(
+                                        NewPublishedSpecificationItem(f => f.WithName(calculation1).WithTemplateId(calculationTemplateId1)),
+                                        NewPublishedSpecificationItem(f => f.WithName(calculation2).WithTemplateId(calculationTemplateId2)))
+                                    )
+                 ))
+            };
+
+            SpecificationSummary specificationSummary = NewSpecificationSummary(_ => _.WithFundingStreamIds(fundingStreamId)
+                                                                                       .WithFundingPeriodId(fundingPeriodId)
+                                                                                       .WithTemplateIds((fundingPeriodId, templateId)));
+
+            IEnumerable<PublishedProvider> publishedProviders = new[]
+            {
+                NewPublishedProvider(p => p.WithReleased(
+                    NewPublishedProviderVersion(_ => _.WithProvider(NewProvider(p => p.WithUKPRN(Ukprn1)))
+                                                  .WithFundingLines(NewFundingLine(f => f.WithTemplateLineId(fundingLineTemplateId1).WithValue(fundingLineValue1)),
+                                                                    NewFundingLine(f => f.WithTemplateLineId(fundingLineTemplateId2).WithValue(fundingLineValue2)))
+                                                  .WithFundingCalculations(NewFundingCalculation(c => c.WithTemplateCalculationId(calculationTemplateId2).WithValue(calculationValue2)))))),
+                NewPublishedProvider(p => p.WithReleased(
+                    NewPublishedProviderVersion(_ => _.WithProvider(NewProvider(p => p.WithUKPRN(Ukprn2)))
+                                                  .WithFundingLines(NewFundingLine(f => f.WithTemplateLineId(fundingLineTemplateId2).WithValue(fundingLineValue2)))
+                                                  .WithFundingCalculations(NewFundingCalculation(c => c.WithTemplateCalculationId(calculationTemplateId1).WithValue(calculationValue1)))))),
+                NewPublishedProvider(p => p.WithReleased(
+                    NewPublishedProviderVersion(_ => _.WithProvider(NewProvider(p => p.WithUKPRN(Ukprn3)))
+                                                  .WithFundingLines(NewFundingLine(f => f.WithTemplateLineId(fundingLineTemplateId1).WithValue(fundingLineValue1)))
+                                                  .WithFundingCalculations(NewFundingCalculation(c => c.WithTemplateCalculationId(calculationTemplateId1).WithValue(calculationValue1)),
+                                                                           NewFundingCalculation(c => c.WithTemplateCalculationId(calculationTemplateId2).WithValue(calculationValue2))))))
+
+            };
+
+            IEnumerable<RelationshipDataSetExcelData> expectedDatasetData = new[]
+            {
+                new RelationshipDataSetExcelData(Ukprn1)
+                {
+                    FundingLines = new Dictionary<string, decimal?> { { $"FL_{fundingLineTemplateId1}_{fundingLine1}", fundingLineValue1 }, { $"FL_{fundingLineTemplateId2}_{fundingLine2}", fundingLineValue2 } },
+                    Calculations = new Dictionary<string, decimal?>{ { $"Calc_{calculationTemplateId1}_{calculation1}", null }, { $"Calc_{calculationTemplateId2}_{calculation2}", calculationValue2 } }
+                },
+                new RelationshipDataSetExcelData(Ukprn2)
+                {
+                    FundingLines = new Dictionary<string, decimal?> { { $"FL_{fundingLineTemplateId1}_{fundingLine1}", null }, { $"FL_{fundingLineTemplateId2}_{fundingLine2}", fundingLineValue2 } },
+                    Calculations = new Dictionary<string, decimal?>{ { $"Calc_{calculationTemplateId1}_{calculation1}", calculationValue1 }, { $"Calc_{calculationTemplateId2}_{calculation2}", null } }
+                },
+                new RelationshipDataSetExcelData(Ukprn3)
+                {
+                    FundingLines = new Dictionary<string, decimal?> { { $"FL_{fundingLineTemplateId1}_{fundingLine1}", fundingLineValue1 }, { $"FL_{fundingLineTemplateId2}_{fundingLine2}", null } },
+                    Calculations = new Dictionary<string, decimal?>{ { $"Calc_{calculationTemplateId1}_{calculation1}", calculationValue1 }, { $"Calc_{calculationTemplateId2}_{calculation2}", calculationValue2 } }
+                }
+            };
+
+            NewDatasetVersionResponseModel datasetVersionResponse = new NewDatasetVersionResponseModel()
+            {
+                DatasetId = datasetId,
+                Version = datasetVersionVersion,
+                Filename = fileName,
+                FundingStreamId = fundingStreamId
+            };
+
+            byte[] excelData = new byte[0];
+
+            GivenRelationshipsForSpecification(specificationId, relationships);
+            AndSpecificationSummaryForSpecificaiton(specificationId, specificationSummary);
+            AndPublishProvidersForSpecification(specificationId, publishedProviders);
+            GivenRelationshipExcelWriterReturnExcelForDatasetData(relationshipName, excelData);
+            AndSuccessfulUploadOfDatasetFile(datasetVersionResponse);
+            AndAssignDatasetVersionToRelationship(datasetId, relationshipId, datasetVersionVersion);
+            GivenDatasetCreateAndPersistNewDataset(relationshipName, datasetVersionResponse);
+
+            // Act
+            await _service.Process(message);
+
+            // Assert
+            AssertRelationshipsRetrievedBySpecificationId(specificationId);
+            AssertSpecificationSummaryRetrievedBySpecificationId(specificationId);
+            AssertPublishedProvidersForSpecificationRetrievedForBatchProcessing(specificationId);
+            AssertCreateAndPersistNewDatasetHasBeenCalled(relationshipName);
+            AssertExcelDatasetData(relationshipName, expectedDatasetData, Ukprn1, Ukprn2, Ukprn3);
+            AssertDatasetFileUpload(datasetVersionResponse);
+            AssertThatRelationshipUpdatedWithNewDatasetVersion(relationshipId, datasetId, datasetVersionVersion);
+        }
+
+
         private void AssertThatRelationshipUpdatedWithNewDatasetVersion(string relationshipId, string datasetId, int datasetVersionVersion)
         {
             _datasetsApiClient.Verify(x => x.AssignDatasourceVersionToRelationship(
@@ -408,6 +528,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             _datasetsApiClient.Verify(x => x.DatasetVersionUpdate(
                              It.Is<DatasetVersionUpdateModel>(x => x.DatasetId == datasetId && x.Filename == relationshipName && x.FundingStreamId == fundingStreamId)), Times.Once);
+        }
+
+        private void AssertCreateAndPersistNewDatasetHasBeenCalled(string relationshipName)
+        {
+            _datasetsApiClient.Verify(x => x.CreateAndPersistNewDataset(It.Is<CreateNewDatasetModel>(c => c.Name == $"{relationshipName}-dataset")), Times.Once);
         }
 
         private void AssertPublishedProvidersForSpecificationRetrievedForBatchProcessing(string specificationId)
@@ -495,6 +620,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             _datasetsApiClient.Setup(x => x.DatasetVersionUpdate(It.Is<DatasetVersionUpdateModel>(x => x.DatasetId == datasetId && x.Filename == relationshipName && x.FundingStreamId == fundingStreamId)))
                  .ReturnsAsync(new ValidatedApiResponse<NewDatasetVersionResponseModel>(HttpStatusCode.OK, datasetVersionResponse));
+        }
+
+        private void GivenDatasetCreateAndPersistNewDataset(string relationshipName, NewDatasetVersionResponseModel response)
+        {
+            _datasetsApiClient.Setup(x => x.CreateAndPersistNewDataset(It.Is<CreateNewDatasetModel>(c => c.Name == $"{relationshipName}-dataset")))
+                .ReturnsAsync(new ValidatedApiResponse<NewDatasetVersionResponseModel>(HttpStatusCode.OK, response));
         }
 
         private void AndPublishProvidersForSpecification(string specificationId, IEnumerable<PublishedProvider> publishedProviders)

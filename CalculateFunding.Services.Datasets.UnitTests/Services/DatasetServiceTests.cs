@@ -35,6 +35,7 @@ using BadRequestObjectResult = Microsoft.AspNetCore.Mvc.BadRequestObjectResult;
 using ValidationResult = FluentValidation.Results.ValidationResult;
 using CalculateFunding.Models.Messages;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
+using CalculateFunding.Common.ApiClient.Policies.Models;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
@@ -246,6 +247,134 @@ namespace CalculateFunding.Services.Datasets.Services
                 .BlobUrl
                 .Should()
                 .Be(inputBlobUrl);
+
+            responseModel
+                .Author
+                .Name
+                .Should()
+                .Be(Username);
+
+            responseModel
+                .Author
+                .Id
+                .Should()
+                .Be(UserId);
+
+            responseModel
+                .FundingStreamId
+                .Should()
+                .Be(FundingStreamId);
+        }
+
+        [TestMethod]
+        public async Task CreateAndPersistNewDataset_GivenNullModel_ReturnsBadRequest()
+        {
+            //Arrange
+            ILogger logger = CreateLogger();
+
+            DatasetService service = CreateDatasetService(logger: logger);
+
+            // Act
+            IActionResult result = await service.CreateAndPersistNewDataset(null, null);
+
+            // Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+
+            logger
+                .Received(1)
+                .Error(Arg.Is("Null model name was provided to CreateAndPersistNewDataset"));
+        }
+
+        [TestMethod]
+        public async Task CreateAndPersistNewDataset_GivenInvalidModel_ReturnsBadRequest()
+        {
+            //Arrange
+            CreateNewDatasetModel model = new CreateNewDatasetModel();
+
+            ILogger logger = CreateLogger();
+
+            ValidationResult validationResult = new ValidationResult(new[]
+            {
+                new ValidationFailure("prop1", "any error")
+            });
+
+            IValidator<CreateNewDatasetModel> validator = CreateNewDatasetModelValidator(validationResult);
+
+
+            DatasetService service = CreateDatasetService(logger: logger, createNewDatasetModelValidator: validator);
+
+            // Act
+            IActionResult result = await service.CreateAndPersistNewDataset(model, null);
+
+            // Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+        }
+
+        [TestMethod]
+        public async Task CreateAndPersistNewDataset_GivenValidModel_ReturnsOKResult()
+        {
+            // Arrange 
+            CreateNewDatasetModel model = new CreateNewDatasetModel
+            {
+                Filename = "test.xlsx",
+                FundingStreamId = FundingStreamId,
+                RowCount = 100
+            };
+            NewDatasetVersionResponseModel responseModel = new NewDatasetVersionResponseModel
+            {
+                Filename = "test.xlsx"
+            };
+
+            Reference reference = new Reference(UserId, Username);
+
+            ILogger logger = CreateLogger();
+
+            IMapper mapper = CreateMapper();
+            mapper
+                .Map<NewDatasetVersionResponseModel>(Arg.Any<CreateNewDatasetModel>())
+                .Returns(responseModel);
+
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingStream(Arg.Any<string>())
+                .Returns(new FundingStream
+                {
+                    Id = "PSG",
+                    Name = "PSG",
+                    ShortName = "PSG"
+                });
+
+            IVersionRepository<DatasetVersion> datasetVersionRepository = CreateDatasetsVersionRepository();
+            datasetVersionRepository.SaveVersion(Arg.Any<DatasetVersion>())
+                .Returns(HttpStatusCode.OK);
+
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            datasetRepository.SaveDataset(Arg.Any<Dataset>())
+                .Returns(HttpStatusCode.OK);
+
+            ISearchRepository<DatasetIndex> searchRepository = CreateSearchRepository();
+            searchRepository.Index(Arg.Any<List<DatasetIndex>>())
+                .Returns(new List<IndexError>());
+
+            DatasetService service = CreateDatasetService(logger: logger, policyRepository: policyRepository, mapper: mapper,
+                datasetVersionRepository: datasetVersionRepository, datasetRepository: datasetRepository, searchRepository: searchRepository);
+
+            // Act
+            IActionResult result = await service.CreateAndPersistNewDataset(model, reference);
+
+            // Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            responseModel
+                .DatasetId
+                .Should()
+                .NotBeNullOrWhiteSpace();
 
             responseModel
                 .Author

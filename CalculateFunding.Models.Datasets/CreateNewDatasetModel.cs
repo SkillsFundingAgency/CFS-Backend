@@ -11,5 +11,9 @@
         public string Description { get; set; }
 
         public string FundingStreamId { get; set; }
+
+        public int RowCount { get; set; }
+
+        public bool StrictValidation { get; set; } = true;
     }
 }

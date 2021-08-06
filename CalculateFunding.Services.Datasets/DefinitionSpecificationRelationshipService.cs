@@ -497,10 +497,11 @@ namespace CalculateFunding.Services.Datasets
 
             //  need to save the relationship id here so we can list all dataset versions
             dataset.RelationshipId = model.RelationshipId;
+            relationship.DatasetId = dataset.Id;
 
             await _datasetRepository.SaveDataset(dataset);
 
-            ApiResponse<SpecModel.SpecificationSummary> specificationApiResponse =
+            ApiResponse<SpecificationSummary> specificationApiResponse =
                 await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(relationship.Current.Specification.Id));
 
             if (!specificationApiResponse.StatusCode.IsSuccess() || specificationApiResponse.Content == null)
@@ -509,7 +510,7 @@ namespace CalculateFunding.Services.Datasets
                 return new StatusCodeResult(412);
             }
 
-            SpecModel.SpecificationSummary specification = specificationApiResponse.Content;
+            SpecificationSummary specification = specificationApiResponse.Content;
 
             DefinitionSpecificationRelationshipVersion previousRelationshipVersion = relationship.Current.DeepCopy(useCamelCase: false);
             DefinitionSpecificationRelationshipVersion relationshipVersion = relationship.Current;

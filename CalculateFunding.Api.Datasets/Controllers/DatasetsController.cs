@@ -88,6 +88,15 @@ namespace CalculateFunding.Api.Datasets.Controllers
             return _definitionService.GetDatasetDefinitionsByIds(definitionIds);
         }
 
+        [Route("api/datasets/create-persist-new-dataset")]
+        [HttpPost]
+        [Produces(typeof(NewDatasetVersionResponseModel))]
+        public Task<IActionResult> CreateAndPersistNewDataset([FromBody] CreateNewDatasetModel createNewDatasetModel)
+        {
+            Reference user = ControllerContext.HttpContext.Request.GetUserOrDefault();
+            return _datasetService.CreateAndPersistNewDataset(createNewDatasetModel, user);
+        }
+
         [Route("api/datasets/create-new-dataset")]
         [HttpPost]
         [Produces(typeof(NewDatasetVersionResponseModel))]

@@ -2,9 +2,9 @@
 using CalculateFunding.Common.ApiClient.DataSets.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
-using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using FundingLine = CalculateFunding.Models.Publishing.FundingLine;
 
 namespace CalculateFunding.Services.Publishing
 {
@@ -67,12 +68,12 @@ namespace CalculateFunding.Services.Publishing
 
             SpecificationSummary specificationSummary = await _specificationService.GetSpecificationSummaryById(specificationId);
 
-            if(specificationSummary == null)
+            if (specificationSummary == null)
             {
                 LogAndThrowException($"Specification not found for specification id- {specificationId}", true);
             }
 
-            DatasetSpecificationRelationshipViewModel relationship = await GetSpecificationRelationship(specificationId, relationshipId);
+            DatasetSpecificationRelationshipViewModel relationship = await GetDatasetSpecificationRelationship(specificationId, relationshipId);
             List<RelationshipDataSetExcelData> excelDataItems = await GetRelationshipDatasetExcelData(specificationId, relationship);
 
             // there are no published providers so exit early
@@ -81,20 +82,48 @@ namespace CalculateFunding.Services.Publishing
                 return;
             }
 
-            DatasetVersionUpdateModel datasetVersionUpdateModel = new DatasetVersionUpdateModel()
-            {
-                DatasetId = relationship.DatasetId,
-                Filename = relationship.Name,
-                FundingStreamId = specificationSummary.FundingStreams.First().Id
-            };
-            ValidatedApiResponse<NewDatasetVersionResponseModel> datasetUpdateResponse = await _datasetsApiClientPolicy.ExecuteAsync(() => _datasetsApiClient.DatasetVersionUpdate(datasetVersionUpdateModel));
+            NewDatasetVersionResponseModel datasetVersion = null;
 
-            if (!datasetUpdateResponse.StatusCode.IsSuccess() || datasetUpdateResponse.Content == null)
+            if (string.IsNullOrEmpty(relationship.DatasetId))
             {
-                LogAndThrowException($"Failed to update the dataset version, dataset id - {relationship.DatasetId}. Status Code - {datasetUpdateResponse.StatusCode}");
+                CreateNewDatasetModel createNewDatasetModel = new CreateNewDatasetModel
+                {
+                    DefinitionId = relationship.Definition?.Id,
+                    Filename = $"{relationship.Name}.xlsx",
+                    Description = relationship.RelationshipDescription,
+                    Name = $"{relationship.Name}-dataset",
+                    FundingStreamId = specificationSummary.FundingStreams?.First().Id,
+                    RowCount = excelDataItems.Count
+                };
+
+                ValidatedApiResponse<NewDatasetVersionResponseModel> datasetCreateResponse =
+                    await _datasetsApiClientPolicy.ExecuteAsync(() => _datasetsApiClient.CreateAndPersistNewDataset(createNewDatasetModel));
+
+                if (!datasetCreateResponse.StatusCode.IsSuccess() || datasetCreateResponse.Content == null)
+                {
+                    LogAndThrowException($"Failed to create a dataset, relationship id - {relationship.Id}. Status Code - {datasetCreateResponse.StatusCode}");
+                }
+
+                datasetVersion = datasetCreateResponse.Content;
             }
+            else
+            {
+                DatasetVersionUpdateModel datasetVersionUpdateModel = new DatasetVersionUpdateModel()
+                {
+                    DatasetId = relationship.DatasetId,
+                    Filename = relationship.Name,
+                    FundingStreamId = specificationSummary.FundingStreams.First().Id
+                };
+                ValidatedApiResponse<NewDatasetVersionResponseModel> datasetUpdateResponse =
+                    await _datasetsApiClientPolicy.ExecuteAsync(() => _datasetsApiClient.DatasetVersionUpdate(datasetVersionUpdateModel));
 
-            NewDatasetVersionResponseModel datasetVersion = datasetUpdateResponse.Content;
+                if (!datasetUpdateResponse.StatusCode.IsSuccess() || datasetUpdateResponse.Content == null)
+                {
+                    LogAndThrowException($"Failed to update the dataset version, dataset id - {relationship.DatasetId}. Status Code - {datasetUpdateResponse.StatusCode}");
+                }
+
+                datasetVersion = datasetUpdateResponse.Content;
+            }
 
             byte[] excelData = _excelWriter.WriteToExcel(relationship.Name, excelDataItems);
 
@@ -112,7 +141,7 @@ namespace CalculateFunding.Services.Publishing
 
             HttpStatusCode fileUploadStatus = await _datasetsApiClientPolicy.ExecuteAsync(() => _datasetsApiClient.UploadDatasetFile(datasetVersion.Filename, datasetMetadataViewModel));
 
-            if(!fileUploadStatus.IsSuccess())
+            if (!fileUploadStatus.IsSuccess())
             {
                 LogAndThrowException($"Failed to upload the dataset file, dataset id - {relationship.DatasetId}, file name - {datasetVersion.Filename}. Status Code - {fileUploadStatus}");
             }
@@ -126,9 +155,9 @@ namespace CalculateFunding.Services.Publishing
 
             ApiResponse<Common.ApiClient.Datasets.Models.JobCreationResponse> assignDatasourceVersionResponse = await _datasetsApiClientPolicy.ExecuteAsync(() => _datasetsApiClient.AssignDatasourceVersionToRelationship(assignDatasourceModel));
 
-            if (!datasetUpdateResponse.StatusCode.IsSuccess() || datasetUpdateResponse.Content == null)
+            if (!assignDatasourceVersionResponse.StatusCode.IsSuccess() || assignDatasourceVersionResponse.Content == null)
             {
-                LogAndThrowException($"Failed to assign datasource version to relationship, dataset id - {datasetVersion.DatasetId}, relationship id - {relationshipId}, version - {datasetVersion.Version}. Status Code - {datasetUpdateResponse.StatusCode}");
+                LogAndThrowException($"Failed to assign datasource version to relationship, dataset id - {datasetVersion.DatasetId}, relationship id - {relationshipId}, version - {datasetVersion.Version}. Status Code - {assignDatasourceVersionResponse.StatusCode}");
             }
         }
 
@@ -151,7 +180,7 @@ namespace CalculateFunding.Services.Publishing
                             foreach (PublishedSpecificationItem item in relationship.PublishedSpecificationConfiguration.FundingLines)
                             {
                                 FundingLine fundingLine = publishedProviderVersion.FundingLines.FirstOrDefault(f => f.TemplateLineId == item.TemplateId);
-                                excelDataItem.FundingLines.Add($"FL_{item.TemplateId}_{item.Name}", fundingLine?.Value);
+                                excelDataItem.FundingLines.Add($"{CodeGenerationDatasetTypeConstants.FundingLinePrefix}_{item.TemplateId}_{item.Name}", fundingLine?.Value);
                             }
                         }
 
@@ -163,11 +192,11 @@ namespace CalculateFunding.Services.Publishing
                                 FundingCalculation calculation = publishedProviderVersion.Calculations.FirstOrDefault(f => f.TemplateCalculationId == item.TemplateId);
                                 if (decimal.TryParse(calculation?.Value?.ToString(), out decimal calculationValue))
                                 {
-                                    excelDataItem.Calculations.Add($"Calc_{item.TemplateId}_{item.Name}", calculationValue);
+                                    excelDataItem.Calculations.Add($"{CodeGenerationDatasetTypeConstants.CalculationPrefix}_{item.TemplateId}_{item.Name}", calculationValue);
                                 }
                                 else
                                 {
-                                    excelDataItem.Calculations.Add($"Calc_{item.TemplateId}_{item.Name}", null);
+                                    excelDataItem.Calculations.Add($"{CodeGenerationDatasetTypeConstants.CalculationPrefix}_{item.TemplateId}_{item.Name}", null);
                                 }
 
                             }
@@ -183,7 +212,7 @@ namespace CalculateFunding.Services.Publishing
             return excelDataItems;
         }
 
-        private async Task<DatasetSpecificationRelationshipViewModel> GetSpecificationRelationship(string specificationId, string relationshipId)
+        private async Task<DatasetSpecificationRelationshipViewModel> GetDatasetSpecificationRelationship(string specificationId, string relationshipId)
         {
             ApiResponse<IEnumerable<DatasetSpecificationRelationshipViewModel>> relationshipsApiResponse = await _datasetsApiClientPolicy.ExecuteAsync(
                             () => _datasetsApiClient.GetCurrentRelationshipsBySpecificationId(specificationId));

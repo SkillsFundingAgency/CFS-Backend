@@ -727,21 +727,27 @@ namespace CalculateFunding.Services.Datasets
                         }
                     }
 
-                    if (_featureToggle.IsUseFieldDefinitionIdsInSourceDatasetsEnabled())
+                    if (relationshipSummary.RelationshipType == DatasetRelationshipType.ReleasedData)
                     {
-                        sourceDataset.DataDefinitionId = relationshipSummary.DatasetDefinition.Id;
-
                         Dictionary<string, object> rows = new Dictionary<string, object>();
 
-                        foreach (KeyValuePair<string, object> rowField in row.Fields)
+                        foreach (uint fundingLineTemplateId in relationshipSummary.PublishedSpecificationConfiguration.FundingLines.Select(_ => _.TemplateId))
                         {
-                            foreach (TableDefinition tableDefinition in datasetDefinition.TableDefinitions)
+                            string key = $"{CodeGenerationDatasetTypeConstants.FundingLinePrefix}_{fundingLineTemplateId}";
+
+                            if (row.Fields.ContainsKey(key))
                             {
-                                FieldDefinition fieldDefinition = tableDefinition.FieldDefinitions.FirstOrDefault(m => m.Name == rowField.Key);
-                                if (fieldDefinition != null)
-                                {
-                                    rows.Add(fieldDefinition.Id, rowField.Value);
-                                }
+                                rows.Add(key, row.Fields[key]);
+                            }
+                        }
+
+                        foreach (uint calcTemplateId in relationshipSummary.PublishedSpecificationConfiguration.Calculations.Select(_ => _.TemplateId))
+                        {
+                            string key = $"{CodeGenerationDatasetTypeConstants.CalculationPrefix}_{calcTemplateId}";
+
+                            if (row.Fields.ContainsKey(key))
+                            {
+                                rows.Add(key, row.Fields[key]);
                             }
                         }
 
@@ -749,9 +755,32 @@ namespace CalculateFunding.Services.Datasets
                     }
                     else
                     {
-                        sourceDataset.DataDefinition = new Reference(relationshipSummary.DatasetDefinition.Id, relationshipSummary.DatasetDefinition.Name);
+                        if (_featureToggle.IsUseFieldDefinitionIdsInSourceDatasetsEnabled())
+                        {
+                            sourceDataset.DataDefinitionId = relationshipSummary.DatasetDefinition.Id;
 
-                        sourceDataset.Current.Rows.Add(row.Fields);
+                            Dictionary<string, object> rows = new Dictionary<string, object>();
+
+                            foreach (KeyValuePair<string, object> rowField in row.Fields)
+                            {
+                                foreach (TableDefinition tableDefinition in datasetDefinition.TableDefinitions)
+                                {
+                                    FieldDefinition fieldDefinition = tableDefinition.FieldDefinitions.FirstOrDefault(m => m.Name == rowField.Key);
+                                    if (fieldDefinition != null)
+                                    {
+                                        rows.Add(fieldDefinition.Id, rowField.Value);
+                                    }
+                                }
+                            }
+
+                            sourceDataset.Current.Rows.Add(rows);
+                        }
+                        else
+                        {
+                            sourceDataset.DataDefinition = new Reference(relationshipSummary.DatasetDefinition.Id, relationshipSummary.DatasetDefinition.Name);
+
+                            sourceDataset.Current.Rows.Add(row.Fields);
+                        }
                     }
                 }
             });

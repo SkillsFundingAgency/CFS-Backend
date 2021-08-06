@@ -22,7 +22,9 @@ namespace CalculateFunding.Services.Datasets.MappingProfiles
                 .ForMember(c => c.Name, opt => opt.Ignore())
                 .ForMember(c => c.Description, opt => opt.Ignore())
                 .ForMember(c => c.DefinitionId, opt => opt.Ignore())
-                .ForMember(c => c.Version, opt => opt.Ignore());
+                .ForMember(c => c.Version, opt => opt.Ignore())
+                .ForMember(c => c.RowCount, opt => opt.Ignore())
+                .ForMember(c => c.StrictValidation, opt => opt.Ignore());
 
             CreateMap<Dataset, DatasetViewModel>()
                 .ForMember(m => m.FundingStream, opt => opt.MapFrom(s => s.Current.FundingStream))
