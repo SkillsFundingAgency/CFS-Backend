@@ -15,5 +15,7 @@ namespace CalculateFunding.Services.Core.Interfaces.Services
             bool incrementFromCurrentVersion = false);
 
         Task<HttpStatusCode> SaveVersion(T newVersion);
+
+        Task<HttpStatusCode> UpsertVersion(T newVersion);
     }
 }

@@ -55,7 +55,10 @@ namespace CalculateFunding.Services.Core.Services
         }
 
         public async Task<HttpStatusCode> SaveVersion(T newVersion)
-          => await CosmosRepository.CreateAsync(newVersion);
+            => await CosmosRepository.CreateAsync(newVersion);
+
+        public async Task<HttpStatusCode> UpsertVersion(T newVersion)
+            => await CosmosRepository.UpsertAsync(newVersion);
 
         public async Task<T> CreateVersion(T newVersion,
             T currentVersion = null,

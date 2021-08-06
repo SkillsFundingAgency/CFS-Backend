@@ -36,5 +36,6 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
 
         public Task<HttpStatusCode> SaveVersion(PublishedProviderVersion newVersion) => throw new NotImplementedException();
+        public Task<HttpStatusCode> UpsertVersion(PublishedProviderVersion newVersion) => throw new NotImplementedException();
     }
 }
