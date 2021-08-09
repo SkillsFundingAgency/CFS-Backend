@@ -2333,7 +2333,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
         private void ThenTheNewVersionWasSaved(ProviderSourceDatasetVersion newVersion)
         {
-            _versionBulkRepository.Verify(_ => _.UpsertVersion(newVersion),
+            _versionBulkRepository.Verify(_ => _.SaveVersion(newVersion),
                 Times.Once);
         }
 
@@ -2348,7 +2348,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
         private void AndTheDatasetVersionWasSaved(int version = 1)
         {
-            _versionBulkRepository.Verify(_ => _.UpsertVersion(It.Is<ProviderSourceDatasetVersion>(ver => 
+            _versionBulkRepository.Verify(_ => _.SaveVersion(It.Is<ProviderSourceDatasetVersion>(ver => 
                 ver.Author != null &&
                 ver.Date.Date == DateTime.Now.Date &&
                 ver.EntityId == $"{SpecificationId}_{_relationshipId}_{_providerId}" &&

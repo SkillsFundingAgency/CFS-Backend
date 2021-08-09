@@ -3,6 +3,7 @@ using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Models.Calcs;
+using ObsoleteItem = CalculateFunding.Common.ApiClient.Calcs.Models.ObsoleteItems.ObsoleteItem;
 
 namespace CalculateFunding.Services.Datasets.Interfaces
 {
@@ -14,8 +15,12 @@ namespace CalculateFunding.Services.Datasets.Interfaces
 
         Task<IEnumerable<CalculationResponseModel>> GetCurrentCalculationsBySpecificationId(string specificationId);
 
+        Task<IEnumerable<ObsoleteItem>> GetObsoleteItemsForSpecification(string specificationId);
+
         Task<HttpStatusCode> CompileAndSaveAssembly(string specificationId);
 
         Task<Job> ReMapSpecificationReference(string specificationId, string datasetRelationshipId);
+
+        Task<ObsoleteItem> CreateObsoleteItem(ObsoleteItem obsoleteItem);
     }
 }

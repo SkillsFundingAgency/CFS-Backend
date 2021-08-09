@@ -63,7 +63,6 @@ namespace CalculateFunding.Services.Datasets
                             FROM    r
                             WHERE   r.content.specificationId = @SpecificationId
                                     AND r.content.dataRelationship.id = @RelationshipId
-                                    AND r.deleted = false
                                     AND r.documentType = @DocumentType",
                 Parameters = new[]
                 {

@@ -1,9 +1,12 @@
 ﻿using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Services.Core;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Datasets.Interfaces;
 using Polly;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 using PoliciesApiModels = CalculateFunding.Common.ApiClient.Policies.Models;
 
@@ -54,6 +57,20 @@ namespace CalculateFunding.Services.Datasets
         {
             ApiResponse<PoliciesApiModels.TemplateMetadataDistinctCalculationsContents> apiResponse
                     = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetDistinctTemplateMetadataCalculationsContents(fundingStreamId, fundingPeriodId, templateVersion));
+
+            return apiResponse.Content;
+        }
+
+        public async Task<PoliciesApiModels.TemplateMetadataDistinctContents> GetDistinctTemplateMetadataContents(string fundingStreamId, string fundingPeriodId, string templateVersion)
+        {
+            ApiResponse<PoliciesApiModels.TemplateMetadataDistinctContents> apiResponse
+                    = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetDistinctTemplateMetadataContents(fundingStreamId, fundingPeriodId, templateVersion));
+
+            if (!apiResponse.StatusCode.IsSuccess() && apiResponse.StatusCode != HttpStatusCode.NotFound)
+            {
+                string errorMessage = $"Failed to fetch template metadata for FundingStreamId={fundingStreamId}, FundingPeriodId={fundingPeriodId} and TemplateId={templateVersion} with StatusCode={apiResponse.StatusCode}";
+                throw new RetriableException(errorMessage);
+            }
 
             return apiResponse.Content;
         }

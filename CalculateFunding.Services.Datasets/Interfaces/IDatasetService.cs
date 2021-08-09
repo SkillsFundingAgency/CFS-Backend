@@ -42,7 +42,11 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         Task UpdateDatasetAndVersionDefinitionName(Reference datsetDefinitionReference);
 
         Task DeleteDatasets(Message message);
-        
+
+        Task<IActionResult> QueueProcessDatasetObsoleteItemsJob(string specificationId, Reference author, string correlationId);
+
+        Task ProcessDatasetObsoleteItems(Message message);
+
         IActionResult GetValidateDatasetValidationErrorSasUrl(DatasetValidationErrorRequestModel requestModel);
 
         Task<IActionResult> FixupDatasetsFundingStream();

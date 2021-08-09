@@ -186,6 +186,25 @@ namespace CalculateFunding.Functions.Datasets.SmokeTests
                 .NotBeNull();
         }
 
+        [TestMethod]
+        public async Task OnProcessDatasetObsoleteItems_SmokeTestSucceeds()
+        {
+            OnProcessDatasetObsoleteItems onProcessDatasetObsoleteItems = new OnProcessDatasetObsoleteItems(_logger,
+                _datasetService,
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                _userProfileProvider,
+                AppConfigurationHelper.CreateConfigurationRefresherProvider(),
+                IsDevelopment);
+
+            SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.ProcessDatasetObsoleteItems,
+                async smokeResponse => await onProcessDatasetObsoleteItems.Run(smokeResponse),
+                useSession: true);
+
+            response
+                .Should()
+                .NotBeNull();
+        }
+
         private static ILogger CreateLogger() => Substitute.For<ILogger>();
 
         private static IDatasetDefinitionNameChangeProcessor CreateDatasetDefinitionNameChangeProcessor() => Substitute.For<IDatasetDefinitionNameChangeProcessor>();

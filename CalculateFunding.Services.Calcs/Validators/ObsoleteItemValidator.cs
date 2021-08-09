@@ -42,8 +42,30 @@ namespace CalculateFunding.Services.Calcs.Validators
               .WithMessage("Null or empty specification id provided.");
 
             RuleFor(model => model.CalculationIds)
-             .NotEmpty()
-             .WithMessage("Atleast one calculation id must be provided.");
+             .Custom((calculationIds, context) => {
+                 ObsoleteItem obsoleteItem = context.ParentContext.InstanceToValidate as ObsoleteItem;
+
+                 if (!obsoleteItem.IsReleasedData)
+                 {
+                     if (calculationIds.IsNullOrEmpty())
+                     {
+                         context.AddFailure("Atleast one calculation id must be provided.");
+                     }
+                 }
+             });
+
+            RuleFor(model => model.DatasetRelationshipId)
+             .Custom((datasetRelationshipId, context) => {
+                 ObsoleteItem obsoleteItem = context.ParentContext.InstanceToValidate as ObsoleteItem;
+
+                 if (obsoleteItem.IsReleasedData)
+                 {
+                     if (string.IsNullOrWhiteSpace(datasetRelationshipId))
+                     {
+                         context.AddFailure("Dataset relationship is required.");
+                     }
+                 }
+             });
 
             RuleFor(model => model.SpecificationId)
                 .CustomAsync(async (specificationId, context, ct) =>

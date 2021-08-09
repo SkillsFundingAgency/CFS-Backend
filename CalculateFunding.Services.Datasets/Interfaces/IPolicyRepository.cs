@@ -10,5 +10,7 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         Task<PoliciesApiModels.FundingStream> GetFundingStream(string fundingStreamId);
         Task<PoliciesApiModels.FundingPeriod> GetFundingPeriod(string fundingPeriodId);
         Task<PoliciesApiModels.TemplateMetadataDistinctCalculationsContents> GetDistinctTemplateMetadataCalculationsContents(string fundingStreamId, string fundingPeriodId, string templateVersion);
+
+        Task<PoliciesApiModels.TemplateMetadataDistinctContents> GetDistinctTemplateMetadataContents(string fundingStreamId, string fundingPeriodId, string templateVersion);
     }
 }

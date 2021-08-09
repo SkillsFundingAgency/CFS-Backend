@@ -5,6 +5,7 @@ using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Calcs.Models;
+using CalculateFunding.Common.ApiClient.Calcs.Models.ObsoleteItems;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Models.Specs;

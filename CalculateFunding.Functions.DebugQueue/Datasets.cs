@@ -254,5 +254,45 @@ namespace CalculateFunding.Functions.DebugQueue
 
             log.LogInformation($"C# Queue trigger function processed: {item}");
         }
+
+
+
+        [FunctionName(OnProcessDatasetObsoleteItems.FunctionName)]
+        public static async Task RunOnProcessDatasetObsoleteItems(
+            [QueueTrigger(ServiceBusConstants.QueueNames.ProcessDatasetObsoleteItems, Connection = "AzureConnectionString")]
+            string item,
+            ILogger log)
+        {
+            using IServiceScope scope = Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+
+            Message message = Helpers.ConvertToMessage<string>(item);
+
+            OnProcessDatasetObsoleteItems function = scope.ServiceProvider.GetService<OnProcessDatasetObsoleteItems>();
+
+            Guard.ArgumentNotNull(function, nameof(OnProcessDatasetObsoleteItems));
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
+
+        [FunctionName(OnProcessDatasetObsoleteItemsFailure.FunctionName)]
+        public static async Task RunOnProcessDatasetObsoleteItemsFailure(
+            [QueueTrigger(ServiceBusConstants.QueueNames.ProcessDatasetObsoleteItemsPoisonedLocal, Connection = "AzureConnectionString")]
+            string item,
+            ILogger log)
+        {
+            using IServiceScope scope = Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+
+            Message message = Helpers.ConvertToMessage<string>(item);
+
+            OnProcessDatasetObsoleteItemsFailure function = scope.ServiceProvider.GetService<OnProcessDatasetObsoleteItemsFailure>();
+
+            Guard.ArgumentNotNull(function, nameof(OnProcessDatasetObsoleteItemsFailure));
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
     }
 }

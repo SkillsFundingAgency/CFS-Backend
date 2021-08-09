@@ -25,6 +25,7 @@ using CalculateFunding.Services.Publishing.UnitTests.Profiling;
 using ApiProfileVariationPointer = CalculateFunding.Common.ApiClient.Specifications.Models.ProfileVariationPointer;
 using CalculateFunding.Services.Publishing.UnitTests.Variations.Changes;
 using ApiPeriodType = CalculateFunding.Common.ApiClient.Profiling.Models.PeriodType;
+using CalculateFunding.Common.ApiClient.Calcs.Models.ObsoleteItems;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
 {

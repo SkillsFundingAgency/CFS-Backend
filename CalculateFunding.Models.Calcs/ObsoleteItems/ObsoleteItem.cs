@@ -14,6 +14,28 @@ namespace CalculateFunding.Models.Calcs.ObsoleteItems
         [JsonProperty("specificationId")]
         public string SpecificationId { get; set; }
 
+        [JsonProperty("datasetRelationshipId")]
+        public string DatasetRelationshipId { get; set; }
+
+        [JsonProperty("datasetRelationshipName")]
+        public string DatasetRelationshipName { get; set; }
+
+        [JsonProperty("datasetFieldId")]
+        public string DatasetFieldId { get; set; }
+
+        [JsonProperty("datasetFieldName")]
+        public string DatasetFieldName { get; set; }
+
+        [JsonProperty("datasetDatatype")]
+        [JsonConverter(typeof(StringEnumConverter))]
+        public DatasetFieldType DatasetDatatype { get; set; }
+
+        [JsonProperty("isReleasedData")]
+        public bool IsReleasedData { get; set; }
+
+        [JsonProperty("relationshipName")]
+        public string RelationshipName { get; set; }
+
         [JsonProperty("itemType")]
         [JsonConverter(typeof(StringEnumConverter))]
         public ObsoleteItemType ItemType { get; set; }

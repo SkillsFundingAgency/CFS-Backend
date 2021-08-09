@@ -212,21 +212,5 @@ namespace CalculateFunding.Services.Datasets.Converter
 
             return fundingConfiguration;
         }
-
-        public async Task<IEnumerable<JobSummary>> GetJobTypes(string specificationId, IEnumerable<string> jobTypes)
-        {
-            Guard.ArgumentNotNull(jobTypes, nameof(jobTypes));
-
-            try
-            {
-                IDictionary<string, JobSummary> jobSummaries = await _jobManagement.GetLatestJobsForSpecification(specificationId, jobTypes);
-
-                return jobSummaries?.Values.Where(_ => _ != null && _.RunningStatus == RunningStatus.InProgress);
-            }
-            catch (JobsNotRetrievedException ex)
-            {
-                throw new NonRetriableException(ex.Message, ex);
-            }
-        }
     }
 }

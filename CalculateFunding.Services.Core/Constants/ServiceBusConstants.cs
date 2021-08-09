@@ -254,6 +254,12 @@
             public const string ReferencedSpecificationReMapPoisoned = "referenced-specification-remap/$DeadLetterQueue";
             
             public const string ReferencedSpecificationReMapPoisonedLocal = "referenced-specification-remap-poisoned";
+
+            public const string ProcessDatasetObsoleteItems = "process-dataset-obsolete-items";
+
+            public const string ProcessDatasetObsoleteItemsPoisoned = "process-dataset-obsolete-items/$DeadLetterQueue";
+
+            public const string ProcessDatasetObsoleteItemsPoisonedLocal = "process-dataset-obsolete-items-poisoned";
         }
 
         public static class TopicNames

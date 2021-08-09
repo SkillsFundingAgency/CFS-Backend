@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Calcs;
+using CalculateFunding.Common.ApiClient.Calcs.Models.ObsoleteItems;
 using CalculateFunding.Common.ApiClient.DataSets;
 using CalculateFunding.Common.ApiClient.DataSets.Models;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
@@ -1288,7 +1289,7 @@ WHERE   s.documentType = @DocumentType",
                 return new ConflictResult();
             }
 
-            ApiResponse<IEnumerable<Common.ApiClient.Calcs.Models.ObsoleteItem>> obsoleteItemsApiResponse =
+            ApiResponse<IEnumerable<ObsoleteItem>> obsoleteItemsApiResponse =
                 await _calcsApiClientPolicy.ExecuteAsync(() => _calcsApiClient.GetObsoleteItemsForSpecification(specification.Id));
 
             if (obsoleteItemsApiResponse.StatusCode != HttpStatusCode.NotFound)
@@ -1356,7 +1357,7 @@ WHERE   s.documentType = @DocumentType",
 
         private async Task<bool> HasObsoleteItem(Specification specification)
         {
-            ApiResponse<IEnumerable<Common.ApiClient.Calcs.Models.ObsoleteItem>> obsoleteItemsApiResponse =
+            ApiResponse<IEnumerable<ObsoleteItem>> obsoleteItemsApiResponse =
                 await _calcsApiClientPolicy.ExecuteAsync(() => _calcsApiClient.GetObsoleteItemsForSpecification(specification.Id));
 
             if (!obsoleteItemsApiResponse.StatusCode.IsSuccess())

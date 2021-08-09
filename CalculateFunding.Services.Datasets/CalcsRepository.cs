@@ -10,6 +10,7 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Datasets.Interfaces;
 using Polly;
+using ObsoleteItem = CalculateFunding.Common.ApiClient.Calcs.Models.ObsoleteItems.ObsoleteItem;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -65,10 +66,27 @@ namespace CalculateFunding.Services.Datasets
 
         public async Task<HttpStatusCode> CompileAndSaveAssembly(string specificationId)
         {
-            if (string.IsNullOrWhiteSpace(specificationId))
-                throw new ArgumentNullException(nameof(specificationId));
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
             ApiResponse<HttpStatusCode> apiResponse = await _apiClientPolicy.ExecuteAsync(() => _apiClient.CompileAndSaveAssembly(specificationId));
+
+            return apiResponse.Content;
+        }
+
+        public async Task<IEnumerable<ObsoleteItem>> GetObsoleteItemsForSpecification(string specificationId)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+
+            ApiResponse<IEnumerable<ObsoleteItem>> apiResponse = await _apiClientPolicy.ExecuteAsync(() => _apiClient.GetObsoleteItemsForSpecification(specificationId));
+
+            return apiResponse.Content;
+        }
+
+        public async Task<ObsoleteItem> CreateObsoleteItem(ObsoleteItem obsoleteItem)
+        {
+            Guard.ArgumentNotNull(obsoleteItem, nameof(obsoleteItem));
+
+            ApiResponse<ObsoleteItem> apiResponse = await _apiClientPolicy.ExecuteAsync(() => _apiClient.CreateObsoleteItem(obsoleteItem));
 
             return apiResponse.Content;
         }

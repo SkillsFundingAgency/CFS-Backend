@@ -99,6 +99,8 @@ namespace CalculateFunding.Functions.Datasets
                 builder.AddScoped<OnCreateSpecificationConverterDatasetsMergeFailure>();
                 builder.AddScoped<OnConverterWizardActivityCsvGeneration>();
                 builder.AddScoped<OnConverterWizardActivityCsvGenerationFailure>();
+                builder.AddScoped<OnProcessDatasetObsoleteItems>();
+                builder.AddScoped<OnProcessDatasetObsoleteItemsFailure>();
             }
 
             builder.AddSingleton<ISpecificationConverterDataMerge, SpecificationConverterDataMerge>();

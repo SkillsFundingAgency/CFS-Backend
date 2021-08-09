@@ -48,6 +48,7 @@ namespace CalculateFunding.Services.Publishing
         private readonly ICreatePublishIntegrityJob _createPublishIntegrityJob;
         private readonly IPublishedFundingCsvJobsService _publishFundingCsvJobsService;
         private readonly ICreatePublishDatasetsDataCopyJob _createPublishDatasetsDataCopyJob;
+        private readonly ICreateProcessDatasetObsoleteItemsJob _createProcessDatasetObsoleteItemsJob;
 
         public PublishService(IPublishedFundingStatusUpdateService publishedFundingStatusUpdateService,
             IPublishingResiliencePolicies publishingResiliencePolicies,
@@ -69,7 +70,8 @@ namespace CalculateFunding.Services.Publishing
             IPublishedFundingService publishedFundingService,
             ICreatePublishIntegrityJob createPublishIntegrityJob,
             IPublishedFundingCsvJobsService publishFundingCsvJobsService,
-            ICreatePublishDatasetsDataCopyJob createPublishDatasetsDataCopyJob) : base(jobManagement, logger)
+            ICreatePublishDatasetsDataCopyJob createPublishDatasetsDataCopyJob,
+            ICreateProcessDatasetObsoleteItemsJob createProcessDatasetObsoleteItemsJob) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(publishedFundingStatusUpdateService, nameof(publishedFundingStatusUpdateService));
             Guard.ArgumentNotNull(publishingResiliencePolicies, nameof(publishingResiliencePolicies));
@@ -93,6 +95,7 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(createPublishIntegrityJob, nameof(createPublishIntegrityJob));
             Guard.ArgumentNotNull(publishFundingCsvJobsService, nameof(publishFundingCsvJobsService));
             Guard.ArgumentNotNull(createPublishDatasetsDataCopyJob, nameof(createPublishDatasetsDataCopyJob));
+            Guard.ArgumentNotNull(createProcessDatasetObsoleteItemsJob, nameof(createProcessDatasetObsoleteItemsJob));
 
             _publishedFundingStatusUpdateService = publishedFundingStatusUpdateService;
             _specificationService = specificationService;
@@ -114,6 +117,7 @@ namespace CalculateFunding.Services.Publishing
             _createPublishIntegrityJob = createPublishIntegrityJob;
             _publishFundingCsvJobsService = publishFundingCsvJobsService;
             _createPublishDatasetsDataCopyJob = createPublishDatasetsDataCopyJob;
+            _createProcessDatasetObsoleteItemsJob = createProcessDatasetObsoleteItemsJob;
         }
 
         public override async Task Process(Message message)
@@ -170,6 +174,8 @@ namespace CalculateFunding.Services.Publishing
                 author);
 
             await _createPublishDatasetsDataCopyJob.CreateJob(specificationId, author, correlationId);
+
+            await _createProcessDatasetObsoleteItemsJob.CreateJob(specificationId, author, correlationId);
         }
 
         private async Task PublishFundingStream(Reference fundingStream,

@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Common.ApiClient.Calcs.Models;
+using CalculateFunding.Common.ApiClient.Calcs.Models.ObsoleteItems;
 using CalculateFunding.Tests.Common.Helpers;
 
 namespace CalculateFunding.Services.Specs.UnitTests

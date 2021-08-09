@@ -20,7 +20,7 @@
 
 
     <ItemGroup>
-        <PackageReference Include="CalculateFunding.Common.ApiClient.Calcs" Version="8.0.0" />
+        <PackageReference Include="CalculateFunding.Common.ApiClient.Calcs" Version="8.1.0" />
         <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Calcs" Version="5.3.2" />
         <PackageReference Include="FluentAssertions" Version="5.10.3" />
         <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="5.0.0" />

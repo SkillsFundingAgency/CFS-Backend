@@ -863,7 +863,7 @@ namespace CalculateFunding.Services.Datasets
                 {
                     int versionIndex = history;
 
-                    saveHistoryTasks[history] = Task.Run(() => _bulkSourceDatasetsVersionRepository.UpsertVersion(historyToSave.ElementAt(versionIndex)));
+                    saveHistoryTasks[history] = Task.Run(() => _bulkSourceDatasetsVersionRepository.SaveVersion(historyToSave.ElementAt(versionIndex)));
                 }
 
                 await TaskHelper.WhenAllAndThrow(saveHistoryTasks);

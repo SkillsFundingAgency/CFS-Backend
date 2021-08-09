@@ -8,6 +8,7 @@ using Microsoft.Azure.ServiceBus;
 using Serilog;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Processing
@@ -90,6 +91,22 @@ namespace CalculateFunding.Services.Processing
         public async Task NotifyProgress(int itemCount) => await _jobManagement.AddJobLog(Job.Id, new JobLogUpdateModel { ItemsProcessed = itemCount });
 
         public async Task NotifyPercentComplete(int percent) => await _jobManagement.UpdateJobStatus(Job.Id, percent, null, null);
+
+        public async Task<IEnumerable<JobSummary>> GetJobTypes(string specificationId, IEnumerable<string> jobTypes)
+        {
+            Guard.ArgumentNotNull(jobTypes, nameof(jobTypes));
+
+            try
+            {
+                IDictionary<string, JobSummary> jobSummaries = await _jobManagement.GetLatestJobsForSpecification(specificationId, jobTypes);
+
+                return jobSummaries?.Values.Where(_ => _ != null && _.RunningStatus == RunningStatus.InProgress);
+            }
+            catch (JobsNotRetrievedException ex)
+            {
+                throw new NonRetriableException(ex.Message, ex);
+            }
+        }
 
         private async Task<JobViewModel> EnsureJobCanBeProcessed(string jobId)
         {

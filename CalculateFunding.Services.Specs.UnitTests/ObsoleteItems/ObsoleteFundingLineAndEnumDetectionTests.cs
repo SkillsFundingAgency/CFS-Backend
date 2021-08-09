@@ -29,6 +29,7 @@ using FundingLine = CalculateFunding.Common.ApiClient.Graph.Models.FundingLine;
 using Specification = CalculateFunding.Common.ApiClient.Graph.Models.Specification;
 using Enum = CalculateFunding.Common.ApiClient.Graph.Models.Enum;
 using CalculateFunding.Services.CodeGeneration.VisualBasic.Type;
+using CalculateFunding.Common.ApiClient.Calcs.Models.ObsoleteItems;
 
 namespace CalculateFunding.Services.Specs.UnitTests.ObsoleteItems
 {

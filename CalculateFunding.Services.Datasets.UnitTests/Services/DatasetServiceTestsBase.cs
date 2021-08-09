@@ -23,6 +23,8 @@ using System;
 using System.Collections.Generic;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalculateFunding.Services.Datasets.UnitTests.Builders;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
@@ -83,6 +85,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 providerSourceDatasetRepository ?? CreateProviderSourceDatasetRepository(),
                 specificationsApiClient ?? CreateSpecificationsApiClient(),
                 policyRepository ?? CreatePolicyRepository(),
+                calcsRepository ?? CreateCalcsRepository(),
                 datasetDataMergeService ?? CreateDatasetDataMergeService());
         }
 
@@ -94,6 +97,11 @@ namespace CalculateFunding.Services.Datasets.Services
         protected IPolicyRepository CreatePolicyRepository()
         {
             return Substitute.For<IPolicyRepository>();
+        }
+
+        protected ICalcsRepository CreateCalcsRepository()
+        {
+            return Substitute.For<ICalcsRepository>();
         }
 
         private ISpecificationsApiClient CreateSpecificationsApiClient()
@@ -120,11 +128,6 @@ namespace CalculateFunding.Services.Datasets.Services
         protected IVersionRepository<ProviderSourceDatasetVersion> CreateVersionRepository()
         {
             return Substitute.For<IVersionRepository<ProviderSourceDatasetVersion>>();
-        }
-
-        protected ICalcsRepository CreateCalcsRepository()
-        {
-            return Substitute.For<ICalcsRepository>();
         }
 
         private ITelemetry CreateTelemetry()
@@ -292,7 +295,7 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             return Substitute.For<IVersionRepository<DatasetVersion>>();
         }
-    protected byte[] CreateTestExcelPackage()
+        protected byte[] CreateTestExcelPackage()
         {
             using (ExcelPackage package = new ExcelPackage())
             {
@@ -311,6 +314,16 @@ namespace CalculateFunding.Services.Datasets.Services
             {
                 NewApiFundingStream(_ => _.WithId(FundingStreamId).WithName(FundingStreamName))
             };
+
+        protected SpecificationSummary NewSpecificationSummary(
+            Action<SpecificationSummaryBuilder> setUp = null)
+        {
+            SpecificationSummaryBuilder specificationSummaryBuilder = new SpecificationSummaryBuilder();
+
+            setUp?.Invoke(specificationSummaryBuilder);
+
+            return specificationSummaryBuilder.Build();
+        }
 
         protected PoliciesApiModels.FundingStream NewApiFundingStream(
             Action<PolicyFundingStreamBuilder> setUp = null)

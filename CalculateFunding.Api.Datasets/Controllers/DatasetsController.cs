@@ -457,5 +457,20 @@ namespace CalculateFunding.Api.Datasets.Controllers
         {
             return _datasetService.MigrateDatasetsPerDocumentVersioning();
         }
+
+
+        /// <summary>
+        ///     Queues job to run process dataset obsolete items
+        /// </summary>
+        /// <param name="specificationId"></param>
+        /// <returns></returns>
+        [HttpGet("api/datasets/converter/queue-process-dataset-obsolete-items-job")]
+        public async Task<IActionResult> QueueProcessDatasetObsoleteItemsJob([FromRoute] string specificationId)
+        {
+            Reference user = ControllerContext.HttpContext.Request.GetUserOrDefault();
+            string correlationId = ControllerContext.HttpContext.Request.GetCorrelationId();
+
+            return await _datasetService.QueueProcessDatasetObsoleteItemsJob(specificationId, user, correlationId);
+        }
     }
 }

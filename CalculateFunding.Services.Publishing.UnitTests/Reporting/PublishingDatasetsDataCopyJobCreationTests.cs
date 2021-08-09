@@ -1,4 +1,4 @@
-using CalculateFunding.Services.Publishing.Reporting;
+using CalculateFunding.Services.Publishing.Specifications;
 using CalculateFunding.Services.Publishing.UnitTests.Specifications;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 

@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Common.ApiClient.Calcs.Models;
+using CalculateFunding.Common.ApiClient.Calcs.Models.ObsoleteItems;
 using CalculateFunding.Services.Publishing.Interfaces;
 using System.Collections.Generic;
 using System.Threading.Tasks;

@@ -51,6 +51,9 @@ using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using Microsoft.Azure.Cosmos.Linq;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Common.ApiClient.Policies.Models;
+using ObsoleteItem = CalculateFunding.Common.ApiClient.Calcs.Models.ObsoleteItems.ObsoleteItem;
+using ObsoleteItemType = CalculateFunding.Common.ApiClient.Calcs.Models.ObsoleteItems.ObsoleteItemType;
+using DatasetFieldType = CalculateFunding.Common.ApiClient.Calcs.Models.ObsoleteItems.DatasetFieldType;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -75,7 +78,9 @@ namespace CalculateFunding.Services.Datasets
         private readonly IJobManagement _jobManagement;
         private readonly IProviderSourceDatasetRepository _providerSourceDatasetRepository;
         private readonly ISpecificationsApiClient _specificationsApiClient;
+        private readonly AsyncPolicy _specificationsApiClientPolicy;
         private readonly IPolicyRepository _policyRepository;
+        private readonly ICalcsRepository _calcsRepository;
         private readonly IDatasetDataMergeService _datasetDataMergeService;
 
         public DatasetService(
@@ -99,6 +104,7 @@ namespace CalculateFunding.Services.Datasets
             IProviderSourceDatasetRepository providerSourceDatasetRepository,
             ISpecificationsApiClient specificationsApiClient,
             IPolicyRepository policyRepository,
+            ICalcsRepository calcsRepository,
             IDatasetDataMergeService datasetDataMergeService) : base(jobManagement, logger)
         {
             Guard.ArgumentNotNull(blobClient, nameof(blobClient));
@@ -117,9 +123,12 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(datasetsResiliencePolicies, nameof(datasetsResiliencePolicies));
             Guard.ArgumentNotNull(providersApiClient, nameof(providersApiClient));
             Guard.ArgumentNotNull(datasetsResiliencePolicies?.ProvidersApiClient, nameof(datasetsResiliencePolicies.ProvidersApiClient));
+            Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
+            Guard.ArgumentNotNull(datasetsResiliencePolicies?.SpecificationsApiClient, nameof(datasetsResiliencePolicies.SpecificationsApiClient));
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(providerSourceDatasetRepository, nameof(providerSourceDatasetRepository));
             Guard.ArgumentNotNull(policyRepository, nameof(policyRepository));
+            Guard.ArgumentNotNull(calcsRepository, nameof(calcsRepository));
             Guard.ArgumentNotNull(datasetDataMergeService, nameof(datasetDataMergeService));
 
             _blobClient = blobClient;
@@ -141,7 +150,9 @@ namespace CalculateFunding.Services.Datasets
             _jobManagement = jobManagement;
             _providerSourceDatasetRepository = providerSourceDatasetRepository;
             _specificationsApiClient = specificationsApiClient;
+            _specificationsApiClientPolicy = datasetsResiliencePolicies.SpecificationsApiClient;
             _policyRepository = policyRepository;
+            _calcsRepository = calcsRepository;
             _datasetDataMergeService = datasetDataMergeService;
         }
 
@@ -280,7 +291,7 @@ namespace CalculateFunding.Services.Datasets
 
             return new OkObjectResult(responseModel);
         }
-
+        
         public async Task<IActionResult> DatasetVersionUpdate(DatasetVersionUpdateModel model, Reference author)
         {
             if (model == null)
@@ -1234,7 +1245,7 @@ namespace CalculateFunding.Services.Datasets
             {
                 string error = "Null or empty specification Id provided for deleting datasets";
                 _logger.Error(error);
-                throw new Exception(error);
+                throw new NonRetriableException(error);
             }
 
             string deletionTypeProperty = message.UserProperties["deletion-type"].ToString();
@@ -1249,7 +1260,7 @@ namespace CalculateFunding.Services.Datasets
 
             SpecificationSummary specificationSummary;
             ApiResponse<SpecificationSummary> specificationSummaryApiResponse =
-                await _specificationsApiClient.GetSpecificationSummaryById(specificationId);
+                await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId));
 
             if (specificationSummaryApiResponse.StatusCode == HttpStatusCode.OK)
             {
@@ -1274,12 +1285,174 @@ namespace CalculateFunding.Services.Datasets
             await _datasetRepository.DeleteDatasetsBySpecificationId(specificationId, deletionType);
         }
 
+        public async Task<IActionResult> QueueProcessDatasetObsoleteItemsJob(string specificationId, Reference author, string correlationId)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+
+            IEnumerable<JobSummary> jobTypesRunning = await GetJobTypes(specificationId,
+                new string[] {
+                    JobConstants.DefinitionNames.ProcessDatasetObsoleteItems
+            });
+
+            if (!jobTypesRunning.IsNullOrEmpty())
+            {
+                throw new NonRetriableException($"Unable to queue a new process dataset obsolete items as one is already running job id:{jobTypesRunning.First().JobId}.");
+            }
+
+            Job job = await QueueJob(new JobCreateModel
+            {
+                JobDefinitionId = JobConstants.DefinitionNames.ProcessDatasetObsoleteItems,
+                SpecificationId = specificationId,
+                InvokerUserId = author?.Id,
+                InvokerUserDisplayName = author?.Name,
+                CorrelationId = correlationId,
+                Properties = new Dictionary<string, string>
+                {
+                    {"specification-id", specificationId}
+                },
+                Trigger = new Trigger
+                {
+                    EntityId = specificationId,
+                    EntityType = "Specification"
+                }
+            });
+
+            return new OkObjectResult(new JobCreationResponse
+            {
+                JobId = job.Id
+            });
+        }
+
+        public async Task ProcessDatasetObsoleteItems(Message message)
+        {
+            Guard.ArgumentNotNull(message, nameof(message));
+
+            string specificationId = message.GetUserProperty<string>("specification-id");
+            if (string.IsNullOrEmpty(specificationId))
+            {
+                string error = "Null or empty specification Id provided for process dataset obsolete items";
+                _logger.Error(error);
+                throw new NonRetriableException(error);
+            }
+
+            ApiResponse<SpecificationSummary> specificationSummaryApiResponse =
+               await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId));
+            
+            SpecificationSummary specificationSummary = specificationSummaryApiResponse?.Content;
+
+            if (specificationSummary == null || (!specificationSummaryApiResponse.StatusCode.IsSuccess() && specificationSummaryApiResponse.StatusCode != HttpStatusCode.NotFound))
+            {
+                string errorMessage = $"Failed to fetch specification summary for specification ID: {specificationId}";
+                throw new RetriableException(errorMessage);
+            }
+
+            IEnumerable<DefinitionSpecificationRelationship> definitionSpecificationRelationships = await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(_ => _.Content.Current.RelationshipType == DatasetRelationshipType.ReleasedData && _.Content.Current.PublishedSpecificationConfiguration.SpecificationId == specificationId);
+
+            foreach (DefinitionSpecificationRelationship definitionSpecificationRelationship in definitionSpecificationRelationships)
+            {
+                bool hasChanges = false;
+
+                string fundingStreamId = specificationSummary.FundingStreams.First().Id;
+                string fundingPeriodId = specificationSummary.FundingPeriod.Id;
+                string templateId = specificationSummary.TemplateIds.First(x => x.Key == fundingStreamId).Value;
+
+                TemplateMetadataDistinctContents metadata =
+                        await _policyRepository.GetDistinctTemplateMetadataContents(fundingStreamId, fundingPeriodId, templateId);
+
+                if (metadata == null)
+                {
+                    throw new NonRetriableException($"Template metadata for fundingstream - {fundingStreamId}, fundingPeriodId - {fundingPeriodId} and templateId - {templateId} not found.");
+                }
+
+                IEnumerable<ObsoleteItem> obsoleteItems = await _calcsRepository.GetObsoleteItemsForSpecification(definitionSpecificationRelationship.Current.Specification?.Id);
+
+                IEnumerable<ObsoleteItem> obsoleteItemsForRelationship = obsoleteItems?.Where(_ => _.DatasetRelationshipId == definitionSpecificationRelationship.Id);
+
+                IDictionary<string, ObsoleteItem> obsoleteDataFieldsForRelationship = obsoleteItemsForRelationship?.ToDictionary(_ => _.DatasetFieldId);
+
+                if (definitionSpecificationRelationship.Current.PublishedSpecificationConfiguration != null && 
+                    !definitionSpecificationRelationship.Current.PublishedSpecificationConfiguration.FundingLines.IsNullOrEmpty())
+                {
+                    IEnumerable<uint> metadataFundingLineIds = (metadata.FundingLines ?? Enumerable.Empty<TemplateMetadataFundingLine>()).Select(x => x.TemplateLineId).Distinct().ToList();
+                    IEnumerable<PublishedSpecificationItem> missingFundingLines = definitionSpecificationRelationship.Current.PublishedSpecificationConfiguration.FundingLines.DistinctBy(_ => _.TemplateId).Where(x => !x.IsObsolete && !metadataFundingLineIds.Contains(x.TemplateId)).ToList();
+
+                    if (missingFundingLines.Any())
+                    {
+                        foreach (PublishedSpecificationItem publishedSpecificationItem in missingFundingLines)
+                        {
+                            publishedSpecificationItem.IsObsolete = true;
+
+                            if (!obsoleteDataFieldsForRelationship.ContainsKey(publishedSpecificationItem.TemplateId.ToString()))
+                            {
+                                await _calcsRepository.CreateObsoleteItem(new ObsoleteItem
+                                {
+                                    SpecificationId = definitionSpecificationRelationship.Current.Specification.Id,
+                                    DatasetRelationshipId = definitionSpecificationRelationship.Id,
+                                    DatasetRelationshipName = definitionSpecificationRelationship.Name,
+                                    DatasetFieldId = publishedSpecificationItem.TemplateId.ToString(),
+                                    DatasetFieldName = publishedSpecificationItem.Name,
+                                    DatasetDatatype = publishedSpecificationItem.FieldType.AsMatchingEnum<DatasetFieldType>(),
+                                    IsReleasedData = true,
+                                    ItemType = ObsoleteItemType.DatasetField
+                                });
+                            }
+
+                            hasChanges = true;
+                        }
+                    }
+                }
+
+                if (definitionSpecificationRelationship.Current.PublishedSpecificationConfiguration != null && 
+                    !definitionSpecificationRelationship.Current.PublishedSpecificationConfiguration.Calculations.IsNullOrEmpty())
+                {
+                    IEnumerable<uint> metadataCalculationIds = (metadata.Calculations ?? Enumerable.Empty<TemplateMetadataCalculation>()).Select(x => x.TemplateCalculationId).Distinct().ToList();
+                    IEnumerable<PublishedSpecificationItem> missingCalculations = definitionSpecificationRelationship.Current.PublishedSpecificationConfiguration.Calculations.DistinctBy(_ => _.TemplateId).Where(x => !x.IsObsolete && !metadataCalculationIds.Contains(x.TemplateId)).ToList();
+
+                    if (missingCalculations.Any())
+                    {
+                        foreach (PublishedSpecificationItem publishedSpecificationItem in missingCalculations)
+                        {
+                            publishedSpecificationItem.IsObsolete = true;
+
+                            if (!obsoleteDataFieldsForRelationship.ContainsKey(publishedSpecificationItem.TemplateId.ToString()))
+                            {
+                                await _calcsRepository.CreateObsoleteItem(new ObsoleteItem
+                                {
+                                    SpecificationId = definitionSpecificationRelationship.Current.Specification.Id,
+                                    DatasetRelationshipId = definitionSpecificationRelationship.Id,
+                                    DatasetRelationshipName = definitionSpecificationRelationship.Name,
+                                    DatasetFieldId = publishedSpecificationItem.TemplateId.ToString(),
+                                    DatasetFieldName = publishedSpecificationItem.Name,
+                                    DatasetDatatype = publishedSpecificationItem.FieldType.AsMatchingEnum<DatasetFieldType>(),
+                                    IsReleasedData = true,
+                                    ItemType = ObsoleteItemType.DatasetField
+                                });
+                            }
+
+                            hasChanges = true;
+                        }
+                    }
+                }
+
+                if (hasChanges)
+                {
+                    HttpStatusCode httpStatusCode = await _datasetRepository.SaveDefinitionSpecificationRelationship(definitionSpecificationRelationship);
+
+                    if (!httpStatusCode.IsSuccess())
+                    {
+                        string errorMessage = $"Failed to save definition specification relationship for obsolete items for relationship:{definitionSpecificationRelationship.Id}.";
+                        throw new RetriableException(errorMessage);
+                    }
+                }
+            }
+        }
+
         private async Task<Dataset> SaveNewDatasetAndVersion(
             ICloudBlob blob,
             DatasetDefinition datasetDefinition,
             int rowCount,
             string uploadedBlobFilePath,
-            PoliciesApiModels.FundingStream fundingStream)
+            FundingStream fundingStream)
         {
             Guard.ArgumentNotNull(blob, nameof(blob));
             Guard.ArgumentNotNull(datasetDefinition, nameof(datasetDefinition));

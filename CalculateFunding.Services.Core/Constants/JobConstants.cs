@@ -100,6 +100,8 @@
             public const string TrackLatestJob = nameof(TrackLatestJob);
 
             public const string ReferencedSpecificationReMapJob = nameof(ReferencedSpecificationReMapJob);
+
+            public const string ProcessDatasetObsoleteItems = nameof(ProcessDatasetObsoleteItems);
         }
 
         public static class NotificationChannels

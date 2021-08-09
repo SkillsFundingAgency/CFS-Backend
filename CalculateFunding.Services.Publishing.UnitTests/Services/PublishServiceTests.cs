@@ -78,6 +78,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private ICreatePublishIntegrityJob _createPublishIntegrityJob;
         private IJobsRunning _jobsRunning;
         private ICreatePublishDatasetsDataCopyJob _createPublishDatasetsDataCopyJob;
+        private ICreateProcessDatasetObsoleteItemsJob _createProcessDatasetObsoleteItemsJob;
 
         private const string SpecificationId = "SpecificationId";
         private const string FundingPeriodId = "AY-2020";
@@ -134,6 +135,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _publishedFundingDataService = Substitute.For<IPublishedFundingDataService>();
             _createPublishIntegrityJob = Substitute.For<ICreatePublishIntegrityJob>();
             _createPublishDatasetsDataCopyJob = Substitute.For<ICreatePublishDatasetsDataCopyJob>();
+            _createProcessDatasetObsoleteItemsJob = Substitute.For<ICreateProcessDatasetObsoleteItemsJob>();
 
             _publishedFundingService = new PublishedFundingService(_publishedFundingDataService,
                 _publishingResiliencePolicies,
@@ -164,7 +166,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 _publishedFundingService,
                 _createPublishIntegrityJob,
                 _publishFundingCsvJobsService,
-                _createPublishDatasetsDataCopyJob
+                _createPublishDatasetsDataCopyJob,
+                _createProcessDatasetObsoleteItemsJob
             );
         }
 
@@ -183,6 +186,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             ThenEachProviderVersionHasTheFollowingVariationReasons(VariationReason.FundingUpdated, VariationReason.ProfilingUpdated, VariationReason.AuthorityFieldUpdated);
             AndTheCsvGenerationJobsWereCreated(SpecificationId, FundingPeriodId, FundingStreamId);
             AndThePublishDatasetsDataCopyJobsWereCreated(SpecificationId);
+            AndTheProcessDatasetObsoleteItemsJobsWereCreated(SpecificationId);
         }
         
         [TestMethod]
@@ -575,6 +579,18 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private void AndThePublishDatasetsDataCopyJobsWereCreated(string specificationId)
         {
             _createPublishDatasetsDataCopyJob.Received(1)
+                .CreateJob(Arg.Is(specificationId),
+                        Arg.Any<Reference>(),
+                        Arg.Is(CorrelationId),
+                        Arg.Any<Dictionary<string, string>>(),
+                        Arg.Any<string>(),
+                        Arg.Any<string>(),
+                        Arg.Any<bool>());
+        }
+
+        private void AndTheProcessDatasetObsoleteItemsJobsWereCreated(string specificationId)
+        {
+            _createProcessDatasetObsoleteItemsJob.Received(1)
                 .CreateJob(Arg.Is(specificationId),
                         Arg.Any<Reference>(),
                         Arg.Is(CorrelationId),

@@ -17,6 +17,7 @@ using ApiProfileVariationPointer = CalculateFunding.Common.ApiClient.Specificati
 using ApiPeriodType = CalculateFunding.Common.ApiClient.Profiling.Models.PeriodType;
 using CalculateFunding.Services.Core.Extensions;
 using Polly;
+using CalculateFunding.Common.ApiClient.Calcs.Models.ObsoleteItems;
 
 namespace CalculateFunding.Services.Publishing
 {
