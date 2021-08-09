@@ -17,20 +17,17 @@ namespace CalculateFunding.Services.Datasets.Converter
     {
         private readonly ISearchRepository<DatasetVersionIndex> _datasetVersionsSearch;
         private readonly ISearchRepository<DatasetIndex> _datasetsSearch;
-        private readonly IDateTimeProvider _dates;
         private readonly AsyncPolicy _datasetVersionsSearchResilience;
         private readonly AsyncPolicy _datasetSearchResilience;
         private readonly ILogger _logger;
 
         public DatasetIndexer(ISearchRepository<DatasetVersionIndex> datasetVersionsSearch,
             ISearchRepository<DatasetIndex> datasetsSearch,
-            IDateTimeProvider dates,
             IDatasetsResiliencePolicies resiliencePolicies,
             ILogger logger)
         {
             Guard.ArgumentNotNull(datasetVersionsSearch, nameof(datasetVersionsSearch));
             Guard.ArgumentNotNull(datasetsSearch, nameof(datasetsSearch));
-            Guard.ArgumentNotNull(dates, nameof(dates));
             Guard.ArgumentNotNull(resiliencePolicies?.DatasetSearchService, nameof(_datasetSearchResilience));
             Guard.ArgumentNotNull(resiliencePolicies?.DatasetVersionSearchService, nameof(_datasetVersionsSearchResilience));
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -38,7 +35,6 @@ namespace CalculateFunding.Services.Datasets.Converter
             _datasetVersionsSearch = datasetVersionsSearch;
             _datasetsSearch = datasetsSearch;
             _logger = logger;
-            _dates = dates;
             _datasetSearchResilience = resiliencePolicies.DatasetSearchService;
             _datasetVersionsSearchResilience = resiliencePolicies.DatasetVersionSearchService;
         }
@@ -79,7 +75,7 @@ namespace CalculateFunding.Services.Datasets.Converter
                     DefinitionId = dataset.Definition.Id,
                     DefinitionName = dataset.Definition.Name,
                     Status = datasetVersion.PublishStatus.ToString(),
-                    LastUpdatedDate = _dates.UtcNow,
+                    LastUpdatedDate = datasetVersion.Date,
                     Description = datasetVersion.Description,
                     Version = datasetVersion.Version,
                     ChangeNote = datasetVersion.Comment,

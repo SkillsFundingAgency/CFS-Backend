@@ -167,9 +167,11 @@ namespace CalculateFunding.Services.Datasets.Converter
 
             dataset.Current = datasetVersion;
 
-            HttpStatusCode statusCode = await DatasetsResilience.ExecuteAsync(() => Datasets.SaveDataset(dataset));
+            HttpStatusCode datasetStatusCode = await DatasetsResilience.ExecuteAsync(() => Datasets.SaveDataset(dataset));
+            Ensure(datasetStatusCode.IsSuccess(), $"Failed to save new dataset {dataset.Id}");
 
-            Ensure(statusCode.IsSuccess(), $"Failed to save new dataset {dataset.Id}");
+            HttpStatusCode datasetVersionstatusCode = await DatasetsResilience.ExecuteAsync(() => VersionDatasetsRepository.SaveVersion(datasetVersion));
+            Ensure(datasetStatusCode.IsSuccess(), $"Failed to save new dataset version {datasetVersion.Id}");
 
             await Indexer.IndexDatasetAndVersion(dataset);
         }

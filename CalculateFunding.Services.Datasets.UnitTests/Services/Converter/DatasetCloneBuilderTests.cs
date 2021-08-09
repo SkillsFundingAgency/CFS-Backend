@@ -313,7 +313,8 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
             GivenTheDatasetData(datasetTable);
             AndTheDatasetSavesSuccessfully(dataset);
             AndTheExcelDataForTheDatasetData(datasetDefinition, datasetTable, expectedExcelData);
-            AndTheDatasetVersionCreated(currentVersion, dataset.Id, author, providerVersionId, datasetTable.Rows.Count, currentVersion.Version);
+            DatasetVersion clonedDatasetVersion = AndTheDatasetVersionCreated(currentVersion, dataset.Id, author, providerVersionId, datasetTable.Rows.Count, currentVersion.Version);
+            AndTheDatasetVersionSaved(clonedDatasetVersion);
 
             Mock<ICloudBlob> blob = NewBlob();
 
@@ -406,7 +407,7 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
                     tables.SequenceEqual(new [] { datasetData }))))
                 .Returns(excelData);
 
-        private void AndTheDatasetVersionCreated(DatasetVersion datasetVersion, string datasetId, Reference author, string providerVersion, int rowCount, int version = 1)
+        private DatasetVersion AndTheDatasetVersionCreated(DatasetVersion datasetVersion, string datasetId, Reference author, string providerVersion, int rowCount, int version = 1)
         {
             DatasetVersion clonedDatasetVersion = (DatasetVersion)datasetVersion.Clone();
             clonedDatasetVersion.Author = author;
@@ -417,6 +418,15 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
             _datasetsVersionRepository
                 .Setup(_ => _.CreateVersion(It.Is<DatasetVersion>(cv => cv.BlobName == clonedDatasetVersion.BlobName), It.Is<DatasetVersion>(cv => cv.Id == datasetVersion.Id), null, false))
                 .ReturnsAsync(clonedDatasetVersion);
+
+            return clonedDatasetVersion;
+        }
+
+        private void AndTheDatasetVersionSaved(DatasetVersion datasetVersion)
+        {
+            _datasetsVersionRepository
+                .Setup(_ => _.SaveVersion(It.Is<DatasetVersion>(dv => dv.Id == datasetVersion.Id)))
+                .ReturnsAsync(HttpStatusCode.OK);
         }
 
         private IEnumerable<string> WhenTheExistingIdentifierValuesAreQueried(string identifierFieldName)

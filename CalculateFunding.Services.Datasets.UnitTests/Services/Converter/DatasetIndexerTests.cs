@@ -22,8 +22,6 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
     {
         private Mock<ISearchRepository<DatasetIndex>> _datasets;
         private Mock<ISearchRepository<DatasetVersionIndex>> _datasetVersions;
-        private Mock<IDateTimeProvider> _dates;
-        private DateTime _now;
 
         private DatasetIndexer _indexer;
         
@@ -32,16 +30,9 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
         {
             _datasets = new Mock<ISearchRepository<DatasetIndex>>();
             _datasetVersions = new Mock<ISearchRepository<DatasetVersionIndex>>();
-            _dates = new Mock<IDateTimeProvider>();
-
-            _now = new RandomDateTime();
-
-            _dates.Setup(_ => _.UtcNow)
-                .Returns(_now);
 
             _indexer = new DatasetIndexer(_datasetVersions.Object,
                 _datasets.Object,
-                _dates.Object,
                 new DatasetsResiliencePolicies
                 {
                     DatasetSearchService = Policy.NoOpAsync(),
@@ -135,7 +126,7 @@ namespace CalculateFunding.Services.Datasets.Services.Converter
                     DefinitionId = dataset.Definition.Id,
                     DefinitionName = dataset.Definition.Name,
                     Status = datasetVersion.PublishStatus.ToString(),
-                    LastUpdatedDate = _now,
+                    LastUpdatedDate = datasetVersion.Date,
                     Description = datasetVersion.Description,
                     Version = datasetVersion.Version,
                     ChangeNote = datasetVersion.Comment,
