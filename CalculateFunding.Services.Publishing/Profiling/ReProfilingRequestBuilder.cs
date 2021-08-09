@@ -99,60 +99,51 @@ namespace CalculateFunding.Services.Publishing.Profiling
                 fundingPeriodId,
                 providerId));
 
-            if (publishedProvider == null)
+            if (publishedProvider != null)
             {
-                throw new InvalidOperationException($"Did not locate a published provider for {fundingStreamId} {fundingPeriodId} {providerId}");
-            }
 
-            FundingLine fundingLine = publishedProvider.Current?.FundingLines?.SingleOrDefault(_ => _.FundingLineCode == fundingLineCode);
-            
-            if (fundingLine == null)
-            {
-                throw new InvalidOperationException(
-                    $"Did not locate a funding line {fundingLineCode} on published provider for {fundingStreamId} {fundingPeriodId} {providerId}");
+                FundingLine fundingLine = publishedProvider.Current?.FundingLines?.SingleOrDefault(_ => _.FundingLineCode == fundingLineCode);
+
+                if (fundingLine != null && !fundingLine.DistributionPeriods.IsNullOrEmpty())
+                {
+                    return new YearMonthOrderedProfilePeriods(fundingLine)
+                    .ToArray();
+                }
             }
 
             // if this is funded but the existing published provider has a 0 or null funding value
-            // then profiling periods will be blank
+            // then profiling periods will be blank also for a mid-year opener there won't be a published provider
             // so we need to retrieve profile pattern from profiling
-            if (fundingLine.DistributionPeriods.IsNullOrEmpty())
+            ApiResponse<IEnumerable<FundingStreamPeriodProfilePattern>> apiResponse = await _profilingResilience.ExecuteAsync(() => _profiling.GetProfilePatternsForFundingStreamAndFundingPeriod(fundingStreamId,
+                fundingPeriodId));
+
+            if (apiResponse?.Content == null)
             {
-                ApiResponse<IEnumerable<FundingStreamPeriodProfilePattern>> apiResponse = await _profilingResilience.ExecuteAsync(() => _profiling.GetProfilePatternsForFundingStreamAndFundingPeriod(fundingStreamId,
-                    fundingPeriodId));
-
-                if (apiResponse?.Content == null)
-                {
-                    throw new InvalidOperationException(
-                                        $"Did not locate any profiling patterns for {fundingStreamId} {fundingPeriodId}");
-                }
-
-                IEnumerable<FundingStreamPeriodProfilePattern> profilePatterns = apiResponse.Content;
-
-                string profilePatternKey = publishedProvider.Current?.ProfilePatternKeys?.SingleOrDefault(_ => _.FundingLineCode == fundingLineCode)?.Key;
-
-                FundingStreamPeriodProfilePattern fundingStreamPeriodProfilePattern = profilePatterns?.SingleOrDefault(_ => _.FundingLineId == fundingLineCode && _.ProfilePatternKey == profilePatternKey);
-
-                if (fundingStreamPeriodProfilePattern == null)
-                {
-                    throw new InvalidOperationException(
-                                        $"Did not locate a profiling pattern for funding line {fundingLineCode} {fundingStreamId} {fundingPeriodId}");
-                }
-
-                return new YearMonthOrderedProfilePeriodPatterns(fundingStreamPeriodProfilePattern.ProfilePattern)
-                    .Select(_ => new ProfilePeriod { 
-                        DistributionPeriodId = _.DistributionPeriod,
-                        Occurrence = _.Occurrence,
-                        ProfiledValue = 0,
-                        Type = _.PeriodType.AsMatchingEnum<ProfilePeriodType>(),
-                        TypeValue = _.Period,
-                        Year = _.PeriodYear
-                     }).ToArray();
+                throw new InvalidOperationException(
+                                    $"Did not locate any profiling patterns for {fundingStreamId} {fundingPeriodId}");
             }
-            else
+
+            IEnumerable<FundingStreamPeriodProfilePattern> profilePatterns = apiResponse.Content;
+
+            string profilePatternKey = publishedProvider.Current?.ProfilePatternKeys?.SingleOrDefault(_ => _.FundingLineCode == fundingLineCode)?.Key;
+
+            FundingStreamPeriodProfilePattern fundingStreamPeriodProfilePattern = profilePatterns?.SingleOrDefault(_ => _.FundingLineId == fundingLineCode && _.ProfilePatternKey == profilePatternKey);
+
+            if (fundingStreamPeriodProfilePattern == null)
             {
-                return new YearMonthOrderedProfilePeriods(fundingLine)
-                    .ToArray();
+                throw new InvalidOperationException(
+                                    $"Did not locate a profiling pattern for funding line {fundingLineCode} {fundingStreamId} {fundingPeriodId}");
             }
+
+            return new YearMonthOrderedProfilePeriodPatterns(fundingStreamPeriodProfilePattern.ProfilePattern)
+                .Select(_ => new ProfilePeriod { 
+                    DistributionPeriodId = _.DistributionPeriod,
+                    Occurrence = _.Occurrence,
+                    ProfiledValue = 0,
+                    Type = _.PeriodType.AsMatchingEnum<ProfilePeriodType>(),
+                    TypeValue = _.Period,
+                    Year = _.PeriodYear
+                    }).ToArray();
         }
 
         private IEnumerable<ExistingProfilePeriod> BuildExistingProfilePeriods(ProfilePeriod[] profilePeriods, int paidUpToIndex)

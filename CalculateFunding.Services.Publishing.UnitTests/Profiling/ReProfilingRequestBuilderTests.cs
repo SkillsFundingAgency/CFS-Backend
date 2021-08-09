@@ -75,60 +75,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
         }
 
         [TestMethod]
-        public void GuardsAgainstNoPublishedProviderMatchingSuppliedParameters()
-        {
-            string providerId = NewRandomString();
-            string fundingStreamId = NewRandomString();
-            string fundingPeriodId = NewRandomString();
-            
-            Func<Task<ReProfileRequest>> invocation = () => WhenTheReProfileRequestIsBuilt(NewRandomString(),
-                fundingStreamId,
-                fundingPeriodId,
-                providerId,
-                NewRandomString(),
-                NewRandomString(),
-                ProfileConfigurationType.Custom);
-
-            invocation
-                .Should()
-                .Throw<InvalidOperationException>()
-                .Which
-                .Message
-                .Should()
-                .Be($"Did not locate a published provider for {fundingStreamId} {fundingPeriodId} {providerId}");    
-        }
-
-        [TestMethod]
-        public void GuardsAgainstNoFundingLineMatchingTheSuppliedCodeInThePublishedProviderMatchingTheSuppliedParameters()
-        {
-            string providerId = NewRandomString();
-            string fundingStreamId = NewRandomString();
-            string fundingPeriodId = NewRandomString();
-            string fundingLineCode = NewRandomString();
-            
-            GivenThePublishedProvider(fundingStreamId,
-                fundingPeriodId,
-                providerId,
-                NewPublishedProvider(_ => _.WithCurrent(NewPublisherProviderVersion())));
-            
-            Func<Task<ReProfileRequest>> invocation = () => WhenTheReProfileRequestIsBuilt(NewRandomString(),
-                fundingStreamId,
-                fundingPeriodId,
-                providerId,
-                fundingLineCode,
-                NewRandomString(),
-                ProfileConfigurationType.Custom);  
-            
-            invocation
-                .Should()
-                .Throw<InvalidOperationException>()
-                .Which
-                .Message
-                .Should()
-                .Be($"Did not locate a funding line {fundingLineCode} on published provider for {fundingStreamId} {fundingPeriodId} {providerId}");    
-        }
-
-        [TestMethod]
         public void GuardsAgainstNoProfilingPatternsForTheSuppliedParameters()
         {
             string providerId = NewRandomString();
