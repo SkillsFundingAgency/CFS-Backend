@@ -5,6 +5,7 @@ using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
@@ -59,7 +60,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 
             if (reProfileResponse == null)
             {
-                throw new NonRetriableException($"Could not re profile funding line {fundingLineCode} for provider {providerId}");
+                throw new NonRetriableException($"Could not re profile funding line {fundingLineCode} for provider {providerId} with request: {reProfileRequest?.AsJson()}");
             }
 
             IEnumerable<DistributionPeriod> distributionPeriods = variationApplications.ReProfilingResponseMapper.MapReProfileResponseIntoDistributionPeriods(reProfileResponse);

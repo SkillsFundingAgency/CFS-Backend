@@ -7,6 +7,8 @@ using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Profiling;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Core;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
@@ -52,6 +54,45 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
                 .Should()
                 .Be("AffectedFundingLineCodes");
         }
+
+        [TestMethod]
+        public async Task ReProfilesFundingLinesInTheRefreshStateWhereTheyShowAsAffectedFundingLineCodesWithEmptyProfilingResponse()
+        {
+            FundingLine fundingLineOne = NewFundingLine(_ => _.WithValue(NewRandomNumberBetween(1, int.MaxValue)));
+            FundingLine fundingLineTwo = NewFundingLine(_ => _.WithValue(NewRandomNumberBetween(1, int.MaxValue)));
+            FundingLine fundingLineThree = NewFundingLine(_ => _.WithValue(NewRandomNumberBetween(1, int.MaxValue)));
+            ProfilePatternKey profilePatternKey = NewProfilePatternKey(ppk => ppk.WithFundingLineCode(fundingLineOne.FundingLineCode));
+
+            ReProfileRequest reProfileRequestOne = NewReProfileRequest();
+            ReProfileRequest reProfileRequestThree = NewReProfileRequest();
+
+            ReProfileResponse reProfileResponseOne = NewReProfileResponse();
+            ReProfileResponse reProfileResponseThree = NewReProfileResponse();
+
+            DistributionPeriod[] distributionPeriodsOne = NewDistributionPeriods();
+            DistributionPeriod[] distributionPeriodsTwo = NewDistributionPeriods();
+            DistributionPeriod[] distributionPeriodsThree = NewDistributionPeriods();
+
+            fundingLineOne.DistributionPeriods = NewDistributionPeriods(_ => _.WithDistributionPeriodId(distributionPeriodsOne.Single().DistributionPeriodId));
+            fundingLineTwo.DistributionPeriods = distributionPeriodsTwo;
+            fundingLineThree.DistributionPeriods = NewDistributionPeriods(_ => _.WithDistributionPeriodId(distributionPeriodsThree.Single().DistributionPeriodId));
+
+            GivenTheFundingLines(fundingLineOne, fundingLineTwo, fundingLineThree);
+            GivenTheProfilePatternKeys(NewProfilePatternKey(ppk => ppk.WithFundingLineCode(fundingLineOne.FundingLineCode)
+                .WithKey(profilePatternKey.Key)));
+            AndTheAffectedFundingLineCodes(fundingLineOne.FundingLineCode, fundingLineThree.FundingLineCode);
+            AndTheTheReProfileRequest(fundingLineOne, reProfileRequestOne, RefreshState.ProfilePatternKeys.Single(_ => _.FundingLineCode == fundingLineOne.FundingLineCode).Key);
+            AndTheTheReProfileRequest(fundingLineThree, reProfileRequestThree);
+
+            Func<Task> invocation = async() => await WhenTheChangeIsApplied();
+
+            invocation
+                .Should()
+                .ThrowAsync<NonRetriableException>()
+                .Result
+                .WithMessage($"Could not re profile funding line {fundingLineOne.FundingLineCode} for provider {RefreshState.ProviderId} with request: {reProfileRequestOne?.AsJson()}");
+        }
+
 
         [TestMethod]
         public async Task ReProfilesFundingLinesInTheRefreshStateWhereTheyShowAsAffectedFundingLineCodes()
