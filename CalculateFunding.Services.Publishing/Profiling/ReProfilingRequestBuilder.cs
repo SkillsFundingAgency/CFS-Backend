@@ -101,7 +101,6 @@ namespace CalculateFunding.Services.Publishing.Profiling
 
             if (publishedProvider != null)
             {
-
                 FundingLine fundingLine = publishedProvider.Current?.FundingLines?.SingleOrDefault(_ => _.FundingLineCode == fundingLineCode);
 
                 if (fundingLine != null && !fundingLine.DistributionPeriods.IsNullOrEmpty())
@@ -125,7 +124,7 @@ namespace CalculateFunding.Services.Publishing.Profiling
 
             IEnumerable<FundingStreamPeriodProfilePattern> profilePatterns = apiResponse.Content;
 
-            string profilePatternKey = publishedProvider.Current?.ProfilePatternKeys?.SingleOrDefault(_ => _.FundingLineCode == fundingLineCode)?.Key;
+            string profilePatternKey = publishedProvider?.Current?.ProfilePatternKeys?.SingleOrDefault(_ => _.FundingLineCode == fundingLineCode)?.Key;
 
             FundingStreamPeriodProfilePattern fundingStreamPeriodProfilePattern = profilePatterns?.SingleOrDefault(_ => _.FundingLineId == fundingLineCode && _.ProfilePatternKey == profilePatternKey);
 

@@ -448,6 +448,98 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                 });
         }
 
+        [TestMethod]
+        public async Task BuildsReProfileRequestsOutOfProfilePatternsWhenNoExistingPublishedProviderAndVariationPointers()
+        {
+            string providerId = NewRandomString();
+            string fundingStreamId = NewRandomString();
+            string fundingPeriodId = NewRandomString();
+            string fundingLineCode = NewRandomString();
+            string specificationId = NewRandomString();
+            string profilePattern = NewRandomString();
+            decimal fundingLineTotal = NewRandomAmount();
+            bool midYear = new RandomBoolean();
+            ProfileConfigurationType profileConfigurationType = NewRandomProfileConfigurationType();
+
+            AndTheProfilingPatterns(fundingStreamId,
+                fundingPeriodId,
+                NewFundingStreamPeriodProfilePattern(_ => _.WithPeriods(NewProfilePeriodPattern(pp => pp.WithDistributionPeriodId("dp1")
+                                    .WithOccurence(0)
+                                    .WithYear(2021)
+                                    .WithType(PeriodType.CalendarMonth)
+                                    .WithTypeValue("January")),
+                                    NewProfilePeriodPattern(pp => pp.WithDistributionPeriodId("dp1")
+                                        .WithOccurence(1)
+                                        .WithYear(2021)
+                                        .WithType(PeriodType.CalendarMonth)
+                                        .WithTypeValue("January")),
+                                    NewProfilePeriodPattern(pp => pp.WithDistributionPeriodId("dp1")
+                                        .WithOccurence(0)
+                                        .WithYear(2021)
+                                        .WithType(PeriodType.CalendarMonth)
+                                        .WithTypeValue("March")),
+                                    NewProfilePeriodPattern(pp => pp.WithDistributionPeriodId("dp1")
+                                        .WithOccurence(0)
+                                        .WithYear(2021)
+                                        .WithType(PeriodType.CalendarMonth)
+                                        .WithTypeValue("April"))
+                                    )
+                        .WithFundingLineId(fundingLineCode)
+                        .WithNoPatternKey()));
+
+            ReProfileRequest reProfileRequest = await WhenTheReProfileRequestIsBuilt(specificationId,
+                fundingStreamId,
+                fundingPeriodId,
+                providerId,
+                fundingLineCode,
+                profilePattern,
+                profileConfigurationType,
+                fundingLineTotal,
+                midYear);
+
+            reProfileRequest
+                .Should()
+                .BeEquivalentTo(new ReProfileRequest
+                {
+                    ConfigurationType = profileConfigurationType,
+                    FundingLineCode = fundingLineCode,
+                    ExistingFundingLineTotal = 0,
+                    FundingLineTotal = fundingLineTotal,
+                    FundingPeriodId = fundingPeriodId,
+                    FundingStreamId = fundingStreamId,
+                    ProfilePatternKey = profilePattern,
+                    MidYear = midYear,
+                    VariationPointerIndex = 0,
+                    ExistingPeriods = new[]
+                    {
+                        NewExististingProfilePeriod(_ => _.WithOccurrence(0)
+                            .WithDistributionPeriod("dp1")
+                            .WithValue(null)
+                            .WithPeriodType(PeriodType.CalendarMonth)
+                            .WithTypeValue("January")
+                            .WithYear(2021)),
+                        NewExististingProfilePeriod(_ => _.WithOccurrence(1)
+                            .WithDistributionPeriod("dp1")
+                            .WithValue(null)
+                            .WithPeriodType(PeriodType.CalendarMonth)
+                            .WithTypeValue("January")
+                            .WithYear(2021)),
+                        NewExististingProfilePeriod(_ => _.WithOccurrence(0)
+                            .WithDistributionPeriod("dp1")
+                            .WithValue(null)
+                            .WithPeriodType(PeriodType.CalendarMonth)
+                            .WithTypeValue("March")
+                            .WithYear(2021)),
+                        NewExististingProfilePeriod(_ => _.WithOccurrence(0)
+                            .WithDistributionPeriod("dp1")
+                            .WithValue(null)
+                            .WithPeriodType(PeriodType.CalendarMonth)
+                            .WithTypeValue("April")
+                            .WithYear(2021))
+                    }
+                });
+        }
+
         private async Task<ReProfileRequest> WhenTheReProfileRequestIsBuilt(string specificationId,
             string fundingStreamId,
             string fundingPeriodId,
