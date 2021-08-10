@@ -37,21 +37,21 @@ namespace CalculateFunding.Services.Profiling.Tests.ReProfilingStrategies
                 3, 
                 NewDecimals(1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000),
                 NewDecimals(1100, 1100, 1100, 1100, 1100, 1100, 1100, 1100, 1100, 1100),
-                NewDecimals(0, 0, 0, 1100, 1100, 1100, 1100, 1100, 1100, 1100),
+                NewDecimals(0, 0, 0, 1571, 1571, 1571, 1571, 1571, 1571, 1574),
             };
             yield return new object []
             {
                 6, 
                 NewDecimals(1100, 1100, 1100, 1100, 1100, 1100, 1100, 1100, 1100, 1100),
                 NewDecimals(950, 950, 950, 950, 950, 950, 950, 950, 950, 950),
-                NewDecimals(0, 0, 0, 0, 0, 0, 950, 950, 950, 950),
+                NewDecimals(0, 0, 0, 0, 0, 0, 2375, 2375, 2375, 2375),
             };
             yield return new object []
             {
                 9, 
                 NewDecimals(1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000),
                 NewDecimals(800, 800, 800, 800, 800, 800, 800, 800, 800, 800),
-                NewDecimals(0, 0, 0, 0, 0, 0, 0, 0, 0, 800),
+                NewDecimals(0, 0, 0, 0, 0, 0, 0, 0, 0, 8000),
             };
         }
     }

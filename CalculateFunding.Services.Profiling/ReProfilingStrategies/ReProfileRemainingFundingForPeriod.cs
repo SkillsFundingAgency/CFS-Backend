@@ -22,11 +22,24 @@ namespace CalculateFunding.Services.Profiling.ReProfilingStrategies
 
             int variationPointerIndex = GetVariationPointerIndex(orderedRefreshProfilePeriods, orderedExistingProfilePeriods, context);
 
+            decimal carryOverUnpaidValues = 0;
+
             for (int refreshProfilePeriodIndex = 0; refreshProfilePeriodIndex < variationPointerIndex; refreshProfilePeriodIndex++)
             {
+                carryOverUnpaidValues += orderedRefreshProfilePeriods[refreshProfilePeriodIndex].GetProfileValue();
                 orderedRefreshProfilePeriods[refreshProfilePeriodIndex].SetProfiledValue(0);
             }
-            
+
+            int flatSplitValue = (int)carryOverUnpaidValues / (orderedRefreshProfilePeriods.Length - variationPointerIndex);
+            decimal remainder = carryOverUnpaidValues % (orderedRefreshProfilePeriods.Length - variationPointerIndex);
+
+            orderedRefreshProfilePeriods.Skip(variationPointerIndex).ForEach(_ =>
+            {
+                _.SetProfiledValue(_.GetProfileValue() + flatSplitValue);
+            });
+
+            orderedRefreshProfilePeriods.Last().SetProfiledValue(orderedRefreshProfilePeriods.Last().GetProfileValue() + remainder);
+
             return new ReProfileStrategyResult
             {
                 DistributionPeriods = MapIntoDistributionPeriods(context),
