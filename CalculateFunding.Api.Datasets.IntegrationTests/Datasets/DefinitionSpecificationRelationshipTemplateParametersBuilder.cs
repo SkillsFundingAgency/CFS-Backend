@@ -1,5 +1,8 @@
 using CalculateFunding.Common.ApiClient.DataSets.Models;
 using CalculateFunding.Tests.Common.Helpers;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace CalculateFunding.Api.Datasets.IntegrationTests.Datasets
 {
@@ -15,7 +18,11 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.Datasets
         private string _specificationName;
         private string _description;
         private bool? _converterEnabled;
+        private IEnumerable<uint> _calculationIds;
+        private IEnumerable<uint> _fundingLineIds;
+        private string _targetSpecificationId;
         private DatasetRelationshipType _relationshipType;
+        private PublishedSpecificationConfiguration _publishedSpecificationConfiguration;
 
         public DefinitionSpecificationRelationshipTemplateParametersBuilder WithId(string id)
         {
@@ -73,6 +80,27 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.Datasets
             return this;
         }
 
+        public DefinitionSpecificationRelationshipTemplateParametersBuilder WithTargetSpecificationId(string targetSpecificationId)
+        {
+            _targetSpecificationId = targetSpecificationId;
+
+            return this;
+        }
+
+        public DefinitionSpecificationRelationshipTemplateParametersBuilder WithCalculationIds(IEnumerable<uint> calulationIds)
+        {
+            _calculationIds = calulationIds;
+
+            return this;
+        }
+
+        public DefinitionSpecificationRelationshipTemplateParametersBuilder WithFundingLineIds(IEnumerable<uint> fundingLineIds)
+        {
+            _fundingLineIds = fundingLineIds;
+
+            return this;
+        }
+
         public DefinitionSpecificationRelationshipTemplateParametersBuilder WithDescription(string description)
         {
             _description = description;
@@ -83,6 +111,13 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.Datasets
         public DefinitionSpecificationRelationshipTemplateParametersBuilder WithConverterEnabled(bool converterEnabled)
         {
             _converterEnabled = converterEnabled;
+
+            return this;
+        }
+
+        public DefinitionSpecificationRelationshipTemplateParametersBuilder WithPublishedSpecificationConfiguration(PublishedSpecificationConfiguration publishedSpecificationConfiguration)
+        {
+            _publishedSpecificationConfiguration = publishedSpecificationConfiguration;
 
             return this;
         }
@@ -107,6 +142,12 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.Datasets
                 SpecificationId = _specificationId ?? NewRandomString(),
                 SpecificationName = _specificationName ?? NewRandomString(),
                 ConverterEnabled = _converterEnabled.GetValueOrDefault(NewRandomFlag()),
+                PublishedSpecificationConfiguration = new PublishedSpecificationConfiguration
+                {
+                    SpecificationId = _targetSpecificationId ?? NewRandomString(),
+                    Calculations = _calculationIds.IsNullOrEmpty() ? _calculationIds.Select(_ => new PublishedSpecificationItem { TemplateId = _ }) : ArraySegment<PublishedSpecificationItem>.Empty,
+                    FundingLines = _fundingLineIds.IsNullOrEmpty() ? _fundingLineIds.Select(_ => new PublishedSpecificationItem { TemplateId = _ }) : ArraySegment<PublishedSpecificationItem>.Empty,
+                },
                 DatasetRelationshipType = _relationshipType
             };
     }

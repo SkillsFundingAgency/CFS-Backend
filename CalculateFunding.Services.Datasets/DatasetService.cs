@@ -1291,7 +1291,7 @@ namespace CalculateFunding.Services.Datasets
 
             IEnumerable<JobSummary> jobTypesRunning = await GetJobTypes(specificationId,
                 new string[] {
-                    JobConstants.DefinitionNames.ProcessDatasetObsoleteItems
+                    JobConstants.DefinitionNames.ProcessDatasetObsoleteItemsJob
             });
 
             if (!jobTypesRunning.IsNullOrEmpty())
@@ -1301,7 +1301,7 @@ namespace CalculateFunding.Services.Datasets
 
             Job job = await QueueJob(new JobCreateModel
             {
-                JobDefinitionId = JobConstants.DefinitionNames.ProcessDatasetObsoleteItems,
+                JobDefinitionId = JobConstants.DefinitionNames.ProcessDatasetObsoleteItemsJob,
                 SpecificationId = specificationId,
                 InvokerUserId = author?.Id,
                 InvokerUserDisplayName = author?.Name,

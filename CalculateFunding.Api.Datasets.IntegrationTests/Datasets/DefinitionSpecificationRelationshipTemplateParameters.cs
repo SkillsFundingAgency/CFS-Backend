@@ -25,5 +25,7 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.Datasets
         public bool ConverterEnabled { get; set; }
 
         public DatasetRelationshipType DatasetRelationshipType { get; set; }
+
+        public PublishedSpecificationConfiguration PublishedSpecificationConfiguration { get; set; }
     }
 }

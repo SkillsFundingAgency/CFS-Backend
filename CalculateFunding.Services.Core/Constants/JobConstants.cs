@@ -101,7 +101,7 @@
 
             public const string ReferencedSpecificationReMapJob = nameof(ReferencedSpecificationReMapJob);
 
-            public const string ProcessDatasetObsoleteItems = nameof(ProcessDatasetObsoleteItems);
+            public const string ProcessDatasetObsoleteItemsJob = nameof(ProcessDatasetObsoleteItemsJob);
         }
 
         public static class NotificationChannels

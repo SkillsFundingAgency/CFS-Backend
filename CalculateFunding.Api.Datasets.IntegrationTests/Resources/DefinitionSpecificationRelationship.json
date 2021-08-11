@@ -2,29 +2,33 @@
   "id": "<ID>",
   "documentType": "DefinitionSpecificationRelationship",
   "content": {
-    "DatasetDefinition": {
-      "id": "<DEFINITIONID>",
-      "name": "<DEFINITIONNAME>"
-    },
-    "Specification": {
-      "id": "<SPECIFICATIONID>",
-      "name": "<SPECIFICATIONNAME>"
-    },
-    "Description": "<DESCRIPTION>",
-    "DatasetVersion": {
-      "id": "<DATASETID>",
-      "name": "<DATASETVERSION>"
-    },
-    "IsSetAsProviderData": true,
-    "ConverterEnabled": <CONVERTERENABLED>,
-    "UsedInDataAggregations": false,
-    "LastUpdated": "<NOW>",
-    "Author": {
-      "id": "unknown",
-      "name": "unknown"
-    },
-    "id": "<ID>",
-    "name": "<NAME>"
+    "current": {
+      "datasetDefinition": {
+        "id": "<DEFINITIONID>",
+        "name": "<DEFINITIONNAME>"
+      },
+      "specification": {
+        "id": "<SPECIFICATIONID>",
+        "name": "<SPECIFICATIONNAME>"
+      },
+      "description": "<DESCRIPTION>",
+      "datasetVersion": {
+        "id": "<DATASETID>",
+        "name": "<DATASETVERSION>"
+      },
+      "isSetAsProviderData": true,
+      "converterEnabled": "<CONVERTERENABLED>",
+      "publishedSpecificationConfuration": <PUBLISHEDSPECIFICATIONCONFIURATION>,
+      "usedInDataAggregations": false,
+      "lastUpdated": "<NOW>",
+      "author": {
+        "id": "unknown",
+        "name": "unknown"
+      },
+      "relationshipType": "<DATASETRELATIONSHIPTYPE>",
+      "id": "<ID>",
+      "name": "<NAME>"
+    }
   },
   "createdAt": "<NOW>",
   "updatedAt": "<NOW>",

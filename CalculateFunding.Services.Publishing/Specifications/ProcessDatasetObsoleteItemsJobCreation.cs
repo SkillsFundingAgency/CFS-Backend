@@ -10,7 +10,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
         public ProcessDatasetObsoleteItemsJobCreation(IJobManagement jobs, ILogger logger) 
             : base(jobs, 
                 logger, 
-                JobConstants.DefinitionNames.ProcessDatasetObsoleteItems, 
+                JobConstants.DefinitionNames.ProcessDatasetObsoleteItemsJob, 
                 "Process dataset obsolete items by publishing change")
         {
         }

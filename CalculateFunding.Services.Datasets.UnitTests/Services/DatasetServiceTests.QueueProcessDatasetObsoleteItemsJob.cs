@@ -42,9 +42,9 @@ namespace CalculateFunding.Services.Datasets.UnitTests.Services
             Reference author = new Reference();
 
             _jobManagement.Setup(_ => _.GetLatestJobsForSpecification(_specificationId, new string[] {
-                    JobConstants.DefinitionNames.ProcessDatasetObsoleteItems
+                    JobConstants.DefinitionNames.ProcessDatasetObsoleteItemsJob
             }))
-            .ReturnsAsync(new Dictionary<string, JobSummary> { { JobConstants.DefinitionNames.ProcessDatasetObsoleteItems,
+            .ReturnsAsync(new Dictionary<string, JobSummary> { { JobConstants.DefinitionNames.ProcessDatasetObsoleteItemsJob,
                                                                     new JobSummary {
                                                                         JobId = jobId,
                                                                         RunningStatus = RunningStatus.InProgress

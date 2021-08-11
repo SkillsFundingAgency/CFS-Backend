@@ -1,4 +1,6 @@
 using System.Reflection;
+using CalculateFunding.Common.ApiClient.DataSets.Models;
+using CalculateFunding.Common.Extensions;
 using CalculateFunding.IntegrationTests.Common.Data;
 using Microsoft.Extensions.Configuration;
 
@@ -29,6 +31,14 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.Data
                 CONVERTERENABLED = documentData.ConverterEnabled.ToString().ToLower(),
                 SPECIFICATIONID = documentData.SpecificationId,
                 SPECIFICATIONNAME = documentData.SpecificationName,
+                PUBLISHEDSPECIFICATIONCONFIURATION = new PublishedSpecificationConfiguration { 
+                    SpecificationId = documentData.PublishedSpecificationConfiguration.SpecificationId,
+                    FundingPeriodId = documentData.PublishedSpecificationConfiguration.FundingPeriodId,
+                    FundingStreamId = documentData.PublishedSpecificationConfiguration.FundingStreamId,
+                    Calculations = documentData.PublishedSpecificationConfiguration.Calculations,
+                    FundingLines = documentData.PublishedSpecificationConfiguration.FundingLines
+                }.AsJson(),
+                DATASETRELATIONSHIPTYPE = documentData.DatasetRelationshipType.ToString(),
                 NOW = now
             };
     }

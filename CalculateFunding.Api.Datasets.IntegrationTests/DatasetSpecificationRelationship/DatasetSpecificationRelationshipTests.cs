@@ -24,6 +24,7 @@ using TableDefinition = CalculateFunding.Models.Datasets.Schema.TableDefinition;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using System.Collections.Generic;
+using CalculateFunding.Common.ApiClient.Datasets.Models;
 
 namespace CalculateFunding.Api.Datasets.IntegrationTests.DatasetSpecificationRelationship
 {
@@ -33,6 +34,17 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.DatasetSpecificationRel
     {
         private const string PublishDatasetsDataJob = JobConstants.DefinitionNames.PublishDatasetsDataJob;
         private static readonly Assembly ResourceAssembly = typeof(DatasetSpecificationRelationshipTests).Assembly;
+
+        string _providerVersionId;
+        string _specificationId;
+        string _fundingStreamId;
+        string _fundingPeriodId;
+        string _referencedFundingPeriodId;
+        string _referencedspecificationId;
+        string _datasetId;
+        string _definitionId;
+        string _datasetPath;
+        int _definitionVersion;
 
         private SpecificationDataContext _specificationDataContext;
         private ProviderVersionBlobContext _providerVersionBlobContext;
@@ -73,53 +85,117 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.DatasetSpecificationRel
                 _fundingTemplateDataContext);
 
             _datasets = GetService<IDatasetsApiClient>();
+
+            _providerVersionId = NewRandomString();
+            _specificationId = NewRandomString();
+            _fundingStreamId = NewRandomString();
+            _fundingPeriodId = NewRandomString();
+            _referencedFundingPeriodId = NewRandomString();
+            _referencedspecificationId = NewRandomString();
+            _datasetId = NewRandomString();
+            _datasetPath = $"{NewRandomString()}.xlsx";
+            _definitionId = NewRandomString();
+            _definitionVersion = NewRandomInteger();
+
         }
 
         [TestMethod]
         public async Task RunsPublishDatasetsDataJobForTheSpecificationRelationship()
         {
-            string providerVersionId = NewRandomString();
-            string specificationId = NewRandomString();
-            string fundingStreamId = NewRandomString();
-            string fundingPeriodId = NewRandomString();
-            string referencedFundingPeriodId = NewRandomString();
-            string referencedspecificationId = NewRandomString();
+            
+            await SetupSpecifications();
+            await SetupDataset();
+            await SetupTemplateContents();
 
+            CreateDefinitionSpecificationRelationshipModel createDefinitionSpecificationRelationshipModel = new CreateDefinitionSpecificationRelationshipModel
+            {
+                DatasetDefinitionId = _definitionId,
+                RelationshipType = DatasetRelationshipType.ReleasedData,
+                SpecificationId = _specificationId,
+                TargetSpecificationId = _referencedspecificationId
+            };
+
+            IEnumerable<uint> calculationIds = new uint[] { 13, 14 };
+            IEnumerable<uint> fundingLineIds = new uint[] { 239, 240 };
+
+            DefinitionSpecificationRelationship definitionRelationship = await WhenTheRelationshipCreated(NewRelationship(_ => _.WithDatasetDefinitionId(_definitionId)
+                                   .WithRelationshipType(DatasetRelationshipType.ReleasedData)
+                                   .WithSpecificationId(_specificationId)
+                                   .WithTargetSpecificationId(_referencedspecificationId)
+                                   .WithCalculationIds(calculationIds)
+                                   .WithFundingLineIds(fundingLineIds)));
+
+            definitionRelationship.Should().NotBeNull();
+
+            _specificationDatasetRelationshipContext.TrackDocumentIdentity(new CosmosIdentity(definitionRelationship.Id, null));
+            _specificationDatasetRelationshipContext.TrackDocumentIdentity(new CosmosIdentity(definitionRelationship.RelationshipId, null));
+
+            IDictionary<string, JobSummary> jobs = await GetLatestJob(_specificationId, PublishDatasetsDataJob);
+
+            jobs.ContainsKey(PublishDatasetsDataJob).Should().BeTrue();
+
+            await ThenTheJobSucceeds(jobs[PublishDatasetsDataJob].JobId, "Expected PublishDatasetsDataJob to complete and succeed.");
+        }
+
+        [TestMethod]
+        public async Task RunsDatasetObsoleteItemsJobForTheSpecification()
+        {
+            await SetupSpecifications();
+            await SetupDataset();
+            await SetupTemplateContents();
+
+            IEnumerable<uint> calculationIds = new uint[] { 13, 14 };
+            IEnumerable<uint> fundingLineIds = new uint[] { 239, 240 };
+
+            DefinitionSpecificationRelationshipTemplateParameters definitionSpecificationRelationship = NewDefinitionSpecificationRelationship(_ => _.WithDefinitionId(_definitionId)
+                                   .WithRelationshipType(DatasetRelationshipType.ReleasedData)
+                                   .WithSpecificationId(_specificationId)
+                                   .WithTargetSpecificationId(_referencedspecificationId)
+                                   .WithCalculationIds(calculationIds)
+                                   .WithFundingLineIds(fundingLineIds));
+            await AndTheDefinitionSpecificationRelationship(definitionSpecificationRelationship);
+
+            JobCreationResponse job = await WhenQueueProcessDatasetObsoleteItems(_referencedspecificationId);
+
+            await ThenTheJobSucceeds(job.JobId, "Expected ProcessDatasetObsoleteItemsJob to complete and succeed.");
+        }
+
+
+        private async Task SetupSpecifications()
+        {
             SpecificationTemplateParameters specification = NewSpecification(_
-                => _.WithId(specificationId)
-                    .WithProviderVersionId(providerVersionId)
-                    .WithFundingPeriodId(fundingPeriodId)
-                    .WithFundingStreamId(fundingStreamId)
-                    .WithTemplateIds((fundingStreamId, "1.0")));
+                => _.WithId(_specificationId)
+                    .WithProviderVersionId(_providerVersionId)
+                    .WithFundingPeriodId(_fundingPeriodId)
+                    .WithFundingStreamId(_fundingStreamId)
+                    .WithTemplateIds((_fundingStreamId, "1.0")));
 
             SpecificationTemplateParameters referencedSpecification = NewSpecification(_
-                => _.WithId(referencedspecificationId)
-                    .WithProviderVersionId(providerVersionId)
-                    .WithFundingPeriodId(referencedFundingPeriodId)
-                    .WithFundingStreamId(fundingStreamId)
-                    .WithTemplateIds((fundingStreamId, "1.0")));
+                => _.WithId(_referencedspecificationId)
+                    .WithProviderVersionId(_providerVersionId)
+                    .WithFundingPeriodId(_referencedFundingPeriodId)
+                    .WithFundingStreamId(_fundingStreamId)
+                    .WithTemplateIds((_fundingStreamId, "1.0")));
 
             await AndTheSpecification(specification);
             await AndTheSpecification(referencedSpecification);
+        }
 
-            string datasetPath = $"{NewRandomString()}.xlsx";
-            string datasetId = NewRandomString();
-            string definitionId = NewRandomString();
-            int definitionVersion = NewRandomInteger();
-
-            DatasetTemplateParameters datasetTemplateParameters = NewDatasetTemplateParameters(_ => _.WithId(datasetId)
-                .WithDefinitionId(definitionId)
+        private async Task SetupDataset()
+        {
+            DatasetTemplateParameters datasetTemplateParameters = NewDatasetTemplateParameters(_ => _.WithId(_datasetId)
+                .WithDefinitionId(_definitionId)
                 .WithVersion(1)
                 .WithConverterWizard(true)
-                .WithUploadedBlobPath(datasetPath)
-                .WithBlobName(datasetPath));
+                .WithUploadedBlobPath(_datasetPath)
+                .WithBlobName(_datasetPath));
 
             await AndTheDatasetDocument(datasetTemplateParameters);
 
-            await AndTheDatasetDefinition(NewDatasetDefinitionTemplateParameters(_ => _.WithId(definitionId)
-                .WithVersion(definitionVersion)
+            await AndTheDatasetDefinition(NewDatasetDefinitionTemplateParameters(_ => _.WithId(_definitionId)
+                .WithVersion(_definitionVersion)
                 .WithConverterEligible(true)
-                .WithFundingStreamId(fundingStreamId)
+                .WithFundingStreamId(_fundingStreamId)
                 .WithTableDefinitions(NewTableDefinition(tab =>
                     tab.WithFields(NewFieldDefinition(fld =>
                             fld.WithName("ukprn")
@@ -144,47 +220,26 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.DatasetSpecificationRel
                             fld.WithName("successors")
                                 .WithFieldType(FieldType.String))
                     )))));
-
-             await AndTheTemplateMappingContents(NewFundingTemplate(_ => _.WithFundingPeriodId(referencedFundingPeriodId)
-                                                                .WithFundingStreamId(fundingStreamId)
-                                                                .WithTemplateVersion("1.0")));
-
-            CreateDefinitionSpecificationRelationshipModel createDefinitionSpecificationRelationshipModel = new CreateDefinitionSpecificationRelationshipModel
-            {
-                DatasetDefinitionId = definitionId,
-                RelationshipType = DatasetRelationshipType.ReleasedData,
-                SpecificationId = specificationId,
-                TargetSpecificationId = referencedspecificationId
-            };
-
-            IEnumerable<uint> calculationIds = new uint[] { 13, 14 };
-            IEnumerable<uint> fundingLineIds = new uint[] { 239, 240 };
-
-            DefinitionSpecificationRelationship definitionRelationship = await WhenTheRelationshipCreated(NewRelationship(_ => _.WithDatasetDefinitionId(definitionId)
-                                   .WithRelationshipType(DatasetRelationshipType.ReleasedData)
-                                   .WithSpecificationId(specificationId)
-                                   .WithTargetSpecificationId(referencedspecificationId)
-                                   .WithCalculationIds(calculationIds)
-                                   .WithFundingLineIds(fundingLineIds)));
-
-            definitionRelationship.Should().NotBeNull();
-
-            _specificationDatasetRelationshipContext.TrackDocumentIdentity(new CosmosIdentity(definitionRelationship.Id, null));
-            _specificationDatasetRelationshipContext.TrackDocumentIdentity(new CosmosIdentity(definitionRelationship.RelationshipId, null));
-
-            IDictionary<string, JobSummary> jobs = await GetLatestJob(specificationId, PublishDatasetsDataJob);
-
-            jobs.ContainsKey(PublishDatasetsDataJob).Should().BeTrue();
-
-            await ThenTheJobSucceeds(jobs[PublishDatasetsDataJob].JobId, "Expected PublishDatasetsDataJob to complete and succeed.");
         }
 
+        private async Task SetupTemplateContents()
+        {
+            await AndTheTemplateMappingContents(NewFundingTemplate(_ => _.WithFundingPeriodId(_referencedFundingPeriodId)
+                                                                    .WithFundingStreamId(_fundingStreamId)
+                                                                    .WithTemplateVersion("1.0")));
+        }
 
-        private async Task<DefinitionSpecificationRelationship> WhenTheRelationshipCreated(CreateDefinitionSpecificationRelationshipModel createDefinitionSpecificationRelationshipModel) =>
-            (await _datasets.CreateRelationship(createDefinitionSpecificationRelationshipModel))?.Content;
+        private async Task<DefinitionSpecificationRelationship> WhenTheRelationshipCreated(CreateDefinitionSpecificationRelationshipModel createDefinitionSpecificationRelationshipModel)
+            => (await _datasets.CreateRelationship(createDefinitionSpecificationRelationshipModel))?.Content;
+
+        private async Task<JobCreationResponse> WhenQueueProcessDatasetObsoleteItems(string referencedSpecificationId)
+            => (await _datasets.QueueProcessDatasetObsoleteItemsJob(referencedSpecificationId))?.Content;
 
         private async Task AndTheSpecification(SpecificationTemplateParameters parameters)
             => await _specificationDataContext.CreateContextData(parameters);
+
+        private async Task AndTheDefinitionSpecificationRelationship(DefinitionSpecificationRelationshipTemplateParameters parameters)
+            => await _specificationDatasetRelationshipContext.CreateContextData(parameters);
 
         private static string GetExpectedBlobPath(DatasetTemplateParameters datasetTemplateParameters,
             string path) =>
@@ -224,6 +279,15 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.DatasetSpecificationRel
             setUp?.Invoke(specificationTemplateParametersBuilder);
 
             return specificationTemplateParametersBuilder.Build();
+        }
+
+        private DefinitionSpecificationRelationshipTemplateParameters NewDefinitionSpecificationRelationship(Action<DefinitionSpecificationRelationshipTemplateParametersBuilder> setUp = null)
+        {
+            DefinitionSpecificationRelationshipTemplateParametersBuilder definitionSpecificationRelationshipTemplateParametersBuilder = new DefinitionSpecificationRelationshipTemplateParametersBuilder();
+
+            setUp?.Invoke(definitionSpecificationRelationshipTemplateParametersBuilder);
+
+            return definitionSpecificationRelationshipTemplateParametersBuilder.Build();
         }
 
         private SpecificationConverterMergeRequest NewSpecificationConverterMergeRequest(Action<SpecificationConverterMergeRequestBuilder> setUp = null)
