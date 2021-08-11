@@ -464,7 +464,7 @@ namespace CalculateFunding.Api.Datasets.Controllers
         /// </summary>
         /// <param name="specificationId"></param>
         /// <returns></returns>
-        [HttpGet("api/datasets/converter/queue-process-dataset-obsolete-items-job")]
+        [HttpGet("api/datasets/queue-process-dataset-obsolete-items-job/{specificationId}")]
         public async Task<IActionResult> QueueProcessDatasetObsoleteItemsJob([FromRoute] string specificationId)
         {
             Reference user = ControllerContext.HttpContext.Request.GetUserOrDefault();
