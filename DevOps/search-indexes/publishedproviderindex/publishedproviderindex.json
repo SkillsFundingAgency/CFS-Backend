@@ -230,7 +230,20 @@
 		  	"analyzer": null,
 		  	"searchAnalyzer": null,
 		  	"indexAnalyzer": null
-		  }
+		  },
+		  {
+			"name": "isIndicative",
+			"type": "Edm.Boolean",
+			"key": false,
+			"facetable": true,
+			"filterable": true,
+			"retrievable": true,
+			"searchable": false,
+			"sortable": false,
+			"analyzer": null,
+			"searchAnalyzer": null,
+			"indexAnalyzer": null
+		},
 	],
 	"scoringProfiles": [],
 	"suggesters": [],

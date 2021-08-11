@@ -80,5 +80,9 @@ namespace CalculateFunding.Models.Publishing
         [JsonProperty("monthYearOpened")]
         [IsFilterable, IsSearchable, IsFacetable, IsRetrievable(true)]
         public string MonthYearOpened { get; set; }
+
+        [IsFilterable, IsFacetable, IsRetrievable(true)]
+        [JsonProperty("isIndicative")]
+        public bool IsIndicative { get; set; }
     }
 }

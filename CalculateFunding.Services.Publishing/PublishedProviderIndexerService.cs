@@ -170,6 +170,7 @@ namespace CalculateFunding.Services.Publishing
                 URN = provider.URN,
                 DateOpened = provider.DateOpened,
                 MonthYearOpened = monthYearOpened,
+                IsIndicative = publishedProviderVersion.IsIndicative,
                 Indicative = publishedProviderVersion.IsIndicative ? "Only indicative allocations" : "Hide indicative allocations",
                 Errors = publishedProviderVersion.Errors != null
                     ? publishedProviderVersion

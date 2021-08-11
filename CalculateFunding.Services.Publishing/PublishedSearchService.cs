@@ -241,6 +241,7 @@ namespace CalculateFunding.Services.Publishing
                             FundingStreamId = m.Result.FundingStreamId,
                             FundingPeriodId = m.Result.FundingPeriodId,
                             Indicative = m.Result.Indicative,
+                            IsIndicative = m.Result.IsIndicative,
                             HasErrors = m.Result.HasErrors,
                             Errors = m.Result.Errors,
                             OpenedDate = m.Result.DateOpened

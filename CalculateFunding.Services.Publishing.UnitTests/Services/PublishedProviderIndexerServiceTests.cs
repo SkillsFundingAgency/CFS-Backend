@@ -148,7 +148,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             await searchRepository
                 .Received(1)
                 .Index(Arg.Is<IEnumerable<PublishedProviderIndex>>(
-                    _ => MatchesExpectedPublishedProviderIndex(hasErrors, indicativeIndexText, _, publishedProviderVersion, expectedMonthYearOpen)
+                    _ => MatchesExpectedPublishedProviderIndex(hasErrors, indicativeIndexText, _, publishedProviderVersion, expectedMonthYearOpen, isIndicative)
               ));
         }
 
@@ -156,7 +156,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             string indicativeIndexText,
             IEnumerable<PublishedProviderIndex> d,
             PublishedProviderVersion publishedProviderVersion,
-            string expectedMonthYearOpened)
+            string expectedMonthYearOpened,
+            bool isIndicative)
         {
             Provider provider = publishedProviderVersion.Provider;
             PublishedProviderIndex publishedProviderIndex = d.First();
@@ -175,6 +176,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                    publishedProviderIndex.FundingStreamId == "PSG" &&
                    publishedProviderIndex.FundingPeriodId == publishedProviderVersion.FundingPeriodId &&
                    publishedProviderIndex.Indicative == indicativeIndexText &&
+                   publishedProviderIndex.IsIndicative == isIndicative &&
                    publishedProviderIndex.HasErrors == publishedProviderVersion.HasErrors &&
                    publishedProviderIndex.Errors.Any() == publishedProviderVersion.HasErrors &&
                    (!hasErrors || publishedProviderIndex.Errors.First() == "summary error message") &&
