@@ -54,7 +54,7 @@ variables:
 
 steps:
  - ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
-   - template: templates\standard-service-pr-deploy-build.yml
+   - template: templates\standard-service-arm-deploy.yml
      parameters:
        ServiceName: ${{ variables.ServiceName }}
        ResourceGroup: $(ResourceGroup)
@@ -114,3 +114,12 @@ steps:
      resultsClient:ApiKey: $(svcapiresults)
      specificationsClient:ApiEndpoint: $(specificationsClientApiEndpoint)
      specificationsClient:ApiKey: $(svcapispecs)
+     
+ - task: AzureCLI@2
+   condition: and(failed(), eq(variables['Build.Reason'], 'PullRequest'))
+   displayName: 'Reset in-progress swap on failure'
+   inputs:
+     azureSubscription: $(azureSubscription)
+     scriptType: pscore
+     scriptLocation: inlineScript
+     inlineScript: 'az webapp deployment slot swap --action reset --slot Staging --name app-$(EnvironmentKey)-${{ variables.ServiceName }}-pr --resource-group $(ResourceGroup)'

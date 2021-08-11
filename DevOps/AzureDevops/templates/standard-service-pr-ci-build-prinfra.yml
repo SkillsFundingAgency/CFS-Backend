@@ -195,12 +195,12 @@ steps:
       Write-Host "##vso[task.setvariable variable=ExecuteMyTask]False"
       Write-Host "I set ExecuteMyTask to False"
     }
-   displayName: 'Check for Policy / Provider Project and Set ExecuteMyTask False if found'   
+   displayName: 'Check for Function App Smoke Test project'   
    condition: and(succeeded(), eq( '${{ parameters.BuildFunction }}', true))
 
  - task: DotNetCoreCLI@2
    condition: and(succeeded(), eq(variables['ExecuteMyTask'], 'True'))
-   displayName: "dotnet publish Function Smoke Test"
+   displayName: "dotnet publish Function App Smoke Test"
    inputs:
      command: publish
      publishWebProjects: false
@@ -215,135 +215,28 @@ steps:
      targetPath: ' $(build.artifactstagingdirectory)/CalculateFunding.Functions.${{ parameters.ProjectName }}.SmokeTests'
      artifactName: Smoketest   
 
- - task: AzureCLI@1
-   condition: and(succeeded(), eq( '${{ parameters.BuildApi }}', true), eq(variables['Build.Reason'], 'PullRequest'))
-   displayName: 'Deploy Api to Staging Slot'
-   inputs:
-     azureSubscription: '${{ parameters.azureSubscription }}'
-     scriptLocation: inlineScript
-     inlineScript: 'az webapp deployment source config-zip --resource-group ${{ parameters.ResourceGroup }} --name app-${{ parameters.EnvironmentKey }}-${{ parameters.ServiceName }}-pr --src "$(Build.ArtifactStagingDirectory)/CalculateFunding.Api.${{ parameters.ProjectName }}.zip" --slot Staging'
+ - ${{ if and(eq(parameters.BuildApi, true), eq(variables['Build.Reason'], 'PullRequest')) }}:
+   - template: standard-service-pr-appsrv-deploy.yml
+     parameters:
+       ProjectName: ${{ parameters.ProjectName }}
+       ServiceName: ${{ parameters.ServiceName }}
+       ResourceGroup: ${{ parameters.ResourceGroup }}
+       azureSubscription: ${{ parameters.azureSubscription }}
+       EnvironmentKey: ${{ parameters.EnvironmentKey }}
+       SmokeTestTenantId: ${{ parameters.SmokeTestTenantId }}
+       SmokeTestApplicationUrl: ${{ parameters.SmokeTestApplicationUrl }}
+       SmokeTestClientID: ${{ parameters.SmokeTestClientID }}
+       SmokeTestClientSecret: ${{ parameters.SmokeTestClientSecret }}
+       APIKey: ${{ parameters.APIKey }}
+       apiBuildNumber: ${{ parameters.apiBuildNumber }}
+       SecureSmokeTest: ${{ parameters.SecureSmokeTest }}
 
- - task: AzureCLI@2
-   displayName: 'Start-Stop Web Apps'
-   condition: and(succeeded(), eq( '${{ parameters.BuildApi }}', true), eq(variables['Build.Reason'], 'PullRequest'))
-   inputs:
-     azureSubscription: '${{ parameters.azureSubscription }}'
-     scriptType: pscore
-     scriptLocation: inlineScript
-     inlineScript: |
-       az webapp stop --name app-${{ parameters.EnvironmentKey }}-${{ parameters.ServiceName }}-pr --resource-group ${{ parameters.ResourceGroup }}
-       az webapp stop --name app-${{ parameters.EnvironmentKey }}-${{ parameters.ServiceName }}-pr --resource-group ${{ parameters.ResourceGroup }} --slot Staging
-       az webapp start --name app-${{ parameters.EnvironmentKey }}-${{ parameters.ServiceName }}-pr --resource-group ${{ parameters.ResourceGroup }}
-       az webapp start --name app-${{ parameters.EnvironmentKey }}-${{ parameters.ServiceName }}-pr --resource-group ${{ parameters.ResourceGroup }} --slot Staging
-
- - task: AzureCLI@2
-   condition: and(succeeded(), eq( '${{ parameters.BuildApi }}', true), eq(variables['Build.Reason'], 'PullRequest'))
-   displayName: 'Prepare Staging slot for swap'
-   inputs:
-     azureSubscription: '${{ parameters.azureSubscription }}'
-     scriptType: pscore
-     scriptLocation: inlineScript
-     inlineScript: 'az webapp deployment slot swap --action preview --slot Staging --target-slot Production --name app-${{ parameters.EnvironmentKey }}-${{ parameters.ServiceName }}-pr  --resource-group ${{ parameters.ResourceGroup }}'
-
- - task: PowerShell@2
-   condition: and(succeeded(), eq( '${{ parameters.SecureSmokeTest }}', true), eq( '${{ parameters.BuildApi }}', true), eq(variables['Build.Reason'], 'PullRequest'))
-   displayName: 'Run AD Azure Smoke Test'
-   inputs:
-     targetType: filePath
-     filePath: '$(System.DefaultWorkingDirectory)/DevOps/run-smoke-test-azure-ad.ps1'
-     arguments: '-url "https://app-${{ parameters.EnvironmentKey }}-${{ parameters.ServiceName }}-pr-staging.azurewebsites.net" -tokenServiceUrl "https://login.microsoftonline.com/${{ parameters.SmokeTestTenantId }}/oauth2/v2.0/token" -Scope "${{ parameters.SmokeTestApplicationUrl }}/.default" -ClientId ${{ parameters.SmokeTestClientID }} -ClientSecret ${{ parameters.SmokeTestClientSecret }} -httpVerb POST'
-
- - task: PowerShell@2
-   condition: and(succeeded(), eq( '${{ parameters.SecureSmokeTest }}', true), eq( '${{ parameters.BuildApi }}', true), eq(variables['Build.Reason'], 'PullRequest'))
-   displayName: 'Run AD Azure check API is secure'
-   inputs:
-     targetType: filePath
-     filePath: '$(System.DefaultWorkingDirectory)/DevOps/checkApiSecureAzureAd.ps1'
-     arguments: '-url "https://app-${{ parameters.EnvironmentKey }}-${{ parameters.ServiceName }}-pr-staging.azurewebsites.net" -tokenServiceUrl "https://login.microsoftonline.com/${{ parameters.SmokeTestTenantId }}/oauth2/v2.0/token" -Scope "${{ parameters.SmokeTestApplicationUrl }}/.default" -ClientId ${{ parameters.SmokeTestClientID }} -ClientSecret ${{ parameters.SmokeTestClientSecret }} -httpVerb POST'
-
- - task: PowerShell@2
-   condition: and(succeeded(), eq( '${{ parameters.SecureSmokeTest }}', false), eq( '${{ parameters.BuildApi }}', true), eq(variables['Build.Reason'], 'PullRequest'))
-   displayName: 'Run Smoke Test'
-   inputs:
-    targetType: filePath
-    filePath: '$(System.DefaultWorkingDirectory)/DevOps/run-smoke-test.ps1'
-    arguments: '-url "https://app-${{ parameters.EnvironmentKey }}-${{ parameters.ServiceName }}-pr-staging.azurewebsites.net" -apiKey ${{ parameters.apiKey }} -apiBuildNumber $(apibuildnumber)'
-    failOnStderr: true
- 
- - task: PowerShell@2
-   condition: and(succeeded(), eq( '${{ parameters.SecureSmokeTest }}', false), eq( '${{ parameters.BuildApi }}', true), eq(variables['Build.Reason'], 'PullRequest'))
-   displayName: 'Run check API is secure'
-   inputs:
-    targetType: filePath
-    filePath: '$(System.DefaultWorkingDirectory)/DevOps/checkApiSecure.ps1'
-    arguments: '-url "https://app-${{ parameters.EnvironmentKey }}-${{ parameters.ServiceName }}-pr-staging.azurewebsites.net" -apiKey ${{ parameters.apiKey }}' 
-
- - task: AzureCLI@1
-   condition: and(succeeded(), eq( '${{ parameters.BuildApi }}', true), eq(variables['Build.Reason'], 'PullRequest'))
-   displayName: 'Swap Staging to Production Slot Users API'
-   inputs:
-     azureSubscription: '${{ parameters.azureSubscription }}'
-     scriptLocation: inlineScript
-     inlineScript: 'az webapp deployment slot swap --action swap --slot Staging --target-slot Production --name app-${{ parameters.EnvironmentKey }}-${{ parameters.ServiceName }}-pr  --resource-group ${{ parameters.ResourceGroup }}'
-
- - task: AzureCLI@1
-   condition: and(succeeded(), eq( '${{ parameters.BuildFunction }}', true), eq(variables['Build.Reason'], 'PullRequest'))
-   displayName: 'Deploy Function App'
-   inputs:
-     azureSubscription: '${{ parameters.azureSubscription }}'
-     scriptLocation: inlineScript
-     inlineScript: 'az webapp deployment source config-zip --resource-group ${{ parameters.ResourceGroup }} --name fa-${{ parameters.EnvironmentKey }}-${{ parameters.ServiceName }}-pr --src "$(Build.ArtifactStagingDirectory)\CalculateFunding.Functions.${{ parameters.ProjectName }}.zip"' 
- 
- - task: AzureCLI@2
-   condition: and(succeeded(), eq( '${{ parameters.BuildFunction }}', true), eq(variables['Build.Reason'], 'PullRequest'))
-   displayName: 'Start-Stop Function App'
-   inputs:
-    azureSubscription: '${{ parameters.azureSubscription }}'
-    scriptType: pscore
-    scriptLocation: inlineScript
-    inlineScript: |
-      az webapp stop --name fa-${{ parameters.EnvironmentKey }}-${{ parameters.ServiceName }}-pr --resource-group ${{ parameters.ResourceGroup }}
-      az webapp start --name fa-${{ parameters.EnvironmentKey }}-${{ parameters.ServiceName }}-pr --resource-group ${{ parameters.ResourceGroup }}
-
- - powershell: |
-    Write-Host "Creating local.settings.json file"
-    $myhash = @{
-        ServiceBusSettings = @{
-            ConnectionString = "${{ parameters.ServiceBusSettings }}"
-           }
-        }
-    $myPath = "$(Build.ArtifactStagingDirectory)\CalculateFunding.Functions.${{ parameters.ProjectName }}.SmokeTests\local.settings.json"
-    $myhash | ConvertTo-Json | out-file $myPath
-    If (test-path -Path $myPath -PathType leaf){
-      write-host "File created ok"
-      }
-    Else {
-      Write-Host "File was not created"
-     }
-   displayName: 'Create Local.settings.json file'
-   condition: and(succeeded(), eq( '${{ parameters.BuildFunction }}', true), eq(variables['Build.Reason'], 'PullRequest'))
-
- - powershell: |
-    # Write your PowerShell commands here.
-    Write-Host "Starting VSTest"
-    Get-Content $(Build.ArtifactStagingDirectory)\CalculateFunding.Functions.${{ parameters.ProjectName }}.SmokeTests\local.settings.json
-    If (test-path -Path "$(Build.ArtifactStagingDirectory)\CalculateFunding.Functions.${{ parameters.ProjectName }}.SmokeTests\CalculateFunding.Functions.${{ parameters.ProjectName }}.SmokeTests\CalculateFunding.Functions.${{ parameters.ProjectName }}.SmokeTests.dll" -PathType leaf)
-     {
-       Write-Host "ready to test"
-       dotnet vstest "$(Build.ArtifactStagingDirectory)\CalculateFunding.Functions.${{ parameters.ProjectName }}.SmokeTests\CalculateFunding.Functions.${{ parameters.ProjectName }}.SmokeTests\CalculateFunding.Functions.${{ parameters.ProjectName }}.SmokeTests.dll"
-     }
-    Else
-     {
-       Write-Host "I couldn't find the file to test - sorry"
-     }
-   displayName: 'Run Function App Smoketest'
-   condition: and(succeeded(), eq( '${{ parameters.BuildFunction }}', true), eq(variables['Build.Reason'], 'PullRequest'))
-
- - task: AzureCLI@2
-   condition: and(failed(), eq( '${{ parameters.BuildApi }}', true), eq(variables['Build.Reason'], 'PullRequest'))
-   displayName: 'Reset in-progress swap on failure'
-   inputs:
-     azureSubscription: '${{ parameters.azureSubscription }}'
-     scriptType: pscore
-     scriptLocation: inlineScript
-     inlineScript: 'az webapp deployment slot swap --action reset --slot Staging --name app-${{ parameters.EnvironmentKey }}-${{ parameters.ServiceName }}-pr --resource-group ${{ parameters.ResourceGroup }}'
+ - ${{ if and(eq(parameters.BuildFunction, true), eq(variables['Build.Reason'], 'PullRequest')) }}:
+   - template: standard-service-pr-funcapp-deploy.yml
+     parameters:
+       ProjectName: ${{ parameters.ProjectName }}
+       ServiceName: ${{ parameters.ServiceName }}
+       ResourceGroup: ${{ parameters.ResourceGroup }}
+       azureSubscription: ${{ parameters.azureSubscription }}
+       EnvironmentKey: ${{ parameters.EnvironmentKey }}
+       ServiceBusSettings: ${{ parameters.ServiceBusSettings }}

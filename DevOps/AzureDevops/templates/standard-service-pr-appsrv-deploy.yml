@@ -1,0 +1,92 @@
+parameters:
+- name: ProjectName
+  type: string
+  default: ''
+- name: ServiceName
+  type: string
+  default: ''
+- name: 'ResourceGroup'
+  type: 'string'
+  default: ''
+- name: azureSubscription
+  type: 'string'
+  default: ''
+- name: EnvironmentKey
+  type: string
+  default: ''
+- name: SmokeTestTenantId
+  type: string
+  default: ''
+- name: SmokeTestApplicationUrl
+  type: string
+  default: ''
+- name: SmokeTestClientID
+  type: string
+  default: ''
+- name: SmokeTestClientSecret
+  type: string
+  default: ''
+- name: APIKey
+  type: string
+  default: ''
+- name: apiBuildNumber
+  type: string
+  default: ''
+- name: SecureSmokeTest
+  type: boolean
+  default: false
+
+steps:
+ - task: AzureCLI@1
+   condition: succeeded()
+   displayName: 'Deploy Api to Staging Slot'
+   inputs:
+     azureSubscription: '${{ parameters.azureSubscription }}'
+     scriptLocation: inlineScript
+     inlineScript: 'az webapp deployment source config-zip --resource-group ${{ parameters.ResourceGroup }} --name app-${{ parameters.EnvironmentKey }}-${{ parameters.ServiceName }}-pr --src "$(Build.ArtifactStagingDirectory)/CalculateFunding.Api.${{ parameters.ProjectName }}.zip" --slot Staging'
+
+ - task: AzureCLI@2
+   condition: succeeded()
+   displayName: 'Start-Stop Web Apps'
+   inputs:
+     azureSubscription: '${{ parameters.azureSubscription }}'
+     scriptType: pscore
+     scriptLocation: inlineScript
+     inlineScript: |
+       az webapp stop --name app-${{ parameters.EnvironmentKey }}-${{ parameters.ServiceName }}-pr --resource-group ${{ parameters.ResourceGroup }} --slot Staging
+       az webapp start --name app-${{ parameters.EnvironmentKey }}-${{ parameters.ServiceName }}-pr --resource-group ${{ parameters.ResourceGroup }} --slot Staging
+
+ - task: AzureCLI@2
+   condition: succeeded()
+   displayName: 'Prepare Staging slot for swap'
+   inputs:
+     azureSubscription: '${{ parameters.azureSubscription }}'
+     scriptType: pscore
+     scriptLocation: inlineScript
+     inlineScript: 'az webapp deployment slot swap --action preview --slot Staging --target-slot Production --name app-${{ parameters.EnvironmentKey }}-${{ parameters.ServiceName }}-pr  --resource-group ${{ parameters.ResourceGroup }}'
+
+ - ${{ if eq(parameters.SecureSmokeTest, true) }}:
+   - template: standard-service-appsrv-secure-smoketest.yml
+     parameters:
+       ServiceName: ${{ parameters.ServiceName }}
+       EnvironmentKey: ${{ parameters.EnvironmentKey }}
+       SmokeTestTenantId: ${{ parameters.SmokeTestTenantId }}
+       SmokeTestApplicationUrl: ${{ parameters.SmokeTestApplicationUrl }}
+       SmokeTestClientID: ${{ parameters.SmokeTestClientID }}
+       SmokeTestClientSecret: ${{ parameters.SmokeTestClientSecret }}
+
+ - ${{ if eq(parameters.SecureSmokeTest, false) }}:
+   - template: standard-service-appsrv-smoketest.yml
+     parameters:
+       ServiceName: ${{ parameters.ServiceName }}
+       EnvironmentKey: ${{ parameters.EnvironmentKey }}
+       APIKey: ${{ parameters.APIKey }}
+       apiBuildNumber: ${{ parameters.apiBuildNumber }}
+
+ - task: AzureCLI@1
+   condition: succeeded()
+   displayName: 'Swap Staging to Production Slot Users API'
+   inputs:
+     azureSubscription: '${{ parameters.azureSubscription }}'
+     scriptLocation: inlineScript
+     inlineScript: 'az webapp deployment slot swap --action swap --slot Staging --target-slot Production --name app-${{ parameters.EnvironmentKey }}-${{ parameters.ServiceName }}-pr  --resource-group ${{ parameters.ResourceGroup }}'

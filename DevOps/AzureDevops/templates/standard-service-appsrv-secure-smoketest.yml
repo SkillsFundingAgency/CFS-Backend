@@ -1,0 +1,36 @@
+parameters:
+- name: ServiceName
+  type: string
+  default: ''
+- name: EnvironmentKey
+  type: string
+  default: ''
+- name: SmokeTestTenantId
+  type: string
+  default: ''
+- name: SmokeTestApplicationUrl
+  type: string
+  default: ''
+- name: SmokeTestClientID
+  type: string
+  default: ''
+- name: SmokeTestClientSecret
+  type: string
+  default: ''
+
+steps:
+ - task: PowerShell@2   
+   condition: succeeded()
+   displayName: 'Run AD Azure Smoke Test'
+   inputs:
+     targetType: filePath
+     filePath: '$(System.DefaultWorkingDirectory)/DevOps/run-smoke-test-azure-ad.ps1'
+     arguments: '-url "https://app-${{ parameters.EnvironmentKey }}-${{ parameters.ServiceName }}-pr-staging.azurewebsites.net" -tokenServiceUrl "https://login.microsoftonline.com/${{ parameters.SmokeTestTenantId }}/oauth2/v2.0/token" -Scope "${{ parameters.SmokeTestApplicationUrl }}/.default" -ClientId ${{ parameters.SmokeTestClientID }} -ClientSecret ${{ parameters.SmokeTestClientSecret }} -httpVerb POST'
+
+ - task: PowerShell@2
+   condition: succeeded()
+   displayName: 'Run AD Azure check API is secure'
+   inputs:
+     targetType: filePath
+     filePath: '$(System.DefaultWorkingDirectory)/DevOps/checkApiSecureAzureAd.ps1'
+     arguments: '-url "https://app-${{ parameters.EnvironmentKey }}-${{ parameters.ServiceName }}-pr-staging.azurewebsites.net" -tokenServiceUrl "https://login.microsoftonline.com/${{ parameters.SmokeTestTenantId }}/oauth2/v2.0/token" -Scope "${{ parameters.SmokeTestApplicationUrl }}/.default" -ClientId ${{ parameters.SmokeTestClientID }} -ClientSecret ${{ parameters.SmokeTestClientSecret }} -httpVerb POST'

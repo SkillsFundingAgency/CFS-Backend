@@ -12,7 +12,6 @@ parameters:
   type: 'string'
   default: ''
 
-
 steps:
 - task: DownloadPipelineArtifact@2
   inputs:
@@ -22,10 +21,7 @@ steps:
     preferTriggeringPipeline: false
     runVersion: 'latestFromBranch'
     runBranch: 'refs/heads/master'
-    #runId: # Required when source == Specific && RunVersion == Specific
-    #tags: # Optional
     artifact: CalculateFunding.Shared.ArmTemplates
-    #patterns: '**' # Optional
     path: $(Pipeline.Workspace)\_templates
 
 - task: AzureResourceGroupDeployment@2

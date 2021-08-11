@@ -1,0 +1,31 @@
+parameters:
+- name: ServiceName
+  type: string
+  default: ''
+- name: EnvironmentKey
+  type: string
+  default: ''
+- name: APIKey
+  type: string
+  default: ''
+- name: apiBuildNumber
+  type: string
+  default: ''
+
+steps:
+ - task: PowerShell@2
+   condition: succeeded()
+   displayName: 'Run Smoke Test'
+   inputs:
+    targetType: filePath
+    filePath: '$(System.DefaultWorkingDirectory)/DevOps/run-smoke-test.ps1'
+    arguments: '-url "https://app-${{ parameters.EnvironmentKey }}-${{ parameters.ServiceName }}-pr-staging.azurewebsites.net" -apiKey ${{ parameters.apiKey }} -apiBuildNumber $(apibuildnumber)'
+    failOnStderr: true
+ 
+ - task: PowerShell@2
+   condition: succeeded()
+   displayName: 'Run check API is secure'
+   inputs:
+    targetType: filePath
+    filePath: '$(System.DefaultWorkingDirectory)/DevOps/checkApiSecure.ps1'
+    arguments: '-url "https://app-${{ parameters.EnvironmentKey }}-${{ parameters.ServiceName }}-pr-staging.azurewebsites.net" -apiKey ${{ parameters.apiKey }}' 
