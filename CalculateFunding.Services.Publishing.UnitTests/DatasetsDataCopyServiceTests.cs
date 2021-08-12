@@ -74,58 +74,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         }
 
         [TestMethod]
-        public async Task Process_GivenNoRelationshipIdOnMessage_ThrowsException()
-        {
-            // Arrange
-            string specificationId = NewRandomString();
-            Message message = CreateMessage(specificationId);
-
-            // Act
-            Func<Task> result = async () => await _service.Process(message);
-
-            // Assert
-            result
-                .Should()
-                .Throw<ArgumentNullException>()
-                .Which
-                .Message
-                .Contains("relationship-id");
-        }
-
-        [TestMethod]
-        public async Task Process_GivenNoRelationshipFound_ThrowsException()
-        {
-            // Arrange
-            string specificationId = NewRandomString();
-            string relationshipId = NewRandomString();
-            Message message = CreateMessage(specificationId, relationshipId);
-
-            IEnumerable<DatasetSpecificationRelationshipViewModel> relationships = new[]
-            {
-                NewDatasetSpecificationRelationshipViewModel(_ => _.WithId(NewRandomString()))
-            };
-
-            GivenRelationshipsForSpecification(specificationId, relationships);
-            AndSpecificationSummaryForSpecificaiton(specificationId, NewSpecificationSummary());
-
-            // Act
-            Func<Task> result = async () => await _service.Process(message);
-
-            // Assert
-            result
-                .Should()
-                .Throw<NonRetriableException>()
-                .Which
-                .Message
-                .Should()
-                .Be($"No relationship found for the specificaiton id - {specificationId} and relationship id - {relationshipId}.");
-
-            _specificationService.Verify(x => x.GetSpecificationSummaryById(specificationId), Times.Once);
-            _datasetsApiClient.Verify(x => x.GetCurrentRelationshipsBySpecificationId(specificationId), Times.Once);
-        }
-
-        [TestMethod]
-        public async Task Process_GivenNoSpecificationFound_ThrowsException()
+        public void Process_GivenNoSpecificationFound_ThrowsException()
         {
             // Arrange
             string specificationId = NewRandomString();
@@ -553,7 +502,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
         private void AssertRelationshipsRetrievedBySpecificationId(string specificationId)
         {
-            _datasetsApiClient.Verify(x => x.GetCurrentRelationshipsBySpecificationId(specificationId), Times.Once);
+            _datasetsApiClient.Verify(x => x.GetReferenceRelationshipsBySpecificationId(specificationId), Times.Once);
         }
 
         private bool AreEqual(RelationshipDataSetExcelData actual, RelationshipDataSetExcelData expected)
@@ -664,7 +613,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
         private void GivenRelationshipsForSpecification(string specificationId, IEnumerable<DatasetSpecificationRelationshipViewModel> relationships)
         {
-            _datasetsApiClient.Setup(x => x.GetCurrentRelationshipsBySpecificationId(specificationId))
+            _datasetsApiClient.Setup(x => x.GetReferenceRelationshipsBySpecificationId(specificationId))
                 .ReturnsAsync(new ApiResponse<IEnumerable<DatasetSpecificationRelationshipViewModel>>(HttpStatusCode.OK, relationships));
         }
 

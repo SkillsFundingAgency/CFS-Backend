@@ -130,7 +130,7 @@ namespace CalculateFunding.Api.Datasets.IntegrationTests.DatasetSpecificationRel
             _specificationDatasetRelationshipContext.TrackDocumentIdentity(new CosmosIdentity(definitionRelationship.Id, null));
             _specificationDatasetRelationshipContext.TrackDocumentIdentity(new CosmosIdentity(definitionRelationship.RelationshipId, null));
 
-            IDictionary<string, JobSummary> jobs = await GetLatestJob(_specificationId, PublishDatasetsDataJob);
+            IDictionary<string, JobSummary> jobs = await GetLatestJob(_referencedspecificationId, PublishDatasetsDataJob);
 
             jobs.ContainsKey(PublishDatasetsDataJob).Should().BeTrue();
 

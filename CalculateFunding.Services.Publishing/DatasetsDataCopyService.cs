@@ -64,7 +64,6 @@ namespace CalculateFunding.Services.Publishing
             string relationshipId = message.GetUserProperty<string>("relationship-id");
 
             Guard.ArgumentNotNull(specificationId, nameof(specificationId));
-            Guard.ArgumentNotNull(relationshipId, nameof(relationshipId));
 
             SpecificationSummary specificationSummary = await _specificationService.GetSpecificationSummaryById(specificationId);
 
@@ -73,91 +72,95 @@ namespace CalculateFunding.Services.Publishing
                 LogAndThrowException($"Specification not found for specification id- {specificationId}", true);
             }
 
-            DatasetSpecificationRelationshipViewModel relationship = await GetDatasetSpecificationRelationship(specificationId, relationshipId);
-            List<RelationshipDataSetExcelData> excelDataItems = await GetRelationshipDatasetExcelData(specificationId, relationship);
+            IEnumerable<DatasetSpecificationRelationshipViewModel> relationships = await GetDatasetSpecificationRelationship(specificationId);
 
-            // there are no published providers so exit early
-            if (excelDataItems.IsNullOrEmpty())
+            foreach (DatasetSpecificationRelationshipViewModel relationship in string.IsNullOrWhiteSpace(relationshipId) ? relationships : relationships.Where(_ => _.Id == relationshipId))
             {
-                return;
-            }
+                List<RelationshipDataSetExcelData> excelDataItems = await GetRelationshipDatasetExcelData(specificationId, relationship);
 
-            NewDatasetVersionResponseModel datasetVersion = null;
-
-            if (string.IsNullOrEmpty(relationship.DatasetId))
-            {
-                CreateNewDatasetModel createNewDatasetModel = new CreateNewDatasetModel
+                // there are no published providers so exit early
+                if (excelDataItems.IsNullOrEmpty())
                 {
-                    DefinitionId = relationship.Definition?.Id,
-                    Filename = $"{relationship.Name}.xlsx",
-                    Description = relationship.RelationshipDescription,
-                    Name = $"{relationship.Name}-dataset",
-                    FundingStreamId = specificationSummary.FundingStreams?.First().Id,
-                    RowCount = excelDataItems.Count
-                };
-
-                ValidatedApiResponse<NewDatasetVersionResponseModel> datasetCreateResponse =
-                    await _datasetsApiClientPolicy.ExecuteAsync(() => _datasetsApiClient.CreateAndPersistNewDataset(createNewDatasetModel));
-
-                if (!datasetCreateResponse.StatusCode.IsSuccess() || datasetCreateResponse.Content == null)
-                {
-                    LogAndThrowException($"Failed to create a dataset, relationship id - {relationship.Id}. Status Code - {datasetCreateResponse.StatusCode}");
+                    return;
                 }
 
-                datasetVersion = datasetCreateResponse.Content;
-            }
-            else
-            {
-                DatasetVersionUpdateModel datasetVersionUpdateModel = new DatasetVersionUpdateModel()
-                {
-                    DatasetId = relationship.DatasetId,
-                    Filename = relationship.Name,
-                    FundingStreamId = specificationSummary.FundingStreams.First().Id
-                };
-                ValidatedApiResponse<NewDatasetVersionResponseModel> datasetUpdateResponse =
-                    await _datasetsApiClientPolicy.ExecuteAsync(() => _datasetsApiClient.DatasetVersionUpdate(datasetVersionUpdateModel));
+                NewDatasetVersionResponseModel datasetVersion = null;
 
-                if (!datasetUpdateResponse.StatusCode.IsSuccess() || datasetUpdateResponse.Content == null)
+                if (string.IsNullOrEmpty(relationship.DatasetId))
                 {
-                    LogAndThrowException($"Failed to update the dataset version, dataset id - {relationship.DatasetId}. Status Code - {datasetUpdateResponse.StatusCode}");
+                    CreateNewDatasetModel createNewDatasetModel = new CreateNewDatasetModel
+                    {
+                        DefinitionId = relationship.Definition?.Id,
+                        Filename = $"{relationship.Name}.xlsx",
+                        Description = relationship.RelationshipDescription,
+                        Name = $"{relationship.Name}-dataset",
+                        FundingStreamId = specificationSummary.FundingStreams?.First().Id,
+                        RowCount = excelDataItems.Count
+                    };
+
+                    ValidatedApiResponse<NewDatasetVersionResponseModel> datasetCreateResponse =
+                        await _datasetsApiClientPolicy.ExecuteAsync(() => _datasetsApiClient.CreateAndPersistNewDataset(createNewDatasetModel));
+
+                    if (!datasetCreateResponse.StatusCode.IsSuccess() || datasetCreateResponse.Content == null)
+                    {
+                        LogAndThrowException($"Failed to create a dataset, relationship id - {relationship.Id}. Status Code - {datasetCreateResponse.StatusCode}");
+                    }
+
+                    datasetVersion = datasetCreateResponse.Content;
+                }
+                else
+                {
+                    DatasetVersionUpdateModel datasetVersionUpdateModel = new DatasetVersionUpdateModel()
+                    {
+                        DatasetId = relationship.DatasetId,
+                        Filename = relationship.Name,
+                        FundingStreamId = specificationSummary.FundingStreams.First().Id
+                    };
+                    ValidatedApiResponse<NewDatasetVersionResponseModel> datasetUpdateResponse =
+                        await _datasetsApiClientPolicy.ExecuteAsync(() => _datasetsApiClient.DatasetVersionUpdate(datasetVersionUpdateModel));
+
+                    if (!datasetUpdateResponse.StatusCode.IsSuccess() || datasetUpdateResponse.Content == null)
+                    {
+                        LogAndThrowException($"Failed to update the dataset version, dataset id - {relationship.DatasetId}. Status Code - {datasetUpdateResponse.StatusCode}");
+                    }
+
+                    datasetVersion = datasetUpdateResponse.Content;
                 }
 
-                datasetVersion = datasetUpdateResponse.Content;
-            }
+                byte[] excelData = _excelWriter.WriteToExcel(relationship.Name, excelDataItems);
 
-            byte[] excelData = _excelWriter.WriteToExcel(relationship.Name, excelDataItems);
+                DatasetMetadataViewModel datasetMetadataViewModel = new DatasetMetadataViewModel()
+                {
+                    AuthorId = datasetVersion.Author?.Id,
+                    AuthorName = datasetVersion.Author?.Name,
+                    DatasetId = datasetVersion.DatasetId,
+                    Description = datasetVersion.Description,
+                    FundingStreamId = datasetVersion.FundingStreamId,
+                    Filename = datasetVersion.Filename,
+                    Name = datasetVersion.Name,
+                    Stream = excelData
+                };
 
-            DatasetMetadataViewModel datasetMetadataViewModel = new DatasetMetadataViewModel()
-            {
-                AuthorId = datasetVersion.Author?.Id,
-                AuthorName = datasetVersion.Author?.Name,
-                DatasetId = datasetVersion.DatasetId,
-                Description = datasetVersion.Description,
-                FundingStreamId = datasetVersion.FundingStreamId,
-                Filename = datasetVersion.Filename,
-                Name = datasetVersion.Name,
-                Stream = excelData
-            };
+                HttpStatusCode fileUploadStatus = await _datasetsApiClientPolicy.ExecuteAsync(() => _datasetsApiClient.UploadDatasetFile(datasetVersion.Filename, datasetMetadataViewModel));
 
-            HttpStatusCode fileUploadStatus = await _datasetsApiClientPolicy.ExecuteAsync(() => _datasetsApiClient.UploadDatasetFile(datasetVersion.Filename, datasetMetadataViewModel));
+                if (!fileUploadStatus.IsSuccess())
+                {
+                    LogAndThrowException($"Failed to upload the dataset file, dataset id - {relationship.DatasetId}, file name - {datasetVersion.Filename}. Status Code - {fileUploadStatus}");
+                }
 
-            if (!fileUploadStatus.IsSuccess())
-            {
-                LogAndThrowException($"Failed to upload the dataset file, dataset id - {relationship.DatasetId}, file name - {datasetVersion.Filename}. Status Code - {fileUploadStatus}");
-            }
+                AssignDatasourceModel assignDatasourceModel = new AssignDatasourceModel()
+                {
+                    DatasetId = datasetVersion.DatasetId,
+                    RelationshipId = relationship.Id,
+                    Version = datasetVersion.Version
+                };
 
-            AssignDatasourceModel assignDatasourceModel = new AssignDatasourceModel()
-            {
-                DatasetId = datasetVersion.DatasetId,
-                RelationshipId = relationshipId,
-                Version = datasetVersion.Version
-            };
+                ApiResponse<Common.ApiClient.Datasets.Models.JobCreationResponse> assignDatasourceVersionResponse = await _datasetsApiClientPolicy.ExecuteAsync(() => _datasetsApiClient.AssignDatasourceVersionToRelationship(assignDatasourceModel));
 
-            ApiResponse<Common.ApiClient.Datasets.Models.JobCreationResponse> assignDatasourceVersionResponse = await _datasetsApiClientPolicy.ExecuteAsync(() => _datasetsApiClient.AssignDatasourceVersionToRelationship(assignDatasourceModel));
-
-            if (!assignDatasourceVersionResponse.StatusCode.IsSuccess() || assignDatasourceVersionResponse.Content == null)
-            {
-                LogAndThrowException($"Failed to assign datasource version to relationship, dataset id - {datasetVersion.DatasetId}, relationship id - {relationshipId}, version - {datasetVersion.Version}. Status Code - {assignDatasourceVersionResponse.StatusCode}");
+                if (!assignDatasourceVersionResponse.StatusCode.IsSuccess() || assignDatasourceVersionResponse.Content == null)
+                {
+                    LogAndThrowException($"Failed to assign datasource version to relationship, dataset id - {datasetVersion.DatasetId}, relationship id - {relationship.Id}, version - {datasetVersion.Version}. Status Code - {assignDatasourceVersionResponse.StatusCode}");
+                }
             }
         }
 
@@ -212,24 +215,17 @@ namespace CalculateFunding.Services.Publishing
             return excelDataItems;
         }
 
-        private async Task<DatasetSpecificationRelationshipViewModel> GetDatasetSpecificationRelationship(string specificationId, string relationshipId)
+        private async Task<IEnumerable<DatasetSpecificationRelationshipViewModel>> GetDatasetSpecificationRelationship(string specificationId)
         {
             ApiResponse<IEnumerable<DatasetSpecificationRelationshipViewModel>> relationshipsApiResponse = await _datasetsApiClientPolicy.ExecuteAsync(
-                            () => _datasetsApiClient.GetCurrentRelationshipsBySpecificationId(specificationId));
+                            () => _datasetsApiClient.GetReferenceRelationshipsBySpecificationId(specificationId));
 
             if (!relationshipsApiResponse.StatusCode.IsSuccess() || relationshipsApiResponse.Content == null)
             {
-                LogAndThrowException($"Failed to retrieve the relationships for the specificaiton - {specificationId}. Status Code - {relationshipsApiResponse.StatusCode}");
+                LogAndThrowException($"Failed to retrieve referenced relationships for the specificaiton - {specificationId}. Status Code - {relationshipsApiResponse.StatusCode}");
             }
 
-            DatasetSpecificationRelationshipViewModel relationship = relationshipsApiResponse.Content.FirstOrDefault(x => x.Id == relationshipId);
-
-            if (relationship == null)
-            {
-                LogAndThrowException($"No relationship found for the specificaiton id - {specificationId} and relationship id - {relationshipId}.", true);
-            }
-
-            return relationship;
+            return relationshipsApiResponse.Content;
         }
 
         private void LogAndThrowException(string errorMessage, bool isNonRetriable = false)

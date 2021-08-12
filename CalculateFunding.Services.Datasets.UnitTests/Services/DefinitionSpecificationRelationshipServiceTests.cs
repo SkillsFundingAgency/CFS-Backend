@@ -554,7 +554,7 @@ namespace CalculateFunding.Services.Datasets.Services
             await jobManagement
                 .Received(1)
                 .QueueJob(Arg.Is<JobCreateModel>(_ => _.JobDefinitionId == JobConstants.DefinitionNames.PublishDatasetsDataJob &&
-                    _.SpecificationId == specificationId));
+                    _.SpecificationId == targetSpecificationId));
 
             await datasetRepository
                 .Received(1)

@@ -236,14 +236,14 @@ namespace CalculateFunding.Services.Datasets
                     InvokerUserDisplayName = author.Name,
                     InvokerUserId = author.Id,
                     JobDefinitionId = JobConstants.DefinitionNames.PublishDatasetsDataJob,
-                    SpecificationId = specification.Id,
+                    SpecificationId = model.TargetSpecificationId,
                     Trigger = new Trigger
                     {
-                        EntityId = specification.Id,
+                        EntityId = model.TargetSpecificationId,
                         EntityType = "Specification",
                         Message = "New Csv file generation triggered by dataset relationship spec"
                     },
-                    Properties = new Dictionary<string, string> { { "specification-id", specification.Id },
+                    Properties = new Dictionary<string, string> { { "specification-id", model.TargetSpecificationId },
                         { "relationship-id", relationshipVersion.RelationshipId } },
                     CorrelationId = correlationId
                 });
