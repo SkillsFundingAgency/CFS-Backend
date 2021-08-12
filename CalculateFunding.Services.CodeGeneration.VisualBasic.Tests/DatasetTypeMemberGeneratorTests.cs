@@ -66,8 +66,13 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic.UnitTests
         [TestMethod]
         public void GeneratesMembersForRelationshipTypeReleasedData()
         {
+            string targetSpecificationName = "Target Specification Name";
+            string targetSpecificationId = "Target Specification Id";
+
             DatasetRelationshipSummary datasetRelationshipSummary = new DatasetRelationshipSummaryBuilder()
                 .WithType(DatasetRelationshipType.ReleasedData)
+                .WithTargetSpecificationId(targetSpecificationName)
+                .WithTargetSpecificationName(targetSpecificationId)
                 .WithPublishedSpecificationConfigurationFundingLines(new List<PublishedSpecificationItem>
                 {
                     new PublishedSpecificationItem
@@ -92,6 +97,15 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic.UnitTests
 
             DatasetTypeMemberGenerator sut = new DatasetTypeMemberGenerator(typeIdentifierGenerator);
             IEnumerable<StatementSyntax> result = sut.GetMembers(datasetRelationshipSummary);
+
+            IEnumerable<FieldDeclarationSyntax> fields = result.OfType<FieldDeclarationSyntax>();
+            fields.Should().HaveCount(2);
+
+            fields.First().Declarators.First().Initializer.Value.GetFirstToken().ValueText
+                .Should().Be(targetSpecificationId);
+
+            fields.Skip(1).First().Declarators.First().Initializer.Value.GetFirstToken().ValueText
+                .Should().Be(targetSpecificationName);
 
             IEnumerable<PropertyStatementSyntax> properties = result.OfType<PropertyStatementSyntax>();
             properties.Should().HaveCount(4);

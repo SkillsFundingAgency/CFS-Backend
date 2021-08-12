@@ -32,11 +32,15 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 HashSet<string> typesCreated = new HashSet<string>();
                 foreach (DatasetRelationshipSummary dataset in buildProject.DatasetRelationships)
                 {
-                    if (!typesCreated.Contains(dataset.DatasetDefinition.Name))
+                    string datasourceName = dataset.RelationshipType == Models.Datasets.DatasetRelationshipType.ReleasedData ?
+                        dataset.TargetSpecificationName :
+                        dataset.DatasetDefinition.Name;
+
+                    if (!typesCreated.Contains(datasourceName))
                     {
                         ClassBlockSyntax @class = SyntaxFactory.ClassBlock(
                             SyntaxFactory.ClassStatement(
-                                    $"{_typeIdentifierGenerator.GenerateIdentifier(dataset.DatasetDefinition.Name)}Dataset"
+                                    $"{_typeIdentifierGenerator.GenerateIdentifier(datasourceName)}Dataset"
                                 )
                                 .WithModifiers(
                                     SyntaxFactory.TokenList(
@@ -52,8 +56,8 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                             .WithMembers(
                                 SyntaxFactory.SingletonList<StatementSyntax>(@class))
                             .NormalizeWhitespace();
-                        yield return new SourceFile { FileName = $"Datasets/{_typeIdentifierGenerator.GenerateIdentifier(dataset.DatasetDefinition.Name)}.vb", SourceCode = syntaxTree.ToFullString() };
-                        typesCreated.Add(dataset.DatasetDefinition.Name);
+                        yield return new SourceFile { FileName = $"Datasets/{_typeIdentifierGenerator.GenerateIdentifier(datasourceName)}.vb", SourceCode = syntaxTree.ToFullString() };
+                        typesCreated.Add(datasourceName);
                     }
 
 
@@ -67,16 +71,22 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
         private StatementSyntax GetDatasetProperties(DatasetRelationshipSummary datasetRelationship)
         {
             StringBuilder builder = new StringBuilder();
+
             builder.AppendLine($"<DatasetRelationship(Id := \"{datasetRelationship.Id}\", Name := \"{datasetRelationship.Name}\")>");
-            builder.AppendLine($"<Field(Id := \"{datasetRelationship.DatasetDefinition.Id}\", Name := \"{datasetRelationship.DatasetDefinition.Name}\")>");
-            if (!string.IsNullOrWhiteSpace(datasetRelationship?.DatasetDefinition?.Description))
+
+            (string datasourceVariableName, string datasourceName, string datasourceId, string datasourceDescription) = datasetRelationship.RelationshipType == Models.Datasets.DatasetRelationshipType.ReleasedData ?
+                (datasetRelationship.TargetSpecificationName, datasetRelationship.TargetSpecificationName, datasetRelationship.PublishedSpecificationConfiguration.SpecificationId, null) :
+                (datasetRelationship.Name, datasetRelationship.DatasetDefinition.Name, datasetRelationship.DatasetDefinition.Id, datasetRelationship.DatasetDefinition.Description);
+
+            builder.AppendLine($"<Field(Id := \"{datasourceId}\", Name := \"{datasourceName}\")>");
+            if (!string.IsNullOrWhiteSpace(datasourceDescription))
             {
-                builder.AppendLine($"<Description(Description := \"{datasetRelationship.DatasetDefinition.Description?.Replace("\"", "\"\"")}\")>");
+                builder.AppendLine($"<Description(Description := \"{datasourceDescription?.Replace("\"", "\"\"")}\")>");
             }
 
             builder.AppendLine(datasetRelationship.DataGranularity == DataGranularity.SingleRowPerProvider
-                ? $"Public Property {_typeIdentifierGenerator.GenerateIdentifier(datasetRelationship.Name)}() As {_typeIdentifierGenerator.GenerateIdentifier($"{datasetRelationship.DatasetDefinition.Name}Dataset")}"
-                : $"Public Property {_typeIdentifierGenerator.GenerateIdentifier(datasetRelationship.Name)}() As System.Collections.Generic.List(Of {_typeIdentifierGenerator.GenerateIdentifier($"{datasetRelationship.DatasetDefinition.Name}Dataset")})");
+                ? $"Public Property {_typeIdentifierGenerator.GenerateIdentifier(datasourceVariableName)}() As {_typeIdentifierGenerator.GenerateIdentifier($"{datasourceName}Dataset")}"
+                : $"Public Property {_typeIdentifierGenerator.GenerateIdentifier(datasourceVariableName)}() As System.Collections.Generic.List(Of {_typeIdentifierGenerator.GenerateIdentifier($"{datasourceName}Dataset")})");
 
             SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(builder.ToString());
             return tree.GetRoot().DescendantNodes().OfType<StatementSyntax>()

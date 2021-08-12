@@ -539,8 +539,8 @@ namespace CalculateFunding.Migrations.Specifications.Etl.Migrations
 
                                     DatasetIndex datasetIndex = new DatasetIndex
                                     {
-                                        DefinitionId = item.content.Definition.id,
-                                        DefinitionName = item.content.Definition.name,
+                                        DefinitionId = item.content.Definition?.id,
+                                        DefinitionName = item.content.Definition?.name,
                                         Id = item.content.id,
                                         LastUpdatedDate = !string.IsNullOrWhiteSpace(Convert.ToString(item.updatedAt)) ? DateTimeOffset.Parse(Convert.ToString(item.updatedAt)) : null,
                                         Name = item.content.name,

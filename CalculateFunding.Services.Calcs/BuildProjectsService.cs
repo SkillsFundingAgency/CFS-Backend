@@ -216,15 +216,7 @@ namespace CalculateFunding.Services.Calcs
             Models.Specs.SpecificationSummary specificationSummary;
             if (!specificationSummaryExists)
             {
-                ApiResponse<SpecificationSummary> specificationSummaryResponse = await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId));
-                if (!specificationSummaryResponse.StatusCode.IsSuccess())
-                {
-                    string errorMessage = $"Unable to get specification summary by id: '{specificationId}' with status code: {specificationSummaryResponse.StatusCode}";
-                    _logger.Error(errorMessage);
-                    throw new NonRetriableException(errorMessage);
-                }
-
-                specificationSummary = _mapper.Map<Models.Specs.SpecificationSummary>(specificationSummaryResponse.Content);
+                specificationSummary = _mapper.Map<Models.Specs.SpecificationSummary>(await GetSpecificationSummary(specificationId));
             }
             else
             {
@@ -582,20 +574,7 @@ namespace CalculateFunding.Services.Calcs
         {
             BuildProject buildProject = null;
 
-            ApiResponse<SpecificationSummary> specificationSummaryResponse = await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId));
-
-            if (specificationSummaryResponse != null && specificationSummaryResponse.StatusCode == System.Net.HttpStatusCode.NotFound)
-            {
-                throw new EntityNotFoundException($"Specification with ID '{specificationId}' was not found");
-            }
-            else if (specificationSummaryResponse?.Content == null)
-            {
-                _logger.Error($"Failed to get specification for specification id '{specificationId}'");
-
-                throw new ArgumentNullException(nameof(SpecificationSummary));
-            }
-
-            SpecificationSummary specificationSummary = specificationSummaryResponse.Content;
+            SpecificationSummary specificationSummary = await GetSpecificationSummary(specificationId);
 
             IEnumerable<Reference> fundingStreams = specificationSummary.FundingStreams;
             Reference fundingPeriod = specificationSummary.FundingPeriod;
@@ -641,6 +620,24 @@ namespace CalculateFunding.Services.Calcs
             }
 
             return new OkObjectResult(assembly);
+        }
+
+        private async Task<SpecificationSummary> GetSpecificationSummary(string specificationId)
+        {
+            ApiResponse<SpecificationSummary> specificationSummaryResponse = await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId));
+
+            if (specificationSummaryResponse != null && specificationSummaryResponse.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                throw new EntityNotFoundException($"Specification with ID '{specificationId}' was not found");
+            }
+            else if (specificationSummaryResponse?.Content == null)
+            {
+                _logger.Error($"Failed to get specification for specification id '{specificationId}'");
+
+                throw new ArgumentNullException(nameof(SpecificationSummary));
+            }
+
+            return specificationSummaryResponse?.Content;
         }
 
         private async Task<IEnumerable<Job>> CreateGenerateAllocationJobs(IEnumerable<IDictionary<string, string>> jobProperties, string specificationId)
@@ -854,7 +851,7 @@ namespace CalculateFunding.Services.Calcs
 
                 IList<Task> definitionTasks = new List<Task>();
 
-                IEnumerable<string> definitionIds = datasetRelationshipModels.Select(m => m.Definition?.Id);
+                IEnumerable<string> definitionIds = datasetRelationshipModels.Where(m => m.Definition != null).Select(m => m.Definition.Id);
 
                 foreach (string definitionId in definitionIds)
                 {
@@ -885,15 +882,18 @@ namespace CalculateFunding.Services.Calcs
                 {
                     buildproject.DatasetRelationships.Add(new DatasetRelationshipSummary
                     {
-                        DatasetDefinitionId = datasetRelationshipModel.Definition.Id,
+                        DatasetDefinitionId = datasetRelationshipModel.Definition?.Id,
                         DatasetId = datasetRelationshipModel.DatasetId,
                         DatasetName = datasetRelationshipModel.DatasetName,
                         Relationship = new Reference(datasetRelationshipModel.Id, datasetRelationshipModel.Name),
                         DefinesScope = datasetRelationshipModel.IsProviderData,
                         Id = datasetRelationshipModel.Id,
                         Name = datasetRelationshipModel.Name,
-                        DatasetDefinition = datasetDefinitions.FirstOrDefault(m => m.Id == datasetRelationshipModel.Definition.Id),
+                        DatasetDefinition = datasetDefinitions.FirstOrDefault(m => m.Id == datasetRelationshipModel.Definition?.Id),
                         RelationshipType = datasetRelationshipModel.RelationshipType,
+                        TargetSpecificationName = datasetRelationshipModel.RelationshipType == Models.Datasets.DatasetRelationshipType.ReleasedData ? 
+                            (await GetSpecificationSummary(datasetRelationshipModel.PublishedSpecificationConfiguration.SpecificationId)).Name : 
+                            string.Empty,
                         PublishedSpecificationConfiguration = datasetRelationshipModel.PublishedSpecificationConfiguration
                     });
                 }

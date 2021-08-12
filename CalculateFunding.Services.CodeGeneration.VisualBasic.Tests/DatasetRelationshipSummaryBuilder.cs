@@ -29,6 +29,18 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic.UnitTests
             return this;
         }
 
+        public DatasetRelationshipSummaryBuilder WithTargetSpecificationName(string specificationName)
+        {
+            datasetRelationshipSummary.TargetSpecificationName = specificationName;
+            return this;
+        }
+
+        public DatasetRelationshipSummaryBuilder WithTargetSpecificationId(string specificationId)
+        {
+            datasetRelationshipSummary.PublishedSpecificationConfiguration.SpecificationId = specificationId;
+            return this;
+        }
+
         public DatasetRelationshipSummaryBuilder WithPublishedSpecificationConfigurationFundingLines(
             IEnumerable<PublishedSpecificationItem> publishedSpecificationItems)
         {

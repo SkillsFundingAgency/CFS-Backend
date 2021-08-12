@@ -27,10 +27,18 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             DatasetRelationshipType relationshipType = dataset.RelationshipType;
             PublishedSpecificationConfiguration publishedSpecificationConfiguration = dataset.PublishedSpecificationConfiguration;
 
+            string datasourceName = dataset.RelationshipType == DatasetRelationshipType.ReleasedData ?
+                dataset.TargetSpecificationName :
+                dataset.DatasetDefinition.Name;
+
             IList<StatementSyntax> members = new List<StatementSyntax>
             {
-                CreateStaticDefinitionName(datasetDefinition),
-                CreateStaticDefinitionId(datasetDefinition)
+                dataset.RelationshipType == DatasetRelationshipType.ReleasedData ?
+                    CreateStaticProperty("SpecificationName", dataset.TargetSpecificationName) :
+                    CreateStaticProperty("DatasetDefinitionName", dataset.DatasetDefinition.Name),
+                dataset.RelationshipType == DatasetRelationshipType.ReleasedData ?
+                    CreateStaticProperty("SpecificationId", dataset.PublishedSpecificationConfiguration.SpecificationId) :
+                    CreateStaticProperty("DatasetDefinitionId", dataset.DatasetDefinition.Id)
             };
 
             if (relationshipType == DatasetRelationshipType.Uploaded)
@@ -86,30 +94,11 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             return members;
         }
 
-        private static StatementSyntax CreateStaticDefinitionName(DatasetDefinition datasetDefinition)
+        private static StatementSyntax CreateStaticProperty(string propertyName, string value)
         {
-            SyntaxToken token = SyntaxFactory.Literal(datasetDefinition.Name);
+            SyntaxToken token = SyntaxFactory.Literal(value);
             VariableDeclaratorSyntax variable = SyntaxFactory.VariableDeclarator(
-                SyntaxFactory.SingletonSeparatedList(SyntaxFactory.ModifiedIdentifier("DatasetDefinitionName")));
-            variable = variable.WithAsClause(
-                SyntaxFactory.SimpleAsClause(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword))));
-
-            variable = variable.WithInitializer(
-                SyntaxFactory.EqualsValue(SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression,
-                    token)));
-
-            return SyntaxFactory.FieldDeclaration(
-                SyntaxFactory.List<AttributeListSyntax>(),
-                SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword),
-                    SyntaxFactory.Token(SyntaxKind.SharedKeyword)),
-                SyntaxFactory.SingletonSeparatedList(variable));
-        }
-
-        private static StatementSyntax CreateStaticDefinitionId(DatasetDefinition datasetDefinition)
-        {
-            SyntaxToken token = SyntaxFactory.Literal(datasetDefinition.Id);
-            VariableDeclaratorSyntax variable = SyntaxFactory.VariableDeclarator(
-                SyntaxFactory.SingletonSeparatedList(SyntaxFactory.ModifiedIdentifier("DatasetDefinitionId")));
+                SyntaxFactory.SingletonSeparatedList(SyntaxFactory.ModifiedIdentifier(propertyName)));
             variable = variable.WithAsClause(
                 SyntaxFactory.SimpleAsClause(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword))));
 

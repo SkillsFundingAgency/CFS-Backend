@@ -1031,8 +1031,8 @@ namespace CalculateFunding.Services.Datasets
             {
                 DatasetIndex datasetIndex = new DatasetIndex()
                 {
-                    DefinitionId = dataset.Content.Definition.Id,
-                    DefinitionName = dataset.Content.Definition.Name,
+                    DefinitionId = dataset.Content.Definition?.Id,
+                    DefinitionName = dataset.Content.Definition?.Name,
                     Id = dataset.Content.Id,
                     LastUpdatedDate = dataset.UpdatedAt,
                     Name = dataset.Content.Name,
@@ -1091,7 +1091,7 @@ namespace CalculateFunding.Services.Datasets
                         BlobName = datasetVersion.BlobName,
                         ChangeNote = datasetVersion.Comment,
                         ChangeType = datasetVersion.ChangeType.ToString(),
-                        DefinitionName = dataset.Content.Definition.Name,
+                        DefinitionName = dataset.Content.Definition?.Name,
                         Description = datasetVersion.Description,
                         LastUpdatedDate = datasetVersion.Date,
                         LastUpdatedByName = datasetVersion.Author.Name,

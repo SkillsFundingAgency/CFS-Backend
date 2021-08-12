@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Calcs.ObsoleteItems;
 using CalculateFunding.Models.Publishing;
@@ -492,9 +493,12 @@ namespace CalculateFunding.Services.Calcs.Services
 
             SourceCodeService sourceCodeService = CreateServiceWithRealCompiler();
 
+            string datasetName = "DatasetName";
+
             BuildProject buildProject = new BuildProject
             {
                 SpecificationId = specificationId,
+                DatasetRelationships = CreatDatasetRelationshipSummary(datasetName),
                 Id = Guid.NewGuid().ToString(),
                 Name = specificationId,
                 FundingLines = new Dictionary<string, Funding>()
@@ -507,6 +511,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
             // Assert
             build.Success.Should().BeTrue();
+
+            string datasetsSourceCode = build.SourceFiles.First(s => s.FileName == "Datasets/Datasets.vb").SourceCode;
+            datasetsSourceCode.Should().Contain($"Public Property {datasetName}() As {datasetName}_definitionNameDataset");
 
             string calcSourceCode = build.SourceFiles.First(s => s.FileName == "Calculations.vb").SourceCode;
             calcSourceCode.Should().Contain($"Public differentCalcName As Func(Of {expectedType}) = Nothing");
@@ -591,6 +598,45 @@ namespace CalculateFunding.Services.Calcs.Services
         private static ICodeMetadataGeneratorService CreateCodeMetadataGeneratorService()
         {
             return Substitute.For<ICodeMetadataGeneratorService>();
+        }
+
+        private static List<DatasetRelationshipSummary> CreatDatasetRelationshipSummary(params string[] datasets)
+        {
+            List<DatasetRelationshipSummary> datasetRelationshipSummaries = new List<DatasetRelationshipSummary>();
+            datasets.ForEach(_ => datasetRelationshipSummaries.Add(new DatasetRelationshipSummary()
+                {
+                    DatasetId = $"{_}_id",
+                    Name = _,
+                    Relationship = new Reference() { Name = "JB TEST 202003131731" },
+                    DatasetDefinitionId = $"{_}_definitionId",
+                    DatasetDefinition = new Models.Datasets.Schema.DatasetDefinition()
+                    {
+                        Id = $"{_}_definitionId",
+                        Name = $"{_}_definitionName",
+                        TableDefinitions = new List<Models.Datasets.Schema.TableDefinition>()
+                            {
+                                new Models.Datasets.Schema.TableDefinition()
+                                {
+                                    Name = "Early Years AP Census Year 1",
+                                    FieldDefinitions = new List<Models.Datasets.Schema.FieldDefinition>()
+                                    {
+                                        new Models.Datasets.Schema.FieldDefinition()
+                                        {
+                                            Name = "AP Universal Entitlement 2YO",
+                                        },
+                                        new Models.Datasets.Schema.FieldDefinition()
+                                        {
+                                            Name = "AP Universal Entitlement 3YO",
+                                        }
+                                    }
+                                }
+                            }
+                    }
+
+                }
+            ));
+
+            return datasetRelationshipSummaries;
         }
     }
 }

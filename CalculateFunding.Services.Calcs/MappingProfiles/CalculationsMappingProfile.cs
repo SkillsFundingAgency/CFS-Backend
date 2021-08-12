@@ -50,6 +50,8 @@ namespace CalculateFunding.Services.Calcs.MappingProfiles
         private void CreateDatasetsMappingProfiles()
         {
             CreateMap<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel, Models.Datasets.ViewModels.DatasetSpecificationRelationshipViewModel>();
+            CreateMap<Common.ApiClient.DataSets.Models.PublishedSpecificationConfiguration, Models.Datasets.PublishedSpecificationConfiguration>();
+            CreateMap<Common.ApiClient.DataSets.Models.PublishedSpecificationItem, Models.Datasets.PublishedSpecificationItem>();
             CreateMap<Common.ApiClient.DataSets.Models.DatasetDefinitionViewModel, Models.Datasets.ViewModels.DatasetDefinitionViewModel>();
             CreateMap<Common.ApiClient.DataSets.Models.DatasetSchemaRelationshipModel, Models.Datasets.DatasetSchemaRelationshipModel>();
             CreateMap<Common.ApiClient.DataSets.Models.DatasetSchemaRelationshipField, Models.Datasets.DatasetSchemaRelationshipField>();
