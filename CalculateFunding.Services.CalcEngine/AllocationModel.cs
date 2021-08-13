@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using CalculateFunding.Common.Models;
@@ -185,21 +184,13 @@ namespace CalculateFunding.Services.CalcEngine
 
             SetMissingDatasetDefaultObjects(datasetNamesUsed, _datasetSetters, datasetsInstance);
 
-            Stopwatch stopwatch = Stopwatch.StartNew();
-
             // get all calculation results
             dynamic calculations = instance;
             ValueTuple<Dictionary<string, string[]>, Dictionary<string, string[]>> results =
                 calculations.MainCalc(true);
 
-            stopwatch.Stop();
-
-            Stopwatch swProcess = Stopwatch.StartNew();
             IEnumerable<CalculationResult> calculationResults = ProcessCalculationResults(results.Item1, _calculationResultFuncs);
             IEnumerable<FundingLineResult> fundingLineResults = ProcessFundingLineResults(results.Item2, _fundingLineResultFuncs);
-            swProcess.Stop();
-
-            //Console.WriteLine("Processed provider {0} - {1}", stopwatch.ElapsedMilliseconds, swProcess.ElapsedMilliseconds);
 
             return new CalculationResultContainer
             {

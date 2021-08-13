@@ -8,18 +8,14 @@
 
   <ItemGroup>
     <None Remove="Resources\implementation-test-assembly.dll" />
-    <None Remove="Resources\Implementation-test-datasets-hasvalue.dll" />
-    <None Remove="Resources\implementation-test-with-aggregates.dll" />
-    <None Remove="Resources\implementation-test-with-datasets.dll" />
-    <None Remove="Resources\implementation.dll" />
+    <None Remove="Resources\implementation-test-dateopened.dll" />
     <None Remove="Resources\pages.json" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Resources\implementation-test-assembly.dll" />
-    <EmbeddedResource Include="Resources\Implementation-test-datasets-hasvalue.dll" />
-    <EmbeddedResource Include="Resources\implementation-test-with-datasets.dll" />
-    <EmbeddedResource Include="Resources\implementation-test-with-aggregates.dll" />
+    <EmbeddedResource Include="Resources\implementation-test-dateopened.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>
